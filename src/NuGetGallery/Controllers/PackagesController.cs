@@ -259,6 +259,7 @@ namespace NuGetGallery
             var model = new SubmitPackageRequest();
             model.IsSymbolsUploadEnabled = _contentObjectService.SymbolsConfiguration.IsSymbolsUploadEnabledForUser(currentUser);
             model.IsUserLocked = currentUser.IsLocked;
+            model.IsMarkdigMdSyntaxHighlightEnabled = _featureFlagService.IsMarkdigMdSyntaxHighlightEnabled();
             PackageMetadata packageMetadata;
 
             using (var uploadedFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
@@ -373,6 +374,7 @@ namespace NuGetGallery
             verifyRequest.LicenseFileContents = await GetLicenseFileContentsOrNullAsync(packageMetadata, packageArchiveReader);
             verifyRequest.LicenseExpressionSegments = GetLicenseExpressionSegmentsOrNull(packageMetadata.LicenseMetadata);
             verifyRequest.ReadmeFileContents = await GetReadmeFileContentsOrNullAsync(packageMetadata, packageArchiveReader);
+            verifyRequest.IsMarkdigMdSyntaxHighlightEnabled = _featureFlagService.IsMarkdigMdSyntaxHighlightEnabled();
 
             model.InProgressUpload = verifyRequest;
             return View(model);
@@ -655,6 +657,7 @@ namespace NuGetGallery
             var model = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration);
             model.IsSymbolsPackage = isSymbolsPackageUpload;
             model.HasExistingAvailableSymbols = hasExistingSymbolsPackageAvailable;
+            model.IsMarkdigMdSyntaxHighlightEnabled = _featureFlagService.IsMarkdigMdSyntaxHighlightEnabled();
             model.Warnings.AddRange(packageContentData.Warnings.Select(w => new JsonValidationMessage(w)));
             model.LicenseFileContents = packageContentData.LicenseFileContents;
 
@@ -950,6 +953,7 @@ namespace NuGetGallery
             model.IsRecentPackagesNoIndexEnabled = _featureFlagService.IsRecentPackagesNoIndexEnabled();
             model.IsDisplayTargetFrameworkEnabled = _featureFlagService.IsDisplayTargetFrameworkEnabled(currentUser);
             model.IsComputeTargetFrameworkEnabled = _featureFlagService.IsComputeTargetFrameworkEnabled();
+            model.IsMarkdigMdSyntaxHighlightEnabled = _featureFlagService.IsMarkdigMdSyntaxHighlightEnabled();
 
             if (model.IsComputeTargetFrameworkEnabled || model.IsDisplayTargetFrameworkEnabled)
             {
@@ -1801,7 +1805,8 @@ namespace NuGetGallery
                 ReportMyPackageReasons,
                 Url,
                 await _readMeService.GetReadMeMdAsync(package),
-                _featureFlagService.IsManageDeprecationEnabled(currentUser, package.PackageRegistration));
+                _featureFlagService.IsManageDeprecationEnabled(currentUser, package.PackageRegistration),
+                _featureFlagService.IsMarkdigMdSyntaxHighlightEnabled());
 
             if (!model.CanEdit && !model.CanManageOwners && !model.CanUnlistOrRelist)
             {

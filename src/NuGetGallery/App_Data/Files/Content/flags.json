@@ -29,10 +29,12 @@
     "NuGetGallery.PatternSetTfmHeuristics": "Enabled",
     "NuGetGallery.EmbeddedIcons": "Enabled",
     "NuGetGallery.MarkdigMdRendering": "Enabled",
+    "NuGetGallery.MarkdigMdSyntaxHighlight": "Enabled",
     "NuGetGallery.ImageAllowlist": "Enabled",
     "NuGetGallery.ShowReportAbuseSafetyChanges": "Enabled",
     "NuGetGallery.ComputeTargetFramework": "Enabled",
-    "NuGetGallery.NewAccount2FAEnforcement": "Disabled"
+    "NuGetGallery.NewAccount2FAEnforcement": "Disabled",
+    "NuGetGallery.NuGetAccountPasswordLogin": "Enabled"
   },
   "Flights": {
     "NuGetGallery.TyposquattingFlight": {

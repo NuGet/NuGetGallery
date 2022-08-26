@@ -208,7 +208,7 @@
                 @ViewHelpers.AlertWarning(
                     @<text>
                         @Html.Raw(packageManager.AlertMessage)
-                    </text>);
+                    </text>, true);
                 break;
             default:
                 break;
@@ -1339,6 +1339,19 @@
         var packageVersion = @Html.ToJson(Model.Version);
         var packageManagers = @Html.ToJson(packageManagers.Select(pm => pm.Id).ToList());
     </script>
+
+    @if (Model.IsMarkdigMdSyntaxHighlightEnabled) 
+    { 
+        @ViewHelpers.IncludeSyntaxHighlightScript();
+
+        <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            document.querySelectorAll('pre code').forEach((el) => {
+                hljs.highlightElement(el);
+            });
+        });
+        </script>
+    }
 
     @Scripts.Render("~/Scripts/gallery/page-display-package.min.js")
 }

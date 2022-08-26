@@ -105,6 +105,8 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
 
         public bool IsMarkdigMdRenderingEnabled() => throw new NotImplementedException();
 
+        public bool IsMarkdigMdSyntaxHighlightEnabled() => throw new NotImplementedException();
+
         public bool IsDeletePackageApiEnabled(User user) => throw new NotImplementedException();
 
         public bool IsImageAllowlistEnabled() => throw new NotImplementedException();
@@ -120,5 +122,7 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
         public bool IsRecentPackagesNoIndexEnabled() => throw new NotImplementedException();
 
         public bool IsNewAccount2FAEnforcementEnabled() => throw new NotImplementedException();
+
+        public bool IsNuGetAccountPasswordLoginEnabled() => throw new NotImplementedException();
     }
 }

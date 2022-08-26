@@ -260,7 +260,7 @@ namespace NuGetGallery
             {
                 return TransformToOrganizationFailed(errorReason);
             }
-            
+
             if (accountToTransform.OrganizationMigrationRequest != null
                 && accountToTransform.OrganizationMigrationRequest.ConfirmationToken == token
                 && !accountToTransform.OrganizationMigrationRequest.AdminUser.MatchesUser(adminUser))
@@ -531,7 +531,7 @@ namespace NuGetGallery
 
             var listedPackages = GetPackages(packages, currentUser, wasAADLoginOrMultiFactorAuthenticated,
                 p => p.Listed && p.PackageStatusKey == PackageStatus.Available);
-            
+
             var unlistedPackages = GetPackages(packages, currentUser, wasAADLoginOrMultiFactorAuthenticated,
                 p => !p.Listed || p.PackageStatusKey != PackageStatus.Available);
 
@@ -620,7 +620,10 @@ namespace NuGetGallery
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[GalleryConstants.ReturnUrlViewDataKey] = null;
 
-            return View();
+            var model = new ForgotPasswordViewModel();
+            model.IsPasswordLoginEnabled = _featureFlagService.IsNuGetAccountPasswordLoginEnabled();
+
+            return View(model);
         }
 
         [HttpPost]
@@ -628,6 +631,13 @@ namespace NuGetGallery
         [ValidateRecaptchaResponse]
         public virtual async Task<ActionResult> ForgotPassword(ForgotPasswordViewModel model)
         {
+            if(!_featureFlagService.IsNuGetAccountPasswordLoginEnabled() && !ContentObjectService.LoginDiscontinuationConfiguration.IsEmailOnExceptionsList(model.Email))
+            {
+                ModelState.AddModelError(string.Empty, Strings.ForgotPassword_Disabled_Error);
+
+                return View(model);
+            }
+
             // We don't want Login to have us as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[GalleryConstants.ReturnUrlViewDataKey] = null;

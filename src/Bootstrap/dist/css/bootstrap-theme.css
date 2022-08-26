@@ -688,6 +688,9 @@ img.reserved-indicator-icon {
 .readme-common blockquote {
   font-size: 16px;
 }
+.readme-common pre code.hljs {
+  background-color: #f6f8fa;
+}
 #readme-preview {
   padding-top: 0.25em;
 }

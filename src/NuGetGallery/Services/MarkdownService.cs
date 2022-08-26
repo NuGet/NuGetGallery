@@ -81,7 +81,8 @@ namespace NuGetGallery
             {
                 ImagesRewritten = false,
                 Content = "",
-                ImageSourceDisallowed = false
+                ImageSourceDisallowed = false,
+                IsMarkdigMdSyntaxHighlightEnabled = false
             };
 
             var markdownWithoutComments = HtmlCommentPattern.Replace(markdownString, "");
@@ -173,6 +174,8 @@ namespace NuGetGallery
                 }
             }
 
+            output.IsMarkdigMdSyntaxHighlightEnabled = _features.IsMarkdigMdSyntaxHighlightEnabled();
+
             // CommonMark.Net does not support link attributes, so manually inject nofollow.
             using (var htmlWriter = new StringWriter())
             {
@@ -189,7 +192,8 @@ namespace NuGetGallery
             {
                 ImagesRewritten = false,
                 Content = "",
-                ImageSourceDisallowed = false
+                ImageSourceDisallowed = false,
+                IsMarkdigMdSyntaxHighlightEnabled = false
             };
 
             var markdownWithoutComments = HtmlCommentPattern.Replace(markdownString, "");
@@ -204,6 +208,7 @@ namespace NuGetGallery
                 .UseEmojiAndSmiley()
                 .UseAutoLinks()
                 .UseReferralLinks("noopener noreferrer nofollow")
+                .UseAutoIdentifiers()
                 .UseEmphasisExtras(EmphasisExtraOptions.Strikethrough)
                 .DisableHtml() //block inline html
                 .UseBootstrap()
@@ -263,7 +268,10 @@ namespace NuGetGallery
                                 // Allow only http or https links in markdown. Transform link to https for known domains.
                                 if (!PackageHelper.TryPrepareUrlForRendering(linkInline.Url, out string readyUriString))
                                 {
-                                    linkInline.Url = string.Empty;
+                                    if (!linkInline.Url.StartsWith("#")) //allow internal section links
+                                    {
+                                        linkInline.Url = string.Empty;
+                                    }
                                 }
                                 else
                                 {
@@ -276,6 +284,8 @@ namespace NuGetGallery
 
                 renderer.Render(document);
                 output.Content = htmlWriter.ToString().Trim();
+
+                output.IsMarkdigMdSyntaxHighlightEnabled = _features.IsMarkdigMdSyntaxHighlightEnabled();
                 return output;
             }
         }

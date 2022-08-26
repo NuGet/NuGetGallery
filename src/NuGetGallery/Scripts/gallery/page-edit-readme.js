@@ -315,6 +315,9 @@ var BindReadMeDataManager = (function () {
                 success: function (response, resultCodeString, fullResponse) {
                     clearReadMeError();
                     displayReadMePreview(response);
+                    if (response.IsMarkdigMdSyntaxHighlightEnabled) {
+                        syntaxHighlight();
+                    }
                 },
                 error: function (jqXHR, exception) {
                     var message = "";

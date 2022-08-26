@@ -215,6 +215,10 @@ namespace NuGetGallery
                 .Include("~/Scripts/gallery/md5.js");
             BundleTable.Bundles.Add(addOrganizationScriptBundle);
 
+            var syntaxhighlightScriptBundle = new ScriptBundle("~/Scripts/gallery/syntaxhighlight.min.js")
+                .Include("~/Scripts/gallery/syntaxhighlight.js");
+            BundleTable.Bundles.Add(syntaxhighlightScriptBundle);
+
             // This is needed for the Admin database viewer.
             ScriptManager.ScriptResourceMapping.AddDefinition("jquery",
                 new ScriptResourceDefinition { Path = scriptBundle.Path });

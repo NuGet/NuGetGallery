@@ -1085,6 +1085,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Forgot password flow has been disabled. Please reach out to your Microsoft account support to sign into NuGet gallery..
+        /// </summary>
+        public static string ForgotPassword_Disabled {
+            get {
+                return ResourceManager.GetString("ForgotPassword_Disabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Forgot password is disabled..
+        /// </summary>
+        public static string ForgotPassword_Disabled_Error {
+            get {
+                return ResourceManager.GetString("ForgotPassword_Disabled_Error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The API key &apos;{0}&apos; is invalid..
         /// </summary>
         public static string InvalidApiKey {
@@ -1306,6 +1324,15 @@ namespace NuGetGallery {
         public static string NonScopedApiKeyDescription {
             get {
                 return ResourceManager.GetString("NonScopedApiKeyDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to NuGet.org password login is no longer supported..
+        /// </summary>
+        public static string NuGetAccountPasswordLoginUnsupported {
+            get {
+                return ResourceManager.GetString("NuGetAccountPasswordLoginUnsupported", resourceCulture);
             }
         }
         
