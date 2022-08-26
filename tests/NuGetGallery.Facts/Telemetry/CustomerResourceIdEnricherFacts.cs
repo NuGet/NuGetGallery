@@ -33,11 +33,11 @@ namespace NuGetGallery.Telemetry
         }
 
         [Theory]
-        [InlineData(typeof(RequestTelemetry), 0)]
-        [InlineData(typeof(DependencyTelemetry), 0)]
-        [InlineData(typeof(TraceTelemetry), 0)]
-        [InlineData(typeof(ExceptionTelemetry), 0)]
-        [InlineData(typeof(MetricTelemetry), 1)]
+        [InlineData(typeof(RequestTelemetry), 1)]
+        [InlineData(typeof(DependencyTelemetry), 1)]
+        [InlineData(typeof(TraceTelemetry), 1)]
+        [InlineData(typeof(ExceptionTelemetry), 1)]
+        [InlineData(typeof(MetricTelemetry), 3)]
         public void EnrichesOnlyMetricTelemetry(Type telemetryType, int addedProperties)
         {
             // Arrange
@@ -56,7 +56,7 @@ namespace NuGetGallery.Telemetry
             enricher.Initialize(telemetry);
 
             // Assert
-            Assert.Equal(1 + addedProperties, itemTelemetry.Properties.Count);
+            Assert.Equal(addedProperties, itemTelemetry.Properties.Count);
         }
 
         [Fact]
@@ -88,6 +88,7 @@ namespace NuGetGallery.Telemetry
 
             // Assert
             Assert.Equal("/tenants/tenant-id", telemetry.Properties["CustomerResourceId"]);
+            Assert.Equal("NuGetGallery", telemetry.Properties["CustomerResourceIdConstant"]);
         }
 
         [Theory]
@@ -104,6 +105,7 @@ namespace NuGetGallery.Telemetry
 
             // Assert
             Assert.Equal("/tenants/00000000-0000-0000-0000-000000000000", telemetry.Properties["CustomerResourceId"]);
+            Assert.Equal("NuGetGallery", telemetry.Properties["CustomerResourceIdConstant"]);
         }
 
         private TestableCustomerResourceIdEnricher CreateTestEnricher(IReadOnlyDictionary<string, string> claims)
