@@ -30,8 +30,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ng", "src\Ng\Ng.csproj", "{
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NgTests", "tests\NgTests\NgTests.csproj", "{05C1C78A-9966-4922-9065-A099023E7366}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.ApplicationInsights.Owin", "src\NuGet.ApplicationInsights.Owin\NuGet.ApplicationInsights.Owin.csproj", "{717E9A81-75C5-418E-92ED-18CAC55BC345}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Metadata.Catalog.Monitoring", "src\NuGet.Services.Metadata.Catalog.Monitoring\NuGet.Services.Metadata.Catalog.Monitoring.csproj", "{1745A383-D0BE-484B-81EB-27B20F6AC6C5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatalogMetadataTests", "tests\CatalogMetadataTests\CatalogMetadataTests.csproj", "{34AABA7F-1FF7-4F4B-B1DB-D07AD4505DA4}"
@@ -206,7 +204,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.ContentScan.Test
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.PostProcessReports", "src\Stats.PostProcessReports\Stats.PostProcessReports.csproj", "{7E5387A5-DE19-4E43-888B-E8E1C687ECF5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.PostProcessReports.Tests", "tests\Stats.PostProcessReports.Tests\Stats.PostProcessReports.Tests.csproj", "{711CD5DE-F139-4C0C-B75F-3E9C01EC5AB2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stats.PostProcessReports.Tests", "tests\Stats.PostProcessReports.Tests\Stats.PostProcessReports.Tests.csproj", "{711CD5DE-F139-4C0C-B75F-3E9C01EC5AB2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -238,10 +236,6 @@ Global
 		{05C1C78A-9966-4922-9065-A099023E7366}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{05C1C78A-9966-4922-9065-A099023E7366}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{05C1C78A-9966-4922-9065-A099023E7366}.Release|Any CPU.Build.0 = Release|Any CPU
-		{717E9A81-75C5-418E-92ED-18CAC55BC345}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{717E9A81-75C5-418E-92ED-18CAC55BC345}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{717E9A81-75C5-418E-92ED-18CAC55BC345}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{717E9A81-75C5-418E-92ED-18CAC55BC345}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1745A383-D0BE-484B-81EB-27B20F6AC6C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1745A383-D0BE-484B-81EB-27B20F6AC6C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1745A383-D0BE-484B-81EB-27B20F6AC6C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -565,7 +559,6 @@ Global
 		{4D0B6BAB-5A33-4A7F-B007-93194FC2E2E3} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{5234D86F-2C0E-4181-AAB7-BBDA3253B4E1} = {C86C6DEE-84E1-4E4E-8868-6755D7A8E0E4}
 		{05C1C78A-9966-4922-9065-A099023E7366} = {6A776396-02B1-475D-A104-26940ADB04AB}
-		{717E9A81-75C5-418E-92ED-18CAC55BC345} = {5DE01C58-D5F7-482F-8256-A8333064384C}
 		{1745A383-D0BE-484B-81EB-27B20F6AC6C5} = {5DE01C58-D5F7-482F-8256-A8333064384C}
 		{34AABA7F-1FF7-4F4B-B1DB-D07AD4505DA4} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{1A53FE3D-8041-4773-942F-D73AEF5B82B2} = {5DE01C58-D5F7-482F-8256-A8333064384C}
