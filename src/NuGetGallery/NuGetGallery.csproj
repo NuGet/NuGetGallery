@@ -2151,6 +2151,9 @@
     <PackageReference Include="NuGet.StrongName.elmah">
       <Version>1.2.2</Version>
     </PackageReference>
+    <PackageReference Include="EntityFramework">
+      <Version>6.4.0-preview3-19553-01</Version>
+    </PackageReference>
     <PackageReference Include="Lucene.Net">
       <Version>3.0.3</Version>
     </PackageReference>
