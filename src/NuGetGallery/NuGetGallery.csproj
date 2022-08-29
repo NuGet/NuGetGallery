@@ -1699,9 +1699,6 @@
     <Content Include="Scripts\d3\LICENSE" />
     <Content Include="Scripts\d3\CHANGES.md" />
     <Content Include="Scripts\d3\API.md" />
-    <Content Include="NuGetGallery.dll.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="Areas\Admin\Views\Revalidation\Index.cshtml" />
     <Content Include="App_Data\Files\Content\Symbols-Configuration.json" />
     <Content Include="Scripts\gallery\instrumentation.js" />
