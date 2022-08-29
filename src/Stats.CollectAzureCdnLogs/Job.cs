@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -32,6 +33,7 @@ namespace Stats.CollectAzureCdnLogs
         private CloudStorageAccount _cloudStorageAccount;
 
         private CollectAzureCdnLogsConfiguration _configuration;
+        private ITelemetryService _telemetryService;
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
@@ -43,6 +45,7 @@ namespace Stats.CollectAzureCdnLogs
         public void InitializeJobConfiguration(IServiceProvider serviceProvider)
         {
             _configuration = serviceProvider.GetRequiredService<IOptionsSnapshot<CollectAzureCdnLogsConfiguration>>().Value;
+            _telemetryService = serviceProvider.GetRequiredService<ITelemetryService>();
 
             if (string.IsNullOrEmpty(_configuration.AzureCdnAccountNumber))
             {
@@ -135,7 +138,8 @@ namespace Stats.CollectAzureCdnLogs
             var azureClient = new CloudBlobRawLogClient(LoggerFactory, _cloudStorageAccount);
 
             // Collect directory listing.
-            var rawLogFileUris = await ftpClient.GetRawLogFileUris(_ftpServerUri);
+            var rawLogFileUris = (await ftpClient.GetRawLogFileUris(_ftpServerUri)).ToList();
+            _telemetryService.TrackRawLogCount(rawLogFileUris.Count);
 
             // Prepare cloud storage blob container.
             var cloudBlobContainer = await azureClient.CreateContainerIfNotExistsAsync(_configuration.AzureCdnCloudStorageContainerName);
@@ -439,6 +443,8 @@ namespace Stats.CollectAzureCdnLogs
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             ConfigureInitializationSection<CollectAzureCdnLogsConfiguration>(services, configurationRoot);
+
+            services.AddTransient<ITelemetryService, TelemetryService>();
         }
     }
 }

@@ -114,6 +114,10 @@ namespace Tests.Stats.CollectAzureCdnLogs
                     {
                         return mockOptionsSnapshot.Object;
                     }
+                    else if (serviceType == typeof(ITelemetryService))
+                    {
+                        return Mock.Of<ITelemetryService>();
+                    }
                     else
                     {
                         throw new InvalidOperationException($"Unexpected service lookup: {serviceType.Name}");
