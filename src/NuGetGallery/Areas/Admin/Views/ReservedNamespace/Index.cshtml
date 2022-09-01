@@ -48,13 +48,23 @@
                                             <span style="font-weight: bold">Matching Pattern: </span>
                                             <span data-bind="text: $data.pattern" />
                                         </div>
+                                        <!-- ko if: $data.parents.length > 0 -->
+                                        <div>
+                                            <span style="font-weight: bold">⚠ Parent namespaces:</span>
+                                            <ul>
+                                                <!-- ko foreach: $data.parents -->
+                                                <li data-bind="text: $data"></li>
+                                                <!-- /ko -->
+                                            </ul>
+                                        </div>
+                                        <!-- /ko -->
                                         <!-- ko if: $data.isExisting -->
                                         <input style="margin-top: 5px" type="submit" value="Deallocate Namespace" title="Delete this namespace"
-                                               data-bind="click: $parent.managePrefix.bind(this, $data.prefix, false)" />
+                                               data-bind="click: $parent.managePrefix.bind(this, $data.prefix, false, $data.parents)" />
                                         <!-- /ko -->
                                         <!-- ko ifnot: $data.isExisting -->
                                         <input style="margin-top: 5px" type="submit" value="Reserve Namespace" title="Add this namespace"
-                                               data-bind="click: $parent.managePrefix.bind(this, $data.prefix, true)" />
+                                               data-bind="click: $parent.managePrefix.bind(this, $data.prefix, true, $data.parents)" />
                                         <!-- /ko -->
                                     </div>
                                 </td>
@@ -243,12 +253,19 @@
                     });
                 };
 
-                this.managePrefix = function (data, addPrefix) {
+                this.managePrefix = function (prefixToModify, addPrefix, parents, model, e) {
                     if (!addPrefix && !confirm('Are you sure you want to delete this namespace?')) {
                         e.preventDefault();
+                        return;
                     }
 
-                    var prefixToModify = data;
+                    if (addPrefix
+                        && parents.length > 0
+                        && !confirm("At least one parent namespace exists. Ensure the owners of the parent namespaces have approved of the new child namespace. Press 'OK' to continue. Existing parent(s):\n" + parents.join("\n"))) {
+                        e.preventDefault();
+                        return;
+                    }
+
                     var url = addPrefix
                         ? '@Url.Action("AddNamespace", "ReservedNamespace", new { area = "Admin" })'
                         : '@Url.Action("RemoveNamespace", "ReservedNamespace", new { area = "Admin" })';
