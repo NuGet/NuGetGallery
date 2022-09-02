@@ -64,7 +64,7 @@ namespace NuGet.Services.Validation.PackageSigning
             }
 
             [Fact]
-            public async Task DoesNotReturnValidatorIssues()
+            public async Task WhenStateIsSuccess_DoesNotReturnValidatorIssues()
             {
                 // Arrange
                 _validatorStateService
@@ -96,6 +96,70 @@ namespace NuGet.Services.Validation.PackageSigning
                 // Assert
                 Assert.Equal(ValidationStatus.Succeeded, actual.Status);
                 Assert.Equal(0, actual.Issues.Count);
+            }
+
+            [Fact]
+            public async Task WhenStateIsFailedAndIssuesAreNotExpected_FailsWithException()
+            {
+                // Arrange
+                _config.RepositorySigningEnabled = true;
+
+                _validatorStateService
+                    .Setup(x => x.GetStatusAsync(It.IsAny<INuGetValidationRequest>()))
+                    .ReturnsAsync(new ValidatorStatus
+                    {
+                        ValidationId = ValidationId,
+                        PackageKey = PackageKey,
+                        ValidatorName = ValidatorName.PackageSignatureProcessor,
+                        State = ValidationStatus.Failed,
+                        ValidatorIssues = new List<ValidatorIssue>
+                        {
+                            new ValidatorIssue
+                            {
+                                IssueCode = ValidationIssueCode.PackageIsZip64,
+                                Data = "{}",
+                            },
+                        },
+                    });
+
+                // Act & Assert
+                var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _target.GetResponseAsync(_validationRequest.Object));
+                Assert.Equal("Package signature validator has an unexpected validation response", ex.Message);
+            }
+
+            [Theory]
+            [InlineData(ValidationIssueCode.PackageIsNotSigned)]
+            [InlineData(ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificate)]
+            public async Task WhenStateIsFailedAndIssueCanBeCausedByOwner_ReturnsFailedValidation(ValidationIssueCode issueCode)
+            {
+                // Arrange
+                _config.RepositorySigningEnabled = true;
+
+                _validatorStateService
+                    .Setup(x => x.GetStatusAsync(It.IsAny<INuGetValidationRequest>()))
+                    .ReturnsAsync(new ValidatorStatus
+                    {
+                        ValidationId = ValidationId,
+                        PackageKey = PackageKey,
+                        ValidatorName = ValidatorName.PackageSignatureProcessor,
+                        State = ValidationStatus.Failed,
+                        ValidatorIssues = new List<ValidatorIssue>
+                        {
+                            new ValidatorIssue
+                            {
+                                IssueCode = issueCode,
+                                Data = "{}",
+                            },
+                        },
+                    });
+
+                // Act
+                var actual = await _target.GetResponseAsync(_validationRequest.Object);
+
+                // Assert
+                Assert.Equal(ValidationStatus.Failed, actual.Status);
+                Assert.Equal(1, actual.Issues.Count);
+                Assert.Equal(issueCode, actual.Issues.Single().IssueCode);
             }
 
             [Fact]

@@ -92,6 +92,23 @@ namespace NuGet.Services.Validation.PackageSigning.ProcessSignature
                     return NuGetValidationResponse.Succeeded;
                 }
 
+                if (response.Issues.Count == 1)
+                {
+                    var singleIssueCode = response.Issues[0].IssueCode;
+                    if (singleIssueCode == ValidationIssueCode.PackageIsNotSigned
+                        || singleIssueCode == ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificate)
+                    {
+                        /// This indicates that the package owner changed their certificate requirements on the package
+                        /// between the time that <see cref="PackageSignatureProcessor"/> and
+                        /// <see cref="PackageSignatureValidator"/> ran. In most cases, the processor catches this
+                        /// problem so we never reach this state, but it is possible for a race condition between the
+                        /// validation flow and the user's updates to their signing certificate requirements.
+                        /// 
+                        /// In this case we want to surface the issues to the user so that they can try again.
+                        return response;
+                    }
+                }
+
                 _logger.LogCritical(
                     "Unexpected validation response in package signature validator. This may be caused by an invalid repository " +
                     "signature. Throwing an exception to force this validation to dead-letter. " +
