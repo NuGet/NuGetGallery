@@ -544,50 +544,37 @@
             .filter(':visible:first')
             .trigger('focus');
 
-        // Handle Google analytics tracking event on specific links.
-        var emitClickEvent = function (e, emitDirectly) {
-            if (!window.nuget.isGaAvailable()) {
+        // Handle Application Insights tracking event on specific links.
+        var emitClickEvent = function (e) {
+            if (!window.nuget.isAiAvailable()) {
                 return;
             }
 
             var href = $(this).attr('href');
             var category = $(this).data().track;
+
             var trackValue = $(this).data().trackValue;
+            if (typeof trackValue === 'undefined') {
+                trackValue = 1;
+            }
+
             if (href && category) {
-                if (emitDirectly) {
-                    window.nuget.sendAnalyticsEvent(category, 'click', href, trackValue);
-                } else {
-                    // This path is used when the click will result in a page transition. Because of this we need to
-                    // emit telemetry in a special way so that the event gets out before the page transition occurs.
-                    e.preventDefault();
-                    window.nuget.sendAnalyticsEvent(category, 'click', href, trackValue, {
-                        'transport': 'beacon',
-                        'hitCallback': window.nuget.createFunctionWithTimeout(function () {
-                            document.location = href;
-                        })
-                    });
-                }
+                window.nuget.sendMetric('BrowserClick', trackValue, {
+                    href: href,
+                    category: category
+                });
             }
         };
         $.each($('a[data-track]'), function () {
             $(this).on('mouseup', function (e) {
                 if (e.which === 2) { // Middle-mouse click
-                    emitClickEvent.call(this, e, true);
+                    emitClickEvent.call(this, e);
                 }
             });
             $(this).on('click', function (e) {
-                emitClickEvent.call(this, e, e.altKey || e.ctrlKey || e.metaKey);
+                emitClickEvent.call(this, e);
             });
         });
-
-        // Show elements that require ClickOnce
-        (function () {
-            var userAgent = window.navigator.userAgent.toUpperCase();
-            var hasNativeDotNet = userAgent.indexOf('.NET CLR 3.5') >= 0;
-            if (hasNativeDotNet) {
-                $('.no-clickonce').removeClass('no-clickonce');
-            }
-        })();
 
         // Don't close the dropdown on click events inside of the dropdown.
         $(document).on('click', '.dropdown-menu', function (e) {
