@@ -85,9 +85,9 @@ namespace NuGet.Jobs.GitHubIndexer
                     response = await _searchApiRequester.GetResponse(request);
                     error = false;
                 }
-                catch (RateLimitExceededException rlee)
+                catch (RateLimitExceededException)
                 {
-                    _logger.LogError(rlee, "Exceeded GitHub RateLimit! Waiting for {LimitExceededRetryTime} before retrying.", LimitExceededRetryTime);
+                    _logger.LogWarning("Exceeded GitHub RateLimit! Waiting for {LimitExceededRetryTime} before retrying.", LimitExceededRetryTime);
                     await Task.Delay(LimitExceededRetryTime);
                 }
             }

@@ -3,7 +3,7 @@
 **Subsystem: Search 🔎**
 
 This project contains the search service, the microservice for searching NuGet packages. The search service is an
-ASP.NET MVC web application that communicates directly with an existing
+ASP.NET Core web application that communicates directly with an existing
 [Azure Search](https://azure.microsoft.com/en-us/services/search/) resource in Azure. It can be considered as an adapter
 between clients expecting a NuGet-owned protocol and Azure Search, which returns documents with their own Azure Search
 schema unrelated to NuGet.
