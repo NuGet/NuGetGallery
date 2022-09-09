@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using GitHubVulnerabilities2Db.GraphQL;
 using GitHubVulnerabilities2Db.Ingest;
+using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
@@ -137,7 +138,8 @@ namespace GitHubVulnerabilities2Db.Facts
                 GitHubVersionRangeParserMock = new Mock<IGitHubVersionRangeParser>();
                 Ingestor = new AdvisoryIngestor(
                     PackageVulnerabilityServiceMock.Object,
-                    GitHubVersionRangeParserMock.Object);
+                    GitHubVersionRangeParserMock.Object,
+                    Mock.Of<ILogger<AdvisoryIngestor>>());
             }
 
             public Mock<IPackageVulnerabilitiesManagementService> PackageVulnerabilityServiceMock { get; }
