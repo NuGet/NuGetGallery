@@ -226,7 +226,6 @@ Some text
             [Theory]
             [InlineData("This is a http://www.google.com URL and https://www.google.com", "<p>This is a <a href=\"http://www.google.com/\" rel=\"noopener noreferrer nofollow\">http://www.google.com</a> URL and <a href=\"https://www.google.com/\" rel=\"noopener noreferrer nofollow\">https://www.google.com</a></p>")]
             [InlineData("# This is a heading\n[Link](#this-is-a-heading)", "<h2 id=\"this-is-a-heading\">This is a heading</h2>\n<p><a href=\"#this-is-a-heading\" rel=\"noopener noreferrer nofollow\">Link</a></p>")]
-            [InlineData("# testing\n[test [testing]](https://www.nuget.org)","<h2>testing</h2>\n<p><a href=\"https://www.nuget.org/\" rel=\"noopener noreferrer nofollow\">test [testing]</a></p>")]
             public void TestToHtmlWithAutoLinks(string originalMd, string expectedHtml)
             {
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
