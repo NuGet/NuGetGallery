@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,14 +29,14 @@ namespace VerifyGitHubVulnerabilities
 
         public override async Task Run()
         {
-            Console.Write("Fetching vulnerabilities from GitHub...");
+            Console.WriteLine("Fetching vulnerabilities from GitHub...");
             var advisoryQueryService = _serviceProvider.GetRequiredService<IAdvisoryQueryService>();
             var advisories = await advisoryQueryService.GetAdvisoriesSinceAsync(DateTimeOffset.MinValue, CancellationToken.None);
             Console.WriteLine($" FOUND {advisories.Count} advisories.");
 
             Console.WriteLine("Fetching vulnerabilities from DB...");
             var ingestor = _serviceProvider.GetRequiredService<IAdvisoryIngestor>();
-            await ingestor.IngestAsync(advisories);
+            await ingestor.IngestAsync(advisories.OrderBy(x => x.DatabaseId).ToList());
 
             var verifier = _serviceProvider.GetRequiredService<IPackageVulnerabilitiesVerifier>();
             Console.WriteLine(verifier.HasErrors ? 
@@ -82,7 +83,7 @@ namespace VerifyGitHubVulnerabilities
                 .Register(ctx =>
                 {
                     var connection = CreateSqlConnection<GalleryDbConfiguration>();
-                    return new EntitiesContext(connection, false);
+                    return new EntitiesContext(connection, readOnly: true);
                 })
                 .As<IEntitiesContext>();
 
@@ -96,10 +97,6 @@ namespace VerifyGitHubVulnerabilities
             containerBuilder
                 .RegisterInstance(_client)
                 .As<HttpClient>();
-
-            containerBuilder
-                .RegisterGeneric(typeof(NullLogger<>))
-                .As(typeof(ILogger<>));
 
             containerBuilder
                 .RegisterType<VerifyGitHubVulnerabilities.GraphQL.QueryService>()

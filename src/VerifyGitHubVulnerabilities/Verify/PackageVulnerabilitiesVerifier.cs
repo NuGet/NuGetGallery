@@ -258,7 +258,7 @@ namespace VerifyGitHubVulnerabilities.Verify
                     {
                         Console.Error.WriteLine(
                             $@"[Metadata] Vulnerability advisory {advisoryDatabaseKey
-                                }, version {versionMetadata} of package {packageId} is marked vulnerable and is not in a vulnerable range!");
+                                }, version {versionMetadata.Identity.Version} of package {packageId} is marked vulnerable and is not in a vulnerable range!");
                         HasErrors = true;
                     }
                 }

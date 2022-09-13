@@ -481,6 +481,14 @@ namespace NuGetGallery.Services
                     .Verifiable();
 
                 Context.SetupDatabase(_databaseMock.Object);
+
+                // Entity Framework clears the collection. We use the Packages collection to know which packages to
+                // mark as updated so it's important to use the collection prior to removing the range.
+                // Related to: https://github.com/NuGet/Engineering/issues/4566
+                Mock
+                    .Get(Context.VulnerableRanges)
+                    .Setup(x => x.Remove(It.IsAny<VulnerablePackageVersionRange>()))
+                    .Callback<VulnerablePackageVersionRange>(x => x.Packages.Clear());
             }
 
             private Mock<IDbContextTransaction> _transactionMock { get; }
