@@ -268,7 +268,7 @@ namespace NuGetGallery
                                 // Allow only http or https links in markdown. Transform link to https for known domains.
                                 if (!PackageHelper.TryPrepareUrlForRendering(linkInline.Url, out string readyUriString))
                                 {
-                                    if (!linkInline.Url.StartsWith("#")) //allow internal section links
+                                    if (linkInline.Url != null && !linkInline.Url.StartsWith("#")) //allow internal section links
                                     {
                                         linkInline.Url = string.Empty;
                                     }
