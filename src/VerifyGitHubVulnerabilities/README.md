@@ -20,7 +20,9 @@ The easiest way to run the tool if you are on the nuget.org team is to use the D
 1. Install the certificate used to authenticate as our client AAD app registration into your `CurrentUser` certificate store.
 1. Clone our internal [`NuGetDeployment`](https://nuget.visualstudio.com/DefaultCollection/NuGetMicrosoft/_git/NuGetDeploymentp) repository.
 1. Take a copy of the [DEV GitHubVulnerabilities2Db appsettings.json](https://nuget.visualstudio.com/NuGetMicrosoft/_git/NuGetDeployment?path=%2Fsrc%2FJobs%2FNuGet.Jobs.Cloud%2FJobs%2FGitHubVulnerabilities2Db%2FDEV%2Fnorthcentralus%2Fappsettings.json) file and place it in the same directory as the `verifygithubvulnerabilities.exe`. This will use our secrets to authenticate to the SQL server (this file also contains a reference to the secret used for the access token to GitHub).
-1. Run as per above.
+1. Set the following property, in the `appsettings.json`, under the `"Initialization"` object: `"NuGetV3Index": "https://apidev.nugettest.org/v3/index.json"`.
+1. Overwrite the Gallery DB `"ConnectionString"` property to be the connection string from [DEV USSC (read-only) gallery config](https://nuget.visualstudio.com/NuGetMicrosoft/_git/NuGetDeployment?path=/src/Gallery/ExpressV2/ServiceSpecs/Parameters.AS/DEV/USSC/NuGet.Gallery.Parameters.json&version=GBmaster). This provides an additional protection to ensure the job runs as read-only.
+2. Run as per above.
 
 ## Algorithm
 

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using GitHubVulnerabilities2Db.GraphQL;
+using Microsoft.Extensions.Logging;
 using NuGet.Services.Entities;
 using NuGetGallery;
 
@@ -15,19 +16,24 @@ namespace GitHubVulnerabilities2Db.Ingest
     {
         private readonly IPackageVulnerabilitiesManagementService _packageVulnerabilityService;
         private readonly IGitHubVersionRangeParser _gitHubVersionRangeParser;
+        private readonly ILogger<AdvisoryIngestor> _logger;
 
         public AdvisoryIngestor(
             IPackageVulnerabilitiesManagementService packageVulnerabilityService,
-            IGitHubVersionRangeParser gitHubVersionRangeParser)
+            IGitHubVersionRangeParser gitHubVersionRangeParser,
+            ILogger<AdvisoryIngestor> logger)
         {
             _packageVulnerabilityService = packageVulnerabilityService ?? throw new ArgumentNullException(nameof(packageVulnerabilityService));
             _gitHubVersionRangeParser = gitHubVersionRangeParser ?? throw new ArgumentNullException(nameof(gitHubVersionRangeParser));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task IngestAsync(IReadOnlyList<SecurityAdvisory> advisories)
         {
-            foreach (var advisory in advisories)
+            for (int i = 0; i < advisories.Count; i++)
             {
+                _logger.LogInformation("Processing advisory {Current} of {Total}...", i + 1, advisories.Count);
+                SecurityAdvisory advisory = advisories[i];
                 var vulnerabilityTuple = FromAdvisory(advisory);
                 var vulnerability = vulnerabilityTuple.Item1;
                 var wasWithdrawn = vulnerabilityTuple.Item2;
