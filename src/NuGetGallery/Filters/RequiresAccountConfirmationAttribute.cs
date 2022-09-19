@@ -7,9 +7,9 @@ using System.Web.Mvc;
 namespace NuGetGallery.Filters
 {
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, Inherited = true, AllowMultiple = true)]
-    public sealed class RequiresAccountConfirmationAttribute : ActionFilterAttribute
+    public class RequiresAccountConfirmationAttribute : ActionFilterAttribute
     {
-        private readonly string _inOrderTo;
+        protected readonly string _inOrderTo;
 
         public RequiresAccountConfirmationAttribute(string inOrderTo)
         {
@@ -27,10 +27,15 @@ namespace NuGetGallery.Filters
             {
                 throw new InvalidOperationException("Requires account confirmation attribute is only valid on authenticated actions.");
             }
-            
+
+            VerifyUser(filterContext);
+        }
+
+        protected void VerifyUser(ActionExecutingContext filterContext)
+        {
             var controller = ((AppController)filterContext.Controller);
             var user = controller.GetCurrentUser();
-            
+
             if (!user.Confirmed)
             {
                 controller.TempData["ConfirmationRequiredMessage"] = string.Format(

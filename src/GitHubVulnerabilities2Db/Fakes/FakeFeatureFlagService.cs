@@ -289,5 +289,10 @@ namespace GitHubVulnerabilities2Db.Fakes
         {
             throw new NotImplementedException();
         }
+
+        public bool AreAnonymousUploadsEnabled()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

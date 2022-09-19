@@ -307,5 +307,10 @@ namespace NuGetGallery
         /// Whether or not NuGet.org password login is supported. NuGet.org accounts in the <see cref="LoginDiscontinuationConfiguration.ExceptionsForEmailAddresses"/> will always be supported.
         /// </summary>
         bool IsNuGetAccountPasswordLoginEnabled();
+
+        /// <summary>
+        /// Whether or not an unauthenticated user can upload a trial package.
+        /// </summary>
+        bool AreAnonymousUploadsEnabled();
     }
 }

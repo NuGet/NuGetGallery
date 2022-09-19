@@ -251,8 +251,8 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [UIAuthorize]
-        [RequiresAccountConfirmation("upload a package")]
+        [OptionalUIAuthorize]
+        [OptionalAccountConfirmation("upload a package")]
         public virtual async Task<ActionResult> UploadPackage()
         {
             var currentUser = GetCurrentUser();
@@ -381,9 +381,9 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [UIAuthorize]
+        [OptionalUIAuthorize]
         [ValidateAntiForgeryToken]
-        [RequiresAccountConfirmation("upload a package")]
+        [OptionalAccountConfirmation("upload a package")]
         public virtual async Task<JsonResult> UploadPackage(HttpPostedFileBase uploadFile)
         {
             var currentUser = GetCurrentUser();
@@ -2388,9 +2388,9 @@ namespace NuGetGallery
             return Redirect(Url.ManagePackageOwnership(id));
         }
 
-        [UIAuthorize]
+        [OptionalUIAuthorize]
         [HttpPost]
-        [RequiresAccountConfirmation("upload a package")]
+        [OptionalAccountConfirmation("upload a package")]
         [ValidateAntiForgeryToken]
         [ValidateInput(false)]
         [SuppressMessage("Security", "CA5363:Do Not Disable Request Validation", Justification = "Security note: Disabling ASP.Net input validation which does things like disallow angle brackets in submissions. See http://go.microsoft.com/fwlink/?LinkID=212874")]
