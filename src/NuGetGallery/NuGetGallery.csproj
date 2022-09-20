@@ -330,6 +330,10 @@
     <Compile Include="Migrations\202205300006043_Int64PackageDownloadCount.designer.cs">
       <DependentUpon>202205300006043_Int64PackageDownloadCount.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202209202338371_AnonymousUploadEntities.cs" />
+    <Compile Include="Migrations\202209202338371_AnonymousUploadEntities.designer.cs">
+      <DependentUpon>202209202338371_AnonymousUploadEntities.cs</DependentUpon>
+    </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
     <Compile Include="RequestModels\UpdateListedRequest.cs" />
@@ -1677,6 +1681,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202205300006043_Int64PackageDownloadCount.resx">
       <DependentUpon>202205300006043_Int64PackageDownloadCount.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202209202338371_AnonymousUploadEntities.resx">
+      <DependentUpon>202209202338371_AnonymousUploadEntities.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
