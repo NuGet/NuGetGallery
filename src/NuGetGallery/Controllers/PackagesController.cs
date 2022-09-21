@@ -55,6 +55,8 @@ namespace NuGetGallery
         /// </remarks>
         internal const int MaxAllowedLicenseLengthForDisplaying = 1024 * 1024; // 1 MB
 
+        internal const string AnonymousUploadRoleName = "AnonymousUploaders";
+
         /// <summary>
         /// Only perform the "is indexed" check for a short time after the package was lasted edited or created.
         /// </summary>
@@ -251,11 +253,18 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [OptionalUIAuthorize]
-        [OptionalAccountConfirmation("upload a package")]
+        [ConditionalUIAuthorize(FilterConditions.AreAnonymousUploadsEnabled)]
+        [ConditionalAccountConfirmation("upload a package", FilterConditions.AreAnonymousUploadsEnabled)]
         public virtual async Task<ActionResult> UploadPackage()
         {
-            var currentUser = GetCurrentUser();
+            var currentUser = _featureFlagService.AreAnonymousUploadsEnabled() 
+                ? GetCurrentUser(specialUserFallback: AnonymousUploadRoleName) 
+                : GetCurrentUser();
+            if (currentUser.Roles.Select(r => r.Name).Contains(AnonymousUploadRoleName))
+            {
+                await _uploadFileService.DeleteUploadFileAsync(currentUser.Key); // resuming anonymous uploads is not currently supported
+            }
+
             var model = new SubmitPackageRequest();
             model.IsSymbolsUploadEnabled = _contentObjectService.SymbolsConfiguration.IsSymbolsUploadEnabledForUser(currentUser);
             model.IsUserLocked = currentUser.IsLocked;
@@ -381,12 +390,14 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [OptionalUIAuthorize]
+        [ConditionalUIAuthorize(FilterConditions.AreAnonymousUploadsEnabled)]
         [ValidateAntiForgeryToken]
-        [OptionalAccountConfirmation("upload a package")]
+        [ConditionalAccountConfirmation("upload a package", FilterConditions.AreAnonymousUploadsEnabled)]
         public virtual async Task<JsonResult> UploadPackage(HttpPostedFileBase uploadFile)
         {
-            var currentUser = GetCurrentUser();
+            var currentUser = _featureFlagService.AreAnonymousUploadsEnabled()
+                ? GetCurrentUser(specialUserFallback: AnonymousUploadRoleName)
+                : GetCurrentUser();
 
             string uploadTracingKey = UploadHelper.GetUploadTracingKey(Request.Headers);
 
@@ -496,7 +507,9 @@ namespace NuGetGallery
 
         private async Task<JsonResult> UploadPackageInternal(PackageArchiveReader packageArchiveReader, Stream uploadStream, NuspecReader nuspec, PackageMetadata packageMetadata)
         {
-            var currentUser = GetCurrentUser();
+            var currentUser = _featureFlagService.AreAnonymousUploadsEnabled()
+                ? GetCurrentUser(specialUserFallback: AnonymousUploadRoleName)
+                : GetCurrentUser();
 
             PackageRegistration existingPackageRegistration;
             // If the current user cannot upload the package on behalf of any of the existing owners, show the current user as the only possible owner in the upload form.
@@ -2388,9 +2401,9 @@ namespace NuGetGallery
             return Redirect(Url.ManagePackageOwnership(id));
         }
 
-        [OptionalUIAuthorize]
+        [ConditionalUIAuthorize(FilterConditions.AreAnonymousUploadsEnabled)]
         [HttpPost]
-        [OptionalAccountConfirmation("upload a package")]
+        [ConditionalAccountConfirmation("upload a package", FilterConditions.AreAnonymousUploadsEnabled)]
         [ValidateAntiForgeryToken]
         [ValidateInput(false)]
         [SuppressMessage("Security", "CA5363:Do Not Disable Request Validation", Justification = "Security note: Disabling ASP.Net input validation which does things like disallow angle brackets in submissions. See http://go.microsoft.com/fwlink/?LinkID=212874")]
@@ -2404,7 +2417,9 @@ namespace NuGetGallery
                     return Json(HttpStatusCode.BadRequest, errorMessages);
                 }
 
-                var currentUser = GetCurrentUser();
+                var currentUser = _featureFlagService.AreAnonymousUploadsEnabled()
+                    ? GetCurrentUser(specialUserFallback: AnonymousUploadRoleName)
+                    : GetCurrentUser();
 
                 if (currentUser.IsLocked)
                 {
@@ -2414,6 +2429,10 @@ namespace NuGetGallery
 
                 // Check that the owner specified in the form is valid
                 var owner = _userService.FindByUsername(formData.Owner);
+                if (owner == null && _featureFlagService.AreAnonymousUploadsEnabled())
+                {
+                    owner = _userService.FindSpecialUserByRoleName(AnonymousUploadRoleName);
+                }
 
                 if (owner == null)
                 {
@@ -2945,18 +2964,21 @@ namespace NuGetGallery
             return packageArchiveReader;
         }
 
-        [UIAuthorize]
+        [ConditionalUIAuthorize(FilterConditions.AreAnonymousUploadsEnabled)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public virtual async Task<JsonResult> CancelUpload()
         {
-            var currentUser = GetCurrentUser();
+            var currentUser = _featureFlagService.AreAnonymousUploadsEnabled()
+                ? GetCurrentUser(specialUserFallback: AnonymousUploadRoleName)
+                : GetCurrentUser();
+
             await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
 
             return Json(null);
         }
 
-        [UIAuthorize]
+        [ConditionalUIAuthorize(FilterConditions.AreAnonymousUploadsEnabled)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public virtual async Task<JsonResult> PreviewReadMe(ReadMeRequest formData)

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
@@ -74,6 +75,11 @@ namespace NuGetGallery.Views
         public User CurrentUser
         {
             get { return NuGetContext.CurrentUser; }
+        }
+
+        public User UploaderUser
+        {
+            get { return NuGetContext.UploaderUser; }
         }
 
         public Lazy<IContentObjectService> ContentObjectService => new Lazy<IContentObjectService>(() => DependencyResolver.Current.GetService<IContentObjectService>());

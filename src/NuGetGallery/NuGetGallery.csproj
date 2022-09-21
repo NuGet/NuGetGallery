@@ -226,8 +226,9 @@
     <Compile Include="Extensions\CakeBuildManagerExtensions.cs" />
     <Compile Include="Extensions\ImageExtensions.cs" />
     <Compile Include="Filters\AdminActionAttribute.cs" />
-    <Compile Include="Filters\OptionalAccountConfirmationAttribute.cs" />
-    <Compile Include="Filters\OptionalUIAuthorizeAttribute.cs" />
+    <Compile Include="Filters\ConditionalAccountConfirmationAttribute.cs" />
+    <Compile Include="Filters\ConditionalUIAuthorizeAttribute.cs" />
+    <Compile Include="Helpers\FilterHelper.cs" />
     <Compile Include="Helpers\AdminHelper.cs" />
     <Compile Include="Helpers\ViewModelExtensions\DeleteAccountListPackageItemViewModelFactory.cs" />
     <Compile Include="Helpers\ViewModelExtensions\DeletePackageViewModelFactory.cs" />
