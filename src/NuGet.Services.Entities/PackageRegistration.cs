@@ -23,6 +23,8 @@ namespace NuGet.Services.Entities
         [Required]
         public string Id { get; set; }
 
+        public string TemporaryId { get; set; }
+
         public long DownloadCount { get; set; }
 
         public bool IsVerified { get; set; }

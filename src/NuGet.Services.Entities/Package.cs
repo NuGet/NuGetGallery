@@ -310,5 +310,7 @@ namespace NuGet.Services.Entities
         public bool HasEmbeddedIcon { get; set; }
 
         public EmbeddedReadmeFileType EmbeddedReadmeType { get; set; }
+
+        public string ClaimKey { get; set; }
     }
 }
