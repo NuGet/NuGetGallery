@@ -479,6 +479,11 @@
                     <p>Requires NuGet @Model.MinClientVersion or higher.</p>
                 }
 
+                @if (!String.IsNullOrEmpty(Model.ClaimKey))
+                {
+                    <p>Claim key: @Model.ClaimKey</p>
+                }
+
                 @if (Model.Available)
                 {
                     <div class="install-tabs">

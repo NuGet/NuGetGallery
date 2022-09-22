@@ -106,6 +106,8 @@ namespace NuGetGallery
         public bool IsComputeTargetFrameworkEnabled { get; set; }
         public PackageFrameworkCompatibility PackageFrameworkCompatibility { get; set; }
 
+        public string ClaimKey { get; set; }
+
         public void InitializeRepositoryMetadata(string repositoryUrl, string repositoryType)
         {
             RepositoryType = RepositoryKind.Unknown;

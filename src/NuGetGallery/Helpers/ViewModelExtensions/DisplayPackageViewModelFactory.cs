@@ -219,6 +219,8 @@ namespace NuGetGallery
             viewModel.PackageWarningIconTitle =
                 GetWarningIconTitle(viewModel.Version, deprecation, maxVulnerabilitySeverity);
 
+            viewModel.ClaimKey = package.ClaimKey;
+
             return viewModel;
         }
 
