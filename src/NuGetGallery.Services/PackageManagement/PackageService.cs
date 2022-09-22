@@ -26,6 +26,7 @@ namespace NuGetGallery
 {
     public class PackageService : CorePackageService, IPackageService
     {
+        private const string ClaimKeyAllowedCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         private const string MarkdownFileExtension = ".md";
 
         private readonly IAuditingService _auditingService;
@@ -584,12 +585,15 @@ namespace NuGetGallery
         {
             var packageRegistration = FindPackageRegistrationById(packageMetadata.Id);
 
+            var temporaryId = owner.IsTemporary ? Guid.NewGuid().ToStringSafe() : null;
+
             if (packageRegistration == null)
             {
 
                 packageRegistration = new PackageRegistration
                 {
                     Id = packageMetadata.Id,
+                    TemporaryId = temporaryId,
                     IsVerified = isVerified
                 };
 
@@ -698,6 +702,11 @@ namespace NuGetGallery
             package.HasEmbeddedIcon = !string.IsNullOrWhiteSpace(packageMetadata.IconFile);
             package.HasReadMe = !string.IsNullOrWhiteSpace(packageMetadata.ReadmeFile);
             package.EmbeddedReadmeType = GetEmbeddedReadmeType(packageMetadata);
+
+            if (user.IsTemporary)
+            {
+                package.ClaimKey = GenerateClaimKey();
+            }
 
             return package;
         }
@@ -1068,6 +1077,12 @@ namespace NuGetGallery
                 .Where(p => p.Version == normalizedVersion)
                 .Select(p => (PackageStatus?)p.PackageStatusKey)
                 .FirstOrDefault();
+        }
+
+        private string GenerateClaimKey(int length = 32)
+        {
+            // temporary return.
+            return "000000000000000";
         }
     }
 }
