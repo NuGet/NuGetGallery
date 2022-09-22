@@ -618,7 +618,7 @@ namespace NuGetGallery
                         It.Is<OrganizationMembershipRequestInitiatedMessage>(
                             msg =>
                             msg.Organization == account
-                            && msg.RequestingUser == controller.GetCurrentUser()
+                            && msg.RequestingUser == controller.GetCurrentUser(null)
                             && msg.PendingUser == It.Is<User>(u => u.Username == DefaultMemberName)
                             && msg.IsAdmin == isAdmin),
                         false,
@@ -637,7 +637,7 @@ namespace NuGetGallery
                             msg =>
                             msg.Organization == account
                             && msg.NewUser == It.Is<User>(u => u.Username == DefaultMemberName)
-                            && msg.AdminUser == controller.GetCurrentUser()
+                            && msg.AdminUser == controller.GetCurrentUser(null)
                             && msg.IsAdmin == isAdmin),
                         false,
                         false))
