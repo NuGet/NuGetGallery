@@ -22,6 +22,8 @@ namespace NuGet.Services.Entities
 
         private bool? _isAdmin;
 
+        private bool? _isTemporary;
+
         [NotMapped]
         public bool IsAdministrator
         {
@@ -32,6 +34,20 @@ namespace NuGet.Services.Entities
                     _isAdmin = IsInRole(Constants.AdminRoleName);
                 }
                 return _isAdmin.Value;
+            }
+        }
+
+        [NotMapped]
+        public bool IsTemporary
+        {
+            get
+            {
+                if (!_isTemporary.HasValue)
+                {
+                    // Update this to temporary user role name
+                    _isTemporary = IsInRole(Constants.AdminRoleName);
+                }
+                return _isTemporary.Value;
             }
         }
 
