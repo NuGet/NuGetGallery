@@ -20,6 +20,11 @@ namespace NuGetGallery.AccountDeleter
             return user;
         }
 
+        public User FindSpecialUserByRoleName(string userRole)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<Membership> AddMemberAsync(Organization organization, string memberName, string confirmationToken)
         {
             throw new NotImplementedException();
