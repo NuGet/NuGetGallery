@@ -22,7 +22,7 @@ namespace NuGet.Services.Entities
 
         private bool? _isAdmin;
 
-        private bool? _isTemporary;
+        private bool? _isAnonymousUploader;
 
         [NotMapped]
         public bool IsAdministrator
@@ -38,16 +38,15 @@ namespace NuGet.Services.Entities
         }
 
         [NotMapped]
-        public bool IsTemporary
+        public bool IsAnonymousUploader
         {
             get
             {
-                if (!_isTemporary.HasValue)
+                if (!_isAnonymousUploader.HasValue)
                 {
-                    // Update this to temporary user role name
-                    _isTemporary = IsInRole(Constants.AdminRoleName);
+                    _isAnonymousUploader = IsInRole(Constants.AnonymousUploaderRoleName);
                 }
-                return _isTemporary.Value;
+                return _isAnonymousUploader.Value;
             }
         }
 
