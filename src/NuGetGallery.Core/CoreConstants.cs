@@ -6,6 +6,7 @@ namespace NuGetGallery
     public static class CoreConstants
     {
         public const string AdminRoleName = "Admins";
+        public const string AnonymousUploaderRoleName = "AnonymousUploaders";
 
         public const string PackageFileSavePathTemplate = "{0}.{1}{2}";
         public const string PackageFileBackupSavePathTemplate = "{0}/{1}/{2}.{3}";

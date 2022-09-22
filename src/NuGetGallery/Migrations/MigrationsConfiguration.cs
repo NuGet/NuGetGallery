@@ -25,6 +25,12 @@ namespace NuGetGallery.Migrations
                 context.SaveChanges();
             }
 
+            if (!roles.Any(x => x.Name == CoreConstants.AnonymousUploaderRoleName))
+            {
+                roles.Add(new Role { Name = CoreConstants.AnonymousUploaderRoleName });
+                context.SaveChanges();
+            }
+
             var gallerySettings = context.Set<GallerySetting>();
             if (!gallerySettings.Any())
             {
