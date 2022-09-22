@@ -375,10 +375,15 @@ namespace NuGetGallery
             {
                 users = users.Where(u => !u.IsDeleted);
             }
+
             return users.Include(u => u.Roles)
                 .Include(u => u.Credentials)
                 .SingleOrDefault(u => u.Username == username);
         }
+
+        public User FindSpecialUserByRoleName(string roleName) =>
+            UserRepository.GetAll().Where(u => u.Roles.Select(r => r.Name).Contains(roleName)).FirstOrDefault()
+                ?? throw new InvalidOperationException($"Special user of type {roleName} not found.");
 
         public virtual User FindByKey(int key, bool includeDeleted = false)
         {

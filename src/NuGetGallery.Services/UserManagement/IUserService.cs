@@ -31,6 +31,8 @@ namespace NuGetGallery
 
         User FindByUsername(string username, bool includeDeleted = false);
 
+        User FindSpecialUserByRoleName(string roleName);
+
         User FindByKey(int key, bool includeDeleted = false);
 
         Task<bool> ConfirmEmailAddress(User user, string token);

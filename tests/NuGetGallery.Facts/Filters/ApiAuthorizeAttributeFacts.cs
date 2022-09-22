@@ -118,7 +118,7 @@ namespace NuGetGallery.Filters
                 mockActionDescriptor.Setup(c => c.ControllerDescriptor).Returns(new Mock<ControllerDescriptor>().Object);
 
                 var mockController = new Mock<AppController>();
-                mockController.Setup(c => c.GetCurrentUser()).Returns(user);
+                mockController.Setup(c => c.GetCurrentUser(null)).Returns(user);
 
                 var controller = mockController.Object;
                 controller.NuGetContext.Config = configs.Object;

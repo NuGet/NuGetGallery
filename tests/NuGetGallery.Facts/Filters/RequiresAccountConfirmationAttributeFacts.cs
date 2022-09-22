@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
+using Autofac.Features.ResolveAnything;
 using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Framework;
@@ -44,7 +45,7 @@ namespace NuGetGallery.Filters
         public void RequiresAccountConfirmationAttributePassedWhenUserNotConfirmed()
         {
             var controller = new Mock<AppController>();
-            controller.Setup(x => x.GetCurrentUser()).Returns(new User { EmailAddress = "test@mail.com" });
+            controller.Setup(x => x.GetCurrentUser(null)).Returns(new User { EmailAddress = "test@mail.com" });
             var mockActionContext = new Mock<ActionExecutingContext>(MockBehavior.Strict);
             mockActionContext.SetupGet(x => x.HttpContext.Request.IsAuthenticated).Returns(true);
             mockActionContext.SetupGet(x => x.Controller).Returns(controller.Object);
@@ -59,7 +60,7 @@ namespace NuGetGallery.Filters
             // Assert
             Assert.Null(result["ConfirmationRequiredMessage"]);
 
-            controller.Verify(x => x.GetCurrentUser());
+            controller.Verify(x => x.GetCurrentUser(null));
             mockActionContext.Verify(x => x.HttpContext.Request.IsAuthenticated);
             mockActionContext.Verify(x => x.Controller);
         }
@@ -120,7 +121,7 @@ namespace NuGetGallery.Filters
 
         public class TestableAppController : AppController
         {
-            protected internal override User GetCurrentUser()
+            protected internal override User GetCurrentUser(string specialUserFallback = null)
             {
                 return new User();
             }

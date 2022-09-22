@@ -9,6 +9,8 @@ using System.Security.Claims;
 using Microsoft.Owin;
 using NuGetGallery.Cookies;
 using NuGet.Services.Entities;
+using System;
+using System.Linq;
 
 namespace NuGetGallery
 {
@@ -63,9 +65,21 @@ namespace NuGetGallery
             return DependencyResolver.Current.GetService<T>();
         }
 
-        protected internal virtual User GetCurrentUser()
+        protected internal virtual User GetCurrentUser(string specialUserFallback = null)
         {
-            return OwinContext.GetCurrentUser();
+            var user = OwinContext.GetCurrentUser();
+            if (user != null)
+            {
+                return user;
+            }
+
+            if (specialUserFallback != null)
+            {
+                var userService = GetService<IUserService>();
+                return userService.FindSpecialUserByRoleName(specialUserFallback);
+            }
+
+            return user;
         }
 
         protected internal virtual ActionResult SafeRedirect(string returnUrl)

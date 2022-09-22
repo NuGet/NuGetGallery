@@ -15,7 +15,7 @@
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             @ViewHelpers.AjaxAntiForgeryToken(Html)
-            @ViewHelpers.PackagesBreadcrumb(Url, CurrentUser, true, @<text>Upload</text>)
+            @ViewHelpers.PackagesBreadcrumb(Url, UploaderUser, true, @<text>Upload</text>)
 
             @if (Model.IsUserLocked)
             {

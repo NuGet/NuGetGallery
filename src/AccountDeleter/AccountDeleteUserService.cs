@@ -118,6 +118,11 @@ namespace NuGetGallery.AccountDeleter
                 .SingleOrDefault(u => u.Username == username);
         }
 
+        public User FindSpecialUserByRoleName(string userRole)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<IDictionary<int, string>> GetEmailAddressesForUserKeysAsync(IReadOnlyCollection<int> distinctUserKeys)
         {
             throw new NotImplementedException();

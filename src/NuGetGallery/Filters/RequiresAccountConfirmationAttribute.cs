@@ -28,11 +28,6 @@ namespace NuGetGallery.Filters
                 throw new InvalidOperationException("Requires account confirmation attribute is only valid on authenticated actions.");
             }
 
-            VerifyUser(filterContext);
-        }
-
-        protected void VerifyUser(ActionExecutingContext filterContext)
-        {
             var controller = ((AppController)filterContext.Controller);
             var user = controller.GetCurrentUser();
 
