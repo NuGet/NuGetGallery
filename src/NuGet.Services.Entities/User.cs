@@ -22,6 +22,8 @@ namespace NuGet.Services.Entities
 
         private bool? _isAdmin;
 
+        private bool? _isAnonymousUploader;
+
         [NotMapped]
         public bool IsAdministrator
         {
@@ -32,6 +34,19 @@ namespace NuGet.Services.Entities
                     _isAdmin = IsInRole(Constants.AdminRoleName);
                 }
                 return _isAdmin.Value;
+            }
+        }
+
+        [NotMapped]
+        public bool IsAnonymousUploader
+        {
+            get
+            {
+                if (!_isAnonymousUploader.HasValue)
+                {
+                    _isAnonymousUploader = IsInRole(Constants.AnonymousUploaderRoleName);
+                }
+                return _isAnonymousUploader.Value;
             }
         }
 

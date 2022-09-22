@@ -6,6 +6,7 @@ namespace NuGet.Services.Entities
     public static class Constants
     {
         public const string AdminRoleName = "Admins";
+        public const string AnonymousUploaderRoleName = "AnonymousUploaders";
         public const int MaxPackageIdLength = 128;
         public const int MaxPackageVersionLength = 64;
     }

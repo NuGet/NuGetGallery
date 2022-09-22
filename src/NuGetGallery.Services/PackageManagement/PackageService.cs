@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Client;
@@ -34,6 +35,7 @@ namespace NuGetGallery
         private readonly IEntitiesContext _entitiesContext;
         private readonly IContentObjectService _contentObjectService;
         private readonly IFeatureFlagService _featureFlagService;
+        private readonly RandomNumberGenerator _randomNumberGenerator;
         private const int packagesDisplayed = 5;
 
         public PackageService(
@@ -54,6 +56,7 @@ namespace NuGetGallery
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
+            _randomNumberGenerator = RandomNumberGenerator.Create();
         }
 
         /// <summary>
@@ -584,12 +587,15 @@ namespace NuGetGallery
         {
             var packageRegistration = FindPackageRegistrationById(packageMetadata.Id);
 
+            var temporaryId = owner.IsAnonymousUploader ? Guid.NewGuid().ToStringSafe() : null;
+
             if (packageRegistration == null)
             {
 
                 packageRegistration = new PackageRegistration
                 {
                     Id = packageMetadata.Id,
+                    TemporaryId = temporaryId,
                     IsVerified = isVerified
                 };
 
@@ -698,6 +704,11 @@ namespace NuGetGallery
             package.HasEmbeddedIcon = !string.IsNullOrWhiteSpace(packageMetadata.IconFile);
             package.HasReadMe = !string.IsNullOrWhiteSpace(packageMetadata.ReadmeFile);
             package.EmbeddedReadmeType = GetEmbeddedReadmeType(packageMetadata);
+
+            if (user.IsAnonymousUploader)
+            {
+                package.ClaimKey = GenerateClaimKey();
+            }
 
             return package;
         }
@@ -1068,6 +1079,15 @@ namespace NuGetGallery
                 .Where(p => p.Version == normalizedVersion)
                 .Select(p => (PackageStatus?)p.PackageStatusKey)
                 .FirstOrDefault();
+        }
+
+        private string GenerateClaimKey(int byteCount = 32)
+        {
+            var bytes = new byte[byteCount];
+            _randomNumberGenerator.GetBytes(bytes);
+
+            var newKey = Convert.ToBase64String(bytes);
+            return newKey;
         }
     }
 }
