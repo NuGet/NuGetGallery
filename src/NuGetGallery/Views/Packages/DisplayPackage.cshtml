@@ -486,7 +486,11 @@
 
                 @if (TempData["ClaimKey"] != null)
                 {
-                    <p>Claim key: @TempData["ClaimKey"]</p>
+                    <p>
+                        Claim key: @TempData["ClaimKey"]
+                        <br/>
+                        You will only see this key once! Please copy it now.
+                    </p>
                 }
 
                 @if (Model.Available)

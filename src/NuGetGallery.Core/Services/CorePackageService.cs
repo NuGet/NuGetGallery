@@ -351,7 +351,7 @@ namespace NuGetGallery
             if (!packages.Any())
             {
                 packages = allPackages
-                    .Where(p => p.PackageRegistration.Id == id);
+                    .Where(p => p.PackageRegistration.Id == id && p.PackageRegistration.TemporaryId == null);
             }
 
             if (includeLicenseReports)
