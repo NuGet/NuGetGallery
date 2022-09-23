@@ -219,7 +219,7 @@ namespace NuGetGallery
             viewModel.PackageWarningIconTitle =
                 GetWarningIconTitle(viewModel.Version, deprecation, maxVulnerabilitySeverity);
 
-            viewModel.ClaimKey = package.ClaimKey;
+            viewModel.TemporaryId = package.PackageRegistration.TemporaryId;
 
             return viewModel;
         }

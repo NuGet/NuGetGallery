@@ -343,9 +343,16 @@ namespace NuGetGallery
             bool includeDeprecation,
             bool includeDeprecationRelationships)
         {
-            var packages = _packageRepository
-                .GetAll()
-                .Where(p => p.PackageRegistration.Id == id);
+            // We test temporaryId first because if there is a match, this is the only result set we want
+            // --it's a package created by an anonymous upload.
+            var allPackages = _packageRepository.GetAll();
+            var packages = allPackages
+                .Where(p => p.PackageRegistration.TemporaryId == id);
+            if (!packages.Any())
+            {
+                packages = allPackages
+                    .Where(p => p.PackageRegistration.Id == id);
+            }
 
             if (includeLicenseReports)
             {
