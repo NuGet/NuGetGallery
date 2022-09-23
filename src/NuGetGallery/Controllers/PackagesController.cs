@@ -2843,9 +2843,17 @@ namespace NuGetGallery
 
                 await DeleteUploadedFileForUser(currentUser, uploadFile);
 
+                var workingId = string.IsNullOrWhiteSpace(package.PackageRegistration.TemporaryId)
+                    ? package.PackageRegistration.Id
+                    : package.PackageRegistration.TemporaryId;
+                if (!string.IsNullOrWhiteSpace(package.ClaimKey))
+                {
+                    TempData["ClaimKey"] = package.ClaimKey;
+                }
+
                 return Json(new
                 {
-                    location = Url.Package(package.PackageRegistration.Id, package.NormalizedVersion)
+                    location = Url.Package(workingId, package.NormalizedVersion)
                 });
             }
             catch (Exception)

@@ -479,9 +479,14 @@
                     <p>Requires NuGet @Model.MinClientVersion or higher.</p>
                 }
 
-                @if (!String.IsNullOrEmpty(Model.ClaimKey))
+                @if (!String.IsNullOrEmpty(Model.TemporaryId))
                 {
-                    <p>Claim key: @Model.ClaimKey</p>
+                    <p>Temporary Package ID: @Model.TemporaryId</p>
+                }
+
+                @if (TempData["ClaimKey"] != null)
+                {
+                    <p>Claim key: @TempData["ClaimKey"]</p>
                 }
 
                 @if (Model.Available)
