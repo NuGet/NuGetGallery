@@ -13,7 +13,7 @@ using NuGet.RuntimeModel;
 
 namespace NuGetGallery
 {
-    public static class AssetFrameworkService
+    public static class AssetFrameworkHelper
     {
         /// <summary>
         /// This method combines the logic used in restore operations to make a determination about the TFM supported by the package.
