@@ -716,7 +716,7 @@ namespace NuGetGallery
         {
             if (nuspecReader != null)
             {
-                return AssetFrameworkService.GetAssetFrameworks(nuspecReader.GetId(), nuspecReader.GetPackageTypes(), packageFiles);
+                return AssetFrameworkHelper.GetAssetFrameworks(nuspecReader.GetId(), nuspecReader.GetPackageTypes(), packageFiles);
             }
 
             return Enumerable.Empty<NuGetFramework>();
