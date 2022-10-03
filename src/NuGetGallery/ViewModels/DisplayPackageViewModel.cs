@@ -33,6 +33,7 @@ namespace NuGetGallery
 
         public bool IsDotnetToolPackageType { get; set; }
         public bool IsDotnetNewTemplatePackageType { get; set; }
+        public bool IsMSBuildSdkPackageType { get; set; }
         public bool IsAtomFeedEnabled { get; set; }
         public bool IsPackageDeprecationEnabled { get; set; }
         public bool IsPackageVulnerabilitiesEnabled { get; set; }
