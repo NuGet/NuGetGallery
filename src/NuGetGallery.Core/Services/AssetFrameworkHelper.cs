@@ -112,5 +112,19 @@ namespace NuGetGallery
 
             return false;
         }
+
+        /// <summary>
+        /// These are the Framework Generation constant strings used by the Search Service for framework filtering.
+        /// </summary>
+        public static class FrameworkGenerationIdentifiers
+        {
+            public const string Net = "net";
+
+            public const string NetFramework = "netframework";
+
+            public const string NetCore = "netcore";
+
+            public const string NetStandard = "netstandard";
+        }
     }
 }
