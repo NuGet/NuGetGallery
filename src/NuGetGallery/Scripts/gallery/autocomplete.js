@@ -187,7 +187,7 @@
     }
 
     function jquerySafeId(id) {
-        return id.replace(/\./g, "\\.");
+        return jQuery.escapeSelector(id);
     }
 
     function safeId(id) {
