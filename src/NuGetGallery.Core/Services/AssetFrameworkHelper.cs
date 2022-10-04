@@ -114,7 +114,7 @@ namespace NuGetGallery
         }
 
         /// <summary>
-        /// These are the Framework Generation constant strings used by the Search Service for framework filtering.
+        /// Framework Generation shortname identifiers used by the Search Service for framework filtering.
         /// </summary>
         public static class FrameworkGenerationIdentifiers
         {
@@ -122,7 +122,7 @@ namespace NuGetGallery
 
             public const string NetFramework = "netframework";
 
-            public const string NetCore = "netcore";
+            public const string NetCoreApp = "netcoreapp";
 
             public const string NetStandard = "netstandard";
         }
