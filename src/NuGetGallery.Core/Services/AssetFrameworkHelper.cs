@@ -112,5 +112,19 @@ namespace NuGetGallery
 
             return false;
         }
+
+        /// <summary>
+        /// Framework Generation shortname identifiers used by the Search Service for framework filtering.
+        /// </summary>
+        public static class FrameworkGenerationIdentifiers
+        {
+            public const string Net = "net";
+
+            public const string NetFramework = "netframework";
+
+            public const string NetCoreApp = "netcoreapp";
+
+            public const string NetStandard = "netstandard";
+        }
     }
 }
