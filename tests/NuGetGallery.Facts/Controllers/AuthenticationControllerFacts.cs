@@ -804,7 +804,7 @@ namespace NuGetGallery.Controllers
                         It.Is<NewAccountMessage>(
                             msg =>
                             msg.User == authUser.User
-                            && msg.ConfirmationUrl == TestUtility.GallerySiteRootHttps + "account/confirm/" + authUser.User.Username + "/" + authUser.User.EmailConfirmationToken),
+                            && msg.ConfirmationUrl == TestUtility.GallerySupportEmailSiteRootHttps + "account/confirm/" + authUser.User.Username + "/" + authUser.User.EmailConfirmationToken),
                         false,
                         false));
 
@@ -892,7 +892,7 @@ namespace NuGetGallery.Controllers
                         UserInfo = new IdentityInformation("", "", authUser.User.UnconfirmedEmailAddress, "")
                     });
 
-                var confirmationUrl = TestUtility.GallerySiteRootHttps + "account/confirm/" + authUser.User.Username + "/" + authUser.User.EmailConfirmationToken;
+                var confirmationUrl = TestUtility.GallerySupportEmailSiteRootHttps + "account/confirm/" + authUser.User.Username + "/" + authUser.User.EmailConfirmationToken;
                 var configurationService = GetConfigurationService();
                 var messageService = GetMock<IMessageService>();
                 messageService
@@ -960,7 +960,7 @@ namespace NuGetGallery.Controllers
                         UserInfo = new IdentityInformation("", "", "unconfirmed@example.com", "")
                     });
 
-                var confirmationUrl = TestUtility.GallerySiteRootHttps + "account/confirm/" + authUser.User.Username + "/" + authUser.User.EmailConfirmationToken;
+                var confirmationUrl = TestUtility.GallerySupportEmailSiteRootHttps + "account/confirm/" + authUser.User.Username + "/" + authUser.User.EmailConfirmationToken;
                 var configurationService = GetConfigurationService();
                 var messageService = GetMock<IMessageService>();
                 messageService
@@ -1147,7 +1147,7 @@ namespace NuGetGallery.Controllers
                         It.Is<NewAccountMessage>(
                             msg =>
                             msg.User == authUser.User
-                            && msg.ConfirmationUrl == TestUtility.GallerySiteRootHttps + "account/confirm/" + authUser.User.Username + "/" + authUser.User.EmailConfirmationToken),
+                            && msg.ConfirmationUrl == TestUtility.GallerySupportEmailSiteRootHttps + "account/confirm/" + authUser.User.Username + "/" + authUser.User.EmailConfirmationToken),
                         false,
                         false));
 

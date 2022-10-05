@@ -18,6 +18,11 @@ namespace NuGetGallery.Configuration
         string GetSiteRoot(bool useHttps);
 
         /// <summary>
+        /// Gets the support email site root using the specified protocol
+        /// </summary>
+        string GetSupportEmailSiteRoot();
+
+        /// <summary>
         /// Populate the properties of <param name="instance"></param> from configuration. 
         /// </summary>
         /// <typeparam name="T">The type to populate.</typeparam>
