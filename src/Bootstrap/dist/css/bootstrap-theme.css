@@ -705,7 +705,6 @@ img.reserved-indicator-icon {
 .readme-common pre code.hljs .hljs-title.class_,
 .readme-common pre code.hljs .hljs-title.class_.inherited__,
 .readme-common pre code.hljs .hljs-title.function_ {
-  /* prettylights-syntax-entity */
   color: #6f42c1;
 }
 .readme-common pre code.hljs .hljs-attr,
@@ -718,65 +717,51 @@ img.reserved-indicator-icon {
 .readme-common pre code.hljs .hljs-selector-attr,
 .readme-common pre code.hljs .hljs-selector-class,
 .readme-common pre code.hljs .hljs-selector-id {
-  /* prettylights-syntax-constant */
   color: #005cc5;
 }
 .readme-common pre code.hljs .hljs-regexp,
 .readme-common pre code.hljs .hljs-string,
 .readme-common pre code.hljs .hljs-meta .hljs-string {
-  /* prettylights-syntax-string */
   color: #032f62;
 }
 .readme-common pre code.hljs .hljs-built_in,
 .readme-common pre code.hljs .hljs-symbol {
-  /* prettylights-syntax-variable */
   color: #b74e05;
 }
 .readme-common pre code.hljs .hljs-comment,
 .readme-common pre code.hljs .hljs-code,
 .readme-common pre code.hljs .hljs-formula {
-  /* prettylights-syntax-comment */
   color: #6a737d;
 }
 .readme-common pre code.hljs .hljs-name,
 .readme-common pre code.hljs .hljs-quote,
 .readme-common pre code.hljs .hljs-selector-tag,
 .readme-common pre code.hljs .hljs-selector-pseudo {
-  /* prettylights-syntax-entity-tag */
-  color: #22863a;
+  color: #207f37;
 }
 .readme-common pre code.hljs .hljs-subst {
-  /* prettylights-syntax-storage-modifier-import */
   color: #24292e;
 }
 .readme-common pre code.hljs .hljs-section {
-  /* prettylights-syntax-markup-heading */
   color: #005cc5;
   font-weight: bold;
 }
 .readme-common pre code.hljs .hljs-bullet {
-  /* prettylights-syntax-markup-list */
   color: #735c0f;
 }
 .readme-common pre code.hljs .hljs-emphasis {
-  /* prettylights-syntax-markup-italic */
   color: #24292e;
   font-style: italic;
 }
 .readme-common pre code.hljs .hljs-strong {
-  /* prettylights-syntax-markup-bold */
   color: #24292e;
   font-weight: bold;
 }
 .readme-common pre code.hljs .hljs-addition {
-  /* prettylights-syntax-markup-inserted */
-  color: #22863a;
-  background-color: #f0fff4;
+  color: #207f37;
 }
 .readme-common pre code.hljs .hljs-deletion {
-  /* prettylights-syntax-markup-deleted */
   color: #b31d28;
-  background-color: #ffeef0;
 }
 #readme-preview {
   padding-top: 0.25em;
