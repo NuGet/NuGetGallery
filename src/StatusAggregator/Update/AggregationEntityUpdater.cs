@@ -47,7 +47,7 @@ namespace StatusAggregator.Update
 
             if (!aggregationEntity.IsActive)
             {
-                _logger.LogInformation("Aggregation is inactive, cannot update.");
+                _logger.LogInformation("Aggregation {AggregationRowKey} is inactive, cannot update.", aggregationEntity.RowKey);
                 return;
             }
 
@@ -58,7 +58,7 @@ namespace StatusAggregator.Update
 
             if (children.Any())
             {
-                _logger.LogInformation("Aggregation has {ChildrenCount} children. Updating each child.", children.Count);
+                _logger.LogInformation("Aggregation {AggregationRowKey} has {ChildrenCount} children. Updating each child.", aggregationEntity.RowKey, children.Count);
                 foreach (var child in children)
                 {
                     await _aggregatedEntityUpdater.UpdateAsync(child, cursor);
@@ -71,13 +71,13 @@ namespace StatusAggregator.Update
             }
             else
             {
-                _logger.LogInformation("Aggregation has no children and must have been created manually, cannot update.");
+                _logger.LogInformation("Aggregation {AggregationRowKey} has no children and must have been created manually, cannot update.", aggregationEntity.RowKey);
                 return;
             }
 
             if (!hasActiveOrRecentChildren)
             {
-                _logger.LogInformation("Deactivating aggregation because its children are inactive and too old.");
+                _logger.LogInformation("Deactivating aggregation {AggregationRowKey} because its children are inactive and too old.", aggregationEntity.RowKey);
                 var lastEndTime = children.Max(i => i.EndTime.Value);
                 aggregationEntity.EndTime = lastEndTime;
 
@@ -85,7 +85,7 @@ namespace StatusAggregator.Update
             }
             else
             {
-                _logger.LogInformation("Aggregation has active or recent children so it will not be deactivated.");
+                _logger.LogInformation("Aggregation {AggregationRowKey} has active or recent children so it will not be deactivated.", aggregationEntity.RowKey);
             }
         }
     }
