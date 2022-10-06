@@ -90,7 +90,7 @@ namespace NuGet.Jobs.Validation.ScanAndSign
             }
 
             _logger.LogInformation(
-                "Requested scan only for validation {ValidationId} {BlobUrl}, delay override: {DelayOverride}",
+                "Enqueuing scan only message for validation {ValidationId} {BlobUrl}, delay override: {DelayOverride}",
                 validationId,
                 nupkgUrl,
                 messageDeliveryDelayOverride);
@@ -138,7 +138,7 @@ namespace NuGet.Jobs.Validation.ScanAndSign
             }
 
             _logger.LogInformation(
-                "Requested scan and sign for validation {ValidationId} {BlobUrl} using service index {ServiceIndex} and owners {Owners}, delay override: {DelayOverride}",
+                "Enqueuing scan and sign message for validation {ValidationId} {BlobUrl} using service index {ServiceIndex} and owners {Owners}, delay override: {DelayOverride}",
                 validationId,
                 nupkgUrl,
                 v3ServiceIndexUrl,

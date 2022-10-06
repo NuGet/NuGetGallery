@@ -130,6 +130,17 @@ namespace Validation.Symbols.Tests
                     Assert.Contains(s, result);
                 }
             }
+
+            [Fact]
+            public void FailsWithDirectoryTraversal()
+            {
+                // Arrange
+                IReadOnlyCollection<ZipArchiveEntry> input = CreateTestZipEntries(new string[] { "../foo.pdb" });
+                var service = new TestZipArchiveService();
+
+                // Act & Assert
+                Assert.Throws<InvalidDataException>(() => service.Extract(input, "Dir1").ToList());
+            }
         }
 
         public static IReadOnlyCollection<ZipArchiveEntry> CreateTestZipEntries(string[] files)
@@ -157,7 +168,7 @@ namespace Validation.Symbols.Tests
 
             public bool OnExtractInvoked = false;
 
-            public override void OnExtract(ZipArchiveEntry entry, string targetDirectory)
+            public override void OnExtract(ZipArchiveEntry entry, string destinationPath, string targetDirectory)
             {
                 OnExtractInvoked = true;
             }

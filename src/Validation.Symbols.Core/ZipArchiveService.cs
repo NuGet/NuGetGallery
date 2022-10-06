@@ -93,7 +93,14 @@ namespace NuGet.Jobs.Validation.Symbols.Core
                    }).
                    Select((e) =>
                    {
-                       OnExtract(e, targetDirectory);
+                       string destinationPath = Path.GetFullPath(Path.Combine(targetDirectory, e.FullName));
+                       string fullTargetDirectory = Path.GetFullPath(targetDirectory + Path.DirectorySeparatorChar);
+                       if (!destinationPath.StartsWith(fullTargetDirectory))
+                       {
+                           throw new InvalidDataException($"Invalid zip entry '{e.FullName}'.");
+                       }
+
+                       OnExtract(e, destinationPath, targetDirectory);
                        return e.FullName;
                    });
         }
@@ -103,9 +110,8 @@ namespace NuGet.Jobs.Validation.Symbols.Core
         /// </summary>
         /// <param name="entry"><see cref="ZipArchiveEntry" /> entry.</param>
         /// <param name="targetDirectory">The target directory to extract the compressed data.</param>
-        public virtual void OnExtract(ZipArchiveEntry entry, string targetDirectory)
+        public virtual void OnExtract(ZipArchiveEntry entry, string destinationPath, string targetDirectory)
         {
-            string destinationPath = Path.GetFullPath(Path.Combine(targetDirectory, entry.FullName));
             string destinationDirectory = Path.GetDirectoryName(destinationPath);
             if (!Directory.Exists(destinationDirectory))
             {
