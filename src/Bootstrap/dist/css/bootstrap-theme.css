@@ -2172,6 +2172,9 @@ p.frameworktableinfo-text {
 .page-statistics-overview text.graph-y-axis-text {
   font-size: 0.9em;
 }
+.page-stats-per-package .table {
+  table-layout: fixed;
+}
 .page-stats-per-package .stats-table-control {
   margin-top: 40px;
 }
