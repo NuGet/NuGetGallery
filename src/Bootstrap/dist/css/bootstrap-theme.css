@@ -690,6 +690,78 @@ img.reserved-indicator-icon {
 }
 .readme-common pre code.hljs {
   background-color: #f6f8fa;
+  color: #24292e;
+}
+.readme-common pre code.hljs .hljs-doctag,
+.readme-common pre code.hljs .hljs-keyword,
+.readme-common pre code.hljs .hljs-meta .hljs-keyword,
+.readme-common pre code.hljs .hljs-template-tag,
+.readme-common pre code.hljs .hljs-template-variable,
+.readme-common pre code.hljs .hljs-type,
+.readme-common pre code.hljs .hljs-variable.language_ .hljs-built_in {
+  color: #cc3745;
+}
+.readme-common pre code.hljs .hljs-title,
+.readme-common pre code.hljs .hljs-title.class_,
+.readme-common pre code.hljs .hljs-title.class_.inherited__,
+.readme-common pre code.hljs .hljs-title.function_ {
+  color: #6f42c1;
+}
+.readme-common pre code.hljs .hljs-attr,
+.readme-common pre code.hljs .hljs-attribute,
+.readme-common pre code.hljs .hljs-literal,
+.readme-common pre code.hljs .hljs-meta,
+.readme-common pre code.hljs .hljs-number,
+.readme-common pre code.hljs .hljs-operator,
+.readme-common pre code.hljs .hljs-variable,
+.readme-common pre code.hljs .hljs-selector-attr,
+.readme-common pre code.hljs .hljs-selector-class,
+.readme-common pre code.hljs .hljs-selector-id {
+  color: #005cc5;
+}
+.readme-common pre code.hljs .hljs-regexp,
+.readme-common pre code.hljs .hljs-string,
+.readme-common pre code.hljs .hljs-meta .hljs-string {
+  color: #032f62;
+}
+.readme-common pre code.hljs .hljs-built_in,
+.readme-common pre code.hljs .hljs-symbol {
+  color: #b74e05;
+}
+.readme-common pre code.hljs .hljs-comment,
+.readme-common pre code.hljs .hljs-code,
+.readme-common pre code.hljs .hljs-formula {
+  color: #6a737d;
+}
+.readme-common pre code.hljs .hljs-name,
+.readme-common pre code.hljs .hljs-quote,
+.readme-common pre code.hljs .hljs-selector-tag,
+.readme-common pre code.hljs .hljs-selector-pseudo {
+  color: #207f37;
+}
+.readme-common pre code.hljs .hljs-subst {
+  color: #24292e;
+}
+.readme-common pre code.hljs .hljs-section {
+  color: #005cc5;
+  font-weight: bold;
+}
+.readme-common pre code.hljs .hljs-bullet {
+  color: #735c0f;
+}
+.readme-common pre code.hljs .hljs-emphasis {
+  color: #24292e;
+  font-style: italic;
+}
+.readme-common pre code.hljs .hljs-strong {
+  color: #24292e;
+  font-weight: bold;
+}
+.readme-common pre code.hljs .hljs-addition {
+  color: #207f37;
+}
+.readme-common pre code.hljs .hljs-deletion {
+  color: #b31d28;
 }
 #readme-preview {
   padding-top: 0.25em;
