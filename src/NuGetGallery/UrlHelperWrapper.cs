@@ -27,7 +27,7 @@ namespace NuGetGallery
 
         public string Package(string id, string version, bool relativeUrl, bool supportEmail)
         {
-            return _urlHelper.Package(id, version, relativeUrl, supportEmail);
+            return _urlHelper.Package(id, version, relativeUrl, supportEmail: supportEmail);
         }
 
         public string RejectPendingOwnershipRequest(string id, string username, string confirmationCode, bool relativeUrl, bool supportEmail)
