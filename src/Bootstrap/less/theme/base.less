@@ -118,6 +118,13 @@ body {
 .main-container {
   padding-bottom: 75px;
   height: auto;
+
+  a[href] {
+    &:focus {
+      outline: solid 2px;
+      outline-offset: 1px;
+    }
+  }
 }
 
 .navbar-logo {
@@ -343,6 +350,13 @@ img.reserved-indicator-icon {
   li {
     list-style: none;
     display: list-item;
+
+    a {
+      &:focus {
+        outline: solid 0.25px;
+        outline-offset: 0;
+      }
+    }
   }
 
   @media (min-width: @screen-sm-min) {
@@ -350,7 +364,7 @@ img.reserved-indicator-icon {
       display: inline-block;
       line-height: @package-list-line-height;
       max-height: (@package-list-line-height * 5 + 1px);
-      overflow-y: hidden;
+      // overflow-y: hidden;
       padding-right: @padding-small-horizontal;
     }
   }
