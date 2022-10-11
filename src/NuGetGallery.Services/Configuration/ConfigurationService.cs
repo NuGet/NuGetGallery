@@ -220,19 +220,7 @@ namespace NuGetGallery.Configuration
         {
             var siteRoot = Current.SiteRoot;
 
-            if (siteRoot == null)
-            {
-                // No SiteRoot configured in settings.
-                // Fallback to detected site root.
-                var request = GetCurrentRequest();
-                siteRoot = request.Url.GetLeftPart(UriPartial.Authority) + '/';
-            }
-
-            if (!siteRoot.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
-                && !siteRoot.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
-            {
-                throw new InvalidOperationException("The configured site root must start with either http:// or https://.");
-            }
+            CheckValidSiteRoot(siteRoot);
 
             if (siteRoot.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
             {
@@ -258,6 +246,18 @@ namespace NuGetGallery.Configuration
         {
             var siteRoot = Current.SupportEmailSiteRoot;
 
+            CheckValidSiteRoot(siteRoot);
+
+            if (siteRoot.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+            {
+                siteRoot = "https://" + siteRoot.Substring(7);
+            }
+
+            return siteRoot;
+        }
+
+        private void CheckValidSiteRoot(string siteRoot)
+        {
             if (siteRoot == null)
             {
                 // No SiteRoot configured in settings.
@@ -271,13 +271,6 @@ namespace NuGetGallery.Configuration
             {
                 throw new InvalidOperationException("The configured site root must start with either http:// or https://.");
             }
-
-            if (siteRoot.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
-            {
-                siteRoot = "https://" + siteRoot.Substring(7);
-            }
-
-            return siteRoot;
         }
     }
 }

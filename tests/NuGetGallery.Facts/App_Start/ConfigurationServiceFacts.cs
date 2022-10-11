@@ -90,7 +90,7 @@ namespace NuGetGallery.App_Start
             }
 
             [Fact]
-            public void WillUseHttpUponRequestHtWhenConfiguredSiteRootIstps()
+            public void WillUseHttpUponRequestWhenConfiguredSiteRootIsHttps()
             {
                 var configuration = new TestableConfigurationService();
                 configuration.StubConfiguredSiteRoot = "https://theSiteRoot/";

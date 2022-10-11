@@ -1297,7 +1297,7 @@ namespace NuGetGallery
                 ["token"] = confirmationCode
             };
 
-            return GetActionLink(url, actionName, "Packages", relativeUrl, routeValues, supportEmail:supportEmail);
+            return GetActionLink(url, actionName, "Packages", relativeUrl, routeValues, supportEmail: supportEmail);
         }
 
         public static string ConfirmEmail(
@@ -1587,8 +1587,7 @@ namespace NuGetGallery
             )
         {
             var protocol = GetProtocol(url);
-
-            var hostName = supportEmail? GetConfiguredSupportEmailSiteHostName(): GetConfiguredSiteHostName();
+            var hostName = supportEmail ? GetConfiguredSupportEmailSiteHostName(): GetConfiguredSiteHostName();
 
             routeValues = routeValues ?? new RouteValueDictionary();
             if (!routeValues.ContainsKey(Area))
