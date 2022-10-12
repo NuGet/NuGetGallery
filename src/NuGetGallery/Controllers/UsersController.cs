@@ -203,9 +203,9 @@ namespace NuGetGallery
                 _config,
                 accountToTransform,
                 adminUser,
-                profileUrl: Url.User(accountToTransform, relativeUrl: false),
-                confirmationUrl: Url.ConfirmTransformAccount(accountToTransform, relativeUrl: false),
-                rejectionUrl: Url.RejectTransformAccount(accountToTransform, relativeUrl: false));
+                profileUrl: Url.User(accountToTransform, relativeUrl: false, supportEmail: true),
+                confirmationUrl: Url.ConfirmTransformAccount(accountToTransform, relativeUrl: false, supportEmail: true),
+                rejectionUrl: Url.RejectTransformAccount(accountToTransform, relativeUrl: false, supportEmail: true));
             await MessageService.SendMessageAsync(organizationTransformRequestMessage);
 
             var organizationTransformInitiatedMessage = new OrganizationTransformInitiatedMessage(
@@ -1257,7 +1257,8 @@ namespace NuGetGallery
                 user.Username,
                 user.PasswordResetToken,
                 forgotPassword,
-                relativeUrl: false);
+                relativeUrl: false,
+                supportEmail: true);
 
             var message = new PasswordResetInstructionsMessage(
                 MessageServiceConfiguration,

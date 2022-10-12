@@ -152,9 +152,9 @@ namespace NuGetGallery
                     request.NewMember,
                     currentUser,
                     request.IsAdmin,
-                    profileUrl: Url.User(account, relativeUrl: false),
-                    confirmationUrl: Url.AcceptOrganizationMembershipRequest(request, relativeUrl: false),
-                    rejectionUrl: Url.RejectOrganizationMembershipRequest(request, relativeUrl: false));
+                    profileUrl: Url.User(account, relativeUrl: false, supportEmail: true),
+                    confirmationUrl: Url.AcceptOrganizationMembershipRequest(request, relativeUrl: false, supportEmail: true),
+                    rejectionUrl: Url.RejectOrganizationMembershipRequest(request, relativeUrl: false, supportEmail: true));
                 await MessageService.SendMessageAsync(organizationMembershipRequestMessage);
 
                 var organizationMembershipRequestInitiatedMessage = new OrganizationMembershipRequestInitiatedMessage(

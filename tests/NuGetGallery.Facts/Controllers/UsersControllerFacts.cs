@@ -1609,7 +1609,7 @@ namespace NuGetGallery
                 await controller.ChangePassword(new UserAccountViewModel());
 
                 // Assert
-                Assert.Equal(TestUtility.GallerySiteRootHttps + "account/setpassword/test/t0k3n", actualConfirmUrl);
+                Assert.Equal(TestUtility.GallerySupportEmailSiteRootHttps + "account/setpassword/test/t0k3n", actualConfirmUrl);
                 GetMock<IMessageService>().VerifyAll();
             }
 

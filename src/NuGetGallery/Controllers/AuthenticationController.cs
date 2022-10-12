@@ -330,7 +330,8 @@ namespace NuGetGallery
                     Url.ConfirmEmail(
                         user.User.Username,
                         user.User.EmailConfirmationToken,
-                        relativeUrl: false));
+                        relativeUrl: false,
+                        supportEmail: true));
 
                 await _messageService.SendMessageAsync(message);
             }

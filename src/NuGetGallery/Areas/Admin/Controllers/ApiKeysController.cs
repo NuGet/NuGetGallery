@@ -130,8 +130,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
                         credential: apiKeyCredential,
                         leakedUrl: apiKeyInfo.LeakedUrl,
                         revocationSource: apiKeyInfo.RevocationSource,
-                        manageApiKeyUrl: Url.ManageMyApiKeys(relativeUrl: false),
-                        contactUrl: Url.Contact(relativeUrl: false));
+                        manageApiKeyUrl: Url.ManageMyApiKeys(relativeUrl: false, supportEmail: true),
+                        contactUrl: Url.Contact(relativeUrl: false, supportEmail: true));
                     await _messageService.SendMessageAsync(credentialRevokedMessage);
 
                     await _authenticationService.RevokeApiKeyCredential(apiKeyCredential, revocationSourceKey, commitChanges: false);
