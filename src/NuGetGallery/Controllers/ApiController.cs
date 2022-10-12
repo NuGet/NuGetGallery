@@ -328,6 +328,7 @@ namespace NuGetGallery
 
         [HttpPost]
         [ApiAuthorize]
+        [ValidateAntiForgeryToken]
         [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
         [ActionName("CreatePackageVerificationKey")]
         public virtual async Task<ActionResult> CreatePackageVerificationKeyAsync(string id, string version)
@@ -424,6 +425,7 @@ namespace NuGetGallery
 
         [HttpPost]
         [ApiAuthorize]
+        [ValidateAntiForgeryToken]
         [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
         [ActionName("PushPackageApi")]
         public virtual Task<ActionResult> CreatePackagePost()
@@ -945,6 +947,7 @@ namespace NuGetGallery
 
         [HttpPost]
         [ApiAuthorize]
+        [ValidateAntiForgeryToken]
         [ApiScopeRequired(NuGetScopes.PackageUnlist)]
         [ActionName("PublishPackageApi")]
         public virtual async Task<ActionResult> PublishPackage(string id, string version)
