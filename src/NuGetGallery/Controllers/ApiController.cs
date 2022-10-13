@@ -328,10 +328,10 @@ namespace NuGetGallery
 
         [HttpPost]
         [ApiAuthorize]
-        [ValidateAntiForgeryToken]
         [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
         [ActionName("CreatePackageVerificationKey")]
         public virtual async Task<ActionResult> CreatePackageVerificationKeyAsync(string id, string version)
+        // CodeQL [SM00433] This endpoint uses API Key authentication
         {
             // For backwards compatibility, we must preserve existing behavior where the client always pushes
             // symbols and the VerifyPackageKey callback returns the appropriate response. For this reason, we
@@ -425,10 +425,10 @@ namespace NuGetGallery
 
         [HttpPost]
         [ApiAuthorize]
-        [ValidateAntiForgeryToken]
         [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
         [ActionName("PushPackageApi")]
         public virtual Task<ActionResult> CreatePackagePost()
+        // CodeQL [SM00433] This endpoint uses API Key authentication
         {
             return CreatePackageInternal();
         }
@@ -947,10 +947,10 @@ namespace NuGetGallery
 
         [HttpPost]
         [ApiAuthorize]
-        [ValidateAntiForgeryToken]
         [ApiScopeRequired(NuGetScopes.PackageUnlist)]
         [ActionName("PublishPackageApi")]
         public virtual async Task<ActionResult> PublishPackage(string id, string version)
+        // CodeQL [SM00433] This endpoint uses API Key authentication
         {
             var package = PackageService.FindPackageByIdAndVersionStrict(id, version);
             if (package == null)
