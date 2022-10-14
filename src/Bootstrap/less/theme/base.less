@@ -364,7 +364,12 @@ img.reserved-indicator-icon {
       display: inline-block;
       line-height: @package-list-line-height;
       max-height: (@package-list-line-height * 5 + 1px);
+      overflow-y: hidden;
       padding-right: @padding-small-horizontal;
+    }
+
+    li.package-tags {
+      overflow-y: visible;
     }
   }
 }

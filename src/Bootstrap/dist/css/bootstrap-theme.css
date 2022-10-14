@@ -279,7 +279,11 @@ img.reserved-indicator-icon {
     display: inline-block;
     line-height: 20px;
     max-height: 101px;
+    overflow-y: hidden;
     padding-right: 10px;
+  }
+  .package-list li.package-tags {
+    overflow-y: visible;
   }
 }
 .package-title-text {
@@ -1531,6 +1535,7 @@ p.frameworktableinfo-text {
   color: #323130;
 }
 .page-package-details .body-tabs .nav-tabs > li > a:focus {
+  outline: 3px solid #0078D4;
   outline-offset: 0;
 }
 .page-package-details .body-tabs .nav-tabs > li > a .ms-Icon {
