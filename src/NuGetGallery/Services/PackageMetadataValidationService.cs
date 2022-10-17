@@ -152,7 +152,7 @@ namespace NuGetGallery
                 return result;
             }
 
-            result = await CheckReadmeMetadataAsync(nuGetPackage, currentUser);
+            result = await CheckReadmeMetadataAsync(nuGetPackage, warnings, currentUser);
             if (result != null)
             {
                 return result;
@@ -415,13 +415,14 @@ namespace NuGetGallery
             return null;
         }
 
-        private async Task<PackageValidationResult> CheckReadmeMetadataAsync(PackageArchiveReader nuGetPackage, User user)
+        private async Task<PackageValidationResult> CheckReadmeMetadataAsync(PackageArchiveReader nuGetPackage, List<IValidationMessage> warnings, User user)
         {
             var nuspecReader = GetNuspecReader(nuGetPackage);
             var readmeElement = nuspecReader.ReadmeElement;
 
             if (readmeElement == null)
             {
+                warnings.Add(new UploadPackageMissingReadme());
                 return null;
             }
 

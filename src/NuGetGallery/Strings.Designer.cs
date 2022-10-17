@@ -2724,7 +2724,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Learn more about including a license within the package.
+        ///   Looks up a localized string similar to How to include a license within the package.
         /// </summary>
         public static string UploadPackage_LearnMore_PackagingLicense {
             get {
@@ -2769,11 +2769,20 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to All published packages should have license information specified..
+        ///   Looks up a localized string similar to  License missing..
         /// </summary>
         public static string UploadPackage_LicenseShouldBeSpecified {
             get {
                 return ResourceManager.GetString("UploadPackage_LicenseShouldBeSpecified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to  &lt;strong&gt;License&lt;/strong&gt; missing..
+        /// </summary>
+        public static string UploadPackage_LicenseShouldBeSpecifiedHtml {
+            get {
+                return ResourceManager.GetString("UploadPackage_LicenseShouldBeSpecifiedHtml", resourceCulture);
             }
         }
         
@@ -2801,6 +2810,24 @@ namespace NuGetGallery {
         public static string UploadPackage_MissingLicenseInformation {
             get {
                 return ResourceManager.GetString("UploadPackage_MissingLicenseInformation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Readme missing. Go to https://learn.microsoft.com/en-us/nuget/create-packages/package-authoring-best-practices#readme learn How to include a readme file within the package, or add it as you upload..
+        /// </summary>
+        public static string UploadPackage_MissingReadme {
+            get {
+                return ResourceManager.GetString("UploadPackage_MissingReadme", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to  &lt;strong&gt;Readme&lt;/strong&gt; missing.&lt;a href=&quot;https://learn.microsoft.com/en-us/nuget/create-packages/package-authoring-best-practices#readme&quot;&gt; How to include a readme file within the package&lt;/a&gt;, or add it as you upload..
+        /// </summary>
+        public static string UploadPackage_MissingReadmeHtml {
+            get {
+                return ResourceManager.GetString("UploadPackage_MissingReadmeHtml", resourceCulture);
             }
         }
         

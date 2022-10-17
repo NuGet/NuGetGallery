@@ -12,7 +12,7 @@ namespace NuGetGallery
     /// </summary>
     public class MissingLicenseValidationMessage : IValidationMessage
     {
-        private string DocumentationLink => $"<a href=\"https://aka.ms/nuget/authoring-best-practices#licensing\" aria-label=\"{Strings.UploadPackage_LearnMore_PackagingLicense}\">{Strings.UploadPackage_LearnMore}</a>.";
+        private string DocumentationLink => $"<a href=\"https://aka.ms/nuget/authoring-best-practices#licensing\" aria-label=\"{Strings.UploadPackage_LearnMore_PackagingLicense}\">{Strings.UploadPackage_LearnMore_PackagingLicense}</a>.";
 
         private readonly string _baseMessage;
 
@@ -25,7 +25,7 @@ namespace NuGetGallery
             }
 
             _baseMessage = basePlainTextMessage;
-            PlainTextMessage = $"{_baseMessage} {Strings.UploadPackage_LearnMore}: https://aka.ms/nuget/authoring-best-practices#licensing.";
+            PlainTextMessage = $"{_baseMessage} {Strings.UploadPackage_LearnMore_PackagingLicense}: https://aka.ms/nuget/authoring-best-practices#licensing.";
         }
 
         public string PlainTextMessage { get; }
@@ -33,6 +33,6 @@ namespace NuGetGallery
         public bool HasRawHtmlRepresentation => true;
 
         public string RawHtmlMessage
-            => HttpUtility.HtmlEncode(_baseMessage) + " " + DocumentationLink;
+            => Strings.UploadPackage_LicenseShouldBeSpecifiedHtml + " " + DocumentationLink;
     }
 }

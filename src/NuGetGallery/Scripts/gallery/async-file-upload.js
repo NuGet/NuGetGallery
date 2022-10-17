@@ -302,6 +302,7 @@
 
                 $("#verify-collapser-container").removeClass("hidden");
                 $("#submit-collapser-container").removeClass("hidden");
+                $('#upload-package-form').collapse('hide')
 
                 window.nuget.configureExpanderHeading("verify-package-section");
                 window.nuget.configureExpanderHeading("submit-package-form");

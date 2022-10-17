@@ -27,7 +27,7 @@
     <!-- /ko -->
     <!-- /ko -->
     <!-- ko ifnot: DisplayText -->
-    <p><i>(none specified)</i></p>
+    <p>(none specified)</p>
     <!-- /ko -->
 </script>
 
@@ -58,25 +58,26 @@
     <div class="collapse in" id="verify-package-section">
         <div data-bind="if: $data">
             <!-- ko if: $data.Warnings && $data.Warnings.length > 0 -->
-            @ViewHelpers.AlertWarning(
-                @<span>
-                    We found the following issue(s):
-                    <ul data-bind="foreach: $data.Warnings">
+            <div class="icon-text alert alert-warning">
+                <span>
+                    We found the following issue(s) with the package. We recommend that you fix these issues and re-upload the package:
+                    <ul data-bind="foreach: $data.Warnings" style="list-style-type: none">
                         <!-- ko if: typeof($data) === "string" -->
-                        <li><span data-bind="text: $data"></span></li>
+                        <li><span class="ms-Icon ms-Icon--Warning alert-warning" data-bind="text: $data" aria-hidden="true"></span><li>
                         <!-- /ko -->
                         <!-- ko if: typeof($data) === "object" -->
                         <!-- ko if: $data.PlainTextMessage -->
-                        <li><span data-bind="text: $data.PlainTextMessage"></span></li>
+                        <li><span class="ms-Icon ms-Icon--Warning" data-bind="text: $data.PlainTextMessage" aria-hidden="true"></span><li>
                         <!-- /ko -->
                         <!-- ko ifnot: $data.PlainTextMessage -->
-                        <li><span data-bind="html: $data.RawHtmlMessage"></span></li>
+                        <li><span class="ms-Icon ms-Icon--Warning" data-bind="html: $data.RawHtmlMessage" aria-hidden="true"></span><li>
                         <!-- /ko -->
                         <!-- /ko -->
                     </ul>
-                    We recommend that you fix these issues and upload a new package. To learn more about authoring great packages, view our
+                    To learn more about authoring great packages, view our
                     <a href="https://docs.microsoft.com/nuget/create-packages/package-authoring-best-practices" alt="Best Practices" aria-label="Read here about managing packages on nuget.org">Best Practices</a> page.<br />
-                </span>)
+                </span>
+            </div>
             <!-- /ko -->
 
             <div class="verify-package-field">
@@ -112,25 +113,24 @@
             </div>
             <!-- /ko -->
             <!-- ko ifnot: $data.IsSymbolsPackage -->
+            <!-- ko if: $data.MinClientVersionDisplay -->
             <div class="verify-package-field">
                 <label class="verify-package-field-heading">Minimum NuGet Client Version</label>
-                <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.MinClientVersionDisplay }}"></div>
+                <p data-bind="text $data.MinClientVersionDisplay"></p>
             </div>
-
+            <!-- /ko -->
             <!-- ko if: $data.LicenseExpressionSegments -->
             <div class="verify-package-field">
                 <label class="verify-package-field-heading">License expression</label>
                 <p data-bind="foreach: $data.LicenseExpressionSegments"><!-- ko if: IsLicenseOrException --><a data-bind="attr: { href: LicenseUrl }, text: Value"></a><!-- /ko--><!-- ko if: !IsLicenseOrException --><span data-bind="text: Value"></span><!-- /ko--></p>
             </div>
             <!-- /ko -->
-
             <!-- ko if: $data.LicenseExpression && !$data.LicenseExpressionSegments -->
             <div class="verify-package-field">
                 <label class="verify-package-field-heading">License expression</label>
                 <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.LicenseExpression }}"></div>
             </div>
             <!-- /ko -->
-
             <!-- ko if: $data.LicenseFileContentsHtml || $data.LicenseFileContents -->
             <div class="verify-package-field common-licenses">
                 <label class="verify-package-field-heading">License file</label>
@@ -148,38 +148,38 @@
                 <!-- /ko -->
             </div>
             <!-- /ko -->
-
-            <!-- ko if: !$data.LicenseExpression && !$data.LicenseFileContents && !$data.LicenseExpressionSegments -->
+            <!-- ko if: !$data.LicenseExpression && !$data.LicenseFileContents && !$data.LicenseExpressionSegments && $data.LicenseUrl -->
             <div class="verify-package-field">
                 <label class="verify-package-field-heading">License URL</label>
-                <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.LicenseUrl, Link: true }}"></div>
+                <p data-bind="text: $data.LicenseUrl"></p>
+            </div>
+            <!-- /ko -->
+            <!-- ko if: $data.Language -->
+            <div class="verify-package-field">
+                <label class="verify-package-field-heading">Language</label>
+                <p data-bind="data: { DisplayText: $data.Language }"></p>
+            </div>
+            <!-- /ko -->
+            <!-- ko if: $data.DevelopmentDependency -->
+            <div class="verify-package-field">
+                <label class="verify-package-field-heading">Development Dependency</label>
+                <p data-bind="text: $data.DevelopmentDependency"></p>
             </div>
             <!-- /ko -->
 
             <div class="verify-package-field">
-                <label class="verify-package-field-heading">Language</label>
-                <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.Language }}"></div>
-            </div>
-
-            <div class="verify-package-field">
-                <label class="verify-package-field-heading">Development Dependency</label>
-                <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.DevelopmentDependency }}"></div>
-            </div>
-
-            <div class="verify-package-field">
-                <label class="verify-package-field-heading">Dependencies</label>
                 <!-- ko if: $data.Dependencies && Object.keys($data.Dependencies.DependencySets).length > 0 -->
+                <label class="verify-package-field-heading">Dependencies</label>
                 <div data-bind="template: {name: 'display-dependencysets', data: { DependencySets: Dependencies.DependencySets, OnlyHasAllFrameworks: Dependencies.OnlyHasAllFrameworks }}"></div>
-                <!-- /ko -->
-                <!-- ko ifnot: $data.Dependencies && Object.keys($data.Dependencies.DependencySets).length > 0  -->
-                <p><i>(none specified)</i></p>
                 <!-- /ko -->
             </div>
             <!-- /ko -->
             <!-- ko ifnot: $data.IsSymbolsPackage -->
             <div class="verify-package-field">
+                <!-- ko if: $data.Title -->
                 <label class="verify-package-field-heading">Title</label>
-                <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.Title }}"></div>
+                <p data-bind="text: $data.Title"></p>
+                <!-- /ko -->
             </div>
 
             <div class="verify-package-field">
@@ -187,10 +187,12 @@
                 <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.Description }}"></div>
             </div>
 
+            <!-- ko if: $data.Summary -->
             <div class="verify-package-field">
                 <div class="verify-package-field-heading"><label>Summary</label> (shown on package search page)</div>
-                <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.Summary }}"></div>
+                <p data-bind="text: $data.Summary"></p>
             </div>
+            <!-- /ko -->
 
             <div class="verify-package-field">
                 <div class="verify-package-field-heading"><label>Release Notes</label> (for this version)</div>
@@ -212,14 +214,13 @@
                 <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.RepositoryUrl }}"></div>
             </div>
 
-            <!-- ko if: !$data.IconUrl || !$data.IconUrl.startsWith('data:') -->
+            <!-- ko if: $data.IconUrl && !$data.IconUrl.startsWith('data:') -->
             <div class="verify-package-field">
                 <!-- Bind an on change event here to update the preview below-->
                 <label class="verify-package-field-heading">Icon URL</label>
-                <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.IconUrl }}"></div>
+                <p data-bind="text: $data.IconUrl"></p>
             </div>
             <!-- /ko -->
-
             <!-- ko if: $data.IconUrl -->
             <div class="verify-package-field row">
                 <label class="verify-package-field-heading col-sm-12">Icon Preview</label>
@@ -228,11 +229,12 @@
                 </div>
             </div>
             <!-- /ko -->
-
+            <!-- ko if: $data.Authors -->
             <div class="verify-package-field">
                 <div class="verify-package-field-heading"><label>Authors</label></div>
-                <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.Authors }}"></div>
+                <p data-bind="text: $data.Authors"></p>
             </div>
+            <!-- /ko -->
 
             <div class="verify-package-field">
                 <label class="verify-package-field-heading">Copyright</label>
@@ -244,10 +246,10 @@
                 <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.Tags }}"></div>
             </div>
 
-            <!-- ko if: $data.LicenseUrl -->
+            <!-- ko if: $data.LicenseUrl && $data.RequiresLicenseAcceptance -->
             <div class="verify-package-field">
                 <label class="verify-package-field-heading">Require License Acceptance</label>
-                <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.RequiresLicenseAcceptance }}"></div>
+                <p data-bind="text: $data.RequiresLicenseAcceptance"></p>
             </div>
             <!-- /ko -->
             <!-- ko if: typeof($data.Listed) === 'boolean' -->
