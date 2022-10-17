@@ -357,6 +357,11 @@
           border: 0;
           padding: 5px 10px;
           margin: 0;
+
+          &:focus {
+            outline: 3px solid #0078D4;
+            outline-offset: 0;
+          }
         }
       }
     }
@@ -371,7 +376,7 @@
 
     .tab-content {
       .tab-pane {
-        
+
         .install-script-row {
           display: flex;
           height: 100%;
@@ -425,6 +430,11 @@
       font-size: 14px;
       font-family: @font-family-base;
       color: #323130;
+
+      &:focus {
+        outline: 3px solid #0078D4;
+        outline-offset: 0;
+      }
 
       .ms-Icon {
         position: relative;

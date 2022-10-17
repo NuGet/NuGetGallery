@@ -95,6 +95,10 @@ body h3 {
   padding-bottom: 75px;
   height: auto;
 }
+.main-container a[href]:focus {
+  outline: solid 2px;
+  outline-offset: 1px;
+}
 .navbar-logo {
   margin: 8px 20px 0 0;
 }
@@ -266,6 +270,10 @@ img.reserved-indicator-icon {
   list-style: none;
   display: list-item;
 }
+.package-list li a:focus {
+  outline: solid 0.25px;
+  outline-offset: 0;
+}
 @media (min-width: 768px) {
   .package-list li {
     display: inline-block;
@@ -273,6 +281,9 @@ img.reserved-indicator-icon {
     max-height: 101px;
     overflow-y: hidden;
     padding-right: 10px;
+  }
+  .package-list li.package-tags {
+    overflow-y: visible;
   }
 }
 .package-title-text {
@@ -1537,6 +1548,10 @@ p.frameworktableinfo-text {
   padding: 5px 10px;
   margin: 0;
 }
+.page-package-details .install-tabs .nav-tabs > li > a:focus {
+  outline: 3px solid #0078D4;
+  outline-offset: 0;
+}
 .page-package-details .install-tabs .nav-tabs > li.active > a {
   background-color: #002440;
   border: 0;
@@ -1590,6 +1605,10 @@ p.frameworktableinfo-text {
   font-size: 14px;
   font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
   color: #323130;
+}
+.page-package-details .body-tabs .nav-tabs > li > a:focus {
+  outline: 3px solid #0078D4;
+  outline-offset: 0;
 }
 .page-package-details .body-tabs .nav-tabs > li > a .ms-Icon {
   position: relative;
