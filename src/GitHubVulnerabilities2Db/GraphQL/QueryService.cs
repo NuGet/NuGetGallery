@@ -39,7 +39,16 @@ namespace GitHubVulnerabilities2Db.GraphQL
             };
 
             var response = await MakeWebRequestAsync(queryJObject.ToString(), token);
-            return JsonConvert.DeserializeObject<QueryResponse>(response);
+            var queryResponse = JsonConvert.DeserializeObject<QueryResponse>(response);
+
+            if (queryResponse.Errors != null && queryResponse.Errors.Count > 0)
+            {
+                throw new InvalidOperationException(
+                    "The GitHub GraphQL response returned errors in the response JSON. " +
+                    $"Response body:{Environment.NewLine}{response}");
+            }
+
+            return queryResponse;
         }
 
         private async Task<string> MakeWebRequestAsync(string query, CancellationToken token)
@@ -47,7 +56,15 @@ namespace GitHubVulnerabilities2Db.GraphQL
             using (var request = CreateRequest(query))
             using (var response = await _client.SendAsync(request, token))
             {
-                return await response.Content.ReadAsStringAsync();
+                var responseBody = await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new InvalidOperationException(
+                        $"The GitHub GraphQL response returned status code {(int)response.StatusCode} {response.ReasonPhrase}. " +
+                        $"Response body:{Environment.NewLine}{responseBody}");
+                }
+
+                return responseBody;
             }
         }
 
