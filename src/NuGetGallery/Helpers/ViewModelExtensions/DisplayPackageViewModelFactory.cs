@@ -104,6 +104,7 @@ namespace NuGetGallery
                 // Lazily load the package types from the database.
                 viewModel.IsDotnetToolPackageType = package.PackageTypes.Any(e => e.Name.Equals("DotnetTool", StringComparison.OrdinalIgnoreCase));
                 viewModel.IsDotnetNewTemplatePackageType = package.PackageTypes.Any(e => e.Name.Equals("Template", StringComparison.OrdinalIgnoreCase));
+                viewModel.IsMSBuildSdkPackageType = package.PackageTypes.Any(e => e.Name.Equals("MSBuildSdk", StringComparison.OrdinalIgnoreCase));
             }
 
             if (packageKeyToDeprecation != null && packageKeyToDeprecation.TryGetValue(package.Key, out var deprecation))

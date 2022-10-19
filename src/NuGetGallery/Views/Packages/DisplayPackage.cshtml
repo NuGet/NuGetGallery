@@ -78,6 +78,21 @@
             }
         };
     }
+    else if (Model.IsMSBuildSdkPackageType)
+    {
+        packageManagers = new PackageManagerViewModel[]
+        {
+            new PackageManagerViewModel("SDK")
+            {
+                Id = "sdk",
+                InstallPackageCommands = new [] { string.Format("<Sdk Name=\"{0}\" Version=\"{1}\" />", 
+                Model.Id, Model.Version) },
+                AlertLevel = AlertLevel.Info,
+                AlertMessage = string.Format("For projects that support Sdk, copy this XML node into the project file to reference the package."),
+                CopyLabel = "Copy the SDK XML node",
+            }
+        };
+    }
     else
     {
         packageManagers = new PackageManagerViewModel[]

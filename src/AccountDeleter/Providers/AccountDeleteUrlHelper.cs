@@ -7,7 +7,7 @@ namespace NuGetGallery.AccountDeleter
 {
     public class AccountDeleteUrlHelper : IUrlHelper
     {
-        public string ConfirmPendingOwnershipRequest(string id, string username, string confirmationCode, bool relativeUrl)
+        public string ConfirmPendingOwnershipRequest(string id, string username, string confirmationCode, bool relativeUrl, bool supportEmail)
         {
             throw new NotImplementedException();
         }
@@ -17,12 +17,12 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
-        public string Package(string id, string version, bool relativeUrl)
+        public string Package(string id, string version, bool relativeUrl, bool supportEmail)
         {
             throw new NotImplementedException();
         }
 
-        public string RejectPendingOwnershipRequest(string id, string username, string confirmationCode, bool relativeUrl)
+        public string RejectPendingOwnershipRequest(string id, string username, string confirmationCode, bool relativeUrl, bool supportEmail)
         {
             throw new NotImplementedException();
         }

@@ -211,6 +211,11 @@ namespace NuGetGallery.Configuration
         public string SiteRoot { get; set; }
 
         /// <summary>
+        /// Gets the protocol-independent support email site root
+        /// </summary>
+        public string SupportEmailSiteRoot { get; set; }
+
+        /// <summary>
         /// Private key for verifying recaptcha user response.
         /// </summary>
         public string ReCaptchaPrivateKey { get; set; }

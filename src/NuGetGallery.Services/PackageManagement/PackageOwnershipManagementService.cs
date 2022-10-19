@@ -49,7 +49,7 @@ namespace NuGetGallery
         {
             await AddPackageOwnerAsync(packageRegistration, user, commitChanges: true);
 
-            var packageUrl = _urlHelper.Package(packageRegistration.Id, version: null, relativeUrl: false);
+            var packageUrl = _urlHelper.Package(packageRegistration.Id, version: null, relativeUrl: false, supportEmail: true);
 
             // Accumulate the tasks so that they are sent in parallel and as many messages as possible are sent even if
             // one fails (i.e. throws an exception).
@@ -155,7 +155,7 @@ namespace NuGetGallery
 
             var encodedMessage = HttpUtility.HtmlEncode(message ?? string.Empty);
 
-            var packageUrl = _urlHelper.Package(packageRegistration.Id, version: null, relativeUrl: false);
+            var packageUrl = _urlHelper.Package(packageRegistration.Id, version: null, relativeUrl: false, supportEmail: true);
 
             var ownerRequest = await AddPackageOwnershipRequestAsync(
                 packageRegistration, requestingOwner, newOwner);
@@ -164,13 +164,15 @@ namespace NuGetGallery
                 packageRegistration.Id,
                 newOwner.Username,
                 ownerRequest.ConfirmationCode,
-                relativeUrl: false);
+                relativeUrl: false,
+                supportEmail: true);
 
             var rejectionUrl = _urlHelper.RejectPendingOwnershipRequest(
                 packageRegistration.Id,
                 newOwner.Username,
                 ownerRequest.ConfirmationCode,
-                relativeUrl: false);
+                relativeUrl: false,
+                supportEmail: true);
 
             var manageUrl = _urlHelper.ManagePackageOwnership(
                 packageRegistration.Id,

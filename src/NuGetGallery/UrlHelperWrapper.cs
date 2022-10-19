@@ -15,9 +15,9 @@ namespace NuGetGallery
             _urlHelper = urlHelper ?? throw new ArgumentNullException(nameof(urlHelper));
         }
 
-        public string ConfirmPendingOwnershipRequest(string id, string username, string confirmationCode, bool relativeUrl)
+        public string ConfirmPendingOwnershipRequest(string id, string username, string confirmationCode, bool relativeUrl, bool supportEmail)
         {
-            return _urlHelper.ConfirmPendingOwnershipRequest(id, username, confirmationCode, relativeUrl);
+            return _urlHelper.ConfirmPendingOwnershipRequest(id, username, confirmationCode, relativeUrl, supportEmail);
         }
 
         public string ManagePackageOwnership(string id, bool relativeUrl)
@@ -25,14 +25,14 @@ namespace NuGetGallery
             return _urlHelper.ManagePackageOwnership(id, relativeUrl);
         }
 
-        public string Package(string id, string version, bool relativeUrl)
+        public string Package(string id, string version, bool relativeUrl, bool supportEmail)
         {
-            return _urlHelper.Package(id, version, relativeUrl);
+            return _urlHelper.Package(id, version, relativeUrl, supportEmail: supportEmail);
         }
 
-        public string RejectPendingOwnershipRequest(string id, string username, string confirmationCode, bool relativeUrl)
+        public string RejectPendingOwnershipRequest(string id, string username, string confirmationCode, bool relativeUrl, bool supportEmail)
         {
-            return _urlHelper.RejectPendingOwnershipRequest(id, username, confirmationCode, relativeUrl);
+            return _urlHelper.RejectPendingOwnershipRequest(id, username, confirmationCode, relativeUrl, supportEmail);
         }
     }
 }

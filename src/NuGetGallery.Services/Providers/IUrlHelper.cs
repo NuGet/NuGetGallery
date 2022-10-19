@@ -17,8 +17,9 @@ namespace NuGetGallery
         /// <param name="id">The package ID to link to.</param>
         /// <param name="version">The specific package version to link to. Can be null.</param>
         /// <param name="relativeUrl">True to return a relative URL, false to return an absolute URL.</param>
+        /// <param name="supportEmail">True to return a supportEmail root site URL, false to return an root site URL.</param>
         /// <returns>The relative or absolute URL as a string.</returns>
-        string Package(string id, string version, bool relativeUrl);
+        string Package(string id, string version, bool relativeUrl, bool supportEmail);
 
         /// <summary>
         /// Produces a URL to the package ownership request confirmation page.
@@ -27,8 +28,9 @@ namespace NuGetGallery
         /// <param name="username">The username of the ownership request recipient (new owner).</param>
         /// <param name="confirmationCode">The confirmation code (secret) associated with the request.</param>
         /// <param name="relativeUrl">True to return a relative URL, false to return an absolute URL.</param>
+        /// <param name="supportEmail">True to return a supportEmail root site URL, false to return an root site URL.</param>
         /// <returns>The relative or absolute URL as a string.</returns>
-        string ConfirmPendingOwnershipRequest(string id, string username, string confirmationCode, bool relativeUrl);
+        string ConfirmPendingOwnershipRequest(string id, string username, string confirmationCode, bool relativeUrl, bool supportEmail);
 
         /// <summary>
         /// Produces a URL to the package ownership request rejection page.
@@ -37,8 +39,9 @@ namespace NuGetGallery
         /// <param name="username">The username of the ownership request recipient (new owner).</param>
         /// <param name="confirmationCode">The confirmation code (secret) associated with the request.</param>
         /// <param name="relativeUrl">True to return a relative URL, false to return an absolute URL.</param>
+        /// <param name="supportEmail">True to return a supportEmail root site URL, false to return an root site URL.</param>
         /// <returns>The relative or absolute URL as a string.</returns>
-        string RejectPendingOwnershipRequest(string id, string username, string confirmationCode, bool relativeUrl);
+        string RejectPendingOwnershipRequest(string id, string username, string confirmationCode, bool relativeUrl, bool supportEmail);
 
         /// <summary>
         /// Produces a URL to manage the ownership of an existing package.

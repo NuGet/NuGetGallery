@@ -22,6 +22,7 @@ namespace NuGetGallery.App_Start
                 public TestableConfigurationService() : base()
                 {
                     StubConfiguredSiteRoot = "http://aSiteRoot/";
+                    StubConfiguredSupportEmailSiteRoot = "http://aSupportEmailSiteRoot";
 
                     StubRequest = new Mock<HttpRequestBase>();
                     StubRequest.Setup(stub => stub.IsLocal).Returns(false);
@@ -31,6 +32,7 @@ namespace NuGetGallery.App_Start
                 }
 
                 public string StubConfiguredSiteRoot { get; set; }
+                public string StubConfiguredSupportEmailSiteRoot { get; set; }
                 public Mock<HttpRequestBase> StubRequest { get; set; }
 
                 protected override string GetAppSetting(string settingName)
@@ -42,8 +44,14 @@ namespace NuGetGallery.App_Start
                         return StubConfiguredSiteRoot;
                     }
 
+                    if (settingName == $"{SettingPrefix}{nameof(tempAppConfig.SupportEmailSiteRoot)}")
+                    {
+                        return StubConfiguredSupportEmailSiteRoot;
+                    }
+
                     return string.Empty;
                 }
+
             }
 
             [Fact]
@@ -99,6 +107,37 @@ namespace NuGetGallery.App_Start
                 configuration.StubConfiguredSiteRoot = "ftp://theSiteRoot/";
 
                 Assert.Throws<InvalidOperationException>(() => configuration.GetSiteRoot(useHttps: false));
+            }
+
+            [Fact]
+            public void WillGetTheConfiguredHttpsSupportEmailSiteRoot()
+            {
+                var configuration = new TestableConfigurationService();
+                configuration.StubConfiguredSupportEmailSiteRoot = "https://aSupportEmailSiteRoot";
+
+                var siteRoot = configuration.GetSupportEmailSiteRoot();
+
+                Assert.Equal("https://aSupportEmailSiteRoot", siteRoot);
+            }
+
+            [Fact]
+            public void WillThrowIfConfiguredSupportEmailSiteRootIsNotHttpOrHttps()
+            {
+                var configuration = new TestableConfigurationService();
+                configuration.StubConfiguredSupportEmailSiteRoot = "ftp://theSupportEmailSiteRoot/";
+
+                Assert.Throws<InvalidOperationException>(() => configuration.GetSupportEmailSiteRoot());
+            }
+
+            [Fact]
+            public void WillUseHttpsWhenConfiguredSiteRootIsHttp()
+            {
+                var configuration = new TestableConfigurationService();
+                configuration.StubConfiguredSupportEmailSiteRoot = "http://aSupportEmailSiteRoot";
+
+                var siteRoot = configuration.GetSupportEmailSiteRoot();
+
+                Assert.Equal("https://aSupportEmailSiteRoot", siteRoot);
             }
         }
 
