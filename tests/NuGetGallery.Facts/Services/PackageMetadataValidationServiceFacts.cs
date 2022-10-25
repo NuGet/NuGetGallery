@@ -1392,7 +1392,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task RejectsPackagesWithEmbeddedReadme()
+            public async Task RejectsPackagesWithEmbeddedReadmeWhenEmbeddedReadmesNotEnabled()
             {
                 _featureFlagService
                     .Setup(ffs => ffs.AreEmbeddedReadmesEnabled(It.IsAny<User>()))
@@ -1428,6 +1428,50 @@ namespace NuGetGallery
                 Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                 Assert.Null(result.Message);
                 Assert.Empty(result.Warnings);
+            }
+
+            [Fact]
+            public async Task WarnsAboutPackagesWithoutReadme()
+            {
+                _nuGetPackage = GeneratePackageWithUserContent(
+                    licenseExpression: "MIT",
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
+
+                var result = await _target.ValidateMetadataBeforeUploadAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage),
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+                var warning = Assert.Single(result.Warnings);
+                Assert.IsType<UploadPackageMissingReadme>(warning);
+                Assert.StartsWith("Readme missing. Go to https://learn.microsoft.com/en-us/nuget/create-packages/package-authoring-best-practices#readme learn How to include a readme file within the package, or add it as you upload.", warning.PlainTextMessage);
+                Assert.StartsWith(" <strong>Readme</strong> missing.<a href=\"https://learn.microsoft.com/en-us/nuget/create-packages/package-authoring-best-practices#readme\"> How to include a readme file within the package</a>, or add it as you upload.", warning.RawHtmlMessage);
+            }
+
+            [Fact]
+            public async Task WarnsAboutPackagesWithoutWhenEmbeddedReadmeNotEnabled()
+            {
+                _nuGetPackage = GeneratePackageWithUserContent(
+                    licenseExpression: "MIT",
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
+
+                _featureFlagService
+                    .Setup(ffs => ffs.AreEmbeddedReadmesEnabled(It.IsAny<User>()))
+                    .Returns(false);
+
+                var result = await _target.ValidateMetadataBeforeUploadAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage),
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+                var warning = Assert.Single(result.Warnings);
+                Assert.IsType<UploadPackageMissingReadme>(warning);
+                Assert.StartsWith("Readme missing. Go to https://learn.microsoft.com/en-us/nuget/create-packages/package-authoring-best-practices#readme learn How to include a readme file within the package, or add it as you upload.", warning.PlainTextMessage);
+                Assert.StartsWith(" <strong>Readme</strong> missing.<a href=\"https://learn.microsoft.com/en-us/nuget/create-packages/package-authoring-best-practices#readme\"> How to include a readme file within the package</a>, or add it as you upload.", warning.RawHtmlMessage);
             }
 
             [Theory]
@@ -1468,6 +1512,7 @@ namespace NuGetGallery
                 Assert.Contains(readmeFilename, result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
             }
+
 
             private async Task<PackageValidationResult> ValidatePackageWithReadme(string readmePath, byte[] readmeFileData)
             {
