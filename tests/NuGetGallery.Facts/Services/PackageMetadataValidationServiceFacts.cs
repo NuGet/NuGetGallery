@@ -415,7 +415,13 @@ namespace NuGetGallery
             [InlineData(true, true)]
             public async Task HandlesMissingLicenseAccordingToSettings(bool allowLicenselessPackages, bool expectedSuccess)
             {
-                _nuGetPackage = GeneratePackageWithUserContent(licenseUrl: null, licenseExpression: null, licenseFilename: null);
+                _nuGetPackage = GeneratePackageWithUserContent(
+                    licenseUrl: null, 
+                    licenseExpression: null, 
+                    licenseFilename: null,
+                    readmeFilename: "readme.md",
+                    readmeFileContents: "read me");
+
                 _config
                     .Setup(x => x.AllowLicenselessPackages)
                     .Returns(allowLicenselessPackages);
@@ -438,7 +444,7 @@ namespace NuGetGallery
                     Assert.Null(result.Message);
                     Assert.Single(result.Warnings);
                     Assert.IsType<MissingLicenseValidationMessage>(result.Warnings[0]);
-                    Assert.StartsWith("All published packages should have license information specified.", result.Warnings[0].PlainTextMessage);
+                    Assert.StartsWith(" License missing. How to include a license within the package: https://aka.ms/nuget/authoring-best-practices#licensing.", result.Warnings[0].PlainTextMessage);
                 }
             }
 
@@ -470,7 +476,12 @@ namespace NuGetGallery
             [InlineData(true, false)]
             public async Task HandlesLegacyLicenseUrlPackageAccordingToSettings(bool blockLegacyLicenseUrl, bool expectedSuccess)
             {
-                _nuGetPackage = GeneratePackageWithUserContent(licenseUrl: new Uri(RegularLicenseUrl), licenseExpression: null, licenseFilename: null);
+                _nuGetPackage = GeneratePackageWithUserContent(
+                    licenseUrl: new Uri(RegularLicenseUrl), 
+                    licenseExpression: null, 
+                    licenseFilename: null,
+                    readmeFilename: "readme.md",
+                    readmeFileContents: "read me");
                 _config
                     .Setup(x => x.BlockLegacyLicenseUrl)
                     .Returns(blockLegacyLicenseUrl);
@@ -614,7 +625,12 @@ namespace NuGetGallery
             [InlineData("(EUPL-1.1+ OR (SPL-1.0 WITH Font-exception-2.0) AND Sleepycat)", true)]
             public async Task ChecksLicenseExpressionCorrectness(string licenseExpression, bool expectedSuccess)
             {
-                _nuGetPackage = GeneratePackageWithUserContent(licenseUrl: GetLicenseExpressionDeprecationUrl(licenseExpression), licenseExpression: licenseExpression, licenseFilename: null);
+                _nuGetPackage = GeneratePackageWithUserContent(
+                    licenseUrl: GetLicenseExpressionDeprecationUrl(licenseExpression), 
+                    licenseExpression: licenseExpression, 
+                    licenseFilename: null,
+                    readmeFilename: "readme.md",
+                    readmeFileContents: "read me");
 
                 var result = await _target.ValidateMetadataBeforeUploadAsync(
                     _nuGetPackage.Object,
@@ -738,7 +754,9 @@ namespace NuGetGallery
                     licenseUrl: new Uri(LicenseDeprecationUrl),
                     licenseExpression: null,
                     licenseFilename: licenseFileName,
-                    licenseFileContents: "license");
+                    licenseFileContents: "license",
+                    readmeFilename: "readme.md",
+                    readmeFileContents: "readm me");
 
                 var result = await _target.ValidateMetadataBeforeUploadAsync(
                     _nuGetPackage.Object,
@@ -778,7 +796,9 @@ namespace NuGetGallery
                     licenseUrl: new Uri(LicenseDeprecationUrl),
                     licenseExpression: null,
                     licenseFilename: "license.txt",
-                    licenseFileBinaryContents: licenseFileContent);
+                    licenseFileBinaryContents: licenseFileContent,
+                    readmeFilename: "readme.md",
+                    readmeFileContents: "read me");
 
                 var result = await _target.ValidateMetadataBeforeUploadAsync(
                     _nuGetPackage.Object,
@@ -865,7 +885,9 @@ namespace NuGetGallery
             {
                 _nuGetPackage = GeneratePackageWithUserContent(
                     licenseUrl: new Uri("https://licenses.nuget.org/MIT"),
-                    getCustomNuspecNodes: () => $"<license type='expression' version='{version}'>MIT</license>");
+                    getCustomNuspecNodes: () => $"<license type='expression' version='{version}'>MIT</license>",
+                    readmeFilename: "readme.md",
+                    readmeFileContents: "read me");
 
                 var result = await _target.ValidateMetadataBeforeUploadAsync(
                     _nuGetPackage.Object,
@@ -1029,7 +1051,9 @@ namespace NuGetGallery
                 _nuGetPackage = GeneratePackageWithUserContent(
                     licenseFilename: licensePath,
                     licenseUrl: new Uri(LicenseDeprecationUrl),
-                    licenseFileContents: "some license");
+                    licenseFileContents: "some license",
+                    readmeFilename: "readme.md",
+                    readmeFileContents: "read me");
 
                 var result = await _target.ValidateMetadataBeforeUploadAsync(
                     _nuGetPackage.Object,
@@ -1064,7 +1088,9 @@ namespace NuGetGallery
                     iconFilename: "icon.jpg",
                     iconFileBinaryContents: new byte[] { 0xFF, 0xD8, 0xFF, 0x32 },
                     licenseExpression: "MIT",
-                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"),
+                    readmeFilename: "readme.md",
+                    readmeFileContents: "readm me");
                 _featureFlagService
                     .Setup(ffs => ffs.AreEmbeddedIconsEnabled(_currentUser))
                     .Returns(true);
@@ -1086,7 +1112,9 @@ namespace NuGetGallery
                     iconUrl: new Uri("https://nuget.test/icon"),
                     iconFilename: null,
                     licenseExpression: "MIT",
-                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"),
+                    readmeFilename: "readme.md",
+                    readmeFileContents: "read me");
                 _featureFlagService
                     .Setup(ffs => ffs.AreEmbeddedIconsEnabled(_currentUser))
                     .Returns(true);
@@ -1111,7 +1139,10 @@ namespace NuGetGallery
                     iconUrl: null,
                     iconFilename: null,
                     licenseExpression: "MIT",
-                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"),
+                    readmeFilename: "readme.md",
+                    readmeFileContents: "readm me");
+
                 _featureFlagService
                     .Setup(ffs => ffs.AreEmbeddedIconsEnabled(_currentUser))
                     .Returns(true);
@@ -1133,7 +1164,9 @@ namespace NuGetGallery
                     iconUrl: new Uri("https://nuget.test/icon"),
                     iconFilename: null,
                     licenseExpression: "MIT",
-                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"),
+                    readmeFilename: "readme.md",
+                    readmeFileContents: "readm me");
                 _featureFlagService
                     .Setup(ffs => ffs.AreEmbeddedIconsEnabled(_currentUser))
                     .Returns(false);
@@ -1345,7 +1378,9 @@ namespace NuGetGallery
                     iconFilename: iconPath,
                     iconFileBinaryContents: iconFileData,
                     licenseExpression: "MIT",
-                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"),
+                    readmeFilename: "readme.md",
+                    readmeFileContents: "some readme md");
                 _featureFlagService
                     .Setup(ffs => ffs.AreEmbeddedIconsEnabled(_currentUser))
                     .Returns(true);
@@ -1359,6 +1394,10 @@ namespace NuGetGallery
             [Fact]
             public async Task RejectsPackagesWithEmbeddedReadme()
             {
+                _featureFlagService
+                    .Setup(ffs => ffs.AreEmbeddedReadmesEnabled(It.IsAny<User>()))
+                    .Returns(false);
+
                 _nuGetPackage = GeneratePackageWithUserContent(
                     readmeFilename: "readme.md",
                     readmeFileContents: "some readme md");
@@ -1373,16 +1412,13 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task AcceptsPackagesWithEmbeddedReadmeForFlightedUsers()
+            public async Task AcceptsPackagesWithEmbeddedReadme()
             {
                 _nuGetPackage = GeneratePackageWithUserContent(
                     readmeFilename: "readme.md",
                     readmeFileContents: "some readme md",
                     licenseExpression: "MIT",
                     licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
-                _featureFlagService
-                    .Setup(ffs => ffs.AreEmbeddedReadmesEnabled(_currentUser))
-                    .Returns(true);
 
                 var result = await _target.ValidateMetadataBeforeUploadAsync(
                     _nuGetPackage.Object,
@@ -1408,9 +1444,6 @@ namespace NuGetGallery
                     getCustomNuspecNodes: () => readmeElement,
                     licenseExpression: "MIT",
                     licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
-                _featureFlagService
-                    .Setup(ffs => ffs.AreEmbeddedReadmesEnabled(_currentUser))
-                    .Returns(true);
 
                 var result = await _target.ValidateMetadataBeforeUploadAsync(
                     _nuGetPackage.Object,
@@ -1443,9 +1476,6 @@ namespace NuGetGallery
                     readmeFileBinaryContents: readmeFileData,
                     licenseExpression: "MIT",
                     licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
-                _featureFlagService
-                    .Setup(ffs => ffs.AreEmbeddedReadmesEnabled(_currentUser))
-                    .Returns(true);
 
                 return await _target.ValidateMetadataBeforeUploadAsync(
                     _nuGetPackage.Object,
@@ -1500,9 +1530,6 @@ namespace NuGetGallery
                     readmeFileContents: readmeText,
                     licenseExpression: "MIT",
                     licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
-                _featureFlagService
-                    .Setup(ffs => ffs.AreEmbeddedReadmesEnabled(_currentUser))
-                    .Returns(true);
 
                 var result = await _target.ValidateMetadataBeforeUploadAsync(
                     _nuGetPackage.Object,
@@ -1527,9 +1554,6 @@ namespace NuGetGallery
                 const string readmeFilename = "readme.md";
                 const string readmeFileContents = "readmedocumentation";
 
-                _featureFlagService
-                    .Setup(ffs => ffs.AreEmbeddedReadmesEnabled(_currentUser))
-                    .Returns(true);
                 // Arrange
                 var packageStream = GeneratePackageStream(
                     readmeFilename: readmeFilename,
@@ -1563,9 +1587,7 @@ namespace NuGetGallery
                     readmeFileContents: "some readme",
                     licenseExpression: "MIT",
                     licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
-                _featureFlagService
-                    .Setup(ffs => ffs.AreEmbeddedReadmesEnabled(_currentUser))
-                    .Returns(true);
+
                 var result = await _target.ValidateMetadataBeforeUploadAsync(
                     _nuGetPackage.Object,
                     GetPackageMetadata(_nuGetPackage),
@@ -1585,9 +1607,6 @@ namespace NuGetGallery
                     readmeFileBinaryContents: readmeFileContent,
                     licenseExpression: "MIT",
                     licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
-                _featureFlagService
-                    .Setup(ffs => ffs.AreEmbeddedReadmesEnabled(_currentUser))
-                    .Returns(true);
 
                 var result = await _target.ValidateMetadataBeforeUploadAsync(
                     _nuGetPackage.Object,
@@ -1994,6 +2013,9 @@ namespace NuGetGallery
                     .Setup(ffs => ffs.AreEmbeddedIconsEnabled(It.IsAny<User>()))
                     .Returns(false);
 
+                _featureFlagService
+                    .Setup(ffs => ffs.AreEmbeddedReadmesEnabled(It.IsAny<User>()))
+                    .Returns(true);
 
                 _target = new PackageMetadataValidationService(
                     _packageService.Object,
@@ -2022,7 +2044,9 @@ namespace NuGetGallery
                     licenseFilename: null,
                     licenseFileContents: null,
                     licenseFileBinaryContents: null,
-                    entryNames: entryNames);
+                    entryNames: entryNames,
+                    readmeFilename: "readme.md",
+                    readmeFileContents: "readme");
 
             protected static Mock<TestPackageReader> GeneratePackageWithUserContent(
                 string version = "1.2.3-alpha.0",
