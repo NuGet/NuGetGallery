@@ -211,7 +211,14 @@ namespace NuGetGallery
                     }
                     else
                     {
-                        warnings.Add(new MissingLicenseValidationMessage(Strings.UploadPackage_LicenseShouldBeSpecified));
+                        if (_featureFlagService.IsDisplayUploadWarningV2Enabled(user))
+                        {
+                            warnings.Add(new MissingLicenseValidationMessageV2(Strings.UploadPackage_LicenseShouldBeSpecifiedV2));
+                        }
+                        else
+                        {
+                            warnings.Add(new MissingLicenseValidationMessage(Strings.UploadPackage_LicenseShouldBeSpecified));
+                        }
                     }
                 }
 
@@ -422,7 +429,11 @@ namespace NuGetGallery
 
             if (readmeElement == null)
             {
-                warnings.Add(new UploadPackageMissingReadme());
+                if (_featureFlagService.IsDisplayUploadWarningV2Enabled(user))
+                {
+                    warnings.Add(new UploadPackageMissingReadme());
+                }
+
                 return null;
             }
 

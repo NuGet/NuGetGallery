@@ -302,8 +302,12 @@
 
                 $("#verify-collapser-container").removeClass("hidden");
                 $("#submit-collapser-container").removeClass("hidden");
-                $('#upload-package-form').collapse('hide')
 
+                if (model != null && model.IsDisplayUploadWarningV2Enabled) {
+                    $('#upload-package-form').collapse('hide');
+                    $('#warning-container').addClass('hidden');
+                }
+ 
                 window.nuget.configureExpanderHeading("verify-package-section");
                 window.nuget.configureExpanderHeading("submit-package-form");
             }

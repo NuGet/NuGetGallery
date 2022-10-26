@@ -10,13 +10,13 @@ namespace NuGetGallery
     /// <summary>
     /// A warning for packages that are missing licensing metadata.
     /// </summary>
-    public class MissingLicenseValidationMessage : IValidationMessage
+    public class MissingLicenseValidationMessageV2 : IValidationMessage
     {
-        private string DocumentationLink => $"<a href=\"https://aka.ms/nuget/authoring-best-practices#licensing\" aria-label=\"{Strings.UploadPackage_LearnMore_PackagingLicense}\">{Strings.UploadPackage_LearnMore}</a>.";
+        private string DocumentationLink => $"<a href=\"https://aka.ms/nuget/authoring-best-practices#licensing\" aria-label=\"{Strings.UploadPackage_LearnMore_PackagingLicenseV2}\">{Strings.UploadPackage_LearnMore_PackagingLicenseV2}</a>.";
 
         private readonly string _baseMessage;
 
-        public MissingLicenseValidationMessage(string basePlainTextMessage)
+        public MissingLicenseValidationMessageV2(string basePlainTextMessage)
         {
             if (string.IsNullOrWhiteSpace(basePlainTextMessage))
             {
@@ -25,7 +25,7 @@ namespace NuGetGallery
             }
 
             _baseMessage = basePlainTextMessage;
-            PlainTextMessage = $"{_baseMessage} {Strings.UploadPackage_LearnMore}: https://aka.ms/nuget/authoring-best-practices#licensing.";
+            PlainTextMessage = $"{_baseMessage} {Strings.UploadPackage_LearnMore_PackagingLicenseV2}: https://aka.ms/nuget/authoring-best-practices#licensing.";
         }
 
         public string PlainTextMessage { get; }
@@ -33,6 +33,6 @@ namespace NuGetGallery
         public bool HasRawHtmlRepresentation => true;
 
         public string RawHtmlMessage
-            => HttpUtility.HtmlEncode(_baseMessage) + " " + DocumentationLink;
+            => Strings.UploadPackage_LicenseShouldBeSpecifiedHtmlV2 + " " + DocumentationLink;
     }
 }
