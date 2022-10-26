@@ -6,12 +6,12 @@
                 <span data-bind="text: $data"></span>
                 <!-- /ko -->
                 <!-- ko if: typeof($data) === "object" -->
-                <!-- ko if: $data.PlainTextMessage -->
-                <span data-bind="text: $data.PlainTextMessage"></span>
-                <!-- /ko -->
-                <!-- ko ifnot: $data.PlainTextMessage -->
-                <span data-bind="html: $data.RawHtmlMessage"></span>
-                <!-- /ko -->
+                    <!-- ko if: $data.PlainTextMessage -->
+                    <span data-bind="text: $data.PlainTextMessage"></span>
+                    <!-- /ko -->
+                    <!-- ko ifnot: $data.PlainTextMessage -->
+                    <span data-bind="html: $data.RawHtmlMessage"></span>
+                    <!-- /ko -->
                 <!-- /ko -->
             </text>)
     </div>
@@ -58,58 +58,58 @@
     <div class="collapse in" id="verify-package-section">
         <div data-bind="if: $data">
             <!-- ko if: $data.Warnings && $data.Warnings.length > 0 -->
-            <!-- ko ifnot: $data.IsDisplayUploadWarningV2Enabled -->
-            @ViewHelpers.AlertWarning(
-                        @<span>
-                            We found the following issue(s):
-                            <ul data-bind="foreach: $data.Warnings">
-                                <!-- ko if: typeof($data) === "string" -->
-                                <li><span data-bind="text: $data"></span></li>
+                <!-- ko ifnot: $data.IsDisplayUploadWarningV2Enabled -->
+                @ViewHelpers.AlertWarning(
+                            @<span>
+                                We found the following issue(s):
+                                <ul data-bind="foreach: $data.Warnings">
+                                    <!-- ko if: typeof($data) === "string" -->
+                                    <li><span data-bind="text: $data"></span></li>
+                                    <!-- /ko -->
+                                    <!-- ko if: typeof($data) === "object" -->
+                                    <!-- ko if: $data.PlainTextMessage -->
+                                    <li><span data-bind="text: $data.PlainTextMessage"></span></li>
+                                    <!-- /ko -->
+                                    <!-- ko ifnot: $data.PlainTextMessage -->
+                                    <li><span data-bind="html: $data.RawHtmlMessage"></span></li>
+                                    <!-- /ko -->
+                                    <!-- /ko -->
+                                </ul>
+                                We recommend that you fix these issues and upload a new package. To learn more about authoring great packages, view our
+                                <a href="https://docs.microsoft.com/nuget/create-packages/package-authoring-best-practices" alt="Best Practices" aria-label="Read here about managing packages on nuget.org">Best Practices</a> page.<br />
+                            </span>)
+                <!-- /ko -->
+                <!-- ko if: $data.IsDisplayUploadWarningV2Enabled -->
+                <div class="icon-text alert alert-warning">
+                    <span>
+                        We found the following issue(s) with the package. We recommend that you fix these issues and re-upload the package:
+                        <ul data-bind="foreach: $data.Warnings" style="list-style-type: none">
+                            <!-- ko if: typeof($data) === "string" -->
+                            <li>
+                                <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
+                                <span class="alert-warning" data-bind="text: $data" aria-hidden="true"></span>
+                            </li>
                                 <!-- /ko -->
                                 <!-- ko if: typeof($data) === "object" -->
                                 <!-- ko if: $data.PlainTextMessage -->
-                                <li><span data-bind="text: $data.PlainTextMessage"></span></li>
+                            <li>
+                                <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
+                                <span class="alert-warning" data-bind="text: $data.PlainTextMessage" aria-hidden="true"></span>
+                            </li>
                                 <!-- /ko -->
                                 <!-- ko ifnot: $data.PlainTextMessage -->
-                                <li><span data-bind="html: $data.RawHtmlMessage"></span></li>
+                            <li>
+                                <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
+                                <span data-bind="html: $data.RawHtmlMessage" aria-hidden="true"></span>
+                            </li>
                                 <!-- /ko -->
                                 <!-- /ko -->
-                            </ul>
-                            We recommend that you fix these issues and upload a new package. To learn more about authoring great packages, view our
-                            <a href="https://docs.microsoft.com/nuget/create-packages/package-authoring-best-practices" alt="Best Practices" aria-label="Read here about managing packages on nuget.org">Best Practices</a> page.<br />
-                        </span>)
-            <!-- /ko -->
-            <!-- ko if: $data.IsDisplayUploadWarningV2Enabled -->
-            <div class="icon-text alert alert-warning">
-                <span>
-                    We found the following issue(s) with the package. We recommend that you fix these issues and re-upload the package:
-                    <ul data-bind="foreach: $data.Warnings" style="list-style-type: none">
-                        <!-- ko if: typeof($data) === "string" -->
-                        <li>
-                            <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
-                            <span class="alert-warning" data-bind="text: $data" aria-hidden="true"></span>
-                        </li>
-                            <!-- /ko -->
-                            <!-- ko if: typeof($data) === "object" -->
-                            <!-- ko if: $data.PlainTextMessage -->
-                        <li>
-                            <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
-                            <span class="alert-warning" data-bind="text: $data.PlainTextMessage" aria-hidden="true"></span>
-                        </li>
-                            <!-- /ko -->
-                            <!-- ko ifnot: $data.PlainTextMessage -->
-                        <li>
-                            <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
-                            <span data-bind="html: $data.RawHtmlMessage" aria-hidden="true"></span>
-                        </li>
-                            <!-- /ko -->
-                            <!-- /ko -->
-                    </ul>
-                    To learn more about authoring great packages, view our
-                    <a href="https://docs.microsoft.com/nuget/create-packages/package-authoring-best-practices" alt="Best Practices" aria-label="Read here about managing packages on nuget.org">Best Practices</a> page.<br />
-                </span>
-            </div>
-            <!-- /ko -->
+                        </ul>
+                        To learn more about authoring great packages, view our
+                        <a href="https://docs.microsoft.com/nuget/create-packages/package-authoring-best-practices" alt="Best Practices" aria-label="Read here about managing packages on nuget.org">Best Practices</a> page.<br />
+                    </span>
+                </div>
+                <!-- /ko -->
             <!-- /ko -->
 
             <div class="verify-package-field">
