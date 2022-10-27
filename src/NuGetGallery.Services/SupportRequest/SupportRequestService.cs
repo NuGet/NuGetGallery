@@ -201,7 +201,7 @@ namespace NuGetGallery.Areas.Admin
                 newIssue.CreatedBy = loggedInUser;
                 newIssue.OwnerEmail = requestorEmailAddress;
                 newIssue.PackageId = package?.PackageRegistration.Id;
-                newIssue.PackageVersion = package?.Version;
+                newIssue.PackageVersion = NuGetVersionFormatter.GetNormalizedPackageVersion(package);
                 newIssue.Reason = reason;
                 newIssue.SiteRoot = _siteRoot;
                 newIssue.UserKey = user?.Key;
