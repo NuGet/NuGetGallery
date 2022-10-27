@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Text.RegularExpressions;
+using NuGet.Services.Entities;
 using NuGet.Versioning;
 
 namespace NuGetGallery
@@ -30,6 +31,16 @@ namespace NuGetGallery
             {
                 return version;
             }
+        }
+
+        public static string GetNormalizedPackageVersion(Package package)
+        {
+            if (package == null)
+            {
+                return string.Empty;
+            }
+
+            return string.IsNullOrEmpty(package.NormalizedVersion) ? Normalize(package.Version) : package.NormalizedVersion;
         }
     }
 
