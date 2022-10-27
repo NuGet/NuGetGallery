@@ -68,7 +68,7 @@ namespace NuGetGallery
             var message = new NewAccountMessage(
                 MessageServiceConfiguration,
                 account,
-                Url.ConfirmOrganizationEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false));
+                Url.ConfirmOrganizationEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false, supportEmail: true));
 
             return MessageService.SendMessageAsync(message);
         }
@@ -78,7 +78,7 @@ namespace NuGetGallery
             var message = new EmailChangeConfirmationMessage(
                 MessageServiceConfiguration,
                 account,
-                Url.ConfirmOrganizationEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false));
+                Url.ConfirmOrganizationEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false, supportEmail: true));
 
             return MessageService.SendMessageAsync(message);
         }
