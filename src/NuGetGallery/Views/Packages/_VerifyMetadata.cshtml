@@ -86,21 +86,21 @@
                         <ul data-bind="foreach: $data.Warnings" style="list-style-type: none">
                             <!-- ko if: typeof($data) === "string" -->
                             <li>
-                                <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
-                                <span class="alert-warning" data-bind="text: $data" aria-hidden="true"></span>
+                                <i class="ms-Icon ms-Icon--Warning" aria-hidden="true" tabindex="-1"></i>
+                                <span data-bind="text: $data" ></span>
                             </li>
                                 <!-- /ko -->
                                 <!-- ko if: typeof($data) === "object" -->
                                 <!-- ko if: $data.PlainTextMessage -->
                             <li>
-                                <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
-                                <span class="alert-warning" data-bind="text: $data.PlainTextMessage" aria-hidden="true"></span>
+                                <i class="ms-Icon ms-Icon--Warning" aria-hidden="true" tabindex="-1"></i>
+                                <span data-bind="text: $data.PlainTextMessage"></span>
                             </li>
                                 <!-- /ko -->
                                 <!-- ko ifnot: $data.PlainTextMessage -->
                             <li>
-                                <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
-                                <span data-bind="html: $data.RawHtmlMessage" aria-hidden="true"></span>
+                                <i class="ms-Icon ms-Icon--Warning" aria-hidden="true" tabindex="-1"></i>
+                                <span data-bind="html: $data.RawHtmlMessage"></span>
                             </li>
                                 <!-- /ko -->
                                 <!-- /ko -->
