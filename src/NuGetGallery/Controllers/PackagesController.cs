@@ -375,6 +375,7 @@ namespace NuGetGallery
             verifyRequest.LicenseExpressionSegments = GetLicenseExpressionSegmentsOrNull(packageMetadata.LicenseMetadata);
             verifyRequest.ReadmeFileContents = await GetReadmeFileContentsOrNullAsync(packageMetadata, packageArchiveReader);
             verifyRequest.IsMarkdigMdSyntaxHighlightEnabled = _featureFlagService.IsMarkdigMdSyntaxHighlightEnabled();
+            verifyRequest.IsDisplayUploadWarningV2Enabled = _featureFlagService.IsDisplayUploadWarningV2Enabled(currentUser);
 
             model.InProgressUpload = verifyRequest;
             return View(model);
@@ -658,6 +659,7 @@ namespace NuGetGallery
             model.IsSymbolsPackage = isSymbolsPackageUpload;
             model.HasExistingAvailableSymbols = hasExistingSymbolsPackageAvailable;
             model.IsMarkdigMdSyntaxHighlightEnabled = _featureFlagService.IsMarkdigMdSyntaxHighlightEnabled();
+            model.IsDisplayUploadWarningV2Enabled = _featureFlagService.IsDisplayUploadWarningV2Enabled(currentUser);
             model.Warnings.AddRange(packageContentData.Warnings.Select(w => new JsonValidationMessage(w)));
             model.LicenseFileContents = packageContentData.LicenseFileContents;
 

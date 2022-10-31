@@ -2733,6 +2733,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to See how to include a license within the package.
+        /// </summary>
+        public static string UploadPackage_LearnMore_PackagingLicenseV2 {
+            get {
+                return ResourceManager.GetString("UploadPackage_LearnMore_PackagingLicenseV2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Specifying &lt;licenseUrl&gt; in the package metadata is no longer allowed, please specify the license in the package..
         /// </summary>
         public static string UploadPackage_LegacyLicenseUrlNotAllowed {
@@ -2778,6 +2787,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &lt;strong&gt;License&lt;/strong&gt; missing..
+        /// </summary>
+        public static string UploadPackage_LicenseShouldBeSpecifiedHtmlV2 {
+            get {
+                return ResourceManager.GetString("UploadPackage_LicenseShouldBeSpecifiedHtmlV2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to License missing..
+        /// </summary>
+        public static string UploadPackage_LicenseShouldBeSpecifiedV2 {
+            get {
+                return ResourceManager.GetString("UploadPackage_LicenseShouldBeSpecifiedV2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The package contains a malformed license URL..
         /// </summary>
         public static string UploadPackage_MalformedLicenseUrl {
@@ -2801,6 +2828,24 @@ namespace NuGetGallery {
         public static string UploadPackage_MissingLicenseInformation {
             get {
                 return ResourceManager.GetString("UploadPackage_MissingLicenseInformation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Readme missing. Go to https://learn.microsoft.com/en-us/nuget/create-packages/package-authoring-best-practices#readme learn How to include a readme file within the package..
+        /// </summary>
+        public static string UploadPackage_MissingReadme {
+            get {
+                return ResourceManager.GetString("UploadPackage_MissingReadme", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;strong&gt;Readme&lt;/strong&gt; missing.&lt;a href=&quot;https://learn.microsoft.com/en-us/nuget/create-packages/package-authoring-best-practices#readme&quot;&gt; See how to include a readme file within the package&lt;/a&gt;, or add it as you upload..
+        /// </summary>
+        public static string UploadPackage_MissingReadmeHtml {
+            get {
+                return ResourceManager.GetString("UploadPackage_MissingReadmeHtml", resourceCulture);
             }
         }
         

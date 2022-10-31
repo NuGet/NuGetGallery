@@ -269,6 +269,11 @@ namespace NuGetGallery
         bool IsMarkdigMdSyntaxHighlightEnabled();
 
         /// <summary>
+        /// Whether the new warning of the verfiy metadata when upload package is enabled.
+        /// </summary>
+        bool IsDisplayUploadWarningV2Enabled(User user);
+
+        /// <summary>
         /// Whether or not the user can delete a package through the API.
         /// </summary>
         bool IsDeletePackageApiEnabled(User user);

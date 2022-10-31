@@ -47,6 +47,7 @@ namespace NuGetGallery
         private const string LicenseMdRenderingFlightName = GalleryPrefix + "LicenseMdRendering";
         private const string MarkdigMdRenderingFlightName = GalleryPrefix + "MarkdigMdRendering";
         private const string MarkdigMdSyntaxHighlightFlightName = GalleryPrefix + "MarkdigMdSyntaxHighlight";
+        private const string DisplayUploadWarningV2FlightName = GalleryPrefix + "DisplayUploadWarningV2";
         private const string DeletePackageApiFlightName = GalleryPrefix + "DeletePackageApi";
         private const string ImageAllowlistFlightName = GalleryPrefix + "ImageAllowlist";
         private const string DisplayBannerFlightName = GalleryPrefix + "Banner";
@@ -339,6 +340,11 @@ namespace NuGetGallery
         public bool IsMarkdigMdSyntaxHighlightEnabled()
         {
             return _client.IsEnabled(MarkdigMdSyntaxHighlightFlightName, defaultValue: false);
+        }
+
+        public bool IsDisplayUploadWarningV2Enabled(User user)
+        {
+            return _client.IsEnabled(DisplayUploadWarningV2FlightName, user, defaultValue: false);
         }
 
         public bool IsDeletePackageApiEnabled(User user)

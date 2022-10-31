@@ -152,7 +152,7 @@ namespace NuGetGallery
                 return result;
             }
 
-            result = await CheckReadmeMetadataAsync(nuGetPackage, currentUser);
+            result = await CheckReadmeMetadataAsync(nuGetPackage, warnings, currentUser);
             if (result != null)
             {
                 return result;
@@ -211,7 +211,14 @@ namespace NuGetGallery
                     }
                     else
                     {
-                        warnings.Add(new MissingLicenseValidationMessage(Strings.UploadPackage_LicenseShouldBeSpecified));
+                        if (_featureFlagService.IsDisplayUploadWarningV2Enabled(user))
+                        {
+                            warnings.Add(new MissingLicenseValidationMessageV2(Strings.UploadPackage_LicenseShouldBeSpecifiedV2));
+                        }
+                        else
+                        {
+                            warnings.Add(new MissingLicenseValidationMessage(Strings.UploadPackage_LicenseShouldBeSpecified));
+                        }
                     }
                 }
 
@@ -415,13 +422,18 @@ namespace NuGetGallery
             return null;
         }
 
-        private async Task<PackageValidationResult> CheckReadmeMetadataAsync(PackageArchiveReader nuGetPackage, User user)
+        private async Task<PackageValidationResult> CheckReadmeMetadataAsync(PackageArchiveReader nuGetPackage, List<IValidationMessage> warnings, User user)
         {
             var nuspecReader = GetNuspecReader(nuGetPackage);
             var readmeElement = nuspecReader.ReadmeElement;
 
             if (readmeElement == null)
             {
+                if (_featureFlagService.IsDisplayUploadWarningV2Enabled(user))
+                {
+                    warnings.Add(new UploadPackageMissingReadme());
+                }
+
                 return null;
             }
 
