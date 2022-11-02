@@ -95,9 +95,6 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Scripts\nssm.exe" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\NuGet.Services.Entities\NuGet.Services.Entities.csproj">
       <Project>{6262f4fc-29be-4226-b676-db391c89d396}</Project>
       <Name>NuGet.Services.Entities</Name>

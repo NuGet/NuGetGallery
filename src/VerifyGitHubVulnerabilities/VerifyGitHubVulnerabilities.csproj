@@ -54,6 +54,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="README.md" />
+    <None Include="Scripts\Functions.ps1" />
+    <None Include="Scripts\PostDeploy.ps1" />
+    <None Include="Scripts\PreDeploy.ps1" />
+    <None Include="VerifyGitHubVulnerabilities.nuspec" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NuGet.Jobs.Common">
@@ -77,6 +82,9 @@
       <Project>{c7d5e850-33fa-4ec5-8d7f-b1c8dd5d48f9}</Project>
       <Name>NuGetGallery.Services</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Scripts\nssm.exe" />
   </ItemGroup>
   <PropertyGroup>
     <SignPath>..\..\build</SignPath>

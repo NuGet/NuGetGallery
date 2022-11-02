@@ -10,7 +10,7 @@ namespace VerifyGitHubVulnerabilities
         static void Main(string[] args)
         {
             var job = new Job();
-            JobRunner.RunOnce(job, args).Wait();
+            JobRunner.Run(job, args).Wait();
         }
     }
 }
