@@ -53,7 +53,7 @@ namespace GitHubVulnerabilities2Db.Collector
             var lastVulnerabilitiesFetchedCount = advisory.Vulnerabilities?.Edges?.Count() ?? 0;
             while (lastVulnerabilitiesFetchedCount == _queryBuilder.GetMaximumResultsPerRequest())
             {
-                _logger.LogInformation("Fetching more vulnerabilities for advisory with database key {GitHubDatabaseKey}", advisory.DatabaseId);
+                _logger.LogInformation("Fetching more vulnerabilities for advisory with database key {GitHubDatabaseKey} / GHSA ID {GhsaId}", advisory.DatabaseId, advisory.GhsaId);
                 var queryForAdditionalVulnerabilities = _queryBuilder.CreateSecurityAdvisoryQuery(advisory);
                 var responseForAdditionalVulnerabilities = await _queryService.QueryAsync(queryForAdditionalVulnerabilities, token);
                 var advisoryWithAdditionalVulnerabilities = responseForAdditionalVulnerabilities.Data.SecurityAdvisory;

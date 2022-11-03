@@ -4,11 +4,19 @@
 using System;
 using System.Linq;
 using GitHubVulnerabilities2Db.GraphQL;
+using Newtonsoft.Json;
 
 namespace GitHubVulnerabilities2Db.Collector
 {
     public class AdvisoryQueryBuilder : IAdvisoryQueryBuilder
     {
+        private const string SecurityAdvisoryFields = @"databaseId
+    ghsaId
+    permalink
+    severity
+    withdrawnAt
+    updatedAt";
+
         public int GetMaximumResultsPerRequest() => 100;
 
         public string CreateSecurityAdvisoriesQuery(DateTimeOffset? updatedSince = null, string afterCursor = null)
@@ -20,27 +28,21 @@ namespace GitHubVulnerabilities2Db.Collector
     edges {
       cursor
       node {
-        databaseId
-        permalink
-        severity
-        withdrawnAt
-        updatedAt
+        " + SecurityAdvisoryFields + @"
         " + CreateVulnerabilitiesConnectionQuery() + @"
       }
     }
   }
 }";
 
+        /// <summary>
+        /// Source: https://docs.github.com/en/enterprise-cloud@latest/graphql/reference/queries#securityadvisory
+        /// </summary>
         public string CreateSecurityAdvisoryQuery(SecurityAdvisory advisory)
             => @"
 {
-  securityAdvisory(databaseId: " + advisory.DatabaseId + @") {
-    severity
-    updatedAt
-    identifiers {
-      type
-      value
-    }
+  securityAdvisory(ghsaId: " + JsonConvert.SerializeObject(advisory.GhsaId) + @") {
+    " + SecurityAdvisoryFields + @"
     " + CreateVulnerabilitiesConnectionQuery(advisory.Vulnerabilities?.Edges?.Last()?.Cursor) + @"
   }
 }";

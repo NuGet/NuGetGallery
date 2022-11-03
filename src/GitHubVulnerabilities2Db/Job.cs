@@ -34,7 +34,8 @@ namespace GitHubVulnerabilities2Db
         public override async Task Run()
         {
             var collector = _serviceProvider.GetRequiredService<IAdvisoryCollector>();
-            while (await collector.ProcessAsync(CancellationToken.None)) ;
+            while (await collector.ProcessAsync(CancellationToken.None));
+            
         }
 
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
