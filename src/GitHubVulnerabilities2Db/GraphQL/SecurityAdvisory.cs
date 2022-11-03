@@ -11,6 +11,7 @@ namespace GitHubVulnerabilities2Db.GraphQL
     public class SecurityAdvisory : INode
     {
         public int DatabaseId { get; set; }
+        public string GhsaId { get; set; }
         public string Permalink { get; set; }
         public string Severity { get; set; }
         public DateTimeOffset UpdatedAt { get; set; }

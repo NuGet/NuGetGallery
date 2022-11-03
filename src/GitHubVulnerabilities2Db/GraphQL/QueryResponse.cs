@@ -11,6 +11,16 @@ namespace GitHubVulnerabilities2Db.GraphQL
     public class QueryResponse
     {
         public QueryResponseData Data { get; set; }
+        public List<QueryError> Errors { get; set; }
+    }
+
+    /// <summary>
+    /// The optional error details returned by the GraphQL endpoint.
+    /// See: https://www.apollographql.com/docs/react/data/error-handling/#graphql-errors
+    /// </summary>
+    public class QueryError
+    {
+        public string Message { get; set; }
     }
 
     /// <summary>
