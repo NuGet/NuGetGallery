@@ -10072,6 +10072,21 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task GivenNullVersionReturns404()
+            {
+                // arrange
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: _packageService);
+
+                // act
+                var result = await controller.License(_packageId, version: null);
+
+                // assert
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
+
+            [Fact]
             public async Task GivenDeletedPackageReturns404()
             {
                 // arrange

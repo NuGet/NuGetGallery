@@ -1174,6 +1174,11 @@ namespace NuGetGallery
         [HttpGet]
         public virtual async Task<ActionResult> License(string id, string version)
         {
+            if (version == null)
+            {
+                return HttpNotFound();
+            }
+
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
             if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
             {
