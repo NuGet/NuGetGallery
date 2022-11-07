@@ -97,6 +97,13 @@
     {
         packageManagers = new PackageManagerViewModel[]
         {
+            new PackageManagerViewModel(".NET CLI")
+            {
+                Id = "dotnet-cli",
+                CommandPrefix = "> ",
+                InstallPackageCommands = new [] { string.Format("dotnet add package {0} --version {1}", Model.Id, Model.Version) },
+            },
+
             new PackageManagerViewModel("Package Manager")
             {
                 Id = "package-manager",
@@ -105,13 +112,6 @@
                 AlertLevel = AlertLevel.Info,
                 AlertMessage = "This command is intended to be used within the Package Manager Console in Visual Studio, as it uses the NuGet module's version of <a href='https://docs.microsoft.com/en-us/nuget/reference/ps-reference/ps-ref-install-package'>Install-Package</a>."
 
-            },
-
-            new PackageManagerViewModel(".NET CLI")
-            {
-                Id = "dotnet-cli",
-                CommandPrefix = "> ",
-                InstallPackageCommands = new [] { string.Format("dotnet add package {0} --version {1}", Model.Id, Model.Version) },
             },
 
             new PackageManagerViewModel("PackageReference")
