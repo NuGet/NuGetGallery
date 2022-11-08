@@ -151,7 +151,7 @@
         </div>
     }
 
-    <div class="list-packages" role="list">
+    <ul class="list-packages">
         @{
             var itemIndex = Model.PageIndex * Model.PageSize;
             var eventName = Model.IsPreviewSearch ? "preview-search-selection" : "search-selection";
@@ -161,7 +161,7 @@
             @Html.Partial("_ListPackage", package, new ViewDataDictionary { { "itemIndex", itemIndex }, { "eventName", eventName } })
             itemIndex++;
         }
-    </div>
+    </ul>
 
     <div class="row">
         <div class="col-xs-12 clearfix">
