@@ -538,6 +538,12 @@ For more information, please contact '{2}'.</value>
   <data name="ReadMeUrlHostInvalid" xml:space="preserve">
     <value>The Documentation URL must be a raw Markdown file hosted on GitHub.</value>
   </data>
+  <data name="UploadPackage_MissingReadmeHtml" xml:space="preserve">
+    <value>&lt;strong&gt;Readme&lt;/strong&gt; missing.&lt;a href="https://learn.microsoft.com/en-us/nuget/create-packages/package-authoring-best-practices#readme"&gt; See how to include a readme file within the package&lt;/a&gt;, or add it as you upload.</value>
+  </data>
+  <data name="UploadPackage_MissingReadme" xml:space="preserve">
+    <value>Readme missing. Go to https://learn.microsoft.com/en-us/nuget/create-packages/package-authoring-best-practices#readme learn How to include a readme file within the package.</value>
+  </data>	
   <data name="ReservedNamespace_OwnerAdded" xml:space="preserve">
     <value>The user '{0}' is now an owner of the prefix '{1}'.</value>
   </data>
@@ -1070,11 +1076,17 @@ The {1} Team</value>
   </data>
   <data name="UploadPackage_LearnMore" xml:space="preserve">
     <value>Learn more</value>
+  </data>	
+  <data name="UploadPackage_LicenseShouldBeSpecifiedHtmlV2" xml:space="preserve">
+    <value>&lt;strong&gt;License&lt;/strong&gt; missing.</value>
+  </data>	
+  <data name="UploadPackage_LicenseShouldBeSpecifiedV2" xml:space="preserve">
+    <value>License missing.</value>
   </data>
   <data name="UploadPackage_LicenseShouldBeSpecified" xml:space="preserve">
     <value>All published packages should have license information specified.</value>
   </data>
-  <data name="UploadPackage_NonFsfOrOsiLicense" xml:space="preserve">
+ <data name="UploadPackage_NonFsfOrOsiLicense" xml:space="preserve">
     <value>License expression must only contain licenses that are approved by Open Source Initiative or Free Software Foundation. Unsupported licenses: {0}.</value>
     <comment>{0} is list of the package license ids that are neither OSI nor FSF approved</comment>
   </data>
@@ -1189,6 +1201,9 @@ The {1} Team</value>
   </data>
   <data name="ReadmeNotEditableWithEmbeddedReadme" xml:space="preserve">
     <value>The readme is not editable with the package has the embedded readme</value>
+  </data>
+  <data name="UploadPackage_LearnMore_PackagingLicenseV2" xml:space="preserve">
+    <value>See how to include a license within the package</value>
   </data>
   <data name="UploadPackage_LearnMore_PackagingLicense" xml:space="preserve">
     <value>Learn more about including a license within the package</value>

@@ -14,5 +14,7 @@ namespace NuGetGallery
         public bool IsUserLocked { get; set; }
 
         public bool IsMarkdigMdSyntaxHighlightEnabled { get; set; }
+
+        public bool IsDisplayUploadWarningV2Enabled { get; set;  }
     }
 }

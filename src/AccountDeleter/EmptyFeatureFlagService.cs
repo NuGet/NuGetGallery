@@ -290,5 +290,10 @@ namespace NuGetGallery.AccountDeleter
         {
             throw new NotImplementedException();
         }
+
+        public bool IsDisplayUploadWarningV2Enabled(User user)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -29,9 +29,8 @@ namespace NuGetGallery
 
             return BuildFileName(
                 package.PackageRegistration.Id,
-                string.IsNullOrEmpty(package.NormalizedVersion) ?
-                    NuGetVersionFormatter.Normalize(package.Version) :
-                    package.NormalizedVersion, format, extension);
+                NuGetVersionFormatter.GetNormalizedPackageVersion(package),
+                format, extension);
         }
 
         public static string BuildFileName(string id, string version, string pathTemplate, string extension)
