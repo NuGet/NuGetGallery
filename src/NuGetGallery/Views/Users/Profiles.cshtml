@@ -97,12 +97,12 @@
 
             <hr class="profile-title-divider" />
 
-            <div class="list-packages" role="list">
+            <ul class="list-packages">
                 @foreach (var package in Model.PagedPackages)
                 {
                     @Html.Partial("_ListPackage", package)
                 }
-            </div>
+            </ul>
 
             @ViewHelpers.PreviousNextPager(Model.Pager)
         </article>

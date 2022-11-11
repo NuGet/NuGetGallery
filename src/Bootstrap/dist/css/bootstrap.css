@@ -4723,6 +4723,10 @@ button.list-group-item-danger.active:focus {
   margin-bottom: 0;
   line-height: 1.3;
 }
+ul.list-packages {
+  list-style-type: none;
+  padding-left: 0;
+}
 .panel {
   margin-bottom: 22px;
   background-color: #fff;
