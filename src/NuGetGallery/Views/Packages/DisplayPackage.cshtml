@@ -72,9 +72,9 @@
             {
                 Id = "dotnet-cli",
                 CommandPrefix = "> ",
-                InstallPackageCommands = new [] { string.Format("dotnet new --install {0}::{1}", Model.Id, Model.Version) },
+                InstallPackageCommands = new [] { string.Format("dotnet new install {0}::{1}", Model.Id, Model.Version) },
                 AlertLevel = AlertLevel.Info,
-                AlertMessage = "This package contains a <a href='https://aka.ms/dotnet-new'>.NET Core Template Package</a> you can call from the shell/command line.",
+                AlertMessage = "This package contains a <a href='https://aka.ms/dotnet-new'>.NET Template Package</a> you can call from the shell/command line.",
             }
         };
     }
