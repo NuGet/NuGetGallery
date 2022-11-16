@@ -39,12 +39,12 @@ namespace NuGetGallery
                 var conventions = new ManagedCodeConventions(runtimeGraph);
 
                 // Let's test for tools packages first--they're a special case
-                var groups = Enumerable.Empty<ContentItemGroup>();
+                var groups = new List<ContentItemGroup>();
                 if (packageTypes.Count == 1 && (packageTypes[0] == PackageType.DotnetTool ||
                                                 packageTypes[0] == PackageType.DotnetCliTool))
                 {
                     // Only a package that is a tool package (and nothing else) will be matched against tools pattern set
-                    groups = items.FindItemGroups(conventions.Patterns.ToolsAssemblies);
+                    items.PopulateItemGroups(conventions.Patterns.ToolsAssemblies, groups);
                 }
                 else
                 {
@@ -67,14 +67,25 @@ namespace NuGetGallery
                     };
 
                     // We'll create a set of "groups" --these are content items which satisfy file pattern sets
-                    var standardGroups = patterns
-                        .SelectMany(p => items.FindItemGroups(p));
+                    foreach (var pattern in patterns)
+                    {
+                        items.PopulateItemGroups(pattern, groups);
+                    }
 
                     // Filter out MSBuild assets that don't match the package ID and append to groups we already have
-                    var msbuildGroups = msbuildPatterns
-                        .SelectMany(p => items.FindItemGroups(p))
-                        .Where(g => HasBuildItemsForPackageId(g.Items, packageId));
-                    groups = standardGroups.Concat(msbuildGroups);
+                    var msbuildGroups = new List<ContentItemGroup>();
+                    foreach (var pattern in msbuildPatterns)
+                    {
+                        items.PopulateItemGroups(pattern, msbuildGroups);
+                    }
+
+                    foreach (var group in msbuildGroups)
+                    {
+                        if (HasBuildItemsForPackageId(group.Items, packageId))
+                        {
+                            groups.Add(group);
+                        }
+                    }
                 }
 
                 // Now that we have a collection of groups which have made it through the pattern set filter, let's transform them into TFMs
