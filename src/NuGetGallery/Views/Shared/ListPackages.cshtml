@@ -41,7 +41,7 @@
 <section role="main" class="container main-container page-list-packages">
     <div class="row clearfix no-margin">
         <div class="col-md-10 no-padding">
-            <h1 role="alert">
+            <h1 tabindex="0">
                 @if (String.IsNullOrEmpty(Model.SearchTerm))
                 {
                     if (Model.TotalCount == 1)
@@ -151,7 +151,7 @@
         </div>
     }
 
-    <div class="list-packages" role="list">
+    <ul class="list-packages">
         @{
             var itemIndex = Model.PageIndex * Model.PageSize;
             var eventName = Model.IsPreviewSearch ? "preview-search-selection" : "search-selection";
@@ -161,7 +161,7 @@
             @Html.Partial("_ListPackage", package, new ViewDataDictionary { { "itemIndex", itemIndex }, { "eventName", eventName } })
             itemIndex++;
         }
-    </div>
+    </ul>
 
     <div class="row">
         <div class="col-xs-12 clearfix">

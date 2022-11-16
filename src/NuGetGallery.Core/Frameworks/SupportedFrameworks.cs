@@ -33,6 +33,13 @@ namespace NuGetGallery.Frameworks
         public static readonly NuGetFramework Net60Tizen = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version6, "tizen", EmptyVersion);
         public static readonly NuGetFramework Net60TvOs = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version6, "tvos", EmptyVersion);
         public static readonly NuGetFramework Net60Windows = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version6, "windows", EmptyVersion);
+        public static readonly NuGetFramework Net70Android = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version7, "android", EmptyVersion);
+        public static readonly NuGetFramework Net70Ios = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version7, "ios", EmptyVersion);
+        public static readonly NuGetFramework Net70MacOs = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version7, "macos", EmptyVersion);
+        public static readonly NuGetFramework Net70MacCatalyst = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version7, "maccatalyst", EmptyVersion);
+        public static readonly NuGetFramework Net70Tizen = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version7, "tizen", EmptyVersion);
+        public static readonly NuGetFramework Net70TvOs = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version7, "tvos", EmptyVersion);
+        public static readonly NuGetFramework Net70Windows = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version7, "windows", EmptyVersion);
         public static readonly NuGetFramework NetCore = new NuGetFramework(FrameworkIdentifiers.NetCore, EmptyVersion);
         public static readonly NuGetFramework NetMf = new NuGetFramework(FrameworkIdentifiers.NetMicro, EmptyVersion);
         public static readonly NuGetFramework UAP = new NuGetFramework(FrameworkIdentifiers.UAP, EmptyVersion);
@@ -51,7 +58,9 @@ namespace NuGetGallery.Frameworks
                 MonoAndroid, MonoMac, MonoTouch,
                 Native,
                 Net11, Net2, Net35, Net4, Net403, Net45, Net451, Net452, Net46, Net461, Net462, Net463, Net47, Net471, Net472, Net48,
-                Net50, Net50Windows, Net60, Net60Android, Net60Ios, Net60MacCatalyst, Net60MacOs, Net60TvOs, Net60Windows,
+                Net50, Net50Windows,
+                Net60, Net60Android, Net60Ios, Net60MacCatalyst, Net60MacOs, Net60TvOs, Net60Windows,
+                Net70, Net70Android, Net70Ios, Net70MacCatalyst, Net70MacOs, Net70TvOs, Net70Windows,
                 NetCore, NetCore45, NetCore451,
                 NetCoreApp10, NetCoreApp11, NetCoreApp20, NetCoreApp21, NetCoreApp22, NetCoreApp30, NetCoreApp31,
                 NetMf,
