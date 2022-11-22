@@ -329,6 +329,10 @@ service responses and are not called into at runtime.
     "SemVer2RegistrationsBaseUrl": "https://apidev.nugettest.org/v3/registration5-gz-semver2/",
     "StorageConnectionString": "PLACEHOLDER",
     "StorageContainer": "PLACEHOLDER"
+  },
+
+  "FeatureFlags": {
+    "ConnectionString": "PLACEHOLDER"
   }
 }
 ```

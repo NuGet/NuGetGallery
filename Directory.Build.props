@@ -2,9 +2,9 @@
 
   <!-- NuGet dependencies shared across projects -->
   <PropertyGroup>
-    <ServerCommonPackageVersion>2.104.0</ServerCommonPackageVersion>
-    <NuGetClientPackageVersion>6.0.0</NuGetClientPackageVersion>
-    <NuGetGalleryPackageVersion>4.4.5-main-6443282</NuGetGalleryPackageVersion>
+    <ServerCommonPackageVersion>2.107.0</ServerCommonPackageVersion>
+    <NuGetClientPackageVersion>6.4.0</NuGetClientPackageVersion>
+    <NuGetGalleryPackageVersion>4.4.5-dev-6981580</NuGetGalleryPackageVersion>
   </PropertyGroup>
 
   <ItemGroup>
