@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using NuGet.Services.AzureSearch;
 
 namespace NuGet.Services.AzureSearch.SearchService
 {
@@ -66,5 +67,11 @@ namespace NuGet.Services.AzureSearch.SearchService
         public List<V3SearchVersion> Versions { get; set; }
 
         public object Debug { get; set; }
+
+        [JsonPropertyName("deprecation")]
+        public V3SearchDeprecation Deprecation { get; set; }
+
+        [JsonPropertyName("vulnerabilities")]
+        public List<V3SearchVulnerability> Vulnerabilities { get; set; }
     }
 }

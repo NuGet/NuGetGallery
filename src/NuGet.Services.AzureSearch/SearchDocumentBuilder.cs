@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using NuGet.Protocol.Catalog;
 using NuGet.Services.Entities;
@@ -228,6 +229,8 @@ namespace NuGet.Services.AzureSearch
             _baseDocumentBuilder.PopulateMetadata(document, packageId, package);
             PopulateDownloadCount(document, totalDownloadCount);
             PopulateIsExcludedByDefault(document, isExcludedByDefault);
+            PopulateDeprecation(document, package);
+            PopulateVulnerabilities(document, package);
 
             return document;
         }
@@ -357,5 +360,19 @@ namespace NuGet.Services.AzureSearch
         {
             document.IsExcludedByDefault = isExcludedByDefault;
         }
+
+        private static void PopulateDeprecation(
+            SearchDocument.Full document,
+            Package package)
+            {
+                document.Deprecation = new Deprecation(); //TODO: https://github.com/NuGet/NuGetGallery/issues/7297
+            }
+
+        private static void PopulateVulnerabilities(
+            SearchDocument.Full document,
+            Package package)
+            {
+                document.Vulnerabilities = new List<Vulnerability>(); //TODO: https://github.com/NuGet/NuGetGallery/issues/7297
+            }
     }
 }
