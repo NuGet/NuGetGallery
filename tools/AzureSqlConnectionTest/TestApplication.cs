@@ -18,6 +18,8 @@ namespace AzureSqlConnectionTest
 
         public CommandOption KeyVaultName { get; }
 
+        public CommandOption KeyVaultTenantId { get; }
+
         public CommandOption KeyVaultClientId { get; }
 
         public CommandOption KeyVaultCertificateThumbprint { get; }
@@ -41,6 +43,7 @@ namespace AzureSqlConnectionTest
             Help = HelpOption("-? | -h | --help");
 
             KeyVaultName = Option("-kv | --keyVaultName", "KeyVault name", CommandOptionType.SingleValue);
+            KeyVaultTenantId = Option("-kvtid | --keyVaultTenantId", "KeyVault tenant id", CommandOptionType.SingleValue);
             KeyVaultClientId = Option("-kvcid | --keyVaultClientId", "KeyVault client id", CommandOptionType.SingleValue);
             KeyVaultCertificateThumbprint = Option("-kvct | --keyVaultCertThumbprint", "KeyVault certificate thumbprint", CommandOptionType.SingleValue);
 
@@ -81,6 +84,7 @@ namespace AzureSqlConnectionTest
                     {
                         var keyVaultConfig = new KeyVaultConfiguration(
                             KeyVaultName.Value(),
+                            KeyVaultTenantId.Value(),
                             KeyVaultClientId.Value(),
                             kvCertificate);
 
