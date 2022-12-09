@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -897,7 +897,7 @@ If you would like to update the linked Microsoft account you can do so from the 
 Policy violations: {0}</value>
   </data>
   <data name="SecurityPolicy_RequirePackagePrefixReserved" xml:space="preserve">
-    <value>You have not published a package with this prefix in the past. This means other users may be able to push packages starting with the same prefix. Contact account@nuget.org to reserve the prefix. Go to https://docs.microsoft.com/en-us/nuget/reference/id-prefix-reservation to learn more about Package ID prefix reservation.</value>
+    <value>You have not published a package with this prefix in the past. This means other users may be able to push packages starting with the same prefix. Contact account@nuget.org to reserve the prefix. Go to https://docs.microsoft.com/nuget/reference/id-prefix-reservation to learn more about Package ID prefix reservation.</value>
   </data>
   <data name="SecurityPolicy_CopyrightNotCompliant" xml:space="preserve">
     <value>The package metadata contains a non-compliant copyright element.</value>
