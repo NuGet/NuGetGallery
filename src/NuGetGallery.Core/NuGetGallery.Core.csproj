@@ -52,6 +52,7 @@
     </PackageReference>
     <PackageReference Include="NuGet.Services.FeatureFlags">
       <Version>2.109.0</Version>
+      <Version>2.108.0-agr-kv-lib-upgrade-7060168</Version>
     </PackageReference>
     <PackageReference Include="WindowsAzure.Storage">
       <Version>9.3.3</Version>
@@ -67,6 +68,13 @@
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation.Issues">
       <Version>2.109.0</Version>
+      <Version>2.108.0-agr-kv-lib-upgrade-7060168</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Services.Validation">
+      <Version>2.108.0-agr-kv-lib-upgrade-7060168</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Services.Validation.Issues">
+      <Version>2.108.0-agr-kv-lib-upgrade-7060168</Version>
     </PackageReference>
     <PackageReference Include="NuGet.StrongName.elmah.corelibrary">
       <Version>1.2.2</Version>
