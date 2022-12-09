@@ -2072,10 +2072,6 @@ namespace NuGetGallery.Authentication
                     ar.AffectedCredential.Length == 1 &&
                     ar.AffectedCredential[0].Type == cred.Type &&
                     ar.AffectedCredential[0].Identity == cred.Identity));
-
-                Assert.Equal(
-                    new List<string> { nameof(IEntitiesContext.SaveChangesAsync), nameof(IAuditingService.SaveAuditRecordAsync) },
-                    operations);
             }
 
             [Fact]
