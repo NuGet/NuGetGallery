@@ -473,6 +473,9 @@ namespace NuGetGallery.Authentication
         {
             await ReplaceCredentialInternal(user, credential);
             await Entities.SaveChangesAsync();
+
+            await Auditing.SaveAuditRecordAsync(new UserAuditRecord(
+                user, AuditedUserAction.AddCredential, credential));
         }
 
         public virtual async Task<Credential> ResetPasswordWithToken(string username, string token, string newPassword)
@@ -501,6 +504,10 @@ namespace NuGetGallery.Authentication
                 user.FailedLoginCount = 0;
                 user.LastFailedLoginUtc = null;
                 await Entities.SaveChangesAsync();
+
+                await Auditing.SaveAuditRecordAsync(new UserAuditRecord(
+                    user, AuditedUserAction.AddCredential, cred));
+
                 return cred;
             }
 
@@ -590,6 +597,10 @@ namespace NuGetGallery.Authentication
 
             // Save changes
             await Entities.SaveChangesAsync();
+
+            await Auditing.SaveAuditRecordAsync(new UserAuditRecord(
+                user, AuditedUserAction.AddCredential, passwordCredential));
+
             return true;
         }
 
@@ -623,10 +634,10 @@ namespace NuGetGallery.Authentication
                 throw new InvalidOperationException(ServicesStrings.OrganizationsCannotCreateCredentials);
             }
 
-            await Auditing.SaveAuditRecordAsync(new UserAuditRecord(user, AuditedUserAction.AddCredential, credential));
             user.Credentials.Add(credential);
             await Entities.SaveChangesAsync();
 
+            await Auditing.SaveAuditRecordAsync(new UserAuditRecord(user, AuditedUserAction.AddCredential, credential));
             _telemetryService.TrackNewCredentialCreated(user, credential);
         }
 
@@ -838,9 +849,6 @@ namespace NuGetGallery.Authentication
             }
 
             user.Credentials.Add(credential);
-
-            await Auditing.SaveAuditRecordAsync(new UserAuditRecord(
-                user, AuditedUserAction.AddCredential, credential));
         }
 
         private static CredentialKind GetCredentialKind(string type)
@@ -1024,15 +1032,20 @@ namespace NuGetGallery.Authentication
             await Auditing.SaveAuditRecordAsync(new UserAuditRecord(user, AuditedUserAction.RemoveCredential, toRemove));
 
             // Now add one if there are no credentials left
+            Credential newCred = null;
             if (creds.Count == 0)
             {
-                var newCred = _credentialBuilder.CreatePasswordCredential(password);
-                await Auditing.SaveAuditRecordAsync(new UserAuditRecord(user, AuditedUserAction.AddCredential, newCred));
+                newCred = _credentialBuilder.CreatePasswordCredential(password);
                 user.Credentials.Add(newCred);
             }
 
             // Save changes, if any
             await Entities.SaveChangesAsync();
+
+            if (newCred != null)
+            {
+                await Auditing.SaveAuditRecordAsync(new UserAuditRecord(user, AuditedUserAction.AddCredential, newCred));
+            }
         }
     }
 }
