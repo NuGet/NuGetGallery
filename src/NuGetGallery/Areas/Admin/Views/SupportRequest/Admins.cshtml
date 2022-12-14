@@ -140,11 +140,11 @@
                 var $self = this;
                 this.admins = ko.observableArray();
 
-                this.addAdminForm = $('#addAdmin-form').get(0);
-                this.newGalleryUsernameCtrl = $('#newGalleryUsername').get(0);
+                this.addAdminForm = $('#addAdmin-form')[0];
+                this.newGalleryUsernameCtrl = $('#newGalleryUsername')[0];
 
-                this.editAdminForm = $('#editAdmin-form').get(0);
-                this.editGalleryUsernameCtrl = $('#editGalleryUsername').get(0);
+                this.editAdminForm = $('#editAdmin-form')[0];
+                this.editGalleryUsernameCtrl = $('#editGalleryUsername')[0];
 
                 this.styleButtons = function () {
                     $('a.addButton').button(
@@ -322,7 +322,7 @@
             var viewModel = new AdminsViewModel();
             viewModel.admins(@Html.ToJson(Model.Admins));
 
-            ko.applyBindings(viewModel, $('#sr-admins-table').get(0));
+            ko.applyBindings(viewModel, $('#sr-admins-table')[0]);
 
             viewModel.styleButtons();
         });

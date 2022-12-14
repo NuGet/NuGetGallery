@@ -462,7 +462,7 @@
 
     nuget.setPopovers = function () {
         var popoverElement = $(this);
-        var popoverElementDom = popoverElement.get(0);
+        var popoverElementDom = this;
         var originalLabel = popoverElementDom.ariaLabel;
         var popoverHideTimeMS = 2000;
         var popoverFadeTimeMS = 200;

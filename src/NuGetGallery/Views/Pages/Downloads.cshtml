@@ -94,7 +94,7 @@
                         data = $.parseJSON(data);
                     }
 
-                    ko.applyBindings(data, $('#stage-dynamic').get(0));
+                    ko.applyBindings(data, $('#stage-dynamic')[0]);
                     $('#stage-static').hide();
                     $('#stage-dynamic').show();
                 }

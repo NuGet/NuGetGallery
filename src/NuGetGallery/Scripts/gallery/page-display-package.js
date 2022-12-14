@@ -50,7 +50,7 @@
     // Configure package manager copy buttons
     function configureCopyButton(id) {
         var copyButton = $('#' + id + '-button');
-        var copyButtonDom = copyButton.get(0);
+        var copyButtonDom = copyButton[0];
         copyButton.popover({ trigger: 'manual' });
 
         copyButton.click(function () {
