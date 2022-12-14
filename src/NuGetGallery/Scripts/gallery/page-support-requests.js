@@ -52,13 +52,13 @@ var SupportRequestsViewModel = (function () {
         this.editUrl = editUrl;
         this.filterUrl = filterUrl;
         this.historyUrl = historyUrl;
-        this.editSupportRequestForm = $('#editSupportRequest-form')[0];
-        this.editAssignedToCtrl = $('#editAssignedTo')[0];
-        this.editIssueStatusCtrl = $('#editIssueStatus')[0];
-        this.editIssueCommentCtrl = $('#editIssueComment')[0];
+        this.editSupportRequestForm = $('#editSupportRequest-form').get(0);
+        this.editAssignedToCtrl = $('#editAssignedTo').get(0);
+        this.editIssueStatusCtrl = $('#editIssueStatus').get(0);
+        this.editIssueCommentCtrl = $('#editIssueComment').get(0);
         this.editViewModel = new EditViewModel(editUrl);
 
-        this.historyTableCtrl = $('#history-table')[0];
+        this.historyTableCtrl = $('#history-table').get(0);
         this.historyViewModel = new HistoryViewModel();
 
         this.assignedToFilter = ko.observable();
