@@ -179,9 +179,11 @@
                     {
                         var title = "This version has at least one known vulnerability. Click on the package name for details.";
                         <td class="package-icon-cell">
-                            <span class="package-warning-icon" aria-label="@title" data-content="@title" data-bind="visible: IsVulnerable" tabindex="0">
+                            <!-- ko if: IsVulnerable -->
+                            <span class="package-warning-icon" aria-label="@title" data-content="@title" tabindex="0">
                                 <i class="ms-Icon ms-Icon--Warning package-icon"></i>
                             </span>
+                            <!-- /ko -->
                         </td>
                     }
                         <td class="text-right align-middle package-controls">
