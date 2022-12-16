@@ -30,6 +30,8 @@ namespace NuGetGallery.Infrastructure.Search
             string query,
             string projectTypeFilter,
             bool includePrerelease,
+            string frameworks,
+            string tfms,
             string packageType,
             SearchModels.SortOrder sortBy,
             int skip,

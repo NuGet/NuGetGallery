@@ -24,6 +24,10 @@ namespace NuGetGallery
 
         public string SemVerLevel { get; set; }
 
+        public string Frameworks { get; set; }
+
+        public string Tfms { get; set; }
+
         public string PackageType { get; set; }
 
         public SortOrder SortOrder { get; set; }

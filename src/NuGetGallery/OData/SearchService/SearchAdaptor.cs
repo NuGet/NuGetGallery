@@ -43,6 +43,8 @@ namespace NuGetGallery.OData
             string q,
             int page,
             bool includePrerelease,
+            string frameworks,
+            string tfms,
             string packageType,
             string sortOrder,
             string context,
@@ -59,6 +61,8 @@ namespace NuGetGallery.OData
                 Take = GalleryConstants.DefaultPackageListPageSize,
                 IncludePrerelease = includePrerelease,
                 SemVerLevel = semVerLevel,
+                Frameworks = frameworks,
+                Tfms = tfms,
                 PackageType = packageType,
                 IncludeTestData = includeTestData,
             };

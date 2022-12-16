@@ -173,7 +173,7 @@
 
     @if (ViewBag.ShowSearchInNavbar != false)
     {
-        <div class="container search-container">
+        <div id="search-bar-header" class="container search-container">
             <div class="row">
                 <form aria-label="Package search bar" class="col-sm-12" action="@Url.PackageList()" method="get">
                     @Html.Partial("_SearchBar")
