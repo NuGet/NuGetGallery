@@ -1800,6 +1800,21 @@ p.frameworktableinfo-text {
 .page-list-packages .btn-command:hover {
   background-color: #f4f4f4;
 }
+.page-list-packages .sortby {
+  margin-top: 33px;
+  margin-bottom: 33px;
+  width: 90px;
+  height: 45px;
+  background-color: transparent;
+  border: none;
+}
+@media (max-width: 992px) {
+  .page-list-packages .sortby {
+    text-align: left;
+    margin-top: 0px;
+    margin-bottom: 5px;
+  }
+}
 .page-list-packages .advanced-search-panel {
   background-color: #f4f4f4;
   border-color: #f4f4f4;
@@ -1837,6 +1852,26 @@ p.frameworktableinfo-text {
 }
 .page-list-packages .advanced-search-panel #reset-advanced-search {
   color: #286090;
+}
+.page-list-packages .advanced-search-panel .collapsible {
+  color: #494949;
+  border: none;
+  outline: none;
+  float: right;
+}
+.page-list-packages .advanced-search-panel .active,
+.page-list-packages .advanced-search-panel .collapsible:hover {
+  color: #83b1b9;
+}
+.page-list-packages .advanced-search-panel .tfmTab {
+  max-height: 0;
+  overflow: hidden;
+  -webkit-transition: max-height 0.1s ease-out;
+  -o-transition: max-height 0.1s ease-out;
+  transition: max-height 0.1s ease-out;
+}
+.page-list-packages .advanced-search-panel .tfmTab ul {
+  list-style: none;
 }
 @media (min-width: 768px) {
   .page-list-packages .text-align-right {

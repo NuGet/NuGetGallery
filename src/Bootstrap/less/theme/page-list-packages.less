@@ -43,6 +43,23 @@
     background-color: #f4f4f4;
   }
 
+  .sortby {
+    margin-top: 33px;
+    margin-bottom: 33px;
+    width: 90px;
+    height: 45px;
+    background-color: transparent;
+    border: none;
+  }
+
+  @media (max-width: @screen-md) {
+    .sortby {
+      text-align: left;
+      margin-top: 0px;
+      margin-bottom: 5px;
+    }
+  }
+
   .advanced-search-panel {
     background-color: @alert-info-bg;
     border-color: @alert-info-border;
@@ -86,6 +103,27 @@
 
     #reset-advanced-search {
       color: darken(@link-color, 10%);
+    }
+
+    .collapsible {
+      color: rgb(73, 73, 73);
+      border: none;
+      outline: none;
+      float: right;
+    }
+
+    .active, .collapsible:hover {
+      color: rgb(131, 177, 185);
+    }
+
+    .tfmTab {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.1s ease-out;
+
+      ul {
+        list-style: none;
+      }
     }
   }
 
