@@ -20,9 +20,9 @@
             @if (Model.IsUserLocked)
             {
                 @ViewHelpers.AlertDanger(
-                    @<text>
-                        @ServicesStrings.UserAccountIsLocked
-                    </text>)
+                                @<text>
+                                    @ServicesStrings.UserAccountIsLocked
+                                </text>)
             }
             else
             {
@@ -33,6 +33,10 @@
                         <a href="https://docs.microsoft.com/nuget/create-packages/package-authoring-best-practices" alt="Best Practices" aria-label="Read here about publishing packages">Best Practices</a> page.
                     </p>
                 </div>
+
+                <div id="validation-failure-container" class="hidden">
+                </div>
+
                 <div id="upload-package-container">
                     <h2>
                         <a href="#" role="button" data-toggle="collapse" data-target="#upload-package-form"
@@ -60,9 +64,6 @@
 
                         <div id="upload-progress-bar-container" class="progress hidden">
                             <div id="upload-progress-bar" class="progress-bar active" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>
-
-                        <div id="validation-failure-container" class="hidden">
                         </div>
                     </div>
                 </div>
