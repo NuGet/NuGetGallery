@@ -52,5 +52,10 @@ namespace NuGet.Jobs.GitHubIndexer
         /// The list of repositories to be ignored by the indexing job. ("{repoOwner}/{repoName}")
         /// </summary>
         public HashSet<string> IgnoreList { get; set; }
+
+        /// <summary>
+        /// The maximum time allowed for a GitHub HTTP request, per <see cref="Octokit.GitHubClient.SetRequestTimeout(TimeSpan)"/>.
+        /// </summary>
+        public TimeSpan GitHubRequestTimeout { get; set; } = TimeSpan.FromSeconds(30);
     }
 }
