@@ -1801,19 +1801,10 @@ p.frameworktableinfo-text {
   background-color: #f4f4f4;
 }
 .page-list-packages .sortby {
-  margin-top: 33px;
-  margin-bottom: 33px;
-  width: 90px;
-  height: 45px;
-  background-color: transparent;
-  border: none;
+  margin-top: 0px;
 }
-@media (max-width: 992px) {
-  .page-list-packages .sortby {
-    text-align: left;
-    margin-top: 0px;
-    margin-bottom: 5px;
-  }
+.page-list-packages .sortby select {
+  float: right;
 }
 .page-list-packages .advanced-search-panel {
   background-color: #f4f4f4;
