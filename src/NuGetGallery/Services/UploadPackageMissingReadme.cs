@@ -1,7 +1,7 @@
 ﻿namespace NuGetGallery
 {
     /// <summary>
-    /// Represents a package ID reservation conflict
+    /// Represents package missing an embedded README.
     /// </summary>
     public class UploadPackageMissingReadme : IValidationMessage
     {
