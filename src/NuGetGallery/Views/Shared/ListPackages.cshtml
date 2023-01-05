@@ -31,7 +31,10 @@
     <div class="frameworkgoup">
         <input type="checkbox" id="@(frameworkShortName)" class="framework">
         <label for="@(frameworkShortName)">@(frameworkDisplayName)</label>
-        <button type="button" class="collapsible" tab="@(frameworkShortName)tab">v</button>
+        <button type="button" class="collapsible" tab="@(frameworkShortName)tab">
+            <i class="glyphicon glyphicon-chevron-down"></i>
+            v
+        </button>
         <div class="tfmTab" id="@(frameworkShortName)tab">
             <ul>
                 @foreach (var tfm in tfms)
@@ -50,7 +53,7 @@
 {
     private const string DefaultPackageType = "";
     private static readonly IReadOnlyDictionary<string, string> UiSupportedPackageTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-    {
+{
         { DefaultPackageType, "All types" },
         { "dependency", "Dependency" },
         { "dotnettool", ".NET tool" },
@@ -71,27 +74,10 @@
     </div>
     <section role="main" class="container main-container page-list-packages">
         <div class="row clearfix no-margin">
-            <div class="col-md-3" id="filters-column">
+            <div class="col-md-3 no-padding" id="filters-column">
                 @if (Model.IsAdvancedSearchFlightEnabled || true)
                 {
-                    <!-- <button class="btn-command" data-toggle="collapse" data-target="#advancedSearchPanel" aria-expanded="false" aria-controls="advancedSearchPanel"> -->
-                    <!-- <i class="ms-Icon @(Model.ShouldDisplayAdvancedSearchPanel || true ? "ms-Icon--FilterSolid" : "ms-Icon--Filter") ms-fontColor-blue" aria-hidden="true"></i> -->
-                    <!-- Filter -->
-                    <!-- </button> -->
-                    <button type="button" class="collapsible text-align-right" tab="advancedSearchPanel">
-                        <i class="ms-Icon @(Model.ShouldDisplayAdvancedSearchPanel || true ? "ms-Icon--FilterSolid" : "ms-Icon--Filter") ms-fontColor-blue" aria-hidden="true"></i> -->
-                        Filter
-                    </button>
                     <div class="row clearfix collapse advanced-search-panel@(Model.ShouldDisplayAdvancedSearchPanel || true ? " in" : "")" id="advancedSearchPanel">
-                        @if (Model.PackageType != null && !UiSupportedPackageTypes.ContainsKey(Model.PackageType))
-                        {
-                            <div class="row warning-panel">
-                                <div class="col-md-12 icon-text alert alert-warning">
-                                    <i class="ms-Icon ms-Icon--Info" aria-hidden="true"></i>
-                                    Filtering on unrecognized package type: @Model.PackageType
-                                </div>
-                            </div>
-                        }
                         <div>
                             <fieldset id="frameworkfilters">
                                 <legend>Frameworks</legend>
@@ -103,6 +89,15 @@
                                 }
                             </fieldset>
                         </div>
+                        @if (Model.PackageType != null && !UiSupportedPackageTypes.ContainsKey(Model.PackageType))
+                        {
+                            <div class="row warning-panel">
+                                <div class="col-md-12 icon-text alert alert-warning">
+                                    <i class="ms-Icon ms-Icon--Info" aria-hidden="true"></i>
+                                    Filtering on unrecognized package type: @Model.PackageType
+                                </div>
+                            </div>
+                        }
                         <div>
                             <fieldset id="packagetype">
                                 <legend>Package type</legend>
@@ -125,13 +120,12 @@
                         </div>
                         <div class="row">
                             <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
-                                <!-- <div class="col-xs-4 col-sm-3 col-md-2 col-lg-1"> -->
                                 <input class="btn btn-primary form-control" type="submit" value="Apply">
                             </div>
-                            <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 text-center">
-                                <!-- <div class="col-xs-4 col-sm-3 col-md-2 col-lg-1"> -->
+                            <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 reset-btn">
                                 <input class="btn btn-link form-control" type="button" value="Reset" id="reset-advanced-search">
                             </div>
+
                         </div>
                         <input type="hidden" id="prerel" name="prerel" value="@Model.IncludePrerelease.ToString()">
                     </div>
@@ -143,7 +137,7 @@
             </div>
             <div class="col-md-9" id="results-column">
                 <div class="row">
-                    <div class="col-md-10">
+                    <div class="col-md-9">
                         <h1 tabindex="0">
                             @if (String.IsNullOrEmpty(Model.SearchTerm))
                             {
@@ -171,7 +165,7 @@
                             }
                         </h1>
                     </div>
-                    <div class="sortby col-md-2 @(Model.ShouldDisplayAdvancedSearchPanel || true ? " in" : "")">
+                    <div class="sortby col-md-3 @(Model.ShouldDisplayAdvancedSearchPanel || true ? " in" : "")">
                         <div class="row">
                             <label for="sortby">Sort by</label>
                             <select name="sortby" id="sortby" form="search-form">
@@ -182,7 +176,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 @if (!Model.Items.Any())
                 {
                     <div class="row">

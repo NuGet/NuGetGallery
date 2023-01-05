@@ -1773,16 +1773,21 @@ p.frameworktableinfo-text {
 .page-list-packages .no-margin {
   margin: 0 !important;
 }
-.page-list-packages .btn-command {
+.page-list-packages .btn-filter {
   margin-top: 33px;
   margin-bottom: 33px;
   width: 90px;
   height: 45px;
+  font-weight: 500;
+  font-size: medium;
   background-color: transparent;
   border: none;
 }
+.page-list-packages .btn-filter:hover {
+  background-color: #f4f4f4;
+}
 @media (max-width: 992px) {
-  .page-list-packages .btn-command {
+  .page-list-packages .btn-filter {
     text-align: left;
     margin-top: 0px;
     margin-bottom: 5px;
@@ -1797,11 +1802,12 @@ p.frameworktableinfo-text {
     margin-top: 54px;
   }
 }
-.page-list-packages .btn-command:hover {
-  background-color: #f4f4f4;
-}
 .page-list-packages .sortby {
-  margin-top: 0px;
+  margin-top: 47px;
+}
+.page-list-packages .sortby label {
+  font-weight: 500;
+  font-size: large;
 }
 .page-list-packages .sortby select {
   float: right;
@@ -1811,7 +1817,7 @@ p.frameworktableinfo-text {
   border-color: #f4f4f4;
   margin-right: 0px;
   margin-left: 0;
-  margin-bottom: 15px;
+  margin-top: 30px;
 }
 .page-list-packages .advanced-search-panel fieldset {
   margin: 20px;
@@ -1837,12 +1843,17 @@ p.frameworktableinfo-text {
   margin-left: 20px;
   margin-bottom: 10px;
 }
+.page-list-packages .advanced-search-panel .reset-btn {
+  padding-left: 0px;
+}
 .page-list-packages .advanced-search-panel .warning-panel {
   margin-left: 10px;
   margin-right: 10px;
 }
 .page-list-packages .advanced-search-panel #reset-advanced-search {
   color: #286090;
+  margin-left: 0px;
+  margin-right: 20px;
 }
 .page-list-packages .advanced-search-panel .collapsible {
   color: #494949;

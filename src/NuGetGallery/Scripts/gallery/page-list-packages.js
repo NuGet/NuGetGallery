@@ -9,7 +9,7 @@ $(function() {
 
     // Hide the default search bar in the page header
     const defaultSearchBarHeader = document.getElementById("search-bar-header");
-    defaultSearchBarHeader.innerHTML = "";
+    defaultSearchBarHeader.parentNode.removeChild(defaultSearchBarHeader);
 
     // Checkbox logic for Framework and Tfm filters
     for (const framework of allFrameworks) {
@@ -84,14 +84,11 @@ $(function() {
     function initializeFrameworkAndTfmCheckboxes() {
         var inputFrameworkFilters = searchForm.frameworks.value.split(',').map(f => f.trim()).filter(f => f);
         var inputTfmFilters = searchForm.tfms.value.split(',').map(f => f.trim()).filter(f => f);
-        console.log(inputFrameworkFilters);
-        console.log(inputTfmFilters);
         searchForm.frameworks.value = "";
         searchForm.tfms.value = "";
 
         for (const framework of inputFrameworkFilters) {
             const checkbox = document.getElementById(framework);
-            console.log(framework);
 
             if (checkbox) {
                 checkbox.click();
@@ -100,7 +97,6 @@ $(function() {
 
         for (const tfm of inputTfmFilters) {
             const checkbox = document.getElementById(tfm);
-            console.log(tfm);
 
             if (checkbox) {
                 checkbox.click();
@@ -122,43 +118,15 @@ $(function() {
     }
 
     function toggleCollapsible() {
-        var tfmTab = document.getElementById(this.getAttribute('tab'));
+        var dataTab = document.getElementById(this.getAttribute('tab'));
 
         this.classList.toggle('active');
+        this.classList.toggle('glyphicon glyphicon-chevron-down');
+        this.classList.toggle('glyphicon glyphicon-chevron-up');
         if (this.classList.contains('active')) {
-            tfmTab.style.maxHeight = tfmTab.scrollHeight + "px";
+            dataTab.style.maxHeight = dataTab.scrollHeight + "px";
         } else {
-            tfmTab.style.maxHeight = 0;
+            dataTab.style.maxHeight = 0;
         }
     }
-
-    /*
-
-    const searchPanelButton = document.querySelector('[tab=advancedSearchPanel]');
-    searchPanelButton.addEventListener('change', (e) => {
-        var searchPanelTab = document.getElementById(this.getAttribute('tab'));
-        var filtersColumn = document.getElementById('filters-column');
-        var resultsColumn = document.getElementById('results-column');
-
-        this.classList.toggle('active');
-        if (this.classList.contains('active')) {
-            searchPanelTab.style.maxHeight = tfmTab.scrollHeight + "px";
-
-            filtersColumn.classList.remove('col-md-2');
-            filtersColumn.classList.add('col-md-4');
-
-            resultsColumn.classList.remove('col-md-10');
-            resultsColumn.classList.add('col-md-8');
-        } else {
-            searchPanelTab.style.maxHeight = 0;
-
-            filtersColumn.classList.remove('col-md-4');
-            filtersColumn.classList.add('col-md-2');
-
-            resultsColumn.classList.remove('col-md-8');
-            resultsColumn.classList.add('col-md-10');
-            
-        }
-    });
-    */
 });
