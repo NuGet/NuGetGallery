@@ -120,27 +120,6 @@ namespace NuGetGallery
                                        "net8.0" }
                     ));
 
-            FrameworkFilters.Add(AssetFrameworkHelper.FrameworkGenerationIdentifiers.NetFramework,
-                new FrameworkFilterGroup(
-                    AssetFrameworkHelper.FrameworkGenerationIdentifiers.NetFramework,
-                    AssetFrameworkHelper.FrameworkGenerationDisplayNames.NetFramework,
-                    new List<string> { "net20",
-                                       "net30",
-                                       "net35",
-                                       "net40",
-                                       "net45",
-                                       "net451",
-                                       "net452",
-                                       "net46",
-                                       "net461",
-                                       "net462",
-                                       "net47",
-                                       "net471",
-                                       "net472",
-                                       "net48",
-                                       "net481" }
-                    ));
-
             FrameworkFilters.Add(AssetFrameworkHelper.FrameworkGenerationIdentifiers.NetCoreApp,
                 new FrameworkFilterGroup(
                     AssetFrameworkHelper.FrameworkGenerationIdentifiers.NetCoreApp,
@@ -167,6 +146,27 @@ namespace NuGetGallery
                                        "netstandard1.6",
                                        "netstandard2.0",
                                        "netstandard2.1" }
+                    ));
+
+            FrameworkFilters.Add(AssetFrameworkHelper.FrameworkGenerationIdentifiers.NetFramework,
+                new FrameworkFilterGroup(
+                    AssetFrameworkHelper.FrameworkGenerationIdentifiers.NetFramework,
+                    AssetFrameworkHelper.FrameworkGenerationDisplayNames.NetFramework,
+                    new List<string> { "net20",
+                                       "net30",
+                                       "net35",
+                                       "net40",
+                                       "net45",
+                                       "net451",
+                                       "net452",
+                                       "net46",
+                                       "net461",
+                                       "net462",
+                                       "net47",
+                                       "net471",
+                                       "net472",
+                                       "net48",
+                                       "net481" }
                     ));
         }
     }

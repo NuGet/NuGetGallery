@@ -118,11 +118,12 @@ $(function() {
     }
 
     function toggleCollapsible() {
-        var dataTab = document.getElementById(this.getAttribute('tab'));
+        var dataTab = document.getElementById(this.getAttribute('tab') + 'tab');
+        var expandButton = document.getElementById(this.getAttribute('tab') + 'button');
 
         this.classList.toggle('active');
-        this.classList.toggle('glyphicon glyphicon-chevron-down');
-        this.classList.toggle('glyphicon glyphicon-chevron-up');
+        expandButton.classList.toggle('ms-Icon--ChevronDown');
+        expandButton.classList.toggle('ms-Icon--ChevronUp');
         if (this.classList.contains('active')) {
             dataTab.style.maxHeight = dataTab.scrollHeight + "px";
         } else {

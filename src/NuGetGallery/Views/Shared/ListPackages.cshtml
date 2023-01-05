@@ -31,9 +31,8 @@
     <div class="frameworkgoup">
         <input type="checkbox" id="@(frameworkShortName)" class="framework">
         <label for="@(frameworkShortName)">@(frameworkDisplayName)</label>
-        <button type="button" class="collapsible" tab="@(frameworkShortName)tab">
-            <i class="glyphicon glyphicon-chevron-down"></i>
-            v
+        <button type="button" class="collapsible" tab="@(frameworkShortName)">
+            <i class="ms-Icon ms-Icon--ChevronDown" id="@(frameworkShortName)button"></i>
         </button>
         <div class="tfmTab" id="@(frameworkShortName)tab">
             <ul>
@@ -61,7 +60,7 @@
     };
 }
 
-<form name="search" id="search-form" method="get" class="row clearfix advanced-search-panel">
+<form name="search" id="search-form" method="get" class="clearfix advanced-search-panel">
     <div id="search-bar-list-packages" class="navbar navbar-inverse">
         <div class="container search-container" aria-label="Package search bar">
             <div class="row">

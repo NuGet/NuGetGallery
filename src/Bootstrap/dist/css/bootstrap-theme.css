@@ -1857,6 +1857,9 @@ p.frameworktableinfo-text {
 }
 .page-list-packages .advanced-search-panel .collapsible {
   color: #494949;
+  background-color: #f4f4f4;
+  padding-top: 0px;
+  padding-bottom: 0px;
   border: none;
   outline: none;
   float: right;
