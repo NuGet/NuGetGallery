@@ -30,7 +30,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
                 // the auth flow.
                 openIdOptions.AuthenticationMode = AuthenticationMode.Passive;
 
-                // Make sure ClientId
+                // Make sure ClientId is configured
                 if (String.IsNullOrEmpty(ClientId))
                 {
                     throw new ConfigurationErrorsException(String.Format(
