@@ -45,6 +45,32 @@ namespace Tests.Stats.LogInterpretation
             Assert.Null(packageDefinition);
         }
 
+        [Theory]
+        [InlineData("5.9.1", "https://localhost/artifacts/win-x86-commandline/v5.9.1/nuget.exe")]
+        [InlineData("5.8.0-preview.2", "https://localhost/artifacts/win-x86-commandline/v5.8.0-preview.2/nuget.exe")]
+        [InlineData("3.5.0-beta2", "https://localhost/artifacts/win-x86-commandline/v3.5.0-beta2/nuget.exe")]
+        [InlineData("latest", "https://localhost/artifacts/win-x86-commandline/latest/nuget.exe")]
+        public void FromNuGetExeUrlExtractsNuGetExeVersionFromUrl(string expectedVersion, string requestUrl)
+        {
+            var packageDefinition = PackageDefinition.FromNuGetExeUrl(requestUrl);
+            Assert.Equal("tool/nuget.exe", packageDefinition.PackageId);
+            Assert.Equal(expectedVersion, packageDefinition.PackageVersion);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData(" ")]
+        [InlineData("http://localhost/downloads/nuget.exe")]
+        [InlineData("http://localhost/artifacts/win-x86-commandline/3.5.0/nuget.exe")]
+        [InlineData("http://localhost/artifacts/win-x86-commandline/vlatest/nuget.exe")]
+        [InlineData("http://localhost/artifacts/win-x86-commandline/v3.5.0/get.exe")]
+        public void FromNuGetExeUrlReturnsNullWhenInvalidUrl(string requestUrl)
+        {
+            var packageDefinition = PackageDefinition.FromNuGetExeUrl(requestUrl);
+            Assert.Null(packageDefinition);
+        }
+
         [Fact(Skip = "Use this to test performance of the parsing algorithm")]
         public void TestParsingPerformanceOnFile()
         {
