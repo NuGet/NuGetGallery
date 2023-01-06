@@ -29,7 +29,13 @@ namespace NuGet.Jobs.GitHubIndexer
 
             services.AddTransient<ITelemetryService, TelemetryService>();
             services.AddTransient<IGitRepoSearcher, GitHubSearcher>();
-            services.AddSingleton<IGitHubClient>(provider => new GitHubClient(new ProductHeaderValue(assemblyName, assemblyVersion)));
+            services.AddSingleton<IGitHubClient>(provider =>
+            {
+                var configuration = provider.GetRequiredService<IOptionsSnapshot<GitHubIndexerConfiguration>>();
+                var client = new GitHubClient(new ProductHeaderValue(assemblyName, assemblyVersion));
+                client.SetRequestTimeout(configuration.Value.GitHubRequestTimeout);
+                return client;
+            });
             services.AddSingleton<IGitHubSearchWrapper, GitHubSearchWrapper>();
             services.AddTransient<RepoUtils>();
             services.AddTransient<ReposIndexer>();

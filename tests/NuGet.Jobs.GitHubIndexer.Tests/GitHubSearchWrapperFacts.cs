@@ -4,8 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using Moq;
 using Octokit;
 using Xunit;
@@ -14,12 +17,18 @@ namespace NuGet.Jobs.GitHubIndexer.Tests
 {
     public class GitHubSearchWrapperFacts
     {
-        private static GitHubSearchWrapper GetTestSearcher(IReadOnlyDictionary<string, string> headers = null)
+        public Mock<IOptionsSnapshot<GitHubIndexerConfiguration>> MockConfig { get; private set; }
+
+        private static GitHubSearchWrapper GetTestSearcher(
+            IReadOnlyDictionary<string, string> headers = null,
+            Mock<IConnection> mockConnection = null,
+            GitHubIndexerConfiguration config = null)
         {
             var mockClient = new Mock<IGitHubClient>();
-            var mockConnection = new Mock<IConnection>();
             var mockApiResponse = new Mock<IApiResponse<SearchRepositoryResult>>();
             var mockResponse = new Mock<IResponse>();
+            var mockConfig = new Mock<IOptionsSnapshot<GitHubIndexerConfiguration>>();
+            mockConfig.Setup(x => x.Value).Returns(config ?? new GitHubIndexerConfiguration());
 
             mockApiResponse.Setup(x => x.HttpResponse)
                 .Returns(mockResponse.Object);
@@ -29,21 +38,60 @@ namespace NuGet.Jobs.GitHubIndexer.Tests
                 .Setup(x => x.Headers)
                 .Returns(headers);
 
+            if (mockConnection == null)
+            {
+                mockConnection = new Mock<IConnection>();
+
+                mockConnection
+                    .Setup(x => x.Get<SearchRepositoryResult>(
+                        It.IsAny<Uri>(),
+                        It.IsAny<IDictionary<string, string>>(),
+                        It.IsAny<string>(),
+                        It.IsAny<CancellationToken>()))
+                    .ReturnsAsync((Uri uri, IDictionary<string, string> parameters, string accepts, CancellationToken token) =>
+                    {
+                        return mockApiResponse.Object;
+                    });
+            }
+
             mockClient
                 .SetupGet(x => x.Connection)
                 .Returns(mockConnection.Object);
 
-            mockConnection
-                .Setup(x => x.Get<SearchRepositoryResult>(It.IsAny<Uri>(), It.IsAny<IDictionary<string, string>>(), It.IsAny<string>()))
-                .ReturnsAsync((Uri uri, IDictionary<string, string> parameters, string accepts) =>
-                {
-                    return mockApiResponse.Object;
-                });
-            return new GitHubSearchWrapper(mockClient.Object);
+            return new GitHubSearchWrapper(mockClient.Object, mockConfig.Object);
         }
 
         public class GetResponseMethod
         {
+            [Fact]
+            public async Task CancelsTheRequestAtTwiceTheTimeout()
+            {
+                var config = new GitHubIndexerConfiguration
+                {
+                    GitHubRequestTimeout = TimeSpan.FromMilliseconds(100),
+                };
+                var mockConnection = new Mock<IConnection>();
+
+                mockConnection
+                    .Setup(x => x.Get<SearchRepositoryResult>(
+                        It.IsAny<Uri>(),
+                        It.IsAny<IDictionary<string, string>>(),
+                        It.IsAny<string>(),
+                        It.IsAny<CancellationToken>()))
+                    .Returns(async (Uri uri, IDictionary<string, string> parameters, string accepts, CancellationToken token) =>
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(10), token);
+                        throw new InvalidOperationException("A timeout should have happened first.");
+                    });
+
+                var searcher = GetTestSearcher(mockConnection: mockConnection, config: config);
+
+                var sw = Stopwatch.StartNew();
+                var ex = await Assert.ThrowsAsync<OperationCanceledException>(() => searcher.GetResponse(new SearchRepositoriesRequest { }));
+                Assert.True(sw.Elapsed >= TimeSpan.FromMilliseconds(200));
+                Assert.Equal("The operation was forcibly canceled.", ex.Message);
+            }
+
             [Fact]
             public async Task DoesNotThrowIfCaseInsensitiveHeader()
             {

@@ -4,7 +4,6 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using Xunit;
