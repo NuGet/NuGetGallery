@@ -31,7 +31,7 @@
     <div class="frameworkgoup">
         <input type="checkbox" id="@(frameworkShortName)" class="framework">
         <label for="@(frameworkShortName)">@(frameworkDisplayName)</label>
-        <button type="button" class="collapsible" tab="@(frameworkShortName)">
+        <button type="button" class="collapsible" tab="@(frameworkShortName)" aria-label="shows and hides TFM filters">
             <i class="ms-Icon ms-Icon--ChevronDown" id="@(frameworkShortName)button"></i>
         </button>
         <div class="tfmTab" id="@(frameworkShortName)tab">
@@ -167,7 +167,7 @@
                     <div class="sortby col-md-3 @(Model.ShouldDisplayAdvancedSearchPanel || true ? " in" : "")">
                         <div class="row">
                             <label for="sortby">Sort by</label>
-                            <select name="sortby" id="sortby" form="search-form">
+                            <select name="sortby" id="sortby" form="search-form" aria-label="sort package search results by">
                                 <option value="relevance" aria-label="Sort By: Relevance" @(Model.SortBy == "relevance" ? "selected" : "")>Relevance</option>
                                 <option value="totalDownloads-desc" aria-label="Sort By: Downloads" @(Model.SortBy == "totalDownloads-desc" ? "selected" : "")>Downloads</option>
                                 <option value="created-desc" aria-label="Sort By: Recently updated" @(Model.SortBy == "created-desc" ? "selected" : "")>Recently updated</option>
