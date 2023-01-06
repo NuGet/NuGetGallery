@@ -76,7 +76,7 @@
             <div class="@(Model.IsAdvancedSearchFlightEnabled ? "col-md-3" : "") no-padding" id="filters-column">
                 @if (Model.IsAdvancedSearchFlightEnabled)
                 {
-                    <div class="row clearfix collapse advanced-search-panel@(Model.ShouldDisplayAdvancedSearchPanel ? " in" : "")" id="advancedSearchPanel">
+                    <div class="row clearfix advanced-search-panel" id="advancedSearchPanel">
                         <div>
                             <fieldset id="frameworkfilters">
                                 <legend>Frameworks</legend>
@@ -162,7 +162,7 @@
                     </div>
                     @if (Model.IsAdvancedSearchFlightEnabled)
                     {
-                        <div class="sortby col-md-3 @(Model.ShouldDisplayAdvancedSearchPanel ? " in" : "")">
+                        <div class="sortby col-md-3">
                             <div class="row">
                                 <label for="sortby">Sort by</label>
                                 <select name="sortby" id="sortby" form="search-form" aria-label="sort package search results by">
