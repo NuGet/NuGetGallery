@@ -1260,9 +1260,11 @@ namespace NuGetGallery
             var isAdvancedSearchFlightEnabled = _featureFlagService.IsAdvancedSearchEnabled(GetCurrentUser());
 
             // If advanced search is disabled, use the default experience
-            if ((!isAdvancedSearchFlightEnabled || !searchService.SupportsAdvancedSearch) && false)
+            if (!isAdvancedSearchFlightEnabled || !searchService.SupportsAdvancedSearch)
             {
                 searchAndListModel.SortBy = GalleryConstants.SearchSortNames.Relevance;
+                searchAndListModel.Frameworks = string.Empty;
+                searchAndListModel.Tfms = string.Empty;
                 searchAndListModel.PackageType = string.Empty;
             }
 

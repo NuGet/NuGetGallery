@@ -73,10 +73,10 @@
     </div>
     <section role="main" class="container main-container page-list-packages">
         <div class="row clearfix no-margin">
-            <div class="col-md-3 no-padding" id="filters-column">
-                @if (Model.IsAdvancedSearchFlightEnabled || true)
+            <div class="@(Model.IsAdvancedSearchFlightEnabled ? "col-md-3" : "") no-padding" id="filters-column">
+                @if (Model.IsAdvancedSearchFlightEnabled)
                 {
-                    <div class="row clearfix collapse advanced-search-panel@(Model.ShouldDisplayAdvancedSearchPanel || true ? " in" : "")" id="advancedSearchPanel">
+                    <div class="row clearfix collapse advanced-search-panel@(Model.ShouldDisplayAdvancedSearchPanel ? " in" : "")" id="advancedSearchPanel">
                         <div>
                             <fieldset id="frameworkfilters">
                                 <legend>Frameworks</legend>
@@ -129,12 +129,8 @@
                         <input type="hidden" id="prerel" name="prerel" value="@Model.IncludePrerelease.ToString()">
                     </div>
                 }
-                else
-                {
-                    <a class="prerel-filter" href="?q=@Uri.EscapeDataString(Model.SearchTerm)@(Model.IncludePrerelease ? "&prerel=false" : "")">@(Model.IncludePrerelease ? "Hide" : "Show") prerelease</a>
-                }
             </div>
-            <div class="col-md-9" id="results-column">
+            <div class="@(Model.IsAdvancedSearchFlightEnabled ? "col-md-9" : "col-md-12")" id="results-column">
                 <div class="row">
                     <div class="col-md-9">
                         <h1 tabindex="0">
@@ -164,16 +160,25 @@
                             }
                         </h1>
                     </div>
-                    <div class="sortby col-md-3 @(Model.ShouldDisplayAdvancedSearchPanel || true ? " in" : "")">
-                        <div class="row">
-                            <label for="sortby">Sort by</label>
-                            <select name="sortby" id="sortby" form="search-form" aria-label="sort package search results by">
-                                <option value="relevance" aria-label="Sort By: Relevance" @(Model.SortBy == "relevance" ? "selected" : "")>Relevance</option>
-                                <option value="totalDownloads-desc" aria-label="Sort By: Downloads" @(Model.SortBy == "totalDownloads-desc" ? "selected" : "")>Downloads</option>
-                                <option value="created-desc" aria-label="Sort By: Recently updated" @(Model.SortBy == "created-desc" ? "selected" : "")>Recently updated</option>
-                            </select>
+                    @if (Model.IsAdvancedSearchFlightEnabled)
+                    {
+                        <div class="sortby col-md-3 @(Model.ShouldDisplayAdvancedSearchPanel ? " in" : "")">
+                            <div class="row">
+                                <label for="sortby">Sort by</label>
+                                <select name="sortby" id="sortby" form="search-form" aria-label="sort package search results by">
+                                    <option value="relevance" aria-label="Sort By: Relevance" @(Model.SortBy == "relevance" ? "selected" : "")>Relevance</option>
+                                    <option value="totalDownloads-desc" aria-label="Sort By: Downloads" @(Model.SortBy == "totalDownloads-desc" ? "selected" : "")>Downloads</option>
+                                    <option value="created-desc" aria-label="Sort By: Recently updated" @(Model.SortBy == "created-desc" ? "selected" : "")>Recently updated</option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
+                    }
+                    else
+                    {
+                        <div class="col-md-3">
+                            <a class="prerel-filter" href="?q=@Uri.EscapeDataString(Model.SearchTerm)@(Model.IncludePrerelease ? "&prerel=false" : "")">@(Model.IncludePrerelease ? "Hide" : "Show") prerelease</a>
+                        </div>
+                    }
                 </div>
 
                 @if (!Model.Items.Any())

@@ -67,7 +67,6 @@ namespace NuGetGallery.Infrastructure.Search
             nameValue.Add("q", query);
             nameValue.Add("skip", skip.ToString());
             nameValue.Add("take", take.ToString());
-            nameValue.Add("sortBy", SortNames[sortBy]);
 
             if (!string.IsNullOrEmpty(frameworks))
             {
@@ -128,6 +127,8 @@ namespace NuGetGallery.Infrastructure.Search
             {
                 nameValue.Add("testData", "true");
             }
+
+            nameValue.Add("sortBy", SortNames[sortBy]);
 
             var qs = new FormUrlEncodedContent(nameValue);
             var queryString = await qs.ReadAsStringAsync();

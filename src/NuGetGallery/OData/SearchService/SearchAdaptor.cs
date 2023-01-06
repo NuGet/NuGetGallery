@@ -52,6 +52,8 @@ namespace NuGetGallery.OData
             bool includeTestData)
         {
             page = page < 1 ? 1 : page; // pages are 1-based. 
+            frameworks = frameworks ?? string.Empty;
+            tfms = tfms ?? string.Empty;
             packageType = packageType ?? string.Empty;
 
             var searchFilter = new SearchFilter(context)
