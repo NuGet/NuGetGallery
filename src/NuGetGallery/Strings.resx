@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -515,10 +515,10 @@ For more information, please contact '{2}'.</value>
     <value>The ID prefix of this package has been reserved for one of the owners of this package by NuGet.org.</value>
   </data>
   <data name="UploadPackage_IdNamespaceConflict" xml:space="preserve">
-    <value>This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID. Go to https://docs.microsoft.com/en-us/nuget/reference/id-prefix-reservation learn more about Package ID prefix reservation.</value>
+    <value>This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID. Go to https://docs.microsoft.com/nuget/reference/id-prefix-reservation learn more about Package ID prefix reservation.</value>
   </data>
   <data name="UploadPackage_IdNamespaceConflictHtml" xml:space="preserve">
-    <value>This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID. &lt;a href="https://docs.microsoft.com/en-us/nuget/reference/id-prefix-reservation"&gt;Learn more about Package ID prefix reservation&lt;/a&gt;.</value>
+    <value>This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID. &lt;a href="https://docs.microsoft.com/nuget/reference/id-prefix-reservation"&gt;Learn more about Package ID prefix reservation&lt;/a&gt;.</value>
   </data>
   <data name="PreviewReadMe_ConversionFailed" xml:space="preserve">
     <value>Conversion of Markdown to HTML failed with '{0}'.</value>
@@ -539,10 +539,10 @@ For more information, please contact '{2}'.</value>
     <value>The Documentation URL must be a raw Markdown file hosted on GitHub.</value>
   </data>
   <data name="UploadPackage_MissingReadmeHtml" xml:space="preserve">
-    <value>&lt;strong&gt;Readme&lt;/strong&gt; missing.&lt;a href="https://learn.microsoft.com/en-us/nuget/create-packages/package-authoring-best-practices#readme"&gt; See how to include a readme file within the package&lt;/a&gt;, or add it as you upload.</value>
+    <value>&lt;strong&gt;Readme&lt;/strong&gt; missing.&lt;a href="https://learn.microsoft.com/nuget/create-packages/package-authoring-best-practices#readme"&gt; See how to include a readme file within the package&lt;/a&gt;, or add it as you upload.</value>
   </data>
   <data name="UploadPackage_MissingReadme" xml:space="preserve">
-    <value>Readme missing. Go to https://learn.microsoft.com/en-us/nuget/create-packages/package-authoring-best-practices#readme learn How to include a readme file within the package.</value>
+    <value>Readme missing. Go to https://learn.microsoft.com/nuget/create-packages/package-authoring-best-practices#readme learn How to include a readme file within the package.</value>
   </data>	
   <data name="ReservedNamespace_OwnerAdded" xml:space="preserve">
     <value>The user '{0}' is now an owner of the prefix '{1}'.</value>
@@ -909,7 +909,7 @@ If you would like to update the linked Microsoft account you can do so from the 
 Policy violations: {0}</value>
   </data>
   <data name="SecurityPolicy_RequirePackagePrefixReserved" xml:space="preserve">
-    <value>You have not published a package with this prefix in the past. This means other users may be able to push packages starting with the same prefix. Contact account@nuget.org to reserve the prefix. Go to https://docs.microsoft.com/en-us/nuget/reference/id-prefix-reservation to learn more about Package ID prefix reservation.</value>
+    <value>You have not published a package with this prefix in the past. This means other users may be able to push packages starting with the same prefix. Contact account@nuget.org to reserve the prefix. Go to https://docs.microsoft.com/nuget/reference/id-prefix-reservation to learn more about Package ID prefix reservation.</value>
   </data>
   <data name="SecurityPolicy_CopyrightNotCompliant" xml:space="preserve">
     <value>The package metadata contains a non-compliant copyright element.</value>
