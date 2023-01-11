@@ -19,7 +19,7 @@ namespace NuGetGallery
         {
             ContactUrl = contactUrl;
             AlertLevel = AlertLevel.Warning;
-            AlertMessage = "<b display=\"none\" aria-label=\"warning\"></b> The NuGet Team does not provide support for this client. Please contact its "
+            AlertMessage = "<b display=\"none\" aria-label=\"warning\" role=\"alert\"></b> The NuGet Team does not provide support for this client. Please contact its "
                 + $"<a href=\"{contactUrl}\" aria-label=\"Contact the maintainers of the {name} client\">maintainers</a> for support.";
         }
     }
