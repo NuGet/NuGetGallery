@@ -15,6 +15,8 @@ using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.MicrosoftAccount;
+using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
@@ -2070,6 +2072,51 @@ namespace NuGetGallery.Authentication
                     ar.AffectedCredential.Length == 1 &&
                     ar.AffectedCredential[0].Type == cred.Type &&
                     ar.AffectedCredential[0].Identity == cred.Identity));
+            }
+
+            [Fact]
+            public async Task WritesAuditRecordAfterDbCommit()
+            {
+                // Arrange
+                var entitiesContext = new Mock<IEntitiesContext>();
+                var auditingService = new Mock<IAuditingService>();
+                var credentialBuilder = new CredentialBuilder();
+
+                var authService = new AuthenticationService(
+                    entitiesContext.Object,
+                    Get<IAppConfiguration>(),
+                    Get<IDiagnosticsService>(),
+                    auditingService.Object,
+                    Enumerable.Empty<Authenticator>(),
+                    credentialBuilder,
+                    Get<ICredentialValidator>(),
+                    Get<IDateTimeProvider>(),
+                    Get<ITelemetryService>(),
+                    Get<IContentObjectService>(),
+                    Get<IFeatureFlagService>());
+                var operations = new List<string>();
+
+                var fakes = Get<Fakes>();
+                var user = fakes.CreateUser("test", credentialBuilder.CreatePasswordCredential(Fakes.Password));
+                var cred = credentialBuilder.CreateExternalCredential("flarg", "glarb", "blarb");
+                Mock
+                    .Get(authService.Auditing)
+                    .Setup(x => x.SaveAuditRecordAsync(It.IsAny<AuditRecord>()))
+                    .Returns(Task.CompletedTask)
+                    .Callback(() => operations.Add(nameof(IAuditingService.SaveAuditRecordAsync)));
+                Mock
+                    .Get(authService.Entities)
+                    .Setup(x => x.SaveChangesAsync())
+                    .ReturnsAsync(() => 0)
+                    .Callback(() => operations.Add(nameof(IEntitiesContext.SaveChangesAsync)));
+
+                // Act
+                await authService.AddCredential(user, cred);
+
+                // Assert
+                Assert.Equal(
+                    new List<string> { nameof(IEntitiesContext.SaveChangesAsync), nameof(IAuditingService.SaveAuditRecordAsync) },
+                    operations);
             }
         }
 
