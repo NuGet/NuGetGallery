@@ -237,7 +237,6 @@ var BindReadMeDataManager = (function () {
             var readMeContainerElement = document.createElement("div");
             $(readMeContainerElement).attr("id", "import-readme-block");
             $(readMeContainerElement).attr("class", "collapse in");
-            $(readMeContainerElement).attr("aria-expanded", "true");
             $(readMeContainerElement).attr("data-bind", "template: { name: 'import-readme-template', data: data }");
             $("#import-readme-container").append(readMeContainerElement);
             ko.applyBindings({ data: model }, readMeContainerElement);
