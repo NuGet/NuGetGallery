@@ -251,7 +251,6 @@
                 var reportContainerElement = document.createElement("div");
                 $(reportContainerElement).attr("id", "verify-package-block");
                 $(reportContainerElement).attr("class", "collapse in");
-                $(reportContainerElement).attr("aria-expanded", "true");
                 $(reportContainerElement).attr("data-bind", "template: { name: 'verify-metadata-template', data: data }");
                 $("#verify-package-container").append(reportContainerElement);
                 ko.applyBindings({ data: model }, reportContainerElement);
@@ -267,7 +266,6 @@
                 var submitContainerElement = document.createElement("div");
                 $(submitContainerElement).attr("id", "submit-block");
                 $(submitContainerElement).attr("class", "collapse in");
-                $(submitContainerElement).attr("aria-expanded", "true");
                 $(submitContainerElement).attr("data-bind", "template: { name: 'submit-package-template', data: data }");
                 $("#submit-package-container").append(submitContainerElement);
                 ko.applyBindings({ data: model }, submitContainerElement);
