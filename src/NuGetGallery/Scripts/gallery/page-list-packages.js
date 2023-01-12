@@ -2,6 +2,7 @@ $(function() {
     'use strict';
 
     $(".reserved-indicator").each(window.nuget.setPopovers);
+    $(".framework-filter-info-icon").each(window.nuget.setPopovers);
 
     const searchForm = document.forms.search;
     const allFrameworks = document.querySelectorAll('.framework');
@@ -22,17 +23,12 @@ $(function() {
 
     function clickFrameworkCheckbox() {
         this.indeterminate = false;
+        updateFrameworkFilters(searchForm.frameworks, this.id, this.checked);
 
-        if (this.checked == true) {
-            updateFrameworkFilters("frameworks", this.id, true);
-        } else {
-            updateFrameworkFilters("frameworks", this.id, false);
-        }
-
-        const tfms = document.querySelectorAll('[parent=' + this.id);
+        const tfms = document.querySelectorAll('[parent=' + this.id + ']');
         tfms.forEach((tfm) => {
             tfm.checked = false;
-            updateFrameworkFilters("tfms", tfm.id, false);
+            updateFrameworkFilters(searchForm.tfms, tfm.id, false);
         });
     }
 
@@ -48,29 +44,15 @@ $(function() {
         }
 
         framework.checked = false;
-        updateFrameworkFilters("frameworks", framework.id, false);
+        framework.indeterminate = checkedCount !== 0;
+        updateFrameworkFilters(searchForm.frameworks, framework.id, false);
 
-        if (this.checked == true) {
-            framework.indeterminate = true;
-            updateFrameworkFilters("tfms", this.id, true);
-        } else {
-            if (checkedCount === 0) {
-                framework.indeterminate = false;
-            }
-            updateFrameworkFilters("tfms", this.id, false);
-        }
+        updateFrameworkFilters(searchForm.tfms, this.id, this.checked);
+        
     }
 
     // Update the query string with the selected Frameworks and Tfms
-    function updateFrameworkFilters(fieldName, frameworkName, add) {
-        var searchField;
-        if (fieldName == "frameworks") {
-            searchField = searchForm.frameworks;
-        }
-        else if (fieldName == "tfms") {
-            searchField = searchForm.tfms;
-        }
-
+    function updateFrameworkFilters(searchField, frameworkName, add) {
         if (add) {
             searchField.value += frameworkName + ",";
         }
@@ -82,8 +64,8 @@ $(function() {
     // Initialize state for framework and tfm checkboxes
     initializeFrameworkAndTfmCheckboxes();
     function initializeFrameworkAndTfmCheckboxes() {
-        var inputFrameworkFilters = searchForm.frameworks.value.split(',').map(f => f.trim()).filter(f => f);
-        var inputTfmFilters = searchForm.tfms.value.split(',').map(f => f.trim()).filter(f => f);
+        var inputFrameworkFilters = getFrameworkFiltersFromQueryString(searchForm.frameworks);
+        var inputTfmFilters = getFrameworkFiltersFromQueryString(searchForm.tfms);
         searchForm.frameworks.value = "";
         searchForm.tfms.value = "";
 
@@ -104,6 +86,11 @@ $(function() {
         }
     }
 
+    // Returns the framework/tfm filter values from the query string
+    function getFrameworkFiltersFromQueryString(searchField) {
+        return searchField.value.split(',').map(f => f.trim()).filter(f => f);
+    }
+
     // Submit the form when a user changes the selected 'sortBy' option
     searchForm.sortby.addEventListener('change', (e) => {
         searchForm.sortby.value = e.target.value;
@@ -120,14 +107,27 @@ $(function() {
     function toggleCollapsible() {
         var dataTab = document.getElementById(this.getAttribute('tab') + 'tab');
         var expandButton = document.getElementById(this.getAttribute('tab') + 'button');
+        const tfmCheckboxes = dataTab.querySelectorAll('[parent=' + this.getAttribute('tab') + ']');
 
         this.classList.toggle('active');
         expandButton.classList.toggle('ms-Icon--ChevronDown');
         expandButton.classList.toggle('ms-Icon--ChevronUp');
+
         if (this.classList.contains('active')) {
             dataTab.style.maxHeight = dataTab.scrollHeight + "px";
-        } else {
+
+            for (const tfm of tfmCheckboxes) {
+                tfm.setAttribute('tabindex', '0');
+                tfm.tabindex = "0";
+            }
+        }
+        else {
             dataTab.style.maxHeight = 0;
+
+            for (const tfm of tfmCheckboxes) {
+                tfm.setAttribute('tabindex', '-1');
+                tfm.tabindex = "-1";
+            }
         }
     }
 });

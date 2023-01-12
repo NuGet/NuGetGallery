@@ -1258,6 +1258,7 @@ namespace NuGetGallery
             var isPreviewSearchEnabled = _abTestService.IsPreviewSearchEnabled(GetCurrentUser());
             var searchService = isPreviewSearchEnabled ? _searchServiceFactory.GetPreviewService() : _searchServiceFactory.GetService();
             var isAdvancedSearchFlightEnabled = _featureFlagService.IsAdvancedSearchEnabled(GetCurrentUser());
+            var isFrameworkFilteringEnabled = _featureFlagService.IsFrameworkFilteringEnabled(GetCurrentUser());
 
             // If advanced search is disabled, use the default experience
             if (!isAdvancedSearchFlightEnabled || !searchService.SupportsAdvancedSearch)
@@ -1362,6 +1363,8 @@ namespace NuGetGallery
             // If the experience hasn't been cached, it means it's not the default experienced, therefore, show the panel
             viewModel.IsAdvancedSearchFlightEnabled = searchService.SupportsAdvancedSearch && isAdvancedSearchFlightEnabled;
             viewModel.ShouldDisplayAdvancedSearchPanel = !shouldCacheAdvancedSearch || !includePrerelease;
+
+            viewModel.IsFrameworkFilteringEnabled = isFrameworkFilteringEnabled;
 
             ViewBag.SearchTerm = q;
 

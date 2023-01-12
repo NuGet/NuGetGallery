@@ -264,7 +264,7 @@ namespace NuGetGallery
             }
 
             public static IEnumerable<object[]> FrameworksAndTfmsFilterData => new[]
-{
+            {
                 new object[] { "", "" },
                 new object[] { "netstandard", "net472" },
                 new object[] { ",net,netframework", "" },

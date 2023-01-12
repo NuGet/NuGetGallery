@@ -1103,6 +1103,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Filters packages based on the target frameworks included in the NuGet Package..
+        /// </summary>
+        public static string FrameworkFilterInformation_Tooltip {
+            get {
+                return ResourceManager.GetString("FrameworkFilterInformation_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The API key &apos;{0}&apos; is invalid..
         /// </summary>
         public static string InvalidApiKey {

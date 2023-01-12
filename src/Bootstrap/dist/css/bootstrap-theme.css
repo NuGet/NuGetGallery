@@ -1812,6 +1812,10 @@ p.frameworktableinfo-text {
 .page-list-packages .sortby select {
   float: right;
 }
+.page-list-packages .framework-filter-info-icon {
+  margin-bottom: -6px;
+  overflow: hidden;
+}
 .page-list-packages .advanced-search-panel {
   background-color: #f4f4f4;
   border-color: #f4f4f4;
@@ -1867,6 +1871,9 @@ p.frameworktableinfo-text {
 .page-list-packages .advanced-search-panel .active,
 .page-list-packages .advanced-search-panel .collapsible:hover {
   color: #5a87dc;
+}
+.page-list-packages .advanced-search-panel .collapsible:focus {
+  outline: solid;
 }
 .page-list-packages .advanced-search-panel .tfmTab {
   max-height: 0;
