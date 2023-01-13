@@ -441,6 +441,8 @@ namespace NuGet.Services.AzureSearch.SearchService
         {
             var package = BaseMetadataDocumentToPackage(result);
 
+            package.Frameworks = result.Frameworks;
+            package.Tfms = result.Tfms;
             package.PackageRegistration.Owners = result.Owners ?? Array.Empty<string>();
             package.Listed = true;
             package.IsLatestStable = result.IsLatestStable.Value;

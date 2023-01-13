@@ -145,6 +145,8 @@ namespace NuGet.Services.SearchService.Controllers
                 Assert.True(lastRequest.LuceneQuery);
                 Assert.False(lastRequest.ShowDebug);
                 Assert.Null(lastRequest.PackageType);
+                Assert.Empty(lastRequest.Frameworks);
+                Assert.Empty(lastRequest.Tfms);
             }
 
             [Fact]
@@ -167,7 +169,9 @@ namespace NuGet.Services.SearchService.Controllers
                     sortBy: null,
                     luceneQuery: null,
                     debug: null,
-                    packageType: null);
+                    packageType: null,
+                    frameworks: null,
+                    tfms: null);
 
                 _searchService.Verify(x => x.V2SearchAsync(It.IsAny<V2SearchRequest>()), Times.Once);
                 Assert.NotNull(lastRequest);
@@ -181,6 +185,8 @@ namespace NuGet.Services.SearchService.Controllers
                 Assert.True(lastRequest.LuceneQuery);
                 Assert.False(lastRequest.ShowDebug);
                 Assert.Null(lastRequest.PackageType);
+                Assert.Empty(lastRequest.Frameworks);
+                Assert.Empty(lastRequest.Tfms);
             }
 
             [Fact]
@@ -203,7 +209,9 @@ namespace NuGet.Services.SearchService.Controllers
                     sortBy: "lastEdited",
                     luceneQuery: true,
                     debug: true,
-                    packageType: "dotnettool");
+                    packageType: "dotnettool",
+                    frameworks: "netcoreapp",
+                    tfms: "net5.0,netstandard2.1");
 
                 _searchService.Verify(x => x.V2SearchAsync(It.IsAny<V2SearchRequest>()), Times.Once);
                 Assert.NotNull(lastRequest);
@@ -217,6 +225,8 @@ namespace NuGet.Services.SearchService.Controllers
                 Assert.True(lastRequest.LuceneQuery);
                 Assert.True(lastRequest.ShowDebug);
                 Assert.Equal("dotnettool", lastRequest.PackageType);
+                Assert.Equal(new List<string> {"netcoreapp"}, lastRequest.Frameworks);
+                Assert.Equal(new List<string> {"net5.0", "netstandard2.1"}, lastRequest.Tfms);
             }
 
             [Theory]
@@ -262,6 +272,37 @@ namespace NuGet.Services.SearchService.Controllers
                 _searchService.Verify(
                     x => x.V2SearchAsync(It.Is<V2SearchRequest>(r => r.IncludeSemVer2 == includeSemVer2)),
                     Times.Once);
+            }
+
+            [Theory]
+            [MemberData(nameof(FrameworkAndTfmQueryParams))]
+            public async Task ParsesFrameworksAndTfms(string frameworks, string tfms, List<string> expectedFrameworks, List<string> expectedTfms)
+            {
+                // arrange
+                V2SearchRequest lastRequest = null;
+                _searchService
+                    .Setup(x => x.V2SearchAsync(It.IsAny<V2SearchRequest>()))
+                    .ReturnsAsync(() => _v2SearchResponse)
+                    .Callback<V2SearchRequest>(x => lastRequest = x);
+
+                // act
+                await _target.V2SearchAsync(frameworks: frameworks, tfms: tfms);
+
+                // assert
+                _searchService.Verify(x => x.V2SearchAsync(It.IsAny<V2SearchRequest>()), Times.Once);
+
+                Assert.NotNull(lastRequest);
+                Assert.Equal(expectedFrameworks, lastRequest.Frameworks);
+                Assert.Equal(expectedTfms, lastRequest.Tfms);
+            }
+
+            [Theory]
+            [MemberData(nameof(InvalidFrameworksAndTfms))]
+            public async Task ThrowsInvalidFrameworksAndTfms(string frameworks, string tfms, string expectedException)
+            {
+                var exception = await Assert.ThrowsAsync<InvalidSearchRequestException>(() => _target.V2SearchAsync(frameworks: frameworks, tfms: tfms));
+
+                Assert.Equal(expectedException, exception.Message);
             }
         }
 
@@ -556,6 +597,41 @@ namespace NuGet.Services.SearchService.Controllers
                 new object[] { "  2.0.0  ", true },
                 new object[] { "3", true },
                 new object[] { "3.0.0-beta", true },
+            };
+
+            public static IEnumerable<object[]> FrameworkAndTfmQueryParams => new[]
+            {
+                new object[] { "netstandard", "net472", new List<string> {"netstandard"}, new List<string> {"net472"} },
+                new object[] { "netcoreapp", "", new List<string> {"netcoreapp"}, new List<string>() },
+                new object[] { "", "net5.0", new List<string>(), new List<string> {"net5.0"} },
+                new object[] { "netcoreapp", null, new List<string> {"netcoreapp"}, new List<string>() },
+                new object[] { null, "net5.0", new List<string>(), new List<string> {"net5.0"} },
+                new object[] { "net,netstandard", "netcoreapp3.1",
+                    new List<string> {"net", "netstandard"}, new List<string> {"netcoreapp3.1"} },
+                new object[] { "netframework", "netstandard2.1,netstandard2.0",
+                    new List<string> {"netframework"}, new List<string> {"netstandard2.1", "netstandard2.0"} },
+                new object[] { "", "net40-client,tizen40,net", new List<string>(), new List<string> {"net40-client", "tizen40", "net"} },
+                // duplicates
+                new object[] { "net,net", "net6.0,net472,net472", new List<string> {"net"}, new List<string> {"net6.0", "net472"} },
+                // non-standard inputs
+                new object[] { "NETFRAMEWORK, net", "net4.5 ,nEt6.0",
+                    new List<string> {"netframework", "net"}, new List<string> {"net45", "net6.0"} },
+                new object[] { ",nET,,nETsTANDARD", "  NET45 ,  net6.0-windows ,,",
+                    new List<string> {"net", "netstandard"}, new List<string> {"net45", "net6.0-windows"} },
+            };
+
+            public static IEnumerable<object[]> InvalidFrameworksAndTfms => new[]
+            {
+                new object[] { "foo", "net40-client",
+                    "The provided Framework is not supported. (Parameter 'foo')" },
+                new object[] { "netframework", "foo",
+                    "The provided TFM is not supported. (Parameter 'foo')" },
+                new object[] { null, "portable-net45+sl5,tizen40,net",
+                    "The provided TFM is not supported. (Parameter 'portable-net45+sl5')" },
+                new object[] { "NETFRAMEWORK, net", "net4.5 ,bestTfm2.6,,",
+                    "The provided TFM is not supported. (Parameter 'bestTfm2.6')" },
+                new object[] { "windows,,nETsTANDARD", "  NET45 ,  net6.0-windows ",
+                    "The provided Framework is not supported. (Parameter 'windows')" },
             };
 
             public BaseFacts()

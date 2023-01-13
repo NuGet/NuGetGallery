@@ -251,6 +251,24 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 Assert.Equal(filter, output.Filter);
             }
+
+            [Theory]
+            [MemberData(nameof(FrameworkAndTfmFilters))]
+            public void FrameworkAndTfmFiltering(List<string> frameworks, List<string> tfms, string expectedFilterString)
+            {
+                // arrange
+                var request = new V2SearchRequest
+                {
+                    Frameworks = frameworks,
+                    Tfms = tfms
+                };
+
+                // act
+                var output = _target.V2Search(request, It.IsAny<bool>());
+
+                // assert
+                Assert.Equal($"searchFilters eq 'Default' and {expectedFilterString}", output.Filter);
+            }
         }
 
         public class V3Search : BaseFacts
@@ -568,6 +586,24 @@ namespace NuGet.Services.AzureSearch.SearchService
                 new object[] { "PackageType.With.Dots" },
                 new object[] { "PackageType-With-Hyphens" },
                 new object[] { "PackageType_With_Underscores" },
+            };
+
+            public static IEnumerable<object[]> FrameworkAndTfmFilters => new[]
+            {
+                new object[] { new List<string> {"netstandard"}, new List<string> {"net472"},
+                    "(frameworks/any(f: f eq 'netstandard')) and (tfms/any(f: f eq 'net472'))" },
+                new object[] { new List<string> {"netcoreapp"}, new List<string>(),
+                    "(frameworks/any(f: f eq 'netcoreapp'))" },
+                new object[] { new List<string>(), new List<string> {"net5.0"},
+                    "(tfms/any(f: f eq 'net5.0'))" },
+                new object[] { new List<string> {"net", "netstandard"},
+                    new List<string> {"netcoreapp3.1"},
+                    "(frameworks/any(f: f eq 'net') and frameworks/any(f: f eq 'netstandard'))" +
+                    " and (tfms/any(f: f eq 'netcoreapp3.1'))" },
+                new object[] { new List<string> {"netframework"},
+                    new List<string> {"netstandard2.1", "net40-client"},
+                    "(frameworks/any(f: f eq 'netframework'))" +
+                    " and (tfms/any(f: f eq 'netstandard2.1') and tfms/any(f: f eq 'net40-client'))" },
             };
 
             public BaseFacts()
