@@ -1276,9 +1276,10 @@ namespace NuGetGallery
 
             var isDefaultSortBy = searchAndListModel.SortBy == null || string.Equals(searchAndListModel.SortBy, GalleryConstants.SearchSortNames.Relevance, StringComparison.OrdinalIgnoreCase);
             var isDefaultPackageType = string.IsNullOrEmpty(searchAndListModel.PackageType);
+            var isDefaultFrameworksAndTfmsFilter = string.IsNullOrEmpty(searchAndListModel.Frameworks) && string.IsNullOrEmpty(searchAndListModel.Tfms);
 
             // Cache when null or default value
-            var shouldCacheAdvancedSearch = isDefaultSortBy && isDefaultPackageType;
+            var shouldCacheAdvancedSearch = isDefaultSortBy && isDefaultPackageType && isDefaultFrameworksAndTfmsFilter;
 
             // fetch most common query from cache to relieve load on the search service
             if (string.IsNullOrEmpty(q) && page == 1 && includePrerelease && shouldCacheAdvancedSearch)
