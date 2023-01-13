@@ -27,8 +27,25 @@ Now run the NuGet Gallery:
 Refer to [our documentation](./docs/) for information on how to develop the frontend, use AAD, and more.
 
 ## Deploy
+### Deploy to Azure
 
 You will find instructions on how to deploy the Gallery to Azure [here](https://github.com/NuGet/NuGetGallery/blob/master/docs/Deploying/README.md).
+
+### Deploy locally
+After you succeed in running the NuGet Gallery, you can create a publish profile to deploy locally (such as your local Windows computer). 
+
+The steps are:
+1. Select the `NuGetGallery` project in Solution Explore of Visual Studio. 
+2. Right click the project, and then click `Publish` in the pop-up menu. Create a publish profile and make sure the Target is set to `Folder`.
+3. Copy the contents of the `Target Location` to any folder you want. For the following example, assume the folder is `C:\ContosoSoftware\NuGetGallery`.
+4. Execute the command below to start the web app (note that the parameter `/path` of iisexpress.exe only supports absolute paths on Windows).
+    ```cmd
+    "C:\Program Files\IIS Express\iisexpress.exe" /path:C:\ContosoSoftware\NuGetGallery
+    ```
+
+Now you can access the local website with a web browser. The URL is `https://localhost`.
+
+After you deploy it, you don't need using Visual Studio to run it anymore.
 
 ## Contribute
 

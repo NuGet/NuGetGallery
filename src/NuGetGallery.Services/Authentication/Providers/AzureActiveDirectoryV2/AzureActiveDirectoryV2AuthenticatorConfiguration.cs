@@ -12,7 +12,6 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
     public class AzureActiveDirectoryV2AuthenticatorConfiguration : AuthenticatorConfiguration
     {
         public string ClientId { get; set; }
-        public string ClientSecret { get; set; }
 
         public AzureActiveDirectoryV2AuthenticatorConfiguration()
         {
@@ -31,7 +30,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
                 // the auth flow.
                 openIdOptions.AuthenticationMode = AuthenticationMode.Passive;
 
-                // Make sure ClientId and ClientSecret is configured
+                // Make sure ClientId is configured
                 if (String.IsNullOrEmpty(ClientId))
                 {
                     throw new ConfigurationErrorsException(String.Format(
@@ -40,16 +39,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
                         "Auth.CommonAuth.ClientId"));
                 }
 
-                if (String.IsNullOrEmpty(ClientSecret))
-                {
-                    throw new ConfigurationErrorsException(String.Format(
-                        CultureInfo.CurrentCulture,
-                        ServicesStrings.MissingRequiredConfigurationValue,
-                        "Auth.CommonAuth.ClientSecret"));
-                }
-
                 openIdOptions.ClientId = ClientId;
-                openIdOptions.ClientSecret = ClientSecret;
                 openIdOptions.Authority = String.Format(CultureInfo.InvariantCulture, AzureActiveDirectoryV2Authenticator.Authority, AzureActiveDirectoryV2Authenticator.V2CommonTenant);
             }
         }
