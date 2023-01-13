@@ -543,7 +543,7 @@ For more information, please contact '{2}'.</value>
   </data>
   <data name="UploadPackage_MissingReadme" xml:space="preserve">
     <value>Readme missing. Go to https://learn.microsoft.com/nuget/create-packages/package-authoring-best-practices#readme learn How to include a readme file within the package.</value>
-  </data>	
+  </data>
   <data name="ReservedNamespace_OwnerAdded" xml:space="preserve">
     <value>The user '{0}' is now an owner of the prefix '{1}'.</value>
   </data>
