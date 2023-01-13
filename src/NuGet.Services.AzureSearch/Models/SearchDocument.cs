@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Azure.Search.Documents.Indexes;
+using NuGetGallery;
 
 namespace NuGet.Services.AzureSearch
 {
@@ -45,6 +46,24 @@ namespace NuGet.Services.AzureSearch
             public string FullVersion { get; set; }
             public string[] Versions { get; set; }
             public string[] PackageTypes { get; set; }
+
+            /// <summary>
+            /// The list of a package's supported target framework generations. The four generations supported by
+            /// the NuGet.org filtering experience will be represented by standardized shortname identifiers stored
+            /// by the <see cref="AssetFrameworkHelper.FrameworkGenerationIdentifiers"/> class.
+            /// eg. net, netframework
+            /// </summary>
+            [SimpleField(IsFilterable = true)]
+            public string[] Frameworks { get; set; }
+
+            /// <summary>
+            /// The list of a package's supported target framework monikers, stored as normalized TFM strings (same
+            /// as the 'short folder name'). This only refers to a package's asset frameworks, not the computed ones.
+            /// eg. net5.0, net472, netcoreapp3.1, tizen40
+            /// </summary>
+            [SimpleField(IsFilterable = true)]
+            public string[] Tfms { get; set; }
+
             public bool? IsLatestStable { get; set; }
             public bool? IsLatest { get; set; }
         }

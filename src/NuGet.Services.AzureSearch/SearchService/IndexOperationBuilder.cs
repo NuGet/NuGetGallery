@@ -65,7 +65,10 @@ namespace NuGet.Services.AzureSearch.SearchService
             var parsed = _textBuilder.ParseV2Search(request);
 
             IndexOperation indexOperation;
+            // Only performs a GetDocument query if the query contains no Filters
             if (request.PackageType == null
+                && (request.Frameworks == null || !request.Frameworks.Any())
+                && (request.Tfms == null || !request.Tfms.Any())
                 && TryGetSearchDocumentByKey(request, parsed, out indexOperation))
             {
                 return indexOperation;

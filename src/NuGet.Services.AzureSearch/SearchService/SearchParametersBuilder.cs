@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
 using NuGet.Packaging;
@@ -83,7 +84,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
             else
             {
-                ApplySearchIndexFilter(searchParameters, request, isDefaultSearch, request.PackageType);
+                ApplySearchIndexFilter(searchParameters, request, isDefaultSearch, request.PackageType, request.Frameworks, request.Tfms);
             }
 
             return searchParameters;
@@ -99,7 +100,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             searchParameters.OrderBy.AddRange(ScoreDesc);
 
             ApplyPaging(searchParameters, request);
-            ApplySearchIndexFilter(searchParameters, request, isDefaultSearch, request.PackageType);
+            ApplySearchIndexFilter(searchParameters, request, isDefaultSearch, request.PackageType, new List<string>(), new List<string>());
 
             return searchParameters;
         }
@@ -113,7 +114,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             };
             searchParameters.OrderBy.AddRange(ScoreDesc);
 
-            ApplySearchIndexFilter(searchParameters, request, isDefaultSearch, request.PackageType);
+            ApplySearchIndexFilter(searchParameters, request, isDefaultSearch, request.PackageType, new List<string>(), new List<string>());
 
             switch (request.Type)
             {
@@ -147,7 +148,9 @@ namespace NuGet.Services.AzureSearch.SearchService
             SearchOptions searchParameters,
             SearchRequest request,
             bool isDefaultSearch,
-            string packageType)
+            string packageType,
+            IReadOnlyList<string> frameworks,
+            IReadOnlyList<string> tfms)
         {
             var searchFilters = GetSearchFilters(request);
 
@@ -163,6 +166,16 @@ namespace NuGet.Services.AzureSearch.SearchService
             if (packageType != null && PackageIdValidator.IsValidPackageId(packageType))
             {
                 filterString += $" and {IndexFields.Search.FilterablePackageTypes}/any(p: p eq '{packageType.ToLowerInvariant()}')";
+            }
+
+            if (frameworks != null)
+            {
+                filterString += GetFrameworksOrTfmsFilterString(IndexFields.Search.Frameworks, frameworks);
+            }
+            
+            if (tfms != null)
+            {
+                filterString += GetFrameworksOrTfmsFilterString(IndexFields.Search.Tfms, tfms);
             }
 
             searchParameters.Filter = filterString;
@@ -222,6 +235,22 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
 
             return orderBy;
+        }
+
+        /// <summary>
+        /// Constructs filter strings for both Frameworks and Tfms.
+        /// </summary>
+        /// <param name="indexField">Determines which field you are targeting
+        ///                          i.e. IndexFields.Search.Frameworks or IndexFields.Search.Tfms</param>
+        /// <param name="frameworks">List of a user's selected Frameworks or Tfms (validated and normalized)</param>
+        private string GetFrameworksOrTfmsFilterString(string indexField, IReadOnlyList<string> frameworks)
+        {
+            var filterStrings = frameworks
+                                    .Select(f => $"{indexField}/any(f: f eq '{f}')");
+
+            return filterStrings.Count() == 0
+                                ? String.Empty
+                                : " and (" + String.Join(" and ", filterStrings) + ")";
         }
     }
 }

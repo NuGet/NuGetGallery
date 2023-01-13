@@ -39,6 +39,14 @@ namespace NuGet.Services.AzureSearch.SearchService
                 {
                     throw new InvalidSearchRequestException("Can't apply the packageType filter on the Hijack index");
                 }
+                else if (request.Frameworks != null && request.Frameworks.Any())
+                {
+                    throw new InvalidSearchRequestException("Can't apply the Frameworks filter on the Hijack index");
+                }
+                else if (request.Tfms != null && request.Tfms.Any())
+                {
+                    throw new InvalidSearchRequestException("Can't apply the TFMs filter on the Hijack index");
+                }
                 else if (request.SortBy == V2SortBy.TotalDownloadsAsc || request.SortBy == V2SortBy.TotalDownloadsDesc)
                 {
                     throw new InvalidSearchRequestException("Can't sortBy downloads on the Hijack index");

@@ -1,9 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using NuGet.Frameworks;
+using NuGet.Jobs;
+using NuGet.Versioning;
+using NuGetGallery;
 
 namespace NuGet.Services.AzureSearch.SearchService
 {
@@ -22,6 +26,13 @@ namespace NuGet.Services.AzureSearch.SearchService
             { "created-desc", V2SortBy.CreatedDesc },
             { "totalDownloads-asc", V2SortBy.TotalDownloadsAsc },
             { "totalDownloads-desc", V2SortBy.TotalDownloadsDesc },
+        };
+
+        private static readonly HashSet<string> FrameworkGenerationIdentifiers = new HashSet<string>{
+                                                                                        AssetFrameworkHelper.FrameworkGenerationIdentifiers.Net,
+                                                                                        AssetFrameworkHelper.FrameworkGenerationIdentifiers.NetFramework,
+                                                                                        AssetFrameworkHelper.FrameworkGenerationIdentifiers.NetCoreApp,
+                                                                                        AssetFrameworkHelper.FrameworkGenerationIdentifiers.NetStandard
         };
 
         public static V2SortBy ParseV2SortBy(string sortBy)
@@ -44,6 +55,61 @@ namespace NuGet.Services.AzureSearch.SearchService
             {
                 return semVerLevelVersion >= SemVer2Level;
             }
+        }
+
+        public static IReadOnlyList<string> ParseFrameworks(string frameworks)
+        {
+            var frameworkList = frameworks == null
+                                    ? (IReadOnlyList<string>)Array.Empty<string>()
+                                    : frameworks
+                                        .Split(',')
+                                        .Select(f => f.ToLowerInvariant().Trim())
+                                        .Where(f => f != String.Empty);
+
+            var result = new List<string>();
+            foreach (var framework in frameworkList)
+            {
+                if (FrameworkGenerationIdentifiers.Contains(framework))
+                {
+                    result.Add(framework);
+                }
+                else
+                {
+                    throw new InvalidSearchRequestException($"The provided Framework is not supported. (Parameter '{framework}')");
+                }
+            }
+
+            return result
+                    .Distinct()
+                    .ToList();
+        }
+
+        public static IReadOnlyList<string> ParseTfms(string tfms)
+        {
+            var tfmList = tfms == null
+                            ? (IReadOnlyList<string>)Array.Empty<string>()
+                            : tfms
+                                .Split(',')
+                                .Select(f => f.Trim())
+                                .Where(f => f != String.Empty);
+
+            var result = new List<string>();
+            foreach (var tfm in tfmList)
+            {
+                var f = NuGetFramework.Parse(tfm);
+                if (f.IsSpecificFramework && !f.IsPCL)
+                {
+                    result.Add(f.GetShortFolderName());
+                }
+                else
+                {
+                    throw new InvalidSearchRequestException($"The provided TFM is not supported. (Parameter '{tfm}')");
+                }
+            }
+
+            return result
+                    .Distinct()
+                    .ToList();
         }
     }
 }

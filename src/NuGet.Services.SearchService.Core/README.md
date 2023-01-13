@@ -100,7 +100,7 @@ package IDs and package versions.
 This endpoint is used by NuGetGallery in several scenarios when the gallery is configured with an external search
 service. Therefore, the contract should be considered unstable by external clients and may change freely to match the
 requirements of NuGetGallery. We strongly urge external applications (even NuGet client) to avoid using this endpoint
-since it should be considered and implementation detail of NuGetGallery. External clients should use the document V3
+since it should be considered an implementation detail of NuGetGallery. External clients should use the document V3
 Search endpoint and discover the URL via the service index.
 
 When the NuGetGallery code "hijacks" an OData query to search service instead of going to the SQL database, this
@@ -139,6 +139,8 @@ ignoreFilter | boolean | `true` to include unlisted packages and ignore the `pre
 countOnly    | boolean | `true` to return only the total count and no metadata
 sortBy       | string  | Sort results using a specified ordering
 packageType  | string  | Filter results to those with the specified package type
+frameworks   | string  | Filter results to those targeting the specified framework generations
+tfms         | string  | Filter results to those targeting the specified asset framework TFMs (See [Target frameworks](https://learn.microsoft.com/en-us/nuget/reference/target-frameworks))
 luceneQuery  | bool    | `true` to treat a `q` starting with `id:` like `packageid:` (yes, it's silly, see [#7366](https://github.com/NuGet/NuGetGallery/issues/7366))
 testData     | bool    | `true` to include packages owned by nuget.org test accounts
 debug        | bool    | `true` to shows the raw Azure Search document and other diagnostic information
@@ -182,6 +184,10 @@ For `title-asc` and `title-desc`, a package's ID is used if the package has no e
 `title` is no longer prominently shown in NuGet experiences, this sorting order is only maintained for legacy reasons.
 
 The `packageType` parameter is a free form input. It defaults to an empty string, which means no filter. If there are no packages with the specified packageType in a request, an empty `data` array will be returned.
+
+The `frameworks` and `tfms` parameters are string inputs that take comma-separated lists of the framework generations and asset framework TFMs to filter search results by. They default to empty strings, which means no filter will be applied. Results will only include packages that target **ALL** of the framework generations and TFMs specified in the query.
+
+```eg. ...&frameworks=netstandard&tfms=net6.0,net45```
 
 Test data may be always returned (i.e. the `testData` parameter is ignored) for certain optimized queries. For example,
 performing a `packageid:BaseTestPackage` query with `testData=false` will still return a result because internally this
