@@ -1795,6 +1795,7 @@ p.frameworktableinfo-text {
 }
 .page-list-packages .prerel-filter {
   white-space: nowrap;
+  float: right;
 }
 @media (min-width: 992px) {
   .page-list-packages .prerel-filter {
