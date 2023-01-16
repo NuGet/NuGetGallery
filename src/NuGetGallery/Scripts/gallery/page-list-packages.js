@@ -36,12 +36,7 @@ $(function() {
         const framework = document.getElementById(this.getAttribute('parent'));
         const tfms = document.querySelectorAll('[parent=' + this.getAttribute('parent') + ']');
 
-        let checkedCount = 0;
-        for (const tfm of tfms) {
-            if (tfm.checked) {
-                checkedCount++;
-            }
-        }
+        const checkedCount = Array.from(tfms).reduce((accumulator, tfm) => accumulator + (tfm.checked ? 1 : 0), 0);
 
         framework.checked = false;
         framework.indeterminate = checkedCount !== 0;
@@ -61,34 +56,18 @@ $(function() {
         }
     }
 
-    // Initialize state for framework and tfm checkboxes
+    // Initialize state for Framework and Tfm checkboxes
+    // NOTE: We first click on all selected Framework checkboxes and then on the selected Tfm checkboxes, which
+    // allows us to correctly handle cases where a Framework AND one of its child Tfms is present in the query
     initializeFrameworkAndTfmCheckboxes();
     function initializeFrameworkAndTfmCheckboxes() {
-        var inputFrameworkFilters = getFrameworkFiltersFromQueryString(searchForm.frameworks);
-        var inputTfmFilters = getFrameworkFiltersFromQueryString(searchForm.tfms);
+        var inputFrameworkFilters = searchForm.frameworks.value.split(',').map(f => f.trim()).filter(f => f);
+        var inputTfmFilters = searchForm.tfms.value.split(',').map(f => f.trim()).filter(f => f);
         searchForm.frameworks.value = "";
         searchForm.tfms.value = "";
 
-        for (const framework of inputFrameworkFilters) {
-            const checkbox = document.getElementById(framework);
-
-            if (checkbox) {
-                checkbox.click();
-            }
-        }
-
-        for (const tfm of inputTfmFilters) {
-            const checkbox = document.getElementById(tfm);
-
-            if (checkbox) {
-                checkbox.click();
-            }
-        }
-    }
-
-    // Returns the framework/tfm filter values from the query string
-    function getFrameworkFiltersFromQueryString(searchField) {
-        return searchField.value.split(',').map(f => f.trim()).filter(f => f);
+        inputFrameworkFilters.map(id => document.getElementById(id)).forEach(checkbox => checkbox.click());
+        inputTfmFilters.map(id => document.getElementById(id)).forEach(checkbox => checkbox.click());
     }
 
     // Submit the form when a user changes the selected 'sortBy' option

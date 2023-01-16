@@ -34,43 +34,42 @@ namespace NuGetGallery.Frameworks
         {
             { 
                 AssetFrameworkHelper.FrameworkGenerationIdentifiers.Net,
-                new FrameworkFilterGroup
-                (
-                        AssetFrameworkHelper.FrameworkGenerationIdentifiers.Net,
-                        AssetFrameworkHelper.FrameworkGenerationDisplayNames.Net,
-                        SupportedFrameworks.TfmFilters.NetTfms
-                                                        .Select(f => f.GetShortFolderName())
-                                                        .ToList()
+                new FrameworkFilterGroup(
+                    AssetFrameworkHelper.FrameworkGenerationIdentifiers.Net,
+                    AssetFrameworkHelper.FrameworkGenerationDisplayNames.Net,
+                    SupportedFrameworks.TfmFilters.NetTfms
+                        .Select(f => f.GetShortFolderName())
+                        .ToList()
                 )
             },
             {   
                 AssetFrameworkHelper.FrameworkGenerationIdentifiers.NetCoreApp,
                 new FrameworkFilterGroup(
-                        AssetFrameworkHelper.FrameworkGenerationIdentifiers.NetCoreApp,
-                        AssetFrameworkHelper.FrameworkGenerationDisplayNames.NetCoreApp,
-                        SupportedFrameworks.TfmFilters.NetCoreAppTfms
-                                                        .Select(f => f.GetShortFolderName())
-                                                        .ToList()
+                    AssetFrameworkHelper.FrameworkGenerationIdentifiers.NetCoreApp,
+                    AssetFrameworkHelper.FrameworkGenerationDisplayNames.NetCoreApp,
+                    SupportedFrameworks.TfmFilters.NetCoreAppTfms
+                        .Select(f => f.GetShortFolderName())
+                        .ToList()
                 )
             },
             { 
                 AssetFrameworkHelper.FrameworkGenerationIdentifiers.NetStandard,
                 new FrameworkFilterGroup(
-                        AssetFrameworkHelper.FrameworkGenerationIdentifiers.NetStandard,
-                        AssetFrameworkHelper.FrameworkGenerationDisplayNames.NetStandard,
-                        SupportedFrameworks.TfmFilters.NetStandardTfms
-                                                        .Select(f => f.GetShortFolderName())
-                                                        .ToList()
+                    AssetFrameworkHelper.FrameworkGenerationIdentifiers.NetStandard,
+                    AssetFrameworkHelper.FrameworkGenerationDisplayNames.NetStandard,
+                    SupportedFrameworks.TfmFilters.NetStandardTfms
+                        .Select(f => f.GetShortFolderName())
+                        .ToList()
                 )
             },
             { 
                 AssetFrameworkHelper.FrameworkGenerationIdentifiers.NetFramework,
                 new FrameworkFilterGroup(
-                        AssetFrameworkHelper.FrameworkGenerationIdentifiers.NetFramework,
-                        AssetFrameworkHelper.FrameworkGenerationDisplayNames.NetFramework,
-                        SupportedFrameworks.TfmFilters.NetFrameworkTfms
-                                                        .Select(f => f.GetShortFolderName())
-                                                        .ToList()
+                    AssetFrameworkHelper.FrameworkGenerationIdentifiers.NetFramework,
+                    AssetFrameworkHelper.FrameworkGenerationDisplayNames.NetFramework,
+                    SupportedFrameworks.TfmFilters.NetFrameworkTfms
+                        .Select(f => f.GetShortFolderName())
+                        .ToList()
                 )
             }
         };
