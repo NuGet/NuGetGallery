@@ -43,7 +43,6 @@ $(function() {
         updateFrameworkFilters(searchForm.frameworks, framework.id, false);
 
         updateFrameworkFilters(searchForm.tfms, this.id, this.checked);
-        
     }
 
     // Update the query string with the selected Frameworks and Tfms
