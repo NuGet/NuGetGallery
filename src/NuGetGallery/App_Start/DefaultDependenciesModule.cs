@@ -778,7 +778,8 @@ namespace NuGetGallery
                 {
                     var cloudBlobClientFactory = c.ResolveKeyed<Func<ICloudBlobClient>>(BindingKeys.FeatureFlaggedStatisticsKey);
                     var telemetryService = c.Resolve<ITelemetryService>();
-                    var downloadCountService = new CloudDownloadCountService(telemetryService, cloudBlobClientFactory);
+                    var downloadCountServiceLogger = c.Resolve<ILogger<CloudDownloadCountService>>();
+                    var downloadCountService = new CloudDownloadCountService(telemetryService, cloudBlobClientFactory, downloadCountServiceLogger);
 
                     var dlCountInterceptor = new DownloadCountObjectMaterializedInterceptor(downloadCountService, telemetryService);
                     ObjectMaterializedInterception.AddInterceptor(dlCountInterceptor);
