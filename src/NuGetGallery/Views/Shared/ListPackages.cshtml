@@ -26,11 +26,32 @@
     </div>
 }
 
+@helper AddFrameworkGroupOption(string frameworkShortName, string frameworkDisplayName, List<string> tfms)
+{
+    <div class="frameworkgoup">
+        <input type="checkbox" id="@(frameworkShortName)" class="framework">
+        <label for="@(frameworkShortName)">@(frameworkDisplayName)</label>
+        <button type="button" class="collapsible" tab="@(frameworkShortName)" tabindex="0" aria-label="shows and hides TFM filters">
+            <i class="ms-Icon ms-Icon--ChevronDown" id="@(frameworkShortName)button"></i>
+        </button>
+        <div class="tfmTab" id="@(frameworkShortName)tab">
+            <ul>
+                @foreach (var tfm in tfms) {
+                    <li>
+                        <input type="checkbox" id="@(tfm)" class="tfm" tabindex="-1" parent="@(frameworkShortName)">
+                        <label for="@(tfm)">@(tfm)</label>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+}
+
 @functions
 {
     private const string DefaultPackageType = "";
-    private static readonly IReadOnlyDictionary<string, string> UiSupportedPackageTypes = new Dictionary<string, string> (StringComparer.OrdinalIgnoreCase)
-    {
+    private static readonly IReadOnlyDictionary<string, string> UiSupportedPackageTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+{
         { DefaultPackageType, "All types" },
         { "dependency", "Dependency" },
         { "dotnettool", ".NET tool" },
@@ -38,212 +59,246 @@
     };
 }
 
-<section role="main" class="container main-container page-list-packages">
-    <div class="row clearfix no-margin">
-        <div class="col-md-10 no-padding">
-            <h1 tabindex="0">
-                @if (String.IsNullOrEmpty(Model.SearchTerm))
-                {
-                    if (Model.TotalCount == 1)
-                    {
-                        <text>There is 1 package</text>
-                    }
-                    else
-                    {
-                        <text>There are @Model.TotalCount.ToNuGetNumberString() packages</text>
-                    }
-                }
-                else
-                {
-                    if (Model.TotalCount == 1)
-                    {
-                        <text>1 package </text>
-                    }
-                    else
-                    {
-                        <text>@Model.TotalCount.ToNuGetNumberString() packages </text>
-                    }
-
-                    <text>returned for @Html.BreakWord(Model.SearchTerm)</text>
-                }
-            </h1>
-        </div>
-        <div class="col-md-2 col-xs-3 col-sm-1 text-align-right no-padding">
-            @if (Model.IsAdvancedSearchFlightEnabled)
-            {
-                <button class="btn-command" data-toggle="collapse" data-target="#advancedSearchPanel" aria-expanded="false" aria-controls="advancedSearchPanel">
-                    <i class="ms-Icon @(Model.ShouldDisplayAdvancedSearchPanel ? "ms-Icon--FilterSolid" : "ms-Icon--Filter") ms-fontColor-blue" aria-hidden="true"></i>
-                    Filter
-                </button>
-            }
-            else
-            {
-                <a class="prerel-filter" href="?q=@Uri.EscapeDataString(Model.SearchTerm)@(Model.IncludePrerelease ? "&prerel=false" : "")">@(Model.IncludePrerelease ? "Hide" : "Show") prerelease</a>
-            }
+<form name="search" id="search-form" method="get" class="clearfix advanced-search-panel">
+    <div id="search-bar-list-packages" class="navbar navbar-inverse">
+        <div class="container search-container" aria-label="Package search bar">
+            <div class="row">
+                <div class="col-sm-12">
+                    @Html.Partial("_SearchBar")
+                    @Html.Partial("_AutocompleteTemplate")
+                </div>
+            </div>
         </div>
     </div>
-    @if (Model.IsAdvancedSearchFlightEnabled)
-    {
-        <form method="get" class="row clearfix collapse advanced-search-panel@(Model.ShouldDisplayAdvancedSearchPanel ? " in" : "")" id="advancedSearchPanel">
-            @if (Model.PackageType != null && !UiSupportedPackageTypes.ContainsKey(Model.PackageType))
-            {
-                <div class="row warning-panel">
-                    <div class="col-md-12 icon-text alert alert-warning">
-                        <i class="ms-Icon ms-Icon--Info" aria-hidden="true"></i>
-                        Filtering on unrecognized package type: @Model.PackageType
-                    </div>
-                </div>
-            }
-            <div class="row">
-                <div class="col-md-2">
-                    <fieldset id="packagetype">
-                        <legend>Package type</legend>
-                        @foreach (var packageType in UiSupportedPackageTypes)
+    <section role="main" class="container main-container page-list-packages">
+        <div class="row clearfix no-margin">
+            <div class="@(Model.IsAdvancedSearchFlightEnabled ? "col-md-3" : "") no-padding" id="filters-column">
+                @if (Model.IsAdvancedSearchFlightEnabled)
+                {
+                    <div class="row clearfix advanced-search-panel" id="advancedSearchPanel">
+                        @if (Model.IsFrameworkFilteringEnabled)
                         {
-                            @AddPackageFilterOption(packageType.Value, packageType.Key, isDefault: packageType.Key == DefaultPackageType)    
+                            <div>
+                                <fieldset id="frameworkfilters">
+                                    <legend>
+                                        Frameworks
+                                        <a href="@(Model.TargetFrameworkInformationLink)">
+                                            <i class="framework-filter-info-icon ms-Icon ms-Icon--Info" tabindex="0"
+                                               data-content="@Strings.FrameworkFilterInformation_Tooltip"
+                                               alt="@Strings.FrameworkFilterInformation_Tooltip"></i>
+                                        </a>
+                                    </legend>
+                                    <input type="text" hidden id="frameworks" name="frameworks" value="@Model.Frameworks">
+                                    <input type="text" hidden id="tfms" name="tfms" value="@Model.Tfms">
+                                    @foreach (var framework in Model.FrameworkFilters.Values) {
+                                        @AddFrameworkGroupOption(framework.ShortName, framework.DisplayName, framework.Tfms);
+                                    }
+                                </fieldset>
+                            </div>
                         }
-                    </fieldset>
-                </div>
-                <div class="col-md-2">
-                    <fieldset id="sortby">
-                        <legend>Sort by</legend>
-                        @AddSortByOption("Relevance", GalleryConstants.SearchSortNames.Relevance, isDefault: true)
-                        @AddSortByOption("Downloads", GalleryConstants.SearchSortNames.TotalDownloadsDesc)
-                        @AddSortByOption("Recently updated", GalleryConstants.SearchSortNames.CreatedDesc)
-                    </fieldset>
-                </div>
-                <div class="col-md-2">
-                    <fieldset>
-                        <legend>Options</legend>
-                        <div style="display: flex;">
-                            <label aria-label="Options: Include prerelease">
-                                <input id="prerel-checkbox" type="checkbox" checked="@Model.IncludePrerelease">
-                                Include prerelease
-                            </label>
+                        @if (Model.PackageType != null && !UiSupportedPackageTypes.ContainsKey(Model.PackageType))
+                        {
+                            <div class="row warning-panel">
+                                <div class="col-md-12 icon-text alert alert-warning">
+                                    <i class="ms-Icon ms-Icon--Info" aria-hidden="true"></i>
+                                    Filtering on unrecognized package type: @Model.PackageType
+                                </div>
+                            </div>
+                        }
+                        <div>
+                            <fieldset id="packagetype">
+                                <legend>Package type</legend>
+                                @foreach (var packageType in UiSupportedPackageTypes)
+                                {
+                                    @AddPackageFilterOption(packageType.Value, packageType.Key, isDefault: packageType.Key == DefaultPackageType)
+                                }
+                            </fieldset>
                         </div>
-                    </fieldset>
-                </div>
+                        <div>
+                            <fieldset>
+                                <legend>Options</legend>
+                                <div>
+                                    <label aria-label="Options: Include prerelease">
+                                        <input id="prerel-checkbox" type="checkbox" checked="@Model.IncludePrerelease">
+                                        Include prerelease
+                                    </label>
+                                </div>
+                            </fieldset>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                <input class="btn btn-primary form-control" type="submit" value="Apply">
+                            </div>
+                            <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 reset-btn">
+                                <input class="btn btn-link form-control" type="button" value="Reset" id="reset-advanced-search">
+                            </div>
+
+                        </div>
+                        <input type="hidden" id="prerel" name="prerel" value="@Model.IncludePrerelease.ToString()">
+                    </div>
+                }
             </div>
-            <div class="row">
-                <div class="col-xs-4 col-sm-3 col-md-2 col-lg-1">
-                    <input class="btn btn-primary form-control" type="submit" value="Apply">
+            <div class="@(Model.IsAdvancedSearchFlightEnabled ? "col-md-9" : "col-md-12")" id="results-column">
+                <div class="row">
+                    <div class="col-md-9">
+                        <h1 tabindex="0">
+                            @if (String.IsNullOrWhiteSpace(Model.SearchTerm))
+                            {
+                                if (Model.TotalCount == 1)
+                                {
+                                    <text>There is 1 package</text>
+                                }
+                                else
+                                {
+                                    <text>There are @Model.TotalCount.ToNuGetNumberString() packages</text>
+                                }
+                            }
+                            else
+                            {
+                                if (Model.TotalCount == 1)
+                                {
+                                    <text>1 package</text>
+                                }
+                                else
+                                {
+                                    <text>@Model.TotalCount.ToNuGetNumberString() packages</text>
+                                }
+
+                                <text>returned for @Html.BreakWord(Model.SearchTerm)</text>
+                            }
+                        </h1>
+                    </div>
+                    @if (Model.IsAdvancedSearchFlightEnabled)
+                    {
+                        <div class="sortby col-md-3">
+                            <div class="row">
+                                <label for="sortby">Sort by</label>
+                                <select name="sortby" id="sortby" form="search-form" aria-label="sort package search results by">
+                                    <option value="relevance" aria-label="Sort By: Relevance" @(Model.SortBy == "relevance" ? "selected" : "")>Relevance</option>
+                                    <option value="totalDownloads-desc" aria-label="Sort By: Downloads" @(Model.SortBy == "totalDownloads-desc" ? "selected" : "")>Downloads</option>
+                                    <option value="created-desc" aria-label="Sort By: Recently updated" @(Model.SortBy == "created-desc" ? "selected" : "")>Recently updated</option>
+                                </select>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="col-md-3">
+                            <a class="prerel-filter" href="?q=@Uri.EscapeDataString(Model.SearchTerm)@(Model.IncludePrerelease ? "&prerel=false" : "")">@(Model.IncludePrerelease ? "Hide" : "Show") prerelease</a>
+                        </div>
+                    }
                 </div>
-                <div class="col-xs-4 col-sm-3 col-md-2 col-lg-1">
-                    <input id="reset-advanced-search" class="btn btn-link form-control" type="button" value="Reset">
-                </div>
-            </div>
-             <input type="hidden" name="q" value="@Model.SearchTerm">
-             <input type="hidden" id="prerel" name="prerel" value="@Model.IncludePrerelease.ToString()">
-        </form>
-    }
-    
-    @if (!Model.Items.Any())
-    {
-        <div class="row">
-            <div class="col-xs-12 clearfix">
-                <div class="panel panel-default" aria-expanded="true" >
-                    <div class="panel-body">
-                        NuGet package search works the same on nuget.org, from the NuGet CLI, and within the NuGet Package Manager extension in Visual Studio. <br />
-                        Check out our <strong><a href="https://docs.microsoft.com/nuget/consume-packages/finding-and-choosing-packages#search-syntax">Search Syntax</a></strong>.
+
+                @if (!Model.Items.Any())
+                {
+                    <div class="row">
+                        <div class="col-xs-12 clearfix">
+                            <div class="panel panel-default" aria-expanded="true">
+                                <div class="panel-body">
+                                    NuGet package search works the same on nuget.org, from the NuGet CLI, and within the NuGet Package Manager extension in Visual Studio. <br />
+                                    Check out our <strong><a href="https://docs.microsoft.com/nuget/consume-packages/finding-and-choosing-packages#search-syntax">Search Syntax</a></strong>.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <ul class="list-packages">
+                    @{
+                        var itemIndex = Model.PageIndex * Model.PageSize;
+                        var eventName = Model.IsPreviewSearch ? "preview-search-selection" : "search-selection";
+                    }
+                    @foreach (var package in Model.Items)
+                    {
+                        @Html.Partial("_ListPackage", package, new ViewDataDictionary { { "itemIndex", itemIndex }, { "eventName", eventName } })
+                        itemIndex++;
+                    }
+                </ul>
+
+                <div class="row">
+                    <div class="col-xs-12 clearfix">
+                        @ViewHelpers.PreviousNextPager(Model.Pager)
                     </div>
                 </div>
             </div>
         </div>
-    }
-
-    <ul class="list-packages">
-        @{
-            var itemIndex = Model.PageIndex * Model.PageSize;
-            var eventName = Model.IsPreviewSearch ? "preview-search-selection" : "search-selection";
-        }
-        @foreach (var package in Model.Items)
-        {
-            @Html.Partial("_ListPackage", package, new ViewDataDictionary { { "itemIndex", itemIndex }, { "eventName", eventName } })
-            itemIndex++;
-        }
-    </ul>
-
-    <div class="row">
-        <div class="col-xs-12 clearfix">
-            @ViewHelpers.PreviousNextPager(Model.Pager)
-        </div>
-    </div>
-</section>
+    </section>
+</form>
 
 @section bottomScripts {
     <script type="text/javascript">
-        // Used to track how long the user waited before clicking a search selection.
-        var pageLoadTime = Date.now();
+    // Used to track how long the user waited before clicking a search selection.
+    var pageLoadTime = Date.now();
 
-        // Used to track how many selections were made on this page. Multiple selections can happen if the user opens
-        // a search selection in a new tab, instead of navigating away from this page.
-        var sincePageLoadCount = 0;
-        @{
-            var searchId = Guid.NewGuid().ToString();
-            var category = Model.IsPreviewSearch ? "preview-search-page" : "search-page";
-            var action = Model.IncludePrerelease ? "search-prerel" : "search-stable";
+    // Used to track how many selections were made on this page. Multiple selections can happen if the user opens
+    // a search selection in a new tab, instead of navigating away from this page.
+    var sincePageLoadCount = 0;
+    @{
+        var searchId = Guid.NewGuid().ToString();
+        var category = Model.IsPreviewSearch ? "preview-search-page" : "search-page";
+        var action = Model.IncludePrerelease ? "search-prerel" : "search-stable";
 
-            // Emit an event representing the search page and the page index. This make it easier for the search selection
-            // event to be correlated in Google Analytics.
-            <text>
-            window.nuget.sendAnalyticsEvent('@category', '@action', @Html.Raw(Json.Encode(Model.SearchTerm)), @Model.PageIndex);
-            window.nuget.sendMetric('BrowserSearchPage', @Model.PageIndex, {
-                SearchId: '@searchId',
-                SearchTerm: @Html.Raw(Json.Encode(Model.SearchTerm)),
-                IncludePrerelease: '@Model.IncludePrerelease',
-                PageIndex: @Model.PageIndex,
-                TotalCount: @Model.TotalCount,
-                IsPreviewSearch: '@Model.IsPreviewSearch',
-                PackageType: @Html.ToJson(Model.PackageType ?? string.Empty),
-                SortBy: @Html.ToJson(Model.SortBy)
-            });
-            </text>
-        }
+        // Emit an event representing the search page and the page index. This make it easier for the search selection
+        // event to be correlated in Google Analytics.
+        <text>
+        window.nuget.sendAnalyticsEvent('@category', '@action', @Html.Raw(Json.Encode(Model.SearchTerm)), @Model.PageIndex);
+        window.nuget.sendMetric('BrowserSearchPage', @Model.PageIndex, {
+            SearchId: '@searchId',
+            SearchTerm: @Html.Raw(Json.Encode(Model.SearchTerm)),
+            IncludePrerelease: '@Model.IncludePrerelease',
+            PageIndex: @Model.PageIndex,
+            TotalCount: @Model.TotalCount,
+            IsPreviewSearch: '@Model.IsPreviewSearch',
+            PackageType: @Html.ToJson(Model.PackageType ?? string.Empty),
+            SortBy: @Html.ToJson(Model.SortBy)
+        });
+        </text>
+    }
 
-        $(function () {
-            var emitClickEvent = function () {
-                var $this = $(this);
-                var data = $this.data();
-                if ($this.attr('href') && data.track) {
-                    window.nuget.sendMetric('BrowserSearchSelection', data.trackValue, {
-                        SearchId: '@searchId',
-                        SearchTerm: @Html.Raw(Json.Encode(Model.SearchTerm)),
-                        IncludePrerelease: '@Model.IncludePrerelease',
-                        PageIndex: @Model.PageIndex,
-                        TotalCount: @Model.TotalCount,
-                        ClickIndex: data.trackValue,
-                        PackageId: data.packageId,
-                        PackageVersion: data.packageVersion,
-                        UseVersion: data.useVersion,
-                        SincePageLoadMs: Date.now() - pageLoadTime,
-                        SincePageLoadCount: sincePageLoadCount,
-                        IsPreviewSearch: '@Model.IsPreviewSearch',
-                        PackageType: @Html.ToJson(Model.PackageType ?? string.Empty),
-                        SortBy: @Html.ToJson(Model.SortBy)
-                    });
-
-                    sincePageLoadCount++;
-                }
-            };
-            $.each($('a[data-track]'), function () {
-                $(this).on('mouseup', function (e) {
-                    if (e.which === 2) { // Middle-mouse click
-                        emitClickEvent.call(this, e);
-                    }
+    $(function () {
+        var emitClickEvent = function () {
+            var $this = $(this);
+            var data = $this.data();
+            if ($this.attr('href') && data.track) {
+                window.nuget.sendMetric('BrowserSearchSelection', data.trackValue, {
+                    SearchId: '@searchId',
+                    SearchTerm: @Html.Raw(Json.Encode(Model.SearchTerm)),
+                    IncludePrerelease: '@Model.IncludePrerelease',
+                    PageIndex: @Model.PageIndex,
+                    TotalCount: @Model.TotalCount,
+                    ClickIndex: data.trackValue,
+                    PackageId: data.packageId,
+                    PackageVersion: data.packageVersion,
+                    UseVersion: data.useVersion,
+                    SincePageLoadMs: Date.now() - pageLoadTime,
+                    SincePageLoadCount: sincePageLoadCount,
+                    IsPreviewSearch: '@Model.IsPreviewSearch',
+                    PackageType: @Html.ToJson(Model.PackageType ?? string.Empty),
+                    SortBy: @Html.ToJson(Model.SortBy)
                 });
-                $(this).on('click', function (e) {
+
+                sincePageLoadCount++;
+            }
+        };
+        $.each($('a[data-track]'), function () {
+            $(this).on('mouseup', function (e) {
+                if (e.which === 2) { // Middle-mouse click
                     emitClickEvent.call(this, e);
-                });
+                }
+            });
+            $(this).on('click', function (e) {
+                emitClickEvent.call(this, e);
             });
         });
+    });
 
-        $('#prerel-checkbox').on('change', function (event) {
-            $('#prerel').val($(event.target).is(':checked'));
-        });
+    $('#prerel-checkbox').on('change', function (event) {
+        $('#prerel').val($(event.target).is(':checked'));
+    });
 
-        $('#reset-advanced-search').on('click', function () {
-            location.href = '?q=@Uri.EscapeDataString(Model.SearchTerm)';
-        });
+    $('#reset-advanced-search').on('click', function () {
+        location.href = '?q=@Uri.EscapeDataString(Model.SearchTerm)';
+    });
     </script>
 
     @Scripts.Render("~/Scripts/gallery/page-list-packages.min.js")

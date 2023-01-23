@@ -137,5 +137,20 @@ namespace NuGetGallery
 
             public const string NetStandard = "netstandard";
         }
+
+
+        /// <summary>
+        /// Framework Generation display names used in the Gallery UI.
+        /// </summary>
+        public static class FrameworkGenerationDisplayNames
+        {
+            public const string Net = ".NET";
+
+            public const string NetFramework = ".NET Framework";
+
+            public const string NetCoreApp = ".NET Core";
+
+            public const string NetStandard = ".NET Standard";
+        }
     }
 }

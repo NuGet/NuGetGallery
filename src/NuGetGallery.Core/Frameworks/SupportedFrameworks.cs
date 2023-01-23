@@ -24,6 +24,7 @@ namespace NuGetGallery.Frameworks
         public static readonly NuGetFramework MonoAndroid = new NuGetFramework(FrameworkIdentifiers.MonoAndroid, EmptyVersion);
         public static readonly NuGetFramework MonoTouch = new NuGetFramework(FrameworkIdentifiers.MonoTouch, EmptyVersion);
         public static readonly NuGetFramework MonoMac = new NuGetFramework(FrameworkIdentifiers.MonoMac, EmptyVersion);
+        public static readonly NuGetFramework Net3 = new NuGetFramework(FrameworkIdentifiers.Net, new Version(3, 0, 0, 0));
         public static readonly NuGetFramework Net48 = new NuGetFramework(FrameworkIdentifiers.Net, new Version(4, 8, 0, 0));
         public static readonly NuGetFramework Net481 = new NuGetFramework(FrameworkIdentifiers.Net, new Version(4, 8, 1, 0));
         public static readonly NuGetFramework Net50Windows = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version5, "windows", EmptyVersion);
@@ -71,6 +72,61 @@ namespace NuGetGallery.Frameworks
                 UAP, UAP10,
                 WP, WP7, WP75, WP8, WP81, WPA81,
                 XamarinIOs, XamarinMac, XamarinTvOs, XamarinWatchOs
+            };
+        }
+
+        /// <summary>
+        /// Lists of TFMs that users can filter packages by (for each Framework Generation) on NuGet.org search
+        /// </summary>
+        public static class TfmFilters {
+            public static readonly List<NuGetFramework> NetTfms = new List<NuGetFramework>
+            {
+                Net70,
+                Net60,
+                Net50
+            };
+
+            public static readonly List<NuGetFramework> NetCoreAppTfms = new List<NuGetFramework>
+            {
+                NetCoreApp31,
+                NetCoreApp30,
+                NetCoreApp22,
+                NetCoreApp21,
+                NetCoreApp20,
+                NetCoreApp11,
+                NetCoreApp10
+            };
+
+            public static readonly List<NuGetFramework> NetStandardTfms = new List<NuGetFramework>
+            {
+                NetStandard21,
+                NetStandard20,
+                NetStandard16,
+                NetStandard15,
+                NetStandard14,
+                NetStandard13,
+                NetStandard12,
+                NetStandard11,
+                NetStandard10
+            };
+
+            public static readonly List<NuGetFramework> NetFrameworkTfms = new List<NuGetFramework>
+            {
+                Net481,
+                Net48,
+                Net472,
+                Net471,
+                Net47,
+                Net462,
+                Net461,
+                Net46,
+                Net452,
+                Net451,
+                Net45,
+                Net4,
+                Net35,
+                Net3,
+                Net2
             };
         }
     }

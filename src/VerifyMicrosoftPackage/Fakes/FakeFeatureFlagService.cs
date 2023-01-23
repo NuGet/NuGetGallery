@@ -126,5 +126,7 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
         public bool IsNuGetAccountPasswordLoginEnabled() => throw new NotImplementedException();
 
         public bool IsDisplayUploadWarningV2Enabled(User user) => throw new NotImplementedException();
+
+        public bool IsFrameworkFilteringEnabled(User user) => throw new NotImplementedException();
     }
 }

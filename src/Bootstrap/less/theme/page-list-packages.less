@@ -11,17 +11,23 @@
     margin: 0 !important;
   }
 
-  .btn-command {
+  .btn-filter {
     margin-top: 33px;
     margin-bottom: 33px;
     width: 90px;
     height: 45px;
+    font-weight: 500;
+    font-size: medium;
     background-color: transparent;
     border: none;
   }
 
+  .btn-filter:hover {
+    background-color: #f4f4f4;
+  }
+
   @media (max-width: @screen-md) {
-    .btn-command {
+    .btn-filter {
       text-align: left;
       margin-top: 0px;
       margin-bottom: 5px;
@@ -30,6 +36,7 @@
 
   .prerel-filter {
     white-space: nowrap;
+    float: right;
   }
 
   @media (min-width: @screen-md) {
@@ -39,8 +46,22 @@
     }
   }
 
-  .btn-command:hover {
-    background-color: #f4f4f4;
+  .sortby {
+    margin-top: 47px;
+
+    label {
+      font-weight: 500;
+      font-size: large;
+    }
+
+    select {
+      float: right;
+    }
+  }
+
+  .framework-filter-info-icon {
+    margin-bottom: -6px;
+    overflow: hidden;
   }
 
   .advanced-search-panel {
@@ -48,7 +69,7 @@
     border-color: @alert-info-border;
     margin-right: 0px;
     margin-left: 0;
-    margin-bottom: 15px;
+    margin-top: 30px;
 
     fieldset {
       margin: 20px;
@@ -79,6 +100,10 @@
       margin-bottom: 10px;
     }
 
+    .reset-btn {
+      padding-left: 0px;
+    }
+
     .warning-panel {
       margin-left: 10px;
       margin-right: 10px;
@@ -86,6 +111,36 @@
 
     #reset-advanced-search {
       color: darken(@link-color, 10%);
+      margin-left: 0px;
+      margin-right: 20px;
+    }
+
+    .collapsible {
+      color: rgb(73, 73, 73);
+      background-color: @alert-info-bg;
+      padding-top: 0px;
+      padding-bottom: 0px;
+      border: none;
+      outline: none;
+      float: right;
+    }
+
+    .active, .collapsible:hover {
+      color: rgb(90, 135, 220);
+    }
+
+    .collapsible:focus {
+      outline: solid;
+    }
+
+    .tfmTab {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.1s ease-out;
+
+      ul {
+        list-style: none;
+      }
     }
   }
 

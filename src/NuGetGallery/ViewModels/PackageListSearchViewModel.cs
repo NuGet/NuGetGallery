@@ -9,6 +9,8 @@ namespace NuGetGallery
         public int Page { get; set; }
         public bool? Prerel { get; set; }
         public string SortBy { get; set; }
+        public string Frameworks { get; set; }
+        public string Tfms { get; set; }
         public string PackageType { get; set; }
         public bool? TestData { get; set; }
     }

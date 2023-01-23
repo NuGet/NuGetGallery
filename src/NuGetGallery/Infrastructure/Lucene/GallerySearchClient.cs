@@ -49,6 +49,8 @@ namespace NuGetGallery.Infrastructure.Search
             string query,
             string projectTypeFilter = null,
             bool includePrerelease = false,
+            string frameworks = null,
+            string tfms = null,
             string packageType = "",
             SearchModels.SortOrder sortBy = SearchModels.SortOrder.Relevance,
             int skip = 0,
@@ -65,11 +67,21 @@ namespace NuGetGallery.Infrastructure.Search
             nameValue.Add("q", query);
             nameValue.Add("skip", skip.ToString());
             nameValue.Add("take", take.ToString());
+
+            if (!string.IsNullOrEmpty(frameworks))
+            {
+                nameValue.Add("frameworks", frameworks);
+            }
+
+            if (!string.IsNullOrEmpty(tfms))
+            {
+                nameValue.Add("tfms", tfms);
+            }
+
             if (!string.IsNullOrEmpty(packageType))
             {
                 nameValue.Add("packageType", packageType);
             }
-            nameValue.Add("sortBy", SortNames[sortBy]);
 
             if (!String.IsNullOrEmpty(semVerLevel))
             {
@@ -115,6 +127,8 @@ namespace NuGetGallery.Infrastructure.Search
             {
                 nameValue.Add("testData", "true");
             }
+
+            nameValue.Add("sortBy", SortNames[sortBy]);
 
             var qs = new FormUrlEncodedContent(nameValue);
             var queryString = await qs.ReadAsStringAsync();

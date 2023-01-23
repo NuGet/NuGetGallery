@@ -171,6 +171,8 @@ namespace NuGetGallery
             int page,
             string q,
             bool includePrerelease,
+            string frameworks,
+            string tfms,
             string packageType,
             string sortBy,
             bool relativeUrl = true)
@@ -190,6 +192,16 @@ namespace NuGetGallery
             if (!includePrerelease)
             {
                 routeValues["prerel"] = "false";
+            }
+
+            if (!string.IsNullOrWhiteSpace(frameworks))
+            {
+                routeValues["frameworks"] = frameworks;
+            }
+
+            if (!string.IsNullOrWhiteSpace(tfms))
+            {
+                routeValues["tfms"] = tfms;
             }
 
             if (!string.IsNullOrWhiteSpace(packageType))

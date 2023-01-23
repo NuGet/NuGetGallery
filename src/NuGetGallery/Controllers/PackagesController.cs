@@ -1024,6 +1024,8 @@ namespace NuGetGallery
                                 q: "id:\"" + normalizedRegistrationId + "\" AND version:\"" + package.Version + "\"",
                             page: 1,
                             includePrerelease: true,
+                            frameworks: null,
+                            tfms: null,
                             packageType: null,
                             sortOrder: null,
                             context: SearchFilter.ODataSearchContext,
@@ -1256,11 +1258,14 @@ namespace NuGetGallery
             var isPreviewSearchEnabled = _abTestService.IsPreviewSearchEnabled(GetCurrentUser());
             var searchService = isPreviewSearchEnabled ? _searchServiceFactory.GetPreviewService() : _searchServiceFactory.GetService();
             var isAdvancedSearchFlightEnabled = _featureFlagService.IsAdvancedSearchEnabled(GetCurrentUser());
+            var isFrameworkFilteringEnabled = _featureFlagService.IsFrameworkFilteringEnabled(GetCurrentUser());
 
             // If advanced search is disabled, use the default experience
             if (!isAdvancedSearchFlightEnabled || !searchService.SupportsAdvancedSearch)
             {
                 searchAndListModel.SortBy = GalleryConstants.SearchSortNames.Relevance;
+                searchAndListModel.Frameworks = string.Empty;
+                searchAndListModel.Tfms = string.Empty;
                 searchAndListModel.PackageType = string.Empty;
             }
 
@@ -1271,9 +1276,10 @@ namespace NuGetGallery
 
             var isDefaultSortBy = searchAndListModel.SortBy == null || string.Equals(searchAndListModel.SortBy, GalleryConstants.SearchSortNames.Relevance, StringComparison.OrdinalIgnoreCase);
             var isDefaultPackageType = string.IsNullOrEmpty(searchAndListModel.PackageType);
+            var isDefaultFrameworksAndTfmsFilter = string.IsNullOrEmpty(searchAndListModel.Frameworks) && string.IsNullOrEmpty(searchAndListModel.Tfms);
 
             // Cache when null or default value
-            var shouldCacheAdvancedSearch = isDefaultSortBy && isDefaultPackageType;
+            var shouldCacheAdvancedSearch = isDefaultSortBy && isDefaultPackageType && isDefaultFrameworksAndTfmsFilter;
 
             // fetch most common query from cache to relieve load on the search service
             if (string.IsNullOrEmpty(q) && page == 1 && includePrerelease && shouldCacheAdvancedSearch)
@@ -1286,6 +1292,8 @@ namespace NuGetGallery
                         q,
                         page,
                         includePrerelease: includePrerelease,
+                        frameworks: searchAndListModel.Frameworks,
+                        tfms: searchAndListModel.Tfms,
                         packageType: searchAndListModel.PackageType,
                         sortOrder: searchAndListModel.SortBy,
                         context: SearchFilter.UISearchContext,
@@ -1315,6 +1323,8 @@ namespace NuGetGallery
                     q,
                     page,
                     includePrerelease: includePrerelease,
+                    frameworks: searchAndListModel.Frameworks,
+                    tfms: searchAndListModel.Tfms,
                     packageType: searchAndListModel.PackageType,
                     sortOrder: searchAndListModel.SortBy,
                     context: SearchFilter.UISearchContext,
@@ -1346,12 +1356,16 @@ namespace NuGetGallery
                 Url,
                 includePrerelease,
                 isPreviewSearchEnabled,
+                searchAndListModel.Frameworks,
+                searchAndListModel.Tfms,
                 searchAndListModel.PackageType,
                 searchAndListModel.SortBy);
 
             // If the experience hasn't been cached, it means it's not the default experienced, therefore, show the panel
             viewModel.IsAdvancedSearchFlightEnabled = searchService.SupportsAdvancedSearch && isAdvancedSearchFlightEnabled;
             viewModel.ShouldDisplayAdvancedSearchPanel = !shouldCacheAdvancedSearch || !includePrerelease;
+
+            viewModel.IsFrameworkFilteringEnabled = isFrameworkFilteringEnabled;
 
             ViewBag.SearchTerm = q;
 
