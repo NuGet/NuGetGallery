@@ -55,20 +55,6 @@ $(function() {
         }
     }
 
-    // Initialize state for Framework and Tfm checkboxes
-    // NOTE: We first click on all selected Framework checkboxes and then on the selected Tfm checkboxes, which
-    // allows us to correctly handle cases where a Framework AND one of its child Tfms is present in the query
-    initializeFrameworkAndTfmCheckboxes();
-    function initializeFrameworkAndTfmCheckboxes() {
-        var inputFrameworkFilters = searchForm.frameworks.value.split(',').map(f => f.trim()).filter(f => f);
-        var inputTfmFilters = searchForm.tfms.value.split(',').map(f => f.trim()).filter(f => f);
-        searchForm.frameworks.value = "";
-        searchForm.tfms.value = "";
-
-        inputFrameworkFilters.map(id => document.getElementById(id)).forEach(checkbox => checkbox.click());
-        inputTfmFilters.map(id => document.getElementById(id)).forEach(checkbox => checkbox.click());
-    }
-
     // Submit the form when a user changes the selected 'sortBy' option
     searchForm.sortby.addEventListener('change', (e) => {
         searchForm.sortby.value = e.target.value;
@@ -107,5 +93,19 @@ $(function() {
                 tfm.tabindex = "-1";
             }
         }
+    }
+
+    // Initialize state for Framework and Tfm checkboxes
+    // NOTE: We first click on all selected Framework checkboxes and then on the selected Tfm checkboxes, which
+    // allows us to correctly handle cases where a Framework AND one of its child Tfms is present in the query
+    initializeFrameworkAndTfmCheckboxes();
+    function initializeFrameworkAndTfmCheckboxes() {
+        var inputFrameworkFilters = searchForm.frameworks.value.split(',').map(f => f.trim()).filter(f => f);
+        var inputTfmFilters = searchForm.tfms.value.split(',').map(f => f.trim()).filter(f => f);
+        searchForm.frameworks.value = "";
+        searchForm.tfms.value = "";
+
+        inputFrameworkFilters.map(id => document.getElementById(id)).forEach(checkbox => checkbox.click());
+        inputTfmFilters.map(id => document.getElementById(id)).forEach(checkbox => checkbox.click());
     }
 });
