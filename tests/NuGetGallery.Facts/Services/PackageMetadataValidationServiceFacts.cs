@@ -1500,8 +1500,8 @@ namespace NuGetGallery
                 Assert.Null(result.Message);
                 var warning = Assert.Single(result.Warnings);
                 Assert.IsType<UploadPackageMissingReadme>(warning);
-                Assert.StartsWith("Readme missing. Go to https://learn.microsoft.com/nuget/create-packages/package-authoring-best-practices#readme learn How to include a readme file within the package.", warning.PlainTextMessage);
-                Assert.StartsWith("<strong>Readme</strong> missing.<a href=\"https://learn.microsoft.com/nuget/create-packages/package-authoring-best-practices#readme\"> See how to include a readme file within the package</a>, or add it as you upload.", warning.RawHtmlMessage);
+                Assert.StartsWith("Readme missing. Go to https://aka.ms/nuget-include-readme learn How to include a readme file within the package.", warning.PlainTextMessage);
+                Assert.StartsWith("<strong>Readme</strong> missing.<a href=\"https://aka.ms/nuget-include-readme\"> See how to include a readme file within the package</a>, or add it as you upload.", warning.RawHtmlMessage);
             }
 
             [Fact]
