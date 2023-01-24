@@ -88,9 +88,8 @@
                                                alt="@Strings.FrameworkFilterInformation_Tooltip"></i>
                                         </a>
                                     </legend>
-                                    <input type="text" hidden id="frameworks" name="frameworks" value="@Model.Frameworks">
-                                    <input type="text" hidden id="tfms" name="tfms" value="@Model.Tfms">
-                                    @foreach (var framework in Model.FrameworkFilters.Values) {
+                                    @foreach (var framework in Model.FrameworkFilters.Values)
+                                    {
                                         @AddFrameworkGroupOption(framework.ShortName, framework.DisplayName, framework.Tfms);
                                     }
                                 </fieldset>
@@ -134,6 +133,8 @@
                             </div>
 
                         </div>
+                        <input type="text" hidden id="frameworks" name="frameworks" value="@Model.Frameworks">
+                        <input type="text" hidden id="tfms" name="tfms" value="@Model.Tfms">
                         <input type="hidden" id="prerel" name="prerel" value="@Model.IncludePrerelease.ToString()">
                     </div>
                 }
