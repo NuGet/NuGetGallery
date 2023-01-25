@@ -104,6 +104,7 @@ namespace NuGetGallery
         {
             return type?.StartsWith(ApiKey.Prefix, StringComparison.OrdinalIgnoreCase) ?? false;
         }
+
         public static bool IsMicrosoftAccount(string type)
         {
             return type?.Equals(External.MicrosoftAccount, StringComparison.OrdinalIgnoreCase) ?? false;
@@ -112,6 +113,17 @@ namespace NuGetGallery
         public static bool IsAzureActiveDirectoryAccount(string type)
         {
             return type?.Equals(External.AzureActiveDirectoryAccount, StringComparison.OrdinalIgnoreCase) ?? false;
+        }
+
+        public static bool PackageHasNoAadOwners(Package package)
+        {
+            var owners = package?.PackageRegistration?.Owners;
+            if (owners == null || !owners.Any()) 
+            {
+                return true;
+            }
+
+            return !owners.Where(o => o.Credentials.GetAzureActiveDirectoryCredential() != null).Any();
         }
 
         public static bool IsPackageVerificationApiKey(string type)
