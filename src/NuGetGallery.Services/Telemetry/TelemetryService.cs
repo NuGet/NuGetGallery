@@ -39,6 +39,8 @@ namespace NuGetGallery
             public const string GalleryDownloadGreaterThanJsonForPackageRegistration = "GalleryDownloadGreaterThanJsonForPackageRegistration";
             public const string GetPackageDownloadCountFailed = "GetPackageDownloadCountFailed";
             public const string GetPackageRegistrationDownloadCountFailed = "GetPackageRegistrationDownloadCountFailed";
+            public const string DownloadJsonTotalPackageIds = "DownloadJsonTotalPackageIds";
+            public const string DownloadJsonTotalPackageVersions = "DownloadJsonTotalPackageVersions";
             public const string UserPackageDeleteCheckedAfterHours = "UserPackageDeleteCheckedAfterHours";
             public const string UserPackageDeleteExecuted = "UserPackageDeleteExecuted";
             public const string UserMultiFactorAuthenticationEnabled = "UserMultiFactorAuthenticationEnabled";
@@ -277,6 +279,16 @@ namespace NuGetGallery
         public void TrackDownloadJsonRefreshDuration(TimeSpan duration)
         {
             TrackMetric(Events.DownloadJsonRefreshDuration, duration.TotalMilliseconds, properties => { });
+        }
+
+        public void TrackDownloadJsonTotalPackageIds(int totalPackageIds)
+        {
+            TrackMetric(Events.DownloadJsonTotalPackageIds, totalPackageIds, properties => { });
+        }
+
+        public void TrackDownloadJsonTotalPackageVersions(int totalPackageVersions)
+        {
+            TrackMetric(Events.DownloadJsonTotalPackageVersions, totalPackageVersions, properties => { });
         }
 
         public void TrackDownloadCountDecreasedDuringRefresh(string packageId, string packageVersion, long oldCount, long newCount)
