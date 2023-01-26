@@ -49,6 +49,9 @@ namespace NuGetGallery.Frameworks
         public static readonly NuGetFramework XamarinMac = new NuGetFramework(FrameworkIdentifiers.XamarinMac, EmptyVersion);
         public static readonly NuGetFramework XamarinTvOs = new NuGetFramework(FrameworkIdentifiers.XamarinTVOS, EmptyVersion);
         public static readonly NuGetFramework XamarinWatchOs = new NuGetFramework(FrameworkIdentifiers.XamarinWatchOS, EmptyVersion);
+
+        public static readonly NuGetFramework Net60Windows7 = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version6, "windows", Version7);
+        public static readonly NuGetFramework Net70Windows7 = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version7, "windows", Version7);
         
         public static readonly IReadOnlyList<NuGetFramework> AllSupportedNuGetFrameworks;
 
