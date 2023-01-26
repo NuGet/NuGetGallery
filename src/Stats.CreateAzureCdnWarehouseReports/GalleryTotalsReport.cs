@@ -16,7 +16,6 @@ namespace Stats.CreateAzureCdnWarehouseReports
     public class GalleryTotalsReport
         : ReportBase
     {
-        private const string WarehouseStoredProcedureName = "[dbo].[SelectTotalDownloadCounts]";
         private const string GalleryQuery = @"SELECT
                     (SELECT COUNT(DISTINCT [PackageRegistrationKey]) FROM Packages p WITH (NOLOCK)
                             WHERE p.Listed = 1 AND p.Deleted = 0) AS UniquePackages,
@@ -25,11 +24,14 @@ namespace Stats.CreateAzureCdnWarehouseReports
         public GalleryTotalsReport(
             ILogger<GalleryTotalsReport> logger,
             ICollection<StorageContainerTarget> targets,
-            Func<Task<SqlConnection>> openStatisticsSqlConnectionAsync,
             Func<Task<SqlConnection>> openGallerySqlConnectionAsync,
             int commandTimeoutSeconds)
-            : base(logger, targets,
-                  openStatisticsSqlConnectionAsync, openGallerySqlConnectionAsync, commandTimeoutSeconds)
+            : base(
+                  logger,
+                  targets,
+                  openStatisticsSqlConnectionAsync: null,
+                  openGallerySqlConnectionAsync: openGallerySqlConnectionAsync,
+                  commandTimeoutSeconds: commandTimeoutSeconds)
         {
         }
 
@@ -50,22 +52,6 @@ namespace Stats.CreateAzureCdnWarehouseReports
 
             _logger.LogInformation("Total packages: {TotalPackagesCount}", totalsData.TotalPackages);
             _logger.LogInformation("Unique packages: {UniquePackagesCount}", totalsData.UniquePackages);
-
-            // gather download count data from statistics warehouse
-            using (var connection = await OpenStatisticsSqlConnectionAsync())
-            using (var transaction = connection.BeginTransaction(IsolationLevel.Snapshot))
-            {
-                _logger.LogInformation("Gathering Gallery Totals from {StatisticsDataSource}/{StatisticsInitialCatalog}...",
-                    connection.DataSource, connection.Database);
-
-                totalsData.Downloads = (await connection.ExecuteScalarWithRetryAsync<long>(
-                    WarehouseStoredProcedureName,
-                    commandType: CommandType.StoredProcedure,
-                    commandTimeout: CommandTimeoutSeconds,
-                    transaction: transaction));
-            }
-
-            _logger.LogInformation("Total downloads: {TotalDownloadsCount}", totalsData.Downloads);
 
             // write to blob
             totalsData.LastUpdateDateUtc = DateTime.UtcNow;

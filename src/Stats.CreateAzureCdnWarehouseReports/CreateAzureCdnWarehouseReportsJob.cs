@@ -215,7 +215,6 @@ namespace Stats.CreateAzureCdnWarehouseReports
                 var galleryTotalsReport = new GalleryTotalsReport(
                     LoggerFactory.CreateLogger<GalleryTotalsReport>(),
                     targets,
-                    OpenSqlConnectionAsync<StatisticsDbConfiguration>,
                     OpenSqlConnectionAsync<GalleryDbConfiguration>,
                     commandTimeoutSeconds: _sqlCommandTimeoutSeconds);
                 await galleryTotalsReport.Run();
