@@ -402,5 +402,13 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
         {
             throw new NotImplementedException();
         }
+
+        public void TrackDownloadJsonTotalPackageIds(int totalPackageIds) {
+            throw new NotImplementedException();
+        }
+
+        public void TrackDownloadJsonTotalPackageVersions(int totalPackageVersions) {
+            throw new NotImplementedException();
+        }
     }
 }

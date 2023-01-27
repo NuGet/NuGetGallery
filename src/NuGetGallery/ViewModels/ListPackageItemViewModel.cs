@@ -11,7 +11,7 @@ namespace NuGetGallery
 {
     public class ListPackageItemViewModel : PackageViewModel
     {
-        private const int _descriptionLengthLimit = 300;
+        private const int _descriptionLengthLimit = 210;
         private const string _omissionString = "...";
 
         private string _signatureInformation;

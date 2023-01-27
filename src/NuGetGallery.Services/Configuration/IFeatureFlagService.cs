@@ -312,5 +312,10 @@ namespace NuGetGallery
         /// Whether or not NuGet.org password login is supported. NuGet.org accounts in the <see cref="LoginDiscontinuationConfiguration.ExceptionsForEmailAddresses"/> will always be supported.
         /// </summary>
         bool IsNuGetAccountPasswordLoginEnabled();
+
+        /// <summary>
+        /// Whether or not to allow filtering by frameworks on NuGet.org search
+        /// </summary>
+        bool IsFrameworkFilteringEnabled(User user);
     }
 }

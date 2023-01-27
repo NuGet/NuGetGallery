@@ -114,6 +114,12 @@
       "SiteAdmins": false,
       "Accounts": [],
       "Domains": []
+    },
+    "NuGetGallery.FrameworkFiltering": {
+      "All": true,
+      "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
     }
   }
 }

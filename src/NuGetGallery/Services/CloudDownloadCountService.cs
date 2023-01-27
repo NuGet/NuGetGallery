@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
@@ -29,6 +30,7 @@ namespace NuGetGallery
 
         private readonly ITelemetryService _telemetryService;
         private readonly Func<ICloudBlobClient> _cloudBlobClientFactory;
+        private readonly ILogger<CloudDownloadCountService> _logger;
 
         private readonly object _refreshLock = new object();
         private bool _isRefreshing;
@@ -38,10 +40,12 @@ namespace NuGetGallery
 
         public CloudDownloadCountService(
             ITelemetryService telemetryService,
-            Func<ICloudBlobClient> cloudBlobClientFactory)
+            Func<ICloudBlobClient> cloudBlobClientFactory,
+            ILogger<CloudDownloadCountService> logger)
         {
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _cloudBlobClientFactory = cloudBlobClientFactory ?? throw new ArgumentNullException(nameof(cloudBlobClientFactory));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public bool TryGetDownloadCountForPackageRegistration(string id, out long downloadCount)
@@ -158,6 +162,9 @@ namespace NuGetGallery
         {
             try
             {
+                int totalIds = 0;
+                int totalVersions = 0;
+
                 // The data in downloads.v1.json will be an array of Package records - which has Id, Array of Versions and download count.
                 // Sample.json : [["AutofacContrib.NSubstitute",["2.4.3.700",406],["2.5.0",137]],["Assman.Core",["2.0.7",138]]....
                 using (var blobStream = await GetBlobStreamAsync())
@@ -189,6 +196,8 @@ namespace NuGetGallery
                                             continue;
                                         }
 
+                                        ++totalIds;
+
                                         var versions = _downloadCounts.GetOrAdd(
                                             id,
                                             _ => new ConcurrentDictionary<string, long>(StringComparer.OrdinalIgnoreCase));
@@ -199,6 +208,7 @@ namespace NuGetGallery
                                             {
                                                 var version = token[0].ToString();
                                                 var downloadCount = token[1].ToObject<long>();
+                                                ++totalVersions;
 
                                                 if (versions.ContainsKey(version) && downloadCount < versions[version])
                                                 {
@@ -232,6 +242,9 @@ namespace NuGetGallery
                         }
                     }
                 }
+
+                _telemetryService.TrackDownloadJsonTotalPackageIds(totalIds);
+                _telemetryService.TrackDownloadJsonTotalPackageVersions(totalVersions);
             }
             catch (Exception ex)
             {
@@ -249,6 +262,8 @@ namespace NuGetGallery
 
             var container = blobClient.GetContainerReference(StatsContainerName);
             var blob = container.GetBlobReference(DownloadCountBlobName);
+
+            _logger.LogInformation("Cloud download statistics source: {BlobUri}", blob.Uri);
 
             return blob;
         }
