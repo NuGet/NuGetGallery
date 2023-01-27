@@ -115,17 +115,6 @@ namespace NuGetGallery
             return type?.Equals(External.AzureActiveDirectoryAccount, StringComparison.OrdinalIgnoreCase) ?? false;
         }
 
-        public static bool PackageHasNoAadOwners(Package package)
-        {
-            var owners = package?.PackageRegistration?.Owners;
-            if (owners == null || !owners.Any()) 
-            {
-                return true;
-            }
-
-            return !owners.Where(o => o.Credentials.GetAzureActiveDirectoryCredential() != null).Any();
-        }
-
         public static bool IsPackageVerificationApiKey(string type)
         {
             return type?.Equals(ApiKey.VerifyV1, StringComparison.OrdinalIgnoreCase) ?? false;

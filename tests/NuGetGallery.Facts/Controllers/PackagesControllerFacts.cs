@@ -5391,7 +5391,7 @@ namespace NuGetGallery
             [MemberData(nameof(NotOwner_Data))]
             public void ShowsFormWhenNotOwner(User currentUser, User owner)
             {
-                var result = GetReportAbuseResult(currentUser, owner, out var package);
+                var result = GetReportAbuseResult(currentUser, owner);
 
                 Assert.IsType<ViewResult>(result);
                 var viewResult = result as ViewResult;
@@ -5419,7 +5419,7 @@ namespace NuGetGallery
                     }
                 };
 
-                var result = GetReportAbuseResultInternal(currentUser, owner, package);
+                var result = GetReportAbuseResult(currentUser, package);
                 Assert.IsType<ViewResult>(result);
                 var viewResult = result as ViewResult;
 
@@ -5435,25 +5435,57 @@ namespace NuGetGallery
             [MemberData(nameof(Owner_Data))]
             public void RedirectsToReportMyPackageWhenOwner(User currentUser, User owner)
             {
-                var result = GetReportAbuseResult(currentUser, owner, out var package);
+                var result = GetReportAbuseResult(currentUser, owner);
 
                 Assert.IsType<RedirectToRouteResult>(result);
                 var redirectResult = result as RedirectToRouteResult;
                 Assert.Equal("ReportMyPackage", redirectResult.RouteValues["Action"]);
             }
 
-            public ActionResult GetReportAbuseResult(User currentUser, User owner, out Package package)
+            [Theory]
+            [InlineData(true, "external.MicrosoftAccount")]
+            [InlineData(false, "external.AzureActiveDirectory")]
+            [InlineData(false, "external.AzureActiveDirectory", "apikey.v1")]
+            [InlineData(false, "external.AzureActiveDirectory", "external.MicrosoftAccount")]
+            [InlineData(false, "external.AzureActiveDirectory", "external.MicrosoftAccount", "external.MicrosoftAccount")]
+            [InlineData(false, "external.AzureActiveDirectory", "external.MicrosoftAccount", "external.MicrosoftAccount", "apikey.v4", "apikey.v4")]
+            [InlineData(true, "external.MicrosoftAccount", "external.MicrosoftAccount", "external.MicrosoftAccount")]
+            [InlineData(true, "external.MicrosoftAccount", "external.MicrosoftAccount", "external.MicrosoftAccount", "apikey.v4", "apikey.v4")]
+            public void IncludesSafetyCategoriesWhenNotAadPresent(bool expectingSafetyCategories, params string[] credentialTypes) 
             {
-                package = new Package
+                var owner = new User 
+                {
+                    Credentials = credentialTypes.Select(ct => new Credential { Type = ct }).ToList()
+                };
+
+                var result = GetReportAbuseResult(null, owner);
+
+                Assert.IsType<ViewResult>(result);
+                var viewResult = result as ViewResult;
+
+                Assert.IsType<ReportAbuseViewModel>(viewResult.Model);
+                var model = viewResult.Model as ReportAbuseViewModel;
+
+                Assert.Equal(expectingSafetyCategories, model.ReasonChoices.Contains(ReportPackageReason.ChildSexualExploitationOrAbuse));
+                Assert.Equal(expectingSafetyCategories, model.ReasonChoices.Contains(ReportPackageReason.TerrorismOrViolentExtremism));
+                Assert.Equal(expectingSafetyCategories, model.ReasonChoices.Contains(ReportPackageReason.ImminentHarm));
+                Assert.Equal(expectingSafetyCategories, model.ReasonChoices.Contains(ReportPackageReason.HateSpeech));
+                Assert.Equal(expectingSafetyCategories, model.ReasonChoices.Contains(ReportPackageReason.RevengePorn));
+                Assert.Equal(expectingSafetyCategories, model.ReasonChoices.Contains(ReportPackageReason.OtherNudityOrPornography));
+            }
+
+            private ActionResult GetReportAbuseResult(User currentUser, User owner)
+            {
+                var package = new Package
                 {
                     PackageRegistration = new PackageRegistration { Id = PackageId, Owners = { owner } },
                     Version = PackageVersion
                 };
 
-                return GetReportAbuseResultInternal(currentUser, owner, package);
+                return GetReportAbuseResult(currentUser, package);
             }
 
-            private ActionResult GetReportAbuseResultInternal(User currentUser, User owner, Package package)
+            private ActionResult GetReportAbuseResult(User currentUser, Package package)
             {
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(p => p.FindPackageByIdAndVersionStrict(PackageId, PackageVersion)).Returns(package);

@@ -1385,7 +1385,7 @@ namespace NuGetGallery
             var model = new ReportAbuseViewModel
             {
                 ReasonChoices = _featureFlagService.IsShowReportAbuseSafetyChangesEnabled() 
-                    && CredentialTypes.PackageHasNoAadOwners(package)
+                    && PackageHasNoAadOwners(package)
                     ? ReportAbuseWithSafetyReasons
                     : ReportAbuseReasons,
                 PackageId = id,
@@ -2856,6 +2856,15 @@ namespace NuGetGallery
                 _telemetryService.TrackPackagePushFailureEvent(packageId, packageVersion);
                 throw;
             }
+        }
+
+        private static bool PackageHasNoAadOwners(Package package) {
+            var owners = package?.PackageRegistration?.Owners;
+            if (owners == null || !owners.Any()) {
+                return true;
+            }
+
+            return !owners.Any(o => o.Credentials.GetAzureActiveDirectoryCredential() != null);
         }
 
         private async Task DeleteUploadedFileForUser(User currentUser, Stream uploadedFileStream)
