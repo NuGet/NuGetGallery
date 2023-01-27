@@ -17,7 +17,7 @@ namespace AzureSqlConnectionTest
         public CommandOption Help { get; }
 
         public CommandOption KeyVaultName { get; }
-
+        public CommandOption KeyVaultManaged { get; }
         public CommandOption KeyVaultTenantId { get; }
 
         public CommandOption KeyVaultClientId { get; }
@@ -43,6 +43,7 @@ namespace AzureSqlConnectionTest
             Help = HelpOption("-? | -h | --help");
 
             KeyVaultName = Option("-kv | --keyVaultName", "KeyVault name", CommandOptionType.SingleValue);
+            KeyVaultManaged = Option("-kvm | --keyVaultUseMsi", "Use managed identity for KV authentication", CommandOptionType.NoValue);
             KeyVaultTenantId = Option("-kvtid | --keyVaultTenantId", "KeyVault tenant id", CommandOptionType.SingleValue);
             KeyVaultClientId = Option("-kvcid | --keyVaultClientId", "KeyVault client id", CommandOptionType.SingleValue);
             KeyVaultCertificateThumbprint = Option("-kvct | --keyVaultCertThumbprint", "KeyVault certificate thumbprint", CommandOptionType.SingleValue);
@@ -77,16 +78,25 @@ namespace AzureSqlConnectionTest
                 var useAdalOnly = UseAdalOnly.HasValue();
 
                 if (KeyVaultName.HasValue()
-                    && KeyVaultClientId.HasValue()
-                    && KeyVaultCertificateThumbprint.HasValue())
+                    && ((KeyVaultClientId.HasValue()
+                    && KeyVaultCertificateThumbprint.HasValue()) || KeyVaultManaged.HasValue()))
                 {
-                    using (var kvCertificate = GetKeyVaultCertificate(KeyVaultCertificateThumbprint.Value()))
+                    using (var kvCertificate = KeyVaultManaged.HasValue() ? null : GetKeyVaultCertificate(KeyVaultCertificateThumbprint.Value()))
                     {
-                        var keyVaultConfig = new KeyVaultConfiguration(
-                            KeyVaultName.Value(),
-                            KeyVaultTenantId.Value(),
-                            KeyVaultClientId.Value(),
-                            kvCertificate);
+                        KeyVaultConfiguration keyVaultConfig;
+                        if (KeyVaultManaged.HasValue())
+                        {
+                            keyVaultConfig = new KeyVaultConfiguration(KeyVaultName.Value());
+                        }
+                        else
+                        {
+                            keyVaultConfig = new KeyVaultConfiguration(
+                                KeyVaultName.Value(),
+                                KeyVaultTenantId.Value(),
+                                KeyVaultClientId.Value(),
+                                kvCertificate,
+                                sendX5c: true);
+                        }
 
                         var runner = new TestRunner(
                             ConnectionString.Value(),
