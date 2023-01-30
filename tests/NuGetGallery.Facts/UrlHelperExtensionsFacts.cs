@@ -276,7 +276,7 @@ namespace NuGetGallery
             }
         }
 
-        public class GetExternalPrivayUrlMethod : TestContainer
+        public class GetExternalPrivacyUrlMethod : TestContainer
         {
             [Theory]
             [InlineData("")]
