@@ -1773,19 +1773,6 @@ p.frameworktableinfo-text {
 .page-list-packages .no-margin {
   margin: 0 !important;
 }
-.page-list-packages .btn-filter {
-  margin-top: 33px;
-  margin-bottom: 33px;
-  width: 90px;
-  height: 45px;
-  font-weight: 500;
-  font-size: medium;
-  background-color: transparent;
-  border: none;
-}
-.page-list-packages .btn-filter:hover {
-  background-color: #f4f4f4;
-}
 @media (max-width: 992px) {
   .page-list-packages .btn-filter {
     text-align: left;
@@ -1863,6 +1850,7 @@ p.frameworktableinfo-text {
 .page-list-packages .advanced-search-panel .collapsible {
   color: #494949;
   background-color: #f4f4f4;
+  position: relative;
   padding-top: 0px;
   padding-bottom: 0px;
   border: none;
@@ -1875,6 +1863,7 @@ p.frameworktableinfo-text {
 }
 .page-list-packages .advanced-search-panel .collapsible:focus {
   outline: solid;
+  z-index: 1;
 }
 .page-list-packages .advanced-search-panel .tfmTab {
   max-height: 0;
