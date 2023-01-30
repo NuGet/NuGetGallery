@@ -96,5 +96,23 @@ namespace NuGetGallery.Frameworks
                 Assert.True(isCompatible);
             }
         }
+
+        [Theory]
+        [InlineData("net6.0-windows7.0", "net6.0-windows", "net6.0-windows7.0", "net7.0-windows", "net7.0-windows7.0")]
+        public void WindowsPlatformVersionsShouldContainAllSpecifiedFrameworks(string windowsDefaultVersionFramework, params string[]  windowsProjectFrameworks) 
+        {
+            var packageFramework = NuGetFramework.Parse(windowsDefaultVersionFramework);
+            var projectFrameworks = new HashSet<NuGetFramework>();
+
+            foreach (var frameworkName in windowsProjectFrameworks) {
+                projectFrameworks.Add(NuGetFramework.Parse(frameworkName));
+            }
+
+            var compatibleFrameworks = _service.GetCompatibleFrameworks(new HashSet<NuGetFramework>() { packageFramework });
+            Assert.Equal(windowsProjectFrameworks.Length, compatibleFrameworks.Count);
+
+            var containsAllCompatibleFrameworks = compatibleFrameworks.All(cf => projectFrameworks.Contains(cf));
+            Assert.True(containsAllCompatibleFrameworks);
+        }
     }
 }

@@ -61,6 +61,11 @@ namespace NuGetGallery.Frameworks
                 }
             }
 
+            matrix.Add(SupportedFrameworks.Net60Windows7, 
+                new HashSet<NuGetFramework>() {
+                    SupportedFrameworks.Net60Windows, SupportedFrameworks.Net60Windows7,
+                    SupportedFrameworks.Net70Windows, SupportedFrameworks.Net70Windows7 });
+
             return matrix;
         }
     }
