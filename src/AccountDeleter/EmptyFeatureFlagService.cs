@@ -296,6 +296,11 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
+        public bool IsDisplayPackageReadmeWarningEnabled(User user)
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsFrameworkFilteringEnabled(User user) {
             throw new NotImplementedException();
         }

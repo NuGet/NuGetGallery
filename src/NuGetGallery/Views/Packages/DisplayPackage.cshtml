@@ -534,8 +534,16 @@
                                aria-controls="readme-tab"
                                aria-expanded="@(activeBodyTab == "readme" ? "true" : "false")"
                                aria-selected="@(activeBodyTab == "readme" ? "true" : "false")"
+                               style="@(Model.CanDisplayNewWarningWithoutReadme()? "background-color: #fff4ce": "background-color: #transparent")"
                                tabindex="@(activeBodyTab == "readme" ? "0" : "-1")">
-                                <i class="ms-Icon ms-Icon--Dictionary" aria-hidden="true"></i>
+                                @if (Model.CanDisplayNewWarningWithoutReadme())
+                                {
+                                    <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
+                                } 
+                                else
+                                {
+                                    <i class="ms-Icon ms-Icon--Dictionary" aria-hidden="true"></i>
+                                }
                                 README
                             </a>
                         </li>
@@ -670,7 +678,11 @@
                         }
                         else
                         {
-                            if (Model.CanDisplayPrivateMetadata)
+                            if (Model.CanDisplayPrivateMetadata & Model.IsDisplayPackageReadmeWarningEnabled)
+                            {
+                                @ViewHelpers.AlertWarning(@<text>Your package is missing a README. Please update your package to <a href='https://aka.ms/nuget-include-readme'>include a README</a> or <a href=@Url.ManagePackage(Model)>add a README here</a>.</text>);
+                            }
+                            else if (Model.CanDisplayPrivateMetadata)
                             {
                                 @ViewHelpers.AlertWarning(@<text>The package description is shown below. Please update your package to <a href='https://docs.microsoft.com/nuget/nuget-org/package-readme-on-nuget-org'>include a README</a>.</text>);
                             }

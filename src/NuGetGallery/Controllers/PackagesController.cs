@@ -956,6 +956,7 @@ namespace NuGetGallery
             model.IsDisplayTargetFrameworkEnabled = _featureFlagService.IsDisplayTargetFrameworkEnabled(currentUser);
             model.IsComputeTargetFrameworkEnabled = _featureFlagService.IsComputeTargetFrameworkEnabled();
             model.IsMarkdigMdSyntaxHighlightEnabled = _featureFlagService.IsMarkdigMdSyntaxHighlightEnabled();
+            model.IsDisplayPackageReadmeWarningEnabled = _featureFlagService.IsDisplayPackageReadmeWarningEnabled(currentUser);
 
             if (model.IsComputeTargetFrameworkEnabled || model.IsDisplayTargetFrameworkEnabled)
             {

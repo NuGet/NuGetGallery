@@ -44,6 +44,7 @@ namespace NuGetGallery
         public bool IsPackageDependentsEnabled { get; set; }
         public bool IsRecentPackagesNoIndexEnabled { get; set; }
         public bool IsMarkdigMdSyntaxHighlightEnabled { get; set; }
+        public bool IsDisplayPackageReadmeWarningEnabled { get; set; }
         public NuGetPackageGitHubInformation GitHubDependenciesInformation { get; set; }
         public bool HasEmbeddedIcon { get; set; }
         public bool HasEmbeddedReadmeFile { get; set; }
@@ -148,6 +149,11 @@ namespace NuGetGallery
         public bool CanDisplayTargetFrameworks()
         {
             return IsDisplayTargetFrameworkEnabled && !Deleted && !IsDotnetNewTemplatePackageType;
+        }
+
+        public bool CanDisplayNewWarningWithoutReadme()
+        {
+            return !HasEmbeddedReadmeFile && ReadMeHtml == null && IsDisplayPackageReadmeWarningEnabled;
         }
 
         public bool BlockSearchEngineIndexing
