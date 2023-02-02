@@ -16,6 +16,7 @@ using System.Web;
 using System.Web.Caching;
 using System.Web.Mvc;
 using System.Web.Routing;
+using Autofac.Features.OwnedInstances;
 using Moq;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
@@ -5387,6 +5388,234 @@ namespace NuGetGallery
                 }
             }
 
+            public static IEnumerable<object[]> Credential_Data
+            {
+                get
+                {
+                    // Format:
+                    // 1. bool - true -> expecting to see safety categories
+                    // 2. First array is direct credentials (owners)
+                    // 3. Second array is an array of indirect credentials through owner organization members (first array contains credentials of the org itself)
+
+                    yield return new object[]
+                    {
+                        true, // no owners, we still want to enable safety reporting
+                        null,
+                        null
+                    };
+
+                    yield return new object[]
+                    {
+                        true,
+                        new object[]
+                        { // owners
+                            new object[] { "external.MicrosoftAccount" }
+                        },
+                        null
+                    };
+
+                    yield return new object[]
+                    {
+                        false,
+                        new object[]
+                        { // owners
+                            new object[] { "external.AzureActiveDirectory" }
+                        },
+                        null
+                    };
+
+                    yield return new object[]
+                    {
+                        false,
+                        new object[]
+                        { // owners
+                            new object[] { "external.AzureActiveDirectory" },
+                            new object[] { "external.MicrosoftAccount", "apikey.v1" }
+                        },
+                        null
+                    };
+
+                    yield return new object[]
+                    {
+                        false,
+                        new object[]
+                        { // owners
+                            new object[] { "external.AzureActiveDirectory", "external.MicrosoftAccount" }
+                        },
+                        null
+                    };
+
+                    yield return new object[]
+                    {
+                        false,
+                        new object[]
+                        { // owners
+                            new object[] { "external.MicrosoftAccount" },
+                            new object[] { "external.AzureActiveDirectory", "apikey.v4" },
+                            new object[] { "external.MicrosoftAccount", "apikey.v4" }
+                        },
+                        null
+                    };
+
+                    yield return new object[]
+                    {
+                        true,
+                        new object[]
+                        { // owners
+                            new object [] { "external.MicrosoftAccount" }
+                        },
+                        new object[]
+                        { // owner orgs
+                            new object[]
+                            { // members
+                                new object[] { "external.MicrosoftAccount" }, // org credentials
+                                new object [] { "external.MicrosoftAccount" }
+                            }
+                        },
+                    };
+
+                    yield return new object[]
+                    {
+                        true,
+                        null,
+                        new object[]
+                        { // owner orgs
+                            new object[]
+                            { // members
+                                new object[] { "external.MicrosoftAccount", "apikey.v4" }, // org credentials
+                                new object[] { "external.MicrosoftAccount" },
+                                new object[] { "external.MicrosoftAccount" },
+                                new object[] { "external.MicrosoftAccount" }
+                            },
+                            new object[]
+                            { // members
+                                new object[] { "external.MicrosoftAccount" }, // org credentials
+                                new object[] { "external.MicrosoftAccount", "apikey.v4", "apikey.v4" }
+                            }
+                        },
+                    };
+
+                    yield return new object[]
+                    {
+                        false,
+                        null,
+                        new object[]
+                        { // owner orgs
+                            new object[]
+                            { // members
+                                new object[] { "external.MicrosoftAccount", "apikey.v4" }, // org credentials
+                                new object[] { "external.MicrosoftAccount" }
+                            },
+                            new object[]
+                            { // members
+                                new object[] { "external.MicrosoftAccount" }, // org credentials
+                                new object[] {  "external.MicrosoftAccount", "apikey.v4", "apikey.v4" }
+                            },
+                            new object[]
+                            { // members
+                                new object[] { "external.MicrosoftAccount", "apikey.v4" }, // org credentials
+                                new object[] { "external.MicrosoftAccount", "apikey.v4" },
+                                new object[] { "external.MicrosoftAccount", "apikey.v4" },
+                                new object[] { "external.AzureActiveDirectory" }
+                            }
+                        },
+                    };
+
+                    yield return new object[]
+                    {
+                        true,
+                        new object[]
+                        { // owners
+                            new object[] {"external.MicrosoftAccount", "apikey.v4" }
+                        },
+                        new object[]
+                        { // owner orgs
+                            new object[]
+                            { // members
+                                new object[] { "external.MicrosoftAccount" }, // org credentials
+                                new object[] { "external.MicrosoftAccount" }
+                            },
+                            new object[]
+                            { // members
+                                new object[] { "external.MicrosoftAccount", "apikey.v4" }, // org credentials
+                                new object[] { "external.MicrosoftAccount" },
+                                new object[] { "apikey.v4", "external.MicrosoftAccount", "apikey.v4" }
+                            }
+                        },
+                    };
+
+                    yield return new object[]
+                    {
+                        false,
+                        new object[]
+                        { // owners
+                            new object[] {"external.MicrosoftAccount", "apikey.v4" }
+                        },
+                        new object[]
+                        { // owner orgs
+                            new object[]
+                            { // members
+                                new object[] { "apikey.v1", "external.MicrosoftAccount" }, // org credentials
+                                new object[] { "external.MicrosoftAccount" }
+                            },
+                            new object[]
+                            { // members
+                                new object[] { "external.MicrosoftAccount" }, // org credentials
+                                new object[] { "external.MicrosoftAccount", "apikey.v4" },
+                                new object[] { "external.AzureActiveDirectory", "apikey.v4" }
+                            }
+                        },
+                    };
+
+                    yield return new object[]
+                    {
+                        false,
+                        new object[]
+                        { // owners
+                            new object[] {"external.MicrosoftAccount", "apikey.v4" }
+                        },
+                        new object[]
+                        { // owner orgs
+                            new object[]
+                            { // members
+                                new object[] { "external.MicrosoftAccount" }, // org credentials
+                                new object[] { "external.MicrosoftAccount" }
+                            },
+                            new object[]
+                            { // members
+                                new object[] { "external.AzureActiveDirectory", "apikey.v4" }, // org credentials
+                                new object[] { "external.MicrosoftAccount", "apikey.v4" },
+                                new object[] { "external.MicrosoftAccount", "apikey.v4" }
+                            }
+                        },
+                    };
+
+                    yield return new object[]
+                    {
+                        false,
+                        new object[]
+                        { // owners
+                            new object[] {"external.MicrosoftAccount", "apikey.v4" }
+                        },
+                        new object[]
+                        { // owner orgs
+                            new object[]
+                            { // members
+                                new object[] { "external.MicrosoftAccount" }, // org credentials
+                                new object[] { "external.MicrosoftAccount" }
+                            },
+                            new object[] { }, // allow for corner case where an org has no members
+                            new object[]
+                            { // members
+                                new object[] { "external.MicrosoftAccount" }, // org credentials
+                                new object[] { "external.MicrosoftAccount", "apikey.v4" },
+                                new object[] { "external.AzureActiveDirectory", "apikey.v4" }
+                            }
+                        },
+                    };
+                }
+            }
+
             [Theory]
             [MemberData(nameof(NotOwner_Data))]
             public void ShowsFormWhenNotOwner(User currentUser, User owner)
@@ -5443,23 +5672,75 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData(true, "external.MicrosoftAccount")]
-            [InlineData(false, "external.AzureActiveDirectory")]
-            [InlineData(false, "external.AzureActiveDirectory", "apikey.v1")]
-            [InlineData(false, "external.AzureActiveDirectory", "external.MicrosoftAccount")]
-            [InlineData(false, "external.AzureActiveDirectory", "external.MicrosoftAccount", "external.MicrosoftAccount")]
-            [InlineData(false, "external.AzureActiveDirectory", "external.MicrosoftAccount", "external.MicrosoftAccount", "apikey.v4", "apikey.v4")]
-            [InlineData(true, "external.MicrosoftAccount", "external.MicrosoftAccount", "external.MicrosoftAccount")]
-            [InlineData(true, "external.MicrosoftAccount", "external.MicrosoftAccount", "external.MicrosoftAccount", "apikey.v4", "apikey.v4")]
-            public void IncludesSafetyCategoriesWhenNotAadPresent(bool expectingSafetyCategories, params string[] credentialTypes) 
+            [MemberData(nameof(Credential_Data))]
+            public void IncludesSafetyCategoriesWhenNotAadPresent(bool expectingSafetyCategories, object[] directOwnerCredentials, object[] indirectOwnerCredentials) 
             {
-                var owner = new User 
+                // Arrange
+                List<User> owners = new List<User>();
+
+                // -- Direct owners
+                if (directOwnerCredentials != null)
                 {
-                    Credentials = credentialTypes.Select(ct => new Credential { Type = ct }).ToList()
+                    foreach(var ownerCredentialTypes in directOwnerCredentials)
+                    {
+                        owners.Add(new User
+                        {
+                            Credentials = ((object[])ownerCredentialTypes).Select(ct => new Credential { Type = (string)ct }).ToList()
+                        });
+                    }
+                }
+
+                // -- Organization owners
+                if (indirectOwnerCredentials != null)
+                {
+                    foreach (var ownerMembers in indirectOwnerCredentials)
+                    {
+                        var organization = new Organization
+                        {
+                            Members = new List<Membership>()
+                        };
+
+                        var orgCredentialsDone = false;
+                        foreach(var memberCredentialTypes in (object[])ownerMembers)
+                        {
+                            // the first array in an organization object contains the credentials of the org itself
+                            if (!orgCredentialsDone)
+                            {
+                                organization.Credentials = ((object[])memberCredentialTypes).Select(ct => new Credential { Type = (string)ct }).ToList();
+                                orgCredentialsDone = true;
+                            }
+                            else
+                            {
+                                var membership = new Membership
+                                {
+                                    Organization = organization
+                                };
+
+                                var member = new User
+                                {
+                                    Credentials = ((object[])memberCredentialTypes).Select(ct => new Credential { Type = (string)ct }).ToList(),
+                                    Organizations = new List<Membership> { membership }
+                                };
+
+                                membership.Member = member;
+                                organization.Members.Add(membership);
+                            }
+                        }
+
+                        owners.Add(organization);
+                    }
+                }
+
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = PackageId, Owners = owners },
+                    Version = PackageVersion
                 };
 
-                var result = GetReportAbuseResult(null, owner);
+                // Act
+                var result = GetReportAbuseResult(null, package);
 
+                // Assert
                 Assert.IsType<ViewResult>(result);
                 var viewResult = result as ViewResult;
 
