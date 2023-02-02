@@ -259,6 +259,11 @@ namespace NuGetGallery
         bool IsShowReportAbuseSafetyChangesEnabled();
 
         /// <summary>
+        /// Whether the online safety changes to the report abuse form have been enabled
+        /// </summary>
+        bool IsBlockAadContentSafetyReportsEnabled();
+
+        /// <summary>
         /// Whether rendering Markdown content to HTML using Markdig is enabled
         /// </summary>
         bool IsMarkdigMdRenderingEnabled();
