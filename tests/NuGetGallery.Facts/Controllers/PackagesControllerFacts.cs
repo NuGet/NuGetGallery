@@ -5737,8 +5737,12 @@ namespace NuGetGallery
                     Version = PackageVersion
                 };
 
+                var featureFlagService = new Mock<IFeatureFlagService>();
+                featureFlagService.Setup(ff => ff.IsShowReportAbuseSafetyChangesEnabled()).Returns(true);
+                featureFlagService.Setup(ff => ff.IsAllowAadContentSafetyReportsEnabled()).Returns(false);
+
                 // Act
-                var result = GetReportAbuseResult(null, package);
+                var result = GetReportAbuseResult(null, package, featureFlagService);
 
                 // Assert
                 Assert.IsType<ViewResult>(result);
@@ -5766,7 +5770,10 @@ namespace NuGetGallery
                 return GetReportAbuseResult(currentUser, package);
             }
 
-            private ActionResult GetReportAbuseResult(User currentUser, Package package)
+            private ActionResult GetReportAbuseResult(User currentUser, Package package) =>
+                GetReportAbuseResult(currentUser, package, featureFlagService: null);
+
+            private ActionResult GetReportAbuseResult(User currentUser, Package package, Mock<IFeatureFlagService> featureFlagService)
             {
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(p => p.FindPackageByIdAndVersionStrict(PackageId, PackageVersion)).Returns(package);
@@ -5774,6 +5781,7 @@ namespace NuGetGallery
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
+                    featureFlagService: featureFlagService,
                     httpContext: httpContext);
                 controller.SetCurrentUser(currentUser);
                 TestUtility.SetupUrlHelper(controller, httpContext);

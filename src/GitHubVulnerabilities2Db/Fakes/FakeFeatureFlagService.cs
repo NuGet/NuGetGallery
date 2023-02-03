@@ -215,7 +215,7 @@ namespace GitHubVulnerabilities2Db.Fakes
             throw new NotImplementedException();
         }
 
-        public bool IsBlockAadContentSafetyReportsEnabled()
+        public bool IsAllowAadContentSafetyReportsEnabled()
         {
             throw new NotImplementedException();
         }

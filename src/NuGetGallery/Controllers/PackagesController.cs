@@ -1384,8 +1384,8 @@ namespace NuGetGallery
 
             var model = new ReportAbuseViewModel
             {
-                ReasonChoices = _featureFlagService.IsShowReportAbuseSafetyChangesEnabled() 
-                    && (!_featureFlagService.IsBlockAadContentSafetyReportsEnabled() || PackageHasNoAadOwners(package))
+                ReasonChoices = _featureFlagService.IsShowReportAbuseSafetyChangesEnabled()
+                    && (_featureFlagService.IsAllowAadContentSafetyReportsEnabled() || PackageHasNoAadOwners(package))
                     ? ReportAbuseWithSafetyReasons
                     : ReportAbuseReasons,
                 PackageId = id,
