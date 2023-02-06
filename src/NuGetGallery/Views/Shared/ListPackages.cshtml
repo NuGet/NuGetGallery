@@ -4,6 +4,7 @@
     ViewBag.SortText = String.IsNullOrWhiteSpace(Model.SearchTerm) ? "recent installs" : "relevance";
     ViewBag.Tab = "Packages";
     ViewBag.BlockSearchEngineIndexing = !String.IsNullOrWhiteSpace(Model.SearchTerm) || Model.PageIndex != 0;
+    ViewBag.ShowSearchInNavbar = false;
 }
 
 @helper AddPackageFilterOption(string optionName, string optionValue, bool isDefault = false)

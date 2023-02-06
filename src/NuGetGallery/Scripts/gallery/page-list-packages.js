@@ -8,10 +8,6 @@ $(function() {
     const allFrameworks = document.querySelectorAll('.framework');
     const allTfms = document.querySelectorAll('.tfm');
 
-    // Hide the default search bar in the page header
-    const defaultSearchBarHeader = document.getElementById("search-bar-header");
-    defaultSearchBarHeader.parentNode.removeChild(defaultSearchBarHeader);
-
     // Checkbox logic for Framework and Tfm filters
     for (const framework of allFrameworks) {
         framework.addEventListener('click', clickFrameworkCheckbox);
