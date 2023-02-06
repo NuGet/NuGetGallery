@@ -1385,6 +1385,7 @@ namespace NuGetGallery
             var model = new ReportAbuseViewModel
             {
                 ReasonChoices = _featureFlagService.IsShowReportAbuseSafetyChangesEnabled()
+                    && (_featureFlagService.IsAllowAadContentSafetyReportsEnabled() || PackageHasNoAadOwners(package))
                     ? ReportAbuseWithSafetyReasons
                     : ReportAbuseReasons,
                 PackageId = id,
@@ -2855,6 +2856,38 @@ namespace NuGetGallery
                 _telemetryService.TrackPackagePushFailureEvent(packageId, packageVersion);
                 throw;
             }
+        }
+
+        private static bool PackageHasNoAadOwners(Package package)
+        {
+            var owners = package?.PackageRegistration?.Owners;
+            if (owners == null || !owners.Any()) {
+                return true;
+            }
+
+            // First check direct owner credentials
+            if (owners.Any(o => o.Credentials.GetAzureActiveDirectoryCredential() != null))
+            {
+                return false;
+            }
+
+            // Check all members of organization owners
+            var orgOwners = owners.Where(o => o is Organization).Select(o => o as Organization);
+            foreach (var orgOwner in orgOwners)
+            {
+                if (orgOwner.Members == null)
+                {
+                    continue;
+                }
+
+                if (orgOwner.Members.Any(m => m.Member?.Credentials != null &&
+                      m.Member.Credentials.GetAzureActiveDirectoryCredential() != null))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private async Task DeleteUploadedFileForUser(User currentUser, Stream uploadedFileStream)

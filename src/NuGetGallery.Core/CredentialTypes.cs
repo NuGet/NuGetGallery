@@ -104,6 +104,7 @@ namespace NuGetGallery
         {
             return type?.StartsWith(ApiKey.Prefix, StringComparison.OrdinalIgnoreCase) ?? false;
         }
+
         public static bool IsMicrosoftAccount(string type)
         {
             return type?.Equals(External.MicrosoftAccount, StringComparison.OrdinalIgnoreCase) ?? false;

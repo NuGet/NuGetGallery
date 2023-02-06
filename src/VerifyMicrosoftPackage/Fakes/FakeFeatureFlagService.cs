@@ -103,6 +103,8 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
 
         public bool IsShowReportAbuseSafetyChangesEnabled() => throw new NotImplementedException();
 
+        public bool IsAllowAadContentSafetyReportsEnabled() => throw new NotImplementedException();
+
         public bool IsMarkdigMdRenderingEnabled() => throw new NotImplementedException();
 
         public bool IsMarkdigMdSyntaxHighlightEnabled() => throw new NotImplementedException();

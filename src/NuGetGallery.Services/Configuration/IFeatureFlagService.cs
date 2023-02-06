@@ -259,6 +259,11 @@ namespace NuGetGallery
         bool IsShowReportAbuseSafetyChangesEnabled();
 
         /// <summary>
+        /// Whether online safety categories are available to content owned by at least one AAD-authenticated account
+        /// </summary>
+        bool IsAllowAadContentSafetyReportsEnabled();
+
+        /// <summary>
         /// Whether rendering Markdown content to HTML using Markdig is enabled
         /// </summary>
         bool IsMarkdigMdRenderingEnabled();
