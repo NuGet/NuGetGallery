@@ -151,11 +151,6 @@ namespace NuGetGallery
             return IsDisplayTargetFrameworkEnabled && !Deleted && !IsDotnetNewTemplatePackageType;
         }
 
-        public bool CanDisplayNewWarningWithoutReadme()
-        {
-            return !HasEmbeddedReadmeFile && ReadMeHtml == null && IsDisplayPackageReadmeWarningEnabled;
-        }
-
         public bool BlockSearchEngineIndexing
         {
             get

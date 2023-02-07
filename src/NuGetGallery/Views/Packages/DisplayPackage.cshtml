@@ -530,12 +530,12 @@
                                role="tab"
                                data-toggle="tab"
                                id="readme-body-tab"
-                               class="body-tab"
+                               class="body-@(Model.IsDisplayPackageReadmeWarningEnabled && Model.CanDisplayPrivateMetadata? "warning-" : "")tab"
                                aria-controls="readme-tab"
                                aria-expanded="@(activeBodyTab == "readme" ? "true" : "false")"
                                aria-selected="@(activeBodyTab == "readme" ? "true" : "false")"
                                tabindex="@(activeBodyTab == "readme" ? "0" : "-1")">
-                                @if (Model.CanDisplayNewWarningWithoutReadme())
+                                @if (Model.IsDisplayPackageReadmeWarningEnabled && Model.CanDisplayPrivateMetadata)
                                 {
                                     <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
                                 } 
@@ -677,7 +677,7 @@
                         }
                         else
                         {
-                            if (Model.CanDisplayPrivateMetadata & Model.IsDisplayPackageReadmeWarningEnabled)
+                            if (Model.CanDisplayPrivateMetadata && Model.IsDisplayPackageReadmeWarningEnabled)
                             {
                                 @ViewHelpers.AlertWarning(@<text>Your package is missing a README. Please update your package to <a href='https://aka.ms/nuget-include-readme'>include a README</a> or <a href=@Url.ManagePackage(Model)>add a README here</a>.</text>);
                             }
@@ -1379,13 +1379,6 @@
                 hljs.highlightElement(el);
             });
         });
-        </script>
-    }
-
-    if (Model.CanDisplayNewWarningWithoutReadme())
-    {
-        <script>
-            document.getElementById('readme-body-tab').style = "background-color:#fff4ce"
         </script>
     }
 

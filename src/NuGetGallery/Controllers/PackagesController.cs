@@ -941,6 +941,8 @@ namespace NuGetGallery
                 packageRenames,
                 readme);
 
+            var isDisplayPackageReadmeWarningEnabled = _featureFlagService.IsDisplayPackageReadmeWarningEnabled(currentUser) && !model.HasEmbeddedReadmeFile && model.ReadMeHtml == null;
+
             model.ValidatingTooLong = _validationService.IsValidatingTooLong(package);
             model.PackageValidationIssues = _validationService.GetLatestPackageValidationIssues(package);
             model.SymbolsPackageValidationIssues = _validationService.GetLatestPackageValidationIssues(model.LatestSymbolsPackage);
@@ -956,7 +958,7 @@ namespace NuGetGallery
             model.IsDisplayTargetFrameworkEnabled = _featureFlagService.IsDisplayTargetFrameworkEnabled(currentUser);
             model.IsComputeTargetFrameworkEnabled = _featureFlagService.IsComputeTargetFrameworkEnabled();
             model.IsMarkdigMdSyntaxHighlightEnabled = _featureFlagService.IsMarkdigMdSyntaxHighlightEnabled();
-            model.IsDisplayPackageReadmeWarningEnabled = _featureFlagService.IsDisplayPackageReadmeWarningEnabled(currentUser);
+            model.IsDisplayPackageReadmeWarningEnabled = isDisplayPackageReadmeWarningEnabled;
 
             if (model.IsComputeTargetFrameworkEnabled || model.IsDisplayTargetFrameworkEnabled)
             {
