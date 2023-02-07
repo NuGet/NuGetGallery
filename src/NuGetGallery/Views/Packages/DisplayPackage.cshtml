@@ -534,7 +534,6 @@
                                aria-controls="readme-tab"
                                aria-expanded="@(activeBodyTab == "readme" ? "true" : "false")"
                                aria-selected="@(activeBodyTab == "readme" ? "true" : "false")"
-                               style="@(Model.CanDisplayNewWarningWithoutReadme()? "background-color: #fff4ce": "background-color: #transparent")"
                                tabindex="@(activeBodyTab == "readme" ? "0" : "-1")">
                                 @if (Model.CanDisplayNewWarningWithoutReadme())
                                 {
@@ -1380,6 +1379,13 @@
                 hljs.highlightElement(el);
             });
         });
+        </script>
+    }
+
+    if (Model.CanDisplayNewWarningWithoutReadme())
+    {
+        <script>
+            document.getElementById('readme-body-tab').style = "background-color:#fff4ce"
         </script>
     }
 
