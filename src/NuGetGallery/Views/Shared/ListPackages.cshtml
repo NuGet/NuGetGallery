@@ -4,6 +4,7 @@
     ViewBag.SortText = String.IsNullOrWhiteSpace(Model.SearchTerm) ? "recent installs" : "relevance";
     ViewBag.Tab = "Packages";
     ViewBag.BlockSearchEngineIndexing = !String.IsNullOrWhiteSpace(Model.SearchTerm) || Model.PageIndex != 0;
+    ViewBag.ShowSearchInNavbar = false;
 }
 
 @helper AddPackageFilterOption(string optionName, string optionValue, bool isDefault = false)
@@ -76,6 +77,8 @@
                 @if (Model.IsAdvancedSearchFlightEnabled)
                 {
                     <div class="row clearfix advanced-search-panel" id="advancedSearchPanel">
+                        <input type="text" hidden id="frameworks" name="frameworks" value="@Model.Frameworks">
+                        <input type="text" hidden id="tfms" name="tfms" value="@Model.Tfms">
                         @if (Model.IsFrameworkFilteringEnabled)
                         {
                             <div>
@@ -133,9 +136,7 @@
                             </div>
 
                         </div>
-                        <input type="text" hidden id="frameworks" name="frameworks" value="@Model.Frameworks">
-                        <input type="text" hidden id="tfms" name="tfms" value="@Model.Tfms">
-                        <input type="hidden" id="prerel" name="prerel" value="@Model.IncludePrerelease.ToString()">
+                        <input type="hidden" id="prerel" name="prerel" value="@Model.IncludePrerelease.ToString().ToLower()">
                     </div>
                 }
             </div>

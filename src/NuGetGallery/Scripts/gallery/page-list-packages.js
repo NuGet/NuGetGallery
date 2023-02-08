@@ -8,10 +8,6 @@ $(function() {
     const allFrameworks = document.querySelectorAll('.framework');
     const allTfms = document.querySelectorAll('.tfm');
 
-    // Hide the default search bar in the page header
-    const defaultSearchBarHeader = document.getElementById("search-bar-header");
-    defaultSearchBarHeader.parentNode.removeChild(defaultSearchBarHeader);
-
     // Checkbox logic for Framework and Tfm filters
     for (const framework of allFrameworks) {
         framework.addEventListener('click', clickFrameworkCheckbox);
@@ -23,12 +19,10 @@ $(function() {
 
     function clickFrameworkCheckbox() {
         this.indeterminate = false;
-        updateFrameworkFilters(searchForm.frameworks, this.id, this.checked);
 
         const tfms = document.querySelectorAll('[parent=' + this.id + ']');
         tfms.forEach((tfm) => {
             tfm.checked = false;
-            updateFrameworkFilters(searchForm.tfms, tfm.id, false);
         });
     }
 
@@ -40,25 +34,12 @@ $(function() {
 
         framework.checked = false;
         framework.indeterminate = checkedCount !== 0;
-        updateFrameworkFilters(searchForm.frameworks, framework.id, false);
-
-        updateFrameworkFilters(searchForm.tfms, this.id, this.checked);
-    }
-
-    // Update the query string with the selected Frameworks and Tfms
-    function updateFrameworkFilters(searchField, frameworkName, add) {
-        if (add) {
-            searchField.value += frameworkName + ",";
-        }
-        else {
-            searchField.value = searchField.value.replace(frameworkName + ",", "")
-        }
     }
 
     // Submit the form when a user changes the selected 'sortBy' option
     searchForm.sortby.addEventListener('change', (e) => {
         searchForm.sortby.value = e.target.value;
-        searchForm.submit();
+        submitSearchForm();
     });
 
     // Accordion/collapsible logic
@@ -95,6 +76,28 @@ $(function() {
         }
     }
 
+    searchForm.addEventListener('submit', submitSearchForm);
+
+    function submitSearchForm() {
+        constructFilterParameter(searchForm.frameworks, allFrameworks);
+        constructFilterParameter(searchForm.tfms, allTfms);
+        searchForm.submit();
+    }
+
+    // Update the query string with the selected frameworks and tfms
+    function constructFilterParameter(searchField, checkboxList) {
+        searchField.value = "";
+
+        checkboxList.forEach((framework) => {
+            if (framework.checked) {
+                searchField.value += framework.id + ",";
+            }
+        });
+
+        // trim trailing commas
+        searchField.value = searchField.value.replace(/,+$/, '');
+    }
+
     // Initialize state for Framework and Tfm checkboxes
     // NOTE: We first click on all selected Framework checkboxes and then on the selected Tfm checkboxes, which
     // allows us to correctly handle cases where a Framework AND one of its child Tfms is present in the query
@@ -107,5 +110,12 @@ $(function() {
 
         inputFrameworkFilters.map(id => document.getElementById(id)).forEach(checkbox => checkbox.click());
         inputTfmFilters.map(id => document.getElementById(id)).forEach(checkbox => checkbox.click());
+
+        // expand TFM section if a TFM from that generation has been selected
+        allFrameworks.forEach((checkbox) => {
+            if (checkbox.indeterminate) {
+                document.querySelector('[tab=' + checkbox.id + ']').click();
+            }
+        });
     }
 });
