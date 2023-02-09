@@ -26,10 +26,6 @@ namespace NuGet.Services.AzureSearch
 
             [SimpleField(IsFilterable = true)]
             public bool? IsExcludedByDefault { get; set; }
-
-            public Deprecation Deprecation { get; set; }
-
-            public List<Vulnerability> Vulnerabilities { get; set; }
         }
 
         /// <summary>
@@ -52,6 +48,9 @@ namespace NuGet.Services.AzureSearch
             public string[] PackageTypes { get; set; }
             public bool? IsLatestStable { get; set; }
             public bool? IsLatest { get; set; }
+
+            public Deprecation Deprecation { get; set; }
+            public List<Vulnerability> Vulnerabilities { get; set; }
         }
 
         /// <summary>

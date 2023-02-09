@@ -249,7 +249,17 @@ namespace NuGet.Jobs.Catalog2Registration
       ""windowsazureofficial""
     ],
     ""title"": ""Windows Azure Storage"",
-    ""version"": ""7.1.2-alpha+git""
+    ""version"": ""7.1.2-alpha+git"",
+    ""vulnerabilities"": [
+      {
+        ""advisoryUrl"": ""test AdvisoryUrl for Low Severity"",
+        ""severity"": ""0""
+      },
+      {
+        ""advisoryUrl"": ""test AdvisoryUrl for Moderate Severity"",
+        ""severity"": ""1""
+      }
+    ]
   },
   ""packageContent"": ""https://example/fc/windowsazure.storage/7.1.2-alpha/windowsazure.storage.7.1.2-alpha.nupkg"",
   ""registration"": ""https://example/reg-gz-semver2/windowsazure.storage/index.json""
@@ -300,6 +310,19 @@ namespace NuGet.Jobs.Catalog2Registration
         ""targetFramework"": "".NETFramework4.0-Client""
       }
     ],
+    ""deprecation"": {
+      ""@type"": ""deprecation"",
+      ""alternatePackage"": {
+        ""@type"": ""alternatePackage"",
+        ""id"": ""test.alternatepackage"",
+        ""range"": ""[1.0.0, )""
+      },
+      ""message"": ""test message for test.alternatepackage-1.0.0"",
+      ""reasons"": [
+        ""Other"",
+        ""Legacy""
+      ]
+    },
     ""description"": ""Description."",
     ""iconUrl"": ""https://example/fc/windowsazure.storage/7.1.2-alpha/icon"",
     ""id"": ""WindowsAzure.Storage"",

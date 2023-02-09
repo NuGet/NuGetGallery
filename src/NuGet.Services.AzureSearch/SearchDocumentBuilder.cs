@@ -189,6 +189,8 @@ namespace NuGet.Services.AzureSearch
                 owners: owners,
                 packageTypes: packageTypes);
             _baseDocumentBuilder.PopulateMetadata(document, normalizedVersion, leaf);
+            PopulateDeprecationFromCatalog(document, leaf);
+            PopulateVulnerabilitiesFromCatalog(document, leaf);
 
             return document;
         }
@@ -229,8 +231,8 @@ namespace NuGet.Services.AzureSearch
             _baseDocumentBuilder.PopulateMetadata(document, packageId, package);
             PopulateDownloadCount(document, totalDownloadCount);
             PopulateIsExcludedByDefault(document, isExcludedByDefault);
-            PopulateDeprecation(document, package);
-            PopulateVulnerabilities(document, package);
+            PopulateDeprecationFromDb(document, package);
+            PopulateVulnerabilitiesFromDb(document, package);
 
             return document;
         }
@@ -361,18 +363,93 @@ namespace NuGet.Services.AzureSearch
             document.IsExcludedByDefault = isExcludedByDefault;
         }
 
-        private static void PopulateDeprecation(
+        private static void PopulateDeprecationFromDb(
             SearchDocument.Full document,
             Package package)
+        {
+            if (package.Deprecations?.Count != 1)
             {
-                document.Deprecation = new Deprecation(); //TODO: https://github.com/NuGet/NuGetGallery/issues/7297
+                return;
             }
 
-        private static void PopulateVulnerabilities(
+            var packageDeprecation = package.Deprecations?.ElementAt(0) as Entities.PackageDeprecation;
+            if (packageDeprecation == null || packageDeprecation.Status == PackageDeprecationStatus.NotDeprecated)
+            {
+                return;
+            }
+
+            document.Deprecation = new Deprecation()
+            {
+                Message = packageDeprecation.CustomMessage,
+                Reasons = packageDeprecation.Status.ToString().Replace(" ", "").Split(','),
+                AlternatePackage = packageDeprecation.AlternatePackage == null ? null : new AlternatePackage()
+                {
+                    Id = packageDeprecation.AlternatePackage.Id,
+                    Range = string.IsNullOrWhiteSpace(packageDeprecation.AlternatePackage.Version) ? "*" : $"[{packageDeprecation.AlternatePackage.Version}, )"
+                }
+            };
+        }
+
+        private static void PopulateDeprecationFromCatalog(
+            SearchDocument.UpdateLatest document,
+            PackageDetailsCatalogLeaf leaf)
+        {
+            if (leaf.Deprecation?.Reasons == null || !leaf.Deprecation.Reasons.Any())
+            {
+                return;
+            }
+
+            document.Deprecation = new Deprecation()
+            {
+                Reasons = leaf.Deprecation.Reasons.ToArray<string>(),
+                Message = leaf.Deprecation.Message,
+                AlternatePackage = leaf.Deprecation.AlternatePackage == null ? null : new AlternatePackage()
+                {
+                    Id = leaf.Deprecation.AlternatePackage.Id,
+                    Range = leaf.Deprecation.AlternatePackage.Range
+                }
+            };
+        }
+
+        private static void PopulateVulnerabilitiesFromDb(
             SearchDocument.Full document,
             Package package)
+        {
+            document.Vulnerabilities = new List<Vulnerability>();
+            if (package.VulnerablePackageRanges == null)
             {
-                document.Vulnerabilities = new List<Vulnerability>(); //TODO: https://github.com/NuGet/NuGetGallery/issues/7297
+                return;
             }
+
+            foreach (var range in package.VulnerablePackageRanges.Where( x => x?.Vulnerability != null ))
+            {
+
+                document.Vulnerabilities.Add(new Vulnerability() 
+                {  
+                    AdvisoryURL = range.Vulnerability.AdvisoryUrl,
+                    Severity = (int)range.Vulnerability.Severity
+                });
+            }
+        }
+
+        private static void PopulateVulnerabilitiesFromCatalog(
+            SearchDocument.UpdateLatest document,
+            PackageDetailsCatalogLeaf leaf)
+        {
+            document.Vulnerabilities = new List<Vulnerability>();
+            if (leaf.Vulnerabilities == null)
+            {
+                return;
+            }
+
+            foreach (var leafVulnerability in leaf.Vulnerabilities.Where( x => x != null ))
+            {
+                document.Vulnerabilities.Add(new Vulnerability()
+                {
+                    AdvisoryURL = leafVulnerability.AdvisoryUrl,
+                    Severity = (int)Enum.Parse(typeof(PackageVulnerabilitySeverity), leafVulnerability.Severity)
+                });
+            }
+        }
     }
 }

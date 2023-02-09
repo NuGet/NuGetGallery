@@ -951,7 +951,27 @@ namespace NuGet.Services.AzureSearch.SearchService
           ""@id"": ""https://example/reg-gz-semver2/windowsazure.storage/7.1.2-alpha.json""
         }
       ],
-      ""vulnerabilities"": []
+      ""deprecation"": {
+        ""alternatePackage"": {
+          ""id"": ""test.alternatepackage"",
+          ""range"": ""[1.0.0, )""
+        },
+        ""message"": ""test message for test.alternatepackage-1.0.0"",
+        ""reasons"": [
+          ""Other"",
+          ""Legacy""
+        ]
+      },
+      ""vulnerabilities"": [
+        {
+          ""advisoryUrl"": ""test AdvisoryUrl for Low Severity"",
+          ""severity"": 0
+        },
+        {
+          ""advisoryUrl"": ""test AdvisoryUrl for Moderate Severity"",
+          ""severity"": 1
+        }
+      ]
     }
   ]
 }", actualJson);
@@ -1073,15 +1093,15 @@ namespace NuGet.Services.AzureSearch.SearchService
             {
                 var doc = _searchResult.Values[0].Document;
                 doc.Vulnerabilities = new List<Vulnerability>();
-                doc.Vulnerabilities.Add(new Vulnerability() { AdvisoryURL = "advisoryURL1", Severity = 1 });
-                doc.Vulnerabilities.Add(new Vulnerability() { AdvisoryURL = "advisoryURL2", Severity = 2 });
-                doc.Vulnerabilities.Add(new Vulnerability() { AdvisoryURL = "advisoryURL3", Severity = 3 });
+                doc.Vulnerabilities.Add(new Vulnerability() { AdvisoryURL = "advisoryUrl1", Severity = 1 });
+                doc.Vulnerabilities.Add(new Vulnerability() { AdvisoryURL = "advisoryUrl2", Severity = 2 });
+                doc.Vulnerabilities.Add(new Vulnerability() { AdvisoryURL = "advisoryUrl3", Severity = 3 });
 
                 //expected result
                 var vulnerabilities = new List<V3SearchVulnerability>();
-                vulnerabilities.Add(new V3SearchVulnerability() { AdvisoryURL = "advisoryURL1", Severity = 1 });
-                vulnerabilities.Add(new V3SearchVulnerability() { AdvisoryURL = "advisoryURL2", Severity = 2 });
-                vulnerabilities.Add(new V3SearchVulnerability() { AdvisoryURL = "advisoryURL3", Severity = 3 });
+                vulnerabilities.Add(new V3SearchVulnerability() { AdvisoryUrl = "advisoryUrl1", Severity = 1 });
+                vulnerabilities.Add(new V3SearchVulnerability() { AdvisoryUrl = "advisoryUrl2", Severity = 2 });
+                vulnerabilities.Add(new V3SearchVulnerability() { AdvisoryUrl = "advisoryUrl3", Severity = 3 });
 
                 var response = Target.V3FromSearchDocument(
                     _v3Request,
@@ -1091,7 +1111,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 for (int i = 0; i < vulnerabilities.Count; i++)
                 {
-                    Assert.Equal(vulnerabilities[i].AdvisoryURL, response.Data[0].Vulnerabilities[i].AdvisoryURL);
+                    Assert.Equal(vulnerabilities[i].AdvisoryUrl, response.Data[0].Vulnerabilities[i].AdvisoryUrl);
                     Assert.Equal(vulnerabilities[i].Severity, response.Data[0].Vulnerabilities[i].Severity);
                 }
 
@@ -1232,7 +1252,27 @@ namespace NuGet.Services.AzureSearch.SearchService
           ""@id"": ""https://example/reg-gz-semver2/windowsazure.storage/7.1.2-alpha.json""
         }
       ],
-      ""vulnerabilities"": []
+      ""deprecation"": {
+        ""alternatePackage"": {
+          ""id"": ""test.alternatepackage"",
+          ""range"": ""[1.0.0, )""
+        },
+        ""message"": ""test message for test.alternatepackage-1.0.0"",
+        ""reasons"": [
+          ""Other"",
+          ""Legacy""
+        ]
+      },
+      ""vulnerabilities"": [
+        {
+          ""advisoryUrl"": ""test AdvisoryUrl for Low Severity"",
+          ""severity"": 0
+        },
+        {
+          ""advisoryUrl"": ""test AdvisoryUrl for Moderate Severity"",
+          ""severity"": 1
+        }
+      ]
     }
   ]
 }", actualJson);
@@ -1401,15 +1441,15 @@ namespace NuGet.Services.AzureSearch.SearchService
             {
                 var doc = _searchResult.Values[0].Document;
                 doc.Vulnerabilities = new List<Vulnerability>();
-                doc.Vulnerabilities.Add(new Vulnerability() { AdvisoryURL = "advisoryURL1", Severity = 1 });
-                doc.Vulnerabilities.Add(new Vulnerability() { AdvisoryURL = "advisoryURL2", Severity = 2 });
-                doc.Vulnerabilities.Add(new Vulnerability() { AdvisoryURL = "advisoryURL3", Severity = 3 });
+                doc.Vulnerabilities.Add(new Vulnerability() { AdvisoryURL = "advisoryUrl1", Severity = 1 });
+                doc.Vulnerabilities.Add(new Vulnerability() { AdvisoryURL = "advisoryUrl2", Severity = 2 });
+                doc.Vulnerabilities.Add(new Vulnerability() { AdvisoryURL = "advisoryUrl3", Severity = 3 });
 
                 //expected result
                 var vulnerabilities = new List<V3SearchVulnerability>();
-                vulnerabilities.Add(new V3SearchVulnerability() { AdvisoryURL = "advisoryURL1", Severity = 1 });
-                vulnerabilities.Add(new V3SearchVulnerability() { AdvisoryURL = "advisoryURL2", Severity = 2 });
-                vulnerabilities.Add(new V3SearchVulnerability() { AdvisoryURL = "advisoryURL3", Severity = 3 });
+                vulnerabilities.Add(new V3SearchVulnerability() { AdvisoryUrl = "advisoryUrl1", Severity = 1 });
+                vulnerabilities.Add(new V3SearchVulnerability() { AdvisoryUrl = "advisoryUrl2", Severity = 2 });
+                vulnerabilities.Add(new V3SearchVulnerability() { AdvisoryUrl = "advisoryUrl3", Severity = 3 });
 
                 var response = Target.V3FromSearchDocument(
                     _v3Request,
@@ -1419,7 +1459,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 for (int i = 0; i < vulnerabilities.Count; i++)
                 {
-                    Assert.Equal(vulnerabilities[i].AdvisoryURL, response.Data[0].Vulnerabilities[i].AdvisoryURL);
+                    Assert.Equal(vulnerabilities[i].AdvisoryUrl, response.Data[0].Vulnerabilities[i].AdvisoryUrl);
                     Assert.Equal(vulnerabilities[i].Severity, response.Data[0].Vulnerabilities[i].Severity);
                 }
                 

@@ -474,7 +474,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 {
                     vulnerabilities.Add(new V3SearchVulnerability 
                     {
-                        AdvisoryURL = vulnerability.AdvisoryURL,
+                        AdvisoryUrl = vulnerability.AdvisoryURL,
                         Severity = vulnerability.Severity
                     });
                 }
