@@ -52,6 +52,7 @@ namespace NuGetGallery
         private const string ImageAllowlistFlightName = GalleryPrefix + "ImageAllowlist";
         private const string DisplayBannerFlightName = GalleryPrefix + "Banner";
         private const string ShowReportAbuseSafetyChanges = GalleryPrefix + "ShowReportAbuseSafetyChanges";
+        private const string AllowAadContentSafetyReports = GalleryPrefix + "AllowAadContentSafetyReports";
         private const string DisplayTargetFrameworkFeatureName = GalleryPrefix + "DisplayTargetFramework";
         private const string ComputeTargetFrameworkFeatureName = GalleryPrefix + "ComputeTargetFramework";
         private const string RecentPackagesNoIndexFeatureName = GalleryPrefix + "RecentPackagesNoIndex";
@@ -331,6 +332,11 @@ namespace NuGetGallery
         public bool IsShowReportAbuseSafetyChangesEnabled()
         {
             return _client.IsEnabled(ShowReportAbuseSafetyChanges, defaultValue: false);
+        }
+
+        public bool IsAllowAadContentSafetyReportsEnabled()
+        {
+            return _client.IsEnabled(AllowAadContentSafetyReports, defaultValue: false);
         }
 
         public bool IsMarkdigMdRenderingEnabled()

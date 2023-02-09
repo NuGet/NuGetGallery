@@ -11,21 +11,6 @@
     margin: 0 !important;
   }
 
-  .btn-filter {
-    margin-top: 33px;
-    margin-bottom: 33px;
-    width: 90px;
-    height: 45px;
-    font-weight: 500;
-    font-size: medium;
-    background-color: transparent;
-    border: none;
-  }
-
-  .btn-filter:hover {
-    background-color: #f4f4f4;
-  }
-
   @media (max-width: @screen-md) {
     .btn-filter {
       text-align: left;
@@ -118,6 +103,7 @@
     .collapsible {
       color: rgb(73, 73, 73);
       background-color: @alert-info-bg;
+      position: relative;
       padding-top: 0px;
       padding-bottom: 0px;
       border: none;
@@ -131,6 +117,7 @@
 
     .collapsible:focus {
       outline: solid;
+      z-index: 1;
     }
 
     .tfmTab {

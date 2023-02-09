@@ -2058,7 +2058,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You have not published a package with this prefix in the past. This means other users may be able to push packages starting with the same prefix. Contact account@nuget.org to reserve the prefix. Go to https://docs.microsoft.com/en-us/nuget/reference/id-prefix-reservation to learn more about Package ID prefix reservation..
+        ///   Looks up a localized string similar to You have not published a package with this prefix in the past. This means other users may be able to push packages starting with the same prefix. Contact account@nuget.org to reserve the prefix. Go to https://docs.microsoft.com/nuget/reference/id-prefix-reservation to learn more about Package ID prefix reservation..
         /// </summary>
         public static string SecurityPolicy_RequirePackagePrefixReserved {
             get {
@@ -2598,7 +2598,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID. Go to https://docs.microsoft.com/en-us/nuget/reference/id-prefix-reservation learn more about Package ID prefix reservation..
+        ///   Looks up a localized string similar to This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID. Go to https://docs.microsoft.com/nuget/reference/id-prefix-reservation learn more about Package ID prefix reservation..
         /// </summary>
         public static string UploadPackage_IdNamespaceConflict {
             get {
@@ -2607,7 +2607,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID. &lt;a href=&quot;https://docs.microsoft.com/en-us/nuget/reference/id-prefix-reservation&quot;&gt;Learn more about Package ID prefix reservation&lt;/a&gt;..
+        ///   Looks up a localized string similar to This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID. &lt;a href=&quot;https://docs.microsoft.com/nuget/reference/id-prefix-reservation&quot;&gt;Learn more about Package ID prefix reservation&lt;/a&gt;..
         /// </summary>
         public static string UploadPackage_IdNamespaceConflictHtml {
             get {
@@ -2841,7 +2841,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Readme missing. Go to https://learn.microsoft.com/en-us/nuget/create-packages/package-authoring-best-practices#readme learn How to include a readme file within the package..
+        ///   Looks up a localized string similar to Readme missing. Go to https://aka.ms/nuget-include-readme learn How to include a readme file within the package..
         /// </summary>
         public static string UploadPackage_MissingReadme {
             get {
@@ -2850,7 +2850,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;strong&gt;Readme&lt;/strong&gt; missing.&lt;a href=&quot;https://learn.microsoft.com/en-us/nuget/create-packages/package-authoring-best-practices#readme&quot;&gt; See how to include a readme file within the package&lt;/a&gt;, or add it as you upload..
+        ///   Looks up a localized string similar to &lt;strong&gt;Readme&lt;/strong&gt; missing.&lt;a href=&quot;https://aka.ms/nuget-include-readme&quot;&gt; See how to include a readme file within the package&lt;/a&gt;, or add it as you upload..
         /// </summary>
         public static string UploadPackage_MissingReadmeHtml {
             get {

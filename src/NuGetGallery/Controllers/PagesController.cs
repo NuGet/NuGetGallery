@@ -152,6 +152,11 @@ namespace NuGetGallery
         [HttpGet]
         public virtual async Task<ActionResult> Privacy()
         {
+            if (!String.IsNullOrEmpty(Url.ExternalPrivacyUrl()))
+            {
+                return Redirect(Url.ExternalPrivacyUrl());
+            }
+
             if (_contentService != null)
             {
                 ViewBag.Content = await _contentService.GetContentItemAsync(
