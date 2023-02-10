@@ -666,8 +666,7 @@ img.reserved-indicator-icon {
 .readme .readme-container {
   display: block;
   padding: 10.5px;
-  background-color: #f5f5f5;
-  border: 1px solid #ccc;
+  border: 2px solid #ccc;
   word-break: normal;
   margin-bottom: 24px;
   overflow: auto;
@@ -700,7 +699,7 @@ img.reserved-indicator-icon {
   font-size: 16px;
 }
 .readme-common pre code.hljs {
-  background-color: #f6f8fa;
+  background-color: #f5f5f5;
   color: #24292e;
 }
 .readme-common pre code.hljs .hljs-doctag,
@@ -742,7 +741,7 @@ img.reserved-indicator-icon {
 .readme-common pre code.hljs .hljs-comment,
 .readme-common pre code.hljs .hljs-code,
 .readme-common pre code.hljs .hljs-formula {
-  color: #6a737d;
+  color: #646d76;
 }
 .readme-common pre code.hljs .hljs-name,
 .readme-common pre code.hljs .hljs-quote,
