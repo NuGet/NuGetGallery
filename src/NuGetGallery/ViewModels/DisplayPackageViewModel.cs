@@ -44,7 +44,7 @@ namespace NuGetGallery
         public bool IsPackageDependentsEnabled { get; set; }
         public bool IsRecentPackagesNoIndexEnabled { get; set; }
         public bool IsMarkdigMdSyntaxHighlightEnabled { get; set; }
-        public bool IsDisplayPackageReadmeWarningEnabled { get; set; }
+        public bool CanDisplayReadmeWarning { get; set; }
         public NuGetPackageGitHubInformation GitHubDependenciesInformation { get; set; }
         public bool HasEmbeddedIcon { get; set; }
         public bool HasEmbeddedReadmeFile { get; set; }

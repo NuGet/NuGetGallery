@@ -530,12 +530,12 @@
                                role="tab"
                                data-toggle="tab"
                                id="readme-body-tab"
-                               class="body-@(Model.IsDisplayPackageReadmeWarningEnabled && Model.CanDisplayPrivateMetadata? "warning-" : "")tab"
+                               class="body-@(Model.CanDisplayReadmeWarning && Model.CanDisplayPrivateMetadata? "warning-" : "")tab"
                                aria-controls="readme-tab"
                                aria-expanded="@(activeBodyTab == "readme" ? "true" : "false")"
                                aria-selected="@(activeBodyTab == "readme" ? "true" : "false")"
                                tabindex="@(activeBodyTab == "readme" ? "0" : "-1")">
-                                @if (Model.IsDisplayPackageReadmeWarningEnabled && Model.CanDisplayPrivateMetadata)
+                                @if (Model.CanDisplayReadmeWarning && Model.CanDisplayPrivateMetadata)
                                 {
                                     <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
                                 } 
