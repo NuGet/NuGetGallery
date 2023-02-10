@@ -1865,6 +1865,7 @@ p.frameworktableinfo-text {
   z-index: 1;
 }
 .page-list-packages .advanced-search-panel .tfmTab {
+  display: none;
   max-height: 0;
   overflow: hidden;
   -webkit-transition: max-height 0.1s ease-out;

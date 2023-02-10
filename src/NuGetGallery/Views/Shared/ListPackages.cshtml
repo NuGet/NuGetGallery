@@ -37,9 +37,10 @@
         </button>
         <div class="tfmTab" id="@(frameworkShortName)tab">
             <ul>
-                @foreach (var tfm in tfms) {
+                @foreach (var tfm in tfms)
+                {
                     <li>
-                        <input type="checkbox" id="@(tfm)" class="tfm" tabindex="-1" parent="@(frameworkShortName)">
+                        <input type="checkbox" id="@(tfm)" class="tfm" parent="@(frameworkShortName)">
                         <label for="@(tfm)">@(tfm)</label>
                     </li>
                 }
