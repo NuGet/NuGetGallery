@@ -12,11 +12,6 @@
     @AddRadioGroupOption("Package Type", "packagetype", optionName, optionValue, Model.PackageType, isDefault);
 }
 
-@helper AddSortByOption(string optionName, string optionValue, bool isDefault = false)
-{
-    @AddRadioGroupOption("Sort By", "sortby", optionName, optionValue, Model.SortBy, isDefault);
-}
-
 @helper AddRadioGroupOption(string ariaSectionLabel, string radioGroupName, string optionName, string optionValue, string optionCompareValue, bool isDefault = false)
 {
     <div style="display: flex;">

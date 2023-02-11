@@ -37,10 +37,13 @@ $(function() {
     }
 
     // Submit the form when a user changes the selected 'sortBy' option
-    searchForm.sortby.addEventListener('change', (e) => {
-        searchForm.sortby.value = e.target.value;
-        submitSearchForm();
-    });
+    if (typeof searchForm != "undefined" &&
+        typeof searchForm.sortby != "undefined") { // /profiles pages use this js file too, but do not have a searchForm element
+        searchForm.sortby.addEventListener('change', (e) => {
+            searchForm.sortby.value = e.target.value;
+            submitSearchForm();
+        });
+    }
 
     // Accordion/collapsible logic
     const collapsibles = document.querySelectorAll('.collapsible');
@@ -76,7 +79,9 @@ $(function() {
         }
     }
 
-    searchForm.addEventListener('submit', submitSearchForm);
+    if (typeof searchForm != "undefined") { // /profiles pages use this js file too, but do not have a searchForm element
+        searchForm.addEventListener('submit', submitSearchForm);
+    }
 
     function submitSearchForm() {
         constructFilterParameter(searchForm.frameworks, allFrameworks);
@@ -98,10 +103,15 @@ $(function() {
         searchField.value = searchField.value.replace(/,+$/, '');
     }
 
+    if (typeof searchForm != "undefined" &&
+        typeof searchForm.frameworks != "undefined" &&
+        typeof searchForm.tfms != "undefined") { // /profiles pages use this js file too, but do not have a searchForm element
+        initializeFrameworkAndTfmCheckboxes();
+    }
+
     // Initialize state for Framework and Tfm checkboxes
     // NOTE: We first click on all selected Framework checkboxes and then on the selected Tfm checkboxes, which
     // allows us to correctly handle cases where a Framework AND one of its child Tfms is present in the query
-    initializeFrameworkAndTfmCheckboxes();
     function initializeFrameworkAndTfmCheckboxes() {
         var inputFrameworkFilters = searchForm.frameworks.value.split(',').map(f => f.trim()).filter(f => f);
         var inputTfmFilters = searchForm.tfms.value.split(',').map(f => f.trim()).filter(f => f);
