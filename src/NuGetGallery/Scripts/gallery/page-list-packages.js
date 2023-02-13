@@ -36,12 +36,6 @@ $(function() {
         framework.indeterminate = checkedCount !== 0;
     }
 
-    // Submit the form when a user changes the selected 'sortBy' option
-    searchForm.sortby.addEventListener('change', (e) => {
-        searchForm.sortby.value = e.target.value;
-        submitSearchForm();
-    });
-
     // Accordion/collapsible logic
     const collapsibles = document.querySelectorAll('.collapsible');
 
@@ -68,8 +62,7 @@ $(function() {
         }
     }
 
-    searchForm.addEventListener('submit', submitSearchForm);
-
+    // Update query params before submitting the form
     function submitSearchForm() {
         constructFilterParameter(searchForm.frameworks, allFrameworks);
         constructFilterParameter(searchForm.tfms, allTfms);
@@ -93,7 +86,6 @@ $(function() {
     // Initialize state for Framework and Tfm checkboxes
     // NOTE: We first click on all selected Framework checkboxes and then on the selected Tfm checkboxes, which
     // allows us to correctly handle cases where a Framework AND one of its child Tfms is present in the query
-    initializeFrameworkAndTfmCheckboxes();
     function initializeFrameworkAndTfmCheckboxes() {
         var inputFrameworkFilters = searchForm.frameworks.value.split(',').map(f => f.trim()).filter(f => f);
         var inputTfmFilters = searchForm.tfms.value.split(',').map(f => f.trim()).filter(f => f);
@@ -109,5 +101,15 @@ $(function() {
                 document.querySelector('[tab=' + checkbox.id + ']').click();
             }
         });
+    }
+
+    // The /profiles pages use this js file too, but some code needs to be applied only to the search page
+    if (searchForm) {
+        searchForm.sortby.addEventListener('change', (e) => {
+            searchForm.sortby.value = e.target.value;
+            submitSearchForm();
+        });
+        searchForm.addEventListener('submit', submitSearchForm);
+        initializeFrameworkAndTfmCheckboxes();
     }
 });
