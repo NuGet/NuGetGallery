@@ -36,15 +36,6 @@ $(function() {
         framework.indeterminate = checkedCount !== 0;
     }
 
-    // Submit the form when a user changes the selected 'sortBy' option
-    if (typeof searchForm != "undefined" &&
-        typeof searchForm.sortby != "undefined") { // /profiles pages use this js file too, but do not have a searchForm element
-        searchForm.sortby.addEventListener('change', (e) => {
-            searchForm.sortby.value = e.target.value;
-            submitSearchForm();
-        });
-    }
-
     // Accordion/collapsible logic
     const collapsibles = document.querySelectorAll('.collapsible');
 
@@ -79,10 +70,7 @@ $(function() {
         }
     }
 
-    if (typeof searchForm != "undefined") { // /profiles pages use this js file too, but do not have a searchForm element
-        searchForm.addEventListener('submit', submitSearchForm);
-    }
-
+    // Update query params before submitting the form
     function submitSearchForm() {
         constructFilterParameter(searchForm.frameworks, allFrameworks);
         constructFilterParameter(searchForm.tfms, allTfms);
@@ -103,12 +91,6 @@ $(function() {
         searchField.value = searchField.value.replace(/,+$/, '');
     }
 
-    if (typeof searchForm != "undefined" &&
-        typeof searchForm.frameworks != "undefined" &&
-        typeof searchForm.tfms != "undefined") { // /profiles pages use this js file too, but do not have a searchForm element
-        initializeFrameworkAndTfmCheckboxes();
-    }
-
     // Initialize state for Framework and Tfm checkboxes
     // NOTE: We first click on all selected Framework checkboxes and then on the selected Tfm checkboxes, which
     // allows us to correctly handle cases where a Framework AND one of its child Tfms is present in the query
@@ -127,5 +109,15 @@ $(function() {
                 document.querySelector('[tab=' + checkbox.id + ']').click();
             }
         });
+    }
+
+    // The /profiles pages use this js file too, but some code needs to be applied only to the search page
+    if (searchForm) {
+        searchForm.sortby.addEventListener('change', (e) => {
+            searchForm.sortby.value = e.target.value;
+            submitSearchForm();
+        });
+        searchForm.addEventListener('submit', submitSearchForm);
+        initializeFrameworkAndTfmCheckboxes();
     }
 });
