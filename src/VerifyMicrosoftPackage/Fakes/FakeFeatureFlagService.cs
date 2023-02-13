@@ -129,6 +129,8 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
 
         public bool IsDisplayUploadWarningV2Enabled(User user) => throw new NotImplementedException();
 
+        public bool IsDisplayPackageReadmeWarningEnabled(User user) => throw new NotImplementedException();
+
         public bool IsFrameworkFilteringEnabled(User user) => throw new NotImplementedException();
     }
 }
