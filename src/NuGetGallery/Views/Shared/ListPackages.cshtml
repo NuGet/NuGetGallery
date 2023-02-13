@@ -37,9 +37,10 @@
         </button>
         <div class="tfmTab" id="@(frameworkShortName)tab">
             <ul>
-                @foreach (var tfm in tfms) {
+                @foreach (var tfm in tfms)
+                {
                     <li>
-                        <input type="checkbox" id="@(tfm)" class="tfm" tabindex="-1" parent="@(frameworkShortName)">
+                        <input type="checkbox" id="@(tfm)" class="tfm" parent="@(frameworkShortName)">
                         <label for="@(tfm)">@(tfm)</label>
                     </li>
                 }
@@ -195,7 +196,7 @@
                 {
                     <div class="row">
                         <div class="col-xs-12 clearfix">
-                            <div class="panel panel-default" aria-expanded="true">
+                            <div class="panel panel-default">
                                 <div class="panel-body">
                                     NuGet package search works the same on nuget.org, from the NuGet CLI, and within the NuGet Package Manager extension in Visual Studio. <br />
                                     Check out our <strong><a href="https://docs.microsoft.com/nuget/consume-packages/finding-and-choosing-packages#search-syntax">Search Syntax</a></strong>.

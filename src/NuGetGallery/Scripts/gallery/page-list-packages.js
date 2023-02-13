@@ -59,20 +59,12 @@ $(function() {
         expandButton.classList.toggle('ms-Icon--ChevronUp');
 
         if (this.classList.contains('active')) {
+            dataTab.style.display = 'block';
             dataTab.style.maxHeight = dataTab.scrollHeight + "px";
-
-            for (const tfm of tfmCheckboxes) {
-                tfm.setAttribute('tabindex', '0');
-                tfm.tabindex = "0";
-            }
         }
         else {
+            dataTab.style.display = 'none';
             dataTab.style.maxHeight = 0;
-
-            for (const tfm of tfmCheckboxes) {
-                tfm.setAttribute('tabindex', '-1');
-                tfm.tabindex = "-1";
-            }
         }
     }
 
