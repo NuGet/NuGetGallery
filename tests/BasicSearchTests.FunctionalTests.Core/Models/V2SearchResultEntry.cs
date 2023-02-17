@@ -58,6 +58,10 @@ namespace BasicSearchTests.FunctionalTests.Core.Models
 
         public string[] SupportedFrameworks { get; set; }
 
+        public string[] Frameworks { get; set; }
+
+        public string[] Tfms { get; set; }
+
         public string Hash { get; set; }
 
         public string HashAlgorithm { get; set; }

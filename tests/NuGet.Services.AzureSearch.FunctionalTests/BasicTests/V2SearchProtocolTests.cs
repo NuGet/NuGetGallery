@@ -384,6 +384,265 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
         }
 
         [Fact]
+        public async Task ByDefaultReturnsAnyFrameworkAndTfm()
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                Query = $"packageid:{Constants.TestPackageId}",
+            };
+
+            var results = await V2SearchAsync(searchBuilder);
+
+            var package = Assert.Single(results.Data);
+            Assert.Equal(Constants.TestPackageId, package.PackageRegistration.Id);
+            Assert.Single(package.Frameworks, Constants.TestPackageFrameworkGeneration);
+            Assert.Single(package.Tfms, Constants.TestPackageTfm);
+        }
+
+        [Fact]
+        public async Task ByDefaultIncludesPackagesWithoutFrameworksAndTfmsToo()
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                Query = $"packageid:{Constants.TestPackageId_NoAssetFrameworks}",
+            };
+
+            var results = await V2SearchAsync(searchBuilder);
+
+            var package = Assert.Single(results.Data);
+            Assert.Equal(Constants.TestPackageId_NoAssetFrameworks, package.PackageRegistration.Id);
+            Assert.Equal(Constants.TestPackageVersion_NoAssetFrameworks, package.Version);
+            Assert.Empty(package.Frameworks);
+            Assert.Empty(package.Tfms);
+        }
+
+        [Fact]
+        public async Task ExcludesPackagesWithoutMatchingFramework()
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                Query = $"packageid:{Constants.TestPackageId}",
+                Frameworks = "netstandard",
+            };
+
+            var results = await V2SearchAsync(searchBuilder);
+
+            Assert.Empty(results.Data);
+        }
+
+        [Fact]
+        public async Task ExcludesPackagesWithoutMatchingTfm()
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                Query = $"packageid:{Constants.TestPackageId}",
+                Tfms = "netstandard2.1",
+            };
+
+            var results = await V2SearchAsync(searchBuilder);
+
+            Assert.Empty(results.Data);
+        }
+
+        [Fact]
+        public async Task IncludesPackagesWithMatchingFramework()
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                Query = $"packageid:{Constants.TestPackageId}",
+                Frameworks = "netframework",
+            };
+
+            var results = await V2SearchAsync(searchBuilder);
+
+            var package = Assert.Single(results.Data);
+            Assert.Equal(Constants.TestPackageId, package.PackageRegistration.Id);
+            Assert.Equal(Constants.TestPackageVersion, package.Version);
+            Assert.Single(package.Frameworks, Constants.TestPackageFrameworkGeneration);
+        }
+
+        [Fact]
+        public async Task IncludesPackagesWithMatchingTfm()
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                Query = $"packageid:{Constants.TestPackageId}",
+                Tfms = "net",
+            };
+
+            var results = await V2SearchAsync(searchBuilder);
+
+            var package = Assert.Single(results.Data);
+            Assert.Equal(Constants.TestPackageId, package.PackageRegistration.Id);
+            Assert.Equal(Constants.TestPackageVersion, package.Version);
+            Assert.Single(package.Tfms, Constants.TestPackageTfm);
+        }
+
+        [Fact]
+        public async Task IncludesPackagesWithMatchingFrameworkAndTfm()
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                Query = $"packageid:{Constants.TestPackageId}",
+                Frameworks = "netframework",
+                Tfms = "net",
+            };
+
+            var results = await V2SearchAsync(searchBuilder);
+
+            var package = Assert.Single(results.Data);
+            Assert.Equal(Constants.TestPackageId, package.PackageRegistration.Id);
+            Assert.Equal(Constants.TestPackageVersion, package.Version);
+            Assert.Single(package.Frameworks, Constants.TestPackageFrameworkGeneration);
+            Assert.Single(package.Tfms, Constants.TestPackageTfm);
+        }
+
+        [Fact]
+        public async Task TreatsFrameworksAndTfmsAsCaseInsensitive()
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                Query = $"packageid:{Constants.TestPackageId}",
+                Frameworks = "nEtfraMeworK",
+                Tfms = "NeT",
+            };
+
+            var results = await V2SearchAsync(searchBuilder);
+
+            var package = Assert.Single(results.Data);
+            Assert.Equal(Constants.TestPackageId, package.PackageRegistration.Id);
+            Assert.Equal(Constants.TestPackageVersion, package.Version);
+            Assert.Single(package.Frameworks, Constants.TestPackageFrameworkGeneration);
+            Assert.Single(package.Tfms, Constants.TestPackageTfm);
+        }
+
+        [Fact]
+        public async Task ExcludesPackagesThatDoNotMatchFrameworksField()
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                Query = $"packageid:{Constants.TestPackageId}",
+                Frameworks = "netstandard",
+                Tfms = "net",
+            };
+
+            var results = await V2SearchAsync(searchBuilder);
+
+            Assert.Empty(results.Data);
+        }
+
+        [Fact]
+        public async Task ExcludesPackagesThatDoNotMatchTfmsField()
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                Query = $"packageid:{Constants.TestPackageId}",
+                Frameworks = "netframework",
+                Tfms = "netstandard2.1",
+            };
+
+            var results = await V2SearchAsync(searchBuilder);
+
+            Assert.Empty(results.Data);
+        }
+
+        [Fact]
+        public async Task ExcludesPackagesThatDoNotMatchAllFrameworks()
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                Query = $"packageid:{Constants.TestPackageId}",
+                Frameworks = "netframework,netstandard",
+                Tfms = "net",
+            };
+
+            var results = await V2SearchAsync(searchBuilder);
+
+            Assert.Empty(results.Data);
+        }
+
+        [Fact]
+        public async Task ExcludesPackagesThatDoNotMatchAllTfms()
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                Query = $"packageid:{Constants.TestPackageId}",
+                Frameworks = "netframework",
+                Tfms = "net,netstandard2.1",
+            };
+
+            var results = await V2SearchAsync(searchBuilder);
+
+            Assert.Empty(results.Data);
+        }
+
+        [Fact]
+        public async Task ReturnsErrorWhenTheFrameworkDoesNotExist()
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                Frameworks = "NotARealFramework",
+            };
+
+            var ex = await Assert.ThrowsAsync<HttpRequestException>(async () => {
+                var results = await V2SearchAsync(searchBuilder);
+            });
+
+            Assert.Equal("Response status code does not indicate success: 400 (Bad Request).", ex.Message);
+        }
+
+        [Fact]
+        public async Task ReturnsErrorWhenTheTfmDoesNotExist()
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                Tfms = "NotARealTfm",
+            };
+
+            var ex = await Assert.ThrowsAsync<HttpRequestException>(async () => {
+                var results = await V2SearchAsync(searchBuilder);
+            });
+
+            Assert.Equal("Response status code does not indicate success: 400 (Bad Request).", ex.Message);
+        }
+
+        [Fact]
+        public async Task ReturnsErrorWhenUsingFrameworksFilterOnHijack()
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                Query = $"packageid:{Constants.TestPackageId}",
+                Frameworks = "netframework",
+                IgnoreFilter = true,
+            };
+
+            var ex = await Assert.ThrowsAsync<HttpRequestException>(async () =>
+            {
+                var results = await V2SearchAsync(searchBuilder);
+            });
+
+            Assert.Equal("Response status code does not indicate success: 400 (Bad Request).", ex.Message);
+        }
+
+        [Fact]
+        public async Task ReturnsErrorWhenUsingTfmsFilterOnHijack()
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                Query = $"packageid:{Constants.TestPackageId}",
+                Tfms = "net",
+                IgnoreFilter = true,
+            };
+
+            var ex = await Assert.ThrowsAsync<HttpRequestException>(async () =>
+            {
+                var results = await V2SearchAsync(searchBuilder);
+            });
+
+            Assert.Equal("Response status code does not indicate success: 400 (Bad Request).", ex.Message);
+        }
+
+        [Fact]
         public async Task ReturnsErrorWhenSortingByDownloadsAscOnHijack()
         {
             var searchBuilder = new V2SearchBuilder
