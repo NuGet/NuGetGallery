@@ -12,7 +12,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
         public int MaxConcurrentCatalogLeafDownloads { get; set; } = 64;
         public bool CreateContainersAndIndexes { get; set; }
         public string Source { get; set; }
-        public TimeSpan HttpClientTimeout { get; set; } = TimeSpan.FromMinutes(10);
+        public TimeSpan HttpClientTimeout { get; set; } = TimeSpan.FromMinutes(1);
         public List<string> DependencyCursorUrls { get; set; }
         public string RegistrationsBaseUrl { get; set; }
     }

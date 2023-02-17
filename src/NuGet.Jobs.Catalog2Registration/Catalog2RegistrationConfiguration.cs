@@ -84,7 +84,7 @@ namespace NuGet.Jobs.Catalog2Registration
         /// <summary>
         /// The timeout used for the collector <see cref="System.Net.Http.HttpClient"/>.
         /// </summary>
-        public TimeSpan HttpClientTimeout { get; set; } = TimeSpan.FromMinutes(10);
+        public TimeSpan HttpClientTimeout { get; set; } = TimeSpan.FromMinutes(1);
 
         /// <summary>
         /// Whether or not the registration containers should be created at runtime. In general it is best to allow
