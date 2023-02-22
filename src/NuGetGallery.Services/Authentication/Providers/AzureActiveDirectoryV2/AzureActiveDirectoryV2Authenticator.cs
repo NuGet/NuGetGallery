@@ -96,6 +96,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
             }
 
             // Configure OpenIdConnect
+            // CodeQL [SM03926] We do not restrict issuers to a limited set of tenants for our multi-tenant app
             var options = new OpenIdConnectAuthenticationOptions(BaseConfig.AuthenticationType)
             {
                 RedirectUri = siteRoot + _callbackPath,

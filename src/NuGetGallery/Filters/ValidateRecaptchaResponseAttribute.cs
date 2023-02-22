@@ -49,7 +49,7 @@ namespace NuGetGallery.Filters
 
             try
             {
-                // CodeQL [SM00405] The validation Url does not include any user-provided values
+                // CodeQL [SM03781] The validation Url does not include any user-provided values
                 var reply = await Client.Value.GetStringAsync(validationUrl);
                 var state = JsonConvert.DeserializeObject<RecaptchaState>(reply);
                 return state.Success;
