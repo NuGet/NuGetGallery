@@ -143,7 +143,7 @@
                 CommandPrefix = "> ",
                 InstallPackageCommands = new [] { string.Format("#r \"nuget: {0}, {1}\"", Model.Id, Model.Version) },
                 AlertLevel = AlertLevel.Info,
-                AlertMessage = "#r directive can be used in F# Interactive, C# scripting and .NET Interactive. Copy this into the interactive tool or source code of the script to reference the package."
+                AlertMessage = "#r directive can be used in F# Interactive and Polyglot Notebooks. Copy this into the interactive tool or source code of the script to reference the package."
             },
 
             new ThirdPartyPackageManagerViewModel("Cake", "https://cakebuild.net/support/nuget")
@@ -530,12 +530,19 @@
                                role="tab"
                                data-toggle="tab"
                                id="readme-body-tab"
-                               class="body-tab"
+                               class="body-@(Model.CanDisplayReadmeWarning && Model.CanDisplayPrivateMetadata? "warning-" : "")tab"
                                aria-controls="readme-tab"
                                aria-expanded="@(activeBodyTab == "readme" ? "true" : "false")"
                                aria-selected="@(activeBodyTab == "readme" ? "true" : "false")"
                                tabindex="@(activeBodyTab == "readme" ? "0" : "-1")">
-                                <i class="ms-Icon ms-Icon--Dictionary" aria-hidden="true"></i>
+                                @if (Model.CanDisplayReadmeWarning && Model.CanDisplayPrivateMetadata)
+                                {
+                                    <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
+                                } 
+                                else
+                                {
+                                    <i class="ms-Icon ms-Icon--Dictionary" aria-hidden="true"></i>
+                                }
                                 README
                             </a>
                         </li>
@@ -670,7 +677,11 @@
                         }
                         else
                         {
-                            if (Model.CanDisplayPrivateMetadata)
+                            if (Model.CanDisplayPrivateMetadata && Model.CanDisplayReadmeWarning)
+                            {
+                                @ViewHelpers.AlertWarning(@<text>Your package is missing a README. Please update your package to <a href='https://aka.ms/nuget-include-readme'>include a README</a> or <a href=@Url.ManagePackage(Model)>add a README here</a>.</text>);
+                            }
+                            else if (Model.CanDisplayPrivateMetadata)
                             {
                                 @ViewHelpers.AlertWarning(@<text>The package description is shown below. Please update your package to <a href='https://docs.microsoft.com/nuget/nuget-org/package-readme-on-nuget-org'>include a README</a>.</text>);
                             }

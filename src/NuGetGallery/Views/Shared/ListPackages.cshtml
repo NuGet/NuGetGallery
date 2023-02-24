@@ -12,11 +12,6 @@
     @AddRadioGroupOption("Package Type", "packagetype", optionName, optionValue, Model.PackageType, isDefault);
 }
 
-@helper AddSortByOption(string optionName, string optionValue, bool isDefault = false)
-{
-    @AddRadioGroupOption("Sort By", "sortby", optionName, optionValue, Model.SortBy, isDefault);
-}
-
 @helper AddRadioGroupOption(string ariaSectionLabel, string radioGroupName, string optionName, string optionValue, string optionCompareValue, bool isDefault = false)
 {
     <div style="display: flex;">
@@ -37,9 +32,10 @@
         </button>
         <div class="tfmTab" id="@(frameworkShortName)tab">
             <ul>
-                @foreach (var tfm in tfms) {
+                @foreach (var tfm in tfms)
+                {
                     <li>
-                        <input type="checkbox" id="@(tfm)" class="tfm" tabindex="-1" parent="@(frameworkShortName)">
+                        <input type="checkbox" id="@(tfm)" class="tfm" parent="@(frameworkShortName)">
                         <label for="@(tfm)">@(tfm)</label>
                     </li>
                 }
@@ -195,7 +191,7 @@
                 {
                     <div class="row">
                         <div class="col-xs-12 clearfix">
-                            <div class="panel panel-default" aria-expanded="true">
+                            <div class="panel panel-default">
                                 <div class="panel-body">
                                     NuGet package search works the same on nuget.org, from the NuGet CLI, and within the NuGet Package Manager extension in Visual Studio. <br />
                                     Check out our <strong><a href="https://docs.microsoft.com/nuget/consume-packages/finding-and-choosing-packages#search-syntax">Search Syntax</a></strong>.
