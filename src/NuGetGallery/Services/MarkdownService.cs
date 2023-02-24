@@ -25,7 +25,8 @@ namespace NuGetGallery
         private static readonly Regex EncodedBlockQuotePattern = new Regex("^ {0,3}&gt;", RegexOptions.Multiline, RegexTimeout);
         private static readonly Regex LinkPattern = new Regex("<a href=([\"\']).*?\\1", RegexOptions.None, RegexTimeout);
         private static readonly Regex HtmlCommentPattern = new Regex("<!--.*?-->", RegexOptions.Singleline, RegexTimeout);
-        private static readonly Regex ImageTextPattern = new Regex("!\\[\\]", RegexOptions.Singleline, RegexTimeout);
+        private static readonly Regex ImageTextPattern = new Regex("!\\[\\]\\(", RegexOptions.Singleline, RegexTimeout);
+        private static readonly string altTextForImage = "alternate text is missing from this package README image";
 
         private readonly IFeatureFlagService _features;
         private readonly IImageDomainValidator _imageDomainValidator;
@@ -199,7 +200,7 @@ namespace NuGetGallery
 
             var markdownWithoutComments = HtmlCommentPattern.Replace(markdownString, "");
 
-            var markdownWithImageAlt = ImageTextPattern.Replace(markdownWithoutComments, "![image]");
+            var markdownWithImageAlt = ImageTextPattern.Replace(markdownWithoutComments, $"![{altTextForImage}](");
 
             var markdownWithoutBom = markdownWithImageAlt.TrimStart('\ufeff');
 
