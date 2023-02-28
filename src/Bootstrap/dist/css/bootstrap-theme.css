@@ -884,6 +884,11 @@ img.reserved-indicator-icon {
   border-radius: 2px;
   margin-right: 10px;
   background-color: #0078d4;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  display: inline-block;
 }
 .frameworktableinfo-text {
   font-size: 14px;
