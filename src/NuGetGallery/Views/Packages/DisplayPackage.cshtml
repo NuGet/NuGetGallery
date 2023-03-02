@@ -141,7 +141,7 @@
             {
                 Id = "script-interactive",
                 CommandPrefix = "> ",
-                InstallPackageCommands = new [] { string.Format("#r \"nuget: {0}, {1}\"", Model.Id, Model.Version) },
+                InstallPackageCommands = new [] { string.Format("#r \"nuget: {0}, Version={1}\"", Model.Id, Model.Version) },
                 AlertLevel = AlertLevel.Info,
                 AlertMessage = "#r directive can be used in F# Interactive and Polyglot Notebooks. Copy this into the interactive tool or source code of the script to reference the package."
             },
