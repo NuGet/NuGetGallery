@@ -445,6 +445,12 @@ namespace NuGetGallery
                     .SecurityPolicies
                     .Any(policy => policy.Name == nameof(RequireOrganizationTenantPolicy)));
 
+            // Validate that the returnUrl is a relative URL to prevent untrusted URL redirection
+            if (!Url.IsLocalUrl(returnUrl))
+            {
+                returnUrl = "/";
+            }
+
             if (userOrganizationsWithTenantPolicy != null && userOrganizationsWithTenantPolicy.Any())
             {
                 var aadCredential = user?.Credentials.GetAzureActiveDirectoryCredential();
