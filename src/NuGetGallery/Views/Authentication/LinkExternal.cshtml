@@ -19,16 +19,11 @@
                         </div>
                     </div>
                     <p class="text-center">
-                        We found an account with this email address that uses legacy password login. Unfortunately, <b>password login has been disabled</b>.
+                        We found an account with this email address (@Model.SignIn.UserNameOrEmail) that uses legacy password login. Unfortunately, <b>password login has been disabled</b>.
                     </p>
                     <p class="text-center">
                         Some accounts can be recovered through manual proof of ownership.
                         Please reach out to <a href="mailto:@Config.Current.GalleryOwner.Address">nuget support</a> for assistance.
-                    </p>
-
-                    <p>
-                        @Html.ShowLabelFor(m => m.SignIn.UserNameOrEmail)<br />
-                        @Model.SignIn.UserNameOrEmail
                     </p>
                 }
                 else
