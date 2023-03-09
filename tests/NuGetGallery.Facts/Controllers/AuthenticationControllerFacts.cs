@@ -33,6 +33,17 @@ namespace NuGetGallery.Controllers
 
         public class TheLogOnAction : TestContainer
         {
+            public TheLogOnAction()
+            {
+                var isEmailOnExceptionList = new Mock<ILoginDiscontinuationConfiguration>();
+                isEmailOnExceptionList
+                    .Setup(x => x.IsEmailOnExceptionsList(It.IsAny<String>()))
+                    .Returns(false);
+                GetMock<IContentObjectService>()
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
+                    .Returns(isEmailOnExceptionList.Object);
+            }
+
             [Fact]
             public void GivenUserAlreadyAuthenticated_ItRedirectsToReturnUrl()
             {
@@ -215,6 +226,17 @@ namespace NuGetGallery.Controllers
 
         public class TheSignInAction : TestContainer
         {
+            public TheSignInAction()
+            {
+                var isEmailOnExceptionList = new Mock<ILoginDiscontinuationConfiguration>();
+                isEmailOnExceptionList
+                    .Setup(x => x.IsEmailOnExceptionsList(It.IsAny<String>()))
+                    .Returns(false);
+                GetMock<IContentObjectService>()
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
+                    .Returns(isEmailOnExceptionList.Object);
+            }
+
             [Fact]
             public async Task GivenUserAlreadyAuthenticated_ItRedirectsToReturnUrl()
             {
@@ -722,6 +744,17 @@ namespace NuGetGallery.Controllers
 
         public class TheRegisterAction : TestContainer
         {
+            public TheRegisterAction()
+            {
+                var isEmailOnExceptionList = new Mock<ILoginDiscontinuationConfiguration>();
+                isEmailOnExceptionList
+                    .Setup(x => x.IsEmailOnExceptionsList(It.IsAny<String>()))
+                    .Returns(false);
+                GetMock<IContentObjectService>()
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
+                    .Returns(isEmailOnExceptionList.Object);
+            }
+
             [Fact]
             public async Task WillShowTheViewWithErrorsIfTheModelStateIsInvalid()
             {
@@ -1689,6 +1722,17 @@ namespace NuGetGallery.Controllers
 
         public class TheLinkExternalAccountAction : TestContainer
         {
+            public TheLinkExternalAccountAction()
+            {
+                var isEmailOnExceptionList = new Mock<ILoginDiscontinuationConfiguration>();
+                isEmailOnExceptionList
+                    .Setup(x => x.IsEmailOnExceptionsList(It.IsAny<String>()))
+                    .Returns(false);
+                GetMock<IContentObjectService>()
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
+                    .Returns(isEmailOnExceptionList.Object);
+            }
+
             [Theory]
             [InlineData("access_denied")]
             [InlineData("consent_required")]
@@ -2182,7 +2226,7 @@ namespace NuGetGallery.Controllers
                 var msAuther = new MicrosoftAccountAuthenticator();
                 var msaUI = msAuther.GetUI();
 
-                GetMock<AuthenticationService>(); // Force a mock to be created
+                GetMock<AuthenticationService>(); // Force a mock to be created                
 
                 var controller = GetController<AuthenticationController>();
 
