@@ -137,7 +137,7 @@ namespace NuGetGallery
             }
 
             var authenticationResult = await _authService.Authenticate(model.SignIn.UserNameOrEmail, model.SignIn.Password);
-
+            
             if (authenticationResult.Result != PasswordAuthenticationResult.AuthenticationResult.Success)
             {
                 string modelErrorMessage = string.Empty;
@@ -936,7 +936,7 @@ namespace NuGetGallery
             existingModel.SignIn = existingModel.SignIn ?? new SignInViewModel();
             existingModel.Register = existingModel.Register ?? new RegisterViewModel();
             existingModel.IsNuGetAccountPasswordLoginEnabled = _featureFlagService.IsNuGetAccountPasswordLoginEnabled();
-
+            existingModel.IsEmailOnExceptionList = _contentObjectService.LoginDiscontinuationConfiguration.IsEmailOnExceptionsList(existingModel.SignIn.UserNameOrEmail);
             return View(viewName, existingModel);
         }
 

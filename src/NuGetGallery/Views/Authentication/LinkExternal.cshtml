@@ -10,28 +10,48 @@
     @if (Model.External.FoundExistingUser)
     {
         <div class="row">
-            <div class="col-xs-12">
-                <h1 class="text-center">Link @Model.External.ProviderAccountNoun</h1>
-            </div>
-        </div>
-        <div class="row">
             <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
                 @if (Model.External.ExistingUserCanBeLinked)
                 {
-                    <p class="text-center">
-                        We found an account with this email address. Sign in with your NuGet.org password to link with this Microsoft account.
-                    </p>
-                    <p class="text-center">
-                        Note that <b>your existing password login will be disabled</b> and you will need to use this Microsoft account to sign into NuGet.org
-                    </p>
-                    <p class="text-center">
-                        Please <a href="mailto:@Config.Current.GalleryOwner.Address">contact support</a> if you need more assistance.
-                    </p>
+                    if (Model.IsEmailOnExceptionList)
+                    {
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <h1 class="text-center">Link @Model.External.ProviderAccountNoun</h1>
+                            </div>
+                        </div>
+                        <p class="text-center">
+                            Sign in with your NuGet.org password to link with this Microsoft account.
+                        </p>
+                        <p class="text-center">
+                            Please <a href="mailto:@Config.Current.GalleryOwner.Address">contact support</a> if you need more assistance.
+                        </p>
 
-                    @Html.Partial("_SignIn", Model)
+                        @Html.Partial("_SignIn", Model)
+                    }
+                    else
+                    {
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <h1 class="text-center">Legacy Account</h1>
+                            </div>
+                        </div>
+                        <p class="text-center">
+                            We found an account with this email address (@Model.SignIn.UserNameOrEmail) that uses legacy password login. Unfortunately, <b>password login has been disabled</b>.
+                        </p>
+                        <p class="text-center">
+                            Some accounts can be recovered through manual proof of ownership.
+                            Please reach out to <a href="mailto:@Config.Current.GalleryOwner.Address">nuget support</a> for assistance.
+                        </p>
+                    }
                 }
                 else
                 {
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <h1 class="text-center">Link @Model.External.ProviderAccountNoun</h1>
+                        </div>
+                    </div>
                     switch (Model.External.ExistingUserLinkingError)
                     {
                         case AssociateExternalAccountViewModel.ExistingUserLinkingErrorType.AccountIsAlreadyLinked:
