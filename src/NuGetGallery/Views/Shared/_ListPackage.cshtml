@@ -40,8 +40,8 @@
                    href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null).TrimEnd('/')"
                    @if (itemIndex.HasValue)
                    {
-                       @:data-track="@eventName" data-track-value="@itemIndex"
-                       @:data-package-id="@Model.Id" data-package-version="@Model.Version" data-use-version="@Model.UseVersion"
+                        @:data-track="@eventName" data-track-value="@itemIndex"
+                        @:data-package-id="@Model.Id" data-package-version="@Model.Version" data-use-version="@Model.UseVersion"
                    }
                    >@Html.BreakWord(Model.Id)</a>
 
@@ -91,9 +91,10 @@
                         Latest version: <span class="text-nowrap">@Model.Version @(Model.Prerelease ? "(prerelease)" : "")</span>
                     </span>
                 </li>
-                @if (Model.Tags.AnySafe())
-                {
-                    <br/>
+            </ul>
+            @if (Model.Tags.AnySafe())
+            {
+                <ul class="package-list">
                     <li class="package-tags">
                         <span class="icon-text">
                             <i class="ms-Icon ms-Icon--Tag" aria-hidden="true"></i>
@@ -120,8 +121,9 @@
                             }
                         </span>
                     </li>
-                }
-            </ul>
+                </ul>
+            }
+
 
             <div class="package-details">
                 @Model.ShortDescription
