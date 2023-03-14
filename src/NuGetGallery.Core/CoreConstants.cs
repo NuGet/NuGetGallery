@@ -52,5 +52,7 @@ namespace NuGetGallery
         public const string LicenseFileName = "license";
 
         public const string FeatureFlagsFileName = "flags.json";
+
+        public const string LoginDiscontinuationConfigFileName = "Login-Discontinuation-Configuration.json";
     }
 }

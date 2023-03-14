@@ -98,6 +98,7 @@
     <Compile Include="Infrastructure\Mail\Messages\SymbolPackageValidationFailedMessageFacts.cs" />
     <Compile Include="Infrastructure\Mail\Messages\SymbolPackageValidationTakingTooLongMessageFacts.cs" />
     <Compile Include="Infrastructure\Mail\TestMessageServiceConfiguration.cs" />
+    <Compile Include="Login\EditableLoginConfigurationFileStorageServiceFacts.cs" />
     <Compile Include="Packaging\ManifestValidatorFacts.cs" />
     <Compile Include="Packaging\PackageIdValidatorTest.cs" />
     <Compile Include="Packaging\PackageMetadataFacts.cs" />
