@@ -21,6 +21,10 @@ namespace BasicSearchTests.FunctionalTests.Core.TestSupport
 
         public bool? LuceneQuery { get; set; }
 
+        public string Frameworks { get; set; }
+
+        public string Tfms { get; set; }
+
         public string PackageType { get; set; }
 
         public V2SearchBuilder() : base("/search/query?") { }
@@ -55,6 +59,16 @@ namespace BasicSearchTests.FunctionalTests.Core.TestSupport
             if (LuceneQuery.HasValue)
             {
                 queryString["luceneQuery"] = LuceneQuery.ToString();
+            }
+
+            if (Frameworks != null)
+            {
+                queryString["frameworks"] = Frameworks;
+            }
+
+            if (Tfms != null)
+            {
+                queryString["tfms"] = Tfms;
             }
 
             if (PackageType != null)

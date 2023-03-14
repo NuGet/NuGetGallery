@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   
   <Import Project="..\..\SdkProjects.props" />
 
@@ -10,12 +10,11 @@
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" />
 
     <!--
-    This reference is used to "lift" a transitive dependency of Microsoft.ApplicationInsights.AspNetCore to a version
-    that is accepted by Azure DevOps Component Governance, which scans the project.assets.json file. At runtime, the
-    real version this package are actually higher and is defined by the shared ASP.NET Core SDK installed on the
-    hosting machine.
+    These references are used to "lift" transitive dependencies to a version that is accepted
+    by Azure DevOps Component Governance, which scans the project.assets.json file.
     -->
     <PackageReference Include="Microsoft.AspNetCore.Http" />
+    <PackageReference Include="System.Drawing.Common" />
   </ItemGroup>
 
   <ItemGroup>

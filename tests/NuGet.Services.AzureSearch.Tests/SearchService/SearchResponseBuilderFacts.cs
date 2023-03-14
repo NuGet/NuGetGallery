@@ -593,6 +593,12 @@ namespace NuGet.Services.AzureSearch.SearchService
       ""FlattenedDependencies"": ""Microsoft.Data.OData:5.6.4:net40-client|Newtonsoft.Json:6.0.8:net40-client"",
       ""Dependencies"": [],
       ""SupportedFrameworks"": [],
+      ""Frameworks"": [
+        ""netframework""
+      ],
+      ""Tfms"": [
+        ""net40-client""
+      ],
       ""MinClientVersion"": ""2.12"",
       ""Hash"": ""oMs9XKzRTsbnIpITcqZ5XAv1h2z6oyJ33\u002BZ/PJx36iVikge/8wm5AORqAv7soKND3v5/0QWW9PQ0ktQuQu9aQQ=="",
       ""HashAlgorithm"": ""SHA512"",

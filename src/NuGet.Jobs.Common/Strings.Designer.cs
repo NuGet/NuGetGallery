@@ -19,7 +19,7 @@ namespace NuGet.Jobs {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Strings {
@@ -219,6 +219,24 @@ namespace NuGet.Jobs {
         public static string UpdateLicenseReportsJob_JsonDoesNotMatchSchema {
             get {
                 return ResourceManager.GetString("UpdateLicenseReportsJob_JsonDoesNotMatchSchema", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The provided Framework is not supported..
+        /// </summary>
+        public static string V2Search_InvalidFrameworkParameter {
+            get {
+                return ResourceManager.GetString("V2Search_InvalidFrameworkParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The provided TFM is not supported..
+        /// </summary>
+        public static string V2Search_InvalidTFMParameter {
+            get {
+                return ResourceManager.GetString("V2Search_InvalidTFMParameter", resourceCulture);
             }
         }
         

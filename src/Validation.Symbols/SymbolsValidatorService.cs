@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
 using System.Threading;
@@ -192,9 +193,26 @@ namespace Validation.Symbols
                 // This checks if portable PDB is associated with the PE file and opens it for reading. 
                 // It also validates that it matches the PE file.
                 // It does not validate that the checksum matches, so we need to do that in the following block.
-                if (peReader.TryOpenAssociatedPortablePdb(peFilePath, File.OpenRead, out var pdbReaderProvider, out var pdbPath) &&
-                   // No need to validate embedded PDB (pdbPath == null for embedded)
-                   pdbPath != null)
+                bool readSuccess;
+                string pdbPath;
+                MetadataReaderProvider pdbReaderProvider;
+
+                try
+                {
+                    readSuccess = peReader.TryOpenAssociatedPortablePdb(peFilePath, File.OpenRead, out pdbReaderProvider, out pdbPath) &&
+                        // No need to validate embedded PDB (pdbPath == null for embedded)
+                        pdbPath != null;
+                }
+                catch (BadImageFormatException ex)
+                {
+                    _logger.LogWarning(ex, "Cannot open PDB file for {FilePath}", peFilePath);
+
+                    _telemetryService.TrackSymbolsAssemblyValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Failed, nameof(ValidationIssue.Unknown), assemblyName: Path.GetFileName(peFilePath));
+                    validationResponse = NuGetValidationResponse.FailedWithIssues(ValidationIssue.Unknown);
+                    return false;
+                }
+
+                if (readSuccess)
                 {
                     // Get all checksum entries. There can be more than one. At least one must match the PDB.
                     var checksumRecords = peReader.ReadDebugDirectory().Where(entry => entry.Type == DebugDirectoryEntryType.PdbChecksum)
@@ -235,7 +253,7 @@ namespace Validation.Symbols
                             if (checksumRecord.Checksum.ToArray().SequenceEqual(hash))
                             {
                                 // found the right checksum
-                                _telemetryService.TrackSymbolsAssemblyValidationResultEvent(packageId, packageNormalizedVersion,  ValidationStatus.Succeeded, issue:"", assemblyName:Path.GetFileName(peFilePath));
+                                _telemetryService.TrackSymbolsAssemblyValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Succeeded, issue: "", assemblyName: Path.GetFileName(peFilePath));
                                 return true;
                             }
                         }

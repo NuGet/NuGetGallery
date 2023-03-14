@@ -52,6 +52,9 @@ namespace NuGet.Protocol.Catalog
         [JsonProperty("minClientVersion")]
         public string MinClientVersion { get; set; }
 
+        [JsonProperty("packageEntries")]
+        public List<PackageEntry> PackageEntries { get; set; }
+
         [JsonProperty("packageHash")]
         public string PackageHash { get; set; }
 

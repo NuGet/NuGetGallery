@@ -12,6 +12,9 @@ namespace Stats.LogInterpretation
     public class PackageDefinition
     {
         private const string _nupkgExtension = ".nupkg";
+        private const string _nugetExeUrlEnding = "/nuget.exe";
+        private const string _nugetExeLatestVersionSegment = "latest";
+        private const string _nugetExePackageId = "tool/nuget.exe"; // to eliminate the chances of clashing with a real package
         private const string _dotSeparator = ".";
 
         public string PackageId { get; set; }
@@ -80,6 +83,46 @@ namespace Stats.LogInterpretation
             }
 
             return resolutionOptions;
+        }
+
+        public static PackageDefinition FromNuGetExeUrl(string requestUrl)
+        {
+            if (string.IsNullOrWhiteSpace(requestUrl) || !requestUrl.EndsWith(_nugetExeUrlEnding, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return null;
+            }
+
+            // path example: /artifacts/win-x86-commandline/v5.9.1/nuget.exe
+
+            requestUrl = HttpUtility.UrlDecode(requestUrl);
+
+            var urlSegments = requestUrl.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+
+            if (urlSegments.Length < 4)
+            {
+                // proper nuget.exe URL paths have at least 4 segments
+                return null;
+            }
+
+            var suspectedVersionSegment = urlSegments[urlSegments.Length - 2];
+
+            if (suspectedVersionSegment == _nugetExeLatestVersionSegment)
+            {
+                return new PackageDefinition(_nugetExePackageId, _nugetExeLatestVersionSegment);
+            }
+
+            if (!suspectedVersionSegment.StartsWith("v"))
+            {
+                return null;
+            }
+
+            var versionString = suspectedVersionSegment.Substring(1);
+            if (NuGetVersion.TryParse(versionString, out var parsedVersion))
+            {
+                return new PackageDefinition(_nugetExePackageId, parsedVersion.ToNormalizedString());
+            }
+
+            return null;
         }
 
         public override string ToString()

@@ -171,6 +171,12 @@
   <data name="UpdateLicenseReportsJob_JsonDoesNotMatchSchema" xml:space="preserve">
     <value>JSON data does not match schema.</value>
   </data>
+  <data name="V2Search_InvalidFrameworkParameter" xml:space="preserve">
+    <value>The provided Framework is not supported.</value>
+  </data>
+  <data name="V2Search_InvalidTFMParameter" xml:space="preserve">
+    <value>The provided TFM is not supported.</value>
+  </data>
   <data name="WarehouseJob_NoDestinationAvailable" xml:space="preserve">
     <value>One of Destination or OutputDirectory must be specified or available from the environment</value>
   </data>

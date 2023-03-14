@@ -53,6 +53,7 @@ namespace NuGet.Services
             RequiresLicenseAcceptance = true,
             SemVerLevelKey = SemVerLevelKey.SemVer2,
             Summary = "Summary.",
+            SupportedFrameworks = new List<PackageFramework> { new PackageFramework() {TargetFramework = "net40-client" } },
             Tags = "Microsoft Azure Storage Table Blob File Queue Scalable windowsazureofficial",
             Title = "Windows Azure Storage",
             Version = "7.1.2.0-alpha+git",
@@ -127,7 +128,16 @@ namespace NuGet.Services
             PackageHash = "oMs9XKzRTsbnIpITcqZ5XAv1h2z6oyJ33+Z/PJx36iVikge/8wm5AORqAv7soKND3v5/0QWW9PQ0ktQuQu9aQQ==",
             PackageHashAlgorithm = "SHA512",
             PackageId = PackageId,
+            PackageEntries = new List<NuGet.Protocol.Catalog.PackageEntry>
+            {
+                new NuGet.Protocol.Catalog.PackageEntry
+                {
+                    FullName = $"lib/net40-client/{PackageId}.dll",
+                    Name = $"{PackageId}.dll"
+                },
+            },
             PackageSize = 3039254,
+            PackageTypes = new List<NuGet.Protocol.Catalog.PackageType>(),
             PackageVersion = FullVersion,
             ProjectUrl = "https://github.com/Azure/azure-storage-net",
             Published = new DateTimeOffset(new DateTime(2017, 1, 3), TimeSpan.Zero),

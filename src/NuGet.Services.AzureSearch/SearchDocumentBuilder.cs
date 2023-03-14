@@ -4,8 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NuGet.Frameworks;
 using NuGet.Protocol.Catalog;
 using NuGet.Services.Entities;
+using NuGetGallery;
 
 namespace NuGet.Services.AzureSearch
 {
@@ -175,6 +177,9 @@ namespace NuGet.Services.AzureSearch
                 leaf.PackageTypes.Select(pt => pt.Name).ToArray() :
                 null;
 
+            var frameworks = GetFrameworksFromCatalogLeaf(leaf);
+            var tfms = GetTfmsFromCatalogLeaf(leaf);
+
             PopulateUpdateLatest(
                 document,
                 leaf.PackageId,
@@ -187,7 +192,9 @@ namespace NuGet.Services.AzureSearch
                 isLatest: isLatest,
                 fullVersion: fullVersion,
                 owners: owners,
-                packageTypes: packageTypes);
+                packageTypes: packageTypes,
+                frameworks: frameworks,
+                tfms: tfms);
             _baseDocumentBuilder.PopulateMetadata(document, normalizedVersion, leaf);
             PopulateDeprecationFromCatalog(document, leaf);
             PopulateVulnerabilitiesFromCatalog(document, leaf);
@@ -215,6 +222,13 @@ namespace NuGet.Services.AzureSearch
                 package.PackageTypes.Select(pt => pt.Name).ToArray() :
                 null;
 
+            var frameworks = package.SupportedFrameworks == null
+                                                ? Array.Empty<string>()
+                                                : GetFrameworksFromPackage(package.SupportedFrameworks);
+            var tfms = package.SupportedFrameworks == null
+                                                ? Array.Empty<string>()
+                                                : GetTfmsFromPackage(package.SupportedFrameworks);
+
             PopulateUpdateLatest(
                 document,
                 packageId,
@@ -227,7 +241,9 @@ namespace NuGet.Services.AzureSearch
                 isLatest: isLatest,
                 fullVersion: fullVersion,
                 owners: owners,
-                packageTypes: packageTypes);
+                packageTypes: packageTypes,
+                frameworks: frameworks,
+                tfms: tfms);
             _baseDocumentBuilder.PopulateMetadata(document, packageId, package);
             PopulateDownloadCount(document, totalDownloadCount);
             PopulateIsExcludedByDefault(document, isExcludedByDefault);
@@ -276,7 +292,9 @@ namespace NuGet.Services.AzureSearch
             bool isLatest,
             string fullVersion,
             string[] owners,
-            string[] packageTypes)
+            string[] packageTypes,
+            string[] frameworks,
+            string[] tfms)
         {
             PopulateVersions(
                 document,
@@ -290,6 +308,8 @@ namespace NuGet.Services.AzureSearch
                 isLatest);
             document.SearchFilters = DocumentUtilities.GetSearchFilterString(searchFilters);
             document.FullVersion = fullVersion;
+            document.Frameworks = frameworks;
+            document.Tfms = tfms;
 
             // If the package has explicit types, we will set them here.
             // Otherwise, we will treat the package as a "Depedency" type and fill in the explicit type.
@@ -361,6 +381,88 @@ namespace NuGet.Services.AzureSearch
             bool isExcludedByDefault) where T : KeyedDocument, SearchDocument.IIsExcludedByDefault
         {
             document.IsExcludedByDefault = isExcludedByDefault;
+        }
+
+        private static string[] GetFrameworksFromPackage(ICollection<PackageFramework> supportedFrameworks)
+        {
+            var tfms = supportedFrameworks
+                            .Where(f => f.FrameworkName.IsSpecificFramework && !f.FrameworkName.IsPCL)
+                            .Select(f => f.FrameworkName)
+                            .ToArray();
+
+            return ParseFrameworkGenerations(tfms);
+        }
+
+        private static string[] GetTfmsFromPackage(ICollection<PackageFramework> supportedFrameworks)
+        {
+            return supportedFrameworks
+                            .Where(f => f.FrameworkName.IsSpecificFramework && !f.FrameworkName.IsPCL)
+                            .Select(f => f.FrameworkName.GetShortFolderName())
+                            .ToArray();
+        }
+
+        private static string[] GetFrameworksFromCatalogLeaf(PackageDetailsCatalogLeaf leaf)
+        {
+            var tfms = GetSupportedFrameworks(leaf)
+                            .ToArray();
+
+            return ParseFrameworkGenerations(tfms);
+        }
+
+        private static string[] GetTfmsFromCatalogLeaf(PackageDetailsCatalogLeaf leaf)
+        {
+            return GetSupportedFrameworks(leaf)
+                            .Select(f => f.GetShortFolderName())
+                            .Where(f => f != null)
+                            .ToArray();
+        }
+
+        private static string[] ParseFrameworkGenerations(ICollection<NuGetFramework> tfms)
+        {
+            var frameworks = new HashSet<string>();
+            foreach (var framework in tfms)
+            {
+                if (StringComparer.OrdinalIgnoreCase.Equals(FrameworkConstants.FrameworkIdentifiers.Net, framework.Framework))
+                {
+                    frameworks.Add(AssetFrameworkHelper.FrameworkGenerationIdentifiers.NetFramework);
+                }
+                else if (StringComparer.OrdinalIgnoreCase.Equals(FrameworkConstants.FrameworkIdentifiers.NetCoreApp, framework.Framework))
+                {
+                    frameworks.Add(framework.Version.Major >= 5
+                        ? AssetFrameworkHelper.FrameworkGenerationIdentifiers.Net
+                        : AssetFrameworkHelper.FrameworkGenerationIdentifiers.NetCoreApp);
+                }
+                else if (StringComparer.OrdinalIgnoreCase.Equals(FrameworkConstants.FrameworkIdentifiers.NetStandard, framework.Framework))
+                {
+                    frameworks.Add(AssetFrameworkHelper.FrameworkGenerationIdentifiers.NetStandard);
+                }
+            }
+
+            return frameworks.ToArray();
+        }
+
+        private static IEnumerable<NuGetFramework> GetSupportedFrameworks(PackageDetailsCatalogLeaf leaf)
+        {
+            string[] files = leaf.PackageEntries == null || leaf.PackageEntries.Count == 0
+                                    ? Array.Empty<string>()
+                                    : leaf.PackageEntries.Select(pe => pe.FullName).ToArray();
+            var packageTypes = leaf.PackageTypes == null || leaf.PackageTypes.Count == 0
+                                    ? new List<Packaging.Core.PackageType>()
+                                    : GetPackageTypes(leaf);
+
+            return AssetFrameworkHelper.GetAssetFrameworks(leaf.PackageId, packageTypes, files)
+                                                .Where(f => f.IsSpecificFramework && !f.IsPCL);
+        }
+
+        private static List<Packaging.Core.PackageType> GetPackageTypes(PackageDetailsCatalogLeaf leaf)
+        {
+            return leaf.PackageTypes
+                            .Select(pt => new Packaging.Core.PackageType(
+                                                    pt.Name,
+                                                    pt.Version == null
+                                                        ? Packaging.Core.PackageType.EmptyVersion
+                                                        : new Version(pt.Version)))
+                            .ToList();
         }
 
         private static void PopulateDeprecationFromDb(

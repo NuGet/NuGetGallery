@@ -1,11 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNetCore.Mvc;
-using NuGet.Services.AzureSearch.SearchService;
 using System;
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using NuGet.Services.AzureSearch.SearchService;
 
 namespace NuGet.Services.SearchService.Controllers
 {
@@ -68,6 +68,8 @@ namespace NuGet.Services.SearchService.Controllers
             string sortBy = null,
             bool? luceneQuery = true,
             string packageType = null,
+            string frameworks = null,
+            string tfms = null,
             bool? testData = false,
             bool? debug = false)
         {
@@ -85,6 +87,8 @@ namespace NuGet.Services.SearchService.Controllers
                 SortBy = ParameterUtilities.ParseV2SortBy(sortBy),
                 LuceneQuery = luceneQuery ?? true,
                 PackageType = packageType,
+                Frameworks = ParameterUtilities.ParseFrameworks(frameworks),
+                Tfms = ParameterUtilities.ParseTfms(tfms),
                 IncludeTestData = testData ?? false,
                 ShowDebug = debug ?? false,
             };

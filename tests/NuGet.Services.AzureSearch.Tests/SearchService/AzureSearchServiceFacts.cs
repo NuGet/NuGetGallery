@@ -85,6 +85,46 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
 
             [Fact]
+            public async Task ShouldThrowWhenFilteringByFrameworksOnHijackIndex()
+            {
+                _v2Request.IgnoreFilter = true;
+
+                _v2Request.Frameworks = new List<string>(); // Should not throw an exception
+                var notException = await Record.ExceptionAsync(async () => {
+                    await _target.V2SearchAsync(_v2Request);
+                });
+
+                Assert.Null(notException);
+
+                _v2Request.Frameworks = new List<string> { "netstandard" }; // Should throw
+                var exception = await Assert.ThrowsAsync<InvalidSearchRequestException>(async () => {
+                    await _target.V2SearchAsync(_v2Request);
+                });
+
+                Assert.Equal("Can't apply the Frameworks filter on the Hijack index", exception.Message);
+            }
+
+            [Fact]
+            public async Task ShouldThrowWhenFilteringByTfmsOnHijackIndex()
+            {
+                _v2Request.IgnoreFilter = true;
+
+                _v2Request.Tfms = new List<string>(); // Should not throw an exception
+                var notException = await Record.ExceptionAsync(async () => {
+                    await _target.V2SearchAsync(_v2Request);
+                });
+
+                Assert.Null(notException);
+
+                _v2Request.Tfms = new List<string> { "netstandard2.1" }; // Should throw
+                var exception = await Assert.ThrowsAsync<InvalidSearchRequestException>(async () => {
+                    await _target.V2SearchAsync(_v2Request);
+                });
+
+                Assert.Equal("Can't apply the TFMs filter on the Hijack index", exception.Message);
+            }
+
+            [Fact]
             public async Task SearchIndexAndGetOperation()
             {
                 _v2Request.IgnoreFilter = false;

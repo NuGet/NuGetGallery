@@ -214,6 +214,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                     .Set<Package>()
                     .Include(x => x.PackageRegistration)
                     .Include(x => x.PackageTypes)
+                    .Include(x => x.SupportedFrameworks)
                     .Include(x => x.Deprecations)
                     .Include(x => x.Deprecations.Select(d => d.AlternatePackage))
                     .Include(x => x.VulnerablePackageRanges)
