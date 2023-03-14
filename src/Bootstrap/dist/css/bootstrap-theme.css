@@ -274,6 +274,9 @@ img.reserved-indicator-icon {
   outline: solid 0.25px;
   outline-offset: 0;
 }
+.package-list li .package-tags {
+  display: block;
+}
 @media (min-width: 768px) {
   .package-list li {
     display: inline-block;
@@ -283,6 +286,7 @@ img.reserved-indicator-icon {
     padding-right: 10px;
   }
   .package-list li.package-tags {
+    display: block;
     overflow-y: visible;
   }
 }
