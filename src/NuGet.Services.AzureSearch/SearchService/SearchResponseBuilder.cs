@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Azure.Search.Documents;
 using Microsoft.Extensions.Options;
+using Microsoft.WindowsAzure.Storage;
 using NuGet.Protocol.Registration;
+using NuGet.Services.AzureSearch;
 using NuGet.Services.AzureSearch.Wrappers;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Versioning;
@@ -398,6 +400,8 @@ namespace NuGet.Services.AzureSearch.SearchService
                         };
                     })
                     .ToList(),
+                Deprecation = GetV3SearchDeprecation(result),
+                Vulnerabilities = GetV3SearchVulnerabilities(result),
             };
 
             if (_featureFlagService.IsV3OwnersPropertyEnabled())
@@ -435,6 +439,48 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
 
             return document.IconUrl;
+        }
+
+        private V3SearchDeprecation GetV3SearchDeprecation(SearchDocument.Full document)
+        {
+            if (document.Deprecation != null && document.Deprecation.Reasons != null && document.Deprecation.Reasons.Length > 0)
+            //according to nuget api, reasons array is required and cannot be empty
+            {   
+                var deprecation = new V3SearchDeprecation();
+                deprecation.AlternatePackage = new V3SearchAlternatePackage{}; 
+
+                if (document.Deprecation.AlternatePackage != null)
+                {
+                    deprecation.AlternatePackage.Id = document.Deprecation.AlternatePackage.Id;
+                    deprecation.AlternatePackage.Range = document.Deprecation.AlternatePackage.Range;
+                } 
+
+                deprecation.Message = document.Deprecation.Message;
+                deprecation.Reasons = document.Deprecation.Reasons;
+
+                return deprecation;
+            }
+
+            return null;
+        }
+
+        private List<V3SearchVulnerability> GetV3SearchVulnerabilities(SearchDocument.Full document)
+        {
+            var vulnerabilities = new List<V3SearchVulnerability>();
+
+            if (document.Vulnerabilities != null)
+            {
+                foreach (var vulnerability in document.Vulnerabilities)
+                {
+                    vulnerabilities.Add(new V3SearchVulnerability 
+                    {
+                        AdvisoryUrl = vulnerability.AdvisoryURL,
+                        Severity = vulnerability.Severity
+                    });
+                }
+            }
+
+            return vulnerabilities;
         }
 
         private V2SearchPackage ToV2SearchPackage(SearchDocument.Full result)

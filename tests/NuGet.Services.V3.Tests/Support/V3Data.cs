@@ -8,6 +8,8 @@ using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery;
 using PackageDependency = NuGet.Protocol.Catalog.PackageDependency;
+using PackageDeprecation = NuGet.Services.Entities.PackageDeprecation;
+using PackageVulnerability = NuGet.Services.Entities.PackageVulnerability;
 
 namespace NuGet.Services
 {
@@ -55,8 +57,39 @@ namespace NuGet.Services
             Tags = "Microsoft Azure Storage Table Blob File Queue Scalable windowsazureofficial",
             Title = "Windows Azure Storage",
             Version = "7.1.2.0-alpha+git",
+            Deprecations = new List<PackageDeprecation>
+            {
+                new PackageDeprecation 
+                {
+                    Status = (PackageDeprecationStatus)3, 
+                    AlternatePackage = new Package
+                    {
+                        Id = "test.alternatepackage",
+                        Version = "1.0.0",
+                    }, 
+                    CustomMessage = "test message for test.alternatepackage-1.0.0",
+                }
+            },
+            VulnerablePackageRanges = new List<VulnerablePackageVersionRange>
+            {
+                new VulnerablePackageVersionRange
+                {
+                    Vulnerability = new PackageVulnerability
+                    {
+                        AdvisoryUrl = "test AdvisoryUrl for Low Severity",
+                        Severity = PackageVulnerabilitySeverity.Low
+                    }, 
+                },
+                new VulnerablePackageVersionRange
+                {
+                    Vulnerability = new PackageVulnerability
+                    {
+                        AdvisoryUrl = "test AdvisoryUrl for Moderate Severity",
+                        Severity = PackageVulnerabilitySeverity.Moderate
+                    },
+                }
+            }
         };
-
         public static PackageDetailsCatalogLeaf Leaf => new PackageDetailsCatalogLeaf
         {
             Authors = "Microsoft",
@@ -114,6 +147,29 @@ namespace NuGet.Services
             Tags = new List<string> { "Microsoft", "Azure", "Storage", "Table", "Blob", "File", "Queue", "Scalable", "windowsazureofficial" },
             Title = "Windows Azure Storage",
             VerbatimVersion = "7.1.2.0-alpha+git",
+            Deprecation = new Protocol.Catalog.PackageDeprecation
+            {
+                Reasons = new List<string> {"Other", "Legacy"},
+                AlternatePackage = new Protocol.Catalog.AlternatePackage
+                {
+                    Id = "test.alternatepackage",
+                    Range = "[1.0.0, )"
+                }, 
+                Message = "test message for test.alternatepackage-1.0.0"
+            },
+            Vulnerabilities = new List<Protocol.Catalog.PackageVulnerability>
+            {
+                new Protocol.Catalog.PackageVulnerability
+                {
+                    AdvisoryUrl = "test AdvisoryUrl for Low Severity",
+                    Severity = "0"
+                },
+                new Protocol.Catalog.PackageVulnerability
+                {
+                    AdvisoryUrl = "test AdvisoryUrl for Moderate Severity",
+                    Severity = "1"
+                }
+            }
         };
     }
 }
