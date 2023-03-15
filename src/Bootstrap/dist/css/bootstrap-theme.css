@@ -274,9 +274,6 @@ img.reserved-indicator-icon {
   outline: solid 0.25px;
   outline-offset: 0;
 }
-.package-list li .package-tags {
-  display: block;
-}
 @media (min-width: 768px) {
   .package-list li {
     display: inline-block;
