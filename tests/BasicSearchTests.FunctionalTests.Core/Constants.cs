@@ -11,6 +11,9 @@ namespace BasicSearchTests.FunctionalTests.Core
         public const string TestPackageId_SemVer2 = "BaseTestPackage.SemVer2";
         public const string TestPackageId_Unlisted = "BaseTestPackage.Unlisted";
         public const string TestPackageId_PackageType = "BaseTestPackage.DotnetTool";
+        public const string TestPackageId_NoAssetFrameworks = "BaseTestPackage.NoAssetFrameworks"; // No asset TFMs
+        public const string TestPackageFrameworkGeneration = "netframework"; // Single asset framework generation
+        public const string TestPackageTfm = "net"; // Single asset TFM
         public const string TestPackageVersion = "1.0.0";
         public const string TestPackageVersion_SearchFilters_Default = "1.1.0";
         public const string TestPackageVersion_SearchFilters_Prerel = "1.2.0-beta";
@@ -18,6 +21,7 @@ namespace BasicSearchTests.FunctionalTests.Core
         public const string TestPackageVersion_SearchFilters_PrerelSemVer2 = "1.4.0-delta.4";
         public const string TestPackageVersion_Unlisted = "1.1.0";
         public const string TestPackageVersion_PackageType = "1.0.0";
+        public const string TestPackageVersion_NoAssetFrameworks = "1.0.0";
         public const string TestPackageTitle = "BaseTestPackage";
         public const string TestPackageDescription = "Package description";
         public const string TestPackageSummary = "";

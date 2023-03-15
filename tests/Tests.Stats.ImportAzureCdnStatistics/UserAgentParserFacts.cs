@@ -67,9 +67,22 @@ namespace Tests.Stats.ImportAzureCdnStatistics
             [InlineData("NuGet .NET Core MSBuild Task/4.4.0 (Microsoft Windows 10.0.15063)", "NuGet .NET Core MSBuild Task", "4", "4", "0")]
             [InlineData("NuGet Desktop MSBuild Task/4.4.0 (Microsoft Windows 10.0.15063)", "NuGet Desktop MSBuild Task", "4", "4", "0")]
             [InlineData("Cake NuGet Client/4.3.0 (Microsoft Windows 10.0.15063)", "Cake NuGet Client", "4", "3", "0")]
+            [InlineData("Cake/2.3.0.0", "Cake", "2", "3", "0")]
             [InlineData("NuGet VS VSIX/4.3.0 (Microsoft Windows 10.0.15063)", "NuGet VS VSIX", "4", "3", "0")]
             [InlineData("NuGet+VS+VSIX/4.8.1+(Microsoft+Windows+NT+10.0.17134.0,+VS+Enterprise/15.0)", "NuGet VS VSIX", "4", "8", "1")]
             [InlineData("NuGet+Command+Line/4.3.0+(Microsoft+Windows+NT+6.2.9200.0)", "NuGet Command Line", "4", "3", "0")]
+            [InlineData("Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.19045; en-US) PowerShell/7.2.9", "PowerShell Core", "7", "2", "9")]
+            [InlineData("Xamarin Updater (Platform: osx-13.1.0) (Application: Visual Studio Community) (Version: 17.4.5 (build 8))", "Xamarin Updater", "17", "4", "5")]
+            [InlineData("vsts-task-installer/0.12.0", "vsts-task-installer", "0", "12", "0")]
+            [InlineData("Checkmarx-NugetShaCollector (abuse-sca@checkmarx.com)", "Checkmarx NugetShaCollector", null, null, null)]
+            [InlineData("Checkmarx-NugetSourceCodePriorityCollector (abuse-sca@checkmarx.com)", "Checkmarx NugetSourceCodePriorityCollector", null, null, null)]
+            [InlineData("Checkmarx-NugetDllShaCollector (abuse-sca@checkmarx.com)", "Checkmarx NugetDllShaCollector", null, null, null)]
+            [InlineData("Checkmarx-SourceCodeDownloader (abuse-sca@checkmarx.com)", "Checkmarx SourceCodeDownloader", null, null, null)]
+            [InlineData("AzureArtifacts/19.216.33401.7 (Microsoft Azure Artifacts [Azure DevOps]; Hosted)", "Azure artifacts", "19", "216", "33401")]
+            [InlineData("Bazel/release 6.0.0", "Bazel", "6", "0", "0")]
+            [InlineData("Visual Studio/6.4.0", "Visual Studio", "6", "4", "0")]
+            [InlineData("NuGetMirror/6.0.0", "NuGetMirror", "6", "0", "0")]
+            [InlineData("BaGet/1.0.0", "BaGet", "1", "0", "0")]
             public void RecognizesCustomClients(string userAgent, string expectedClient, string expectedMajor, string expectedMinor, string expectedPatch)
             {
                 var parsed = _parser.ParseUserAgent(userAgent);

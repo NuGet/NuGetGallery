@@ -141,6 +141,10 @@
   - regex: '(WindowsPowerShell)/(\d+)\.(\d+)\.?(\d+)?'
     family_replacement: 'Windows PowerShell'
 
+  # PowerShell Core
+  - regex: 'Mozilla.*(PowerShell)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'PowerShell Core'
+
   # Fiddler
   - regex: '(Fiddler)/?(\d+)?\.?(\d+)?\.?(\d+)?'
     family_replacement: 'Fiddler'
@@ -161,9 +165,57 @@
   - regex: '(Cake NuGet Client)/(\d+)\.(\d+)\.?(\d+)?'
     family_replacement: 'Cake NuGet Client'
 
+  # Cake
+  - regex: '(Cake)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'Cake'
+
   # NuGet Client V3
   - regex: '(NuGet VS VSIX)/(\d+)\.(\d+)\.?(\d+)?'
     family_replacement: 'NuGet VS VSIX'
+
+  # Xamarin Updater
+  - regex: '(Xamarin Updater).*?\(Version: (\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'Xamarin Updater'
+
+  # vsts-task-installer
+  - regex: '(vsts-task-installer)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'vsts-task-installer'
+
+  # Checkmarx 1
+  - regex: '(Checkmarx-NugetSourceCodePriorityCollector)'
+    family_replacement: 'Checkmarx NugetSourceCodePriorityCollector'
+
+  # Checkmarx 2
+  - regex: '(Checkmarx-NugetShaCollector)'
+    family_replacement: 'Checkmarx NugetShaCollector'
+
+  # Checkmarx 3
+  - regex: '(Checkmarx-NugetDllShaCollector)'
+    family_replacement: 'Checkmarx NugetDllShaCollector'
+
+  # Checkmarx 4
+  - regex: '(Checkmarx-SourceCodeDownloader)'
+    family_replacement: 'Checkmarx SourceCodeDownloader'
+
+  # Azure artifacts
+  - regex: '(AzureArtifacts)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'Azure artifacts'
+
+  # Bazel
+  - regex: '(Bazel)/.*?(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'Bazel'
+
+  # Visual Studio
+  - regex: '(Visual Studio)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'Visual Studio'
+
+  # NuGetMirror
+  - regex: '(NuGetMirror)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGetMirror'
+
+  # BaGet
+  - regex: '(BaGet)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'BaGet'
 
   # NuGet - Keep this one at the bottom of this file as a catch-all resolver
   - regex: '(NuGet)/?(\d+)\.(\d+)\.?(\d+)?'

@@ -35,7 +35,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
             IStorageFactory iconCacheStorageFactory,
             Func<HttpMessageHandler> httpHandlerFactory,
             ILogger<IconsCollector> logger)
-            : base(index, telemetryService, httpHandlerFactory, httpClientTimeout: TimeSpan.FromMinutes(5))
+            : base(index, telemetryService, httpHandlerFactory, httpClientTimeout: TimeSpan.FromMinutes(1))
         {
             _targetStorageFactory = targetStorageFactory ?? throw new ArgumentNullException(nameof(targetStorageFactory));
             _catalogClient = catalogClient ?? throw new ArgumentNullException(nameof(catalogClient));
