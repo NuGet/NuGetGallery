@@ -283,6 +283,7 @@ img.reserved-indicator-icon {
     padding-right: 10px;
   }
   .package-list li.package-tags {
+    display: block;
     overflow-y: visible;
   }
 }

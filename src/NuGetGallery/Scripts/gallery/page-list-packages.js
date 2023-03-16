@@ -53,10 +53,14 @@ $(function() {
         expandButton.classList.toggle('ms-Icon--ChevronUp');
 
         if (this.classList.contains('active')) {
+            this.setAttribute("aria-expanded", "true");
+
             dataTab.style.display = 'block';
             dataTab.style.maxHeight = dataTab.scrollHeight + "px";
         }
         else {
+            this.setAttribute("aria-expanded", "false");
+
             dataTab.style.display = 'none';
             dataTab.style.maxHeight = 0;
         }
