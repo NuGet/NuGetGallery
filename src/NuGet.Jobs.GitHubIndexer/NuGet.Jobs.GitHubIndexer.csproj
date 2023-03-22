@@ -45,6 +45,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\NuGet.Jobs.Common\Extensions\TaskExtensions.cs">
+      <Link>GitRepoSearchers\GitHub\TaskExtensions.cs</Link>
+    </Compile>
     <Compile Include="CheckedOutFile.cs" />
     <Compile Include="ConfigFileParser.cs" />
     <Compile Include="FetchedRepo.cs" />
