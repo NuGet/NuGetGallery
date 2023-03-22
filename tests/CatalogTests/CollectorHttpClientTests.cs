@@ -2,12 +2,18 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Moq;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NgTests.Infrastructure;
+using NuGet.Services;
 using NuGet.Services.Metadata.Catalog;
 using Xunit;
 
@@ -37,6 +43,43 @@ namespace CatalogTests
             {
                 Content = new StringContent(TestRawJson),
             }));
+        }
+
+        [Fact]
+        public async Task GetJObjectAsync_EnforcesTimeoutOnResponseBody()
+        {
+            // Arrange
+            var testHandler = new Mock<TestHttpMessageHandler> { CallBase = true };
+            testHandler
+                .Setup(x => x.OnSendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(() =>
+                {
+                    return new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StreamContent(new HungStream(
+                            new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new
+                            {
+                                key = Enumerable.Range(0, 10000).Select(x => x).ToArray()
+                            }))),
+                            hangTime: TimeSpan.FromSeconds(30))),
+                    };
+                });
+            var target = new CollectorHttpClient(
+                testHandler.Object,
+                new RetryWithExponentialBackoff(
+                    maximumRetries: 1,
+                    delay: TimeSpan.Zero,
+                    maximumDelay: TimeSpan.FromSeconds(10),
+                    httpCompletionOption: HttpCompletionOption.ResponseHeadersRead,
+                    onException: null));
+            target.Timeout = TimeSpan.FromSeconds(1);
+
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<Exception>(() => target.GetJObjectAsync(TestUri));
+            Assert.Equal($"GetStringAsync({TestUri})", ex.Message);
+            Assert.IsType<OperationCanceledException>(ex.InnerException);
+            Assert.Equal("The operation was forcibly canceled.", ex.InnerException.Message);
+            testHandler.Verify(x => x.OnSendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="15.0">
   <Import Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
   <PropertyGroup>
@@ -111,6 +111,7 @@
     <Compile Include="Helpers\RegistrationIndependentPackage.cs" />
     <Compile Include="Helpers\RegistrationPackageDetails.cs" />
     <Compile Include="Helpers\UtilsTests.cs" />
+    <Compile Include="HungStream.cs" />
     <Compile Include="Icons\CatalogLeafDataProcessorFacts.cs" />
     <Compile Include="Icons\IconCopyResultCacheFacts.cs" />
     <Compile Include="Icons\IconProcessorFacts.cs" />
@@ -325,6 +326,10 @@
     <ProjectReference Include="..\NgTests\NgTests.csproj">
       <Project>{05c1c78a-9966-4922-9065-a099023e7366}</Project>
       <Name>NgTests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.V3.Tests\NuGet.Services.V3.Tests.csproj">
+      <Project>{CCB4D5EF-AC84-449D-AC6E-0A0AD295483A}</Project>
+      <Name>NuGet.Services.V3.Tests</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

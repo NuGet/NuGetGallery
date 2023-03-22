@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Threading;
@@ -100,9 +101,16 @@ namespace NuGet.Services.Metadata.Catalog
         {
             try
             {
+                var sw = Stopwatch.StartNew();
                 using (var httpResponse = await _retryStrategy.SendAsync(this, address, token))
                 {
-                    return await httpResponse.Content.ReadAsStringAsync();
+                    Trace.TraceInformation(nameof(GetStringAsync) + "({0}) got " + nameof(HttpResponseMessage) + " after {1}ms", address, sw.ElapsedMilliseconds);
+                    sw.Restart();
+                    var response = await NuGet.Jobs.TaskExtensions.ExecuteWithTimeoutAsync(
+                        _ => httpResponse.Content.ReadAsStringAsync(),
+                        timeout: this.Timeout);
+                    Trace.TraceInformation(nameof(GetStringAsync) + "({0}) got string ({1} chars) after {2}ms", address, response.Length, sw.ElapsedMilliseconds);
+                    return response;
                 }
             }
             catch (Exception e)

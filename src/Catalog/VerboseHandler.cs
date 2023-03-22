@@ -20,7 +20,7 @@ namespace NuGet.Services.Metadata.Catalog
             sw.Start();
             HttpResponseMessage response = await base.SendAsync(request, cancellationToken);
             sw.Stop();
-            Trace.TraceInformation("HTTP {0}_{1}_{2}", request.Method, request.RequestUri, sw.ElapsedMilliseconds);
+            Trace.TraceInformation("HTTP {0} {1} (headers after {2}ms)", request.Method, request.RequestUri, sw.ElapsedMilliseconds);
             return response;
         }
     }

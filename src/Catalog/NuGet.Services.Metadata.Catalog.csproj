@@ -52,6 +52,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\NuGet.Jobs.Common\Extensions\TaskExtensions.cs" Link="TaskExtensions.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Include="context\Catalog.json" />
     <EmbeddedResource Include="context\Container.json" />
     <EmbeddedResource Include="context\PackageDetails.json" />

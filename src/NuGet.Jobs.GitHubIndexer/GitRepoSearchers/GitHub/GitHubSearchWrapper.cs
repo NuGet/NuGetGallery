@@ -37,7 +37,7 @@ namespace NuGet.Jobs.GitHubIndexer
             // if possible. If the built-in timeout does not work, this will essentially abandon the HTTP task
             // and throw an OperationCanceledException, with a custom message. If the built-in timeout does work, a
             // TaskCanceledException will be thrown.
-            var apiResponse = await ExecuteWithTimeoutAsync(
+            var apiResponse = await TaskExtensions.ExecuteWithTimeoutAsync(
                 token => _client.Connection.Get<SearchRepositoryResult>(
                     ApiUrls.SearchRepositories(),
                     request.Parameters,
@@ -74,30 +74,6 @@ namespace NuGet.Jobs.GitHubIndexer
                     .ToList(),
                 ghTime,
                 DateTimeOffset.FromUnixTimeSeconds(ghResetTime));
-        }
-
-        private static async Task<T> ExecuteWithTimeoutAsync<T>(Func<CancellationToken, Task<T>> getTask, TimeSpan timeout)
-        {
-            // Source:
-            // https://github.com/davidfowl/AspNetCoreDiagnosticScenarios/blob/master/AsyncGuidance.md#using-a-timeout
-            using (var cts = new CancellationTokenSource())
-            {
-                var delayTask = Task.Delay(timeout, cts.Token);
-                var mainTask = getTask(cts.Token);
-                var resultTask = await Task.WhenAny(mainTask, delayTask);
-                if (resultTask == delayTask)
-                {
-                    // Operation cancelled
-                    throw new OperationCanceledException("The operation was forcibly canceled.");
-                }
-                else
-                {
-                    // Cancel the timer task so that it does not fire
-                    cts.Cancel();
-                }
-
-                return await mainTask;
-            }
         }
     }
 }
