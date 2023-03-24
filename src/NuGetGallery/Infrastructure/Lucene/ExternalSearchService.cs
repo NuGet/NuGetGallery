@@ -205,6 +205,49 @@ namespace NuGetGallery.Infrastructure.Search
             var isLatestStable = doc.Value<bool>("IsLatestStable");
             var semVer2 = SemVerLevelKey.ForSemVerLevel(semVerLevel) == SemVerLevelKey.SemVer2;
 
+            var docDeprecation = doc["Deprecation"];
+            Deprecation deprecation = null;
+            if (docDeprecation != null)
+            {
+                var docReasons = docDeprecation.Value<JArray>("Reasons");
+                if (docReasons != null && docReasons.HasValues)
+                {
+                    var reasons = docReasons
+                        .Select(v => v.Value<string>())
+                        .ToArray();
+
+                    var docAlternatePackage = docDeprecation["AlternatePackage"];
+                    AlternatePackage alternatePackage = null;
+                    if (docAlternatePackage != null)
+                    {
+                        alternatePackage = new AlternatePackage()
+                        {
+                            Id = docAlternatePackage.Value<string>("Id"),
+                            Range = docAlternatePackage.Value<string>("Range")
+                        };
+                    }
+
+                    deprecation = new Deprecation()
+                    {
+                        Message = docDeprecation.Value<string>("Message"),
+                        Reasons = reasons,
+                        AlternatePackage = alternatePackage
+                    };
+                }
+            }
+
+            var docVulnerabilities = doc.Value<JArray>("Vulnerabilities");
+            var vulnerabilities = new List<Vulnerability>();
+            if (docVulnerabilities != null)
+            {
+                vulnerabilities = docVulnerabilities.Select(obj => new Vulnerability()
+                {
+                    AdvisoryURL = obj.Value<string>("AdvisoryURL"),
+                    Severity = obj.Value<int>("Severity")
+                })
+                .ToList();
+            }
+
             return new Package
             {
                 Copyright = doc.Value<string>("Copyright"),
@@ -243,7 +286,9 @@ namespace NuGetGallery.Infrastructure.Search
                 LicenseNames = doc.Value<string>("LicenseNames"),
                 LicenseReportUrl = doc.Value<string>("LicenseReportUrl"),
                 HideLicenseReport = doc.Value<bool>("HideLicenseReport"),
-                Listed = doc.Value<bool>("Listed")
+                Listed = doc.Value<bool>("Listed"),
+                Deprecation = deprecation,
+                Vulnerabilities = vulnerabilities
             };
         }
 

@@ -38,19 +38,16 @@
             <div class="package-header">
                 <a class="package-title"
                    href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null).TrimEnd('/')"
-                   @if (itemIndex.HasValue)
-                   {
-                        @:data-track="@eventName" data-track-value="@itemIndex"
-                        @:data-package-id="@Model.Id" data-package-version="@Model.Version" data-use-version="@Model.UseVersion"
-                   }
-                   >@Html.BreakWord(Model.Id)</a>
+                   @if (itemIndex.HasValue) { @: data-track="@eventName" data-track-value="@itemIndex"
+                    @: data-package-id="@Model.Id" data-package-version="@Model.Version" data-use-version="@Model.UseVersion"
+                   }>@Html.BreakWord(Model.Id)</a>
 
                 @if (Model.IsVerified.HasValue && Model.IsVerified.Value)
                 {
                     <img class="reserved-indicator"
                          src="~/Content/gallery/img/reserved-indicator.svg"
                          @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-20x20.png"))
-                         data-content="@Strings.ReservedNamespace_ReservedIndicatorTooltip" tabindex="0" alt="@Strings.ReservedNamespace_ReservedIndicatorTooltip"/>
+                         data-content="@Strings.ReservedNamespace_ReservedIndicatorTooltip" tabindex="0" alt="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
                 }
 
                 @if (showEditButton && (Model.CanEdit || Model.CanManageOwners || Model.CanUnlistOrRelist))
@@ -71,6 +68,29 @@
                     </span>
                 }
             </div>
+
+
+            @if(Model.IsVulnerable || Model.IsDeprecated)
+            {
+                <ul class="package-list">
+                    <li>
+                        @if(Model.IsVulnerable)
+                        {
+                            <span class="icon-text package-warning--vulnerable">
+                                <i class="ms-Icon ms-Icon--BlockedSiteSolid12" aria-hidden="true"></i>
+                                Vulnerable
+                            </span>
+                        }
+                        @if(Model.IsDeprecated)
+                        {
+                            <span class="icon-text package-warning--deprecated">
+                                <i class="ms-Icon ms-Icon--ShieldAlert" aria-hidden="true"></i>
+                                Deprecated
+                            </span>
+                        }
+                    </li>
+                </ul>
+            }
 
             <ul class="package-list">
                 <li>

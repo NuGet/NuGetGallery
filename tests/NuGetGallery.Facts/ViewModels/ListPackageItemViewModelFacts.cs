@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Moq;
 using NuGet.Services.Entities;
+using NuGetGallery.Helpers;
 using Xunit;
 
 namespace NuGetGallery.ViewModels
@@ -343,6 +344,76 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
             {
                 _package.CertificateKey = _certificate.Key;
                 _package.Certificate = _certificate;
+            }
+        }
+
+        public class IsDeprecated
+        {
+            [Theory]
+            [MemberData(nameof(DeprecationItemsHelper.ValidObjects), MemberType = typeof(DeprecationItemsHelper))]
+            public void SetDeprecationToTrueWhenIsValid(Deprecation deprecation)
+            {
+                var package = new Package()
+                {
+                    Version = "1.0.0",
+                    PackageRegistration = new PackageRegistration { Id = "SomeId" },
+                    Deprecation = deprecation
+                };
+
+                var vm = CreateListPackageItemViewModel(package);
+
+                Assert.True(vm.IsDeprecated);
+            }
+
+            [Theory]
+            [MemberData(nameof(DeprecationItemsHelper.InvalidObjects), MemberType = typeof(DeprecationItemsHelper))]
+            public void SetDeprecationToFalseWhenIsInvalid(Deprecation deprecation)
+            {
+                var package = new Package()
+                {
+                    Version = "1.0.0",
+                    PackageRegistration = new PackageRegistration { Id = "SomeId" },
+                    Deprecation = deprecation
+                };
+
+                var vm = CreateListPackageItemViewModel(package);
+
+                Assert.False(vm.IsDeprecated);
+            }
+        }
+
+        public class IsVulnerable
+        {
+            [Theory]
+            [MemberData(nameof(VulnerabilityItemsHelper.ValidObjects), MemberType = typeof(VulnerabilityItemsHelper))]
+            public void SetVulnerabilityToTrueWhenIsValid(IReadOnlyList<Vulnerability> vulnerabilities)
+            {
+                var package = new Package()
+                {
+                    Version = "1.0.0",
+                    PackageRegistration = new PackageRegistration { Id = "SomeId" },
+                    Vulnerabilities = vulnerabilities
+                };
+
+                var vm = CreateListPackageItemViewModel(package);
+
+                Assert.True(vm.IsVulnerable);
+            }
+
+            [Theory]
+            [MemberData(nameof(VulnerabilityItemsHelper.InvalidObjects), MemberType = typeof(VulnerabilityItemsHelper))]
+            public void SetVulnerableToFalseWhenIsInvalid(IReadOnlyList<Vulnerability> vulnerabilities)
+            {
+                var package = new Package()
+                {
+                    Version = "1.0.0",
+                    PackageRegistration = new PackageRegistration { Id = "SomeId" },
+                    Vulnerabilities = vulnerabilities
+                };
+
+                var vm = CreateListPackageItemViewModel(package);
+
+                Assert.False(vm.IsVulnerable);
             }
         }
 

@@ -1444,7 +1444,6 @@
     <Compile Include="Services\NullReportService.cs" />
     <Compile Include="Services\NullStatisticsService.cs" />
     <Compile Include="Services\PackageFileService.cs" />
-    <Compile Include="Services\PackageSearchResults.cs" />
     <Compile Include="Services\JsonAggregateStatsService.cs" />
     <Compile Include="Services\SearchResults.cs" />
     <Compile Include="Services\SqlAggregateStatsService.cs" />
