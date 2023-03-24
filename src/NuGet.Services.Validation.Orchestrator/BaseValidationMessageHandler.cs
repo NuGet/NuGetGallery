@@ -74,7 +74,6 @@ namespace NuGet.Services.Validation.Orchestrator
         }
 
         protected abstract ValidatingType ValidatingType { get; }
-        protected abstract bool ShouldNoOpDueToDeletion { get; }
 
         public async Task<bool> HandleAsync(PackageValidationMessageData message)
         {
@@ -127,18 +126,26 @@ namespace NuGet.Services.Validation.Orchestrator
                 entity = _entityService.FindPackageByKey(validationSet.PackageKey.Value);
                 if (entity == null)
                 {
-                    _logger.LogError(
-                        "Could not find {ValidatingType} {PackageId} {PackageVersion} {Key} for validation set {ValidationSetId}.",
+                    // We can drop this message when the entity is missing. This is because there is already a
+                    // "ProcessValidationSet" type message polling the validation set status (meaning dropping this
+                    // message will not result in a stuck validation).
+                    //
+                    // This case typically happens when the entity was hard deleted (the record with the matching key
+                    // was totally removed from the DB). A "CheckValidator" type message can only be enqueued if the
+                    // entity with this key existed at one point but now no longer exists.
+                    _logger.LogWarning(
+                        "Could not find {ValidatingType} {PackageId} {PackageVersion} {Key} for validation set {ValidationSetId}. " +
+                        "The entity was most likely hard deleted. Dropping message.",
                         ValidatingType,
                         validationSet.PackageId,
                         validationSet.PackageNormalizedVersion,
                         validationSet.PackageKey,
                         validationSet.ValidationTrackingId);
-                    return false;
+                    return true;
                 }
                 
                 // Immediately halt validation of a soft deleted package.
-                if (ShouldNoOpDueToDeletion && entity.Status == PackageStatus.Deleted)
+                if (entity.Status == PackageStatus.Deleted)
                 {
                     _logger.LogWarning(
                         "{ValidatingType} {PackageId} {PackageVersion} {Key} is soft deleted. Dropping message for " +
@@ -242,7 +249,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 }
 
                 // Immediately halt validation of a soft deleted package.
-                if (ShouldNoOpDueToDeletion && entity.Status == PackageStatus.Deleted)
+                if (entity.Status == PackageStatus.Deleted)
                 {
                     _logger.LogWarning(
                         "{ValidatingType} {PackageId} {PackageNormalizedVersion} {Key} is soft deleted. Dropping " +

@@ -70,7 +70,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         }
 
         [Fact]
-        public async Task WaitsForPackageAvailabilityInGalleryDBWithCheckValidator()
+        public async Task DoesNotWaitForPackageAvailabilityInGalleryDBWithCheckValidator()
         {
             var messageData = PackageValidationMessageData.NewCheckValidator(Guid.NewGuid());
             var validationConfiguration = new ValidationConfiguration();
@@ -96,7 +96,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 ps => ps.FindPackageByKey(validationSet.PackageKey.Value),
                 Times.Once);
 
-            Assert.False(result, "The handler should not have succeeded.");
+            Assert.True(result, "The handler should have succeeded.");
         }
 
         [Fact]
@@ -206,6 +206,72 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 vsp => vsp.TryGetOrCreateValidationSetAsync(
                     messageData.ProcessValidationSet,
                     symbolPackageValidatingEntity),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task DropsMessageIfPackageIsSoftDeletedForProcessValidationSet()
+        {
+            var messageData = PackageValidationMessageData.NewProcessValidationSet(
+                "packageId",
+                "1.2.3",
+                Guid.NewGuid(),
+                ValidatingType.SymbolPackage,
+                entityKey: null);
+            var validationConfiguration = new ValidationConfiguration();
+            var symbolPackage = new SymbolPackage { StatusKey = PackageStatus.Deleted };
+            var symbolPackageValidatingEntity = new SymbolPackageValidatingEntity(symbolPackage);
+            var validationSet = new PackageValidationSet { PackageKey = symbolPackage.Key, ValidatingType = ValidatingType.SymbolPackage };
+
+            ValidationSetProviderMock
+                .Setup(vsp => vsp.TryGetOrCreateValidationSetAsync(messageData.ProcessValidationSet, symbolPackageValidatingEntity))
+                .ReturnsAsync(validationSet)
+                .Verifiable();
+            CoreSymbolPackageServiceMock
+                .Setup(ps => ps.FindPackageByIdAndVersionStrict(
+                    messageData.ProcessValidationSet.PackageId,
+                    messageData.ProcessValidationSet.PackageVersion))
+                .Returns(symbolPackageValidatingEntity);
+
+            var handler = CreateHandler();
+
+            var result = await handler.HandleAsync(messageData);
+
+            Assert.True(result);
+            CoreSymbolPackageServiceMock.Verify(
+                ps => ps.FindPackageByIdAndVersionStrict(
+                    messageData.ProcessValidationSet.PackageId,
+                    messageData.ProcessValidationSet.PackageVersion),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task DropsMessageIfPackageIsSoftDeletedForCheckValidator()
+        {
+            var messageData = PackageValidationMessageData.NewCheckValidator(Guid.NewGuid());
+            var validationConfiguration = new ValidationConfiguration();
+            var symbolPackage = new SymbolPackage { Key = 42, StatusKey = PackageStatus.Deleted };
+            var symbolPackageValidatingEntity = new SymbolPackageValidatingEntity(symbolPackage);
+            var validationSet = new PackageValidationSet { PackageKey = symbolPackage.Key, ValidatingType = ValidatingType.SymbolPackage };
+
+            ValidationSetProviderMock
+                .Setup(ps => ps.TryGetParentValidationSetAsync(messageData.CheckValidator.ValidationId))
+                .ReturnsAsync(validationSet)
+                .Verifiable();
+            CoreSymbolPackageServiceMock
+                .Setup(ps => ps.FindPackageByKey(symbolPackage.Key))
+                .Returns(symbolPackageValidatingEntity);
+
+            var handler = CreateHandler();
+
+            var result = await handler.HandleAsync(messageData);
+
+            Assert.True(result);
+            ValidationSetProviderMock.Verify(
+                vsp => vsp.TryGetParentValidationSetAsync(messageData.CheckValidator.ValidationId),
+                Times.Once);
+            CoreSymbolPackageServiceMock.Verify(
+                ps => ps.FindPackageByKey(symbolPackage.Key),
                 Times.Once);
         }
 

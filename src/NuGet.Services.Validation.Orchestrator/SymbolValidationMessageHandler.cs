@@ -40,6 +40,5 @@ namespace NuGet.Services.Validation.Orchestrator
         }
 
         protected override ValidatingType ValidatingType => ValidatingType.SymbolPackage;
-        protected override bool ShouldNoOpDueToDeletion => false;
     }
 }
