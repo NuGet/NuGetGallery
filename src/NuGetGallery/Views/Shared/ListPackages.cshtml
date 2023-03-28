@@ -27,7 +27,8 @@
     <div class="frameworkgoup">
         <input type="checkbox" id="@(frameworkShortName)" class="framework">
         <label for="@(frameworkShortName)">@(frameworkDisplayName)</label>
-        <button type="button" class="collapsible" tab="@(frameworkShortName)" tabindex="0" aria-label="shows and hides TFM filters">
+        <button type="button" class="collapsible" tab="@(frameworkShortName)" tabindex="0"
+                aria-label="shows and hides TFM filters for @(frameworkDisplayName)" aria-expanded="false" aria-controls="@(frameworkShortName)tab">
             <i class="ms-Icon ms-Icon--ChevronDown" id="@(frameworkShortName)button"></i>
         </button>
         <div class="tfmTab" id="@(frameworkShortName)tab">

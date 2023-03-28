@@ -137,7 +137,7 @@ namespace NuGetGallery
             }
 
             var authenticationResult = await _authService.Authenticate(model.SignIn.UserNameOrEmail, model.SignIn.Password);
-
+            
             if (authenticationResult.Result != PasswordAuthenticationResult.AuthenticationResult.Success)
             {
                 string modelErrorMessage = string.Empty;
@@ -444,6 +444,12 @@ namespace NuGetGallery
                     .Organization
                     .SecurityPolicies
                     .Any(policy => policy.Name == nameof(RequireOrganizationTenantPolicy)));
+
+            // Validate that the returnUrl is a relative URL to prevent untrusted URL redirection
+            if (!Url.IsLocalUrl(returnUrl))
+            {
+                returnUrl = "/";
+            }
 
             if (userOrganizationsWithTenantPolicy != null && userOrganizationsWithTenantPolicy.Any())
             {
@@ -930,7 +936,7 @@ namespace NuGetGallery
             existingModel.SignIn = existingModel.SignIn ?? new SignInViewModel();
             existingModel.Register = existingModel.Register ?? new RegisterViewModel();
             existingModel.IsNuGetAccountPasswordLoginEnabled = _featureFlagService.IsNuGetAccountPasswordLoginEnabled();
-
+            existingModel.IsEmailOnExceptionList = _contentObjectService.LoginDiscontinuationConfiguration.IsEmailOnExceptionsList(existingModel.SignIn.UserNameOrEmail);
             return View(viewName, existingModel);
         }
 

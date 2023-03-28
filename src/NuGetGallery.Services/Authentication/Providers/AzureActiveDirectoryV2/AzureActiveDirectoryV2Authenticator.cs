@@ -102,6 +102,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
                 PostLogoutRedirectUri = siteRoot,
                 Scope = OpenIdConnectScope.OpenIdProfile + " email",
                 ResponseType = OpenIdConnectResponseType.IdToken,
+                // CodeQL [SM03926] We do not restrict issuers to a limited set of tenants for our multi-tenant app
                 TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters() { ValidateIssuer = false },
                 Notifications = new OpenIdConnectAuthenticationNotifications
                 {

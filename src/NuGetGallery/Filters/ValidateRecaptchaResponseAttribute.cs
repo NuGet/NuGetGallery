@@ -49,6 +49,7 @@ namespace NuGetGallery.Filters
 
             try
             {
+                // CodeQL [SM03781] The validation Url is restricted to a specific host, which mitigates the risk of unwanted redirection
                 var reply = await Client.Value.GetStringAsync(validationUrl);
                 var state = JsonConvert.DeserializeObject<RecaptchaState>(reply);
                 return state.Success;

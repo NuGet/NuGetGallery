@@ -16,6 +16,7 @@ namespace NuGetGallery
         public RegisterViewModel Register { get; set; }
         public IList<AuthenticationProviderViewModel> Providers { get; set; }
         public bool IsNuGetAccountPasswordLoginEnabled { get; set; }
+        public bool IsEmailOnExceptionList { get; set; }
 
         public LogOnViewModel()
             : this(new SignInViewModel())
