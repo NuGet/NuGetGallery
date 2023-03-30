@@ -213,7 +213,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             if (destinationProperties?.Count > 0)
             {
-                context.SetAttributesCallback = new SetAttributesCallback((destination) =>
+                context.SetAttributesCallbackAsync = new SetAttributesCallbackAsync((destination) =>
                 {
                     var blob = (CloudBlockBlob)destination;
 
@@ -236,10 +236,12 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                                 throw new NotImplementedException($"Storage property '{property.Value}' is not supported.");
                         }
                     }
+
+                    return Task.CompletedTask;
                 });
             }
 
-            context.ShouldOverwriteCallback = new ShouldOverwriteCallback((source, destination) => true);
+            context.ShouldOverwriteCallbackAsync = new ShouldOverwriteCallbackAsync((source, destination) => Task.FromResult(true));
 
             await TransferManager.CopyAsync(sourceBlob, destinationBlob, _useServerSideCopy, options: null, context: context);
         }
