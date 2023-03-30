@@ -577,7 +577,7 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
     </div>
     if (!disabled)
     {
-        <div class="panel panel-default panel-collapse collapse @(expanded ? "in" : string.Empty)"
+        <div role="form" class="panel panel-default panel-collapse collapse @(expanded ? "in" : string.Empty)"
                 aria-expanded="@(expanded ? "true" : "false")" id="@id-container">
             <div class="panel-body">
                 @content(MvcHtmlString.Empty)
