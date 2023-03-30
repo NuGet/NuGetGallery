@@ -288,7 +288,6 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             }
 
             protected override ValidatingType ValidatingType => ValidatingType.Package;
-            protected override bool ShouldNoOpDueToDeletion => true;
         }
 
         public class TestEntity : IEntity

@@ -72,7 +72,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         }
 
         [Fact]
-        public async Task WaitsForPackageAvailabilityInGalleryDBWithCheckValidator()
+        public async Task DoesNotWaitForPackageAvailabilityInGalleryDBWithCheckValidator()
         {
             var messageData = PackageValidationMessageData.NewCheckValidator(Guid.NewGuid());
             var validationConfiguration = new ValidationConfiguration();
@@ -98,7 +98,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 ps => ps.FindPackageByKey(validationSet.PackageKey.Value),
                 Times.Once);
 
-            Assert.False(result, "The handler should not have succeeded.");
+            Assert.True(result, "The handler should have succeeded.");
         }
 
         [Fact]

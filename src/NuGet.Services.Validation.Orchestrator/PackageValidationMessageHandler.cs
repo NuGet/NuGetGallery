@@ -37,6 +37,5 @@ namespace NuGet.Services.Validation.Orchestrator
         }
 
         protected override ValidatingType ValidatingType => ValidatingType.Package;
-        protected override bool ShouldNoOpDueToDeletion => true;
     }
 }
