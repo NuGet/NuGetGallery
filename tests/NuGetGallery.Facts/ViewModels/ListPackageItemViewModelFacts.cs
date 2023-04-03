@@ -385,11 +385,50 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
             }
         }
 
+        public class DeprecationTitle
+        {
+            [Theory]
+            [MemberData(nameof(DeprecationItemsHelper.ValidObjects), MemberType = typeof(DeprecationItemsHelper))]
+            public void SetDeprecationTitleWhenDeprecationIsValid(JObject docDeprecation)
+            {
+                var deprecations = SearchResponseHelper.GetDeprecations(docDeprecation);
+                var package = new Package()
+                {
+                    Version = "1.0.0",
+                    PackageRegistration = new PackageRegistration { Id = "SomeId" },
+                    Deprecations = deprecations
+                };
+
+                var deprecationTitle = WarningTitleHelper.GetDeprecationTitle(package.Version, package.Deprecations.First().Status);
+
+                var vm = CreateListPackageItemViewModel(package);
+
+                Assert.Equal(deprecationTitle, vm.DeprecationTitle);
+            }
+
+            [Theory]
+            [MemberData(nameof(DeprecationItemsHelper.InvalidObjects), MemberType = typeof(DeprecationItemsHelper))]
+            public void DeprecationTitleIsNullWhenDeprecationIsInvalid(JObject docDeprecation)
+            {
+                var deprecations = SearchResponseHelper.GetDeprecations(docDeprecation);
+                var package = new Package()
+                {
+                    Version = "1.0.0",
+                    PackageRegistration = new PackageRegistration { Id = "SomeId" },
+                    Deprecations = deprecations
+                };
+
+                var vm = CreateListPackageItemViewModel(package);
+
+                Assert.Null(vm.DeprecationTitle);
+            }
+        }
+
         public class IsVulnerable
         {
             [Theory]
             [MemberData(nameof(VulnerabilityItemsHelper.ValidObjects), MemberType = typeof(VulnerabilityItemsHelper))]
-            public void SetVulnerabilityToTrueWhenIsValid(JArray docVulnerabilities)
+            public void SetVulnerableToTrueWhenIsValid(JArray docVulnerabilities)
             {
                 var vulnerabilities = SearchResponseHelper.GetVulnerabilities(docVulnerabilities);
                 var package = new Package()
@@ -419,6 +458,46 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 var vm = CreateListPackageItemViewModel(package);
 
                 Assert.False(vm.IsVulnerable);
+            }
+        }
+
+        public class VulnerabilityTitle
+        {
+            [Theory]
+            [MemberData(nameof(VulnerabilityItemsHelper.ValidObjects), MemberType = typeof(VulnerabilityItemsHelper))]
+            public void SetVulnerabilityTitleWhenVulnerabilitiesAreValid(JArray docVulnerabilities)
+            {
+                var vulnerabilities = SearchResponseHelper.GetVulnerabilities(docVulnerabilities);
+                var package = new Package()
+                {
+                    Version = "1.0.0",
+                    PackageRegistration = new PackageRegistration { Id = "SomeId" },
+                    VulnerablePackageRanges = vulnerabilities
+                };
+
+                var maxVulnerabilitySeverity = package.VulnerablePackageRanges.Max(vpr => vpr.Vulnerability.Severity);
+                var vulnerabilityTitle = WarningTitleHelper.GetVulnerabilityTitle(package.Version, maxVulnerabilitySeverity);
+
+                var vm = CreateListPackageItemViewModel(package);
+
+                Assert.Equal(vulnerabilityTitle, vm.VulnerabilityTitle);
+            }
+
+            [Theory]
+            [MemberData(nameof(VulnerabilityItemsHelper.InvalidObjects), MemberType = typeof(VulnerabilityItemsHelper))]
+            public void VulnerabilityTitleIsNullWhenVulnerabilitiesAreInvalid(JArray docVulnerabilities)
+            {
+                var vulnerabilities = SearchResponseHelper.GetVulnerabilities(docVulnerabilities);
+                var package = new Package()
+                {
+                    Version = "1.0.0",
+                    PackageRegistration = new PackageRegistration { Id = "SomeId" },
+                    VulnerablePackageRanges = vulnerabilities
+                };
+
+                var vm = CreateListPackageItemViewModel(package);
+
+                Assert.Null(vm.VulnerabilityTitle);
             }
         }
 

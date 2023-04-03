@@ -45,13 +45,13 @@ namespace NuGetGallery
 
             if (viewModel.IsDeprecated)
             {
-                viewModel.DeprecatedTitle = WarningTitleHelper.GetDeprecationTitle(package.Version, package.Deprecations.First().Status);
+                viewModel.DeprecationTitle = WarningTitleHelper.GetDeprecationTitle(package.Version, package.Deprecations.First().Status);
             }
 
             if (viewModel.IsVulnerable)
             {
                 var maxVulnerabilitySeverity = package.VulnerablePackageRanges.Max(vpr => vpr.Vulnerability.Severity);
-                viewModel.VulnerableTitle = WarningTitleHelper.GetVulnerabilityTitle(package.Version, maxVulnerabilitySeverity);
+                viewModel.VulnerabilityTitle = WarningTitleHelper.GetVulnerabilityTitle(package.Version, maxVulnerabilitySeverity);
             }
 
             viewModel.CanDisplayPrivateMetadata = CanPerformAction(currentUser, package, ActionsRequiringPermissions.DisplayPrivatePackageMetadata);
