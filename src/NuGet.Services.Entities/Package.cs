@@ -310,17 +310,5 @@ namespace NuGet.Services.Entities
         public bool HasEmbeddedIcon { get; set; }
 
         public EmbeddedReadmeFileType EmbeddedReadmeType { get; set; }
-
-        /// <summary>
-        /// Deprecation data retrieved from search service.
-        /// </summary>
-        [NotMapped]
-        public Deprecation Deprecation { get; set; }
-
-        /// <summary>
-        /// Vulnerability data retrieved from search service.
-        /// </summary>
-        [NotMapped]
-        public IReadOnlyList<Vulnerability> Vulnerabilities { get; set; }
     }
 }

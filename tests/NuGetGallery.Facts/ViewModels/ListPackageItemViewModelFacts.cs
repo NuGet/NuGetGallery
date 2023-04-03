@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Moq;
+using Newtonsoft.Json.Linq;
 using NuGet.Services.Entities;
 using NuGetGallery.Helpers;
 using Xunit;
@@ -351,13 +352,14 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
         {
             [Theory]
             [MemberData(nameof(DeprecationItemsHelper.ValidObjects), MemberType = typeof(DeprecationItemsHelper))]
-            public void SetDeprecationToTrueWhenIsValid(Deprecation deprecation)
+            public void SetDeprecationToTrueWhenIsValid(JObject docDeprecation)
             {
+                var deprecations = SearchResponseHelper.GetDeprecations(docDeprecation);
                 var package = new Package()
                 {
                     Version = "1.0.0",
                     PackageRegistration = new PackageRegistration { Id = "SomeId" },
-                    Deprecation = deprecation
+                    Deprecations = deprecations
                 };
 
                 var vm = CreateListPackageItemViewModel(package);
@@ -367,13 +369,14 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
 
             [Theory]
             [MemberData(nameof(DeprecationItemsHelper.InvalidObjects), MemberType = typeof(DeprecationItemsHelper))]
-            public void SetDeprecationToFalseWhenIsInvalid(Deprecation deprecation)
+            public void SetDeprecationToFalseWhenIsInvalid(JObject docDeprecation)
             {
+                var deprecations = SearchResponseHelper.GetDeprecations(docDeprecation);
                 var package = new Package()
                 {
                     Version = "1.0.0",
                     PackageRegistration = new PackageRegistration { Id = "SomeId" },
-                    Deprecation = deprecation
+                    Deprecations = deprecations
                 };
 
                 var vm = CreateListPackageItemViewModel(package);
@@ -386,13 +389,14 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
         {
             [Theory]
             [MemberData(nameof(VulnerabilityItemsHelper.ValidObjects), MemberType = typeof(VulnerabilityItemsHelper))]
-            public void SetVulnerabilityToTrueWhenIsValid(IReadOnlyList<Vulnerability> vulnerabilities)
+            public void SetVulnerabilityToTrueWhenIsValid(JArray docVulnerabilities)
             {
+                var vulnerabilities = SearchResponseHelper.GetVulnerabilities(docVulnerabilities);
                 var package = new Package()
                 {
                     Version = "1.0.0",
                     PackageRegistration = new PackageRegistration { Id = "SomeId" },
-                    Vulnerabilities = vulnerabilities
+                    VulnerablePackageRanges = vulnerabilities
                 };
 
                 var vm = CreateListPackageItemViewModel(package);
@@ -402,13 +406,14 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
 
             [Theory]
             [MemberData(nameof(VulnerabilityItemsHelper.InvalidObjects), MemberType = typeof(VulnerabilityItemsHelper))]
-            public void SetVulnerableToFalseWhenIsInvalid(IReadOnlyList<Vulnerability> vulnerabilities)
+            public void SetVulnerableToFalseWhenIsInvalid(JArray docVulnerabilities)
             {
+                var vulnerabilities = SearchResponseHelper.GetVulnerabilities(docVulnerabilities);
                 var package = new Package()
                 {
                     Version = "1.0.0",
                     PackageRegistration = new PackageRegistration { Id = "SomeId" },
-                    Vulnerabilities = vulnerabilities
+                    VulnerablePackageRanges = vulnerabilities
                 };
 
                 var vm = CreateListPackageItemViewModel(package);

@@ -10,6 +10,7 @@ using Newtonsoft.Json.Linq;
 using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
+using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure.Lucene;
 
 namespace NuGetGallery.Infrastructure.Search
@@ -25,7 +26,7 @@ namespace NuGetGallery.Infrastructure.Search
 
         public string IndexPath
         {
-            get { return string.Empty ; }
+            get { return string.Empty; }
         }
 
         public bool IsLocal
@@ -82,7 +83,7 @@ namespace NuGetGallery.Infrastructure.Search
                 if (content == null)
                 {
                     results = new SearchResults(0, null, Enumerable.Empty<Package>().AsQueryable());
-                } 
+                }
                 else if (filter.CountOnly || content.TotalHits == 0)
                 {
                     results = new SearchResults(content.TotalHits, content.IndexTimestamp);
@@ -175,11 +176,11 @@ namespace NuGetGallery.Infrastructure.Search
                 doc.Value<JArray>("Dependencies")
                    .Cast<JObject>()
                    .Select(obj => new PackageDependency()
-                    {
-                        Id = obj.Value<string>("Id"),
-                        VersionSpec = obj.Value<string>("VersionSpec"),
-                        TargetFramework = obj.Value<string>("TargetFramework")
-                    })
+                   {
+                       Id = obj.Value<string>("Id"),
+                       VersionSpec = obj.Value<string>("VersionSpec"),
+                       TargetFramework = obj.Value<string>("TargetFramework")
+                   })
                    .ToArray();
 
             var frameworks =
@@ -189,8 +190,10 @@ namespace NuGetGallery.Infrastructure.Search
 
             var reg = doc["PackageRegistration"];
             PackageRegistration registration = null;
-            if(reg != null) {
-                registration = new PackageRegistration() {
+            if (reg != null)
+            {
+                registration = new PackageRegistration()
+                {
                     Id = reg.Value<string>("Id"),
                     Owners = reg.Value<JArray>("Owners")
                        .Select(v => new User { Username = v.Value<string>() })
@@ -206,47 +209,10 @@ namespace NuGetGallery.Infrastructure.Search
             var semVer2 = SemVerLevelKey.ForSemVerLevel(semVerLevel) == SemVerLevelKey.SemVer2;
 
             var docDeprecation = doc["Deprecation"];
-            Deprecation deprecation = null;
-            if (docDeprecation != null)
-            {
-                var docReasons = docDeprecation.Value<JArray>("Reasons");
-                if (docReasons != null && docReasons.HasValues)
-                {
-                    var reasons = docReasons
-                        .Select(v => v.Value<string>())
-                        .ToArray();
-
-                    var docAlternatePackage = docDeprecation["AlternatePackage"];
-                    AlternatePackage alternatePackage = null;
-                    if (docAlternatePackage != null)
-                    {
-                        alternatePackage = new AlternatePackage()
-                        {
-                            Id = docAlternatePackage.Value<string>("Id"),
-                            Range = docAlternatePackage.Value<string>("Range")
-                        };
-                    }
-
-                    deprecation = new Deprecation()
-                    {
-                        Message = docDeprecation.Value<string>("Message"),
-                        Reasons = reasons,
-                        AlternatePackage = alternatePackage
-                    };
-                }
-            }
+            var deprecations = SearchResponseHelper.GetDeprecations(docDeprecation);
 
             var docVulnerabilities = doc.Value<JArray>("Vulnerabilities");
-            var vulnerabilities = new List<Vulnerability>();
-            if (docVulnerabilities != null)
-            {
-                vulnerabilities = docVulnerabilities.Select(obj => new Vulnerability()
-                {
-                    AdvisoryURL = obj.Value<string>("AdvisoryURL"),
-                    Severity = obj.Value<int>("Severity")
-                })
-                .ToList();
-            }
+            var vulnerabilities = SearchResponseHelper.GetVulnerabilities(docVulnerabilities);
 
             return new Package
             {
@@ -287,8 +253,8 @@ namespace NuGetGallery.Infrastructure.Search
                 LicenseReportUrl = doc.Value<string>("LicenseReportUrl"),
                 HideLicenseReport = doc.Value<bool>("HideLicenseReport"),
                 Listed = doc.Value<bool>("Listed"),
-                Deprecation = deprecation,
-                Vulnerabilities = vulnerabilities
+                Deprecations = deprecations,
+                VulnerablePackageRanges = vulnerabilities
             };
         }
 

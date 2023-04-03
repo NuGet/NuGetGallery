@@ -82,98 +82,86 @@ namespace NuGetGallery.Infrastructure.Search
 
             [Theory]
             [MemberData(nameof(DeprecationItemsHelper.ValidObjects), MemberType = typeof(DeprecationItemsHelper))]
-            public void WhenValidDeprecation_SetsPropertiesToPackage(Deprecation deprecation)
+            public void WhenValidDeprecation_SetsPropertiesToPackage(JObject docDeprecation)
             {
                 var doc = TheReadPackageMethod.CreateDocument();
-                var docDeprecation = new JObject();
-                docDeprecation.Add("Reasons", JArray.FromObject(deprecation.Reasons));
-
-                if (!string.IsNullOrEmpty(deprecation.Message))
-                {
-                    docDeprecation.Add("Message", deprecation.Message);
-                }
-                if (deprecation.AlternatePackage != null)
-                {
-                    docDeprecation.Add("AlternatePackage", JObject.FromObject(deprecation.AlternatePackage));
-                }
-
                 doc.Add("Deprecation", docDeprecation);
 
                 // Act
                 var result = ExternalSearchService.ReadPackage(doc, SemVerLevelKey.SemVerLevel2);
 
                 // Assert
-                var deprecationResult = result.Deprecation;
-                Assert.Equal(deprecation.Message, deprecationResult.Message);
+                var deprecationResult = result.Deprecations.First();
+                var deprecation = SearchResponseHelper.GetDeprecations(docDeprecation).First();
+
+                Assert.Equal(deprecation.CustomMessage, deprecationResult.CustomMessage);
 
                 if (deprecation.AlternatePackage != null)
                 {
                     Assert.Equal(deprecation.AlternatePackage.Id, deprecationResult.AlternatePackage.Id);
-                    Assert.Equal(deprecation.AlternatePackage.Range, deprecationResult.AlternatePackage.Range);
+                    Assert.Equal(deprecation.AlternatePackage.Version, deprecationResult.AlternatePackage.Version);
                 }
 
-                Assert.Equal(deprecation.Reasons.Length, deprecationResult.Reasons.Length);
-                for (var index = 0; index < deprecation.Reasons.Length; index++)
-                {
-                    Assert.Equal(deprecation.Reasons[index], deprecationResult.Reasons[index]);
-                }
+                Assert.Equal(deprecation.Status, deprecationResult.Status);
             }
 
             [Theory]
             [MemberData(nameof(DeprecationItemsHelper.InvalidObjects), MemberType = typeof(DeprecationItemsHelper))]
-            public void WhenInvalidDeprecation_SetsNullToPackage(Deprecation deprecation)
+            public void WhenInvalidDeprecation_SetsNullToPackage(JObject deprecation)
             {
                 var doc = TheReadPackageMethod.CreateDocument();
                 if (deprecation != null)
                 {
-                    doc.Add("Deprecation", JObject.FromObject(deprecation));
+                    doc.Add("Deprecation", deprecation);
                 }
 
                 // Act
                 var result = ExternalSearchService.ReadPackage(doc, SemVerLevelKey.SemVerLevel2);
 
                 // Assert
-                Assert.Null(result.Deprecation);
+                Assert.Null(result.Deprecations);
             }
 
             [Theory]
             [MemberData(nameof(VulnerabilityItemsHelper.ValidObjects), MemberType = typeof(VulnerabilityItemsHelper))]
-            public void WhenValidVulnerabilities_SetsPropertiesToPackage(IReadOnlyList<Vulnerability> vulnerabilities)
+            public void WhenValidVulnerabilities_SetsPropertiesToPackage(JArray docVulnerabilities)
             {
                 var doc = TheReadPackageMethod.CreateDocument();
-                doc.Add("Vulnerabilities", JArray.FromObject(vulnerabilities));
+                doc.Add("Vulnerabilities", docVulnerabilities);
 
                 // Act
                 var result = ExternalSearchService.ReadPackage(doc, SemVerLevelKey.SemVerLevel2);
 
                 // Assert
-                var vulnerabilitiesResult = result.Vulnerabilities;
+                var vulnerabilities = SearchResponseHelper.GetVulnerabilities(docVulnerabilities);
+                var vulnerabilitiesResult = result.VulnerablePackageRanges;
+
                 Assert.NotNull(vulnerabilitiesResult);
                 Assert.NotEmpty(vulnerabilitiesResult);
                 Assert.Equal(vulnerabilities.Count, vulnerabilitiesResult.Count);
 
                 for (var index = 0; index < vulnerabilities.Count; index++)
                 {
-                    Assert.Equal(vulnerabilities[index].AdvisoryURL, vulnerabilitiesResult[index].AdvisoryURL);
-                    Assert.Equal(vulnerabilities[index].Severity, vulnerabilitiesResult[index].Severity);
+                    Assert.Equal(vulnerabilities.ElementAt(index).Vulnerability.AdvisoryUrl, vulnerabilitiesResult.ElementAt(index).Vulnerability.AdvisoryUrl);
+                    Assert.Equal(vulnerabilities.ElementAt(index).Vulnerability.Severity, vulnerabilitiesResult.ElementAt(index).Vulnerability.Severity);
                 }
             }
 
             [Theory]
             [MemberData(nameof(VulnerabilityItemsHelper.InvalidObjects), MemberType = typeof(VulnerabilityItemsHelper))]
-            public void WhenInvalidVulnerabilities_SetsEmptyArrayToPackage(IReadOnlyList<Vulnerability> vulnerabilities)
+            public void WhenInvalidVulnerabilities_SetsEmptyArrayToPackage(JArray docVulnerabilities)
             {
                 var doc = TheReadPackageMethod.CreateDocument();
-                if (vulnerabilities != null)
+                if (docVulnerabilities != null)
                 {
-                    doc.Add("Vulnerabilities", JArray.FromObject(vulnerabilities));
+                    doc.Add("Vulnerabilities", docVulnerabilities);
                 }
 
                 // Act
                 var result = ExternalSearchService.ReadPackage(doc, SemVerLevelKey.SemVerLevel2);
 
                 // Assert
-                Assert.Empty(result.Vulnerabilities);
+                Assert.Empty(result.VulnerablePackageRanges);
             }
 
             public static JObject CreateDocument()
