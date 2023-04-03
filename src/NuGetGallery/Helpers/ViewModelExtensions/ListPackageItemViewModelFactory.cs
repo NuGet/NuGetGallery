@@ -3,6 +3,7 @@
 
 using System.Linq;
 using NuGet.Services.Entities;
+using NuGetGallery.Helpers;
 
 namespace NuGetGallery
 {
@@ -42,6 +43,17 @@ namespace NuGetGallery
             viewModel.IsDeprecated = package.Deprecations?.Count > 0;
             viewModel.IsVulnerable = package.VulnerablePackageRanges?.Count > 0;
 
+            if (viewModel.IsDeprecated)
+            {
+                viewModel.DeprecatedTitle = WarningTitleHelper.GetDeprecationTitle(package.Version, package.Deprecations.First().Status);
+            }
+
+            if (viewModel.IsVulnerable)
+            {
+                var maxVulnerabilitySeverity = package.VulnerablePackageRanges.Max(vpr => vpr.Vulnerability.Severity);
+                viewModel.VulnerableTitle = WarningTitleHelper.GetVulnerabilityTitle(package.Version, maxVulnerabilitySeverity);
+            }
+
             viewModel.CanDisplayPrivateMetadata = CanPerformAction(currentUser, package, ActionsRequiringPermissions.DisplayPrivatePackageMetadata);
             viewModel.CanEdit = CanPerformAction(currentUser, package, ActionsRequiringPermissions.EditPackage);
             viewModel.CanUnlistOrRelist = CanPerformAction(currentUser, package, ActionsRequiringPermissions.UnlistOrRelistPackage);
@@ -70,9 +82,10 @@ namespace NuGetGallery
 
         private static BasicUserViewModel GetBasicUserViewModel(User user)
         {
-            return new BasicUserViewModel { 
-                Username = user.Username, 
-                EmailAddress = user.EmailAddress, 
+            return new BasicUserViewModel
+            {
+                Username = user.Username,
+                EmailAddress = user.EmailAddress,
                 IsOrganization = user is Organization,
                 IsLocked = user.IsLocked
             };

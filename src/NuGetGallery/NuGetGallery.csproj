@@ -236,6 +236,7 @@
     <Compile Include="Helpers\ViewModelExtensions\ListPackageItemViewModelFactory.cs" />
     <Compile Include="Helpers\ViewModelExtensions\ManagePackageViewModelFactory.cs" />
     <Compile Include="Helpers\ViewModelExtensions\PackageViewModelFactory.cs" />
+    <Compile Include="Helpers\WarningTitleHelper.cs" />
     <Compile Include="Infrastructure\ABTestEnrollment.cs" />
     <Compile Include="Infrastructure\ABTestEnrollmentState.cs" />
     <Compile Include="Infrastructure\ABTestEnrollmentFactory.cs" />

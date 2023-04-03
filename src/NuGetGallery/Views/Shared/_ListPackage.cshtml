@@ -79,14 +79,14 @@
                     <li>
                         @if(Model.IsVulnerable)
                         {
-                            <span class="icon-text package-warning--vulnerable">
+                            <span class="icon-text package-warning--vulnerable" aria-label="@Model.VulnerableTitle" data-content="@Model.VulnerableTitle">
                                 <i class="ms-Icon ms-Icon--BlockedSiteSolid12" aria-hidden="true"></i>
                                 Vulnerable
                             </span>
                         }
                         @if(Model.IsDeprecated)
                         {
-                            <span class="icon-text package-warning--deprecated">
+                            <span class="icon-text package-warning--deprecated"  aria-label="@Model.DeprecatedTitle" data-content="@Model.DeprecatedTitle">
                                 <i class="ms-Icon ms-Icon--ShieldAlert" aria-hidden="true"></i>
                                 Deprecated
                             </span>

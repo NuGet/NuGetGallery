@@ -58,6 +58,9 @@ namespace NuGetGallery
         public bool CanDeleteSymbolsPackage { get; set; }
         public bool CanDeprecate { get; set; }
 
+        public string VulnerableTitle { get; set; }
+        public string DeprecatedTitle { get; set; }
+
         public void SetShortDescriptionFrom(string fullDescription)
         {
             ShortDescription = fullDescription.TruncateAtWordBoundary(_descriptionLengthLimit, _omissionString, out var wasTruncated);
