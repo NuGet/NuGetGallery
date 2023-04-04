@@ -68,18 +68,7 @@
                             <!-- /ko -->
                         </div>
                     </div>
-                    <div class="col-xs-2 col-sm-2 col-sm-push-3 member-column text-right">
-                        <!-- ko if: IsCurrentUser || @(Model.CanManageMemberships ? "true" : "false") -->
-                        <div>
-                            <span>
-                                <button class="btn-link" data-bind="click: DeleteMember, attr: { 'aria-label': 'Delete Member' }">
-                                    <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
-                                </button>
-                            </span>
-                        </div>
-                        <!-- /ko -->
-                    </div>
-                    <div class="col-xs-12 col-sm-3 col-sm-pull-2 member-column">
+                    <div class="col-xs-8 col-sm-3 member-column">
                         <div>
                             @if (Model.CanManageMemberships)
                             {
@@ -92,6 +81,17 @@
                                 <span data-bind="text: SelectedRole()"></span>
                             }
                         </div>
+                    </div>
+                    <div class="col-xs-4 col-sm-2 member-column text-right">
+                        <!-- ko if: IsCurrentUser || @(Model.CanManageMemberships ? "true" : "false") -->
+                        <div>
+                            <span>
+                                <button class="btn-link" data-bind="click: DeleteMember, attr: { 'aria-label': 'Delete Member' }">
+                                    <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                                </button>
+                            </span>
+                        </div>
+                        <!-- /ko -->
                     </div>
                 </div>
             </div>
