@@ -467,7 +467,7 @@
         var popoverHideTimeMS = 2000;
         var popoverFadeTimeMS = 200;
 
-        popoverElement.popover({ trigger: 'hover' });
+        popoverElement.popover({ trigger: 'hover', placement: 'auto right' });
         popoverElement.click(popoverShowAndHide);
         popoverElement.focus(popoverShowAndHide);
         popoverElement.keyup(function (event) {
