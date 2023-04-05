@@ -127,7 +127,7 @@ body h3 {
 }
 .icon-link:hover,
 .icon-link:focus {
-  text-decoration: none;
+  text-decoration: 1px solid blueviolet;
 }
 .icon-link:hover span,
 .icon-link:focus span {
