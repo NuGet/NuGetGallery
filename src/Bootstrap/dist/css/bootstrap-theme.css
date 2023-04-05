@@ -1142,6 +1142,10 @@ p.frameworktableinfo-text {
 .page-api-keys .api-key-details .icon-details li {
   padding: 0;
 }
+.page-api-keys .api-key-details .icon-details li a.icon-link:focus span {
+  outline: 3px solid #0078D4;
+  outline-offset: 0;
+}
 .page-api-keys .api-key-details .icon-details li + li {
   margin-left: 10px;
   padding-left: 10px;
