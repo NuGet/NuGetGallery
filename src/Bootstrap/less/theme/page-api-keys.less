@@ -124,9 +124,6 @@
 
       li {
         padding: 0;
-         a:focus :hover :active{
-          outline: 3px solid blueviolet;
-          outline-offset: 0;
         }
       }
 
@@ -135,16 +132,24 @@
         padding-left: @padding-small-horizontal;
         border-left: 1px solid @gray-lighter;
       }
-    }
     .package-list{
       .api-manage-button a{
         color: #df001e;
       }
       .api-manage-button a:hover, .api-manage-button a:active  .api-manage-button a:focus{
         color: blueviolet;
+        border: 1px solid chartreuse;
+      }
+      .api-manage-button{
+        li {
+          a:hover, a:focus { 
+            color: burlywood;
+            border: 1px solid green;
+          }
+        }
       }
       .api-manage-button .icon-link:focus span {
-        color: #df001e;
+        color: darkgoldenrod;
         text-decoration: dotted;
       }
     }
