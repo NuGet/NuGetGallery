@@ -475,7 +475,7 @@
         var popoverHideTimeMS = 2000;
         var popoverFadeTimeMS = 200;
 
-        var popoverOptions = { trigger: 'hover' };
+        var popoverOptions = { trigger: 'hover', container: 'body' };
         if (placement) {
             popoverOptions.placement = placement;
         }
