@@ -9,9 +9,9 @@ using NuGet.Services.Entities;
 
 namespace NuGetGallery.Helpers
 {
-    public class SearchResponseHelper
+    public static class SearchResponseHelper
     {
-        public static ICollection<PackageDeprecation> GetDeprecations(JToken docDeprecation)
+        public static ICollection<PackageDeprecation> GetDeprecationsOrNull(JToken docDeprecation)
         {
             PackageDeprecation deprecation = null;
             if (docDeprecation != null)

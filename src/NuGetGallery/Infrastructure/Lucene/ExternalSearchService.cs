@@ -209,7 +209,7 @@ namespace NuGetGallery.Infrastructure.Search
             var semVer2 = SemVerLevelKey.ForSemVerLevel(semVerLevel) == SemVerLevelKey.SemVer2;
 
             var docDeprecation = doc["Deprecation"];
-            var deprecations = SearchResponseHelper.GetDeprecations(docDeprecation);
+            var deprecations = SearchResponseHelper.GetDeprecationsOrNull(docDeprecation);
 
             var docVulnerabilities = doc.Value<JArray>("Vulnerabilities");
             var vulnerabilities = SearchResponseHelper.GetVulnerabilities(docVulnerabilities);

@@ -87,7 +87,7 @@ namespace NuGetGallery.Infrastructure.Search
 
                 // Assert
                 var deprecationResult = result.Deprecations.First();
-                var deprecation = SearchResponseHelper.GetDeprecations(docDeprecation).First();
+                var deprecation = SearchResponseHelper.GetDeprecationsOrNull(docDeprecation).First();
 
                 Assert.Equal(deprecation.CustomMessage, deprecationResult.CustomMessage);
 

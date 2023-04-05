@@ -6,7 +6,7 @@ using NuGet.Services.Entities;
 
 namespace NuGetGallery.Helpers
 {
-    public class WarningTitleHelper
+    public static class WarningTitleHelper
     {
         public static string GetWarningIconTitle(
             string version,

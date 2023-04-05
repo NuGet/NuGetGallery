@@ -354,7 +354,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
             [MemberData(nameof(DeprecationItemsHelper.ValidObjects), MemberType = typeof(DeprecationItemsHelper))]
             public void SetDeprecationToTrueWhenIsValid(JObject docDeprecation)
             {
-                var deprecations = SearchResponseHelper.GetDeprecations(docDeprecation);
+                var deprecations = SearchResponseHelper.GetDeprecationsOrNull(docDeprecation);
                 var package = new Package()
                 {
                     Version = "1.0.0",
@@ -371,7 +371,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
             [MemberData(nameof(DeprecationItemsHelper.InvalidObjects), MemberType = typeof(DeprecationItemsHelper))]
             public void SetDeprecationToFalseWhenIsInvalid(JObject docDeprecation)
             {
-                var deprecations = SearchResponseHelper.GetDeprecations(docDeprecation);
+                var deprecations = SearchResponseHelper.GetDeprecationsOrNull(docDeprecation);
                 var package = new Package()
                 {
                     Version = "1.0.0",
@@ -391,7 +391,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
             [MemberData(nameof(DeprecationItemsHelper.ValidObjects), MemberType = typeof(DeprecationItemsHelper))]
             public void SetDeprecationTitleWhenDeprecationIsValid(JObject docDeprecation)
             {
-                var deprecations = SearchResponseHelper.GetDeprecations(docDeprecation);
+                var deprecations = SearchResponseHelper.GetDeprecationsOrNull(docDeprecation);
                 var package = new Package()
                 {
                     Version = "1.0.0",
@@ -410,7 +410,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
             [MemberData(nameof(DeprecationItemsHelper.InvalidObjects), MemberType = typeof(DeprecationItemsHelper))]
             public void DeprecationTitleIsNullWhenDeprecationIsInvalid(JObject docDeprecation)
             {
-                var deprecations = SearchResponseHelper.GetDeprecations(docDeprecation);
+                var deprecations = SearchResponseHelper.GetDeprecationsOrNull(docDeprecation);
                 var package = new Package()
                 {
                     Version = "1.0.0",
