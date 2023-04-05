@@ -196,5 +196,5 @@
 
     $(".reserved-indicator").each(window.nuget.setPopovers);
     $(".framework-badge-asset").each(window.nuget.setPopovers);
-    $(".package-warning-icon").each(window.nuget.setPopovers);
+    $(".package-warning-icon").each(window.nuget.setPopoversAutoRight);
 });

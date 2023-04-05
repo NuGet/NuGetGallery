@@ -460,14 +460,27 @@
         }
     };
 
+    nuget.setPopoversAutoRight = function () {
+        setPopoversInternal(this, 'auto right');
+    }
+
     nuget.setPopovers = function () {
-        var popoverElement = $(this);
-        var popoverElementDom = this;
+        setPopoversInternal(this);
+    }
+
+    function setPopoversInternal(element, placement) {
+        var popoverElement = $(element);
+        var popoverElementDom = element;
         var originalLabel = popoverElementDom.ariaLabel;
         var popoverHideTimeMS = 2000;
         var popoverFadeTimeMS = 200;
 
-        popoverElement.popover({ trigger: 'hover', placement: 'auto right' });
+        var popoverOptions = { trigger: 'hover' };
+        if (placement) {
+            popoverOptions.placement = placement;
+        }
+
+        popoverElement.popover(popoverOptions);
         popoverElement.click(popoverShowAndHide);
         popoverElement.focus(popoverShowAndHide);
         popoverElement.keyup(function (event) {
