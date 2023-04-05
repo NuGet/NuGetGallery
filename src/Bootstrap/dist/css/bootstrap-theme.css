@@ -1151,11 +1151,11 @@ p.frameworktableinfo-text {
   padding-left: 10px;
   border-left: 1px solid #dbdbdb;
 }
-.page-api-keys .api-key-details .icon-details .package-list .api-manage-button a:hover,
-.page-api-keys .api-key-details .icon-details .package-list .api-manage-button a:active {
+.page-api-keys .api-key-details .package-list .api-manage-button a:hover,
+.page-api-keys .api-key-details .package-list .api-manage-button a:active {
   color: blueviolet;
 }
-.page-api-keys .api-key-details .icon-details .package-list .api-manage-button .icon-link:hover span {
+.page-api-keys .api-key-details .package-list .api-manage-button .icon-link:hover span {
   -webkit-text-decoration: dotted;
   -moz-text-decoration: dotted;
   text-decoration: dotted;
