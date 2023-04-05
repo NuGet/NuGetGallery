@@ -1155,10 +1155,11 @@ p.frameworktableinfo-text {
   color: #df001e;
 }
 .page-api-keys .api-key-details .package-list .api-manage-button a:hover,
-.page-api-keys .api-key-details .package-list .api-manage-button a:active {
+.page-api-keys .api-key-details .package-list .api-manage-button a:active .api-manage-button a:focus {
   color: blueviolet;
 }
-.page-api-keys .api-key-details .package-list .api-manage-button .icon-link:hover span {
+.page-api-keys .api-key-details .package-list .api-manage-button .icon-link:focus span {
+  color: #df001e;
   -webkit-text-decoration: dotted;
   -moz-text-decoration: dotted;
   text-decoration: dotted;
