@@ -460,12 +460,22 @@
         }
     };
 
-    nuget.setPopoversAutoRight = function () {
-        setPopoversInternal(this, 'auto right');
+    nuget.setPopovers = function () {
+        setPopoversInternal(this, rightWithVerticalFallback);
     }
 
-    nuget.setPopovers = function () {
-        setPopoversInternal(this);
+    function rightWithVerticalFallback(popoverElement, ownerElement) {
+        let ownerBoundingBox = ownerElement.getBoundingClientRect();
+        const pixelsOnRight = window.innerWidth - ownerBoundingBox.right;
+        if (pixelsOnRight > 150) {
+            return 'right';
+        }
+        const pixelsOnTop = ownerBoundingBox.top;
+        if (pixelsOnTop > 100) {
+            return 'top';
+        }
+
+        return 'bottom';
     }
 
     function setPopoversInternal(element, placement) {
