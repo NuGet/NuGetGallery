@@ -1166,6 +1166,9 @@ p.frameworktableinfo-text {
   -moz-text-decoration: dotted;
   text-decoration: dotted;
 }
+.page-api-keys .api-key-details .package-list li {
+  overflow-y: visible;
+}
 .page-api-keys .api-key-details:not(:first-child) {
   border-top: 1px solid #dbdbdb;
 }
