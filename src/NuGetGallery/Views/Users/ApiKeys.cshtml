@@ -229,7 +229,7 @@
                     </li>
                     <!-- /ko -->
                     <!-- ko ifnot: IsNonScopedApiKey -->
-                    <li>
+                    <li class="api-manage-button">
                         <a class="icon-link" href="#" role="button" data-toggle="collapse"
                            data-bind="attr: { 'data-target': '#' + EditContainerId(),
                                               'aria-controls': EditContainerId,
@@ -240,14 +240,14 @@
                             <span>Edit</span>
                         </a>
                     </li>
-                    <li>
+                    <li class="api-manage-button">
                         <a class="icon-link" href="#" role="button" data-bind="click: Regenerate">
                             <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
                             <span>Regenerate</span>
                         </a>
                     </li>
                     <!-- /ko -->
-                    <li>
+                    <li class="api-manage-button">
                         <a class="icon-link" href="#" role="button" data-bind="click: Delete">
                             <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
                             <span>Delete</span>

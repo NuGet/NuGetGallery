@@ -124,8 +124,8 @@
 
       li {
         padding: 0;
-         a.icon-link:focus span {
-          outline: 3px solid #0078D4;
+         a:focus :hover :active{
+          outline: 3px solid blueviolet;
           outline-offset: 0;
         }
       }
@@ -134,6 +134,15 @@
         margin-left: @padding-small-horizontal;
         padding-left: @padding-small-horizontal;
         border-left: 1px solid @gray-lighter;
+      }
+
+      .package-list{
+        .api-manage-button a:hover,  .api-manage-button a:active {
+          color: blueviolet;
+        }
+        .api-manage-button .icon-link:hover span {
+          text-decoration: dotted;
+        }
       }
     }
   }
