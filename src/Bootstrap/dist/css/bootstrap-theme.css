@@ -131,7 +131,7 @@ body h3 {
 }
 .icon-link:hover span,
 .icon-link:focus span {
-  text-decoration: underline;
+  text-decoration: 1px solid blueviolet;
 }
 .dependency-groups h4 {
   line-height: 1.4;
@@ -1142,9 +1142,10 @@ p.frameworktableinfo-text {
 .page-api-keys .api-key-details .icon-details li {
   padding: 0;
 }
-.page-api-keys .api-key-details .icon-details li a.icon-link:focus span {
-  outline: 3px solid #0078D4;
+.page-api-keys .api-key-details .icon-details li a:focus:hover :active{
+  outline: 3px solid #068918;
   outline-offset: 0;
+  color: #068918;
 }
 .page-api-keys .api-key-details .icon-details li + li {
   margin-left: 10px;
