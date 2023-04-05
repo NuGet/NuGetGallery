@@ -127,11 +127,11 @@ body h3 {
 }
 .icon-link:hover,
 .icon-link:focus {
-  text-decoration: 1px solid blueviolet;
+  text-decoration: none;
 }
 .icon-link:hover span,
 .icon-link:focus span {
-  text-decoration: 1px solid blueviolet;
+  text-decoration: underline;
 }
 .dependency-groups h4 {
   line-height: 1.4;
@@ -1142,15 +1142,23 @@ p.frameworktableinfo-text {
 .page-api-keys .api-key-details .icon-details li {
   padding: 0;
 }
-.page-api-keys .api-key-details .icon-details li a:focus:hover :active{
-  outline: 3px solid #068918;
+.page-api-keys .api-key-details .icon-details li a:focus :hover :active {
+  outline: 3px solid blueviolet;
   outline-offset: 0;
-  color: #068918;
 }
 .page-api-keys .api-key-details .icon-details li + li {
   margin-left: 10px;
   padding-left: 10px;
   border-left: 1px solid #dbdbdb;
+}
+.page-api-keys .api-key-details .icon-details .package-list .api-manage-button a:hover,
+.page-api-keys .api-key-details .icon-details .package-list .api-manage-button a:active {
+  color: blueviolet;
+}
+.page-api-keys .api-key-details .icon-details .package-list .api-manage-button .icon-link:hover span {
+  -webkit-text-decoration: dotted;
+  -moz-text-decoration: dotted;
+  text-decoration: dotted;
 }
 .page-api-keys .api-key-details:not(:first-child) {
   border-top: 1px solid #dbdbdb;
