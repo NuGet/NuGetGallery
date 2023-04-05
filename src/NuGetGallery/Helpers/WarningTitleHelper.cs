@@ -23,15 +23,12 @@ namespace NuGetGallery.Helpers
             if (maxVulnerabilitySeverity.HasValue)
             {
                 var vulnerabilitiesTitle = GetVulnerabilityTitle(version, maxVulnerabilitySeverity.Value);
-
                 return string.IsNullOrEmpty(deprecationTitle)
                     ? vulnerabilitiesTitle
-                    : $"{deprecationTitle}; {vulnerabilitiesTitle}";
+                    : $"{deprecationTitle.TrimEnd('.')}; {vulnerabilitiesTitle}";
             }
 
-            return string.IsNullOrEmpty(deprecationTitle)
-                ? string.Empty
-                : $"{deprecationTitle}.";
+            return string.IsNullOrEmpty(deprecationTitle) ? string.Empty : deprecationTitle;
         }
 
         public static string GetVulnerabilityTitle(string version, PackageVulnerabilitySeverity maxVulnerabilitySeverity)
@@ -50,7 +47,7 @@ namespace NuGetGallery.Helpers
             {
                 if (isLegacy)
                 {
-                    deprecationTitle += " is deprecated because it's legacy and has critical bugs";
+                    deprecationTitle += " is deprecated because it is no longer maintained and has critical bugs";
                 }
                 else
                 {
@@ -59,14 +56,14 @@ namespace NuGetGallery.Helpers
             }
             else if (isLegacy)
             {
-                deprecationTitle += " is deprecated because it's legacy and no longer maintained";
+                deprecationTitle += " is deprecated because it is no longer maintained";
             }
             else
             {
                 deprecationTitle += " is deprecated";
             }
 
-            return deprecationTitle;
+            return $"{deprecationTitle}.";
         }
     }
 }
