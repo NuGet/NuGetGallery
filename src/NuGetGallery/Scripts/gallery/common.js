@@ -460,8 +460,12 @@
         }
     };
 
-    nuget.setPopovers = function () {
+    nuget.setPopoversAutoRight = function () {
         setPopoversInternal(this, 'auto right');
+    }
+
+    nuget.setPopovers = function () {
+        setPopoversInternal(this);
     }
 
     function setPopoversInternal(element, placement) {
