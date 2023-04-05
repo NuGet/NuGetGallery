@@ -1147,6 +1147,9 @@ p.frameworktableinfo-text {
   padding-left: 10px;
   border-left: 1px solid #dbdbdb;
 }
+.page-api-keys .api-key-details .package-list li {
+  overflow-y: initial;
+}
 .page-api-keys .api-key-details:not(:first-child) {
   border-top: 1px solid #dbdbdb;
 }
@@ -1463,7 +1466,7 @@ p.frameworktableinfo-text {
 .page-package-details .owner-list li {
   margin-bottom: 14px;
   display: block;
-  overflow: hidden;
+  overflow: initial;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
