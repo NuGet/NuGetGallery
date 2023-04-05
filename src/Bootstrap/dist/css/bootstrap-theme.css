@@ -1142,11 +1142,7 @@ p.frameworktableinfo-text {
 .page-api-keys .api-key-details .icon-details li {
   padding: 0;
 }
-.page-api-keys .api-key-details .icon-details li a:focus :hover :active {
-  outline: 3px solid blueviolet;
-  outline-offset: 0;
-}
-.page-api-keys .api-key-details .icon-details li + li {
+.page-api-keys .api-key-details li + li {
   margin-left: 10px;
   padding-left: 10px;
   border-left: 1px solid #dbdbdb;
@@ -1157,9 +1153,15 @@ p.frameworktableinfo-text {
 .page-api-keys .api-key-details .package-list .api-manage-button a:hover,
 .page-api-keys .api-key-details .package-list .api-manage-button a:active .api-manage-button a:focus {
   color: blueviolet;
+  border: 1px solid chartreuse;
+}
+.page-api-keys .api-key-details .package-list .api-manage-button li a:hover,
+.page-api-keys .api-key-details .package-list .api-manage-button li a:focus {
+  color: burlywood;
+  border: 1px solid green;
 }
 .page-api-keys .api-key-details .package-list .api-manage-button .icon-link:focus span {
-  color: #df001e;
+  color: darkgoldenrod;
   -webkit-text-decoration: dotted;
   -moz-text-decoration: dotted;
   text-decoration: dotted;
