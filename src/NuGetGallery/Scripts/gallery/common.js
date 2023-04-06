@@ -465,13 +465,17 @@
     }
 
     function rightWithVerticalFallback(popoverElement, ownerElement) {
+        // Both numbers below are in CSS pixels.
+        const MinSpaceOnRight = 150;
+        const MinSpaceOnTop = 100;
+
         let ownerBoundingBox = ownerElement.getBoundingClientRect();
-        const pixelsOnRight = window.innerWidth - ownerBoundingBox.right;
-        if (pixelsOnRight > 150) {
+        const spaceOnRight = window.innerWidth - ownerBoundingBox.right;
+        if (spaceOnRight > MinSpaceOnRight) {
             return 'right';
         }
-        const pixelsOnTop = ownerBoundingBox.top;
-        if (pixelsOnTop > 100) {
+        const spaceOnTop = ownerBoundingBox.top;
+        if (spaceOnTop > MinSpaceOnTop) {
             return 'top';
         }
 
