@@ -1148,7 +1148,7 @@ p.frameworktableinfo-text {
   border-left: 1px solid #dbdbdb;
 }
 .page-api-keys .api-key-details .package-list li {
-  overflow-y: initial;
+  overflow-y: visible;
 }
 .page-api-keys .api-key-details:not(:first-child) {
   border-top: 1px solid #dbdbdb;
@@ -1466,9 +1466,12 @@ p.frameworktableinfo-text {
 .page-package-details .owner-list li {
   margin-bottom: 14px;
   display: block;
-  overflow: initial;
+  overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+.page-package-details .owner-list li a.owner-image-link {
+  overflow-y: visible;
 }
 .page-package-details .owner-list img {
   margin-right: 8px;

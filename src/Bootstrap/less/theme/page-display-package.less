@@ -245,9 +245,13 @@
     li {
       margin-bottom: 14px;
       display: block;
-      overflow: initial;
+      overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;
+
+      a.owner-image-link {
+        overflow-y: visible;
+      }
     }
 
     img {
