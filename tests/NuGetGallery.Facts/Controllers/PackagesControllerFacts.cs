@@ -1423,7 +1423,7 @@ namespace NuGetGallery
             [InlineData(PackageDeprecationStatus.CriticalBugs, PackageDeprecationStatus.NotDeprecated, 
                 "{0} is deprecated because it has critical bugs.")]
             [InlineData(PackageDeprecationStatus.Legacy, PackageDeprecationStatus.NotDeprecated,
-                "{0} is deprecated because it is no longer maintained and no longer maintained.")]
+                "{0} is deprecated because it is no longer maintained.")]
             [InlineData(PackageDeprecationStatus.Legacy, PackageDeprecationStatus.CriticalBugs, 
                 "{0} is deprecated because it is no longer maintained and has critical bugs.")]
             [InlineData(PackageDeprecationStatus.Other, PackageDeprecationStatus.NotDeprecated, "{0} is deprecated.")]
