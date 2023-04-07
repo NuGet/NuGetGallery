@@ -143,8 +143,14 @@
 
     clampUsedByDescriptions();
 
+    // data-toggle="tab" adds aria-expanded when a tab is selected/active. 
+    // This property is removed since tabs should only have aria-selected attribute
+    $(".package-manager-tab").removeAttr("aria-expanded");
+
     // Make sure we save the user's preferred body tab to localStorage.
     $('.package-manager-tab').on('shown.bs.tab', function (e) {
+        $(".package-manager-tab").removeAttr("aria-expanded");
+
         if (storage) {
             storage.setItem(packageManagerStorageKey, e.target.id);
         }
