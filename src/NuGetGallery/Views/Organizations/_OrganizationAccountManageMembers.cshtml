@@ -40,7 +40,7 @@
                             <input id="new-member-textbox" class="form-control" placeholder="Add existing NuGet.org user" data-bind="textInput: NewMemberUsername, submit: AddMember" aria-label="Enter username to add member"/>
                         </div>
                         <div class="form-group col-sm-3">
-                            <select class="form-control" data-bind="value: AddMemberRole, options: RoleNames" aria-labelledby="RoleNames"></select>
+                            <select class="form-control" data-bind="value: AddMemberRole, options: RoleNames" aria-label="Role Filter"></select>
                         </div>
                         <div class="col-sm-1">
                             <button class="btn btn-primary" type="submit" title="Add new member" aria-label="Add new member" data-bind="click: AddMember">Add</button>
@@ -72,8 +72,8 @@
                         <div>
                             @if (Model.CanManageMemberships)
                             {
-                                <select class="form-control" aria-labelledby="OrganizationViewModel.RoleNames"
-                                        data-bind="value: SelectedRole, options: OrganizationViewModel.RoleNames, event: { change: ToggleIsAdmin }">
+                                <select class="form-control" 
+                                        data-bind="value: SelectedRole, options: OrganizationViewModel.RoleNames, event: { change: ToggleIsAdmin }, attr: { aria-label: 'Role for ' + Username }">
                                 </select>
                             }
                             else
