@@ -469,7 +469,7 @@
         const MinSpaceOnRight = 150;
         const MinSpaceOnTop = 100;
 
-        let ownerBoundingBox = ownerElement.getBoundingClientRect();
+        const ownerBoundingBox = ownerElement.getBoundingClientRect();
         const spaceOnRight = window.innerWidth - ownerBoundingBox.right;
         if (spaceOnRight > MinSpaceOnRight) {
             return 'right';
