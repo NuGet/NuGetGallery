@@ -1254,7 +1254,4 @@ The {1} Team</value>
   <data name="ForgotPassword_Disabled_Error" xml:space="preserve">
     <value>Forgot password is disabled.</value>
   </data>
-  <data name="FrameworkFilterInformation_Tooltip" xml:space="preserve">
-    <value>Filters packages based on the target frameworks included in the NuGet Package.</value>
-  </data>
 </root>

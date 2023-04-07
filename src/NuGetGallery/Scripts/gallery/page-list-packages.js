@@ -2,7 +2,6 @@ $(function() {
     'use strict';
 
     $(".reserved-indicator").each(window.nuget.setPopovers);
-    $(".framework-filter-info-icon").each(window.nuget.setPopovers);
 
     const searchForm = document.forms.search;
     const allFrameworks = document.querySelectorAll('.framework');
