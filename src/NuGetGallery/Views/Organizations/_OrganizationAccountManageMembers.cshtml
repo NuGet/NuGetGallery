@@ -73,7 +73,7 @@
                             @if (Model.CanManageMemberships)
                             {
                                 <select class="form-control" 
-                                        data-bind="value: SelectedRole, options: OrganizationViewModel.RoleNames, event: { change: ToggleIsAdmin }, attr: { aria-label: 'Role for ' + Username }">
+                                        data-bind="value: SelectedRole, options: OrganizationViewModel.RoleNames, event: { change: ToggleIsAdmin }, attr: { 'aria-label': 'Role for ' + Username }">
                                 </select>
                             }
                             else
