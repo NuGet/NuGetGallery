@@ -21,6 +21,9 @@ namespace NuGet.Services.KeyVault
         private readonly Lazy<KeyVaultClient> _keyVaultClient;
         private ClientAssertionCertificate _clientAssertionCertificate;
 
+        protected string VaultBaseUrl => _vault;
+        protected KeyVaultClient KeyVaultClient => _keyVaultClient.Value;
+
         public KeyVaultReader(KeyVaultConfiguration configuration)
         {
             if (configuration == null)
