@@ -2345,14 +2345,12 @@ if (typeof jQuery === 'undefined') {
         .end()
         .find('[data-toggle="tab"]')
           .attr('tabindex', "-1")
-          .attr('aria-expanded', false)
           .attr('aria-selected', false)
 
       element
         .addClass('active')
         .find('[data-toggle="tab"]')
           .attr('tabindex', "0")
-          .attr('aria-expanded', true)
           .attr('aria-selected', true)
 
       if (transition) {
