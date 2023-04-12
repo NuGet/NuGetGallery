@@ -3,6 +3,14 @@ $(function() {
 
     $(".reserved-indicator").each(window.nuget.setPopovers);
 
+    const storage = window['localStorage'];
+    const focusResultsColumnKey = 'focus_results-column';
+
+    if (storage && storage.getItem(focusResultsColumnKey)) {
+        storage.removeItem(focusResultsColumnKey);
+        document.getElementById('results-column').focus({ preventScroll: true });
+    }
+
     const searchForm = document.forms.search;
     const allFrameworks = document.querySelectorAll('.framework');
     const allTfms = document.querySelectorAll('.tfm');
@@ -69,6 +77,11 @@ $(function() {
     function submitSearchForm() {
         constructFilterParameter(searchForm.frameworks, allFrameworks);
         constructFilterParameter(searchForm.tfms, allTfms);
+
+        if (storage) {
+            storage.setItem(focusResultsColumnKey, true);
+        }
+
         searchForm.submit();
     }
 
