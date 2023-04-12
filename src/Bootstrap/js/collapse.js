@@ -73,7 +73,7 @@
 
     // the aria-expanded attribute is only allowed when the element has an allowed role
     if (Collapse.ARIA_EXPANDED_ALLOWED_ROLES.includes(this.$element.attr('role'))) {
-      this.$element.attr('aria-expanded', false)
+      this.$element.attr('aria-expanded', true)
     }
 
     this.$trigger
