@@ -25,7 +25,27 @@ namespace NuGetGallery.Login
             new[] { new OrganizationTenantPair("tenantOnly.com", "tenantID") },
             isPasswordDiscontinuedForAll: false);
 
-        public const string ExampleJson = @"{""IsPasswordDiscontinuedForAll"":false,""DiscontinuedForEmailAddresses"":[""cannotUsePassword@canUsePassword.com""],""DiscontinuedForDomains"":[""cannotUsePassword.com""],""ExceptionsForEmailAddresses"":[""exception@cannotUsePassword.com""],""ForceTransformationToOrganizationForEmailAddresses"":[""organization@cannotUsePassword.com""],""EnabledOrganizationAadTenants"":[{""EmailDomain"":""tenantOnly.com"",""TenantId"":""tenantID""}]}";
+        public const string ExampleJson = @"{
+  ""IsPasswordDiscontinuedForAll"": false,
+  ""DiscontinuedForEmailAddresses"": [
+    ""cannotUsePassword@canUsePassword.com""
+  ],
+  ""DiscontinuedForDomains"": [
+    ""cannotUsePassword.com""
+  ],
+  ""ExceptionsForEmailAddresses"": [
+    ""exception@cannotUsePassword.com""
+  ],
+  ""ForceTransformationToOrganizationForEmailAddresses"": [
+    ""organization@cannotUsePassword.com""
+  ],
+  ""EnabledOrganizationAadTenants"": [
+    {
+      ""EmailDomain"": ""tenantOnly.com"",
+      ""TenantId"": ""tenantID""
+    }
+  ]
+}";
 
         public static void AssertExample(LoginDiscontinuation actual)
         {
