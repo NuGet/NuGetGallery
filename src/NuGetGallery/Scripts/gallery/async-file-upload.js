@@ -194,7 +194,7 @@
                 case "error":
                     // IIS returns 404.13 (NotFound) when maxAllowedContentLength limit is exceeded.
                     if (fullResponse === "Not Found" || fullResponse === "Request Entity Too Large") {
-                        displayErrors(["The package file exceeds the size limit. Please try again."]);
+                        displayErrors(["The package file exceeds the size limit of 250 MB. Please reduce the package size and try again."]);
                     }
                     else {
                         displayErrors(model.responseJSON);
