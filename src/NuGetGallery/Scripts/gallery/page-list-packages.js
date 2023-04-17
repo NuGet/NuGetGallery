@@ -2,7 +2,6 @@ $(function() {
     'use strict';
 
     $(".reserved-indicator").each(window.nuget.setPopovers);
-    $(".framework-filter-info-icon").each(window.nuget.setPopovers);
 
     const searchForm = document.forms.search;
     const allFrameworks = document.querySelectorAll('.framework');
@@ -53,10 +52,14 @@ $(function() {
         expandButton.classList.toggle('ms-Icon--ChevronUp');
 
         if (this.classList.contains('active')) {
+            this.setAttribute("aria-expanded", "true");
+
             dataTab.style.display = 'block';
             dataTab.style.maxHeight = dataTab.scrollHeight + "px";
         }
         else {
+            this.setAttribute("aria-expanded", "false");
+
             dataTab.style.display = 'none';
             dataTab.style.maxHeight = 0;
         }

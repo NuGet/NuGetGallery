@@ -834,7 +834,7 @@ namespace NuGetGallery
             public async Task CreatePackageReturns400IfMinClientVersionIsTooHigh()
             {
                 // Arrange
-                const string HighClientVersion = "6.0.0.0";
+                const string HighClientVersion = "7.0.0.0";
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42", minClientVersion: HighClientVersion);
 
                 var user = new User() { EmailAddress = "confirmed@email.com" };

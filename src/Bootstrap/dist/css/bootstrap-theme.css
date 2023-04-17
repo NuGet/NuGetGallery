@@ -283,6 +283,7 @@ img.reserved-indicator-icon {
     padding-right: 10px;
   }
   .package-list li.package-tags {
+    display: block;
     overflow-y: visible;
   }
 }
@@ -1145,6 +1146,9 @@ p.frameworktableinfo-text {
   margin-left: 10px;
   padding-left: 10px;
   border-left: 1px solid #dbdbdb;
+}
+.page-api-keys .api-key-details .package-list li {
+  overflow-y: visible;
 }
 .page-api-keys .api-key-details:not(:first-child) {
   border-top: 1px solid #dbdbdb;

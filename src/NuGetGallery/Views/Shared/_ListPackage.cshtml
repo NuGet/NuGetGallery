@@ -40,8 +40,8 @@
                    href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null).TrimEnd('/')"
                    @if (itemIndex.HasValue)
                    {
-                       @:data-track="@eventName" data-track-value="@itemIndex"
-                       @:data-package-id="@Model.Id" data-package-version="@Model.Version" data-use-version="@Model.UseVersion"
+                        @:data-track="@eventName" data-track-value="@itemIndex"
+                        @:data-package-id="@Model.Id" data-package-version="@Model.Version" data-use-version="@Model.UseVersion"
                    }
                    >@Html.BreakWord(Model.Id)</a>
 
@@ -93,7 +93,6 @@
                 </li>
                 @if (Model.Tags.AnySafe())
                 {
-                    <br/>
                     <li class="package-tags">
                         <span class="icon-text">
                             <i class="ms-Icon ms-Icon--Tag" aria-hidden="true"></i>
@@ -127,7 +126,7 @@
                 @Model.ShortDescription
                 @if (Model.IsDescriptionTruncated)
                 {
-                    @Html.RouteLink("More information", RouteName.DisplayPackage, new { Model.Id, Model.Version })
+                    @Html.RouteLink("More information", RouteName.DisplayPackage, new { Model.Id, Model.Version }, new { @title = "More information about " + Model.Id + " package." })
                 }
             </div>
         </div>

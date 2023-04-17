@@ -84,6 +84,6 @@ namespace NuGetGallery
 
         public Dictionary<string, FrameworkFilterHelper.FrameworkFilterGroup> FrameworkFilters = FrameworkFilterHelper.FrameworkFilters;
 
-        public string TargetFrameworkInformationLink = "https://learn.microsoft.com/en-us/dotnet/standard/frameworks";
+        public string FrameworksFilteringInformationLink = "https://learn.microsoft.com/nuget/consume-packages/finding-and-choosing-packages#advanced-filtering-and-sorting";
     }
 }
