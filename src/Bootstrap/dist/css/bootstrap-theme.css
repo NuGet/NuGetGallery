@@ -1464,21 +1464,21 @@ p.frameworktableinfo-text {
   margin-bottom: 40px;
 }
 .page-package-details .owner-list li {
-  display: block;
   margin-bottom: 14px;
-}
-.page-package-details .owner-list li .profile-icon {
-  overflow: visible;
-  display: inline-block;
-}
-.page-package-details .owner-list li .username {
+  display: block;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  margin-left: 8px;
+}
+.page-package-details .owner-list li .profile-icon {
+  margin: 1.5px;
+}
+.page-package-details .owner-list li .username {
+  margin-left: 6.5px;
 }
 .page-package-details .owner-list img {
   border-radius: 5px;
+  margin: 2px;
 }
 .page-package-details .report-link i {
   color: #BE0151;
