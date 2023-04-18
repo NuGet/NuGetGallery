@@ -1470,9 +1470,15 @@ p.frameworktableinfo-text {
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+.page-package-details .owner-list li .profile-icon {
+  margin: 1.5px;
+}
+.page-package-details .owner-list li .username {
+  margin-left: 6.5px;
+}
 .page-package-details .owner-list img {
-  margin-right: 8px;
   border-radius: 5px;
+  margin: 2px;
 }
 .page-package-details .report-link i {
   color: #BE0151;

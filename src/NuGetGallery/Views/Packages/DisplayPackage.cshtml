@@ -1276,7 +1276,7 @@
                             <li>
                                 @if (!string.IsNullOrEmpty(owner.EmailAddress))
                                 {
-                                    <a href="@Url.User(owner.Username)" title="@owner.Username">
+                                    <a class="profile-icon" href="@Url.User(owner.Username)" title="@owner.Username">
                                         @ViewHelpers.GravatarImage(
                                             Url,
                                             owner.EmailAddress,
@@ -1284,7 +1284,7 @@
                                             GalleryConstants.GravatarElementSize)
                                     </a>
                                 }
-                                <a href="@Url.User(owner.Username)" title="@owner.Username">
+                                <a class="username" href="@Url.User(owner.Username)" title="@owner.Username">
                                     @owner.Username
                                 </a>
                             </li>
