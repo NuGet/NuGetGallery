@@ -243,15 +243,23 @@
     margin-bottom: 40px;
 
     li {
-      margin-bottom: 14px;
       display: block;
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
+      margin-bottom: 14px;
+
+      .profile-icon {
+        overflow: visible;
+        display: inline-block;      
+      }
+
+      .username {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        margin-left: 8px;
+      }
     }
 
     img {
-      margin-right: 8px;
       border-radius: 5px;
     }
   }

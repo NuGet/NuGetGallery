@@ -1464,14 +1464,20 @@ p.frameworktableinfo-text {
   margin-bottom: 40px;
 }
 .page-package-details .owner-list li {
-  margin-bottom: 14px;
   display: block;
+  margin-bottom: 14px;
+}
+.page-package-details .owner-list li .profile-icon {
+  overflow: visible;
+  display: inline-block;
+}
+.page-package-details .owner-list li .username {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  margin-left: 8px;
 }
 .page-package-details .owner-list img {
-  margin-right: 8px;
   border-radius: 5px;
 }
 .page-package-details .report-link i {
