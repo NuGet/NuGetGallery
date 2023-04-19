@@ -4,7 +4,7 @@ $(function() {
     $(".reserved-indicator").each(window.nuget.setPopovers);
 
     const storage = window['localStorage'];
-    const focusResultsColumnKey = 'focus_results-column';
+    const focusResultsColumnKey = 'focus_results_column';
 
     if (storage && storage.getItem(focusResultsColumnKey)) {
         storage.removeItem(focusResultsColumnKey);
