@@ -126,7 +126,7 @@
                 @Model.ShortDescription
                 @if (Model.IsDescriptionTruncated)
                 {
-                    @Html.RouteLink("More information", RouteName.DisplayPackage, new { Model.Id, Model.Version }, new { @title = "More information about " + Model.Id + " package." })
+                    @Html.RouteLink("More information", RouteName.DisplayPackage, new { Model.Id, Model.Version }, new { @title = "More information about " + Model.Id + " package", @aria_label = "More information about " + Model.Id + " package" })
                 }
             </div>
         </div>
