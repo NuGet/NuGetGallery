@@ -5,6 +5,7 @@ using NuGet.Services.Entities;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
+using NuGetGallery.Login;
 using System;
 using System.Collections.Generic;
 using System.Linq;
