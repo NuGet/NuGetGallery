@@ -14,7 +14,7 @@ using NuGetGallery.Shared;
 
 namespace NuGetGallery.Login
 {
-    public class EditableLoginConfigurationFileStorageService: LoginDiscontinuationFileStorageService, IEditableLoginConfigurationFileStorageService
+    public class EditableLoginConfigurationFileStorageService : LoginDiscontinuationFileStorageService, IEditableLoginConfigurationFileStorageService
     {
         private const int MaxAttempts = 3;
         private readonly ILogger<EditableLoginConfigurationFileStorageService> _logger;
@@ -58,7 +58,6 @@ namespace NuGetGallery.Login
                         return;
                     }
                     exceptionsForEmailAddresses.Add(emailAddress);
-
                 }
                 else
                 {
@@ -68,7 +67,6 @@ namespace NuGetGallery.Login
                         return;
                     }
                     exceptionsForEmailAddresses.Remove(emailAddress);
-
                 }
 
                 var result = new LoginDiscontinuation(

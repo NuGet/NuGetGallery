@@ -19,7 +19,7 @@ namespace NuGetGallery.Configuration
                   Enumerable.Empty<string>(),
                   Enumerable.Empty<string>(),
                   Enumerable.Empty<string>(),
-                  Enumerable.Empty<NuGetGallery.Login.OrganizationTenantPair>(),
+                  Enumerable.Empty<OrganizationTenantPair>(),
                   isPasswordDiscontinuedForAll: false)
         {
         }
@@ -30,7 +30,7 @@ namespace NuGetGallery.Configuration
             IEnumerable<string> discontinuedForDomains,
             IEnumerable<string> exceptionsForEmailAddresses,
             IEnumerable<string> forceTransformationToOrganizationForEmailAddresses,
-            IEnumerable<NuGetGallery.Login.OrganizationTenantPair> enabledOrganizationAadTenants,
+            IEnumerable<OrganizationTenantPair> enabledOrganizationAadTenants,
             bool isPasswordDiscontinuedForAll) : base(
                 discontinuedForEmailAddresses,
                 discontinuedForDomains,

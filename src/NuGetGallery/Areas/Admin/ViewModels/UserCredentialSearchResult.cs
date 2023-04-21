@@ -10,9 +10,13 @@ namespace NuGetGallery.Areas.Admin.ViewModels
     public class UserCredentialSearchResult
     {
         public List<string> emailList {  get; set; }
+
         public string Username { get; set; }
+
         public string EmailAddress { get; set; }
+
         public UserCredential Credential { get; set; }
+
         public bool IsAADorMACredential { get; set; }
     }
 }
