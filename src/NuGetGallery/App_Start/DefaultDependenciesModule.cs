@@ -865,7 +865,6 @@ namespace NuGetGallery
 
         private static void RegisterLoginConfigurationService(ContainerBuilder builder, ConfigurationService configuration)
         {
-
             builder
                 .Register(context => context.Resolve<EditableLoginConfigurationFileStorageService>())
                 .As<IEditableLoginConfigurationFileStorageService>()

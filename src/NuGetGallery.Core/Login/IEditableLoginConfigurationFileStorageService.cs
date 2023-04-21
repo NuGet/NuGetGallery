@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NuGetGallery.Shared;
@@ -9,25 +12,26 @@ namespace NuGetGallery.Login
     {
 
         /// <summary>
-        /// Get a reference to the loginDiscontinuation's raw content.
+        /// Get a reference to the raw content of <see cref="LoginDiscontinuation"/>.
         /// </summary>
         /// <returns>A snapshot of the  loginDiscontinuation's content and ETag.</returns>
         Task<LoginDiscontinuationReference> GetReferenceAsync();
 
         /// <summary>
-        /// Add or Remove an user email address to the excpetion email list on loginDiscontinuation.
+        /// Add or Remove an user email address to the exception email list on <see cref="LoginDiscontinuation"/>.
         /// </summary>
         /// <param name="emailAddress">The user email address.</param>
         /// <param name="add">Indicate remove or add email address.</param>
         Task AddUserEmailAddressforPasswordAuthenticationAsync(string emailAddress, bool add);
 
         /// <summary>
-        /// Get an excpetion email list on loginDiscontinuation.
+        /// Get an exception email list on <see cref="LoginDiscontinuation"/>.
         /// </summary>
+        /// <returns>the exception email list on loginDiscontinuation.</returns>
         Task<IReadOnlyList<string>> GetListOfExceptionEmailList();
 
         /// <summary>
-        /// Try to update the LoginDiscontinuation.
+        /// Try to update the <see cref="LoginDiscontinuation"/>.
         /// </summary>
         /// <param name="loginDiscontinuation">The log in discontinuation configuration.</param>
         /// <param name="contentId">The loginDiscontinuation's ETag.</param>

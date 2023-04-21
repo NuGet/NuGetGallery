@@ -1,17 +1,20 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
-using NuGetGallery.Features;
 using NuGetGallery.Shared;
 
 namespace NuGetGallery.Login
 {
-    public class  EditableLoginConfigurationFileStorageService: LoginDiscontinuationFileStorageService, IEditableLoginConfigurationFileStorageService
+    public class EditableLoginConfigurationFileStorageService: LoginDiscontinuationFileStorageService, IEditableLoginConfigurationFileStorageService
     {
         private const int MaxAttempts = 3;
         private readonly ILogger<EditableLoginConfigurationFileStorageService> _logger;
@@ -31,6 +34,7 @@ namespace NuGetGallery.Login
                 ReadLoginDiscontinuationFromStream(reference.OpenRead()),
                 reference.ContentId);
         }
+
         public async Task AddUserEmailAddressforPasswordAuthenticationAsync(string emailAddress, bool add)
         {
             for (var attempt = 0; attempt < MaxAttempts; attempt++)
@@ -65,7 +69,6 @@ namespace NuGetGallery.Login
                     }
                     exceptionsForEmailAddresses.Remove(emailAddress);
 
-
                 }
 
                 var result = new LoginDiscontinuation(
@@ -85,7 +88,6 @@ namespace NuGetGallery.Login
                 
                 var operation = add ? "add" : "remove";
                 _logger.LogWarning(
-                    0,
                     "Failed to {operation} emailAddress from exception list, attempt {Attempt} of {MaxAttempts}...",
                     operation,
                     attempt + 1,
@@ -103,21 +105,10 @@ namespace NuGetGallery.Login
         }
 
         public async Task<IReadOnlyList<string>> GetListOfExceptionEmailList()
-        {
-            for (var attempt = 0; attempt < MaxAttempts; attempt++)
-            {         
-                var loginDiscontinuation = await GetAsync();
+        {       
+            var loginDiscontinuation = await GetAsync();
 
-                IReadOnlyList<string> result = null;
-                if (loginDiscontinuation != null) {
-                     result = loginDiscontinuation.ExceptionsForEmailAddresses.ToList();
-                }
-
-                return result;
-            }
-
-            throw new InvalidOperationException($"Unable to get list of exception email list from  loginDiscontinuationConfig file after {MaxAttempts} attempts");
-
+            return loginDiscontinuation.ExceptionsForEmailAddresses.ToList();
         }
 
         private async Task<ContentSaveResult> TrySaveInternalAsync(LoginDiscontinuation loginDiscontinuationConfig, string contentId)

@@ -4,7 +4,7 @@
 using NuGet.Services.Entities;
 using NuGetGallery.Authentication;
 
-namespace NuGetGallery
+namespace NuGetGallery.Configuration
 {
     public interface ILoginDiscontinuationConfiguration
     {

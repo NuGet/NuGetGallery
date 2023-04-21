@@ -1,7 +1,11 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using Microsoft.Ajax.Utilities;
 using NuGet.Services.Entities;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Login;
@@ -73,23 +77,31 @@ namespace NuGetGallery.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> AddEmailAddress(string emailAddress)
         {
-            var contentId = await GetContentIdBeforeChange();
-            var errorMessage = await TrySaveFlags(emailAddress, contentId, add: true);
-
-            if (errorMessage != null)
-            {
-                TempData["ErrorMessage"] = errorMessage;
-            }
-
-            return Redirect(nameof(Index));
+            return await AddOrRemoveEmailAddress(emailAddress, true);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> RemoveEmailAddress(string emailAddress) { 
-        
+        public async Task<ActionResult> RemoveEmailAddress(string emailAddress) {
+            return  await AddOrRemoveEmailAddress(emailAddress, false);
+        }
+
+        private async Task<ActionResult> AddOrRemoveEmailAddress(string emailAddress, bool add)
+        {
+            if (emailAddress.IsNullOrWhiteSpace())
+            {
+                TempData["ErrorMessage"] = "Email address cannot be empty!";
+                return Redirect(nameof(Index));
+            }
+
+            var emailAddressTrimed = emailAddress.Trim();
+            var user = _userService.FindByEmailAddress(emailAddressTrimed);
+            if (user == null)
+            {
+                TempData["ErrorMessage"] = $"User with emailAdress '{emailAddressTrimed}' does not exist!";
+            }
             var contentId = await GetContentIdBeforeChange();
-            var errorMessage = await TrySaveFlags(emailAddress, contentId, add: false);
+            var errorMessage = await TrySaveEmailAddress(emailAddressTrimed, add);
 
             if (errorMessage != null)
             {
@@ -97,7 +109,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
 
             return Redirect(nameof(Index));
-
         }
 
         private async Task<string> GetContentIdBeforeChange()
@@ -106,11 +117,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
             return result.ContentId;
         }
 
-        private async Task<string> TrySaveFlags(string emailAddress, string contentId, bool add)
+        private async Task<string> TrySaveEmailAddress(string emailAddress, bool add)
         {
-
            await _storage.AddUserEmailAddressforPasswordAuthenticationAsync(emailAddress, add);
            return null;
         }
+
     }
 }

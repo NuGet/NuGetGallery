@@ -1,9 +1,13 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using NuGet.Services.Entities;
 
 namespace NuGetGallery.Login
 {
@@ -31,8 +35,63 @@ namespace NuGetGallery.Login
             EnabledOrganizationAadTenants = new HashSet<OrganizationTenantPair>(enabledOrganizationAadTenants);
             IsPasswordDiscontinuedForAll = isPasswordDiscontinuedForAll;
         }
+
+        public bool IsUserOnWhitelist(User user)
+        {
+            if (user == null)
+            {
+                return false;
+            }
+
+            var email = user.ToMailAddress();
+            return
+                DiscontinuedForDomains.Contains(email.Host) ||
+                DiscontinuedForEmailAddresses.Contains(email.Address);
+        }
+
+        public bool ShouldUserTransformIntoOrganization(User user)
+        {
+            if (user == null)
+            {
+                return false;
+            }
+
+            var email = user.ToMailAddress();
+            return ForceTransformationToOrganizationForEmailAddresses.Contains(email.Address);
+        }
+
+        public bool IsTenantIdPolicySupportedForOrganization(string emailAddress, string tenantId)
+        {
+            if (string.IsNullOrEmpty(emailAddress))
+            {
+                throw new ArgumentException(nameof(emailAddress));
+            }
+
+            if (string.IsNullOrEmpty(tenantId))
+            {
+                throw new ArgumentException(nameof(tenantId));
+            }
+
+            return EnabledOrganizationAadTenants.Contains(new OrganizationTenantPair(new System.Net.Mail.MailAddress(emailAddress).Host, tenantId));
+        }
+
+        public bool IsPasswordLoginDiscontinuedForAll()
+        {
+            return IsPasswordDiscontinuedForAll;
+        }
+
+        public bool IsEmailOnExceptionsList(string emailAddress)
+        {
+            if (string.IsNullOrEmpty(emailAddress))
+            {
+                return false;
+            }
+
+            return ExceptionsForEmailAddresses.Contains(emailAddress);
+        }
     }
-    public class OrganizationTenantPair
+
+    public class OrganizationTenantPair : IEquatable<OrganizationTenantPair>
     {
         public string EmailDomain { get; }
         public string TenantId { get; }
