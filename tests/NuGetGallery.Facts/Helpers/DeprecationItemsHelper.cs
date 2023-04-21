@@ -38,12 +38,14 @@ namespace NuGetGallery.Helpers
                         {
                             Message = "message",
                             Reasons = new [] { "Other", "Legacy", "CriticalBugs" },
+                            AlternatePackage = new {}
                         })
                     };
                 yield return new object[] {
                         JObject.FromObject(new
                         {
                             Reasons = new [] { "Legacy" },
+                            AlternatePackage = new {}
                         })
                     };
             }

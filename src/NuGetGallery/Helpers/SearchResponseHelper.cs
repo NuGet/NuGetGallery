@@ -33,17 +33,21 @@ namespace NuGetGallery.Helpers
                     if (docAlternatePackage != null)
                     {
                         var range = docAlternatePackage.Value<string>("Range");
-                        var version = string.Empty;
-                        if (range.StartsWith("["))
+                        var id = docAlternatePackage.Value<string>("Id");
+                        if (!string.IsNullOrEmpty(range) && !string.IsNullOrEmpty(id))
                         {
-                            version = range.Substring(1, range.IndexOf(", )"));
-                        }
+                            var version = string.Empty;
+                            if (range.StartsWith("["))
+                            {
+                                version = range.Substring(1, range.IndexOf(", )"));
+                            }
 
-                        alternatePackage = new Package()
-                        {
-                            Id = docAlternatePackage.Value<string>("Id"),
-                            Version = version
-                        };
+                            alternatePackage = new Package()
+                            {
+                                Id = id,
+                                Version = version
+                            };
+                        }
                     }
 
                     deprecation = new PackageDeprecation()
@@ -67,7 +71,7 @@ namespace NuGetGallery.Helpers
                 {
                     Vulnerability = new PackageVulnerability()
                     {
-                        AdvisoryUrl = v.Value<string>("AdvisoryURL"),
+                        AdvisoryUrl = v.Value<string>("AdvisoryUrl"),
                         Severity = (PackageVulnerabilitySeverity)v.Value<int>("Severity")
                     }
                 })
