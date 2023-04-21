@@ -1173,6 +1173,9 @@ p.frameworktableinfo-text {
   padding-left: 10px;
   border-left: 1px solid #dbdbdb;
 }
+.page-api-keys .api-key-details .package-list li {
+  overflow-y: visible;
+}
 .page-api-keys .api-key-details:not(:first-child) {
   border-top: 1px solid #dbdbdb;
 }
@@ -1493,9 +1496,15 @@ p.frameworktableinfo-text {
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+.page-package-details .owner-list li .profile-icon {
+  margin: 1.5px;
+}
+.page-package-details .owner-list li .username {
+  margin-left: 6.5px;
+}
 .page-package-details .owner-list img {
-  margin-right: 8px;
   border-radius: 5px;
+  margin: 2px;
 }
 .page-package-details .report-link i {
   color: #BE0151;

@@ -82,10 +82,8 @@
                                 <fieldset id="frameworkfilters">
                                     <legend>
                                         Frameworks
-                                        <a href="@(Model.TargetFrameworkInformationLink)" title="Frameworks filter information">
-                                            <i class="framework-filter-info-icon ms-Icon ms-Icon--Info" tabindex="0"
-                                               data-content="@Strings.FrameworkFilterInformation_Tooltip"
-                                               alt="@Strings.FrameworkFilterInformation_Tooltip"></i>
+                                        <a href="@(Model.FrameworksFilteringInformationLink)" title="Filters packages based on the target frameworks included in the NuGet Package. Click here to learn more.">
+                                            <i class="framework-filter-info-icon ms-Icon ms-Icon--Info"></i>
                                         </a>
                                     </legend>
                                     @foreach (var framework in Model.FrameworkFilters.Values)
@@ -137,7 +135,7 @@
                     </div>
                 }
             </div>
-            <div class="@(Model.IsAdvancedSearchFlightEnabled ? "col-md-9" : "col-md-12")" id="results-column">
+            <div class="@(Model.IsAdvancedSearchFlightEnabled ? "col-md-9" : "col-md-12")" id="results-column" tabindex="0">
                 <div class="row">
                     <div class="col-md-9">
                         <h1 tabindex="0">
