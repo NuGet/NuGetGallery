@@ -9,10 +9,15 @@ namespace NuGetGallery.Configuration
     public interface ILoginDiscontinuationConfiguration
     {
         bool IsLoginDiscontinued(AuthenticatedUser authUser);
+
         bool IsPasswordLoginDiscontinuedForAll();
+
         bool IsUserOnWhitelist(User user);
+
         bool ShouldUserTransformIntoOrganization(User user);
+
         bool IsTenantIdPolicySupportedForOrganization(string emailAddress, string tenantId);
+
         bool IsEmailOnExceptionsList(string emailAddress);
     }
 }
