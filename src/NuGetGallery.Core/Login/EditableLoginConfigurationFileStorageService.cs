@@ -77,7 +77,6 @@ namespace NuGetGallery.Login
                    logins.EnabledOrganizationAadTenants,
                    logins.IsPasswordDiscontinuedForAll);
 
-
                 var saveResult = await TrySaveAsync(result, reference.ContentId);
                 if (saveResult == ContentSaveResult.Ok)
                 {
