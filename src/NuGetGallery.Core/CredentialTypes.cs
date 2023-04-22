@@ -127,7 +127,7 @@ namespace NuGetGallery
 
         public static Credential GetMicrosoftAccountCredential(this ICollection<Credential> credentials)
         {
-            return credentials.SingleOrDefault(c => IsMicrosoftAccount(c.Type));
+            return credentials.FirstOrDefault(c => IsMicrosoftAccount(c.Type));
         }
     }
 }
