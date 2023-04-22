@@ -14,7 +14,6 @@
   position: relative;
   min-height: @navbar-height; // Ensure a navbar always shows (e.g., without a .navbar-brand in collapsed mode)
   margin-bottom: @navbar-margin-bottom;
-
   // Prevent floats from breaking the navbar
   &:extend(.clearfix all);
 
@@ -80,7 +79,6 @@
     &.in {
       overflow-y: visible;
     }
-
     // Undo the collapse side padding for navbars with containers to ensure
     // alignment of right-aligned contents.
     .navbar-fixed-top &,
@@ -101,13 +99,11 @@
       max-height: 200px;
     }
   }
-
   // Fix the top/bottom navbars when screen real estate supports it
   position: fixed;
   right: 0;
   left: 0;
   z-index: @zindex-navbar-fixed;
-
   // Undo the rounded corners
   @media (min-width: @grid-float-breakpoint) {
     border-radius: 0;
@@ -118,6 +114,7 @@
   top: 0;
   border-width: 0 0 1px;
 }
+
 .navbar-fixed-bottom {
   bottom: 0;
   margin-bottom: 0; // override .navbar defaults
@@ -203,13 +200,11 @@
   background-image: none; // Reset unusual Firefox-on-Android default style; see https://github.com/necolas/normalize.css/issues/214
   border: 1px solid transparent;
   border-radius: @border-radius-base;
-
   // We remove the `outline` here, but later compensate by attaching `:hover`
   // styles to `:focus`.
   &:focus {
     outline: 0;
   }
-
   // Bars
   .icon-bar {
     display: block;
@@ -217,6 +212,7 @@
     height: 2px;
     border-radius: 1px;
   }
+
   .icon-bar + .icon-bar {
     margin-top: 4px;
   }
@@ -251,12 +247,15 @@
       background-color: transparent;
       border: 0;
       box-shadow: none;
+
       > li > a,
       .dropdown-header {
         padding: 5px 15px 5px 25px;
       }
+
       > li > a {
         line-height: @line-height-computed;
+
         &:hover,
         &:focus {
           background-image: none;
@@ -264,7 +263,6 @@
       }
     }
   }
-
   // Uncollapse the nav
   @media (min-width: @grid-float-breakpoint) {
     float: left;
@@ -272,6 +270,7 @@
 
     > li {
       float: left;
+
       > a {
         padding-top: @navbar-padding-vertical;
         padding-bottom: @navbar-padding-vertical;
@@ -294,7 +293,6 @@
   border-bottom: 1px solid transparent;
   @shadow: inset 0 1px 0 rgba(255, 255, 255, .1), 0 1px 0 rgba(255, 255, 255, .1);
   .box-shadow(@shadow);
-
   // Mixin behavior for optimum display
   .form-inline();
 
@@ -307,10 +305,8 @@
       }
     }
   }
-
   // Vertically center in expanded, horizontal navbar
   .navbar-vertical-align(@input-height-base);
-
   // Undo 100% width for pull classes
   @media (min-width: @grid-float-breakpoint) {
     width: auto;
@@ -327,17 +323,34 @@
 // Dropdown menus
 
 // Menu position and menu carets
-.navbar-nav > li > .dropdown-menu {
+.navbar-nav .dropdown-menu {
   margin-top: 0;
   .border-top-radius(0);
 }
 // Menu position and menu caret support for dropups via extra dropup class
-.navbar-fixed-bottom .navbar-nav > li > .dropdown-menu {
+.navbar-fixed-bottom .navbar-nav .dropdown-menu {
   margin-bottom: 0;
   .border-top-radius(@navbar-border-radius);
   .border-bottom-radius(0);
 }
-
+// dropdown divider
+.dropdown-divider {
+  margin: 10px 0 0 0;
+  border-top: 1px solid #e5e5e5;
+}
+// sign in text after login
+.navbar-nav.navbar-right a.dropdown-toggle {
+  position: relative;
+  display: block;
+  padding-top: 11px;
+  padding-bottom: 11px;
+}
+// sign in text after login focus
+.navbar-nav.navbar-right a.dropdown-toggle:focus {
+  outline: 4px solid #fff;
+  outline-offset: -2px;
+  text-decoration: none;
+}
 
 // Buttons in navbars
 //
@@ -349,12 +362,11 @@
   &.btn-sm {
     .navbar-vertical-align(@input-height-small);
   }
+
   &.btn-xs {
     .navbar-vertical-align(22);
   }
 }
-
-
 // Text in navbars
 //
 // Add a class to make any element properly align itself vertically within the navbars.
@@ -368,8 +380,6 @@
     margin-left: @navbar-padding-horizontal;
   }
 }
-
-
 // Component alignment
 //
 // Repurpose the pull utilities as their own navbar utilities to avoid specificity
@@ -379,7 +389,10 @@
 // Declared after the navbar components to ensure more specificity on the margins.
 
 @media (min-width: @grid-float-breakpoint) {
-  .navbar-left  { .pull-left(); }
+  .navbar-left {
+    .pull-left();
+  }
+
   .navbar-right {
     .pull-right();
     margin-right: -@navbar-padding-horizontal;
@@ -389,11 +402,8 @@
     }
   }
 }
-
-
 // Alternate navbars
 // --------------------------------------------------
-
 // Default navbar
 .navbar-default {
   background-color: @navbar-default-bg;
@@ -401,6 +411,7 @@
 
   .navbar-brand {
     color: @navbar-default-brand-color;
+
     &:hover,
     &:focus {
       color: @navbar-default-brand-hover-color;
@@ -422,6 +433,7 @@
         background-color: @navbar-default-link-hover-bg;
       }
     }
+
     > .active > a {
       &,
       &:hover,
@@ -430,6 +442,7 @@
         background-color: @navbar-default-link-active-bg;
       }
     }
+
     > .disabled > a {
       &,
       &:hover,
@@ -438,7 +451,6 @@
         background-color: @navbar-default-link-disabled-bg;
       }
     }
-
     // Dropdown menu items
     // Remove background color from open dropdown
     > .open > a {
@@ -455,12 +467,14 @@
       .open .dropdown-menu {
         > li > a {
           color: @navbar-default-link-color;
+
           &:hover,
           &:focus {
             color: @navbar-default-link-hover-color;
             background-color: @navbar-default-link-hover-bg;
           }
         }
+
         > .active > a {
           &,
           &:hover,
@@ -469,6 +483,7 @@
             background-color: @navbar-default-link-active-bg;
           }
         }
+
         > .disabled > a {
           &,
           &:hover,
@@ -483,10 +498,12 @@
 
   .navbar-toggle {
     border-color: @navbar-default-toggle-border-color;
+
     &:hover,
     &:focus {
       background-color: @navbar-default-toggle-hover-bg;
     }
+
     .icon-bar {
       background-color: @navbar-default-toggle-icon-bar-bg;
     }
@@ -496,14 +513,13 @@
   .navbar-form {
     border-color: @navbar-default-border;
   }
-
-
   // Links in navbars
   //
   // Add a class to ensure links outside the navbar nav are colored correctly.
 
   .navbar-link {
     color: @navbar-default-link-color;
+
     &:hover {
       color: @navbar-default-link-hover-color;
     }
@@ -511,10 +527,12 @@
 
   .btn-link {
     color: @navbar-default-link-color;
+
     &:hover,
     &:focus {
       color: @navbar-default-link-hover-color;
     }
+
     &[disabled],
     fieldset[disabled] & {
       &:hover,
@@ -524,7 +542,6 @@
     }
   }
 }
-
 // Inverse navbar
 
 .navbar-inverse {
@@ -533,6 +550,7 @@
 
   .navbar-brand {
     color: @navbar-inverse-brand-color;
+
     &:hover,
     &:focus {
       color: @navbar-inverse-brand-hover-color;
@@ -543,9 +561,27 @@
   .navbar-text {
     color: @navbar-inverse-color;
   }
+  // sign in text before login
+  .navbar-nav.navbar-right {
+    > div > a {
+      color: @navbar-inverse-link-color;
+      font-weight: 100;
+      padding: 10px 15px;
+      position: relative;
+      display: block;
+      text-decoration: none;
+
+      &:hover,
+      &:focus {
+        color: @navbar-inverse-link-hover-color;
+        background-color: @navbar-inverse-link-hover-bg;
+      }
+    }
+  }
 
   .navbar-nav {
-    > li > a {
+    > li > a,
+    > a#account-dropdown {
       color: @navbar-inverse-link-color;
       font-weight: 100;
 
@@ -555,6 +591,7 @@
         background-color: @navbar-inverse-link-hover-bg;
       }
     }
+
     > .active > a {
       &,
       &:hover,
@@ -567,6 +604,7 @@
         }
       }
     }
+
     > .disabled > a {
       &,
       &:hover,
@@ -575,7 +613,6 @@
         background-color: @navbar-inverse-link-disabled-bg;
       }
     }
-
     // Dropdowns
     > .open > a {
       &,
@@ -592,21 +629,26 @@
         .row {
           margin-right: 0;
         }
+
         > .dropdown-header {
           border-color: @navbar-inverse-border;
           color: @navbar-inverse-link-color;
         }
+
         .divider {
           background-color: @navbar-inverse-border;
         }
+
         > li > a {
           color: @navbar-inverse-link-color;
+
           &:hover,
           &:focus {
             color: @navbar-inverse-link-hover-color;
             background-color: @navbar-inverse-link-hover-bg;
           }
         }
+
         > .active > a {
           &,
           &:hover,
@@ -615,6 +657,7 @@
             background-color: @navbar-inverse-link-active-bg;
           }
         }
+
         > .disabled > a {
           &,
           &:hover,
@@ -626,14 +669,15 @@
       }
     }
   }
-
   // Darken the responsive nav toggle
   .navbar-toggle {
     border-color: @navbar-inverse-toggle-border-color;
+
     &:hover,
     &:focus {
       background-color: @navbar-inverse-toggle-hover-bg;
     }
+
     .icon-bar {
       background-color: @navbar-inverse-toggle-icon-bar-bg;
     }
@@ -646,6 +690,7 @@
 
   .navbar-link {
     color: @navbar-inverse-link-color;
+
     &:hover {
       color: @navbar-inverse-link-hover-color;
     }
@@ -653,10 +698,12 @@
 
   .btn-link {
     color: @navbar-inverse-link-color;
+
     &:hover,
     &:focus {
       color: @navbar-inverse-link-hover-color;
     }
+
     &[disabled],
     fieldset[disabled] & {
       &:hover,

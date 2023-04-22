@@ -42,14 +42,30 @@
             @if (bold)
             {
                 @:<b>
-            }
+                }
             <span>@tab</span>
             @if (bold)
             {
-                @:</b>
-            }
+            @:</b>
+        }
         </a>
     </li>
+}
+@helper DisplaySignInButton(string tab, string url, bool bold = false, string title = null) //Change the list item for accessibility
+{
+    <div class="">
+        <a role="button" aria-expanded="@(ViewBag.Tab == tab ? "true" : "false")" href="@url" title="@title">
+            @if (bold)
+            {
+                @:<b>
+                }
+            <span>@tab</span>
+            @if (bold)
+            {
+            @:</b>
+        }
+        </a>
+    </div>
 }
 
 <nav class="navbar navbar-inverse" role="navigation">
@@ -92,16 +108,17 @@
                     </ul>
                     @if (ShowAuthInHeader)
                     {
-                        <ul class="nav navbar-nav navbar-right" role="tablist">
+                        <div class="nav navbar-nav navbar-right">
                             @if (!User.Identity.IsAuthenticated)
                             {
                                 var returnUrl = ViewData.ContainsKey(GalleryConstants.ReturnUrlViewDataKey) ? (string)ViewData[GalleryConstants.ReturnUrlViewDataKey] : Request.RawUrl;
-                                @DisplayNavigationItem("Sign in", Url.LogOn(returnUrl), title: "Sign in to an existing NuGet.org account")
+                                @DisplaySignInButton("Sign in", Url.LogOn(returnUrl), title: "Sign in to an existing NuGet.org account")
+
                             }
                             else
                             {
-                                <li class="@(ViewBag.Tab == User.Identity.Name ? "active" : string.Empty) dropdown" role="presentation">
-                                    <a href="#" aria-selected="@(ViewBag.Tab == User.Identity.Name ? "true" : "false")" role="tab" id="account-dropdown" class="dropdown-toggle" title="Open profile dropdown" data-toggle="dropdown">
+                                <div class="@(ViewBag.Tab == User.Identity.Name ? "active" : string.Empty) dropdown">
+                                    <a href="#" aria-expanded="@(ViewBag.Tab == User.Identity.Name ? "true" : "false")" role="button" id="account-dropdown" class="dropdown-toggle" title="Open profile dropdown" data-toggle="dropdown">
                                         <div>
                                             @if (ShowWarningIndicator)
                                             {
@@ -111,9 +128,9 @@
                                             <span class="caret"></span>
                                         </div>
                                     </a>
-                                    <ul class="dropdown-menu" role="menu" aria-labelledby="account-dropdown">
+                                    <ul class="dropdown-menu" role="presentation">
                                         <li class="dropdown-header row">
-                                            <div class="col-sm-3">
+                                            <div class="col-sm-3" aria-disabled="true">
                                                 @ViewHelpers.GravatarImage(
                                                     Url,
                                                     CurrentUser.EmailAddress,
@@ -128,13 +145,13 @@
                                         </li>
                                         @if (Request.IsAuthenticated && AdminHelper.IsAdminPanelEnabled && User.IsInRole(CoreConstants.AdminRoleName))
                                         {
-                                            <li class="divider"></li>
-                                            <li role="presentation"><a href="@Url.Admin()" role="menuitem">Admin</a></li>
+
+                                            <li><a href="@Url.Admin()">Admin</a></li>
                                         }
-                                        <li class="divider"></li>
-                                        <li role="presentation"><a href="@Url.User(CurrentUser.Username)" role="menuitem">View Profile</a></li>
-                                        <li role="presentation">
-                                            <a href="@Url.AccountSettings()" role="menuitem">
+
+                                        <li class="dropdown-divider"><a href="@Url.User(CurrentUser.Username)">View Profile</a></li>
+                                        <li>
+                                            <a href="@Url.AccountSettings()">
                                                 Account Settings
                                                 @if (ShowWarningIndicator)
                                                 {
@@ -142,29 +159,27 @@
                                                 }
                                             </a>
                                         </li>
-                                        <li role="presentation"><a href="@Url.ManageMyApiKeys()" role="menuitem">API Keys</a></li>
-                                        <li class="divider"></li>
-                                        <li role="presentation"><a href="@Url.ManageMyOrganizations()" role="menuitem">Manage Organizations</a></li>
-                                        <li role="presentation"><a href="@Url.ManageMyPackages()" role="menuitem">Manage Packages</a></li>
-                                        <li role="presentation"><a href="@Url.UploadPackage()" role="menuitem">Upload Package</a></li>
-                                        <li class="divider"></li>
-                                        <li role="presentation">
+                                        <li><a href="@Url.ManageMyApiKeys()">API Keys</a></li>
+                                        <li class="dropdown-divider"><a href="@Url.ManageMyOrganizations()">Manage Organizations</a></li>
+                                        <li><a href="@Url.ManageMyPackages()">Manage Packages</a></li>
+                                        <li><a href="@Url.UploadPackage()">Upload Package</a></li>
+                                        <li class="dropdown-divider">
                                             @ViewHelpers.PostLink(
                                                 this,
                                                 formId: "log-off-form",
                                                 linkText: "Sign Out",
                                                 actionName: "LogOff",
                                                 controllerName: "Authentication",
-                                                role: "menuitem",
+                                                role: "button",
                                                 formValues: new Dictionary<string, string>
                                                 {
                                                     { "returnUrl", Url.Current() },
                                                 })
                                         </li>
                                     </ul>
-                                </li>
+                                </div>
                             }
-                        </ul>
+                        </div>
                     }
                 </div>
             </div>
