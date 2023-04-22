@@ -4,6 +4,7 @@
 using System;
 using System.Threading.Tasks;
 using NuGetGallery;
+using NuGetGallery.Configuration;
 using NuGetGallery.Services;
 
 namespace NuGet.VerifyMicrosoftPackage.Fakes

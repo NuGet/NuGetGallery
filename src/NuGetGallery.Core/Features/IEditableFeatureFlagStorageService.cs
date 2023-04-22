@@ -4,6 +4,7 @@
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
+using NuGetGallery.Shared;
 
 namespace NuGetGallery.Features
 {
@@ -23,7 +24,7 @@ namespace NuGetGallery.Features
         /// <param name="flags">The feature flags.</param>
         /// <param name="contentId">The feature flag's ETag.</param>
         /// <returns>The result of the save operation.</returns>
-        Task<FeatureFlagSaveResult> TrySaveAsync(FeatureFlags flags, string contentId);
+        Task<ContentSaveResult> TrySaveAsync(FeatureFlags flags, string contentId);
 
         /// <summary>
         /// Remove the user from the feature flags if needed. This may throw on failure.

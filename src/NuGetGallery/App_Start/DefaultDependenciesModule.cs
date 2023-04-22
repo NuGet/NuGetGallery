@@ -55,6 +55,7 @@ using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Infrastructure.Mail;
 using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.Infrastructure.Search.Correlation;
+using NuGetGallery.Login;
 using NuGetGallery.Security;
 using NuGetGallery.Services;
 using Role = NuGet.Services.Entities.Role;
@@ -485,6 +486,7 @@ namespace NuGetGallery
             services.AddScoped<IGravatarProxyService, GravatarProxyService>();
 
             RegisterFeatureFlagsService(builder, configuration);
+            RegisterLoginConfigurationService(builder, configuration);
             RegisterMessagingService(builder, configuration);
 
             builder.Register(c => HttpContext.Current.User)
@@ -858,6 +860,14 @@ namespace NuGetGallery
             builder
                 .RegisterType<FeatureFlagService>()
                 .As<IFeatureFlagService>()
+                .SingleInstance();
+        }
+
+        private static void RegisterLoginConfigurationService(ContainerBuilder builder, ConfigurationService configuration)
+        {
+            builder
+                .Register(context => context.Resolve<EditableLoginConfigurationFileStorageService>())
+                .As<IEditableLoginConfigurationFileStorageService>()
                 .SingleInstance();
         }
 
