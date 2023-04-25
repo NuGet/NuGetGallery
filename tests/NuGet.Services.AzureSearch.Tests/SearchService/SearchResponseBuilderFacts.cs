@@ -604,10 +604,171 @@ namespace NuGet.Services.AzureSearch.SearchService
       ""HashAlgorithm"": ""SHA512"",
       ""PackageFileSize"": 3039254,
       ""LicenseUrl"": ""http://go.microsoft.com/fwlink/?LinkId=331471"",
-      ""RequiresLicenseAcceptance"": true
+      ""RequiresLicenseAcceptance"": true,
+      ""Deprecation"": {
+        ""AlternatePackage"": {
+          ""Id"": ""test.alternatepackage"",
+          ""Range"": ""[1.0.0, )""
+        },
+        ""Message"": ""test message for test.alternatepackage-1.0.0"",
+        ""Reasons"": [
+          ""Other"",
+          ""Legacy""
+        ]
+      },
+      ""Vulnerabilities"": [
+        {
+          ""AdvisoryUrl"": ""test AdvisoryUrl for Low Severity"",
+          ""Severity"": 0
+        },
+        {
+          ""AdvisoryUrl"": ""test AdvisoryUrl for Moderate Severity"",
+          ""Severity"": 1
+        }
+      ]
     }
   ]
 }", actualJson);
+            }
+
+            [Fact]
+            public void CheckNullDeprecation()
+            {
+                var doc = _searchResult.Values[0].Document;
+                doc.Deprecation = null;
+
+                var response = Target.V2FromSearch(
+                    _v2Request,
+                    _text,
+                    _searchParameters,
+                    _searchResult,
+                    _duration);
+
+                Assert.Null(response.Data[0].Deprecation);
+            }
+
+            [Fact]
+            public void CheckNullDeprecationReasons()
+            {
+                var doc = _searchResult.Values[0].Document;
+                doc.Deprecation = new Deprecation();
+
+                var response = Target.V2FromSearch(
+                    _v2Request,
+                    _text,
+                    _searchParameters,
+                    _searchResult,
+                    _duration);
+
+                Assert.Null(response.Data[0].Deprecation);
+            }
+
+            [Fact]
+            public void CheckEmptyDeprecationReasons()
+            {
+                var doc = _searchResult.Values[0].Document;
+                doc.Deprecation = new Deprecation();
+                doc.Deprecation.Reasons = Array.Empty<string>();
+
+                var response = Target.V2FromSearch(
+                    _v2Request,
+                    _text,
+                    _searchParameters,
+                    _searchResult,
+                    _duration);
+
+                Assert.Null(response.Data[0].Deprecation);
+            }
+
+            [Fact]
+            public void ProducesExpectedDeprecation()
+            {
+                var message = "this package has been deprecated";
+                var reason = "not maintained";
+                var id = "Microsoft.Data.OData";
+                var range = "[5.6.4, )";
+                var deprecation = new Deprecation()
+                {
+                    Message = message,
+                    Reasons = new string[] { reason },
+                    AlternatePackage = new AlternatePackage()
+                    {
+                        Id = id,
+                        Range = range
+                    }
+                };
+                var doc = _searchResult.Values[0].Document;
+                doc.Deprecation = deprecation;
+
+                var response = Target.V2FromSearch(
+                    _v2Request,
+                    _text,
+                    _searchParameters,
+                    _searchResult,
+                    _duration);
+
+                Assert.Equal(message, response.Data[0].Deprecation.Message);
+                Assert.Equal(reason, response.Data[0].Deprecation.Reasons[0]);
+                Assert.Equal(id, response.Data[0].Deprecation.AlternatePackage.Id);
+                Assert.Equal(range, response.Data[0].Deprecation.AlternatePackage.Range);
+            }
+
+            [Fact]
+            public void CheckEmptyVulnerabilities()
+            {
+                var doc = _searchResult.Values[0].Document;
+                doc.Vulnerabilities = new List<Vulnerability>();
+
+                var response = Target.V2FromSearch(
+                    _v2Request,
+                    _text,
+                    _searchParameters,
+                    _searchResult,
+                    _duration);
+
+                Assert.Empty(response.Data[0].Vulnerabilities);
+            }
+
+            [Fact]
+            public void CheckNullVulnerabilities()
+            {
+                var doc = _searchResult.Values[0].Document;
+                doc.Vulnerabilities = null;
+
+                var response = Target.V2FromSearch(
+                    _v2Request,
+                    _text,
+                    _searchParameters,
+                    _searchResult,
+                    _duration);
+
+                Assert.Empty(response.Data[0].Vulnerabilities);
+            }
+
+            [Fact]
+            public void ProducesExpectedVulnerabilities()
+            {
+                var doc = _searchResult.Values[0].Document;
+                var vulnerabilities = new List<Vulnerability>();
+                vulnerabilities.Add(new Vulnerability() { AdvisoryURL = "advisoryUrl1", Severity = 1 });
+                vulnerabilities.Add(new Vulnerability() { AdvisoryURL = "advisoryUrl2", Severity = 2 });
+                vulnerabilities.Add(new Vulnerability() { AdvisoryURL = "advisoryUrl3", Severity = 3 });
+                doc.Vulnerabilities = vulnerabilities.GetRange(0, vulnerabilities.Count);
+
+                var response = Target.V2FromSearch(
+                    _v2Request,
+                    _text,
+                    _searchParameters,
+                    _searchResult,
+                    _duration);
+
+                Assert.Equal(vulnerabilities.Count, response.Data[0].Vulnerabilities.Length);
+                for (int i = 0; i < vulnerabilities.Count; i++)
+                {
+                    Assert.Equal(vulnerabilities[i].AdvisoryURL, response.Data[0].Vulnerabilities[i].AdvisoryUrl);
+                    Assert.Equal(vulnerabilities[i].Severity, response.Data[0].Vulnerabilities[i].Severity);
+                }
+
             }
 
             [Fact]
@@ -627,6 +788,22 @@ namespace NuGet.Services.AzureSearch.SearchService
 
             [Fact]
             public void LeavesNullIconUrlWithFlatContainerIconsButNullOriginalIconUrl()
+            {
+                _config.AllIconsInFlatContainer = true;
+                _searchResult.Values[0].Document.IconUrl = null;
+
+                var response = Target.V2FromSearch(
+                    _v2Request,
+                    _text,
+                    _searchParameters,
+                    _searchResult,
+                    _duration);
+
+                Assert.Null(response.Data[0].IconUrl);
+            }
+
+            [Fact]
+            public void NullIconUrlWithFlatContainerIconsButNullOriginalIconUrl()
             {
                 _config.AllIconsInFlatContainer = true;
                 _searchResult.Values[0].Document.IconUrl = null;

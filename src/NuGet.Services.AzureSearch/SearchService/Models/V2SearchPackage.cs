@@ -49,5 +49,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         public string LicenseUrl { get; set; }
         public bool RequiresLicenseAcceptance { get; set; }
         public object Debug { get; set; }
+        public V2SearchDeprecation Deprecation { get; set; }
+        public V2SearchVulnerability[] Vulnerabilities { get; set; }
     }
 }
