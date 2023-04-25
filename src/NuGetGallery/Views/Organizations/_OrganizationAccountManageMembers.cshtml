@@ -5,27 +5,29 @@
 
 @ViewHelpers.Section(parent, "manage-members",
     @<text>Members</text>,
-    @<text>
-        <div data-bind="text: MembersLabel"></div>
-    </text>,
-    @<text>
-        <div class="row members-list">
-            <div data-bind="template: { name: 'manage-members' }"></div>
-        </div>
-    </text>, expanded: false)
+@<text>
+    <div data-bind="text: MembersLabel"></div>
+</text>,
+@<text>
+    <div class="row members-list">
+        <div data-bind="template: { name: 'manage-members' }"></div>
+    </div>
+</text>, expanded: false)
 
 <script type="text/html" id="error-container">
     <p class="role-description" data-bind="visible: !Error()">
         <span data-bind="text: NewMemberRoleDescription"></span>&nbsp;<a href="https://go.microsoft.com/fwlink/?linkid=870439#managing-organization-members">Learn more.</a>
     </p>
     <!-- ko if: Error -->
-    @ViewHelpers.AlertDanger(@<text><span data-bind="html: Error"></span></text>)
+    @ViewHelpers.AlertDanger(@<text>
+        <span data-bind="html: Error"></span>
+    </text>)
     <!-- /ko -->
 </script>
 
 <script type="text/html" id="manage-members">
     <div class="col-md-12 manage-members-listing">
-        <div class="panel-collapse collapse in" aria-expanded="true">
+        <div class="panel-collapse collapse in">
             <div class="alert-container">
                 @if (Model.RequiresTenant)
                 {
@@ -35,14 +37,16 @@
             @if (Model.CanManageMemberships)
             {
                 <form>
-                    <div class="row">
+                    <div class="row form-flex">
                         <div class="form-group col-sm-5">
-                            <input id="new-member-textbox" class="form-control" placeholder="Add existing NuGet.org user" data-bind="textInput: NewMemberUsername, submit: AddMember" aria-label="Enter username to add member"/>
+                            <label for="new-member-textbox">Enter username to add member</label>
+                            <input id="new-member-textbox" class="form-control" placeholder="Add existing NuGet.org user" data-bind="textInput: NewMemberUsername, submit: AddMember" aria-label="Enter username to add member" />
                         </div>
                         <div class="form-group col-sm-3">
-                            <select class="form-control" data-bind="value: AddMemberRole, options: RoleNames" aria-labelledby="RoleNames"></select>
+                            <label for="addMemberRole">Add member role</label>
+                            <select class="form-control" data-bind="value: AddMemberRole, options: RoleNames" aria-labelledby="RoleNames" id="addMemberRole"></select>
                         </div>
-                        <div class="col-sm-1">
+                        <div class="col-sm-1 btn-row">
                             <button class="btn btn-primary" type="submit" title="Add new member" aria-label="Add new member" data-bind="click: AddMember">Add</button>
                         </div>
                     </div>
@@ -55,7 +59,7 @@
                     <div class="col-sm-1 hidden-xs">
                         <img data-bind="attr: { src: GravatarUrl, title: Username }" class="owner-image" alt="gravatar" height="36" width="36">
                     </div>
-                    <div class="col-xs-10 col-sm-6 member-column">
+                    <div class="col-xs-10 col-sm-5 member-column">
                         <div>
                             <a title="View Member Profile" data-bind="attr: { href: ProfileUrl }">
                                 <span data-bind="text: Username"></span>
@@ -68,11 +72,12 @@
                             <!-- /ko -->
                         </div>
                     </div>
-                    <div class="col-xs-8 col-sm-3 member-column">
-                        <div>
+                    <div class="col-xs-8 col-sm-4 member-column">
+                        <div class="form-flex">
                             @if (Model.CanManageMemberships)
                             {
-                                <select class="form-control" aria-labelledby="OrganizationViewModel.RoleNames"
+                                <label class="inline-label" for="selectRole">Select role</label>
+                                <select id="selectRole" class="form-control" aria-labelledby="OrganizationViewModel.RoleNames"
                                         data-bind="value: SelectedRole, options: OrganizationViewModel.RoleNames, event: { change: ToggleIsAdmin }">
                                 </select>
                             }

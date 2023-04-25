@@ -610,3 +610,27 @@ output {
     }
   }
 }
+//form display flex
+.form-flex {
+  display: block;
+
+  @media (min-width: @screen-sm-min) {
+    display: flex !important;
+    align-items: center;
+
+    .btn-row {
+      align-self: flex-end;
+    }
+
+    .btn {
+      margin-bottom: @form-group-margin-bottom;
+    }
+
+    .inline-label {
+      white-space: nowrap;
+      margin-right: 10px;
+      margin-bottom: 0;
+    }
+  }
+}
+
