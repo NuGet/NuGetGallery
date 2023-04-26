@@ -443,11 +443,10 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         private V3SearchDeprecation GetV3SearchDeprecation(SearchDocument.Full document)
         {
-            if (document.Deprecation != null && document.Deprecation.Reasons != null && document.Deprecation.Reasons.Length > 0)
-            //according to nuget api, reasons array is required and cannot be empty
+            if (HasValidDeprecation(document.Deprecation))
             {   
                 var deprecation = new V3SearchDeprecation();
-                deprecation.AlternatePackage = new V3SearchAlternatePackage{}; 
+                deprecation.AlternatePackage = new V3SearchAlternatePackage(); 
 
                 if (document.Deprecation.AlternatePackage != null)
                 {
@@ -493,8 +492,57 @@ namespace NuGet.Services.AzureSearch.SearchService
             package.Listed = true;
             package.IsLatestStable = result.IsLatestStable.Value;
             package.IsLatest = result.IsLatest.Value;
+            package.Deprecation = GetV2SearchDeprecation(result);
+            package.Vulnerabilities = GetV2SearchVulnerabilities(result);
 
             return package;
+        }
+
+        private bool HasValidDeprecation(Deprecation deprecation)
+        {
+            //according to nuget api, reasons array is required and cannot be empty
+            return deprecation != null && deprecation.Reasons != null && deprecation.Reasons.Length > 0;
+        }
+
+        private V2SearchDeprecation GetV2SearchDeprecation(SearchDocument.Full document)
+        {
+            if (HasValidDeprecation(document.Deprecation))
+            {
+                var deprecation = new V2SearchDeprecation();
+                deprecation.AlternatePackage = new V2SearchAlternatePackage();
+
+                if (document.Deprecation.AlternatePackage != null)
+                {
+                    deprecation.AlternatePackage.Id = document.Deprecation.AlternatePackage.Id;
+                    deprecation.AlternatePackage.Range = document.Deprecation.AlternatePackage.Range;
+                }
+
+                deprecation.Message = document.Deprecation.Message;
+                deprecation.Reasons = document.Deprecation.Reasons;
+
+                return deprecation;
+            }
+
+            return null;
+        }
+
+        private V2SearchVulnerability[] GetV2SearchVulnerabilities(SearchDocument.Full document)
+        {
+            var vulnerabilities = new List<V2SearchVulnerability>();
+
+            if (document.Vulnerabilities != null)
+            {
+                foreach (var vulnerability in document.Vulnerabilities)
+                {
+                    vulnerabilities.Add(new V2SearchVulnerability
+                    {
+                        AdvisoryUrl = vulnerability.AdvisoryURL,
+                        Severity = vulnerability.Severity
+                    });
+                }
+            }
+
+            return vulnerabilities.ToArray();
         }
 
         private V2SearchPackage ToV2SearchPackage(HijackDocument.Full result, bool semVer2)
