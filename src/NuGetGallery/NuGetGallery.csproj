@@ -227,6 +227,7 @@
     <Compile Include="Extensions\ImageExtensions.cs" />
     <Compile Include="Filters\AdminActionAttribute.cs" />
     <Compile Include="Helpers\AdminHelper.cs" />
+    <Compile Include="Helpers\SearchResponseHelper.cs" />
     <Compile Include="Helpers\ViewModelExtensions\DeleteAccountListPackageItemViewModelFactory.cs" />
     <Compile Include="Helpers\ViewModelExtensions\DeletePackageViewModelFactory.cs" />
     <Compile Include="Helpers\ViewModelExtensions\DisplayLicenseViewModelFactory.cs" />
@@ -235,6 +236,7 @@
     <Compile Include="Helpers\ViewModelExtensions\ListPackageItemViewModelFactory.cs" />
     <Compile Include="Helpers\ViewModelExtensions\ManagePackageViewModelFactory.cs" />
     <Compile Include="Helpers\ViewModelExtensions\PackageViewModelFactory.cs" />
+    <Compile Include="Helpers\WarningTitleHelper.cs" />
     <Compile Include="Infrastructure\ABTestEnrollment.cs" />
     <Compile Include="Infrastructure\ABTestEnrollmentState.cs" />
     <Compile Include="Infrastructure\ABTestEnrollmentFactory.cs" />
@@ -1444,7 +1446,6 @@
     <Compile Include="Services\NullReportService.cs" />
     <Compile Include="Services\NullStatisticsService.cs" />
     <Compile Include="Services\PackageFileService.cs" />
-    <Compile Include="Services\PackageSearchResults.cs" />
     <Compile Include="Services\JsonAggregateStatsService.cs" />
     <Compile Include="Services\SearchResults.cs" />
     <Compile Include="Services\SqlAggregateStatsService.cs" />

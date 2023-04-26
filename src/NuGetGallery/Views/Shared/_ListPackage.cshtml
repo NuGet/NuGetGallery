@@ -72,6 +72,29 @@
                 }
             </div>
 
+
+            @if(Model.IsVulnerable || Model.IsDeprecated)
+            {
+                <ul class="package-list">
+                    <li>
+                        @if(Model.IsVulnerable)
+                        {
+                            <span class="icon-text package-warning--vulnerable" aria-label="@Model.VulnerabilityTitle" data-content="@Model.VulnerabilityTitle">
+                                <i class="ms-Icon ms-Icon--BlockedSiteSolid12" aria-hidden="true"></i>
+                                Vulnerable
+                            </span>
+                        }
+                        @if(Model.IsDeprecated)
+                        {
+                            <span class="icon-text package-warning--deprecated"  aria-label="@Model.DeprecationTitle" data-content="@Model.DeprecationTitle">
+                                <i class="ms-Icon ms-Icon--ShieldAlert" aria-hidden="true"></i>
+                                Deprecated
+                            </span>
+                        }
+                    </li>
+                </ul>
+            }
+
             <ul class="package-list">
                 <li>
                     <span class="icon-text">

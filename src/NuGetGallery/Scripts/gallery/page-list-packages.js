@@ -2,6 +2,8 @@ $(function() {
     'use strict';
 
     $(".reserved-indicator").each(window.nuget.setPopovers);
+    $(".package-warning--vulnerable").each(window.nuget.setPopovers);
+    $(".package-warning--deprecated").each(window.nuget.setPopovers);
 
     const storage = window['localStorage'];
     const focusResultsColumnKey = 'focus_results_column';
