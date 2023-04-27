@@ -461,13 +461,40 @@
     };
 
     nuget.setPopovers = function () {
-        var popoverElement = $(this);
-        var popoverElementDom = this;
+        setPopoversInternal(this, rightWithVerticalFallback);
+    }
+
+    function rightWithVerticalFallback(popoverElement, ownerElement) {
+        // Both numbers below are in CSS pixels.
+        const MinSpaceOnRight = 150;
+        const MinSpaceOnTop = 100;
+
+        const ownerBoundingBox = ownerElement.getBoundingClientRect();
+        const spaceOnRight = window.innerWidth - ownerBoundingBox.right;
+        if (spaceOnRight > MinSpaceOnRight) {
+            return 'right';
+        }
+        const spaceOnTop = ownerBoundingBox.top;
+        if (spaceOnTop > MinSpaceOnTop) {
+            return 'top';
+        }
+
+        return 'bottom';
+    }
+
+    function setPopoversInternal(element, placement) {
+        var popoverElement = $(element);
+        var popoverElementDom = element;
         var originalLabel = popoverElementDom.ariaLabel;
         var popoverHideTimeMS = 2000;
         var popoverFadeTimeMS = 200;
 
-        popoverElement.popover({ trigger: 'hover' });
+        var popoverOptions = { trigger: 'hover', container: 'body' };
+        if (placement) {
+            popoverOptions.placement = placement;
+        }
+
+        popoverElement.popover(popoverOptions);
         popoverElement.click(popoverShowAndHide);
         popoverElement.focus(popoverShowAndHide);
         popoverElement.keyup(function (event) {

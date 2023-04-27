@@ -184,7 +184,7 @@
 @helper CommandTab(PackageManagerViewModel packageManager, bool active)
 {
     <li role="presentation" class="@(active ? "active" : string.Empty)">
-        <a href="#@packageManager.Id" aria-expanded="@(active ? "true" : "false")"
+        <a href="#@packageManager.Id"
            id="@packageManager.Id-tab" class="package-manager-tab"
            aria-selected="@(active ? "true" : "false")" tabindex="@(active ? "0" : "-1")"
            aria-controls="@packageManager.Id" role="tab" data-toggle="tab"
@@ -955,11 +955,8 @@
                                             }
                                             else
                                             {
-                                                <td class="package-icon-cell">
-                                                    <span class="package-warning-icon" aria-label="@packageVersion.PackageWarningIconTitle"
-                                                          data-content="@packageVersion.PackageWarningIconTitle" tabindex="0">
-                                                        <i class="ms-Icon ms-Icon--Warning package-icon"></i>
-                                                    </span>
+                                                <td tabindex="0" class="package-icon-cell package-warning-icon" aria-label="@packageVersion.PackageWarningIconTitle">
+                                                    <i class="ms-Icon ms-Icon--Warning package-icon" title="@packageVersion.PackageWarningIconTitle"></i>
                                                 </td>
                                             }
                                         </tr>
@@ -1276,7 +1273,7 @@
                             <li>
                                 @if (!string.IsNullOrEmpty(owner.EmailAddress))
                                 {
-                                    <a href="@Url.User(owner.Username)" title="@owner.Username">
+                                    <a class="profile-icon" href="@Url.User(owner.Username)" title="@owner.Username">
                                         @ViewHelpers.GravatarImage(
                                             Url,
                                             owner.EmailAddress,
@@ -1284,7 +1281,7 @@
                                             GalleryConstants.GravatarElementSize)
                                     </a>
                                 }
-                                <a href="@Url.User(owner.Username)" title="@owner.Username">
+                                <a class="username" href="@Url.User(owner.Username)" title="@owner.Username">
                                     @owner.Username
                                 </a>
                             </li>

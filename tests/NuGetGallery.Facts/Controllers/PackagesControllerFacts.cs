@@ -1422,10 +1422,10 @@ namespace NuGetGallery
             [InlineData(PackageDeprecationStatus.NotDeprecated, PackageDeprecationStatus.NotDeprecated, "")]
             [InlineData(PackageDeprecationStatus.CriticalBugs, PackageDeprecationStatus.NotDeprecated, 
                 "{0} is deprecated because it has critical bugs.")]
-            [InlineData(PackageDeprecationStatus.Legacy, PackageDeprecationStatus.NotDeprecated, 
-                "{0} is deprecated because it's legacy and no longer maintained.")]
+            [InlineData(PackageDeprecationStatus.Legacy, PackageDeprecationStatus.NotDeprecated,
+                "{0} is deprecated because it is no longer maintained.")]
             [InlineData(PackageDeprecationStatus.Legacy, PackageDeprecationStatus.CriticalBugs, 
-                "{0} is deprecated because it's legacy and has critical bugs.")]
+                "{0} is deprecated because it is no longer maintained and has critical bugs.")]
             [InlineData(PackageDeprecationStatus.Other, PackageDeprecationStatus.NotDeprecated, "{0} is deprecated.")]
             public async Task ShowsCorrectDeprecationIconTitle(
                 PackageDeprecationStatus deprecationStatus,
@@ -1515,9 +1515,9 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData(false, false, "")]
-            [InlineData(true, false, "{0} is deprecated because it's legacy and no longer maintained.")]
+            [InlineData(true, false, "{0} is deprecated because it is no longer maintained.")]
             [InlineData(false, true, "{0} has at least one vulnerability with {1} severity.")]
-            [InlineData(true, true, "{0} is deprecated because it's legacy and no longer maintained; {0} has at least one vulnerability with {1} severity.")]
+            [InlineData(true, true, "{0} is deprecated because it is no longer maintained; {0} has at least one vulnerability with {1} severity.")]
             public async Task ShowsCombinedDeprecationAndVulnerabilitiesIconTitle(
                 bool isDeprecationEnabled,
                 bool isVulnerabilitiesEnabled,
