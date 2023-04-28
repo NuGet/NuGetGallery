@@ -4,7 +4,6 @@
 using System;
 using Moq;
 using NuGet.Services.Entities;
-using NuGetGallery.Configuration;
 using Xunit;
 
 namespace NuGetGallery

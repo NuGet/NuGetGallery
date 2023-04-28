@@ -1,12 +1,7 @@
 using System;
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
 using System.Data.Entity.Core.Objects;
 using System.Web.DynamicData;
-using System.Web.Routing;
-using System.Web.UI;
 using System.Web.UI.WebControls;
-using System.Web.UI.WebControls.Expressions;
 
 namespace NuGetGallery
 {

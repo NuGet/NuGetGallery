@@ -9,9 +9,7 @@ using System.Threading.Tasks;
 using Autofac;
 using Microsoft.Extensions.CommandLineUtils;
 using NuGet.Packaging;
-using NuGet.Packaging.Core;
 using NuGet.Services.Entities;
-using NuGet.Versioning;
 using NuGetGallery;
 
 namespace GalleryTools.Commands

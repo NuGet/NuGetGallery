@@ -1,12 +1,10 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 using System.Web.DynamicData;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
-namespace NuGetGallery {
+namespace NuGetGallery
+{
     public partial class DefaultEntityTemplate : System.Web.DynamicData.EntityTemplateUserControl {
         private MetaColumn currentColumn;
     

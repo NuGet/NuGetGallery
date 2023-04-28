@@ -3,7 +3,6 @@
 using System;
 using System.Net;
 using System.Web.UI;
-using NuGetGallery;
 
 namespace NuGetGallery.Areas.Admin.DynamicData
 {

@@ -4,21 +4,16 @@
 using System;
 using System.Data.Entity;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.OData;
-using System.Web.Http.OData.Extensions;
 using System.Web.Http.OData.Query;
-using Microsoft.Data.OData;
 using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.OData;
 using NuGetGallery.OData.QueryFilter;
-using NuGetGallery.Services;
 using NuGetGallery.WebApi;
-using WebApi.OutputCache.V2;
 
 // ReSharper disable once CheckNamespace
 namespace NuGetGallery.Controllers
