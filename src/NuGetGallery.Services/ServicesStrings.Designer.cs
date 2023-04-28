@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace NuGetGallery.Services {
+namespace NuGetGallery {
     using System;
     
     

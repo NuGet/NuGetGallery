@@ -113,6 +113,7 @@
     <EmbeddedResource Update="ServicesStrings.resx" StronglyTypedNamespace="NuGetGallery" StronglyTypedLanguage="C#">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>ServicesStrings.Designer.cs</LastGenOutput>
+      <CustomToolNamespace>NuGetGallery</CustomToolNamespace>
     </EmbeddedResource>
   </ItemGroup>
 
