@@ -515,5 +515,11 @@ namespace NuGetGallery.Configuration
         /// account should not have any credentials or be marked as a site admin.
         /// </summary>
         string AdminSenderUser { get; set; }
+
+        /// <summary>
+        /// The maximum size of JSON that can be returned by a JSON endpoint. This overrides the default 4 MB in
+        /// select places where large JSON response bodies are possible.
+        /// </summary>
+        int MaxJsonLengthOverride { get; set; }
     }
 }

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using System.Web.UI;
 using NuGet.Versioning;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
@@ -16,14 +17,17 @@ namespace NuGetGallery
     {
         private readonly IStatisticsService _statisticsService = null;
         private readonly IAggregateStatsService _aggregateStatsService = null;
+        private readonly IAppConfiguration _appConfiguration = null;
 
-        private static readonly string[] PackageDownloadsByVersionDimensions = new[] {
+        private static readonly string[] PackageDownloadsByVersionDimensions = new[]
+        {
             GalleryConstants.StatisticsDimensions.Version,
             GalleryConstants.StatisticsDimensions.ClientName,
             GalleryConstants.StatisticsDimensions.ClientVersion,
         };
 
-        private static readonly string[] PackageDownloadsDetailDimensions = new[] {
+        private static readonly string[] PackageDownloadsDetailDimensions = new[]
+        {
             GalleryConstants.StatisticsDimensions.ClientName,
             GalleryConstants.StatisticsDimensions.ClientVersion,
         };
@@ -40,10 +44,14 @@ namespace NuGetGallery
             _aggregateStatsService = null;
         }
 
-        public StatisticsController(IStatisticsService statisticsService, IAggregateStatsService aggregateStatsService)
+        public StatisticsController(
+            IStatisticsService statisticsService,
+            IAggregateStatsService aggregateStatsService,
+            IAppConfiguration appConfiguration)
         {
             _statisticsService = statisticsService;
             _aggregateStatsService = aggregateStatsService;
+            _appConfiguration = appConfiguration;
         }
 
         [AcceptVerbs(HttpVerbs.Get | HttpVerbs.Head)]
@@ -199,7 +207,9 @@ namespace NuGetGallery
                 return Json(HttpStatusCode.NotFound, new[] { Strings.PackageWithIdDoesNotExist }, JsonRequestBehavior.AllowGet);
             }
 
-            return Json(HttpStatusCode.OK, packageStatisticsReport, JsonRequestBehavior.AllowGet);
+            var response = Json(HttpStatusCode.OK, packageStatisticsReport, JsonRequestBehavior.AllowGet);
+            response.MaxJsonLength = _appConfiguration?.MaxJsonLengthOverride;
+            return response;
         }
 
         //
