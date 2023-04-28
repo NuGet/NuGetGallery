@@ -1342,6 +1342,41 @@ namespace NuGetGallery.Controllers
             }
         }
 
+        public class TheAuthenticateGetAction : TestContainer
+        {
+            [Fact]
+            public void ReturnsErrorWhenProviderIsNull()
+            {
+                // Arrange
+                const string returnUrl = "/theReturnUrl";
+                EnableAllAuthenticators(Get<AuthenticationService>());
+                var controller = GetController<AuthenticationController>();
+
+                // Act
+                var result = controller.AuthenticateGet(returnUrl, provider: null);
+
+                // Assert
+                ResultAssert.IsSafeRedirectTo(result, returnUrl);
+                Assert.Equal(ServicesStrings.AuthenticationProviderNotFound, controller.TempData["ErrorMessage"]);
+            }
+
+            [Fact]
+            public void ReturnsErrorWhenProviderIsUnknown()
+            {
+                // Arrange
+                const string returnUrl = "/theReturnUrl";
+                EnableAllAuthenticators(Get<AuthenticationService>());
+                var controller = GetController<AuthenticationController>();
+
+                // Act
+                var result = controller.AuthenticateGet(returnUrl, provider: "a provider that will never exist... hopefully!");
+
+                // Assert
+                ResultAssert.IsSafeRedirectTo(result, returnUrl);
+                Assert.Equal(ServicesStrings.AuthenticationProviderNotFound, controller.TempData["ErrorMessage"]);
+            }
+        }
+
         public class TheLinkOrChangeExternalCredentialAction : TestContainer
         {
             [Fact]
