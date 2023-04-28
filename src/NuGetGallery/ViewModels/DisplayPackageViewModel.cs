@@ -163,7 +163,7 @@ namespace NuGetGallery
         {
             get
             {
-                return Listed || !Locked; 
+                return (Listed || !Locked) && (!Deleted || !Locked); 
             }
         }
 
