@@ -351,47 +351,33 @@ namespace NuGetGallery.ViewModels
         }
 
         [Theory]
-        [MemberData(nameof(ShowPackageDetailsData))]
-        public void HidesDetailsAndLinksForCertainPackages(bool listed, bool locked, bool lockedUser, bool shouldHide)
+        [InlineData(false, false, false, true)]
+        [InlineData(false, false, true, true)]
+        [InlineData(false, true, false, true)]
+        [InlineData(false, true, true, true)]
+        [InlineData(true, false, false, false)]
+        [InlineData(true, false, true, false)]
+        [InlineData(true, true, false, true)]
+        [InlineData(true, true, true, false)]
+        public void HidesDetailsAndLinksForCertainPackages(bool locked, bool listed, bool deleted, bool expected)
         {
-            var ownersList = new List<User>() 
-            { 
-                    new User() { 
-                        UserStatusKey = lockedUser ? UserStatus.Locked : UserStatus.Unlocked 
-                    }
-            };
             var package = new Package
             {
                 Version = "1.0.0",
                 NormalizedVersion = "1.0.0",
                 Listed = listed,
+                PackageStatusKey = deleted ? PackageStatus.Deleted : PackageStatus.Available,
                 PackageRegistration = new PackageRegistration
                 {
                     Id = "foo",
-                    Owners = ownersList,
                     Packages = Enumerable.Empty<Package>().ToList(),
                     IsLocked = locked
                 }
             };
 
             var model = CreateDisplayPackageViewModel(package, currentUser: null, packageKeyToDeprecation: null, readmeHtml: null);
-            Assert.Equal(shouldHide, model.ShowDetailsAndLinks);
+            Assert.Equal(expected, model.ShowDetailsAndLinks);
         }
-
-        public static IEnumerable<object[]> ShowPackageDetailsData
-        {
-            get
-            {
-                var operations = new bool[] { true, false };
-                foreach (var listed in operations)
-                    foreach (var locked in operations)
-                        foreach (var userLocked in operations)
-                        {
-                            yield return new object[] { listed, locked, userLocked, listed || !locked || !userLocked };
-                        }
-            }
-        }
-
 
         [Theory]
         [InlineData(null, null)]

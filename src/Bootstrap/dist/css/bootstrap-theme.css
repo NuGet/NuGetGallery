@@ -1289,6 +1289,9 @@ p.frameworktableinfo-text {
 .page-package-details .package-header {
   margin-bottom: 35px;
 }
+.page-package-details .content-hidden-notice {
+  margin-top: 33px;
+}
 .page-package-details .package-title {
   margin-bottom: 16px;
 }
