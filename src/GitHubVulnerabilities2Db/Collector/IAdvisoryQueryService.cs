@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using GitHubVulnerabilities2Db.GraphQL;
-using NuGet.Services.Cursor;
 
 namespace GitHubVulnerabilities2Db.Collector
 {

@@ -3,8 +3,6 @@
 
 using Microsoft.Extensions.Options;
 using System;
-using System.Collections.Generic;
-using System.Web.UI;
 
 namespace NuGetGallery.AccountDeleter
 {

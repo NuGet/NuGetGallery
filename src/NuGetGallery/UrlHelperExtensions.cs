@@ -3,12 +3,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using NuGet.Services.Entities;
-using NuGet.Services.Logging;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Controllers;
 using NuGetGallery.Configuration;

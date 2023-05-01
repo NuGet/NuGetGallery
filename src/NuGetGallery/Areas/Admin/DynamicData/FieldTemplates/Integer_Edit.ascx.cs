@@ -1,12 +1,9 @@
 using System;
 using System.Collections.Specialized;
-using System.ComponentModel.DataAnnotations;
-using System.Web.DynamicData;
-using System.Web;
 using System.Web.UI;
-using System.Web.UI.WebControls;
 
-namespace NuGetGallery {
+namespace NuGetGallery
+{
     public partial class Integer_EditField : System.Web.DynamicData.FieldTemplateUserControl {
         protected void Page_Load(object sender, EventArgs e) {
             TextBox1.ToolTip = Column.Description;

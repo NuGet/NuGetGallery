@@ -10,7 +10,6 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
-using System.Web.Configuration;
 using System.Web.Mvc;
 using Moq;
 using NuGet.ContentModel;

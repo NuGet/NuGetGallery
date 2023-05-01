@@ -3,10 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Security.Principal;
 using NuGet.Services.Entities;
-using NuGet.Versioning;
 using NuGetGallery;
 
 namespace NuGet.VerifyMicrosoftPackage.Fakes

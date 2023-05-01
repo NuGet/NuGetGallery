@@ -2,9 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Security;
@@ -14,11 +12,9 @@ using System.Text;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Mvc.Html;
-using System.Web.WebPages;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using NuGet.Frameworks;
-using NuGet.Packaging;
 using NuGet.Services.Entities;
 using NuGetGallery.Helpers;
 

@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ApplicationInsights.Extensibility;
 using Moq;
 using NuGet.Services.Entities;
 using NuGet.Versioning;

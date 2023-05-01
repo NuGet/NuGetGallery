@@ -8,7 +8,6 @@ using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NuGet.Services.Entities;
-using NuGetGallery.Framework;
 using Xunit;
 
 namespace NuGetGallery.Services

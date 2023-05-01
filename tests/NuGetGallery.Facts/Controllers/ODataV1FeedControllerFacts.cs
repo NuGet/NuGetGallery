@@ -10,8 +10,6 @@ using NuGetGallery.Configuration;
 using NuGetGallery.OData;
 using Moq;
 using Xunit;
-using System.Net;
-using System.Web.Http;
 
 namespace NuGetGallery.Controllers
 {

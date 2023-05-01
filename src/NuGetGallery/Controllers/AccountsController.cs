@@ -8,7 +8,6 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
-using System.Web.UI;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
 using NuGetGallery.Areas.Admin.ViewModels;

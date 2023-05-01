@@ -16,7 +16,6 @@ using System.Web;
 using System.Web.Caching;
 using System.Web.Mvc;
 using System.Web.Routing;
-using Autofac.Features.OwnedInstances;
 using Moq;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
