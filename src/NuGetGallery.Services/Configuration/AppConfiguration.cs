@@ -424,5 +424,7 @@ namespace NuGetGallery.Configuration
         public int? MaxIoThreads { get; set; }
         public string InternalMicrosoftTenantKey { get; set; }
         public string AdminSenderUser { get; set; }
+        [DefaultValue(16 * 1024 * 1024)]
+        public int MaxJsonLengthOverride { get; set; }
     }
 }
