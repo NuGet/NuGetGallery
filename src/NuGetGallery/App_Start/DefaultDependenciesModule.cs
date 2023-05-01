@@ -486,7 +486,6 @@ namespace NuGetGallery
             services.AddScoped<IGravatarProxyService, GravatarProxyService>();
 
             RegisterFeatureFlagsService(builder, configuration);
-            RegisterLoginConfigurationService(builder, configuration);
             RegisterMessagingService(builder, configuration);
 
             builder.Register(c => HttpContext.Current.User)
@@ -860,14 +859,6 @@ namespace NuGetGallery
             builder
                 .RegisterType<FeatureFlagService>()
                 .As<IFeatureFlagService>()
-                .SingleInstance();
-        }
-
-        private static void RegisterLoginConfigurationService(ContainerBuilder builder, ConfigurationService configuration)
-        {
-            builder
-                .Register(context => context.Resolve<EditableLoginConfigurationFileStorageService>())
-                .As<IEditableLoginConfigurationFileStorageService>()
                 .SingleInstance();
         }
 

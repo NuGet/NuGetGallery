@@ -96,7 +96,7 @@ namespace NuGetGallery
                 Create<CoreReadmeFileService, ICoreReadmeFileService>(configuration.AzureStorage_FlatContainer_ConnectionString, isSingleInstance: false),
                 Create<RevalidationStateService, IRevalidationStateService>(configuration.AzureStorage_Revalidation_ConnectionString, isSingleInstance: false),
                 Create<EditableFeatureFlagFileStorageService, IFeatureFlagStorageService>(configuration.AzureStorage_Content_ConnectionString, isSingleInstance: true),
-                Create<EditableLoginConfigurationFileStorageService, ILoginDiscontinuationFileStorageService>(configuration.AzureStorage_Content_ConnectionString, isSingleInstance: true)
+                Create<EditableLoginConfigurationFileStorageService, IEditableLoginConfigurationFileStorageService>(configuration.AzureStorage_Content_ConnectionString, isSingleInstance: true)
             };
 
             var connectionStringToBindingKey = dependents

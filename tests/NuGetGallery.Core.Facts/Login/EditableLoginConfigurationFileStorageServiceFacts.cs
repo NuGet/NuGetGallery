@@ -224,7 +224,7 @@ namespace NuGetGallery.Login
                     .Setup(s => s.GetFileReferenceAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.LoginDiscontinuationConfigFileName, null))
                     .ReturnsAsync(BuildFileReference(ExampleJson, "bar"));
 
-                await _target.AddUserEmailAddressforPasswordAuthenticationAsync("exception@cannotUsePassword.com", add: true);
+                await _target.AddUserEmailAddressforPasswordAuthenticationAsync("exception@cannotUsePassword.com", ContentOperations.Add);
 
                 // Assert
                 _storage.Verify(
@@ -243,7 +243,7 @@ namespace NuGetGallery.Login
                     .Setup(s => s.GetFileReferenceAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.LoginDiscontinuationConfigFileName, null))
                     .ReturnsAsync(BuildFileReference(ExampleJson, "bar"));
 
-                await _target.AddUserEmailAddressforPasswordAuthenticationAsync("exception@cannotUse.com", add: false);
+                await _target.AddUserEmailAddressforPasswordAuthenticationAsync("exception@cannotUse.com", ContentOperations.Remove);
 
                 // Assert
                 _storage.Verify(
@@ -283,7 +283,7 @@ namespace NuGetGallery.Login
                     })
                     .Returns(Task.CompletedTask);
 
-                await _target.AddUserEmailAddressforPasswordAuthenticationAsync("example@password.com", add: true);
+                await _target.AddUserEmailAddressforPasswordAuthenticationAsync("example@password.com", ContentOperations.Add);
 
                 Assert.NotNull(savedJson);
 
@@ -329,7 +329,7 @@ namespace NuGetGallery.Login
                     })
                     .Returns(Task.CompletedTask);
 
-                await _target.AddUserEmailAddressforPasswordAuthenticationAsync("exception@cannotUsePassword.com", add: false);
+                await _target.AddUserEmailAddressforPasswordAuthenticationAsync("exception@cannotUsePassword.com", ContentOperations.Remove);
 
                 Assert.NotNull(savedJson);
 
@@ -383,7 +383,7 @@ namespace NuGetGallery.Login
                     .Returns(Task.CompletedTask);
 
                 // Act
-                await _target.AddUserEmailAddressforPasswordAuthenticationAsync("example@password.com", add: true);
+                await _target.AddUserEmailAddressforPasswordAuthenticationAsync("example@password.com", ContentOperations.Add);
 
                 // Assert
                 Assert.NotNull(savedJson);
@@ -429,7 +429,7 @@ namespace NuGetGallery.Login
                     .ThrowsAsync(_preconditionException);
 
                 // Act
-                var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => _target.AddUserEmailAddressforPasswordAuthenticationAsync("example@password.com", add: true));
+                var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => _target.AddUserEmailAddressforPasswordAuthenticationAsync("example@password.com", ContentOperations.Add));
 
                 // Assert
                 Assert.Contains("Unable to add/remove emailAddress from exception list", exception.Message);

@@ -3,12 +3,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Microsoft.Ajax.Utilities;
 using NuGet.Services.Entities;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Login;
+using NuGetGallery.Shared;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
@@ -77,16 +79,16 @@ namespace NuGetGallery.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> AddEmailAddress(string emailAddress)
         {
-            return await AddOrRemoveEmailAddress(emailAddress, true);
+            return await AddOrRemoveEmailAddress(emailAddress, ContentOperations.Add);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> RemoveEmailAddress(string emailAddress) {
-            return  await AddOrRemoveEmailAddress(emailAddress, false);
+            return  await AddOrRemoveEmailAddress(emailAddress, ContentOperations.Remove);
         }
 
-        private async Task<ActionResult> AddOrRemoveEmailAddress(string emailAddress, bool add)
+        private async Task<ActionResult> AddOrRemoveEmailAddress(string emailAddress, ContentOperations operation)
         {
             if (emailAddress.IsNullOrWhiteSpace())
             {
@@ -99,14 +101,17 @@ namespace NuGetGallery.Areas.Admin.Controllers
             if (user == null)
             {
                 TempData["ErrorMessage"] = $"User with emailAdress '{emailAddressTrimed}' does not exist!";
+                return Redirect(nameof(Index));
             }
-            var contentId = await GetContentIdBeforeChange();
-            var errorMessage = await TrySaveEmailAddress(emailAddressTrimed, add);
 
-            if (errorMessage != null)
+            if (user is Organization)
             {
-                TempData["ErrorMessage"] = errorMessage;
+                TempData["ErrorMessage"] = $"User with emailAdress '{emailAddressTrimed}' is an organization, we don't support organization password authentication!";
+                return Redirect(nameof(Index));
             }
+
+            var contentId = await GetContentIdBeforeChange();
+            await TrySaveEmailAddress(emailAddressTrimed, operation);
 
             return Redirect(nameof(Index));
         }
@@ -117,11 +122,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
             return result.ContentId;
         }
 
-        private async Task<string> TrySaveEmailAddress(string emailAddress, bool add)
+        private async Task TrySaveEmailAddress(string emailAddress, ContentOperations operation)
         {
-           await _storage.AddUserEmailAddressforPasswordAuthenticationAsync(emailAddress, add);
-           return null;
+           await _storage.AddUserEmailAddressforPasswordAuthenticationAsync(emailAddress, operation);
         }
-
     }
 }

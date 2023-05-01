@@ -21,8 +21,8 @@ namespace NuGetGallery.Login
         /// Add or Remove an user email address to the exception email list on <see cref="LoginDiscontinuation"/>.
         /// </summary>
         /// <param name="emailAddress">The user email address.</param>
-        /// <param name="add">Indicate remove or add email address.</param>
-        Task AddUserEmailAddressforPasswordAuthenticationAsync(string emailAddress, bool add);
+        /// <param name="operation"> <see cref="ContentOperations">.</param>
+        Task AddUserEmailAddressforPasswordAuthenticationAsync(string emailAddress, ContentOperations operation);
 
         /// <summary>
         /// Get an exception email list on <see cref="LoginDiscontinuation"/>.

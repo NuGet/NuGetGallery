@@ -35,7 +35,7 @@ namespace NuGetGallery.Login
                 reference.ContentId);
         }
 
-        public async Task AddUserEmailAddressforPasswordAuthenticationAsync(string emailAddress, bool add)
+        public async Task AddUserEmailAddressforPasswordAuthenticationAsync(string emailAddress, ContentOperations operation)
         {
             for (var attempt = 0; attempt < MaxAttempts; attempt++)
             {
@@ -50,16 +50,17 @@ namespace NuGetGallery.Login
                 }
 
                 var exceptionsForEmailAddresses = logins.ExceptionsForEmailAddresses;
-                if (add)
-                {
 
+                if (operation is ContentOperations.Add)
+                {
                     if (logins.ExceptionsForEmailAddresses.Contains(emailAddress))
                     {
                         return;
                     }
                     exceptionsForEmailAddresses.Add(emailAddress);
                 }
-                else
+                
+                if (operation is ContentOperations.Remove)
                 {
                     if (!logins.ExceptionsForEmailAddresses.Contains(emailAddress))
 
@@ -83,10 +84,9 @@ namespace NuGetGallery.Login
                     return;
                 }
                 
-                var operation = add ? "add" : "remove";
                 _logger.LogWarning(
                     "Failed to {operation} emailAddress from exception list, attempt {Attempt} of {MaxAttempts}...",
-                    operation,
+                    operation.ToString(),
                     attempt + 1,
                     MaxAttempts);
             }
