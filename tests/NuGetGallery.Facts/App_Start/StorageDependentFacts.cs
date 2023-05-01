@@ -89,7 +89,7 @@ namespace NuGetGallery
             Assert.Equal(typeof(ICoreReadmeFileService), implementationToInterface[typeof(CoreReadmeFileService)]);
             Assert.Equal(typeof(IRevalidationStateService), implementationToInterface[typeof(RevalidationStateService)]);
             Assert.Equal(typeof(IFeatureFlagStorageService), implementationToInterface[typeof(EditableFeatureFlagFileStorageService)]);
-            Assert.Equal(typeof(ILoginDiscontinuationFileStorageService), implementationToInterface[typeof(EditableLoginConfigurationFileStorageService)]);
+            Assert.Equal(typeof(IEditableLoginConfigurationFileStorageService), implementationToInterface[typeof(EditableLoginConfigurationFileStorageService)]);
         }
 
         [Fact]
