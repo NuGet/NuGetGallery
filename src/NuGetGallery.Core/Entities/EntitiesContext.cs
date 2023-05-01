@@ -410,6 +410,24 @@ namespace NuGetGallery
             modelBuilder.Entity<UserCertificate>()
                 .HasKey(uc => uc.Key);
 
+            modelBuilder.Entity<UserCertificate>()
+                .Property(uc => uc.CertificateKey)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(new IndexAttribute("IX_UserCertificates_CertificateKeyUserKey", order: 0)
+                    {
+                        IsUnique = true,
+                    }));
+
+            modelBuilder.Entity<UserCertificate>()
+                .Property(uc => uc.UserKey)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(new IndexAttribute("IX_UserCertificates_CertificateKeyUserKey", order: 1)
+                    {
+                        IsUnique = true,
+                    }));
+
             modelBuilder.Entity<User>()
                 .HasMany(u => u.UserCertificates)
                 .WithRequired(uc => uc.User)
@@ -465,6 +483,14 @@ namespace NuGetGallery
                 .WithMany()
                 .HasForeignKey(d => d.DeprecatedByUserKey)
                 .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<PackageDeprecation>()
+                .Property(pd => pd.PackageKey)
+                .HasColumnAnnotation(IndexAnnotation.AnnotationName, new IndexAnnotation(new IndexAttribute() { IsUnique = true }));
+
+            modelBuilder.Entity<PackageDeprecation>()
+                .Property(pd => pd.DeprecatedOn)
+                .HasDatabaseGeneratedOption(DatabaseGeneratedOption.Computed);
 
             modelBuilder.Entity<PackageVulnerability>()
                 .HasKey(v => v.Key)
