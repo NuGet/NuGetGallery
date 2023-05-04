@@ -585,6 +585,8 @@ if (typeof jQuery === 'undefined') {
     toggle: true
   }
 
+  Collapse.ARIA_EXPANDED_ALLOWED_ROLES = ['application', 'button', 'checkbox', 'combobox', 'gridcell', 'link', 'listbox', 'menuitem', 'row', 'rowheader', 'tab', 'treeitem']
+
   Collapse.prototype.dimension = function () {
     var hasWidth = this.$element.hasClass('width')
     return hasWidth ? 'width' : 'height'
@@ -615,7 +617,11 @@ if (typeof jQuery === 'undefined') {
     this.$element
       .removeClass('collapse')
       .addClass('collapsing')[dimension](0)
-      .attr('aria-expanded', true)
+
+    // the aria-expanded attribute is only allowed when the element has an allowed role
+    if (Collapse.ARIA_EXPANDED_ALLOWED_ROLES.includes(this.$element.attr('role'))) {
+      this.$element.attr('aria-expanded', true)
+    }
 
     this.$trigger
       .removeClass('collapsed')
@@ -655,7 +661,11 @@ if (typeof jQuery === 'undefined') {
     this.$element
       .addClass('collapsing')
       .removeClass('collapse in')
-      .attr('aria-expanded', false)
+
+    // the aria-expanded attribute is only allowed when the element has an allowed role
+    if (Collapse.ARIA_EXPANDED_ALLOWED_ROLES.includes(this.$element.attr('role'))) {
+      this.$element.attr('aria-expanded', false)
+    }
 
     this.$trigger
       .addClass('collapsed')
@@ -696,7 +706,10 @@ if (typeof jQuery === 'undefined') {
   Collapse.prototype.addAriaAndCollapsedClass = function ($element, $trigger) {
     var isOpen = $element.hasClass('in')
 
-    $element.attr('aria-expanded', isOpen)
+    if (Collapse.ARIA_EXPANDED_ALLOWED_ROLES.includes(this.$element.attr('role'))) {
+      $element.attr('aria-expanded', isOpen)
+    }
+
     $trigger
       .toggleClass('collapsed', !isOpen)
       .attr('aria-expanded', isOpen)
@@ -2345,14 +2358,12 @@ if (typeof jQuery === 'undefined') {
         .end()
         .find('[data-toggle="tab"]')
           .attr('tabindex', "-1")
-          .attr('aria-expanded', false)
           .attr('aria-selected', false)
 
       element
         .addClass('active')
         .find('[data-toggle="tab"]')
           .attr('tabindex', "0")
-          .attr('aria-expanded', true)
           .attr('aria-selected', true)
 
       if (transition) {

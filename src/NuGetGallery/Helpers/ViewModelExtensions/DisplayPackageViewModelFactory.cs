@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
+using NuGetGallery.Helpers;
 
 namespace NuGetGallery
 {
@@ -217,58 +218,9 @@ namespace NuGetGallery
                 viewModel.MaxVulnerabilitySeverity = default;
             }
 
-            viewModel.PackageWarningIconTitle =
-                GetWarningIconTitle(viewModel.Version, deprecation, maxVulnerabilitySeverity);
+            viewModel.PackageWarningIconTitle = WarningTitleHelper.GetWarningIconTitle(viewModel.Version, deprecation, maxVulnerabilitySeverity);
 
             return viewModel;
-        }
-
-        private static string GetWarningIconTitle(
-            string version,
-            PackageDeprecation deprecation,
-            PackageVulnerabilitySeverity? maxVulnerabilitySeverity)
-        {
-            // We want a tooltip title for the warning icon, which concatenates deprecation and vulnerability information cleanly
-            var deprecationTitle = "";
-            if (deprecation != null)
-            {
-                deprecationTitle = version;
-                var isLegacy = deprecation.Status.HasFlag(PackageDeprecationStatus.Legacy);
-                var hasCriticalBugs = deprecation.Status.HasFlag(PackageDeprecationStatus.CriticalBugs);
-                if (hasCriticalBugs)
-                {
-                    if (isLegacy)
-                    {
-                        deprecationTitle += " is deprecated because it's legacy and has critical bugs";
-                    }
-                    else
-                    {
-                        deprecationTitle += " is deprecated because it has critical bugs";
-                    }
-                }
-                else if (isLegacy)
-                {
-                    deprecationTitle += " is deprecated because it's legacy and no longer maintained";
-                }
-                else
-                {
-                    deprecationTitle += " is deprecated";
-                }
-            }
-
-            if (maxVulnerabilitySeverity.HasValue)
-            {
-                var severity = Enum.GetName(typeof(PackageVulnerabilitySeverity), maxVulnerabilitySeverity)?.ToLowerInvariant() ?? "unknown";
-                var vulnerabilitiesTitle = $"{version} has at least one vulnerability with {severity} severity.";
-
-                return string.IsNullOrEmpty(deprecationTitle)
-                    ? vulnerabilitiesTitle
-                    : $"{deprecationTitle}; {vulnerabilitiesTitle}";
-            }
-
-            return string.IsNullOrEmpty(deprecationTitle)
-                ? string.Empty
-                : $"{deprecationTitle}.";
         }
 
         private static string GetPushedBy(Package package, User currentUser, Dictionary<User, string> pushedByCache)

@@ -163,7 +163,7 @@ namespace NuGetGallery
         {
             get
             {
-                return Listed || !Locked || !Owners.Any(x => x.IsLocked); 
+                return (Listed || !Locked) && (!Deleted || !Locked); 
             }
         }
 

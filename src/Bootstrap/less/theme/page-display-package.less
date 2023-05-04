@@ -14,6 +14,11 @@
   .package-header {
     margin-bottom: 35px;
   }
+  
+  .content-hidden-notice {
+    // Same margin as h1
+    margin-top: (@line-height-computed * 1.5)
+  }
 
   .package-title {
     margin-bottom: 16px;
@@ -248,11 +253,19 @@
       overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;
+
+      .profile-icon {
+        margin: 1.5px;
+      }
+
+      .username{
+        margin-left: 6.5px;
+      }
     }
 
     img {
-      margin-right: 8px;
       border-radius: 5px;
+      margin: 2px;
     }
   }
 

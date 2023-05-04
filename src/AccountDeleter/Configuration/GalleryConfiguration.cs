@@ -116,5 +116,6 @@ namespace NuGetGallery.AccountDeleter
         public string InternalMicrosoftTenantKey { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string AdminSenderUser { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string SupportEmailSiteRoot { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public int MaxJsonLengthOverride { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     }
 }

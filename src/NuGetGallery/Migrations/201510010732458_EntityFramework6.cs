@@ -1,8 +1,7 @@
 namespace NuGetGallery.Migrations
 {
-    using System;
     using System.Data.Entity.Migrations;
-    
+
     public partial class EntityFramework6 : DbMigration
     {
         public override void Up()

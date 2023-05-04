@@ -9,9 +9,7 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using Moq;
 using NuGet.Services.Entities;
-using NuGet.Services.Messaging.Email;
 using NuGetGallery.Framework;
-using NuGetGallery.Infrastructure.Mail.Messages;
 using Xunit;
 
 namespace NuGetGallery.Controllers

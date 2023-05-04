@@ -1139,4 +1139,7 @@ The {1} Team</value>
   <data name="TransformAccount_AccountIsLocked" xml:space="preserve">
     <value>Account '{0}' is locked and cannot be transformed to an organization. Please contact support@nuget.org.</value>
   </data>
+  <data name="AuthenticationProviderNotFound" xml:space="preserve">
+    <value>The given authentication provider is not supported.</value>
+  </data>
 </root>

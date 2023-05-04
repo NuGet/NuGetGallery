@@ -1,12 +1,8 @@
 using System;
-using System.Collections.Specialized;
-using System.ComponentModel.DataAnnotations;
-using System.Web.DynamicData;
-using System.Web;
 using System.Web.UI;
-using System.Web.UI.WebControls;
 
-namespace NuGetGallery {
+namespace NuGetGallery
+{
     public partial class ChildrenField : System.Web.DynamicData.FieldTemplateUserControl {
         private bool _allowNavigation = true;
         private string _navigateUrl;

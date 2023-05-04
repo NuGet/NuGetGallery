@@ -3,7 +3,10 @@
     <thead>
         <tr>
             <th scope="col" class="framework-table-title"><b>Product</b></th>
-            <th scope="col" class="framework-table-title"><b>Versions</b></th>
+            <th scope="col" class="framework-table-title">
+                <b aria-hidden="true" >Versions</b>
+                <span class="sr-only">Compatible and additional computed target framework versions.</span>
+            </th>
         </tr>
     </thead>
     <tbody>
@@ -21,11 +24,13 @@
                         {
                             if (frameworkVersion.IsComputed)
                             {
-                                <span class="framework-badge-computed framework-table-margin">@frameworkVersion.Framework.GetShortFolderName()</span>
+                                <span aria-hidden="true" class="framework-badge-computed framework-table-margin">@frameworkVersion.Framework.GetShortFolderName()</span>
+                                <span class="sr-only">@frameworkVersion.Framework.GetShortFolderName() was computed.&nbsp;</span>
                             }
                             else
                             {
-                                <span class="framework-badge-asset framework-table-margin">@frameworkVersion.Framework.GetShortFolderName()</span>
+                                <span aria-hidden="true" class="framework-badge-asset framework-table-margin">@frameworkVersion.Framework.GetShortFolderName()</span>
+                                <span class="sr-only">@frameworkVersion.Framework.GetShortFolderName() is compatible.&nbsp;</span>
                             }
                         }
                     </td>
