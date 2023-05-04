@@ -5,21 +5,23 @@
 
 @ViewHelpers.Section(parent, "manage-members",
     @<text>Members</text>,
-    @<text>
-        <div data-bind="text: MembersLabel"></div>
-    </text>,
-    @<text>
-        <div class="row members-list">
-            <div data-bind="template: { name: 'manage-members' }"></div>
-        </div>
-    </text>, expanded: false)
+@<text>
+    <div data-bind="text: MembersLabel"></div>
+</text>,
+@<text>
+    <div class="row members-list">
+        <div data-bind="template: { name: 'manage-members' }"></div>
+    </div>
+</text>, expanded: false)
 
 <script type="text/html" id="error-container">
     <p class="role-description" data-bind="visible: !Error()">
         <span data-bind="text: NewMemberRoleDescription"></span>&nbsp;<a href="https://go.microsoft.com/fwlink/?linkid=870439#managing-organization-members">Learn more.</a>
     </p>
     <!-- ko if: Error -->
-    @ViewHelpers.AlertDanger(@<text><span data-bind="html: Error"></span></text>)
+    @ViewHelpers.AlertDanger(@<text>
+        <span data-bind="html: Error"></span>
+    </text>)
     <!-- /ko -->
 </script>
 
@@ -42,7 +44,7 @@
                         </div>
                         <div class="form-group col-sm-3">
                             <label for="addMemberRole">Add member role</label>
-                            <select class="form-control" data-bind="value: AddMemberRole, options: RoleNames" aria-labelledby="RoleNames" id="addMemberRole"></select>
+                            <select class="form-control" data-bind="value: AddMemberRole, options: RoleNames" aria-label="Role Filter" id="addMemberRole"></select>
                         </div>
                         <div class="col-sm-1 btn-row">
                             <button class="btn btn-primary" type="submit" title="Add new member" aria-label="Add new member" data-bind="click: AddMember">Add</button>
@@ -73,10 +75,10 @@
                     <div class="col-xs-8 col-sm-4 member-column">
                         <div class="form-flex">
                             @if (Model.CanManageMemberships)
-                            {   
+                            {
                                 <label class="inline-label" for="selectRole">Select role</label>
-                                <select id="selectRole" class="form-control" aria-labelledby="OrganizationViewModel.RoleNames"
-                                        data-bind="value: SelectedRole, options: OrganizationViewModel.RoleNames, event: { change: ToggleIsAdmin }">
+                                <select id="selectRole" class="form-control"
+                                        data-bind="value: SelectedRole, options: OrganizationViewModel.RoleNames, event: { change: ToggleIsAdmin }, attr: { 'aria-label': 'Role for ' + Username }">
                                 </select>
                             }
                             else
