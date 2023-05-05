@@ -30,7 +30,6 @@ namespace NuGet.Services.Entities
         /// <summary>
         /// Gets or sets the key of the package affected by this deprecation.
         /// </summary>
-        [Index(IsUnique = true)]
         public int PackageKey { get; set; }
 
         /// <summary>
@@ -82,7 +81,6 @@ namespace NuGet.Services.Entities
         /// <summary>
         /// The date when the package was deprecated.
         /// </summary>
-        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTime DeprecatedOn { get; set; }
 
         /// <summary>

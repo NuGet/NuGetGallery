@@ -8,10 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="EntityFramework" Version="6.4.0-preview3-19553-01" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="NuGet.Frameworks" Version="6.4.0" />
-	<!-- This was lifted to a top-level dependency to resolve a Component Governance alert. -->
+    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+    <!-- This was lifted to a top-level dependency to resolve a Component Governance alert. -->
     <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
   </ItemGroup>
 

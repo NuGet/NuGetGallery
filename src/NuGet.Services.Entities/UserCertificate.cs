@@ -18,7 +18,6 @@ namespace NuGet.Services.Entities
         /// <summary>
         /// Gets or sets the foreign key of the certificate entity.
         /// </summary>
-        [Index("IX_UserCertificates_CertificateKeyUserKey", IsUnique = true, Order = 0)]
         public int CertificateKey { get; set; }
 
         /// <summary>
@@ -29,7 +28,6 @@ namespace NuGet.Services.Entities
         /// <summary>
         /// Gets or sets the foreign key of the user entity.
         /// </summary>
-        [Index("IX_UserCertificates_CertificateKeyUserKey", IsUnique = true, Order = 1)]
         public int UserKey { get; set; }
 
         /// <summary>
