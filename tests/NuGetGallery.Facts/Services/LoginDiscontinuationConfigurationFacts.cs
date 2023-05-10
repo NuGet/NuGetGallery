@@ -325,7 +325,7 @@ namespace NuGetGallery.Services
                 var config = CreateConfiguration(data);
 
                 // Act
-                var isOnWhiteList = config.IsUserOnWhitelist(_user);
+                var isOnWhiteList = config.IsUserInAllowList(_user);
                 var shouldTransformIntoOrganization = config.ShouldUserTransformIntoOrganization(_user);
                 var isOnTenantPairList = config.IsTenantIdPolicySupportedForOrganization(_email, _tenant);
 
@@ -343,7 +343,7 @@ namespace NuGetGallery.Services
                 var config = CreateConfiguration(data);
 
                 // Act
-                var isOnWhiteList = config.IsUserOnWhitelist(null);
+                var isOnWhiteList = config.IsUserInAllowList(null);
                 var shouldTransformIntoOrganization = config.ShouldUserTransformIntoOrganization(null);
 
                 // Assert
@@ -381,7 +381,7 @@ namespace NuGetGallery.Services
                     isWrongCase: false,
                     isPasswordDiscontinuedForAll: false);
 
-                var result = config.IsEmailOnExceptionsList(null);
+                var result = config.IsEmailInExceptionsList(null);
 
                 Assert.False(result);
             }
@@ -400,7 +400,7 @@ namespace NuGetGallery.Services
                     isWrongCase: false,
                     isPasswordDiscontinuedForAll: false);
 
-                var result = config.IsEmailOnExceptionsList(_email);
+                var result = config.IsEmailInExceptionsList(_email);
 
                 Assert.Equal(isOnExceptionList, result);
             }

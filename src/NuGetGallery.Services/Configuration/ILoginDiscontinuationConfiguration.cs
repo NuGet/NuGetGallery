@@ -12,12 +12,16 @@ namespace NuGetGallery.Configuration
 
         bool IsPasswordLoginDiscontinuedForAll();
 
-        bool IsUserOnWhitelist(User user);
+        bool IsUserInAllowList(User user);
 
         bool ShouldUserTransformIntoOrganization(User user);
 
         bool IsTenantIdPolicySupportedForOrganization(string emailAddress, string tenantId);
 
-        bool IsEmailOnExceptionsList(string emailAddress);
+        bool IsEmailInExceptionsList(string emailAddress);
+
+        bool AddEmailToExceptionsList(string emailAddress);
+
+        bool RemoveEmailFromExceptionsList(string emailAddress);
     }
 }

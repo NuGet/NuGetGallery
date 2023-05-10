@@ -38,7 +38,7 @@ namespace NuGetGallery.Controllers
             {
                 var isEmailOnExceptionList = new Mock<ILoginDiscontinuationConfiguration>();
                 isEmailOnExceptionList
-                    .Setup(x => x.IsEmailOnExceptionsList(It.IsAny<String>()))
+                    .Setup(x => x.IsEmailInExceptionsList(It.IsAny<String>()))
                     .Returns(false);
                 GetMock<IContentObjectService>()
                     .Setup(x => x.LoginDiscontinuationConfiguration)
@@ -231,7 +231,7 @@ namespace NuGetGallery.Controllers
             {
                 var isEmailOnExceptionList = new Mock<ILoginDiscontinuationConfiguration>();
                 isEmailOnExceptionList
-                    .Setup(x => x.IsEmailOnExceptionsList(It.IsAny<String>()))
+                    .Setup(x => x.IsEmailInExceptionsList(It.IsAny<String>()))
                     .Returns(false);
                 GetMock<IContentObjectService>()
                     .Setup(x => x.LoginDiscontinuationConfiguration)
@@ -749,7 +749,7 @@ namespace NuGetGallery.Controllers
             {
                 var isEmailOnExceptionList = new Mock<ILoginDiscontinuationConfiguration>();
                 isEmailOnExceptionList
-                    .Setup(x => x.IsEmailOnExceptionsList(It.IsAny<String>()))
+                    .Setup(x => x.IsEmailInExceptionsList(It.IsAny<String>()))
                     .Returns(false);
                 GetMock<IContentObjectService>()
                     .Setup(x => x.LoginDiscontinuationConfiguration)
@@ -1764,7 +1764,7 @@ namespace NuGetGallery.Controllers
             {
                 var isEmailOnExceptionList = new Mock<ILoginDiscontinuationConfiguration>();
                 isEmailOnExceptionList
-                    .Setup(x => x.IsEmailOnExceptionsList(It.IsAny<String>()))
+                    .Setup(x => x.IsEmailInExceptionsList(It.IsAny<String>()))
                     .Returns(false);
                 GetMock<IContentObjectService>()
                     .Setup(x => x.LoginDiscontinuationConfiguration)

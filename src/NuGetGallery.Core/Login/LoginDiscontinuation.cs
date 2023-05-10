@@ -21,11 +21,11 @@ namespace NuGetGallery.Login
         public HashSet<OrganizationTenantPair> EnabledOrganizationAadTenants { get; }
         
         public LoginDiscontinuation(
-            IEnumerable<string> discontinuedForEmailAddresses,
-            IEnumerable<string> discontinuedForDomains,
-            IEnumerable<string> exceptionsForEmailAddresses,
-            IEnumerable<string> forceTransformationToOrganizationForEmailAddresses,
-            IEnumerable<OrganizationTenantPair> enabledOrganizationAadTenants,
+            ICollection<string> discontinuedForEmailAddresses,
+            ICollection<string> discontinuedForDomains,
+            ICollection<string> exceptionsForEmailAddresses,
+            ICollection<string> forceTransformationToOrganizationForEmailAddresses,
+            ICollection<OrganizationTenantPair> enabledOrganizationAadTenants,
             bool isPasswordDiscontinuedForAll)
         {
             DiscontinuedForEmailAddresses = new HashSet<string>(discontinuedForEmailAddresses, StringComparer.OrdinalIgnoreCase);
@@ -36,7 +36,7 @@ namespace NuGetGallery.Login
             IsPasswordDiscontinuedForAll = isPasswordDiscontinuedForAll;
         }
 
-        public bool IsUserOnWhitelist(User user)
+        public bool IsUserInAllowList(User user)
         {
             if (user == null)
             {
@@ -80,7 +80,7 @@ namespace NuGetGallery.Login
             return IsPasswordDiscontinuedForAll;
         }
 
-        public bool IsEmailOnExceptionsList(string emailAddress)
+        public bool IsEmailInExceptionsList(string emailAddress)
         {
             if (string.IsNullOrEmpty(emailAddress))
             {
@@ -88,6 +88,24 @@ namespace NuGetGallery.Login
             }
 
             return ExceptionsForEmailAddresses.Contains(emailAddress);
+        }
+
+        public bool AddEmailToExceptionsList(string emailAddress)
+        { 
+            if (string.IsNullOrEmpty(emailAddress))
+            { 
+                return false;
+            }
+            return ExceptionsForEmailAddresses.Add(emailAddress);
+        }
+        
+        public bool RemoveEmailFromExceptionsList(string emailAddress)
+        { 
+            if (string.IsNullOrEmpty(emailAddress))
+            { 
+                return false;
+            }
+            return ExceptionsForEmailAddresses.Remove(emailAddress);
         }
     }
 

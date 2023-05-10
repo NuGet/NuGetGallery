@@ -85,7 +85,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> RemoveEmailAddress(string emailAddress) {
-            return  await AddOrRemoveEmailAddress(emailAddress, ContentOperations.Remove);
+            return await AddOrRemoveEmailAddress(emailAddress, ContentOperations.Remove);
         }
 
         private async Task<ActionResult> AddOrRemoveEmailAddress(string emailAddress, ContentOperations operation)

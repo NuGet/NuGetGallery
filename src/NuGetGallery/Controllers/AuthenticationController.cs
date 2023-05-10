@@ -936,7 +936,7 @@ namespace NuGetGallery
             existingModel.SignIn = existingModel.SignIn ?? new SignInViewModel();
             existingModel.Register = existingModel.Register ?? new RegisterViewModel();
             existingModel.IsNuGetAccountPasswordLoginEnabled = _featureFlagService.IsNuGetAccountPasswordLoginEnabled();
-            existingModel.IsEmailOnExceptionList = _contentObjectService.LoginDiscontinuationConfiguration.IsEmailOnExceptionsList(existingModel.SignIn.UserNameOrEmail);
+            existingModel.IsEmailOnExceptionList = _contentObjectService.LoginDiscontinuationConfiguration.IsEmailInExceptionsList(existingModel.SignIn.UserNameOrEmail);
             return View(viewName, existingModel);
         }
 

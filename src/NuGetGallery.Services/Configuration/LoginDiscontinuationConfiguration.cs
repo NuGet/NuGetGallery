@@ -15,22 +15,22 @@ namespace NuGetGallery.Configuration
     public class LoginDiscontinuationConfiguration : LoginDiscontinuation, ILoginDiscontinuationConfiguration
     {
         public LoginDiscontinuationConfiguration()
-            : this(Enumerable.Empty<string>(),
-                  Enumerable.Empty<string>(),
-                  Enumerable.Empty<string>(),
-                  Enumerable.Empty<string>(),
-                  Enumerable.Empty<OrganizationTenantPair>(),
+            : this(Array.Empty<string>(),
+                  Array.Empty<string>(),
+                  Array.Empty<string>(),
+                  Array.Empty<string>(),
+                  Array.Empty<OrganizationTenantPair>(),
                   isPasswordDiscontinuedForAll: false)
         {
         }
 
         [JsonConstructor]
         public LoginDiscontinuationConfiguration(
-            IEnumerable<string> discontinuedForEmailAddresses,
-            IEnumerable<string> discontinuedForDomains,
-            IEnumerable<string> exceptionsForEmailAddresses,
-            IEnumerable<string> forceTransformationToOrganizationForEmailAddresses,
-            IEnumerable<OrganizationTenantPair> enabledOrganizationAadTenants,
+            ICollection<string> discontinuedForEmailAddresses,
+            ICollection<string> discontinuedForDomains,
+            ICollection<string> exceptionsForEmailAddresses,
+            ICollection<string> forceTransformationToOrganizationForEmailAddresses,
+            ICollection<OrganizationTenantPair> enabledOrganizationAadTenants,
             bool isPasswordDiscontinuedForAll) : base(
                 discontinuedForEmailAddresses,
                 discontinuedForDomains,
@@ -51,7 +51,7 @@ namespace NuGetGallery.Configuration
             var email = authUser.User.ToMailAddress();
             return
                 authUser.CredentialUsed.IsPassword() &&
-                (IsPasswordDiscontinuedForAll || IsUserOnWhitelist(authUser.User)) &&
+                (IsPasswordDiscontinuedForAll || IsUserInAllowList(authUser.User)) &&
                 !ExceptionsForEmailAddresses.Contains(email.Address);
         }
 

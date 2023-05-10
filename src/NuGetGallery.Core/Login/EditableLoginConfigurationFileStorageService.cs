@@ -49,31 +49,20 @@ namespace NuGetGallery.Login
                     logins = _serializer.Deserialize<LoginDiscontinuation>(reader);
                 }
 
-                var exceptionsForEmailAddresses = logins.ExceptionsForEmailAddresses;
-
                 if (operation is ContentOperations.Add)
                 {
-                    if (logins.ExceptionsForEmailAddresses.Contains(emailAddress))
-                    {
-                        return;
-                    }
-                    exceptionsForEmailAddresses.Add(emailAddress);
+                    logins.AddEmailToExceptionsList(emailAddress);
                 }
                 
                 if (operation is ContentOperations.Remove)
                 {
-                    if (!logins.ExceptionsForEmailAddresses.Contains(emailAddress))
-
-                    {
-                        return;
-                    }
-                    exceptionsForEmailAddresses.Remove(emailAddress);
+                    logins.RemoveEmailFromExceptionsList(emailAddress);
                 }
 
                 var result = new LoginDiscontinuation(
                    logins.DiscontinuedForEmailAddresses,
                    logins.DiscontinuedForDomains,
-                   exceptionsForEmailAddresses,
+                   logins.ExceptionsForEmailAddresses,
                    logins.ForceTransformationToOrganizationForEmailAddresses,
                    logins.EnabledOrganizationAadTenants,
                    logins.IsPasswordDiscontinuedForAll);
