@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using NuGet.Services.Validation;
 using NuGet.Services.Validation.Issues;
 using Xunit;

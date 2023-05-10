@@ -422,6 +422,12 @@ namespace NuGetGallery
         [HttpGet]
         public virtual ActionResult AuthenticateGet(string returnUrl, string provider)
         {
+            if (provider == null || !_authService.Authenticators.ContainsKey(provider))
+            {
+                TempData["ErrorMessage"] = ServicesStrings.AuthenticationProviderNotFound;
+                return SafeRedirect(returnUrl);
+            }
+
             return AuthenticateAndLinkExternal(returnUrl, provider);
         }
 

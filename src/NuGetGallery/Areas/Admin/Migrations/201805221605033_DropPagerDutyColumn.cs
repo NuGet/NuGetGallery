@@ -1,8 +1,7 @@
 namespace NuGetGallery.Areas.Admin
 {
-    using System;
     using System.Data.Entity.Migrations;
-    
+
     public partial class DropPagerDutyColumn : DbMigration
     {
         public override void Up()

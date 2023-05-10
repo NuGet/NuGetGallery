@@ -48,7 +48,6 @@ using NuGetGallery.Cookies;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Features;
 using NuGetGallery.Frameworks;
-using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Lucene;

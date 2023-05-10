@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using NuGetGallery.Infrastructure;
 
 namespace NuGetGallery
 {
