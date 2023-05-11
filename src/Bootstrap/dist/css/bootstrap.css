@@ -2319,34 +2319,6 @@ select[multiple].input-lg {
     font-size: 14px;
   }
 }
-.form-flex {
-  display: block;
-}
-@media (min-width: 768px) {
-  .form-flex {
-    display: -webkit-box !important;
-    display: -webkit-flex !important;
-    display: -ms-flexbox !important;
-    display: flex !important;
-    -webkit-box-align: center;
-    -webkit-align-items: center;
-    -ms-flex-align: center;
-    align-items: center;
-  }
-  .form-flex .btn-row {
-    -webkit-align-self: flex-end;
-    -ms-flex-item-align: end;
-    align-self: flex-end;
-  }
-  .form-flex .btn {
-    margin-bottom: 15px;
-  }
-  .form-flex .inline-label {
-    white-space: nowrap;
-    margin-right: 10px;
-    margin-bottom: 0;
-  }
-}
 .btn {
   display: inline-block;
   margin-bottom: 0;
