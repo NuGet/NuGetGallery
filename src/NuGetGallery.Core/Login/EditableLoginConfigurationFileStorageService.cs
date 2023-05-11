@@ -51,12 +51,19 @@ namespace NuGetGallery.Login
 
                 if (operation is ContentOperations.Add)
                 {
-                    logins.AddEmailToExceptionsList(emailAddress);
+                   if (!logins.AddEmailToExceptionsList(emailAddress))
+                    {
+                        return;
+                    };
+                   
                 }
                 
                 if (operation is ContentOperations.Remove)
                 {
-                    logins.RemoveEmailFromExceptionsList(emailAddress);
+                    if(!logins.RemoveEmailFromExceptionsList(emailAddress))
+                    {
+                        return;
+                    };
                 }
 
                 var result = new LoginDiscontinuation(
