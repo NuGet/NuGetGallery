@@ -1223,6 +1223,25 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
 
             [Fact]
+            public void CheckNullAlternatePackage()
+            {
+                var doc = _searchResult.Values[0].Document;
+
+                doc.Deprecation = new Deprecation
+                {
+                  Reasons = new string[] { "not maintained" }
+                };
+
+                var response = Target.V3FromSearchDocument(
+                    _v3Request,
+                    doc.Key,
+                    doc,
+                    _duration);
+
+                Assert.Null(response.Data[0].Deprecation.AlternatePackage);             
+            }
+
+            [Fact]
             public void ProducesExpectedDeprecation()
             {
                 var doc = _searchResult.Values[0].Document;
@@ -1551,6 +1570,25 @@ namespace NuGet.Services.AzureSearch.SearchService
                     _duration);
 
                 Assert.Null(response.Data[0].Deprecation);
+            }
+
+            [Fact]
+            public void CheckNullAlternatePackage()
+            {
+                var doc = _searchResult.Values[0].Document;
+
+                doc.Deprecation = new Deprecation
+                {
+                  Reasons = new string[] { "not maintained" }
+                };
+
+                var response = Target.V3FromSearchDocument(
+                    _v3Request,
+                    doc.Key,
+                    doc,
+                    _duration);
+
+                Assert.Null(response.Data[0].Deprecation.AlternatePackage);             
             }
 
             [Fact]
