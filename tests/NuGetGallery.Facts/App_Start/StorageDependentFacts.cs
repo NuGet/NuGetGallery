@@ -9,6 +9,7 @@ using Moq;
 using NuGet.Services.FeatureFlags;
 using NuGetGallery.Configuration;
 using NuGetGallery.Features;
+using NuGetGallery.Login;
 using Xunit;
 
 namespace NuGetGallery
@@ -77,7 +78,8 @@ namespace NuGetGallery
             Assert.Contains(typeof(CoreReadmeFileService), implementationToInterface.Keys);
             Assert.Contains(typeof(RevalidationStateService), implementationToInterface.Keys);
             Assert.Contains(typeof(EditableFeatureFlagFileStorageService), implementationToInterface.Keys);
-            Assert.Equal(9, implementationToInterface.Count);
+            Assert.Contains(typeof(EditableLoginConfigurationFileStorageService), implementationToInterface.Keys);
+            Assert.Equal(10, implementationToInterface.Count);
             Assert.Equal(typeof(ICertificateService), implementationToInterface[typeof(CertificateService)]);
             Assert.Equal(typeof(IContentService), implementationToInterface[typeof(ContentService)]);
             Assert.Equal(typeof(IPackageFileService), implementationToInterface[typeof(PackageFileService)]);
@@ -87,6 +89,7 @@ namespace NuGetGallery
             Assert.Equal(typeof(ICoreReadmeFileService), implementationToInterface[typeof(CoreReadmeFileService)]);
             Assert.Equal(typeof(IRevalidationStateService), implementationToInterface[typeof(RevalidationStateService)]);
             Assert.Equal(typeof(IFeatureFlagStorageService), implementationToInterface[typeof(EditableFeatureFlagFileStorageService)]);
+            Assert.Equal(typeof(IEditableLoginConfigurationFileStorageService), implementationToInterface[typeof(EditableLoginConfigurationFileStorageService)]);
         }
 
         [Fact]

@@ -139,6 +139,7 @@
     <Compile Include="Areas\Admin\Controllers\FeaturesController.cs" />
     <Compile Include="Areas\Admin\Controllers\LockUserController.cs" />
     <Compile Include="Areas\Admin\Controllers\LockPackageController.cs" />
+    <Compile Include="Areas\Admin\Controllers\PasswordAuthenticationController.cs" />
     <Compile Include="Areas\Admin\Controllers\ReservedNamespaceController.cs" />
     <Compile Include="Areas\Admin\Controllers\RevalidationController.cs" />
     <Compile Include="Areas\Admin\Controllers\SecurityPolicyController.cs" />
@@ -179,6 +180,9 @@
     <Compile Include="Areas\Admin\Models\RevokeApiKeysRequest.cs" />
     <Compile Include="Areas\Admin\Services\RevalidationAdminService.cs" />
     <Compile Include="Areas\Admin\Services\ValidationAdminService.cs" />
+    <Compile Include="Areas\Admin\ViewModels\ExceptionEmailListViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\UserCredential.cs" />
+    <Compile Include="Areas\Admin\ViewModels\UserCredentialSearchResult.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteAccountAsAdminViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\FeatureFlagsFeatureViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\FeatureFlagsFlightViewModel.cs" />
@@ -2312,6 +2316,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Areas\Admin\Views\PackageOwnership\_HiddenForm.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Areas\Admin\Views\PasswordAuthentication\Index.cshtml" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Web;
 using Xunit;
 
 namespace NuGetGallery.Areas.Admin
@@ -36,6 +37,20 @@ namespace NuGetGallery.Areas.Admin
                     yield return new object[] { "a  \t  b\n  c    d  ", new[] { "a b", "c d" } };
                     yield return new object[] { "\r\n\n\n", new string[0] };
                 }
+            }
+        }
+
+        public class IsValidEmailMethod
+        {
+            [Theory]
+            [InlineData("123@test.com", true)]
+            [InlineData("123@", false)]
+            [InlineData("", false)]
+            public void CheckIsValidEmailMethod(string email, bool expectedResult)
+            {
+                var actual = Helpers.IsValidEmail(email);
+
+                Assert.Equal(expectedResult, actual);
             }
         }
     }

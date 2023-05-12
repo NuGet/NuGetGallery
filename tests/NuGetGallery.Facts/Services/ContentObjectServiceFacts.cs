@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 using System.Web;
 using Moq;
 using Newtonsoft.Json;
+using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
+using NuGetGallery.Login;
 using Xunit;
 
 namespace NuGetGallery.Services

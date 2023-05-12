@@ -16,6 +16,7 @@ using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.AzureActiveDirectory;
 using NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2;
 using NuGetGallery.Authentication.Providers.MicrosoftAccount;
+using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Mail.Messages;
@@ -37,7 +38,7 @@ namespace NuGetGallery.Controllers
             {
                 var isEmailOnExceptionList = new Mock<ILoginDiscontinuationConfiguration>();
                 isEmailOnExceptionList
-                    .Setup(x => x.IsEmailOnExceptionsList(It.IsAny<String>()))
+                    .Setup(x => x.IsEmailInExceptionsList(It.IsAny<String>()))
                     .Returns(false);
                 GetMock<IContentObjectService>()
                     .Setup(x => x.LoginDiscontinuationConfiguration)
@@ -230,7 +231,7 @@ namespace NuGetGallery.Controllers
             {
                 var isEmailOnExceptionList = new Mock<ILoginDiscontinuationConfiguration>();
                 isEmailOnExceptionList
-                    .Setup(x => x.IsEmailOnExceptionsList(It.IsAny<String>()))
+                    .Setup(x => x.IsEmailInExceptionsList(It.IsAny<String>()))
                     .Returns(false);
                 GetMock<IContentObjectService>()
                     .Setup(x => x.LoginDiscontinuationConfiguration)
@@ -748,7 +749,7 @@ namespace NuGetGallery.Controllers
             {
                 var isEmailOnExceptionList = new Mock<ILoginDiscontinuationConfiguration>();
                 isEmailOnExceptionList
-                    .Setup(x => x.IsEmailOnExceptionsList(It.IsAny<String>()))
+                    .Setup(x => x.IsEmailInExceptionsList(It.IsAny<String>()))
                     .Returns(false);
                 GetMock<IContentObjectService>()
                     .Setup(x => x.LoginDiscontinuationConfiguration)
@@ -1798,7 +1799,7 @@ namespace NuGetGallery.Controllers
             {
                 var isEmailOnExceptionList = new Mock<ILoginDiscontinuationConfiguration>();
                 isEmailOnExceptionList
-                    .Setup(x => x.IsEmailOnExceptionsList(It.IsAny<String>()))
+                    .Setup(x => x.IsEmailInExceptionsList(It.IsAny<String>()))
                     .Returns(false);
                 GetMock<IContentObjectService>()
                     .Setup(x => x.LoginDiscontinuationConfiguration)

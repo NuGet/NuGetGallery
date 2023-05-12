@@ -124,5 +124,10 @@ namespace NuGetGallery
         {
             return credentials.SingleOrDefault(c => IsAzureActiveDirectoryAccount(c.Type));
         }
+
+        public static Credential GetMicrosoftAccountCredential(this ICollection<Credential> credentials)
+        {
+            return credentials.FirstOrDefault(c => IsMicrosoftAccount(c.Type));
+        }
     }
 }

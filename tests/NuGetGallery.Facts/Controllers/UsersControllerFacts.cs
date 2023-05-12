@@ -424,7 +424,7 @@ namespace NuGetGallery
 
                 var configMock = new Mock<ILoginDiscontinuationConfiguration>();
                 configMock
-                    .Setup(x => x.IsEmailOnExceptionsList(fakeEmail))
+                    .Setup(x => x.IsEmailInExceptionsList(fakeEmail))
                     .Returns(false);
                 GetMock<IContentObjectService>()
                     .Setup(x => x.LoginDiscontinuationConfiguration)
