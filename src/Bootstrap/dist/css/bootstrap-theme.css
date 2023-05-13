@@ -1996,17 +1996,56 @@ p.frameworktableinfo-text {
   margin-top: 25px;
   margin-bottom: 25px;
 }
+.members-list .manage-members-listing .table > thead > tr th:first-child {
+  width: 60%;
+}
+.members-list .manage-members-listing .table > thead > tr th:nth-child(2) {
+  width: 25%;
+}
 .members-list .manage-members-listing .member-item hr {
   margin-top: 8px;
   margin-bottom: 8px;
 }
-.members-list .manage-members-listing .member-item .member-column {
-  display: table;
-  height: 36px;
+.members-list .manage-members-listing .member-item .member-column-select-wrapper {
+  width: 100%;
 }
-.members-list .manage-members-listing .member-item .member-column div {
-  display: table-cell;
+.members-list .manage-members-listing .member-item td.align-middle {
   vertical-align: middle;
+}
+.members-list .manage-members-listing .member-item td.align-middle.form-flex {
+  margin-top: -1px;
+}
+.members-list .manage-members-listing .member-item .member-column {
+  height: 36px;
+  display: block;
+}
+.members-list .form-flex {
+  display: block;
+}
+@media (min-width: 768px) {
+  .members-list .form-flex {
+    display: -webkit-box !important;
+    display: -webkit-flex !important;
+    display: -ms-flexbox !important;
+    display: flex !important;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    -ms-flex-align: center;
+    align-items: center;
+  }
+  .members-list .form-flex .btn-row {
+    -webkit-align-self: flex-end;
+    -ms-flex-item-align: end;
+    align-self: flex-end;
+  }
+  .members-list .form-flex .btn {
+    margin-bottom: 15px;
+  }
+  .members-list .form-flex .inline-label {
+    white-space: nowrap;
+    margin-right: 10px;
+    margin-bottom: 0;
+  }
 }
 .page-manage-owners b {
   margin-top: 40px;
