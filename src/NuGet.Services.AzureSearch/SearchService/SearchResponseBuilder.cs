@@ -446,12 +446,14 @@ namespace NuGet.Services.AzureSearch.SearchService
             if (HasValidDeprecation(document.Deprecation))
             {   
                 var deprecation = new V3SearchDeprecation();
-                deprecation.AlternatePackage = new V3SearchAlternatePackage(); 
-
+                
                 if (document.Deprecation.AlternatePackage != null)
                 {
-                    deprecation.AlternatePackage.Id = document.Deprecation.AlternatePackage.Id;
-                    deprecation.AlternatePackage.Range = document.Deprecation.AlternatePackage.Range;
+                    deprecation.AlternatePackage = new V3SearchAlternatePackage 
+                    {
+                        Id = document.Deprecation.AlternatePackage.Id,
+                        Range = document.Deprecation.AlternatePackage.Range
+                    };
                 } 
 
                 deprecation.Message = document.Deprecation.Message;
