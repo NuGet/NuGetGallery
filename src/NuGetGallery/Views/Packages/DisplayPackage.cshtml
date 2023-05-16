@@ -640,7 +640,7 @@
                         </a>
                     </li>
 
-                    @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
+                    @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes) && Model.ShowDetailsAndLinks)
                     {
                         activeBodyTab = activeBodyTab ?? "releasenotes";
                         <li role="presentation">
