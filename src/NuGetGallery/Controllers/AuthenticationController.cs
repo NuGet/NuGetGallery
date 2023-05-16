@@ -115,6 +115,10 @@ namespace NuGetGallery
             {
                 return LoggedInRedirect(returnUrl);
             }
+            else if (_featureFlagService.IsNewAccount2FAEnforcementEnabled())
+            {
+                return LogOn(UrlHelperExtensions.GetSiteRoot(true));
+            }
 
             return RegisterView(new LogOnViewModel());
         }

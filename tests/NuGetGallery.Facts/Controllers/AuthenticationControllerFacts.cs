@@ -32,6 +32,66 @@ namespace NuGetGallery.Controllers
         private const string SignInViewNuGetName = "SignInNuGetAccount";
         private const string LinkExternalViewName = "LinkExternal";
 
+        public class TheSignUpAction : TestContainer
+        {
+            public TheSignUpAction()
+            {
+                var isEmailOnExceptionList = new Mock<ILoginDiscontinuationConfiguration>();
+                isEmailOnExceptionList
+                    .Setup(x => x.IsEmailInExceptionsList(It.IsAny<String>()))
+                    .Returns(false);
+                GetMock<IContentObjectService>()
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
+                    .Returns(isEmailOnExceptionList.Object);
+                GetMock<IFeatureFlagService>()
+                    .Setup(f => f.IsNewAccount2FAEnforcementEnabled())
+                    .Returns(false);
+            }
+
+            [Fact]
+            public void WhenRequestAuthenticatedRedirectsToReturnUrl()
+            {
+                var controller = GetController<AuthenticationController>();
+                GetMock<HttpRequestBase>()
+                    .SetupGet(x => x.IsAuthenticated)
+                    .Returns(true);
+                var returnUrl = "/foo/bar/baz";
+                var fakes = Get<Fakes>();
+                controller.SetCurrentUser(fakes.User);
+
+                var result = controller.SignUp(returnUrl);
+
+                ResultAssert.IsSafeRedirectTo(result, returnUrl);
+                Assert.Equal(Strings.AlreadyLoggedIn, controller.TempData["Message"]);
+            }
+
+            [Fact]
+            public void When2faEnforcementEnabledReturnSignInView()
+            {
+                var controller = GetController<AuthenticationController>();
+                var featureFlagServiceMock = GetMock<IFeatureFlagService>();
+                featureFlagServiceMock
+                    .Setup(f => f.IsNewAccount2FAEnforcementEnabled())
+                    .Returns(true)
+                    .Verifiable();
+
+                var result = controller.SignUp(string.Empty);
+
+                featureFlagServiceMock.Verify();
+                ResultAssert.IsView<LogOnViewModel>(result, viewName: SignInViewName);
+            }
+
+            [Fact]
+            public void WhenNotAuthenticatedAnd2faEnforcementDisabledReturnsRegisterView()
+            {
+                var controller = GetController<AuthenticationController>();
+
+                var result = controller.SignUp(string.Empty);
+
+                ResultAssert.IsView<LogOnViewModel>(result, viewName: RegisterViewName);
+            }
+        }
+
         public class TheLogOnAction : TestContainer
         {
             public TheLogOnAction()
