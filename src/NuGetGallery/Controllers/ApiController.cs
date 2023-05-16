@@ -978,6 +978,7 @@ namespace NuGetGallery
 
         [HttpPut]
         [ApiAuthorize]
+        [RequiresUserAgent]
         [ApiScopeRequired(NuGetScopes.PackageUnlist)]
         [ActionName(RouteName.DeprecatePackageApi)]
         public virtual async Task<ActionResult> DeprecatePackage(

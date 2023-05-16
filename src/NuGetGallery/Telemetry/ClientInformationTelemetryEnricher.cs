@@ -39,6 +39,9 @@ namespace NuGetGallery
                     itemTelemetry.Properties[TelemetryService.ClientInformation]
                         = httpContext.GetClientInformation();
 
+                    itemTelemetry.Properties[TelemetryService.UserAgent]
+                        = httpContext.GetUserAgent();
+
                     // Is the user authenticated or this is an anonymous request?
                     itemTelemetry.Properties[TelemetryService.IsAuthenticated]
                         = httpContext.Request.IsAuthenticated.ToString();

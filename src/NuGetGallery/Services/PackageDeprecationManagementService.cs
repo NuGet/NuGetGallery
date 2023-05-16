@@ -94,7 +94,6 @@ namespace NuGetGallery
             var registration = packages.FirstOrDefault()?.PackageRegistration;
             if (registration == null)
             {
-                // This should only happen if someone hacks the form or if the package is deleted while the user is filling out the form.
                 return new UpdateDeprecationError(
                     HttpStatusCode.NotFound,
                     string.Format(Strings.DeprecatePackage_MissingRegistration, id));
@@ -127,7 +126,7 @@ namespace NuGetGallery
                     if (alternatePackage == null)
                     {
                         return new UpdateDeprecationError(
-                            HttpStatusCode.NotFound,
+                            HttpStatusCode.BadRequest,
                             string.Format(Strings.DeprecatePackage_NoAlternatePackage, alternatePackageId, alternatePackageVersion));
                     }
                 }
@@ -137,7 +136,7 @@ namespace NuGetGallery
                     if (alternatePackageRegistration == null)
                     {
                         return new UpdateDeprecationError(
-                            HttpStatusCode.NotFound,
+                            HttpStatusCode.BadRequest,
                             string.Format(Strings.DeprecatePackage_NoAlternatePackageRegistration, alternatePackageId));
                     }
                 }
@@ -150,7 +149,6 @@ namespace NuGetGallery
                 var package = packages.SingleOrDefault(v => v.NormalizedVersion == normalizedVersion);
                 if (package == null)
                 {
-                    // This should only happen if someone hacks the form or if a version of the package is deleted while the user is filling out the form.
                     return new UpdateDeprecationError(
                         HttpStatusCode.NotFound,
                         string.Format(Strings.DeprecatePackage_MissingVersion, id));

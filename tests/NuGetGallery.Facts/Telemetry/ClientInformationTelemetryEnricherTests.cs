@@ -56,7 +56,7 @@ namespace NuGetGallery.Telemetry
             // Assert
             if (telemetry is RequestTelemetry)
             {
-                Assert.Equal(5, itemTelemetry.Properties.Count);
+                Assert.Equal(6, itemTelemetry.Properties.Count);
             }
             else
             {
@@ -112,7 +112,7 @@ namespace NuGetGallery.Telemetry
 
             var headers = new NameValueCollection
             {
-                { ServicesConstants.UserAgentHeaderName, "user agent" }
+                { ServicesConstants.UserAgentHeaderName, "user agent/1.0.0 (foo bar)" }
             };
 
             var enricher = CreateTestEnricher(headers);
@@ -122,6 +122,28 @@ namespace NuGetGallery.Telemetry
 
             // Assert
             Assert.NotEmpty(telemetry.Properties[TelemetryService.ClientInformation]);
+            Assert.Equal("user agent/1.0.0", telemetry.Properties[TelemetryService.ClientInformation]);
+        }
+
+        [Fact]
+        public void EnrichesTelemetryWithUserAgent()
+        {
+            // Arrange
+            var telemetry = new RequestTelemetry();
+
+            var headers = new NameValueCollection
+            {
+                { ServicesConstants.UserAgentHeaderName, "user agent/1.0.0 (foo bar)" }
+            };
+
+            var enricher = CreateTestEnricher(headers);
+
+            // Act
+            enricher.Initialize(telemetry);
+
+            // Assert
+            Assert.NotEmpty(telemetry.Properties[TelemetryService.UserAgent]);
+            Assert.Equal("user agent/1.0.0 (foo bar)", telemetry.Properties[TelemetryService.UserAgent]);
         }
 
         [Theory]
