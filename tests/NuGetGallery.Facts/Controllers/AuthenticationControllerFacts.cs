@@ -78,7 +78,7 @@ namespace NuGetGallery.Controllers
                 var result = controller.SignUp(string.Empty);
 
                 featureFlagServiceMock.Verify();
-                ResultAssert.IsView<LogOnViewModel>(result, viewName: SignInViewName);
+                ResultAssert.IsRedirectTo(result, controller.Url.LogOn(null, relativeUrl: false));
             }
 
             [Fact]
@@ -814,6 +814,9 @@ namespace NuGetGallery.Controllers
                 GetMock<IContentObjectService>()
                     .Setup(x => x.LoginDiscontinuationConfiguration)
                     .Returns(isEmailOnExceptionList.Object);
+                GetMock<IFeatureFlagService>()
+                    .Setup(f => f.IsNewAccount2FAEnforcementEnabled())
+                    .Returns(false);
             }
 
             [Fact]
@@ -853,6 +856,42 @@ namespace NuGetGallery.Controllers
                 ResultAssert.IsView(result, viewName: RegisterViewName);
                 Assert.False(controller.ModelState.IsValid);
                 Assert.Equal("aMessage", controller.ModelState["Register"].Errors[0].ErrorMessage);
+            }
+
+            [Fact]
+            public async Task WhenNotLinkingAnd2faEnforcementWillReturnSignInView()
+            {
+                // Arrange
+                var authUser = new AuthenticatedUser(
+                    new User("theUsername")
+                    {
+                        UnconfirmedEmailAddress = "unconfirmed@example.com",
+                        EmailConfirmationToken = "t0k3n"
+                    },
+                    new Credential());
+
+                GetMock<IFeatureFlagService>()
+                    .Setup(x => x.IsNewAccount2FAEnforcementEnabled())
+                    .Returns(true)
+                    .Verifiable();
+
+                var controller = GetController<AuthenticationController>();
+
+                // Act
+                var result = await controller.Register(
+                    new LogOnViewModel()
+                    {
+                        Register = new RegisterViewModel
+                        {
+                            Username = authUser.User.Username,
+                            Password = "thePassword",
+                            EmailAddress = authUser.User.UnconfirmedEmailAddress,
+                        }
+                    }, "/theReturnUrl", linkingAccount: false);
+
+                // Assert
+                GetMock<IFeatureFlagService>().Verify();
+                ResultAssert.IsRedirectTo(result, controller.Url.LogOn(null, relativeUrl: false));
             }
 
             [Fact]

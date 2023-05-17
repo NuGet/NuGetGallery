@@ -50,7 +50,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AccountManagement\LogonTest.cs" />
-    <Compile Include="AccountManagement\RegisterNewUserTest.cs" />
     <Compile Include="BasicPages\BrandingValidationTest.cs" />
     <Compile Include="BasicPages\HomePageValidationTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
