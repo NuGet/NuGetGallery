@@ -900,6 +900,33 @@ namespace NuGetGallery
         [HttpPost]
         [UIAuthorize]
         [ValidateAntiForgeryToken]
+        public virtual async Task<JsonResult> RevokeCredential(string credentialType, int? credentialKey)
+        {
+            var user = GetCurrentUser();
+
+            var cred = user.Credentials.SingleOrDefault(
+                c => string.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase)
+                    && CredentialKeyMatches(credentialKey, c));
+
+            if (cred == null)
+            {
+                Response.StatusCode = (int)HttpStatusCode.NotFound;
+                return Json(Strings.CredentialNotFound);
+            }
+
+            if (CredentialTypes.IsApiKey(credentialType))
+            {
+                await AuthenticationService.RevokeApiKeyCredential(cred, CredentialRevocationSource.User, true);
+            }
+
+            var credViewModel = AuthenticationService.DescribeCredential(cred);
+
+            return Json(new ApiKeyViewModel(credViewModel));
+        }
+
+        [HttpPost]
+        [UIAuthorize]
+        [ValidateAntiForgeryToken]
         public virtual ActionResult LinkOrChangeExternalCredential()
         {
             return Redirect(Url.AuthenticateExternal(Url.AccountSettings()));
