@@ -30,6 +30,8 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
 
         public string QueryHint => throw new NotImplementedException();
 
+        public bool HasChanges => throw new NotImplementedException();
+
         public void DeleteOnCommit<T>(T entity) where T : class
         {
             throw new NotImplementedException();

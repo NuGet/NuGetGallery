@@ -122,6 +122,8 @@ namespace NuGetGallery
 
         public virtual string QueryHint => throw new NotImplementedException();
 
+        public bool HasChanges { get; set; } = true;
+
         public Task<int> SaveChangesAsync()
         {
             _areChangesSaved = true;

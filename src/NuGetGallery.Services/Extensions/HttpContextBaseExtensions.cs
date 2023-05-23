@@ -64,7 +64,7 @@ namespace NuGetGallery
         /// </summary>
         public static string GetClientInformation(this HttpContextBase httpContext)
         {
-            string userAgent = httpContext.Request.Headers[ServicesConstants.UserAgentHeaderName];
+            string userAgent = httpContext.GetUserAgent();
             string result = string.Empty;
 
             if (!string.IsNullOrEmpty(userAgent))
@@ -84,6 +84,12 @@ namespace NuGetGallery
             }
 
             return result;
+        }
+
+        public static string GetUserAgent(this HttpContextBase httpContext)
+        {
+            string userAgent = httpContext.Request.Headers[ServicesConstants.UserAgentHeaderName];
+            return userAgent ?? string.Empty;
         }
     }
 

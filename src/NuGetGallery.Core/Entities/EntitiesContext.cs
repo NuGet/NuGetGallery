@@ -7,6 +7,7 @@ using System.Data.Common;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Infrastructure.Annotations;
+using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
 
@@ -88,6 +89,8 @@ namespace NuGetGallery
         /// User or organization accounts.
         /// </summary>
         public DbSet<User> Users { get; set; }
+
+        public bool HasChanges => ChangeTracker.HasChanges();
 
         DbSet<T> IReadOnlyEntitiesContext.Set<T>()
         {
@@ -540,6 +543,7 @@ namespace NuGetGallery
                 .HasForeignKey(r => r.ToPackageRegistrationKey)
                 .WillCascadeOnDelete(false);
         }
+
 #pragma warning restore 618
 
         private class QueryHintScope : IDisposable

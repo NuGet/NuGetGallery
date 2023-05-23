@@ -68,8 +68,8 @@
       "Domains": []
     },
     "NuGetGallery.ManageDeprecationApi": {
-      "All": false,
-      "SiteAdmins": true,
+      "All": true,
+      "SiteAdmins": false,
       "Accounts": [],
       "Domains": []
     },

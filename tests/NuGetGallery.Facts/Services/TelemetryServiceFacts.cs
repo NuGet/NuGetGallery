@@ -137,7 +137,7 @@ namespace NuGetGallery
                             packages,
                             PackageDeprecationStatus.Legacy,
                             new PackageRegistration { Id = "alt" },
-                            new Package { PackageRegistration = new PackageRegistration { Id = "alt-2" }, NormalizedVersion = "1.2.3" }, true))
+                            new Package { PackageRegistration = new PackageRegistration { Id = "alt-2" }, NormalizedVersion = "1.2.3" }, true, false))
                     };
 
                     yield return new object[] { "CreatePackageVerificationKey",
@@ -835,7 +835,7 @@ namespace NuGetGallery
             public void TrackPackageDeprecateThrowsIfPackageListInvalid(IReadOnlyList<Package> packages)
             {
                 var service = CreateService();
-                Assert.Throws<ArgumentException>(() => service.TrackPackageDeprecate(packages, PackageDeprecationStatus.CriticalBugs, null, null, false));
+                Assert.Throws<ArgumentException>(() => service.TrackPackageDeprecate(packages, PackageDeprecationStatus.CriticalBugs, null, null, false, false));
             }
 
             public static IEnumerable<object[]> TrackPackageDeprecateSucceedsWithoutAlternate_Data =>
@@ -854,7 +854,7 @@ namespace NuGetGallery
                     .Setup(x => x.TrackMetric(It.IsAny<string>(), It.IsAny<double>(), It.IsAny<IDictionary<string, string>>()))
                     .Callback<string, double, IDictionary<string, string>>((_, __, p) => allProperties.Add(p));
 
-                service.TrackPackageDeprecate(packages, status, null, null, hasCustomMessage);
+                service.TrackPackageDeprecate(packages, status, null, null, hasCustomMessage, true);
 
                 service.TelemetryClient.Verify(
                     x => x.TrackMetric("PackageDeprecate", packages.Count(), It.IsAny<IDictionary<string, string>>()),
@@ -898,7 +898,7 @@ namespace NuGetGallery
                 var alternatePackage = hasPackage ? new Package { PackageRegistration = new PackageRegistration { Id = "alt-P" }, NormalizedVersion = "4.3.2" } : null;
 
                 var status = PackageDeprecationStatus.NotDeprecated;
-                service.TrackPackageDeprecate(packages, status, alternateRegistration, alternatePackage, false);
+                service.TrackPackageDeprecate(packages, status, alternateRegistration, alternatePackage, false, true);
 
                 service.TelemetryClient.Verify(
                     x => x.TrackMetric("PackageDeprecate", packages.Count(), It.IsAny<IDictionary<string, string>>()),
