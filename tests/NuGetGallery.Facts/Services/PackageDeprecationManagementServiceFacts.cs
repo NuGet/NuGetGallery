@@ -413,7 +413,7 @@ namespace NuGetGallery
 
             [Theory]
             [MemberData(nameof(Owner_Data))]
-            public async Task ReturnsNotFoundIfAlternatePackageRegistrationMissing(User currentUser, User owner)
+            public async Task ReturnsBadRequestIfAlternatePackageRegistrationMissing(User currentUser, User owner)
             {
                 // Arrange
                 var id = "id";
@@ -459,7 +459,7 @@ namespace NuGetGallery
                     alternatePackageId: alternatePackageId);
 
                 // Assert
-                Assert.Equal(HttpStatusCode.NotFound, result.Status);
+                Assert.Equal(HttpStatusCode.BadRequest, result.Status);
                 Assert.Equal(string.Format(Strings.DeprecatePackage_NoAlternatePackageRegistration, alternatePackageId), result.Message);
 
                 featureFlagService.Verify();
@@ -468,7 +468,7 @@ namespace NuGetGallery
 
             [Theory]
             [MemberData(nameof(Owner_Data))]
-            public async Task ReturnsNotFoundIfAlternatePackageVersionMissing(User currentUser, User owner)
+            public async Task ReturnsBadRequestIfAlternatePackageVersionMissing(User currentUser, User owner)
             {
                 // Arrange
                 var id = "id";
@@ -516,7 +516,7 @@ namespace NuGetGallery
                     alternatePackageVersion: alternatePackageVersion);
 
                 // Assert
-                Assert.Equal(HttpStatusCode.NotFound, result.Status);
+                Assert.Equal(HttpStatusCode.BadRequest, result.Status);
                 Assert.Equal(string.Format(Strings.DeprecatePackage_NoAlternatePackage, alternatePackageId, alternatePackageVersion), result.Message);
 
                 featureFlagService.Verify();

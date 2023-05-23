@@ -10,6 +10,7 @@ using NuGet.Services.FeatureFlags;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Configuration;
 using NuGetGallery.Features;
+using NuGetGallery.Shared;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
@@ -196,7 +197,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             switch (result)
             {
-                case FeatureFlagSaveResult.Ok:
+                case ContentSaveResult.Ok:
                     // The flags have been persisted. Refresh this instance's cache immediately.
                     await _cache.RefreshAsync();
 
@@ -204,7 +205,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     TempData["Message"] = $"Your feature flags have been saved! It may take up to {refreshSeconds} seconds for this change to propagate everywhere.";
                     return null;
 
-                case FeatureFlagSaveResult.Conflict:
+                case ContentSaveResult.Conflict:
                     return "Your changes were not applied as the feature flags were modified by someone else. Please reload the page and try again.";
 
                 default:

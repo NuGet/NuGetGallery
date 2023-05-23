@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Transactions;
 using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
 
@@ -54,75 +55,89 @@ namespace NuGetGallery
                 throw new ArgumentException("All packages to deprecate must have the same ID.", nameof(packages));
             }
 
-            using (var strategy = new SuspendDbExecutionStrategy())
-            using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
+            var shouldDelete = status == PackageDeprecationStatus.NotDeprecated;
+            var deprecations = new List<PackageDeprecation>();
+            foreach (var package in packages)
             {
-                var shouldDelete = status == PackageDeprecationStatus.NotDeprecated;
-                var deprecations = new List<PackageDeprecation>();
-                foreach (var package in packages)
-                {
-                    var deprecation = package.Deprecations.SingleOrDefault();
-                    if (shouldDelete)
-                    {
-                        if (deprecation != null)
-                        {
-                            package.Deprecations.Remove(deprecation);
-                            deprecations.Add(deprecation);
-                        }
-                    }
-                    else
-                    {
-                        if (deprecation == null)
-                        {
-                            deprecation = new PackageDeprecation
-                            {
-                                Package = package
-                            };
-
-                            package.Deprecations.Add(deprecation);
-                            deprecations.Add(deprecation);
-                        }
-
-                        deprecation.Status = status;
-                        deprecation.DeprecatedByUser = user;
-
-                        deprecation.AlternatePackageRegistration = alternatePackageRegistration;
-                        deprecation.AlternatePackage = alternatePackage;
-
-                        deprecation.CustomMessage = customMessage;
-                    }
-                }
-
+                var deprecation = package.Deprecations.SingleOrDefault();
                 if (shouldDelete)
                 {
-                    _entitiesContext.Deprecations.RemoveRange(deprecations);
+                    if (deprecation != null)
+                    {
+                        package.Deprecations.Remove(deprecation);
+                        deprecations.Add(deprecation);
+                    }
                 }
                 else
                 {
-                    _entitiesContext.Deprecations.AddRange(deprecations);
+                    if (deprecation == null)
+                    {
+                        deprecation = new PackageDeprecation
+                        {
+                            Package = package
+                        };
+
+                        package.Deprecations.Add(deprecation);
+                        deprecations.Add(deprecation);
+                    }
+
+                    deprecation.Status = status;
+                    deprecation.DeprecatedByUser = user;
+
+                    deprecation.AlternatePackageRegistration = alternatePackageRegistration;
+                    deprecation.AlternatePackage = alternatePackage;
+
+                    deprecation.CustomMessage = customMessage;
                 }
+            }
 
-                await _entitiesContext.SaveChangesAsync();
+            if (shouldDelete)
+            {
+                _entitiesContext.Deprecations.RemoveRange(deprecations);
+            }
+            else
+            {
+                _entitiesContext.Deprecations.AddRange(deprecations);
+            }
 
-                await _packageUpdateService.UpdatePackagesAsync(packages);
+            if (_entitiesContext.HasChanges)
+            {
+                using (var strategy = new SuspendDbExecutionStrategy())
+                using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
+                {
+                    await _entitiesContext.SaveChangesAsync();
 
-                transaction.Commit();
+                    await _packageUpdateService.UpdatePackagesAsync(packages);
 
+                    transaction.Commit();
+
+                    _telemetryService.TrackPackageDeprecate(
+                        packages,
+                        status,
+                        alternatePackageRegistration,
+                        alternatePackage,
+                        !string.IsNullOrWhiteSpace(customMessage),
+                        hasChanges: true);
+
+                    foreach (var package in packages)
+                    {
+                        await _auditingService.SaveAuditRecordAsync(
+                            new PackageAuditRecord(
+                                package,
+                                status == PackageDeprecationStatus.NotDeprecated ? AuditedPackageAction.Undeprecate : AuditedPackageAction.Deprecate,
+                                status == PackageDeprecationStatus.NotDeprecated ? PackageUndeprecatedVia.Web : PackageDeprecatedVia.Web));
+                    }
+                }
+            }
+            else
+            {
                 _telemetryService.TrackPackageDeprecate(
                     packages,
                     status,
                     alternatePackageRegistration,
                     alternatePackage,
-                    !string.IsNullOrWhiteSpace(customMessage));
-
-                foreach (var package in packages)
-                {
-                    await _auditingService.SaveAuditRecordAsync(
-                        new PackageAuditRecord(
-                            package,
-                            status == PackageDeprecationStatus.NotDeprecated ? AuditedPackageAction.Undeprecate : AuditedPackageAction.Deprecate,
-                            status == PackageDeprecationStatus.NotDeprecated ? PackageUndeprecatedVia.Web : PackageDeprecatedVia.Web));
-                }
+                    !string.IsNullOrWhiteSpace(customMessage),
+                    hasChanges: false);
             }
         }
 

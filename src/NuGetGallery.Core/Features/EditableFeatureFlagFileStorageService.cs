@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
 using NuGetGallery.Auditing;
+using NuGetGallery.Shared;
 
 namespace NuGetGallery.Features
 {
@@ -69,7 +70,7 @@ namespace NuGetGallery.Features
                            f => RemoveUser(f.Value, user)));
 
                 var saveResult = await TrySaveAsync(result, reference.ContentId);
-                if (saveResult == FeatureFlagSaveResult.Ok)
+                if (saveResult == ContentSaveResult.Ok)
                 {
                     return;
                 }
@@ -84,7 +85,7 @@ namespace NuGetGallery.Features
             throw new InvalidOperationException($"Unable to remove user from feature flags after {MaxRemoveUserAttempts} attempts");
         }
 
-        public async Task<FeatureFlagSaveResult> TrySaveAsync(FeatureFlags flags, string contentId)
+        public async Task<ContentSaveResult> TrySaveAsync(FeatureFlags flags, string contentId)
         {
             var result = await TrySaveInternalAsync(flags, contentId);
             await _auditing.SaveAuditRecordAsync(
@@ -97,7 +98,7 @@ namespace NuGetGallery.Features
             return result;
         }
 
-        private async Task<FeatureFlagSaveResult> TrySaveInternalAsync(FeatureFlags flags, string contentId)
+        private async Task<ContentSaveResult> TrySaveInternalAsync(FeatureFlags flags, string contentId)
         {
             var accessCondition = AccessConditionWrapper.GenerateIfMatchCondition(contentId);
 
@@ -113,12 +114,12 @@ namespace NuGetGallery.Features
 
                     await _storage.SaveFileAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.FeatureFlagsFileName, stream, accessCondition);
 
-                    return FeatureFlagSaveResult.Ok;
+                    return ContentSaveResult.Ok;
                 }
             }
             catch (StorageException e) when (e.IsPreconditionFailedException())
             {
-                return FeatureFlagSaveResult.Conflict;
+                return ContentSaveResult.Conflict;
             }
         }
 

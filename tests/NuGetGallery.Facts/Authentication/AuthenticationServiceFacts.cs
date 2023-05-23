@@ -51,7 +51,7 @@ namespace NuGetGallery.Authentication
 
                 var configMock = new Mock<ILoginDiscontinuationConfiguration>();
                 configMock
-                    .Setup(x => x.IsEmailOnExceptionsList(_fakes.User.EmailAddress))
+                    .Setup(x => x.IsEmailInExceptionsList(_fakes.User.EmailAddress))
                     .Returns(false);
                 GetMock<IContentObjectService>()
                     .Setup(x => x.LoginDiscontinuationConfiguration)
@@ -74,7 +74,7 @@ namespace NuGetGallery.Authentication
 
                 var configMock = new Mock<ILoginDiscontinuationConfiguration>();
                 configMock
-                    .Setup(x => x.IsEmailOnExceptionsList(null))
+                    .Setup(x => x.IsEmailInExceptionsList(null))
                     .Returns(false);
                 GetMock<IContentObjectService>()
                     .Setup(x => x.LoginDiscontinuationConfiguration)
@@ -97,9 +97,9 @@ namespace NuGetGallery.Authentication
                     .Returns(false);
                 var configMock = new Mock<ILoginDiscontinuationConfiguration>();
                 configMock
-                    .Setup(x => x.IsEmailOnExceptionsList(It.IsAny<string>()))
+                    .Setup(x => x.IsEmailInExceptionsList(It.IsAny<string>()))
                     .Returns(false);
-                GetMock<IContentObjectService>()
+                GetMock<IContentObjectService>()    
                     .Setup(x => x.LoginDiscontinuationConfiguration)
                     .Returns(configMock.Object);
                 var fakeUserEmail = "fakeuser@example.com";
@@ -126,7 +126,7 @@ namespace NuGetGallery.Authentication
                 var user = _fakes.User;
                 var configMock = new Mock<ILoginDiscontinuationConfiguration>();
                 configMock
-                    .Setup(x => x.IsEmailOnExceptionsList(It.IsAny<string>()))
+                    .Setup(x => x.IsEmailInExceptionsList(It.IsAny<string>()))
                     .Returns(isOnExceptionList);
                 GetMock<IContentObjectService>()
                     .Setup(x => x.LoginDiscontinuationConfiguration)

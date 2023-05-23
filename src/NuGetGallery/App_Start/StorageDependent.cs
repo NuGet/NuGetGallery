@@ -7,6 +7,7 @@ using System.Linq;
 using NuGet.Services.FeatureFlags;
 using NuGetGallery.Configuration;
 using NuGetGallery.Features;
+using NuGetGallery.Login;
 
 namespace NuGetGallery
 {
@@ -94,7 +95,8 @@ namespace NuGetGallery
                 Create<CoreLicenseFileService, ICoreLicenseFileService>(configuration.AzureStorage_FlatContainer_ConnectionString, isSingleInstance: false),
                 Create<CoreReadmeFileService, ICoreReadmeFileService>(configuration.AzureStorage_FlatContainer_ConnectionString, isSingleInstance: false),
                 Create<RevalidationStateService, IRevalidationStateService>(configuration.AzureStorage_Revalidation_ConnectionString, isSingleInstance: false),
-                Create<EditableFeatureFlagFileStorageService, IFeatureFlagStorageService>(configuration.AzureStorage_Content_ConnectionString, isSingleInstance: true)
+                Create<EditableFeatureFlagFileStorageService, IFeatureFlagStorageService>(configuration.AzureStorage_Content_ConnectionString, isSingleInstance: true),
+                Create<EditableLoginConfigurationFileStorageService, IEditableLoginConfigurationFileStorageService>(configuration.AzureStorage_Content_ConnectionString, isSingleInstance: true)
             };
 
             var connectionStringToBindingKey = dependents

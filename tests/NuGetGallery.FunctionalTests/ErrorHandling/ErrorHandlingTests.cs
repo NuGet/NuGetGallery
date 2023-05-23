@@ -83,9 +83,9 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
         [Theory]
         [Priority(2)]
         [Category("P2Tests")]
-        [InlineData("/api/does-not-exist", true)]
+        [InlineData("/api/does-not-exist", false)]
         [InlineData("/pages/does-not-exist", true)]
-        [InlineData("/api/v2/curated-feed/microsoftdotnet/DoesNotExist()", true)]
+        [InlineData("/api/v2/curated-feed/microsoftdotnet/DoesNotExist()", false)]
         [InlineData("/does-not-exist", true)]
         [InlineData("/packages/package--cannot--exist", true)]
         [InlineData("/packages/BaseTestPackage/invalid-version/Manage", true)]
@@ -197,11 +197,10 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
             var response = await GetTestResponseAsync(request);
 
             // Assert
-            if (!ExpectedSimulatedErrorResponses.TryGetValue(request, out var validator))
-            {
-                validator = Validator.PrettyInternalServerError();
-            }
-
+            Assert.True(
+                ExpectedSimulatedErrorResponses.TryGetValue(request, out var validator),
+                $"No error response validator is configured for {nameof(EndpointType)}.{endpointType} and {nameof(SimulatedErrorType)}.{simulatedErrorType}. " +
+                $"Add a case to {nameof(ExpectedSimulatedErrorResponses)}.");
             validator(response);
         }
 
@@ -224,30 +223,32 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
         }
 
         /// <summary>
-        /// The expected responses for a <see cref="SimulatedErrorRequest"/>. If a key is not present, the
-        /// <see cref="SimulateError(EndpointType, SimulatedErrorType)"/> test will use the
-        /// <see cref="Validator.PrettyInternalServerError"/> validator.
+        /// The expected responses for a <see cref="SimulatedErrorRequest"/>. If a key is not present, the test will fail.
         /// </summary>
         public static IReadOnlyDictionary<SimulatedErrorRequest, Action<TestResponse>> ExpectedSimulatedErrorResponses = new Dictionary<SimulatedErrorRequest, Action<TestResponse>>
         {
             { SER(EndpointType.Api, SimulatedErrorType.Exception), Validator.SimpleHtml(HttpStatusCode.InternalServerError, SimulatedErrorType.Exception) },
+            { SER(EndpointType.Api, SimulatedErrorType.ExceptionInDedicatedErrorPage), Validator.SimpleHtml(HttpStatusCode.InternalServerError, SimulatedErrorType.ExceptionInDedicatedErrorPage) },
+            { SER(EndpointType.Api, SimulatedErrorType.ExceptionInInlineErrorPage), Validator.SimpleHtml(HttpStatusCode.InternalServerError, SimulatedErrorType.ExceptionInInlineErrorPage) },
+            { SER(EndpointType.Api, SimulatedErrorType.ExceptionInView), Validator.SimpleHtml(HttpStatusCode.InternalServerError, SimulatedErrorType.ExceptionInView) },
+            { SER(EndpointType.Api, SimulatedErrorType.HttpException400), Validator.SimpleHtml(HttpStatusCode.InternalServerError, SimulatedErrorType.HttpException400) },
+            { SER(EndpointType.Api, SimulatedErrorType.HttpException404), Validator.SimpleHtml(HttpStatusCode.InternalServerError, SimulatedErrorType.HttpException404) },
             { SER(EndpointType.Api, SimulatedErrorType.HttpException500), Validator.SimpleHtml(HttpStatusCode.InternalServerError, SimulatedErrorType.HttpException500) },
+            { SER(EndpointType.Api, SimulatedErrorType.HttpException503), Validator.SimpleHtml(HttpStatusCode.InternalServerError, SimulatedErrorType.HttpException503) },
             { SER(EndpointType.Api, SimulatedErrorType.HttpResponseException400), Validator.SimpleHtmlWithExceptionReasonPhrase() },
             { SER(EndpointType.Api, SimulatedErrorType.HttpResponseException404), Validator.SimpleHtmlWithExceptionReasonPhrase() },
             { SER(EndpointType.Api, SimulatedErrorType.HttpResponseException500), Validator.SimpleHtmlWithExceptionReasonPhrase() },
             { SER(EndpointType.Api, SimulatedErrorType.HttpResponseException503), Validator.SimpleHtmlWithExceptionReasonPhrase() },
             { SER(EndpointType.Api, SimulatedErrorType.ReadOnlyMode), Validator.SimpleHtml(HttpStatusCode.ServiceUnavailable, SimulatedErrorType.ReadOnlyMode) },
             { SER(EndpointType.Api, SimulatedErrorType.Result400), Validator.SimpleHtml(HttpStatusCode.BadRequest, SimulatedErrorType.Result400) },
-            { SER(EndpointType.Api, SimulatedErrorType.Result404), Validator.PrettyHtml(HttpStatusCode.NotFound) },
+            { SER(EndpointType.Api, SimulatedErrorType.Result404), Validator.SimpleHtml(HttpStatusCode.NotFound, SimulatedErrorType.Result404) },
+            { SER(EndpointType.Api, SimulatedErrorType.Result500), Validator.SimpleHtml(HttpStatusCode.InternalServerError, SimulatedErrorType.Result500) },
             { SER(EndpointType.Api, SimulatedErrorType.Result503), Validator.SimpleHtml(HttpStatusCode.ServiceUnavailable, SimulatedErrorType.Result503) },
             { SER(EndpointType.Api, SimulatedErrorType.UserSafeException), Validator.SimpleHtml(HttpStatusCode.InternalServerError, SimulatedErrorType.UserSafeException) },
-            { SER(EndpointType.Api, SimulatedErrorType.ExceptionInView), Validator.SimpleHtml(HttpStatusCode.InternalServerError, SimulatedErrorType.ExceptionInView) },
-            { SER(EndpointType.Api, SimulatedErrorType.ExceptionInInlineErrorPage), Validator.SimpleHtml(HttpStatusCode.InternalServerError, SimulatedErrorType.ExceptionInInlineErrorPage) },
-            { SER(EndpointType.Api, SimulatedErrorType.ExceptionInDedicatedErrorPage), Validator.SimpleHtml(HttpStatusCode.InternalServerError, SimulatedErrorType.ExceptionInDedicatedErrorPage) },
             { SER(EndpointType.OData, SimulatedErrorType.Exception), Validator.Xml() },
-            { SER(EndpointType.OData, SimulatedErrorType.ExceptionInView), Validator.Xml() },
-            { SER(EndpointType.OData, SimulatedErrorType.ExceptionInInlineErrorPage), Validator.Xml() },
             { SER(EndpointType.OData, SimulatedErrorType.ExceptionInDedicatedErrorPage), Validator.Xml() },
+            { SER(EndpointType.OData, SimulatedErrorType.ExceptionInInlineErrorPage), Validator.Xml() },
+            { SER(EndpointType.OData, SimulatedErrorType.ExceptionInView), Validator.Xml() },
             { SER(EndpointType.OData, SimulatedErrorType.HttpException400), Validator.Xml() },
             { SER(EndpointType.OData, SimulatedErrorType.HttpException404), Validator.Xml() },
             { SER(EndpointType.OData, SimulatedErrorType.HttpException500), Validator.Xml() },
@@ -262,14 +263,24 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
             { SER(EndpointType.OData, SimulatedErrorType.Result500), Validator.Empty(HttpStatusCode.InternalServerError, SimulatedErrorType.Result500) },
             { SER(EndpointType.OData, SimulatedErrorType.Result503), Validator.Empty(HttpStatusCode.ServiceUnavailable, SimulatedErrorType.Result503) },
             { SER(EndpointType.OData, SimulatedErrorType.UserSafeException), Validator.Xml() },
+            { SER(EndpointType.Pages, SimulatedErrorType.Exception), Validator.PrettyInternalServerError() },
+            { SER(EndpointType.Pages, SimulatedErrorType.ExceptionInDedicatedErrorPage), Validator.PrettyInternalServerError() },
+            { SER(EndpointType.Pages, SimulatedErrorType.ExceptionInInlineErrorPage), Validator.SimpleHtml(HttpStatusCode.InternalServerError) },
+            { SER(EndpointType.Pages, SimulatedErrorType.ExceptionInView), Validator.PrettyInternalServerError() },
             { SER(EndpointType.Pages, SimulatedErrorType.HttpException400), Validator.SimpleHtml(HttpStatusCode.BadRequest) },
             { SER(EndpointType.Pages, SimulatedErrorType.HttpException404), Validator.SimpleHtml(HttpStatusCode.NotFound) },
+            { SER(EndpointType.Pages, SimulatedErrorType.HttpException500), Validator.PrettyInternalServerError() },
             { SER(EndpointType.Pages, SimulatedErrorType.HttpException503), Validator.SimpleHtml(HttpStatusCode.InternalServerError) },
+            { SER(EndpointType.Pages, SimulatedErrorType.HttpResponseException400), Validator.PrettyInternalServerError() },
+            { SER(EndpointType.Pages, SimulatedErrorType.HttpResponseException404), Validator.PrettyInternalServerError() },
+            { SER(EndpointType.Pages, SimulatedErrorType.HttpResponseException500), Validator.PrettyInternalServerError() },
+            { SER(EndpointType.Pages, SimulatedErrorType.HttpResponseException503), Validator.PrettyInternalServerError() },
             { SER(EndpointType.Pages, SimulatedErrorType.ReadOnlyMode), Validator.PrettyHtml(HttpStatusCode.ServiceUnavailable) },
             { SER(EndpointType.Pages, SimulatedErrorType.Result400), Validator.SimpleHtml(HttpStatusCode.BadRequest, SimulatedErrorType.Result400) },
             { SER(EndpointType.Pages, SimulatedErrorType.Result404), Validator.PrettyHtml(HttpStatusCode.NotFound) },
+            { SER(EndpointType.Pages, SimulatedErrorType.Result500), Validator.PrettyInternalServerError() },
             { SER(EndpointType.Pages, SimulatedErrorType.Result503), Validator.SimpleHtml(HttpStatusCode.ServiceUnavailable, SimulatedErrorType.Result503) },
-            { SER(EndpointType.Pages, SimulatedErrorType.ExceptionInInlineErrorPage), Validator.SimpleHtml(HttpStatusCode.InternalServerError) },
+            { SER(EndpointType.Pages, SimulatedErrorType.UserSafeException), Validator.PrettyInternalServerError() },
         };
 
         /// <summary>

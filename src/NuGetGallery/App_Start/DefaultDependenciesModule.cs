@@ -54,6 +54,7 @@ using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Infrastructure.Mail;
 using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.Infrastructure.Search.Correlation;
+using NuGetGallery.Login;
 using NuGetGallery.Security;
 using NuGetGallery.Services;
 using Role = NuGet.Services.Entities.Role;

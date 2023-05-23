@@ -59,7 +59,8 @@ namespace NuGetGallery
             PackageDeprecationStatus status,
             PackageRegistration alternateRegistration,
             Package alternatePackage,
-            bool hasCustomMessage);
+            bool hasCustomMessage,
+            bool hasChanges);
 
         void TrackPackageReadMeChangeEvent(Package package, string readMeSourceType, PackageEditReadMeState readMeState);
 
