@@ -115,6 +115,10 @@ namespace NuGetGallery
             {
                 return LoggedInRedirect(returnUrl);
             }
+            else if (_featureFlagService.IsNewAccount2FAEnforcementEnabled())
+            {
+                return Redirect(Url.LogOn(null, relativeUrl: false));
+            }
 
             return RegisterView(new LogOnViewModel());
         }
@@ -137,7 +141,7 @@ namespace NuGetGallery
             }
 
             var authenticationResult = await _authService.Authenticate(model.SignIn.UserNameOrEmail, model.SignIn.Password);
-            
+
             if (authenticationResult.Result != PasswordAuthenticationResult.AuthenticationResult.Success)
             {
                 string modelErrorMessage = string.Empty;
@@ -259,6 +263,11 @@ namespace NuGetGallery
         [HttpGet]
         public virtual ActionResult RegisterLegacy(string returnUrl)
         {
+            if (_featureFlagService.IsNewAccount2FAEnforcementEnabled())
+            {
+                return Redirect(Url.LogOn(null, relativeUrl: false));
+            }
+
             return Redirect(Url.LogOnNuGetAccount(returnUrl, relativeUrl: false));
         }
 
@@ -305,6 +314,10 @@ namespace NuGetGallery
                         result.Credential,
                         autoConfirm: (result.Credential.IsExternal() && string.Equals(result.UserInfo?.Email, model.Register.EmailAddress)),
                         enableMultiFactorAuthentication: enableMultiFactorAuthentication);
+                }
+                else if (_featureFlagService.IsNewAccount2FAEnforcementEnabled())
+                {
+                    return Redirect(Url.LogOn(null, relativeUrl: false));
                 }
                 else
                 {
