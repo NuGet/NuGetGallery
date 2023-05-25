@@ -151,7 +151,7 @@ Function Invoke-BuildStep {
         $completed = $false
 
         try {
-            Invoke-Command $Expression -ArgumentList $Arguments -ErrorVariable err
+            Invoke-Command $Expression -ArgumentList $Arguments -ErrorVariable err #DevSkim: ignore DS104456. Internal build tool called from our build scripts.
             $completed = $true
         }
         finally {
@@ -906,7 +906,7 @@ Function Install-PrivateBuildTools() {
     $commit = $env:PRIVATE_BUILD_TOOLS_COMMIT
 
     if (-Not $commit) {
-        $commit = '4b7460b2e08249e4c65307e5383dfba7fe4da8b7'
+        $commit = '4b7460b2e08249e4c65307e5383dfba7fe4da8b7' #DevSkim: ignore DS173237. Not a token/secret. It is a git commit hash.
     }
 
     if (-Not $repository) {

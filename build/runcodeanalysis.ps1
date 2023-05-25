@@ -12,9 +12,6 @@ param (
     [string]$FxCopOutputDirectory
 )
 
-# Enable TLS 1.2 since GitHub requires it.
-[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
-
 # To avoid repository dependencies, this script relies on the following assumptions:
 # - parent directory contains a single *.sln
 # - parent directory contains a build.ps1
