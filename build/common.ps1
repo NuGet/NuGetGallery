@@ -4,7 +4,14 @@ $DefaultConfiguration = 'debug'
 $NuGetClientRoot = Split-Path -Path $PSScriptRoot -Parent
 $CLIRoot = Join-Path $NuGetClientRoot 'cli'
 $PrivateRoot = Join-Path $PSScriptRoot "private"
-$DotNetExe = Join-Path $CLIRoot 'dotnet.exe'
+$DotNetExeCommand = Get-Command dotnet.exe -ErrorAction Continue
+if ($DotNetExeCommand) {
+    # prefer dotnet.exe present in build environment
+    $DotNetExe = $DotNetExeCommand.Source
+}
+else {
+    $DotNetExe = Join-Path $CLIRoot 'dotnet.exe'
+}
 $NuGetExe = Join-Path $NuGetClientRoot '.nuget\nuget.exe'
 $7zipExe = Join-Path $NuGetClientRoot 'tools\7zip\7za.exe'
 $BuiltInVsWhereExe = "${Env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
