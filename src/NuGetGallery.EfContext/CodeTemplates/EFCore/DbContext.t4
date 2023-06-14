@@ -29,7 +29,9 @@
     {
         "System",
         "System.Collections.Generic",
-        "Microsoft.EntityFrameworkCore"
+        "Microsoft.EntityFrameworkCore",
+        "NuGet.Services.Entities",
+        "NuGetGallery"
     };
 
     if (NamespaceHint != Options.ModelNamespace
@@ -65,7 +67,30 @@ public partial class <#= Options.ContextName #> : DbContext
     }
 
 <#
-    foreach (var entityType in Model.GetEntityTypes().Where(e => !e.IsSimpleManyToManyJoinEntityType()))
+    var dbSetIgnoreList = new HashSet<string>
+    {
+        "AccountDelete",
+        "CuratedFeed",
+        "CuratedPackage",
+        "ElmahError",
+        "GallerySetting",
+        "MigrationHistory",
+        "EmailMessage",
+        "Membership",
+        "MembershipRequest",
+        "Organization",
+        "OrganizationMigrationRequest",
+        "PackageAuthor",
+        "PackageDelete",
+        "PackageHistory",
+        "PackageLicense",
+        "PackageLicenseReport",
+        "PackageOwnerRequest",
+        "PackageRename",
+        "PackageType",
+        "Role",
+    };
+    foreach (var entityType in Model.GetEntityTypes().Where(e => !e.IsSimpleManyToManyJoinEntityType() && e.GetViewName() is null && !dbSetIgnoreList.Contains(e.Name)))
     {
 #>
     public virtual DbSet<<#= entityType.Name #>> <#= entityType.GetDbSetName() #> { get; set; }
@@ -107,7 +132,15 @@ public partial class <#= Options.ContextName #> : DbContext
     }
 
     StringBuilder mainEnvironment;
-    foreach (var entityType in Model.GetEntityTypes().Where(e => !e.IsSimpleManyToManyJoinEntityType()))
+    var entityInoreList = new HashSet<string>
+    {
+        "CuratedFeed",
+        "CuratedPackage",
+        "ElmahError",
+        "GallerySetting",
+        "MigrationHistory"
+    };
+    foreach (var entityType in Model.GetEntityTypes().Where(e => !e.IsSimpleManyToManyJoinEntityType() && e.GetViewName() is null && !entityInoreList.Contains(e.Name)))
     {
         // Save all previously generated code, and start generating into a new temporary environment
         mainEnvironment = GenerationEnvironment;
