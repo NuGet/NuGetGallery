@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.28516.95
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.33813.580
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{96E4AFF8-D3A1-4102-ADCF-05F186F916A9}"
 	ProjectSection(SolutionItems) = preProject
@@ -40,7 +40,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.DatabaseMigr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.DatabaseMigration.Facts", "tests\NuGet.Services.DatabaseMigration.Facts\NuGet.Services.DatabaseMigration.Facts.csproj", "{082357A1-682E-4CCC-8FCD-FA250204CDB6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Services", "src\NuGetGallery.Services\NuGetGallery.Services.csproj", "{C7D5E850-33FA-4EC5-8D7F-B1C8DD5D48F9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGetGallery.Services", "src\NuGetGallery.Services\NuGetGallery.Services.csproj", "{C7D5E850-33FA-4EC5-8D7F-B1C8DD5D48F9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AccountDeleter", "src\AccountDeleter\AccountDeleter.csproj", "{8EE102B9-DA4E-4FDF-B6FD-FB12E6584DD7}"
 EndProject
@@ -58,6 +58,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Directory.Build.props = Directory.Build.props
 		SdkProjects.props = SdkProjects.props
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGetGallery.EfContext", "src\NuGetGallery.EfContext\NuGetGallery.EfContext.csproj", "{738A3A43-89BB-4219-9114-2DBB36B47044}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -137,6 +139,10 @@ Global
 		{C0B764D2-D376-439E-A5C4-1AC41B11E9DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C0B764D2-D376-439E-A5C4-1AC41B11E9DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C0B764D2-D376-439E-A5C4-1AC41B11E9DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{738A3A43-89BB-4219-9114-2DBB36B47044}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{738A3A43-89BB-4219-9114-2DBB36B47044}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{738A3A43-89BB-4219-9114-2DBB36B47044}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{738A3A43-89BB-4219-9114-2DBB36B47044}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -160,6 +166,7 @@ Global
 		{26BB718A-E1C1-4E70-9008-FB8EE7A7F7E5} = {2204C510-A559-4ED7-9590-FDC09093575B}
 		{E50953CB-209A-484E-951D-A68F5CF3C546} = {39E54EC3-CBAA-453A-BE64-748FE1559A58}
 		{C0B764D2-D376-439E-A5C4-1AC41B11E9DE} = {2204C510-A559-4ED7-9590-FDC09093575B}
+		{738A3A43-89BB-4219-9114-2DBB36B47044} = {155100FF-524B-4CAF-93C6-A57478B3DBAD}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {064A3BDE-5203-4AD6-A6C9-5CF08301EC8F}

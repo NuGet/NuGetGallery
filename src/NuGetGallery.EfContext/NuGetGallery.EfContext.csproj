@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <RootNamespace>NuGetGallery</RootNamespace>
+    <Description>Modern EntityFramework context for use in .NET 7+.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Services.Entities\NuGet.Services.Entities.csproj" />
+  </ItemGroup>
+
+</Project>
