@@ -62,12 +62,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                         IsAADorMACredential = false
                     };
 
-                    Credential microftAccountOrAADCredentail = null;
-
-                    if (user.Credentials.GetMicrosoftAccountCredential() == null)
-                    {
-                        microftAccountOrAADCredentail = user.Credentials.GetAzureActiveDirectoryCredential();
-                    }
+                    Credential microftAccountOrAADCredentail = user.Credentials.GetMicrosoftAccountCredential() ?? user.Credentials.GetAzureActiveDirectoryCredential();
 
                     if (microftAccountOrAADCredentail != null)
                     {
