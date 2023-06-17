@@ -84,6 +84,7 @@
     <Compile Include="Authentication\TestCredentialHelper.cs" />
     <Compile Include="Extensions\CakeBuildManagerExtensionsFacts.cs" />
     <Compile Include="Helpers\PackageValidationHelperFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\ApiKeyRevokedMessageFacts.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageIdsQueryFacts.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageVersionsQueryFacts.cs" />
     <Compile Include="Queries\AutocompleteServiceQueryFacts.cs" />

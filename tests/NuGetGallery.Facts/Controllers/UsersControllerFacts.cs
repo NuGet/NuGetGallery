@@ -2221,7 +2221,7 @@ namespace NuGetGallery
             }
         }
 
-        public class TheRevokeCredentialAction : TestContainer
+        public class TheRevokeApiKeyCredentialAction : TestContainer
         {
             [Fact]
             public async Task GivenNoCredential_ErrorIsReturnedWithNoChangesMade()
@@ -2237,14 +2237,14 @@ namespace NuGetGallery
                 controller.SetCurrentUser(user);
 
                 // Act
-                var result = await controller.RevokeCredential(
+                var result = await controller.RevokeApiKeyCredential(
                     credentialType: cred.Type,
                     credentialKey: CredentialKey);
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
                 Assert.Equal(Strings.CredentialNotFound, (string)result.Data);
-                Assert.Equal(1, user.Credentials.Count);
+                Assert.Single(user.Credentials);
                 Assert.Equal(cred.Expires, user.Credentials.First().Expires);
             }
 
@@ -2270,7 +2270,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(user);
 
                 // Act
-                var result = await controller.RevokeCredential(cred.Type, cred.Key);
+                var result = await controller.RevokeApiKeyCredential(cred.Type, cred.Key);
 
                 // Assert
                 Assert.IsType<JsonResult>(result);
@@ -2281,7 +2281,7 @@ namespace NuGetGallery
                 authenticationService.Verify(x => x.DescribeCredential(It.IsAny<Credential>()), Times.Once);
             }
 
-            private CredentialViewModel GetRevokedApiKeyCredentialViewModel(string apiKeyType)
+            private static CredentialViewModel GetRevokedApiKeyCredentialViewModel(string apiKeyType)
             {
                 return new CredentialViewModel
                 {

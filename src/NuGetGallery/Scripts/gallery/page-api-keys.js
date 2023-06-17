@@ -691,10 +691,7 @@
                 for (var i in apiKeys) {
                     if (apiKeys[i].HasExpired()) {
                         if (apiKeys[i].RevocationSource()) {
-                            descriptions.push({
-                                description: apiKeys[i].Description(),
-                                revocationSource: apiKeys[i].RevocationSource()
-                            });
+                            descriptions.push(apiKeys[i].Description());
                         }
                     }
                 }

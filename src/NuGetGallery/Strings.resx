@@ -1254,4 +1254,10 @@ The {1} Team</value>
   <data name="ForgotPassword_Disabled_Error" xml:space="preserve">
     <value>Forgot password is disabled.</value>
   </data>
+  <data name="Emails_ApiKeyRevoked_Body" xml:space="preserve">
+    <value>Your API Key '{0}' revoked. If you did not request this change, please reply to this email to contact support.</value>
+  </data>
+  <data name="Emails_ApiKeyRevoked_Subject" xml:space="preserve">
+    <value>[{0}] API Key '{1}' Revoked</value>
+  </data>
 </root>

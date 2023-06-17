@@ -900,7 +900,7 @@ namespace NuGetGallery
         [HttpPost]
         [UIAuthorize]
         [ValidateAntiForgeryToken]
-        public virtual async Task<JsonResult> RevokeCredential(string credentialType, int? credentialKey)
+        public virtual async Task<JsonResult> RevokeApiKeyCredential(string credentialType, int? credentialKey)
         {
             var user = GetCurrentUser();
 
@@ -914,12 +914,15 @@ namespace NuGetGallery
                 return Json(Strings.CredentialNotFound);
             }
 
-            if (CredentialTypes.IsApiKey(credentialType))
-            {
-                await AuthenticationService.RevokeApiKeyCredential(cred, CredentialRevocationSource.User, true);
-            }
+            await AuthenticationService.RevokeApiKeyCredential(cred, CredentialRevocationSource.User);
 
             var credViewModel = AuthenticationService.DescribeCredential(cred);
+
+            var emailMessage = new ApiKeyRevokedMessage(
+                _config,
+                user,
+                credViewModel.GetCredentialTypeInfo());
+            await MessageService.SendMessageAsync(emailMessage);
 
             return Json(new ApiKeyViewModel(credViewModel));
         }
