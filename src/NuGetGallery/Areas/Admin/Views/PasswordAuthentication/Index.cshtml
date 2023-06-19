@@ -48,18 +48,20 @@
             <tr>
                 <th>AccountName</th>
                 <th>Email Address</th>
-                <th>Credential</th>
-                <th>TentendID</th>
                 <th>IsAADorMACredential</th>
+                <th>Credential Type</th>
+                <th>TentendID</th>
             </tr>
         </thead>
         <tbody data-bind="foreach: searchResults">
             <tr>
                 <td><a href="#" data-bind="text: Username, attr: { href: $parent.generateProfileUrl($data) }"></a></td>
                 <td><span data-bind="text: EmailAddress"></span></td>
-                <td><span data-bind="text: Credential.Value"></span></td>
-                <td><span data-bind="text: Credential.TenantId"></span></td>
                 <td><span data-bind="text: IsAADorMACredential"></span></td>
+                <!-- ko if: Credential -->
+                <td><span data-bind="text: Credential.Type"></span></td>
+                <td><span data-bind="text: Credential.TenantId"></span></td>
+                <!-- /ko -->
             </tr>
         </tbody>
     </table>
