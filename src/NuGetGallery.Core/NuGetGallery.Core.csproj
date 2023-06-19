@@ -48,7 +48,7 @@
       <Version>5.2.6</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Packaging">
-      <Version>6.4.0</Version>
+      <Version>6.4.2</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.FeatureFlags">
       <Version>2.106.0</Version>
