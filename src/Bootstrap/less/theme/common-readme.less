@@ -14,7 +14,9 @@
   .table {
     width: max-content;
     border: 1px solid @table-border-color;
-
+    overflow: auto;
+    display: block;
+    word-break: normal;
     th, td {
       border: 1px solid @table-border-color;
     }
@@ -45,6 +47,7 @@
     code.hljs {
       background-color: @pre-bg;
       color: #24292e; 
+      white-space: pre;
       
       .hljs-doctag,
       .hljs-keyword,

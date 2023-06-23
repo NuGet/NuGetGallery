@@ -704,6 +704,9 @@ img.reserved-indicator-icon {
   width: -moz-max-content;
   width: max-content;
   border: 1px solid #ddd;
+  overflow: auto;
+  display: block;
+  word-break: normal;
 }
 .readme-common .table th,
 .readme-common .table td {
@@ -728,6 +731,7 @@ img.reserved-indicator-icon {
 .readme-common pre code.hljs {
   background-color: #f5f5f5;
   color: #24292e;
+  white-space: pre;
 }
 .readme-common pre code.hljs .hljs-doctag,
 .readme-common pre code.hljs .hljs-keyword,

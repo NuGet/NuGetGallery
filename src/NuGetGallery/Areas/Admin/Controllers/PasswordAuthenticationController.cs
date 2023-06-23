@@ -59,15 +59,17 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     {
                         Username = user.Username,
                         EmailAddress = user.EmailAddress,
+                        IsAADorMACredential = false
                     };
-                         
-                    result.Credential = new UserCredential()
-                    {
-                        TenantId = user.Credentials.GetAzureActiveDirectoryCredential()?.TenantId,
-                        Value = user.Credentials.GetAzureActiveDirectoryCredential()?.Value,
-                        Type = user.Credentials.GetMicrosoftAccountCredential()?.Type
 
-                    };
+                    Credential microftAccountOrAADCredentail = user.Credentials.GetMicrosoftAccountCredential() ?? user.Credentials.GetAzureActiveDirectoryCredential();
+
+                    if (microftAccountOrAADCredentail != null)
+                    {
+                        result.IsAADorMACredential = true;
+                        result.Credential = GetMAorAADCredential(microftAccountOrAADCredentail);
+                    }
+
                     results.Add(result);
                 }
             }
@@ -125,6 +127,18 @@ namespace NuGetGallery.Areas.Admin.Controllers
         private async Task TrySaveEmailAddress(string emailAddress, ContentOperations operation)
         {
            await _storage.AddUserEmailAddressforPasswordAuthenticationAsync(emailAddress, operation);
+        }
+
+        private UserCredential GetMAorAADCredential(Credential microftAccountOrAADCredentail)
+        {
+            var userCredential = new UserCredential()
+            {
+                TenantId = microftAccountOrAADCredentail.TenantId,
+                Value = microftAccountOrAADCredentail.Value,
+                Type = microftAccountOrAADCredentail.Type
+            };
+
+            return userCredential;
         }
     }
 }
