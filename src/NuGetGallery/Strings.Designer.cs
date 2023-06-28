@@ -957,7 +957,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Your API Key &apos;{0}&apos; revoked. If you did not request this change, please reply to this email to contact support..
+        ///   Looks up a localized string similar to Your API Key &apos;{0}&apos; has been revoked. If you did not request this change, please reply to this email to contact support..
         /// </summary>
         public static string Emails_ApiKeyRevoked_Body {
             get {

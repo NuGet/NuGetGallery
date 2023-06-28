@@ -122,7 +122,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
         }
 
         private const string _expectedMessageBody =
-            @"Your API Key 'Api Key description' revoked. If you did not request this change, please reply to this email to contact support.";
+            @"Your API Key 'Api Key description' has been revoked. If you did not request this change, please reply to this email to contact support.";
 
         private const string _expectedMessageSubject =
             @"[NuGetGallery] API Key 'Api Key description' Revoked";
