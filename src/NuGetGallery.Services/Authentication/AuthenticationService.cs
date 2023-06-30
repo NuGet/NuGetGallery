@@ -178,7 +178,7 @@ namespace NuGetGallery.Authentication
             return FindMatchingApiKey(credential);
         }
 
-        public async Task RevokeApiKeyCredential(Credential apiKeyCredential, CredentialRevocationSource revocationSourceKey, bool commitChanges = true)
+        public virtual async Task RevokeApiKeyCredential(Credential apiKeyCredential, CredentialRevocationSource revocationSourceKey, bool commitChanges = true)
         {
             if (apiKeyCredential == null)
             {

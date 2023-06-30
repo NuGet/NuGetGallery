@@ -2221,6 +2221,78 @@ namespace NuGetGallery
             }
         }
 
+        public class TheRevokeApiKeyCredentialAction : TestContainer
+        {
+            [Fact]
+            public async Task GivenNoCredential_ErrorIsReturnedWithNoChangesMade()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+
+                var user = fakes.CreateUser("test",
+                    new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1), out string plaintextApiKey));
+                var cred = user.Credentials.First();
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.RevokeApiKeyCredential(
+                    credentialType: cred.Type,
+                    credentialKey: CredentialKey);
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
+                Assert.Equal(Strings.CredentialNotFound, (string)result.Data);
+                Assert.Single(user.Credentials);
+                Assert.Equal(cred.Expires, user.Credentials.First().Expires);
+            }
+
+            [Fact]
+            public async Task GivenValidRequest_ItRevokesCredential()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+
+                var user = fakes.CreateUser("test",
+                    new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1), out string plaintextApiKey));
+                var cred = user.Credentials.First();
+
+                var authenticationService = GetMock<AuthenticationService>();
+
+                authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()))
+                    .Returns(Task.FromResult(0));
+
+                authenticationService.Setup(x => x.DescribeCredential(It.IsAny<Credential>()))
+                    .Returns(GetRevokedApiKeyCredentialViewModel(cred.Type));
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.RevokeApiKeyCredential(cred.Type, cred.Key);
+
+                // Assert
+                Assert.IsType<JsonResult>(result);
+                var credentialViewModel = Assert.IsType<ApiKeyViewModel>(result.Data);
+                Assert.True(credentialViewModel.HasExpired);
+
+                authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()), Times.Once);
+                authenticationService.Verify(x => x.DescribeCredential(It.IsAny<Credential>()), Times.Once);
+            }
+
+            private static CredentialViewModel GetRevokedApiKeyCredentialViewModel(string apiKeyType)
+            {
+                return new CredentialViewModel
+                {
+                    Type = apiKeyType,
+                    RevocationSource = CredentialRevocationSource.User.ToString(),
+                    HasExpired = true,
+                    Scopes = new List<ScopeViewModel>(),
+                };
+            }
+        }
+
         public class TheEditCredentialAction : TestContainer
         {
             public static IEnumerable<object[]> GivenANonApiKeyV2Credential_ReturnsUnsupported_Input

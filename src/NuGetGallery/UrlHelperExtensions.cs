@@ -1460,6 +1460,11 @@ namespace NuGetGallery
             return GetActionLink(url, "RemoveCredential", "Users", relativeUrl);
         }
 
+        public static string RevokeApiKeyCredential(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url, "RevokeApiKeyCredential", "Users", relativeUrl);
+        }
+
         public static string RegenerateCredential(this UrlHelper url, bool relativeUrl = true)
         {
             return GetActionLink(url, "RegenerateCredential", "Users", relativeUrl);

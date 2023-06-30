@@ -957,6 +957,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Your API Key &apos;{0}&apos; has been revoked. If you did not request this change, please reply to this email to contact support..
+        /// </summary>
+        public static string Emails_ApiKeyRevoked_Body {
+            get {
+                return ResourceManager.GetString("Emails_ApiKeyRevoked_Body", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [{0}] API Key &apos;{1}&apos; Revoked.
+        /// </summary>
+        public static string Emails_ApiKeyRevoked_Subject {
+            get {
+                return ResourceManager.GetString("Emails_ApiKeyRevoked_Subject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A {0} was added to your account and can now be used to sign in. If you did not request this change, please reply to this email to contact support..
         /// </summary>
         public static string Emails_CredentialAdded_Body {
