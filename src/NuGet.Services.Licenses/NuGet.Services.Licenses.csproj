@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="NuGet.Packaging">
-      <Version>6.0.0</Version>
+      <Version>6.4.2</Version>
     </PackageReference>
   </ItemGroup>
 
