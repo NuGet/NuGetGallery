@@ -62,7 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NuGet.Jobs.Common">
-      <Version>4.3.0-dev-5590084</Version>
+      <Version>4.3.0-dev-8079991</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

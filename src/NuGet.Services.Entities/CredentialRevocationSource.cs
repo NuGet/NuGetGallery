@@ -4,7 +4,7 @@
 namespace NuGet.Services.Entities
 {
     /// <summary>
-    /// Specify the source about where the credential is leaked
+    /// Specify the source about where the credential is revoked
     /// </summary>
     public enum CredentialRevocationSource
     {
@@ -12,5 +12,10 @@ namespace NuGet.Services.Entities
         /// Indicate the credential is leaked and revoked by GitHub.
         /// </summary>
         GitHub = 0,
+
+        /// <summary>
+        /// Indicate the credential is revoked by User.
+        /// </summary>
+        User = 1,
     }
 }
