@@ -35,7 +35,41 @@ namespace NuGetGallery
         // Shorthand for current url
         public static string Current(this UrlHelper url)
         {
-            return url.RequestContext.HttpContext.Request.RawUrl;
+            string finalUrl = null;
+            string nextPart = url.RequestContext.HttpContext.Request.RawUrl;
+            string temp = null;
+
+            int i = 0;
+            do
+            {
+                finalUrl += nextPart[i];
+                i++;
+            }
+            while (i < nextPart.Length && nextPart[i] != '?');
+
+            while (i < nextPart.Length)
+            {
+                temp += nextPart[i];
+
+                if (nextPart[i] == '&' && nextPart[i-1] == '=')
+                {
+                    temp = null;
+                }
+                else if (nextPart[i] == '&')
+                {
+                    finalUrl += temp;
+                    temp = null;
+                }
+
+                i++;
+            }
+
+            if (temp != null)
+            {
+                finalUrl += temp;
+            }
+
+            return finalUrl;
         }
 
         public static string Absolute(this UrlHelper url, string path)
@@ -81,7 +115,48 @@ namespace NuGetGallery
             builder.Scheme = siteRoot.Scheme;
             builder.Host = siteRoot.Host;
             builder.Port = siteRoot.Port;
-            return builder.Uri.AbsoluteUri;
+            var canonicalUrl = CleanUpCanonicalUrl(builder.Uri.AbsoluteUri);
+            return canonicalUrl;
+        }
+
+        private static string CleanUpCanonicalUrl(string url)
+        {
+
+            string finalUrl = null;
+            string nextPart = url;
+            string temp = null;
+
+            int i = 0;
+            do
+            {
+                finalUrl += nextPart[i];
+                i++;
+            }
+            while (i < nextPart.Length && nextPart[i] != '?');
+
+            while (i < nextPart.Length)
+            {
+                temp += nextPart[i];
+
+                if (nextPart[i] == '&' && nextPart[i - 1] == '=')
+                {
+                    temp = null;
+                }
+                else if (nextPart[i] == '&')
+                {
+                    finalUrl += temp;
+                    temp = null;
+                }
+
+                i++;
+            }
+
+            if (temp != null)
+            {
+                finalUrl += temp;
+            }
+
+            return finalUrl;
         }
 
         private static string GetConfiguredSiteHostName()
@@ -1620,14 +1695,17 @@ namespace NuGetGallery
 
             var actionLink = url.Action(actionName, controllerName, routeValues, protocol, hostName);
 
+           
+
             if (relativeUrl)
             {
-                return GetRelativeUrl(
+                var url1 =  GetRelativeUrl(
                     actionLink,
                     protocol,
                     hostName,
                     url.RequestContext.HttpContext.Request.Url.Port,
                     url.RequestContext.HttpContext.Request.Url.IsDefaultPort);
+                return url1;
             }
 
             return actionLink;
