@@ -138,6 +138,7 @@ namespace NuGet.Services.AzureSearch
 
             public bool Disposed { get; private set; }
 
+            public bool HasChanges => throw new NotImplementedException();
 
             public void DeleteOnCommit<T>(T entity) where T : class
             {
