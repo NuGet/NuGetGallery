@@ -84,24 +84,27 @@ $(function() {
             storage.setItem(focusResultsColumnKey, true);
         }
 
-        //if (!allFrameworks.values) {
-       //     allFrameworks.names = "";
-        //}
-
-        //delete name
         var frameworkName = document.getElementById('frameworks');
         frameworkName.name = "";
-        //for each framework
         allFrameworks.forEach(function (framework) {
             if (framework.checked) {
                 frameworkName.name = "frameworks";
             }
         });
-            //if checked
-            //add name and break
 
-        
+        var tfmName = document.getElementById('tfms');
+        tfmName.name = "";
+        allTfms.forEach(function (tfm) {
+            if (tfm.checked) {
+                tfmName.name = "tfms";
+            }
+        });
 
+        var fieldset = document.getElementById('packagetype');
+        var specificElement = fieldset.querySelector('input[type="radio"][value=""]');
+        if (specificElement.checked) {
+            specificElement.name = "";
+        }
 
         searchForm.submit();
     }
