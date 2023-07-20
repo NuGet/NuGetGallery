@@ -100,10 +100,10 @@ $(function() {
             }
         });
 
-        var fieldset = document.getElementById('packagetype');
-        var specificElement = fieldset.querySelector('input[type="radio"][value=""]');
-        if (specificElement.checked) {
-            specificElement.name = "";
+        var packageTypes = document.getElementById('packagetype');
+        var allPackages = packageTypes.querySelector('input[value=""]');
+        if (allPackages.checked) {
+            allPackages.name = "";
         }
 
         searchForm.submit();
