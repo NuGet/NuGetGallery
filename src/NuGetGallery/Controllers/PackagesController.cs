@@ -1264,7 +1264,7 @@ namespace NuGetGallery
             var isFrameworkFilteringEnabled = _featureFlagService.IsFrameworkFilteringEnabled(GetCurrentUser());
 
             // If advanced search is disabled, use the default experience
-            if (!isAdvancedSearchFlightEnabled || !searchService.SupportsAdvancedSearch)
+            if ((!isAdvancedSearchFlightEnabled || !searchService.SupportsAdvancedSearch) && false)
             {
                 searchAndListModel.SortBy = GalleryConstants.SearchSortNames.Relevance;
                 searchAndListModel.Frameworks = string.Empty;
@@ -1367,6 +1367,9 @@ namespace NuGetGallery
             // If the experience hasn't been cached, it means it's not the default experienced, therefore, show the panel
             viewModel.IsAdvancedSearchFlightEnabled = searchService.SupportsAdvancedSearch && isAdvancedSearchFlightEnabled;
             viewModel.IsFrameworkFilteringEnabled = isFrameworkFilteringEnabled;
+
+            viewModel.IsAdvancedSearchFlightEnabled = true;
+            viewModel.IsFrameworkFilteringEnabled = true;
 
             ViewBag.SearchTerm = q;
 
