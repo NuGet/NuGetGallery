@@ -84,19 +84,19 @@ $(function() {
             storage.setItem(focusResultsColumnKey, true);
         }
 
-        var frameworkName = document.getElementById('frameworks');
-        frameworkName.name = "";
+        var frameworks = document.getElementById('frameworks');
+        frameworks.name = "";
         allFrameworks.forEach(function (framework) {
             if (framework.checked) {
-                frameworkName.name = "frameworks";
+                frameworks.name = "frameworks";
             }
         });
 
-        var tfmName = document.getElementById('tfms');
-        tfmName.name = "";
+        var tfms = document.getElementById('tfms');
+        tfms.name = "";
         allTfms.forEach(function (tfm) {
             if (tfm.checked) {
-                tfmName.name = "tfms";
+                tfms.name = "tfms";
             }
         });
 
