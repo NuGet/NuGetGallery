@@ -84,6 +84,28 @@ $(function() {
             storage.setItem(focusResultsColumnKey, true);
         }
 
+        var frameworks = document.getElementById('frameworks');
+        frameworks.name = "";
+        allFrameworks.forEach(function (framework) {
+            if (framework.checked) {
+                frameworks.name = "frameworks";
+            }
+        });
+
+        var tfms = document.getElementById('tfms');
+        tfms.name = "";
+        allTfms.forEach(function (tfm) {
+            if (tfm.checked) {
+                tfms.name = "tfms";
+            }
+        });
+
+        var packageTypes = document.getElementById('packagetype');
+        var allPackages = packageTypes.querySelector('input[value=""]');
+        if (allPackages.checked) {
+            allPackages.name = "";
+        }
+
         searchForm.submit();
     }
 
