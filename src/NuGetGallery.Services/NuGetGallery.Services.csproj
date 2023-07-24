@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <Import Project="..\..\SdkProjects.props" />
 
@@ -61,7 +61,7 @@
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <PackageReference Include="Microsoft.AspNet.Mvc">
-      <Version>5.2.3</Version>
+      <Version>5.2.9</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation">
       <Version>1.0.0</Version>
