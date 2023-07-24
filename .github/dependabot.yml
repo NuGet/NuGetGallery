@@ -9,7 +9,6 @@ registries:
   nuget-azure-devops:
     type: nuget-feed
     url: https://pkgs.dev.azure.com/dnceng/public/_packaging/nuget-build/nuget/v3/index.json
-    token: ${{secrets.ADO_FEEDPAT}}
 
 updates:
   - package-ecosystem: nuget
@@ -21,6 +20,7 @@ updates:
     open-pull-requests-limit: 10
     assignees:
       - nuget/gallery-team
+    target-branch: "dev"
 
   - package-ecosystem: gitsubmodule
     directory: "/"
