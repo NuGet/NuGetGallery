@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <Import Project="..\..\SdkProjects.props" />
 
@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="NuGet.Frameworks" Version="6.4.2" />
+    <PackageReference Include="NuGet.Frameworks" Version="6.6.1" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
     <!-- This was lifted to a top-level dependency to resolve a Component Governance alert. -->
     <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
