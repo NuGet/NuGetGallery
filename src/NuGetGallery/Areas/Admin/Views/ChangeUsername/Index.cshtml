@@ -1,0 +1,120 @@
+﻿
+@{
+    ViewBag.Title = "ChangeUsername";
+}
+
+
+<section role="main" class="container main-container">
+
+    <div>
+        <h2>Verify account</h2>
+
+        <i>Verify that the requester is a valid owner of the account.</i><br />
+
+        <input type="text" placeholder="Account username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="value: accountEmailOrUsername" />
+        <button type="submit" data-bind="click: verifyAccount">Verify</button>
+
+        <div style="display:none" data-bind="visible: errorAccount">
+            @ViewHelpers.AlertDanger(@<text><span data-bind="text: errorAccount"></span></text>)
+        </div>
+
+        <div style="display: none" data-bind="visible: doneVerifyAccount() && !errorAccount()">
+            <h3 data-bind="text: accountAdministrators().length > 0 ? organizationAccountMessage : individualAccountMessage"></h3>
+            <table class="table" id="change-username-account" aria-label="account">
+                <thead>
+                    <tr>
+                        <th>Profile</th>
+                        <th>Email Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><a href="#" data-bind="text: account.Username, attr: { href: generateProfileUrl(account.Username) }"></a></td>
+                        <td><span data-bind="text: account.EmailAddress"></span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Account administrators</h3>
+
+            <table class="table" id="accountAdministrators" style="display: none" data-bind="visible: accountAdministrators().length > 0" aria-label="account administrators">
+                <thead>
+                    <tr>
+                        <th>Profile</th>
+                        <th>Email Address</th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach: accountAdministrators">
+                    <tr>
+                        <td><a href="#" data-bind="text: Username, attr: { href: $parent.generateProfileUrl($data) }"></a></td>
+                        <td><span data-bind="text: EmailAddress"></span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+</section>
+
+<section>
+    Update username
+</section>
+
+@section BottomScripts {
+    <script>
+        $(document).ready(function () {
+            var viewModel = function () {
+                var $self = this;
+                this.individualAccountMessage = "This is an individual account.";
+                this.organizationAccountMessage = "This is an organization account.";
+
+                this.accountEmailOrUsername = ko.observable('');
+                this.account = {
+                    Username: ko.observable(''),
+                    EmailAddress: ko.observable('')
+                }
+                this.accountAdministrators = ko.observableArray([]);
+                this.doneVerifyAccount = ko.observable(false);
+                this.errorAccount = ko.observable('');
+                var actionUrlVerifyAccount = '@Url.Action("VerifyAccount", "ChangeUsername", new {area = "Admin"})';
+
+                this.verifyAccount = function () {
+                    $self.doneVerifyAccount(false);
+                    $self.accountAdministrators.removeAll();
+                    $self.errorAccount('');
+
+                    var queryParams = '?accountEmailOrUsername=' + encodeURIComponent($self.accountEmailOrUsername().trim());
+
+                    $.ajax({
+                        url: actionUrlVerifyAccount + queryParams,
+                        cache: false,
+                        dataType: 'json',
+                        success: function (data) {
+                            $self.account.Username(data.Account.Username);
+                            $self.account.EmailAddress(data.Account.EmailAddress);
+                            $self.accountAdministrators(data.Administrators);
+                        }
+                    })
+                    .fail(function (jqXhr, textStatus, errorThrown) {
+                        if (jqXhr && jqXhr.status === 404) {
+                            $self.errorAccount('Account not found.');
+                        }
+                        else {
+                            alert("Error: " + errorThrown);
+                        }
+                    })
+                        .always(function () {
+                            $self.doneVerifyAccount(true);
+                        });
+                };
+
+                this.generateProfileUrl = function (u) {
+                    return '/profiles/' + u.Username;
+                };
+            }
+
+            ko.applyBindings(new viewModel(), $('.main-container').get(0));
+        });
+    </script>
+}

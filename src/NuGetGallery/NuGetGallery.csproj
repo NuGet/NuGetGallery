@@ -147,6 +147,7 @@
     <Compile Include="Areas\Admin\Controllers\SupportRequestController.cs" />
     <Compile Include="Areas\Admin\Controllers\PackageOwnershipController.cs" />
     <Compile Include="Areas\Admin\Controllers\UpdateListedController.cs" />
+    <Compile Include="Areas\Admin\Controllers\ChangeUsernameController.cs" />
     <Compile Include="Areas\Admin\Controllers\ValidationController.cs" />
     <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Url_Edit.ascx.cs">
       <DependentUpon>Url_Edit.ascx</DependentUpon>
@@ -178,6 +179,7 @@
     <Compile Include="Areas\Admin\Models\DeletedStatus.cs" />
     <Compile Include="Areas\Admin\Migrations\SupportRequestMigrationsConfiguration.cs" />
     <Compile Include="Areas\Admin\Models\RevokeApiKeysRequest.cs" />
+    <Compile Include="Areas\Admin\Models\ValidateAccountResult.cs" />
     <Compile Include="Areas\Admin\Services\RevalidationAdminService.cs" />
     <Compile Include="Areas\Admin\Services\ValidationAdminService.cs" />
     <Compile Include="Areas\Admin\ViewModels\ExceptionEmailListViewModel.cs" />
@@ -2321,6 +2323,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Areas\Admin\Views\PasswordAuthentication\Index.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Areas\Admin\Views\ChangeUsername\Index.cshtml" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
