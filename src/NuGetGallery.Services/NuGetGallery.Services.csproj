@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <Import Project="..\..\SdkProjects.props" />
 
@@ -85,7 +85,7 @@
       <Version>4.2.2</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Protocol">
-      <Version>6.4.2</Version>
+      <Version>6.6.1</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Configuration">
       <Version>2.109.0</Version>
