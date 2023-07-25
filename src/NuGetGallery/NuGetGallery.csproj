@@ -2208,7 +2208,7 @@
       <Version>5.2.3</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNet.WebHelpers">
-      <Version>3.2.3</Version>
+      <Version>3.2.9</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNet.WebPages">
       <Version>3.2.3</Version>
