@@ -137,4 +137,30 @@
       text-align: right;
     }
   }
+
+  @media (min-width: @screen-sm) {
+    .advanced-search-panel{
+      position: relative;
+      top: 0;
+    }
+  }
+/*
+  @media (max-width: 992px){
+    .advanced-search-panel{
+      display: none;
+    }
+  }*/
+
+  .toggle-button {
+    display: block; // Initially hidden
+    cursor: pointer;
+    /* Your styles for the toggle button, e.g., background color, padding, etc. */
+    background-color: rgb(90, 135, 220);
+  
+    // Show the toggle button only on small screens
+    @media (max-width: 992px) {
+      display: block;
+    }
+  }
+  
 }

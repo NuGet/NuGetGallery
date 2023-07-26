@@ -52,6 +52,65 @@ $(function() {
         collapsible.addEventListener('click', toggleCollapsible);
     }
 
+
+
+
+
+
+    // Define the breakpoint for small screens
+    const smallScreenBreakpoint = 992; // You can adjust this value as needed
+
+    // Function to create the toggle button
+    function createToggleButton() {
+        // Check if the screen width is small
+        if (window.innerWidth <= smallScreenBreakpoint && !document.getElementById('advancedSearchToggleButton')) {
+            // Create the toggle button element dynamically
+            const toggleButton = document.createElement('div');
+            toggleButton.className = 'toggle-button';
+            toggleButton.id = 'advancedSearchToggleButton'
+            toggleButton.textContent = 'Toggle Filters';
+            const theButton = document.createElement('button');
+            theButton.innerHTML = 'Click Me';
+            toggleButton.appendChild(theButton);
+
+            // Get the container element that wraps the filters content
+            const filtersContainer = document.getElementById('advancedSearchPanel');
+
+            //filtersContainer.appendChild(toggleButton);
+
+            // Insert the toggle button as the first child of the container
+            filtersContainer.insertBefore(toggleButton, filtersContainer.firstChild);
+
+            // Add the event listener to the toggle button
+            toggleButton.addEventListener('click', toggleFilters);
+        }
+    }
+
+    // Call the function on page load
+    window.addEventListener('load', createToggleButton);
+
+    
+    function toggleFilters() {
+        const filtersContent = document.getElementById('advancedSearchPanel');
+
+        // Check if the screen width is small
+        //if (window.innerWidth <= smallScreenBreakpoint) {
+        //    filtersContent.style.display = (filtersContent.style.display === 'none') ? 'block' : 'none';
+        //}
+    }
+
+    // Call the function on window resize to handle changes in screen size
+    window.addEventListener('resize', createToggleButton);
+
+
+
+
+
+
+
+
+
+
     function toggleCollapsible() {
         var dataTab = document.getElementById(this.getAttribute('tab') + 'tab');
         var expandButton = document.getElementById(this.getAttribute('tab') + 'button');
@@ -96,7 +155,7 @@ $(function() {
         tfms.name = "";
         allTfms.forEach(function (tfm) {
             if (tfm.checked) {
-                tfms.name = "tfms";
+                tfm.name = "tfms";
             }
         });
 
