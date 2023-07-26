@@ -63,7 +63,7 @@ $(function() {
     // Function to create the toggle button
     function createToggleButton() {
         // Check if the screen width is small
-        if (window.innerWidth <= smallScreenBreakpoint && !document.getElementById('advancedSearchToggleButton')) {
+        //if (window.innerWidth <= smallScreenBreakpoint && !document.getElementById('advancedSearchToggleButton')) {
             // Create the toggle button element dynamically
             const toggleButton = document.createElement('div');
             toggleButton.className = 'toggle-button';
@@ -83,12 +83,23 @@ $(function() {
 
             // Add the event listener to the toggle button
             toggleButton.addEventListener('click', toggleFilters);
+        //}
+        if (window.innerWidth > smallScreenBreakpoint) {
+            toggleButton.style.display = 'none';
         }
     }
 
     // Call the function on page load
     window.addEventListener('load', createToggleButton);
 
+    function toggleCollapsibleFiltersButton() {
+        if (window.innerWidth > smallScreenBreakpoint) {
+            toggleButton.style.display = 'none';
+        }
+        else {
+            toggleButton.style.display = 'block';
+        }
+    }
     
     function toggleFilters() {
         const filtersContent = document.getElementById('advancedSearchPanel');
@@ -100,7 +111,7 @@ $(function() {
     }
 
     // Call the function on window resize to handle changes in screen size
-    window.addEventListener('resize', createToggleButton);
+    window.addEventListener('resize', toggleCollapsibleFiltersButton);
 
 
 
