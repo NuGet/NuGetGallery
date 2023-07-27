@@ -142,6 +142,7 @@
     .advanced-search-panel{
       position: relative;
       top: 0;
+      margin-top: 0px;
     }
   }
 /*
@@ -152,14 +153,19 @@
   }*/
 
   .toggle-button {
-    display: block; // Initially hidden
+    display: none; // Initially hidden
     cursor: pointer;
+    margin-top: 30px;
     /* Your styles for the toggle button, e.g., background color, padding, etc. */
-    background-color: rgb(90, 135, 220);
-  
-    // Show the toggle button only on small screens
-    @media (max-width: 992px) {
+    background-color: rgb(90, 135, 220);    
+  }
+
+  @media (max-width: 992px) {
+    .toggle-button{
       display: block;
+    }
+    .advanced-search-panel{
+      display: none;
     }
   }
   
