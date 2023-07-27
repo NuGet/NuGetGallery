@@ -1,0 +1,33 @@
+# To get started with Dependabot version updates, you'll need to specify which
+# package ecosystems to update and where the package manifests are located.
+# Please see the documentation for all configuration options:
+# https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+
+version: 2
+
+registries:
+  nuget-azure-devops:
+    type: nuget-feed
+    url: https://pkgs.dev.azure.com/dnceng/public/_packaging/nuget-build/nuget/v3/index.json
+
+updates:
+  - package-ecosystem: nuget
+    directory: "/"
+    schedule:
+      interval: monthly
+    registries:
+      - nuget-azure-devops
+    open-pull-requests-limit: 10
+    assignees:
+      - nuget/gallery-team
+    target-branch: "dev"
+
+  - package-ecosystem: gitsubmodule
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: '07:00'
+    open-pull-requests-limit: 10
+    assignees:
+    - nuget/gallery-team

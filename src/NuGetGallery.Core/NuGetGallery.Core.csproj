@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <Import Project="..\..\SdkProjects.props" />
 
@@ -43,7 +43,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="EntityFramework" Version="6.4.0-preview3-19553-01" />
+    <PackageReference Include="EntityFramework" Version="6.4.4" />
     <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory">
       <Version>5.2.6</Version>
     </PackageReference>
@@ -75,7 +75,7 @@
       <Version>5.8.4</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.WindowsAzure.ConfigurationManager">
-      <Version>3.1.0</Version>
+      <Version>3.2.3</Version>
     </PackageReference>
   </ItemGroup>
   
