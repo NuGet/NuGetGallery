@@ -65,6 +65,7 @@
     <Compile Include="App_Start\RuntimeServiceProviderTests.cs" />
     <Compile Include="Areas\Admin\Controllers\AdminControllerBaseFacts.cs" />
     <Compile Include="Areas\Admin\Controllers\ApiKeysControllerFacts.cs" />
+    <Compile Include="Areas\Admin\Controllers\ChangeUsernameControllerFacts.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteAccountControllerFacts.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteControllerFacts.cs" />
     <Compile Include="Areas\Admin\Controllers\LockPackageControllerFacts.cs" />
