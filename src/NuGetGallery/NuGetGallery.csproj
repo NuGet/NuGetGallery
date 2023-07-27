@@ -2217,7 +2217,7 @@
       <Version>3.2.3</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNet.WebPages.WebData">
-      <Version>3.2.3</Version>
+      <Version>3.2.9</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Cryptography.Internal">
       <Version>1.0.0</Version>
