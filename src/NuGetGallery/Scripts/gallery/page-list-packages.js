@@ -53,44 +53,35 @@ $(function() {
     }
 
 
+
     const advancedSearchToggleButton = document.getElementById('advancedSearchToggleButton');
     advancedSearchToggleButton.addEventListener('click', toggleAdvancedSearchPanel);
-
-
-    
-   /* function toggleFilters() {
-        const filtersContent = document.getElementById('advancedSearchPanel');
-
-        // Check if the screen width is small
-        //if (window.innerWidth <= smallScreenBreakpoint) {
-        //    filtersContent.style.display = (filtersContent.style.display === 'none') ? 'block' : 'none';
-        //}
-    }*/
-
+    var resized = false;
+    var initialScreenSize = window.innerWidth;
 
     /* For narrow screens only */
     function toggleAdvancedSearchPanel() {
 
         var filtersContent = document.getElementById('advancedSearchPanel');
         var computedStyle = window.getComputedStyle(filtersContent);
-        console.log(filtersContent.style.display);
-        if (window.innerWidth <= 992) {
+
+        if (window.innerWidth <= 992 && !resized) {
             filtersContent.style.display = (computedStyle.display === 'none') ? 'block' : 'none';
         }
-    }
-
-    function enablePanelAfterResize() {
-        var filtersContent = document.getElementById('advancedSearchPanel');
-        if (window.innerWidth > 992) {
-            filtersContent.style.display = 'block';
-        } else {
+        else if (window.innerWidth <= 992 && initialScreenSize > 992 && resized) {
             filtersContent.style.display = 'none';
         }
+        else if (window.innerWidth > 992) {
+            filtersContent.style.display = 'block';
+        }
+
+        initialScreenSize = window.innerWidth;
+        resized = false;
     }
 
     window.addEventListener('resize', () => {
+        resized = true;
         toggleAdvancedSearchPanel();
-        enablePanelAfterResize(); // Call the toggleFilters function on window resize
     });
 
 
