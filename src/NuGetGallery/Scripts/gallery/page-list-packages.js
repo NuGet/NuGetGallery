@@ -71,21 +71,27 @@ $(function() {
     /* For narrow screens only */
     function toggleAdvancedSearchPanel() {
 
-        const filtersContent = document.getElementById('advancedSearchPanel');
+        var filtersContent = document.getElementById('advancedSearchPanel');
+        var computedStyle = window.getComputedStyle(filtersContent);
         console.log(filtersContent.style.display);
         if (window.innerWidth <= 992) {
-            if (filtersContent.style.display == 'none') {
-                filtersContent.style.display = 'block';
-            }
-            else if (filtersContent.style.display == 'block') {
-                filtersContent.style.display = 'block';
-            }
-            else {
-                console.log(filtersContent.style.display);
-            }
-            //filtersContent.style.display = (filtersContent.style.display === 'none') ? 'block' : 'none';
+            filtersContent.style.display = (computedStyle.display === 'none') ? 'block' : 'none';
         }
     }
+
+    function enablePanelAfterResize() {
+        var filtersContent = document.getElementById('advancedSearchPanel');
+        if (window.innerWidth > 992) {
+            filtersContent.style.display = 'block';
+        } else {
+            filtersContent.style.display = 'none';
+        }
+    }
+
+    window.addEventListener('resize', () => {
+        toggleAdvancedSearchPanel();
+        enablePanelAfterResize(); // Call the toggleFilters function on window resize
+    });
 
 
 
