@@ -3,6 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
 using NuGetGallery.Areas.Admin.Models;
@@ -12,39 +15,46 @@ namespace NuGetGallery.Areas.Admin.Controllers
     public class ChangeUsernameController : AdminControllerBase
     {
         private readonly IUserService _userService;
+        private readonly IEntityRepository<User> _userRepository;
+        private readonly IEntitiesContext _entitiesContext;
+        private readonly IDateTimeProvider _dateTimeProvider;
 
-        public ChangeUsernameController(IUserService userService)
+        private readonly Regex UsernameValidationRegex = new Regex(GalleryConstants.UsernameValidationRegex);
+
+        public ChangeUsernameController(
+            IUserService userService, 
+            IEntityRepository<User> userRepository,
+            IEntitiesContext entitiesContext,
+            IDateTimeProvider dateTimeProvider)
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
+            _dateTimeProvider = dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider));
         }
 
         [HttpGet]
-        public virtual ActionResult Index()
+        public ActionResult Index()
         {
             return View();
         }
 
         [HttpGet]
-        public virtual ActionResult VerifyAccount(string accountEmailOrUsername)
+        public ActionResult VerifyAccount(string accountEmailOrUsername)
         {
             if (string.IsNullOrEmpty(accountEmailOrUsername))
             {
-                return HttpNotFound();
+                return Json(HttpStatusCode.BadRequest, "Email or username cannot be null or empty.", JsonRequestBehavior.AllowGet);
             }
 
             var result = new ValidateAccountResult();
             result.Administrators = new List<ValidateAccount>();
 
-            var account = _userService.FindByUsername(accountEmailOrUsername);
+            var account = _userService.FindByUsername(accountEmailOrUsername) ?? _userService.FindByEmailAddress(accountEmailOrUsername);
 
-            if (account is null)
+            if (account == null)
             {
-                account = _userService.FindByEmailAddress(accountEmailOrUsername);
-
-                if(account is null)
-                {
-                    return HttpNotFound();
-                }
+                return Json(HttpStatusCode.NotFound, "Account was not found.", JsonRequestBehavior.AllowGet);
             }
 
             result.Account = new ValidateAccount() { Username = account.Username, EmailAddress = account.EmailAddress };
@@ -62,14 +72,69 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpGet]
-        public virtual ActionResult ValidateNewUsername(string newUsername)
+        public ActionResult ValidateNewUsername(string newUsername)
         {
-            var validationResult = new ValidateAccountResult();
+            if (string.IsNullOrEmpty(newUsername))
+            {
+                return Json(HttpStatusCode.BadRequest, "Username cannot be null or empty.", JsonRequestBehavior.AllowGet);
+            }
 
-            var newUser = _userService.FindByUsername(newUsername);
+            var result = ValidateUsername(newUsername);
 
+            return Json(result, JsonRequestBehavior.AllowGet);
+        }
 
-            return Json(validationResult, JsonRequestBehavior.AllowGet);
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> ChangeUsername(string oldUsername, string newUsername)
+        {
+            if (string.IsNullOrEmpty(oldUsername))
+            {
+                return Json(HttpStatusCode.BadRequest, "Old username cannot be null or empty.", JsonRequestBehavior.AllowGet);
+            }
+
+            if (string.IsNullOrEmpty(newUsername))
+            {
+                return Json(HttpStatusCode.BadRequest, "New username cannot be null or empty.", JsonRequestBehavior.AllowGet);
+            }
+
+            var account = _userService.FindByUsername(oldUsername);
+
+            if (account == null)
+            {
+                return Json(HttpStatusCode.NotFound, "Old username account was not found.", JsonRequestBehavior.AllowGet);
+            }
+
+            var newUsernameValidation = ValidateUsername(newUsername);
+
+            if(!newUsernameValidation.IsFormatValid || !newUsernameValidation.IsAvailable)
+            {
+                return Json(HttpStatusCode.BadRequest, "New username validation failed.", JsonRequestBehavior.AllowGet);
+            }
+
+            var newAccountForOldUsername = new User()
+            {
+                Username = account.Username,
+                EmailAllowed = false,
+                IsDeleted = true,
+                CreatedUtc = _dateTimeProvider.UtcNow
+            };
+
+            account.Username = newUsername;
+
+            _userRepository.InsertOnCommit(newAccountForOldUsername);
+            await _entitiesContext.SaveChangesAsync();
+
+            return Json(HttpStatusCode.OK, "Account renamed successfully!.", JsonRequestBehavior.AllowGet);
+        }
+
+        private ValidateUsernameResult ValidateUsername(string username)
+        {
+            var result = new ValidateUsernameResult();
+            result.IsFormatValid = UsernameValidationRegex.IsMatch(username);
+            result.IsAvailable = _userService.FindByUsername(username, includeDeleted: true) == null;
+
+            return result;
         }
     }
 }
