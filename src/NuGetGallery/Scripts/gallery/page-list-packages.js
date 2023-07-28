@@ -54,10 +54,13 @@ $(function() {
 
 
 
-    const advancedSearchToggleButton = document.getElementById('advancedSearchToggleButton');
+    const advancedSearchToggleButton = document.getElementById('chevronButtonAdvancedSearch');
     advancedSearchToggleButton.addEventListener('click', toggleAdvancedSearchPanel);
     var resized = false;
     var initialScreenSize = window.innerWidth;
+    var chevronish = document.getElementById('pleaseWork');
+    const chevronIcon = document.getElementById('pleaseWork');
+
 
     /* For narrow screens only */
     function toggleAdvancedSearchPanel() {
@@ -67,6 +70,8 @@ $(function() {
 
         if (window.innerWidth <= 992 && !resized) {
             filtersContent.style.display = (computedStyle.display === 'none') ? 'block' : 'none';
+            chevronIcon.classList.toggle('ms-Icon--ChevronDown');
+            chevronIcon.classList.toggle('ms-Icon--ChevronUp');
         }
         else if (window.innerWidth <= 992 && initialScreenSize > 992 && resized) {
             filtersContent.style.display = 'none';
@@ -81,7 +86,7 @@ $(function() {
 
     window.addEventListener('resize', () => {
         resized = true;
-        toggleAdvancedSearchPanel();
+        toggleAdvancedSearchPanel(); 
     });
 
 

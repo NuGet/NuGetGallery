@@ -146,19 +146,32 @@
       display: block;
     }
   }
-/*
-  @media (max-width: 992px){
+
+  @media (max-width: @screen-sm){
     .advanced-search-panel{
-      display: none;
+      margin-top: 0px;
     }
-  }*/
+  }
 
   .toggle-button {
-    display: none; // Initially hidden
-    cursor: pointer;
+    display: none;
     margin-top: 30px;
-    /* Your styles for the toggle button, e.g., background color, padding, etc. */
-    background-color: rgb(90, 135, 220);    
+    color: rgb(73, 73, 73);
+    background-color: @alert-info-bg;
+    position: relative;
+    border: none;
+
+    .coolButton {
+      padding-top: 0px;
+      padding-bottom: 0px;
+      border: none;
+      outline: none;
+      float: right;
+    }
+
+    .coolButton:hover {
+      color: rgb(90, 135, 220);
+    }
   }
 
   @media (max-width: 992px) {
