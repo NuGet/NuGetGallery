@@ -54,18 +54,16 @@ $(function() {
 
 
 
-    const advancedSearchToggleButton = document.getElementById('chevronButtonAdvancedSearch');
+    const advancedSearchToggleButton = document.getElementById('advancedSearchToggleButton');
     advancedSearchToggleButton.addEventListener('click', toggleAdvancedSearchPanel);
     var resized = false;
     var initialScreenSize = window.innerWidth;
-    var chevronish = document.getElementById('pleaseWork');
-    const chevronIcon = document.getElementById('pleaseWork');
-
+    const chevronIcon = document.getElementById('advancedSearchToggleChevron');
 
     /* For narrow screens only */
     function toggleAdvancedSearchPanel() {
 
-        var filtersContent = document.getElementById('advancedSearchPanel');
+        const filtersContent = document.getElementById('advancedSearchPanel');
         var computedStyle = window.getComputedStyle(filtersContent);
 
         if (window.innerWidth <= 992 && !resized) {
@@ -88,11 +86,6 @@ $(function() {
         resized = true;
         toggleAdvancedSearchPanel(); 
     });
-
-
-
-
-
 
     function toggleCollapsible() {
         var dataTab = document.getElementById(this.getAttribute('tab') + 'tab');

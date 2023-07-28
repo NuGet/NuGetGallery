@@ -73,9 +73,9 @@
             <div class="@(Model.IsAdvancedSearchFlightEnabled ? "col-md-3" : "") no-padding" id="filters-column">
                 @if (Model.IsAdvancedSearchFlightEnabled)
                 {
-                    <div class="toggle-button" id="advancedSearchToggleButton">
-                        Advanced search filters <button class ="coolButton" id="chevronButtonAdvancedSearch" type="button">
-                        <i class="ms-Icon ms-Icon--ChevronDown" id="pleaseWork" ></i></button>
+                    <div class="toggle-advanced-search-panel">
+                        Advanced search filters <button class ="advanced-search-toggle-button" id="advancedSearchToggleButton" type="button">
+                        <i class="ms-Icon ms-Icon--ChevronDown" id="advancedSearchToggleChevron" ></i></button>
                     </div>
                     <div class="row clearfix advanced-search-panel" id="advancedSearchPanel">
 
