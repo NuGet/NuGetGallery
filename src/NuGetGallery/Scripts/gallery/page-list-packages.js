@@ -131,7 +131,7 @@ $(function() {
         tfms.name = "";
         allTfms.forEach(function (tfm) {
             if (tfm.checked) {
-                tfm.name = "tfms";
+                tfms.name = "tfms";
             }
         });
 
