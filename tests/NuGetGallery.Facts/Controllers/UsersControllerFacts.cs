@@ -3633,6 +3633,16 @@ namespace NuGetGallery
 
                 _certificateService.VerifyAll();
             }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources
+                    _controller?.Dispose();
+                    base.Dispose(disposing);
+                }
+            }
         }
 
         public class TheGetCertificatesAction : TestContainer
@@ -3707,6 +3717,16 @@ namespace NuGetGallery
                 Assert.Equal((int)HttpStatusCode.OK, _controller.Response.StatusCode);
 
                 _certificateService.VerifyAll();
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources
+                    _controller?.Dispose();
+                    base.Dispose(disposing);
+                }
             }
         }
 
@@ -3839,6 +3859,16 @@ namespace NuGetGallery
 
                 return new StubHttpPostedFile((int)stream.Length, "certificate.cer", stream);
             }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources
+                    _controller?.Dispose();
+                    base.Dispose(disposing);
+                }
+            }
         }
 
         public class TheDeleteCertificateAction : TestContainer
@@ -3911,6 +3941,16 @@ namespace NuGetGallery
 
                 Assert.NotNull(response);
                 Assert.Equal((int)HttpStatusCode.OK, _controller.Response.StatusCode);
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources
+                    _controller?.Dispose();
+                    base.Dispose(disposing);
+                }
             }
         }
 
@@ -4122,6 +4162,16 @@ namespace NuGetGallery
 
                 Assert.False(model.ListedPackages.ToArray()[0].IsVulnerable);  // alpha
                 Assert.True(model.ListedPackages.ToArray()[1].IsVulnerable);   // zebra
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources
+                    _testController?.Dispose();
+                    base.Dispose(disposing);
+                }
             }
         }
 
