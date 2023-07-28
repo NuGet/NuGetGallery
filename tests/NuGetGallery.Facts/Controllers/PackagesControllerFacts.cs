@@ -6492,6 +6492,16 @@ namespace NuGetGallery
                     x => x.SendMessageAsync(It.IsAny<ReportMyPackageMessage>(), false, false),
                     Times.Once);
             }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources
+                    _controller?.Dispose();
+                    base.Dispose(disposing);
+                }
+            }
         }
 
         public class TheUploadFileActionForGetRequests
@@ -9726,6 +9736,16 @@ namespace NuGetGallery
                 // Assert
                 Assert.IsType<HttpNotFoundResult>(result);
             }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources
+                    _target?.Dispose();
+                    base.Dispose(disposing);
+                }
+            }
         }
 
         public class TheRevalidateSymbolsMethod : TestContainer
@@ -9869,6 +9889,16 @@ namespace NuGetGallery
                 // Assert
                 Assert.IsType<HttpStatusCodeResult>(result);
                 ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest);
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources
+                    _target?.Dispose();
+                    base.Dispose(disposing);
+                }
             }
         }
 
