@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
 using NuGetGallery.Areas.Admin.Models;
+using NuGetGallery.Auditing;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
@@ -18,6 +19,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         private readonly IEntityRepository<User> _userRepository;
         private readonly IEntitiesContext _entitiesContext;
         private readonly IDateTimeProvider _dateTimeProvider;
+        private readonly IAuditingService _auditingService;
 
         private readonly Regex UsernameValidationRegex = new Regex(GalleryConstants.UsernameValidationRegex);
 
@@ -25,12 +27,14 @@ namespace NuGetGallery.Areas.Admin.Controllers
             IUserService userService, 
             IEntityRepository<User> userRepository,
             IEntitiesContext entitiesContext,
-            IDateTimeProvider dateTimeProvider)
+            IDateTimeProvider dateTimeProvider,
+            IAuditingService auditingService)
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _dateTimeProvider = dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider));
+            _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
         }
 
         [HttpGet]
@@ -122,7 +126,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             account.Username = newUsername;
 
+            await _auditingService.SaveAuditRecordAsync(new UserAuditRecord(account, AuditedUserAction.ChangeUsername));
+            
             _userRepository.InsertOnCommit(newAccountForOldUsername);
+
             await _entitiesContext.SaveChangesAsync();
 
             return Json(HttpStatusCode.OK, "Account renamed successfully!.", JsonRequestBehavior.AllowGet);

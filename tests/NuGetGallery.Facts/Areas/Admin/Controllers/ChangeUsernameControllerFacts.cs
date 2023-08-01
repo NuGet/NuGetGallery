@@ -1,15 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
-using Microsoft.Owin.Security;
 using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Areas.Admin.Models;
+using NuGetGallery.Auditing;
 using NuGetGallery.Framework;
 using Xunit;
 
@@ -176,6 +176,21 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
 
             [Fact]
+            public async void WhenValidAccountSaveAuditRecord()
+            {
+                UserAuditRecord auditRecord = null;
+                GetMock<IAuditingService>()
+                    .Setup(a => a.SaveAuditRecordAsync(It.IsAny<AuditRecord>()))
+                    .Returns(Task.CompletedTask)
+                    .Callback<AuditRecord>(r => auditRecord = r as UserAuditRecord);
+
+                var result = await ChangeUsernameController.ChangeUsername(IndividualAccount.Username, AvailableUsername) as JsonResult;
+
+                GetMock<IAuditingService>().Verify(a => a.SaveAuditRecordAsync(It.IsAny<AuditRecord>()));
+                Assert.Equal(AvailableUsername, auditRecord.Username);
+            }
+
+            [Fact]
             public async void WhenValidAccountAndNewUsernameReturnsOkStatusCode()
             {
                 User newAccount = null;
@@ -230,10 +245,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     .ReturnsNull();
 
                 ChangeUsernameController = new ChangeUsernameController(
-                    GetMock<IUserService>().Object, 
+                    GetMock<IUserService>().Object,
                     GetMock<IEntityRepository<User>>().Object,
-                    GetMock<IEntitiesContext>().Object, 
-                    GetMock<IDateTimeProvider>().Object);
+                    GetMock<IEntitiesContext>().Object,
+                    GetMock<IDateTimeProvider>().Object,
+                    GetMock<IAuditingService>().Object);
 
                 TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), ChangeUsernameController);
             }
