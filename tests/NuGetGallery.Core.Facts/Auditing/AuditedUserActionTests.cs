@@ -35,6 +35,7 @@ namespace NuGetGallery.Auditing
                 "ExternalLoginAttempt",
                 "Lock",
                 "Unlock",
+                "ChangeUsername"
             };
 
             Verify(typeof(AuditedUserAction), expectedNames);
