@@ -1978,6 +1978,16 @@ namespace NuGetGallery
 
                 _certificateService.VerifyAll();
             }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources
+                    _controller?.Dispose();
+                    base.Dispose(disposing);
+                }
+            }
         }
 
         public class TheGetCertificatesAction : AccountsControllerTestContainer
@@ -2142,6 +2152,16 @@ namespace NuGetGallery
                 Assert.Equal((int)HttpStatusCode.OK, _controller.Response.StatusCode);
 
                 _certificateService.VerifyAll();
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources
+                    _controller?.Dispose();
+                    base.Dispose(disposing);
+                }
             }
         }
 
@@ -2335,6 +2355,16 @@ namespace NuGetGallery
 
                 return new StubHttpPostedFile((int)stream.Length, "certificate.cer", stream);
             }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources
+                    _controller?.Dispose();
+                    base.Dispose(disposing);
+                }
+            }
         }
 
         public class TheDeleteCertificateAction : AccountsControllerTestContainer
@@ -2462,6 +2492,16 @@ namespace NuGetGallery
 
                 Assert.NotNull(response);
                 Assert.Equal((int)HttpStatusCode.OK, _controller.Response.StatusCode);
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources
+                    _controller?.Dispose();
+                    base.Dispose(disposing);
+                }
             }
         }
 
