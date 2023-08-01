@@ -11,7 +11,7 @@
 
         <i>Verify that the requester is a valid owner of the account.</i><br />
 
-        <input type="text" placeholder="Account username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="value: accountEmailOrUsername" />
+        <input type="text" placeholder="Account email or username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="value: accountEmailOrUsername" />
         <button type="submit" data-bind="click: verifyAccount">Verify</button>
 
         <div style="display:none" data-bind="visible: errorAccount">
@@ -29,7 +29,7 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td><a href="#" data-bind="text: account.Username, attr: { href: generateProfileUrl(account.Username) }"></a></td>
+                        <td><a href="#" data-bind="text: account.Username, attr: { href: generateProfileUrl(account.Username()) }"></a></td>
                         <td><span data-bind="text: account.EmailAddress"></span></td>
                     </tr>
                 </tbody>
@@ -46,7 +46,7 @@
                 </thead>
                 <tbody data-bind="foreach: accountAdministrators">
                     <tr>
-                        <td><a href="#" data-bind="text: Username, attr: { href: $parent.generateProfileUrl($data) }"></a></td>
+                        <td><a href="#" data-bind="text: Username, attr: { href: $parent.generateProfileUrl($data.Username) }"></a></td>
                         <td><span data-bind="text: EmailAddress"></span></td>
                     </tr>
                 </tbody>
@@ -232,8 +232,8 @@
                     });
                 };
 
-                this.generateProfileUrl = function (u) {
-                    return '/profiles/' + u.Username;
+                this.generateProfileUrl = function (username) {
+                    return '/profiles/' + username;
                 };
             }
 
