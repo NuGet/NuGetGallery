@@ -24,7 +24,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         private readonly Regex UsernameValidationRegex = new Regex(GalleryConstants.UsernameValidationRegex);
 
         public ChangeUsernameController(
-            IUserService userService, 
+            IUserService userService,
             IEntityRepository<User> userRepository,
             IEntitiesContext entitiesContext,
             IDateTimeProvider dateTimeProvider,
@@ -51,9 +51,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 return Json(HttpStatusCode.BadRequest, "Email or username cannot be null or empty.", JsonRequestBehavior.AllowGet);
             }
 
-            var result = new ValidateAccountResult();
-            result.Administrators = new List<ValidateAccount>();
-
             var account = _userService.FindByUsername(accountEmailOrUsername) ?? _userService.FindByEmailAddress(accountEmailOrUsername);
 
             if (account == null)
@@ -61,13 +58,23 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 return Json(HttpStatusCode.NotFound, "Account was not found.", JsonRequestBehavior.AllowGet);
             }
 
-            result.Account = new ValidateAccount() { Username = account.Username, EmailAddress = account.EmailAddress };
+            var result = new ValidateAccountResult();
+            result.Administrators = new List<ValidateAccount>();
+            result.Account = new ValidateAccount()
+            {
+                Username = account.Username,
+                EmailAddress = account.EmailAddress
+            };
 
             if (account is Organization)
             {
                 foreach (var admin in (account as Organization).Administrators)
                 {
-                    var owner = new ValidateAccount() { Username = admin.Username, EmailAddress = admin.EmailAddress };
+                    var owner = new ValidateAccount()
+                    {
+                        Username = admin.Username,
+                        EmailAddress = admin.EmailAddress
+                    };
                     result.Administrators.Add(owner);
                 }
             }
@@ -111,7 +118,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             var newUsernameValidation = ValidateUsername(newUsername);
 
-            if(!newUsernameValidation.IsFormatValid || !newUsernameValidation.IsAvailable)
+            if (!newUsernameValidation.IsFormatValid || !newUsernameValidation.IsAvailable)
             {
                 return Json(HttpStatusCode.BadRequest, "New username validation failed.", JsonRequestBehavior.AllowGet);
             }
@@ -127,12 +134,12 @@ namespace NuGetGallery.Areas.Admin.Controllers
             account.Username = newUsername;
 
             await _auditingService.SaveAuditRecordAsync(new UserAuditRecord(account, AuditedUserAction.ChangeUsername));
-            
+
             _userRepository.InsertOnCommit(newAccountForOldUsername);
 
             await _entitiesContext.SaveChangesAsync();
 
-            return Json(HttpStatusCode.OK, "Account renamed successfully!.", JsonRequestBehavior.AllowGet);
+            return Json(HttpStatusCode.OK, "Account renamed successfully!", JsonRequestBehavior.AllowGet);
         }
 
         private ValidateUsernameResult ValidateUsername(string username)

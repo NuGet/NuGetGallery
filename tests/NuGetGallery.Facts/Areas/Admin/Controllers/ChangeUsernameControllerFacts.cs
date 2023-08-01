@@ -209,7 +209,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 Assert.Equal(oldUsername, newAccount.Username);
                 Assert.Equal(AvailableUsername, IndividualAccount.Username);
                 Assert.Equal(((int)HttpStatusCode.OK), ChangeUsernameController.Response.StatusCode);
-                Assert.Equal("Account renamed successfully!.", result.Data);
+                Assert.Equal("Account renamed successfully!", result.Data);
             }
         }
 
