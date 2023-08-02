@@ -48,8 +48,7 @@ namespace NuGetGallery
 
         public const string EmailValidationErrorMessage = "This doesn't appear to be a valid email address.";
 
-        public const string UsernameValidationRegex =
-            @"[A-Za-z0-9][A-Za-z0-9_\.-]+[A-Za-z0-9]";
+        public const string UsernameValidationRegex = @"^[A-Za-z0-9][A-Za-z0-9_\.-]+[A-Za-z0-9]$";
 
         public const string UsernameValidationErrorMessage =
             "User names must start and end with a letter or number, and may only contain letters, numbers, underscores, periods, and hyphens in between.";
