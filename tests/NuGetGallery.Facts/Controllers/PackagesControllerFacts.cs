@@ -8956,21 +8956,16 @@ namespace NuGetGallery
                             It.IsAny<User>(),
                             It.IsAny<User>()))
                         .Throws(new PackageAlreadyExistsException());
-                    var fakePackage = new Package { PackageRegistration = new PackageRegistration { Id = PackageId, Owners = new[] { TestUtility.FakeUser } }, Version = PackageVersion };
-                    var fakeNuGetPackage = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
 
                     var fakeUserService = new Mock<IUserService>();
                     fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
 
-                    var auditingService = new TestAuditingService();
                     var fakeTelemetryService = new Mock<ITelemetryService>();
 
                     var controller = CreateController(
                         GetConfigurationService(),
                         packageUploadService: fakePackageUploadService,
                         uploadFileService: fakeUploadFileService,
-                        fakeNuGetPackage: fakeNuGetPackage,
-                        auditingService: auditingService,
                         userService: fakeUserService,
                         telemetryService: fakeTelemetryService);
                     controller.SetCurrentUser(TestUtility.FakeUser);
