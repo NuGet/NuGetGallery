@@ -253,6 +253,15 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
                 TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), ChangeUsernameController);
             }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (ChangeUsernameController != null)
+                {
+                    ChangeUsernameController.Dispose();
+                }
+                base.Dispose(disposing);
+            }
         }
     }
 }
