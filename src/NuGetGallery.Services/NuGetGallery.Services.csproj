@@ -88,14 +88,10 @@
       <Version>6.6.1</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Configuration">
-      <Version>2.109.0</Version>
+      <Version>2.110.0-agr-kv-lib-upgrade-8222688</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">
-      <Version>2.109.0</Version>
-      <Version>2.108.0-agr-kv-lib-upgrade-7060168</Version>
-    </PackageReference>
-    <PackageReference Include="NuGet.Services.Logging">
-      <Version>2.108.0-agr-kv-lib-upgrade-7060168</Version>
+      <Version>2.110.0-agr-kv-lib-upgrade-8222688</Version>
     </PackageReference>
     <PackageReference Include="NuGet.StrongName.WebBackgrounder">
       <Version>0.2.0</Version>
