@@ -52,8 +52,6 @@ $(function() {
         collapsible.addEventListener('click', toggleCollapsible);
     }
 
-
-
     const advancedSearchToggleButton = document.getElementById('advancedSearchToggleButton');
     advancedSearchToggleButton.addEventListener('click', toggleAdvancedSearchPanel);
     var resized = false;
@@ -73,6 +71,9 @@ $(function() {
         }
         else if (window.innerWidth <= 992 && initialScreenSize > 992 && resized) {
             filtersContent.style.display = 'none';
+            chevronIcon.classList.add('ms-Icon--ChevronDown');
+            chevronIcon.classList.remove('ms-Icon--ChevronUp');
+
         }
         else if (window.innerWidth > 992) {
             filtersContent.style.display = 'block';
