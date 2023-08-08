@@ -19,8 +19,7 @@ namespace NuGet.Services.KeyVault
         private readonly KeyVaultConfiguration _configuration;
         private readonly Lazy<SecretClient> _keyVaultClient;
 
-        protected string VaultBaseUrl => _vault;
-        protected KeyVaultClient KeyVaultClient => _keyVaultClient.Value;
+        protected SecretClient KeyVaultClient => _keyVaultClient.Value;
 
         public KeyVaultReader(KeyVaultConfiguration configuration)
         {

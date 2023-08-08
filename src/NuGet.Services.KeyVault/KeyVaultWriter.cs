@@ -3,8 +3,9 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.KeyVault.Models;
+using Azure.Core;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 
 namespace NuGet.Services.KeyVault
 {
@@ -19,16 +20,10 @@ namespace NuGet.Services.KeyVault
             string secretValue,
             DateTimeOffset? expiration = null)
         {
-            SecretAttributes attributes = null;
-            if (expiration.HasValue)
-            {
-                attributes = new SecretAttributes
-                {
-                    Expires = expiration.Value.UtcDateTime,
-                };
-            }
+            var secret = new Azure.Security.KeyVault.Secrets.KeyVaultSecret(secretName, secretValue);
+            secret.Properties.ExpiresOn = expiration;
 
-            await KeyVaultClient.SetSecretAsync(VaultBaseUrl, secretName, secretValue, secretAttributes: attributes);
+            await KeyVaultClient.SetSecretAsync(secret);
         }
     }
 }
