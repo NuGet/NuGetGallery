@@ -51,16 +51,16 @@ namespace NuGetGallery.Configuration.SecretReader
             if (!string.IsNullOrEmpty(vaultName))
             {
                 var useManagedIdentity = GetOptionalKeyVaultBoolSettingValue(UseManagedIdentityConfigurationKey, defaultValue: false);
+                var clientId = _configurationService.ReadRawSetting(ResolveKeyVaultSettingName(ClientIdConfigurationKey));
 
                 KeyVaultConfiguration keyVaultConfiguration;
                 if (useManagedIdentity)
                 {
-                    keyVaultConfiguration = new KeyVaultConfiguration(vaultName);
+                    keyVaultConfiguration = new KeyVaultConfiguration(vaultName, clientId);
                 }
                 else
                 {
                     var tenantId = _configurationService.ReadRawSetting(ResolveKeyVaultSettingName(TenantIdConfigurationKey));
-                    var clientId = _configurationService.ReadRawSetting(ResolveKeyVaultSettingName(ClientIdConfigurationKey));
                     var certificateThumbprint = _configurationService.ReadRawSetting(ResolveKeyVaultSettingName(CertificateThumbprintConfigurationKey));
                     var storeName = GetOptionalKeyVaultEnumSettingValue(CertificateStoreName, StoreName.My);
                     var storeLocation = GetOptionalKeyVaultEnumSettingValue(CertificateStoreLocation, StoreLocation.LocalMachine);

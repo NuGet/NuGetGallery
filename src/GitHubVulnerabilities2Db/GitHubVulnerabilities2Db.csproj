@@ -91,7 +91,7 @@
       <Version>4.3.0-dev-8079991</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Cursor">
-      <Version>2.110.0-agr-kv-lib-upgrade-defaultcred-8223527</Version>
+      <Version>2.110.0-agr-kv-lib-upgrade-8228637</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
