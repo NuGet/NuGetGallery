@@ -8936,7 +8936,7 @@ namespace NuGetGallery
             /// There is a race condition between API and Web UI uploads where we can end up
             /// in a situation where user may have "verify package page" open in their browser
             /// pushes the same package with command line client, then clicks "Verify" in
-            /// the browser. Browser will report failure (as package already) exists. That
+            /// the browser. Browser will report failure (as package already exists). That
             /// failure must not be counted as "package push failure".
             /// </remarks>
             [Fact]
