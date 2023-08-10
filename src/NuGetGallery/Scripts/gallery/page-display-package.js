@@ -102,6 +102,10 @@
         if (windowHash === '#show-readme-container') {
             windowHash = '#readme-body-tab';
         }
+        //if windowhash doesn't contain body, add it
+        if (!windowHash.includes("body")) {
+            windowHash = windowHash.replace(new RegExp("-tab", "g"), "-body-tab");
+        }
 
         $(windowHash).focus();
         $(windowHash).tab('show');
