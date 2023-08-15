@@ -658,7 +658,7 @@
             <div class="tab-content body-tab-content">
                 @if (!Model.Deleted && Model.ShowDetailsAndLinks)
                 {
-                    <div role="tabpanel" class="tab-pane @(activeBodyTab == "readme" ? "active" : "")" id="readme-tab"  aria-label="Readme tab content" aria-labelledby="readme-body-tab">
+                    <div role="tabpanel" class="tab-pane @(activeBodyTab == "readme" ? "active" : "")" id="readme-tab"  aria-label="Readme tab content">
                         @if ((Model.Validating || Model.FailedValidation) && Model.HasEmbeddedReadmeFile)
                         {
                             @ViewHelpers.AlertWarning(
@@ -701,7 +701,7 @@
 
                     if (Model.CanDisplayTargetFrameworks())
                     {
-                    <div role="tabpanel" class="tab-pane @(activeBodyTab == "supportedframeworks" ? "active" : "")" id="supportedframeworks-tab" aria-label="Supported frameworks tab content" aria-labelledby="supportedframeworks-body-tab">
+                    <div role="tabpanel" class="tab-pane @(activeBodyTab == "supportedframeworks" ? "active" : "")" id="supportedframeworks-tab" aria-label="Supported frameworks tab content">
                         @if (Model.PackageFrameworkCompatibility.Table.Count > 0)
                         {
                             @Html.Partial("_SupportedFrameworksTable", Model.PackageFrameworkCompatibility.Table)
@@ -714,7 +714,7 @@
                     </div>
                     }
 
-                    <div role="tabpanel" class="tab-pane @(activeBodyTab == "dependencies" ? "active" : "")" id="dependencies-tab" aria-label="Dependencies tab content" aria-labelledby="dependencies-body-tab">
+                    <div role="tabpanel" class="tab-pane @(activeBodyTab == "dependencies" ? "active" : "")" id="dependencies-tab" aria-label="Dependencies tab content">
                         @if (!Model.Deleted && Model.ShowDetailsAndLinks)
                         {
                             if (Model.Dependencies.DependencySets == null)
@@ -772,7 +772,7 @@
                         }
                     </div>
                 }
-                <div role="tabpanel" class="tab-pane @(activeBodyTab == "usedby" ? "active" : "")" id="usedby-tab" aria-label="Used by tab content" aria-labelledby="usedby-body-tab">
+                <div role="tabpanel" class="tab-pane @(activeBodyTab == "usedby" ? "active" : "")" id="usedby-tab" aria-label="Used by tab content">
                     @if (!Model.IsDotnetToolPackageType && (Model.IsGitHubUsageEnabled || Model.IsPackageDependentsEnabled))
                     {
                         <div class="used-by" id="used-by">
@@ -881,7 +881,7 @@
                         </div>
                     }
                 </div>
-                <div role="tabpanel" class="tab-pane @(activeBodyTab == "versions" ? "active" : "")" id="versions-tab" aria-label="Versions tab content" aria-labelledby="versions-body-tab">
+                <div role="tabpanel" class="tab-pane @(activeBodyTab == "versions" ? "active" : "")" id="versions-tab" aria-label="Versions tab content">
                     <div class="version-history" id="version-history">
                         <table aria-label="Version History of @Model.Id" class="table borderless">
                             <thead>
@@ -995,7 +995,7 @@
                 </div>
                 @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
                 {
-                    <div role="tabpanel" class="tab-pane @(activeBodyTab == "releasenotes" ? "active" : "")" id="releasenotes-tab" aria-label="Release notes tab content" aria-labelledby="release-body-tab">
+                    <div role="tabpanel" class="tab-pane @(activeBodyTab == "releasenotes" ? "active" : "")" id="releasenotes-tab" aria-label="Release notes tab content">
                         <p>@Html.PreFormattedText(Model.ReleaseNotes, Config)</p>
                     </div>
                 }
