@@ -137,4 +137,58 @@
       text-align: right;
     }
   }
+
+  @media (min-width: @screen-sm) {
+    .advanced-search-panel{
+      position: relative;
+      top: 0;
+      margin-top: 0px;
+      display: block;
+    }
+  }
+
+  @media (max-width: @screen-sm){
+    .advanced-search-panel{
+      margin-top: 0px;
+    }
+  }
+
+  .toggle-advanced-search-panel {
+    display: none;
+    margin-top: 30px;
+    color: rgb(73, 73, 73);
+    background-color: @alert-info-bg;
+    position: relative;
+    border: none;
+    padding-left: 19px;
+
+    .advanced-search-toggle-button {
+      padding-top: 0px;
+      padding-bottom: 0px;
+      margin-right: 20px;
+      background-color: transparent;
+      border: none;
+      outline: none;
+      float: right;
+    }
+
+    .advanced-search-toggle-button:hover {
+      color: rgb(90, 135, 220);
+    }
+
+    .advanced-search-toggle-button:focus {
+      outline: solid;
+      z-index: 1;
+    }
+  }
+
+  @media (max-width: 992px) {
+    .toggle-advanced-search-panel{
+      display: block;
+    }
+    .advanced-search-panel{
+      display: none;
+    }
+  }
+  
 }

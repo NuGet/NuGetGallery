@@ -28,5 +28,6 @@ namespace NuGetGallery.Auditing
         ExternalLoginAttempt,
         Lock,
         Unlock,
+        ChangeUsername
     }
 }
