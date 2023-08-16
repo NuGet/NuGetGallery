@@ -2071,6 +2071,7 @@ p.frameworktableinfo-text {
 }
 .members-list .manage-members-listing #add-member-success-message {
   display: none;
+  margin: 0px;
 }
 .members-list .form-flex {
   display: block;
