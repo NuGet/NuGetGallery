@@ -215,7 +215,10 @@
                         });
 
                         self.Members.push(new OrganizationMemberViewModel(self, data));
+
+                        document.getElementById('add-member-success-message').innerHTML = "<b>" + data.Username + "</b> was successfully added to your organization (pending approval)";
                         $('#add-member-success-message').show();
+
                         self.NewMemberUsername(null);
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
