@@ -575,6 +575,19 @@ img.reserved-indicator-icon {
   font-size: 24px;
   font-weight: 300;
   line-height: 0.9;
+  display: inline-block;
+  color: #337ab7;
+  width: auto;
+  margin: 0px;
+}
+.list-packages .package .package-header .package-title:hover,
+.list-packages .package .package-header .package-title:focus {
+  color: #23527c;
+  text-decoration: underline;
+}
+.list-packages .package .package-header .package-title:focus {
+  outline: 2px solid;
+  outline-offset: 4px;
 }
 .list-packages .package .package-header .reserved-indicator {
   margin-top: 3px;
