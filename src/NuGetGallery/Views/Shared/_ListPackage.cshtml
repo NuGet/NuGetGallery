@@ -36,14 +36,17 @@
         </div>
         <div class="col-sm-11">
             <div class="package-header">
-                <a class="package-title"
-                   href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null).TrimEnd('/')"
-                   @if (itemIndex.HasValue)
-                   {
-                        @:data-track="@eventName" data-track-value="@itemIndex"
-                        @:data-package-id="@Model.Id" data-package-version="@Model.Version" data-use-version="@Model.UseVersion"
-                   }
-                   >@Html.BreakWord(Model.Id)</a>
+                <h2 class="package-title">
+                    <a class="package-title"
+                        href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null).TrimEnd('/')"
+                        @if (itemIndex.HasValue)
+                        {
+                            @:data-track="@eventName" data-track-value="@itemIndex"
+                            @:data-package-id="@Model.Id" data-package-version="@Model.Version" data-use-version="@Model.UseVersion"
+                        }>
+                            @Html.BreakWord(Model.Id)
+                    </a>
+                </h2>
 
                 @if (Model.IsVerified.HasValue && Model.IsVerified.Value)
                 {
@@ -73,20 +76,20 @@
             </div>
 
 
-            @if(Model.IsVulnerable || Model.IsDeprecated)
+            @if (Model.IsVulnerable || Model.IsDeprecated)
             {
                 <ul class="package-list">
                     <li>
-                        @if(Model.IsVulnerable)
+                        @if (Model.IsVulnerable)
                         {
                             <span class="icon-text package-warning--vulnerable" aria-label="@Model.VulnerabilityTitle" data-content="@Model.VulnerabilityTitle">
                                 <i class="ms-Icon ms-Icon--BlockedSiteSolid12" aria-hidden="true"></i>
                                 Vulnerable
                             </span>
                         }
-                        @if(Model.IsDeprecated)
+                        @if (Model.IsDeprecated)
                         {
-                            <span class="icon-text package-warning--deprecated"  aria-label="@Model.DeprecationTitle" data-content="@Model.DeprecationTitle">
+                            <span class="icon-text package-warning--deprecated" aria-label="@Model.DeprecationTitle" data-content="@Model.DeprecationTitle">
                                 <i class="ms-Icon ms-Icon--ShieldAlert" aria-hidden="true"></i>
                                 Deprecated
                             </span>

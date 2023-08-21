@@ -128,6 +128,16 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, _target);
             }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources
+                    _target?.Dispose();
+                    base.Dispose(disposing);
+                }
+            }
         }
     }
 }
