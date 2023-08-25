@@ -10595,5 +10595,42 @@
 
 
 
+    const listContainer = document.getElementById('windows86versions');
+    const divElement = document.createElement('div');
+
+    // Set the ID attribute of the <div> element
+    divElement.setAttribute('id', 'newDivId');
+    divElement.innerHTML = 'Older versions ' +
+        '<button class="toggle-older-versions-button"' +
+            'aria-label="Toggles older versions"' +
+            'aria-expanded="false"' +
+            'aria-controls="olderVersionsToggleButton"' +
+            'tabindex="0"' +
+            'id="olderVersionsToggleButton"' +
+            'type="button">' +
+            '<i class="ms-Icon ms-Icon--ChevronDown"' +
+                'id="olderVersionsToggleChevron"></i>' +
+        '</button>';
+
+    //divElement.innerHTML = code;
+
+    // Get all <li> elements except the first two
+    const liElements = listContainer.querySelectorAll('li');
+    const otherLiElements = Array.from(liElements).slice(2);
+
+    // Move the selected <li> elements inside the <div> element
+    otherLiElements.forEach(li => {
+        divElement.appendChild(li);
+    });
+
+    // Append the <div> element to the parent container
+    listContainer.appendChild(divElement);
+
+
+
+
+
+
+
     return jQuery;
 });
