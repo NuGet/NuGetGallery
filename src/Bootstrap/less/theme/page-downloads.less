@@ -5,8 +5,17 @@
     }
   }
 
-  #newDivId {
-    color: palevioletred;
-    margin-top: 20px;
+  .newDiv {
+    margin-top: 20px; 
+
+    li {
+      display: none;
+    }
+
+    &.show-list-items {
+      li {
+          display: block;
+      }
+    }
   }
 } 

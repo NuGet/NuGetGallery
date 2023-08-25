@@ -10597,9 +10597,11 @@
 
     const listContainer = document.getElementById('windows86versions');
     const divElement = document.createElement('div');
+    var olderVersionsExpanded = false;
 
     // Set the ID attribute of the <div> element
     divElement.setAttribute('id', 'newDivId');
+    divElement.setAttribute('class', 'newDiv');
     divElement.innerHTML = 'Older versions ' +
         '<button class="toggle-older-versions-button"' +
             'aria-label="Toggles older versions"' +
@@ -10627,6 +10629,21 @@
     listContainer.appendChild(divElement);
 
 
+    const chevronIcon = document.getElementById('olderVersionsToggleChevron');
+    chevronIcon.addEventListener('click', toggleOlderVersions);
+
+    function toggleOlderVersions() {
+        chevronIcon.classList.toggle('ms-Icon--ChevronDown');
+        chevronIcon.classList.toggle('ms-Icon--ChevronUp');
+        divElement.classList.toggle('show-list-items');
+        /*if (olderVersionsExpanded) {
+
+            olderVersionsExpanded = false;
+        } else {
+
+            olderVersionsExpanded = true;
+        }*/
+    }
 
 
 
