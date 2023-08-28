@@ -10593,17 +10593,21 @@
     }
 
 
+    $(document).on('dataLoaded', function () {
+        myFunction1(); // Execute the function when the event is triggered
+    });
 
+    function myFunction1() {
+        const listContainer1 = document.getElementById('mojDiv');
+        const listContainer = listContainer1.children[1];
+        const divElement = document.createElement('div');
+        var olderVersionsExpanded = false;
 
-    const listContainer = document.getElementById('windows86versions');
-    const divElement = document.createElement('div');
-    var olderVersionsExpanded = false;
-
-    // Set the ID attribute of the <div> element
-    divElement.setAttribute('id', 'newDivId');
-    divElement.setAttribute('class', 'newDiv');
-    divElement.innerHTML = 'Older versions ' +
-        '<button class="toggle-older-versions-button"' +
+        // Set the ID attribute of the <div> element
+        divElement.setAttribute('id', 'newDivId');
+        divElement.setAttribute('class', 'newDiv');
+        divElement.innerHTML = 'Older versions ' +
+            '<button class="toggle-older-versions-button"' +
             'aria-label="Toggles older versions"' +
             'aria-expanded="false"' +
             'aria-controls="olderVersionsToggleButton"' +
@@ -10611,38 +10615,34 @@
             'id="olderVersionsToggleButton"' +
             'type="button">' +
             '<i class="ms-Icon ms-Icon--ChevronDown"' +
-                'id="olderVersionsToggleChevron"></i>' +
-        '</button>';
+            'id="olderVersionsToggleChevron"></i>' +
+            '</button>';
 
-    //divElement.innerHTML = code;
+        //divElement.innerHTML = code;
 
-    // Get all <li> elements except the first two
-    const liElements = listContainer.querySelectorAll('li');
-    const otherLiElements = Array.from(liElements).slice(2);
+        // Get all <li> elements except the first two
+        const liElements = listContainer.querySelectorAll('li');
+        const otherLiElements = Array.from(liElements).slice(2);
+    
+        // Move the selected <li> elements inside the <div> element
+        otherLiElements.forEach(li => {
+            divElement.appendChild(li);
+        });
 
-    // Move the selected <li> elements inside the <div> element
-    otherLiElements.forEach(li => {
-        divElement.appendChild(li);
-    });
-
-    // Append the <div> element to the parent container
-    listContainer.appendChild(divElement);
+        // Append the <div> element to the parent container
+        listContainer.appendChild(divElement);
 
 
-    const chevronIcon = document.getElementById('olderVersionsToggleChevron');
-    chevronIcon.addEventListener('click', toggleOlderVersions);
+        const chevronIcon = document.getElementById('olderVersionsToggleChevron');
+        chevronIcon.addEventListener('click', toggleOlderVersions);
+    }
+
+    
 
     function toggleOlderVersions() {
         chevronIcon.classList.toggle('ms-Icon--ChevronDown');
         chevronIcon.classList.toggle('ms-Icon--ChevronUp');
         divElement.classList.toggle('show-list-items');
-        /*if (olderVersionsExpanded) {
-
-            olderVersionsExpanded = false;
-        } else {
-
-            olderVersionsExpanded = true;
-        }*/
     }
 
 

@@ -12,7 +12,11 @@
     <div class="row">
         <div class="col-md-4">
             <h2 class="ms-fontSize-xxl">Windows x86 Commandline</h2>
-            <ul class="list-unstyled list-tools">
+            <ul class="list-unstyled list-tools" id="windows86versions">
+                <li><a href="https://dist.nuget.org/win-x86-commandline/latest/nuget.exe">nuget.exe - recommended latest</a></li>
+                <li><a href="https://dist.nuget.org/win-x86-commandline/latest/nuget.exe">nuget.exe - recommended latest</a></li>
+                <li><a href="https://dist.nuget.org/win-x86-commandline/latest/nuget.exe">nuget.exe - recommended latest</a></li>
+                <li><a href="https://dist.nuget.org/win-x86-commandline/latest/nuget.exe">nuget.exe - recommended latest</a></li>
                 <li><a href="https://dist.nuget.org/win-x86-commandline/latest/nuget.exe">nuget.exe - recommended latest</a></li>
             </ul>
         </div>
@@ -41,7 +45,7 @@
         <div class="col-md-4">
             <!-- ko foreach: artifacts -->
             <!-- ko if: name == "win-x86-commandline" -->
-            <div data-bind="template: { name: 'tool-list-template', data: $data }"></div>
+            <div id="mojDiv" data-bind="template: { name: 'tool-list-template', data: $data }"></div>
             <!-- /ko -->
             <!-- /ko -->
         </div>
@@ -83,20 +87,24 @@
     <script type="text/javascript">
         $(function () {
             $.ajax({
-                url: '//dist.nuget.org/index.json',
+                url: 'https://raw.githubusercontent.com/NuGet/NuGet.Services.Index/main/PROD/dist.nuget.org-index/index.json?token=GHSAT0AAAAAACE7OGH2URN7QH4XLMRGXTDQZHNEK2Q',
                 cache: false,
                 type: 'GET',
                 xhrFields: {
                     withCredentials: false
                 },
                 success: function (data) {
+
+                    console.log(data);
                     if (typeof data == "string") {
                         data = $.parseJSON(data);
                     }
 
                     ko.applyBindings(data, $('#stage-dynamic').get(0));
                     $('#stage-static').hide();
+                    $(document).trigger('dataLoaded');
                     $('#stage-dynamic').show();
+
                 }
             });
         });

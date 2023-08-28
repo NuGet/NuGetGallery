@@ -1707,6 +1707,15 @@ p.frameworktableinfo-text {
 .page-downloads .list-tools li {
   margin-top: 20px;
 }
+.page-downloads .newDiv {
+  margin-top: 20px;
+}
+.page-downloads .newDiv li {
+  display: none;
+}
+.page-downloads .newDiv.show-list-items li {
+  display: block;
+}
 .page-edit-package .readme-tabs {
   margin-top: 0.5em;
 }
@@ -1944,15 +1953,15 @@ p.frameworktableinfo-text {
     text-align: right;
   }
 }
-@media (min-width: 768px) {
+@media (min-width: 992px) {
   .page-list-packages .advanced-search-panel {
     position: relative;
     top: 0;
-    margin-top: 0px;
+    margin-top: 30px;
     display: block;
   }
 }
-@media (max-width: 768px) {
+@media (max-width: 992px) {
   .page-list-packages .advanced-search-panel {
     margin-top: 0px;
   }
