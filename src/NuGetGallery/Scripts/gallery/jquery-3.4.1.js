@@ -10597,10 +10597,13 @@
         myFunction1(); // Execute the function when the event is triggered
     });
 
+    var chevronIcon;
+    var divElement;
+
     function myFunction1() {
         const listContainer1 = document.getElementById('mojDiv');
         const listContainer = listContainer1.children[1];
-        const divElement = document.createElement('div');
+        divElement = document.createElement('div');
         var olderVersionsExpanded = false;
 
         // Set the ID attribute of the <div> element
@@ -10633,7 +10636,7 @@
         listContainer.appendChild(divElement);
 
 
-        const chevronIcon = document.getElementById('olderVersionsToggleChevron');
+        chevronIcon = document.getElementById('olderVersionsToggleChevron');
         chevronIcon.addEventListener('click', toggleOlderVersions);
     }
 
