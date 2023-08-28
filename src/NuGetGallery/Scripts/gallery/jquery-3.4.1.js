@@ -10619,7 +10619,8 @@
             'type="button">' +
             '<i class="ms-Icon ms-Icon--ChevronDown"' +
             'id="olderVersionsToggleChevron"></i>' +
-            '</button>';
+            '</button>' +
+            '<p> These versions are no longer supported and might be compromised. </p>';
 
         //divElement.innerHTML = code;
 

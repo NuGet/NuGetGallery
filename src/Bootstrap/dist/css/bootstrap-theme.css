@@ -1710,8 +1710,21 @@ p.frameworktableinfo-text {
 .page-downloads .newDiv {
   margin-top: 20px;
 }
+.page-downloads .newDiv button {
+  background-color: transparent;
+  border: none;
+  outline: none;
+  font-size: 12px;
+}
+.page-downloads .newDiv button:hover {
+  color: #5a87dc;
+}
 .page-downloads .newDiv li {
   display: none;
+}
+.page-downloads .newDiv p {
+  color: red;
+  font-size: 14px;
 }
 .page-downloads .newDiv.show-list-items li {
   display: block;
