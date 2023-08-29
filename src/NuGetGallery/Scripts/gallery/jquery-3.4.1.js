@@ -10620,7 +10620,7 @@
             '<i class="ms-Icon ms-Icon--ChevronDown"' +
             'id="olderVersionsToggleChevron"></i>' +
             '</button>' +
-            '<p> These versions are no longer supported and might be compromised. </p>';
+            '<p> These versions are no longer supported and might have vulnerabilities. </p>';
 
         //divElement.innerHTML = code;
 
