@@ -45,7 +45,7 @@
         <div class="col-md-4">
             <!-- ko foreach: artifacts -->
             <!-- ko if: name == "win-x86-commandline" -->
-            <div id="mojDiv" data-bind="template: { name: 'tool-list-template', data: $data }"></div>
+            <div id="win-x86-versions" data-bind="template: { name: 'tool-list-template', data: $data }"></div>
             <!-- /ko -->
             <!-- /ko -->
         </div>
@@ -87,7 +87,7 @@
     <script type="text/javascript">
         $(function () {
             $.ajax({
-                url: 'https://raw.githubusercontent.com/NuGet/NuGet.Services.Index/main/PROD/dist.nuget.org-index/index.json?token=GHSAT0AAAAAACE7OGH2M2QOKTIN6XQNAY56ZHON4AQ',
+                url: 'https://raw.githubusercontent.com/NuGet/NuGet.Services.Index/main/PROD/dist.nuget.org-index/index.json?token=GHSAT0AAAAAACE7OGH236GJ54HECGEOQIZEZHORRFQ',
                 cache: false,
                 type: 'GET',
                 xhrFields: {

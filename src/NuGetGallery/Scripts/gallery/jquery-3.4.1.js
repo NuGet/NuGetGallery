@@ -10601,14 +10601,30 @@
     var divElement;
 
     function myFunction1() {
-        const listContainer1 = document.getElementById('mojDiv');
-        const listContainer = listContainer1.children[1];
+        const listContainer1 = document.getElementById('win-x86-versions');
+        const listContainer = listContainer1.children[1];   //children[0] is the headline, children[1] is the list of versions
         divElement = document.createElement('div');
-        var olderVersionsExpanded = false;
+
+        // Get the first and second <li> elements
+        var firstElement = listContainer.querySelector('li:first-child');
+        var secondElement = listContainer.querySelector('li:nth-child(2)');
+
+        // Get the text content of the elements
+        var firstText = firstElement.textContent.trim();
+        var secondText = secondElement.textContent.trim();
+
+        // Get the last word of each element
+        var firstLastWord = firstText.split(' ').pop();
+        var secondLastWord = secondText.split(' ').pop();
+
+        // Compare last words and remove the second element if they match
+        if (firstLastWord === secondLastWord) {
+            listContainer.removeChild(secondElement);
+        }
 
         // Set the ID attribute of the <div> element
-        divElement.setAttribute('id', 'newDivId');
-        divElement.setAttribute('class', 'newDiv');
+        //divElement.setAttribute('id', 'newDivId');
+        divElement.setAttribute('class', 'older-versions-dropdown');
         divElement.innerHTML = 'Older versions ' +
             '<button class="toggle-older-versions-button"' +
             'aria-label="Toggles older versions"' +
