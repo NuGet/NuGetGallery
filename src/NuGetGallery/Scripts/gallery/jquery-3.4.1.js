@@ -10594,38 +10594,35 @@
 
 
     $(document).on('dataLoaded', function () {
-        myFunction1(); // Execute the function when the event is triggered
+        makeOlderVersionsCollapsible();
     });
 
     var chevronIcon;
-    var divElement;
+    var olderVersionsDivElement;
 
-    function myFunction1() {
-        const listContainer1 = document.getElementById('win-x86-versions');
-        const listContainer = listContainer1.children[1];   //children[0] is the headline, children[1] is the list of versions
-        divElement = document.createElement('div');
+    function makeOlderVersionsCollapsible() {
+        const listContainer = document.getElementById('win-x86-versions').children[1];   //children[0] is the headline, children[1] is the list of versions
+        olderVersionsDivElement = document.createElement('div');
 
-        // Get the first and second <li> elements
+        // If the first two versions in json file are the same, we don't want
+        // to show the both. The following code checks if they're the same,
+        // and if so, removes the second. It checks if they're the same based
+        // on the last word, which is a version identifier.
         var firstElement = listContainer.querySelector('li:first-child');
         var secondElement = listContainer.querySelector('li:nth-child(2)');
 
-        // Get the text content of the elements
         var firstText = firstElement.textContent.trim();
         var secondText = secondElement.textContent.trim();
 
-        // Get the last word of each element
         var firstLastWord = firstText.split(' ').pop();
         var secondLastWord = secondText.split(' ').pop();
 
-        // Compare last words and remove the second element if they match
         if (firstLastWord === secondLastWord) {
             listContainer.removeChild(secondElement);
         }
 
-        // Set the ID attribute of the <div> element
-        //divElement.setAttribute('id', 'newDivId');
-        divElement.setAttribute('class', 'older-versions-dropdown');
-        divElement.innerHTML = 'Older versions ' +
+        olderVersionsDivElement.setAttribute('class', 'older-versions-dropdown');
+        olderVersionsDivElement.innerHTML = 'Older versions ' +
             '<button class="toggle-older-versions-button"' +
             'aria-label="Toggles older versions"' +
             'aria-expanded="false"' +
@@ -10638,36 +10635,24 @@
             '</button>' +
             '<p> These versions are no longer supported and might have vulnerabilities. </p>';
 
-        //divElement.innerHTML = code;
-
-        // Get all <li> elements except the first two
         const liElements = listContainer.querySelectorAll('li');
-        const otherLiElements = Array.from(liElements).slice(2);
+        const otherLiElements = Array.from(liElements).slice(2);    // we want to display 2 versions outside of the dropdown
     
-        // Move the selected <li> elements inside the <div> element
         otherLiElements.forEach(li => {
-            divElement.appendChild(li);
+            olderVersionsDivElement.appendChild(li);
         });
 
-        // Append the <div> element to the parent container
-        listContainer.appendChild(divElement);
-
+        listContainer.appendChild(olderVersionsDivElement);
 
         chevronIcon = document.getElementById('olderVersionsToggleChevron');
         chevronIcon.addEventListener('click', toggleOlderVersions);
     }
 
-    
-
     function toggleOlderVersions() {
         chevronIcon.classList.toggle('ms-Icon--ChevronDown');
         chevronIcon.classList.toggle('ms-Icon--ChevronUp');
-        divElement.classList.toggle('show-list-items');
+        olderVersionsDivElement.classList.toggle('show-list-items');
     }
-
-
-
-
 
     return jQuery;
 });
