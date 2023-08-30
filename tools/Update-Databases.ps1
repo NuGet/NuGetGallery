@@ -20,7 +20,13 @@ function Initialize-EF6Exe() {
             | Where-Object { $_.Node.Attributes["Include"].Value -eq "EntityFramework" }
         $efVersion = $efPackageReference.Node.Version
         Write-Host "Using EntityFramework version $efVersion."
-        $efDirectory = "$env:userprofile\.nuget\packages\EntityFramework\$efVersion"
+
+        if ([Environment]::GetEnvironmentVariable('NUGET_PACKAGES') -ne $null) {
+            $efDirectory = "$env:NUGET_PACKAGES\EntityFramework\$efVersion"
+        }
+        else {
+            $efDirectory = "$env:userprofile\.nuget\packages\EntityFramework\$efVersion"
+        }
     }
 
     Copy-Item `
