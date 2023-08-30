@@ -35,7 +35,6 @@
             {
                 Id = "dotnet-cli-global",
                 CommandPrefix = "> ",
-
                 InstallPackageCommands = new [] { string.Format("dotnet tool install --global {0} --version {1}", Model.Id, Model.Version) },
                 AlertLevel = AlertLevel.Info,
                 AlertMessage = "This package contains a <a href='https://aka.ms/global-tools'>.NET tool</a> you can call from the shell/command line.",
@@ -194,9 +193,8 @@
 @helper CommandTab(PackageManagerViewModel packageManager, bool active)
 {
     <li role="presentation" class="@(active ? "active" : string.Empty)">
-        <a href="#@packageManager.Id-body-tab"
-           data-target="@packageManager.Id-tab"
-           id="@packageManager.Id-body-tab" class="package-manager-tab"
+        <a href="#@packageManager.Id"
+           id="@packageManager.Id-tab" class="package-manager-tab"
            aria-selected="@(active ? "true" : "false")" tabindex="@(active ? "0" : "-1")"
            aria-controls="@packageManager.Id" role="tab" data-toggle="tab"
            title="Switch to tab panel which contains package installation command for @packageManager.Name">
@@ -574,10 +572,9 @@
                      {
                         activeBodyTab = activeBodyTab ?? "supportedframeworks";
                         <li role="presentation" id="show-supportedframeworks-container">
-                            <a href="#supportedframeworks-body-tab"
+                            <a href="#supportedframeworks-tab"
                                 role="tab"
                                 data-toggle="tab"
-                                data-target="#supportedframeworks-tab"
                                 id="supportedframeworks-body-tab"
                                 class="body-tab"
                                 aria-controls="supportedframeworks-tab"
@@ -591,10 +588,9 @@
 
                         activeBodyTab = activeBodyTab ?? "dependencies";
                         <li role="presentation">
-                            <a href="#dependencies-body-tab"
+                            <a href="#dependencies-tab"
                                role="tab"
                                data-toggle="tab"
-                               data-target="#dependencies-tab"
                                id="dependencies-body-tab"
                                class="body-tab"
                                aria-controls="dependencies-tab"
@@ -610,10 +606,9 @@
                     {
                         activeBodyTab = activeBodyTab ?? "usedby";
                         <li role="presentation">
-                            <a href="#usedby-body-tab"
+                            <a href="#usedby-tab"
                                role="tab"
                                data-toggle="tab"
-                               data-target="#usedby-tab"
                                id="usedby-body-tab"
                                class="body-tab"
                                aria-controls="usedby-tab"
@@ -627,10 +622,9 @@
 
                     @{ activeBodyTab = activeBodyTab ?? "versions"; }
                     <li role="presentation">
-                        <a href="#versions-body-tab"
+                        <a href="#versions-tab"
                            role="tab"
                            data-toggle="tab"
-                           data-target="#versions-tab"
                            id="versions-body-tab"
                            class="body-tab"
                            aria-controls="versions-tab"
