@@ -366,7 +366,7 @@
       <Version>5.8.4</Version>
     </PackageReference>
     <PackageReference Include="Moq">
-      <Version>4.8.2</Version>
+      <Version>4.20.69</Version>
     </PackageReference>
     <PackageReference Include="xunit.abstractions">
       <Version>2.0.3</Version>
