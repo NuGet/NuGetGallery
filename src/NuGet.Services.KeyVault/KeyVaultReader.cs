@@ -61,7 +61,10 @@ namespace NuGet.Services.KeyVault
             TokenCredential credential = null;
             if (_configuration.UseManagedIdentity)
             {
-                credential = new DefaultAzureCredential();
+                credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
+                {
+                    ManagedIdentityClientId = _configuration.ClientId
+                });
             }
             else
             {
