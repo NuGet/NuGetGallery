@@ -70,7 +70,7 @@ namespace NuGet.Services.Configuration
 
             if (_useManagedIdentity)
             {
-                keyVaultConfiguration = new KeyVaultConfiguration(_vaultName);
+                keyVaultConfiguration = new KeyVaultConfiguration(_vaultName, _clientId);
             }
             else
             {
