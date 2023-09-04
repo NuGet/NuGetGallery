@@ -88,10 +88,10 @@
       <Version>6.6.1</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Configuration">
-      <Version>2.109.0</Version>
+      <Version>2.110.0-jver-sb-8351639</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">
-      <Version>2.109.0</Version>
+      <Version>2.110.0-jver-sb-8351639</Version>
     </PackageReference>
     <PackageReference Include="NuGet.StrongName.WebBackgrounder">
       <Version>0.2.0</Version>

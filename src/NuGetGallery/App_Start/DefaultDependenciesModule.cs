@@ -803,7 +803,7 @@ namespace NuGetGallery
                 .Register(c => new TopicClientWrapper(asyncAccountDeleteConnectionString, asyncAccountDeleteTopicName))
                 .SingleInstance()
                 .Keyed<ITopicClient>(BindingKeys.AccountDeleterTopic)
-                .OnRelease(x => x.Close());
+                .OnRelease(x => x.CloseAsync());
 
             builder
                 .RegisterType<AsynchronousDeleteAccountService>()
@@ -939,7 +939,7 @@ namespace NuGetGallery
                 .As<ITopicClient>()
                 .SingleInstance()
                 .Keyed<ITopicClient>(BindingKeys.EmailPublisherTopic)
-                .OnRelease(x => x.Close());
+                .OnRelease(x => x.CloseAsync());
 
             builder
                 .RegisterType<EmailMessageEnqueuer>()
@@ -1094,14 +1094,14 @@ namespace NuGetGallery
                     .As<ITopicClient>()
                     .SingleInstance()
                     .Keyed<ITopicClient>(BindingKeys.PackageValidationTopic)
-                    .OnRelease(x => x.Close());
+                    .OnRelease(x => x.CloseAsync());
 
                 builder
                     .Register(c => new TopicClientWrapper(symbolsValidationConnectionString, symbolsValidationTopicName))
                     .As<ITopicClient>()
                     .SingleInstance()
                     .Keyed<ITopicClient>(BindingKeys.SymbolsPackageValidationTopic)
-                    .OnRelease(x => x.Close());
+                    .OnRelease(x => x.CloseAsync());
             }
             else
             {
