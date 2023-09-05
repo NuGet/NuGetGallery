@@ -800,7 +800,7 @@ namespace NuGetGallery
             var asyncAccountDeleteTopicName = configuration.ServiceBus.AccountDeleter_TopicName;
 
             builder
-                .Register(c => new TopicClientWrapper(asyncAccountDeleteConnectionString, asyncAccountDeleteTopicName))
+                .Register(c => new TopicClientWrapper(asyncAccountDeleteConnectionString, asyncAccountDeleteTopicName, configuration.ServiceBus.ManagedIdentityClientId))
                 .SingleInstance()
                 .Keyed<ITopicClient>(BindingKeys.AccountDeleterTopic)
                 .OnRelease(x => x.CloseAsync());
@@ -935,7 +935,7 @@ namespace NuGetGallery
             var emailPublisherTopicName = configuration.ServiceBus.EmailPublisher_TopicName;
 
             builder
-                .Register(c => new TopicClientWrapper(emailPublisherConnectionString, emailPublisherTopicName))
+                .Register(c => new TopicClientWrapper(emailPublisherConnectionString, emailPublisherTopicName, configuration.ServiceBus.ManagedIdentityClientId))
                 .As<ITopicClient>()
                 .SingleInstance()
                 .Keyed<ITopicClient>(BindingKeys.EmailPublisherTopic)
@@ -1090,14 +1090,14 @@ namespace NuGetGallery
                 var symbolsValidationTopicName = configuration.ServiceBus.SymbolsValidation_TopicName;
 
                 builder
-                    .Register(c => new TopicClientWrapper(validationConnectionString, validationTopicName))
+                    .Register(c => new TopicClientWrapper(validationConnectionString, validationTopicName, configuration.ServiceBus.ManagedIdentityClientId))
                     .As<ITopicClient>()
                     .SingleInstance()
                     .Keyed<ITopicClient>(BindingKeys.PackageValidationTopic)
                     .OnRelease(x => x.CloseAsync());
 
                 builder
-                    .Register(c => new TopicClientWrapper(symbolsValidationConnectionString, symbolsValidationTopicName))
+                    .Register(c => new TopicClientWrapper(symbolsValidationConnectionString, symbolsValidationTopicName, configuration.ServiceBus.ManagedIdentityClientId))
                     .As<ITopicClient>()
                     .SingleInstance()
                     .Keyed<ITopicClient>(BindingKeys.SymbolsPackageValidationTopic)
