@@ -59,12 +59,17 @@ namespace NuGet.Services.KeyVault
         private SecretClient InitializeClient()
         {
             TokenCredential credential = null;
+
             if (_configuration.UseManagedIdentity)
             {
-                credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
+                if (string.IsNullOrEmpty(_configuration.ClientId))
                 {
-                    ManagedIdentityClientId = _configuration.ClientId
-                });
+                    credential = new DefaultAzureCredential();
+                }
+                else
+                {
+                    credential = new ManagedIdentityCredential(_configuration.ClientId);
+                }
             }
             else
             {
