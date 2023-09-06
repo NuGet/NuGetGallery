@@ -97,6 +97,7 @@ namespace Ng
                 }
                 else
                 {
+                    var tenantId = arguments.GetOrThrow<string>(Arguments.TenantId);
                     var clientId = arguments.GetOrThrow<string>(Arguments.ClientId);
                     var certificateThumbprint = arguments.GetOrThrow<string>(Arguments.CertificateThumbprint);
                     var storeName = arguments.GetOrDefault(Arguments.StoreName, StoreName.My);
@@ -104,7 +105,11 @@ namespace Ng
                     var shouldValidateCert = arguments.GetOrDefault(Arguments.ValidateCertificate, true);
 
                     var keyVaultCertificate = CertificateUtility.FindCertificateByThumbprint(storeName, storeLocation, certificateThumbprint, shouldValidateCert);
-                    keyVaultConfig = new KeyVaultConfiguration(vaultName, clientId, keyVaultCertificate);
+                    keyVaultConfig = new KeyVaultConfiguration(
+                        vaultName,
+                        tenantId,
+                        clientId, 
+                        keyVaultCertificate);
                 }
 
                 secretReader = new CachingSecretReader(new KeyVaultReader(keyVaultConfig),

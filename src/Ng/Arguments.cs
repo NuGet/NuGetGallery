@@ -145,6 +145,7 @@ namespace Ng
         public const string VaultName = "vaultName";
         public const string UseManagedIdentity = "useManagedIdentity";
 
+        public const string TenantId = "tenantId";
         public const string ClientId = "clientId";
 
         public const string StoreName = "storeName";
