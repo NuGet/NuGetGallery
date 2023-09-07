@@ -35,7 +35,6 @@
             {
                 Id = "dotnet-cli-global",
                 CommandPrefix = "> ",
-
                 InstallPackageCommands = new [] { string.Format("dotnet tool install --global {0} --version {1}", Model.Id, Model.Version) },
                 AlertLevel = AlertLevel.Info,
                 AlertMessage = "This package contains a <a href='https://aka.ms/global-tools'>.NET tool</a> you can call from the shell/command line.",
@@ -195,10 +194,10 @@
 {
     <li role="presentation" class="@(active ? "active" : string.Empty)">
         <a href="#@packageManager.Id-body-tab"
-           data-target="@packageManager.Id-tab"
            id="@packageManager.Id-body-tab" class="package-manager-tab"
            aria-selected="@(active ? "true" : "false")" tabindex="@(active ? "0" : "-1")"
            aria-controls="@packageManager.Id" role="tab" data-toggle="tab"
+           data-target="#@packageManager.Id"
            title="Switch to tab panel which contains package installation command for @packageManager.Name">
             @packageManager.Name
         </a>
@@ -1373,6 +1372,8 @@
             {
                 continue;
             }
+
+            packageManagersCss = string.Empty;
 
             packageManagersCss += "#" + packageManager.Id + " .install-command-row::before {";
             packageManagersCss += "    content: \"" + packageManager.CommandPrefix + "\"";
