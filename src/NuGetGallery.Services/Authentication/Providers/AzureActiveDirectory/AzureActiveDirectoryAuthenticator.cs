@@ -23,7 +23,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
             // Fetch site root from configuration
             var siteRoot = config.Current.SiteRoot.TrimEnd('/') + "/";
 
-            // We *always* require SSL for Azure Active Directory
+            // We *always* require SSL for Microsoft Entra ID
             if (siteRoot.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
             {
                 siteRoot = siteRoot.Replace("http://", "https://");

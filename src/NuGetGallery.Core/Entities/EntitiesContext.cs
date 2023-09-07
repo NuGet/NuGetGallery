@@ -15,9 +15,9 @@ namespace NuGetGallery
 {
     /// <summary>
     /// This GalleryDbContextFactory is provided for running migrations in a flexible way as follows:
-    /// 1. Run migration using DbConnection; (For DatabaseMigrationTools with AAD token)
+    /// 1. Run migration using DbConnection; (For DatabaseMigrationTools with Microsoft Entra ID token)
     /// 2. Run migration using connection string;
-    /// 3. Run migration using default connection string ("Gallery.SqlServer") in a web.config; (For command-line migration with integrated AAD/username+password)
+    /// 3. Run migration using default connection string ("Gallery.SqlServer") in a web.config; (For command-line migration with integrated Microsoft Entra ID/username+password)
     /// </summary>
     public class GalleryDbContextFactory : IDbContextFactory<EntitiesContext>
     {

@@ -86,22 +86,22 @@ namespace GalleryTools.Commands
                     continue;
                 }
 
-                Console.WriteLine($"Applying AAD tenant policy to organization with name {username}");
+                Console.WriteLine($"Applying Microsoft Entra ID tenant policy to organization with name {username}");
                 try
                 {
                     var tenantPolicy = RequireOrganizationTenantPolicy.Create(tenantId);
                     if (await securityPolicyService.SubscribeAsync(organization, tenantPolicy))
                     {
-                        Console.WriteLine($"Successfully applied AAD tenant policy to organization with name {username}");
+                        Console.WriteLine($"Successfully applied Microsoft Entra ID tenant policy to organization with name {username}");
                     }
                     else
                     {
-                        Console.WriteLine($"Organization with name {username} already has AAD tenant policy.");
+                        Console.WriteLine($"Organization with name {username} already has Microsoft Entra ID tenant policy.");
                     }
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"Failed to apply AAD tenant policy to organization with name {username}: {e}");
+                    Console.WriteLine($"Failed to apply Microsoft Entra ID tenant policy to organization with name {username}: {e}");
                 }
             }
 
