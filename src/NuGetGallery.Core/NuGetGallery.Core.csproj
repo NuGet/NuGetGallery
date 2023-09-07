@@ -48,10 +48,10 @@
       <Version>5.2.6</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Packaging">
-      <Version>6.4.2</Version>
+      <Version>$(NuGetClientPackageVersion)</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.FeatureFlags">
-      <Version>2.110.0-jver-sb-8355791</Version>
+      <Version>$(ServerCommonPackageVersion)</Version>
     </PackageReference>
     <PackageReference Include="WindowsAzure.Storage">
       <Version>9.3.3</Version>
@@ -60,13 +60,13 @@
   
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <PackageReference Include="NuGet.Services.Messaging.Email">
-      <Version>2.110.0-jver-sb-8355791</Version>
+      <Version>$(ServerCommonPackageVersion)</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation">
-      <Version>2.110.0-jver-sb-8355791</Version>
+      <Version>$(ServerCommonPackageVersion)</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation.Issues">
-      <Version>2.110.0-jver-sb-8355791</Version>
+      <Version>$(ServerCommonPackageVersion)</Version>
     </PackageReference>
     <PackageReference Include="NuGet.StrongName.elmah.corelibrary">
       <Version>1.2.2</Version>
