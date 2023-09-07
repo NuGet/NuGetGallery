@@ -56,7 +56,7 @@ namespace NuGetGallery.Configuration.SecretReader
                 KeyVaultConfiguration keyVaultConfiguration;
                 if (useManagedIdentity)
                 {
-                    keyVaultConfiguration = new KeyVaultConfiguration(vaultName);
+                    keyVaultConfiguration = new KeyVaultConfiguration(vaultName, clientId);
                 }
                 else
                 {
