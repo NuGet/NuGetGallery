@@ -1373,8 +1373,6 @@
                 continue;
             }
 
-            packageManagersCss = string.Empty;
-
             packageManagersCss += "#" + packageManager.Id + " .install-command-row::before {";
             packageManagersCss += "    content: \"" + packageManager.CommandPrefix + "\"";
             packageManagersCss += "}";
