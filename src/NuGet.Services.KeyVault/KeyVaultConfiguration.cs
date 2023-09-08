@@ -18,7 +18,14 @@ namespace NuGet.Services.KeyVault
         /// <summary>
         /// The constructor for keyvault configuration when using managed identities
         /// </summary>
-        public KeyVaultConfiguration(string vaultName, string clientId = null)
+        public KeyVaultConfiguration(string vaultName)
+            : this(vaultName, clientId : null)
+        { }
+
+        /// <summary>
+        /// The constructor for keyvault configuration when using managed identities
+        /// </summary>
+        public KeyVaultConfiguration(string vaultName, string clientId)
         {
             if (string.IsNullOrWhiteSpace(vaultName))
             {

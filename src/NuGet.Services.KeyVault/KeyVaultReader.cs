@@ -7,6 +7,7 @@ using Azure.Core;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Microsoft.Extensions.Logging;
+using AzureSecurityKeyVaultSecret = Azure.Security.KeyVault.Secrets.KeyVaultSecret;
 
 namespace NuGet.Services.KeyVault
 {
@@ -39,9 +40,8 @@ namespace NuGet.Services.KeyVault
 
         public async Task<string> GetSecretAsync(string secretName, ILogger logger)
         {
-            var response = await _keyVaultClient.Value.GetSecretAsync(secretName);
-            var secret = response.Value;
-            return secret.Value;
+            AzureSecurityKeyVaultSecret response = await _keyVaultClient.Value.GetSecretAsync(secretName);
+            return response.Value;
         }
 
         public async Task<ISecret> GetSecretObjectAsync(string secretName)
@@ -51,9 +51,8 @@ namespace NuGet.Services.KeyVault
 
         public async Task<ISecret> GetSecretObjectAsync(string secretName, ILogger logger)
         {
-            var response = await _keyVaultClient.Value.GetSecretAsync(secretName);
-            var secret = response.Value;
-            return new KeyVaultSecret(secretName, secret.Value, secret.Properties.ExpiresOn);
+            AzureSecurityKeyVaultSecret response = await _keyVaultClient.Value.GetSecretAsync(secretName);
+            return new KeyVaultSecret(secretName, response.Value, response.Properties.ExpiresOn);
         }
 
         private SecretClient InitializeClient()
@@ -75,8 +74,13 @@ namespace NuGet.Services.KeyVault
             {
                 credential = new ClientCertificateCredential(_configuration.TenantId, _configuration.ClientId, _configuration.Certificate);
             }
-            return new SecretClient(_configuration.GetKeyVaultUri(), credential);
+            return new SecretClient(GetKeyVaultUri(_configuration), credential);
+        }
+
+        private Uri GetKeyVaultUri(KeyVaultConfiguration keyVaultConfiguration)
+        {
+            var uriString = $"https://{keyVaultConfiguration.VaultName}.vault.azure.net/";
+            return new Uri(uriString);
         }
     }
-
 }
