@@ -23,7 +23,8 @@ namespace NuGet.Jobs
             KeyVaultConfiguration keyVaultConfiguration;
             if (useManagedIdentity)
             {
-                keyVaultConfiguration = new KeyVaultConfiguration(JobConfigurationManager.GetArgument(settings, JobArgumentNames.VaultName));
+                var clientId = JobConfigurationManager.TryGetArgument(settings, JobArgumentNames.ClientId);
+                keyVaultConfiguration = new KeyVaultConfiguration(JobConfigurationManager.GetArgument(settings, JobArgumentNames.VaultName), clientId);
             }
             else
             {

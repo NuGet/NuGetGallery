@@ -93,7 +93,8 @@ namespace Ng
                 KeyVaultConfiguration keyVaultConfig;
                 if (useManagedIdentity)
                 {
-                    keyVaultConfig = new KeyVaultConfiguration(vaultName);
+                    var clientId = arguments.GetOrDefault<string>(Arguments.ClientId);
+                    keyVaultConfig = new KeyVaultConfiguration(vaultName, clientId);
                 }
                 else
                 {
