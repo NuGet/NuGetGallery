@@ -193,11 +193,10 @@
 @helper CommandTab(PackageManagerViewModel packageManager, bool active)
 {
     <li role="presentation" class="@(active ? "active" : string.Empty)">
-        <a href="#@packageManager.Id-body-tab"
-           id="@packageManager.Id-body-tab" class="package-manager-tab"
+        <a href="#@packageManager.Id"
+           id="@packageManager.Id-tab" class="package-manager-tab"
            aria-selected="@(active ? "true" : "false")" tabindex="@(active ? "0" : "-1")"
            aria-controls="@packageManager.Id" role="tab" data-toggle="tab"
-           data-target="#@packageManager.Id"
            title="Switch to tab panel which contains package installation command for @packageManager.Name">
             @packageManager.Name
         </a>
@@ -649,10 +648,11 @@
                     {
                         activeBodyTab = activeBodyTab ?? "releasenotes";
                         <li role="presentation">
-                            <a href="#releasenotes-tab"
+                            <a href="#releasenotes-body-tab"
                                role="tab"
                                data-toggle="tab"
-                               id="release-body-tab"
+                               data-target="#releasenotes-tab"
+                               id="releasenotes-body-tab"
                                class="body-tab"
                                aria-controls="releasenotes-tab"
                                aria-expanded="@(activeBodyTab == "releasenotes" ? "true" : "false")"
