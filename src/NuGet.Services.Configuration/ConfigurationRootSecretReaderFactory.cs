@@ -35,7 +35,7 @@ namespace NuGet.Services.Configuration
                 _useManagedIdentity = bool.Parse(useManagedIdentity);
             }
 
-            _tenantId = config[Constants.KeyVaultTenanIdKey];
+            _tenantId = config[Constants.KeyVaultTenantIdKey];
             _clientId = config[Constants.KeyVaultClientIdKey];
             _certificateThumbprint = config[Constants.KeyVaultCertificateThumbprintKey];
             if (_useManagedIdentity && IsCertificateConfigurationProvided())
