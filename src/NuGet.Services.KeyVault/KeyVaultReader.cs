@@ -40,8 +40,8 @@ namespace NuGet.Services.KeyVault
 
         public async Task<string> GetSecretAsync(string secretName, ILogger logger)
         {
-            AzureSecurityKeyVaultSecret response = await _keyVaultClient.Value.GetSecretAsync(secretName);
-            return response.Value;
+            AzureSecurityKeyVaultSecret secret = await _keyVaultClient.Value.GetSecretAsync(secretName);
+            return secret.Value;
         }
 
         public async Task<ISecret> GetSecretObjectAsync(string secretName)
@@ -51,8 +51,8 @@ namespace NuGet.Services.KeyVault
 
         public async Task<ISecret> GetSecretObjectAsync(string secretName, ILogger logger)
         {
-            AzureSecurityKeyVaultSecret response = await _keyVaultClient.Value.GetSecretAsync(secretName);
-            return new KeyVaultSecret(secretName, response.Value, response.Properties.ExpiresOn);
+            AzureSecurityKeyVaultSecret secret = await _keyVaultClient.Value.GetSecretAsync(secretName);
+            return new KeyVaultSecret(secretName, secret.Value, secret.Properties.ExpiresOn);
         }
 
         private SecretClient InitializeClient()
