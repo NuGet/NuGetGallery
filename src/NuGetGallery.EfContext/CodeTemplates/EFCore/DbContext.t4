@@ -190,6 +190,7 @@ public partial class <#= Options.ContextName #> : DbContext
             anyEntityTypeConfiguration = true;
         }
 
+#if false
         foreach (var index in entityType.GetIndexes()
             .Where(i => !(Options.UseDataAnnotations && i.IsHandledByDataAnnotations(annotationCodeGenerator))))
         {
@@ -208,6 +209,13 @@ public partial class <#= Options.ContextName #> : DbContext
 <#
             anyEntityTypeConfiguration = true;
         }
+#endif
+
+        bool SkipProperty(string entityName, string propertyName)
+        {
+            return
+                (entityName == "Package" && propertyName == "PackageDeleteKey");
+        }
 
         var firstProperty = true;
         foreach (var property in entityType.GetProperties())
@@ -216,6 +224,11 @@ public partial class <#= Options.ContextName #> : DbContext
                 ?.FilterChain(c => !(Options.UseDataAnnotations && c.IsHandledByDataAnnotations)
                     && !(c.Method == "IsRequired" && Options.UseNullableReferenceTypes && !property.ClrType.IsValueType));
             if (propertyFluentApiCalls == null)
+            {
+                continue;
+            }
+
+            if (SkipProperty(entityType.Name, property.Name))
             {
                 continue;
             }
@@ -233,11 +246,42 @@ public partial class <#= Options.ContextName #> : DbContext
             firstProperty = false;
         }
 
+        bool SkipNavigationProperty(string entityName, string propertyName)
+        {
+            return
+                (entityName == "Package" && propertyName == "PackageDeleteKeyNavigation");
+        }
+
+        string RemoveLast(string str, string last, string ifEmpty)
+        {
+            if (str.EndsWith(last))
+            {
+                var result = str.Substring(0, str.Length - last.Length);
+                if (string.IsNullOrEmpty(result))
+                {
+                    return ifEmpty;
+                }
+                return result;
+            }
+
+            return str;
+        }
+
+        string GetDependentNavigationPropertyName(string principalType, string principalNavigationPropertyName)
+        {
+            return null;
+        }
+
         foreach (var foreignKey in entityType.GetForeignKeys())
         {
             var foreignKeyFluentApiCalls = foreignKey.GetFluentApiCalls(annotationCodeGenerator)
                 ?.FilterChain(c => !(Options.UseDataAnnotations && c.IsHandledByDataAnnotations));
             if (foreignKeyFluentApiCalls == null)
+            {
+                continue;
+            }
+
+            if (SkipNavigationProperty(entityType.Name, foreignKey.DependentToPrincipal.Name))
             {
                 continue;
             }
@@ -248,8 +292,11 @@ public partial class <#= Options.ContextName #> : DbContext
             {
                 WriteLine("");
             }
+
+            var dependentNavigationPropertyName = RemoveLast(foreignKey.DependentToPrincipal.Name, "KeyNavigation", "");
+            var principalNavigationPropertyName = GetDependentNavigationPropertyName(entityType.Name, dependentNavigationPropertyName);
 #>
-            entity.HasOne(d => d.<#= foreignKey.DependentToPrincipal.Name #>).<#= foreignKey.IsUnique ? "WithOne" : "WithMany" #>(<#= foreignKey.PrincipalToDependent != null ? $"p => p.{foreignKey.PrincipalToDependent.Name}" : "" #>)<#= code.Fragment(foreignKeyFluentApiCalls, indent: 4) #>;
+            entity.HasOne(d => d.<#= dependentNavigationPropertyName #>).<#= foreignKey.IsUnique ? "WithOne" : "WithMany" #>(<#= foreignKey.PrincipalToDependent != null && !string.IsNullOrEmpty(principalNavigationPropertyName) ? $"p => p.{principalNavigationPropertyName}" : "" #>)<#= code.Fragment(foreignKeyFluentApiCalls, indent: 4) #>;
 <#
             anyEntityTypeConfiguration = true;
         }
