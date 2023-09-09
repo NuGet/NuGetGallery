@@ -956,3 +956,33 @@ Function Remove-EditorconfigFile() {
     Remove-Item $editorconfigFilePath
     Trace-Log "Removed $editorconfigFilePath"
 }
+
+Function Add-PackageSourceMapping(
+    [Parameter(Mandatory=$True)][string]$NuGetConfigPath,
+    [Parameter(Mandatory=$True)][string]$SourceKey,
+    [Parameter(Mandatory=$True)][string[]]$Patterns) {
+    if (-not [System.IO.Path]::IsPathRooted($NuGetConfigPath)) {
+        $NuGetConfigPath = Join-Path $PWD $NuGetConfigPath
+    }
+
+    $config = [xml](Get-Content -Raw $NuGetConfigPath)
+    if (-not $config.configuration.packageSourceMapping) {
+        Write-Host "No package source mapping section. Not doing anything."
+        return
+    }
+
+    $packageSourceNode = $config.configuration.packageSourceMapping.packageSource | Where-Object { $_.key -eq $SourceKey }
+    if (-not $packageSourceNode) {
+        $packageSourceNode = $config.CreateElement("packageSource")
+        $packageSourceNode.SetAttribute("key", $SourceKey)
+        $config.configuration.packageSourceMapping.AppendChild($packageSourceNode) | Out-Null
+    }
+
+    foreach ($pattern in $Patterns)
+    {
+        $package = $config.CreateElement("package")
+        $package.SetAttribute("pattern", $pattern)
+        $packageSourceNode.AppendChild($package) | Out-Null
+    }
+    $config.Save($NuGetConfigPath)
+}
