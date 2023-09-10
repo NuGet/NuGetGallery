@@ -32,7 +32,10 @@ namespace NuGet.Services.GitHub.GraphQL
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _client = client ?? throw new ArgumentNullException(nameof(client));
 
-            _configuration.GitHubGraphQLQueryEndpoint
+            if (string.IsNullOrEmpty(_configuration.GitHubGraphQLQueryEndpoint))
+            {
+                _configuration.GitHubGraphQLQueryEndpoint = _defaultQueryUrl;
+            }
         }
 
         public async Task<QueryResponse> QueryAsync(string query, CancellationToken token)
