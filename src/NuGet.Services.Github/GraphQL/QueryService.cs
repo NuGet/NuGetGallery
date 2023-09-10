@@ -32,7 +32,7 @@ namespace NuGet.Services.GitHub.GraphQL
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _client = client ?? throw new ArgumentNullException(nameof(client));
 
-            if (string.IsNullOrEmpty(_configuration.GitHubGraphQLQueryEndpoint))
+            if (string.IsNullOrEmpty(_configuration.GitHubGraphQLQueryEndpoint.ToString()))
             {
                 _configuration.GitHubGraphQLQueryEndpoint = _defaultQueryUrl;
             }

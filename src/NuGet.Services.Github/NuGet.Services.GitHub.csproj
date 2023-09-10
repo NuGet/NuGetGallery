@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net472;netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>net472</TargetFrameworks>
     <Description>Support Library for interacting with GitHub from Gallery projects</Description>
   </PropertyGroup>
   
@@ -12,10 +12,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NuGet.Services.Entities\NuGet.Services.Entities.csproj">
-      <Project>{6262f4fc-29be-4226-b676-db391c89d396}</Project>
-      <Name>NuGet.Services.Entities</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.Entities\NuGet.Services.Entities.csproj" />
     <ProjectReference Include="..\NuGetGallery.Services\NuGetGallery.Services.csproj" />
   </ItemGroup>
 </Project>
