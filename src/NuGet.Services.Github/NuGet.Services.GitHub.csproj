@@ -16,9 +16,6 @@
       <Project>{6262f4fc-29be-4226-b676-db391c89d396}</Project>
       <Name>NuGet.Services.Entities</Name>
     </ProjectReference>
-    <ProjectReference Include="..\NuGetGallery.Services\NuGetGallery.Services.csproj">
-      <Project>{c7d5e850-33fa-4ec5-8d7f-b1c8dd5d48f9}</Project>
-      <Name>NuGetGallery.Services</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\NuGetGallery.Services\NuGetGallery.Services.csproj" />
   </ItemGroup>
 </Project>
