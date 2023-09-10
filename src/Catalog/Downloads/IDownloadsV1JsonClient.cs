@@ -3,7 +3,6 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.Azure.KeyVault.Models;
 
 namespace NuGet.Services.Metadata.Catalog
 {
