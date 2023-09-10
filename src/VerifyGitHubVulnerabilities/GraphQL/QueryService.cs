@@ -7,7 +7,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using GitHubVulnerabilities2Db.GraphQL;
+using NuGet.Services.GitHub.GraphQL;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using VerifyGitHubVulnerabilities.Configuration;
