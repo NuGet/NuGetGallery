@@ -4,8 +4,8 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using GitHubVulnerabilities2Db.GraphQL;
-using GitHubVulnerabilities2Db.Ingest;
+using NuGet.Services.GitHub.GraphQL;
+using NuGet.Services.GitHub.Ingest;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Services.Entities;
