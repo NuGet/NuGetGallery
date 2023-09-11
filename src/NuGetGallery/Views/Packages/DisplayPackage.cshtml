@@ -548,9 +548,10 @@
                     {
                         activeBodyTab = activeBodyTab ?? "readme";
                         <li role="presentation" class="active" id="show-readme-container">
-                            <a href="#readme-tab"
+                            <a href="#readme-body-tab"
                                role="tab"
                                data-toggle="tab"
+                               data-target="#readme-tab"
                                id="readme-body-tab"
                                class="body-@(Model.CanDisplayReadmeWarning && Model.CanDisplayPrivateMetadata? "warning-" : "")tab"
                                aria-controls="readme-tab"
