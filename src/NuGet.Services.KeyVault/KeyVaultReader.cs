@@ -3,10 +3,11 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.Services.AppAuthentication;
+using Azure.Core;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Clients.ActiveDirectory;
+using AzureSecurityKeyVaultSecret = Azure.Security.KeyVault.Secrets.KeyVaultSecret;
 
 namespace NuGet.Services.KeyVault
 {
@@ -17,12 +18,9 @@ namespace NuGet.Services.KeyVault
     public class KeyVaultReader : ISecretReader
     {
         private readonly KeyVaultConfiguration _configuration;
-        private readonly string _vault;
-        private readonly Lazy<KeyVaultClient> _keyVaultClient;
-        private ClientAssertionCertificate _clientAssertionCertificate;
+        private readonly Lazy<SecretClient> _keyVaultClient;
 
-        protected string VaultBaseUrl => _vault;
-        protected KeyVaultClient KeyVaultClient => _keyVaultClient.Value;
+        protected SecretClient KeyVaultClient => _keyVaultClient.Value;
 
         public KeyVaultReader(KeyVaultConfiguration configuration)
         {
@@ -32,8 +30,7 @@ namespace NuGet.Services.KeyVault
             }
 
             _configuration = configuration;
-            _vault = $"https://{_configuration.VaultName}.vault.azure.net/";
-            _keyVaultClient = new Lazy<KeyVaultClient>(InitializeClient);
+            _keyVaultClient = new Lazy<SecretClient>(InitializeClient);
         }
 
         public async Task<string> GetSecretAsync(string secretName)
@@ -43,7 +40,7 @@ namespace NuGet.Services.KeyVault
 
         public async Task<string> GetSecretAsync(string secretName, ILogger logger)
         {
-            var secret = await _keyVaultClient.Value.GetSecretAsync(_vault, secretName);
+            AzureSecurityKeyVaultSecret secret = await _keyVaultClient.Value.GetSecretAsync(secretName);
             return secret.Value;
         }
 
@@ -54,36 +51,36 @@ namespace NuGet.Services.KeyVault
 
         public async Task<ISecret> GetSecretObjectAsync(string secretName, ILogger logger)
         {
-            var secret = await _keyVaultClient.Value.GetSecretAsync(_vault, secretName);
-            return new KeyVaultSecret(secretName, secret.Value, secret.Attributes.Expires);
+            AzureSecurityKeyVaultSecret secret = await _keyVaultClient.Value.GetSecretAsync(secretName);
+            return new KeyVaultSecret(secretName, secret.Value, secret.Properties.ExpiresOn);
         }
 
-        private KeyVaultClient InitializeClient()
+        private SecretClient InitializeClient()
         {
+            TokenCredential credential = null;
+
             if (_configuration.UseManagedIdentity)
             {
-                var azureServiceTokenProvider = new AzureServiceTokenProvider();
-                return new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
+                if (string.IsNullOrEmpty(_configuration.ClientId))
+                {
+                    credential = new DefaultAzureCredential();
+                }
+                else
+                {
+                    credential = new ManagedIdentityCredential(_configuration.ClientId);
+                }
             }
             else
             {
-                _clientAssertionCertificate = new ClientAssertionCertificate(_configuration.ClientId, _configuration.Certificate);
-                return new KeyVaultClient(GetTokenAsync);
+                credential = new ClientCertificateCredential(_configuration.TenantId, _configuration.ClientId, _configuration.Certificate);
             }
+            return new SecretClient(GetKeyVaultUri(_configuration), credential);
         }
 
-        private async Task<string> GetTokenAsync(string authority, string resource, string scope)
+        private Uri GetKeyVaultUri(KeyVaultConfiguration keyVaultConfiguration)
         {
-            var authContext = new AuthenticationContext(authority);
-            var result = await authContext.AcquireTokenAsync(resource, _clientAssertionCertificate, _configuration.SendX5c);
-
-            if (result == null)
-            {
-                throw new InvalidOperationException("Bearer token acquisition needed to call the KeyVault service failed");
-            }
-
-            return result.AccessToken;
+            var uriString = $"https://{keyVaultConfiguration.VaultName}.vault.azure.net/";
+            return new Uri(uriString);
         }
     }
-
 }
