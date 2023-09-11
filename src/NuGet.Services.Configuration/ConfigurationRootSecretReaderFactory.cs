@@ -102,8 +102,7 @@ namespace NuGet.Services.Configuration
 
         private bool IsCertificateConfigurationProvided()
         {
-            return !string.IsNullOrEmpty(_clientId)
-                || !string.IsNullOrEmpty(_certificateThumbprint)
+            return !string.IsNullOrEmpty(_certificateThumbprint)
                 || !string.IsNullOrEmpty(_tenantId);
         }
     }
