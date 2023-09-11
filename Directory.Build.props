@@ -2,9 +2,9 @@
 
   <!-- NuGet dependencies shared across projects -->
   <PropertyGroup>
-    <ServerCommonPackageVersion>2.110.0-agr-kv-lib-upgrade3-8363300</ServerCommonPackageVersion>
+    <ServerCommonPackageVersion>2.111.0</ServerCommonPackageVersion>
     <NuGetClientPackageVersion>6.4.2</NuGetClientPackageVersion>
-    <NuGetGalleryPackageVersion>4.4.5-agr-kv-update2-8366005</NuGetGalleryPackageVersion>
+    <NuGetGalleryPackageVersion>4.4.5-dev-8381969</NuGetGalleryPackageVersion>
   </PropertyGroup>
 
   <ItemGroup>
