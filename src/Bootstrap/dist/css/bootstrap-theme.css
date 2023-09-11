@@ -1707,26 +1707,32 @@ p.frameworktableinfo-text {
 .page-downloads .list-tools li {
   margin-top: 20px;
 }
-.page-downloads .newDiv {
+.page-downloads .older-versions-dropdown {
   margin-top: 20px;
 }
-.page-downloads .newDiv button {
+.page-downloads .older-versions-dropdown button {
   background-color: transparent;
   border: none;
   outline: none;
   font-size: 12px;
 }
-.page-downloads .newDiv button:hover {
+.page-downloads .older-versions-dropdown button:hover {
   color: #5a87dc;
 }
-.page-downloads .newDiv li {
+.page-downloads .older-versions-dropdown button:focus {
+  outline: solid;
+  z-index: 1;
+}
+.page-downloads .older-versions-dropdown li {
   display: none;
 }
-.page-downloads .newDiv p {
+.page-downloads .older-versions-dropdown p {
   color: red;
   font-size: 14px;
+  display: none;
 }
-.page-downloads .newDiv.show-list-items li {
+.page-downloads .older-versions-dropdown.show-list-items p,
+.page-downloads .older-versions-dropdown.show-list-items li {
   display: block;
 }
 .page-edit-package .readme-tabs {

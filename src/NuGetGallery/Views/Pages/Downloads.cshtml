@@ -12,7 +12,7 @@
     <div class="row">
         <div class="col-md-4">
             <h2 class="ms-fontSize-xxl">Windows x86 Commandline</h2>
-            <ul class="list-unstyled list-tools" id="windows86versions">
+            <ul class="list-unstyled list-tools">
                 <li><a href="https://dist.nuget.org/win-x86-commandline/latest/nuget.exe">nuget.exe - recommended latest</a></li>
             </ul>
         </div>
@@ -83,24 +83,20 @@
     <script type="text/javascript">
         $(function () {
             $.ajax({
-                url: 'https://raw.githubusercontent.com/NuGet/NuGet.Services.Index/main/PROD/dist.nuget.org-index/index.json?token=GHSAT0AAAAAACE7OGH236GJ54HECGEOQIZEZHORRFQ',
+                url: '//dist.nuget.org/index.json',
                 cache: false,
                 type: 'GET',
                 xhrFields: {
                     withCredentials: false
                 },
                 success: function (data) {
-
-                    console.log(data);
                     if (typeof data == "string") {
                         data = $.parseJSON(data);
                     }
-
                     ko.applyBindings(data, $('#stage-dynamic').get(0));
                     $('#stage-static').hide();
                     $(document).trigger('dataLoaded');
                     $('#stage-dynamic').show();
-
                 }
             });
         });
