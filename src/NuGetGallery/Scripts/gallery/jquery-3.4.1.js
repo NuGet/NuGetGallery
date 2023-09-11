@@ -10602,10 +10602,10 @@
 
     function makeOlderVersionsCollapsible() {
         const listContainer = document.getElementById('win-x86-versions').children[1];   //children[0] is the headline, children[1] is the list of versions
-        olderVersionsDivElement = document.createElement('div');
+        olderVersionsDivElement = document.createElement('li');
 
         // If the first two versions in json file are the same, we don't want
-        // to show the both. The following code checks if they're the same,
+        // to show both. The following code checks if they're the same,
         // and if so, removes the second. It checks if they're the same based
         // on the last word, which is a version identifier.
         var firstElement = listContainer.querySelector('li:first-child');
@@ -10617,8 +10617,15 @@
         var firstLastWord = firstText.split(' ').pop();
         var secondLastWord = secondText.split(' ').pop();
 
+        const liElements = listContainer.querySelectorAll('li');
+        var otherLiElements;
+
         if (firstLastWord === secondLastWord) {
             listContainer.removeChild(secondElement);
+            otherLiElements = Array.from(liElements).slice(1);    // we want to display only 1 version outside of the dropdown
+        }
+        else {
+            otherLiElements = Array.from(liElements).slice(2);
         }
 
         olderVersionsDivElement.setAttribute('class', 'older-versions-dropdown');
@@ -10634,9 +10641,6 @@
             'id="olderVersionsToggleChevron"></i>' +
             '</button>' +
             '<p> These versions are no longer supported and might have vulnerabilities. </p>';
-
-        const liElements = listContainer.querySelectorAll('li');
-        const otherLiElements = Array.from(liElements).slice(2);    // we want to display 2 versions outside of the dropdown
     
         otherLiElements.forEach(li => {
             olderVersionsDivElement.appendChild(li);
@@ -10645,7 +10649,8 @@
         listContainer.appendChild(olderVersionsDivElement);
 
         chevronIcon = document.getElementById('olderVersionsToggleChevron');
-        chevronIcon.addEventListener('click', toggleOlderVersions);
+        var theButton = document.getElementById('olderVersionsToggleButton');
+        theButton.addEventListener('click', toggleOlderVersions);
     }
 
     function toggleOlderVersions() {
