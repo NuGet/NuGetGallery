@@ -110,6 +110,7 @@
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation.Common.Job">
       <Version>4.3.0-dev-5066115</Version>
+      <Version>4.3.0-dev-8382474</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
