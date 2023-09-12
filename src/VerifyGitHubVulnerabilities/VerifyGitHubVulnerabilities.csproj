@@ -62,7 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NuGet.Jobs.Common">
-      <Version>4.3.0-dev-eryondon-keyvault2-8369940</Version>
+      <Version>4.3.0-dev-8382474</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
