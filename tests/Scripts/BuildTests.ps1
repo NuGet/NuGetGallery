@@ -8,7 +8,9 @@ param(
 $rootName = (Get-Item $PSScriptRoot).parent.FullName
 
 # Required tools
-$msBuild = "${Env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\msbuild"
+$BuiltInVsWhereExe = "${Env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+$VsInstallationPath = & $BuiltInVsWhereExe -latest -prerelease -property installationPath
+$msBuild = Join-Path $VsInstallationPath "MSBuild\Current\Bin\msbuild"
 $nuget = "$rootName\nuget.exe"
 & "$rootName\Scripts\DownloadLatestNuGetExeRelease.ps1" $rootName
 
