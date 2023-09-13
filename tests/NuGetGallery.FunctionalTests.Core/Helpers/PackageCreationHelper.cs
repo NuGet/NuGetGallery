@@ -72,10 +72,10 @@ namespace NuGetGallery.FunctionalTests
         /// Creates a package with the license expression.
         /// </summary>
         /// <returns></returns>
-        public async Task<string> CreatePackageWithLicenseExpression(string packageName, string packageVersion, string licenseUrl, string licenseExpression)
+        public async Task<string> CreatePackageWithLicenseExpression(string packageName, string packageVersion, string licenseExpression)
         {
             var nuspecHelper = new NuspecHelper(TestOutputHelper);
-            var nuspecFileFullPath = await nuspecHelper.CreateDefaultNuspecFile(packageName, packageVersion, licenseUrl: licenseUrl);
+            var nuspecFileFullPath = await nuspecHelper.CreateDefaultNuspecFile(packageName, packageVersion);
             var nuspecDir = Path.GetDirectoryName(nuspecFileFullPath);
 
             var nupkgFileFullPath = await CreatePackageInternal(nuspecFileFullPath);

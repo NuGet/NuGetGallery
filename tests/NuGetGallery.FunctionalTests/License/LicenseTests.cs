@@ -29,12 +29,11 @@ namespace NuGetGallery.FunctionalTests.License
             var packageName = $"TestPackageWithLicense.{Guid.NewGuid():N}";
             var packageVersion = "1.0.0";
             
-            var licenseUrl = "https://testNugetLicenseUrl";
             var licenseExpression = "MIT";
             var expectedErrorMessage = "when a license expression is specified, <licenseUrl> must be set to";
 
             // Act
-            string packageFullPath = await _packageCreationHelper.CreatePackageWithLicenseExpression(packageName, packageVersion, licenseUrl, licenseExpression);
+            string packageFullPath = await _packageCreationHelper.CreatePackageWithLicenseExpression(packageName, packageVersion, licenseExpression);
 
             var processResult = await _commandlineHelper.UploadPackageAsync(packageFullPath, UrlHelper.V2FeedPushSourceUrl);
 
