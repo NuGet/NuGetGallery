@@ -13,7 +13,7 @@ $rootRootName = $root.parent.FullName
 $nuget = "$rootName\nuget.exe"
 $BuiltInVsWhereExe = "${Env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
 $VsInstallationPath = & $BuiltInVsWhereExe -latest -prerelease -property installationPath
-$msTest = Join-Path $VsInstallationPath "Common7\IDE\mstest.exe"
+$vsTest = Join-Path $VsInstallationPath "Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe"
 $xunit = "$rootRootName\packages\xunit.runner.console.2.3.1\tools\net452\xunit.console.exe"
 
 # Test results files
@@ -40,7 +40,7 @@ if ($LastExitCode) {
 $webTestsDirectory = "$rootName\NuGetGallery.WebUITests.$TestCategory\bin\$Config"
 
 if (Test-Path $webTestsDirectory -PathType Container) { 
-    & $msTest "/TestContainer:$webTestsDirectory\NuGetGallery.WebUITests.$TestCategory.dll" "/TestSettings:$rootName\Local.testsettings" "/detail:stdout" "/resultsfile:$webUITestResults"
+    & $vsTest "$webTestsDirectory\NuGetGallery.WebUITests.$TestCategory.dll" "/Settings:$rootName\Local.testsettings" "/Logger:trx;LogFileName=$webUITestResults"
     if ($LastExitCode) {
         $exitCode = 1
     }
@@ -48,7 +48,7 @@ if (Test-Path $webTestsDirectory -PathType Container) {
 
 # Run load tests
 $loadTestsDirectory = "$rootName\NuGetGallery.LoadTests\bin\$Config"
-& $msTest "/TestContainer:$loadTestsDirectory\NuGetGallery.LoadTests.dll" "/TestSettings:$rootName\Local.testsettings" "/detail:stdout" "/category:$fullTestCategory" "/resultsfile:$loadTestResults"
+& $vsTest "$loadTestsDirectory\NuGetGallery.LoadTests.dll" "/Settings:$rootName\Local.testsettings" "/TestCaseFilter:`"TestCategory=$fullTestCategory`"" "/Logger:trx;LogFileName=$loadTestResults"
 if ($LastExitCode) {
     $exitCode = 1
 }
