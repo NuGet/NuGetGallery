@@ -46,13 +46,13 @@ namespace NuGetGallery.FunctionalTests.License
         [Description("Push an invalid package with license file and verify uploading is blocked")]
         [Priority(1)]
         [Category("P1Tests")]
-        [InlineData("https://testNugetLicenseUrl", "license.txt", "license.txt", "It's a license", "when a license file is packaged, <licenseUrl> must be set to ")]
-        [InlineData("https://aka.ms/deprecateLicenseUrl", "licensefolder\\license.txt", "license.txt", "It's a license", "does not exist in the package")]
-        public async Task UploadInValidPackageWithLicenseFile(string licenseUrl, string licenseFile, string licenseFileName, string licenseFileContents, string expectedErrorMessage)
+        [InlineData("license.txt", "license.txt", "It's a license", "when a license file is packaged, <licenseUrl> must be set to ")]
+        [InlineData("licensefolder\\license.txt", "license.txt", "It's a license", "does not exist in the package")]
+        public async Task UploadInValidPackageWithLicenseFile(string licenseFile, string licenseFileName, string licenseFileContents, string expectedErrorMessage)
         {
             var packageName = $"TestPackageWithLicense.{Guid.NewGuid():N}";
             string packageVersion = "1.0.0";
-            string packageFullPath = await _packageCreationHelper.CreatePackageWithLicenseFile(packageName, packageVersion, licenseUrl, licenseFile, licenseFileName, licenseFileContents);
+            string packageFullPath = await _packageCreationHelper.CreatePackageWithLicenseFile(packageName, packageVersion, licenseFile, licenseFileName, licenseFileContents);
 
             var processResult = await _commandlineHelper.UploadPackageAsync(packageFullPath, UrlHelper.V2FeedPushSourceUrl);
 

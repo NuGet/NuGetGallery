@@ -91,10 +91,10 @@ namespace NuGetGallery.FunctionalTests
         /// Creates a package with the license file.
         /// </summary>
         /// <returns></returns>
-        public async Task<string> CreatePackageWithLicenseFile(string packageName, string packageVersion, string licenseUrl, string licenseFile, string licenseFileName, string licenseFileContents)
+        public async Task<string> CreatePackageWithLicenseFile(string packageName, string packageVersion, string licenseFile, string licenseFileName, string licenseFileContents)
         {
             var nuspecHelper = new NuspecHelper(TestOutputHelper);
-            var nuspecFileFullPath = await nuspecHelper.CreateDefaultNuspecFile(packageName, packageVersion, licenseUrl: licenseUrl);
+            var nuspecFileFullPath = await nuspecHelper.CreateDefaultNuspecFile(packageName, packageVersion);
             var nuspecDir = Path.GetDirectoryName(nuspecFileFullPath);
 
             var licenseFilePath = GetOrCreateFilePath(nuspecDir, licenseFileName);
