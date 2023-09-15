@@ -43,13 +43,19 @@ namespace GalleryTools.Commands
         {
             package.RepositoryUrl = metadata.Url;
 
-            if (metadata.Type.Length >= 100)
-            {
-                // TODO: Log error.
-            }
-            else
+            if (metadata.Type.Length <= 100)
             {
                 package.RepositoryType = metadata.Type;
+            }
+
+            if (!string.IsNullOrEmpty(metadata.Branch) && metadata.Branch.Length <= Package.MaxBranchLength)
+            {
+                package.RepositoryBranch = metadata.Branch;
+            }
+
+            if (!string.IsNullOrEmpty(metadata.Commit) && metadata.Commit.Length <= Package.MaxCommitLength)
+            {
+                package.RepositoryCommit = metadata.Commit;
             }
         }
     }

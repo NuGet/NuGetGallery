@@ -7,6 +7,7 @@ using System.Linq;
 using System.Xml.Linq;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
+using NuGet.Services.Entities;
 using NuGet.Versioning;
 
 namespace NuGetGallery.Packaging
@@ -69,6 +70,26 @@ namespace NuGetGallery.Packaging
                 Uri.TryCreate(repositoryMetadata.Url, UriKind.Absolute, out var repoUrl);
                 RepositoryUrl = repoUrl;
                 RepositoryType = repositoryMetadata.Type;
+
+                if (!string.IsNullOrEmpty(repositoryMetadata.Branch))
+                {
+                    if (repositoryMetadata.Branch.Length > Package.MaxBranchLength)
+                    {
+                        throw new FormatException(string.Format(CoreStrings.PackageMetadata_BranchTooLong, Package.MaxBranchLength));
+                    }
+
+                    RepositoryBranch = repositoryMetadata.Branch;
+                }
+
+                if (!string.IsNullOrEmpty(repositoryMetadata.Commit))
+                {
+                    if (RepositoryCommit.Length > Package.MaxCommitLength)
+                    {
+                        throw new FormatException(string.Format(CoreStrings.PackageMetadata_CommitTooLong, Package.MaxCommitLength));
+                    }
+
+                    RepositoryCommit = repositoryMetadata.Commit;
+                }
             }
 
             LicenseMetadata = licenseMetadata;
@@ -118,6 +139,8 @@ namespace NuGetGallery.Packaging
         public Uri ProjectUrl { get; private set; }
         public Uri RepositoryUrl { get; private set; }
         public string RepositoryType { get; private set; }
+        public string RepositoryBranch { get; private set; }
+        public string RepositoryCommit { get; private set; }
         public Uri LicenseUrl { get; private set; }
         public string Copyright { get; private set; }
         public string Description { get; private set; }

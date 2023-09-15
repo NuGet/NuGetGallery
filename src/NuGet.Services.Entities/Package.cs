@@ -12,6 +12,9 @@ namespace NuGet.Services.Entities
     public class Package
         : IPackageEntity
     {
+        public const int MaxBranchLength = 100;
+        public const int MaxCommitLength = 150;
+
         private string _id;
 
 #pragma warning disable 618 // TODO: remove Package.Authors completely once production services definitely no longer need it
@@ -134,6 +137,12 @@ namespace NuGet.Services.Entities
         /// </remarks>
         [StringLength(100)]
         public string RepositoryType { get; set; }
+
+        [StringLength(MaxBranchLength)]
+        public string RepositoryBranch { get; set; }
+
+        [StringLength(MaxCommitLength)]
+        public string RepositoryCommit { get; set; }
 
         /// <summary>
         /// Nullable flag stored in the database. Callers should use the HasReadMe property instead.

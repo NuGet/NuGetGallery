@@ -221,4 +221,12 @@
     <value>The package manifest contains an invalid Dependency Version Range: '{0}'</value>
     <comment>{0} is the original dependency version range string.</comment>
   </data>
+  <data name="PackageMetadata_BranchTooLong" xml:space="preserve">
+    <value>The branch in the repository metadata is too long. It can be at most {0} characters.</value>
+    <comment>{0} is the max length allowed.</comment>
+  </data>
+  <data name="PackageMetadata_CommitTooLong" xml:space="preserve">
+    <value>The commit in the repository metadata is too long. It can be at most {0} characters.</value>
+    <comment>{0} is the max length allowed.</comment>
+  </data>
 </root>

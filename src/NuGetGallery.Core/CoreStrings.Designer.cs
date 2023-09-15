@@ -19,7 +19,7 @@ namespace NuGetGallery {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class CoreStrings {
@@ -300,6 +300,24 @@ namespace NuGetGallery {
         public static string PackageIsMissingRequiredData {
             get {
                 return ResourceManager.GetString("PackageIsMissingRequiredData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The branch in the repository metadata is too long. It can be at most {0} characters..
+        /// </summary>
+        public static string PackageMetadata_BranchTooLong {
+            get {
+                return ResourceManager.GetString("PackageMetadata_BranchTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The commit in the repository metadata is too long. It can be at most {0} characters..
+        /// </summary>
+        public static string PackageMetadata_CommitTooLong {
+            get {
+                return ResourceManager.GetString("PackageMetadata_CommitTooLong", resourceCulture);
             }
         }
         
