@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <Import Project="..\..\sign.thirdparty.props" />
@@ -140,6 +140,7 @@
     <Compile Include="Areas\Admin\Controllers\LockUserController.cs" />
     <Compile Include="Areas\Admin\Controllers\LockPackageController.cs" />
     <Compile Include="Areas\Admin\Controllers\PasswordAuthenticationController.cs" />
+    <Compile Include="Areas\Admin\Controllers\PopularityTransferController.cs" />
     <Compile Include="Areas\Admin\Controllers\ReservedNamespaceController.cs" />
     <Compile Include="Areas\Admin\Controllers\RevalidationController.cs" />
     <Compile Include="Areas\Admin\Controllers\SecurityPolicyController.cs" />
@@ -184,6 +185,7 @@
     <Compile Include="Areas\Admin\Services\RevalidationAdminService.cs" />
     <Compile Include="Areas\Admin\Services\ValidationAdminService.cs" />
     <Compile Include="Areas\Admin\ViewModels\ExceptionEmailListViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\PopularityTransferViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\UserCredential.cs" />
     <Compile Include="Areas\Admin\ViewModels\UserCredentialSearchResult.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteAccountAsAdminViewModel.cs" />
@@ -2327,6 +2329,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Areas\Admin\Views\ChangeUsername\Index.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Areas\Admin\Views\PopularityTransfer\Index.cshtml" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

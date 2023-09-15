@@ -1,0 +1,295 @@
+﻿@model PopularityTransferViewModel
+@{
+    ViewBag.Title = "Popularity Transfers";
+}
+@ViewHelpers.AjaxAntiForgeryToken(Html)
+
+<section role="main" class="container main-container">
+
+    <div>
+        <h2>Popularity Transfers</h2>
+        <p>Transfer popularity from one package to another.</p>
+
+        <form class="form-horizontal" name="inputValidationForm" method="get">
+            <div class="form-group has-error"><div class="col-xs-12">@Html.ShowValidationMessagesForEmpty()</div></div>
+            <i>List the Package IDs you want to transfer popularity <b>from</b> and <b>to</b>.</i>
+            <div class="form-group @Html.HasErrorFor(m => m.Input.PackagesFromInput)">
+                <div class="col-xs-12">@Html.ShowValidationMessagesFor(m => m.Input.PackagesFromInput)</div>
+                <div class="col-xs-12">
+                    <label for="packagesFromInput" class="control-label">From</label>
+                    <textarea class="form-control" rows="5" id="packagesFromInput" name="packagesFromInput" placeholder="Package IDs to transfer popularity FROM, one per line" data-bind="value: packagesFromInput"></textarea>
+                </div>
+            </div>
+            <div class="form-group @Html.HasErrorFor(m => m.Input.PackagesToInput)">
+                <div class="col-xs-12">@Html.ShowValidationMessagesFor(m => m.Input.PackagesToInput)</div>
+                <div class="col-xs-12">
+                    <label for="packagesToInput" class="control-label">To</label>
+                    <textarea class="form-control" rows="5" id="packagesToInput" name="packagesToInput" placeholder="Package IDs to transfer popularity TO, one per line" data-bind="value: packagesToInput"></textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-xs-12">
+                    <button type="submit" class="btn btn-block btn-primary" data-bind="click: validateInputs">Validate input</button>
+                </div>
+            </div>
+        </form>
+
+        <div style="display:none" data-bind="visible: errorInputs">
+            @ViewHelpers.AlertDanger(@<text><span data-bind="text: errorInputs"></span></text>)
+        </div>
+
+        <div style="display: none" data-bind="visible: doneValidateInputs() && !errorInputs()">
+            <h3>Input</h3>
+            <table class="table" id="validatedInputResult" aria-label="popularity transfer packages selected">
+                <thead>
+                    <tr>
+                        <th>Package ID (From)</th>
+                        <th>Downloads (From)</th>
+                        <th>Owners (From)</th>
+                        <th>Package ID (To)</th>
+                        <th>Downloads (To)</th>
+                        <th>Owners (To)</th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach: validatedInputs">
+                    <tr>
+                        <td><a href="#" data-bind="text: FromId, attr: { href: FromUrl }"></a></td>
+                        <td><span data-bind="text: FromDownloads"></span></td>
+                        <td data-bind="foreach: FromOwners">
+                            <a data-bind="text: Username, attr: { href: ProfileUrl }" />
+                        </td>
+                        <td><a href="#" data-bind="text: ToId, attr: { href: ToUrl }"></a></td>
+                        <td><span data-bind="text: ToDownloads"></span></td>
+                        <td data-bind="foreach: ToOwners">
+                            <a data-bind="text: Username, attr: { href: ProfileUrl }" />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h2>Validate new username</h2>
+
+        <i>Validate if the new username is available and has a valid format.</i><br />
+
+        <input type="text" placeholder="New username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="value: newUsername" />
+        <button type="submit" data-bind="click: validateNewUsername">Validate</button>
+        <div style="display:none" data-bind="visible: errorNewUsername">
+            @ViewHelpers.AlertDanger(@<text><span data-bind="text: errorNewUsername"></span></text>)
+        </div>
+
+        <div style="display: none" data-bind="visible: doneValidatingNewUsername() && !errorNewUsername()">
+            <div style="display:none;" data-bind="visible: validatationUsernameResult.IsFormatValid()"><i class="ms-Icon ms-Icon--CompletedSolid" style="color: green"></i> Username has a valid format.</div>
+            <div style="display:none;" data-bind="visible: !validatationUsernameResult.IsFormatValid()"><i class="ms-Icon ms-Icon--StatusErrorFull" style="color: red"></i> Username has invalid format.</div>
+            <div style="display:none;" data-bind="visible: validatationUsernameResult.IsAvailable()"><i class="ms-Icon ms-Icon--CompletedSolid" style="color: green"></i> Username is available.</div>
+            <div style="display:none;" data-bind="visible: !validatationUsernameResult.IsAvailable()"><i class="ms-Icon ms-Icon--StatusErrorFull" style="color: red"></i> Username is already taken.</div>
+        </div>
+    </div>
+
+    <div>
+        <h2>Change username</h2>
+        @using (Html.BeginForm())
+        {
+            @Html.AntiForgeryToken()
+            <i>Update current account username.</i><br />
+            <input type="text" placeholder="Old username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="value: changeOldUsername" />
+            <input type="text" placeholder="New username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="value: changeNewUsername" />
+            <button type="submit" data-bind="click: changeUsername">Change</button>
+        }
+        <div style="display:none" data-bind="visible: changeUsernameSuccessful">
+            @ViewHelpers.Alert(@<text><span data-bind="text: changeUsernameSuccessful"></span></text>, "success", "Info")
+        </div>
+        <div style="display:none" data-bind="visible: errorChangeUsername">
+            @ViewHelpers.AlertDanger(@<text><span data-bind="text: errorChangeUsername"></span></text>)
+        </div>
+    </div>
+</section>
+
+@section BottomScripts {
+    <script>
+        $(document).ready(function () {
+            var viewModel = function () {
+                var $self = this;
+
+                this.packagesFromInput = ko.observable('');
+                this.packagesToInput = ko.observable('');
+
+                this.doneValidateInputs = ko.observable(false);
+                this.errorInputs = ko.observable('');
+
+                var actionUrlValidateInputs = '@Url.Action("ValidateInputs", "PopularityTransfer", new {area = "Admin"})';
+
+                this.packagesFrom = ko.observableArray([]);
+                this.packagesTo = ko.observableArray([]);
+
+
+                this.validatedInputs = ko.observableArray([]);
+                this.warnings = ko.observable('');
+
+
+
+                this.packagesFromTemp = ko.observableArray([]);
+                this.packagesToTemp = ko.observableArray([]);
+
+
+
+
+                this.account = {
+                    Username: ko.observable(''),
+                    EmailAddress: ko.observable('')
+                }
+
+
+
+                this.validateInputs = function () {
+                    $self.doneValidateInputs(false);
+                    $self.packagesFrom([]);
+                    $self.packagesTo([]);
+                    $self.validatedInputs([]);
+                    $self.errorInputs('');
+
+                    if (!$self.packagesFromInput() || !$self.packagesToInput()) {
+                        $self.errorInputs('Package IDs in the \'From\' or \'To\' fields cannot be null or empty.');
+                        return;
+                    }
+
+                    var queryParams = '?packagesFromInput=' + encodeURIComponent($self.packagesFromInput().trim())
+                        + '&packagesToInput=' + encodeURIComponent($self.packagesToInput().trim());
+
+                    $.ajax({
+                        url: actionUrlValidateInputs + queryParams,
+                        cache: false,
+                        dataType: 'json',
+                        success: function (result) {
+                            //$self.packagesFrom(result.PackagesFrom);
+                            //$self.packagesTo(result.PackagesTo);
+                            //$self.packagesFromTemp(result.PackagesFromTemp);
+                            //$self.packagesToTemp(result.PackagesToTemp);
+                            $self.validatedInputs(result.ValidatedInputs);
+                            //$self.warnings(result.Warnings);
+                        }
+                    })
+                        .fail(function (xhr, textStatus, errorMessage) {
+                            if (jqXhr) {
+                                $self.errorInputs(xhr.responseJSON);
+                            }
+                            else {
+                                alert('Error: ' + errorMessage);
+                            }
+                        })
+                        .always(function () {
+                            $self.doneValidateInputs(true);
+                        });
+                };
+
+                this.individualAccountMessage = 'This is an individual account.';
+                this.organizationAccountMessage = 'This is an organization account.';
+
+                this.accountEmailOrUsername = ko.observable('');
+                this.account = {
+                    Username: ko.observable(''),
+                    EmailAddress: ko.observable('')
+                }
+                this.accountAdministrators = ko.observableArray([]);
+                this.newUsername = ko.observable('');
+                this.validatationUsernameResult = {
+                    IsFormatValid: ko.observable(false),
+                    IsAvailable: ko.observable(false)
+                }
+                this.changeOldUsername = ko.observable('');
+                this.changeNewUsername = ko.observable('');
+
+                this.doneVerifyAccount = ko.observable(false);
+                this.doneValidatingNewUsername = ko.observable(false);
+
+                this.errorAccount = ko.observable('');
+                this.errorNewUsername = ko.observable('');
+                this.errorChangeUsername = ko.observable('');
+                this.changeUsernameSuccessful = ko.observable('');
+
+                var actionUrlVerifyAccount = '@Url.Action("VerifyAccount", "ChangeUsername", new {area = "Admin"})';
+                var actionUrlValidateNewUsername = '@Url.Action("ValidateNewUsername", "ChangeUsername", new {area = "Admin"})';
+                var actionUrlChangeUsername = '@Url.Action("ChangeUsername", "ChangeUsername", new {area = "Admin"})';
+
+                this.validateNewUsername = function () {
+                    $self.doneValidatingNewUsername(false);
+                    $self.errorNewUsername('');
+
+                    if (!$self.newUsername()) {
+                        $self.errorNewUsername('Username cannot be null or empty.');
+                        return;
+                    }
+
+                    var queryParams = '?newUsername=' + encodeURIComponent($self.newUsername().trim());
+
+                    $.ajax({
+                        url: actionUrlValidateNewUsername + queryParams,
+                        cache: false,
+                        dataType: 'json',
+                        success: function (data) {
+                            $self.validatationUsernameResult.IsFormatValid(data.IsFormatValid);
+                            $self.validatationUsernameResult.IsAvailable(data.IsAvailable);
+                        }
+                    })
+                    .fail(function (jqXhr, textStatus, errorThrown) {
+                        if (jqXhr) {
+                            $self.errorNewUsername(jqXhr.responseJSON);
+                        }
+                        else {
+                            alert('Error: ' + errorThrown);
+                        }
+                    })
+                    .always(function () {
+                        $self.doneValidatingNewUsername(true);
+                    });
+                };
+
+                this.changeUsername = function (model, event) {
+                    $self.errorChangeUsername('');
+                    $self.changeUsernameSuccessful('');
+
+                    var data = {
+                        oldUsername: $self.changeOldUsername().trim(),
+                        newUsername: $self.changeNewUsername().trim(),
+                    };
+
+                    if (!data.oldUsername || !data.newUsername) {
+                        $self.errorChangeUsername('Usernames should not be empty.');
+                        event.preventDefault();
+                        return;
+                    }
+
+                    if (data.oldUsername && data.newUsername && !confirm("Are you sure you want to change account username from " + data.oldUsername + " to " + data.newUsername + "?")) {
+                        event.preventDefault();
+                        return;
+                    }
+
+                    $.ajax({
+                        url: actionUrlChangeUsername,
+                        cache: false,
+                        dataType: 'json',
+                        type: 'POST',
+                        data: window.nuget.addAjaxAntiForgeryToken(data),
+                        success: function (data) {
+                            $self.changeUsernameSuccessful(data)
+                        }
+                    })
+                    .fail(function (jqXhr, textStatus, errorThrown) {
+                        if (jqXhr) {
+                            $self.errorChangeUsername(jqXhr.responseJSON);
+                        }
+                        else {
+                            alert('Error: ' + errorThrown);
+                        }
+                    });
+                };
+
+                this.generateProfileUrl = function (username) {
+                    return '/profiles/' + username;
+                };
+            }
+
+            ko.applyBindings(new viewModel(), $('.main-container').get(0));
+        });
+    </script>
+}
