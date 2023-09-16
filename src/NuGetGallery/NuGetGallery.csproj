@@ -341,9 +341,9 @@
     <Compile Include="Migrations\202205300006043_Int64PackageDownloadCount.designer.cs">
       <DependentUpon>202205300006043_Int64PackageDownloadCount.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202309152153525_AddRepoBranchAndCommit.cs" />
-    <Compile Include="Migrations\202309152153525_AddRepoBranchAndCommit.designer.cs">
-      <DependentUpon>202309152153525_AddRepoBranchAndCommit.cs</DependentUpon>
+    <Compile Include="Migrations\202309162109402_AddRepoBranchAndCommit.cs" />
+    <Compile Include="Migrations\202309162109402_AddRepoBranchAndCommit.designer.cs">
+      <DependentUpon>202309162109402_AddRepoBranchAndCommit.cs</DependentUpon>
     </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
@@ -1694,8 +1694,8 @@
     <EmbeddedResource Include="Migrations\202205300006043_Int64PackageDownloadCount.resx">
       <DependentUpon>202205300006043_Int64PackageDownloadCount.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202309152153525_AddRepoBranchAndCommit.resx">
-      <DependentUpon>202309152153525_AddRepoBranchAndCommit.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202309162109402_AddRepoBranchAndCommit.resx">
+      <DependentUpon>202309162109402_AddRepoBranchAndCommit.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

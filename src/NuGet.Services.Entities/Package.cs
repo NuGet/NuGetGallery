@@ -12,8 +12,8 @@ namespace NuGet.Services.Entities
     public class Package
         : IPackageEntity
     {
-        public const int MaxBranchLength = 100;
-        public const int MaxCommitLength = 150;
+        public const int MaxBranchLength = 150;
+        public const int MaxCommitLength = 100;
 
         private string _id;
 

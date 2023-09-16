@@ -83,7 +83,7 @@ namespace NuGetGallery.Packaging
 
                 if (!string.IsNullOrEmpty(repositoryMetadata.Commit))
                 {
-                    if (RepositoryCommit.Length > Package.MaxCommitLength)
+                    if (repositoryMetadata.Commit.Length > Package.MaxCommitLength)
                     {
                         throw new FormatException(string.Format(CoreStrings.PackageMetadata_CommitTooLong, Package.MaxCommitLength));
                     }

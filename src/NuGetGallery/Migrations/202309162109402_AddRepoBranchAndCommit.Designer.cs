@@ -13,7 +13,7 @@ namespace NuGetGallery.Migrations
         
         string IMigrationMetadata.Id
         {
-            get { return "202309152153525_AddRepoBranchAndCommit"; }
+            get { return "202309162109402_AddRepoBranchAndCommit"; }
         }
         
         string IMigrationMetadata.Source
