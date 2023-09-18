@@ -21,11 +21,11 @@ function Initialize-EF6Exe() {
         $efVersion = $efPackageReference.Node.Version
         Write-Host "Using EntityFramework version $efVersion."
 
-        if ([Environment]::GetEnvironmentVariable('NUGET_PACKAGES') -ne $null) {
-            $efDirectory = "$env:NUGET_PACKAGES\EntityFramework\$efVersion"
+        if ($env:NUGET_PACKAGES) {
+            $efDirectory = Join-Path $env:NUGET_PACKAGES "EntityFramework\$efVersion"
         }
         else {
-            $efDirectory = "$env:userprofile\.nuget\packages\EntityFramework\$efVersion"
+            $efDirectory = Join-Path $env:USERPROFILE ".nuget\packages\EntityFramework\$efVersion"
         }
     }
 
