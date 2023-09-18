@@ -43,7 +43,9 @@ namespace Microsoft.PackageManagement.Search.Web
             // Reload the configuration with secret injection enabled. This is used by the application.
             var injectedBuilder = new ConfigurationBuilder()
                 .AddInjectedJsonFile("appsettings.json", secretInjector)
+#if DEBUG
                 .AddInjectedJsonFile("appsettings.Development.json", secretInjector)
+#endif
                 .AddInjectedEnvironmentVariables(EnvironmentVariablePrefix, secretInjector);
             var injectedConfiguration = injectedBuilder.Build();
 

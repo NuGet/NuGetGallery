@@ -314,15 +314,12 @@ which can be a read-only (query) key instead of the admin key used by Db2AzureSe
 you're connecting to has API keys enabled (either in parallel with managed identities "RBAC" access or with managed
 identities authentication disabled).
 
-The `ApplicationInsights_InstrumentationKey` setting is optional and can be removed.
-
 You can use different values for `FlatContainerBaseUrl`, `FlatContainerContainerName`, `SemVer1RegistrationsBaseUrl`,
 and `SemVer2RegistrationsBaseUrl` but the impact is low. These settings are just used for building URLs returned in the
 service responses and are not called into at runtime.
 
 ```json
 {
-  "ApplicationInsights_InstrumentationKey": "PLACEHOLDER",
   "SearchService": {
     "AllIconsInFlatContainer": true,
     "FlatContainerBaseUrl": "https://apidev.nugettest.org/",
@@ -373,6 +370,10 @@ The `ApplicationInsights_InstrumentationKey` setting is optional and can be remo
     "SemVer2RegistrationsBaseUrl": "https://apidev.nugettest.org/v3/registration5-gz-semver2/",
     "StorageConnectionString": "PLACEHOLDER",
     "StorageContainer": "v3-azuresearch-XXX"
+  },
+
+  "FeatureFlags": {
+    "ConnectionString": "PLACEHOLDER"
   }
 }
 ```
