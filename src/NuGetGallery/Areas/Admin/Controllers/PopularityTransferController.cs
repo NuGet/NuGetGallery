@@ -1,48 +1,40 @@
-﻿using Azure.Core;
-using Lucene.Net.Search;
-using NuGetGallery.Areas.Admin.Models;
-using NuGetGallery.Areas.Admin.ViewModels;
-using NuGetGallery.Auditing;
-using NuGet.Services.Entities;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
+using NuGet.Services.Entities;
+using NuGetGallery.Areas.Admin.ViewModels;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
     public class PopularityTransferController : AdminControllerBase
     {
         private readonly IPackageService _packageService;
+        private readonly IPackageRenameService _packageRenameService;
         private readonly IEntityRepository<PackageRename> _packageRenameRepository;
         private readonly IEntitiesContext _entitiesContext;
-        private readonly IDateTimeProvider _dateTimeProvider;
-        private readonly IAuditingService _auditingService;
-        private readonly ITelemetryService _telemetryService;
 
         public PopularityTransferController(
             IPackageService packageService,
-            ITelemetryService telemetryService,
+            IPackageRenameService packageRenameService,
             IEntityRepository<PackageRename> packageRenameRepository,
-            IEntitiesContext entitiesContext,
-            IDateTimeProvider dateTimeProvider,
-            IAuditingService auditingService)
+            IEntitiesContext entitiesContext)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
+            _packageRenameService = packageRenameService ?? throw new ArgumentNullException(nameof(packageRenameService));
             _packageRenameRepository = packageRenameRepository ?? throw new ArgumentNullException(nameof(packageRenameRepository));
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
-            _dateTimeProvider = dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider));
-            _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
-            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
         }
 
         [HttpGet]
-        public ViewResult Index(PopularityTransferViewModel viewModel)
+        public ViewResult Index()
         {
-            return View(viewModel ?? new PopularityTransferViewModel());
+            return View();
         }
 
         [HttpGet]
@@ -53,46 +45,131 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 return Json(HttpStatusCode.BadRequest, "Package IDs in the 'From' or 'To' fields cannot be null or empty.", JsonRequestBehavior.AllowGet);
             }
 
-            var packagesFromListTemp = packagesFromInput
-                                                .Split(null) // all whitespace
-                                                .ToList();
-            var packagesToListTemp = packagesToInput
-                                                .Split(null) // all whitespace
-                                                .ToList();
+            var packagesFrom = packagesFromInput
+                                        .Split(null) // all whitespace
+                                        .Where(id => id != string.Empty)
+                                        .Select(id => _packageService.FindPackageRegistrationById(id.Trim()))
+                                        .ToList();
+            var packagesTo = packagesToInput
+                                        .Split(null) // all whitespace
+                                        .Where(id => id != string.Empty)
+                                        .Select(id => _packageService.FindPackageRegistrationById(id.Trim()))
+                                        .ToList();
 
-            var packagesFromList = packagesFromInput
-                                                .Split(null) // all whitespace
-                                                .Select(id => _packageService.FindPackageRegistrationById(id))
-                                                .ToList();
-            var packagesToList = packagesToInput
-                                                .Split(null) // all whitespace
-                                                .Select(id => _packageService.FindPackageRegistrationById(id))
-                                                .ToList();
-
-            if (packagesFromList.Count != packagesToList.Count)
+            if (packagesFrom.Count != packagesTo.Count)
             {
                 return Json(HttpStatusCode.BadRequest, "There must be an equal number of Package IDs in the 'From' and 'To' fields.", JsonRequestBehavior.AllowGet);
             }
 
-            var resultTemp = new ValidatedInputsResult();
+            var result = new PopularityTransferViewModel();
 
-            for (int i = 0; i < packagesFromList.Count; i++)
+            for (int i = 0; i < packagesFrom.Count; i++)
             {
-                var input = new ValidatedInput(packagesFromListTemp[i], packagesToListTemp[i]);
-                resultTemp.ValidatedInputs.Add(input);
-            }
+                var packageFrom = packagesFrom[i];
+                var packageTo = packagesTo[i];
 
-            var result = new ValidatedInputsResult();
+                if (packageFrom is null)
+                {
+                    var InvalidId = packagesFromInput
+                                                    .Split(null)
+                                                    .Where(id => id != string.Empty)
+                                                    .ToList()[i].Trim();
+                    return Json(HttpStatusCode.BadRequest,
+                                $"Could not find a package with the Package ID: {InvalidId}",
+                                JsonRequestBehavior.AllowGet);
+                }
+                if (packageTo is null)
+                {
+                    var InvalidId = packagesToInput
+                                                    .Split(null)
+                                                    .Where(id => id != string.Empty)
+                                                    .ToList()[i].Trim();
+                    return Json(HttpStatusCode.BadRequest,
+                                $"Could not find a package with the Package ID: {InvalidId}",
+                                JsonRequestBehavior.AllowGet);
+                }
 
-            for (int i = 0; i < packagesFromList.Count; i++)
-            {
-                var input = new ValidatedInput(CreatePackageSearchResult(packagesFromList[i].Packages.First()),
-                                               CreatePackageSearchResult(packagesToList[i].Packages.First()));
+                var input = new PopularityTransferItem(CreatePackageSearchResult(packageFrom.Packages.First()),
+                                                       CreatePackageSearchResult(packageTo.Packages.First()),
+                                                       packageFrom.Key,
+                                                       packageTo.Key);
 
                 result.ValidatedInputs.Add(input);
+
+                // check for existing entries in the PackageRename table for the 'From' packages
+                var existingRenames = _packageRenameService.GetPackageRenames(packageFrom);
+
+                if (existingRenames.Any())
+                {
+                    if (existingRenames.Count() == 1)
+                    {
+                        var existingRenamesMessage = $"{packageFrom.Id} already has 1 entry in the PackageRenames table. This will be removed with this operation.";
+                        result.ExistingPackageRenames.Add(existingRenamesMessage);
+                    }
+                    else
+                    {
+                        var existingRenamesMessage = $"{packageFrom.Id} already has {existingRenames.Count()} entries in the PackageRenames table. These will be removed with this operation.";
+                        result.ExistingPackageRenames.Add(existingRenamesMessage);
+                    }
+                }
             }
 
             return Json(result, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> ExecutePopularityTransfer(List<PopularityTransferItem> confirmedInputs)
+        {
+            var newPackageRenames = new List<PackageRename>();
+            var previousPackageRenames = new List<PackageRename>();
+            
+            // keeping track of this so we can pad the success message
+            int maxIdLength = 0;
+
+            foreach (var input in confirmedInputs)
+            {
+                newPackageRenames.Add(new PackageRename
+                                        {
+                                            FromPackageRegistrationKey = input.FromKey,
+                                            ToPackageRegistrationKey = input.ToKey,
+                                            TransferPopularity = true
+                                        });
+
+                var previousRenames = _packageRenameService.GetPackageRenames(_packageService.FindPackageRegistrationById(input.FromId));
+                previousPackageRenames.AddRange(previousRenames);
+
+                if (input.FromId.Length > maxIdLength)
+                {
+                    maxIdLength = input.FromId.Length;
+                }
+            }
+
+            var result = new PopularityTransferViewModel();
+
+            _packageRenameRepository.DeleteOnCommit(previousPackageRenames);
+            _packageRenameRepository.InsertOnCommit(newPackageRenames);
+            await _packageRenameRepository.CommitChangesAsync();
+
+            await _entitiesContext.SaveChangesAsync();
+
+            result.SuccessMessage = GenerateSuccessMessage(confirmedInputs, maxIdLength);
+
+            return Json(HttpStatusCode.OK, result, JsonRequestBehavior.AllowGet);
+        }
+
+        private string GenerateSuccessMessage(List<PopularityTransferItem> confirmedInputs, int maxIdLength)
+        {
+            var message = "Popularity transfer(s) executed successfully:\n\n";
+
+            foreach (var input in confirmedInputs)
+            {
+                message += $"\t{input.FromId.PadRight(maxIdLength)}  --->  {input.ToId}\n";
+            }
+
+            message += "\nIt can take up to 30 minutes for the popularity transfer(s) to be applied.";
+
+            return message;
         }
     }
 }
