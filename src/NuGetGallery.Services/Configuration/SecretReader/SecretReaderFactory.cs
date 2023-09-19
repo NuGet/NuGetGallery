@@ -13,6 +13,7 @@ namespace NuGetGallery.Configuration.SecretReader
         internal const string KeyVaultConfigurationPrefix = "KeyVault.";
         internal const string UseManagedIdentityConfigurationKey = "UseManagedIdentity";
         internal const string VaultNameConfigurationKey = "VaultName";
+        internal const string TenantIdConfigurationKey = "TenantId";
         internal const string ClientIdConfigurationKey = "ClientId";
         internal const string CertificateThumbprintConfigurationKey = "CertificateThumbprint";
         internal const string CertificateStoreLocation = "StoreLocation";
@@ -50,20 +51,21 @@ namespace NuGetGallery.Configuration.SecretReader
             if (!string.IsNullOrEmpty(vaultName))
             {
                 var useManagedIdentity = GetOptionalKeyVaultBoolSettingValue(UseManagedIdentityConfigurationKey, defaultValue: false);
+                var clientId = _configurationService.ReadRawSetting(ResolveKeyVaultSettingName(ClientIdConfigurationKey));
 
                 KeyVaultConfiguration keyVaultConfiguration;
                 if (useManagedIdentity)
                 {
-                    keyVaultConfiguration = new KeyVaultConfiguration(vaultName);
+                    keyVaultConfiguration = new KeyVaultConfiguration(vaultName, clientId);
                 }
                 else
                 {
-                    var clientId = _configurationService.ReadRawSetting(ResolveKeyVaultSettingName(ClientIdConfigurationKey));
+                    var tenantId = _configurationService.ReadRawSetting(ResolveKeyVaultSettingName(TenantIdConfigurationKey));
                     var certificateThumbprint = _configurationService.ReadRawSetting(ResolveKeyVaultSettingName(CertificateThumbprintConfigurationKey));
                     var storeName = GetOptionalKeyVaultEnumSettingValue(CertificateStoreName, StoreName.My);
                     var storeLocation = GetOptionalKeyVaultEnumSettingValue(CertificateStoreLocation, StoreLocation.LocalMachine);
                     var certificate = CertificateUtility.FindCertificateByThumbprint(storeName, storeLocation, certificateThumbprint, validationRequired: true);
-                    keyVaultConfiguration = new KeyVaultConfiguration(vaultName, clientId, certificate);
+                    keyVaultConfiguration = new KeyVaultConfiguration(vaultName, tenantId, clientId, certificate);
                 }
 
                 secretReader = new KeyVaultReader(keyVaultConfiguration);

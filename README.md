@@ -9,11 +9,14 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 
 First install prerequisites:
 
-1. Visual Studio 2019 - Install the following [`Workloads`](https://docs.microsoft.com/visualstudio/install/modify-visual-studio):
+1. Visual Studio 2022 - Install the following [`Workloads`](https://docs.microsoft.com/visualstudio/install/modify-visual-studio) and individual components:
     * ASP.NET and web development
     * Azure development
-2. PowerShell 4.0
-3. SQL Server 2016 (with DB engine version 13.0 or greater)
+    * Just web UI functional tests: "Web performance and load testing tools" individual component
+
+Visual Studio 2019 may work but Visual Studio 2022 is recommended.
+
+The "Azure development" workload installs SQL Server Express LocalDB which is the database configured for local development.
 
 Now run the NuGet Gallery:
 
