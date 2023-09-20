@@ -10602,7 +10602,8 @@
 
     function makeOlderVersionsCollapsible() {
         const listContainer = document.getElementById('win-x86-versions').children[1];   //children[0] is the headline, children[1] is the list of versions
-        olderVersionsElement = document.createElement('li');
+        const listContainer2 = document.getElementById('win-x86-versions');
+        olderVersionsElement = document.createElement('div');
 
         // We want to display 2 versions to the users.
         // If the first two versions in json file are the same, we only want to show the first.
@@ -10642,12 +10643,17 @@
             'id="olderVersionsToggleChevron"></i>' +
             '</button>' +
             '<p> These versions are no longer supported and might have vulnerabilities. </p>';
-    
-        displayedVersions.forEach(li => {
-            olderVersionsElement.appendChild(li);
-        });
 
-        listContainer.appendChild(olderVersionsElement);
+        const versionsList = document.createElement('ul');
+
+        displayedVersions.forEach(li => {
+            versionsList.appendChild(li);
+            //olderVersionsElement.appendChild(li);
+        });
+/*
+        //olderVersionsElement.appendChild('</ul>');*/
+        olderVersionsElement.appendChild(versionsList);
+        listContainer2.appendChild(olderVersionsElement);
 
         chevronIcon = document.getElementById('olderVersionsToggleChevron');
         var hideVersionsButton = document.getElementById('olderVersionsToggleButton');
