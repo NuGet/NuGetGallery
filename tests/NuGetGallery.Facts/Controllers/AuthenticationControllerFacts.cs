@@ -1927,7 +1927,7 @@ namespace NuGetGallery.Controllers
             [Theory]
             [InlineData("server_error", "The server encountered an unexpected error.")]
             [InlineData("temporarily_unavailable", "The server is temporarily too busy to handle the request.")]
-            [InlineData("invalid_resource", "The target resource is invalid because either it does not exist, Azure AD cannot find it, or it is not correctly configured.")]
+            [InlineData("invalid_resource", "The target resource is invalid because either it does not exist, Microsoft Entra ID cannot find it, or it is not correctly configured.")]
             [InlineData("invalid_request", "Protocol error, such as a missing, required parameter.")]
             public async Task GivenExpiredExternalAuth_ItRedirectsBackToLogOnWithPassedErrorMessage(string error, string errorDescription)
             {

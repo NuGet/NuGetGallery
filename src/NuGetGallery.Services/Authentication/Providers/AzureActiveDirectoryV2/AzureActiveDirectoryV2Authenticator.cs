@@ -275,7 +275,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
 
         private Task AuthorizationCodeReceived(AuthorizationCodeReceivedNotification context)
         {
-            // Explicitly set the access_token to null. The access_token is used for authorized requests to AAD on
+            // Explicitly set the access_token to null. The access_token is used for authorized requests to Microsoft Entra ID on
             // behalf of the end user. We do not use this feature. We only use the id_token.
             context.HandleCodeRedemption(accessToken: null, idToken: context.JwtSecurityToken.RawData);
             return Task.CompletedTask;

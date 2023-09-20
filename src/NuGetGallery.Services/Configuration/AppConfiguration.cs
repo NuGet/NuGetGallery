@@ -244,9 +244,9 @@ namespace NuGetGallery.Configuration
         public string EnforcedAuthProviderForAdmin { get; set; }
 
         /// <summary>
-        /// Gets a string indicating which AAD Tenant Id should be used for administrators. 
+        /// Gets a string indicating which Microsoft Entra tenant ID should be used for administrators. 
         /// When specified, the gallery will ensure admin users are logging in using only the specified tenant ID.
-        /// Blank means any AAD tenant ID can be used by administrators.
+        /// Blank means any Microsoft Entra tenant ID can be used by administrators.
         /// </summary>
         public string EnforcedTenantIdForAdmin { get; set; }
 
