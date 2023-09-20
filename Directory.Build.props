@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <NuGetClientPackageVersion>6.6.1</NuGetClientPackageVersion>
-    <ServerCommonPackageVersion>2.112.0-jver-sb-8416075</ServerCommonPackageVersion>
+    <ServerCommonPackageVersion>2.112.0-jver-sb-8418191</ServerCommonPackageVersion>
     <NuGetJobsPackageVersion>4.3.0-dev-8382474</NuGetJobsPackageVersion>
   </PropertyGroup>
   <ItemGroup>
