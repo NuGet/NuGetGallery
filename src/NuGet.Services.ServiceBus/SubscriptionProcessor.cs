@@ -5,8 +5,8 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.Logging;
-using Microsoft.ServiceBus.Messaging;
 
 namespace NuGet.Services.ServiceBus
 {
@@ -53,34 +53,34 @@ namespace NuGet.Services.ServiceBus
             _numberOfMessagesInProgress = 0;
         }
 
-        public void Start()
+        public async Task StartAsync()
         {
-            StartInternal(new OnMessageOptionsWrapper
+            await StartInternalAsync(new OnMessageOptionsWrapper
             {
                 AutoComplete = false,
             });
         }
 
-        public void Start(int maxConcurrentCalls)
+        public async Task StartAsync(int maxConcurrentCalls)
         {
-            StartInternal(new OnMessageOptionsWrapper
+            await StartInternalAsync(new OnMessageOptionsWrapper
             {
                 AutoComplete = false,
                 MaxConcurrentCalls = maxConcurrentCalls
             });
         }
 
-        private void StartInternal(OnMessageOptionsWrapper onMessageOptions)
+        private async Task StartInternalAsync(OnMessageOptionsWrapper onMessageOptions)
         {
             _logger.LogInformation("Registering the handler to begin listening to the Service Bus subscription with options = {@OnMessageOptions}",
                 onMessageOptions);
 
             _running = true;
 
-            _client.OnMessageAsync(OnMessageAsync, onMessageOptions);
+            await _client.StartProcessingAsync(OnMessageAsync, onMessageOptions);
         }
 
-        private async Task OnMessageAsync(IBrokeredMessage brokeredMessage)
+        private async Task OnMessageAsync(IReceivedBrokeredMessage brokeredMessage)
         {
             if (!_running)
             {
@@ -133,7 +133,7 @@ namespace NuGet.Services.ServiceBus
                         "Requeueing message as it was unsuccessfully processed due to exception after {DurationSeconds} seconds",
                         stopwatch.Elapsed.TotalSeconds);
 
-                    if (e is MessageLockLostException)
+                    if (e is ServiceBusException sbe && sbe.Reason == ServiceBusFailureReason.MessageLockLost)
                     {
                         _telemetryService.TrackMessageLockLost<TMessage>(callGuid);
                     }
@@ -205,7 +205,7 @@ namespace NuGet.Services.ServiceBus
             }
         }
 
-        private void TrackMessageLags(IBrokeredMessage brokeredMessage)
+        private void TrackMessageLags(IReceivedBrokeredMessage brokeredMessage)
         {
             _telemetryService.TrackMessageDeliveryLag<TMessage>(DateTimeOffset.UtcNow - brokeredMessage.ScheduledEnqueueTimeUtc);
             // we expect the "enqueue lag" to be zero or really close to zero pretty much all the time, logging it just in case it is not

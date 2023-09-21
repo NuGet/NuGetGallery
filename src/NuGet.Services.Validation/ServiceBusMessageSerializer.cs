@@ -58,7 +58,7 @@ namespace NuGet.Services.Validation
             }
         }
 
-        public PackageValidationMessageData DeserializePackageValidationMessageData(IBrokeredMessage message)
+        public PackageValidationMessageData DeserializePackageValidationMessageData(IReceivedBrokeredMessage message)
         {
             var schemaName = message.GetSchemaName();
             switch (schemaName)

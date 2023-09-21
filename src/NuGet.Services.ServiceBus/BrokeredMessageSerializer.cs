@@ -35,7 +35,7 @@ namespace NuGet.Services.ServiceBus
         public IBrokeredMessage Serialize(TMessage message)
         {
             var json = JsonConvert.SerializeObject(message);
-            var brokeredMessage = new BrokeredMessageWrapper(json);
+            var brokeredMessage = new ServiceBusMessageWrapper(json);
 
             brokeredMessage.Properties[BrokeredMessageSerializer.SchemaNameKey] = SchemaName;
             brokeredMessage.Properties[BrokeredMessageSerializer.SchemaVersionKey] = SchemaVersion;
@@ -43,7 +43,7 @@ namespace NuGet.Services.ServiceBus
             return brokeredMessage;
         }
 
-        public TMessage Deserialize(IBrokeredMessage message)
+        public TMessage Deserialize(IReceivedBrokeredMessage message)
         {
             message.AssertTypeAndSchemaVersion(SchemaName, SchemaVersion);
 
@@ -56,7 +56,7 @@ namespace NuGet.Services.ServiceBus
         public const string SchemaNameKey = "SchemaName";
         public const string SchemaVersionKey = "SchemaVersion";
 
-        public static void AssertTypeAndSchemaVersion(this IBrokeredMessage message, string type, int schemaVersion)
+        public static void AssertTypeAndSchemaVersion(this IReceivedBrokeredMessage message, string type, int schemaVersion)
         {
             if (message.GetSchemaName() != type)
             {
@@ -69,17 +69,17 @@ namespace NuGet.Services.ServiceBus
             }
         }
 
-        public static int GetSchemaVersion(this IBrokeredMessage message)
+        public static int GetSchemaVersion(this IReceivedBrokeredMessage message)
         {
             return GetProperty<int>(message, SchemaVersionKey, "an integer");
         }
 
-        public static string GetSchemaName(this IBrokeredMessage message)
+        public static string GetSchemaName(this IReceivedBrokeredMessage message)
         {
             return GetProperty<string>(message, SchemaNameKey, "a string");
         }
 
-        private static T GetProperty<T>(this IBrokeredMessage message, string key, string typeLabel)
+        private static T GetProperty<T>(this IReceivedBrokeredMessage message, string key, string typeLabel)
         {
             object value;
             if (!message.Properties.TryGetValue(key, out value))

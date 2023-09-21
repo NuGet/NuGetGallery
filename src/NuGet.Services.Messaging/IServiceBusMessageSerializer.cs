@@ -7,7 +7,7 @@ namespace NuGet.Services.Messaging
 {
     public interface IServiceBusMessageSerializer
     {
-        EmailMessageData DeserializeEmailMessageData(IBrokeredMessage message);
+        EmailMessageData DeserializeEmailMessageData(IReceivedBrokeredMessage message);
         IBrokeredMessage SerializeEmailMessageData(EmailMessageData message);
     }
 }

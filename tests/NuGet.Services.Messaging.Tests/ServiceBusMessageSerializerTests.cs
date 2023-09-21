@@ -110,7 +110,11 @@ namespace NuGet.Services.Messaging.Tests
             {
                 // Arrange
                 var brokeredMessage = GetBrokeredMessage();
-                brokeredMessage.Object.Properties[SchemaName] = "bad";
+                brokeredMessage.Setup(x => x.Properties).Returns(new Dictionary<string, object>
+                {
+                    { SchemaName, "bad" },
+                    { SchemaVersionKey, SchemaVersion1 },
+                });
 
                 // Act & Assert
                 var exception = Assert.Throws<FormatException>(() =>
@@ -123,7 +127,11 @@ namespace NuGet.Services.Messaging.Tests
             {
                 // Arrange
                 var brokeredMessage = GetBrokeredMessage();
-                brokeredMessage.Object.Properties[SchemaVersionKey] = -1;
+                brokeredMessage.Setup(x => x.Properties).Returns(new Dictionary<string, object>
+                {
+                    { SchemaName, EmailMessageDataType },
+                    { SchemaVersionKey, -1 },
+                });
 
                 // Act & Assert
                 var exception = Assert.Throws<FormatException>(() =>
@@ -136,7 +144,10 @@ namespace NuGet.Services.Messaging.Tests
             {
                 // Arrange
                 var brokeredMessage = GetBrokeredMessage();
-                brokeredMessage.Object.Properties.Remove(SchemaName);
+                brokeredMessage.Setup(x => x.Properties).Returns(new Dictionary<string, object>
+                {
+                    { SchemaVersionKey, SchemaVersion1 },
+                });
 
                 // Act & Assert
                 var exception = Assert.Throws<FormatException>(() =>
@@ -149,7 +160,10 @@ namespace NuGet.Services.Messaging.Tests
             {
                 // Arrange
                 var brokeredMessage = GetBrokeredMessage();
-                brokeredMessage.Object.Properties.Remove(SchemaVersionKey);
+                brokeredMessage.Setup(x => x.Properties).Returns(new Dictionary<string, object>
+                {
+                    { SchemaName, EmailMessageDataType },
+                });
 
                 // Act & Assert
                 var exception = Assert.Throws<FormatException>(() =>
@@ -162,7 +176,11 @@ namespace NuGet.Services.Messaging.Tests
             {
                 // Arrange
                 var brokeredMessage = GetBrokeredMessage();
-                brokeredMessage.Object.Properties[SchemaName] = -1;
+                brokeredMessage.Setup(x => x.Properties).Returns(new Dictionary<string, object>
+                {
+                    { SchemaName, -1 },
+                    { SchemaVersionKey, SchemaVersion1 },
+                });
 
                 // Act & Assert
                 var exception = Assert.Throws<FormatException>(() =>
@@ -175,7 +193,11 @@ namespace NuGet.Services.Messaging.Tests
             {
                 // Arrange
                 var brokeredMessage = GetBrokeredMessage();
-                brokeredMessage.Object.Properties[SchemaVersionKey] = "bad";
+                brokeredMessage.Setup(x => x.Properties).Returns(new Dictionary<string, object>
+                {
+                    { SchemaName, EmailMessageDataType },
+                    { SchemaVersionKey, "bad" },
+                });
 
                 // Act & Assert
                 var exception = Assert.Throws<FormatException>(() =>
@@ -183,9 +205,9 @@ namespace NuGet.Services.Messaging.Tests
                 Assert.Contains($"The provided message contains a {SchemaVersionKey} property that is not an integer.", exception.Message);
             }
 
-            private static Mock<IBrokeredMessage> GetBrokeredMessage()
+            private static Mock<IReceivedBrokeredMessage> GetBrokeredMessage()
             {
-                var brokeredMessage = new Mock<IBrokeredMessage>();
+                var brokeredMessage = new Mock<IReceivedBrokeredMessage>();
                 brokeredMessage
                     .Setup(x => x.GetBody())
                     .Returns(TestData.SerializedEmailMessageData1);

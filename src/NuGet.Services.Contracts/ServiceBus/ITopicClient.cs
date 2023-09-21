@@ -9,10 +9,6 @@ namespace NuGet.Services.ServiceBus
     {
         Task SendAsync(IBrokeredMessage message);
 
-        void Send(IBrokeredMessage message);
-
         Task CloseAsync();
-
-        void Close();
     }
 }

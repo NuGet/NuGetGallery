@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.ServiceBus.Messaging;
+using Azure.Messaging.ServiceBus;
 
 namespace NuGet.Services.ServiceBus
 {
@@ -24,11 +24,11 @@ namespace NuGet.Services.ServiceBus
         /// </remarks>
         public int MaxConcurrentCalls { get; set; } = 1;
 
-        public OnMessageOptions GetOptions()
+        internal ServiceBusProcessorOptions GetOptions()
         {
-            return new OnMessageOptions
+            return new ServiceBusProcessorOptions
             {
-                AutoComplete = AutoComplete,
+                AutoCompleteMessages = AutoComplete,
                 MaxConcurrentCalls = MaxConcurrentCalls,
             };
         }

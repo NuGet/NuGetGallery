@@ -7,7 +7,7 @@ namespace NuGet.Services.Validation
 {
     public interface IServiceBusMessageSerializer
     {
-        PackageValidationMessageData DeserializePackageValidationMessageData(IBrokeredMessage message);
+        PackageValidationMessageData DeserializePackageValidationMessageData(IReceivedBrokeredMessage message);
         IBrokeredMessage SerializePackageValidationMessageData(PackageValidationMessageData message);
     }
 }

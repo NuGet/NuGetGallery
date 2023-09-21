@@ -21,6 +21,6 @@ namespace NuGet.Services.ServiceBus
         /// </summary>
         /// <param name="message">The message to be deserialized.</param>
         /// <returns>The deserialized message.</returns>
-        TMessage Deserialize(IBrokeredMessage message);
+        TMessage Deserialize(IReceivedBrokeredMessage message);
     }
 }

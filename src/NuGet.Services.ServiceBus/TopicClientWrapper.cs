@@ -3,90 +3,89 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.Identity.Client;
-using Microsoft.ServiceBus;
-using Microsoft.ServiceBus.Messaging;
+using Azure.Identity;
+using Azure.Messaging.ServiceBus;
 
 namespace NuGet.Services.ServiceBus
 {
     public class TopicClientWrapper : ITopicClient
     {
-        private readonly TopicClient _client;
+        private readonly ServiceBusClient _serviceBusClient;
+        private readonly ServiceBusSender _sender;
 
         /// <summary>
         /// Create an instance of wrapper for <see cref="TopicClient"/>. Use the managed identity authentication if the `SharedAccessKey` is not
-        /// spcified in the <paramref name="connectionString"/>.
+        /// specified in the <paramref name="connectionString"/>.
         /// </summary>
         /// <param name="connectionString">This can be a connection string with shared access key or a service bus endpoint URL string to be used with managed identities.
         /// The connection string examples:
         /// <list type="number">
-        /// <item>Using connection string: "Endpoint=sb://nugetdev.servicebus.windows.net/;SharedAccessKeyName=<access key name>;SharedAccessKey=<access key>" </item>
+        /// <item>Using connection string: "Endpoint=sb://nugetdev.servicebus.windows.net/;SharedAccessKeyName=&lt;access key name&gt;SharedAccessKey=&lt;access key&gt;"</item>
         /// <item>Using managed identity: "sb://nugetdev.servicebus.windows.net/"</item>
         /// </list>
         /// </param>
         /// <param name="path">Path of the topic name</param>
-        public TopicClientWrapper(string connectionString, string path)
+        /// <param name="managedIdentityClientId">The client ID of the managed identity to try. This should be used for a user-assigned managed identity.</param>
+        public TopicClientWrapper(string connectionString, string path) : this(connectionString, path, managedIdentityClientId: null)
         {
-            _client = connectionString.Contains(Constants.SharedAccessKeytoken)
-                ? TopicClient.CreateFromConnectionString(connectionString, path)
-                : TopicClient.CreateWithManagedIdentity(new Uri(connectionString), path);
+        }
+
+        /// <summary>
+        /// Create an instance of wrapper for <see cref="TopicClient"/>. Use the managed identity authentication if the `SharedAccessKey` is not
+        /// specified in the <paramref name="connectionString"/>.
+        /// </summary>
+        /// <param name="connectionString">This can be a connection string with shared access key or a service bus endpoint URL string to be used with managed identities.
+        /// The connection string examples:
+        /// <list type="number">
+        /// <item>Using connection string: "Endpoint=sb://nugetdev.servicebus.windows.net/;SharedAccessKeyName=&lt;access key name&gt;SharedAccessKey=&lt;access key&gt;"</item>
+        /// <item>Using managed identity: "sb://nugetdev.servicebus.windows.net/"</item>
+        /// </list>
+        /// </param>
+        /// <param name="path">Path of the topic name</param>
+        /// <param name="managedIdentityClientId">The client ID of the managed identity to try. This should be used for a user-assigned managed identity.</param>
+        public TopicClientWrapper(string connectionString, string path, string managedIdentityClientId)
+        {
+            _serviceBusClient = ServiceBusClientHelper.GetServiceBusClient(connectionString, managedIdentityClientId);
+            _sender = _serviceBusClient.CreateSender(path);
         }
 
         public TopicClientWrapper(string clientId, string clientSecret, string tenantId, string serviceBusUrl, string path)
         {
-            AzureActiveDirectoryTokenProvider.AuthenticationCallback authCallback = async (audience, authority, state) =>
-            {
-                var app = ConfidentialClientApplicationBuilder.Create(clientId)
-                    .WithAuthority(authority)
-                    .WithClientSecret(clientSecret)
-                    .Build();
-
-                var result = await app
-                    .AcquireTokenForClient(new string[] { "https://servicebus.azure.net/.default" })
-                    .ExecuteAsync();
-
-                return result.AccessToken;
-            };
-
-            _client = TopicClient.CreateWithAzureActiveDirectory(new Uri(serviceBusUrl), path, authCallback, $"https://login.windows.net/{tenantId}");
+            _serviceBusClient = new ServiceBusClient(
+                serviceBusUrl ?? throw new ArgumentNullException(nameof(serviceBusUrl)),
+                new ClientSecretCredential(
+                    tenantId ?? throw new ArgumentNullException(nameof(tenantId)),
+                    clientId ?? throw new ArgumentNullException(nameof(clientId)),
+                    clientSecret ?? throw new ArgumentNullException(nameof(clientId))));
+            _sender = _serviceBusClient.CreateSender(path);
         }
 
         public Task SendAsync(IBrokeredMessage message)
         {
-            var innerMessage = GetBrokeredMessage(message);
-            return _client.SendAsync(innerMessage);
-        }
-
-        public void Send(IBrokeredMessage message)
-        {
-            var innerMessage = GetBrokeredMessage(message);
-            _client.Send(innerMessage);
-        }
-
-        public void Close()
-        {
-            _client.Close();
+            var innerMessage = GetServiceBusMessage(message);
+            return _sender.SendMessageAsync(innerMessage);
         }
 
         public async Task CloseAsync()
         {
-            await _client.CloseAsync();
+            await _sender.CloseAsync();
+            await _serviceBusClient.DisposeAsync();
         }
 
-        private BrokeredMessage GetBrokeredMessage(IBrokeredMessage message)
+        private ServiceBusMessage GetServiceBusMessage(IBrokeredMessage message)
         {
             // For now, assume the only implementation is the wrapper type. We could clone over all properties
             // that the interface supports, but this is not necessary right now.
-            var wrapper = message as BrokeredMessageWrapper;
-            BrokeredMessage innerMessage;
+            var wrapper = message as ServiceBusMessageWrapper;
+            ServiceBusMessage innerMessage;
             if (message != null)
             {
-                innerMessage = wrapper.BrokeredMessage;
+                innerMessage = wrapper.ServiceBusMessage;
             }
             else
             {
                 throw new ArgumentException(
-                    $"The message must be of type {typeof(BrokeredMessageWrapper).FullName}.",
+                    $"The message must be of type {typeof(ServiceBusMessageWrapper).FullName}.",
                     nameof(message));
             }
 

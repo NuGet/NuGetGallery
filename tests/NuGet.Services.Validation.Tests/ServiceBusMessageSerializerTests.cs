@@ -295,7 +295,11 @@ namespace NuGet.Services.Validation.Tests
                 // Arrange
                 var brokeredMessage = GetBrokeredMessage();
                 var bad = "bad";
-                brokeredMessage.Object.Properties[SchemaName] = bad;
+                brokeredMessage.Setup(x => x.Properties).Returns(new Dictionary<string, object>
+                {
+                    { SchemaName, bad },
+                    { SchemaVersionKey, SchemaVersion1 }
+                });
 
                 // Act & Assert
                 var exception = Assert.Throws<FormatException>(() =>
@@ -308,7 +312,11 @@ namespace NuGet.Services.Validation.Tests
             {
                 // Arrange
                 var brokeredMessage = GetBrokeredMessage();
-                brokeredMessage.Object.Properties[SchemaVersionKey] = -1;
+                brokeredMessage.Setup(x => x.Properties).Returns(new Dictionary<string, object>
+                {
+                    { SchemaName, ProcessValidationSetType },
+                    { SchemaVersionKey, -1 }
+                });
 
                 // Act & Assert
                 var exception = Assert.Throws<FormatException>(() =>
@@ -321,7 +329,10 @@ namespace NuGet.Services.Validation.Tests
             {
                 // Arrange
                 var brokeredMessage = GetBrokeredMessage();
-                brokeredMessage.Object.Properties.Remove(SchemaName);
+                brokeredMessage.Setup(x => x.Properties).Returns(new Dictionary<string, object>
+                {
+                    { SchemaVersionKey, SchemaVersion1 }
+                });
 
                 // Act & Assert
                 var exception = Assert.Throws<FormatException>(() =>
@@ -334,7 +345,10 @@ namespace NuGet.Services.Validation.Tests
             {
                 // Arrange
                 var brokeredMessage = GetBrokeredMessage();
-                brokeredMessage.Object.Properties.Remove(SchemaVersionKey);
+                brokeredMessage.Setup(x => x.Properties).Returns(new Dictionary<string, object>
+                {
+                    { SchemaName, ProcessValidationSetType },
+                });
 
                 // Act & Assert
                 var exception = Assert.Throws<FormatException>(() =>
@@ -347,7 +361,11 @@ namespace NuGet.Services.Validation.Tests
             {
                 // Arrange
                 var brokeredMessage = GetBrokeredMessage();
-                brokeredMessage.Object.Properties[SchemaName] = -1;
+                brokeredMessage.Setup(x => x.Properties).Returns(new Dictionary<string, object>
+                {
+                    { SchemaName, -1 },
+                    { SchemaVersionKey, SchemaVersion1 }
+                });
 
                 // Act & Assert
                 var exception = Assert.Throws<FormatException>(() =>
@@ -360,7 +378,11 @@ namespace NuGet.Services.Validation.Tests
             {
                 // Arrange
                 var brokeredMessage = GetBrokeredMessage();
-                brokeredMessage.Object.Properties[SchemaVersionKey] = "bad";
+                brokeredMessage.Setup(x => x.Properties).Returns(new Dictionary<string, object>
+                {
+                    { SchemaName, ProcessValidationSetType },
+                    { SchemaVersionKey, "bad" }
+                });
 
                 // Act & Assert
                 var exception = Assert.Throws<FormatException>(() =>
@@ -368,9 +390,9 @@ namespace NuGet.Services.Validation.Tests
                 Assert.Contains($"The provided message contains a {SchemaVersionKey} property that is not an integer.", exception.Message);
             }
 
-            private static Mock<IBrokeredMessage> GetBrokeredMessage(string expectedMessage = null)
+            private static Mock<IReceivedBrokeredMessage> GetBrokeredMessage(string expectedMessage = null)
             {
-                var brokeredMessage = new Mock<IBrokeredMessage>();
+                var brokeredMessage = new Mock<IReceivedBrokeredMessage>();
                 brokeredMessage
                     .Setup(x => x.GetBody())
                     .Returns(expectedMessage ?? TestData.SerializedProcessValidationSetData2);
@@ -387,9 +409,9 @@ namespace NuGet.Services.Validation.Tests
                 return brokeredMessage;
             }
 
-            private static Mock<IBrokeredMessage> GetBrokeredMessagePrevious()
+            private static Mock<IReceivedBrokeredMessage> GetBrokeredMessagePrevious()
             {
-                var brokeredMessage = new Mock<IBrokeredMessage>();
+                var brokeredMessage = new Mock<IReceivedBrokeredMessage>();
                 brokeredMessage
                     .Setup(x => x.GetBody())
                     .Returns(TestData.SerializedProcessValidationSetData1);
@@ -406,9 +428,9 @@ namespace NuGet.Services.Validation.Tests
                 return brokeredMessage;
             }
 
-            private static Mock<IBrokeredMessage> GetBrokeredMessageForStartValidation()
+            private static Mock<IReceivedBrokeredMessage> GetBrokeredMessageForStartValidation()
             {
-                var brokeredMessage = new Mock<IBrokeredMessage>();
+                var brokeredMessage = new Mock<IReceivedBrokeredMessage>();
                 brokeredMessage
                     .Setup(x => x.GetBody())
                     .Returns(TestData.SerializedStartValidationData);
@@ -425,9 +447,9 @@ namespace NuGet.Services.Validation.Tests
                 return brokeredMessage;
             }
 
-            private static Mock<IBrokeredMessage> GetBrokeredMessageForCheckValidator()
+            private static Mock<IReceivedBrokeredMessage> GetBrokeredMessageForCheckValidator()
             {
-                var brokeredMessage = new Mock<IBrokeredMessage>();
+                var brokeredMessage = new Mock<IReceivedBrokeredMessage>();
                 brokeredMessage
                     .Setup(x => x.GetBody())
                     .Returns(TestData.SerializedCheckValidatorData);
@@ -444,9 +466,9 @@ namespace NuGet.Services.Validation.Tests
                 return brokeredMessage;
             }
 
-            private static Mock<IBrokeredMessage> GetBrokeredSymbolMessage(string serializedMessage = null)
+            private static Mock<IReceivedBrokeredMessage> GetBrokeredSymbolMessage(string serializedMessage = null)
             {
-                var brokeredMessage = new Mock<IBrokeredMessage>();
+                var brokeredMessage = new Mock<IReceivedBrokeredMessage>();
                 brokeredMessage
                     .Setup(x => x.GetBody())
                     .Returns(serializedMessage ?? TestData.SerializedProcessValidationSetDataSymbols);
@@ -463,9 +485,9 @@ namespace NuGet.Services.Validation.Tests
                 return brokeredMessage;
             }
 
-            private static Mock<IBrokeredMessage> GetBrokeredMessageForCheckValidationSet()
+            private static Mock<IReceivedBrokeredMessage> GetBrokeredMessageForCheckValidationSet()
             {
-                var brokeredMessage = new Mock<IBrokeredMessage>();
+                var brokeredMessage = new Mock<IReceivedBrokeredMessage>();
                 brokeredMessage
                     .Setup(x => x.GetBody())
                     .Returns(TestData.SerializedCheckValidationSetData);

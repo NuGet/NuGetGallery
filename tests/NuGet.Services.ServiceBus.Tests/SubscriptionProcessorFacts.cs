@@ -3,8 +3,8 @@
 
 using System;
 using System.Threading.Tasks;
+using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.Logging;
-using Microsoft.ServiceBus.Messaging;
 using Moq;
 using Xunit;
 
@@ -23,21 +23,22 @@ namespace NuGet.Services.ServiceBus.Tests
             {
                 // Arrange
                 // Retrieve the OnMessageAsync callback that is registered to Service Bus's subscription client.
-                Func<IBrokeredMessage, Task> onMessageAsync = null;
+                Func<IReceivedBrokeredMessage, Task> onMessageAsync = null;
 
                 _client
-                    .Setup(c => c.OnMessageAsync(
-                                    It.IsAny<Func<IBrokeredMessage, Task>>(),
+                    .Setup(c => c.StartProcessingAsync(
+                                    It.IsAny<Func<IReceivedBrokeredMessage, Task>>(),
                                     It.IsAny<IOnMessageOptions>()))
-                    .Callback<Func<IBrokeredMessage, Task>, IOnMessageOptions>((callback, options) => onMessageAsync = callback);
+                    .Returns(Task.CompletedTask)
+                    .Callback<Func<IReceivedBrokeredMessage, Task>, IOnMessageOptions>((callback, options) => onMessageAsync = callback);
 
                 _serializer
-                    .Setup(s => s.Deserialize(It.IsAny<IBrokeredMessage>()))
+                    .Setup(s => s.Deserialize(It.IsAny<IReceivedBrokeredMessage>()))
                     .Throws(new Exception());
 
                 // Act
                 // Start processing messages and trigger the OnMessageAsync callback.
-                _target.Start();
+                await _target.StartAsync();
 
                 var ex = await Record.ExceptionAsync(() => onMessageAsync(_brokeredMessage.Object));
 
@@ -45,7 +46,7 @@ namespace NuGet.Services.ServiceBus.Tests
                 Assert.Null(ex);
                 Assert.Equal(0, _target.NumberOfMessagesInProgress);
 
-                _serializer.Verify(s => s.Deserialize(It.IsAny<IBrokeredMessage>()), Times.Once);
+                _serializer.Verify(s => s.Deserialize(It.IsAny<IReceivedBrokeredMessage>()), Times.Once);
                 _handler.Verify(h => h.HandleAsync(It.IsAny<TestMessage>()), Times.Never);
                 _brokeredMessage.Verify(m => m.CompleteAsync(), Times.Never);
                 _telemetryService.Verify(t => t.TrackMessageHandlerDuration<TestMessage>(It.IsAny<TimeSpan>(), It.IsAny<Guid>(), false), Times.Once);
@@ -56,14 +57,15 @@ namespace NuGet.Services.ServiceBus.Tests
             {
                 // Arrange
                 // Retrieve the OnMessageAsync callback that is registered to Service Bus's subscription client.
-                Func<IBrokeredMessage, Task> onMessageAsync = null;
+                Func<IReceivedBrokeredMessage, Task> onMessageAsync = null;
                 int? messagesInProgressDuringHandler = null;
 
                 _client
-                    .Setup(c => c.OnMessageAsync(
-                                    It.IsAny<Func<IBrokeredMessage, Task>>(),
+                    .Setup(c => c.StartProcessingAsync(
+                                    It.IsAny<Func<IReceivedBrokeredMessage, Task>>(),
                                     It.IsAny<IOnMessageOptions>()))
-                    .Callback<Func<IBrokeredMessage, Task>, IOnMessageOptions>((callback, options) => onMessageAsync = callback);
+                    .Returns(Task.CompletedTask)
+                    .Callback<Func<IReceivedBrokeredMessage, Task>, IOnMessageOptions>((callback, options) => onMessageAsync = callback);
 
                 _handler
                     .Setup(h => h.HandleAsync(It.IsAny<TestMessage>()))
@@ -72,7 +74,7 @@ namespace NuGet.Services.ServiceBus.Tests
 
                 // Act
                 // Start processing messages and trigger the OnMessageAsync callback.
-                _target.Start();
+                await _target.StartAsync();
 
                 await onMessageAsync(_brokeredMessage.Object);
 
@@ -80,7 +82,7 @@ namespace NuGet.Services.ServiceBus.Tests
                 Assert.Equal(1, messagesInProgressDuringHandler);
                 Assert.Equal(0, _target.NumberOfMessagesInProgress);
 
-                _serializer.Verify(s => s.Deserialize(It.IsAny<IBrokeredMessage>()), Times.Once);
+                _serializer.Verify(s => s.Deserialize(It.IsAny<IReceivedBrokeredMessage>()), Times.Once);
                 _handler.Verify(h => h.HandleAsync(It.IsAny<TestMessage>()), Times.Once);
                 _brokeredMessage.Verify(m => m.CompleteAsync(), Times.Once);
                 _telemetryService.Verify(t => t.TrackMessageHandlerDuration<TestMessage>(It.IsAny<TimeSpan>(), It.IsAny<Guid>(), true), Times.Once);
@@ -91,14 +93,15 @@ namespace NuGet.Services.ServiceBus.Tests
             {
                 // Arrange
                 // Retrieve the OnMessageAsync callback that is registered to Service Bus's subscription client.
-                Func<IBrokeredMessage, Task> onMessageAsync = null;
+                Func<IReceivedBrokeredMessage, Task> onMessageAsync = null;
                 int? messagesInProgressDuringHandler = null;
 
                 _client
-                    .Setup(c => c.OnMessageAsync(
-                                    It.IsAny<Func<IBrokeredMessage, Task>>(),
+                    .Setup(c => c.StartProcessingAsync(
+                                    It.IsAny<Func<IReceivedBrokeredMessage, Task>>(),
                                     It.IsAny<IOnMessageOptions>()))
-                    .Callback<Func<IBrokeredMessage, Task>, IOnMessageOptions>((callback, options) => onMessageAsync = callback);
+                    .Returns(Task.CompletedTask)
+                    .Callback<Func<IReceivedBrokeredMessage, Task>, IOnMessageOptions>((callback, options) => onMessageAsync = callback);
 
                 _handler
                     .Setup(h => h.HandleAsync(It.IsAny<TestMessage>()))
@@ -107,7 +110,7 @@ namespace NuGet.Services.ServiceBus.Tests
 
                 // Act
                 // Start processing messages and trigger the OnMessageAsync callback.
-                _target.Start();
+                await _target.StartAsync();
 
                 await onMessageAsync(_brokeredMessage.Object);
 
@@ -115,7 +118,7 @@ namespace NuGet.Services.ServiceBus.Tests
                 Assert.Equal(1, messagesInProgressDuringHandler);
                 Assert.Equal(0, _target.NumberOfMessagesInProgress);
 
-                _serializer.Verify(s => s.Deserialize(It.IsAny<IBrokeredMessage>()), Times.Once);
+                _serializer.Verify(s => s.Deserialize(It.IsAny<IReceivedBrokeredMessage>()), Times.Once);
                 _handler.Verify(h => h.HandleAsync(It.IsAny<TestMessage>()), Times.Once);
                 _brokeredMessage.Verify(m => m.CompleteAsync(), Times.Never);
                 _telemetryService.Verify(t => t.TrackMessageHandlerDuration<TestMessage>(It.IsAny<TimeSpan>(), It.IsAny<Guid>(), false), Times.Once);
@@ -126,14 +129,15 @@ namespace NuGet.Services.ServiceBus.Tests
             {
                 // Arrange
                 // Retrieve the OnMessageAsync callback that is registered to Service Bus's subscription client.
-                Func<IBrokeredMessage, Task> onMessageAsync = null;
+                Func<IReceivedBrokeredMessage, Task> onMessageAsync = null;
                 int? messagesInProgressDuringHandler = null;
 
                 _client
-                    .Setup(c => c.OnMessageAsync(
-                                    It.IsAny<Func<IBrokeredMessage, Task>>(),
+                    .Setup(c => c.StartProcessingAsync(
+                                    It.IsAny<Func<IReceivedBrokeredMessage, Task>>(),
                                     It.IsAny<IOnMessageOptions>()))
-                    .Callback<Func<IBrokeredMessage, Task>, IOnMessageOptions>((callback, options) => onMessageAsync = callback);
+                    .Returns(Task.CompletedTask)
+                    .Callback<Func<IReceivedBrokeredMessage, Task>, IOnMessageOptions>((callback, options) => onMessageAsync = callback);
 
                 _handler
                     .Setup(h => h.HandleAsync(It.IsAny<TestMessage>()))
@@ -142,7 +146,7 @@ namespace NuGet.Services.ServiceBus.Tests
 
                 // Act
                 // Start processing messages and trigger the OnMessageAsync callback.
-                _target.Start();
+                await _target.StartAsync();
 
                 var ex = await Record.ExceptionAsync(() => onMessageAsync(_brokeredMessage.Object));
 
@@ -151,34 +155,35 @@ namespace NuGet.Services.ServiceBus.Tests
                 Assert.Equal(1, messagesInProgressDuringHandler);
                 Assert.Equal(0, _target.NumberOfMessagesInProgress);
 
-                _serializer.Verify(s => s.Deserialize(It.IsAny<IBrokeredMessage>()), Times.Once);
+                _serializer.Verify(s => s.Deserialize(It.IsAny<IReceivedBrokeredMessage>()), Times.Once);
                 _handler.Verify(h => h.HandleAsync(It.IsAny<TestMessage>()), Times.Once);
                 _brokeredMessage.Verify(m => m.CompleteAsync(), Times.Never);
                 _telemetryService.Verify(t => t.TrackMessageHandlerDuration<TestMessage>(It.IsAny<TimeSpan>(), It.IsAny<Guid>(), false), Times.Once);
             }
 
             [Fact]
-            public async Task TracksMessageLockLostExceptions()
+            public async Task TracksFMessageLockLostExceptions()
             {
                 // Arrange
                 // Retrieve the OnMessageAsync callback that is registered to Service Bus's subscription client.
-                Func<IBrokeredMessage, Task> onMessageAsync = null;
+                Func<IReceivedBrokeredMessage, Task> onMessageAsync = null;
                 int? messagesInProgressDuringHandler = null;
 
                 _client
-                    .Setup(c => c.OnMessageAsync(
-                                    It.IsAny<Func<IBrokeredMessage, Task>>(),
+                    .Setup(c => c.StartProcessingAsync(
+                                    It.IsAny<Func<IReceivedBrokeredMessage, Task>>(),
                                     It.IsAny<IOnMessageOptions>()))
-                    .Callback<Func<IBrokeredMessage, Task>, IOnMessageOptions>((callback, options) => onMessageAsync = callback);
+                    .Returns(Task.CompletedTask)
+                    .Callback<Func<IReceivedBrokeredMessage, Task>, IOnMessageOptions>((callback, options) => onMessageAsync = callback);
 
                 _handler
                     .Setup(h => h.HandleAsync(It.IsAny<TestMessage>()))
                     .Callback(() => messagesInProgressDuringHandler = _target.NumberOfMessagesInProgress)
-                    .Throws(new MessageLockLostException("You snooze you lose"));
+                    .Throws(new ServiceBusException("You snooze you lose", ServiceBusFailureReason.MessageLockLost));
 
                 // Act
                 // Start processing messages and trigger the OnMessageAsync callback.
-                _target.Start();
+                await _target.StartAsync();
 
                 var ex = await Record.ExceptionAsync(() => onMessageAsync(_brokeredMessage.Object));
 
@@ -187,7 +192,7 @@ namespace NuGet.Services.ServiceBus.Tests
                 Assert.Equal(1, messagesInProgressDuringHandler);
                 Assert.Equal(0, _target.NumberOfMessagesInProgress);
 
-                _serializer.Verify(s => s.Deserialize(It.IsAny<IBrokeredMessage>()), Times.Once);
+                _serializer.Verify(s => s.Deserialize(It.IsAny<IReceivedBrokeredMessage>()), Times.Once);
                 _handler.Verify(h => h.HandleAsync(It.IsAny<TestMessage>()), Times.Once);
                 _brokeredMessage.Verify(m => m.CompleteAsync(), Times.Never);
                 _telemetryService.Verify(t => t.TrackMessageLockLost<TestMessage>(It.IsAny<Guid>()), Times.Once);
@@ -197,15 +202,16 @@ namespace NuGet.Services.ServiceBus.Tests
             [Fact]
             public async Task TracksMessageLag()
             {
-                Func<IBrokeredMessage, Task> onMessageAsync = null;
+                Func<IReceivedBrokeredMessage, Task> onMessageAsync = null;
                 _client
-                    .Setup(c => c.OnMessageAsync(
-                                    It.IsAny<Func<IBrokeredMessage, Task>>(),
+                    .Setup(c => c.StartProcessingAsync(
+                                    It.IsAny<Func<IReceivedBrokeredMessage, Task>>(),
                                     It.IsAny<IOnMessageOptions>()))
-                    .Callback<Func<IBrokeredMessage, Task>, IOnMessageOptions>((callback, options) => onMessageAsync = callback);
+                    .Returns(Task.CompletedTask)
+                    .Callback<Func<IReceivedBrokeredMessage, Task>, IOnMessageOptions>((callback, options) => onMessageAsync = callback);
 
 
-                _target.Start();
+                await _target.StartAsync();
 
                 await onMessageAsync(_brokeredMessage.Object);
 
@@ -216,18 +222,19 @@ namespace NuGet.Services.ServiceBus.Tests
             }
 
             [Fact]
-            public void PassesMaxConcurrentCallsFurther()
+            public async Task PassesMaxConcurrentCallsFurther()
             {
                 IOnMessageOptions capturedOptions = null;
                 _client
-                    .Setup(c => c.OnMessageAsync(It.IsAny<Func<IBrokeredMessage, Task>>(), It.IsAny<IOnMessageOptions>()))
-                    .Callback<Func<IBrokeredMessage, Task>, IOnMessageOptions>((_, opt) => capturedOptions = opt);
+                    .Setup(c => c.StartProcessingAsync(It.IsAny<Func<IReceivedBrokeredMessage, Task>>(), It.IsAny<IOnMessageOptions>()))
+                    .Returns(Task.CompletedTask)
+                    .Callback<Func<IReceivedBrokeredMessage, Task>, IOnMessageOptions>((_, opt) => capturedOptions = opt);
 
                 const int expectedConcurrentCalls = 42;
-                _target.Start(expectedConcurrentCalls);
+                await _target.StartAsync(expectedConcurrentCalls);
 
                 _client
-                    .Verify(c => c.OnMessageAsync(It.IsAny<Func<IBrokeredMessage, Task>>(), It.IsAny<IOnMessageOptions>()), Times.Once);
+                    .Verify(c => c.StartProcessingAsync(It.IsAny<Func<IReceivedBrokeredMessage, Task>>(), It.IsAny<IOnMessageOptions>()), Times.Once);
                 Assert.NotNull(capturedOptions);
                 Assert.Equal(expectedConcurrentCalls, capturedOptions.MaxConcurrentCalls);
             }
@@ -250,15 +257,16 @@ namespace NuGet.Services.ServiceBus.Tests
             {
                 // Arrange
                 // Retrieve the OnMessageAsync callback that is registered to Service Bus's subscription client.
-                Func<IBrokeredMessage, Task> onMessageAsync = null;
+                Func<IReceivedBrokeredMessage, Task> onMessageAsync = null;
                 var taskCompletionSource = new TaskCompletionSource<bool>();
-                var brokeredMessage2 = new Mock<IBrokeredMessage>();
+                var brokeredMessage2 = new Mock<IReceivedBrokeredMessage>();
 
                 _client
-                    .Setup(c => c.OnMessageAsync(
-                                    It.IsAny<Func<IBrokeredMessage, Task>>(),
+                    .Setup(c => c.StartProcessingAsync(
+                                    It.IsAny<Func<IReceivedBrokeredMessage, Task>>(),
                                     It.IsAny<IOnMessageOptions>()))
-                    .Callback<Func<IBrokeredMessage, Task>, IOnMessageOptions>((callback, options) => onMessageAsync = callback);
+                    .Returns(Task.CompletedTask)
+                    .Callback<Func<IReceivedBrokeredMessage, Task>, IOnMessageOptions>((callback, options) => onMessageAsync = callback);
 
                 _handler
                     .Setup(h => h.HandleAsync(It.IsAny<TestMessage>()))
@@ -266,7 +274,7 @@ namespace NuGet.Services.ServiceBus.Tests
 
                 // Act
                 // Start processing messages, trigger the OnMessageAsync callback, stop processing messages, and trigger the OnMessageAsync callback again.
-                _target.Start();
+                await _target.StartAsync();
 
                 await onMessageAsync(_brokeredMessage.Object);
 
@@ -290,7 +298,7 @@ namespace NuGet.Services.ServiceBus.Tests
             protected readonly Mock<ISubscriptionProcessorTelemetryService> _telemetryService;
             protected readonly SubscriptionProcessor<TestMessage> _target;
 
-            protected readonly Mock<IBrokeredMessage> _brokeredMessage;
+            protected readonly Mock<IReceivedBrokeredMessage> _brokeredMessage;
 
             public Base()
             {
@@ -299,7 +307,7 @@ namespace NuGet.Services.ServiceBus.Tests
                 _handler = new Mock<IMessageHandler<TestMessage>>();
                 _telemetryService = new Mock<ISubscriptionProcessorTelemetryService>();
 
-                _brokeredMessage = new Mock<IBrokeredMessage>();
+                _brokeredMessage = new Mock<IReceivedBrokeredMessage>();
 
                 var logger = new Mock<ILogger<SubscriptionProcessor<TestMessage>>>();
 

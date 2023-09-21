@@ -82,7 +82,11 @@ namespace NuGet.Services.ServiceBus.Tests
             {
                 // Arrange
                 var brokeredMessage = GetBrokeredMessage();
-                brokeredMessage.Object.Properties[SchemaNameKey] = "bad";
+                brokeredMessage.Setup(x => x.Properties).Returns(new Dictionary<string, object>
+                {
+                    { SchemaNameKey, "bad" },
+                    { SchemaVersionKey, SchemaVersion23 },
+                });
 
                 // Act & Assert
                 var exception = Assert.Throws<FormatException>(() =>
@@ -95,7 +99,11 @@ namespace NuGet.Services.ServiceBus.Tests
             {
                 // Arrange
                 var brokeredMessage = GetBrokeredMessage();
-                brokeredMessage.Object.Properties[SchemaVersionKey] = -1;
+                brokeredMessage.Setup(x => x.Properties).Returns(new Dictionary<string, object>
+                {
+                    { SchemaNameKey, SchemaName },
+                    { SchemaVersionKey, -1 },
+                });
 
                 // Act & Assert
                 var exception = Assert.Throws<FormatException>(() =>
@@ -108,7 +116,10 @@ namespace NuGet.Services.ServiceBus.Tests
             {
                 // Arrange
                 var brokeredMessage = GetBrokeredMessage();
-                brokeredMessage.Object.Properties.Remove(SchemaNameKey);
+                brokeredMessage.Setup(x => x.Properties).Returns(new Dictionary<string, object>
+                {
+                    { SchemaVersionKey, SchemaVersion23 },
+                });
 
                 // Act & Assert
                 var exception = Assert.Throws<FormatException>(() =>
@@ -121,7 +132,10 @@ namespace NuGet.Services.ServiceBus.Tests
             {
                 // Arrange
                 var brokeredMessage = GetBrokeredMessage();
-                brokeredMessage.Object.Properties.Remove(SchemaVersionKey);
+                brokeredMessage.Setup(x => x.Properties).Returns(new Dictionary<string, object>
+                {
+                    { SchemaNameKey, SchemaName },
+                });
 
                 // Act & Assert
                 var exception = Assert.Throws<FormatException>(() =>
@@ -134,7 +148,11 @@ namespace NuGet.Services.ServiceBus.Tests
             {
                 // Arrange
                 var brokeredMessage = GetBrokeredMessage();
-                brokeredMessage.Object.Properties[SchemaNameKey] = -1;
+                brokeredMessage.Setup(x => x.Properties).Returns(new Dictionary<string, object>
+                {
+                    { SchemaNameKey, -1 },
+                    { SchemaVersionKey, SchemaVersion23 }
+                });
 
                 // Act & Assert
                 var exception = Assert.Throws<FormatException>(() =>
@@ -147,7 +165,11 @@ namespace NuGet.Services.ServiceBus.Tests
             {
                 // Arrange
                 var brokeredMessage = GetBrokeredMessage();
-                brokeredMessage.Object.Properties[SchemaVersionKey] = "bad";
+                brokeredMessage.Setup(x => x.Properties).Returns(new Dictionary<string, object>
+                {
+                    { SchemaNameKey, SchemaName },
+                    { SchemaVersionKey, "bad" }
+                });
 
                 // Act & Assert
                 var exception = Assert.Throws<FormatException>(() =>
@@ -155,9 +177,9 @@ namespace NuGet.Services.ServiceBus.Tests
                 Assert.Contains($"The provided message contains a {SchemaVersionKey} property that is not an integer.", exception.Message);
             }
 
-            private static Mock<IBrokeredMessage> GetBrokeredMessage()
+            private static Mock<IReceivedBrokeredMessage> GetBrokeredMessage()
             {
-                var brokeredMessage = new Mock<IBrokeredMessage>();
+                var brokeredMessage = new Mock<IReceivedBrokeredMessage>();
                 brokeredMessage
                     .Setup(x => x.GetBody())
                     .Returns(JsonSerializedContent);

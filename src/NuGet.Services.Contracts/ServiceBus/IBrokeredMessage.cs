@@ -7,19 +7,13 @@ using System.Threading.Tasks;
 
 namespace NuGet.Services.ServiceBus
 {
-    public interface IBrokeredMessage : IDisposable
+    public interface IBrokeredMessage
     {
-        int DeliveryCount { get; }
-        DateTimeOffset ExpiresAtUtc { get; }
         TimeSpan TimeToLive { get; set; }
         IDictionary<string, object> Properties { get; }
-        DateTimeOffset EnqueuedTimeUtc { get; }
         DateTimeOffset ScheduledEnqueueTimeUtc { get; set; }
         string MessageId { get; set; }
-        Task CompleteAsync();
-        Task AbandonAsync();
         string GetBody();
-        Stream GetBody<Stream>();
-        IBrokeredMessage Clone();
+        TStream GetBody<TStream>();
     }
 }

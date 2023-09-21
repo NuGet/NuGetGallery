@@ -15,7 +15,7 @@ namespace NuGet.Services.Messaging
         private static readonly TimeSpan DefaultTimeToLive = TimeSpan.FromDays(2);
         private static readonly BrokeredMessageSerializer<EmailMessageData1> _serializer = new BrokeredMessageSerializer<EmailMessageData1>();
 
-        public EmailMessageData DeserializeEmailMessageData(IBrokeredMessage message)
+        public EmailMessageData DeserializeEmailMessageData(IReceivedBrokeredMessage message)
         {
             var data = _serializer.Deserialize(message);
 
