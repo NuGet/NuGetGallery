@@ -9,6 +9,11 @@ namespace NuGetGallery.Configuration
     public interface IServiceBusConfiguration
     {
         /// <summary>
+        /// The client ID of the managed identity that will be used for Azure Service Bus authentication.
+        /// </summary>
+        string ManagedIdentityClientId { get; set; }
+
+        /// <summary>
         /// The connection string to use when connecting to the AccountDeleter topic. This connection string should not
         /// contain the topic name as the name is explicitly specified by <see cref="AccountDeleter_TopicName"/>. This
         /// connection string only needs to have the "Send" privilege. This topic is used for requesting asynchronous
