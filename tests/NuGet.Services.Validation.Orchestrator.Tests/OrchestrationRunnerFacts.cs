@@ -21,7 +21,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             var runner = CreateRunner();
             await runner.RunOrchestrationAsync();
 
-            SubscriptionProcessorMock.Verify(o => o.Start(DefaultMaxConcurrentCalls), Times.Once());
+            SubscriptionProcessorMock.Verify(o => o.StartAsync(DefaultMaxConcurrentCalls), Times.Once());
         }
 
         [Fact]
@@ -29,7 +29,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         {
             var startCalled = false;
             SubscriptionProcessorMock
-                .Setup(o => o.Start(DefaultMaxConcurrentCalls))
+                .Setup(o => o.StartAsync(DefaultMaxConcurrentCalls))
+                .Returns(Task.CompletedTask)
                 .Callback(() => startCalled = true);
 
             SubscriptionProcessorMock

@@ -2,6 +2,9 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <EnablePackageVersionOverride>false</EnablePackageVersionOverride>
+    <ServerCommonPackageVersion>2.112.0</ServerCommonPackageVersion>
+    <NuGetClientPackageVersion>6.6.1</NuGetClientPackageVersion>
+    <NuGetGalleryPackageVersion>4.4.5-dev-8435783</NuGetGalleryPackageVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Autofac" Version="4.9.1" />
@@ -34,7 +37,7 @@
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.0.0" />
     <PackageVersion Include="Microsoft.Rest.ClientRuntime" Version="2.3.24" />
-    <PackageVersion Include="Microsoft.WindowsAzure.ConfigurationManager" Version="3.1.0" />
+    <PackageVersion Include="Microsoft.WindowsAzure.ConfigurationManager" Version="3.2.3" />
     <PackageVersion Include="Moq" Version="4.13.1" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageVersion Include="NuGet.Build.Tasks.Pack" Version="4.8.0" />
@@ -54,6 +57,7 @@
     <PackageVersion Include="NuGet.Services.Status.Table" Version="$(ServerCommonPackageVersion)" />
     <PackageVersion Include="NuGet.Services.Storage" Version="$(ServerCommonPackageVersion)" />
     <PackageVersion Include="NuGet.Services.Testing.Entities" Version="$(ServerCommonPackageVersion)" />
+    <PackageVersion Include="NuGet.Services.Validation" Version="$(ServerCommonPackageVersion)" />
     <PackageVersion Include="NuGet.StrongName.Octokit" Version="0.32.0" />
     <PackageVersion Include="NuGet.StrongName.json-ld.net" Version="1.0.6" />
     <PackageVersion Include="NuGet.Versioning" Version="$(NuGetClientPackageVersion)" />

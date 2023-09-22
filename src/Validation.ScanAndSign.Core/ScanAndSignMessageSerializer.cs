@@ -16,7 +16,7 @@ namespace NuGet.Jobs.Validation.ScanAndSign
         private IBrokeredMessageSerializer<ScanAndSignMessageData2> _serializer2 =
             new BrokeredMessageSerializer<ScanAndSignMessageData2>();
 
-        public ScanAndSignMessage Deserialize(IBrokeredMessage message)
+        public ScanAndSignMessage Deserialize(IReceivedBrokeredMessage message)
         {
             try
             {

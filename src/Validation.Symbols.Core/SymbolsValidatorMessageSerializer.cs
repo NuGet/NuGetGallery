@@ -13,7 +13,7 @@ namespace NuGet.Jobs.Validation.Symbols.Core
         private IBrokeredMessageSerializer<SymbolsValidatorMessageDataV1> _serializer =
             new BrokeredMessageSerializer<SymbolsValidatorMessageDataV1>();
 
-        public SymbolsValidatorMessage Deserialize(IBrokeredMessage message)
+        public SymbolsValidatorMessage Deserialize(IReceivedBrokeredMessage message)
         {
             var deserializedMessage = _serializer.Deserialize(message);
 
