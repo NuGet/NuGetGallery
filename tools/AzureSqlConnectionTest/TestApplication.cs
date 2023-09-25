@@ -56,7 +56,7 @@ namespace AzureSqlConnectionTest
             IntervalInSeconds = Option("-i | --interval", "Sleep interval in seconds", CommandOptionType.SingleValue);
 
             SpawnClients = Option("-spawn", "Spawn client processes", CommandOptionType.NoValue);
-            UseAdalOnly = Option("-adal", "Use ADAL only (default token cache)", CommandOptionType.NoValue);
+            UseAdalOnly = Option("-adal", "Use MSAL only (default token cache)", CommandOptionType.NoValue);
 
             OnExecute(() => ExecuteAsync().GetAwaiter().GetResult());
         }

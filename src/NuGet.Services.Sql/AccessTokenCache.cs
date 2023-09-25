@@ -3,18 +3,19 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Clients.ActiveDirectory;
+using Microsoft.Identity.Client;
 
 namespace NuGet.Services.Sql
 {
     internal class AccessTokenCache
     {
-        private const string AzureSqlResourceTokenUrl = "https://database.windows.net/";
+        private static readonly IReadOnlyList<string> AzureSqlResourceScopes = new[] { "https://database.windows.net/.default" };
 
         private const double DefaultMinExpirationInMinutes = 30;
 
@@ -213,10 +214,15 @@ namespace NuGet.Services.Sql
         {
             using (var certificate = new X509Certificate2(Convert.FromBase64String(clientCertificateData), string.Empty))
             {
-                var clientAssertion = new ClientAssertionCertificate(connectionString.AadClientId, certificate);
-                var authContext = new AuthenticationContext(connectionString.AadAuthority, tokenCache: null);
+                var clientApp = ConfidentialClientApplicationBuilder
+                    .Create(connectionString.AadClientId)
+                    .WithAuthority(connectionString.AadAuthority)
+                    .WithCertificate(certificate, connectionString.AadSendX5c)
+                    .Build();
 
-                var authResult = await authContext.AcquireTokenAsync(AzureSqlResourceTokenUrl, clientAssertion, connectionString.AadSendX5c);
+                var authResult = await clientApp
+                    .AcquireTokenForClient(AzureSqlResourceScopes)
+                    .ExecuteAsync();
 
                 return new AccessTokenCacheValue(clientCertificateData, authResult);
             }

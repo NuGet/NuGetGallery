@@ -63,7 +63,6 @@ Invoke-BuildStep 'Clearing artifacts' { Clear-Artifacts } `
 
 Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
         $versionMetadata = `
-            "$PSScriptRoot\src\NuGet.Services.AzureManagement\Properties\AssemblyInfo.g.cs", `
             "$PSScriptRoot\src\NuGet.Services.Build\Properties\AssemblyInfo.g.cs",`
             "$PSScriptRoot\src\NuGet.Services.Configuration\Properties\AssemblyInfo.g.cs", `
             "$PSScriptRoot\src\NuGet.Services.Contracts\Properties\AssemblyInfo.g.cs", `
@@ -122,7 +121,6 @@ Invoke-BuildStep 'Creating artifacts' { `
             "src\NuGet.Services.Storage\NuGet.Services.Storage.csproj", `
             "src\NuGet.Services.Cursor\NuGet.Services.Cursor.csproj", `
             "src\NuGet.Services.Owin\NuGet.Services.Owin.csproj", `
-            "src\NuGet.Services.AzureManagement\NuGet.Services.AzureManagement.csproj", `
             "src\NuGet.Services.Contracts\NuGet.Services.Contracts.csproj", `
             "src\NuGet.Services.ServiceBus\NuGet.Services.ServiceBus.csproj", `
             "src\NuGet.Services.Validation\NuGet.Services.Validation.csproj", `

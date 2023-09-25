@@ -2,12 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
-using Microsoft.IdentityModel.Clients.ActiveDirectory;
+using Microsoft.Identity.Client;
 using NuGet.Services.KeyVault;
 using NuGet.Services.Sql;
 
@@ -15,7 +16,7 @@ namespace AzureSqlConnectionTest
 {
     public class TestRunner
     {
-        private const string DatabaseResource = "https://database.windows.net/";
+        private static readonly IReadOnlyList<string> DatabaseResourceScopes = new[] { "https://database.windows.net/.default" };
 
         private AzureSqlConnectionStringBuilder ConnectionString { get; }
 
@@ -163,7 +164,7 @@ namespace AzureSqlConnectionTest
                 lastConnection.Dispose();
             }
 
-            return useAdalOnly ? CreateAdalSqlConnection() : CreateNuGetSqlConnection();
+            return useAdalOnly ? CreateMsalSqlConnection() : CreateNuGetSqlConnection();
         }
 
         private async Task<SqlConnection> GetPersistentSqlConnectionAsync(
@@ -179,14 +180,20 @@ namespace AzureSqlConnectionTest
             return connectionFactory.CreateAsync();
         }
 
-        private async Task<SqlConnection> CreateAdalSqlConnection()
+        private async Task<SqlConnection> CreateMsalSqlConnection()
         {
             var certData = await SecretInjector.InjectAsync(ConnectionString.AadCertificate);
             var certificate = new X509Certificate2(Convert.FromBase64String(certData), string.Empty);
 
-            var clientAssertionCert = new ClientAssertionCertificate(ConnectionString.AadClientId, certificate);
-            var authContext = new AuthenticationContext(ConnectionString.AadAuthority, tokenCache: null);
-            var token = await authContext.AcquireTokenAsync(DatabaseResource, clientAssertionCert, ConnectionString.AadSendX5c);
+            var clientApp = ConfidentialClientApplicationBuilder
+                .Create(ConnectionString.AadClientId)
+                .WithAuthority(ConnectionString.AadAuthority)
+                .WithCertificate(certificate, ConnectionString.AadSendX5c)
+                .Build();
+
+            var token = await clientApp
+                .AcquireTokenForClient(DatabaseResourceScopes)
+                .ExecuteAsync();
 
             var connection = new SqlConnection(ConnectionString.ConnectionString);
             connection.AccessToken = token.AccessToken;
