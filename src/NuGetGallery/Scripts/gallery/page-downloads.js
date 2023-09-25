@@ -10,7 +10,7 @@
 
     function makeOlderVersionsCollapsible() {
         const listContainer = document.getElementById('win-x86-versions').children[1];   //children[0] is the headline, children[1] is the list of versions
-        const listContainer2 = document.getElementById('win-x86-versions');
+        const listContainerParent = document.getElementById('win-x86-versions');
         olderVersionsElement = document.createElement('div');
 
         // We want to display 2 versions to the users.
@@ -56,12 +56,10 @@
 
         displayedVersions.forEach(li => {
             versionsList.appendChild(li);
-            //olderVersionsElement.appendChild(li);
         });
-        /*
-                //olderVersionsElement.appendChild('</ul>');*/
+
         olderVersionsElement.appendChild(versionsList);
-        listContainer2.appendChild(olderVersionsElement);
+        listContainerParent.appendChild(olderVersionsElement);
 
         chevronIcon = document.getElementById('olderVersionsToggleChevron');
         var hideVersionsButton = document.getElementById('olderVersionsToggleButton');
@@ -72,5 +70,11 @@
         chevronIcon.classList.toggle('ms-Icon--ChevronDown');
         chevronIcon.classList.toggle('ms-Icon--ChevronUp');
         olderVersionsElement.classList.toggle('show-list-items');
+        if (olderVersionsElement.classList.contains('show-list-items')) {
+            chevronIcon.parentNode.setAttribute("aria-expanded", "true");
+        }
+        else {
+            chevronIcon.parentNode.setAttribute("aria-expanded", "false");
+        }
     }
 });
