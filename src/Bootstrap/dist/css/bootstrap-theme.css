@@ -1727,13 +1727,19 @@ p.frameworktableinfo-text {
   display: none;
 }
 .page-downloads .older-versions-dropdown p {
-  color: red;
+  color: #e50000;
   font-size: 14px;
   display: none;
 }
 .page-downloads .older-versions-dropdown.show-list-items p,
 .page-downloads .older-versions-dropdown.show-list-items li {
   display: block;
+}
+.page-downloads .older-versions-dropdown.show-list-items li {
+  margin-top: 20px;
+}
+.page-downloads .older-versions-dropdown.show-list-items ul {
+  padding: 0;
 }
 .page-edit-package .readme-tabs {
   margin-top: 0.5em;
