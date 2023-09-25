@@ -48,12 +48,12 @@ namespace NuGetGallery.Areas.Admin.Controllers
             var packagesFrom = packagesFromInput
                                         .Split(null) // all whitespace
                                         .Where(id => id != string.Empty)
-                                        .Select(id => _packageService.FindPackageRegistrationById(id.Trim()))
+                                        .Select(id => id.Trim())
                                         .ToList();
             var packagesTo = packagesToInput
                                         .Split(null) // all whitespace
                                         .Where(id => id != string.Empty)
-                                        .Select(id => _packageService.FindPackageRegistrationById(id.Trim()))
+                                        .Select(id => id.Trim())
                                         .ToList();
 
             if (packagesFrom.Count != packagesTo.Count)
@@ -65,27 +65,19 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             for (int i = 0; i < packagesFrom.Count; i++)
             {
-                var packageFrom = packagesFrom[i];
-                var packageTo = packagesTo[i];
+                var packageFrom = _packageService.FindPackageRegistrationById(packagesFrom[i]);
+                var packageTo = _packageService.FindPackageRegistrationById(packagesTo[i]);
 
                 if (packageFrom is null)
                 {
-                    var InvalidId = packagesFromInput
-                                                    .Split(null)
-                                                    .Where(id => id != string.Empty)
-                                                    .ToList()[i].Trim();
                     return Json(HttpStatusCode.BadRequest,
-                                $"Could not find a package with the Package ID: {InvalidId}",
+                                $"Could not find a package with the Package ID: {packagesFrom[i]}",
                                 JsonRequestBehavior.AllowGet);
                 }
                 if (packageTo is null)
                 {
-                    var InvalidId = packagesToInput
-                                                    .Split(null)
-                                                    .Where(id => id != string.Empty)
-                                                    .ToList()[i].Trim();
                     return Json(HttpStatusCode.BadRequest,
-                                $"Could not find a package with the Package ID: {InvalidId}",
+                                $"Could not find a package with the Package ID: {packagesTo[i]}",
                                 JsonRequestBehavior.AllowGet);
                 }
 
