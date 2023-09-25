@@ -44,9 +44,6 @@
 
   <ItemGroup>
     <PackageReference Include="EntityFramework" Version="6.4.4" />
-    <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory">
-      <Version>5.2.6</Version>
-    </PackageReference>
     <PackageReference Include="NuGet.Packaging">
       <Version>$(NuGetClientPackageVersion)</Version>
     </PackageReference>
