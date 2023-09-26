@@ -4,4 +4,44 @@
     	margin-top: 20px;
     }
   }
+
+  .older-versions-dropdown {
+    margin-top: 20px; 
+
+    button{
+      background-color: transparent;
+      border: none;
+      outline: none;
+      font-size: 12px;
+      &:hover {
+        color: rgb(90, 135, 220);
+      }
+      &:focus {
+        outline: solid;
+        z-index: 1;
+      }
+    }
+
+    li {
+      display: none;
+    }
+
+    p {
+      color: #e50000;
+      font-size: 14px;
+      display: none;
+    }
+
+    &.show-list-items {
+      p, li {
+          display: block;
+      }
+      li{
+        margin-top: 20px;
+      }
+      ul{
+        padding: 0;
+      }
+    }
+  }
 } 
