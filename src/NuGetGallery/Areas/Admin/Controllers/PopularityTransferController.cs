@@ -62,12 +62,14 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
 
             var result = new PopularityTransferViewModel();
+            HashSet<int> inputKeys = new HashSet<int>();
 
             for (int i = 0; i < packagesFrom.Count; i++)
             {
                 var packageFrom = _packageService.FindPackageRegistrationById(packagesFrom[i]);
                 var packageTo = _packageService.FindPackageRegistrationById(packagesTo[i]);
 
+                // check for invalid package ids
                 if (packageFrom is null)
                 {
                     return Json(HttpStatusCode.BadRequest,
@@ -81,6 +83,24 @@ namespace NuGetGallery.Areas.Admin.Controllers
                                 JsonRequestBehavior.AllowGet);
                 }
 
+                // check for duplicate package ids
+                if (inputKeys.Contains(packageFrom.Key))
+                {
+                    return Json(HttpStatusCode.BadRequest,
+                                $"{packageFrom.Id} appears twice. Please remove duplicate Package IDs from the 'From' and 'To' fields.",
+                                JsonRequestBehavior.AllowGet);
+                }
+                if (inputKeys.Contains(packageTo.Key))
+                {
+                    return Json(HttpStatusCode.BadRequest,
+                                $"{packageTo.Id} appears twice. Please remove duplicate Package IDs from the 'From' and 'To' fields.",
+                                JsonRequestBehavior.AllowGet);
+                }
+
+                inputKeys.Add(packageFrom.Key);
+                inputKeys.Add(packageTo.Key);
+
+                // create validated input result
                 var input = new PopularityTransferItem(CreatePackageSearchResult(packageFrom.Packages.First()),
                                                        CreatePackageSearchResult(packageTo.Packages.First()),
                                                        packageFrom.Key,
@@ -89,20 +109,29 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 result.ValidatedInputs.Add(input);
 
                 // check for existing entries in the PackageRename table for the 'From' packages
-                var existingRenames = _packageRenameService.GetPackageRenames(packageFrom);
+                var existingRenamesFrom = _packageRenameService.GetPackageRenames(packageFrom);
 
-                if (existingRenames.Any())
+                if (existingRenamesFrom.Any())
                 {
-                    if (existingRenames.Count() == 1)
+                    if (existingRenamesFrom.Count == 1)
                     {
                         var existingRenamesMessage = $"{packageFrom.Id} already has 1 entry in the PackageRenames table. This will be removed with this operation.";
                         result.ExistingPackageRenames.Add(existingRenamesMessage);
                     }
                     else
                     {
-                        var existingRenamesMessage = $"{packageFrom.Id} already has {existingRenames.Count()} entries in the PackageRenames table. These will be removed with this operation.";
+                        var existingRenamesMessage = $"{packageFrom.Id} already has {existingRenamesFrom.Count} entries in the PackageRenames table. These will be removed with this operation.";
                         result.ExistingPackageRenames.Add(existingRenamesMessage);
                     }
+                }
+
+                // check for existing entries in the PackageRename table for the 'To' packages
+                var existingRenamesTo = _packageRenameService.GetPackageRenames(packageTo);
+
+                if (existingRenamesTo.Any())
+                {
+                    var existingRenamesMessage = $"{packageTo.Id} already has entries in the PackageRenames table. This popularity transfer will result in a new transitive relationship. Please look at the PackageRenames table and verify your input before proceeding.";
+                    result.ExistingPackageRenames.Insert(0, existingRenamesMessage);
                 }
             }
 
