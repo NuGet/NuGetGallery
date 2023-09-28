@@ -7961,6 +7961,7 @@ namespace NuGetGallery
 
                     // Assert
                     fakeTelemetryService.Verify(x => x.TrackPackagePushFailureEvent(PackageId, new NuGetVersion(PackageVersion)), Times.Once());
+                    fakeTelemetryService.Verify(x => x.TrackPackagePushFailureEvent(null, null), Times.Never());
                 }
             }
 
@@ -8928,6 +8929,54 @@ namespace NuGetGallery
                         ar.Action == AuditedPackageAction.Create
                         && ar.Id == fakePackage.PackageRegistration.Id
                         && ar.Version == fakePackage.Version));
+                }
+            }
+
+            /// <remarks>
+            /// There is a race condition between API and Web UI uploads where we can end up
+            /// in a situation where user may have "verify package page" open in their browser
+            /// pushes the same package with command line client, then clicks "Verify" in
+            /// the browser. Browser will report failure (as package already exists). That
+            /// failure must not be counted as "package push failure".
+            /// </remarks>
+            [Fact]
+            public async Task DoesNotReportPackagePushFailureOnDuplicatePackage()
+            {
+                // Arrange
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                using (var fakeFileStream = new MemoryStream())
+                {
+                    fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeFileStream));
+                    fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult(0));
+                    var fakePackageUploadService = GetValidPackageUploadService(PackageId, PackageVersion);
+                    fakePackageUploadService
+                        .Setup(pus => pus.GeneratePackageAsync(
+                            It.IsAny<string>(),
+                            It.IsAny<PackageArchiveReader>(),
+                            It.IsAny<PackageStreamMetadata>(),
+                            It.IsAny<User>(),
+                            It.IsAny<User>()))
+                        .Throws(new PackageAlreadyExistsException());
+
+                    var fakeUserService = new Mock<IUserService>();
+                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+
+                    var fakeTelemetryService = new Mock<ITelemetryService>();
+
+                    var controller = CreateController(
+                        GetConfigurationService(),
+                        packageUploadService: fakePackageUploadService,
+                        uploadFileService: fakeUploadFileService,
+                        userService: fakeUserService,
+                        telemetryService: fakeTelemetryService);
+                    controller.SetCurrentUser(TestUtility.FakeUser);
+
+                    // Act
+                    await Assert.ThrowsAsync<PackageAlreadyExistsException>(() => controller.VerifyPackage(new VerifyPackageRequest { Listed = true, Owner = TestUtility.FakeUser.Username }));
+
+                    // Assert
+                    fakeTelemetryService
+                        .Verify(ts => ts.TrackPackagePushFailureEvent(It.IsAny<string>(), It.IsAny<NuGetVersion>()), Times.Never);
                 }
             }
 

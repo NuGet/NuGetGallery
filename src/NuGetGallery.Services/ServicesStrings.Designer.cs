@@ -179,7 +179,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to User &apos;{0}&apos; has not linked their account to an AAD credential matching this organization..
+        ///   Looks up a localized string similar to User &apos;{0}&apos; has not linked their account to a Microsoft Entra ID credential matching this organization..
         /// </summary>
         public static string AddMember_UserDoesNotMeetOrganizationPolicy {
             get {
@@ -542,7 +542,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Azure Active Directory account.
+        ///   Looks up a localized string similar to Microsoft Entra ID account.
         /// </summary>
         public static string AzureActiveDirectory_AccountNoun {
             get {
@@ -551,7 +551,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Register with Azure Active Directory.
+        ///   Looks up a localized string similar to Register with Microsoft Entra ID.
         /// </summary>
         public static string AzureActiveDirectory_RegisterMessage {
             get {
@@ -560,7 +560,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Sign in with Azure Active Directory.
+        ///   Looks up a localized string similar to Sign in with Microsoft Entra ID.
         /// </summary>
         public static string AzureActiveDirectory_SignInMessage {
             get {
@@ -1328,7 +1328,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; is not linked to an AAD credential with an organization tenant..
+        ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; is not linked to a Microsoft Entra ID credential with an organization tenant..
         /// </summary>
         public static string Organizations_AdminAccountDoesNotHaveTenant {
             get {

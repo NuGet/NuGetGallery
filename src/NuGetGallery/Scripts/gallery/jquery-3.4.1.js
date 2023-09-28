@@ -10592,8 +10592,5 @@
         window.jQuery = window.$ = jQuery;
     }
 
-
-
-
     return jQuery;
 });

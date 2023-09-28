@@ -13,7 +13,7 @@ namespace NuGet.Services.Entities
     {
         /// <summary>
         /// Represents a credential used by NuGet Gallery. Can be an API key credential,
-        /// username/password or external credential like Microsoft Account or Azure Active Directory.
+        /// username/password or external credential like Microsoft Account or Microsoft Entra ID.
         /// </summary>
         public Credential()
         {
@@ -23,7 +23,7 @@ namespace NuGet.Services.Entities
 
         /// <summary>
         /// Represents a credential used by NuGet Gallery. Can be an API key credential,
-        /// username/password or external credential like Microsoft Account or Azure Active Directory.
+        /// username/password or external credential like Microsoft Account or Microsoft Entra ID.
         /// </summary>
         /// <param name="type">Credential type. See <see cref="CredentialTypes"/></param>
         /// <param name="value">Credential value</param>
@@ -36,7 +36,7 @@ namespace NuGet.Services.Entities
 
         /// <summary>
         /// Represents a credential used by NuGet Gallery. Can be an API key credential,
-        /// username/password or external credential like Microsoft Account or Azure Active Directory.
+        /// username/password or external credential like Microsoft Account or Microsoft Entra ID.
         /// </summary>
         /// <param name="type">Credential type. See <see cref="CredentialTypes"/></param>
         /// <param name="value">Credential value</param>

@@ -2419,6 +2419,7 @@ namespace NuGetGallery
         [SuppressMessage("Security", "CA5363:Do Not Disable Request Validation", Justification = "Security note: Disabling ASP.Net input validation which does things like disallow angle brackets in submissions. See http://go.microsoft.com/fwlink/?LinkID=212874")]
         public virtual async Task<JsonResult> VerifyPackage(VerifyPackageRequest formData)
         {
+            bool traceFailure = true;
             try
             {
                 if (!ModelState.IsValid)
@@ -2493,6 +2494,9 @@ namespace NuGetGallery
                     // Note: Do not use the disposed stream after the calls below here(stating the obvious).
                     if (packageMetadata.IsSymbolsPackage())
                     {
+                        // Prevent duplicate failure traces. VerifySymbolsPackageInternal already traces failures with better details.
+                        traceFailure = false;
+
                         return await VerifySymbolsPackageInternal(formData,
                             uploadFile,
                             packageArchiveReader,
@@ -2502,6 +2506,9 @@ namespace NuGetGallery
                     }
                     else
                     {
+                        // Prevent duplicate failure traces. VerifyPackageInternal already traces failures with better details.
+                        traceFailure = false;
+
                         return await VerifyPackageInternal(formData,
                             uploadFile,
                             packageArchiveReader,
@@ -2514,7 +2521,10 @@ namespace NuGetGallery
             catch (Exception ex)
             {
                 ex.Log();
-                _telemetryService.TrackPackagePushFailureEvent(id: null, version: null);
+                if (traceFailure)
+                {
+                    _telemetryService.TrackPackagePushFailureEvent(id: null, version: null);
+                }
                 throw;
             }
         }
@@ -2851,6 +2861,11 @@ namespace NuGetGallery
                 {
                     location = Url.Package(package.PackageRegistration.Id, package.NormalizedVersion)
                 });
+            }
+            catch (PackageAlreadyExistsException)
+            {
+                // shouldn't be traced as package push failure
+                throw;
             }
             catch (Exception)
             {

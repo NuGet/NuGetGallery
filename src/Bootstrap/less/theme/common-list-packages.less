@@ -11,6 +11,22 @@
         font-size: 24px;
         font-weight: 300;
         line-height: 0.9;
+
+        display: inline-block;
+        color: @link-color;
+        width: auto;
+        margin: 0px;
+
+        &:hover,
+        &:focus {
+          color: @link-hover-color;
+          text-decoration: @link-hover-decoration;
+        }
+      
+        &:focus {
+          outline: 2px solid;
+          outline-offset: 4px;
+        }
       }
 
       .reserved-indicator {
