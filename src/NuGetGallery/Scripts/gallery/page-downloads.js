@@ -13,7 +13,10 @@
         const listContainerParent = document.getElementById('win-x86-versions');
         olderVersionsElement = document.createElement('div');
 
-        // We want to display 2 versions to the users.
+        // We want to display 2 versions to the users. Others should be collapsed.
+        const allVersions = listContainer.querySelectorAll('li');
+        var collapsedVersions = Array.from(allVersions).slice(2);
+
         // If the first two versions in json file are the same, we only want to show the first.
         // The following code checks if they're the same, and if so, removes the second.
         // It checks if they're the same based on the last word, which is a version identifier.
@@ -27,15 +30,8 @@
         var firstVersionLastWord = firstText.split(' ').pop();
         var secondVersionLastWord = secondText.split(' ').pop();
 
-        const hiddenVersions = listContainer.querySelectorAll('li');
-        var displayedVersions;
-
         if (firstVersionLastWord === secondVersionLastWord) {
             listContainer.removeChild(secondElement);
-            displayedVersions = Array.from(hiddenVersions).slice(1);    // we want to display only 1 version outside of the dropdown
-        }
-        else {
-            displayedVersions = Array.from(hiddenVersions).slice(2);
         }
 
         olderVersionsElement.setAttribute('class', 'older-versions-dropdown');
@@ -54,7 +50,7 @@
 
         const versionsList = document.createElement('ul');
 
-        displayedVersions.forEach(li => {
+        collapsedVersions.forEach(li => {
             versionsList.appendChild(li);
         });
 
