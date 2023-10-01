@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <NuGetClientPackageVersion>6.6.1</NuGetClientPackageVersion>
+    <NuGetClientPackageVersion>6.7.0</NuGetClientPackageVersion>
     <ServerCommonPackageVersion>2.113.0</ServerCommonPackageVersion>
     <NuGetJobsPackageVersion>4.3.0-dev-8446762</NuGetJobsPackageVersion>
   </PropertyGroup>
