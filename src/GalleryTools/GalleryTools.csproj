@@ -95,7 +95,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="CsvHelper">
-      <Version>7.1.1</Version>
+      <Version>30.0.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.CommandLineUtils">
       <Version>1.1.1</Version>
