@@ -31,6 +31,7 @@
     <div class="row">
         <div class="col-sm-1 hidden-xs hidden-sm col-package-icon">
             <img class="package-icon img-responsive" aria-hidden="true" alt=""
+                 width="256" height="256"
                  src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
                  @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
         </div>

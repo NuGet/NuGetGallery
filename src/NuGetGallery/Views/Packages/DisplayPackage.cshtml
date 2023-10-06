@@ -267,6 +267,7 @@
                         <h1>
                             <span class="pull-left">
                                 <img class="package-icon img-responsive" aria-hidden="true" alt=""
+                                     width="256" height="256"
                                      src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) && Model.ShowDetailsAndLinks ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
                                      @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
                             </span>

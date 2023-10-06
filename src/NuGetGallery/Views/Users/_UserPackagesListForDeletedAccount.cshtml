@@ -44,6 +44,7 @@
                             </td>
                             <td class="align-middle hidden-xs">
                                 <img class="package-icon img-responsive" aria-hidden="true" alt="Package Icon"
+                                     width="256" height="256"
                                      src="@(PackageHelper.ShouldRenderUrl(package.IconUrl) ? package.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
                                      @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
                             </td>
