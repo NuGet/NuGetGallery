@@ -197,6 +197,10 @@ namespace NuGetGallery
                 .Include("~/Scripts/gallery/page-about.js");
             BundleTable.Bundles.Add(aboutScriptBundle);
 
+            var downloadsScriptBundle = new ScriptBundle("~/Scripts/gallery/page-downloads.min.js")
+                .Include("~/Scripts/gallery/page-downloads.js");
+            BundleTable.Bundles.Add(downloadsScriptBundle);
+
             var apiKeysScriptBundle = new ScriptBundle("~/Scripts/gallery/page-api-keys.min.js")
                 .Include("~/Scripts/gallery/page-api-keys.js");
             BundleTable.Bundles.Add(apiKeysScriptBundle);

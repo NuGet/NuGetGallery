@@ -29,7 +29,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
             if (opts != null)
             {
                 // Set passive so that a HTTP 401 does not automatically trigger
-                // Azure AD authentication. NuGet uses an explicit challenge to trigger
+                // Microsoft Entra ID authentication. NuGet uses an explicit challenge to trigger
                 // the auth flow.
                 opts.AuthenticationMode = AuthenticationMode.Passive;
 

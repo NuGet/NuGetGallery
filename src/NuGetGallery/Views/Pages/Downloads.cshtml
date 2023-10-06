@@ -41,7 +41,7 @@
         <div class="col-md-4">
             <!-- ko foreach: artifacts -->
             <!-- ko if: name == "win-x86-commandline" -->
-            <div data-bind="template: { name: 'tool-list-template', data: $data }"></div>
+            <div id="win-x86-versions" data-bind="template: { name: 'tool-list-template', data: $data }"></div>
             <!-- /ko -->
             <!-- /ko -->
         </div>
@@ -93,12 +93,13 @@
                     if (typeof data == "string") {
                         data = $.parseJSON(data);
                     }
-
                     ko.applyBindings(data, $('#stage-dynamic').get(0));
                     $('#stage-static').hide();
+                    $(document).trigger('dataLoaded');
                     $('#stage-dynamic').show();
                 }
             });
         });
     </script>
+    @Scripts.Render("~/Scripts/gallery/page-downloads.min.js")
 }

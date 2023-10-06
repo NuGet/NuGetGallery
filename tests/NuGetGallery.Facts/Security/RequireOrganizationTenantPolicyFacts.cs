@@ -44,14 +44,14 @@ namespace NuGetGallery.Security
 
                 if (!string.IsNullOrEmpty(userTenantId))
                 {
-                    // We can only have a single AAD account, remove previous one if present.
+                    // We can only have a single Microsoft Entra ID account, remove previous one if present.
                     var aadCredential = fakes.User.Credentials.Single(c => c.Type.Contains(CredentialTypes.External.AzureActiveDirectoryAccount));
                     if (aadCredential != null)
                     {
                         fakes.User.Credentials.Remove(aadCredential);
                     }
 
-                    // Add the new AAD credential
+                    // Add the new Microsoft Entra ID credential
                     fakes.User.Credentials.Add(
                         credentialBuilder.CreateExternalCredential(
                         issuer: "AzureActiveDirectory",

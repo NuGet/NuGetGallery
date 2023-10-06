@@ -800,10 +800,10 @@ namespace NuGetGallery
             var asyncAccountDeleteTopicName = configuration.ServiceBus.AccountDeleter_TopicName;
 
             builder
-                .Register(c => new TopicClientWrapper(asyncAccountDeleteConnectionString, asyncAccountDeleteTopicName))
+                .Register(c => new TopicClientWrapper(asyncAccountDeleteConnectionString, asyncAccountDeleteTopicName, configuration.ServiceBus.ManagedIdentityClientId))
                 .SingleInstance()
                 .Keyed<ITopicClient>(BindingKeys.AccountDeleterTopic)
-                .OnRelease(x => x.Close());
+                .OnRelease(x => x.CloseAsync());
 
             builder
                 .RegisterType<AsynchronousDeleteAccountService>()
@@ -935,11 +935,11 @@ namespace NuGetGallery
             var emailPublisherTopicName = configuration.ServiceBus.EmailPublisher_TopicName;
 
             builder
-                .Register(c => new TopicClientWrapper(emailPublisherConnectionString, emailPublisherTopicName))
+                .Register(c => new TopicClientWrapper(emailPublisherConnectionString, emailPublisherTopicName, configuration.ServiceBus.ManagedIdentityClientId))
                 .As<ITopicClient>()
                 .SingleInstance()
                 .Keyed<ITopicClient>(BindingKeys.EmailPublisherTopic)
-                .OnRelease(x => x.Close());
+                .OnRelease(x => x.CloseAsync());
 
             builder
                 .RegisterType<EmailMessageEnqueuer>()
@@ -1090,18 +1090,18 @@ namespace NuGetGallery
                 var symbolsValidationTopicName = configuration.ServiceBus.SymbolsValidation_TopicName;
 
                 builder
-                    .Register(c => new TopicClientWrapper(validationConnectionString, validationTopicName))
+                    .Register(c => new TopicClientWrapper(validationConnectionString, validationTopicName, configuration.ServiceBus.ManagedIdentityClientId))
                     .As<ITopicClient>()
                     .SingleInstance()
                     .Keyed<ITopicClient>(BindingKeys.PackageValidationTopic)
-                    .OnRelease(x => x.Close());
+                    .OnRelease(x => x.CloseAsync());
 
                 builder
-                    .Register(c => new TopicClientWrapper(symbolsValidationConnectionString, symbolsValidationTopicName))
+                    .Register(c => new TopicClientWrapper(symbolsValidationConnectionString, symbolsValidationTopicName, configuration.ServiceBus.ManagedIdentityClientId))
                     .As<ITopicClient>()
                     .SingleInstance()
                     .Keyed<ITopicClient>(BindingKeys.SymbolsPackageValidationTopic)
-                    .OnRelease(x => x.Close());
+                    .OnRelease(x => x.CloseAsync());
             }
             else
             {
