@@ -26,7 +26,7 @@
   "license": "MIT",
   "devDependencies": {
     "@lodder/grunt-postcss": "^3.1.1",
-    "autoprefixer": "^9.8.8",
+    "autoprefixer": "^10.4.16",
     "btoa": "^1.2.1",
     "cross-env": "^5.2.0",
     "glob": "^7.2.0",
