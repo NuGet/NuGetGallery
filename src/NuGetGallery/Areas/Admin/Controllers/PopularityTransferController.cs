@@ -185,7 +185,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             foreach (var input in confirmedInputs)
             {
-                message += $"\t{input.FromId.PadRight(maxIdLength)}  --->  {input.ToId}\n";
+                message += $"\t{input.FromId.PadRight(maxIdLength)}  ➡️  {input.ToId}\n";
             }
 
             message += "\nIt can take up to 30 minutes for the popularity transfer(s) to be applied.";
