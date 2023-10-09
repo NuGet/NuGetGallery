@@ -164,7 +164,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             _packageRenameRepository.DeleteOnCommit(previousPackageRenames);
             _packageRenameRepository.InsertOnCommit(newPackageRenames);
-            await _packageRenameRepository.CommitChangesAsync();
 
             await _entitiesContext.SaveChangesAsync();
 
