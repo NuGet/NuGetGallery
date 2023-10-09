@@ -70,13 +70,13 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 var packageTo = _packageService.FindPackageRegistrationById(packagesTo[i]);
 
                 // check for invalid package ids
-                if (packageFrom is null)
+                if (packageFrom is null || !packageFrom.Packages.Any())
                 {
                     return Json(HttpStatusCode.BadRequest,
                                 $"Could not find a package with the Package ID: {packagesFrom[i]}",
                                 JsonRequestBehavior.AllowGet);
                 }
-                if (packageTo is null)
+                if (packageTo is null || !packageTo.Packages.Any())
                 {
                     return Json(HttpStatusCode.BadRequest,
                                 $"Could not find a package with the Package ID: {packagesTo[i]}",
@@ -84,21 +84,18 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 }
 
                 // check for duplicate package ids
-                if (inputKeys.Contains(packageFrom.Key))
+                if (!inputKeys.Add(packageFrom.Key))
                 {
                     return Json(HttpStatusCode.BadRequest,
                                 $"{packageFrom.Id} appears twice. Please remove duplicate Package IDs from the 'From' and 'To' fields.",
                                 JsonRequestBehavior.AllowGet);
                 }
-                if (inputKeys.Contains(packageTo.Key))
+                if (!inputKeys.Add(packageTo.Key))
                 {
                     return Json(HttpStatusCode.BadRequest,
                                 $"{packageTo.Id} appears twice. Please remove duplicate Package IDs from the 'From' and 'To' fields.",
                                 JsonRequestBehavior.AllowGet);
                 }
-
-                inputKeys.Add(packageFrom.Key);
-                inputKeys.Add(packageTo.Key);
 
                 // create validated input result
                 var input = new PopularityTransferItem(CreatePackageSearchResult(packageFrom.Packages.First()),
@@ -160,10 +157,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 var previousRenames = _packageRenameService.GetPackageRenames(_packageService.FindPackageRegistrationById(input.FromId));
                 previousPackageRenames.AddRange(previousRenames);
 
-                if (input.FromId.Length > maxIdLength)
-                {
-                    maxIdLength = input.FromId.Length;
-                }
+                maxIdLength = Math.Max(maxIdLength, input.FromId.Length);
             }
 
             var result = new PopularityTransferViewModel();
