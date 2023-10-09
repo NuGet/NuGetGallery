@@ -12,13 +12,6 @@ if (Test-Path $targetNugetExePath) {
 
 Write-Host "nuget.exe not found in $Directory"
 
-$sourceNuGetExePath = Join-Path $PSScriptRoot "nuget.exe"
-
-if (Test-Path $sourceNuGetExePath) {
-    Write-Host "Copying nuget.exe from $sourceNuGetExePath"
-    Copy-Item $sourceNuGetExePath $targetNugetExePath
-} else {
-    $sourceNugetExeUrl = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
-    Write-Host "Downloading nuget.exe from $sourceNugetExeUrl"
-    Invoke-WebRequest $sourceNugetExeUrl -OutFile $targetNugetExePath
-}
+$sourceNugetExeUrl = "https://dist.nuget.org/win-x86-commandline/v6.7.0/nuget.exe"
+Write-Host "Downloading nuget.exe from $sourceNugetExeUrl"
+Invoke-WebRequest $sourceNugetExeUrl -OutFile $targetNugetExePath

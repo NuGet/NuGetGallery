@@ -7,6 +7,8 @@ namespace NuGetGallery.Configuration
 {
     public class ServiceBusConfiguration : IServiceBusConfiguration
     {
+        public string ManagedIdentityClientId { get; set; }
+
         [DisplayName("AccountDeleter.ConnectionString")]
         public string AccountDeleter_ConnectionString { get; set; }
 

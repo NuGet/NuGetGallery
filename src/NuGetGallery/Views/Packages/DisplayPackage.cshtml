@@ -550,9 +550,10 @@
                     {
                         activeBodyTab = activeBodyTab ?? "readme";
                         <li role="presentation" class="active" id="show-readme-container">
-                            <a href="#readme-tab"
+                            <a href="#readme-body-tab"
                                role="tab"
                                data-toggle="tab"
+                               data-target="#readme-tab"
                                id="readme-body-tab"
                                class="body-@(Model.CanDisplayReadmeWarning && Model.CanDisplayPrivateMetadata? "warning-" : "")tab"
                                aria-controls="readme-tab"
@@ -645,10 +646,11 @@
                     {
                         activeBodyTab = activeBodyTab ?? "releasenotes";
                         <li role="presentation">
-                            <a href="#releasenotes-tab"
+                            <a href="#releasenotes-body-tab"
                                role="tab"
                                data-toggle="tab"
-                               id="release-body-tab"
+                               data-target="#releasenotes-tab"
+                               id="releasenotes-body-tab"
                                class="body-tab"
                                aria-controls="releasenotes-tab"
                                aria-selected="@(activeBodyTab == "releasenotes" ? "true" : "false")"
