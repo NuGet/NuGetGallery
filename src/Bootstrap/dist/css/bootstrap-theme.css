@@ -1060,6 +1060,34 @@ p.frameworktableinfo-text {
 .page-admin-index p {
   margin-bottom: 16px;
 }
+.page-admin-popularity-transfers #popularityTransferSuccessMessage {
+  white-space: pre-wrap;
+}
+.page-admin-popularity-transfers #validatedInputResult {
+  table-layout: fixed;
+  width: 100%;
+}
+.page-admin-popularity-transfers .col-group-1 {
+  width: 20%;
+}
+.page-admin-popularity-transfers .col-group-2 {
+  width: 10%;
+}
+.page-admin-popularity-transfers .col-group-3 {
+  width: 20%;
+}
+.page-admin-popularity-transfers .col-group-from-header {
+  background-color: #f2f2f2;
+}
+.page-admin-popularity-transfers .col-group-to-header {
+  background-color: #ebebeb;
+}
+.page-admin-popularity-transfers .col-group-from-data {
+  background-color: #f2f2f2;
+}
+.page-admin-popularity-transfers .col-group-to-data {
+  background-color: #ebebeb;
+}
 .page-api-keys .example-commands {
   background-color: #002440;
   font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
