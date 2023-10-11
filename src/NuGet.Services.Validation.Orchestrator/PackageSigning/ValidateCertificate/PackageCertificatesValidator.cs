@@ -374,9 +374,10 @@ namespace NuGet.Services.Validation.PackageSigning.ValidateCertificate
         private void InvalidatePackageSignature(INuGetValidationRequest request, PackageSigningState package, PackageSignature signature)
         {
             _logger.LogWarning(
-                "Invalidating package {PackageId} {PackageVersion} due to revoked signatures.",
+                "Invalidating package {PackageId} {PackageVersion} due to revoked/invalid signatures ({SignatureStatus}).",
                 request.PackageId,
-                request.PackageVersion);
+                request.PackageVersion,
+                signature.EndCertificate.Status);
 
             package.SigningStatus = PackageSigningStatus.Invalid;
             signature.Status = PackageSignatureStatus.Invalid;
