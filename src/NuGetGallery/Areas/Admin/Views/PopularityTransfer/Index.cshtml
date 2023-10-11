@@ -1,0 +1,167 @@
+﻿@{
+    ViewBag.Title = "Popularity Transfers";
+}
+@ViewHelpers.AjaxAntiForgeryToken(Html)
+
+<section role="main" class="container main-container page-admin-popularity-transfers">
+    <div class="row col-md-12" style="display:none" data-bind="visible: successMessage">
+        <div id="popularityTransferSuccessMessage" class="alert alert-success" role="alert" data-bind="text: successMessage"></div>
+    </div>
+
+    <div>
+        <h2>Popularity Transfers</h2>
+        <p>Transfer popularity from one package to another.</p>
+
+        <div>
+            <form class="form-horizontal" name="inputValidationForm" method="get">
+                <i>List the Package IDs you want to transfer popularity <b>from</b> and <b>to</b>.</i>
+                <div class="form-group col-md-12">
+                    <label for="packagesFromInput" class="control-label">From</label>
+                    <textarea class="form-control" rows="5" id="packagesFromInput" name="packagesFromInput" placeholder="Package IDs to transfer popularity FROM, one per line" data-bind="value: packagesFromInput"></textarea>
+                </div>
+                <div class="form-group col-md-12">
+                    <label for="packagesToInput" class="control-label">To</label>
+                    <textarea class="form-control" rows="5" id="packagesToInput" name="packagesToInput" placeholder="Package IDs to transfer popularity TO, one per line" data-bind="value: packagesToInput"></textarea>
+                </div>
+                <div class="form-group col-md-12">
+                    <button type="submit" class="btn btn-block btn-primary" data-bind="click: validateInputs">Validate input</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="row col-md-12" style="display:none" data-bind="visible: errorInputs">
+            @ViewHelpers.AlertDanger(@<text><span data-bind="text: errorInputs"></span></text>)
+        </div>
+    </div>
+
+    <div style="display: none" data-bind="visible: doneValidateInputs() && !errorInputs()">
+        <h3>Preview of changes</h3>
+
+        <div class="form-horizontal">
+            <table class="table form-group col-md-12" id="validatedInputResult" aria-label="preview of popularity transfer changes">
+                <thead>
+                    <tr>
+                        <th class="col-group-from-header col-group-1">Package ID<br />(From)</th>
+                        <th class="col-group-from-header col-group-2">Downloads<br />(From)</th>
+                        <th class="col-group-from-header col-group-3">Owners<br />(From)</th>
+                        <th class="col-group-to-header col-group-1">Package ID<br />(To)</th>
+                        <th class="col-group-to-header col-group-2">Downloads<br />(To)</th>
+                        <th class="col-group-to-header col-group-3">Owners<br />(To)</th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach: validatedInputs">
+                    <tr>
+                        <td class="col-group-from-data col-group-1"><a href="#" data-bind="text: FromId, attr: { href: FromUrl }"></a></td>
+                        <td class="col-group-from-data col-group-2"><span data-bind="text: FromDownloads"></span></td>
+                        <td class="col-group-from-data col-group-3" data-bind="foreach: FromOwners">
+                            <a data-bind="text: Username, attr: { href: ProfileUrl }" />
+                        </td>
+                        <td class="col-group-to-data col-group-1"><a href="#" data-bind="text: ToId, attr: { href: ToUrl }"></a></td>
+                        <td class="col-group-to-data col-group-2"><span data-bind="text: ToDownloads"></span></td>
+                        <td class="col-group-to-data col-group-3" data-bind="foreach: ToOwners">
+                            <a data-bind="text: Username, attr: { href: ProfileUrl }" />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="form-group col-md-12" style="display:none" data-bind="visible: existingPackageRenames().length > 0, foreach: existingPackageRenames">
+                @ViewHelpers.AlertWarning(@<text><span data-bind="text: $data"></span></text>)
+            </div>
+
+            <div class="form-group col-md-12">
+                <button type="submit" class="btn btn-block btn-primary" data-bind="click: submitInputs">Submit changes</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section BottomScripts {
+    <script>
+        $(document).ready(function () {
+            var viewModel = function () {
+                var $self = this;
+
+                var actionUrlValidateInputs = '@Url.Action("ValidateInputs", "PopularityTransfer", new {area = "Admin"})';
+                var actionUrlSubmitInputs = '@Url.Action("ExecutePopularityTransfer", "PopularityTransfer", new {area = "Admin"})';
+
+                this.packagesFromInput = ko.observable('');
+                this.packagesToInput = ko.observable('');
+                this.doneValidateInputs = ko.observable(false);
+                this.errorInputs = ko.observable('');
+
+                this.validatedInputs = ko.observableArray([]);
+                this.existingPackageRenames = ko.observableArray([]);
+
+                this.successMessage = ko.observable('');
+                this.errorSubmitChanges = ko.observable('');
+
+                this.validateInputs = function () {
+                    $self.doneValidateInputs(false);
+                    $self.errorInputs('');
+                    $self.validatedInputs([]);
+                    $self.existingPackageRenames([]);
+                    $self.successMessage('');
+                    $self.errorSubmitChanges('');
+
+                    if (!$self.packagesFromInput() || !$self.packagesToInput()) {
+                        $self.errorInputs('Package IDs in the \'From\' or \'To\' fields cannot be null or empty.');
+                        return;
+                    }
+
+                    var queryParams = '?packagesFromInput=' + encodeURIComponent($self.packagesFromInput().trim())
+                        + '&packagesToInput=' + encodeURIComponent($self.packagesToInput().trim());
+
+                    $.ajax({
+                        url: actionUrlValidateInputs + queryParams,
+                        dataType: 'json',
+                        success: function (result) {
+                            $self.validatedInputs(result.ValidatedInputs);
+                            $self.existingPackageRenames(result.ExistingPackageRenames);
+                        }
+                    })
+                        .fail(function (xhr, textStatus, errorMessage) {
+                            if (xhr) {
+                                $self.errorInputs(xhr.responseJSON);
+                            }
+                            else {
+                                alert('Error: ' + errorMessage);
+                            }
+                        })
+                        .always(function () {
+                            $self.doneValidateInputs(true);
+                        });
+                };
+
+                this.submitInputs = function (model, event) {
+                    $self.successMessage('');
+                    $self.errorSubmitChanges('');
+
+                    $.ajax({
+                        url: actionUrlSubmitInputs,
+                        dataType: 'json',
+                        type: 'POST',
+                        data: window.nuget.addAjaxAntiForgeryToken({ confirmedInputs: $self.validatedInputs() }),
+                        success: function (result) {
+                            $self.successMessage(result.SuccessMessage);
+                            $self.doneValidateInputs(false);
+                            $self.validatedInputs([]);
+                            $self.packagesFromInput('');
+                            $self.packagesToInput('');
+                        }
+                    })
+                        .fail(function (xhr, textStatus, errorMessage) {
+                            if (xhr) {
+                                $self.errorSubmitChanges(xhr.responseJSON);
+                            }
+                            else {
+                                alert('Error: ' + errorMessage);
+                            }
+                        });
+                };
+            }
+
+            ko.applyBindings(new viewModel(), $('.main-container').get(0));
+        });
+    </script>
+}

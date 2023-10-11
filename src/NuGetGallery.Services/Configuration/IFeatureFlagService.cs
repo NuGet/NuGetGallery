@@ -259,7 +259,7 @@ namespace NuGetGallery
         bool IsShowReportAbuseSafetyChangesEnabled();
 
         /// <summary>
-        /// Whether online safety categories are available to content owned by at least one AAD-authenticated account
+        /// Whether online safety categories are available to content owned by at least one Microsoft Entra ID-authenticated account
         /// </summary>
         bool IsAllowAadContentSafetyReportsEnabled();
 

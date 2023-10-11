@@ -35,6 +35,7 @@
             {
                 Id = "dotnet-cli-global",
                 CommandPrefix = "> ",
+
                 InstallPackageCommands = new [] { string.Format("dotnet tool install --global {0} --version {1}", Model.Id, Model.Version) },
                 AlertLevel = AlertLevel.Info,
                 AlertMessage = "This package contains a <a href='https://aka.ms/global-tools'>.NET tool</a> you can call from the shell/command line.",
@@ -548,9 +549,10 @@
                     {
                         activeBodyTab = activeBodyTab ?? "readme";
                         <li role="presentation" class="active" id="show-readme-container">
-                            <a href="#readme-tab"
+                            <a href="#readme-body-tab"
                                role="tab"
                                data-toggle="tab"
+                               data-target="#readme-tab"
                                id="readme-body-tab"
                                class="body-@(Model.CanDisplayReadmeWarning && Model.CanDisplayPrivateMetadata? "warning-" : "")tab"
                                aria-controls="readme-tab"
@@ -572,9 +574,10 @@
                      {
                         activeBodyTab = activeBodyTab ?? "supportedframeworks";
                         <li role="presentation" id="show-supportedframeworks-container">
-                            <a href="#supportedframeworks-tab"
+                            <a href="#supportedframeworks-body-tab"
                                 role="tab"
                                 data-toggle="tab"
+                                data-target="#supportedframeworks-tab"
                                 id="supportedframeworks-body-tab"
                                 class="body-tab"
                                 aria-controls="supportedframeworks-tab"
@@ -588,9 +591,10 @@
 
                         activeBodyTab = activeBodyTab ?? "dependencies";
                         <li role="presentation">
-                            <a href="#dependencies-tab"
+                            <a href="#dependencies-body-tab"
                                role="tab"
                                data-toggle="tab"
+                               data-target="#dependencies-tab"
                                id="dependencies-body-tab"
                                class="body-tab"
                                aria-controls="dependencies-tab"
@@ -606,9 +610,10 @@
                     {
                         activeBodyTab = activeBodyTab ?? "usedby";
                         <li role="presentation">
-                            <a href="#usedby-tab"
+                            <a href="#usedby-body-tab"
                                role="tab"
                                data-toggle="tab"
+                               data-target="#usedby-tab"
                                id="usedby-body-tab"
                                class="body-tab"
                                aria-controls="usedby-tab"
@@ -622,9 +627,10 @@
 
                     @{ activeBodyTab = activeBodyTab ?? "versions"; }
                     <li role="presentation">
-                        <a href="#versions-tab"
+                        <a href="#versions-body-tab"
                            role="tab"
                            data-toggle="tab"
+                           data-target="#versions-tab"
                            id="versions-body-tab"
                            class="body-tab"
                            aria-controls="versions-tab"
@@ -639,10 +645,11 @@
                     {
                         activeBodyTab = activeBodyTab ?? "releasenotes";
                         <li role="presentation">
-                            <a href="#releasenotes-tab"
+                            <a href="#releasenotes-body-tab"
                                role="tab"
                                data-toggle="tab"
-                               id="release-body-tab"
+                               data-target="#releasenotes-tab"
+                               id="releasenotes-body-tab"
                                class="body-tab"
                                aria-controls="releasenotes-tab"
                                aria-selected="@(activeBodyTab == "releasenotes" ? "true" : "false")"

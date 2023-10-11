@@ -74,12 +74,12 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NuGet.Build.Tasks.Pack">
-      <Version>6.6.1</Version>
+      <Version>$(NuGetClientPackageVersion)</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NuGet.Jobs.Common">
-      <Version>4.3.0-dev-8079991</Version>
+      <Version>$(NuGetJobsPackageVersion)</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
