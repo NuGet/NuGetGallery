@@ -18,7 +18,7 @@ namespace NuGet.Services.GitHub.GraphQL
         /// <remarks>
         /// GitHub requires that every request includes a UserAgent.
         /// </remarks>
-        public const string UserAgent = "NuGet.Jobs.NuGet.Services.GitHub";
+        public const string UserAgent = "NuGet.Services.GitHub";
 
         private readonly GraphQLQueryConfiguration _configuration;
         private readonly HttpClient _client;
