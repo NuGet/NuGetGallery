@@ -10,7 +10,7 @@
   
   <ItemGroup>
     <PackageReference Include="NuGet.Services.Cursor">
-      <Version>2.109.0</Version>
+      <Version>$(ServerCommonPackageVersion)</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
