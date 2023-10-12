@@ -100,6 +100,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 // create validated input result
                 var input = new PopularityTransferItem(CreatePackageSearchResult(packageFrom.Packages.First()),
                                                        CreatePackageSearchResult(packageTo.Packages.First()),
+                                                       packageFrom.DownloadCount,
+                                                       packageTo.DownloadCount,
                                                        packageFrom.Key,
                                                        packageTo.Key);
 

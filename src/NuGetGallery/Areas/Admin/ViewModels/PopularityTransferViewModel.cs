@@ -28,22 +28,24 @@ namespace NuGetGallery.Areas.Admin.ViewModels
             FromOwners = new List<UserViewModel>();
             ToOwners = new List<UserViewModel>();
         }
-        
+
         public PopularityTransferItem(
-            PackageSearchResult packageFrom, 
+            PackageSearchResult packageFrom,
             PackageSearchResult packageTo,
+            long fromDownloads,
+            long toDownloads,
             int fromKey,
             int toKey)
         {
             FromId = packageFrom.PackageId;
             FromUrl = UrlHelperExtensions.Package(new UrlHelper(HttpContext.Current.Request.RequestContext), packageFrom.PackageId);
-            FromDownloads = packageFrom.DownloadCount;
+            FromDownloads = fromDownloads;
             FromOwners = packageFrom.Owners;
             FromKey = fromKey;
 
             ToId = packageTo.PackageId;
             ToUrl = UrlHelperExtensions.Package(new UrlHelper(HttpContext.Current.Request.RequestContext), packageTo.PackageId);
-            ToDownloads = packageTo.DownloadCount;
+            ToDownloads = toDownloads;
             ToOwners = packageTo.Owners;
             ToKey = toKey;
         }
