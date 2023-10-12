@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Elmah.ContentSyndication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.ServiceBus.Messaging;
 using Moq;
 using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.Leases;

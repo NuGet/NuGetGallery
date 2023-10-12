@@ -45,7 +45,7 @@ namespace NuGet.Jobs.Validation
                         $"SubcriptionProcessorJob<T>.{nameof(SetupDefaultSubscriptionProcessorConfiguration)}() or set it up your way.");
                 }
 
-                processor.Start(configuration.Value.MaxConcurrentCalls);
+                await processor.StartAsync(configuration.Value.MaxConcurrentCalls);
 
                 // Wait a certain period of time, and then shutdown this process so that it is restarted.
                 await Task.Delay(configuration.Value.ProcessDuration);

@@ -14,7 +14,7 @@ namespace NuGet.Services.Validation.Orchestrator
             _serializer = serializer;
         }
 
-        public PackageValidationMessageData Deserialize(IBrokeredMessage message)
+        public PackageValidationMessageData Deserialize(IReceivedBrokeredMessage message)
             => _serializer.DeserializePackageValidationMessageData(message);
 
         public IBrokeredMessage Serialize(PackageValidationMessageData message)

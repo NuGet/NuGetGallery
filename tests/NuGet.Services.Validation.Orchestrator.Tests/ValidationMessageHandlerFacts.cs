@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -278,7 +279,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 Times.Once);
         }
 
-        private class MessageWithCustomDeliveryCount : IBrokeredMessage
+        private class MessageWithCustomDeliveryCount : IReceivedBrokeredMessage
         {
             private readonly IBrokeredMessage _inner;
 
@@ -288,23 +289,18 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 DeliveryCount = deliveryCount;
             }
 
-            public int DeliveryCount { get; private set; }
-
-            public string GetBody() => _inner.GetBody();
-            public Stream GetBody<Stream>() => _inner.GetBody<Stream>();
-            public IDictionary<string, object> Properties => _inner.Properties;
-
-            public DateTimeOffset ScheduledEnqueueTimeUtc { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+            public int DeliveryCount { get; }
             public DateTimeOffset ExpiresAtUtc => throw new NotImplementedException();
+            public TimeSpan TimeToLive => throw new NotImplementedException();
+            public IReadOnlyDictionary<string, object> Properties => _inner.Properties.ToDictionary(x => x.Key, x => x.Value);
             public DateTimeOffset EnqueuedTimeUtc => throw new NotImplementedException();
-            public TimeSpan TimeToLive { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
-            public string MessageId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+            public DateTimeOffset ScheduledEnqueueTimeUtc => throw new NotImplementedException();
+            public string MessageId => throw new NotImplementedException();
 
             public Task AbandonAsync() => throw new NotImplementedException();
-            public IBrokeredMessage Clone() => throw new NotImplementedException();
             public Task CompleteAsync() => throw new NotImplementedException();
-            public void Dispose() => throw new NotImplementedException();
+            public string GetBody() => _inner.GetBody();
+            public TStream GetBody<TStream>() => _inner.GetBody<TStream>();
         }
     }
 

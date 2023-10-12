@@ -3,9 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Moq;
 using Newtonsoft.Json;
 using NuGet.Jobs.Validation.ScanAndSign;
 using NuGet.Services.ServiceBus;
@@ -71,7 +69,7 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
 
         private ScanAndSignMessageSerializer _target = new ScanAndSignMessageSerializer();
 
-        private IBrokeredMessage CreateMessage(
+        private IReceivedBrokeredMessage CreateMessage(
             int version,
             OperationRequestType operationType,
             Guid validationId,
@@ -95,11 +93,16 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
 
             var payloadStr = JsonConvert.SerializeObject(payload);
 
-            var message = new BrokeredMessageWrapper(payloadStr);
-            message.Properties["SchemaName"] = "SignatureValidationMessageData";
-            message.Properties["SchemaVersion"] = version;
+            var message = new Mock<IReceivedBrokeredMessage>();
+            message.Setup(x => x.Properties).Returns(new Dictionary<string, object>
+            {
+                { "SchemaName", "SignatureValidationMessageData" },
+                { "SchemaVersion", version },
+            });
 
-            return message;
+            message.Setup(x => x.GetBody()).Returns(payloadStr);
+
+            return message.Object;
         }
     }
 }

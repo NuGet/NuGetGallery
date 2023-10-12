@@ -200,7 +200,7 @@ namespace Validation.ContentScan.Tests
 
         protected ContentScanData _capturedMessage;
         protected IBrokeredMessage _capturedBrokeredMessage;
-        protected BrokeredMessageWrapper _serializedMessage;
+        protected ServiceBusMessageWrapper _serializedMessage;
 
         protected readonly IValidationRequest _validationRequest;
         protected readonly List<string> _owners;
@@ -225,7 +225,7 @@ namespace Validation.ContentScan.Tests
 
             _validationRequest = new ValidationRequest(Guid.NewGuid(), new Uri("https://example.com/testpackage.nupkg"));
 
-            _serializedMessage = new BrokeredMessageWrapper("somedata");
+            _serializedMessage = new ServiceBusMessageWrapper("somedata");
 
             _serializerMock
                 .Setup(s => s.Serialize(It.IsAny<ContentScanData>()))

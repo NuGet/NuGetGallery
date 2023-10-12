@@ -24,7 +24,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.Messages
             });
         }
 
-        public CertificateValidationMessage Deserialize(IBrokeredMessage brokeredMessage)
+        public CertificateValidationMessage Deserialize(IReceivedBrokeredMessage brokeredMessage)
         {
             var message = _serializer.Deserialize(brokeredMessage);
 

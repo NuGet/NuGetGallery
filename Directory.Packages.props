@@ -2,11 +2,14 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <EnablePackageVersionOverride>false</EnablePackageVersionOverride>
+    <ServerCommonPackageVersion>2.113.0</ServerCommonPackageVersion>
+    <NuGetClientPackageVersion>6.6.1</NuGetClientPackageVersion>
+    <NuGetGalleryPackageVersion>4.4.5-dev-8445918</NuGetGalleryPackageVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Autofac" Version="4.9.1" />
     <PackageVersion Include="Autofac.Extensions.DependencyInjection" Version="4.4.0" />
-    <PackageVersion Include="Azure.Identity" Version="1.5.0" />
+    <PackageVersion Include="Azure.Identity" Version="1.8.0" />
     <PackageVersion Include="Azure.Search.Documents" Version="11.4.0-beta.6" />
     <PackageVersion Include="Dapper.StrongName" Version="1.50.2" />
     <PackageVersion Include="dotNetRDF" Version="1.0.8.3533" />
@@ -33,7 +36,8 @@
     <PackageVersion Include="Microsoft.Extensions.Primitives" Version="2.2.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.0.0" />
-    <PackageVersion Include="Microsoft.WindowsAzure.ConfigurationManager" Version="3.1.0" />
+    <PackageVersion Include="Microsoft.Rest.ClientRuntime" Version="2.3.24" />
+    <PackageVersion Include="Microsoft.WindowsAzure.ConfigurationManager" Version="3.2.3" />
     <PackageVersion Include="Moq" Version="4.13.1" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageVersion Include="NuGet.Build.Tasks.Pack" Version="4.8.0" />
@@ -53,6 +57,7 @@
     <PackageVersion Include="NuGet.Services.Status.Table" Version="$(ServerCommonPackageVersion)" />
     <PackageVersion Include="NuGet.Services.Storage" Version="$(ServerCommonPackageVersion)" />
     <PackageVersion Include="NuGet.Services.Testing.Entities" Version="$(ServerCommonPackageVersion)" />
+    <PackageVersion Include="NuGet.Services.Validation" Version="$(ServerCommonPackageVersion)" />
     <PackageVersion Include="NuGet.StrongName.Octokit" Version="0.32.0" />
     <PackageVersion Include="NuGet.StrongName.json-ld.net" Version="1.0.6" />
     <PackageVersion Include="NuGet.Versioning" Version="$(NuGetClientPackageVersion)" />

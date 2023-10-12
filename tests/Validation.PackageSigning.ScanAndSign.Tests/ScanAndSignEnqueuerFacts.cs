@@ -238,7 +238,7 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
 
         protected ScanAndSignMessage _capturedMessage;
         protected IBrokeredMessage _capturedBrokeredMessage;
-        protected BrokeredMessageWrapper _serializedMessage;
+        protected ServiceBusMessageWrapper _serializedMessage;
 
         protected readonly INuGetValidationRequest _validationRequest;
         protected readonly List<string> _owners;
@@ -264,7 +264,7 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
             _validationRequest = new NuGetValidationRequest(Guid.NewGuid(), 42, "somepackage", "someversion", "https://example.com/testpackage.nupkg");
             _owners = new List<string> {"Billy", "Bob"};
 
-            _serializedMessage = new BrokeredMessageWrapper("somedata");
+            _serializedMessage = new ServiceBusMessageWrapper("somedata");
 
             _serializerMock
                 .Setup(s => s.Serialize(It.IsAny<ScanAndSignMessage>()))
