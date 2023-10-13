@@ -7,24 +7,24 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using GitHubVulnerabilities2Db.Configuration;
+using NuGet.Services.GitHub.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace GitHubVulnerabilities2Db.GraphQL
+namespace NuGet.Services.GitHub.GraphQL
 {
     public class QueryService : IQueryService
     {
         /// <remarks>
         /// GitHub requires that every request includes a UserAgent.
         /// </remarks>
-        public const string UserAgent = "NuGet.Jobs.GitHubVulnerabilities2Db";
+        public const string UserAgent = "NuGet.Services.GitHub";
 
-        private readonly GitHubVulnerabilities2DbConfiguration _configuration;
+        private readonly GraphQLQueryConfiguration _configuration;
         private readonly HttpClient _client;
 
         public QueryService(
-            GitHubVulnerabilities2DbConfiguration configuration,
+            GraphQLQueryConfiguration configuration,
             HttpClient client)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));

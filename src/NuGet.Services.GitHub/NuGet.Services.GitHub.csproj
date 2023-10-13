@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\..\SdkProjects.props" />
+  
+  <PropertyGroup>
+    <TargetFrameworks>net472</TargetFrameworks>
+    <Description>Support Library for interacting with GitHub from Gallery projects</Description>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="NuGet.Services.Cursor">
+      <Version>$(ServerCommonPackageVersion)</Version>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGetGallery.Services\NuGetGallery.Services.csproj" />
+  </ItemGroup>
+</Project>

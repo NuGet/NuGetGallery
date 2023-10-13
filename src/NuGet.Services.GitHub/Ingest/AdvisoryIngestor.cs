@@ -5,12 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using GitHubVulnerabilities2Db.GraphQL;
+using NuGet.Services.GitHub.GraphQL;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Entities;
 using NuGetGallery;
 
-namespace GitHubVulnerabilities2Db.Ingest
+namespace NuGet.Services.GitHub.Ingest
 {
     public class AdvisoryIngestor : IAdvisoryIngestor
     {

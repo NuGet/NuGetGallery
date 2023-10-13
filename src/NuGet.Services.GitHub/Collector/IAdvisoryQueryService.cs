@@ -5,9 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using GitHubVulnerabilities2Db.GraphQL;
+using NuGet.Services.GitHub.GraphQL;
 
-namespace GitHubVulnerabilities2Db.Collector
+namespace NuGet.Services.GitHub.Collector
 {
     /// <summary>
     /// Wrapper around <see cref="IQueryService"/> to make it easier to query for <see cref="SecurityAdvisory"/>s using a cursor.

@@ -3,10 +3,10 @@
 
 using System;
 using System.Linq;
-using GitHubVulnerabilities2Db.GraphQL;
+using NuGet.Services.GitHub.GraphQL;
 using Newtonsoft.Json;
 
-namespace GitHubVulnerabilities2Db.Collector
+namespace NuGet.Services.GitHub.Collector
 {
     public class AdvisoryQueryBuilder : IAdvisoryQueryBuilder
     {

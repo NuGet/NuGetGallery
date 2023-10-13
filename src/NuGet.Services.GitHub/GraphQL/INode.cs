@@ -3,7 +3,7 @@
 
 using System;
 
-namespace GitHubVulnerabilities2Db.GraphQL
+namespace NuGet.Services.GitHub.GraphQL
 {
     /// <summary>
     /// Interface for queryable types returned by the GraphQL API.

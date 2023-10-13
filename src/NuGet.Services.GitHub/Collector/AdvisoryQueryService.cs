@@ -6,10 +6,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using GitHubVulnerabilities2Db.GraphQL;
+using NuGet.Services.GitHub.GraphQL;
 using Microsoft.Extensions.Logging;
 
-namespace GitHubVulnerabilities2Db.Collector
+namespace NuGet.Services.GitHub.Collector
 {
     public class AdvisoryQueryService : IAdvisoryQueryService
     {

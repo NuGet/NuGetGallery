@@ -3,9 +3,9 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using GitHubVulnerabilities2Db.GraphQL;
+using NuGet.Services.GitHub.GraphQL;
 
-namespace GitHubVulnerabilities2Db.Ingest
+namespace NuGet.Services.GitHub.Ingest
 {
     /// <summary>
     /// Processes new or updated <see cref="SecurityAdvisory"/>s.

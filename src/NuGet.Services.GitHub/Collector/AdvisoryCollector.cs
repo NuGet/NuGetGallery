@@ -5,11 +5,11 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using GitHubVulnerabilities2Db.Ingest;
+using NuGet.Services.GitHub.Ingest;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Cursor;
 
-namespace GitHubVulnerabilities2Db.Collector
+namespace NuGet.Services.GitHub.Collector
 {
     public class AdvisoryCollector : IAdvisoryCollector
     {

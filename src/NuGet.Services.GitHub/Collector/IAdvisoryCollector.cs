@@ -4,7 +4,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace GitHubVulnerabilities2Db.Collector
+namespace NuGet.Services.GitHub.Collector
 {
     public interface IAdvisoryCollector
     {
