@@ -1,9 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using NuGet.Services.Entities;
 
 namespace NuGetGallery.Areas.Admin.ViewModels
 {
@@ -35,25 +38,37 @@ namespace NuGetGallery.Areas.Admin.ViewModels
             ToOwners = new List<UserViewModel>();
         }
 
-        public PopularityTransferItem(
-            PackageSearchResult packageFrom,
-            PackageSearchResult packageTo,
-            long fromDownloads,
-            long toDownloads,
-            int fromKey,
-            int toKey)
+        public PopularityTransferItem(PackageRegistration packageFrom, PackageRegistration packageTo)
         {
-            FromId = packageFrom.PackageId;
-            FromUrl = UrlHelperExtensions.Package(new UrlHelper(HttpContext.Current.Request.RequestContext), packageFrom.PackageId);
-            FromDownloads = fromDownloads;
-            FromOwners = packageFrom.Owners;
-            FromKey = fromKey;
+            FromId = packageFrom.Id;
+            FromUrl = UrlHelperExtensions.Package(new UrlHelper(HttpContext.Current.Request.RequestContext), packageFrom.Id);
+            FromDownloads = packageFrom.DownloadCount;
+            FromOwners = packageFrom
+                            .Owners
+                            .Select(u => u.Username)
+                            .OrderBy(u => u, StringComparer.OrdinalIgnoreCase)
+                            .Select(u => new UserViewModel
+                                            {
+                                                Username = u,
+                                                ProfileUrl = UrlHelperExtensions.User(new UrlHelper(HttpContext.Current.Request.RequestContext), u),
+                                            })
+                            .ToList();
+            FromKey = packageFrom.Key;
 
-            ToId = packageTo.PackageId;
-            ToUrl = UrlHelperExtensions.Package(new UrlHelper(HttpContext.Current.Request.RequestContext), packageTo.PackageId);
-            ToDownloads = toDownloads;
-            ToOwners = packageTo.Owners;
-            ToKey = toKey;
+            ToId = packageTo.Id;
+            ToUrl = UrlHelperExtensions.Package(new UrlHelper(HttpContext.Current.Request.RequestContext), packageTo.Id);
+            ToDownloads = packageTo.DownloadCount;
+            ToOwners = packageTo
+                            .Owners
+                            .Select(u => u.Username)
+                            .OrderBy(u => u, StringComparer.OrdinalIgnoreCase)
+                            .Select(u => new UserViewModel
+                                            {
+                                                Username = u,
+                                                ProfileUrl = UrlHelperExtensions.User(new UrlHelper(HttpContext.Current.Request.RequestContext), u),
+                                            })
+                            .ToList();
+            ToKey = packageTo.Key;
         }
 
         public string FromId { get; set; }
