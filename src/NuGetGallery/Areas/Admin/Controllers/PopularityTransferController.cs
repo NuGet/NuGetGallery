@@ -115,12 +115,24 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     if (existingRenamesFrom.Count == 1)
                     {
                         var existingRenamesMessage = $"{packageFrom.Id} already has 1 entry in the PackageRenames table. This will be removed with this operation.";
-                        result.ExistingPackageRenames.Add(existingRenamesMessage);
+                        result.ExistingPackageRenamesMessagesFrom.Add(existingRenamesMessage);
                     }
                     else
                     {
                         var existingRenamesMessage = $"{packageFrom.Id} already has {existingRenamesFrom.Count} entries in the PackageRenames table. These will be removed with this operation.";
-                        result.ExistingPackageRenames.Add(existingRenamesMessage);
+                        result.ExistingPackageRenamesMessagesFrom.Add(existingRenamesMessage);
+                    }
+
+                    foreach (var existingRename in existingRenamesFrom)
+                    {
+                        var item = new PopularityTransferItem(CreatePackageSearchResult(existingRename.FromPackageRegistration.Packages.First()),
+                                                              CreatePackageSearchResult(existingRename.ToPackageRegistration.Packages.First()),
+                                                              existingRename.FromPackageRegistration.DownloadCount,
+                                                              existingRename.ToPackageRegistration.DownloadCount,
+                                                              existingRename.FromPackageRegistration.Key,
+                                                              existingRename.ToPackageRegistration.Key);
+
+                        result.ExistingPackageRenamesFrom.Add(item);
                     }
                 }
 
@@ -130,7 +142,19 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 if (existingRenamesTo.Any())
                 {
                     var existingRenamesMessage = $"{packageTo.Id} already has entries in the PackageRenames table. This popularity transfer will result in a new transitive relationship. Please look at the PackageRenames table and verify your input before proceeding.";
-                    result.ExistingPackageRenames.Insert(0, existingRenamesMessage);
+                    result.ExistingPackageRenamesMessagesTo.Add(existingRenamesMessage);
+
+                    foreach (var existingRename in existingRenamesTo)
+                    {
+                        var item = new PopularityTransferItem(CreatePackageSearchResult(existingRename.FromPackageRegistration.Packages.First()),
+                                                              CreatePackageSearchResult(existingRename.ToPackageRegistration.Packages.First()),
+                                                              existingRename.FromPackageRegistration.DownloadCount,
+                                                              existingRename.ToPackageRegistration.DownloadCount,
+                                                              existingRename.FromPackageRegistration.Key,
+                                                              existingRename.ToPackageRegistration.Key);
+
+                        result.ExistingPackageRenamesTo.Add(item);
+                    }
                 }
             }
 

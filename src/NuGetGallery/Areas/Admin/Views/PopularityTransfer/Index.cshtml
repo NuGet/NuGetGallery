@@ -65,9 +65,71 @@
                 </tbody>
             </table>
 
-            <div class="form-group col-md-12" style="display:none" data-bind="visible: existingPackageRenames().length > 0, foreach: existingPackageRenames">
+            <div class="form-group col-md-12" style="display:none" data-bind="visible: existingPackageRenamesMessagesFrom().length > 0, foreach: existingPackageRenamesMessagesFrom">
                 @ViewHelpers.AlertWarning(@<text><span data-bind="text: $data"></span></text>)
             </div>
+
+            <h3 style="display:none" data-bind="visible: existingPackageRenamesFrom().length > 0">Entries that will be removed from the PackageRenames table with this operation</h3>
+
+            <table class="table form-group col-md-12" id="existingRenamesResult" style="display:none" data-bind="visible: existingPackageRenamesFrom().length > 0" aria-label="existing popularity transfers for the selected packages">
+                <thead>
+                    <tr>
+                        <th class="col-group-from-header col-group-1">Package ID<br />(From)</th>
+                        <th class="col-group-from-header col-group-2">Downloads<br />(From)</th>
+                        <th class="col-group-from-header col-group-3">Owners<br />(From)</th>
+                        <th class="col-group-to-header col-group-1">Package ID<br />(To)</th>
+                        <th class="col-group-to-header col-group-2">Downloads<br />(To)</th>
+                        <th class="col-group-to-header col-group-3">Owners<br />(To)</th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach: existingPackageRenamesFrom">
+                    <tr>
+                        <td class="col-group-from-data col-group-1"><a href="#" data-bind="text: FromId, attr: { href: FromUrl }"></a></td>
+                        <td class="col-group-from-data col-group-2"><span data-bind="text: FromDownloads"></span></td>
+                        <td class="col-group-from-data col-group-3" data-bind="foreach: FromOwners">
+                            <a data-bind="text: Username, attr: { href: ProfileUrl }" />
+                        </td>
+                        <td class="col-group-to-data col-group-1"><a href="#" data-bind="text: ToId, attr: { href: ToUrl }"></a></td>
+                        <td class="col-group-to-data col-group-2"><span data-bind="text: ToDownloads"></span></td>
+                        <td class="col-group-to-data col-group-3" data-bind="foreach: ToOwners">
+                            <a data-bind="text: Username, attr: { href: ProfileUrl }" />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="form-group col-md-12" style="display:none" data-bind="visible: existingPackageRenamesMessagesTo().length > 0, foreach: existingPackageRenamesMessagesTo">
+                @ViewHelpers.AlertWarning(@<text><span data-bind="text: $data"></span></text>)
+            </div>
+
+            <h3 style="display:none" data-bind="visible: existingPackageRenamesTo().length > 0">Existing entries in the PackageRenames table that will result in a new transitive relationship</h3>
+
+            <table class="table form-group col-md-12" id="existingRenamesResult" style="display:none" data-bind="visible: existingPackageRenamesTo().length > 0" aria-label="existing popularity transfers for the selected packages">
+                <thead>
+                    <tr>
+                        <th class="col-group-from-header col-group-1">Package ID<br />(From)</th>
+                        <th class="col-group-from-header col-group-2">Downloads<br />(From)</th>
+                        <th class="col-group-from-header col-group-3">Owners<br />(From)</th>
+                        <th class="col-group-to-header col-group-1">Package ID<br />(To)</th>
+                        <th class="col-group-to-header col-group-2">Downloads<br />(To)</th>
+                        <th class="col-group-to-header col-group-3">Owners<br />(To)</th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach: existingPackageRenamesTo">
+                    <tr>
+                        <td class="col-group-from-data col-group-1"><a href="#" data-bind="text: FromId, attr: { href: FromUrl }"></a></td>
+                        <td class="col-group-from-data col-group-2"><span data-bind="text: FromDownloads"></span></td>
+                        <td class="col-group-from-data col-group-3" data-bind="foreach: FromOwners">
+                            <a data-bind="text: Username, attr: { href: ProfileUrl }" />
+                        </td>
+                        <td class="col-group-to-data col-group-1"><a href="#" data-bind="text: ToId, attr: { href: ToUrl }"></a></td>
+                        <td class="col-group-to-data col-group-2"><span data-bind="text: ToDownloads"></span></td>
+                        <td class="col-group-to-data col-group-3" data-bind="foreach: ToOwners">
+                            <a data-bind="text: Username, attr: { href: ProfileUrl }" />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
 
             <div class="form-group col-md-12">
                 <button type="submit" class="btn btn-block btn-primary" data-bind="click: submitInputs">Submit changes</button>
@@ -91,7 +153,10 @@
                 this.errorInputs = ko.observable('');
 
                 this.validatedInputs = ko.observableArray([]);
-                this.existingPackageRenames = ko.observableArray([]);
+                this.existingPackageRenamesFrom = ko.observableArray([]);
+                this.existingPackageRenamesMessagesFrom = ko.observableArray([]);
+                this.existingPackageRenamesTo = ko.observableArray([]);
+                this.existingPackageRenamesMessagesTo = ko.observableArray([]);
 
                 this.successMessage = ko.observable('');
                 this.errorSubmitChanges = ko.observable('');
@@ -100,7 +165,10 @@
                     $self.doneValidateInputs(false);
                     $self.errorInputs('');
                     $self.validatedInputs([]);
-                    $self.existingPackageRenames([]);
+                    $self.existingPackageRenamesFrom([]);
+                    $self.existingPackageRenamesMessagesFrom([]);
+                    $self.existingPackageRenamesTo([]);
+                    $self.existingPackageRenamesMessagesTo([]);
                     $self.successMessage('');
                     $self.errorSubmitChanges('');
 
@@ -117,7 +185,10 @@
                         dataType: 'json',
                         success: function (result) {
                             $self.validatedInputs(result.ValidatedInputs);
-                            $self.existingPackageRenames(result.ExistingPackageRenames);
+                            $self.existingPackageRenamesFrom(result.ExistingPackageRenamesFrom);
+                            $self.existingPackageRenamesMessagesFrom(result.ExistingPackageRenamesMessagesFrom);
+                            $self.existingPackageRenamesTo(result.ExistingPackageRenamesTo);
+                            $self.existingPackageRenamesMessagesTo(result.ExistingPackageRenamesMessagesTo);
                         }
                     })
                         .fail(function (xhr, textStatus, errorMessage) {
