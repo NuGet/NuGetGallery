@@ -3,6 +3,36 @@
 }
 @ViewHelpers.AjaxAntiForgeryToken(Html)
 
+@helper AddPopularityTransferItemTable(string inputName, string tableId, string tableLabel)
+{
+    <table class="table form-group col-md-12" id="@(tableId)" style="display:none" data-bind="visible: @(inputName)().length > 0" aria-label="@(tableLabel)">
+        <thead>
+            <tr>
+                <th class="col-group-from-header col-group-1">Package ID<br />(From)</th>
+                <th class="col-group-from-header col-group-2">Downloads<br />(From)</th>
+                <th class="col-group-from-header col-group-3">Owners<br />(From)</th>
+                <th class="col-group-to-header col-group-1">Package ID<br />(To)</th>
+                <th class="col-group-to-header col-group-2">Downloads<br />(To)</th>
+                <th class="col-group-to-header col-group-3">Owners<br />(To)</th>
+            </tr>
+        </thead>
+        <tbody data-bind="foreach: @(inputName)">
+            <tr>
+                <td class="col-group-from-data col-group-1"><a href="#" data-bind="text: FromId, attr: { href: FromUrl }"></a></td>
+                <td class="col-group-from-data col-group-2"><span data-bind="text: FromDownloads"></span></td>
+                <td class="col-group-from-data col-group-3" data-bind="foreach: FromOwners">
+                    <a data-bind="text: Username, attr: { href: ProfileUrl }" />
+                </td>
+                <td class="col-group-to-data col-group-1"><a href="#" data-bind="text: ToId, attr: { href: ToUrl }"></a></td>
+                <td class="col-group-to-data col-group-2"><span data-bind="text: ToDownloads"></span></td>
+                <td class="col-group-to-data col-group-3" data-bind="foreach: ToOwners">
+                    <a data-bind="text: Username, attr: { href: ProfileUrl }" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+}
+
 <section role="main" class="container main-container page-admin-popularity-transfers">
     <div class="row col-md-12" style="display:none" data-bind="visible: successMessage">
         <div id="popularityTransferSuccessMessage" class="alert alert-success" role="alert" data-bind="text: successMessage"></div>
@@ -34,106 +64,29 @@
         </div>
     </div>
 
-    <div style="display: none" data-bind="visible: doneValidateInputs() && !errorInputs()">
+    <div class="form-horizontal" style="display: none" data-bind="visible: doneValidateInputs() && !errorInputs()">
         <h3>Preview of changes</h3>
 
-        <div class="form-horizontal">
-            <table class="table form-group col-md-12" id="validatedInputResult" aria-label="preview of popularity transfer changes">
-                <thead>
-                    <tr>
-                        <th class="col-group-from-header col-group-1">Package ID<br />(From)</th>
-                        <th class="col-group-from-header col-group-2">Downloads<br />(From)</th>
-                        <th class="col-group-from-header col-group-3">Owners<br />(From)</th>
-                        <th class="col-group-to-header col-group-1">Package ID<br />(To)</th>
-                        <th class="col-group-to-header col-group-2">Downloads<br />(To)</th>
-                        <th class="col-group-to-header col-group-3">Owners<br />(To)</th>
-                    </tr>
-                </thead>
-                <tbody data-bind="foreach: validatedInputs">
-                    <tr>
-                        <td class="col-group-from-data col-group-1"><a href="#" data-bind="text: FromId, attr: { href: FromUrl }"></a></td>
-                        <td class="col-group-from-data col-group-2"><span data-bind="text: FromDownloads"></span></td>
-                        <td class="col-group-from-data col-group-3" data-bind="foreach: FromOwners">
-                            <a data-bind="text: Username, attr: { href: ProfileUrl }" />
-                        </td>
-                        <td class="col-group-to-data col-group-1"><a href="#" data-bind="text: ToId, attr: { href: ToUrl }"></a></td>
-                        <td class="col-group-to-data col-group-2"><span data-bind="text: ToDownloads"></span></td>
-                        <td class="col-group-to-data col-group-3" data-bind="foreach: ToOwners">
-                            <a data-bind="text: Username, attr: { href: ProfileUrl }" />
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        @AddPopularityTransferItemTable("validatedInputs", "validatedInputResult", "preview of popularity transfer changes")
 
-            <div class="form-group col-md-12" style="display:none" data-bind="visible: existingPackageRenamesMessagesFrom().length > 0, foreach: existingPackageRenamesMessagesFrom">
-                @ViewHelpers.AlertWarning(@<text><span data-bind="text: $data"></span></text>)
-            </div>
+        <div class="form-group col-md-12" style="display:none" data-bind="visible: existingPackageRenamesMessagesFrom().length > 0, foreach: existingPackageRenamesMessagesFrom">
+            @ViewHelpers.AlertWarning(@<text><span data-bind="text: $data"></span></text>)
+        </div>
 
-            <h3 style="display:none" data-bind="visible: existingPackageRenamesFrom().length > 0">Entries that will be removed from the PackageRenames table with this operation</h3>
+        <h3 style="display:none" data-bind="visible: existingPackageRenamesFrom().length > 0">Entries that will be removed from the PackageRenames table with this operation</h3>
 
-            <table class="table form-group col-md-12" id="existingRenamesResult" style="display:none" data-bind="visible: existingPackageRenamesFrom().length > 0" aria-label="existing popularity transfers for the selected packages">
-                <thead>
-                    <tr>
-                        <th class="col-group-from-header col-group-1">Package ID<br />(From)</th>
-                        <th class="col-group-from-header col-group-2">Downloads<br />(From)</th>
-                        <th class="col-group-from-header col-group-3">Owners<br />(From)</th>
-                        <th class="col-group-to-header col-group-1">Package ID<br />(To)</th>
-                        <th class="col-group-to-header col-group-2">Downloads<br />(To)</th>
-                        <th class="col-group-to-header col-group-3">Owners<br />(To)</th>
-                    </tr>
-                </thead>
-                <tbody data-bind="foreach: existingPackageRenamesFrom">
-                    <tr>
-                        <td class="col-group-from-data col-group-1"><a href="#" data-bind="text: FromId, attr: { href: FromUrl }"></a></td>
-                        <td class="col-group-from-data col-group-2"><span data-bind="text: FromDownloads"></span></td>
-                        <td class="col-group-from-data col-group-3" data-bind="foreach: FromOwners">
-                            <a data-bind="text: Username, attr: { href: ProfileUrl }" />
-                        </td>
-                        <td class="col-group-to-data col-group-1"><a href="#" data-bind="text: ToId, attr: { href: ToUrl }"></a></td>
-                        <td class="col-group-to-data col-group-2"><span data-bind="text: ToDownloads"></span></td>
-                        <td class="col-group-to-data col-group-3" data-bind="foreach: ToOwners">
-                            <a data-bind="text: Username, attr: { href: ProfileUrl }" />
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        @AddPopularityTransferItemTable("existingPackageRenamesFrom", "existingRenamesFromResult", "existing popularity transfers for the selected packages")
 
-            <div class="form-group col-md-12" style="display:none" data-bind="visible: existingPackageRenamesMessagesTo().length > 0, foreach: existingPackageRenamesMessagesTo">
-                @ViewHelpers.AlertWarning(@<text><span data-bind="text: $data"></span></text>)
-            </div>
+        <div class="form-group col-md-12" style="display:none" data-bind="visible: existingPackageRenamesMessagesTo().length > 0, foreach: existingPackageRenamesMessagesTo">
+            @ViewHelpers.AlertWarning(@<text><span data-bind="text: $data"></span></text>)
+        </div>
 
-            <h3 style="display:none" data-bind="visible: existingPackageRenamesTo().length > 0">Existing entries in the PackageRenames table that will result in a new transitive relationship</h3>
+        <h3 style="display:none" data-bind="visible: existingPackageRenamesTo().length > 0">Existing entries in the PackageRenames table that will result in a new transitive relationship</h3>
 
-            <table class="table form-group col-md-12" id="existingRenamesResult" style="display:none" data-bind="visible: existingPackageRenamesTo().length > 0" aria-label="existing popularity transfers for the selected packages">
-                <thead>
-                    <tr>
-                        <th class="col-group-from-header col-group-1">Package ID<br />(From)</th>
-                        <th class="col-group-from-header col-group-2">Downloads<br />(From)</th>
-                        <th class="col-group-from-header col-group-3">Owners<br />(From)</th>
-                        <th class="col-group-to-header col-group-1">Package ID<br />(To)</th>
-                        <th class="col-group-to-header col-group-2">Downloads<br />(To)</th>
-                        <th class="col-group-to-header col-group-3">Owners<br />(To)</th>
-                    </tr>
-                </thead>
-                <tbody data-bind="foreach: existingPackageRenamesTo">
-                    <tr>
-                        <td class="col-group-from-data col-group-1"><a href="#" data-bind="text: FromId, attr: { href: FromUrl }"></a></td>
-                        <td class="col-group-from-data col-group-2"><span data-bind="text: FromDownloads"></span></td>
-                        <td class="col-group-from-data col-group-3" data-bind="foreach: FromOwners">
-                            <a data-bind="text: Username, attr: { href: ProfileUrl }" />
-                        </td>
-                        <td class="col-group-to-data col-group-1"><a href="#" data-bind="text: ToId, attr: { href: ToUrl }"></a></td>
-                        <td class="col-group-to-data col-group-2"><span data-bind="text: ToDownloads"></span></td>
-                        <td class="col-group-to-data col-group-3" data-bind="foreach: ToOwners">
-                            <a data-bind="text: Username, attr: { href: ProfileUrl }" />
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        @AddPopularityTransferItemTable("existingPackageRenamesTo", "existingRenamesToResult", "existing popularity transfers for the selected packages")
 
-            <div class="form-group col-md-12">
-                <button type="submit" class="btn btn-block btn-primary" data-bind="click: submitInputs">Submit changes</button>
-            </div>
+        <div class="form-group col-md-12">
+            <button type="submit" class="btn btn-block btn-primary" data-bind="click: submitInputs">Submit changes</button>
         </div>
     </div>
 </section>
