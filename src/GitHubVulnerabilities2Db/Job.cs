@@ -66,6 +66,10 @@ namespace GitHubVulnerabilities2Db
                 .RegisterType<PackageVulnerabilitiesManagementService>()
                 .As<IPackageVulnerabilitiesManagementService>();
 
+            containerBuilder.RegisterType<GalleryDbVulnerabilityWriter>()
+                .As<IVulnerabilityWriter>()
+                .SingleInstance();
+
             containerBuilder
                 .RegisterType<GitHubVersionRangeParser>()
                 .As<IGitHubVersionRangeParser>();

@@ -4,6 +4,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using GitHubVulnerabilities2Db.Gallery;
 using NuGet.Services.GitHub.GraphQL;
 using NuGet.Services.GitHub.Ingest;
 using Microsoft.Extensions.Logging;
@@ -136,15 +137,19 @@ namespace GitHubVulnerabilities2Db.Facts
             {
                 PackageVulnerabilityServiceMock = new Mock<IPackageVulnerabilitiesManagementService>();
                 GitHubVersionRangeParserMock = new Mock<IGitHubVersionRangeParser>();
-                Ingestor = new AdvisoryIngestor(
+                VulnerabilityWriter = new GalleryDbVulnerabilityWriter(
                     PackageVulnerabilityServiceMock.Object,
+                    Mock.Of<ILogger<GalleryDbVulnerabilityWriter>>());
+                Ingestor = new AdvisoryIngestor(
                     GitHubVersionRangeParserMock.Object,
+                    VulnerabilityWriter,
                     Mock.Of<ILogger<AdvisoryIngestor>>());
             }
 
             public Mock<IPackageVulnerabilitiesManagementService> PackageVulnerabilityServiceMock { get; }
             public Mock<IGitHubVersionRangeParser> GitHubVersionRangeParserMock { get; }
             public AdvisoryIngestor Ingestor { get; }
+            public GalleryDbVulnerabilityWriter VulnerabilityWriter { get; }
         }
     }
 }
