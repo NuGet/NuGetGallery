@@ -8,7 +8,6 @@ namespace NuGet.Services.GitHub.Entities
 {
     public class Advisory
     {
-
         [JsonProperty(PropertyName = "url")]
         public Uri Url { get; set; }
 
