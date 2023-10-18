@@ -149,13 +149,6 @@ public partial class NuGetGalleryContext : DbContext
                 .HasConstraintName("FK_dbo.MembershipRequests_dbo.Organizations_OrganizationKey");
         });
 
-        modelBuilder.Entity<Organization>(entity =>
-        {
-            entity.HasKey(e => e.Key).HasName("PK_dbo.Organizations");
-
-            entity.Property(e => e.Key).ValueGeneratedNever();
-        });
-
         modelBuilder.Entity<OrganizationMigrationRequest>(entity =>
         {
             entity.HasKey(e => e.NewOrganizationKey).HasName("PK_dbo.OrganizationMigrationRequests");

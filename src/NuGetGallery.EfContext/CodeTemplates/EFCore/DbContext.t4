@@ -138,7 +138,8 @@ public partial class <#= Options.ContextName #> : DbContext
         "CuratedPackage",
         "ElmahError",
         "GallerySetting",
-        "MigrationHistory"
+        "MigrationHistory",
+        "Organization"
     };
     foreach (var entityType in Model.GetEntityTypes().Where(e => !e.IsSimpleManyToManyJoinEntityType() && e.GetViewName() is null && !entityInoreList.Contains(e.Name)))
     {
