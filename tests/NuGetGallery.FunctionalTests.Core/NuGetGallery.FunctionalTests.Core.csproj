@@ -81,7 +81,7 @@
       <Version>2.8.6</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Configuration">
-      <Version>2.94.0</Version>
+      <Version>$(ServerCommonPackageVersion)</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Versioning">
       <Version>$(NuGetClientPackageVersion)</Version>
