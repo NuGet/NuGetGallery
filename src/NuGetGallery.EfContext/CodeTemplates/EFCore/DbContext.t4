@@ -214,7 +214,8 @@ public partial class <#= Options.ContextName #> : DbContext
         bool SkipProperty(string entityName, string propertyName)
         {
             return
-                (entityName == "Package" && propertyName == "PackageDeleteKey");
+                (entityName == "Package" && propertyName == "PackageDeleteKey")
+                || (entityName == "PackageFramework" && propertyName == "PackageKey");
         }
 
         var firstProperty = true;
@@ -249,7 +250,8 @@ public partial class <#= Options.ContextName #> : DbContext
         bool SkipNavigationProperty(string entityName, string propertyName)
         {
             return
-                (entityName == "Package" && propertyName == "PackageDeleteKeyNavigation");
+                (entityName == "Package" && propertyName == "PackageDeleteKeyNavigation")
+                || (entityName == "Organization" && propertyName == "KeyNavigation");
         }
 
         string RemoveLast(string str, string last, string ifEmpty)
@@ -267,7 +269,7 @@ public partial class <#= Options.ContextName #> : DbContext
             return str;
         }
 
-        string GetDependentNavigationPropertyName(string principalType, string principalNavigationPropertyName)
+        string GetPrincipalNavigationPropertyName(string principalType, string principalNavigationPropertyName)
         {
             return null;
         }
@@ -293,10 +295,20 @@ public partial class <#= Options.ContextName #> : DbContext
                 WriteLine("");
             }
 
+            string FixHasForeignKey(string entityType, string propertyName, string fragment)
+            {
+                if (entityType == "PackageFramework" && propertyName == "Package")
+                {
+                    return ".HasForeignKey(\"Package_Key\")";
+                }
+
+                return fragment;
+            }
+
             var dependentNavigationPropertyName = RemoveLast(foreignKey.DependentToPrincipal.Name, "KeyNavigation", "");
-            var principalNavigationPropertyName = GetDependentNavigationPropertyName(entityType.Name, dependentNavigationPropertyName);
+            var principalNavigationPropertyName = GetPrincipalNavigationPropertyName(entityType.Name, dependentNavigationPropertyName);
 #>
-            entity.HasOne(d => d.<#= dependentNavigationPropertyName #>).<#= foreignKey.IsUnique ? "WithOne" : "WithMany" #>(<#= foreignKey.PrincipalToDependent != null && !string.IsNullOrEmpty(principalNavigationPropertyName) ? $"p => p.{principalNavigationPropertyName}" : "" #>)<#= code.Fragment(foreignKeyFluentApiCalls, indent: 4) #>;
+            entity.HasOne(d => d.<#= dependentNavigationPropertyName #>).<#= foreignKey.IsUnique ? "WithOne" : "WithMany" #>(<#= foreignKey.PrincipalToDependent != null && !string.IsNullOrEmpty(principalNavigationPropertyName) ? $"p => p.{principalNavigationPropertyName}" : "" #>)<#= FixHasForeignKey(entityType.Name, dependentNavigationPropertyName, code.Fragment(foreignKeyFluentApiCalls, indent: 4)) #>;
 <#
             anyEntityTypeConfiguration = true;
         }
@@ -323,8 +335,60 @@ public partial class <#= Options.ContextName #> : DbContext
             {
                 usings.AddRange(rightFluentApiCalls.GetRequiredUsings());
             }
+
+            string Unkey(string name, string endsWith, string replacement)
+            {
+                if (name.EndsWith(endsWith))
+                {
+                    return name.Substring(0, name.Length - endsWith.Length) + replacement;
+                }
+                return name;
+            }
+
+            string FixSkipNavigationPropertyName(string entityType, string joinType, string propertyName)
+            {
+                if (entityType == "PackageRegistration" && joinType == "PackageRegistrationOwner")
+                {
+                    return "Owners";
+                }
+
+                if (entityType == "PackageRegistration" && joinType == "PackageRegistrationRequiredSigner")
+                {
+                    return "RequiredSigners";
+                }
+
+                if (entityType == "ReservedNamespace" && joinType == "ReservedNamespaceOwner")
+                {
+                    return "Owners";
+                }
+
+                return propertyName;
+            }
+
+            string FixSkipNavigationInverseName(string entityType, string joinType, string propertyName)
+            {
+                if (entityType == "PackageRegistration" && joinType == "PackageRegistrationOwner")
+                {
+                    return null;
+                }
+
+                if (entityType == "PackageRegistration" && joinType == "PackageRegistrationRequiredSigner")
+                {
+                    return null;
+                }
+
+                if (entityType == "VulnerablePackageVersionRange" && joinType == "VulnerablePackageVersionRangePackage")
+                {
+                    return "VulnerablePackageRanges";
+                }
+
+                return propertyName;
+            }
+
+            var skipNavigationName = FixSkipNavigationPropertyName(entityType.Name, joinEntityType.Name, Unkey(skipNavigation.Name, "Keys", "s"));
+            var skipNavigationInverseName = FixSkipNavigationInverseName(entityType.Name, joinEntityType.Name, Unkey(skipNavigation.Inverse.Name, "Keys", "s"));
 #>
-            entity.HasMany(d => d.<#= skipNavigation.Name #>).WithMany(p => p.<#= skipNavigation.Inverse.Name #>)
+            entity.HasMany(d => d.<#= skipNavigationName #>).WithMany(<#= skipNavigationInverseName == null ? "" : $"p => p.{skipNavigationInverseName}" #>)
                 .UsingEntity<Dictionary<string, object>>(
                     <#= code.Literal(joinEntityType.Name) #>,
                     r => r.HasOne<<#= right.PrincipalEntityType.Name #>>().WithMany()<#= code.Fragment(rightFluentApiCalls, indent: 6) #>,
