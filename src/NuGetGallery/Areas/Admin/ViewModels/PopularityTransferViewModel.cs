@@ -42,7 +42,7 @@ namespace NuGetGallery.Areas.Admin.ViewModels
         {
             FromId = packageFrom.Id;
             FromUrl = UrlHelperExtensions.Package(new UrlHelper(HttpContext.Current.Request.RequestContext), packageFrom.Id);
-            FromDownloads = packageFrom.DownloadCount;
+            FromDownloads = packageFrom.DownloadCount.ToNuGetNumberString();
             FromOwners = packageFrom
                             .Owners
                             .Select(u => u.Username)
@@ -57,7 +57,7 @@ namespace NuGetGallery.Areas.Admin.ViewModels
 
             ToId = packageTo.Id;
             ToUrl = UrlHelperExtensions.Package(new UrlHelper(HttpContext.Current.Request.RequestContext), packageTo.Id);
-            ToDownloads = packageTo.DownloadCount;
+            ToDownloads = packageTo.DownloadCount.ToNuGetNumberString();
             ToOwners = packageTo
                             .Owners
                             .Select(u => u.Username)
@@ -73,13 +73,13 @@ namespace NuGetGallery.Areas.Admin.ViewModels
 
         public string FromId { get; set; }
         public string FromUrl { get; set; }
-        public long FromDownloads { get; set; }
+        public string FromDownloads { get; set; }
         public IReadOnlyList<UserViewModel> FromOwners { get; set; } = new List<UserViewModel>();
         public int FromKey { get; set; }
 
         public string ToId { get; set; }
         public string ToUrl { get; set; }
-        public long ToDownloads { get; set; }
+        public string ToDownloads { get; set; }
         public IReadOnlyList<UserViewModel> ToOwners { get; set; } = new List<UserViewModel>();
         public int ToKey { get; set; }
     }
