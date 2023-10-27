@@ -39,6 +39,8 @@ namespace NuGet.Services.GitHub.Ingest
                 var wasWithdrawn = vulnerabilityTuple.Item2;
                 await _vulnerabilityWriter.WriteVulnerabilityAsync(vulnerability, wasWithdrawn);
             }
+
+            await _vulnerabilityWriter.FlushAsync();
         }
 
         private Tuple<PackageVulnerability, bool> FromAdvisory(SecurityAdvisory advisory)
