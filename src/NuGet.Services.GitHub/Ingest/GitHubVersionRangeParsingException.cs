@@ -3,7 +3,7 @@
 
 using System;
 
-namespace GitHubVulnerabilities2Db.Ingest
+namespace NuGet.Services.GitHub.Ingest
 {
     /// <summary>
     /// An exception thrown by <see cref="GitHubVersionRangeParser"/> when the string provided to <see cref="GitHubVersionRangeParser.ToNuGetVersionRange(string)"/> is malformed.

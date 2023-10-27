@@ -3,7 +3,7 @@
 
 using NuGet.Versioning;
 
-namespace GitHubVulnerabilities2Db.Ingest
+namespace NuGet.Services.GitHub.Ingest
 {
     public class GitHubVersionRangeParser : IGitHubVersionRangeParser
     {
