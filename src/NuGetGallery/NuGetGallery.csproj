@@ -556,7 +556,6 @@
     <Compile Include="Services\ISymbolPackageUploadService.cs" />
     <Compile Include="Services\ISymbolPackageFileService.cs" />
     <Compile Include="Services\ITyposquattingCheckListCacheService.cs" />
-    <Compile Include="Services\ITyposquattingService.cs" />
     <Compile Include="Services\IValidationMessage.cs" />
     <Compile Include="Services\JsonValidationMessage.cs" />
     <Compile Include="Services\LicenseUrlDeprecationValidationMessage.cs" />
