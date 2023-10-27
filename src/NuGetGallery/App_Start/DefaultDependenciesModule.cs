@@ -408,10 +408,7 @@ namespace NuGetGallery
                 .As<ICertificateService>()
                 .InstancePerLifetimeScope();
 
-            builder.RegisterType<TyposquattingService>()
-                .AsSelf()
-                .As<ITyposquattingService>()
-                .InstancePerLifetimeScope();
+            RegisterTyposquattingService(configuration, loggerFactory);
 
             builder.RegisterType<TyposquattingCheckListCacheService>()
                 .AsSelf()
@@ -1586,6 +1583,23 @@ namespace NuGetGallery
             }
 
             CookieComplianceService.Initialize(service ?? new NullCookieComplianceService(), logger);
+        }
+
+        private static void RegisterTyposquattingService(ConfigurationService configuration, ILoggerFactory loggerFactory)
+        {
+            var logger = loggerFactory.CreateLogger(nameof(TyposquattingService));
+
+            ITyposquattingService service = null;
+            if (configuration.Current.IsHosted)
+            {
+                var siteName = configuration.GetSiteRoot(true);
+                service = GetAddInServices<ITyposquattingService>(sp =>
+                {
+                    sp.ComposeExportedValue<ILogger>(logger);
+                }).FirstOrDefault();
+            }
+
+            TyposquattingService.Initialize(service ?? new NullTyposquattingService(), logger);
         }
     }
 }

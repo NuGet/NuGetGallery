@@ -1,7 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using NuGet.Services.Entities;
 
 namespace NuGetGallery
@@ -17,6 +19,29 @@ namespace NuGetGallery
         /// <param name="uploadedPackageId"> The package ID of the uploaded package. We check the pacakge ID with the packages in the gallery for typo-squatting issue</param>
         /// <param name="uploadedPackageOwner"> The package owner of the uploaded package.</param>
         /// <param name="typosquattingCheckCollisionIds"> The return collision package Id list if it exists</param>
-        bool IsUploadedPackageIdTyposquatting(string uploadedPackageId, User uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
+        bool IsUploadedPackageIdTyposquatting(
+            string uploadedPackageId, 
+            User uploadedPackageOwner,
+            IQueryable<PackageRegistration> allPackageRegistrations,
+            int checkListConfiguredLength,
+            TimeSpan checkListExpireTimeInHours,
+            out List<string> typosquattingCheckCollisionIds, 
+            out Dictionary<TyposquattingMetric, object> telemetry);
+    }
+
+    public enum TyposquattingMetric
+    {
+        TrackMetricForTyposquattingChecklistRetrievalTime,
+        TrackMetricForTyposquattingAlgorithmProcessingTime,
+        TrackMetricForTyposquattingOwnersCheckTime,
+        TrackMetricForTyposquattingCheckResultAndTotalTime
+    }
+
+    public class TyposquattingCheckResultAndTotalTime
+    {
+        public TimeSpan TotalTime { get; set; }
+        public bool WasUploadBlocked { get; set; }
+        public IReadOnlyCollection<string> PackageIdsCheckList { get; set; }
+        public TimeSpan CheckListExpireTimeInHours { get; set; }
     }
 }
