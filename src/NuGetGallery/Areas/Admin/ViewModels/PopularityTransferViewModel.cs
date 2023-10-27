@@ -15,18 +15,18 @@ namespace NuGetGallery.Areas.Admin.ViewModels
         public PopularityTransferViewModel()
         {
             ValidatedInputs = new List<PopularityTransferItem>();
-            ExistingPackageRenamesFrom = new List<PopularityTransferItem>();
-            ExistingPackageRenamesTo = new List<PopularityTransferItem>();
-            ExistingPackageRenamesMessagesFrom = new List<string>();
-            ExistingPackageRenamesMessagesTo = new List<string>();
+            ExistingPackageRenamesConflict = new List<PopularityTransferItem>();
+            ExistingPackageRenamesTransitive = new List<PopularityTransferItem>();
+            ExistingPackageRenamesMessagesConflict = new List<string>();
+            ExistingPackageRenamesMessagesTransitive = new List<string>();
             SuccessMessage = string.Empty;
         }
 
         public List<PopularityTransferItem> ValidatedInputs { get; set; }
-        public List<PopularityTransferItem> ExistingPackageRenamesFrom { get; set; }
-        public List<PopularityTransferItem> ExistingPackageRenamesTo { get; set; }
-        public List<string> ExistingPackageRenamesMessagesFrom { get; set; }
-        public List<string> ExistingPackageRenamesMessagesTo { get; set; }
+        public List<PopularityTransferItem> ExistingPackageRenamesConflict { get; set; }
+        public List<PopularityTransferItem> ExistingPackageRenamesTransitive { get; set; }
+        public List<string> ExistingPackageRenamesMessagesConflict { get; set; }
+        public List<string> ExistingPackageRenamesMessagesTransitive { get; set; }
         public string SuccessMessage { get; set; } = string.Empty;
     }
 

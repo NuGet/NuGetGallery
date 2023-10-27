@@ -23,6 +23,17 @@ namespace NuGetGallery
         {
             return _packageRenameRepository.GetAll()
                 .Where(pr => pr.FromPackageRegistrationKey == packageRegistration.Key)
+                .Include(pr => pr.FromPackageRegistration)
+                .Include(pr => pr.ToPackageRegistration)
+                .ToList();
+        }
+
+
+        public IReadOnlyList<PackageRename> GetPackageRenamesTo(PackageRegistration packageRegistration)
+        {
+            return _packageRenameRepository.GetAll()
+                .Where(pr => pr.ToPackageRegistrationKey == packageRegistration.Key)
+                .Include(pr => pr.FromPackageRegistration)
                 .Include(pr => pr.ToPackageRegistration)
                 .ToList();
         }
