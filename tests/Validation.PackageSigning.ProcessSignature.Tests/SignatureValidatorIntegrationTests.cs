@@ -1969,6 +1969,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             return new TrustedTestCert<X509Certificate2>(
                 certificate,
                 x => x,
+                new[] { X509StorePurpose.CodeSigning, X509StorePurpose.Timestamping },
                 StoreName.Root,
                 StoreLocation.LocalMachine);
         }

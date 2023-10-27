@@ -89,6 +89,7 @@ namespace Validation.PackageSigning.Core.Tests.Support
             _trustedRoot = new TrustedTestCert<X509Certificate2>(
                 rootCertificate,
                 certificate => certificate,
+                new[] { X509StorePurpose.CodeSigning, X509StorePurpose.Timestamping },
                 StoreName.Root,
                 StoreLocation.LocalMachine);
 
@@ -328,6 +329,7 @@ namespace Validation.PackageSigning.Core.Tests.Support
             var trust = new TrustedTestCert<X509Certificate2>(
                 rootCertificate,
                 certificate => certificate,
+                new[] { X509StorePurpose.CodeSigning, X509StorePurpose.Timestamping },
                 StoreName.Root,
                 StoreLocation.LocalMachine);
 
@@ -412,6 +414,7 @@ namespace Validation.PackageSigning.Core.Tests.Support
                 return new TrustedTestCert<X509Certificate2>(
                     _rootCertificate,
                     x => x,
+                    new[] { X509StorePurpose.CodeSigning, X509StorePurpose.Timestamping },
                     StoreName.Root,
                     StoreLocation.LocalMachine);
             }
@@ -478,6 +481,7 @@ namespace Validation.PackageSigning.Core.Tests.Support
                 return new TrustedTestCert<X509Certificate2>(
                     _certificate,
                     x => x,
+                    new[] { X509StorePurpose.CodeSigning, X509StorePurpose.Timestamping },
                     StoreName.Root,
                     StoreLocation.LocalMachine);
             }
