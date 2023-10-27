@@ -68,6 +68,10 @@
     <PackageReference Include="Moq" />
     <PackageReference Include="System.Threading.Tasks.Extensions" />
     <PackageReference Include="Test.Utility" />
+    <PackageReference Include="NuGet.CommandLine" />
+    <PackageReference Include="NuGet.Commands" />
+    <PackageReference Include="NuGet.PackageManagement" />
+    <PackageReference Include="NuGet.Resolver" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

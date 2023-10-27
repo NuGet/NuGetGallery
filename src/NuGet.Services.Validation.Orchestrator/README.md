@@ -33,8 +33,8 @@ any subsequent system of the result.
 There are two "versions" of the orchestrator. The two share much of the code but have separate running instances,
 validators, and configuration.
 
-1. Package orchestrator: [PackageValidationMessageHandler](https://github.com/NuGet/NuGet.Jobs/blob/master/src/NuGet.Services.Validation.Orchestrator/PackageValidationMessageHandler.cs)
-2. Symbols orchestrator: [SymbolValidationMessageHandler](https://github.com/NuGet/NuGet.Jobs/blob/master/src/NuGet.Services.Validation.Orchestrator/SymbolValidationMessageHandler.cs) 
+1. Package orchestrator: [PackageValidationMessageHandler](https://github.com/NuGet/NuGet.Jobs/blob/main/src/NuGet.Services.Validation.Orchestrator/PackageValidationMessageHandler.cs)
+2. Symbols orchestrator: [SymbolValidationMessageHandler](https://github.com/NuGet/NuGet.Jobs/blob/main/src/NuGet.Services.Validation.Orchestrator/SymbolValidationMessageHandler.cs) 
 
 ## Multiple Job Instances ✅
 
@@ -55,39 +55,38 @@ words, this job does not have to be a singleton.
 1. If a validation failed, mark the package as `FailedValidation` and send an email to the owner(s).
 1. If all validations succeeded, mark the package as `Available` and send an email to the owner(s).
    1. Note that part of this successful end result is updating the package's `LastEdited` time, which triggers
-      the [Db2Catalog job](https://github.com/NuGet/NuGet.Services.Metadata/blob/master/src/Ng/Jobs/Db2CatalogJob.cs)
+      the [Db2Catalog job](https://github.com/NuGet/NuGet.Jobs/blob/main/src/Ng/Jobs/Db2CatalogJob.cs)
       to begin processing it in V3.
 
 ## List of Validators
 
-The easiest way to find validators is to find types implementing `INuGetValidator` or `INuGetProcessor` but this is the list as
-of April 17th, 2020.
+The easiest way to find validators is to find types implementing [`INuGetValidator`](https://github.com/NuGet/NuGet.Jobs/blob/main/src/Validation.Common.Job/Validation/INuGetValidator.cs) or [`INuGetProcessor`](https://github.com/NuGet/NuGet.Jobs/blob/main/src/Validation.Common.Job/Validation/INuGetProcessor.cs), but this is the list as of October 16th, 2023.
 
 ### Package Orchestrator
 
 - Process Signature (in "processor" mode)
-  - `INuGetProcessor`: [`PackageSignatureProcessor`](https://github.com/NuGet/NuGet.Jobs/blob/master/src/NuGet.Services.Validation.Orchestrator/PackageSigning/ProcessSignature/PackageSignatureProcessor.cs)
-  - Job implementation: [Validation.PackageSigning.ProcessSignature](https://github.com/NuGet/NuGet.Jobs/tree/master/src/Validation.PackageSigning.ProcessSignature)
+  - `INuGetProcessor`: [`PackageSignatureProcessor`](https://github.com/NuGet/NuGet.Jobs/blob/main/src/NuGet.Services.Validation.Orchestrator/PackageSigning/ProcessSignature/PackageSignatureProcessor.cs)
+  - Job implementation: [Validation.PackageSigning.ProcessSignature](https://github.com/NuGet/NuGet.Jobs/tree/main/src/Validation.PackageSigning.ProcessSignature)
 - Validate Certificate
-  - `INuGetValidator`: [`PackageCertificatesValidator`](https://github.com/NuGet/NuGet.Jobs/blob/master/src/NuGet.Services.Validation.Orchestrator/PackageSigning/ValidateCertificate/PackageCertificatesValidator.cs)
-  - Job implementation: [Validation.PackageSigning.ValidateCertificate](https://github.com/NuGet/NuGet.Jobs/tree/master/src/Validation.PackageSigning.ValidateCertificate)
+  - `INuGetValidator`: [`PackageCertificatesValidator`](https://github.com/NuGet/NuGet.Jobs/blob/main/src/NuGet.Services.Validation.Orchestrator/PackageSigning/ValidateCertificate/PackageCertificatesValidator.cs)
+  - Job implementation: [Validation.PackageSigning.ValidateCertificate](https://github.com/NuGet/NuGet.Jobs/tree/main/src/Validation.PackageSigning.ValidateCertificate)
 - Scan and Sign
-  - `INuGetProcessor`: [`ScanAndSignProcessor`](https://github.com/NuGet/NuGet.Jobs/blob/master/src/NuGet.Services.Validation.Orchestrator/PackageSigning/ScanAndSign/ScanAndSignProcessor.cs)
+  - `INuGetProcessor`: [`ScanAndSignProcessor`](https://github.com/NuGet/NuGet.Jobs/blob/main/src/NuGet.Services.Validation.Orchestrator/PackageSigning/ScanAndSign/ScanAndSignProcessor.cs)
   - Job implementation: **Closed-source**, due to integration with Microsoft malware scanning and package signing services.
 - Process Signature (in "validator" mode)
-  - `INuGetValidator`: [`PackageSignatureValidator`](https://github.com/NuGet/NuGet.Jobs/blob/master/src/NuGet.Services.Validation.Orchestrator/PackageSigning/ProcessSignature/PackageSignatureValidator.cs)
-  - Job implementation: [Validation.PackageSigning.ProcessSignature](https://github.com/NuGet/NuGet.Jobs/tree/master/src/Validation.PackageSigning.ProcessSignature)
+  - `INuGetValidator`: [`PackageSignatureValidator`](https://github.com/NuGet/NuGet.Jobs/blob/main/src/NuGet.Services.Validation.Orchestrator/PackageSigning/ProcessSignature/PackageSignatureValidator.cs)
+  - Job implementation: [Validation.PackageSigning.ProcessSignature](https://github.com/NuGet/NuGet.Jobs/tree/main/src/Validation.PackageSigning.ProcessSignature)
 
 ### Symbols Orchestrator
 
 - Symbol Scan
-  - `INuGetValidator`: [`SymbolScanValidator`](https://github.com/NuGet/NuGet.Jobs/blob/master/src/NuGet.Services.Validation.Orchestrator/Symbols/SymbolScanValidator.cs)
+  - `INuGetValidator`: [`SymbolScanValidator`](https://github.com/NuGet/NuGet.Jobs/blob/main/src/NuGet.Services.Validation.Orchestrator/Symbols/SymbolScanValidator.cs)
   - Job implementation: **Closed-source**, due to integration with Microsoft malware scanning service.
 - Symbols Validator
-  - `INuGetValidator`: [`SymbolsValidator`](https://github.com/NuGet/NuGet.Jobs/blob/master/src/NuGet.Services.Validation.Orchestrator/Symbols/SymbolsValidator.cs)
-  - Job implementation: [Validation.Symbols](https://github.com/NuGet/NuGet.Jobs/tree/master/src/Validation.Symbols)
+  - `INuGetValidator`: [`SymbolsValidator`](https://github.com/NuGet/NuGet.Jobs/blob/main/src/NuGet.Services.Validation.Orchestrator/Symbols/SymbolsValidator.cs)
+  - Job implementation: [Validation.Symbols](https://github.com/NuGet/NuGet.Jobs/tree/main/src/Validation.Symbols)
 - Symbols Ingester
-  - `INuGetValidator`: [`SymbolsIngester`](https://github.com/NuGet/NuGet.Jobs/blob/master/src/NuGet.Services.Validation.Orchestrator/Symbols/SymbolsIngester.cs)
+  - `INuGetValidator`: [`SymbolsIngester`](https://github.com/NuGet/NuGet.Jobs/blob/main/src/NuGet.Services.Validation.Orchestrator/Symbols/SymbolsIngester.cs)
   - Job implementation: **Closed-source**, due to integration with Microsoft symbol server.
 
 ## Service Bus Message Shapes
@@ -175,10 +174,10 @@ The job will wait for Service Bus messages for 24 hours before terminating.
 
 ### Prerequisites
 
-- **Gallery DB**. This can be initialized locally with the [NuGetGallery README](https://github.com/NuGet/NuGetGallery/blob/master/README.md).
+- **Gallery DB**. This can be initialized locally with the [NuGetGallery README](https://github.com/NuGet/NuGetGallery/blob/main/README.md).
 - **Validation storage**. This is a connection string so that orchestrator can read and write the .nupkg/.snupkg files.
 - **Orchestrator Service Bus**. This must be a Service Bus connection with both "Listen" and "Send" permissions.
-- **Validation DB**. This can be initialized locally with the [ValidationEntitiesContext](https://github.com/NuGet/ServerCommon/blob/master/src/NuGet.Services.Validation/Entities/ValidationEntitiesContext.cs).
+- **Validation DB**. This can be initialized locally with the [ValidationEntitiesContext](https://github.com/NuGet/ServerCommon/blob/main/src/NuGet.Services.Validation/Entities/ValidationEntitiesContext.cs).
 - Multiple **Validator-specific Service Bus** connections. These are Service Bus topics for each individual validator.
    - Validators must be running as well for validations to complete.
 - **Flat Container storage**. This is so that orchestrator can write license files.
