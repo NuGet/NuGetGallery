@@ -25,6 +25,7 @@ namespace NuGetGallery
             IQueryable<PackageRegistration> allPackageRegistrations,
             int checkListConfiguredLength,
             TimeSpan checkListExpireTimeInHours,
+            bool isIsTyposquattingEnabledForOwner,
             out List<string> typosquattingCheckCollisionIds, 
             out Dictionary<TyposquattingMetric, object> telemetry);
     }
@@ -41,7 +42,8 @@ namespace NuGetGallery
     {
         public TimeSpan TotalTime { get; set; }
         public bool WasUploadBlocked { get; set; }
-        public IReadOnlyCollection<string> PackageIdsCheckList { get; set; }
+        public IReadOnlyCollection<string> TyposquattingCheckCollisionIds { get; set; }
+        public int PackageIdsCheckListCount { get; set; }
         public TimeSpan CheckListExpireTimeInHours { get; set; }
     }
 }

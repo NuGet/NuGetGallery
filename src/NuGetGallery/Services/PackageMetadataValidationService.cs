@@ -764,7 +764,7 @@ namespace NuGetGallery
             if (isNewPackageRegistration)
             {
                 var typosquattingCheckCollisionIds = new List<string>();
-                var typosquattingTelemetry = new Dictionary<TyposquattingMetric, object>();
+                var typosquattingTelemetryData = new Dictionary<TyposquattingMetric, object>();
 
                 try
                 {
@@ -773,19 +773,22 @@ namespace NuGetGallery
                         return PackageValidationResult.Accepted();
                     }
 
+                    bool isIsTyposquattingEnabledForOwner = _featureFlagService.IsTyposquattingEnabled(owner);
+
                     if (TyposquattingService.Instance?.IsUploadedPackageIdTyposquatting(
                         package.Id,
                         owner,
                         allPackageRegistrations: _packageService.GetAllPackageRegistrations(),
                         checkListConfiguredLength,
                         checkListExpireTimeInHours,
+                        isIsTyposquattingEnabledForOwner,
                         out typosquattingCheckCollisionIds,
-                        out typosquattingTelemetry) == true)
+                        out typosquattingTelemetryData) == true)
                     {
                         return PackageValidationResult.Invalid(string.Format(Strings.TyposquattingCheckFails, string.Join(",", typosquattingCheckCollisionIds)));
                     }
 
-                    EmitTyposquattingTelemetry(package.Id, typosquattingCheckCollisionIds, typosquattingTelemetry);
+                    EmitTyposquattingTelemetry(package.Id, typosquattingCheckCollisionIds, typosquattingTelemetryData);
                 }
                 catch (Exception exception)
                 {
@@ -939,7 +942,7 @@ namespace NuGetGallery
                             typosquattingCheckResultAndTotalTime.TotalTime,
                             typosquattingCheckResultAndTotalTime.WasUploadBlocked,
                             typosquattingCheckCollisionIds,
-                            typosquattingCheckResultAndTotalTime.PackageIdsCheckList.Count,
+                            typosquattingCheckResultAndTotalTime.TyposquattingCheckCollisionIds.Count,
                             typosquattingCheckResultAndTotalTime.CheckListExpireTimeInHours);
                     }
                 }

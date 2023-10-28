@@ -17,7 +17,8 @@ namespace NuGetGallery.Services
             User uploadedPackageOwner, 
             IQueryable<PackageRegistration> allPackageRegistrations, 
             int checkListConfiguredLength, 
-            TimeSpan checkListExpireTimeInHours, 
+            TimeSpan checkListExpireTimeInHours,
+            bool isIsTyposquattingEnabledForOwner,
             out List<string> typosquattingCheckCollisionIds, 
             out Dictionary<TyposquattingMetric, object> telemetry)
         {
