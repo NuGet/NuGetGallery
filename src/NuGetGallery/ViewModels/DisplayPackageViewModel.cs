@@ -159,14 +159,6 @@ namespace NuGetGallery
             }
         }
 
-        public bool ShowDetailsAndLinks
-        {
-            get
-            {
-                return (Listed || !Locked) && (!Deleted || !Locked); 
-            }
-        }
-
         public enum RepositoryKind
         {
             Unknown,
