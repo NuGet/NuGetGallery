@@ -764,7 +764,7 @@ namespace NuGetGallery
             if (isNewPackageRegistration)
             {
                 var typosquattingCheckCollisionIds = new List<string>();
-                var typosquattingTelemetryData = new Dictionary<TyposquattingMetric, object>();
+                IDictionary<TyposquattingMetric, object> typosquattingTelemetryData = new Dictionary<TyposquattingMetric, object>();
 
                 try
                 {
@@ -913,7 +913,7 @@ namespace NuGetGallery
             return null;
         }
 
-        private void EmitTyposquattingTelemetry(string packageId, List<string> typosquattingCheckCollisionIds, Dictionary<TyposquattingMetric, object> typosquattingTelemetry)
+        private void EmitTyposquattingTelemetry(string packageId, List<string> typosquattingCheckCollisionIds, IDictionary<TyposquattingMetric, object> typosquattingTelemetry)
         {
             if (typosquattingTelemetry != null && typosquattingTelemetry.Count > 0)
             {

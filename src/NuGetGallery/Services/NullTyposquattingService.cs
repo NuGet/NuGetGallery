@@ -20,7 +20,7 @@ namespace NuGetGallery.Services
             TimeSpan checkListExpireTimeInHours,
             bool isIsTyposquattingEnabledForOwner,
             out List<string> typosquattingCheckCollisionIds, 
-            out Dictionary<TyposquattingMetric, object> telemetry)
+            out IDictionary<TyposquattingMetric, object> telemetry)
         {
             typosquattingCheckCollisionIds = new List<string>();
             telemetry = new Dictionary<TyposquattingMetric, object>();
