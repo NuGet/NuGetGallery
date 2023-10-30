@@ -5,12 +5,12 @@ param (
     [int]$BuildNumber,
     [switch]$SkipRestore,
     [switch]$CleanCache,
-    [string]$SimpleVersion = '1.0.0',
-    [string]$SemanticVersion = '1.0.0-zlocal',
+    [string]$SimpleVersion = '4.4.5',
+    [string]$SemanticVersion = '4.4.5-zlocal',
     [string]$PackageSuffix,
     [string]$Branch,
     [string]$CommitSHA,
-    [string]$BuildBranchCommit = '5295c6e0d2ae7357fccf01e48c56b768b192f022', #DevSkim: ignore DS173237. Not a secret/token. It is a commit hash.
+    [string]$BuildBranchCommit = '65e723253187442f5b8ea537f672bd9328ade5a7', #DevSkim: ignore DS173237. Not a secret/token. It is a commit hash.
     [string]$VerifyMicrosoftPackageVersion = $null
 )
 
