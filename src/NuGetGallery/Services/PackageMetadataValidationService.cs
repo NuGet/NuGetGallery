@@ -763,15 +763,15 @@ namespace NuGetGallery
 
             if (isNewPackageRegistration)
             {
-                var typosquattingCheckCollisionIds = new List<string>();
-                IDictionary<TyposquattingMetric, object> typosquattingTelemetryData = new Dictionary<TyposquattingMetric, object>();
-
                 try
                 {
                     if (!_featureFlagService.IsTyposquattingEnabled() || _reservedNamespaceService.GetReservedNamespacesForId(package.Id).Any())
                     {
                         return PackageValidationResult.Accepted();
                     }
+
+                    var typosquattingCheckCollisionIds = new List<string>();
+                    IDictionary<TyposquattingMetric, object> typosquattingTelemetryData = new Dictionary<TyposquattingMetric, object>();
 
                     bool isIsTyposquattingEnabledForOwner = _featureFlagService.IsTyposquattingEnabled(owner);
 
