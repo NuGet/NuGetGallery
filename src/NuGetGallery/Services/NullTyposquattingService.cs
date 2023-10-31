@@ -7,24 +7,18 @@ using System.Diagnostics;
 using NuGet.Services.Entities;
 using NuGetGallery.Cookies;
 using Microsoft.Extensions.Logging;
+using Microsoft.Identity.Client.TelemetryCore.TelemetryClient;
 
 namespace NuGetGallery.Services
 {
     public class NullTyposquattingService : ITyposquattingService
     {
-        public bool IsUploadedPackageIdTyposquatting(
-            string uploadedPackageId, 
-            User uploadedPackageOwner, 
-            IQueryable<PackageRegistration> allPackageRegistrations, 
-            int checkListConfiguredLength, 
-            TimeSpan checkListExpireTimeInHours,
-            bool isIsTyposquattingEnabledForOwner,
-            out List<string> typosquattingCheckCollisionIds, 
-            out IDictionary<TyposquattingMetric, object> telemetry)
+        public TyposquattingCheckResult IsUploadedPackageIdTyposquatting(TyposquattingCheckInfo checkInfo)
         {
-            typosquattingCheckCollisionIds = new List<string>();
-            telemetry = new Dictionary<TyposquattingMetric, object>();
-            return false;
+            return new TyposquattingCheckResult(
+                wasUploadBlocked : false,
+                typosquattingCheckCollisionIds : Enumerable.Empty<string>(),
+                telemetryData : new Dictionary<TyposquattingCheckMetrics, object>());
         }
     }
 }

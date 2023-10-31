@@ -770,25 +770,32 @@ namespace NuGetGallery
                         return PackageValidationResult.Accepted();
                     }
 
-                    var typosquattingCheckCollisionIds = new List<string>();
-                    IDictionary<TyposquattingMetric, object> typosquattingTelemetryData = new Dictionary<TyposquattingMetric, object>();
-
                     bool isIsTyposquattingEnabledForOwner = _featureFlagService.IsTyposquattingEnabled(owner);
 
-                    if (TyposquattingService.Instance?.IsUploadedPackageIdTyposquatting(
-                        package.Id,
-                        owner,
-                        allPackageRegistrations: _packageService.GetAllPackageRegistrations(),
-                        checkListConfiguredLength,
-                        checkListExpireTimeInHours,
-                        isIsTyposquattingEnabledForOwner,
-                        out typosquattingCheckCollisionIds,
-                        out typosquattingTelemetryData) == true)
+                    if(TyposquattingService.Instance == null)
                     {
-                        return PackageValidationResult.Invalid(string.Format(Strings.TyposquattingCheckFails, string.Join(",", typosquattingCheckCollisionIds)));
+                        TyposquattingService.Logger?.LogInformation("Typosquatting service instance not found: {ServiceName}", nameof(PackageMetadataValidationService));
                     }
+                    else
+                    {
+                        TyposquattingService.Logger?.LogInformation("Typosquatting service instance found: {ServiceName}", nameof(PackageMetadataValidationService));
 
-                    EmitTyposquattingTelemetry(package.Id, typosquattingCheckCollisionIds, typosquattingTelemetryData);
+                        TyposquattingCheckResult typosquattingCheckResult = TyposquattingService.Instance?.IsUploadedPackageIdTyposquatting(
+                            new TyposquattingCheckInfo(
+                                uploadedPackageId: package.Id,
+                                uploadedPackageOwner: owner,
+                                allPackageRegistrations: _packageService.GetAllPackageRegistrations(),
+                                checkListConfiguredLength: checkListConfiguredLength,
+                                checkListExpireTimeInHours: checkListExpireTimeInHours,
+                                isTyposquattingEnabledForOwner: isIsTyposquattingEnabledForOwner));
+
+                        if (typosquattingCheckResult?.WasUploadBlocked == true)
+                        {
+                            return PackageValidationResult.Invalid(string.Format(Strings.TyposquattingCheckFails, string.Join(",", typosquattingCheckResult.TyposquattingCheckCollisionIds)));
+                        }
+
+                        EmitTyposquattingTelemetry(package.Id, typosquattingCheckResult.TyposquattingCheckCollisionIds, typosquattingCheckResult.TelemetryData);
+                    }
                 }
                 catch (Exception exception)
                 {
@@ -913,36 +920,36 @@ namespace NuGetGallery
             return null;
         }
 
-        private void EmitTyposquattingTelemetry(string packageId, List<string> typosquattingCheckCollisionIds, IDictionary<TyposquattingMetric, object> typosquattingTelemetry)
+        private void EmitTyposquattingTelemetry(string packageId, IEnumerable<string> typosquattingCheckCollisionIds, IReadOnlyDictionary<TyposquattingCheckMetrics, object> typosquattingTelemetry)
         {
             if (typosquattingTelemetry != null && typosquattingTelemetry.Count > 0)
             {
                 try
                 {
-                    if (typosquattingTelemetry.TryGetValue(TyposquattingMetric.TrackMetricForTyposquattingChecklistRetrievalTime, out object checklistRetrievalStopwatch))
+                    if (typosquattingTelemetry.TryGetValue(TyposquattingCheckMetrics.TrackMetricForTyposquattingChecklistRetrievalTime, out object checklistRetrievalStopwatch))
                     {
                         _telemetryService.TrackMetricForTyposquattingChecklistRetrievalTime(packageId, (TimeSpan)checklistRetrievalStopwatch);
                     }
 
-                    if (typosquattingTelemetry.TryGetValue(TyposquattingMetric.TrackMetricForTyposquattingAlgorithmProcessingTime, out object algorithmProcessingStopwatch))
+                    if (typosquattingTelemetry.TryGetValue(TyposquattingCheckMetrics.TrackMetricForTyposquattingAlgorithmProcessingTime, out object algorithmProcessingStopwatch))
                     {
                         _telemetryService.TrackMetricForTyposquattingAlgorithmProcessingTime(packageId, (TimeSpan)algorithmProcessingStopwatch);
                     }
 
-                    if (typosquattingTelemetry.TryGetValue(TyposquattingMetric.TrackMetricForTyposquattingOwnersCheckTime, out object ownersCheckStopwatch))
+                    if (typosquattingTelemetry.TryGetValue(TyposquattingCheckMetrics.TrackMetricForTyposquattingOwnersCheckTime, out object ownersCheckStopwatch))
                     {
                         _telemetryService.TrackMetricForTyposquattingOwnersCheckTime(packageId, (TimeSpan)ownersCheckStopwatch);
                     }
 
-                    if (typosquattingTelemetry.TryGetValue(TyposquattingMetric.TrackMetricForTyposquattingCheckResultAndTotalTime, out object trackMetricForTyposquattingCheckResultAndTotalTime))
+                    if (typosquattingTelemetry.TryGetValue(TyposquattingCheckMetrics.TrackMetricForTyposquattingCheckResultAndTotalTime, out object trackMetricForTyposquattingCheckResultAndTotalTime))
                     {
-                        TyposquattingCheckResultAndTotalTime typosquattingCheckResultAndTotalTime = (TyposquattingCheckResultAndTotalTime)trackMetricForTyposquattingCheckResultAndTotalTime;
+                        TyposquattingCheckResultAndTotalTimeMetricData typosquattingCheckResultAndTotalTime = (TyposquattingCheckResultAndTotalTimeMetricData)trackMetricForTyposquattingCheckResultAndTotalTime;
                         _telemetryService.TrackMetricForTyposquattingCheckResultAndTotalTime(
                             packageId,
                             typosquattingCheckResultAndTotalTime.TotalTime,
                             typosquattingCheckResultAndTotalTime.WasUploadBlocked,
-                            typosquattingCheckCollisionIds,
-                            typosquattingCheckResultAndTotalTime.TyposquattingCheckCollisionIds.Count,
+                            typosquattingCheckResultAndTotalTime.TyposquattingCheckCollisionIds.ToList(),
+                            typosquattingCheckResultAndTotalTime.PackageIdsCheckListCount,
                             typosquattingCheckResultAndTotalTime.CheckListExpireTimeInHours);
                     }
                 }
