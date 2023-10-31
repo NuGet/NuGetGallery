@@ -376,67 +376,73 @@
                     @Html.Partial("_DisplayPackageVulnerabilities")
                 }
 
-                @if (Model.IsPackageDeprecationEnabled && Model.DeprecationStatus != PackageDeprecationStatus.NotDeprecated)
+                @if (Model.ShowDetailsAndLinks)
                 {
-                    @Html.Partial("_DisplayPackageDeprecation")
-                }
+                    if (Model.IsPackageDeprecationEnabled && Model.DeprecationStatus != PackageDeprecationStatus.NotDeprecated)
+                    {
+                        @Html.Partial("_DisplayPackageDeprecation")
+                    }
 
-                @if (Model.IsPackageRenamesEnabled && Model.PackageRenames != null && Model.PackageRenames.Count != 0)
-                {
-                    @Html.Partial("_DisplayPackageRenames")
-                }
+                    if (Model.IsPackageRenamesEnabled && Model.PackageRenames != null && Model.PackageRenames.Count != 0)
+                    {
+                        @Html.Partial("_DisplayPackageRenames")
+                    }
 
-                @if (Model.Prerelease)
-                {
-                    @ViewHelpers.AlertInfo(
-                        @<text>
-                            This is a prerelease version of @(Model.Id).
-                        </text>
-                    )
-                }
-                @if (Model.NuGetVersion.HasMetadata)
-                {
-                    @ViewHelpers.AlertInfo(
-                        @<text>
-                            This package has a SemVer 2.0.0 package version: @(Model.FullVersion).
-                        </text>
-                    )
-                }
-                @if (Model.VersionRequestedWasNotFound)
-                {
-                    @ViewHelpers.AlertWarning(
-                        @<text>
-                            The specified version @Model.VersionRequested was not found. You have been taken to version @(Model.Version).
-                        </text>
-                    )
-                }
-                @if (Model.HasNewerRelease)
-                {
-                    @ViewHelpers.AlertInfo(
-                        @<text>
-                            There is a newer version of this package available.
-                            <br /> See the version list below for details.
-                        </text>
-                    )
-                }
-                else if (Model.HasNewerPrerelease)
-                {
-                    @ViewHelpers.AlertInfo(
-                        @<text>
-                            There is a newer prerelease version of this package available.
-                            <br /> See the version list below for details.
-                        </text>
-                    )
-                }
+                    if (Model.Prerelease)
+                    {
+                        @ViewHelpers.AlertInfo(
+                            @<text>
+                                This is a prerelease version of @(Model.Id).
+                            </text>
+                        )
+                    }
+                    
+                    if (Model.NuGetVersion.HasMetadata)
+                    {
+                        @ViewHelpers.AlertInfo(
+                            @<text>
+                                This package has a SemVer 2.0.0 package version: @(Model.FullVersion).
+                            </text>
+                        )
+                    }
+                    
+                    if (Model.VersionRequestedWasNotFound)
+                    {
+                        @ViewHelpers.AlertWarning(
+                            @<text>
+                                The specified version @Model.VersionRequested was not found. You have been taken to version @(Model.Version).
+                            </text>
+                        )
+                    }
+                    
+                    if (Model.HasNewerRelease)
+                    {
+                        @ViewHelpers.AlertInfo(
+                            @<text>
+                                There is a newer version of this package available.
+                                <br /> See the version list below for details.
+                            </text>
+                        )
+                    }
+                    else if (Model.HasNewerPrerelease)
+                    {
+                        @ViewHelpers.AlertInfo(
+                            @<text>
+                                There is a newer prerelease version of this package available.
+                                <br /> See the version list below for details.
+                            </text>
+                        )
+                    }
 
-                @if (Model.Listed && Model.IsIndexed.HasValue && !Model.IsIndexed.Value && Model.Available)
-                {
-                    @ViewHelpers.AlertWarning(
-                        @<text>
-                            <strong>This package has not been indexed yet.</strong> It will appear in search results
-                            and will be available for install/restore after indexing is complete.
-                        </text>
-                    )
+                    if (Model.Listed && Model.IsIndexed.HasValue && !Model.IsIndexed.Value && Model.Available)
+                    {
+                        @ViewHelpers.AlertWarning(
+                            @<text>
+                                <strong>This package has not been indexed yet.</strong> It will appear in search results
+                                and will be available for install/restore after indexing is complete.
+                            </text>
+                        )
+                    }
                 }
 
                 @if (Model.HasEmbeddedIcon && Model.ShowDetailsAndLinks && Model.IsIndexed.HasValue && !Model.IsIndexed.Value && (Model.Available || Model.Validating))

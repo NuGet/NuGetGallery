@@ -36,5 +36,13 @@ namespace NuGetGallery
         {
             return current.Version == Version && current.Id == Id;
         }
+
+        public bool ShowDetailsAndLinks
+        {
+            get
+            {
+                return (Listed || !Locked) && (!Deleted || !Locked);
+            }
+        }
     }
 }
