@@ -17,6 +17,7 @@ using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
 using NuGet.Services.Cursor;
 using NuGet.Services.GitHub.Collector;
+using NuGet.Services.GitHub.Configuration;
 using NuGet.Services.GitHub.GraphQL;
 using NuGet.Services.GitHub.Ingest;
 using NuGet.Services.Storage;
@@ -52,6 +53,8 @@ namespace GitHubVulnerabilities2Db
         {
             containerBuilder
                 .RegisterAdapter<IOptionsSnapshot<GitHubVulnerabilities2DbConfiguration>, GitHubVulnerabilities2DbConfiguration>(c => c.Value);
+            containerBuilder
+                .RegisterAdapter<IOptionsSnapshot<GitHubVulnerabilities2DbConfiguration>, GraphQLQueryConfiguration>(c => c.Value);
 
             ConfigureQueryServices(containerBuilder);
             ConfigureIngestionServices(containerBuilder);
