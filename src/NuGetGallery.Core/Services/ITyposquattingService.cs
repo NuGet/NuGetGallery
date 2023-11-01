@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using NuGet.Services.Entities;
 
 namespace NuGetGallery
@@ -17,6 +18,6 @@ namespace NuGetGallery
         /// <summary>
         /// The function is used to check whether the uploaded package is a typo-squatting package.
         /// </summary>
-        TyposquattingCheckResult IsUploadedPackageIdTyposquatting(TyposquattingCheckInfo typosquattingCheckInfo);
+        Task<TyposquattingCheckResult> IsUploadedPackageIdTyposquattingAsync(TyposquattingCheckInfo typosquattingCheckInfo);
     }
 }

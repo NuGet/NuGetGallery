@@ -780,7 +780,7 @@ namespace NuGetGallery
                     {
                         TyposquattingService.Logger?.LogInformation("Typosquatting service instance found: {ServiceName}", nameof(PackageMetadataValidationService));
 
-                        TyposquattingCheckResult typosquattingCheckResult = TyposquattingService.Instance?.IsUploadedPackageIdTyposquatting(
+                        TyposquattingCheckResult typosquattingCheckResult = await TyposquattingService.Instance?.IsUploadedPackageIdTyposquattingAsync(
                             new TyposquattingCheckInfo(
                                 uploadedPackageId: package.Id,
                                 uploadedPackageOwner: owner,

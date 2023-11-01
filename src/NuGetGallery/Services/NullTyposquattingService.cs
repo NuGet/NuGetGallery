@@ -13,12 +13,12 @@ namespace NuGetGallery.Services
 {
     public class NullTyposquattingService : ITyposquattingService
     {
-        public TyposquattingCheckResult IsUploadedPackageIdTyposquatting(TyposquattingCheckInfo checkInfo)
+        public Task<TyposquattingCheckResult> IsUploadedPackageIdTyposquattingAsync(TyposquattingCheckInfo checkInfo)
         {
-            return new TyposquattingCheckResult(
-                wasUploadBlocked : false,
-                typosquattingCheckCollisionIds : Enumerable.Empty<string>(),
-                telemetryData : new Dictionary<TyposquattingCheckMetrics, object>());
+            return Task.FromResult(new TyposquattingCheckResult(
+                wasUploadBlocked: false,
+                typosquattingCheckCollisionIds: Enumerable.Empty<string>(),
+                telemetryData: new Dictionary<TyposquattingCheckMetrics, object>()));
         }
     }
 }
