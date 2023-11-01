@@ -2113,6 +2113,12 @@ namespace NuGetGallery
                     .Setup(c => c.CacheConfiguration)
                     .Returns(cacheConfiguration);
 
+                var typosquattingConfiguration = new TyposquattingConfiguration();
+
+                _contentObjectService
+                    .Setup(c => c.TyposquattingConfiguration)
+                    .Returns(typosquattingConfiguration);
+
                 _reservedNamespaceService = new Mock<IReservedNamespaceService>();
                 _reservedNamespaceService
                     .Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))

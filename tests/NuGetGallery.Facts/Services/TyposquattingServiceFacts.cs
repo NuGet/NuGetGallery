@@ -22,7 +22,7 @@ namespace NuGetGallery
         {
             // Arrange, Act & Assert
             var exception = Assert.Throws<ArgumentNullException>(() => TyposquattingService.Initialize(null, It.IsAny<ILogger>()));
-            Assert.Equal("cookieComplianceService", exception.ParamName);
+            Assert.Equal("typosquattingService", exception.ParamName);
         }
 
         [Fact]

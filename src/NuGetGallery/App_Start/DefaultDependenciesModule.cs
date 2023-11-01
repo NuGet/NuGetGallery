@@ -410,10 +410,10 @@ namespace NuGetGallery
 
             RegisterTyposquattingService(configuration, loggerFactory);
 
-            builder.RegisterType<TyposquattingCheckListCacheService>()
-                .AsSelf()
-                .As<ITyposquattingCheckListCacheService>()
-                .SingleInstance();
+            //builder.RegisterType<TyposquattingCheckListCacheService>()
+            //    .AsSelf()
+            //    .As<ITyposquattingCheckListCacheService>()
+            //    .SingleInstance();
 
             builder.RegisterType<LicenseExpressionSplitter>()
                 .As<ILicenseExpressionSplitter>()
