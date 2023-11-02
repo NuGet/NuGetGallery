@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac.Features.OwnedInstances;
+using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
@@ -1980,66 +1981,115 @@ namespace NuGetGallery
                 Assert.Empty(result.Warnings);
             }
 
-            //[Fact]
-            //public async Task AcceptNotTyposquattingNewVersion()
-            //{
-            //    _isNewPackageRegistration = true;
-            //    _typosquattingService
-            //        .Setup(x => x.IsUploadedPackageIdTyposquatting(It.IsAny<string>(), It.IsAny<User>(), out _typosquattingCheckCollisionIds))
-            //        .Returns(false);
-            //    var result = await _target.ValidateMetadaAfterGeneratePackageAsync(
-            //        _package,
-            //        _nuGetPackage.Object,
-            //        _owner,
-            //        _currentUser,
-            //        _isNewPackageRegistration);
-            //    Assert.Equal(PackageValidationResultType.Accepted, result.Type);
-            //    Assert.Null(result.Message);
-            //    Assert.Empty(result.Warnings);
-            //}
+            [Fact]
+            public async Task AcceptNotTyposquattingNewVersion()
+            {
+                _isNewPackageRegistration = true;
+                var typosquattingCheckInfo = new TyposquattingCheckInfo(
+                    uploadedPackageId: It.IsAny<string>(),
+                    uploadedPackageOwner: It.IsAny<User>(),
+                    allPackageRegistrations: It.IsAny<IQueryable<PackageRegistration>>(),
+                    checkListConfiguredLength: It.IsAny<int>(),
+                    checkListExpireTimeInHours: It.IsAny<TimeSpan>(),
+                    isTyposquattingEnabledForOwner: It.IsAny<bool>());
 
-            //[Fact]
-            //public async Task AcceptIsTyposquattingCheckNotNewVersion()
-            //{
-            //    _typosquattingService
-            //        .Setup(x => x.IsUploadedPackageIdTyposquatting(It.IsAny<string>(), It.IsAny<User>(), out _typosquattingCheckCollisionIds))
-            //        .Returns(true);
-            //    var result = await _target.ValidateMetadaAfterGeneratePackageAsync(
-            //        _package,
-            //        _nuGetPackage.Object,
-            //        _owner,
-            //        _currentUser,
-            //        _isNewPackageRegistration);
-            //    Assert.Equal(PackageValidationResultType.Accepted, result.Type);
-            //    Assert.Null(result.Message);
-            //    Assert.Empty(result.Warnings);
-            //}
+                _typosquattingService
+                    .Setup(x => x.IsUploadedPackageIdTyposquattingAsync(
+                        typosquattingCheckInfo))
+                    .Returns(Task.FromResult(new TyposquattingCheckResult(
+                        wasUploadBlocked: false,
+                        typosquattingCheckCollisionIds: Enumerable.Empty<string>(),
+                        telemetryData: new Dictionary<TyposquattingCheckMetrics, object>())));
 
-            //[Fact]
-            //public async Task AcceptNotTyposquattingNotNewVersion()
-            //{
-            //    _typosquattingService
-            //        .Setup(x => x.IsUploadedPackageIdTyposquatting(It.IsAny<string>(), It.IsAny<User>(), out _typosquattingCheckCollisionIds))
-            //        .Returns(false);
-            //    var result = await _target.ValidateMetadaAfterGeneratePackageAsync(
-            //        _package,
-            //        _nuGetPackage.Object,
-            //        _owner,
-            //        _currentUser,
-            //        _isNewPackageRegistration);
-            //    Assert.Equal(PackageValidationResultType.Accepted, result.Type);
-            //    Assert.Null(result.Message);
-            //    Assert.Empty(result.Warnings);
-            //}
+                var result = await _target.ValidateMetadaAfterGeneratePackageAsync(
+                    _package,
+                    _nuGetPackage.Object,
+                    _owner,
+                    _currentUser,
+                    _isNewPackageRegistration);
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Fact]
+            public async Task AcceptIsTyposquattingCheckNotNewVersion()
+            {
+                var typosquattingCheckInfo = new TyposquattingCheckInfo(
+                    uploadedPackageId: It.IsAny<string>(),
+                    uploadedPackageOwner: It.IsAny<User>(),
+                    allPackageRegistrations: It.IsAny<IQueryable<PackageRegistration>>(),
+                    checkListConfiguredLength: It.IsAny<int>(),
+                    checkListExpireTimeInHours: It.IsAny<TimeSpan>(),
+                    isTyposquattingEnabledForOwner: It.IsAny<bool>());
+
+                _typosquattingService
+                    .Setup(x => x.IsUploadedPackageIdTyposquattingAsync(
+                        typosquattingCheckInfo))
+                    .Returns(Task.FromResult(new TyposquattingCheckResult(
+                        wasUploadBlocked: true,
+                        typosquattingCheckCollisionIds: Enumerable.Empty<string>(),
+                        telemetryData: new Dictionary<TyposquattingCheckMetrics, object>())));
+                var result = await _target.ValidateMetadaAfterGeneratePackageAsync(
+                    _package,
+                    _nuGetPackage.Object,
+                    _owner,
+                    _currentUser,
+                    _isNewPackageRegistration);
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Fact]
+            public async Task AcceptNotTyposquattingNotNewVersion()
+            {
+                var typosquattingCheckInfo = new TyposquattingCheckInfo(
+                    uploadedPackageId: It.IsAny<string>(),
+                    uploadedPackageOwner: It.IsAny<User>(),
+                    allPackageRegistrations: It.IsAny<IQueryable<PackageRegistration>>(),
+                    checkListConfiguredLength: It.IsAny<int>(),
+                    checkListExpireTimeInHours: It.IsAny<TimeSpan>(),
+                    isTyposquattingEnabledForOwner: It.IsAny<bool>());
+
+                _typosquattingService
+                    .Setup(x => x.IsUploadedPackageIdTyposquattingAsync(
+                        typosquattingCheckInfo))
+                    .Returns(Task.FromResult(new TyposquattingCheckResult(
+                        wasUploadBlocked: false,
+                        typosquattingCheckCollisionIds: Enumerable.Empty<string>(),
+                        telemetryData: new Dictionary<TyposquattingCheckMetrics, object>())));
+                var result = await _target.ValidateMetadaAfterGeneratePackageAsync(
+                    _package,
+                    _nuGetPackage.Object,
+                    _owner,
+                    _currentUser,
+                    _isNewPackageRegistration);
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+                Assert.Empty(result.Warnings);
+            }
 
             //[Fact]
             //public async Task RejectIsTyposquattingNewVersion()
             //{
             //    _isNewPackageRegistration = true;
-            //    _typosquattingCheckCollisionIds = new List<string> { "typosquatting_package_Id" };
+            //    var typosquattingCheckInfo = new TyposquattingCheckInfo(
+            //        uploadedPackageId: NotReservedPackageId,
+            //        uploadedPackageOwner: _owner,
+            //        allPackageRegistrations: It.IsAny<IQueryable<PackageRegistration>>(),
+            //        checkListConfiguredLength: _contentObjectService.ITyposquattingConfiguration.PackageIdChecklistLength,
+            //        checkListExpireTimeInHours: It.IsAny<TimeSpan>(),
+            //        isTyposquattingEnabledForOwner: It.IsAny<bool>());
+
             //    _typosquattingService
-            //        .Setup(x => x.IsUploadedPackageIdTyposquatting(It.IsAny<string>(), It.IsAny<User>(), out _typosquattingCheckCollisionIds))
-            //        .Returns(true);
+            //        .Setup(x => x.IsUploadedPackageIdTyposquattingAsync(
+            //            typosquattingCheckInfo))
+            //        .Returns(Task.FromResult(new TyposquattingCheckResult(
+            //            wasUploadBlocked: true,
+            //            typosquattingCheckCollisionIds: new List<string> { "typosquatting_package_Id" },
+            //            telemetryData: new Dictionary<TyposquattingCheckMetrics, object>())));
+            //    _package.Id = NotReservedPackageId;
             //    var result = await _target.ValidateMetadaAfterGeneratePackageAsync(
             //        _package,
             //        _nuGetPackage.Object,
@@ -2047,7 +2097,7 @@ namespace NuGetGallery
             //        _currentUser,
             //        _isNewPackageRegistration);
             //    Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-            //    Assert.Equal(string.Format(Strings.TyposquattingCheckFails, string.Join(",", _typosquattingCheckCollisionIds)), result.Message.PlainTextMessage);
+            //    //Assert.Equal(string.Format(Strings.TyposquattingCheckFails, string.Join(",", _typosquattingCheckCollisionIds)), result.Message.PlainTextMessage);
             //    Assert.Empty(result.Warnings);
             //}
         }
@@ -2055,6 +2105,7 @@ namespace NuGetGallery
         public abstract class FactsBase
         {
             protected const string PackageId = "theId";
+            protected const string NotReservedPackageId = "3defddc8-40bf-4b35-94ae-efe585dbdbb5";
             protected readonly Mock<IPackageService> _packageService;
             protected readonly Mock<IAppConfiguration> _config;
             protected readonly Mock<ITyposquattingService> _typosquattingService;
@@ -2069,6 +2120,7 @@ namespace NuGetGallery
             protected readonly PackageMetadataValidationService _target;
             protected readonly Mock<IContentObjectService> _contentObjectService;
             protected readonly Mock<IReservedNamespaceService> _reservedNamespaceService;
+            protected readonly Mock<ILogger> _logger;
 
             public FactsBase()
             {
@@ -2103,6 +2155,9 @@ namespace NuGetGallery
                 _featureFlagService
                     .Setup(ffs => ffs.AreEmbeddedIconsEnabled(It.IsAny<User>()))
                     .Returns(false);
+                _featureFlagService
+                    .Setup(ffs => ffs.IsTyposquattingEnabled())
+                    .Returns(true);
 
                 var cacheConfiguration = new CacheConfiguration
                 {
@@ -2122,8 +2177,25 @@ namespace NuGetGallery
                 _reservedNamespaceService = new Mock<IReservedNamespaceService>();
                 _reservedNamespaceService
                     .Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
-                    .Returns(new[] { new ReservedNamespace { Owners = new[] { new User { Key = 123123123 } } } });
+                    .Returns(
+                        new[] { new ReservedNamespace { Owners = new[] { new User { Key = 123123123 } } } });
+                _reservedNamespaceService
+                    .Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
+                    .Returns<string>(id =>
+                    {
+                        if (id == NotReservedPackageId)
+                        {
+                            return new ReservedNamespace[] { };
+                        }
+                        else
+                        {
+                            // default case
+                            return new[] { new ReservedNamespace { Owners = new[] { new User { Key = 123123123 } } } };
+                        }
+                    });
 
+                _logger = new Mock<ILogger>();
+                _typosquattingService = new Mock<ITyposquattingService>(MockBehavior.Strict);
                 _target = new PackageMetadataValidationService(
                     _packageService.Object,
                     _config.Object,
@@ -2131,7 +2203,9 @@ namespace NuGetGallery
                     _diagnosticsService.Object,
                     _featureFlagService.Object,
                     _contentObjectService.Object,
-                    _reservedNamespaceService.Object);
+                    _reservedNamespaceService.Object,
+                    _typosquattingService.Object,
+                    _logger.Object);
             }
 
             protected static Mock<TestPackageReader> GeneratePackage(

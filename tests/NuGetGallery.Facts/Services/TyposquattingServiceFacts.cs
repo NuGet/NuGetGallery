@@ -17,21 +17,11 @@ namespace NuGetGallery
 {
     public class TyposquattingServiceFacts
     {
-        [Fact]
-        public void InitializeTyposquattingService_ThrowsIfTyposquattingServiceNull()
-        {
-            // Arrange, Act & Assert
-            var exception = Assert.Throws<ArgumentNullException>(() => TyposquattingService.Initialize(null, It.IsAny<ILogger>()));
-            Assert.Equal("typosquattingService", exception.ParamName);
-        }
-
-        [Fact]
-        public void InitializeTyposquattingService_ThrowsIfLoggerNull()
-        {
-            // Arrange, Act & Assert
-            var exception = Assert.Throws<ArgumentNullException>(() => TyposquattingService.Initialize(Mock.Of<ITyposquattingService>(), null));
-            Assert.Equal("logger", exception.ParamName);
-        }
+        //private readonly Mock<ITyposquattingService> _typosquattingService;
+        //public TyposquattingServiceFacts()
+        //{
+        //    _typosquattingService = new Mock<ITyposquattingService>(MockBehavior.Strict);
+        //}
 
         //private static List<string> _packageIds = new List<string>
         //{
@@ -61,7 +51,6 @@ namespace NuGetGallery
         //    Mock<IFeatureFlagService> featureFlagService = null,
         //    Mock<IReservedNamespaceService> reservedNamespaceService = null,
         //    Mock<ITelemetryService> telemetryService = null,
-        //    Mock<ITyposquattingCheckListCacheService> typosquattingCheckListCacheService = null,
         //    Mock<ILogger> logger = null)
         //{
         //    if (packageService == null)
@@ -105,14 +94,6 @@ namespace NuGetGallery
         //    if (telemetryService == null)
         //    {
         //        telemetryService = new Mock<ITelemetryService>();
-        //    }
-
-        //    if (typosquattingCheckListCacheService == null)
-        //    {
-        //        typosquattingCheckListCacheService = new Mock<ITyposquattingCheckListCacheService>();
-        //        typosquattingCheckListCacheService
-        //            .Setup(x => x.GetTyposquattingCheckList(It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<IPackageService>()))
-        //            .Returns(PackageRegistrationsList.Select(pr => pr.Id).ToList());
         //    }
 
         //    TyposquattingService.Initialize(new TestTyposquattingService(

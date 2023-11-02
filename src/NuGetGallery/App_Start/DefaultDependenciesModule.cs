@@ -408,7 +408,7 @@ namespace NuGetGallery
                 .As<ICertificateService>()
                 .InstancePerLifetimeScope();
 
-            RegisterTyposquattingService(configuration, loggerFactory);
+            RegisterTyposquattingService(builder, loggerFactory);
 
             //builder.RegisterType<TyposquattingCheckListCacheService>()
             //    .AsSelf()
@@ -1585,21 +1585,32 @@ namespace NuGetGallery
             CookieComplianceService.Initialize(service ?? new NullCookieComplianceService(), logger);
         }
 
-        private static void RegisterTyposquattingService(ConfigurationService configuration, ILoggerFactory loggerFactory)
+        private static void RegisterTyposquattingService(ContainerBuilder builder, ILoggerFactory loggerFactory)
         {
-            var logger = loggerFactory.CreateLogger(nameof(TyposquattingService));
+            var logger = loggerFactory.CreateLogger(nameof(ITyposquattingService));
 
-            ITyposquattingService service = null;
-            if (configuration.Current.IsHosted)
+            builder.Register(c =>
             {
-                var siteName = configuration.GetSiteRoot(true);
-                service = GetAddInServices<ITyposquattingService>(sp =>
+                var typosquattingService = GetAddInServices<ITyposquattingService>(sp =>
                 {
                     sp.ComposeExportedValue<ILogger>(logger);
                 }).FirstOrDefault();
-            }
+                
+                if (typosquattingService == null)
+                {
+                    typosquattingService = new NullTyposquattingService();
+                    logger.LogWarning("No typosquatting service found. Using NullTyposquattingService instead.");
+                }
+                else
+                {
+                    logger.LogWarning("MEF injected typosquatting services found from add-ins, using it.");
+                }
 
-            TyposquattingService.Initialize(service ?? new NullTyposquattingService(), logger);
+                return typosquattingService;
+            })
+            .AsSelf()
+            .As<ITyposquattingService>()
+            .SingleInstance();
         }
     }
 }

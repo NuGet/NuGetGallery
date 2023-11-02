@@ -556,7 +556,6 @@
     <Compile Include="Services\ISearchSideBySideService.cs" />
     <Compile Include="Services\ISymbolPackageUploadService.cs" />
     <Compile Include="Services\ISymbolPackageFileService.cs" />
-    <Compile Include="Services\ITyposquattingCheckListCacheService.cs" />
     <Compile Include="Services\IValidationMessage.cs" />
     <Compile Include="Services\JsonValidationMessage.cs" />
     <Compile Include="Services\LicenseUrlDeprecationValidationMessage.cs" />
@@ -574,7 +573,6 @@
     <Compile Include="Services\SymbolPackageUploadService.cs" />
     <Compile Include="Services\SymbolPackageFileService.cs" />
     <Compile Include="Services\SymbolPackageService.cs" />
-    <Compile Include="Services\TyposquattingCheckListCacheService.cs" />
     <Compile Include="Services\CertificateService.cs" />
     <Compile Include="Services\CertificateValidator.cs" />
     <Compile Include="Services\ICertificateService.cs" />
@@ -648,7 +646,6 @@
     <Compile Include="Services\PackageValidationResult.cs" />
     <Compile Include="Services\PackageValidationResultType.cs" />
     <Compile Include="Services\ReadMeService.cs" />
-    <Compile Include="Services\TyposquattingService.cs" />
     <Compile Include="Services\TyposquattingDistanceCalculation.cs" />
     <Compile Include="Services\TyposquattingStringNormalization.cs" />
     <Compile Include="Services\UpdateDeprecationError.cs" />

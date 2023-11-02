@@ -76,6 +76,8 @@ namespace NuGetGallery
         private readonly IFeatureFlagService _featureFlagService;
         private readonly IContentObjectService _contentObjectService;
         private readonly IReservedNamespaceService _reservedNamespaceService;
+        private readonly ITyposquattingService _typosquattingService;
+        private readonly ILogger _logger;
 
         public PackageMetadataValidationService(
             IPackageService packageService,
@@ -84,7 +86,9 @@ namespace NuGetGallery
             IDiagnosticsService diagnosticsService,
             IFeatureFlagService featureFlagService,
             IContentObjectService contentObjectService,
-            IReservedNamespaceService reservedNamespaceService)
+            IReservedNamespaceService reservedNamespaceService,
+            ITyposquattingService typosquattingService,
+            ILogger logger)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _config = config ?? throw new ArgumentNullException(nameof(config));
@@ -97,6 +101,8 @@ namespace NuGetGallery
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _contentObjectService = contentObjectService;
             _reservedNamespaceService = reservedNamespaceService;
+            _typosquattingService = typosquattingService;
+            _logger = logger;
         }
 
         public async Task<PackageValidationResult> ValidateMetadataBeforeUploadAsync(
@@ -772,34 +778,25 @@ namespace NuGetGallery
 
                     bool isIsTyposquattingEnabledForOwner = _featureFlagService.IsTyposquattingEnabled(owner);
 
-                    if(TyposquattingService.Instance == null)
+                    TyposquattingCheckResult typosquattingCheckResult = await _typosquattingService.IsUploadedPackageIdTyposquattingAsync(
+                        new TyposquattingCheckInfo(
+                            uploadedPackageId: package.Id,
+                            uploadedPackageOwner: owner,
+                            allPackageRegistrations: _packageService.GetAllPackageRegistrations(),
+                            checkListConfiguredLength: checkListConfiguredLength,
+                            checkListExpireTimeInHours: checkListExpireTimeInHours,
+                            isTyposquattingEnabledForOwner: isIsTyposquattingEnabledForOwner));
+
+                    if (typosquattingCheckResult?.WasUploadBlocked == true)
                     {
-                        TyposquattingService.Logger?.LogInformation("Typosquatting service instance not found: {ServiceName}", nameof(PackageMetadataValidationService));
+                        return PackageValidationResult.Invalid(string.Format(Strings.TyposquattingCheckFails, string.Join(",", typosquattingCheckResult.TyposquattingCheckCollisionIds)));
                     }
-                    else
-                    {
-                        TyposquattingService.Logger?.LogInformation("Typosquatting service instance found: {ServiceName}", nameof(PackageMetadataValidationService));
 
-                        TyposquattingCheckResult typosquattingCheckResult = await TyposquattingService.Instance?.IsUploadedPackageIdTyposquattingAsync(
-                            new TyposquattingCheckInfo(
-                                uploadedPackageId: package.Id,
-                                uploadedPackageOwner: owner,
-                                allPackageRegistrations: _packageService.GetAllPackageRegistrations(),
-                                checkListConfiguredLength: checkListConfiguredLength,
-                                checkListExpireTimeInHours: checkListExpireTimeInHours,
-                                isTyposquattingEnabledForOwner: isIsTyposquattingEnabledForOwner));
-
-                        if (typosquattingCheckResult?.WasUploadBlocked == true)
-                        {
-                            return PackageValidationResult.Invalid(string.Format(Strings.TyposquattingCheckFails, string.Join(",", typosquattingCheckResult.TyposquattingCheckCollisionIds)));
-                        }
-
-                        EmitTyposquattingTelemetry(package.Id, typosquattingCheckResult.TyposquattingCheckCollisionIds, typosquattingCheckResult.TelemetryData);
-                    }
+                    EmitTyposquattingTelemetry(package.Id, typosquattingCheckResult.TyposquattingCheckCollisionIds, typosquattingCheckResult.TelemetryData);
                 }
                 catch (Exception exception)
                 {
-                    TyposquattingService.Logger?.LogError(0, exception, "Typosquatting check failed in the service: {ServiceName}", nameof(PackageMetadataValidationService));
+                    _logger.LogError(0, exception, "Typosquatting check failed in the service: {ServiceName}", nameof(PackageMetadataValidationService));
                     throw;
                 }
             }
@@ -955,7 +952,7 @@ namespace NuGetGallery
                 }
                 catch (Exception ex)
                 {
-                    TyposquattingService.Logger?.LogError(0, ex, "Typosquatting telemetry parsing failed for package {PackageId}", packageId);
+                    _logger.LogError(0, ex, "Typosquatting telemetry parsing failed for package {PackageId}", packageId);
                 }
             }
         }
