@@ -88,7 +88,7 @@ namespace NuGetGallery
             IContentObjectService contentObjectService,
             IReservedNamespaceService reservedNamespaceService,
             ITyposquattingService typosquattingService,
-            ILogger logger)
+            ILoggerFactory loggerFactory)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _config = config ?? throw new ArgumentNullException(nameof(config));
@@ -102,7 +102,7 @@ namespace NuGetGallery
             _contentObjectService = contentObjectService;
             _reservedNamespaceService = reservedNamespaceService;
             _typosquattingService = typosquattingService;
-            _logger = logger;
+            _logger = loggerFactory.CreateLogger<PackageMetadataValidationService>();
         }
 
         public async Task<PackageValidationResult> ValidateMetadataBeforeUploadAsync(

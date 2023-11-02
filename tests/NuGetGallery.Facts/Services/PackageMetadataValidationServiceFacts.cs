@@ -2120,7 +2120,7 @@ namespace NuGetGallery
             protected readonly PackageMetadataValidationService _target;
             protected readonly Mock<IContentObjectService> _contentObjectService;
             protected readonly Mock<IReservedNamespaceService> _reservedNamespaceService;
-            protected readonly Mock<ILogger> _logger;
+            protected readonly Mock<ILoggerFactory> _loggerFactory;
 
             public FactsBase()
             {
@@ -2194,7 +2194,7 @@ namespace NuGetGallery
                         }
                     });
 
-                _logger = new Mock<ILogger>();
+                _loggerFactory = new Mock<ILoggerFactory>();
                 _typosquattingService = new Mock<ITyposquattingService>(MockBehavior.Strict);
                 _target = new PackageMetadataValidationService(
                     _packageService.Object,
@@ -2205,7 +2205,7 @@ namespace NuGetGallery
                     _contentObjectService.Object,
                     _reservedNamespaceService.Object,
                     _typosquattingService.Object,
-                    _logger.Object);
+                    _loggerFactory.Object);
             }
 
             protected static Mock<TestPackageReader> GeneratePackage(
