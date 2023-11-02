@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using NuGet.Frameworks;
 using NuGet.Packaging;
@@ -69,6 +70,22 @@ namespace NuGetGallery
                         CultureInfo.CurrentCulture,
                         Strings.PackageEntryFromTheFuture,
                         entryInTheFuture.Name));
+                }
+
+                if (ZipArchiveHelpers.FoundDoubleForwardSlashesInPath(symbolPackageStream, out ZipArchiveEntry entryWithDoubleForwardSlashes))
+                {
+                    return SymbolPackageValidationResult.Invalid(string.Format(
+                           CultureInfo.CurrentCulture,
+                           Strings.PackageEntryWithDoubleForwardSlash,
+                           entryWithDoubleForwardSlashes.Name));
+                }
+
+                if (ZipArchiveHelpers.FoundDoubleBackwardSlashesInPath(symbolPackageStream, out ZipArchiveEntry entryWithDoubleBackwardSlashes))
+                {
+                    return SymbolPackageValidationResult.Invalid(string.Format(
+                           CultureInfo.CurrentCulture,
+                           Strings.PackageEntryWithDoubleBackSlash,
+                           entryWithDoubleBackwardSlashes.Name));
                 }
 
                 using (var packageToPush = new PackageArchiveReader(symbolPackageStream, leaveStreamOpen: true))

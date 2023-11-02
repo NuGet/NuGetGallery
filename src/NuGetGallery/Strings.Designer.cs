@@ -1481,6 +1481,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The package is invalid and cannot be uploaded. One or more files, such as &apos;{0}&apos; have a  double back slashes in path..
+        /// </summary>
+        public static string PackageEntryWithDoubleBackSlash {
+            get {
+                return ResourceManager.GetString("PackageEntryWithDoubleBackSlash", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package is invalid and cannot be uploaded. One or more files, such as &apos;{0}&apos; have a  double forward slashes in path..
+        /// </summary>
+        public static string PackageEntryWithDoubleForwardSlash {
+            get {
+                return ResourceManager.GetString("PackageEntryWithDoubleForwardSlash", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A package with ID &apos;{0}&apos; and version &apos;{1}&apos; already exists and cannot be modified..
         /// </summary>
         public static string PackageExistsAndCannotBeModified {

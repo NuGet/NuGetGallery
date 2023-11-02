@@ -38,5 +38,43 @@ namespace NuGetGallery
 
             return false;
         }
+
+        public static bool FoundDoubleForwardSlashesInPath(Stream stream, out ZipArchiveEntry entry)
+        {
+            entry = null;
+
+            using (var archive = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true))
+            {
+                var entryWithDoubleForwardSlash = archive.Entries.FirstOrDefault(
+                    e => e.FullName.Contains("//"));
+
+                if (entryWithDoubleForwardSlash != null)
+                {
+                    entry = entryWithDoubleForwardSlash;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static bool FoundDoubleBackwardSlashesInPath(Stream stream, out ZipArchiveEntry entry)
+        {
+            entry = null;
+
+            using (var archive = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true))
+            {
+                var entryWithDoubleBackSlash = archive.Entries.FirstOrDefault(
+                    e => e.FullName.Contains("\\\\"));
+
+                if (entryWithDoubleBackSlash != null)
+                {
+                    entry = entryWithDoubleBackSlash;
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }

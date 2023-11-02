@@ -560,6 +560,22 @@ namespace NuGetGallery
                                 Strings.PackageEntryFromTheFuture,
                                 entryInTheFuture.Name));
                         }
+
+                        if (ZipArchiveHelpers.FoundDoubleForwardSlashesInPath(packageStream, out ZipArchiveEntry entryWithDoubleForwardSlashes))
+                        {
+                            return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
+                                CultureInfo.CurrentCulture,
+                                Strings.PackageEntryWithDoubleForwardSlash,
+                                entryWithDoubleForwardSlashes.Name));
+                        }
+
+                        if (ZipArchiveHelpers.FoundDoubleBackwardSlashesInPath(packageStream, out ZipArchiveEntry entryWithDoubleBackwardSlashes))
+                        {
+                            return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
+                                CultureInfo.CurrentCulture,
+                                Strings.PackageEntryWithDoubleBackSlash,
+                                entryWithDoubleBackwardSlashes.Name));
+                        }
                     }
                     catch (Exception ex)
                     {

@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
@@ -513,6 +514,19 @@ namespace NuGetGallery
             {
                 return Json(HttpStatusCode.BadRequest, new[] {
                     new JsonValidationMessage(string.Format(CultureInfo.CurrentCulture, Strings.PackageEntryFromTheFuture, entryInTheFuture.Name)) });
+            }
+
+            if (ZipArchiveHelpers.FoundDoubleForwardSlashesInPath(uploadStream, out ZipArchiveEntry entryWithDoubleForwardSlashes))
+            {
+                return Json(HttpStatusCode.BadRequest, new[] {
+                   new JsonValidationMessage(string.Format(CultureInfo.CurrentCulture, Strings.PackageEntryWithDoubleForwardSlash, entryWithDoubleForwardSlashes.Name)) });
+            }
+
+            if (ZipArchiveHelpers.FoundDoubleBackwardSlashesInPath(uploadStream, out ZipArchiveEntry entryWithDoubleBackwardSlashes))
+            {
+                return Json(HttpStatusCode.BadRequest, new[]
+                {
+                   new JsonValidationMessage(string.Format(CultureInfo.CurrentCulture, Strings.PackageEntryWithDoubleBackSlash, entryWithDoubleBackwardSlashes.Name)) });
             }
 
             try
