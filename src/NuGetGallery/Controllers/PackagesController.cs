@@ -1504,11 +1504,6 @@ namespace NuGetGallery
                 return ReportAbuse(id, version);
             }
 
-            if (package == null)
-            {
-                return HttpNotFound();
-            }
-
             User user = null;
             MailAddress from;
             if (Request.IsAuthenticated)
