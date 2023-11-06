@@ -99,6 +99,11 @@ namespace NuGetGallery
             ReportPackageReason.ContainsMaliciousCode,
         };
 
+        private static readonly IReadOnlyList<ReportPackageReason> DisallowedReportAbuseReasons = new[]
+        {
+            ReportPackageReason.OtherNudityOrPornography,
+        };
+
         private static readonly IReadOnlyCollection<string> AllowedPackageExtentions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             CoreConstants.NuGetPackageFileExtension,
@@ -1471,12 +1476,29 @@ namespace NuGetGallery
                     "The signature is required.");
             }
 
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
+
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+
+            var ReasonChoices = _featureFlagService.IsShowReportAbuseSafetyChangesEnabled()
+                    && (_featureFlagService.IsAllowAadContentSafetyReportsEnabled() || PackageHasNoAadOwners(package))
+                    ? ReportAbuseWithSafetyReasons
+                    : ReportAbuseReasons;
+
+            var reportReason = (ReportPackageReason)reportForm.Reason;
+            if (!ReasonChoices.Contains(reportReason) || DisallowedReportAbuseReasons.Contains(reportReason))
+            {
+                return HttpNotFound();
+            }
+
             if (!ModelState.IsValid)
             {
                 return ReportAbuse(id, version);
             }
 
-            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
             if (package == null)
             {
                 return HttpNotFound();
