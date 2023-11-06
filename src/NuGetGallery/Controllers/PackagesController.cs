@@ -101,6 +101,11 @@ namespace NuGetGallery
 
         private static readonly IReadOnlyList<ReportPackageReason> DisallowedReportAbuseReasons = new[]
         {
+            ReportPackageReason.ChildSexualExploitationOrAbuse,
+            ReportPackageReason.TerrorismOrViolentExtremism,
+            ReportPackageReason.HateSpeech,
+            ReportPackageReason.ImminentHarm,
+            ReportPackageReason.RevengePorn,
             ReportPackageReason.OtherNudityOrPornography,
         };
 
