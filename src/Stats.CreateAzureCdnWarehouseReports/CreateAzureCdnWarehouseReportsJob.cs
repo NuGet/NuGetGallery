@@ -138,8 +138,16 @@ namespace Stats.CreateAzureCdnWarehouseReports
             var reportGenerationTime = DateTime.UtcNow;
             var destinationContainer = _cloudStorageAccount.CreateCloudBlobClient().GetContainerReference(_statisticsContainerName);
 
-            Logger.LogDebug("Generating reports from {DataSource}/{InitialCatalog} and saving to {AccountName}/{Container}",
-                statisticsDatabase.DataSource, statisticsDatabase.InitialCatalog, _cloudStorageAccount.Credentials.AccountName, destinationContainer.Name);
+            if (statisticsDatabase != null)
+            {
+                Logger.LogDebug("Generating reports from {DataSource}/{InitialCatalog} and saving to {AccountName}/{Container}",
+                    statisticsDatabase.DataSource, statisticsDatabase.InitialCatalog, _cloudStorageAccount.Credentials.AccountName, destinationContainer.Name);
+            }
+            else
+            {
+                Logger.LogDebug("Generating reports and saving to {AccountName}/{Container}",
+                    _cloudStorageAccount.Credentials.AccountName, destinationContainer.Name);
+            }
 
             var reportBuilderLogger = LoggerFactory.CreateLogger<ReportBuilder>();
             var reportCollectorLogger = LoggerFactory.CreateLogger<ReportDataCollector>();
@@ -166,8 +174,16 @@ namespace Stats.CreateAzureCdnWarehouseReports
                 await CleanInactiveRecentPopularityDetailByPackageReports(destinationContainer, reportGenerationTime);
             }
 
-            Logger.LogInformation("Generated reports from {DataSource}/{InitialCatalog} and saving to {AccountName}/{Container}",
-                statisticsDatabase.DataSource, statisticsDatabase.InitialCatalog, _cloudStorageAccount.Credentials.AccountName, destinationContainer.Name);
+            if (statisticsDatabase != null)
+            {
+                Logger.LogInformation("Generated reports from {DataSource}/{InitialCatalog} and saving to {AccountName}/{Container}",
+                    statisticsDatabase.DataSource, statisticsDatabase.InitialCatalog, _cloudStorageAccount.Credentials.AccountName, destinationContainer.Name);
+            }
+            else
+            {
+                Logger.LogInformation("Generated reports and saving to {AccountName}/{Container}",
+                    _cloudStorageAccount.Credentials.AccountName, destinationContainer.Name);
+            }
 
             // totals reports
             Stopwatch stopwatch;
