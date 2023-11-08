@@ -119,7 +119,7 @@ namespace Ng
                 _logger?.LogCritical(e, "A critical exception occured in ng.exe! {Exception}", e);
             }
 
-            applicationInsightsConfiguration.DiagnosticsTelemetryModule?.SetHeartbeatProperty(
+            applicationInsightsConfiguration?.DiagnosticsTelemetryModule?.SetHeartbeatProperty(
                 HeartbeatProperty_JobLoopExitCode,
                 exitCode.ToString(),
                 isHealthy: exitCode == 0);

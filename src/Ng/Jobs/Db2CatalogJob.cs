@@ -35,6 +35,8 @@ namespace Ng.Jobs
         protected Uri Destination;
         protected bool SkipCreatedPackagesProcessing;
         protected int MaxPageSize;
+        protected string ItemCacheControl;
+        protected string FinishedPageCacheControl;
 
         public Db2CatalogJob(
             ILoggerFactory loggerFactory,
@@ -80,6 +82,8 @@ namespace Ng.Jobs
                    + $"-{Arguments.StorageContainerPreferredPackageSourceStorage} <azure-container>] "
                    + $"[-{Arguments.SkipCreatedPackagesProcessing} true|false] "
                    + $"[-{Arguments.MaxPageSize} <max-page-size>] "
+                   + $"[-{Arguments.ItemCacheControl} <item-cache-control>] "
+                   + $"[-{Arguments.FinishedPageCacheControl} <finished-page-cache-control>] "
                    + $"[-{Arguments.Verbose} true|false] "
                    + $"[-{Arguments.Interval} <seconds>] "
                    + $"[-{Arguments.StartDate} <DateTime>]";
@@ -92,6 +96,8 @@ namespace Ng.Jobs
             Top = arguments.GetOrDefault(Arguments.CursorSize, 20);
             MaxPageSize = arguments.GetOrDefault(Arguments.MaxPageSize, Constants.MaxPageSize);
             SkipCreatedPackagesProcessing = arguments.GetOrDefault(Arguments.SkipCreatedPackagesProcessing, false);
+            ItemCacheControl = arguments.GetOrDefault<string>(Arguments.ItemCacheControl, Constants.NoStoreCacheControl);
+            FinishedPageCacheControl = arguments.GetOrDefault<string>(Arguments.FinishedPageCacheControl, Constants.NoStoreCacheControl);
 
             StorageFactory preferredPackageSourceStorageFactory = null;
 
@@ -236,7 +242,7 @@ namespace Ng.Jobs
                                     MaxDegreeOfParallelism,
                                     createdPackages: true,
                                     updateCreatedFromEdited: false,
-                                    MaxPageSize,
+                                    GetCatalogContext(),
                                     cancellationToken: cancellationToken,
                                     telemetryService: TelemetryService,
                                     logger: Logger);
@@ -262,7 +268,7 @@ namespace Ng.Jobs
                                 MaxDegreeOfParallelism,
                                 createdPackages: false,
                                 updateCreatedFromEdited: SkipCreatedPackagesProcessing,
-                                MaxPageSize,
+                                GetCatalogContext(),
                                 cancellationToken: cancellationToken,
                                 telemetryService: TelemetryService,
                                 logger: Logger);
@@ -281,6 +287,16 @@ namespace Ng.Jobs
                     }
                 } while (packagesDeleted > 0 || packagesCreated > 0 || packagesEdited > 0);
             }
+        }
+
+        private CatalogContext GetCatalogContext()
+        {
+            return new CatalogContext
+            {
+                MaxPageSize = MaxPageSize,
+                ItemCacheControl = ItemCacheControl,
+                FinishedPageCacheControl = FinishedPageCacheControl,
+            };
         }
 
         // Wrapper function for CatalogUtility.CreateHttpClient
@@ -368,7 +384,7 @@ namespace Ng.Jobs
             var writer = new AppendOnlyCatalogWriter(
                 storage,
                 TelemetryService,
-                MaxPageSize);
+                context: GetCatalogContext());
 
             if (packages == null || packages.Count == 0)
             {

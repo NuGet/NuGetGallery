@@ -34,13 +34,13 @@ namespace NgTests
         private bool _isDisposed;
         private DateTime _feedLastCreated;
         private DateTime _feedLastEdited;
-        private DateTimeOffset _timestamp;
         private bool _hasFirstRunOnceAsyncBeenCalledBefore;
         private int _lastFeedEntriesCount;
         private readonly List<PackageOperation> _packageOperations;
         private readonly Random _random;
+        private DateTimeOffset _now;
         private readonly MemoryStorage _auditingStorage;
-        private readonly MemoryStorage _catalogStorage;
+        private MemoryStorage _catalogStorage;
         private TestableDb2CatalogJob _job;
         private readonly Uri _baseUri;
         private bool _skipCreatedPackagesProcessing;
@@ -52,7 +52,8 @@ namespace NgTests
         {
             _testOutputHelper = testOutputHelper;
             _server = new MockServerHttpClientHandler();
-            _random = new Random();
+            _random = new Random(Seed: 0);
+            _now = new DateTimeOffset(2023, 8, 4, 12, 53, 4, 134, TimeSpan.Zero);
             _packageOperations = new List<PackageOperation>();
             _baseUri = new Uri("http://unit.test");
 
@@ -89,6 +90,190 @@ namespace NgTests
             InitializeTest(skipCreatedPackagesProcessing, top, galleryDatabaseMock);
 
             await RunInternalAndVerifyAsync(galleryDatabaseMock, top);
+        }
+
+        [Fact]
+        public async Task RunInternal_CanSetLeaveNoStoreOnAllBlobs()
+        {
+            const int top = 1;
+
+            var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>(MockBehavior.Strict);
+
+            InitializeTest(
+                skipCreatedPackagesProcessing: false,
+                top: top,
+                maxPageSize: 1,
+                galleryDatabaseMock: galleryDatabaseMock);
+
+            var packageA = AddCreatedPackageToFeed();
+            var packageB = AddCreatedPackageToFeed();
+            var packageC = AddCreatedPackageToFeed();
+
+            PublishCreatedPackages(galleryDatabaseMock, top);
+            PublishEditedPackages(galleryDatabaseMock, top);
+
+            await _job.RunOnceAsync(CancellationToken.None);
+
+            Assert.Equal(7, _catalogStorage.Content.Count);
+            Assert.All(_catalogStorage.Content.Values, c => Assert.Equal(Constants.NoStoreCacheControl, c.CacheControl));
+        }
+
+        [Fact]
+        public async Task RunInternal_CanSetCacheControlOnlyOnItems()
+        {
+            const int top = 1;
+
+            var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>(MockBehavior.Strict);
+
+            InitializeTest(
+                skipCreatedPackagesProcessing: false,
+                top: top,
+                itemCacheControl: "max-age=1234",
+                maxPageSize: 1,
+                galleryDatabaseMock: galleryDatabaseMock);
+
+            var packageA = AddCreatedPackageToFeed();
+            var packageB = AddCreatedPackageToFeed();
+
+            PublishCreatedPackages(galleryDatabaseMock, top);
+            PublishEditedPackages(galleryDatabaseMock, top);
+
+            await _job.RunOnceAsync(CancellationToken.None);
+
+            Assert.Equal(5, _catalogStorage.Content.Count);
+            var index = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("index.json"));
+            var page0 = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("page0.json"));
+            var page1 = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("page1.json"));
+            var itemA = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith($"{packageA.PackageIdentity.ToString().ToLowerInvariant()}.json"));
+            var itemB = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith($"{packageB.PackageIdentity.ToString().ToLowerInvariant()}.json"));
+
+            Assert.Equal(Constants.NoStoreCacheControl, index.Value.CacheControl);
+            Assert.Equal(Constants.NoStoreCacheControl, page0.Value.CacheControl);
+            Assert.Equal(Constants.NoStoreCacheControl, page1.Value.CacheControl);
+            Assert.Equal("max-age=1234", itemA.Value.CacheControl);
+            Assert.Equal("max-age=1234", itemB.Value.CacheControl);
+        }
+
+        [Fact]
+        public async Task RunInternal_CanSetCacheControlOnlyOnFinishedPages()
+        {
+            const int top = 1;
+
+            var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>(MockBehavior.Strict);
+
+            InitializeTest(
+                skipCreatedPackagesProcessing: false,
+                top: top,
+                finishedPageCacheControl: "max-age=5678",
+                maxPageSize: 1,
+                galleryDatabaseMock: galleryDatabaseMock);
+
+            var packageA = AddCreatedPackageToFeed();
+            var packageB = AddCreatedPackageToFeed();
+
+            PublishCreatedPackages(galleryDatabaseMock, top);
+            PublishEditedPackages(galleryDatabaseMock, top);
+
+            await _job.RunOnceAsync(CancellationToken.None);
+
+            Assert.Equal(5, _catalogStorage.Content.Count);
+            var index = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("index.json"));
+            var page0 = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("page0.json"));
+            var page1 = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("page1.json"));
+            var itemA = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith($"{packageA.PackageIdentity.ToString().ToLowerInvariant()}.json"));
+            var itemB = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith($"{packageB.PackageIdentity.ToString().ToLowerInvariant()}.json"));
+
+            Assert.Equal(Constants.NoStoreCacheControl, index.Value.CacheControl);
+            Assert.Equal("max-age=5678", page0.Value.CacheControl);
+            Assert.Equal(Constants.NoStoreCacheControl, page1.Value.CacheControl);
+            Assert.Equal(Constants.NoStoreCacheControl, itemA.Value.CacheControl);
+            Assert.Equal(Constants.NoStoreCacheControl, itemB.Value.CacheControl);
+        }
+
+        [Fact]
+        public async Task RunInternal_DoesNotSetCacheControlOnUnfinishedLatestPage()
+        {
+            const int top = 1;
+
+            var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>(MockBehavior.Strict);
+
+            InitializeTest(
+                skipCreatedPackagesProcessing: false,
+                top: top,
+                finishedPageCacheControl: "max-age=5678",
+                maxPageSize: 2,
+                galleryDatabaseMock: galleryDatabaseMock);
+
+            var packageA = AddCreatedPackageToFeed();
+            var packageB = AddCreatedPackageToFeed();
+            var packageC = AddCreatedPackageToFeed();
+
+            PublishCreatedPackages(galleryDatabaseMock, top);
+            PublishEditedPackages(galleryDatabaseMock, top);
+
+            await _job.RunOnceAsync(CancellationToken.None);
+
+            Assert.Equal(6, _catalogStorage.Content.Count);
+            var index = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("index.json"));
+            var page0 = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("page0.json"));
+            var page1 = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("page1.json"));
+            var itemA = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith($"{packageA.PackageIdentity.ToString().ToLowerInvariant()}.json"));
+            var itemB = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith($"{packageB.PackageIdentity.ToString().ToLowerInvariant()}.json"));
+            var itemC = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith($"{packageC.PackageIdentity.ToString().ToLowerInvariant()}.json"));
+
+            Assert.Equal(Constants.NoStoreCacheControl, index.Value.CacheControl);
+            Assert.Equal("max-age=5678", page0.Value.CacheControl);
+            Assert.Equal(Constants.NoStoreCacheControl, page1.Value.CacheControl);
+            Assert.Equal(Constants.NoStoreCacheControl, itemA.Value.CacheControl);
+            Assert.Equal(Constants.NoStoreCacheControl, itemB.Value.CacheControl);
+            Assert.Equal(Constants.NoStoreCacheControl, itemC.Value.CacheControl);
+        }
+
+        [Fact]
+        public async Task RunInternal_WritesPageCacheControlAfterIndex()
+        {
+            const int top = 1;
+
+            var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>(MockBehavior.Strict);
+            var catalogStorageMock = new Mock<MemoryStorage>(_baseUri) { CallBase = true };
+            _catalogStorage = catalogStorageMock.Object;
+
+            InitializeTest(
+                skipCreatedPackagesProcessing: false,
+                top: top,
+                finishedPageCacheControl: "max-age=5678",
+                maxPageSize: 1,
+                galleryDatabaseMock: galleryDatabaseMock);
+
+            var packageA = AddCreatedPackageToFeed();
+
+            PublishCreatedPackages(galleryDatabaseMock, top);
+            PublishEditedPackages(galleryDatabaseMock, top);
+
+            await _job.RunOnceAsync(CancellationToken.None);
+
+            catalogStorageMock.Setup(x => x.SaveAsync(
+                It.Is<Uri>(u => u.AbsolutePath.EndsWith("index.json")),
+                It.IsAny<StorageContent>(),
+                It.IsAny<CancellationToken>())).Throws(new InvalidOperationException("Writing index failed!"));
+
+            var packageB = AddCreatedPackageToFeed();
+            PublishCreatedPackages(galleryDatabaseMock, top);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _job.RunOnceAsync(CancellationToken.None));
+
+            Assert.Equal(5, _catalogStorage.Content.Count);
+            var index = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("index.json"));
+            var page0 = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("page0.json"));
+            var page1 = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("page1.json"));
+            var itemA = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith($"{packageA.PackageIdentity.ToString().ToLowerInvariant()}.json"));
+            var itemB = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith($"{packageB.PackageIdentity.ToString().ToLowerInvariant()}.json"));
+
+            Assert.Equal(Constants.NoStoreCacheControl, index.Value.CacheControl);
+            Assert.Equal(Constants.NoStoreCacheControl, page0.Value.CacheControl);
+            Assert.Equal(Constants.NoStoreCacheControl, page1.Value.CacheControl);
+            Assert.Equal(Constants.NoStoreCacheControl, itemA.Value.CacheControl);
+            Assert.Equal(Constants.NoStoreCacheControl, itemB.Value.CacheControl);
         }
 
         [Fact]
@@ -465,7 +650,7 @@ namespace NgTests
             }
         }
 
-        [Fact(Skip = "Flaky test, tracked by https://github.com/NuGet/NuGetGallery/issues/8321")]
+        [Fact]
         public async Task RunInternal_WithCreatedPackageThenDeletedPackage_UpdatesCatalog()
         {
             const int top = 1;
@@ -529,9 +714,7 @@ namespace NgTests
                 expectedLastEdited: Constants.DateTimeMinValueUtc);
         }
 
-        // TODO: Reenable this test.
-        // See: https://github.com/NuGet/NuGetGallery/issues/8217
-        [Fact(Skip = "Flaky")]
+        [Fact]
         public async Task RunInternal_WithMultipleDeletedPackagesWithSamePackageIdentity_PutsEachPackageInSeparateCommit()
         {
             const int top = 1;
@@ -552,16 +735,16 @@ namespace NgTests
                 expectedLastDeleted: Constants.DateTimeMinValueUtc,
                 expectedLastEdited: Constants.DateTimeMinValueUtc);
 
-            var deletionTime = DateTimeOffset.UtcNow;
+            var deletionTime = GetUniqueDateTime();
 
-            var deletedPackage1 = AddDeletedPackage(package, deletionTime.UtcDateTime, isSoftDelete: true);
-            var deletedPackage2 = AddDeletedPackage(package, deletionTime.UtcDateTime, isSoftDelete: false);
+            var deletedPackage1 = AddDeletedPackage(package, deletionTime, isSoftDelete: true);
+            var deletedPackage2 = AddDeletedPackage(package, deletionTime, isSoftDelete: false);
 
             await RunInternalAndVerifyAsync(
                 galleryDatabaseMock,
                 top,
                 expectedLastCreated: package.FeedPackageDetails.CreatedDate,
-                expectedLastDeleted: deletionTime.UtcDateTime,
+                expectedLastDeleted: deletionTime,
                 expectedLastEdited: Constants.DateTimeMinValueUtc);
         }
 
@@ -586,7 +769,7 @@ namespace NgTests
                 expectedLastDeleted: Constants.DateTimeMinValueUtc,
                 expectedLastEdited: Constants.DateTimeMinValueUtc);
 
-            var deletedPackage = AddDeletedPackage(package, deletionTime: DateTime.UtcNow.AddMinutes(-16));
+            var deletedPackage = AddDeletedPackage(package, deletionTime: _now.AddMinutes(-16).UtcDateTime);
 
             await RunInternalAndVerifyAsync(
                 galleryDatabaseMock,
@@ -705,6 +888,8 @@ namespace NgTests
                 top: top,
                 verbose: true,
                 Constants.MaxPageSize,
+                itemCacheControl: Constants.NoStoreCacheControl,
+                finishedPageCacheControl: Constants.NoStoreCacheControl,
                 galleryDatabaseMock: galleryDatabaseMock,
                 packageContentUriBuilder: _packageContentUriBuilder,
                 testOutputHelper: _testOutputHelper);
@@ -826,6 +1011,8 @@ namespace NgTests
                 top: top,
                 verbose: true,
                 Constants.MaxPageSize,
+                itemCacheControl: Constants.NoStoreCacheControl,
+                finishedPageCacheControl: Constants.NoStoreCacheControl,
                 galleryDatabaseMock: galleryDatabaseMock,
                 packageContentUriBuilder: _packageContentUriBuilder,
                 testOutputHelper: _testOutputHelper);
@@ -944,6 +1131,8 @@ namespace NgTests
                 top: top,
                 verbose: true,
                 Constants.MaxPageSize,
+                itemCacheControl: Constants.NoStoreCacheControl,
+                finishedPageCacheControl: Constants.NoStoreCacheControl,
                 galleryDatabaseMock: galleryDatabaseMock,
                 packageContentUriBuilder: _packageContentUriBuilder,
                 testOutputHelper: _testOutputHelper);
@@ -1057,7 +1246,9 @@ namespace NgTests
                 timeout: TimeSpan.FromMinutes(5),
                 top: top,
                 verbose: true,
-                Constants.MaxPageSize,
+                maxPageSize: Constants.MaxPageSize,
+                itemCacheControl: Constants.NoStoreCacheControl,
+                finishedPageCacheControl: Constants.NoStoreCacheControl,
                 galleryDatabaseMock: galleryDatabaseMock,
                 packageContentUriBuilder: _packageContentUriBuilder,
                 testOutputHelper: _testOutputHelper);
@@ -1147,7 +1338,9 @@ namespace NgTests
             bool skipCreatedPackagesProcessing,
             int top,
             Mock<IGalleryDatabaseQueryService> galleryDatabaseMock,
-            int maxPageSize = Constants.MaxPageSize)
+            int maxPageSize = Constants.MaxPageSize,
+            string itemCacheControl = Constants.NoStoreCacheControl,
+            string finishedPageCacheControl = Constants.NoStoreCacheControl)
         {
             _skipCreatedPackagesProcessing = skipCreatedPackagesProcessing;
 
@@ -1161,6 +1354,8 @@ namespace NgTests
                 top: top,
                 verbose: true,
                 maxPageSize,
+                itemCacheControl,
+                finishedPageCacheControl,
                 galleryDatabaseMock: galleryDatabaseMock,
                 packageContentUriBuilder: _packageContentUriBuilder,
                 testOutputHelper: _testOutputHelper);
@@ -1170,21 +1365,15 @@ namespace NgTests
         {
             var package = TestPackage.Create(_random);
             var isListed = Convert.ToBoolean(_random.Next(minValue: 0, maxValue: 2));
-            var created = createdDate ?? DateTimeOffset.UtcNow;
-
-            // Avoid hitting this bug accidentally:  https://github.com/NuGet/NuGetGallery/issues/2841
-            if (!createdDate.HasValue && created == _packageOperations.OfType<PackageCreationOrEdit>().LastOrDefault()?.FeedPackageDetails.CreatedDate)
-            {
-                created = created.AddMilliseconds(1);
-            }
+            var created = createdDate ?? GetUniqueDateTime();
 
             var normalizedVersion = package.Version.ToNormalizedString();
             var fullVersion = package.Version.ToFullString();
             var feedPackageDetails = new FeedPackageDetails(
                 contentUri: _packageContentUriBuilder.Build(package.Id, normalizedVersion),
-                createdDate: created.UtcDateTime,
+                createdDate: created,
                 lastEditedDate: DateTime.MinValue,
-                publishedDate: isListed ? created.UtcDateTime : Constants.UnpublishedDate,
+                publishedDate: isListed ? created : Constants.UnpublishedDate,
                 packageId: package.Id,
                 packageNormalizedVersion: normalizedVersion,
                 packageFullVersion: fullVersion,
@@ -1208,13 +1397,7 @@ namespace NgTests
         private PackageCreationOrEdit AddEditedPackageToFeed(PackageCreationOrEdit entry, DateTime? lastEditedDate = null)
         {
             var editedPackage = AddPackageEntry(entry.Package);
-            var edited = lastEditedDate ?? DateTime.UtcNow;
-
-            // Avoid hitting this bug accidentally:  https://github.com/NuGet/NuGetGallery/issues/2841
-            if (!lastEditedDate.HasValue && edited == _packageOperations.OfType<PackageCreationOrEdit>().LastOrDefault(e => e.FeedPackageDetails.LastEditedDate != DateTime.MinValue)?.FeedPackageDetails.LastEditedDate)
-            {
-                edited = edited.AddMilliseconds(1);
-            }
+            var edited = lastEditedDate ?? GetUniqueDateTime();
 
             var feedPackageDetails = new FeedPackageDetails(
                 contentUri: entry.FeedPackageDetails.ContentUri,
@@ -1737,18 +1920,8 @@ namespace NgTests
 
         private DateTime GetUniqueDateTime()
         {
-            var now = DateTimeOffset.UtcNow;
-
-            if (_timestamp == now)
-            {
-                _timestamp = now.AddMilliseconds(1);
-            }
-            else
-            {
-                _timestamp = now;
-            }
-
-            return _timestamp.UtcDateTime;
+            _now += TimeSpan.FromSeconds(1);
+            return _now.UtcDateTime;
         }
 
         private void PublishCreatedPackages(Mock<IGalleryDatabaseQueryService> galleryDatabaseHelperMock, int top)

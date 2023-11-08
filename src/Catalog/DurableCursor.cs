@@ -25,7 +25,7 @@ namespace NuGet.Services.Metadata.Catalog
         public override async Task SaveAsync(CancellationToken cancellationToken)
         {
             JObject obj = new JObject { { "value", Value.ToString("O") } };
-            StorageContent content = new StringStorageContent(obj.ToString(), "application/json", "no-store");
+            StorageContent content = new StringStorageContent(obj.ToString(), "application/json", Constants.NoStoreCacheControl);
             await _storage.SaveAsync(_address, content, cancellationToken);
         }
 

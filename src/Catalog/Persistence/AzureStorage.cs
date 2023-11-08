@@ -182,6 +182,32 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             return files.Select(GetStorageListItem).AsEnumerable();
         }
 
+        public override async Task<bool> UpdateCacheControlAsync(Uri resourceUri, string cacheControl, CancellationToken cancellationToken)
+        {
+            string blobName = GetName(resourceUri);
+            CloudBlockBlob blob = GetBlockBlobReference(blobName);
+
+            await blob.FetchAttributesAsync(
+                accessCondition: null,
+                options: null,
+                operationContext: null,
+                cancellationToken);
+
+            if (blob.Properties.CacheControl != cacheControl)
+            {
+                blob.Properties.CacheControl = cacheControl;
+
+                await blob.SetPropertiesAsync(
+                    accessCondition: AccessCondition.GenerateIfMatchCondition(blob.Properties.ETag),
+                    options: null,
+                    operationContext: null,
+                    cancellationToken);
+                return true;
+            }
+
+            return false;
+        }
+
         private StorageListItem GetStorageListItem(IListBlobItem listBlobItem)
         {
             var lastModified = (listBlobItem as CloudBlockBlob)?.Properties.LastModified?.UtcDateTime;
@@ -276,7 +302,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                         accessCondition, 
                         options: null, 
                         operationContext: null,
-                        cancellationToken: cancellationToken);
+                        cancellationToken);
 
                     Trace.WriteLine(string.Format("Saved compressed blob {0} to container {1}", blob.Uri.ToString(), _directory.Container.Name));
                 }
@@ -290,7 +316,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                         accessCondition: null,
                         options: null,
                         operationContext: null,
-                        cancellationToken: cancellationToken);
+                        cancellationToken);
                 }
 
                 Trace.WriteLine(string.Format("Saved uncompressed blob {0} to container {1}", blob.Uri.ToString(), _directory.Container.Name));
@@ -359,7 +385,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                         accessCondition: null,
                         options: null,
                         operationContext: null,
-                        cancellationToken: cancellationToken);
+                        cancellationToken);
 
                     originalStream.Seek(0, SeekOrigin.Begin);
 
@@ -407,10 +433,10 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             CloudBlockBlob blob = GetBlockBlobReference(name);
             await blob.DeleteAsync(deleteSnapshotsOption: DeleteSnapshotsOption.IncludeSnapshots,
-                                   accessCondition: accessCondition,
+                                   accessCondition,
                                    options: null,
                                    operationContext: null,
-                                   cancellationToken: cancellationToken);
+                                   cancellationToken);
         }
 
         /// <summary>

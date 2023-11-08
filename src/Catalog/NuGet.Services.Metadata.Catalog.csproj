@@ -16,7 +16,6 @@
     <Compile Remove="CatalogWriterBase.cs" />
     <Compile Remove="DeleteCatalogItem.cs" />
     <Compile Remove="Helpers\CatalogWriterHelper.cs" />
-    <Compile Remove="ICatalogGraphPersistence.cs" />
     <Compile Remove="IPackageCatalogItemCreator.cs" />
     <Compile Remove="JsonLdIntegration\JsonLdReader.cs" />
     <Compile Remove="JsonLdIntegration\JsonLdWriter.cs" />
@@ -26,6 +25,7 @@
     <Compile Remove="Persistence\AzureStorage.cs" />
     <Compile Remove="Persistence\AzureStorageFactory.cs" />
     <Compile Remove="ReadOnlyGraph.cs" />
+    <Compile Remove="SavePagesResult.cs" />
   </ItemGroup>
 
   <ItemGroup>

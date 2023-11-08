@@ -31,6 +31,8 @@ namespace NgTests
             int top,
             bool verbose,
             int maxPageSize,
+            string itemCacheControl,
+            string finishedPageCacheControl,
             Mock<IGalleryDatabaseQueryService> galleryDatabaseMock,
             PackageContentUriBuilder packageContentUriBuilder,
             ITestOutputHelper testOutputHelper)
@@ -46,6 +48,8 @@ namespace NgTests
             Top = top;
             Verbose = verbose;
             MaxPageSize = maxPageSize;
+            ItemCacheControl = itemCacheControl;
+            FinishedPageCacheControl = finishedPageCacheControl;
             Destination = new Uri("https://nuget.test");
 
             PackageContentUriBuilder = packageContentUriBuilder ?? throw new ArgumentNullException(nameof(galleryDatabaseMock));
