@@ -273,5 +273,15 @@ namespace NuGet.Services.Metadata.Catalog
 
             return _telemetryClient.TrackDuration(TelemetryConstants.GetPackageSeconds, properties);
         }
+
+        public void TrackCacheControlUpdate(Uri blobUrl, string cacheControl, bool updated)
+        {
+            var properties = new Dictionary<string, string>()
+            {
+                { TelemetryConstants.CacheControl, cacheControl },
+            };
+
+            _telemetryClient.TrackMetric(TelemetryConstants.CacheControlUpdated, updated ? 1 : 0, properties);
+        }
     }
 }

@@ -262,7 +262,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
         private StorageContent CreateContent(IEnumerable<string> versions)
         {
             JObject obj = new JObject { { "versions", new JArray(versions) } };
-            return new StringStorageContent(obj.ToString(), "application/json", "no-store");
+            return new StringStorageContent(obj.ToString(), "application/json", Constants.NoStoreCacheControl);
         }
 
         private async Task<Uri> SaveNupkgAsync(Stream nupkgStream, Storage storage, string id, string version, CancellationToken cancellationToken)

@@ -12,7 +12,7 @@ namespace NuGet.Services.Metadata.Catalog
     public interface ITelemetryService
     {
         /// <summary>
-        /// Allows setting dimensions that will be added to all telemetry emited by the job.
+        /// Allows setting dimensions that will be added to all telemetry emitted by the job.
         /// </summary>
         IDictionary<string, string> GlobalDimensions { get; }
 
@@ -39,5 +39,6 @@ namespace NuGet.Services.Metadata.Catalog
         void TrackIconExtractionFailure(string packageId, string normalizedPackageVersion);
         IDisposable TrackGetPackageDetailsQueryDuration(Db2CatalogCursor cursor);
         IDisposable TrackGetPackageQueryDuration(string packageId, string packageVersion);
+        void TrackCacheControlUpdate(Uri blobUrl, string cacheControl, bool updated);
     }
 }

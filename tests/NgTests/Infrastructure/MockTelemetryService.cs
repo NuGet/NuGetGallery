@@ -130,5 +130,9 @@ namespace NgTests.Infrastructure
         public void TrackExternalIconIngestionFailure(string packageId, string normalizedPackageVersion)
         {
         }
+
+        public void TrackCacheControlUpdate(Uri blobUrl, string cacheControl, bool updated)
+        {
+        }
     }
 }

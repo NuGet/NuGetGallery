@@ -18,6 +18,7 @@ using Newtonsoft.Json;
 using NuGet.Protocol;
 using NuGet.Protocol.Catalog;
 using NuGet.Protocol.Registration;
+using NuGet.Services.Metadata.Catalog;
 using NuGet.Versioning;
 using NuGetGallery;
 
@@ -281,7 +282,7 @@ namespace NuGet.Jobs.Catalog2Registration
                 var blob = GetBlobReference(container, path);
 
                 blob.Properties.ContentType = "application/json";
-                blob.Properties.CacheControl = "no-store";
+                blob.Properties.CacheControl = Constants.NoStoreCacheControl;
 
                 if (IsGzipped(hive))
                 {

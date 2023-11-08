@@ -65,7 +65,10 @@ namespace NuGet.Services.Metadata.Catalog
 
                 //  create JSON content
                 JObject frame = context.GetJsonLdContext("context.Catalog.json", GetItemType());
-                StorageContent content = new StringStorageContent(Utils.CreateArrangedJson(graph, frame), "application/json", "no-store");
+                StorageContent content = new StringStorageContent(
+                    Utils.CreateArrangedJson(graph, frame),
+                    "application/json",
+                    context.ItemCacheControl);
                
                 return content;
             }

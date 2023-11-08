@@ -44,7 +44,8 @@ namespace Ng
             { Arguments.StorageSuffix, Arguments.StorageSuffix },
             { Arguments.StorageUseServerSideCopy, Arguments.StorageUseServerSideCopy },
             { Arguments.StorageOperationMaxExecutionTimeInSeconds, Arguments.StorageOperationMaxExecutionTimeInSeconds },
-            { Arguments.StorageServerTimeoutInSeconds, Arguments.StorageServerTimeoutInSeconds }
+            { Arguments.StorageServerTimeoutInSeconds, Arguments.StorageServerTimeoutInSeconds },
+            { Arguments.StorageInitializeContainer, Arguments.StorageInitializeContainer },
         };
 
         public static IDictionary<string, string> GetArguments(string[] args, int start, out ICachingSecretInjector secretInjector)
@@ -103,14 +104,16 @@ namespace Ng
                     var certificateThumbprint = arguments.GetOrThrow<string>(Arguments.CertificateThumbprint);
                     var storeName = arguments.GetOrDefault(Arguments.StoreName, StoreName.My);
                     var storeLocation = arguments.GetOrDefault(Arguments.StoreLocation, StoreLocation.LocalMachine);
-                    var shouldValidateCert = arguments.GetOrDefault(Arguments.ValidateCertificate, true);
+                    var shouldValidateCert = arguments.GetOrDefault(Arguments.ValidateCertificate, defaultValue: true);
+                    var sendX5c = arguments.GetOrDefault(Arguments.SendX5c, defaultValue: false);
 
                     var keyVaultCertificate = CertificateUtility.FindCertificateByThumbprint(storeName, storeLocation, certificateThumbprint, shouldValidateCert);
                     keyVaultConfig = new KeyVaultConfiguration(
                         vaultName,
                         tenantId,
                         clientId, 
-                        keyVaultCertificate);
+                        keyVaultCertificate,
+                        sendX5c);
                 }
 
                 secretReader = new CachingSecretReader(new KeyVaultReader(keyVaultConfig),
@@ -163,7 +166,8 @@ namespace Ng
                 { Arguments.StorageSuffix, Arguments.StorageSuffix + suffix },
                 { Arguments.StorageUseServerSideCopy, Arguments.StorageUseServerSideCopy + suffix },
                 { Arguments.StorageOperationMaxExecutionTimeInSeconds, Arguments.StorageOperationMaxExecutionTimeInSeconds + suffix },
-                { Arguments.StorageServerTimeoutInSeconds, Arguments.StorageServerTimeoutInSeconds }
+                { Arguments.StorageServerTimeoutInSeconds, Arguments.StorageServerTimeoutInSeconds },
+                { Arguments.StorageInitializeContainer, Arguments.StorageInitializeContainer + suffix },
             };
 
             return CreateStorageFactoryImpl(
@@ -214,6 +218,7 @@ namespace Ng
                 var storageOperationMaxExecutionTime = MaxExecutionTime(arguments.GetOrDefault<int>(argumentNameMap[Arguments.StorageOperationMaxExecutionTimeInSeconds]));
                 var storageServerTimeout = MaxExecutionTime(arguments.GetOrDefault<int>(argumentNameMap[Arguments.StorageServerTimeoutInSeconds]));
                 var storageUseServerSideCopy = arguments.GetOrDefault<bool>(argumentNameMap[Arguments.StorageUseServerSideCopy]);
+                var storageInitializeContainer = arguments.GetOrDefault<bool>(argumentNameMap[Arguments.StorageInitializeContainer], defaultValue: true);
 
                 var account = GetCloudStorageAccount(storageAccountName, storageSuffix, arguments, argumentNameMap);
 
@@ -227,7 +232,7 @@ namespace Ng
                     storageUseServerSideCopy,
                     compressed,
                     verbose,
-                    initializeContainer: true,
+                    storageInitializeContainer,
                     throttle: throttle ?? NullThrottle.Instance);
             }
             throw new ArgumentException($"Unrecognized storageType \"{storageType}\"");

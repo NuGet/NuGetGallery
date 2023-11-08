@@ -70,7 +70,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             TraceExecutionTime(nameof(CopyAsync), sourceUri, stopwatch.ElapsedMilliseconds);
         }
 
-        public async Task SaveAsync(Uri resourceUri, StorageContent content, CancellationToken cancellationToken)
+        public async virtual Task SaveAsync(Uri resourceUri, StorageContent content, CancellationToken cancellationToken)
         {
             TraceMethod(nameof(SaveAsync), resourceUri);
 
@@ -165,6 +165,11 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         }
 
         public abstract Task<IEnumerable<StorageListItem>> ListAsync(CancellationToken cancellationToken);
+
+        public virtual Task<bool> UpdateCacheControlAsync(Uri resourceUri, string cacheControl, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(false);
+        }
 
         public abstract bool Exists(string fileName);
 

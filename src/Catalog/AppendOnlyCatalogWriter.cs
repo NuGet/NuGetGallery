@@ -13,29 +13,15 @@ namespace NuGet.Services.Metadata.Catalog
 {
     public class AppendOnlyCatalogWriter : CatalogWriterBase
     {
-        private readonly ITelemetryService _telemetryService;
-        private readonly bool _append;
         private bool _first;
 
         public AppendOnlyCatalogWriter(
             IStorage storage,
             ITelemetryService telemetryService,
-            int maxPageSize = 1000,
-            bool append = true,
-            ICatalogGraphPersistence catalogGraphPersistence = null,
             CatalogContext context = null)
-            : base(storage, catalogGraphPersistence, context)
+            : base(storage, telemetryService, context)
         {
-            _telemetryService = telemetryService;
-            _append = append;
             _first = true;
-            MaxPageSize = maxPageSize;
-        }
-
-        public int MaxPageSize
-        {
-            get;
-            private set;
         }
 
         protected override Uri[] GetAdditionalRootType()
@@ -55,10 +41,10 @@ namespace NuGet.Services.Metadata.Catalog
             _telemetryService.TrackCatalogIndexWriteDuration(stopwatch.Elapsed, RootUri);
         }
 
-        protected override async Task<IDictionary<string, CatalogItemSummary>> SavePages(Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> itemEntries, CancellationToken cancellationToken)
+        protected override async Task<SavePagesResult> SavePages(Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> itemEntries, CancellationToken cancellationToken)
         {
             IDictionary<string, CatalogItemSummary> pageEntries;
-            if (_first && !_append)
+            if (_first && !Context.Append)
             {
                 pageEntries = new Dictionary<string, CatalogItemSummary>();
                 _first = false;
@@ -68,11 +54,11 @@ namespace NuGet.Services.Metadata.Catalog
                 pageEntries = await LoadIndexResource(RootUri, cancellationToken);
             }
 
-            bool isExistingPage;
-            Uri pageUri = GetPageUri(pageEntries, itemEntries.Count, out isExistingPage);
+            Uri pageUri = GetPageUri(pageEntries, itemEntries.Count, out var isExistingPage, out var previousPageUri);
 
             var items = new Dictionary<string, CatalogItemSummary>(itemEntries);
 
+            Uri finishedPageUri = null;
             if (isExistingPage)
             {
                 IDictionary<string, CatalogItemSummary> existingItemEntries = await LoadIndexResource(pageUri, cancellationToken);
@@ -81,29 +67,34 @@ namespace NuGet.Services.Metadata.Catalog
                     items.Add(entry.Key, entry.Value);
                 }
             }
+            else
+            {
+                finishedPageUri = previousPageUri;
+            }
 
             await SaveIndexResource(pageUri, Schema.DataTypes.CatalogPage, commitId, commitTimeStamp, items, RootUri, null, null, cancellationToken);
 
             pageEntries[pageUri.AbsoluteUri] = new CatalogItemSummary(Schema.DataTypes.CatalogPage, commitId, commitTimeStamp, items.Count);
 
-            return pageEntries;
+            return new SavePagesResult(pageEntries, finishedPageUri);
         }
 
-        private Uri GetPageUri(IDictionary<string, CatalogItemSummary> currentPageEntries, int newItemCount, out bool isExistingPage)
+        private Uri GetPageUri(IDictionary<string, CatalogItemSummary> currentPageEntries, int newItemCount, out bool isExistingPage, out Uri previousPageUri)
         {
-            Tuple<int, Uri, int> latest = ExtractLatest(currentPageEntries);
-            int nextPageNumber = latest.Item1 + 1;
-            Uri latestUri = latest.Item2;
-            int latestCount = latest.Item3;
+            (var maxPageNumber, var latestUri, var latestCount) = ExtractLatest(currentPageEntries);
+            int nextPageNumber = maxPageNumber + 1;
 
             isExistingPage = false;
+            previousPageUri = null;
 
             if (latestUri == null)
             {
                 return CreatePageUri(Storage.BaseAddress, "page0");
             }
 
-            if (latestCount + newItemCount > MaxPageSize)
+            previousPageUri = CreatePageUri(Storage.BaseAddress, string.Format("page{0}", maxPageNumber));
+
+            if (latestCount + newItemCount > Context.MaxPageSize)
             {
                 return CreatePageUri(Storage.BaseAddress, string.Format("page{0}", nextPageNumber));
             }

@@ -11,5 +11,6 @@ namespace NuGet.Services.Metadata.Catalog
         public const int MaxPageSize = 550;
         public const string Sha512 = "SHA512";
         public static readonly DateTime UnpublishedDate = new DateTime(1900, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        public const string NoStoreCacheControl = "no-store";
     }
 }

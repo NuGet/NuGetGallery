@@ -57,5 +57,7 @@ namespace NuGet.Services.Metadata.Catalog
         public const string GetPackageDetailsSeconds = "GetPackageDetailsSeconds";
         public const string GetPackageSeconds = "GetPackageSeconds";
         public const string CursorValue = "CursorValue";
+        public const string CacheControlUpdated = "CacheControlUpdated";
+        public const string CacheControl = "CacheControl";
     }
 }
