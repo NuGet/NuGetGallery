@@ -34,14 +34,12 @@ namespace NuGetGallery.Frameworks
         public static readonly NuGetFramework Net60Ios = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version6, "ios", EmptyVersion);
         public static readonly NuGetFramework Net60MacOs = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version6, "macos", EmptyVersion);
         public static readonly NuGetFramework Net60MacCatalyst = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version6, "maccatalyst", EmptyVersion);
-        public static readonly NuGetFramework Net60Tizen = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version6, "tizen", EmptyVersion);
         public static readonly NuGetFramework Net60TvOs = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version6, "tvos", EmptyVersion);
         public static readonly NuGetFramework Net60Windows = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version6, "windows", EmptyVersion);
         public static readonly NuGetFramework Net70Android = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version7, "android", EmptyVersion);
         public static readonly NuGetFramework Net70Ios = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version7, "ios", EmptyVersion);
         public static readonly NuGetFramework Net70MacOs = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version7, "macos", EmptyVersion);
         public static readonly NuGetFramework Net70MacCatalyst = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version7, "maccatalyst", EmptyVersion);
-        public static readonly NuGetFramework Net70Tizen = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version7, "tizen", EmptyVersion);
         public static readonly NuGetFramework Net70TvOs = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version7, "tvos", EmptyVersion);
         public static readonly NuGetFramework Net70Windows = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version7, "windows", EmptyVersion);
         public static readonly NuGetFramework Net80 = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version8); // https://github.com/NuGet/Engineering/issues/5112
