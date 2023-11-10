@@ -14,17 +14,17 @@ namespace NuGet.Services.GitHub.Ingest
 {
     public class AdvisoryIngestor : IAdvisoryIngestor
     {
-        private readonly IPackageVulnerabilitiesManagementService _packageVulnerabilityService;
         private readonly IGitHubVersionRangeParser _gitHubVersionRangeParser;
+        private readonly IVulnerabilityWriter _vulnerabilityWriter;
         private readonly ILogger<AdvisoryIngestor> _logger;
 
         public AdvisoryIngestor(
-            IPackageVulnerabilitiesManagementService packageVulnerabilityService,
             IGitHubVersionRangeParser gitHubVersionRangeParser,
+            IVulnerabilityWriter vulnerabilityWriter,
             ILogger<AdvisoryIngestor> logger)
         {
-            _packageVulnerabilityService = packageVulnerabilityService ?? throw new ArgumentNullException(nameof(packageVulnerabilityService));
             _gitHubVersionRangeParser = gitHubVersionRangeParser ?? throw new ArgumentNullException(nameof(gitHubVersionRangeParser));
+            _vulnerabilityWriter = vulnerabilityWriter ?? throw new ArgumentNullException(nameof(vulnerabilityWriter));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -37,8 +37,10 @@ namespace NuGet.Services.GitHub.Ingest
                 var vulnerabilityTuple = FromAdvisory(advisory);
                 var vulnerability = vulnerabilityTuple.Item1;
                 var wasWithdrawn = vulnerabilityTuple.Item2;
-                await _packageVulnerabilityService.UpdateVulnerabilityAsync(vulnerability, wasWithdrawn);
+                await _vulnerabilityWriter.WriteVulnerabilityAsync(vulnerability, wasWithdrawn);
             }
+
+            await _vulnerabilityWriter.FlushAsync();
         }
 
         private Tuple<PackageVulnerability, bool> FromAdvisory(SecurityAdvisory advisory)
