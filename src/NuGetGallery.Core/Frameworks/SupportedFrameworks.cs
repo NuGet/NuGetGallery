@@ -47,7 +47,6 @@ namespace NuGetGallery.Frameworks
         public static readonly NuGetFramework Net80Ios = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version8, "ios", EmptyVersion);
         public static readonly NuGetFramework Net80MacOs = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version8, "macos", EmptyVersion);
         public static readonly NuGetFramework Net80MacCatalyst = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version8, "maccatalyst", EmptyVersion);
-        public static readonly NuGetFramework Net80Tizen = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version8, "tizen", EmptyVersion);
         public static readonly NuGetFramework Net80TvOs = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version8, "tvos", EmptyVersion);
         public static readonly NuGetFramework Net80Windows = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version8, "windows", EmptyVersion);
         public static readonly NuGetFramework NetCore = new NuGetFramework(FrameworkIdentifiers.NetCore, EmptyVersion);
