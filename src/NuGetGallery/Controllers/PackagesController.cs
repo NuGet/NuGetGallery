@@ -69,18 +69,22 @@ namespace NuGetGallery
             ReportPackageReason.Other
         };
 
-        private static readonly IReadOnlyList<ReportPackageReason> ReportAbuseWithSafetyReasons = new[]
+        private static readonly IReadOnlyList<ReportPackageReason> SafetyReportAbuseReasons = new[]
         {
-            ReportPackageReason.ViolatesALicenseIOwn,
-            ReportPackageReason.ContainsMaliciousCode,
-            ReportPackageReason.ContainsSecurityVulnerability,
-            ReportPackageReason.HasABugOrFailedToInstall,
             ReportPackageReason.ChildSexualExploitationOrAbuse,
             ReportPackageReason.TerrorismOrViolentExtremism,
             ReportPackageReason.HateSpeech,
             ReportPackageReason.ImminentHarm,
             ReportPackageReason.RevengePorn,
             ReportPackageReason.OtherNudityOrPornography,
+        };
+
+        private static readonly IReadOnlyList<ReportPackageReason> ReportAbuseWithSafetyReasons = new[]
+        {
+            ReportPackageReason.ViolatesALicenseIOwn,
+            ReportPackageReason.ContainsMaliciousCode,
+            ReportPackageReason.ContainsSecurityVulnerability,
+            ReportPackageReason.HasABugOrFailedToInstall,
             ReportPackageReason.Other
         };
 
@@ -97,16 +101,6 @@ namespace NuGetGallery
             ReportPackageReason.ContainsPrivateAndConfidentialData,
             ReportPackageReason.ReleasedInPublicByAccident,
             ReportPackageReason.ContainsMaliciousCode,
-        };
-
-        private static readonly IReadOnlyList<ReportPackageReason> DisallowedReportAbuseReasons = new[]
-        {
-            ReportPackageReason.ChildSexualExploitationOrAbuse,
-            ReportPackageReason.TerrorismOrViolentExtremism,
-            ReportPackageReason.HateSpeech,
-            ReportPackageReason.ImminentHarm,
-            ReportPackageReason.RevengePorn,
-            ReportPackageReason.OtherNudityOrPornography,
         };
 
         private static readonly IReadOnlyCollection<string> AllowedPackageExtentions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
@@ -1397,7 +1391,7 @@ namespace NuGetGallery
             {
                 ReasonChoices = _featureFlagService.IsShowReportAbuseSafetyChangesEnabled()
                     && (_featureFlagService.IsAllowAadContentSafetyReportsEnabled() || PackageHasNoAadOwners(package))
-                    ? ReportAbuseWithSafetyReasons
+                    ? (IReadOnlyList<ReportPackageReason>)ReportAbuseReasons.Concat(SafetyReportAbuseReasons)
                     : ReportAbuseReasons,
                 PackageId = id,
                 PackageVersion = package.Version,
@@ -1490,11 +1484,11 @@ namespace NuGetGallery
 
             var ReasonChoices = _featureFlagService.IsShowReportAbuseSafetyChangesEnabled()
                     && (_featureFlagService.IsAllowAadContentSafetyReportsEnabled() || PackageHasNoAadOwners(package))
-                    ? ReportAbuseWithSafetyReasons
+                    ? (IReadOnlyList<ReportPackageReason>)ReportAbuseReasons.Concat(SafetyReportAbuseReasons)
                     : ReportAbuseReasons;
 
             var reportReason = (ReportPackageReason)reportForm.Reason;
-            if (!ReasonChoices.Contains(reportReason) || DisallowedReportAbuseReasons.Contains(reportReason))
+            if (!ReasonChoices.Contains(reportReason) || SafetyReportAbuseReasons.Contains(reportReason))
             {
                 return HttpNotFound();
             }
