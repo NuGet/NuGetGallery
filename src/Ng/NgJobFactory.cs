@@ -21,6 +21,7 @@ namespace Ng
             { "monitoring2monitoring", typeof(Monitoring2MonitoringJob) },
             { "monitoringprocessor", typeof(MonitoringProcessorJob) },
             { "catalog2icon", typeof(Catalog2IconJob) },
+            { "fixcatalogcaching", typeof(FixCatalogCachingJob) },
         };
 
         public static NgJob GetJob(
