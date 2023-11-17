@@ -7,13 +7,13 @@ using NuGet.Frameworks;
 
 namespace NuGetGallery.Frameworks
 {
-    public class FrameworkCompatibilityService : IFrameworkCompatibilityService
+    public static class FrameworkCompatibilityService
     {
         private static readonly IFrameworkCompatibilityProvider CompatibilityProvider = DefaultCompatibilityProvider.Instance;
         private static readonly IReadOnlyList<NuGetFramework> AllSupportedFrameworks = SupportedFrameworks.AllSupportedNuGetFrameworks;
         private static readonly IReadOnlyDictionary<NuGetFramework, ISet<NuGetFramework>> CompatibilityMatrix = GetCompatibilityMatrix();
 
-        public ISet<NuGetFramework> GetCompatibleFrameworks(IEnumerable<NuGetFramework> packageFrameworks)
+        public static ISet<NuGetFramework> GetCompatibleFrameworks(IEnumerable<NuGetFramework> packageFrameworks)
         {
             if (packageFrameworks == null)
             {

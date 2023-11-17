@@ -13,18 +13,10 @@ namespace NuGetGallery.Frameworks
     public class PackageFrameworkCompatibilityFactoryFacts
     {
         private readonly PackageFrameworkCompatibilityFactory _factory;
-        private readonly IFrameworkCompatibilityService _service;
 
         public PackageFrameworkCompatibilityFactoryFacts()
         {
-            _service = new FrameworkCompatibilityService();
-            _factory = new PackageFrameworkCompatibilityFactory(_service);
-        }
-
-        [Fact]
-        public void NullFrameworkCompatibilityServiceThrowsArgumentNullException()
-        {
-            Assert.Throws<ArgumentNullException>(() => new PackageFrameworkCompatibilityFactory(null));
+            _factory = new PackageFrameworkCompatibilityFactory();
         }
 
         [Fact]
