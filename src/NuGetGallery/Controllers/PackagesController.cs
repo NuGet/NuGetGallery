@@ -1391,7 +1391,7 @@ namespace NuGetGallery
             {
                 ReasonChoices = _featureFlagService.IsShowReportAbuseSafetyChangesEnabled()
                     && (_featureFlagService.IsAllowAadContentSafetyReportsEnabled() || PackageHasNoAadOwners(package))
-                    ? (IReadOnlyList<ReportPackageReason>)ReportAbuseReasons.Concat(SafetyReportAbuseReasons)
+                    ? ReportAbuseReasons.Union(SafetyReportAbuseReasons).ToList()
                     : ReportAbuseReasons,
                 PackageId = id,
                 PackageVersion = package.Version,
@@ -1484,7 +1484,7 @@ namespace NuGetGallery
 
             var ReasonChoices = _featureFlagService.IsShowReportAbuseSafetyChangesEnabled()
                     && (_featureFlagService.IsAllowAadContentSafetyReportsEnabled() || PackageHasNoAadOwners(package))
-                    ? (IReadOnlyList<ReportPackageReason>)ReportAbuseReasons.Concat(SafetyReportAbuseReasons)
+                    ? ReportAbuseReasons.Union(SafetyReportAbuseReasons).ToList()
                     : ReportAbuseReasons;
 
             var reportReason = (ReportPackageReason)reportForm.Reason;
