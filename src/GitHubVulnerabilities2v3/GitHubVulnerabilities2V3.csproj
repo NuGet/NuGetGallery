@@ -71,7 +71,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NuGet.Jobs.Common">
-      <Version>4.3.0-dev-8079991</Version>
+      <Version>$(NuGetJobsPackageVersion)</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Cursor">
       <Version>$(ServerCommonPackageVersion)</Version>

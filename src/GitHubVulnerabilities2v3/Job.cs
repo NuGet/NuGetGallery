@@ -134,12 +134,23 @@ namespace GitHubVulnerabilities2v3
                 .As<IAdvisoryCollector>();
 
             containerBuilder
-                .Register(async ctx =>
+                .Register(ctx =>
                 {
                     var cursor = ctx.Resolve<ReadWriteCursor<DateTimeOffset>>();
-                    return await DetermineRunMode(cursor);
+                    return new Func<Task<RunMode>>(async () =>
+                    {
+                        var mode = RunMode.Update;
+                        await cursor.Load(CancellationToken.None);
+                        if (DateTimeOffset.Compare(cursor.Value.AddDays(30), DateTimeOffset.Now) <= 0)
+                        {
+                            cursor.Value = DateTimeOffset.FromUnixTimeSeconds(0);
+                            mode = RunMode.Regenerate;
+                        }
+                        await cursor.Save(CancellationToken.None);
+                        return mode;
+                    });
                 })
-                .As<RunMode>();
+                .As<Func<Task<RunMode>>>();
         }
 
         private DurableCursor CreateCursor(IComponentContext ctx, Func<GitHubVulnerabilities2v3Configuration, string> getBlobName)

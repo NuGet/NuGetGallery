@@ -19,6 +19,11 @@ namespace GitHubVulnerabilities2v3.Configuration
         public string V3VulnerabilityContainerName { get; set; } = "v3-vulnerabilities";
 
         /// <summary>
+        /// Service Index Root
+        /// </summary>
+        public string V3IndexUrl { get; set; } = "https://api.nuget.org/";
+
+        /// <summary>
         /// The name of the blob to save the job's advisories cursor in.
         /// </summary>
         public string AdvisoryCursorBlobName { get; set; } = "cursor.json";
