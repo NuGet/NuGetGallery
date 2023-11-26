@@ -38,6 +38,7 @@ namespace NuGetGallery
         public bool IsPackageDeprecationEnabled { get; set; }
         public bool IsPackageVulnerabilitiesEnabled { get; set; }
         public bool IsFuGetLinksEnabled { get; set; }
+        public bool IsNuGetTrendsLinksEnabled { get; set; }
         public bool IsNuGetPackageExplorerLinkEnabled { get; set; }
         public bool IsPackageRenamesEnabled { get; set; }
         public bool IsGitHubUsageEnabled { get; set; }
@@ -88,6 +89,7 @@ namespace NuGetGallery
         public string ProjectUrl { get; set; }
         public string LicenseUrl { get; set; }
         public string FuGetUrl { get; set; }
+        public string NuGetTrendsUrl { get; set; }
         public string NuGetPackageExplorerUrl { get; set; }
         public IReadOnlyCollection<string> LicenseNames { get; set; }
         public string LicenseExpression { get; set; }
@@ -144,6 +146,11 @@ namespace NuGetGallery
         public bool CanDisplayFuGetLink()
         {
             return IsFuGetLinksEnabled && !string.IsNullOrEmpty(FuGetUrl) && Available;
+        }
+
+        public bool CanDisplayNuGetTrendsLink()
+        {
+            return IsNuGetTrendsLinksEnabled && !string.IsNullOrEmpty(NuGetTrendsUrl) && Available;
         }
 
         public bool CanDisplayTargetFrameworks()
