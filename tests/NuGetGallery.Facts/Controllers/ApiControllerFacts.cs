@@ -833,7 +833,7 @@ namespace NuGetGallery
             [Theory]
             [InlineData("PackageWithDoubleForwardSlash.1.0.0.nupkg")]
             [InlineData("PackageWithDoubleBackwardSlash.1.0.0.nupkg")]
-            public async Task WillRejectZipWithEntryDoubleSlashInPath(string zipPath)
+            public async Task WillRejectMalformedZipWithEntryDoubleSlashInPath(string zipPath)
             {
                 // Arrange
                 var package = new MemoryStream(TestDataResourceUtility.GetResourceBytes(zipPath));

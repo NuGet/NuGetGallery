@@ -6928,6 +6928,37 @@ namespace NuGetGallery
             }
 
             [Theory]
+            [InlineData("PackageWithDoubleForwardSlash.1.0.0.nupkg")]
+            [InlineData("PackageWithDoubleBackwardSlash.1.0.0.nupkg")]
+            [UseInvariantCultureAttribute]
+            public async Task WillRejectMalformedZipWithEntryDoubleSlashInPath(string zipPath)
+            {
+                // Arrange
+                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
+                fakeUploadedFile.Setup(x => x.FileName).Returns("file.nupkg");
+                var fakeFileStream = new MemoryStream(TestDataResourceUtility.GetResourceBytes(zipPath));
+                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    fakeNuGetPackage: fakeFileStream);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
+
+                Assert.NotNull(result);
+
+                if (zipPath.Contains("Forward"))
+                {
+                    Assert.Equal(String.Format(Strings.PackageEntryWithDoubleForwardSlash, "malformedfile.txt"), (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                }
+                else
+                {
+                    Assert.Equal(String.Format(Strings.PackageEntryWithDoubleBackSlash, "malformedfile.txt"), (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                }
+            }
+
+            [Theory]
             [InlineData("ILike*Asterisks")]
             [InlineData("I_.Like.-Separators")]
             [InlineData("-StartWithSeparator")]
