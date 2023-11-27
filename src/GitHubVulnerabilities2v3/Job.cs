@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Autofac;
 using GitHubVulnerabilities2v3.Configuration;
 using GitHubVulnerabilities2v3.Extensions;
+using GitHubVulnerabilities2v3.Telemetry;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -19,7 +20,6 @@ using NuGet.Services.GitHub.Configuration;
 using NuGet.Services.GitHub.GraphQL;
 using NuGet.Services.GitHub.Ingest;
 using NuGet.Services.Storage;
-using NuGetGallery;
 
 namespace GitHubVulnerabilities2v3
 {
@@ -71,12 +71,12 @@ namespace GitHubVulnerabilities2v3
         protected void ConfigureIngestionServices(ContainerBuilder containerBuilder)
         {
             containerBuilder
-                .RegisterType<PackageVulnerabilitiesManagementService>()
-                .As<IPackageVulnerabilitiesManagementService>();
-
-            containerBuilder
                 .RegisterType<GitHubVersionRangeParser>()
                 .As<IGitHubVersionRangeParser>();
+
+            containerBuilder
+                .RegisterType<TelemetryService>()
+                .As<ITelemetryService>();
 
             containerBuilder
                 .RegisterType<BlobStorageVulnerabilityWriter>()

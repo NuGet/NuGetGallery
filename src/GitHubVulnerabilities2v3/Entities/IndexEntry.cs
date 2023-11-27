@@ -4,7 +4,7 @@
 using Newtonsoft.Json;
 using System;
 
-namespace GitHubVulnerabilities2V3.Entities
+namespace GitHubVulnerabilities2v3.Entities
 {
     public class IndexEntry
     {
