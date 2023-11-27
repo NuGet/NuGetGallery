@@ -30,7 +30,7 @@ namespace NuGet.Services.GitHub.Collector
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<bool> ProcessAsync(CancellationToken token)
+        public async Task<bool> ProcessAsync(CancellationToken token, bool updateCursor = true)
         {
             await _cursor.Load(token);
             var lastUpdated = _cursor.Value;
@@ -41,8 +41,11 @@ namespace NuGet.Services.GitHub.Collector
             {
                 var lastUpdatedAt = advisories.Max(i => i.UpdatedAt);
                 await _ingestor.IngestAsync(advisories.Select(v => v).ToList());
-                _cursor.Value = lastUpdatedAt;
-                await _cursor.Save(token);
+                if (updateCursor)
+                {
+                    _cursor.Value = lastUpdatedAt;
+                    await _cursor.Save(token);
+                }
             }
 
             return hasAdvisories;

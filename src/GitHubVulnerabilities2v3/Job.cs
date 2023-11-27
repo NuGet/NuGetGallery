@@ -30,9 +30,9 @@ namespace GitHubVulnerabilities2v3
         public override async Task Run()
         {
             var collector = _serviceProvider.GetRequiredService<IAdvisoryCollector>();
-            var cursor = _serviceProvider.GetRequiredService<ReadWriteCursor<DateTimeOffset>>();>>
+            var cursor = _serviceProvider.GetRequiredService<ReadWriteCursor<DateTimeOffset>>();
             await SetRunMode(cursor);
-            await collector.ProcessAsync(CancellationToken.None);
+            await collector.ProcessAsync(CancellationToken.None, updateCursor: false);
         }
 
         private async Task SetRunMode(ReadWriteCursor<DateTimeOffset> cursor)
