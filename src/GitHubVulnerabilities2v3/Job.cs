@@ -30,20 +30,19 @@ namespace GitHubVulnerabilities2v3
         public override async Task Run()
         {
             var collector = _serviceProvider.GetRequiredService<IAdvisoryCollector>();
+            var cursor = _serviceProvider.GetRequiredService<ReadWriteCursor<DateTimeOffset>>();>>
+            await SetRunMode(cursor);
             await collector.ProcessAsync(CancellationToken.None);
         }
 
-        private async Task<RunMode> DetermineRunMode(ReadWriteCursor<DateTimeOffset> cursor)
+        private async Task SetRunMode(ReadWriteCursor<DateTimeOffset> cursor)
         {
-            var mode = RunMode.Update;
             await cursor.Load(CancellationToken.None);
-            if (DateTimeOffset.Compare(cursor.Value.AddDays(30), DateTimeOffset.Now) >= 0)
+            if (DateTimeOffset.Compare(cursor.Value.AddDays(30), DateTimeOffset.Now) <= 0)
             {
                 cursor.Value = DateTimeOffset.FromUnixTimeSeconds(0);
-                mode = RunMode.Regenerate;
             }
             await cursor.Save(CancellationToken.None);
-            return mode;
         }
 
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
@@ -132,25 +131,6 @@ namespace GitHubVulnerabilities2v3
             containerBuilder
                 .RegisterType<AdvisoryCollector>()
                 .As<IAdvisoryCollector>();
-
-            containerBuilder
-                .Register(ctx =>
-                {
-                    var cursor = ctx.Resolve<ReadWriteCursor<DateTimeOffset>>();
-                    return new Func<Task<RunMode>>(async () =>
-                    {
-                        var mode = RunMode.Update;
-                        await cursor.Load(CancellationToken.None);
-                        if (DateTimeOffset.Compare(cursor.Value.AddDays(30), DateTimeOffset.Now) <= 0)
-                        {
-                            cursor.Value = DateTimeOffset.FromUnixTimeSeconds(0);
-                            mode = RunMode.Regenerate;
-                        }
-                        await cursor.Save(CancellationToken.None);
-                        return mode;
-                    });
-                })
-                .As<Func<Task<RunMode>>>();
         }
 
         private DurableCursor CreateCursor(IComponentContext ctx, Func<GitHubVulnerabilities2v3Configuration, string> getBlobName)
