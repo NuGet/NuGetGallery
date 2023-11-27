@@ -829,6 +829,35 @@ namespace NuGetGallery
                 ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest);
                 Assert.Equal(Strings.FailedToReadUploadFile, (result as HttpStatusCodeWithBodyResult).StatusDescription);
             }
+            
+            [Theory]
+            [InlineData("PackageWithDoubleForwardSlash.1.0.0.nupkg")]
+            [InlineData("PackageWithDoubleBackwardSlash.1.0.0.nupkg")]
+            public async Task WillRejectZipWithEntryDoubleSlashInPath(string zipPath)
+            {
+                // Arrange
+                var package = new MemoryStream(TestDataResourceUtility.GetResourceBytes(zipPath));
+
+                var user = new User() { EmailAddress = "confirmed@email.com" };
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(user);
+                controller.SetupPackageFromInputStream(package);
+
+                // Act
+                ActionResult result = await controller.CreatePackagePut();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest);
+
+                if(zipPath.Contains("Forward"))
+                {
+                    Assert.Equal(String.Format(Strings.PackageEntryWithDoubleForwardSlash, "malformedfile.txt"), (result as HttpStatusCodeWithBodyResult).StatusDescription);
+                }
+                else
+                {
+                    Assert.Equal(String.Format(Strings.PackageEntryWithDoubleBackSlash, "malformedfile.txt"), (result as HttpStatusCodeWithBodyResult).StatusDescription);
+                }
+            }
 
             [Fact]
             public async Task CreatePackageReturns400IfMinClientVersionIsTooHigh()
