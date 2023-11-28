@@ -553,28 +553,27 @@ namespace NuGetGallery
                 {
                     try
                     {
-                        if (ZipArchiveHelpers.FoundEntryInFuture(packageStream, out ZipArchiveEntry entryInTheFuture))
-                        {
-                            return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
-                                CultureInfo.CurrentCulture,
-                                Strings.PackageEntryFromTheFuture,
-                                entryInTheFuture.Name));
-                        }
+                        InvalidZipEntry anyInvalidZipEntry = ZipArchiveHelpers.ValidateArchiveEntries(packageStream, out ZipArchiveEntry invalidZipEntry);
 
-                        if (ZipArchiveHelpers.FoundDoubleForwardSlashesInPath(packageStream, out ZipArchiveEntry entryWithDoubleForwardSlashes))
+                        switch (anyInvalidZipEntry)
                         {
-                            return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
-                                CultureInfo.CurrentCulture,
-                                Strings.PackageEntryWithDoubleForwardSlash,
-                                entryWithDoubleForwardSlashes.Name));
-                        }
-
-                        if (ZipArchiveHelpers.FoundDoubleBackwardSlashesInPath(packageStream, out ZipArchiveEntry entryWithDoubleBackwardSlashes))
-                        {
-                            return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
-                                CultureInfo.CurrentCulture,
-                                Strings.PackageEntryWithDoubleBackSlash,
-                                entryWithDoubleBackwardSlashes.Name));
+                            case InvalidZipEntry.InFuture:
+                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
+                                    CultureInfo.CurrentCulture,
+                                    Strings.PackageEntryFromTheFuture,
+                                    invalidZipEntry.Name));
+                            case InvalidZipEntry.DoubleForwardSlashesInPath:
+                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
+                                    CultureInfo.CurrentCulture,
+                                    Strings.PackageEntryWithDoubleForwardSlash,
+                                    invalidZipEntry.Name));
+                            case InvalidZipEntry.DoubleBackwardSlashesInPath:
+                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
+                                    CultureInfo.CurrentCulture,
+                                    Strings.PackageEntryWithDoubleBackSlash,
+                                    invalidZipEntry.Name));
+                            default:
+                                break;
                         }
                     }
                     catch (Exception ex)

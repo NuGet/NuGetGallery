@@ -1261,9 +1261,9 @@ The {1} Team</value>
     <value>[{0}] API Key '{1}' Revoked</value>
   </data>
   <data name="PackageEntryWithDoubleBackSlash" xml:space="preserve">
-    <value>The package is invalid and cannot be uploaded. One or more files, such as '{0}' have a  double back slashes in path.</value>
+    <value>The package is invalid and cannot be uploaded. The package entry for '{0}' has a  double back slashes in path.</value>
   </data>
   <data name="PackageEntryWithDoubleForwardSlash" xml:space="preserve">
-    <value>The package is invalid and cannot be uploaded. One or more files, such as '{0}' have a  double forward slashes in path.</value>
+    <value>The package is invalid and cannot be uploaded. The package entry for '{0}' has a  double forward slashes in path.</value>
   </data>
 </root>

@@ -64,28 +64,27 @@ namespace NuGetGallery
 
             try
             {
-                if (ZipArchiveHelpers.FoundEntryInFuture(symbolPackageStream, out ZipArchiveEntry entryInTheFuture))
-                {
-                    return SymbolPackageValidationResult.Invalid(string.Format(
-                        CultureInfo.CurrentCulture,
-                        Strings.PackageEntryFromTheFuture,
-                        entryInTheFuture.Name));
-                }
+                InvalidZipEntry anyInvalidZipEntry = ZipArchiveHelpers.ValidateArchiveEntries(symbolPackageStream, out ZipArchiveEntry invalidZipEntry);
 
-                if (ZipArchiveHelpers.FoundDoubleForwardSlashesInPath(symbolPackageStream, out ZipArchiveEntry entryWithDoubleForwardSlashes))
+                switch (anyInvalidZipEntry)
                 {
-                    return SymbolPackageValidationResult.Invalid(string.Format(
-                           CultureInfo.CurrentCulture,
-                           Strings.PackageEntryWithDoubleForwardSlash,
-                           entryWithDoubleForwardSlashes.Name));
-                }
-
-                if (ZipArchiveHelpers.FoundDoubleBackwardSlashesInPath(symbolPackageStream, out ZipArchiveEntry entryWithDoubleBackwardSlashes))
-                {
-                    return SymbolPackageValidationResult.Invalid(string.Format(
-                           CultureInfo.CurrentCulture,
-                           Strings.PackageEntryWithDoubleBackSlash,
-                           entryWithDoubleBackwardSlashes.Name));
+                    case InvalidZipEntry.InFuture:
+                        return SymbolPackageValidationResult.Invalid(string.Format(
+                            CultureInfo.CurrentCulture,
+                            Strings.PackageEntryFromTheFuture,
+                            invalidZipEntry.Name));
+                    case InvalidZipEntry.DoubleForwardSlashesInPath:
+                        return SymbolPackageValidationResult.Invalid(string.Format(
+                            CultureInfo.CurrentCulture,
+                            Strings.PackageEntryWithDoubleForwardSlash,
+                            invalidZipEntry.Name));
+                    case InvalidZipEntry.DoubleBackwardSlashesInPath:
+                        return SymbolPackageValidationResult.Invalid(string.Format(
+                            CultureInfo.CurrentCulture,
+                            Strings.PackageEntryWithDoubleBackSlash,
+                            invalidZipEntry.Name));
+                    default:
+                        break;
                 }
 
                 using (var packageToPush = new PackageArchiveReader(symbolPackageStream, leaveStreamOpen: true))

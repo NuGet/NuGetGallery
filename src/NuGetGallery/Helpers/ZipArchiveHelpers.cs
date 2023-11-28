@@ -12,13 +12,13 @@ namespace NuGetGallery
     {
         /// <summary>
         /// This method checks all the <see cref="ZipArchiveEntry"/> in a given 
-        /// <see cref="Stream"/> if it has the entry in the future. It will return
-        /// the first entry found in the future.
+        /// <see cref="Stream"/> if it has an entry with a future datetime or a double slash in the path, 
+        /// it will return the first entry found in the future or with a double slash in the path.
         /// </summary>
         /// <param name="stream"><see cref="Stream"/> object to verify</param>
         /// <param name="entry"><see cref="ZipArchiveEntry"/> found with future entry.</param>
         /// <returns>True if <see cref="Stream"/> contains an entry in future, false otherwise.</returns>
-        public static bool FoundEntryInFuture(Stream stream, out ZipArchiveEntry entry)
+        public static InvalidZipEntry ValidateArchiveEntries(Stream stream, out ZipArchiveEntry entry)
         {
             entry = null;
 
@@ -32,49 +32,29 @@ namespace NuGetGallery
                 if (entryInTheFuture != null)
                 {
                     entry = entryInTheFuture;
-                    return true;
+                    return InvalidZipEntry.InFuture;
                 }
-            }
 
-            return false;
-        }
-
-        public static bool FoundDoubleForwardSlashesInPath(Stream stream, out ZipArchiveEntry entry)
-        {
-            entry = null;
-
-            using (var archive = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true))
-            {
                 var entryWithDoubleForwardSlash = archive.Entries.FirstOrDefault(
                     e => e.FullName.Contains("//"));
 
                 if (entryWithDoubleForwardSlash != null)
                 {
                     entry = entryWithDoubleForwardSlash;
-                    return true;
+                    return InvalidZipEntry.DoubleForwardSlashesInPath;
                 }
-            }
 
-            return false;
-        }
-
-        public static bool FoundDoubleBackwardSlashesInPath(Stream stream, out ZipArchiveEntry entry)
-        {
-            entry = null;
-
-            using (var archive = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true))
-            {
                 var entryWithDoubleBackSlash = archive.Entries.FirstOrDefault(
                     e => e.FullName.Contains("\\\\"));
 
                 if (entryWithDoubleBackSlash != null)
                 {
                     entry = entryWithDoubleBackSlash;
-                    return true;
+                    return InvalidZipEntry.DoubleBackwardSlashesInPath;
                 }
             }
 
-            return false;
+            return InvalidZipEntry.None;
         }
     }
 }
