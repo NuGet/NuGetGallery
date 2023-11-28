@@ -29,9 +29,20 @@ namespace NuGetGallery.Frameworks
                     continue;
                 }
 
-                if (CompatibilityMatrix.TryGetValue(packageFramework, out var compatibleFrameworks))
+                var normalizedPackageFramework = packageFramework;
+                if ((packageFramework.Platform != string.Empty) && (packageFramework.PlatformVersion != FrameworkConstants.EmptyVersion))
+                {
+                    normalizedPackageFramework = new NuGetFramework(packageFramework.Framework,
+                                                                    packageFramework.Version,
+                                                                    packageFramework.Platform,
+                                                                    FrameworkConstants.EmptyVersion);
+                }
+
+                if (CompatibilityMatrix.TryGetValue(normalizedPackageFramework, out var compatibleFrameworks))
                 {
                     allCompatibleFrameworks.UnionWith(compatibleFrameworks);
+                    allCompatibleFrameworks.Add(packageFramework); // If the TFM has a platform version, then only the normalized TFM gets added with the above step,
+                                                                   // and we need to add the original TFM separately. 
                 }
                 else
                 {
