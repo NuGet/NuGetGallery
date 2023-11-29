@@ -92,26 +92,69 @@ namespace NuGetGallery.Frameworks
         }
 
         [Theory]
+        [InlineData("net5.0", "net5.0", "net6.0", "net7.0", "net5.0-windows")]
+        [InlineData("net6.0", "net6.0", "net7.0", "net6.0-android")]
+        [InlineData("net6.0-windows", "net7.0-windows")]
+        [InlineData("net462", "net472", "net481")]
+        [InlineData("netstandard2.1", "net6.0", "net6.0-windows", "netcoreapp3.1", "tizen60")]
+        [InlineData("netcoreapp3.0", "netcoreapp3.1", "net5.0", "net7.0-windows")]
+        public void ContainsExpectedComputedFrameworks(string assetFramework, params string[] computedFrameworks)
+        {
+            // Arrange
+            var packageFramework = NuGetFramework.Parse(assetFramework);
+
+            var expectedFrameworks = new List<NuGetFramework>();
+
+            foreach (var frameworkName in computedFrameworks)
+            {
+                expectedFrameworks.Add(NuGetFramework.Parse(frameworkName));
+            }
+
+            // Act
+            var compatibleFrameworks = FrameworkCompatibilityService.GetCompatibleFrameworks(new List<NuGetFramework>() { packageFramework });
+
+            // Assert
+            Assert.True(compatibleFrameworks.Count > 0);
+
+            // check that the list of computed TFMs contains all the specified TFMs
+            var containsAllCompatibleFrameworks = expectedFrameworks.All(f => compatibleFrameworks.Contains(f));
+            Assert.True(containsAllCompatibleFrameworks);
+
+            // check that every computed TFM included is compatible with the asset TFM
+            foreach (var compatibleFramework in compatibleFrameworks)
+            {
+                var isCompatible = CompatibilityProvider.IsCompatible(compatibleFramework, packageFramework);
+                Assert.True(isCompatible);
+            }
+        }
+
+        [Theory]
         [InlineData("net6.0-windows", "net6.0-windows", "net7.0-windows", "net8.0-windows")]
         [InlineData("net6.0-windows7.0", "net6.0-windows7.0", "net7.0-windows7.0", "net8.0-windows7.0")]
         [InlineData("net7.0-windows", "net7.0-windows", "net8.0-windows")]
         [InlineData("net7.0-windows7.0", "net7.0-windows7.0", "net8.0-windows7.0")]
+        [InlineData("net5.0-windows", "net5.0-windows", "net6.0-windows", "net7.0-windows", "net8.0-windows")]
+        [InlineData("net5.0-windows7.0", "net5.0-windows7.0", "net6.0-windows7.0", "net7.0-windows7.0", "net8.0-windows7.0")]
         [InlineData("net6.0-ios", "net6.0-ios", "net7.0-ios", "net8.0-ios")]
         [InlineData("net6.0-ios15.0", "net6.0-ios15.0", "net7.0-ios15.0", "net8.0-ios15.0")]
         [InlineData("net6.0-android", "net6.0-android", "net7.0-android", "net8.0-android")]
         [InlineData("net6.0-android31.0", "net6.0-android31.0", "net7.0-android31.0", "net8.0-android31.0")]
         [InlineData("net6.0-windows26.0", "net6.0-windows26.0", "net7.0-windows26.0", "net8.0-windows26.0")]
-        public void WindowsPlatformVersionsShouldContainAllSpecifiedFrameworks(string windowsDefaultVersionFramework, params string[]  windowsProjectFrameworks) 
+        public void PlatformVersionsShouldContainAllSpecifiedFrameworks(string platformVersionFramework, params string[] expectedFrameworks) 
         {
-            var packageFramework = NuGetFramework.Parse(windowsDefaultVersionFramework);
+            // Arrange
+            var packageFramework = NuGetFramework.Parse(platformVersionFramework);
             var projectFrameworks = new HashSet<NuGetFramework>();
 
-            foreach (var frameworkName in windowsProjectFrameworks) {
+            foreach (var frameworkName in expectedFrameworks) {
                 projectFrameworks.Add(NuGetFramework.Parse(frameworkName));
             }
 
+            // Act
             var compatibleFrameworks = FrameworkCompatibilityService.GetCompatibleFrameworks(new HashSet<NuGetFramework>() { packageFramework });
-            Assert.Equal(windowsProjectFrameworks.Length, compatibleFrameworks.Count);
+
+            // Assert
+            Assert.Equal(expectedFrameworks.Length, compatibleFrameworks.Count);
 
             var containsAllCompatibleFrameworks = compatibleFrameworks.All(cf => projectFrameworks.Contains(cf));
             Assert.True(containsAllCompatibleFrameworks);

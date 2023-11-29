@@ -33,7 +33,7 @@ namespace NuGetGallery.Frameworks
                 var normalizedPackageFramework = packageFramework;
                 bool hasPlatformVersion = false;
 
-                if ((packageFramework.Platform != string.Empty) && (packageFramework.PlatformVersion != FrameworkConstants.EmptyVersion))
+                if (!string.IsNullOrEmpty(packageFramework.Platform) && (packageFramework.PlatformVersion != FrameworkConstants.EmptyVersion))
                 {
                     normalizedPackageFramework = new NuGetFramework(packageFramework.Framework,
                                                                     packageFramework.Version,
