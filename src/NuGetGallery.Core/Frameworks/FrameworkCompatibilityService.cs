@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NuGet.Frameworks;
 
 namespace NuGetGallery.Frameworks
@@ -30,19 +31,26 @@ namespace NuGetGallery.Frameworks
                 }
 
                 var normalizedPackageFramework = packageFramework;
+                bool hasPlatformVersion = false;
+
                 if ((packageFramework.Platform != string.Empty) && (packageFramework.PlatformVersion != FrameworkConstants.EmptyVersion))
                 {
                     normalizedPackageFramework = new NuGetFramework(packageFramework.Framework,
                                                                     packageFramework.Version,
                                                                     packageFramework.Platform,
                                                                     FrameworkConstants.EmptyVersion);
+
+                    hasPlatformVersion = true;
                 }
 
                 if (CompatibilityMatrix.TryGetValue(normalizedPackageFramework, out var compatibleFrameworks))
                 {
+                    if (hasPlatformVersion)
+                    {
+                        compatibleFrameworks = AddPlatformVersionToComputedTfms(compatibleFrameworks, packageFramework.PlatformVersion);
+                    }
+
                     allCompatibleFrameworks.UnionWith(compatibleFrameworks);
-                    allCompatibleFrameworks.Add(packageFramework); // If the TFM has a platform version, then only the normalized TFM gets added with the above step,
-                                                                   // and we need to add the original TFM separately. 
                 }
                 else
                 {
@@ -72,14 +80,14 @@ namespace NuGetGallery.Frameworks
                 }
             }
 
-            /*
-            matrix.Add(SupportedFrameworks.Net60Windows7, 
-                new HashSet<NuGetFramework>() {
-                    SupportedFrameworks.Net60Windows, SupportedFrameworks.Net60Windows7,
-                    SupportedFrameworks.Net70Windows, SupportedFrameworks.Net70Windows7 });
-            */
-
             return matrix;
+        }
+
+        private static ISet<NuGetFramework> AddPlatformVersionToComputedTfms(ISet<NuGetFramework> computedTfms, Version platformVersion)
+        {
+            return computedTfms
+                        .Select(tfm => new NuGetFramework(tfm.Framework, tfm.Version, tfm.Platform, platformVersion))
+                        .ToHashSet();
         }
     }
 }
