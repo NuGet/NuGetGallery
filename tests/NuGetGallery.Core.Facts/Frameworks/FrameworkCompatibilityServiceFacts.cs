@@ -98,8 +98,9 @@ namespace NuGetGallery.Frameworks
         [InlineData("net7.0-windows7.0", "net7.0-windows7.0", "net8.0-windows7.0")]
         [InlineData("net6.0-ios", "net6.0-ios", "net7.0-ios", "net8.0-ios")]
         [InlineData("net6.0-ios15.0", "net6.0-ios15.0", "net7.0-ios15.0", "net8.0-ios15.0")]
+        [InlineData("net6.0-android", "net6.0-android", "net7.0-android", "net8.0-android")]
         [InlineData("net6.0-android31.0", "net6.0-android31.0", "net7.0-android31.0", "net8.0-android31.0")]
-        [InlineData("net6.0-windows10.0", "net6.0-windows10.0", "net7.0-windows10.0", "net8.0-windows10.0")]
+        [InlineData("net6.0-windows26.0", "net6.0-windows26.0", "net7.0-windows26.0", "net8.0-windows26.0")]
         public void WindowsPlatformVersionsShouldContainAllSpecifiedFrameworks(string windowsDefaultVersionFramework, params string[]  windowsProjectFrameworks) 
         {
             var packageFramework = NuGetFramework.Parse(windowsDefaultVersionFramework);
