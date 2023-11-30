@@ -27,7 +27,7 @@ namespace GitHubVulnerabilities2v3
     public class Job : JsonConfigurationJob, IDisposable
     {
         private readonly HttpClient _client = new HttpClient();
-        private readonly ProductInfoHeaderValue _userAgent = new ProductInfoHeaderValue("NuGet.Jobs.GitHubVulnerabilities2v3");
+        private readonly ProductInfoHeaderValue _userAgent = new ProductInfoHeaderValue("NuGet.Jobs.GitHubVulnerabilities2v3", "1.0.0");
 
         public override async Task Run()
         {
