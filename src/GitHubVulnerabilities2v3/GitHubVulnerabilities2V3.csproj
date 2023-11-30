@@ -49,7 +49,6 @@
     <Compile Include="Entities\IndexEntry.cs" />
     <Compile Include="Extensions\BlobStorageVulnerabilityWriter.cs" />
     <Compile Include="Extensions\RunMode.cs" />
-    <Compile Include="Extensions\RunModeException.cs" />
     <Compile Include="Job.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

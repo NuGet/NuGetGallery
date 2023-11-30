@@ -3,6 +3,7 @@
 
 using System;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
@@ -26,6 +27,7 @@ namespace GitHubVulnerabilities2v3
     public class Job : JsonConfigurationJob, IDisposable
     {
         private readonly HttpClient _client = new HttpClient();
+        private readonly ProductInfoHeaderValue _userAgent = new ProductInfoHeaderValue("NuGet.Jobs.GitHubVulnerabilities2v3");
 
         public override async Task Run()
         {
@@ -38,7 +40,7 @@ namespace GitHubVulnerabilities2v3
         private async Task SetRunMode(ReadWriteCursor<DateTimeOffset> cursor)
         {
             await cursor.Load(CancellationToken.None);
-            if (DateTimeOffset.Compare(cursor.Value.AddDays(30), DateTimeOffset.Now) <= 0)
+            if (DateTimeOffset.Compare(cursor.Value.AddDays(30), DateTimeOffset.UtcNow) <= 0)
             {
                 cursor.Value = DateTimeOffset.FromUnixTimeSeconds(0);
             }
@@ -88,6 +90,7 @@ namespace GitHubVulnerabilities2v3
 
         protected void ConfigureQueryServices(ContainerBuilder containerBuilder)
         {
+            _client.DefaultRequestHeaders.UserAgent.Add(_userAgent);
             containerBuilder
                 .RegisterInstance(_client)
                 .As<HttpClient>()

@@ -10,7 +10,7 @@ namespace GitHubVulnerabilities2v3.Entities
     {
 
         [JsonProperty(PropertyName = "url")]
-        public Uri Url { get; set; }
+        public string Url { get; set; }
 
         [JsonProperty(PropertyName = "severity")]
         public int Severity { get; set; }

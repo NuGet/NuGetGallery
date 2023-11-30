@@ -21,7 +21,7 @@ namespace GitHubVulnerabilities2v3.Configuration
         /// <summary>
         /// Service Index Root
         /// </summary>
-        public string V3IndexUrl { get; set; } = "https://api.nuget.org/";
+        public string V3BaseUrl { get; set; } = "https://api.nuget.org/";
 
         /// <summary>
         /// The name of the blob to save the job's advisories cursor in.

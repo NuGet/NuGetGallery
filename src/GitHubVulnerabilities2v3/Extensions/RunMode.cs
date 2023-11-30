@@ -5,8 +5,8 @@ namespace GitHubVulnerabilities2v3.Extensions
 {
     public enum RunMode
     {
+        None,
         Regenerate,
-        Update,
-        None
+        Update
     }
 }
