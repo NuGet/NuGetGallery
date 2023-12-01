@@ -1,12 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
 using System.Threading.Tasks;
-using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
@@ -18,6 +13,7 @@ namespace NuGetGallery
         /// <summary>
         /// The function is used to check whether the uploaded package is a typo-squatting package.
         /// </summary>
+        /// <param name="typosquattingCheckInfo"> The package ID with the owner and typo-squatting collision check parameters</param>
         Task<TyposquattingCheckResult> IsUploadedPackageIdTyposquattingAsync(TyposquattingCheckInfo typosquattingCheckInfo);
     }
 }

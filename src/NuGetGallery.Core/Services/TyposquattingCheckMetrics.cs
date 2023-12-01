@@ -3,6 +3,9 @@
 
 namespace NuGetGallery
 {
+    /// <summary>
+    /// This enum is used to track the metrics for the typo-squatting check.
+    /// </summary>
     public enum TyposquattingCheckMetrics
     {
         TrackMetricForTyposquattingChecklistRetrievalTime,

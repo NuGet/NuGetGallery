@@ -6,7 +6,10 @@ using System.Collections.Generic;
 
 namespace NuGetGallery
 {
-    public class TyposquattingCheckResultAndTotalTimeMetricData
+    /// <summary>
+    /// Used for TyposquattingCheck service return metric without adding a dependency on the telemetry service.
+    /// </summary>
+    public class TyposquattingCheckMetricData
     {
         public TimeSpan TotalTime { get; set; }
         public bool WasUploadBlocked { get; set; }

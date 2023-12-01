@@ -7,9 +7,12 @@ using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
+    /// <summary>
+    /// This class is for passing the package ID with the owner and typo-squatting collision check parameters to ITyposquattingService.  
+    /// </summary>
     public class TyposquattingCheckInfo
     {
-        public string UploadedPackageId { get; } // The package ID of the uploaded package. We check the pacakge ID with the packages in the gallery for typo-squatting issue
+        public string UploadedPackageId { get; } // The package ID of the uploaded package. We check the package ID with the packages in the gallery for typo-squatting issue
         public User UploadedPackageOwner { get; } //The package owner of the uploaded package.
         public IQueryable<PackageRegistration> AllPackageRegistrations { get; }
         public int CheckListConfiguredLength { get; }

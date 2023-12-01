@@ -646,8 +646,6 @@
     <Compile Include="Services\PackageValidationResult.cs" />
     <Compile Include="Services\PackageValidationResultType.cs" />
     <Compile Include="Services\ReadMeService.cs" />
-    <Compile Include="Services\TyposquattingDistanceCalculation.cs" />
-    <Compile Include="Services\TyposquattingStringNormalization.cs" />
     <Compile Include="Services\UpdateDeprecationError.cs" />
     <Compile Include="Services\ValidationService.cs" />
     <Compile Include="Strings.Designer.cs">
