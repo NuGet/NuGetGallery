@@ -6,14 +6,14 @@ namespace NuGetGallery.Migrations
     using System.Data.Entity.Migrations.Infrastructure;
     using System.Resources;
     
-    [GeneratedCode("EntityFramework.Migrations", "6.4.0-preview3-19553-01")]
+    [GeneratedCode("EntityFramework.Migrations", "6.4.4")]
     public sealed partial class AddGitHubFederatedTokens : IMigrationMetadata
     {
         private readonly ResourceManager Resources = new ResourceManager(typeof(AddGitHubFederatedTokens));
         
         string IMigrationMetadata.Id
         {
-            get { return "202112170037466_AddGitHubFederatedTokens"; }
+            get { return "202312021943573_AddGitHubFederatedTokens"; }
         }
         
         string IMigrationMetadata.Source

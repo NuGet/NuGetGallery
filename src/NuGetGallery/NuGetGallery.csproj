@@ -331,9 +331,6 @@
     <Compile Include="Migrations\202104062157118_AddVersionSpecificId.designer.cs">
       <DependentUpon>202104062157118_AddVersionSpecificId.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202112170037466_AddGitHubFederatedTokens.cs" />
-    <Compile Include="Migrations\202112170037466_AddGitHubFederatedTokens.designer.cs">
-      <DependentUpon>202112170037466_AddGitHubFederatedTokens.cs</DependentUpon>
     <Compile Include="Migrations\202201242159337_AddUserStatusKeyColumn.cs" />
     <Compile Include="Migrations\202201242159337_AddUserStatusKeyColumn.designer.cs">
       <DependentUpon>202201242159337_AddUserStatusKeyColumn.cs</DependentUpon>
@@ -345,6 +342,10 @@
     <Compile Include="Migrations\202205300006043_Int64PackageDownloadCount.cs" />
     <Compile Include="Migrations\202205300006043_Int64PackageDownloadCount.designer.cs">
       <DependentUpon>202205300006043_Int64PackageDownloadCount.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202312021943573_AddGitHubFederatedTokens.cs" />
+    <Compile Include="Migrations\202312021943573_AddGitHubFederatedTokens.designer.cs">
+      <DependentUpon>202312021943573_AddGitHubFederatedTokens.cs</DependentUpon>
     </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
@@ -1686,8 +1687,6 @@
     <EmbeddedResource Include="Migrations\202104062157118_AddVersionSpecificId.resx">
       <DependentUpon>202104062157118_AddVersionSpecificId.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202112170037466_AddGitHubFederatedTokens.resx">
-      <DependentUpon>202112170037466_AddGitHubFederatedTokens.cs</DependentUpon>
     <EmbeddedResource Include="Migrations\202201242159337_AddUserStatusKeyColumn.resx">
       <DependentUpon>202201242159337_AddUserStatusKeyColumn.cs</DependentUpon>
     </EmbeddedResource>
@@ -1696,6 +1695,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202205300006043_Int64PackageDownloadCount.resx">
       <DependentUpon>202205300006043_Int64PackageDownloadCount.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202312021943573_AddGitHubFederatedTokens.resx">
+      <DependentUpon>202312021943573_AddGitHubFederatedTokens.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
@@ -2322,7 +2324,6 @@
     <Content Include="Areas\Admin\Views\UpdateListed\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Properties\PublishProfiles\jveroidc - Web Deploy.pubxml" />
     <Content Include="Areas\Admin\Views\PackageOwnership\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
