@@ -2043,8 +2043,6 @@ namespace NuGetGallery
             {
                 _isNewPackageRegistration = true;
                 var _typosquattingCheckCollisionIds = new List<string> { "typosquatting_package_Id" };
-                _featureFlagService.Setup(x => x.IsTyposquattingEnabled())
-                    .Returns(true);
                 _reservedNamespaceService.Setup(x => x.GetReservedNamespacesForId(It.IsAny<string>()))
                     .Returns(new ReservedNamespace[] { });
                 _typosquattingService
