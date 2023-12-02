@@ -3,7 +3,6 @@
 
 using System;
 using NuGet.Services.Entities;
-using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {

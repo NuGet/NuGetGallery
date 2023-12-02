@@ -3,14 +3,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Moq;
 using NuGet.Services.Entities;
-using NuGet.Services.Messaging.Email;
 using NuGetGallery.Framework;
-using NuGetGallery.Infrastructure.Mail.Messages;
 using Xunit;
 
 namespace NuGetGallery.Controllers
@@ -371,6 +370,63 @@ namespace NuGetGallery.Controllers
                             Assert.Equal(Strings.AddOwner_NameIsEmail, data.message);
                         }
 
+                        [Fact]
+                        public async Task FailsIfCurrentUserIsLocked()
+                        {
+                            // Arrange
+                            var fakes = Get<Fakes>();
+                            var currentUser = fakes.User;
+                            currentUser.UserStatusKey = UserStatus.Locked;
+                            var usernameToAdd = fakes.Owner.Username;
+                            var package = fakes.Package;
+                            var controller = GetController<JsonApiController>();
+                            controller.SetCurrentUser(currentUser);
+                            AddPackageOwnerViewModel testData = new AddPackageOwnerViewModel
+                            {
+                                Id = package.Id,
+                                Username = usernameToAdd,
+                                Message = "a message"
+                            };
+
+                            // Act
+                            var result = await controller.AddPackageOwner(testData);
+                            dynamic data = result.Data;
+
+                            // Assert
+                            Assert.False(data.success);
+                            Assert.Equal(ServicesStrings.UserAccountIsLocked, data.message);
+                            GetMock<IPackageOwnershipManagementService>().VerifyNoOtherCalls();
+                        }
+
+                        [Fact]
+                        public async Task FailsIfAddedUserIsLocked()
+                        {
+                            // Arrange
+                            var fakes = Get<Fakes>();
+                            var userToAdd = fakes.User;
+                            userToAdd.UserStatusKey = UserStatus.Locked;
+                            var package = fakes.Package;
+                            var controller = GetController<JsonApiController>();
+                            controller.SetCurrentUser(fakes.Owner);
+                            AddPackageOwnerViewModel testData = new AddPackageOwnerViewModel
+                            {
+                                Id = package.Id,
+                                Username = userToAdd.Username,
+                                Message = "a message"
+                            };
+
+                            // Act
+                            var result = await controller.AddPackageOwner(testData);
+                            dynamic data = result.Data;
+
+                            // Assert
+                            Assert.False(data.success);
+                            Assert.Equal(
+                                string.Format(CultureInfo.CurrentCulture, ServicesStrings.SpecificAccountIsLocked, userToAdd.Username),
+                                data.message);
+                            GetMock<IPackageOwnershipManagementService>().VerifyNoOtherCalls();
+                        }
+
                         [Theory]
                         [MemberData(nameof(AllCanManagePackageOwnersPairedWithCanBeAdded_Data))]
                         public async Task CreatesPackageOwnerRequestSendsEmailAndReturnsPendingState(Func<Fakes, User> getCurrentUser, Func<Fakes, User> getUserToAdd)
@@ -573,7 +629,7 @@ namespace NuGetGallery.Controllers
 
                         packageOwnershipManagementService
                             .Verify(
-                                x => x.RemovePackageOwnerWithMessagesAsync(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>()),
+                                x => x.RemovePackageOwnerWithMessagesAsync(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>(), true),
                                 Times.Never);
                     }
 
@@ -602,7 +658,7 @@ namespace NuGetGallery.Controllers
                         // Assert
                         Assert.True(data.success);
 
-                        packageOwnershipManagementService.Verify(x => x.RemovePackageOwnerWithMessagesAsync(package, currentUser, userToRemove));
+                        packageOwnershipManagementService.Verify(x => x.RemovePackageOwnerWithMessagesAsync(package, currentUser, userToRemove, true));
                     }
                 }
 

@@ -3,7 +3,9 @@
 
 using NuGet.Services.Entities;
 using NuGetGallery.Authentication;
+using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
+using NuGetGallery.Login;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -323,7 +325,7 @@ namespace NuGetGallery.Services
                 var config = CreateConfiguration(data);
 
                 // Act
-                var isOnWhiteList = config.IsUserOnWhitelist(_user);
+                var isOnWhiteList = config.IsUserInAllowList(_user);
                 var shouldTransformIntoOrganization = config.ShouldUserTransformIntoOrganization(_user);
                 var isOnTenantPairList = config.IsTenantIdPolicySupportedForOrganization(_email, _tenant);
 
@@ -341,7 +343,7 @@ namespace NuGetGallery.Services
                 var config = CreateConfiguration(data);
 
                 // Act
-                var isOnWhiteList = config.IsUserOnWhitelist(null);
+                var isOnWhiteList = config.IsUserInAllowList(null);
                 var shouldTransformIntoOrganization = config.ShouldUserTransformIntoOrganization(null);
 
                 // Assert
@@ -360,6 +362,47 @@ namespace NuGetGallery.Services
                         Assert.Throws<ArgumentException>(() => config.IsTenantIdPolicySupportedForOrganization(orgEmail, orgTenant));
                     }
                 }
+            }
+        }
+
+        public class TheIsEmailOnExceptionsForEmailAddressMethod
+        {
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public void NullUserReturnsFalse(bool isOnExceptionList)
+            {
+                var config = CreateConfiguration(
+                    isOnWhiteList: false,
+                    isOnDomainList: false,
+                    isOnExceptionList: isOnExceptionList,
+                    isOnTransformList: false,
+                    isOnTenantPairList: false,
+                    isWrongCase: false,
+                    isPasswordDiscontinuedForAll: false);
+
+                var result = config.IsEmailInExceptionsList(null);
+
+                Assert.False(result);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public void ValidUserReturnsIfEmailIsOnExceptionList(bool isOnExceptionList)
+            {
+                var config = CreateConfiguration(
+                    isOnWhiteList: false,
+                    isOnDomainList: false,
+                    isOnExceptionList: isOnExceptionList,
+                    isOnTransformList: false,
+                    isOnTenantPairList: false,
+                    isWrongCase: false,
+                    isPasswordDiscontinuedForAll: false);
+
+                var result = config.IsEmailInExceptionsList(_email);
+
+                Assert.Equal(isOnExceptionList, result);
             }
         }
     }

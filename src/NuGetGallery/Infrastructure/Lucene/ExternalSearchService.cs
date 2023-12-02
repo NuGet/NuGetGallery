@@ -10,6 +10,7 @@ using Newtonsoft.Json.Linq;
 using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
+using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure.Lucene;
 
 namespace NuGetGallery.Infrastructure.Search
@@ -25,7 +26,7 @@ namespace NuGetGallery.Infrastructure.Search
 
         public string IndexPath
         {
-            get { return string.Empty ; }
+            get { return string.Empty; }
         }
 
         public bool IsLocal
@@ -61,6 +62,8 @@ namespace NuGetGallery.Infrastructure.Search
                 filter.SearchTerm,
                 projectTypeFilter: null,
                 includePrerelease: filter.IncludePrerelease,
+                frameworks: filter.Frameworks,
+                tfms: filter.Tfms,
                 packageType: filter.PackageType,
                 sortBy: filter.SortOrder,
                 skip: filter.Skip,
@@ -80,7 +83,7 @@ namespace NuGetGallery.Infrastructure.Search
                 if (content == null)
                 {
                     results = new SearchResults(0, null, Enumerable.Empty<Package>().AsQueryable());
-                } 
+                }
                 else if (filter.CountOnly || content.TotalHits == 0)
                 {
                     results = new SearchResults(content.TotalHits, content.IndexTimestamp);
@@ -173,11 +176,11 @@ namespace NuGetGallery.Infrastructure.Search
                 doc.Value<JArray>("Dependencies")
                    .Cast<JObject>()
                    .Select(obj => new PackageDependency()
-                    {
-                        Id = obj.Value<string>("Id"),
-                        VersionSpec = obj.Value<string>("VersionSpec"),
-                        TargetFramework = obj.Value<string>("TargetFramework")
-                    })
+                   {
+                       Id = obj.Value<string>("Id"),
+                       VersionSpec = obj.Value<string>("VersionSpec"),
+                       TargetFramework = obj.Value<string>("TargetFramework")
+                   })
                    .ToArray();
 
             var frameworks =
@@ -187,13 +190,15 @@ namespace NuGetGallery.Infrastructure.Search
 
             var reg = doc["PackageRegistration"];
             PackageRegistration registration = null;
-            if(reg != null) {
-                registration = new PackageRegistration() {
+            if (reg != null)
+            {
+                registration = new PackageRegistration()
+                {
                     Id = reg.Value<string>("Id"),
                     Owners = reg.Value<JArray>("Owners")
                        .Select(v => new User { Username = v.Value<string>() })
                        .ToArray(),
-                    DownloadCount = reg.Value<int>("DownloadCount"),
+                    DownloadCount = reg.Value<long>("DownloadCount"),
                     IsVerified = reg.Value<bool>("Verified"),
                     Key = reg.Value<int>("Key")
                 };
@@ -203,13 +208,19 @@ namespace NuGetGallery.Infrastructure.Search
             var isLatestStable = doc.Value<bool>("IsLatestStable");
             var semVer2 = SemVerLevelKey.ForSemVerLevel(semVerLevel) == SemVerLevelKey.SemVer2;
 
+            var docDeprecation = doc["Deprecation"];
+            var deprecations = SearchResponseHelper.GetDeprecationsOrNull(docDeprecation);
+
+            var docVulnerabilities = doc.Value<JArray>("Vulnerabilities");
+            var vulnerabilities = SearchResponseHelper.GetVulnerabilities(docVulnerabilities);
+
             return new Package
             {
                 Copyright = doc.Value<string>("Copyright"),
                 Created = doc.Value<DateTime>("Created"),
                 Description = doc.Value<string>("Description"),
                 Dependencies = dependencies,
-                DownloadCount = doc.Value<int>("DownloadCount"),
+                DownloadCount = doc.Value<long>("DownloadCount"),
                 FlattenedAuthors = doc.Value<string>("Authors"),
                 FlattenedDependencies = doc.Value<string>("FlattenedDependencies"),
                 Hash = doc.Value<string>("Hash"),
@@ -241,7 +252,9 @@ namespace NuGetGallery.Infrastructure.Search
                 LicenseNames = doc.Value<string>("LicenseNames"),
                 LicenseReportUrl = doc.Value<string>("LicenseReportUrl"),
                 HideLicenseReport = doc.Value<bool>("HideLicenseReport"),
-                Listed = doc.Value<bool>("Listed")
+                Listed = doc.Value<bool>("Listed"),
+                Deprecations = deprecations,
+                VulnerablePackageRanges = vulnerabilities
             };
         }
 

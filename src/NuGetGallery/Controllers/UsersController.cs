@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net;
@@ -71,7 +70,8 @@ namespace NuGetGallery
                   messageServiceConfiguration,
                   deleteAccountService,
                   iconUrlProvider,
-                  gravatarProxy)
+                  gravatarProxy,
+                  featureFlagService)
         {
             _packageOwnerRequestService = packageOwnerRequestService ?? throw new ArgumentNullException(nameof(packageOwnerRequestService));
             _config = config ?? throw new ArgumentNullException(nameof(config));
@@ -205,9 +205,9 @@ namespace NuGetGallery
                 _config,
                 accountToTransform,
                 adminUser,
-                profileUrl: Url.User(accountToTransform, relativeUrl: false),
-                confirmationUrl: Url.ConfirmTransformAccount(accountToTransform, relativeUrl: false),
-                rejectionUrl: Url.RejectTransformAccount(accountToTransform, relativeUrl: false));
+                profileUrl: Url.User(accountToTransform, relativeUrl: false, supportEmail: true),
+                confirmationUrl: Url.ConfirmTransformAccount(accountToTransform, relativeUrl: false, supportEmail: true),
+                rejectionUrl: Url.RejectTransformAccount(accountToTransform, relativeUrl: false, supportEmail: true));
             await MessageService.SendMessageAsync(organizationTransformRequestMessage);
 
             var organizationTransformInitiatedMessage = new OrganizationTransformInitiatedMessage(
@@ -262,7 +262,7 @@ namespace NuGetGallery
             {
                 return TransformToOrganizationFailed(errorReason);
             }
-            
+
             if (accountToTransform.OrganizationMigrationRequest != null
                 && accountToTransform.OrganizationMigrationRequest.ConfirmationToken == token
                 && !accountToTransform.OrganizationMigrationRequest.AdminUser.MatchesUser(adminUser))
@@ -534,7 +534,7 @@ namespace NuGetGallery
 
             var listedPackages = GetPackages(packages, currentUser, wasAADLoginOrMultiFactorAuthenticated,
                 p => p.Listed && p.PackageStatusKey == PackageStatus.Available);
-            
+
             var unlistedPackages = GetPackages(packages, currentUser, wasAADLoginOrMultiFactorAuthenticated,
                 p => !p.Listed || p.PackageStatusKey != PackageStatus.Available);
 
@@ -623,7 +623,10 @@ namespace NuGetGallery
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[GalleryConstants.ReturnUrlViewDataKey] = null;
 
-            return View();
+            var model = new ForgotPasswordViewModel();
+            model.IsPasswordLoginEnabled = _featureFlagService.IsNuGetAccountPasswordLoginEnabled();
+
+            return View(model);
         }
 
         [HttpPost]
@@ -631,6 +634,13 @@ namespace NuGetGallery
         [ValidateRecaptchaResponse]
         public virtual async Task<ActionResult> ForgotPassword(ForgotPasswordViewModel model)
         {
+            if(!_featureFlagService.IsNuGetAccountPasswordLoginEnabled() && !ContentObjectService.LoginDiscontinuationConfiguration.IsEmailInExceptionsList(model.Email))
+            {
+                ModelState.AddModelError(string.Empty, Strings.ForgotPassword_Disabled_Error);
+
+                return View(model);
+            }
+
             // We don't want Login to have us as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[GalleryConstants.ReturnUrlViewDataKey] = null;
@@ -809,6 +819,13 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> ChangeMultiFactorAuthentication(bool enableMultiFactor)
         {
             var user = GetCurrentUser();
+
+            if (user.IsLocked && enableMultiFactor == false)
+            {
+                TempData["ErrorMessage"] = ServicesStrings.UserAccountIsLocked;
+                return RedirectToAction(AccountAction);
+            }
+
             var referrer = OwinContext.Request?.Headers?.Get("Referer") ?? "Unknown";
 
             await UserService.ChangeMultiFactorAuthentication(user, enableMultiFactor, referrer);
@@ -887,6 +904,36 @@ namespace NuGetGallery
         [HttpPost]
         [UIAuthorize]
         [ValidateAntiForgeryToken]
+        public virtual async Task<JsonResult> RevokeApiKeyCredential(string credentialType, int? credentialKey)
+        {
+            var user = GetCurrentUser();
+
+            var cred = user.Credentials.SingleOrDefault(
+                c => string.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase)
+                    && CredentialKeyMatches(credentialKey, c));
+
+            if (cred == null)
+            {
+                Response.StatusCode = (int)HttpStatusCode.NotFound;
+                return Json(Strings.CredentialNotFound);
+            }
+
+            await AuthenticationService.RevokeApiKeyCredential(cred, CredentialRevocationSource.User);
+
+            var credViewModel = AuthenticationService.DescribeCredential(cred);
+
+            var emailMessage = new ApiKeyRevokedMessage(
+                _config,
+                user,
+                credViewModel.GetCredentialTypeInfo());
+            await MessageService.SendMessageAsync(emailMessage);
+
+            return Json(new ApiKeyViewModel(credViewModel));
+        }
+
+        [HttpPost]
+        [UIAuthorize]
+        [ValidateAntiForgeryToken]
         public virtual ActionResult LinkOrChangeExternalCredential()
         {
             return Redirect(Url.AuthenticateExternal(Url.AccountSettings()));
@@ -898,6 +945,13 @@ namespace NuGetGallery
         public virtual async Task<JsonResult> RegenerateCredential(string credentialType, int? credentialKey)
         {
             var user = GetCurrentUser();
+
+            if (user.IsLocked)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(ServicesStrings.UserAccountIsLocked);
+            }
+
             var cred = user.Credentials.SingleOrDefault(
                 c => string.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase)
                     && CredentialKeyMatches(credentialKey, c));
@@ -996,6 +1050,13 @@ namespace NuGetGallery
                 return Json(Strings.ApiKeyOwnerRequired);
             }
 
+            var currentUser = GetCurrentUser();
+            if (currentUser.IsLocked)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(ServicesStrings.UserAccountIsLocked);
+            }
+
             // Get the owner scope
             User scopeOwner = UserService.FindByUsername(owner);
             if (scopeOwner == null)
@@ -1027,7 +1088,7 @@ namespace NuGetGallery
 
             var emailMessage = new CredentialAddedMessage(
                     _config,
-                    GetCurrentUser(),
+                    currentUser,
                     newCredentialViewModel.GetCredentialTypeInfo());
             await MessageService.SendMessageAsync(emailMessage);
 
@@ -1080,6 +1141,7 @@ namespace NuGetGallery
             var newCredential = _credentialBuilder.CreateApiKey(expiration, out string plaintextApiKey);
             newCredential.Description = description;
             newCredential.Scopes = scopes;
+            newCredential.WasCreatedSecurely = User.WasMultiFactorAuthenticated();
 
             await AuthenticationService.AddCredential(user, newCredential);
 
@@ -1272,7 +1334,8 @@ namespace NuGetGallery
                 user.Username,
                 user.PasswordResetToken,
                 forgotPassword,
-                relativeUrl: false);
+                relativeUrl: false,
+                supportEmail: true);
 
             var message = new PasswordResetInstructionsMessage(
                 MessageServiceConfiguration,

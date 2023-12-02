@@ -3,7 +3,6 @@
 
 using System;
 using System.Web.Http.OData.Query;
-using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery.OData.QueryFilter
 {

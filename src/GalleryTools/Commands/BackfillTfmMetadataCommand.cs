@@ -47,7 +47,7 @@ namespace GalleryTools.Commands
                     // See https://github.com/NuGet/NuGet.Client/blob/ba008e14611f4fa518c2d02ed78dfe5969e4a003/src/NuGet.Core/NuGet.Frameworks/FrameworkNameProvider.cs#L487                }
                     try
                     {
-                        var tfmToAdd = tfm.ToShortNameOrNull();
+                        var tfmToAdd = tfm.GetShortFolderName();
                         if (!string.IsNullOrEmpty(tfmToAdd))
                         {
                             supportedTFMs.Add(tfmToAdd);

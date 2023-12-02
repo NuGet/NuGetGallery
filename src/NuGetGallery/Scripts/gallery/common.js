@@ -305,7 +305,7 @@
             if (e) {
                 e.stopPropagation();
                 e.preventDefault();
-            }            
+            }
             return false;
         }
 
@@ -377,12 +377,10 @@
     nuget.addAjaxAntiForgeryToken = function (data) {
         var $tokenKey = "__RequestVerificationToken";
         var $field = $("#AntiForgeryForm input[name=__RequestVerificationToken]");
-        if (data instanceof FormData)
-        {
+        if (data instanceof FormData) {
             data.append($tokenKey, $field.val());
         }
-        else
-        {
+        else {
             data["__RequestVerificationToken"] = $field.val();
         }
         return data;
@@ -463,15 +461,70 @@
     };
 
     nuget.setPopovers = function () {
-        var popoverElement = $(this);
-        popoverElement.popover({ trigger: 'hover focus' });
-        popoverElement.click(function () {
-            popoverElement.popover('show');
-            setTimeout(function () {
-                    popoverElement.popover('destroy');
-                },
-                1000);
+        setPopoversInternal(this, rightWithVerticalFallback);
+    }
+
+    function rightWithVerticalFallback(popoverElement, ownerElement) {
+        // Both numbers below are in CSS pixels.
+        const MinSpaceOnRight = 150;
+        const MinSpaceOnTop = 100;
+
+        const ownerBoundingBox = ownerElement.getBoundingClientRect();
+        const spaceOnRight = window.innerWidth - ownerBoundingBox.right;
+        if (spaceOnRight > MinSpaceOnRight) {
+            return 'right';
+        }
+        const spaceOnTop = ownerBoundingBox.top;
+        if (spaceOnTop > MinSpaceOnTop) {
+            return 'top';
+        }
+
+        return 'bottom';
+    }
+
+    function setPopoversInternal(element, placement) {
+        var popoverElement = $(element);
+        var popoverElementDom = element;
+        var originalLabel = popoverElementDom.ariaLabel;
+        var popoverHideTimeMS = 2000;
+        var popoverFadeTimeMS = 200;
+
+        var popoverOptions = { trigger: 'hover', container: 'body' };
+        if (placement) {
+            popoverOptions.placement = placement;
+        }
+
+        popoverElement.popover(popoverOptions);
+        popoverElement.click(popoverShowAndHide);
+        popoverElement.focus(popoverShowAndHide);
+        popoverElement.keyup(function (event) {
+            // normalize keycode for browser compatibility
+            var code = event.which || event.keyCode || event.charCode;
+
+            // This is the keycode for the 'Esc' key
+            if (code === 27) {
+                popoverElement.popover('hide');
+            }
         });
+
+        function popoverShowAndHide() {
+            popoverElement.popover('show');
+
+            // Windows Narrator does not announce popovers' content. See: https://github.com/twbs/bootstrap/issues/18618
+            // We can force Narrator to announce the popover's content by "flashing" the element's ARIA label.
+            popoverElementDom.ariaLabel = "";
+
+            setTimeout(function () {
+                popoverElement.popover('hide');
+
+                // We need to restore the element's original ARIA label.
+                // Wait 0.15 seconds for the popover to fade away first.
+                // Otherwise, the screen reader will re-announce the popover's content.
+                setTimeout(function () {
+                    popoverElementDom.ariaLabel = originalLabel;
+                }, popoverFadeTimeMS);
+            }, popoverHideTimeMS);
+        }
     };
 
     window.nuget = nuget;
@@ -518,50 +571,37 @@
             .filter(':visible:first')
             .trigger('focus');
 
-        // Handle Google analytics tracking event on specific links.
-        var emitClickEvent = function (e, emitDirectly) {
-            if (!window.nuget.isGaAvailable()) {
+        // Handle Application Insights tracking event on specific links.
+        var emitClickEvent = function (e) {
+            if (!window.nuget.isAiAvailable()) {
                 return;
             }
 
             var href = $(this).attr('href');
             var category = $(this).data().track;
+
             var trackValue = $(this).data().trackValue;
+            if (typeof trackValue === 'undefined') {
+                trackValue = 1;
+            }
+
             if (href && category) {
-                if (emitDirectly) {
-                    window.nuget.sendAnalyticsEvent(category, 'click', href, trackValue);
-                } else {
-                    // This path is used when the click will result in a page transition. Because of this we need to
-                    // emit telemetry in a special way so that the event gets out before the page transition occurs.
-                    e.preventDefault();
-                    window.nuget.sendAnalyticsEvent(category, 'click', href, trackValue, {
-                        'transport': 'beacon',
-                        'hitCallback': window.nuget.createFunctionWithTimeout(function () {
-                            document.location = href;
-                        })
-                    });
-                }
+                window.nuget.sendMetric('BrowserClick', trackValue, {
+                    href: href,
+                    category: category
+                });
             }
         };
         $.each($('a[data-track]'), function () {
             $(this).on('mouseup', function (e) {
                 if (e.which === 2) { // Middle-mouse click
-                    emitClickEvent.call(this, e, true);
+                    emitClickEvent.call(this, e);
                 }
             });
             $(this).on('click', function (e) {
-                emitClickEvent.call(this, e, e.altKey || e.ctrlKey || e.metaKey);
+                emitClickEvent.call(this, e);
             });
         });
-
-        // Show elements that require ClickOnce
-        (function () {
-            var userAgent = window.navigator.userAgent.toUpperCase();
-            var hasNativeDotNet = userAgent.indexOf('.NET CLR 3.5') >= 0;
-            if (hasNativeDotNet) {
-                $('.no-clickonce').removeClass('no-clickonce');
-            }
-        })();
 
         // Don't close the dropdown on click events inside of the dropdown.
         $(document).on('click', '.dropdown-menu', function (e) {

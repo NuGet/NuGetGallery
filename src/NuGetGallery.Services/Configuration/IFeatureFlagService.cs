@@ -179,16 +179,6 @@ namespace NuGetGallery
         bool AreEmbeddedReadmesEnabled(User user);
 
         /// <summary>
-        /// Whether the preview of the new design of the display package page is enabled.
-        /// </summary>
-        bool IsDisplayPackagePageV2PreviewEnabled(User user);
-
-        /// <summary>
-        /// Whether the new design of the display package page is enabled.
-        /// </summary>
-        bool IsDisplayPackagePageV2Enabled(User user);
-        
-        /// <summary>
         /// Whether the /Packages() endpoint is enabled for the V1 OData API.
         /// </summary>
         bool IsODataV1GetAllEnabled();
@@ -269,10 +259,31 @@ namespace NuGetGallery
         bool IsShowReportAbuseSafetyChangesEnabled();
 
         /// <summary>
+        /// Whether online safety categories are available to content owned by at least one Microsoft Entra ID-authenticated account
+        /// </summary>
+        bool IsAllowAadContentSafetyReportsEnabled();
+
+        /// <summary>
         /// Whether rendering Markdown content to HTML using Markdig is enabled
         /// </summary>
         bool IsMarkdigMdRenderingEnabled();
-        
+
+        /// <summary>
+        /// Whether rendering Markdown fenced code with syntax highlighting
+        /// </summary>
+        bool IsMarkdigMdSyntaxHighlightEnabled();
+
+        /// <summary>
+        /// Whether the new warning of the verfiy metadata when upload package is enabled.
+        /// </summary>
+        bool IsDisplayUploadWarningV2Enabled(User user);
+
+        /// <summary>
+        /// Whether the new warning of the missing readme is displayed to package authors
+        /// </summary>
+        bool IsDisplayPackageReadmeWarningEnabled(User user);
+
+        /// <summary>
         /// Whether or not the user can delete a package through the API.
         /// </summary>
         bool IsDeletePackageApiEnabled(User user);
@@ -286,10 +297,35 @@ namespace NuGetGallery
         /// Whether or not display the banner on nuget.org
         /// </summary>
         bool IsDisplayBannerEnabled();
-        
+
         /// <summary>
         /// Whether or not display target framework badges and table on nuget.org
         /// </summary>
-        bool IsDisplayTargetFrameworkEnabled();
+        bool IsDisplayTargetFrameworkEnabled(User user);
+
+        /// <summary>
+        /// Whether or not to compute backend operations for target framework. This flag is overridden by <see cref="IsDisplayTargetFrameworkEnabled"/> if that flag is true.
+        /// </summary>
+        bool IsComputeTargetFrameworkEnabled();
+
+        /// <summary>
+        /// Whether or not recent packages has no index applied to block search engine indexing.
+        /// </summary>
+        bool IsRecentPackagesNoIndexEnabled();
+
+        /// <summary>
+        /// Whether or not to enforce 2FA for new external account link or replacement.
+        /// </summary>
+        bool IsNewAccount2FAEnforcementEnabled();
+
+        /// <summary>
+        /// Whether or not NuGet.org password login is supported. NuGet.org accounts in the <see cref="LoginDiscontinuationConfiguration.ExceptionsForEmailAddresses"/> will always be supported.
+        /// </summary>
+        bool IsNuGetAccountPasswordLoginEnabled();
+
+        /// <summary>
+        /// Whether or not to allow filtering by frameworks on NuGet.org search
+        /// </summary>
+        bool IsFrameworkFilteringEnabled(User user);
     }
 }

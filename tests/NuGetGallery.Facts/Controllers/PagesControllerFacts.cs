@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
 using System.Web;
 using Moq;
@@ -87,6 +88,41 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         It.IsAny<User>(),
                         It.IsAny<Package>()));
+            }
+
+            [Fact]
+            public async Task WithExternalPrivacyUrlConfigured()
+            {
+                var externalPrivacyUrl = "https://privacy.microsoft.com";
+                var configuration = GetConfigurationService();
+                var pagesController = GetController<PagesController>();
+
+                configuration.Current.ExternalPrivacyPolicyUrl = externalPrivacyUrl;
+
+                var result = await pagesController.Privacy();
+
+                GetMock<IContentService>()
+                    .Verify(m => m.GetContentItemAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<TimeSpan>()), Times.Never);
+
+            }
+
+            [Fact]
+            public async Task WithoutExternalPrivacyUrlConfigured()
+            {
+                var externalPrivacyUrl = "";
+                var configuration = GetConfigurationService();
+                var pagesController = GetController<PagesController>();
+
+                configuration.Current.ExternalPrivacyPolicyUrl = externalPrivacyUrl;
+
+                var result = await pagesController.Privacy();
+
+                GetMock<IContentService>()
+                    .Verify(m => m.GetContentItemAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<TimeSpan>()), Times.Once);
             }
         }
     }

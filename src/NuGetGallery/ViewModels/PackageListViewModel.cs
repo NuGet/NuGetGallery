@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
-using NuGet.Services.Entities;
+using NuGetGallery.Frameworks;
 
 namespace NuGetGallery
 {
@@ -21,6 +21,8 @@ namespace NuGetGallery
             UrlHelper url,
             bool includePrerelease,
             bool isPreviewSearch,
+            string frameworks,
+            string tfms,
             string packageType,
             string sortBy)
         {
@@ -35,11 +37,13 @@ namespace NuGetGallery
                 packageViewModels,
                 PageIndex,
                 pageCount,
-                page => url.PackageList(page, searchTerm, includePrerelease, packageType, sortBy));
+                page => url.PackageList(page, searchTerm, includePrerelease, frameworks, tfms, packageType, sortBy));
             Items = pager.Items;
             Pager = pager;
             IncludePrerelease = includePrerelease;
             IsPreviewSearch = isPreviewSearch;
+            Frameworks = frameworks;
+            Tfms = tfms;
             PackageType = packageType;
             SortBy = sortBy;
         }
@@ -65,12 +69,20 @@ namespace NuGetGallery
 
         public bool IsPreviewSearch { get; }
 
+        public string Frameworks { get; set; }
+
+        public string Tfms { get; set; }
+
         public string PackageType { get; set; }
 
         public string SortBy { get; set; }
 
-        public bool ShouldDisplayAdvancedSearchPanel { get; set; }
-
         public bool IsAdvancedSearchFlightEnabled { get; set; }
+
+        public bool IsFrameworkFilteringEnabled {  get; set; }
+
+        public Dictionary<string, FrameworkFilterHelper.FrameworkFilterGroup> FrameworkFilters = FrameworkFilterHelper.FrameworkFilters;
+
+        public string FrameworksFilteringInformationLink = "https://learn.microsoft.com/nuget/consume-packages/finding-and-choosing-packages#advanced-filtering-and-sorting";
     }
 }

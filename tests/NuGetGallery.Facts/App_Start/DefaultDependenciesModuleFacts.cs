@@ -4,14 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
-using System.Threading.Tasks;
-using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DependencyCollector;
 using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.ApplicationInsights.Extensibility.Implementation;
 using Microsoft.ApplicationInsights.Extensibility.Implementation.ApplicationId;
-using Microsoft.ApplicationInsights.Extensibility.Implementation.Tracing;
-using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector;
 using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector.QuickPulse;
 using Microsoft.ApplicationInsights.Web;
 using Microsoft.ApplicationInsights.WindowsServer;
@@ -204,7 +199,7 @@ namespace NuGetGallery.App_Start
                     .Setup(cf => cf.TryCreate(out It.Ref<SqlConnection>.IsAny))
                     .Returns(true);
 
-                DefaultDependenciesModule.CreateDbConnection(connectionFactoryMock.Object);
+                DefaultDependenciesModule.CreateDbConnection(connectionFactoryMock.Object, Mock.Of<ITelemetryService>());
                 connectionFactoryMock
                     .Verify(cf => cf.TryCreate(out It.Ref<SqlConnection>.IsAny), Times.Once);
                 connectionFactoryMock
@@ -222,7 +217,7 @@ namespace NuGetGallery.App_Start
                     .Setup(cf => cf.CreateAsync())
                     .ReturnsAsync((SqlConnection)null);
 
-                DefaultDependenciesModule.CreateDbConnection(connectionFactoryMock.Object);
+                DefaultDependenciesModule.CreateDbConnection(connectionFactoryMock.Object, Mock.Of<ITelemetryService>());
                 connectionFactoryMock
                     .Verify(cf => cf.TryCreate(out It.Ref<SqlConnection>.IsAny), Times.Once);
                 connectionFactoryMock

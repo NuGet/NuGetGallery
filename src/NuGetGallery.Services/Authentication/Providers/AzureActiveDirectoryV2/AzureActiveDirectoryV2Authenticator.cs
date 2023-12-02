@@ -7,7 +7,6 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Notifications;
@@ -101,12 +100,14 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
                 RedirectUri = siteRoot + _callbackPath,
                 PostLogoutRedirectUri = siteRoot,
                 Scope = OpenIdConnectScope.OpenIdProfile + " email",
-                ResponseType = OpenIdConnectResponseType.CodeIdToken,
+                ResponseType = OpenIdConnectResponseType.IdToken,
+                // CodeQL [SM03926] We do not restrict issuers to a limited set of tenants for our multi-tenant app
                 TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters() { ValidateIssuer = false },
                 Notifications = new OpenIdConnectAuthenticationNotifications
                 {
                     AuthenticationFailed = AuthenticationFailed,
-                    RedirectToIdentityProvider = RedirectToIdentityProvider
+                    RedirectToIdentityProvider = RedirectToIdentityProvider,
+                    AuthorizationCodeReceived = AuthorizationCodeReceived,
                 }
             };
 
@@ -257,7 +258,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
             // Set the redirect_uri token for the alternate domains of same gallery instance
             if (_alternateSiteRootList != null && _alternateSiteRootList.Contains(notification.Request.Uri.Host))
             {
-                notification.ProtocolMessage.RedirectUri = "https://" + notification.Request.Uri.Host + "/" + _callbackPath ;
+                notification.ProtocolMessage.RedirectUri = "https://" + notification.Request.Uri.Host + "/" + _callbackPath;
             }
 
             // We always want to show the options to select account when signing in and while changing account.
@@ -270,6 +271,14 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
         {
             var authenticationPropertiesEncodedString = message.State.Split('=');
             return options.StateDataFormat.Unprotect(authenticationPropertiesEncodedString[1]);
+        }
+
+        private Task AuthorizationCodeReceived(AuthorizationCodeReceivedNotification context)
+        {
+            // Explicitly set the access_token to null. The access_token is used for authorized requests to Microsoft Entra ID on
+            // behalf of the end user. We do not use this feature. We only use the id_token.
+            context.HandleCodeRedemption(accessToken: null, idToken: context.JwtSecurityToken.RawData);
+            return Task.CompletedTask;
         }
     }
 }

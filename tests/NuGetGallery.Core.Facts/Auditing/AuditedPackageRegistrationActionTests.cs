@@ -19,6 +19,8 @@ namespace NuGetGallery.Auditing
                 "SetRequiredSigner",
                 "AddOwnershipRequest",
                 "DeleteOwnershipRequest",
+                "Lock",
+                "Unlock",
             };
 
             Verify(typeof(AuditedPackageRegistrationAction), expectedNames);

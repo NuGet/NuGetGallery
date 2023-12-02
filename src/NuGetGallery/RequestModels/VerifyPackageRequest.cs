@@ -118,6 +118,8 @@ namespace NuGetGallery
         public string Title { get; set; }
         public bool IsSymbolsPackage { get; set; }
         public bool HasExistingAvailableSymbols { get; set; }
+        public bool IsMarkdigMdSyntaxHighlightEnabled { get; set; }
+        public bool IsDisplayUploadWarningV2Enabled { get; set; }
 
         public List<JsonValidationMessage> Warnings { get; set; } = new List<JsonValidationMessage>();
 

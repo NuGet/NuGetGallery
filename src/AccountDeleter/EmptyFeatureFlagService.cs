@@ -51,6 +51,11 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
+        public bool IsComputeTargetFrameworkEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsDeletePackageApiEnabled(User user)
         {
             throw new NotImplementedException();
@@ -71,22 +76,17 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
-        public bool IsDisplayPackagePageV2Enabled(User user)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool IsDisplayPackagePageV2PreviewEnabled(User user)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool IsDisplayTargetFrameworkEnabled()
+        public bool IsDisplayTargetFrameworkEnabled(User user)
         {
             throw new NotImplementedException();
         }
 
         public bool IsDisplayVulnerabilitiesEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsNuGetAccountPasswordLoginEnabled()
         {
             throw new NotImplementedException();
         }
@@ -142,6 +142,16 @@ namespace NuGetGallery.AccountDeleter
         }
 
         public bool IsMarkdigMdRenderingEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsMarkdigMdSyntaxHighlightEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsNewAccount2FAEnforcementEnabled()
         {
             throw new NotImplementedException();
         }
@@ -241,6 +251,11 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
+        public bool IsRecentPackagesNoIndexEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsSearchSideBySideEnabled(User user)
         {
             throw new NotImplementedException();
@@ -261,6 +276,11 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
+        public bool IsAllowAadContentSafetyReportsEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsTyposquattingEnabled()
         {
             throw new NotImplementedException();
@@ -273,6 +293,20 @@ namespace NuGetGallery.AccountDeleter
 
         public bool ProxyGravatarEnSubdomain()
         {
+            throw new NotImplementedException();
+        }
+
+        public bool IsDisplayUploadWarningV2Enabled(User user)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsDisplayPackageReadmeWarningEnabled(User user)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsFrameworkFilteringEnabled(User user) {
             throw new NotImplementedException();
         }
     }

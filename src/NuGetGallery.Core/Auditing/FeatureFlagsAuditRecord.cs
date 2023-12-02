@@ -5,6 +5,7 @@ using System;
 using NuGet.Services.FeatureFlags;
 using NuGetGallery.Auditing.AuditedEntities;
 using NuGetGallery.Features;
+using NuGetGallery.Shared;
 
 namespace NuGetGallery.Auditing
 {
@@ -13,13 +14,13 @@ namespace NuGetGallery.Auditing
         public AuditedFeatureFlagFeature[] Features { get; }
         public AuditedFeatureFlagFlight[] Flights { get; }
         public string ContentId { get; }
-        public FeatureFlagSaveResult Result { get; }
+        public ContentSaveResult Result { get; }
 
         public FeatureFlagsAuditRecord(
             AuditedFeatureFlagsAction action, 
             FeatureFlags flags,
-            string contentId, 
-            FeatureFlagSaveResult result)
+            string contentId,
+            ContentSaveResult result)
             : base(action)
         {
             if (flags == null)

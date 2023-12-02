@@ -1,7 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Linq;
 using Newtonsoft.Json.Linq;
+using NuGetGallery.Helpers;
 using Xunit;
 
 namespace NuGetGallery.Infrastructure.Search
@@ -71,6 +73,110 @@ namespace NuGetGallery.Infrastructure.Search
   ""LicenseUrl"": """",
   ""RequiresLicenseAcceptance"": false
 }";
+
+
+            [Theory]
+            [MemberData(nameof(DeprecationItemsHelper.ValidObjects), MemberType = typeof(DeprecationItemsHelper))]
+            public void WhenValidDeprecation_SetsPropertiesToPackage(JObject docDeprecation)
+            {
+                var doc = TheReadPackageMethod.CreateDocument();
+                doc.Add("Deprecation", docDeprecation);
+
+                // Act
+                var result = ExternalSearchService.ReadPackage(doc, SemVerLevelKey.SemVerLevel2);
+
+                // Assert
+                var deprecationResult = result.Deprecations.First();
+                var deprecation = SearchResponseHelper.GetDeprecationsOrNull(docDeprecation).First();
+
+                Assert.Equal(deprecation.CustomMessage, deprecationResult.CustomMessage);
+
+                if (deprecation.AlternatePackage != null)
+                {
+                    Assert.Equal(deprecation.AlternatePackage.Id, deprecationResult.AlternatePackage.Id);
+                    Assert.Equal(deprecation.AlternatePackage.Version, deprecationResult.AlternatePackage.Version);
+                }
+
+                Assert.Equal(deprecation.Status, deprecationResult.Status);
+            }
+
+            [Theory]
+            [MemberData(nameof(DeprecationItemsHelper.InvalidObjects), MemberType = typeof(DeprecationItemsHelper))]
+            public void WhenInvalidDeprecation_SetsNullToPackage(JObject deprecation)
+            {
+                var doc = TheReadPackageMethod.CreateDocument();
+                if (deprecation != null)
+                {
+                    doc.Add("Deprecation", deprecation);
+                }
+
+                // Act
+                var result = ExternalSearchService.ReadPackage(doc, SemVerLevelKey.SemVerLevel2);
+
+                // Assert
+                Assert.Null(result.Deprecations);
+            }
+
+            [Theory]
+            [MemberData(nameof(VulnerabilityItemsHelper.ValidObjects), MemberType = typeof(VulnerabilityItemsHelper))]
+            public void WhenValidVulnerabilities_SetsPropertiesToPackage(JArray docVulnerabilities)
+            {
+                var doc = TheReadPackageMethod.CreateDocument();
+                doc.Add("Vulnerabilities", docVulnerabilities);
+
+                // Act
+                var result = ExternalSearchService.ReadPackage(doc, SemVerLevelKey.SemVerLevel2);
+
+                // Assert
+                var vulnerabilities = SearchResponseHelper.GetVulnerabilities(docVulnerabilities);
+                var vulnerabilitiesResult = result.VulnerablePackageRanges;
+
+                Assert.NotNull(vulnerabilitiesResult);
+                Assert.NotEmpty(vulnerabilitiesResult);
+                Assert.Equal(vulnerabilities.Count, vulnerabilitiesResult.Count);
+
+                for (var index = 0; index < vulnerabilities.Count; index++)
+                {
+                    Assert.Equal(vulnerabilities.ElementAt(index).Vulnerability.AdvisoryUrl, vulnerabilitiesResult.ElementAt(index).Vulnerability.AdvisoryUrl);
+                    Assert.Equal(vulnerabilities.ElementAt(index).Vulnerability.Severity, vulnerabilitiesResult.ElementAt(index).Vulnerability.Severity);
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(VulnerabilityItemsHelper.InvalidObjects), MemberType = typeof(VulnerabilityItemsHelper))]
+            public void WhenInvalidVulnerabilities_SetsEmptyArrayToPackage(JArray docVulnerabilities)
+            {
+                var doc = TheReadPackageMethod.CreateDocument();
+                if (docVulnerabilities != null)
+                {
+                    doc.Add("Vulnerabilities", docVulnerabilities);
+                }
+
+                // Act
+                var result = ExternalSearchService.ReadPackage(doc, SemVerLevelKey.SemVerLevel2);
+
+                // Assert
+                Assert.Empty(result.VulnerablePackageRanges);
+            }
+
+            public static JObject CreateDocument()
+            {
+                var doc = new JObject();
+
+                doc.Add("PackageRegistration", JObject.FromObject(
+                    new
+                    {
+                        Id = "myId",
+                        Owners = new string[] { "nuget" },
+                        DownloadCount = 1,
+                        IsVerified = true,
+                        Key = 2
+                    }));
+                doc.Add("Dependencies", JToken.Parse("[]"));
+                doc.Add("SupportedFrameworks", JToken.Parse("[]"));
+
+                return doc;
+            }
         }
     }
 }

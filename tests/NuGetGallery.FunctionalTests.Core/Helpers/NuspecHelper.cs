@@ -71,6 +71,9 @@ namespace NuGetGallery.FunctionalTests
             }
             if (licenseUrl != null)
             {
+                // remove the existing license in the template .nuspec
+                UpdateNuspecFile(filePath, "<license type=\"expression\">MIT</license>", string.Empty);
+
                 UpdateNuspecFile(filePath, "</metadata>", $"<licenseUrl>{licenseUrl}</licenseUrl></metadata>");
             }
             if (dependencies != null)

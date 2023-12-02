@@ -26,5 +26,8 @@ namespace NuGetGallery.Auditing
         EnabledMultiFactorAuthentication,
         DisabledMultiFactorAuthentication,
         ExternalLoginAttempt,
+        Lock,
+        Unlock,
+        ChangeUsername
     }
 }

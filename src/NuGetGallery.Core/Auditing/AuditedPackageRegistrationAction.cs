@@ -12,5 +12,7 @@ namespace NuGetGallery.Auditing
         SetRequiredSigner,
         AddOwnershipRequest,
         DeleteOwnershipRequest,
+        Lock,
+        Unlock,
     }
 }

@@ -24,6 +24,16 @@ namespace NuGetGallery.Framework
 
     public static class AuditingServiceTestExtensions
     {
+        public static bool WroteNoRecords(this IAuditingService self)
+        {
+            TestAuditingService testService = self as TestAuditingService;
+            if (testService != null)
+            {
+                return !testService.Records.Any();
+            }
+            return false;
+        }
+
         public static bool WroteRecord<T>(this IAuditingService self) where T : AuditRecord
         {
             return self.WroteRecord<T>(ar => true);

@@ -57,6 +57,19 @@ namespace NuGetGallery
             }
         }
 
+        public void TrackAggregatedMetric(string metricName, double value, string dimension0Name, string dimension0Value)
+        {
+            try
+            {
+                var metric = UnderlyingClient.GetMetric(metricName, dimension0Name);
+                metric.TrackValue(value, dimension0Value);
+            }
+            catch
+            {
+                // logging failed, don't allow exception to escape
+            }
+        }
+
         public void TrackDependency(string dependencyTypeName,
                                     string target,
                                     string dependencyName,

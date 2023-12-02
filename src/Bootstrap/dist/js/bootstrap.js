@@ -1,6 +1,6 @@
 /*!
  * Bootstrap v3.4.1 (https://getbootstrap.com/)
- * Copyright 2011-2021 Twitter, Inc.
+ * Copyright 2011-2023 Twitter, Inc.
  * Licensed under the MIT license
  */
 
@@ -585,6 +585,8 @@ if (typeof jQuery === 'undefined') {
     toggle: true
   }
 
+  Collapse.ARIA_EXPANDED_ALLOWED_ROLES = ['application', 'button', 'checkbox', 'combobox', 'gridcell', 'link', 'listbox', 'menuitem', 'row', 'rowheader', 'tab', 'treeitem']
+
   Collapse.prototype.dimension = function () {
     var hasWidth = this.$element.hasClass('width')
     return hasWidth ? 'width' : 'height'
@@ -615,7 +617,11 @@ if (typeof jQuery === 'undefined') {
     this.$element
       .removeClass('collapse')
       .addClass('collapsing')[dimension](0)
-      .attr('aria-expanded', true)
+
+    // the aria-expanded attribute is only allowed when the element has an allowed role
+    if (Collapse.ARIA_EXPANDED_ALLOWED_ROLES.includes(this.$element.attr('role'))) {
+      this.$element.attr('aria-expanded', true)
+    }
 
     this.$trigger
       .removeClass('collapsed')
@@ -655,7 +661,11 @@ if (typeof jQuery === 'undefined') {
     this.$element
       .addClass('collapsing')
       .removeClass('collapse in')
-      .attr('aria-expanded', false)
+
+    // the aria-expanded attribute is only allowed when the element has an allowed role
+    if (Collapse.ARIA_EXPANDED_ALLOWED_ROLES.includes(this.$element.attr('role'))) {
+      this.$element.attr('aria-expanded', false)
+    }
 
     this.$trigger
       .addClass('collapsed')
@@ -696,7 +706,10 @@ if (typeof jQuery === 'undefined') {
   Collapse.prototype.addAriaAndCollapsedClass = function ($element, $trigger) {
     var isOpen = $element.hasClass('in')
 
-    $element.attr('aria-expanded', isOpen)
+    if (Collapse.ARIA_EXPANDED_ALLOWED_ROLES.includes(this.$element.attr('role'))) {
+      $element.attr('aria-expanded', isOpen)
+    }
+
     $trigger
       .toggleClass('collapsed', !isOpen)
       .attr('aria-expanded', isOpen)
@@ -2344,13 +2357,13 @@ if (typeof jQuery === 'undefined') {
         .removeClass('active')
         .end()
         .find('[data-toggle="tab"]')
-          .attr('aria-expanded', false)
+          .attr('tabindex', "-1")
           .attr('aria-selected', false)
 
       element
         .addClass('active')
         .find('[data-toggle="tab"]')
-          .attr('aria-expanded', true)
+          .attr('tabindex', "0")
           .attr('aria-selected', true)
 
       if (transition) {
@@ -2381,6 +2394,25 @@ if (typeof jQuery === 'undefined') {
     $active.removeClass('in')
   }
 
+  Tab.prototype.navigateTabLeft = function () {
+    var $this = this.element
+
+    if ($this.parent('li').is($this.closest('ul').children().first())) return
+
+    var $target = $this.parent('li').prev().children('a')[0]
+
+    $target.focus()
+  }
+
+  Tab.prototype.navigateTabRight = function () {
+    var $this = this.element
+
+    if ($this.parent('li').is($this.closest('ul').children().last())) return
+
+    var $target = $this.parent('li').next().children('a')[0]
+
+    $target.focus()
+  }
 
   // TAB PLUGIN DEFINITION
   // =====================
@@ -2413,14 +2445,38 @@ if (typeof jQuery === 'undefined') {
   // TAB DATA-API
   // ============
 
+  var keys = {
+    left: 37,
+    right: 39,
+    up: 38,
+    down: 40
+  }
+
   var clickHandler = function (e) {
     e.preventDefault()
     Plugin.call($(this), 'show')
   }
 
+  var keyUpHandler = function (e) {
+    e.preventDefault()
+
+    // normalized for broswer compatibility
+    var code = e.keyCode || e.which;
+
+    switch (code) {
+      case keys.left:
+        Plugin.call($(this), 'navigateTabLeft')
+        break;
+      case keys.right:
+        Plugin.call($(this), 'navigateTabRight')
+        break;
+    }
+  }
+
   $(document)
     .on('click.bs.tab.data-api', '[data-toggle="tab"]', clickHandler)
     .on('click.bs.tab.data-api', '[data-toggle="pill"]', clickHandler)
+    .on('keyup', '[data-toggle="tab"]', keyUpHandler)
 
 }(jQuery);
 

@@ -237,7 +237,6 @@ var BindReadMeDataManager = (function () {
             var readMeContainerElement = document.createElement("div");
             $(readMeContainerElement).attr("id", "import-readme-block");
             $(readMeContainerElement).attr("class", "collapse in");
-            $(readMeContainerElement).attr("aria-expanded", "true");
             $(readMeContainerElement).attr("data-bind", "template: { name: 'import-readme-template', data: data }");
             $("#import-readme-container").append(readMeContainerElement);
             ko.applyBindings({ data: model }, readMeContainerElement);
@@ -315,6 +314,9 @@ var BindReadMeDataManager = (function () {
                 success: function (response, resultCodeString, fullResponse) {
                     clearReadMeError();
                     displayReadMePreview(response);
+                    if (response.IsMarkdigMdSyntaxHighlightEnabled) {
+                        syntaxHighlight();
+                    }
                 },
                 error: function (jqXHR, exception) {
                     var message = "";
@@ -369,6 +371,9 @@ var BindReadMeDataManager = (function () {
         }
 
         function displayReadMeError(errorMsg) {
+            // In order for Narrator to read the alert, this should be on an aria-label attribute.
+            $("#readme-error-content").attr("aria-label", errorMsg);
+
             $("#readme-errors").removeClass("hidden");
             $("#preview-readme-button").attr("disabled", "disabled");
 
@@ -388,6 +393,7 @@ var BindReadMeDataManager = (function () {
             if (!$("#readme-errors").hasClass("hidden")) {
                 $("#readme-errors").addClass("hidden");
                 $("#readme-error-content").text("");
+                $("#readme-error-content").removeAttr("aria-label");
             }
             $("#preview-readme-button").prop("disabled", false);
         }

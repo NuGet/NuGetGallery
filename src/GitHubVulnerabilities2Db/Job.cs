@@ -6,12 +6,9 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
-using GitHubVulnerabilities2Db.Collector;
 using GitHubVulnerabilities2Db.Configuration;
 using GitHubVulnerabilities2Db.Fakes;
 using GitHubVulnerabilities2Db.Gallery;
-using GitHubVulnerabilities2Db.GraphQL;
-using GitHubVulnerabilities2Db.Ingest;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -19,6 +16,10 @@ using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
 using NuGet.Services.Cursor;
+using NuGet.Services.GitHub.Collector;
+using NuGet.Services.GitHub.Configuration;
+using NuGet.Services.GitHub.GraphQL;
+using NuGet.Services.GitHub.Ingest;
 using NuGet.Services.Storage;
 using NuGetGallery;
 using NuGetGallery.Auditing;
@@ -34,7 +35,8 @@ namespace GitHubVulnerabilities2Db
         public override async Task Run()
         {
             var collector = _serviceProvider.GetRequiredService<IAdvisoryCollector>();
-            while (await collector.ProcessAsync(CancellationToken.None)) ;
+            while (await collector.ProcessAsync(CancellationToken.None));
+            
         }
 
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
@@ -51,6 +53,8 @@ namespace GitHubVulnerabilities2Db
         {
             containerBuilder
                 .RegisterAdapter<IOptionsSnapshot<GitHubVulnerabilities2DbConfiguration>, GitHubVulnerabilities2DbConfiguration>(c => c.Value);
+            containerBuilder
+                .RegisterAdapter<IOptionsSnapshot<GitHubVulnerabilities2DbConfiguration>, GraphQLQueryConfiguration>(c => c.Value);
 
             ConfigureQueryServices(containerBuilder);
             ConfigureIngestionServices(containerBuilder);
@@ -64,6 +68,10 @@ namespace GitHubVulnerabilities2Db
             containerBuilder
                 .RegisterType<PackageVulnerabilitiesManagementService>()
                 .As<IPackageVulnerabilitiesManagementService>();
+
+            containerBuilder
+                .RegisterType<GalleryDbVulnerabilityWriter>()
+                .As<IVulnerabilityWriter>();
 
             containerBuilder
                 .RegisterType<GitHubVersionRangeParser>()
@@ -134,7 +142,8 @@ namespace GitHubVulnerabilities2Db
         {
             containerBuilder
                 .RegisterInstance(_client)
-                .As<HttpClient>();
+                .As<HttpClient>()
+                .ExternallyOwned(); // We don't want autofac disposing this--see https://github.com/NuGet/NuGetGallery/issues/9194
 
             containerBuilder
                 .RegisterType<QueryService>()

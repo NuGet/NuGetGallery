@@ -19,7 +19,7 @@ namespace NuGetGallery {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class ServicesStrings {
@@ -179,7 +179,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to User &apos;{0}&apos; has not linked their account to an AAD credential matching this organization..
+        ///   Looks up a localized string similar to User &apos;{0}&apos; has not linked their account to a Microsoft Entra ID credential matching this organization..
         /// </summary>
         public static string AddMember_UserDoesNotMeetOrganizationPolicy {
             get {
@@ -524,6 +524,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The given authentication provider is not supported..
+        /// </summary>
+        public static string AuthenticationProviderNotFound {
+            get {
+                return ResourceManager.GetString("AuthenticationProviderNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to (automated).
         /// </summary>
         public static string AutomatedPackageDeleteSignature {
@@ -533,7 +542,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Azure Active Directory account.
+        ///   Looks up a localized string similar to Microsoft Entra ID account.
         /// </summary>
         public static string AzureActiveDirectory_AccountNoun {
             get {
@@ -542,7 +551,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Register with Azure Active Directory.
+        ///   Looks up a localized string similar to Register with Microsoft Entra ID.
         /// </summary>
         public static string AzureActiveDirectory_RegisterMessage {
             get {
@@ -551,7 +560,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Sign in with Azure Active Directory.
+        ///   Looks up a localized string similar to Sign in with Microsoft Entra ID.
         /// </summary>
         public static string AzureActiveDirectory_SignInMessage {
             get {
@@ -1319,7 +1328,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; is not linked to an AAD credential with an organization tenant..
+        ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; is not linked to a Microsoft Entra ID credential with an organization tenant..
         /// </summary>
         public static string Organizations_AdminAccountDoesNotHaveTenant {
             get {
@@ -1932,7 +1941,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You have not published a package with this prefix in the past. This means other users may be able to push packages starting with the same prefix. Contact account@nuget.org to reserve the prefix. Go to https://docs.microsoft.com/en-us/nuget/reference/id-prefix-reservation to learn more about Package ID prefix reservation..
+        ///   Looks up a localized string similar to You have not published a package with this prefix in the past. This means other users may be able to push packages starting with the same prefix. Contact account@nuget.org to reserve the prefix. Go to https://docs.microsoft.com/nuget/reference/id-prefix-reservation to learn more about Package ID prefix reservation..
         /// </summary>
         public static string SecurityPolicy_RequirePackagePrefixReserved {
             get {
@@ -1964,6 +1973,15 @@ namespace NuGetGallery {
         public static string SigninAssistance_InvalidUser {
             get {
                 return ResourceManager.GetString("SigninAssistance_InvalidUser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; is locked. Please contact support@nuget.org..
+        /// </summary>
+        public static string SpecificAccountIsLocked {
+            get {
+                return ResourceManager.GetString("SpecificAccountIsLocked", resourceCulture);
             }
         }
         
@@ -2135,6 +2153,15 @@ namespace NuGetGallery {
         public static string TransformAccount_AccountIsAnOrganization {
             get {
                 return ResourceManager.GetString("TransformAccount_AccountIsAnOrganization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; is locked and cannot be transformed to an organization. Please contact support@nuget.org..
+        /// </summary>
+        public static string TransformAccount_AccountIsLocked {
+            get {
+                return ResourceManager.GetString("TransformAccount_AccountIsLocked", resourceCulture);
             }
         }
         
@@ -2676,6 +2703,15 @@ namespace NuGetGallery {
         public static string UploadPackage_UploadInProgress {
             get {
                 return ResourceManager.GetString("UploadPackage_UploadInProgress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your user account is locked. Please contact support@nuget.org..
+        /// </summary>
+        public static string UserAccountIsLocked {
+            get {
+                return ResourceManager.GetString("UserAccountIsLocked", resourceCulture);
             }
         }
         

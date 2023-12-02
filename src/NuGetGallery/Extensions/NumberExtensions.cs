@@ -4,7 +4,6 @@
 using System;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 
 namespace NuGetGallery
 {
@@ -84,10 +83,15 @@ namespace NuGetGallery
         /// <returns>String representation of the formatted number</returns>
         public static string ToKiloFormat(this int number)
         {
+            return ToKiloFormat((long)number);
+        }
+
+        public static string ToKiloFormat(this long number)
+        {
             // To avoid overflow (with Math.Abs()). 1 difference won't make a difference in the simplified format :)
-            if (number == int.MinValue)
+            if (number == long.MinValue)
             {
-                number = -1 * int.MaxValue;
+                number = -1 * long.MaxValue;
             }
 
             if (Math.Abs(number) < 1000)
@@ -97,9 +101,10 @@ namespace NuGetGallery
 
             var powers = new[]
             {
-                new { Value = 1_000_000_000f, Unit = 'B'},
-                new { Value = 1_000_000f    , Unit = 'M'},
-                new { Value = 1_000f        , Unit = 'K'}
+                new { Value = 1_000_000_000_000f, Unit = 'T'},
+                new { Value = 1_000_000_000f    , Unit = 'B'},
+                new { Value = 1_000_000f        , Unit = 'M'},
+                new { Value = 1_000f            , Unit = 'K'}
             };
 
             return powers

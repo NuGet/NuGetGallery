@@ -211,6 +211,11 @@ namespace NuGetGallery.Configuration
         public string SiteRoot { get; set; }
 
         /// <summary>
+        /// Gets the protocol-independent support email site root
+        /// </summary>
+        public string SupportEmailSiteRoot { get; set; }
+
+        /// <summary>
         /// Private key for verifying recaptcha user response.
         /// </summary>
         public string ReCaptchaPrivateKey { get; set; }
@@ -239,9 +244,9 @@ namespace NuGetGallery.Configuration
         public string EnforcedAuthProviderForAdmin { get; set; }
 
         /// <summary>
-        /// Gets a string indicating which AAD Tenant Id should be used for administrators. 
+        /// Gets a string indicating which Microsoft Entra tenant ID should be used for administrators. 
         /// When specified, the gallery will ensure admin users are logging in using only the specified tenant ID.
-        /// Blank means any AAD tenant ID can be used by administrators.
+        /// Blank means any Microsoft Entra tenant ID can be used by administrators.
         /// </summary>
         public string EnforcedTenantIdForAdmin { get; set; }
 
@@ -418,5 +423,8 @@ namespace NuGetGallery.Configuration
         [DefaultValue(null)]
         public int? MaxIoThreads { get; set; }
         public string InternalMicrosoftTenantKey { get; set; }
+        public string AdminSenderUser { get; set; }
+        [DefaultValue(16 * 1024 * 1024)]
+        public int MaxJsonLengthOverride { get; set; }
     }
 }

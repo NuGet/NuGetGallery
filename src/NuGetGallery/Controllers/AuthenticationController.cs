@@ -34,15 +34,12 @@ namespace NuGetGallery
         : AppController
     {
         private readonly AuthenticationService _authService;
-
         private readonly IUserService _userService;
-
         private readonly IMessageService _messageService;
-
         private readonly ICredentialBuilder _credentialBuilder;
-
         private readonly IContentObjectService _contentObjectService;
         private readonly IMessageServiceConfiguration _messageServiceConfiguration;
+        private readonly IFeatureFlagService _featureFlagService;
         private const string EMAIL_FORMAT_PADDING = "**********";
 
         // Prioritize the external authentication mechanism.
@@ -57,7 +54,8 @@ namespace NuGetGallery
             IMessageService messageService,
             ICredentialBuilder credentialBuilder,
             IContentObjectService contentObjectService,
-            IMessageServiceConfiguration messageServiceConfiguration)
+            IMessageServiceConfiguration messageServiceConfiguration,
+            IFeatureFlagService featureFlagService)
         {
             _authService = authService ?? throw new ArgumentNullException(nameof(authService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
@@ -65,6 +63,7 @@ namespace NuGetGallery
             _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
             _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
             _messageServiceConfiguration = messageServiceConfiguration ?? throw new ArgumentNullException(nameof(messageServiceConfiguration));
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
         }
 
         /// <summary>
@@ -116,6 +115,10 @@ namespace NuGetGallery
             {
                 return LoggedInRedirect(returnUrl);
             }
+            else if (_featureFlagService.IsNewAccount2FAEnforcementEnabled())
+            {
+                return Redirect(Url.LogOn(null, relativeUrl: false));
+            }
 
             return RegisterView(new LogOnViewModel());
         }
@@ -143,7 +146,11 @@ namespace NuGetGallery
             {
                 string modelErrorMessage = string.Empty;
 
-                if (authenticationResult.Result == PasswordAuthenticationResult.AuthenticationResult.BadCredentials)
+                if (authenticationResult.Result == PasswordAuthenticationResult.AuthenticationResult.PasswordLoginUnsupported)
+                {
+                    modelErrorMessage = Strings.NuGetAccountPasswordLoginUnsupported;
+                }
+                else if (authenticationResult.Result == PasswordAuthenticationResult.AuthenticationResult.BadCredentials)
                 {
                     modelErrorMessage = Strings.UsernameAndPasswordNotFound;
                 }
@@ -256,6 +263,11 @@ namespace NuGetGallery
         [HttpGet]
         public virtual ActionResult RegisterLegacy(string returnUrl)
         {
+            if (_featureFlagService.IsNewAccount2FAEnforcementEnabled())
+            {
+                return Redirect(Url.LogOn(null, relativeUrl: false));
+            }
+
             return Redirect(Url.LogOnNuGetAccount(returnUrl, relativeUrl: false));
         }
 
@@ -295,12 +307,17 @@ namespace NuGetGallery
                     }
 
                     usedMultiFactorAuthentication = result.LoginDetails?.WasMultiFactorAuthenticated ?? false;
+                    var enableMultiFactorAuthentication = _featureFlagService.IsNewAccount2FAEnforcementEnabled() ? true : usedMultiFactorAuthentication;
                     user = await _authService.Register(
                         model.Register.Username,
                         model.Register.EmailAddress,
                         result.Credential,
-                        (result.Credential.IsExternal() && string.Equals(result.UserInfo?.Email, model.Register.EmailAddress))
-                        );
+                        autoConfirm: (result.Credential.IsExternal() && string.Equals(result.UserInfo?.Email, model.Register.EmailAddress)),
+                        enableMultiFactorAuthentication: enableMultiFactorAuthentication);
+                }
+                else if (_featureFlagService.IsNewAccount2FAEnforcementEnabled())
+                {
+                    return Redirect(Url.LogOn(null, relativeUrl: false));
                 }
                 else
                 {
@@ -326,7 +343,8 @@ namespace NuGetGallery
                     Url.ConfirmEmail(
                         user.User.Username,
                         user.User.EmailConfirmationToken,
-                        relativeUrl: false));
+                        relativeUrl: false,
+                        supportEmail: true));
 
                 await _messageService.SendMessageAsync(message);
             }
@@ -417,6 +435,12 @@ namespace NuGetGallery
         [HttpGet]
         public virtual ActionResult AuthenticateGet(string returnUrl, string provider)
         {
+            if (provider == null || !_authService.Authenticators.ContainsKey(provider))
+            {
+                TempData["ErrorMessage"] = ServicesStrings.AuthenticationProviderNotFound;
+                return SafeRedirect(returnUrl);
+            }
+
             return AuthenticateAndLinkExternal(returnUrl, provider);
         }
 
@@ -439,6 +463,12 @@ namespace NuGetGallery
                     .Organization
                     .SecurityPolicies
                     .Any(policy => policy.Name == nameof(RequireOrganizationTenantPolicy)));
+
+            // Validate that the returnUrl is a relative URL to prevent untrusted URL redirection
+            if (!Url.IsLocalUrl(returnUrl))
+            {
+                returnUrl = "/";
+            }
 
             if (userOrganizationsWithTenantPolicy != null && userOrganizationsWithTenantPolicy.Any())
             {
@@ -494,11 +524,26 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> LinkOrChangeExternalCredential(string returnUrl)
         {
             var user = GetCurrentUser();
+            if (user.IsLocked)
+            {
+                TempData["ErrorMessage"] = ServicesStrings.UserAccountIsLocked;
+                return SafeRedirect(returnUrl);
+            }
+
             var result = await _authService.ReadExternalLoginCredential(OwinContext);
             if (result?.Credential == null)
             {
                 TempData["ErrorMessage"] = Strings.ExternalAccountLinkExpired;
                 return SafeRedirect(returnUrl);
+            }
+
+            // All new linking or replacing accounts should have 2FA enabled.
+            if (_featureFlagService.IsNewAccount2FAEnforcementEnabled() && !result.UserInfo.UsedMultiFactorAuthentication)
+            {
+                return ChallengeAuthentication(
+                    Url.LinkOrChangeExternalCredential(returnUrl),
+                    result.Authenticator.Name,
+                    new AuthenticationPolicy() { Email = result.LoginDetails.EmailUsed, EnforceMultiFactorAuthentication = true });
             }
 
             var newCredential = result.Credential;
@@ -511,6 +556,16 @@ namespace NuGetGallery
                 var authenticatedUser = await _authService.Authenticate(newCredential);
                 var usedMultiFactorAuthentication = result.LoginDetails?.WasMultiFactorAuthenticated ?? false;
                 await _authService.CreateSessionAsync(OwinContext, authenticatedUser, usedMultiFactorAuthentication);
+
+                // Update the 2FA if used during login but user does not have it set on their account.
+                if (result?.LoginDetails != null
+                    && usedMultiFactorAuthentication
+                    && !user.EnableMultiFactorAuthentication
+                    && CredentialTypes.IsExternal(result.Credential))
+                {
+                    await _userService.ChangeMultiFactorAuthentication(user, enableMultiFactor: true, referrer: "Authentication");
+                    OwinContext.AddClaim(NuGetClaims.EnabledMultiFactorAuthentication);
+                }
 
                 // Get email address of the new credential for updating success message
                 var newEmailAddress = GetEmailAddressFromExternalLoginResult(result, out string errorReason);
@@ -595,7 +650,7 @@ namespace NuGetGallery
                     wasMultiFactorAuthenticated: result?.LoginDetails?.WasMultiFactorAuthenticated ?? false);
 
                 // Update the 2FA if used during login but user does not have it set on their account. Enforced for only personal microsoft accounts
-                // record it in the DB for the AAD accounts.
+                // record it in the DB for the Microsoft Entra ID accounts.
                 if (result?.LoginDetails != null
                     && result.LoginDetails.WasMultiFactorAuthenticated
                     && !result.Authentication.User.EnableMultiFactorAuthentication
@@ -620,6 +675,14 @@ namespace NuGetGallery
                 }
 
                 return SafeRedirect(returnUrl);
+            }
+            else if (_featureFlagService.IsNewAccount2FAEnforcementEnabled() && CredentialTypes.IsExternal(result.Credential) && !result.LoginDetails.WasMultiFactorAuthenticated)
+            {
+                // Invoke the authentication again enforcing multi-factor authentication for the same provider.
+                return ChallengeAuthentication(
+                    Url.LinkExternalAccount(returnUrl),
+                    result.Authenticator.Name,
+                    new AuthenticationPolicy() { Email = result.LoginDetails.EmailUsed, EnforceMultiFactorAuthentication = true });
             }
             else
             {
@@ -697,13 +760,15 @@ namespace NuGetGallery
             // Enforce multi-factor authentication only if:
             // 1. The authenticator supports multi-factor authentication, otherwise no use.
             // 2. The user has enabled multi-factor authentication for their account.
-            // 3. The user authenticated with the personal microsoft account. AAD 2FA policy is controlled by the tenant admins.
-            // 4. The user did not use the multi-factor authentication for the session, obviously.
+            // 3. The user did not use the multi-factor authentication for the session, obviously.
+            // 4. The user authenticated with an external account (currently only MSA and Microsoft Entra ID are supported).
+            // 5. If the 2FA enforcement for new accounts is enabled all external account types should be enforced (step 4 validated this).
+            //    If not, only user authenticated with a personal microsoft account is enforced. Microsoft Entra ID 2FA policy is controlled by the tenant admins.
             return result.Authenticator.SupportsMultiFactorAuthentication()
                 && result.Authentication.User.EnableMultiFactorAuthentication
                 && !result.LoginDetails.WasMultiFactorAuthenticated
                 && result.Authentication.CredentialUsed.IsExternal()
-                && (CredentialTypes.IsMicrosoftAccount(result.Authentication.CredentialUsed.Type));
+                && (_featureFlagService.IsNewAccount2FAEnforcementEnabled() || CredentialTypes.IsMicrosoftAccount(result.Authentication.CredentialUsed.Type));
         }
 
         private string FormatEmailAddressForAssistance(string email)
@@ -816,7 +881,7 @@ namespace NuGetGallery
         private ActionResult AuthenticationFailureOrExternalLinkExpired(string errorMessage = null)
         {
             // We need a special case here because of https://github.com/NuGet/NuGetGallery/issues/7544. An unmanaged tenant scenario
-            // needs the FAQ URI appended to the AAD error, and we do that here so it appears in the header.
+            // needs the FAQ URI appended to the Microsoft Entra ID error, and we do that here so it appears in the header.
             if (!string.IsNullOrEmpty(errorMessage) &&
                 errorMessage.IndexOf("AADSTS65005", StringComparison.OrdinalIgnoreCase) > -1 &&
                 errorMessage.IndexOf("unmanaged", StringComparison.OrdinalIgnoreCase) > -1)
@@ -889,7 +954,8 @@ namespace NuGetGallery
             existingModel.Providers = GetProviders();
             existingModel.SignIn = existingModel.SignIn ?? new SignInViewModel();
             existingModel.Register = existingModel.Register ?? new RegisterViewModel();
-
+            existingModel.IsNuGetAccountPasswordLoginEnabled = _featureFlagService.IsNuGetAccountPasswordLoginEnabled();
+            existingModel.IsEmailOnExceptionList = _contentObjectService.LoginDiscontinuationConfiguration.IsEmailInExceptionsList(existingModel.SignIn.UserNameOrEmail);
             return View(viewName, existingModel);
         }
 

@@ -4,6 +4,7 @@
 using System;
 using System.Threading.Tasks;
 using NuGetGallery;
+using NuGetGallery.Configuration;
 using NuGetGallery.Services;
 
 namespace NuGet.VerifyMicrosoftPackage.Fakes
@@ -21,8 +22,6 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
         public IGitHubUsageConfiguration GitHubUsageConfiguration => throw new NotImplementedException();
 
         public IABTestConfiguration ABTestConfiguration => throw new NotImplementedException();
-
-        public IODataCacheConfiguration ODataCacheConfiguration => throw new NotImplementedException();
 
         public ICacheConfiguration CacheConfiguration => throw new NotImplementedException();
 

@@ -591,6 +591,40 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task CreatePackage_Returns403IfUserIsLocked()
+            {
+                // Arrange
+                var user = new User { EmailAddress = "confirmed@email.com", UserStatusKey = UserStatus.Locked };
+                var packageRegistration = new PackageRegistration();
+                packageRegistration.Id = "theId";
+                packageRegistration.Owners.Add(user);
+                var package = new Package();
+                package.PackageRegistration = packageRegistration;
+                package.Version = "1.0.42";
+                packageRegistration.Packages.Add(package);
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(user);
+                controller.MockPackageUploadService
+                    .Setup(p => p.GeneratePackageAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<PackageArchiveReader>(),
+                        It.IsAny<PackageStreamMetadata>(),
+                        It.IsAny<User>(),
+                        It.IsAny<User>()))
+                    .Returns(Task.FromResult(package));
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                // Act
+                var result = await controller.CreatePackagePut();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.Forbidden, Strings.ApiKeyOwnerLocked);
+            }
+
+            [Fact]
             public async Task CreatePackage_Returns400IfPackageSecurityPolicyFails()
             {
                 // Arrange
@@ -800,7 +834,7 @@ namespace NuGetGallery
             public async Task CreatePackageReturns400IfMinClientVersionIsTooHigh()
             {
                 // Arrange
-                const string HighClientVersion = "6.0.0.0";
+                const string HighClientVersion = "7.0.0.0";
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42", minClientVersion: HighClientVersion);
 
                 var user = new User() { EmailAddress = "confirmed@email.com" };

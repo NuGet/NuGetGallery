@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -320,10 +320,10 @@
     <value>The package is invalid and cannot be uploaded. One or more files, such as '{0}' have a date in the future.</value>
   </data>
   <data name="AzureActiveDirectory_SignInMessage" xml:space="preserve">
-    <value>Sign in with Azure Active Directory</value>
+    <value>Sign in with Microsoft Entra ID</value>
   </data>
   <data name="AzureActiveDirectory_AccountNoun" xml:space="preserve">
-    <value>Azure Active Directory account</value>
+    <value>Microsoft Entra ID account</value>
   </data>
   <data name="ApiKeyCanNotBeDefaultGuid" xml:space="preserve">
     <value>API key can not be the default Guid.</value>
@@ -485,7 +485,7 @@ For more information, please contact '{2}'.</value>
     <value>The new password does not match the verify password field.</value>
   </data>
   <data name="AzureActiveDirectory_RegisterMessage" xml:space="preserve">
-    <value>Register with Azure Active Directory</value>
+    <value>Register with Microsoft Entra ID</value>
   </data>
   <data name="ReservedNamespace_InvalidCharactersInNamespace" xml:space="preserve">
     <value>The namespace '{0}' contains invalid characters. Examples of valid namespaces include 'MyNamespace', 'MyNamespace.' or 'MyNamespace-' etc.</value>
@@ -515,10 +515,10 @@ For more information, please contact '{2}'.</value>
     <value>The ID prefix of this package has been reserved for one of the owners of this package by NuGet.org.</value>
   </data>
   <data name="UploadPackage_IdNamespaceConflict" xml:space="preserve">
-    <value>This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID. Go to https://docs.microsoft.com/en-us/nuget/reference/id-prefix-reservation learn more about Package ID prefix reservation.</value>
+    <value>This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID. Go to https://docs.microsoft.com/nuget/reference/id-prefix-reservation learn more about Package ID prefix reservation.</value>
   </data>
   <data name="UploadPackage_IdNamespaceConflictHtml" xml:space="preserve">
-    <value>This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID. &lt;a href="https://docs.microsoft.com/en-us/nuget/reference/id-prefix-reservation"&gt;Learn more about Package ID prefix reservation&lt;/a&gt;.</value>
+    <value>This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID. &lt;a href="https://docs.microsoft.com/nuget/reference/id-prefix-reservation"&gt;Learn more about Package ID prefix reservation&lt;/a&gt;.</value>
   </data>
   <data name="PreviewReadMe_ConversionFailed" xml:space="preserve">
     <value>Conversion of Markdown to HTML failed with '{0}'.</value>
@@ -537,6 +537,12 @@ For more information, please contact '{2}'.</value>
   </data>
   <data name="ReadMeUrlHostInvalid" xml:space="preserve">
     <value>The Documentation URL must be a raw Markdown file hosted on GitHub.</value>
+  </data>
+  <data name="UploadPackage_MissingReadmeHtml" xml:space="preserve">
+    <value>&lt;strong&gt;Readme&lt;/strong&gt; missing.&lt;a href="https://aka.ms/nuget-include-readme"&gt; See how to include a readme file within the package&lt;/a&gt;, or add it as you upload.</value>
+  </data>
+  <data name="UploadPackage_MissingReadme" xml:space="preserve">
+    <value>Readme missing. Go to https://aka.ms/nuget-include-readme learn How to include a readme file within the package.</value>
   </data>
   <data name="ReservedNamespace_OwnerAdded" xml:space="preserve">
     <value>The user '{0}' is now an owner of the prefix '{1}'.</value>
@@ -754,10 +760,10 @@ If you would like to update the linked Microsoft account you can do so from the 
     <value>Successfully linked the Microsoft account ({0}). Note that the email address associated with the new linked Microsoft account is different than the NuGet.org account email ({1}).</value>
   </data>
   <data name="AddMember_UserDoesNotMeetOrganizationPolicy" xml:space="preserve">
-    <value>User '{0}' has not linked their account to an AAD credential matching this organization.</value>
+    <value>User '{0}' has not linked their account to a Microsoft Entra ID credential matching this organization.</value>
   </data>
   <data name="Organizations_AdminAccountDoesNotHaveTenant" xml:space="preserve">
-    <value>Administrator account '{0}' is not linked to an AAD credential with an organization tenant.</value>
+    <value>Administrator account '{0}' is not linked to a Microsoft Entra ID credential with an organization tenant.</value>
   </data>
   <data name="DeleteMember_CannotRemoveLastAdmin" xml:space="preserve">
     <value>You can't leave the organization. In order to leave the organization, another collaborator must be assigned as an administrator.</value>
@@ -903,7 +909,7 @@ If you would like to update the linked Microsoft account you can do so from the 
 Policy violations: {0}</value>
   </data>
   <data name="SecurityPolicy_RequirePackagePrefixReserved" xml:space="preserve">
-    <value>You have not published a package with this prefix in the past. This means other users may be able to push packages starting with the same prefix. Contact account@nuget.org to reserve the prefix. Go to https://docs.microsoft.com/en-us/nuget/reference/id-prefix-reservation to learn more about Package ID prefix reservation.</value>
+    <value>You have not published a package with this prefix in the past. This means other users may be able to push packages starting with the same prefix. Contact account@nuget.org to reserve the prefix. Go to https://docs.microsoft.com/nuget/reference/id-prefix-reservation to learn more about Package ID prefix reservation.</value>
   </data>
   <data name="SecurityPolicy_CopyrightNotCompliant" xml:space="preserve">
     <value>The package metadata contains a non-compliant copyright element.</value>
@@ -1071,6 +1077,12 @@ The {1} Team</value>
   <data name="UploadPackage_LearnMore" xml:space="preserve">
     <value>Learn more</value>
   </data>
+  <data name="UploadPackage_LicenseShouldBeSpecifiedHtmlV2" xml:space="preserve">
+    <value>&lt;strong&gt;License&lt;/strong&gt; missing.</value>
+  </data>
+  <data name="UploadPackage_LicenseShouldBeSpecifiedV2" xml:space="preserve">
+    <value>License missing.</value>
+  </data>
   <data name="UploadPackage_LicenseShouldBeSpecified" xml:space="preserve">
     <value>All published packages should have license information specified.</value>
   </data>
@@ -1190,7 +1202,10 @@ The {1} Team</value>
   <data name="ReadmeNotEditableWithEmbeddedReadme" xml:space="preserve">
     <value>The readme is not editable with the package has the embedded readme</value>
   </data>
-  <data name="UploadPackage_LearMore_PackagingLicense" xml:space="preserve">
+  <data name="UploadPackage_LearnMore_PackagingLicenseV2" xml:space="preserve">
+    <value>See how to include a license within the package</value>
+  </data>
+  <data name="UploadPackage_LearnMore_PackagingLicense" xml:space="preserve">
     <value>Learn more about including a license within the package</value>
   </data>
   <data name="UploadPackage_LearnMore_IconUrlDeprecation" xml:space="preserve">
@@ -1220,5 +1235,29 @@ The {1} Team</value>
   </data>
   <data name="ReadmeErrorEmpty" xml:space="preserve">
     <value>The readme file '{0}' cannot be empty.</value>
+  </data>
+  <data name="ApiKeyOwnerLocked" xml:space="preserve">
+    <value>The specified API key is scoped to an owner that is locked. Please contact support@nuget.org.</value>
+  </data>
+  <data name="SupportedFrameworks_EmptyVersionTooltip" xml:space="preserve">
+    <value>This package is compatible with all versions of this framework.</value>
+  </data>
+  <data name="SupportedFrameworks_Tooltip" xml:space="preserve">
+    <value>This package is compatible with this framework or higher.</value>
+  </data>
+  <data name="NuGetAccountPasswordLoginUnsupported" xml:space="preserve">
+    <value>NuGet.org password login is no longer supported.</value>
+  </data>
+  <data name="ForgotPassword_Disabled" xml:space="preserve">
+    <value>Forgot password flow has been disabled. Please reach out to your Microsoft account support to sign into NuGet gallery.</value>
+  </data>
+  <data name="ForgotPassword_Disabled_Error" xml:space="preserve">
+    <value>Forgot password is disabled.</value>
+  </data>
+  <data name="Emails_ApiKeyRevoked_Body" xml:space="preserve">
+    <value>Your API Key '{0}' has been revoked. If you did not request this change, please reply to this email to contact support.</value>
+  </data>
+  <data name="Emails_ApiKeyRevoked_Subject" xml:space="preserve">
+    <value>[{0}] API Key '{1}' Revoked</value>
   </data>
 </root>

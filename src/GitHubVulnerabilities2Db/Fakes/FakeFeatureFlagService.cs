@@ -25,11 +25,6 @@ namespace GitHubVulnerabilities2Db.Fakes
             throw new NotImplementedException();
         }
 
-        public bool IsDisplayPackagePageV2Enabled(User user)
-        {
-            throw new NotImplementedException();
-        }
-
         public bool ArePatternSetTfmHeuristicsEnabled()
         {
             throw new NotImplementedException();
@@ -130,6 +125,21 @@ namespace GitHubVulnerabilities2Db.Fakes
             throw new NotImplementedException();
         }
 
+        public bool IsMarkdigMdSyntaxHighlightEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsDisplayUploadWarningV2Enabled(User user)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsDisplayPackageReadmeWarningEnabled(User user)
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsODataDatabaseReadOnlyEnabled()
         {
             throw new NotImplementedException();
@@ -210,6 +220,11 @@ namespace GitHubVulnerabilities2Db.Fakes
             throw new NotImplementedException();
         }
 
+        public bool IsAllowAadContentSafetyReportsEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsPackageDependentsEnabled(User user)
         {
             throw new NotImplementedException();
@@ -265,13 +280,32 @@ namespace GitHubVulnerabilities2Db.Fakes
             throw new NotImplementedException();
         }
 
-        public bool IsDisplayPackagePageV2PreviewEnabled(User user)
+        public bool IsDisplayTargetFrameworkEnabled(User user)
         {
             throw new NotImplementedException();
         }
 
-        public bool IsDisplayTargetFrameworkEnabled()
+        public bool IsComputeTargetFrameworkEnabled()
         {
+            throw new NotImplementedException();
+        }
+
+        public bool IsRecentPackagesNoIndexEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsNewAccount2FAEnforcementEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsNuGetAccountPasswordLoginEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsFrameworkFilteringEnabled(User user) {
             throw new NotImplementedException();
         }
     }

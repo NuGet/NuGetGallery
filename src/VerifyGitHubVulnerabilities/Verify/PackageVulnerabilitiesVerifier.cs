@@ -7,6 +7,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using NuGet.Configuration;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
@@ -21,14 +22,17 @@ namespace VerifyGitHubVulnerabilities.Verify
     {
         private readonly VerifyGitHubVulnerabilitiesConfiguration _configuration;
         private readonly IEntitiesContext _entitiesContext;
+        private readonly ILogger<PackageVulnerabilitiesVerifier> _logger;
 
         private Lazy<Task<PackageMetadataResource>> _packageMetadataResource;
         private Dictionary<string, IEnumerable<IPackageSearchMetadata>> _packageMetadata;
 
         private static readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
 
-        public PackageVulnerabilitiesVerifier(VerifyGitHubVulnerabilitiesConfiguration configuration,
-            IEntitiesContext entitiesContext)
+        public PackageVulnerabilitiesVerifier(
+            VerifyGitHubVulnerabilitiesConfiguration configuration,
+            IEntitiesContext entitiesContext,
+            ILogger<PackageVulnerabilitiesVerifier> logger)
         {
             _configuration = configuration;
             if (_configuration.VerifyDatabase)
@@ -38,6 +42,7 @@ namespace VerifyGitHubVulnerabilities.Verify
 
             _packageMetadata = new Dictionary<string, IEnumerable<IPackageSearchMetadata>>();
             _packageMetadataResource = new Lazy<Task<PackageMetadataResource>>(InitializeMetadataResourceAsync);
+            _logger = logger;
         }
 
         public bool HasErrors { get; private set; }
@@ -51,7 +56,7 @@ namespace VerifyGitHubVulnerabilities.Verify
         {
             if (vulnerability == null)
             {
-                Console.Error.WriteLine("Null vulnerability passed to verifier! Continuing...");
+                _logger.LogWarning("Null vulnerability passed to verifier! Continuing...");
                 return Task.CompletedTask;
             }
 
@@ -73,7 +78,10 @@ namespace VerifyGitHubVulnerabilities.Verify
 
         private void VerifyVulnerabilityInDatabase(PackageVulnerability vulnerability, bool withdrawn)
         {
-            Console.WriteLine($"[Database] Verifying vulnerability {vulnerability.GitHubDatabaseKey}.");
+            _logger.LogInformation(
+                "[Database] Verifying vulnerability {GitHubDatabaseKey} (advisory URL: {AdvisoryUrl}).",
+                vulnerability.GitHubDatabaseKey,
+                vulnerability.AdvisoryUrl);
 
             var existingVulnerability = _entitiesContext.Vulnerabilities
                 .Include(v => v.AffectedRanges)
@@ -83,9 +91,9 @@ namespace VerifyGitHubVulnerabilities.Verify
             {
                 if (existingVulnerability != null)
                 {
-                    Console.Error.WriteLine(withdrawn ?
-                        $@"[Database] Vulnerability advisory {vulnerability.GitHubDatabaseKey} was withdrawn and should not be in DB!" :
-                        $@"[Database] Vulnerability advisory {vulnerability.GitHubDatabaseKey} affects no packages and should not be in DB!");
+                    _logger.LogError(withdrawn ?
+                        "[Database] Vulnerability advisory {GitHubDatabaseKey} was withdrawn and should not be in DB!" :
+                        "[Database] Vulnerability advisory {GitHubDatabaseKey} affects no packages and should not be in DB!", vulnerability.GitHubDatabaseKey);
                     HasErrors = true;
                 }
 
@@ -94,48 +102,58 @@ namespace VerifyGitHubVulnerabilities.Verify
 
             if (existingVulnerability == null)
             {
-                Console.Error.WriteLine($"[Database] Cannot find vulnerability {vulnerability.GitHubDatabaseKey} in DB!");
+                _logger.LogError("[Database] Cannot find vulnerability {GitHubDatabaseKey} in DB!", vulnerability.GitHubDatabaseKey);
                 HasErrors = true;
                 return;
             }
 
             if (existingVulnerability.Severity != vulnerability.Severity)
             {
-                Console.Error.WriteLine(
-                    $@"[Database] Vulnerability advisory {vulnerability.GitHubDatabaseKey
-                    }, severity does not match! GitHub: {vulnerability.Severity}, DB: {existingVulnerability.Severity}");
+                _logger.LogError(
+                    "[Database] Vulnerability advisory {GitHubDatabaseKey}, severity does not match! GitHub: {GitHubSeverity}, DB: {DbSeverity}",
+                    vulnerability.GitHubDatabaseKey,
+                    vulnerability.Severity,
+                    existingVulnerability.Severity);
                 HasErrors = true;
             }
 
             if (existingVulnerability.AdvisoryUrl != vulnerability.AdvisoryUrl)
             {
-                Console.Error.WriteLine(
-                    $@"[Database] Vulnerability advisory {vulnerability.GitHubDatabaseKey
-                    }, advisory URL does not match! GitHub: {vulnerability.AdvisoryUrl}, DB: { existingVulnerability.AdvisoryUrl}");
+                _logger.LogError(
+                    "[Database] Vulnerability advisory {GitHubDatabaseKey}, advisory URL does not match! GitHub: {GitHubAdvisoryUrl}, DB: {DbAdvisoryUrl}",
+                    vulnerability.GitHubDatabaseKey,
+                    vulnerability.AdvisoryUrl,
+                    existingVulnerability.AdvisoryUrl);
                 HasErrors = true;
             }
 
             foreach (var range in vulnerability.AffectedRanges)
             {
-                Console.WriteLine($"[Database] Verifying range affecting {range.PackageId} {range.PackageVersionRange}.");
+                _logger.LogInformation("[Database] Verifying range affecting {PackageId} {PackageVersionRange}.", range.PackageId, range.PackageVersionRange);
                 var existingRange = existingVulnerability.AffectedRanges
                     .SingleOrDefault(r => r.PackageId == range.PackageId && r.PackageVersionRange == range.PackageVersionRange);
 
                 if (existingRange == null)
                 {
-                    Console.Error.WriteLine(
-                        $@"[Database] Vulnerability advisory {vulnerability.GitHubDatabaseKey
-                        }, cannot find range {range.PackageId} {range.PackageVersionRange} in DB!");
+                    _logger.LogError(
+                        "[Database] Vulnerability advisory {GitHubDatabaseKey}, cannot find range {PackageId} {PackageVersionRange} in DB!",
+                        vulnerability.GitHubDatabaseKey,
+                        range.PackageId,
+                        range.PackageVersionRange);
                     HasErrors = true;
                     continue;
                 }
 
                 if (existingRange.FirstPatchedPackageVersion != range.FirstPatchedPackageVersion)
                 {
-                    Console.Error.WriteLine(
-                        $@"[Database] Vulnerability advisory {vulnerability.GitHubDatabaseKey
-                        }, range {range.PackageId} {range.PackageVersionRange}, first patched version does not match! GitHub: {
-                        range.FirstPatchedPackageVersion}, DB: {range.FirstPatchedPackageVersion}");
+                    _logger.LogError(
+                        "[Database] Vulnerability advisory {GitHubDatabaseKey}, range {PackageId} {PackageVersionRange}, " +
+                        "first patched version does not match! GitHub: {GitHubFirstPatchedPackageVersion}, DB: {DbFirstPatchedPackageVersion}",
+                        vulnerability.GitHubDatabaseKey,
+                        range.PackageVersionRange,
+                        range.PackageVersionRange,
+                        range.FirstPatchedPackageVersion,
+                        existingRange.FirstPatchedPackageVersion);
                     HasErrors = true;
                 }
 
@@ -150,10 +168,13 @@ namespace VerifyGitHubVulnerabilities.Verify
                     var version = NuGetVersion.Parse(package.NormalizedVersion);
                     if (versionRange.Satisfies(version) != package.VulnerablePackageRanges.Contains(existingRange))
                     {
-                        Console.Error.WriteLine(
-                            $@"[Database] Vulnerability advisory {vulnerability.GitHubDatabaseKey
-                            }, range {range.PackageId} {range.PackageVersionRange}, package {package.NormalizedVersion
-                            } is not properly marked vulnerable to vulnerability!");
+                        _logger.LogError(
+                            "[Database] Vulnerability advisory {GitHubDatabaseKey}, " +
+                            "range {PackageId} {PackageVersionRange}, package {NormalizedVersion} is not properly marked vulnerable to vulnerability!",
+                            vulnerability.GitHubDatabaseKey,
+                            range.PackageId,
+                            range.PackageVersionRange,
+                            package.NormalizedVersion);
                         HasErrors = true;
                     }
                 }
@@ -162,7 +183,10 @@ namespace VerifyGitHubVulnerabilities.Verify
 
         private Task VerifyVulnerabilityInMetadataAsync(PackageVulnerability gitHubAdvisory)
         {
-            Console.WriteLine($"[Metadata] Verifying vulnerability {gitHubAdvisory.GitHubDatabaseKey}.");
+            _logger.LogInformation(
+                "[Metadata] Verifying vulnerability {GitHubDatabaseKey} (advisory URL: {AdvisoryUrl}).",
+                gitHubAdvisory.GitHubDatabaseKey,
+                gitHubAdvisory.AdvisoryUrl);
 
             if (gitHubAdvisory.AffectedRanges == null || !gitHubAdvisory.AffectedRanges.Any())
             {
@@ -235,9 +259,12 @@ namespace VerifyGitHubVulnerabilities.Verify
                 {
                     if (!hasTheVulnerability)
                     {
-                        Console.Error.WriteLine(
-                            $@"[Metadata] Vulnerability advisory {advisoryDatabaseKey
-                                }, version {versionMetadata.Identity.Version} of package {packageId} is not marked vulnerable and is in a vulnerable range!");
+                        _logger.LogError(
+                            "[Metadata] Vulnerability advisory {AdvisoryDatabaseKey}, version {Version} of package {PackageId} " +
+                            "is not marked vulnerable and is in a vulnerable range!",
+                            advisoryDatabaseKey,
+                            versionMetadata.Identity.Version,
+                            packageId);
                         HasErrors = true;
                     }
 
@@ -246,9 +273,12 @@ namespace VerifyGitHubVulnerabilities.Verify
                         .FirstOrDefault(v => v.Severity != (int)advisorySeverity);
                     if (firstSeverityMismatch != null)
                     {
-                        Console.Error.WriteLine(
-                            $@"[Metadata] Vulnerability advisory {advisoryDatabaseKey
-                                }, severities has at least one mismatch! GitHub: {advisorySeverity}, Metadata: {firstSeverityMismatch.Severity}");
+                        _logger.LogError(
+                            "[Metadata] Vulnerability advisory {AdvisoryDatabaseKey}, severities has at least one mismatch! " +
+                            "GitHub: {GitHubAdvisorySeverity}, Metadata: {FirstSeverityMismatchSeverity}",
+                            advisoryDatabaseKey,
+                            advisorySeverity,
+                            firstSeverityMismatch.Severity);
                         HasErrors = true;
                     }
                 }
@@ -256,9 +286,12 @@ namespace VerifyGitHubVulnerabilities.Verify
                 {
                     if (hasTheVulnerability)
                     {
-                        Console.Error.WriteLine(
-                            $@"[Metadata] Vulnerability advisory {advisoryDatabaseKey
-                                }, version {versionMetadata} of package {packageId} is marked vulnerable and is not in a vulnerable range!");
+                        _logger.LogError(
+                            "[Metadata] Vulnerability advisory {AdvisoryDatabaseKey}, version {Version} of package {PackageId} " +
+                            "is marked vulnerable and is not in a vulnerable range!",
+                            advisoryDatabaseKey,
+                            versionMetadata.Identity.Version,
+                            packageId);
                         HasErrors = true;
                     }
                 }
@@ -274,14 +307,18 @@ namespace VerifyGitHubVulnerabilities.Verify
             {
                 if (!_packageMetadata.TryGetValue(packageId, out IEnumerable<IPackageSearchMetadata> metadata))
                 {
-                    metadata = (await (await _packageMetadataResource.Value).GetMetadataAsync(
-                        packageId,
-                        includePrerelease: true,
-                        includeUnlisted: false,
-                        sourceCacheContext: new SourceCacheContext(),
-                        log: NuGet.Common.NullLogger.Instance,
-                        token: CancellationToken.None)).ToList();
-                    _packageMetadata[packageId] = metadata;
+                    using (var cacheContext = new SourceCacheContext())
+                    {
+                        cacheContext.NoCache = true;
+                        metadata = (await (await _packageMetadataResource.Value).GetMetadataAsync(
+                            packageId,
+                            includePrerelease: true,
+                            includeUnlisted: true,
+                            sourceCacheContext: cacheContext,
+                            log: NuGet.Common.NullLogger.Instance,
+                            token: CancellationToken.None)).ToList();
+                        _packageMetadata[packageId] = metadata;
+                    }
                 }
 
                 return metadata;

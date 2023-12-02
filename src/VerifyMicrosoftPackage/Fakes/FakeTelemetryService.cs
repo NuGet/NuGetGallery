@@ -203,7 +203,7 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
             throw new NotImplementedException();
         }
 
-        public void TrackPackageDeprecate(IReadOnlyList<Package> packages, PackageDeprecationStatus status, PackageRegistration alternateRegistration, Package alternatePackage, bool hasCustomMessage)
+        public void TrackPackageDeprecate(IReadOnlyList<Package> packages, PackageDeprecationStatus status, PackageRegistration alternateRegistration, Package alternatePackage, bool hasCustomMessage, bool hasChanges)
         {
             throw new NotImplementedException();
         }
@@ -378,6 +378,11 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
             throw new NotImplementedException();
         }
 
+        public void TrackApiRequest(string endpoint)
+        {
+            throw new NotImplementedException();
+        }
+
         public void TrackVerifyPackageKeyEvent(string packageId, string packageVersion, User user, IIdentity identity, int statusCode)
         {
             throw new NotImplementedException();
@@ -385,6 +390,24 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
 
         public void TrackVulnerabilitiesCacheRefreshDuration(TimeSpan duration)
         {
+            throw new NotImplementedException();
+        }
+
+        public IDisposable TrackSyncSqlConnectionCreationDuration()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDisposable TrackAsyncSqlConnectionCreationDuration()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void TrackDownloadJsonTotalPackageIds(int totalPackageIds) {
+            throw new NotImplementedException();
+        }
+
+        public void TrackDownloadJsonTotalPackageVersions(int totalPackageVersions) {
             throw new NotImplementedException();
         }
     }

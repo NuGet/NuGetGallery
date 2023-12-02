@@ -111,6 +111,8 @@ namespace NuGetGallery
                 searchTerm,
                 page: 1,
                 includePrerelease: true,
+                frameworks: null,
+                tfms: null,
                 packageType: null,
                 sortOrder: null,
                 context: SearchFilter.UISearchContext,

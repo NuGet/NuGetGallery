@@ -48,7 +48,8 @@ namespace NuGetGallery
                   messageServiceConfiguration,
                   deleteAccountService,
                   iconUrlProvider,
-                  gravatarProxy)
+                  gravatarProxy,
+                  features)
         {
             _features = features ?? throw new ArgumentNullException(nameof(features));
         }
@@ -67,7 +68,7 @@ namespace NuGetGallery
             var message = new NewAccountMessage(
                 MessageServiceConfiguration,
                 account,
-                Url.ConfirmOrganizationEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false));
+                Url.ConfirmOrganizationEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false, supportEmail: true));
 
             return MessageService.SendMessageAsync(message);
         }
@@ -77,7 +78,7 @@ namespace NuGetGallery
             var message = new EmailChangeConfirmationMessage(
                 MessageServiceConfiguration,
                 account,
-                Url.ConfirmOrganizationEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false));
+                Url.ConfirmOrganizationEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false, supportEmail: true));
 
             return MessageService.SendMessageAsync(message);
         }
@@ -151,9 +152,9 @@ namespace NuGetGallery
                     request.NewMember,
                     currentUser,
                     request.IsAdmin,
-                    profileUrl: Url.User(account, relativeUrl: false),
-                    confirmationUrl: Url.AcceptOrganizationMembershipRequest(request, relativeUrl: false),
-                    rejectionUrl: Url.RejectOrganizationMembershipRequest(request, relativeUrl: false));
+                    profileUrl: Url.User(account, relativeUrl: false, supportEmail: true),
+                    confirmationUrl: Url.AcceptOrganizationMembershipRequest(request, relativeUrl: false, supportEmail: true),
+                    rejectionUrl: Url.RejectOrganizationMembershipRequest(request, relativeUrl: false, supportEmail: true));
                 await MessageService.SendMessageAsync(organizationMembershipRequestMessage);
 
                 var organizationMembershipRequestInitiatedMessage = new OrganizationMembershipRequestInitiatedMessage(

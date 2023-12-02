@@ -104,6 +104,7 @@ namespace NuGetGallery
         {
             return type?.StartsWith(ApiKey.Prefix, StringComparison.OrdinalIgnoreCase) ?? false;
         }
+
         public static bool IsMicrosoftAccount(string type)
         {
             return type?.Equals(External.MicrosoftAccount, StringComparison.OrdinalIgnoreCase) ?? false;
@@ -122,6 +123,11 @@ namespace NuGetGallery
         public static Credential GetAzureActiveDirectoryCredential(this ICollection<Credential> credentials)
         {
             return credentials.SingleOrDefault(c => IsAzureActiveDirectoryAccount(c.Type));
+        }
+
+        public static Credential GetMicrosoftAccountCredential(this ICollection<Credential> credentials)
+        {
+            return credentials.FirstOrDefault(c => IsMicrosoftAccount(c.Type));
         }
     }
 }

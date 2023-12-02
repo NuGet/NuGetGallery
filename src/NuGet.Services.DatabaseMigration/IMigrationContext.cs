@@ -17,7 +17,7 @@ namespace NuGet.Services.DatabaseMigration
         /// </summary>
         SqlConnection SqlConnection { get; }
         /// <summary>
-        /// Access token (AAD) for connection authentication.
+        /// Access token (Microsoft Entra ID) for connection authentication.
         /// </summary>
         string SqlConnectionAccessToken { get; }
         /// <summary>

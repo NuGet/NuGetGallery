@@ -120,7 +120,7 @@
                 <p class="error-action">Get me out of here! <a href="@url.Home()">Go home</a></p>
                 <p class="error-action">Wondering if NuGet is down? <a href="https://status.nuget.org/">Check our status</a></p>
                 <p class="error-action">Looking for a package? <a href="@url.PackageList()">Try searching</a></p>
-                <p class="error-action">Package you're looking for doesn't exist? <a href="https://docs.microsoft.com/en-us/nuget/quickstart/create-and-publish-a-package">Make one</a></p>
+                <p class="error-action">Package you're looking for doesn't exist? <a href="https://docs.microsoft.com/nuget/quickstart/create-and-publish-a-package">Make one</a></p>
                 <p class="error-action">Pretty sure we messed up? <a href="https://github.com/NuGet/NuGetGallery/issues">File a bug</a></p>
                 <p class="error-action">Can't get enough NuGet? <a href="https://twitter.com/nuget">Follow us</a></p>
             </div>
@@ -578,7 +578,7 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
     if (!disabled)
     {
         <div class="panel panel-default panel-collapse collapse @(expanded ? "in" : string.Empty)"
-                aria-expanded="@(expanded ? "true" : "false")" id="@id-container">
+                id="@id-container">
             <div class="panel-body">
                 @content(MvcHtmlString.Empty)
             </div>
@@ -588,10 +588,10 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
 
 @helper Breadcrumb(bool showDivider, params Func<MvcHtmlString, HelperResult>[] segments)
 {
-    <h1 role="list" class="ms-font-xl breadcrumb-title">
+    <h1 class="ms-font-xl breadcrumb-title">
         @for (int i = 0; i < segments.Length; i++)
         {
-            <span role="listitem" class="ms-noWrap">@segments[i](MvcHtmlString.Empty)</span>
+            <span class="ms-noWrap">@segments[i](MvcHtmlString.Empty)</span>
 
             if (i < segments.Length - 1)
             {
@@ -645,7 +645,7 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
             $submit.before(
                 '<div id="recaptcha" class="g-recaptcha" '
                 + 'data-sitekey="@reCaptchaPublicKey" data-size="invisible" '
-                + 'data-callback="onSubmit" data-tabindex="-1"></div>');
+                + 'data-callback="onSubmit" data-tabindex="1"></div>');
 
             var $form = $submit.parents('form')
             $submit.click(function (e) {
@@ -657,6 +657,11 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
 
             function onSubmit(token) {
                 $form.submit();
+            }
+
+            window.onload = function () {
+                $('div.g-recaptcha iframe').attr({ tabindex: "1" });
+                $('div.g-recaptcha iframe').attr({ role: "document" });
             }
         </script>
     }
@@ -726,4 +731,13 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
     {
         return MvcHtmlString.Create(UriExtensions.GetExternalUrlAnchorTag(data, link));
     }
+}
+
+@helper  IncludeSyntaxHighlightScript()
+{
+    @* highlight.js build includes support for:: bash, c, cpp, csharp, css, diff, go, ini, java, json, javascript, typescript, kotlin, less, lua, makefile, xml, markdown, perl, php, objectivec, plaintext, python, r, ruby,rust, scss, shell, sql, swift, vbnet, yaml, html, fsharp, powershell, dos*@
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/highlight.min.js" integrity="sha512-gU7kztaQEl7SHJyraPfZLQCNnrKdaQi5ndOyt4L4UPL/FHDd/uB9Je6KDARIqwnNNE27hnqoWLBq+Kpe4iHfeQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/languages/fsharp.min.js" integrity="sha512-DXYctkkhmMYJ4vYp4Dm6jprD4ZareZ7ud/d9mGCKif/Dt3FnN95SjogHvwKvxXHoMAAkZX6EO6ePwpDIR1Y8jw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/languages/dos.min.js" integrity="sha512-mz4SrGyk+dtPY9MNYOMkD81gp8ajViZ4S0VDuM/Zqg40cg9xgIBYSiL5fN79Htbz4f2+uR9lrDO6mgcjM+NAXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/languages/powershell.min.js" integrity="sha512-pnt8OPBTOklRd4/iSW7msOiCVO4uvffF17Egr3c7AaN0h3qFnSu7L6UmdZJUCednMhhruTLRq7X9WbyAWNBegw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 }

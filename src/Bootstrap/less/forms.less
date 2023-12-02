@@ -100,6 +100,13 @@ input[type="checkbox"]:focus {
   .tab-focus();
 }
 
+// Focus for checkboxes in forced-color modes (eg. Windows high-contrast mode)
+@media (forced-colors: active) {
+  input[type="checkbox"]:focus {
+    .forced-colors-tab-focus();
+  }
+}
+
 // Adjust output element
 output {
   display: block;

@@ -25,7 +25,6 @@ using NuGetGallery.Auditing.AuditedEntities;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
-using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Packaging;
@@ -331,6 +330,7 @@ namespace NuGetGallery
         [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
         [ActionName("CreatePackageVerificationKey")]
         public virtual async Task<ActionResult> CreatePackageVerificationKeyAsync(string id, string version)
+        // CodeQL [SM00433] This endpoint uses API Key authentication
         {
             // For backwards compatibility, we must preserve existing behavior where the client always pushes
             // symbols and the VerifyPackageKey callback returns the appropriate response. For this reason, we
@@ -427,6 +427,7 @@ namespace NuGetGallery
         [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
         [ActionName("PushPackageApi")]
         public virtual Task<ActionResult> CreatePackagePost()
+        // CodeQL [SM00433] This endpoint uses API Key authentication
         {
             return CreatePackageInternal();
         }
@@ -948,6 +949,7 @@ namespace NuGetGallery
         [ApiScopeRequired(NuGetScopes.PackageUnlist)]
         [ActionName("PublishPackageApi")]
         public virtual async Task<ActionResult> PublishPackage(string id, string version)
+        // CodeQL [SM00433] This endpoint uses API Key authentication
         {
             var package = PackageService.FindPackageByIdAndVersionStrict(id, version);
             if (package == null)
@@ -976,6 +978,7 @@ namespace NuGetGallery
 
         [HttpPut]
         [ApiAuthorize]
+        [RequiresUserAgent]
         [ApiScopeRequired(NuGetScopes.PackageUnlist)]
         [ActionName(RouteName.DeprecatePackageApi)]
         public virtual async Task<ActionResult> DeprecatePackage(
@@ -1199,8 +1202,19 @@ namespace NuGetGallery
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, Strings.UploadPackage_OwnerlessIdNamespaceConflict);
             }
 
-            var message = result.PermissionsCheckResult == PermissionsCheckResult.Allowed && !result.IsOwnerConfirmed ?
-                Strings.ApiKeyOwnerUnconfirmed : Strings.ApiKeyNotAuthorized;
+            string message;
+            if (result.PermissionsCheckResult == PermissionsCheckResult.Allowed && !result.IsOwnerConfirmed)
+            {
+                message = Strings.ApiKeyOwnerUnconfirmed;
+            }
+            else if (result.PermissionsCheckResult == PermissionsCheckResult.Allowed && result.IsOwnerLocked)
+            {
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyOwnerLocked);
+            }
+            else
+            {
+                message = Strings.ApiKeyNotAuthorized;
+            }
 
             return new HttpStatusCodeWithBodyResult(statusCodeOnFailure, message);
         }

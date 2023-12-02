@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <Import Project="..\..\SdkProjects.props" />
 
@@ -43,14 +43,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory">
-      <Version>5.2.6</Version>
-    </PackageReference>
+    <PackageReference Include="EntityFramework" Version="6.4.4" />
     <PackageReference Include="NuGet.Packaging">
-      <Version>5.9.0</Version>
+      <Version>$(NuGetClientPackageVersion)</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.FeatureFlags">
-      <Version>2.91.0</Version>
+      <Version>$(ServerCommonPackageVersion)</Version>
     </PackageReference>
     <PackageReference Include="WindowsAzure.Storage">
       <Version>9.3.3</Version>
@@ -59,13 +57,13 @@
   
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <PackageReference Include="NuGet.Services.Messaging.Email">
-      <Version>2.91.0</Version>
+      <Version>$(ServerCommonPackageVersion)</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation">
-      <Version>2.91.0</Version>
+      <Version>$(ServerCommonPackageVersion)</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation.Issues">
-      <Version>2.91.0</Version>
+      <Version>$(ServerCommonPackageVersion)</Version>
     </PackageReference>
     <PackageReference Include="NuGet.StrongName.elmah.corelibrary">
       <Version>1.2.2</Version>
@@ -74,7 +72,7 @@
       <Version>5.8.4</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.WindowsAzure.ConfigurationManager">
-      <Version>3.1.0</Version>
+      <Version>3.2.3</Version>
     </PackageReference>
   </ItemGroup>
   

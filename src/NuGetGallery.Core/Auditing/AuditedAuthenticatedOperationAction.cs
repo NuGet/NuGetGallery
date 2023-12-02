@@ -28,6 +28,11 @@ namespace NuGetGallery.Auditing
         /// <summary>
         /// Symbol package push was attempted by a non-owner of the package
         /// </summary>
-        SymbolsPackagePushAttemptByNonOwner
+        SymbolsPackagePushAttemptByNonOwner,
+
+        /// <summary>
+        /// User attempted to login when password login is unsupported
+        /// </summary>
+        PasswordLoginUnsupported
     }
 }

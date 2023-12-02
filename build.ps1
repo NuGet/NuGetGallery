@@ -5,12 +5,12 @@ param (
     [int]$BuildNumber,
     [switch]$SkipRestore,
     [switch]$CleanCache,
-    [string]$SimpleVersion = '1.0.0',
-    [string]$SemanticVersion = '1.0.0-zlocal',
+    [string]$SimpleVersion = '4.4.5',
+    [string]$SemanticVersion = '4.4.5-zlocal',
     [string]$PackageSuffix,
     [string]$Branch,
     [string]$CommitSHA,
-    [string]$BuildBranchCommit = '65e723253187442f5b8ea537f672bd9328ade5a7',
+    [string]$BuildBranchCommit = '5295c6e0d2ae7357fccf01e48c56b768b192f022', #DevSkim: ignore DS173237. Not a secret/token. It is a commit hash.
     [string]$VerifyMicrosoftPackageVersion = $null
 )
 
@@ -29,10 +29,7 @@ if (-not (Test-Path "$PSScriptRoot/build")) {
     New-Item -Path "$PSScriptRoot/build" -ItemType "directory"
 }
 
-# Enable TLS 1.2 since GitHub requires it.
-[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
-
-wget -UseBasicParsing -Uri "https://raw.githubusercontent.com/NuGet/ServerCommon/$BuildBranchCommit/build/init.ps1" -OutFile "$PSScriptRoot/build/init.ps1"
+Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/NuGet/ServerCommon/$BuildBranchCommit/build/init.ps1" -OutFile "$PSScriptRoot/build/init.ps1"
 . "$PSScriptRoot/build/init.ps1" -BuildBranchCommit $BuildBranchCommit
 
 Function Clean-Tests {
@@ -116,6 +113,7 @@ Invoke-BuildStep 'Creating artifacts' { `
     New-ProjectPackage (Join-Path $PSScriptRoot "src\NuGetGallery.Core\NuGetGallery.Core.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -PackageId "NuGetGallery.Core$PackageSuffix"
     New-ProjectPackage (Join-Path $PSScriptRoot "src\NuGet.Services.Entities\NuGet.Services.Entities.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion
     New-ProjectPackage (Join-Path $PSScriptRoot "src\NuGet.Services.DatabaseMigration\NuGet.Services.DatabaseMigration.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion
+    New-ProjectPackage (Join-Path $PSScriptRoot "src\NuGetGallery.Services\NuGetGallery.Services.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion
     New-Package (Join-Path $PSScriptRoot "src\DatabaseMigrationTools\DatabaseMigration.Gallery.nuspec") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch
     New-Package (Join-Path $PSScriptRoot "src\DatabaseMigrationTools\DatabaseMigration.SupportRequest.nuspec") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch
     New-Package (Join-Path $PSScriptRoot "src\DatabaseMigrationTools\DatabaseMigration.Validation.nuspec") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch

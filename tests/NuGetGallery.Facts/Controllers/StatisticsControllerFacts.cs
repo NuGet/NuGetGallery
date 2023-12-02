@@ -9,10 +9,12 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Http.Results;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
 using Newtonsoft.Json.Linq;
+using NuGetGallery.Configuration;
 using NuGetGallery.Cookies;
 using NuGetGallery.Framework;
 using Xunit;
@@ -348,7 +350,7 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public async void StatisticsHomePage_Per_Package_ValidateModel()
+        public async Task StatisticsHomePage_Per_Package_ValidateModel()
         {
             string PackageId = "A";
 
@@ -531,7 +533,7 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public async void Statistics_By_Client_Operation_ValidateModel()
+        public async Task Statistics_By_Client_Operation_ValidateModel()
         {
             string PackageId = "A";
             string PackageVersion = "2.0";
@@ -665,6 +667,32 @@ namespace NuGetGallery
             await controller.PackageDownloadsByVersionReport(PackageId, It.IsAny<string[]>());
 
             Assert.Equal(200, controller.Response.StatusCode);
+        }
+
+        [Fact]
+        public async Task StatisticsDownloadByVersionAction_OverridesMaxJsonLength()
+        {
+            const string PackageId = "A";
+
+            var fakeStatisticsService = new Mock<IStatisticsService>();
+            fakeStatisticsService
+                .Setup(service => service.GetPackageDownloadsByVersion(PackageId))
+                .Returns(Task.FromResult(new StatisticsPackagesReport()));
+            var fakeAppConfiguration = new Mock<IAppConfiguration>();
+            fakeAppConfiguration
+                .Setup(service => service.MaxJsonLengthOverride)
+                .Returns(12345);
+
+            var controller = new StatisticsController(
+                fakeStatisticsService.Object,
+                aggregateStatsService: null,
+                appConfiguration: fakeAppConfiguration.Object);
+            TestUtility.SetupUrlHelperForUrlGeneration(controller);
+
+            var result = await controller.PackageDownloadsByVersionReport(PackageId, It.IsAny<string[]>());
+
+            var jsonResult = Assert.IsType<JsonResult>(result);
+            Assert.Equal(12345, jsonResult.MaxJsonLength);
         }
 
         public class TheTotalsAllAction

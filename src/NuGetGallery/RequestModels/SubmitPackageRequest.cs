@@ -10,5 +10,11 @@ namespace NuGetGallery
         public VerifyPackageRequest InProgressUpload { get; set; }
 
         public bool IsSymbolsUploadEnabled { get; set; }
+
+        public bool IsUserLocked { get; set; }
+
+        public bool IsMarkdigMdSyntaxHighlightEnabled { get; set; }
+
+        public bool IsDisplayUploadWarningV2Enabled { get; set;  }
     }
 }

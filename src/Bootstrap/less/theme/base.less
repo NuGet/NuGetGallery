@@ -83,6 +83,11 @@ body {
 
   a {
     color: @panel-footer-color;
+
+    &:focus {
+      outline: 3px solid white;
+      outline-offset: 2px;
+    }
   }
 
   .footer-release-info {
@@ -113,6 +118,13 @@ body {
 .main-container {
   padding-bottom: 75px;
   height: auto;
+
+  a[href] {
+    &:focus {
+      outline: solid 2px;
+      outline-offset: 1px;
+    }
+  }
 }
 
 .navbar-logo {
@@ -335,13 +347,16 @@ img.reserved-indicator-icon {
   line-height: @package-list-line-height;
   color: @gray-light;
 
-  a:not(.more-tags) {
-    color: @gray-light;
-  }
-
   li {
     list-style: none;
     display: list-item;
+
+    a {
+      &:focus {
+        outline: solid 0.25px;
+        outline-offset: 0;
+      }
+    }
   }
 
   @media (min-width: @screen-sm-min) {
@@ -351,6 +366,11 @@ img.reserved-indicator-icon {
       max-height: (@package-list-line-height * 5 + 1px);
       overflow-y: hidden;
       padding-right: @padding-small-horizontal;
+    }
+
+    li.package-tags {
+      display: block;
+      overflow-y: visible;
     }
   }
 }
@@ -423,6 +443,11 @@ img.reserved-indicator-icon {
 
 .sortable {
 	cursor: pointer;
+}
+
+.form-group label.required::after {
+  color: red;
+  content: " *";
 }
 
 // Workaround. See https://github.com/NuGet/NuGetGallery/issues/8264

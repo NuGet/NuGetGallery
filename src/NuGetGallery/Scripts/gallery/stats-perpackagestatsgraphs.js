@@ -113,17 +113,6 @@
             .attr("height", function (d) { return height - yScale(d.downloads); })
             .append("title").text(function (d) { return d.downloads + " Downloads"; });
 
-        svg.append("foreignObject")
-            .attr("x", "1.71em")
-            .attr("y", -30)
-            .attr("width", width - 20 + "px")
-            .attr("height", "2em")
-            .attr("font-weight", "bold")
-            .append("xhtml:body")
-            .append("p")
-            .attr("style", "text-align:center")
-            .text("Downloads for 15 Latest Package Versions (Last 6 weeks)");
-
         svg.append("g")
             .attr("class", "y axis")
             .call(yAxis)
@@ -133,6 +122,8 @@
             .attr("dy", ".71em")
             .style("text-anchor", "end")
             .text("Downloads");
+
+        $("#statistics-graph-title-id").text("Downloads for 15 Latest Package Versions (Last 6 weeks)");
     }
 
     var drawDownloadsByClientNameBarChart = function (rawData) {
@@ -222,20 +213,12 @@
             .attr("height", yScale.bandwidth())
             .append("title").text(function (d) { return d.downloads.toLocaleString() + " Downloads"; });
 
-        svg.append("foreignObject")
-            .attr("x", 0)
-            .attr("y", -10)
-            .attr("width", width + "px")
-            .attr("height", "2em")
-            .attr("font-weight", "bold")
-            .append("xhtml:body")
-            .append("p")
-            .attr("style", "text-align:center")
-            .text("Downloads by Client (Last 6 weeks)");
-
         svg.append("g")
             .attr("class", "y axis long")
             .call(yAxis);
+
+
+        $("#statistics-graph-title-id").text("Downloads by Client (Last 6 weeks)");
     }
 
     var GetChartData = function (rawData, filter) {
@@ -283,7 +266,7 @@
     }
 
     $(window).resize(function () {
-        packageDisplayGraphs(graphData);
+        packageDisplayGraphs(window.graphData);
     });
 
     return packageDisplayGraphs;

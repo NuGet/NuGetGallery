@@ -7,6 +7,7 @@ using System.Data.Common;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Infrastructure.Annotations;
+using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
 
@@ -14,9 +15,9 @@ namespace NuGetGallery
 {
     /// <summary>
     /// This GalleryDbContextFactory is provided for running migrations in a flexible way as follows:
-    /// 1. Run migration using DbConnection; (For DatabaseMigrationTools with AAD token)
+    /// 1. Run migration using DbConnection; (For DatabaseMigrationTools with Microsoft Entra ID token)
     /// 2. Run migration using connection string;
-    /// 3. Run migration using default connection string ("Gallery.SqlServer") in a web.config; (For command-line migration with integrated AAD/username+password)
+    /// 3. Run migration using default connection string ("Gallery.SqlServer") in a web.config; (For command-line migration with integrated Microsoft Entra ID/username+password)
     /// </summary>
     public class GalleryDbContextFactory : IDbContextFactory<EntitiesContext>
     {
@@ -89,6 +90,8 @@ namespace NuGetGallery
         /// User or organization accounts.
         /// </summary>
         public DbSet<User> Users { get; set; }
+
+        public bool HasChanges => ChangeTracker.HasChanges();
 
         DbSet<T> IReadOnlyEntitiesContext.Set<T>()
         {
@@ -417,6 +420,24 @@ namespace NuGetGallery
             modelBuilder.Entity<UserCertificate>()
                 .HasKey(uc => uc.Key);
 
+            modelBuilder.Entity<UserCertificate>()
+                .Property(uc => uc.CertificateKey)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(new IndexAttribute("IX_UserCertificates_CertificateKeyUserKey", order: 0)
+                    {
+                        IsUnique = true,
+                    }));
+
+            modelBuilder.Entity<UserCertificate>()
+                .Property(uc => uc.UserKey)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(new IndexAttribute("IX_UserCertificates_CertificateKeyUserKey", order: 1)
+                    {
+                        IsUnique = true,
+                    }));
+
             modelBuilder.Entity<User>()
                 .HasMany(u => u.UserCertificates)
                 .WithRequired(uc => uc.User)
@@ -473,6 +494,14 @@ namespace NuGetGallery
                 .HasForeignKey(d => d.DeprecatedByUserKey)
                 .WillCascadeOnDelete(false);
 
+            modelBuilder.Entity<PackageDeprecation>()
+                .Property(pd => pd.PackageKey)
+                .HasColumnAnnotation(IndexAnnotation.AnnotationName, new IndexAnnotation(new IndexAttribute() { IsUnique = true }));
+
+            modelBuilder.Entity<PackageDeprecation>()
+                .Property(pd => pd.DeprecatedOn)
+                .HasDatabaseGeneratedOption(DatabaseGeneratedOption.Computed);
+
             modelBuilder.Entity<PackageVulnerability>()
                 .HasKey(v => v.Key)
                 .HasMany(v => v.AffectedRanges)
@@ -521,6 +550,7 @@ namespace NuGetGallery
                 .HasForeignKey(r => r.ToPackageRegistrationKey)
                 .WillCascadeOnDelete(false);
         }
+
 #pragma warning restore 618
 
         private class QueryHintScope : IDisposable

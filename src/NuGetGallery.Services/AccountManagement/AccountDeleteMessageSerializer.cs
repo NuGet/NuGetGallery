@@ -11,7 +11,7 @@ namespace NuGetGallery
 
         private IBrokeredMessageSerializer<AccountDeleteMessageData> _serializer = new BrokeredMessageSerializer<AccountDeleteMessageData>();
 
-        public AccountDeleteMessage Deserialize(IBrokeredMessage brokeredMessage)
+        public AccountDeleteMessage Deserialize(IReceivedBrokeredMessage brokeredMessage)
         {
             var message = _serializer.Deserialize(brokeredMessage);
 

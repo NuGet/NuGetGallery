@@ -186,7 +186,7 @@ namespace NuGetGallery.Infrastructure
             return pos.ToString(CultureInfo.InvariantCulture);
         }
 
-        private void Obfuscate(Error error)
+        public static void Obfuscate(Error error)
         {
             error.User = string.Empty;
             if (error.Form != null)
@@ -218,12 +218,18 @@ namespace NuGetGallery.Infrastructure
 
             error.ServerVariables["HTTP_X_NUGET_APIKEY"] = string.Empty;
 
-            var forwarded = error.ServerVariables["HTTP_X_FORWARDED_FOR"];
-            if (!string.IsNullOrWhiteSpace(forwarded))
+            var forwardedIps = error.ServerVariables["HTTP_X_FORWARDED_FOR"]?
+                .Split(',')
+                .Select(x => x.Trim())
+                .Where(x => x.Length > 0)
+                .ToList();
+            if (forwardedIps != null)
             {
-                var forwardedIps = forwarded.Split(',');
-                var obfuscatedIps = forwardedIps.Select(Obfuscator.ObfuscateIp);
-                error.ServerVariables["HTTP_X_FORWARDED_FOR"] = string.Join(",", obfuscatedIps);
+                var obfuscatedIps = string.Join(",", forwardedIps.Select(Obfuscator.ObfuscateIp));
+                if (!string.IsNullOrWhiteSpace(obfuscatedIps))
+                {
+                    error.ServerVariables["HTTP_X_FORWARDED_FOR"] = obfuscatedIps;
+                }
             }
         }
     }

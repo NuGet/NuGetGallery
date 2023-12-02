@@ -19,7 +19,7 @@ namespace NuGetGallery {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Strings {
@@ -188,7 +188,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to User &apos;{0}&apos; has not linked their account to an AAD credential matching this organization..
+        ///   Looks up a localized string similar to User &apos;{0}&apos; has not linked their account to a Microsoft Entra ID credential matching this organization..
         /// </summary>
         public static string AddMember_UserDoesNotMeetOrganizationPolicy {
             get {
@@ -442,6 +442,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The specified API key is scoped to an owner that is locked. Please contact support@nuget.org..
+        /// </summary>
+        public static string ApiKeyOwnerLocked {
+            get {
+                return ResourceManager.GetString("ApiKeyOwnerLocked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You must specify a package owner to generate an API key..
         /// </summary>
         public static string ApiKeyOwnerRequired {
@@ -524,7 +533,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Azure Active Directory account.
+        ///   Looks up a localized string similar to Microsoft Entra ID account.
         /// </summary>
         public static string AzureActiveDirectory_AccountNoun {
             get {
@@ -533,7 +542,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Register with Azure Active Directory.
+        ///   Looks up a localized string similar to Register with Microsoft Entra ID.
         /// </summary>
         public static string AzureActiveDirectory_RegisterMessage {
             get {
@@ -542,7 +551,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Sign in with Azure Active Directory.
+        ///   Looks up a localized string similar to Sign in with Microsoft Entra ID.
         /// </summary>
         public static string AzureActiveDirectory_SignInMessage {
             get {
@@ -948,6 +957,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Your API Key &apos;{0}&apos; has been revoked. If you did not request this change, please reply to this email to contact support..
+        /// </summary>
+        public static string Emails_ApiKeyRevoked_Body {
+            get {
+                return ResourceManager.GetString("Emails_ApiKeyRevoked_Body", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [{0}] API Key &apos;{1}&apos; Revoked.
+        /// </summary>
+        public static string Emails_ApiKeyRevoked_Subject {
+            get {
+                return ResourceManager.GetString("Emails_ApiKeyRevoked_Subject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A {0} was added to your account and can now be used to sign in. If you did not request this change, please reply to this email to contact support..
         /// </summary>
         public static string Emails_CredentialAdded_Body {
@@ -1072,6 +1099,24 @@ namespace NuGetGallery {
         public static string FailedValidationHardDeleteReason {
             get {
                 return ResourceManager.GetString("FailedValidationHardDeleteReason", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Forgot password flow has been disabled. Please reach out to your Microsoft account support to sign into NuGet gallery..
+        /// </summary>
+        public static string ForgotPassword_Disabled {
+            get {
+                return ResourceManager.GetString("ForgotPassword_Disabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Forgot password is disabled..
+        /// </summary>
+        public static string ForgotPassword_Disabled_Error {
+            get {
+                return ResourceManager.GetString("ForgotPassword_Disabled_Error", resourceCulture);
             }
         }
         
@@ -1301,6 +1346,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to NuGet.org password login is no longer supported..
+        /// </summary>
+        public static string NuGetAccountPasswordLoginUnsupported {
+            get {
+                return ResourceManager.GetString("NuGetAccountPasswordLoginUnsupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A nuget package&apos;s {0} property is required..
         /// </summary>
         public static string NuGetPackagePropertyMissing {
@@ -1373,7 +1427,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; is not linked to an AAD credential with an organization tenant..
+        ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; is not linked to a Microsoft Entra ID credential with an organization tenant..
         /// </summary>
         public static string Organizations_AdminAccountDoesNotHaveTenant {
             get {
@@ -2013,7 +2067,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You have not published a package with this prefix in the past. This means other users may be able to push packages starting with the same prefix. Contact account@nuget.org to reserve the prefix. Go to https://docs.microsoft.com/en-us/nuget/reference/id-prefix-reservation to learn more about Package ID prefix reservation..
+        ///   Looks up a localized string similar to You have not published a package with this prefix in the past. This means other users may be able to push packages starting with the same prefix. Contact account@nuget.org to reserve the prefix. Go to https://docs.microsoft.com/nuget/reference/id-prefix-reservation to learn more about Package ID prefix reservation..
         /// </summary>
         public static string SecurityPolicy_RequirePackagePrefixReserved {
             get {
@@ -2072,6 +2126,24 @@ namespace NuGetGallery {
         public static string SuccessfullyUploadedPackage {
             get {
                 return ResourceManager.GetString("SuccessfullyUploadedPackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This package is compatible with all versions of this framework..
+        /// </summary>
+        public static string SupportedFrameworks_EmptyVersionTooltip {
+            get {
+                return ResourceManager.GetString("SupportedFrameworks_EmptyVersionTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This package is compatible with this framework or higher..
+        /// </summary>
+        public static string SupportedFrameworks_Tooltip {
+            get {
+                return ResourceManager.GetString("SupportedFrameworks_Tooltip", resourceCulture);
             }
         }
         
@@ -2535,7 +2607,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID. Go to https://docs.microsoft.com/en-us/nuget/reference/id-prefix-reservation learn more about Package ID prefix reservation..
+        ///   Looks up a localized string similar to This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID. Go to https://docs.microsoft.com/nuget/reference/id-prefix-reservation learn more about Package ID prefix reservation..
         /// </summary>
         public static string UploadPackage_IdNamespaceConflict {
             get {
@@ -2544,7 +2616,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID. &lt;a href=&quot;https://docs.microsoft.com/en-us/nuget/reference/id-prefix-reservation&quot;&gt;Learn more about Package ID prefix reservation&lt;/a&gt;..
+        ///   Looks up a localized string similar to This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID. &lt;a href=&quot;https://docs.microsoft.com/nuget/reference/id-prefix-reservation&quot;&gt;Learn more about Package ID prefix reservation&lt;/a&gt;..
         /// </summary>
         public static string UploadPackage_IdNamespaceConflictHtml {
             get {
@@ -2634,15 +2706,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Learn more about including a license within the package.
-        /// </summary>
-        public static string UploadPackage_LearMore_PackagingLicense {
-            get {
-                return ResourceManager.GetString("UploadPackage_LearMore_PackagingLicense", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Learn more.
         /// </summary>
         public static string UploadPackage_LearnMore {
@@ -2675,6 +2738,24 @@ namespace NuGetGallery {
         public static string UploadPackage_LearnMore_LicenseUrlDreprecation {
             get {
                 return ResourceManager.GetString("UploadPackage_LearnMore_LicenseUrlDreprecation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Learn more about including a license within the package.
+        /// </summary>
+        public static string UploadPackage_LearnMore_PackagingLicense {
+            get {
+                return ResourceManager.GetString("UploadPackage_LearnMore_PackagingLicense", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to See how to include a license within the package.
+        /// </summary>
+        public static string UploadPackage_LearnMore_PackagingLicenseV2 {
+            get {
+                return ResourceManager.GetString("UploadPackage_LearnMore_PackagingLicenseV2", resourceCulture);
             }
         }
         
@@ -2724,6 +2805,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &lt;strong&gt;License&lt;/strong&gt; missing..
+        /// </summary>
+        public static string UploadPackage_LicenseShouldBeSpecifiedHtmlV2 {
+            get {
+                return ResourceManager.GetString("UploadPackage_LicenseShouldBeSpecifiedHtmlV2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to License missing..
+        /// </summary>
+        public static string UploadPackage_LicenseShouldBeSpecifiedV2 {
+            get {
+                return ResourceManager.GetString("UploadPackage_LicenseShouldBeSpecifiedV2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The package contains a malformed license URL..
         /// </summary>
         public static string UploadPackage_MalformedLicenseUrl {
@@ -2747,6 +2846,24 @@ namespace NuGetGallery {
         public static string UploadPackage_MissingLicenseInformation {
             get {
                 return ResourceManager.GetString("UploadPackage_MissingLicenseInformation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Readme missing. Go to https://aka.ms/nuget-include-readme learn How to include a readme file within the package..
+        /// </summary>
+        public static string UploadPackage_MissingReadme {
+            get {
+                return ResourceManager.GetString("UploadPackage_MissingReadme", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;strong&gt;Readme&lt;/strong&gt; missing.&lt;a href=&quot;https://aka.ms/nuget-include-readme&quot;&gt; See how to include a readme file within the package&lt;/a&gt;, or add it as you upload..
+        /// </summary>
+        public static string UploadPackage_MissingReadmeHtml {
+            get {
+                return ResourceManager.GetString("UploadPackage_MissingReadmeHtml", resourceCulture);
             }
         }
         

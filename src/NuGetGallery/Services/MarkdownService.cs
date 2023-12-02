@@ -3,15 +3,12 @@
 
 using System;
 using System.IO;
-using System.Linq;
-using System.Management;
 using System.Text.RegularExpressions;
-using System.Timers;
 using System.Web;
 using CommonMark;
 using CommonMark.Syntax;
 using Markdig;
-using Markdig.Parsers;
+using Markdig.Extensions.EmphasisExtras;
 using Markdig.Renderers;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
@@ -24,6 +21,8 @@ namespace NuGetGallery
         private static readonly Regex EncodedBlockQuotePattern = new Regex("^ {0,3}&gt;", RegexOptions.Multiline, RegexTimeout);
         private static readonly Regex LinkPattern = new Regex("<a href=([\"\']).*?\\1", RegexOptions.None, RegexTimeout);
         private static readonly Regex HtmlCommentPattern = new Regex("<!--.*?-->", RegexOptions.Singleline, RegexTimeout);
+        private static readonly Regex ImageTextPattern = new Regex("!\\[\\]\\(", RegexOptions.Singleline, RegexTimeout);
+        private static readonly string altTextForImage = "alternate text is missing from this package README image";
 
         private readonly IFeatureFlagService _features;
         private readonly IImageDomainValidator _imageDomainValidator;
@@ -80,7 +79,8 @@ namespace NuGetGallery
             {
                 ImagesRewritten = false,
                 Content = "",
-                ImageSourceDisallowed = false
+                ImageSourceDisallowed = false,
+                IsMarkdigMdSyntaxHighlightEnabled = false
             };
 
             var markdownWithoutComments = HtmlCommentPattern.Replace(markdownString, "");
@@ -172,6 +172,8 @@ namespace NuGetGallery
                 }
             }
 
+            output.IsMarkdigMdSyntaxHighlightEnabled = _features.IsMarkdigMdSyntaxHighlightEnabled();
+
             // CommonMark.Net does not support link attributes, so manually inject nofollow.
             using (var htmlWriter = new StringWriter())
             {
@@ -188,12 +190,15 @@ namespace NuGetGallery
             {
                 ImagesRewritten = false,
                 Content = "",
-                ImageSourceDisallowed = false
+                ImageSourceDisallowed = false,
+                IsMarkdigMdSyntaxHighlightEnabled = false
             };
 
             var markdownWithoutComments = HtmlCommentPattern.Replace(markdownString, "");
 
-            var markdownWithoutBom = markdownWithoutComments.TrimStart('\ufeff');
+            var markdownWithImageAlt = ImageTextPattern.Replace(markdownWithoutComments, $"![{altTextForImage}](");
+
+            var markdownWithoutBom = markdownWithImageAlt.TrimStart('\ufeff');
 
             var pipeline = new MarkdownPipelineBuilder()
                 .UseGridTables()
@@ -203,7 +208,10 @@ namespace NuGetGallery
                 .UseEmojiAndSmiley()
                 .UseAutoLinks()
                 .UseReferralLinks("noopener noreferrer nofollow")
+                .UseAutoIdentifiers()
+                .UseEmphasisExtras(EmphasisExtraOptions.Strikethrough)
                 .DisableHtml() //block inline html
+                .UseBootstrap()
                 .Build();
 
             using (var htmlWriter = new StringWriter())
@@ -260,7 +268,10 @@ namespace NuGetGallery
                                 // Allow only http or https links in markdown. Transform link to https for known domains.
                                 if (!PackageHelper.TryPrepareUrlForRendering(linkInline.Url, out string readyUriString))
                                 {
-                                    linkInline.Url = string.Empty;
+                                    if (linkInline.Url != null && !linkInline.Url.StartsWith("#")) //allow internal section links
+                                    {
+                                        linkInline.Url = string.Empty;
+                                    }
                                 }
                                 else
                                 {
@@ -273,6 +284,8 @@ namespace NuGetGallery
 
                 renderer.Render(document);
                 output.Content = htmlWriter.ToString().Trim();
+                output.IsMarkdigMdSyntaxHighlightEnabled = _features.IsMarkdigMdSyntaxHighlightEnabled();
+
                 return output;
             }
         }

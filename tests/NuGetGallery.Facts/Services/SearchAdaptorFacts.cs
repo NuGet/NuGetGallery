@@ -106,6 +106,8 @@ namespace NuGetGallery
                 const string query = "someQuery";
                 const int page = 1;
                 const bool includePrerelease = true;
+                const string frameworks = "";
+                const string tfms = "";
                 const string packageType = "";
                 const string sortOrder = GalleryConstants.SearchSortNames.Relevance;
                 const string context = "someContext";
@@ -116,6 +118,8 @@ namespace NuGetGallery
                     query,
                     page,
                     includePrerelease,
+                    frameworks,
+                    tfms,
                     packageType,
                     sortOrder,
                     context,
@@ -128,6 +132,8 @@ namespace NuGetGallery
                 Assert.Equal(includePrerelease, searchFilter.IncludePrerelease);
                 Assert.Equal(context, searchFilter.Context);
                 Assert.Equal(semVerLevel, searchFilter.SemVerLevel);
+                Assert.Equal(string.Empty, searchFilter.Frameworks);
+                Assert.Equal(string.Empty, searchFilter.Tfms);
                 Assert.Equal(string.Empty, searchFilter.PackageType);
                 Assert.Equal(SortOrder.Relevance, searchFilter.SortOrder);
                 Assert.Equal(includeTestData, searchFilter.IncludeTestData);
@@ -140,6 +146,8 @@ namespace NuGetGallery
                     q: null,
                     page: -1,
                     includePrerelease: true,
+                    frameworks: null,
+                    tfms: null,
                     packageType: null,
                     sortOrder: null,
                     context: null,
@@ -152,6 +160,8 @@ namespace NuGetGallery
                 Assert.True(searchFilter.IncludePrerelease);
                 Assert.Null(searchFilter.Context);
                 Assert.Null(searchFilter.SemVerLevel);
+                Assert.Equal(string.Empty, searchFilter.Frameworks);
+                Assert.Equal(string.Empty, searchFilter.Tfms);
                 Assert.Equal(string.Empty, searchFilter.PackageType);
                 Assert.Equal(SortOrder.Relevance, searchFilter.SortOrder);
                 Assert.True(searchFilter.IncludeTestData);
@@ -165,6 +175,8 @@ namespace NuGetGallery
                    q: string.Empty,
                    page: 1,
                    includePrerelease: true,
+                   frameworks: string.Empty,
+                   tfms: string.Empty,
                    packageType: "Dependency",
                    sortOrder: SortNames[sortOrder],
                    context: string.Empty,
@@ -177,6 +189,8 @@ namespace NuGetGallery
                 Assert.True(searchFilter.IncludePrerelease);
                 Assert.Equal(string.Empty, searchFilter.Context);
                 Assert.Equal("SomeSemVer", searchFilter.SemVerLevel);
+                Assert.Equal(string.Empty, searchFilter.Frameworks);
+                Assert.Equal(string.Empty, searchFilter.Tfms);
                 Assert.Equal("Dependency", searchFilter.PackageType);
                 Assert.Equal(sortOrder, searchFilter.SortOrder);
                 Assert.True(searchFilter.IncludeTestData);
@@ -190,6 +204,8 @@ namespace NuGetGallery
                        q: string.Empty,
                        page: 1,
                        includePrerelease: true,
+                       frameworks: string.Empty,
+                       tfms: string.Empty,
                        packageType: "Dependency",
                        sortOrder: SortNames[sortOrder].ToUpper(),
                        context: string.Empty,
@@ -202,10 +218,58 @@ namespace NuGetGallery
                 Assert.True(searchFilter.IncludePrerelease);
                 Assert.Equal(string.Empty, searchFilter.Context);
                 Assert.Equal("SomeSemVer", searchFilter.SemVerLevel);
+                Assert.Equal(string.Empty, searchFilter.Frameworks);
+                Assert.Equal(string.Empty, searchFilter.Tfms);
                 Assert.Equal("Dependency", searchFilter.PackageType);
                 Assert.Equal(sortOrder, searchFilter.SortOrder);
                 Assert.True(searchFilter.IncludeTestData);
             }
+
+            [Theory]
+            [MemberData(nameof(FrameworksAndTfmsFilterData))]
+            public void ParsesFrameworkAndTfmFilters(string frameworks, string tfms)
+            {
+                const string query = "someQuery";
+                const int page = 1;
+                const bool includePrerelease = true;
+                const string packageType = "";
+                const string sortOrder = GalleryConstants.SearchSortNames.Relevance;
+                const string context = "someContext";
+                const string semVerLevel = "someSemVer";
+                const bool includeTestData = true;
+
+                var searchFilter = SearchAdaptor.GetSearchFilter(
+                    query,
+                    page,
+                    includePrerelease,
+                    frameworks,
+                    tfms,
+                    packageType,
+                    sortOrder,
+                    context,
+                    semVerLevel,
+                    includeTestData);
+
+                Assert.Equal(query, searchFilter.SearchTerm);
+                Assert.Equal((page - 1) * GalleryConstants.DefaultPackageListPageSize, searchFilter.Skip);
+                Assert.Equal(GalleryConstants.DefaultPackageListPageSize, searchFilter.Take);
+                Assert.Equal(includePrerelease, searchFilter.IncludePrerelease);
+                Assert.Equal(context, searchFilter.Context);
+                Assert.Equal(semVerLevel, searchFilter.SemVerLevel);
+                Assert.Equal(frameworks, searchFilter.Frameworks);
+                Assert.Equal(tfms, searchFilter.Tfms);
+                Assert.Equal(string.Empty, searchFilter.PackageType);
+                Assert.Equal(SortOrder.Relevance, searchFilter.SortOrder);
+                Assert.Equal(includeTestData, searchFilter.IncludeTestData);
+            }
+
+            public static IEnumerable<object[]> FrameworksAndTfmsFilterData => new[]
+            {
+                new object[] { "", "" },
+                new object[] { "netstandard", "net472" },
+                new object[] { ",net,netframework", "" },
+                new object[] { ",,", "net5.0,netstandard2.1," }
+            };
         }
 
         public class TheFindByIdAndVersionCoreMethod : Facts
@@ -422,7 +486,7 @@ namespace NuGetGallery
             public void GeneratesNextLinkForComplexUrl()
             {
                 // Arrange
-                var requestUri = new Uri("https://localhost:8081/api/v2/Search()?searchTerm='foo'&$orderby=Id&$skip=100&$top=1000");
+                var requestUri = new Uri("https://localhost:8081/api/v2/Search()?searchTerm=%27foo%27&$orderby=Id&$skip=100&$top=1000");
                 var resultCount = 2000; // our result set contains 2000 elements
 
                 // Act
@@ -431,14 +495,14 @@ namespace NuGetGallery
                     GetODataQuerySettingsForTest());
 
                 // Assert
-                Assert.Equal(new Uri("https://localhost:8081/api/v2/Search()?searchTerm='foo'&$orderby=Id&$skip=200&$top=1000"), nextLink);
+                Assert.Equal("https://localhost:8081/api/v2/Search()?searchTerm=%27foo%27&$orderby=Id&$skip=200&$top=1000", nextLink.AbsoluteUri);
             }
 
             [Fact]
             public void GeneratesNextLinkForComplexUrlWithSemVerLevel2()
             {
                 // Arrange
-                var requestUri = new Uri("https://localhost:8081/api/v2/Search()?searchTerm='foo'&$orderby=Id&$skip=100&$top=1000&semVerLevel=2.0.0");
+                var requestUri = new Uri("https://localhost:8081/api/v2/Search()?searchTerm=%27foo%27&$orderby=Id&$skip=100&$top=1000&semVerLevel=2.0.0");
                 var resultCount = 2000; // our result set contains 2000 elements
 
                 // Act
@@ -448,7 +512,7 @@ namespace NuGetGallery
                     SemVerLevelKey.SemVer2);
 
                 // Assert
-                Assert.Equal(new Uri("https://localhost:8081/api/v2/Search()?searchTerm='foo'&$orderby=Id&$skip=200&$top=1000&semVerLevel=2.0.0"), nextLink);
+                Assert.Equal("https://localhost:8081/api/v2/Search()?searchTerm=%27foo%27&$orderby=Id&$skip=200&$top=1000&semVerLevel=2.0.0", nextLink.AbsoluteUri);
             }
         }
     }

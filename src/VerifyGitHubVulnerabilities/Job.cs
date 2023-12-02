@@ -2,17 +2,17 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
-using GitHubVulnerabilities2Db.Collector;
-using GitHubVulnerabilities2Db.GraphQL;
-using GitHubVulnerabilities2Db.Ingest;
+using NuGet.Services.GitHub.Collector;
+using NuGet.Services.GitHub.GraphQL;
+using NuGet.Services.GitHub.Ingest;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
@@ -24,23 +24,30 @@ namespace VerifyGitHubVulnerabilities
 {
     class Job : JsonConfigurationJob
     {
-        private readonly HttpClient _client = new HttpClient();
-
         public override async Task Run()
         {
-            Console.Write("Fetching vulnerabilities from GitHub...");
+            var telemetryClient = _serviceProvider.GetRequiredService<NuGet.Services.Logging.ITelemetryClient>();
+
+            Logger.LogInformation("Fetching vulnerabilities from GitHub...");
             var advisoryQueryService = _serviceProvider.GetRequiredService<IAdvisoryQueryService>();
             var advisories = await advisoryQueryService.GetAdvisoriesSinceAsync(DateTimeOffset.MinValue, CancellationToken.None);
-            Console.WriteLine($" FOUND {advisories.Count} advisories.");
+            Logger.LogInformation("Found {Count} advisories.", advisories.Count);
 
-            Console.WriteLine("Fetching vulnerabilities from DB...");
+            Logger.LogInformation("Fetching vulnerabilities from DB...");
             var ingestor = _serviceProvider.GetRequiredService<IAdvisoryIngestor>();
-            await ingestor.IngestAsync(advisories);
+            await ingestor.IngestAsync(advisories.OrderBy(x => x.DatabaseId).ToList());
 
             var verifier = _serviceProvider.GetRequiredService<IPackageVulnerabilitiesVerifier>();
-            Console.WriteLine(verifier.HasErrors ? 
-                "DB does not match GitHub API - see stderr output for details" :
-                "DB/metadata matches GitHub API!");
+            if (verifier.HasErrors)
+            {
+                Logger.LogError("DB/metadata does not match GitHub API - see error logs for details");
+                telemetryClient.TrackMetric(nameof(VerifyGitHubVulnerabilities) + ".DataIsInconsistent", 1);
+            }
+            else
+            {
+                Logger.LogInformation("DB/metadata matches GitHub API!");
+                telemetryClient.TrackMetric(nameof(VerifyGitHubVulnerabilities) + ".DataIsConsistent", 1);
+            }
         }
 
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
@@ -82,7 +89,7 @@ namespace VerifyGitHubVulnerabilities
                 .Register(ctx =>
                 {
                     var connection = CreateSqlConnection<GalleryDbConfiguration>();
-                    return new EntitiesContext(connection, false);
+                    return new EntitiesContext(connection, readOnly: true);
                 })
                 .As<IEntitiesContext>();
 
@@ -94,12 +101,8 @@ namespace VerifyGitHubVulnerabilities
         protected void ConfigureQueryServices(ContainerBuilder containerBuilder)
         {
             containerBuilder
-                .RegisterInstance(_client)
+                .RegisterInstance(new HttpClient())
                 .As<HttpClient>();
-
-            containerBuilder
-                .RegisterGeneric(typeof(NullLogger<>))
-                .As(typeof(ILogger<>));
 
             containerBuilder
                 .RegisterType<VerifyGitHubVulnerabilities.GraphQL.QueryService>()

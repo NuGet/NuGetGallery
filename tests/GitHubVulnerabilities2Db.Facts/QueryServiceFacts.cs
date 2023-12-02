@@ -2,14 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using GitHubVulnerabilities2Db.Configuration;
-using GitHubVulnerabilities2Db.GraphQL;
-using Moq;
+using NuGet.Services.GitHub.GraphQL;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -54,6 +54,56 @@ namespace GitHubVulnerabilities2Db.Facts
 
             // Assert
             Assert.True(_handler.WasCalled);
+        }
+
+        [Fact]
+        public async Task ErrorStatusCodeIsRejected()
+        {
+            // Arrange
+            var query = "someString";
+            _handler.ExpectedQueryContent = (new JObject { ["query"] = query }).ToString();
+
+            _handler.ExpectedEndpoint = new Uri("https://graphQL.net");
+            _configuration.GitHubGraphQLQueryEndpoint = _handler.ExpectedEndpoint;
+
+            _handler.ExpectedApiKey = "patpatpat";
+            _configuration.GitHubPersonalAccessToken = _handler.ExpectedApiKey;
+
+            var response = new QueryResponse();
+            _handler.ResponseMessage = new HttpResponseMessage(HttpStatusCode.BadRequest)
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(response))
+            };
+
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.QueryAsync(query, new CancellationToken()));
+            Assert.True(_handler.WasCalled);
+            Assert.Equal("The GitHub GraphQL response returned status code 400 Bad Request. Response body:\r\n{\"Data\":null,\"Errors\":null}", ex.Message);
+        }
+
+        [Fact]
+        public async Task ErrorResponseJsonIsRejected()
+        {
+            // Arrange
+            var query = "someString";
+            _handler.ExpectedQueryContent = (new JObject { ["query"] = query }).ToString();
+
+            _handler.ExpectedEndpoint = new Uri("https://graphQL.net");
+            _configuration.GitHubGraphQLQueryEndpoint = _handler.ExpectedEndpoint;
+
+            _handler.ExpectedApiKey = "patpatpat";
+            _configuration.GitHubPersonalAccessToken = _handler.ExpectedApiKey;
+
+            var response = new QueryResponse { Errors = new List<QueryError> { new QueryError { Message = "Query = not great" } } };
+            _handler.ResponseMessage = new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(response))
+            };
+
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.QueryAsync(query, new CancellationToken()));
+            Assert.True(_handler.WasCalled);
+            Assert.Equal("The GitHub GraphQL response returned errors in the response JSON. Response body:\r\n{\"Data\":null,\"Errors\":[{\"Message\":\"Query = not great\"}]}", ex.Message);
         }
 
         private class QueryServiceHttpClientHandler : HttpClientHandler

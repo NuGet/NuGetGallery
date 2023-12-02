@@ -10,8 +10,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Moq;
-using NuGetGallery.Services;
 using Xunit;
 
 namespace NuGetGallery
@@ -147,7 +147,7 @@ namespace NuGetGallery
             internal readonly Mock<ITelemetryService> _telemetryService;
             internal readonly Mock<ICloudBlobClient> _cloudBlobClientMock;
             internal string _content;
-            internal Func<IDictionary<string, int>, int> _calculateSum;
+            internal Func<IDictionary<string, long>, long> _calculateSum;
             internal TestableCloudDownloadCountService _target;
 
             public BaseFacts()
@@ -173,12 +173,15 @@ namespace NuGetGallery
             private readonly BaseFacts _baseFacts;
 
             public TestableCloudDownloadCountService(BaseFacts baseFacts)
-                    : base(baseFacts._telemetryService.Object, () => baseFacts._cloudBlobClientMock.Object)
+                    : base(
+                          baseFacts._telemetryService.Object,
+                          () => baseFacts._cloudBlobClientMock.Object,
+                          Mock.Of<ILogger<CloudDownloadCountService>>())
             {
                 _baseFacts = baseFacts;
             }
 
-            protected override int CalculateSum(ConcurrentDictionary<string, int> versions)
+            protected override long CalculateSum(ConcurrentDictionary<string, long> versions)
             {
                 if (_baseFacts._calculateSum == null)
                 {

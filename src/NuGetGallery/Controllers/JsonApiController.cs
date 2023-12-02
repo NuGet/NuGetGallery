@@ -6,13 +6,11 @@ using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
-using NuGetGallery.Infrastructure.Mail.Messages;
 
 namespace NuGetGallery
 {
@@ -185,7 +183,7 @@ namespace NuGetGallery
                         return Json(new { success = false, message = "You can't remove the only owner from a package." }, JsonRequestBehavior.AllowGet);
                     }
 
-                    await _packageOwnershipManagementService.RemovePackageOwnerWithMessagesAsync(model.Package, model.CurrentUser, model.User);
+                    await _packageOwnershipManagementService.RemovePackageOwnerWithMessagesAsync(model.Package, model.CurrentUser, model.User, requireNamespaceOwnership: true);
                 }
                 else
                 {
@@ -225,6 +223,12 @@ namespace NuGetGallery
                 return false;
             }
 
+            if (currentUser.IsLocked)
+            {
+                model = new ManagePackageOwnerModel(ServicesStrings.UserAccountIsLocked);
+                return false;
+            }
+
             if (ActionsRequiringPermissions.ManagePackageOwnership.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) != PermissionsCheckResult.Allowed)
             {
                 model = new ManagePackageOwnerModel(Strings.AddOwner_NotPackageOwner);
@@ -241,6 +245,13 @@ namespace NuGetGallery
             {
                 model = new ManagePackageOwnerModel(
                     string.Format(CultureInfo.CurrentCulture, Strings.AddOwner_OwnerNotConfirmed, username));
+                return false;
+            }
+
+            if (user.IsLocked)
+            {
+                model = new ManagePackageOwnerModel(
+                    string.Format(CultureInfo.CurrentCulture, ServicesStrings.SpecificAccountIsLocked, username));
                 return false;
             }
 

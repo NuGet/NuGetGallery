@@ -11,7 +11,7 @@ namespace NuGetGallery
 {
     public class ListPackageItemViewModel : PackageViewModel
     {
-        private const int _descriptionLengthLimit = 300;
+        private const int _descriptionLengthLimit = 210;
         private const string _omissionString = "...";
 
         private string _signatureInformation;
@@ -57,6 +57,9 @@ namespace NuGetGallery
         public bool CanSeeBreadcrumbWithProfile { get; set; }
         public bool CanDeleteSymbolsPackage { get; set; }
         public bool CanDeprecate { get; set; }
+
+        public string VulnerabilityTitle { get; set; }
+        public string DeprecationTitle { get; set; }
 
         public void SetShortDescriptionFrom(string fullDescription)
         {

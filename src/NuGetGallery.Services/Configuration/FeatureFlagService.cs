@@ -46,13 +46,20 @@ namespace NuGetGallery
         private const string EmbeddedReadmeFlightName = GalleryPrefix + "EmbeddedReadmes";
         private const string LicenseMdRenderingFlightName = GalleryPrefix + "LicenseMdRendering";
         private const string MarkdigMdRenderingFlightName = GalleryPrefix + "MarkdigMdRendering";
+        private const string MarkdigMdSyntaxHighlightFlightName = GalleryPrefix + "MarkdigMdSyntaxHighlight";
+        private const string DisplayUploadWarningV2FlightName = GalleryPrefix + "DisplayUploadWarningV2";
+        private const string DisplayPackageReadmeWarningFlightName = GalleryPrefix + "DisplayPackageReadmeWarning";
         private const string DeletePackageApiFlightName = GalleryPrefix + "DeletePackageApi";
         private const string ImageAllowlistFlightName = GalleryPrefix + "ImageAllowlist";
         private const string DisplayBannerFlightName = GalleryPrefix + "Banner";
-        private const string DisplayPackagePageV2PreviewFeatureName = GalleryPrefix + "DisplayPackagePageV2Preview";
-        private const string DisplayPackagePageV2FeatureName = GalleryPrefix + "DisplayPackagePageV2";
         private const string ShowReportAbuseSafetyChanges = GalleryPrefix + "ShowReportAbuseSafetyChanges";
+        private const string AllowAadContentSafetyReports = GalleryPrefix + "AllowAadContentSafetyReports";
         private const string DisplayTargetFrameworkFeatureName = GalleryPrefix + "DisplayTargetFramework";
+        private const string ComputeTargetFrameworkFeatureName = GalleryPrefix + "ComputeTargetFramework";
+        private const string RecentPackagesNoIndexFeatureName = GalleryPrefix + "RecentPackagesNoIndex";
+        private const string NewAccount2FAEnforcementFeatureName = GalleryPrefix + "NewAccount2FAEnforcement";
+        private const string NuGetAccountPasswordLoginFeatureName = GalleryPrefix + "NuGetAccountPasswordLogin";
+        private const string FrameworkFilteringFeatureName = GalleryPrefix + "FrameworkFiltering";
 
         private const string ODataV1GetAllNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllNonHijacked";
         private const string ODataV1GetAllCountNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllCountNonHijacked";
@@ -248,16 +255,6 @@ namespace NuGetGallery
             return _client.IsEnabled(EmbeddedReadmeFlightName, user, defaultValue: false);
         }
 
-        public bool IsDisplayPackagePageV2PreviewEnabled(User user)
-        {
-            return _client.IsEnabled(DisplayPackagePageV2PreviewFeatureName, user, defaultValue: false);
-        }
-
-        public bool IsDisplayPackagePageV2Enabled(User user) 
-        {
-            return _client.IsEnabled(DisplayPackagePageV2FeatureName, user, defaultValue: false);
-        }
-        
         public bool IsODataV1GetAllEnabled()
         {
             return _client.IsEnabled(ODataV1GetAllNonHijackedFeatureName, defaultValue: true);
@@ -338,11 +335,31 @@ namespace NuGetGallery
             return _client.IsEnabled(ShowReportAbuseSafetyChanges, defaultValue: false);
         }
 
+        public bool IsAllowAadContentSafetyReportsEnabled()
+        {
+            return _client.IsEnabled(AllowAadContentSafetyReports, defaultValue: false);
+        }
+
         public bool IsMarkdigMdRenderingEnabled()
         {
             return _client.IsEnabled(MarkdigMdRenderingFlightName, defaultValue: false);
         }
-        
+
+        public bool IsMarkdigMdSyntaxHighlightEnabled()
+        {
+            return _client.IsEnabled(MarkdigMdSyntaxHighlightFlightName, defaultValue: false);
+        }
+
+        public bool IsDisplayUploadWarningV2Enabled(User user)
+        {
+            return _client.IsEnabled(DisplayUploadWarningV2FlightName, user, defaultValue: false);
+        }
+
+        public bool IsDisplayPackageReadmeWarningEnabled(User user)
+        {
+            return _client.IsEnabled(DisplayPackageReadmeWarningFlightName, user, defaultValue: false);
+        }
+
         public bool IsDeletePackageApiEnabled(User user)
         {
             return _client.IsEnabled(DeletePackageApiFlightName, user, defaultValue: false);
@@ -358,9 +375,33 @@ namespace NuGetGallery
             return _client.IsEnabled(DisplayBannerFlightName, defaultValue: false);
         }
 
-        public bool IsDisplayTargetFrameworkEnabled()
+        public bool IsDisplayTargetFrameworkEnabled(User user)
         {
-            return _client.IsEnabled(DisplayTargetFrameworkFeatureName, defaultValue: false);
+            return _client.IsEnabled(DisplayTargetFrameworkFeatureName, user, defaultValue: false);
+        }
+
+        public bool IsComputeTargetFrameworkEnabled()
+        {
+            return _client.IsEnabled(ComputeTargetFrameworkFeatureName, defaultValue: false);
+        }
+
+        public bool IsRecentPackagesNoIndexEnabled()
+        {
+            return _client.IsEnabled(RecentPackagesNoIndexFeatureName, defaultValue: false);
+        }
+
+        public bool IsNewAccount2FAEnforcementEnabled()
+        {
+            return _client.IsEnabled(NewAccount2FAEnforcementFeatureName, defaultValue: false);
+        }
+
+        public bool IsNuGetAccountPasswordLoginEnabled()
+        {
+            return _client.IsEnabled(NuGetAccountPasswordLoginFeatureName, defaultValue: true);
+        }
+
+        public bool IsFrameworkFilteringEnabled(User user) {
+            return _client.IsEnabled(FrameworkFilteringFeatureName, user, defaultValue: false);
         }
     }
 }

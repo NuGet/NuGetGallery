@@ -6,9 +6,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using NuGet.Packaging;
 using NuGet.Services.Entities;
-using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {

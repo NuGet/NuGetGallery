@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Configuration;
-using Microsoft.WindowsAzure.ServiceRuntime;
 using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
 using NuGetGallery.Configuration.SecretReader;
@@ -25,9 +24,9 @@ namespace NuGetGallery.Configuration
         protected const string ServiceBusPrefix = "AzureServiceBus.";
         protected const string PackageDeletePrefix = "PackageDelete.";
 
-        private bool _notInCloudService;
         private readonly Lazy<string> _httpSiteRootThunk;
         private readonly Lazy<string> _httpsSiteRootThunk;
+        private readonly Lazy<string> _httpsEmailSupportSiteRootThunk;
         private readonly Lazy<IAppConfiguration> _lazyAppConfiguration;
         private readonly Lazy<FeatureConfiguration> _lazyFeatureConfiguration;
         private readonly Lazy<IServiceBusConfiguration> _lazyServiceBusConfiguration;
@@ -61,6 +60,7 @@ namespace NuGetGallery.Configuration
         {
             _httpSiteRootThunk = new Lazy<string>(GetHttpSiteRoot);
             _httpsSiteRootThunk = new Lazy<string>(GetHttpsSiteRoot);
+            _httpsEmailSupportSiteRootThunk = new Lazy<string>(GetHttpsSupportEmailSiteRoot);
 
             _lazyAppConfiguration = new Lazy<IAppConfiguration>(() => ResolveSettings().Result);
             _lazyFeatureConfiguration = new Lazy<FeatureConfiguration>(() => ResolveFeatures().Result);
@@ -89,6 +89,15 @@ namespace NuGetGallery.Configuration
         public string GetSiteRoot(bool useHttps)
         {
             return useHttps ? _httpsSiteRootThunk.Value : _httpSiteRootThunk.Value;
+        }
+
+        /// <summary>
+        /// Gets the support email site root using the specified protocol
+        /// </summary>
+        /// <returns></returns>
+        public string GetSupportEmailSiteRoot()
+        {
+            return _httpsEmailSupportSiteRootThunk.Value;
         }
 
         public Task<T> Get<T>() where T : NuGet.Services.Configuration.Configuration, new()
@@ -168,21 +177,8 @@ namespace NuGetGallery.Configuration
 
         public string ReadRawSetting(string settingName)
         {
-            string value;
-
-            value = GetCloudServiceSetting(settingName);
-
-            if (value == "null")
-            {
-                value = null;
-            }
-            else if (string.IsNullOrEmpty(value))
-            {
-                var cstr = GetConnectionString(settingName);
-                value = cstr != null ? cstr.ConnectionString : GetAppSetting(settingName);
-            }
-
-            return value;
+            var cstr = GetConnectionString(settingName);
+            return cstr?.ConnectionString ?? GetAppSetting(settingName);
         }
 
         protected virtual HttpRequestBase GetCurrentRequest()
@@ -210,39 +206,6 @@ namespace NuGetGallery.Configuration
             return await ResolveConfigObject(new PackageDeleteConfiguration(), PackageDeletePrefix);
         }
 
-        protected virtual string GetCloudServiceSetting(string settingName)
-        {
-            // Short-circuit if we've already determined we're not in the cloud
-            if (_notInCloudService)
-            {
-                return null;
-            }
-
-            string value = null;
-            try
-            {
-                if (RoleEnvironment.IsAvailable)
-                {
-                    value = RoleEnvironment.GetConfigurationSettingValue(settingName);
-                }
-                else
-                {
-                    _notInCloudService = true;
-                }
-            }
-            catch (TypeInitializationException)
-            {
-                // Not in the role environment...
-                _notInCloudService = true; // Skip future checks to save perf
-            }
-            catch (Exception)
-            {
-                // Value not present
-                return null;
-            }
-            return value;
-        }
-
         protected virtual string GetAppSetting(string settingName)
         {
             return WebConfigurationManager.AppSettings[settingName];
@@ -257,19 +220,7 @@ namespace NuGetGallery.Configuration
         {
             var siteRoot = Current.SiteRoot;
 
-            if (siteRoot == null)
-            {
-                // No SiteRoot configured in settings.
-                // Fallback to detected site root.
-                var request = GetCurrentRequest();
-                siteRoot = request.Url.GetLeftPart(UriPartial.Authority) + '/';
-            }
-
-            if (!siteRoot.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
-                && !siteRoot.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
-            {
-                throw new InvalidOperationException("The configured site root must start with either http:// or https://.");
-            }
+            CheckValidSiteRoot(siteRoot);
 
             if (siteRoot.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
             {
@@ -289,6 +240,37 @@ namespace NuGetGallery.Configuration
             }
 
             return "https://" + siteRoot.Substring(7);
+        }
+
+        private string GetHttpsSupportEmailSiteRoot()
+        {
+            var siteRoot = Current.SupportEmailSiteRoot;
+
+            CheckValidSiteRoot(siteRoot);
+
+            if (siteRoot.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+            {
+                siteRoot = "https://" + siteRoot.Substring(7);
+            }
+
+            return siteRoot;
+        }
+
+        private void CheckValidSiteRoot(string siteRoot)
+        {
+            if (siteRoot == null)
+            {
+                // No SiteRoot configured in settings.
+                // Fallback to detected site root.
+                var request = GetCurrentRequest();
+                siteRoot = request.Url.GetLeftPart(UriPartial.Authority) + '/';
+            }
+
+            if (!siteRoot.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+                && !siteRoot.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("The configured site root must start with either http:// or https://.");
+            }
         }
     }
 }

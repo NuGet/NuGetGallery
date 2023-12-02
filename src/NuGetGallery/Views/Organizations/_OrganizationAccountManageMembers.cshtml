@@ -5,95 +5,111 @@
 
 @ViewHelpers.Section(parent, "manage-members",
     @<text>Members</text>,
-    @<text>
-        <div data-bind="text: MembersLabel"></div>
-    </text>,
-    @<text>
-        <div class="row members-list">
-            <div data-bind="template: { name: 'manage-members' }"></div>
-        </div>
-    </text>, expanded: false)
+@<text>
+    <div data-bind="text: MembersLabel"></div>
+</text>,
+@<text>
+    <div class="row members-list">
+        <div data-bind="template: { name: 'manage-members' }"></div>
+    </div>
+</text>, expanded: false)
 
 <script type="text/html" id="error-container">
     <p class="role-description" data-bind="visible: !Error()">
         <span data-bind="text: NewMemberRoleDescription"></span>&nbsp;<a href="https://go.microsoft.com/fwlink/?linkid=870439#managing-organization-members">Learn more.</a>
     </p>
     <!-- ko if: Error -->
-    @ViewHelpers.AlertDanger(@<text><span data-bind="html: Error"></span></text>)
+    @ViewHelpers.AlertDanger(@<text>
+        <span data-bind="html: Error"></span>
+    </text>)
     <!-- /ko -->
 </script>
 
 <script type="text/html" id="manage-members">
     <div class="col-md-12 manage-members-listing">
-        <div class="panel-collapse collapse in" aria-expanded="true">
+        <div class="panel-collapse collapse in">
             <div class="alert-container">
                 @if (Model.RequiresTenant)
                 {
-                    @ViewHelpers.AlertInfo(@<text>Membership to this organization is restricted to users from the AAD tenant determined by its email address.</text>)
+                    @ViewHelpers.AlertInfo(@<text>Membership to this organization is restricted to users from the Microsoft Entra ID tenant determined by its email address.</text>)
                 }
             </div>
             @if (Model.CanManageMemberships)
             {
                 <form>
-                    <div class="row">
+                    <div class="row form-flex">
                         <div class="form-group col-sm-5">
-                            <input id="new-member-textbox" class="form-control" placeholder="Add existing NuGet.org user" data-bind="textInput: NewMemberUsername, submit: AddMember" aria-label="Enter username to add member"/>
+                            <label for="new-member-textbox">Enter username to add member</label>
+                            <input id="new-member-textbox" class="form-control" placeholder="Add existing NuGet.org user" data-bind="textInput: NewMemberUsername, submit: AddMember" aria-label="Enter username to add member" />
                         </div>
                         <div class="form-group col-sm-3">
-                            <select class="form-control" data-bind="value: AddMemberRole, options: RoleNames" aria-labelledby="RoleNames"></select>
+                            <label for="addMemberRole">Add member role</label>
+                            <select class="form-control" data-bind="value: AddMemberRole, options: RoleNames" aria-label="Role Filter" id="addMemberRole"></select>
                         </div>
-                        <div class="col-sm-1">
+                        <div class="col-sm-1 btn-row">
                             <button class="btn btn-primary" type="submit" title="Add new member" aria-label="Add new member" data-bind="click: AddMember">Add</button>
                         </div>
                     </div>
                 </form>
+                <div id="add-member-success-message" class="alert alert-success" role="alert"></div>
                 <div data-bind="template: 'error-container'"></div>
             }
-            <div class="member-item" data-bind="foreach: Members">
-                <hr data-bind="visible: $index()" />
-                <div class="row">
-                    <div class="col-sm-1 hidden-xs">
-                        <img data-bind="attr: { src: GravatarUrl, title: Username }" class="owner-image" alt="gravatar" height="36" width="36">
-                    </div>
-                    <div class="col-xs-10 col-sm-6 member-column">
-                        <div>
-                            <a title="View Member Profile" data-bind="attr: { href: ProfileUrl }">
-                                <span data-bind="text: Username"></span>
-                            </a>
-                            <!-- ko if: IsCurrentUser -->
-                            <i>(that's you)</i>
-                            <!-- /ko -->
-                            <!-- ko if: Pending -->
-                            <i>(pending)</i>
-                            <!-- /ko -->
-                        </div>
-                    </div>
-                    <div class="col-xs-2 col-sm-2 col-sm-push-3 member-column text-right">
-                        <!-- ko if: IsCurrentUser || @(Model.CanManageMemberships ? "true" : "false") -->
-                        <div>
-                            <span>
-                                <button class="btn-link" data-bind="click: DeleteMember, attr: { 'aria-label': 'Delete Member' }">
-                                    <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
-                                </button>
-                            </span>
-                        </div>
-                        <!-- /ko -->
-                    </div>
-                    <div class="col-xs-12 col-sm-3 col-sm-pull-2 member-column">
-                        <div>
-                            @if (Model.CanManageMemberships)
-                            {
-                                <select class="form-control" aria-labelledby="OrganizationViewModel.RoleNames"
-                                        data-bind="value: SelectedRole, options: OrganizationViewModel.RoleNames, event: { change: ToggleIsAdmin }">
-                                </select>
-                            }
-                            else
-                            {
-                                <span data-bind="text: SelectedRole()"></span>
-                            }
-                        </div>
-                    </div>
-                </div>
+            <div class="table-container table-responsive">
+                <table class="table">
+                    <thead><tr><th>Member</th><th>Select role</th><th>Delete Member</th></tr></thead>
+                    <tbody class="member-item" data-bind="foreach: Members">
+                        <tr>
+                            <td class="align-middle form-flex">
+                                <div class="hidden-xs col-sm-2">
+                                    <img data-bind="attr: { src: GravatarUrl, title: Username }" class="owner-image" alt="gravatar" height="36" width="36">
+                                </div>
+                                <div class="member-column form-flex">
+                                    <div>
+                                        <a title="View Member Profile" data-bind="attr: { href: ProfileUrl }">
+                                            <span data-bind="text: Username"></span>
+                                        </a>
+                                        <!-- ko if: IsCurrentUser -->
+                                        <i>(that's you)</i>
+                                        <!-- /ko -->
+                                        <!-- ko if: Pending -->
+                                        <i>(pending)</i>
+                                        <!-- /ko -->
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="align-middle">
+                                <div class="member-column">
+                                    <div class="member-column-select-wrapper">
+                                        @if (Model.CanManageMemberships)
+                                        {
+
+                                            <select class="form-control selectRole"
+                                                    data-bind="value: SelectedRole, options: OrganizationViewModel.RoleNames, event: { change: ToggleIsAdmin }, attr: { 'aria-label': 'Role for ' + Username }">
+                                            </select>
+                                        }
+                                        else
+                                        {
+                                            <span data-bind="text: SelectedRole()"></span>
+                                        }
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="align-middle text-right">
+                                <div class="member-column text-right">
+                                    <!-- ko if: IsCurrentUser || @(Model.CanManageMemberships ? "true" : "false") -->
+                                    <div>
+                                        <span>
+                                            <button class="btn-link" data-bind="click: DeleteMember, attr: { 'aria-label': 'Delete Member' }">
+                                                <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                                            </button>
+                                        </span>
+                                    </div>
+                                    <!-- /ko -->
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>

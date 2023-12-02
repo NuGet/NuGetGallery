@@ -232,6 +232,11 @@ namespace NuGetGallery.Configuration
         string SiteRoot { get; set; }
 
         /// <summary>
+        /// Gets the protocol-independent support email site root
+        /// </summary>
+        string SupportEmailSiteRoot { get; set; }
+
+        /// <summary>
         /// Private key for verifying recaptcha user response.
         /// </summary>
         string ReCaptchaPrivateKey { get; set; }
@@ -259,9 +264,9 @@ namespace NuGetGallery.Configuration
         string EnforcedAuthProviderForAdmin { get; set; }
 
         /// <summary>
-        /// Gets a string indicating which AAD Tenant Id should be used for administrators. 
+        /// Gets a string indicating which Microsoft Entra tenant ID should be used for administrators. 
         /// When specified, the gallery will ensure admin users are logging in using only the specified tenant ID.
-        /// Blank means any AAD tenant ID can be used by administrators.
+        /// Blank means any Microsoft Entra tenant ID can be used by administrators.
         /// </summary>
         string EnforcedTenantIdForAdmin { get; set; }
 
@@ -501,5 +506,20 @@ namespace NuGetGallery.Configuration
         /// https://docs.microsoft.com/en-us/previous-versions/dotnet/netframework-4.0/7w2sway1(v=vs.100)?redirectedfrom=MSDN
         /// </summary>
         int? MaxIoThreads { get; set; }
+
+        /// <summary>
+        /// The username of the user that can be entered as the sender for admin flows. When an admin flow may send one
+        /// or more emails to end users, it helps to mask the identity of the site admin that performed the action by
+        /// using this user instead. This account is not created automatically. The username should refer to a user
+        /// account (not organization) that has an email address that can be visible for administrative notices. This
+        /// account should not have any credentials or be marked as a site admin.
+        /// </summary>
+        string AdminSenderUser { get; set; }
+
+        /// <summary>
+        /// The maximum size of JSON that can be returned by a JSON endpoint. This overrides the default 4 MB in
+        /// select places where large JSON response bodies are possible.
+        /// </summary>
+        int MaxJsonLengthOverride { get; set; }
     }
 }

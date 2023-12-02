@@ -1,0 +1,6 @@
+path_classifiers:
+  library:
+    # The default behavior is to tag library code as `library`. Results are hidden 
+    # for library code. You can tag further files as being library code by adding them
+    # to the `library` section.
+    - "src/NuGetGallery/Scripts/gallery/moment-*.js"

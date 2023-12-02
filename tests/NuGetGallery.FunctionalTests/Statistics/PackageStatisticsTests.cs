@@ -18,7 +18,7 @@ namespace NuGetGallery.FunctionalTests.Statistics
         [Description("Verify the webresponse for stats/downloads/last6weeks/ returns all 6 fields")]
         [Priority(1)]
         [Category("P1Tests")]
-        public async Task PackageFeedStatsSanityTest()
+        public async Task PackageFeedStatsConfidenceTest()
         {
             var requestUrl = UrlHelper.V2FeedRootUrl + @"stats/downloads/last6weeks/";
 

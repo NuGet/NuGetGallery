@@ -2,8 +2,7 @@
   .readme-container {
     display: block;
     padding: 10.5px;
-    background-color: @pre-bg;
-    border: 1px solid #ccc;
+    border: 2px solid #ccc;
     word-break: normal;
     margin-bottom: @default-margin-bottom;
     overflow: auto;
@@ -11,32 +10,136 @@
   }
 }
 
-#readme-less {
-  img {
+.readme-common {
+  .table {
+    width: max-content;
+    border: 1px solid @table-border-color;
+    overflow: auto;
+    display: block;
+    word-break: normal;
+    th, td {
+      border: 1px solid @table-border-color;
+    }
+  }
+
+  tr:nth-child(even) {
+    background-color: @readme-table-bg-color;
+    a {
+      color: @readme-table-link-color
+    }
+  }
+
+  // We added boostrap extension in Markdig to render markdown file, it adds .img-fluid class to all images links <img>,
+  // images in Bootstrap are made responsive with .img-fluid, but it was first introduced to Boostrap 4, added style here since we are still in Bootstrap 3.
+  img.img-fluid {
     max-width: 100%;
   }
 
   ul.contains-task-list, li.task-list-item {
     list-style-type: none;
   }
-}
 
-#readme-more {
-  img {
-    max-width: 100%;
+  blockquote {
+    font-size: @font-size-base;
   }
 
-  ul.contains-task-list, li.task-list-item {
-    list-style-type: none;
+  pre {
+    code.hljs {
+      background-color: @pre-bg;
+      color: #24292e; 
+      white-space: pre;
+      
+      .hljs-doctag,
+      .hljs-keyword,
+      .hljs-meta .hljs-keyword,
+      .hljs-template-tag,
+      .hljs-template-variable,
+      .hljs-type,
+      .hljs-variable.language_ 
+      .hljs-built_in {
+        color: #cc3745;
+      }
+
+      .hljs-title,
+      .hljs-title.class_,
+      .hljs-title.class_.inherited__,
+      .hljs-title.function_ {
+        color: #6f42c1;
+      }
+
+      .hljs-attr,
+      .hljs-attribute,
+      .hljs-literal,
+      .hljs-meta,
+      .hljs-number,
+      .hljs-operator,
+      .hljs-variable,
+      .hljs-selector-attr,
+      .hljs-selector-class,
+      .hljs-selector-id {
+        color: #005cc5;
+      }
+
+      .hljs-regexp,
+      .hljs-string,
+      .hljs-meta .hljs-string {
+        color: #032f62;
+      }
+      
+      .hljs-built_in,
+      .hljs-symbol {
+        color: #b74e05;
+      }
+      
+      .hljs-comment,
+      .hljs-code,
+      .hljs-formula {
+        color: #646d76;
+      }
+      
+      .hljs-name,
+      .hljs-quote,
+      .hljs-selector-tag,
+      .hljs-selector-pseudo {
+        color: #207f37;
+      }
+      
+      .hljs-subst {
+        color: #24292e;
+      }
+      
+      .hljs-section {
+        color: #005cc5;
+        font-weight: bold;
+      }
+      
+      .hljs-bullet {
+        color: #735c0f;
+      }
+      
+      .hljs-emphasis {
+        color: #24292e;
+        font-style: italic;
+      }
+      
+      .hljs-strong {
+        color: #24292e;
+        font-weight: bold;
+      }
+      
+      .hljs-addition {
+        color: #207f37;
+      }
+      
+      .hljs-deletion {
+        color: #b31d28;
+      }
+    }
   }
-}
+} 
 
 #readme-preview {
   padding-top: 0.25em;
-
-  ul.contains-task-list, li.task-list-item {
-    list-style-type: none;
-  }
 }
 
 #edit-markdown {

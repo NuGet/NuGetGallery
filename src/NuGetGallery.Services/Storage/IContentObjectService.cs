@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using NuGetGallery.Configuration;
 using NuGetGallery.Services;
 
 namespace NuGetGallery
@@ -14,7 +15,6 @@ namespace NuGetGallery
         ITyposquattingConfiguration TyposquattingConfiguration { get; }
         IGitHubUsageConfiguration GitHubUsageConfiguration { get; }
         IABTestConfiguration ABTestConfiguration { get; }
-        IODataCacheConfiguration ODataCacheConfiguration { get; }
         ICacheConfiguration CacheConfiguration { get; }
         IQueryHintConfiguration QueryHintConfiguration { get; }
         ITrustedImageDomains TrustedImageDomains { get; }

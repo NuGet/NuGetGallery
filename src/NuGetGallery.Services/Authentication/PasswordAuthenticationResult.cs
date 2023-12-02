@@ -8,6 +8,7 @@ namespace NuGetGallery.Authentication
         public enum AuthenticationResult
         {
             AccountLocked, // The account is locked
+            PasswordLoginUnsupported, // Password login is not supported
             BadCredentials, // Bad user name or password provided
             Success // All good
         }

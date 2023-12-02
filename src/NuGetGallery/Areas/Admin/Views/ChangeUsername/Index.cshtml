@@ -1,0 +1,243 @@
+﻿
+@{
+    ViewBag.Title = "ChangeUsername";
+}
+@ViewHelpers.AjaxAntiForgeryToken(Html)
+
+<section role="main" class="container main-container">
+
+    <div>
+        <h2>Verify account</h2>
+
+        <i>Verify if the requester is a valid owner of the account.</i><br />
+
+        <input type="text" placeholder="Account email or username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="value: accountEmailOrUsername" />
+        <button type="submit" data-bind="click: verifyAccount">Verify</button>
+
+        <div style="display:none" data-bind="visible: errorAccount">
+            @ViewHelpers.AlertDanger(@<text><span data-bind="text: errorAccount"></span></text>)
+        </div>
+
+        <div style="display: none" data-bind="visible: doneVerifyAccount() && !errorAccount()">
+            <h3 data-bind="text: accountAdministrators().length > 0 ? organizationAccountMessage : individualAccountMessage"></h3>
+            <table class="table" id="change-username-account" aria-label="account">
+                <thead>
+                    <tr>
+                        <th>Profile</th>
+                        <th>Email Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><a href="#" data-bind="text: account.Username, attr: { href: generateProfileUrl(account.Username()) }"></a></td>
+                        <td><span data-bind="text: account.EmailAddress"></span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 style="display: none" data-bind="visible: accountAdministrators().length > 0">Account administrators</h3>
+
+            <table class="table" id="accountAdministrators" style="display: none" data-bind="visible: accountAdministrators().length > 0" aria-label="account administrators">
+                <thead>
+                    <tr>
+                        <th>Profile</th>
+                        <th>Email Address</th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach: accountAdministrators">
+                    <tr>
+                        <td><a href="#" data-bind="text: Username, attr: { href: $parent.generateProfileUrl($data.Username) }"></a></td>
+                        <td><span data-bind="text: EmailAddress"></span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h2>Validate new username</h2>
+
+        <i>Validate if the new username is available and has a valid format.</i><br />
+
+        <input type="text" placeholder="New username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="value: newUsername" />
+        <button type="submit" data-bind="click: validateNewUsername">Validate</button>
+        <div style="display:none" data-bind="visible: errorNewUsername">
+            @ViewHelpers.AlertDanger(@<text><span data-bind="text: errorNewUsername"></span></text>)
+        </div>
+
+        <div style="display: none" data-bind="visible: doneValidatingNewUsername() && !errorNewUsername()">
+            <div style="display:none;" data-bind="visible: validatationUsernameResult.IsFormatValid()"><i class="ms-Icon ms-Icon--CompletedSolid" style="color: green"></i> Username has a valid format.</div>
+            <div style="display:none;" data-bind="visible: !validatationUsernameResult.IsFormatValid()"><i class="ms-Icon ms-Icon--StatusErrorFull" style="color: red"></i> Username has invalid format.</div>
+            <div style="display:none;" data-bind="visible: validatationUsernameResult.IsAvailable()"><i class="ms-Icon ms-Icon--CompletedSolid" style="color: green"></i> Username is available.</div>
+            <div style="display:none;" data-bind="visible: !validatationUsernameResult.IsAvailable()"><i class="ms-Icon ms-Icon--StatusErrorFull" style="color: red"></i> Username is already taken.</div>
+        </div>
+    </div>
+
+    <div>
+        <h2>Change username</h2>
+        @using (Html.BeginForm())
+        {
+            @Html.AntiForgeryToken()
+            <i>Update current account username.</i><br />
+            <input type="text" placeholder="Old username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="value: changeOldUsername" />
+            <input type="text" placeholder="New username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="value: changeNewUsername" />
+            <button type="submit" data-bind="click: changeUsername">Change</button>
+        }
+        <div style="display:none" data-bind="visible: changeUsernameSuccessful">
+            @ViewHelpers.Alert(@<text><span data-bind="text: changeUsernameSuccessful"></span></text>, "success", "Info")
+        </div>
+        <div style="display:none" data-bind="visible: errorChangeUsername">
+            @ViewHelpers.AlertDanger(@<text><span data-bind="text: errorChangeUsername"></span></text>)
+        </div>
+    </div>
+</section>
+
+@section BottomScripts {
+    <script>
+        $(document).ready(function () {
+            var viewModel = function () {
+                var $self = this;
+                this.individualAccountMessage = 'This is an individual account.';
+                this.organizationAccountMessage = 'This is an organization account.';
+
+                this.accountEmailOrUsername = ko.observable('');
+                this.account = {
+                    Username: ko.observable(''),
+                    EmailAddress: ko.observable('')
+                }
+                this.accountAdministrators = ko.observableArray([]);
+                this.newUsername = ko.observable('');
+                this.validatationUsernameResult = {
+                    IsFormatValid: ko.observable(false),
+                    IsAvailable: ko.observable(false)
+                }
+                this.changeOldUsername = ko.observable('');
+                this.changeNewUsername = ko.observable('');
+
+                this.doneVerifyAccount = ko.observable(false);
+                this.doneValidatingNewUsername = ko.observable(false);
+
+                this.errorAccount = ko.observable('');
+                this.errorNewUsername = ko.observable('');
+                this.errorChangeUsername = ko.observable('');
+                this.changeUsernameSuccessful = ko.observable('');
+
+                var actionUrlVerifyAccount = '@Url.Action("VerifyAccount", "ChangeUsername", new {area = "Admin"})';
+                var actionUrlValidateNewUsername = '@Url.Action("ValidateNewUsername", "ChangeUsername", new {area = "Admin"})';
+                var actionUrlChangeUsername = '@Url.Action("ChangeUsername", "ChangeUsername", new {area = "Admin"})';
+
+                this.verifyAccount = function () {
+                    $self.doneVerifyAccount(false);
+                    $self.accountAdministrators.removeAll();
+                    $self.errorAccount('');
+
+                    if (!$self.accountEmailOrUsername()) {
+                        $self.errorAccount('Email or username cannot be null or empty.');
+                        return;
+                    }
+
+                    var queryParams = '?accountEmailOrUsername=' + encodeURIComponent($self.accountEmailOrUsername().trim());
+
+                    $.ajax({
+                        url: actionUrlVerifyAccount + queryParams,
+                        cache: false,
+                        dataType: 'json',
+                        success: function (data) {
+                            $self.account.Username(data.Account.Username);
+                            $self.account.EmailAddress(data.Account.EmailAddress);
+                            $self.accountAdministrators(data.Administrators);
+                        }
+                    })
+                    .fail(function (jqXhr, textStatus, errorThrown) {
+                        if (jqXhr) {
+                            $self.errorAccount(jqXhr.responseJSON);
+                        }
+                        else {
+                            alert('Error: ' + errorThrown);
+                        }
+                    })
+                    .always(function () {
+                        $self.doneVerifyAccount(true);
+                    });
+                };
+
+                this.validateNewUsername = function () {
+                    $self.doneValidatingNewUsername(false);
+                    $self.errorNewUsername('');
+
+                    if (!$self.newUsername()) {
+                        $self.errorNewUsername('Username cannot be null or empty.');
+                        return;
+                    }
+
+                    var queryParams = '?newUsername=' + encodeURIComponent($self.newUsername().trim());
+
+                    $.ajax({
+                        url: actionUrlValidateNewUsername + queryParams,
+                        cache: false,
+                        dataType: 'json',
+                        success: function (data) {
+                            $self.validatationUsernameResult.IsFormatValid(data.IsFormatValid);
+                            $self.validatationUsernameResult.IsAvailable(data.IsAvailable);
+                        }
+                    })
+                    .fail(function (jqXhr, textStatus, errorThrown) {
+                        if (jqXhr) {
+                            $self.errorNewUsername(jqXhr.responseJSON);
+                        }
+                        else {
+                            alert('Error: ' + errorThrown);
+                        }
+                    })
+                    .always(function () {
+                        $self.doneValidatingNewUsername(true);
+                    });
+                };
+
+                this.changeUsername = function (model, event) {
+                    $self.errorChangeUsername('');
+                    $self.changeUsernameSuccessful('');
+
+                    var data = {
+                        oldUsername: $self.changeOldUsername().trim(),
+                        newUsername: $self.changeNewUsername().trim(),
+                    };
+
+                    if (!data.oldUsername || !data.newUsername) {
+                        $self.errorChangeUsername('Usernames should not be empty.');
+                        event.preventDefault();
+                        return;
+                    }
+
+                    if (data.oldUsername && data.newUsername && !confirm("Are you sure you want to change account username from " + data.oldUsername + " to " + data.newUsername + "?")) {
+                        event.preventDefault();
+                        return;
+                    }
+
+                    $.ajax({
+                        url: actionUrlChangeUsername,
+                        cache: false,
+                        dataType: 'json',
+                        type: 'POST',
+                        data: window.nuget.addAjaxAntiForgeryToken(data),
+                        success: function (data) {
+                            $self.changeUsernameSuccessful(data)
+                        }
+                    })
+                    .fail(function (jqXhr, textStatus, errorThrown) {
+                        if (jqXhr) {
+                            $self.errorChangeUsername(jqXhr.responseJSON);
+                        }
+                        else {
+                            alert('Error: ' + errorThrown);
+                        }
+                    });
+                };
+
+                this.generateProfileUrl = function (username) {
+                    return '/profiles/' + username;
+                };
+            }
+
+            ko.applyBindings(new viewModel(), $('.main-container').get(0));
+        });
+    </script>
+}

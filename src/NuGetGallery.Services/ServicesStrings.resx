@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -320,10 +320,10 @@
     <value>The package is invalid and cannot be uploaded. One or more files, such as '{0}' have a date in the future.</value>
   </data>
   <data name="AzureActiveDirectory_SignInMessage" xml:space="preserve">
-    <value>Sign in with Azure Active Directory</value>
+    <value>Sign in with Microsoft Entra ID</value>
   </data>
   <data name="AzureActiveDirectory_AccountNoun" xml:space="preserve">
-    <value>Azure Active Directory account</value>
+    <value>Microsoft Entra ID account</value>
   </data>
   <data name="ApiKeyCanNotBeDefaultGuid" xml:space="preserve">
     <value>API key can not be the default Guid.</value>
@@ -485,7 +485,7 @@ For more information, please contact '{2}'.</value>
     <value>The new password does not match the verify password field.</value>
   </data>
   <data name="AzureActiveDirectory_RegisterMessage" xml:space="preserve">
-    <value>Register with Azure Active Directory</value>
+    <value>Register with Microsoft Entra ID</value>
   </data>
   <data name="ReservedNamespace_InvalidCharactersInNamespace" xml:space="preserve">
     <value>The namespace '{0}' contains invalid characters. Examples of valid namespaces include 'MyNamespace', 'MyNamespace.' or 'MyNamespace-' etc.</value>
@@ -748,10 +748,10 @@ If you would like to update the linked Microsoft account you can do so from the 
     <value>Successfully linked the Microsoft account ({0}). Note that the email address associated with the new linked Microsoft account is different than the NuGet.org account email ({1}).</value>
   </data>
   <data name="AddMember_UserDoesNotMeetOrganizationPolicy" xml:space="preserve">
-    <value>User '{0}' has not linked their account to an AAD credential matching this organization.</value>
+    <value>User '{0}' has not linked their account to a Microsoft Entra ID credential matching this organization.</value>
   </data>
   <data name="Organizations_AdminAccountDoesNotHaveTenant" xml:space="preserve">
-    <value>Administrator account '{0}' is not linked to an AAD credential with an organization tenant.</value>
+    <value>Administrator account '{0}' is not linked to a Microsoft Entra ID credential with an organization tenant.</value>
   </data>
   <data name="DeleteMember_CannotRemoveLastAdmin" xml:space="preserve">
     <value>You can't leave the organization. In order to leave the organization, another collaborator must be assigned as an administrator.</value>
@@ -897,7 +897,7 @@ If you would like to update the linked Microsoft account you can do so from the 
 Policy violations: {0}</value>
   </data>
   <data name="SecurityPolicy_RequirePackagePrefixReserved" xml:space="preserve">
-    <value>You have not published a package with this prefix in the past. This means other users may be able to push packages starting with the same prefix. Contact account@nuget.org to reserve the prefix. Go to https://docs.microsoft.com/en-us/nuget/reference/id-prefix-reservation to learn more about Package ID prefix reservation.</value>
+    <value>You have not published a package with this prefix in the past. This means other users may be able to push packages starting with the same prefix. Contact account@nuget.org to reserve the prefix. Go to https://docs.microsoft.com/nuget/reference/id-prefix-reservation to learn more about Package ID prefix reservation.</value>
   </data>
   <data name="SecurityPolicy_CopyrightNotCompliant" xml:space="preserve">
     <value>The package metadata contains a non-compliant copyright element.</value>
@@ -1129,5 +1129,17 @@ The {1} Team</value>
   </data>
   <data name="NuGetPackageDuplicateDependencyGroup" xml:space="preserve">
     <value>A nuget package may not contain multiple dependency groups with the same target framework.</value>
+  </data>
+  <data name="UserAccountIsLocked" xml:space="preserve">
+    <value>Your user account is locked. Please contact support@nuget.org.</value>
+  </data>
+  <data name="SpecificAccountIsLocked" xml:space="preserve">
+    <value>Account '{0}' is locked. Please contact support@nuget.org.</value>
+  </data>
+  <data name="TransformAccount_AccountIsLocked" xml:space="preserve">
+    <value>Account '{0}' is locked and cannot be transformed to an organization. Please contact support@nuget.org.</value>
+  </data>
+  <data name="AuthenticationProviderNotFound" xml:space="preserve">
+    <value>The given authentication provider is not supported.</value>
   </data>
 </root>

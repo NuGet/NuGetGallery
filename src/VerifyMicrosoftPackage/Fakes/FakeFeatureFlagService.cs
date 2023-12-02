@@ -3,10 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Security.Principal;
 using NuGet.Services.Entities;
-using NuGet.Versioning;
 using NuGetGallery;
 
 namespace NuGet.VerifyMicrosoftPackage.Fakes
@@ -71,8 +68,6 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
 
         public bool AreEmbeddedReadmesEnabled(User user) => throw new NotImplementedException();
 
-        public bool IsDisplayPackagePageV2Enabled(User user) => throw new NotImplementedException();
-
         public bool IsODataV1GetAllEnabled() => throw new NotImplementedException();
 
         public bool IsODataV1GetAllCountEnabled() => throw new NotImplementedException();
@@ -105,7 +100,11 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
 
         public bool IsShowReportAbuseSafetyChangesEnabled() => throw new NotImplementedException();
 
+        public bool IsAllowAadContentSafetyReportsEnabled() => throw new NotImplementedException();
+
         public bool IsMarkdigMdRenderingEnabled() => throw new NotImplementedException();
+
+        public bool IsMarkdigMdSyntaxHighlightEnabled() => throw new NotImplementedException();
 
         public bool IsDeletePackageApiEnabled(User user) => throw new NotImplementedException();
 
@@ -115,11 +114,20 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
 
         public bool IsDisplayNuGetPackageExplorerLinkEnabled() => throw new NotImplementedException();
 
-        public bool IsDisplayPackagePageV2PreviewEnabled(User user)
-        {
-            throw new NotImplementedException();
-        }
+        public bool IsDisplayTargetFrameworkEnabled(User user) => throw new NotImplementedException();
 
-        public bool IsDisplayTargetFrameworkEnabled() => throw new NotImplementedException();
+        public bool IsComputeTargetFrameworkEnabled() => throw new NotImplementedException();
+
+        public bool IsRecentPackagesNoIndexEnabled() => throw new NotImplementedException();
+
+        public bool IsNewAccount2FAEnforcementEnabled() => throw new NotImplementedException();
+
+        public bool IsNuGetAccountPasswordLoginEnabled() => throw new NotImplementedException();
+
+        public bool IsDisplayUploadWarningV2Enabled(User user) => throw new NotImplementedException();
+
+        public bool IsDisplayPackageReadmeWarningEnabled(User user) => throw new NotImplementedException();
+
+        public bool IsFrameworkFilteringEnabled(User user) => throw new NotImplementedException();
     }
 }

@@ -21,6 +21,7 @@ namespace NuGetGallery
 
         public static readonly string GallerySiteRootHttp = $"http://{galleryHostName}/";
         public static readonly string GallerySiteRootHttps = $"https://{galleryHostName}/";
+        public static readonly string GallerySupportEmailSiteRootHttps = $"https://{galleryHostName}/";
 
         public static readonly string FakeUserName = "theUsername";
         public static readonly int FakeUserKey = _key++;

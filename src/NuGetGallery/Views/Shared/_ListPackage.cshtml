@@ -26,7 +26,7 @@
     }
 }
 
-<article class="package" role="listitem">
+<li class="package">
 
     <div class="row">
         <div class="col-sm-1 hidden-xs hidden-sm col-package-icon">
@@ -36,14 +36,17 @@
         </div>
         <div class="col-sm-11">
             <div class="package-header">
-                <a class="package-title"
-                   href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)"
-                   @if (itemIndex.HasValue)
-                   {
-                       @:data-track="@eventName" data-track-value="@itemIndex"
-                       @:data-package-id="@Model.Id" data-package-version="@Model.Version" data-use-version="@Model.UseVersion"
-                   }
-                   >@Html.BreakWord(Model.Id)</a>
+                <h2 class="package-title">
+                    <a class="package-title"
+                        href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null).TrimEnd('/')"
+                        @if (itemIndex.HasValue)
+                        {
+                            @:data-track="@eventName" data-track-value="@itemIndex"
+                            @:data-package-id="@Model.Id" data-package-version="@Model.Version" data-use-version="@Model.UseVersion"
+                        }>
+                            @Html.BreakWord(Model.Id)
+                    </a>
+                </h2>
 
                 @if (Model.IsVerified.HasValue && Model.IsVerified.Value)
                 {
@@ -71,6 +74,29 @@
                     </span>
                 }
             </div>
+
+
+            @if (Model.IsVulnerable || Model.IsDeprecated)
+            {
+                <ul class="package-list">
+                    <li>
+                        @if (Model.IsVulnerable)
+                        {
+                            <span class="icon-text package-warning--vulnerable" aria-label="@Model.VulnerabilityTitle" data-content="@Model.VulnerabilityTitle">
+                                <i class="ms-Icon ms-Icon--BlockedSiteSolid12" aria-hidden="true"></i>
+                                Vulnerable
+                            </span>
+                        }
+                        @if (Model.IsDeprecated)
+                        {
+                            <span class="icon-text package-warning--deprecated" aria-label="@Model.DeprecationTitle" data-content="@Model.DeprecationTitle">
+                                <i class="ms-Icon ms-Icon--ShieldAlert" aria-hidden="true"></i>
+                                Deprecated
+                            </span>
+                        }
+                    </li>
+                </ul>
+            }
 
             <ul class="package-list">
                 <li>
@@ -114,7 +140,7 @@
                             {
                                 <span class="text-nowrap">
                                     <a href="@Url.Search("Tags:\"" + lastTag + "\"")" title="Search for @lastTag">@lastTag</a>
-                                    <a href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)" title="View more tags" class="more-tags">More tags</a>
+                                    <a href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)" title="View more tags">More tags</a>
                                 </span>
                             }
                         </span>
@@ -126,9 +152,9 @@
                 @Model.ShortDescription
                 @if (Model.IsDescriptionTruncated)
                 {
-                    @Html.RouteLink("More information", RouteName.DisplayPackage, new { Model.Id, Model.Version })
+                    @Html.RouteLink("More information", RouteName.DisplayPackage, new { Model.Id, Model.Version }, new { @title = "More information about " + Model.Id + " package", @aria_label = "More information about " + Model.Id + " package" })
                 }
             </div>
         </div>
     </div>
-</article>
+</li>

@@ -90,7 +90,7 @@ namespace NuGetGallery
                     }
 
                     // Check for duplicated entries in symbols package
-                    if (ValidationHelper.HasDuplicatedEntries(packageToPush))
+                    if (PackageValidationHelper.HasDuplicatedEntries(packageToPush))
                     {
                         return SymbolPackageValidationResult.Invalid(Strings.UploadPackage_PackageContainsDuplicatedEntries);
                     }

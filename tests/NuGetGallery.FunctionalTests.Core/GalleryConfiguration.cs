@@ -2,7 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Net;
+using System.Reflection;
 using Microsoft.Extensions.Configuration;
 using NuGet.Services.Configuration;
 
@@ -34,6 +36,9 @@ namespace NuGetGallery.FunctionalTests
                 // This test suite hits the gallery which requires TLS 1.2 (at least in some environments).
                 ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
 
+                // This method is a workaround for binding redirect issues. Please check the implementation for more information.
+                RedirectAssembly("Newtonsoft.Json");
+
                 // Load the configuration without injection. This allows us to read KeyVault configuration.
                 var uninjectedBuilder = new ConfigurationBuilder()
                     .AddJsonFile(EnvironmentSettings.ConfigurationFilePath, optional: false);
@@ -55,7 +60,7 @@ namespace NuGetGallery.FunctionalTests
             catch (ArgumentException ae)
             {
                 throw new ArgumentException(
-                    $"No configuration file was specified! Set the '{EnvironmentSettings.ConfigurationFilePathVariableName}' environment variable to the path to a JSON configuration file.", 
+                    $"No configuration file was specified! Set the '{EnvironmentSettings.ConfigurationFilePathVariableName}' environment variable to the path to a JSON configuration file.",
                     ae);
             }
             catch (Exception e)
@@ -66,6 +71,45 @@ namespace NuGetGallery.FunctionalTests
                     $"and that it is a valid JSON file containing all required configuration.",
                     e);
             }
+        }
+
+        /// <summary>
+        /// Source: https://stackoverflow.com/a/32698357
+        /// </summary>
+        public static void RedirectAssembly(string shortName)
+        {
+            /* The following code was added due to an issue with loading assemblies, at some point two versions of Newtonsoft.Json 
+             * where loaded on the AppDomain, this led to an issue where a package needed an specific assembly version 
+             * and the loaded assembly didn't contain a certain implementation. To fix this we are loading the last assembly 
+             * for the specified name (which at least for this case it's the valid one) at runtime.
+             * This issue appeared on the FunciontalTests solution, so for the LoadTests project we only needed to 
+             * add the dependentAssembly specified on the app.config file.
+             * Providing dependentAssembly did not work for WebUiTests projects since they use QTAgent (internal stuff for legacy mstest) 
+             * that has it's own configuration file with their own binding redirects.
+             * 
+             * In short, this implements a binding redirect at runtime for an entry point that we don't control the config file for.
+             * 
+             * There is an issue to migrate to newer framework/technology on GitHub: https://github.com/NuGet/NuGetGallery/issues/8916
+             */
+            ResolveEventHandler handler = null;
+
+            handler = (sender, args) =>
+            {
+                var requestedAssembly = new AssemblyName(args.Name);
+                if (requestedAssembly.Name != shortName)
+                {
+                    return null;
+                }
+
+                var current = AppDomain
+                    .CurrentDomain
+                    .GetAssemblies()
+                    .LastOrDefault(x => x.GetName().Name == shortName);
+
+                return current;
+            };
+
+            AppDomain.CurrentDomain.AssemblyResolve += handler;
         }
 
         public class AccountConfiguration : OrganizationConfiguration

@@ -210,13 +210,13 @@ var SupportRequestsViewModel = (function () {
 
         this.generateUserProfileUrl = function (supportRequestViewModel) {
             if (supportRequestViewModel.CreatedBy.toUpperCase !== 'ANONYMOUS') {
-                return supportRequestViewModel.SiteRoot + 'Profiles/' + supportRequestViewModel.CreatedBy;
+                return '/Profiles/' + supportRequestViewModel.CreatedBy;
             }
             return '#';
         };
 
         this.generatePackageDetailsUrl = function (supportRequestViewModel) {
-            return supportRequestViewModel.SiteRoot + 'packages/' + supportRequestViewModel.PackageId + '/' + supportRequestViewModel.PackageVersion;
+            return '/packages/' + supportRequestViewModel.PackageId + '/' + supportRequestViewModel.PackageVersion;
         };
 
         this.generateHistoryUrl = function (supportRequestViewModel) {

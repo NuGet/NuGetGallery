@@ -212,9 +212,9 @@ namespace NuGetGallery
                         existingRange.PackageVersionRange,
                         vulnerability.GitHubDatabaseKey);
 
+                    packagesToUpdate.UnionWith(existingRange.Packages);
                     _entitiesContext.VulnerableRanges.Remove(existingRange);
                     existingVulnerability.AffectedRanges.Remove(existingRange);
-                    packagesToUpdate.UnionWith(existingRange.Packages);
                 }
                 else
                 {

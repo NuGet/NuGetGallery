@@ -67,7 +67,7 @@ namespace NuGetGallery.FunctionalTests.StaticAssets
                     "Scripts/gallery/jquery.validate.unobtrusive-3.2.6.js",
                     "Scripts/gallery/knockout-3.4.2.js",
                     "Scripts/gallery/bootstrap.js",
-                    "Scripts/gallery/moment-2.18.1.js",
+                    "Scripts/gallery/moment-2.29.4.js",
                     "Scripts/gallery/common.js",
                     "Scripts/gallery/autocomplete.js",
                 }
@@ -90,14 +90,6 @@ namespace NuGetGallery.FunctionalTests.StaticAssets
                 }
             },
             {
-                "Scripts/gallery/page-display-package-v2.min.js",
-                new[]
-                {
-                    "Scripts/gallery/page-display-package-v2.js",
-                    "Scripts/gallery/clamp.js",
-                }
-            },
-            {
                 "Scripts/gallery/page-add-organization.min.js",
                 new[]
                 {
@@ -112,6 +104,13 @@ namespace NuGetGallery.FunctionalTests.StaticAssets
                     "Scripts/gallery/jquery-ui-1.10.3.js",
                     "Scripts/gallery/knockout-projections.js",
                     "Scripts/gallery/page-support-requests.js",
+                }
+            },
+            {
+                "Scripts/gallery/syntaxhighlight.min.js",
+                new[]
+                {
+                    "Scripts/gallery/syntaxhighlight.js",
                 }
             },
         };

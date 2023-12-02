@@ -255,6 +255,13 @@ namespace NuGetGallery
 
         public class TheForgotPasswordAction : TestContainer
         {
+            public TheForgotPasswordAction()
+            {
+                GetMock<IFeatureFlagService>()
+                    .Setup(s => s.IsNuGetAccountPasswordLoginEnabled())
+                    .Returns(true);
+            }
+
             [Fact]
             public async Task SendsEmailWithPasswordResetUrl()
             {
@@ -389,6 +396,51 @@ namespace NuGetGallery
                 }
             }
 
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public void ModelIsPasswordLoginEnabledHasSameValueAsNuGetAccountPasswordLoginEnabled(bool flagEnabled)
+            {
+                GetMock<IFeatureFlagService>()
+                    .Setup(s => s.IsNuGetAccountPasswordLoginEnabled())
+                    .Returns(flagEnabled);
+                var controller = GetController<UsersController>();
+
+                var result = controller.ForgotPassword() as ViewResult;
+                var model = result.Model as ForgotPasswordViewModel;
+                
+                Assert.NotNull(result);
+                Assert.IsNotType<RedirectResult>(result);
+                Assert.Equal(flagEnabled, model.IsPasswordLoginEnabled);
+            }
+
+            [Fact]
+            public async Task WhenNuGetAccountPasswordLoginEnabledShowsErrorOnPost()
+            {
+                var fakeEmail = "test@example.com";
+                GetMock<IFeatureFlagService>()
+                    .Setup(s => s.IsNuGetAccountPasswordLoginEnabled())
+                    .Returns(false);
+
+                var configMock = new Mock<ILoginDiscontinuationConfiguration>();
+                configMock
+                    .Setup(x => x.IsEmailInExceptionsList(fakeEmail))
+                    .Returns(false);
+                GetMock<IContentObjectService>()
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
+                    .Returns(configMock.Object);
+
+                var controller = GetController<UsersController>();
+
+                var model = new ForgotPasswordViewModel { Email = fakeEmail };
+
+                var result = await controller.ForgotPassword(model) as ViewResult;
+
+                Assert.NotNull(result);
+                Assert.IsNotType<RedirectResult>(result);
+                Assert.Contains(Strings.ForgotPassword_Disabled_Error, result.ViewData.ModelState[string.Empty].Errors.Select(e => e.ErrorMessage));
+            }
+
             public static IEnumerable<object[]> ResultTypes
             {
                 get
@@ -505,6 +557,18 @@ namespace NuGetGallery
             }
         }
 
+        public class TheDeleteAccountPostAction : TheDeleteAccountPostBaseAction
+        {
+            protected override User CreateUser(Fakes fakes, string username)
+            {
+                return fakes.CreateUser(username);
+            }
+        }
+
+        public class TheDeleteAccountAction : TheDeleteAccountBaseAction
+        {
+        }
+
         public class TheConfirmAction : TheConfirmBaseAction
         {
             public static IEnumerable<object[]> AllowedCurrentUsers_Data
@@ -613,7 +677,27 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
-                Assert.True(string.Compare((string)result.Data, Strings.ApiKeyDescriptionRequired) == 0);
+                Assert.Equal(Strings.ApiKeyDescriptionRequired, (string)result.Data);
+            }
+
+            [Fact]
+            public async Task WhenUserIsLockedReturnsError()
+            {
+                // Arrange 
+                var user = new User { Username = "the-username", UserStatusKey = UserStatus.Locked };
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.GenerateApiKey(
+                    description: "A pea eye key",
+                    owner: user.Username,
+                    scopes: null,
+                    expirationInDays: null);
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+                Assert.Equal(ServicesStrings.UserAccountIsLocked, (string)result.Data);
             }
 
             public static IEnumerable<object[]> WhenScopeOwnerDoesNotMatch_ReturnsBadRequest_Data
@@ -661,7 +745,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
-                Assert.True(string.Compare((string)result.Data, Strings.ApiKeyScopesNotAllowed) == 0);
+                Assert.Equal(Strings.ApiKeyScopesNotAllowed, (string)result.Data);
             }
 
             public static IEnumerable<object[]> WhenScopeOwnerMatchesOrganizationWithPermission_ReturnsSuccess_Data
@@ -874,6 +958,58 @@ namespace NuGetGallery
                 Assert.NotNull(apiKey);
                 Assert.Equal(description, apiKey.Description);
                 Assert.Equal(expectedScopes.Length, apiKey.Scopes.Count);
+                Assert.False(apiKey.WasCreatedSecurely);
+
+                foreach (var expectedScope in expectedScopes)
+                {
+                    var actualScope =
+                        apiKey.Scopes.First(x => x.AllowedAction == expectedScope.AllowedAction &&
+                                                 x.Subject == expectedScope.Subject);
+                    Assert.NotNull(actualScope);
+                }
+            }
+
+            [MemberData(nameof(CreatesNewApiKeyCredential_Input))]
+            [Theory]
+            public async Task CreatesNewApiKeyCredentialSecurely(string description, string[] scopes, string[] subjects, Scope[] expectedScopes)
+            {
+                // Arrange 
+                var user = new User("the-username");
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(user.Username, false))
+                    .Returns(user);
+
+                GetMock<AuthenticationService>()
+                   .Setup(u => u.AddCredential(
+                       It.IsAny<User>(),
+                       It.IsAny<Credential>()))
+                   .Callback<User, Credential>((u, c) =>
+                   {
+                       u.Credentials.Add(c);
+                       c.User = u;
+                   })
+                   .Completes()
+                   .Verifiable();
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+                controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
+
+                // Act
+                await controller.GenerateApiKey(
+                    description: description,
+                    owner: user.Username,
+                    scopes: scopes,
+                    subjects: subjects,
+                    expirationInDays: null);
+
+                // Assert
+                var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKey.V4);
+
+                Assert.NotNull(apiKey);
+                Assert.Equal(description, apiKey.Description);
+                Assert.Equal(expectedScopes.Length, apiKey.Scopes.Count);
+                Assert.True(apiKey.WasCreatedSecurely);
 
                 foreach (var expectedScope in expectedScopes)
                 {
@@ -1473,7 +1609,7 @@ namespace NuGetGallery
                 await controller.ChangePassword(new UserAccountViewModel());
 
                 // Assert
-                Assert.Equal(TestUtility.GallerySiteRootHttps + "account/setpassword/test/t0k3n", actualConfirmUrl);
+                Assert.Equal(TestUtility.GallerySupportEmailSiteRootHttps + "account/setpassword/test/t0k3n", actualConfirmUrl);
                 GetMock<IMessageService>().VerifyAll();
             }
 
@@ -1535,6 +1671,41 @@ namespace NuGetGallery
                 Assert.NotNull(identity);
                 Assert.Equal(enable2FA, ClaimsExtensions.HasBooleanClaim(identity, NuGetClaims.EnabledMultiFactorAuthentication));
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+            }
+
+            [Theory]
+            [InlineData(true, false)]
+            [InlineData(false, true)]
+            public async Task PreventsDisableOnLockedUser(bool enable2FA, bool fail)
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var user = fakes.CreateUser("user1");
+                user.UserStatusKey = UserStatus.Locked;
+                user.EnableMultiFactorAuthentication = !enable2FA;
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                var userServiceMock = GetMock<IUserService>();
+                userServiceMock
+                    .Setup(x => x.ChangeMultiFactorAuthentication(user, enable2FA, null))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
+
+                // Act
+                var result = await controller.ChangeMultiFactorAuthentication(enable2FA);
+
+                // Assert
+                if (fail)
+                {
+                    ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+                    Assert.Equal(ServicesStrings.UserAccountIsLocked, controller.TempData["ErrorMessage"]);
+                }
+                else
+                {
+                    userServiceMock.Verify(x => x.ChangeMultiFactorAuthentication(user, enable2FA, It.IsAny<string>()));
+                }
             }
         }
 
@@ -1685,7 +1856,7 @@ namespace NuGetGallery
                 // Assert
                 Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
                 Assert.IsType<JsonResult>(result);
-                Assert.True(string.Compare((string)((JsonResult)result).Data, Strings.CredentialNotFound) == 0);
+                Assert.Equal(Strings.CredentialNotFound, (string)((JsonResult)result).Data);
 
                 Assert.Equal(1, user.Credentials.Count);
             }
@@ -1869,7 +2040,34 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
-                Assert.True(string.Compare((string)result.Data, Strings.CredentialNotFound) == 0);
+                Assert.Equal(Strings.CredentialNotFound, (string)result.Data);
+
+                Assert.Equal(1, user.Credentials.Count);
+                Assert.True(user.Credentials.Contains(cred));
+            }
+
+            [Fact]
+            public async Task GivenLockedUser_ErrorIsReturnedWithNoChangesMade()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+
+                var user = fakes.CreateUser("test",
+                    new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1), out string plaintextApiKey));
+                user.UserStatusKey = UserStatus.Locked;
+                var cred = user.Credentials.First();
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.RegenerateCredential(
+                    credentialType: cred.Type,
+                    credentialKey: CredentialKey);
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+                Assert.Equal(ServicesStrings.UserAccountIsLocked, (string)result.Data);
 
                 Assert.Equal(1, user.Credentials.Count);
                 Assert.True(user.Credentials.Contains(cred));
@@ -1916,7 +2114,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
-                Assert.True(string.Compare((string)result.Data, Strings.Unsupported) == 0);
+                Assert.Equal(Strings.Unsupported, (string)result.Data);
             }
 
             public static IEnumerable<object[]> GivenValidRequest_ItGeneratesNewCredAndRemovesOldCredAndSendsNotificationToUser_Input
@@ -2023,6 +2221,78 @@ namespace NuGetGallery
             }
         }
 
+        public class TheRevokeApiKeyCredentialAction : TestContainer
+        {
+            [Fact]
+            public async Task GivenNoCredential_ErrorIsReturnedWithNoChangesMade()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+
+                var user = fakes.CreateUser("test",
+                    new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1), out string plaintextApiKey));
+                var cred = user.Credentials.First();
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.RevokeApiKeyCredential(
+                    credentialType: cred.Type,
+                    credentialKey: CredentialKey);
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
+                Assert.Equal(Strings.CredentialNotFound, (string)result.Data);
+                Assert.Single(user.Credentials);
+                Assert.Equal(cred.Expires, user.Credentials.First().Expires);
+            }
+
+            [Fact]
+            public async Task GivenValidRequest_ItRevokesCredential()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+
+                var user = fakes.CreateUser("test",
+                    new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1), out string plaintextApiKey));
+                var cred = user.Credentials.First();
+
+                var authenticationService = GetMock<AuthenticationService>();
+
+                authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()))
+                    .Returns(Task.FromResult(0));
+
+                authenticationService.Setup(x => x.DescribeCredential(It.IsAny<Credential>()))
+                    .Returns(GetRevokedApiKeyCredentialViewModel(cred.Type));
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.RevokeApiKeyCredential(cred.Type, cred.Key);
+
+                // Assert
+                Assert.IsType<JsonResult>(result);
+                var credentialViewModel = Assert.IsType<ApiKeyViewModel>(result.Data);
+                Assert.True(credentialViewModel.HasExpired);
+
+                authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()), Times.Once);
+                authenticationService.Verify(x => x.DescribeCredential(It.IsAny<Credential>()), Times.Once);
+            }
+
+            private static CredentialViewModel GetRevokedApiKeyCredentialViewModel(string apiKeyType)
+            {
+                return new CredentialViewModel
+                {
+                    Type = apiKeyType,
+                    RevocationSource = CredentialRevocationSource.User.ToString(),
+                    HasExpired = true,
+                    Scopes = new List<ScopeViewModel>(),
+                };
+            }
+        }
+
         public class TheEditCredentialAction : TestContainer
         {
             public static IEnumerable<object[]> GivenANonApiKeyV2Credential_ReturnsUnsupported_Input
@@ -2067,7 +2337,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
-                Assert.True(string.CompareOrdinal((string)result.Data, Strings.Unsupported) == 0);
+                Assert.Equal(Strings.Unsupported, (string)result.Data);
             }
 
             [Fact]
@@ -2095,7 +2365,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
-                Assert.True(String.CompareOrdinal((string)result.Data, Strings.CredentialNotFound) == 0);
+                Assert.Equal(Strings.CredentialNotFound, (string)result.Data);
 
                 authenticationService.Verify(x => x.EditCredentialScopes(It.IsAny<User>(), It.IsAny<Credential>(), It.IsAny<ICollection<Scope>>()), Times.Never);
             }
@@ -3363,6 +3633,16 @@ namespace NuGetGallery
 
                 _certificateService.VerifyAll();
             }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources
+                    _controller?.Dispose();
+                    base.Dispose(disposing);
+                }
+            }
         }
 
         public class TheGetCertificatesAction : TestContainer
@@ -3437,6 +3717,16 @@ namespace NuGetGallery
                 Assert.Equal((int)HttpStatusCode.OK, _controller.Response.StatusCode);
 
                 _certificateService.VerifyAll();
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources
+                    _controller?.Dispose();
+                    base.Dispose(disposing);
+                }
             }
         }
 
@@ -3569,6 +3859,16 @@ namespace NuGetGallery
 
                 return new StubHttpPostedFile((int)stream.Length, "certificate.cer", stream);
             }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources
+                    _controller?.Dispose();
+                    base.Dispose(disposing);
+                }
+            }
         }
 
         public class TheDeleteCertificateAction : TestContainer
@@ -3641,6 +3941,16 @@ namespace NuGetGallery
 
                 Assert.NotNull(response);
                 Assert.Equal((int)HttpStatusCode.OK, _controller.Response.StatusCode);
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources
+                    _controller?.Dispose();
+                    base.Dispose(disposing);
+                }
             }
         }
 
@@ -3852,6 +4162,16 @@ namespace NuGetGallery
 
                 Assert.False(model.ListedPackages.ToArray()[0].IsVulnerable);  // alpha
                 Assert.True(model.ListedPackages.ToArray()[1].IsVulnerable);   // zebra
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources
+                    _testController?.Dispose();
+                    base.Dispose(disposing);
+                }
             }
         }
 

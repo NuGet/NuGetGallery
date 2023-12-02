@@ -15,7 +15,7 @@
     @using (Html.BeginForm("UpdateListed", "UpdateListed", new { area = "Admin" }, FormMethod.Post, new { id = "update-listed-form" }))
     {
         @Html.AntiForgeryToken()
-        <table class="table" id="searchResults" style="display: none" data-bind="visible: searchResults().length > 0">
+        <table class="table" id="searchResults" style="display: none" data-bind="visible: searchResults().length > 0" aria-label="Search results">
             <thead>
                 <tr>
                     <th><input type="checkbox" data-bind="click: toggleSelectAll, checked: selectAllState" /></th>

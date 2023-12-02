@@ -122,7 +122,7 @@ namespace NuGetGallery
                     ServicesStrings.AddMember_UserIsOrganization, memberName));
             }
 
-            // Ensure that the new member meets the AAD tenant policy for this organization.
+            // Ensure that the new member meets the Microsoft Entra ID tenant policy for this organization.
             var policyResult = await SecurityPolicyService.EvaluateOrganizationPoliciesAsync(
                 SecurityPolicyAction.JoinOrganization, organization, member);
             if (policyResult != SecurityPolicyResult.SuccessResult)
@@ -219,7 +219,7 @@ namespace NuGetGallery
             var membership = FindMembershipByUsername(organization, memberName);
             if (membership == null)
             {
-                // Ensure that the new member meets the AAD tenant policy for this organization.
+                // Ensure that the new member meets the Microsoft Entra ID tenant policy for this organization.
                 var policyResult = await SecurityPolicyService.EvaluateOrganizationPoliciesAsync(
                     SecurityPolicyAction.JoinOrganization, organization, member);
                 if (policyResult != SecurityPolicyResult.SuccessResult)
@@ -401,6 +401,11 @@ namespace NuGetGallery
                 throw new EntityException(ServicesStrings.EmailAddressBeingUsed, newEmailAddress);
             }
 
+            if (user.IsLocked)
+            {
+                throw new EntityException(String.Format(CultureInfo.CurrentCulture, ServicesStrings.SpecificAccountIsLocked, user.Username));
+            }
+
             await Auditing.SaveAuditRecordAsync(new UserAuditRecord(user, AuditedUserAction.ChangeEmail, newEmailAddress));
 
             user.UpdateUnconfirmedEmailAddress(newEmailAddress, Crypto.GenerateToken);
@@ -500,6 +505,11 @@ namespace NuGetGallery
                 errorReason = String.Format(CultureInfo.CurrentCulture,
                     ServicesStrings.TransformAccount_AccountNotConfirmed, accountToTransform.Username);
             }
+            else if (accountToTransform.IsLocked)
+            {
+                errorReason = String.Format(CultureInfo.CurrentCulture,
+                    ServicesStrings.TransformAccount_AccountIsLocked, accountToTransform.Username);
+            }
             else if (accountToTransform is Organization)
             {
                 errorReason = String.Format(CultureInfo.CurrentCulture,
@@ -575,6 +585,11 @@ namespace NuGetGallery
                 }
             }
 
+            if (adminUser.IsLocked)
+            {
+                throw new EntityException(ServicesStrings.UserAccountIsLocked);
+            }
+
             var organization = new Organization(username)
             {
                 EmailAllowed = true,
@@ -611,7 +626,7 @@ namespace NuGetGallery
             var tenantId = adminUser.Credentials.GetAzureActiveDirectoryCredential()?.TenantId;
             if (string.IsNullOrEmpty(tenantId))
             {
-                DiagnosticsSource.LogInformation("Will not apply tenant policy to organization because admin user does not have an AAD credential.");
+                DiagnosticsSource.LogInformation("Will not apply tenant policy to organization because admin user does not have a Microsoft Entra ID credential.");
                 return;
             }
 

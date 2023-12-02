@@ -12,6 +12,7 @@ namespace NuGetGallery
         public bool IsCurrentUserAnAdmin { get; set; }
         public DeletePackagesRequest DeletePackagesRequest { get; set; }
         public bool IsLocked { get; set; }
+        public bool IsMarkdigMdSyntaxHighlightEnabled { get; set; } 
         public EditPackageVersionReadMeRequest ReadMe { get; set; }
         public IReadOnlyDictionary<string, VersionListedState> VersionListedStateDictionary { get; set; }
         public IReadOnlyDictionary<string, VersionReadMeState> VersionReadMeStateDictionary { get; set; }
@@ -24,14 +25,14 @@ namespace NuGetGallery
         /// </remarks>
         public class VersionListedState
         {
-            public VersionListedState(bool listed, int downloadCount)
+            public VersionListedState(bool listed, long downloadCount)
             {
                 Listed = listed;
                 DownloadCount = downloadCount;
             }
 
             public bool Listed { get; }
-            public int DownloadCount { get; }
+            public long DownloadCount { get; }
         }
 
         /// <remarks>

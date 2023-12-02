@@ -4,14 +4,24 @@
 using NuGet.Services.Entities;
 using NuGetGallery.Authentication;
 
-namespace NuGetGallery
+namespace NuGetGallery.Configuration
 {
     public interface ILoginDiscontinuationConfiguration
     {
         bool IsLoginDiscontinued(AuthenticatedUser authUser);
+
         bool IsPasswordLoginDiscontinuedForAll();
-        bool IsUserOnWhitelist(User user);
+
+        bool IsUserInAllowList(User user);
+
         bool ShouldUserTransformIntoOrganization(User user);
+
         bool IsTenantIdPolicySupportedForOrganization(string emailAddress, string tenantId);
+
+        bool IsEmailInExceptionsList(string emailAddress);
+
+        bool AddEmailToExceptionsList(string emailAddress);
+
+        bool RemoveEmailFromExceptionsList(string emailAddress);
     }
 }

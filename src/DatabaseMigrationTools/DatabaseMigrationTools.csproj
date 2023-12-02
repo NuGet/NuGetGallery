@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <Import Project="..\..\sign.thirdparty.props" />
@@ -57,7 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="EntityFramework">
-      <Version>6.4.0-preview3-19553-01</Version>
+      <Version>6.4.4</Version>
     </PackageReference>
     <PackageReference Include="MicroBuild.Core">
       <Version>0.3.0</Version>
@@ -65,13 +65,17 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation">
-      <Version>2.91.0</Version>
+      <Version>$(ServerCommonPackageVersion)</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Services.DatabaseMigration\NuGet.Services.DatabaseMigration.csproj">
       <Project>{f4c8c34f-72a9-4773-a315-8fa3f2d5ce4e}</Project>
       <Name>NuGet.Services.DatabaseMigration</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.Entities\NuGet.Services.Entities.csproj">
+      <Project>{6262f4fc-29be-4226-b676-db391c89d396}</Project>
+      <Name>NuGet.Services.Entities</Name>
     </ProjectReference>
     <ProjectReference Include="..\NuGetGallery.Core\NuGetGallery.Core.csproj">
       <Project>{097b2cdd-9623-4c34-93c2-d373d51f5b4e}</Project>

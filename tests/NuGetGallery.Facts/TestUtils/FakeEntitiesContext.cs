@@ -122,6 +122,8 @@ namespace NuGetGallery
 
         public virtual string QueryHint => throw new NotImplementedException();
 
+        public bool HasChanges { get; set; } = true;
+
         public Task<int> SaveChangesAsync()
         {
             _areChangesSaved = true;
@@ -148,6 +150,10 @@ namespace NuGetGallery
             Assert.True(_areChangesSaved, "SaveChanges() has not been called on the entity context.");
         }
 
+        public void VerifyNoCommitChanges()
+        {
+            Assert.False(_areChangesSaved, "SaveChanges() should not have been called on the entity context.");
+        }
 
         public void SetCommandTimeout(int? seconds)
         {

@@ -125,7 +125,7 @@ namespace NuGetGallery.Services
 
                 var telemetryService = GetMock<ITelemetryService>();
                 telemetryService
-                    .Setup(x => x.TrackPackageDeprecate(packages, PackageDeprecationStatus.NotDeprecated, null, null, false))
+                    .Setup(x => x.TrackPackageDeprecate(packages, PackageDeprecationStatus.NotDeprecated, null, null, false, true))
                     .Verifiable();
 
                 var user = new User { Key = 1 };
@@ -257,7 +257,7 @@ namespace NuGetGallery.Services
 
                 var telemetryService = GetMock<ITelemetryService>();
                 telemetryService
-                    .Setup(x => x.TrackPackageDeprecate(packages, status, alternatePackageRegistration, alternatePackage, true))
+                    .Setup(x => x.TrackPackageDeprecate(packages, status, alternatePackageRegistration, alternatePackage, true, true))
                     .Verifiable();
 
                 var service = Get<PackageDeprecationService>();
@@ -297,6 +297,100 @@ namespace NuGetGallery.Services
                         && r.DeprecationRecord == null
                         && r.Id == id
                         && r.PackageRecord.NormalizedVersion == package.NormalizedVersion);
+                }
+            }
+
+            [Fact]
+            public async Task NoOpsWhenThereAreNoChanges()
+            {
+                // Arrange
+                var lastTimestamp = new DateTime(2019, 3, 4);
+
+                var id = "theId";
+                var registration = new PackageRegistration { Id = id };
+                var packageWithDeprecation1 = new Package
+                {
+                    PackageRegistration = registration,
+                    NormalizedVersion = "1.0.0",
+                    Deprecations = new List<PackageDeprecation> { new PackageDeprecation() },
+                    LastEdited = lastTimestamp
+                };
+
+                var packageWithDeprecation = new Package
+                {
+                    PackageRegistration = registration,
+                    NormalizedVersion = "3.0.0",
+                    LastEdited = lastTimestamp,
+                    Deprecations = new List<PackageDeprecation>
+                    {
+                        new PackageDeprecation
+                        {
+                            CustomMessage = "message"
+                        }
+                    }
+                };
+
+                var packages = new[]
+                {
+                    packageWithDeprecation,
+                };
+
+                var transactionMock = new Mock<IDbContextTransaction>();
+                var databaseMock = new Mock<IDatabase>();
+
+                var context = GetFakeContext();
+                context.HasChanges = false;
+                context.SetupDatabase(databaseMock.Object);
+                context.Deprecations.AddRange(
+                    packages
+                        .Select(p => p.Deprecations.SingleOrDefault())
+                        .Where(d => d != null));
+
+                var packageUpdateService = GetMock<IPackageUpdateService>();
+                var auditingService = GetService<IAuditingService>();
+
+                var status = (PackageDeprecationStatus)99;
+
+                var alternatePackageRegistration = new PackageRegistration();
+                var alternatePackage = new Package();
+
+                var telemetryService = GetMock<ITelemetryService>();
+                telemetryService
+                    .Setup(x => x.TrackPackageDeprecate(packages, status, alternatePackageRegistration, alternatePackage, true, false))
+                    .Verifiable();
+
+                var service = Get<PackageDeprecationService>();
+
+                var customMessage = "message";
+                var user = new User { Key = 1 };
+
+                // Act
+                await service.UpdateDeprecation(
+                    packages,
+                    status,
+                    alternatePackageRegistration,
+                    alternatePackage,
+                    customMessage,
+                    user);
+
+                // Assert
+                context.VerifyNoCommitChanges();
+                databaseMock.Verify();
+                transactionMock.Verify();
+                packageUpdateService.Verify();
+                telemetryService.Verify();
+
+                Assert.Equal(packages.Count(), context.Deprecations.Count());
+                foreach (var package in packages)
+                {
+                    var deprecation = package.Deprecations.Single();
+                    Assert.Contains(deprecation, context.Deprecations);
+                    Assert.Equal(status, deprecation.Status);
+                    Assert.Equal(alternatePackageRegistration, deprecation.AlternatePackageRegistration);
+                    Assert.Equal(alternatePackage, deprecation.AlternatePackage);
+                    Assert.Equal(customMessage, deprecation.CustomMessage);
+
+                    auditingService.WroteNoRecords();
                 }
             }
         }

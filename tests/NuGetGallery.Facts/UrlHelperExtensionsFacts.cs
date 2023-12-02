@@ -276,6 +276,23 @@ namespace NuGetGallery
             }
         }
 
+        public class GetExternalPrivacyUrlMethod : TestContainer
+        {
+            [Theory]
+            [InlineData("")]
+            [InlineData("https://privacy.microsoft.com")]
+            public void VerifyExternalPrivacyUrlMethod(string expectedUrl) {
+                var configurationService = GetConfigurationService();
+                configurationService.Current.ExternalPrivacyPolicyUrl = expectedUrl;
+
+                var urlHelper = TestUtility.MockUrlHelper(expectedUrl);
+
+                var result = UrlHelperExtensions.ExternalPrivacyUrl(TestUtility.MockUrlHelper());
+
+                Assert.Equal(expectedUrl, result);  
+            }
+        }
+
         public class TheGetActionLinkMethod : TestContainer
         {
             public static IEnumerable<object[]> GeneratesTheCorrectActionLink_Data

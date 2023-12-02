@@ -155,7 +155,7 @@ namespace NuGetGallery.FunctionalTests.Commandline
             Assert.Contains("locked", processResult.StandardError);
 
             // 2. Try unlisting the locked package 
-            // Perform a sanity check that the package exists
+            // Perform a spot check that the package exists
             await _clientSdkHelper.VerifyPackageExistsInV2Async(LockedPackageId, LockedPackageVersion);
             TestOutputHelper.WriteLine($"5. Trying to unlist locked package '{LockedPackageId}', version '{LockedPackageVersion}'.");
             processResult = await _commandlineHelper.DeletePackageAsync(LockedPackageId, LockedPackageVersion, UrlHelper.V2FeedPushSourceUrl);

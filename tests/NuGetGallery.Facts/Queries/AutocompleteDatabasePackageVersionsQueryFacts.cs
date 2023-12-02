@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
 using Xunit;
@@ -32,7 +33,7 @@ namespace NuGetGallery.Queries
             }
 
             [Fact]
-            public async void OnlyReturnsVersionsOfTheSamePackage()
+            public async Task OnlyReturnsVersionsOfTheSamePackage()
             {
                 var queryResult = await _packageVersionsQuery.Execute("nuget", null, null);
 
@@ -46,7 +47,7 @@ namespace NuGetGallery.Queries
             }
 
             [Fact]
-            public async void InexistentIdShouldReturnEmptyVersionArray()
+            public async Task InexistentIdShouldReturnEmptyVersionArray()
             {
                 var queryResult = await _packageVersionsQuery.Execute("inexistent-package-id", null, null);
 
@@ -54,7 +55,7 @@ namespace NuGetGallery.Queries
             }
 
             [Fact]
-            public async void ValidPackageIdShouldReturnVersionsWhosePackageStatusIsAvailable()
+            public async Task ValidPackageIdShouldReturnVersionsWhosePackageStatusIsAvailable()
             {
                 var queryResult = await _packageVersionsQuery.Execute("nuget", null, null);
 
@@ -68,7 +69,7 @@ namespace NuGetGallery.Queries
             }
 
             [Fact]
-            public async void ValidPackageIdShouldReturnVersionsWhosePackagesAreListed()
+            public async Task ValidPackageIdShouldReturnVersionsWhosePackagesAreListed()
             {
                 var queryResult = await _packageVersionsQuery.Execute("nuget", null, null);
 
@@ -88,7 +89,7 @@ namespace NuGetGallery.Queries
             [InlineData("2.0.0-rc.1")]
             [InlineData("1.0.0")]
             [InlineData("1.0.0-beta")]
-            public async void ValidPackageIdWithSemVerLevelReturnVersionsWhosePackagesHaveSemVerLevelCompliant(string semVerLevel)
+            public async Task ValidPackageIdWithSemVerLevelReturnVersionsWhosePackagesHaveSemVerLevelCompliant(string semVerLevel)
             {
                 var queryResult = await _packageVersionsQuery.Execute("nuget", null, null, semVerLevel);
                 
@@ -104,7 +105,7 @@ namespace NuGetGallery.Queries
             [Theory]
             [InlineData(null)]
             [InlineData(false)]
-            public async void ValidPackageIdWithWithPrereleaseFalseOrNullReturnsVersionsWhosePackagePrereleaseIsFalse(bool? includePrerelease)
+            public async Task ValidPackageIdWithWithPrereleaseFalseOrNullReturnsVersionsWhosePackagePrereleaseIsFalse(bool? includePrerelease)
             {
                 var queryResult = await _packageVersionsQuery.Execute("nuget", includePrerelease, null);
 
@@ -118,7 +119,7 @@ namespace NuGetGallery.Queries
             }
 
             [Fact]
-            public async void WithPrereleaseTrueReturnsAllVersionsOfTheSamePackage()
+            public async Task WithPrereleaseTrueReturnsAllVersionsOfTheSamePackage()
             {
                 var queryResult = await _packageVersionsQuery.Execute("nuget", true, null);
 

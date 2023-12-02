@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Net;
 
 namespace NuGetGallery.FunctionalTests
 {
@@ -10,6 +11,12 @@ namespace NuGetGallery.FunctionalTests
     /// </summary>
     public class UrlHelper
     {
+        static UrlHelper()
+        {
+            // This test suite hits the gallery which requires TLS 1.2 (at least in some environments).
+            ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
+        }
+
         private const string _logonPageUrlSuffix = "users/account/LogOnNuGetAccount";
         private const string _editUrlSuffix = "packages/{0}/{1}/Edit";
         private const string _cancelUrlSuffix = "packages/manage/cancel-upload";

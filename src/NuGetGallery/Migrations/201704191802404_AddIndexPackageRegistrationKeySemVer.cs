@@ -1,8 +1,7 @@
 namespace NuGetGallery.Migrations
 {
-    using System;
     using System.Data.Entity.Migrations;
-    
+
     public partial class AddIndexPackageRegistrationKeySemVer : DbMigration
     {
         public override void Up()

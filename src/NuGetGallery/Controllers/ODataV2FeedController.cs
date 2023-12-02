@@ -18,10 +18,8 @@ using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.OData;
 using NuGetGallery.OData.QueryFilter;
 using NuGetGallery.OData.QueryInterceptors;
-using NuGetGallery.Services;
 using NuGetGallery.WebApi;
 using QueryInterceptor;
-using WebApi.OutputCache.V2;
 
 // ReSharper disable once CheckNamespace
 namespace NuGetGallery.Controllers
@@ -56,11 +54,11 @@ namespace NuGetGallery.Controllers
         // /api/v2/Packages?semVerLevel=
         [HttpGet]
         [HttpPost]
-        [CacheOutput(NoCache = true)]
         public async Task<IHttpActionResult> Get(
             ODataQueryOptions<V2FeedPackage> options,
             [FromUri]string semVerLevel = null)
         {
+            _telemetryService.TrackApiRequest("/api/v2/Packages?semVerLevel=");
             return await GetAsync(
                 options,
                 semVerLevel,
@@ -69,11 +67,11 @@ namespace NuGetGallery.Controllers
 
         // /api/v2/Packages/$count?semVerLevel=
         [HttpGet]
-        [CacheOutput(NoCache = true)]
         public async Task<IHttpActionResult> GetCount(
             ODataQueryOptions<V2FeedPackage> options,
             [FromUri] string semVerLevel = null)
         {
+            _telemetryService.TrackApiRequest("/api/v2/Packages/$count?semVerLevel=");
             return (await GetAsync(
                 options,
                 semVerLevel,
@@ -187,17 +185,13 @@ namespace NuGetGallery.Controllers
 
         // /api/v2/Packages(Id=,Version=)
         [HttpGet]
-        [ODataCacheOutput(
-            ODataCachedEndpoint.GetSpecificPackage,
-            serverTimeSpan: ODataCacheConfiguration.DefaultGetByIdAndVersionCacheTimeInSeconds,
-            Private = true,
-            ClientTimeSpan = ODataCacheConfiguration.DefaultGetByIdAndVersionCacheTimeInSeconds)]
         public async Task<IHttpActionResult> Get(
             ODataQueryOptions<V2FeedPackage> options, 
             string id, 
             string version,
             [FromUri] bool hijack = true)
         {
+            _telemetryService.TrackApiRequest("/api/v2/Packages(Id=,Version=)");
             // We are defaulting to semVerLevel = "2.0.0" by design.
             // The client is requesting a specific package version and should support what it requests.
             // If not, too bad :)
@@ -216,16 +210,12 @@ namespace NuGetGallery.Controllers
         // /api/v2/FindPackagesById()?id=&semVerLevel=
         [HttpGet]
         [HttpPost]
-        [ODataCacheOutput(
-            ODataCachedEndpoint.FindPackagesById,
-            serverTimeSpan: ODataCacheConfiguration.DefaultGetByIdAndVersionCacheTimeInSeconds,
-            Private = true,
-            ClientTimeSpan = ODataCacheConfiguration.DefaultGetByIdAndVersionCacheTimeInSeconds)]
         public async Task<IHttpActionResult> FindPackagesById(
             ODataQueryOptions<V2FeedPackage> options, 
             [FromODataUri]string id,
             [FromUri]string semVerLevel = null)
         {
+            _telemetryService.TrackApiRequest("/api/v2/FindPackagesById()?id=&semVerLevel=");
             return await FindPackagesByIdAsync(
                 options,
                 id,
@@ -235,15 +225,12 @@ namespace NuGetGallery.Controllers
 
         // /api/v2/FindPackagesById()/$count?semVerLevel=
         [HttpGet]
-        [ODataCacheOutput(
-            ODataCachedEndpoint.FindPackagesByIdCount,
-            serverTimeSpan: ODataCacheConfiguration.DefaultFindPackagesByIdCountCacheTimeInSeconds,
-            NoCache = true)]
         public async Task<IHttpActionResult> FindPackagesByIdCount(
             ODataQueryOptions<V2FeedPackage> options,
             [FromODataUri] string id,
             [FromUri] string semVerLevel = null)
         {
+            _telemetryService.TrackApiRequest("/api/v2/FindPackagesById()/$count?semVerLevel=");
             return (await FindPackagesByIdAsync(
                 options,
                 id,
@@ -413,6 +400,7 @@ namespace NuGetGallery.Controllers
         [HttpGet]
         public IHttpActionResult GetPropertyFromPackages(string propertyName, string id, string version)
         {
+            _telemetryService.TrackApiRequest("/api/v2/Packages(Id=,Version=)/propertyName");
             switch (propertyName.ToLowerInvariant())
             {
                 case "id": return Ok(id);
@@ -425,10 +413,6 @@ namespace NuGetGallery.Controllers
         // /api/v2/Search()?searchTerm=&targetFramework=&includePrerelease=
         [HttpGet]
         [HttpPost]
-        [ODataCacheOutput(
-            ODataCachedEndpoint.Search,
-            serverTimeSpan: ODataCacheConfiguration.DefaultSearchCacheTimeInSeconds,
-            ClientTimeSpan = ODataCacheConfiguration.DefaultSearchCacheTimeInSeconds)]
         public async Task<IHttpActionResult> Search(
             ODataQueryOptions<V2FeedPackage> options,
             [FromODataUri]string searchTerm = "",
@@ -436,6 +420,7 @@ namespace NuGetGallery.Controllers
             [FromODataUri]bool includePrerelease = false,
             [FromUri]string semVerLevel = null)
         {
+            _telemetryService.TrackApiRequest("/api/v2/Search()?searchTerm=&targetFramework=&includePrerelease=");
             return await SearchAsync(
                 options,
                 searchTerm,
@@ -447,10 +432,6 @@ namespace NuGetGallery.Controllers
 
         // /api/v2/Search()/$count?searchTerm=&targetFramework=&includePrerelease=&semVerLevel=
         [HttpGet]
-        [ODataCacheOutput(
-            ODataCachedEndpoint.Search,
-            serverTimeSpan: ODataCacheConfiguration.DefaultSearchCacheTimeInSeconds,
-            ClientTimeSpan = ODataCacheConfiguration.DefaultSearchCacheTimeInSeconds)]
         public async Task<IHttpActionResult> SearchCount(
             ODataQueryOptions<V2FeedPackage> options,
             [FromODataUri] string searchTerm = "",
@@ -458,6 +439,7 @@ namespace NuGetGallery.Controllers
             [FromODataUri] bool includePrerelease = false,
             [FromUri] string semVerLevel = null)
         {
+            _telemetryService.TrackApiRequest("/api/v2/Search()/$count?searchTerm=&targetFramework=&includePrerelease=&semVerLevel=");
             return (await SearchAsync(
                 options,
                 searchTerm,
@@ -589,6 +571,7 @@ namespace NuGetGallery.Controllers
             [FromODataUri]string versionConstraints = "",
             [FromUri]string semVerLevel = null)
         {
+            _telemetryService.TrackApiRequest("/api/v2/GetUpdates()?packageIds=&versions=&includePrerelease=&includeAllVersions=&targetFrameworks=&versionConstraints=&semVerLevel=");
             if (string.IsNullOrEmpty(packageIds) || string.IsNullOrEmpty(versions))
             {
                 return TrackedQueryResult(
@@ -684,6 +667,7 @@ namespace NuGetGallery.Controllers
             [FromODataUri]string versionConstraints = "",
             [FromUri]string semVerLevel = null)
         {
+            _telemetryService.TrackApiRequest("/api/v2/GetUpdates()/$count?packageIds=&versions=&includePrerelease=&includeAllVersions=&targetFrameworks=&versionConstraints=&semVerLevel=");
             return GetUpdates(
                 options, 
                 packageIds, 

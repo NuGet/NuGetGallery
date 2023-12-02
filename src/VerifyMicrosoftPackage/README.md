@@ -12,7 +12,7 @@ Today, this tool only verifies the Microsoft-specific metadata requirements of t
 case, you can use the following nuget.exe command:
 
 ```
-nuget.exe verify *.nupkg -Signatures -CertificateFingerprint "3F9001EA83C560D712C24CF213C3D312CB3BFF51EE89435D3430BD06B5D0EECE;AA12DA22A49BCE7D5C1AE64CC1F3D892F150DA76140F210ABD2CBFFCA2C18A27"
+nuget.exe verify *.nupkg -Signatures -CertificateFingerprint "3F9001EA83C560D712C24CF213C3D312CB3BFF51EE89435D3430BD06B5D0EECE;AA12DA22A49BCE7D5C1AE64CC1F3D892F150DA76140F210ABD2CBFFCA2C18A27;566A31882BE208BE4422F7CFD66ED09F5D4524A5994F50CCC8B05EC0528C1353"
 ```
 
 Other missing verifications include:
@@ -86,9 +86,14 @@ If question marks ('?') or weird characters appear below, consider using --write
     "© Microsoft Corporation. Wszelkie prawa zastrzeżone.",
     "© Microsoft Corporation. Tous droits réservés.",
     "© Microsoft Corporation。 保留所有权利。",
+    "© Microsoft Corporation. 保留所有权利.",
     "© Microsoft Corporation. Tutti i diritti riservati.",
     "© корпорация Майкрософт. Все права защищены.",
+    "© Корпорация Майкрософт (Microsoft Corporation). Все права защищены.",
     "© Microsoft Corporation。 著作權所有，並保留一切權利。"
+    "© Microsoft Corporation. 著作權所有，並保留一切權利。",
+    "© Microsoft Corporation. Reservados todos los derechos.",
+    "© Microsoft Corporation. Tutti i diritti sono riservati."
   ],
   "authors": [
     "Microsoft"

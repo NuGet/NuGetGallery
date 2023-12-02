@@ -9,11 +9,14 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 
 First install prerequisites:
 
-1. Visual Studio 2019 - Install the following [`Workloads`](https://docs.microsoft.com/visualstudio/install/modify-visual-studio):
+1. Visual Studio 2022 - Install the following [`Workloads`](https://docs.microsoft.com/visualstudio/install/modify-visual-studio) and individual components:
     * ASP.NET and web development
     * Azure development
-2. PowerShell 4.0
-3. SQL Server 2016 (with DB engine version 13.0 or greater)
+    * Just web UI functional tests: "Web performance and load testing tools" individual component
+
+Visual Studio 2019 may work but Visual Studio 2022 is recommended.
+
+The "Azure development" workload installs SQL Server Express LocalDB which is the database configured for local development.
 
 Now run the NuGet Gallery:
 
@@ -27,10 +30,28 @@ Now run the NuGet Gallery:
 Refer to [our documentation](./docs/) for information on how to develop the frontend, use AAD, and more.
 
 ## Deploy
+### Deploy to Azure
 
 You will find instructions on how to deploy the Gallery to Azure [here](https://github.com/NuGet/NuGetGallery/blob/master/docs/Deploying/README.md).
 
+### Deploy locally
+After you succeed in running the NuGet Gallery, you can create a publish profile to deploy locally (such as your local Windows computer). 
+
+The steps are:
+1. Select the `NuGetGallery` project in Solution Explore of Visual Studio. 
+2. Right click the project, and then click `Publish` in the pop-up menu. Create a publish profile and make sure the Target is set to `Folder`.
+3. Copy the contents of the `Target Location` to any folder you want. For the following example, assume the folder is `C:\ContosoSoftware\NuGetGallery`.
+4. Execute the command below to start the web app (note that the parameter `/path` of iisexpress.exe only supports absolute paths on Windows).
+    ```cmd
+    "C:\Program Files\IIS Express\iisexpress.exe" /path:C:\ContosoSoftware\NuGetGallery
+    ```
+
+Now you can access the local website with a web browser. The URL is `https://localhost`.
+
+After you deploy it, you don't need using Visual Studio to run it anymore.
+
 ## Contribute
+
 If you find a bug with the gallery, please visit the [Issue tracker](https://github.com/NuGet/NuGetGallery/issues) and 
 create an issue. If you're feeling generous, please search to see if the issue is already logged before creating a 
 new one.
@@ -62,6 +83,10 @@ http://www.apache.org/licenses/LICENSE-2.0
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the 
 specific language governing permissions and limitations under the License.
+
+## Trademarks
+
+This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft trademarks or logos is subject to and must follow Microsoft’s Trademark & Brand Guidelines. Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship. Any use of third-party trademarks or logos are subject to those third-party’s policies.
 
 ## The Git Workflow
 

@@ -32,7 +32,10 @@ namespace NuGetGallery.Auditing
                 "UpdateOrganizationMember",
                 "EnabledMultiFactorAuthentication",
                 "DisabledMultiFactorAuthentication",
-                "ExternalLoginAttempt"
+                "ExternalLoginAttempt",
+                "Lock",
+                "Unlock",
+                "ChangeUsername"
             };
 
             Verify(typeof(AuditedUserAction), expectedNames);

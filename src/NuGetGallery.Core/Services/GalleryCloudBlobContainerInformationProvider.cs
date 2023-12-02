@@ -11,10 +11,8 @@ namespace NuGetGallery
     {
         private static readonly HashSet<string> KnownPublicFolders = new HashSet<string> {
             CoreConstants.Folders.PackagesFolderName,
-            CoreConstants.Folders.PackageBackupsFolderName,
             CoreConstants.Folders.DownloadsFolderName,
             CoreConstants.Folders.SymbolPackagesFolderName,
-            CoreConstants.Folders.SymbolPackageBackupsFolderName,
             CoreConstants.Folders.FlatContainerFolderName,
         };
 
@@ -27,6 +25,8 @@ namespace NuGetGallery
             CoreConstants.Folders.RevalidationFolderName,
             CoreConstants.Folders.StatusFolderName,
             CoreConstants.Folders.PackagesContentFolderName,
+            CoreConstants.Folders.PackageBackupsFolderName,
+            CoreConstants.Folders.SymbolPackageBackupsFolderName,
         };
 
         public string GetCacheControl(string folderName)

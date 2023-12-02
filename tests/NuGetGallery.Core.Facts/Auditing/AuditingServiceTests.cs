@@ -157,7 +157,7 @@ namespace NuGetGallery.Auditing
                 Assert.Equal(package.Created.ToUniversalTime(), packageRecord["Created"].Value<DateTime>());
                 Assert.Equal("b", packageRecord["Description"].Value<string>());
                 Assert.Equal("q", packageRecord["ReleaseNotes"].Value<string>());
-                Assert.Equal(1, packageRecord["DownloadCount"].Value<int>());
+                Assert.Equal(1, packageRecord["DownloadCount"].Value<long>());
                 Assert.Equal(JTokenType.Null, packageRecord["ExternalPackageUrl"].Type);
                 Assert.Equal("g", packageRecord["HashAlgorithm"].Value<string>());
                 Assert.Equal("f", packageRecord["Hash"].Value<string>());
@@ -194,7 +194,7 @@ namespace NuGetGallery.Auditing
                 var registrationRecord = record["RegistrationRecord"];
 
                 Assert.Equal("o", registrationRecord["Id"].Value<string>());
-                Assert.Equal(0, registrationRecord["DownloadCount"].Value<int>());
+                Assert.Equal(0, registrationRecord["DownloadCount"].Value<long>());
                 Assert.Equal(0, registrationRecord["Key"].Value<int>());
 
                 Assert.Equal("v", record["Reason"].Value<string>());
@@ -234,7 +234,7 @@ namespace NuGetGallery.Auditing
                 var registrationRecord = record["RegistrationRecord"];
 
                 Assert.Equal("a", registrationRecord["Id"].Value<string>());
-                Assert.Equal(1, registrationRecord["DownloadCount"].Value<int>());
+                Assert.Equal(1, registrationRecord["DownloadCount"].Value<long>());
                 Assert.Equal(2, registrationRecord["Key"].Value<int>());
 
                 Assert.Equal("b", record["Owner"].Value<string>());

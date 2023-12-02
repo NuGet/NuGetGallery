@@ -32,6 +32,7 @@ using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;
+using NuGetGallery.Frameworks;
 using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Mail.Messages;
@@ -87,7 +88,8 @@ namespace NuGetGallery
             Mock<IPackageRenameService> renameService = null,
             Mock<IABTestService> abTestService = null,
             Mock<IIconUrlProvider> iconUrlProvider = null,
-            Mock<IMarkdownService> markdownService = null)
+            Mock<IMarkdownService> markdownService = null,
+            Mock<IPackageFrameworkCompatibilityFactory> compatibilityFactory = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             PackageDependents packageDependents = new PackageDependents();
@@ -236,12 +238,6 @@ namespace NuGetGallery
             {
                 featureFlagService = new Mock<IFeatureFlagService>();
                 featureFlagService.SetReturnsDefault<bool>(true);
-                featureFlagService
-                    .Setup(x => x.IsDisplayPackagePageV2Enabled(It.IsAny<User>()))
-                    .Returns(false);
-                featureFlagService
-                    .Setup(x => x.IsDisplayPackagePageV2PreviewEnabled(It.IsAny<User>()))
-                    .Returns(false);
             }
 
             renameService = renameService ?? new Mock<IPackageRenameService>();
@@ -259,6 +255,14 @@ namespace NuGetGallery
                 vulnerabilitiesService
                     .Setup(x => x.GetVulnerabilitiesById(It.IsAny<string>()))
                     .Returns(new Dictionary<int, IReadOnlyList<PackageVulnerability>>());
+            }
+
+            if(compatibilityFactory == null)
+            {
+                compatibilityFactory = new Mock<IPackageFrameworkCompatibilityFactory>();
+                compatibilityFactory
+                    .Setup(x => x.Create(It.IsAny<ICollection<PackageFramework>>()))
+                    .Returns(new PackageFrameworkCompatibility());
             }
 
             iconUrlProvider = iconUrlProvider ?? new Mock<IIconUrlProvider>();
@@ -301,7 +305,8 @@ namespace NuGetGallery
                 renameService.Object,
                 abTestService.Object,
                 iconUrlProvider.Object,
-                markdownService.Object);
+                markdownService.Object,
+                compatibilityFactory.Object);
 
             controller.CallBase = true;
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());
@@ -513,7 +518,7 @@ namespace NuGetGallery
                 var result = await controller.DisplayPackage(package.Id, package.Version);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal(id, model.Id);
                 searchService.Verify(x => x.RawSearch(It.IsAny<SearchFilter>()), Times.Exactly(searchTimes));
             }
@@ -848,7 +853,7 @@ namespace NuGetGallery
                 var result = await controller.DisplayPackage(id, normalizedVersion);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal("Foo", model.Id);
                 Assert.Equal("1.1.1", model.Version);
             }
@@ -915,7 +920,7 @@ namespace NuGetGallery
                 var result = await controller.DisplayPackage("Foo", LatestPackageRouteVerifier.SupportedRoutes.AbsoluteLatestUrlString);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
 
                 Assert.Equal(id, model.Id);
                 // The page should select the first package that is IsLatestSemVer2
@@ -964,7 +969,7 @@ namespace NuGetGallery
                 var result = await controller.DisplayPackage("Foo", LatestPackageRouteVerifier.SupportedRoutes.AbsoluteLatestUrlString);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
 
                 Assert.Equal(id, model.Id);
                 Assert.Equal(notLatestPackage.NormalizedVersion, model.Version);
@@ -1010,7 +1015,7 @@ namespace NuGetGallery
                 var result = await controller.DisplayPackage("Foo", null);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal("Foo", model.Id);
                 Assert.Equal("1.1.1", model.Version);
                 Assert.Null(model.ReadMeHtml);
@@ -1026,7 +1031,7 @@ namespace NuGetGallery
                 var result = await GetResultWithReadMe(readMeMd, true);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal("<h2>Hello World!</h2>", model.ReadMeHtml);
             }
 
@@ -1040,7 +1045,7 @@ namespace NuGetGallery
                 var result = await GetResultWithReadMe(readMeMd, true);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
 
                 var htmlCount = model.ReadMeHtml.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Length;
                 Assert.Equal(20, htmlCount);
@@ -1053,7 +1058,7 @@ namespace NuGetGallery
                 var result = await GetResultWithReadMe(null, true);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Null(model.ReadMeHtml);
             }
 
@@ -1064,7 +1069,7 @@ namespace NuGetGallery
                 var result = await GetResultWithReadMe(null, false);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Null(model.ReadMeHtml);
             }
 
@@ -1165,83 +1170,8 @@ namespace NuGetGallery
                 var result = await controller.DisplayPackage("Foo", version: null);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal(model.PackageValidationIssues, expectedIssues);
-            }
-
-            [Theory]
-            [InlineData(false, false, null, "DisplayPackage", false, false)]
-            [InlineData(false, false, "1", "DisplayPackage", false, false)]
-            [InlineData(false, true, null, "DisplayPackage", true, false)]
-            [InlineData(false, true, "1", "DisplayPackageV2", false, true)]
-            [InlineData(true, false, null, "DisplayPackageV2", false, false)]
-            [InlineData(true, false, "1", "DisplayPackageV2", false, false)]
-            [InlineData(true, true, null, "DisplayPackageV2", false, true)]
-            [InlineData(true, true, "1", "DisplayPackageV2", false, true)]
-            public async Task DisplayPackageV2(
-                bool enableV2,
-                bool enablePreview,
-                string previewParam,
-                string expectedViewName,
-                bool expectPreviewBanner,
-                bool expectSurveyBanner)
-            {
-                // Arrange
-                var packageService = new Mock<IPackageService>();
-                var indexingService = new Mock<IIndexingService>();
-                var fileService = new Mock<IPackageFileService>();
-                var featureFlag = new Mock<IFeatureFlagService>();
-
-                var controller = CreateController(
-                    GetConfigurationService(),
-                    packageService: packageService,
-                    indexingService: indexingService,
-                    packageFileService: fileService,
-                    featureFlagService: featureFlag);
-                controller.SetCurrentUser(TestUtility.FakeUser);
-
-                var package = new Package()
-                {
-                    PackageRegistration = new PackageRegistration()
-                    {
-                        Id = "Foo",
-                        Owners = new List<User>()
-                    },
-                    Version = "01.1.01",
-                    NormalizedVersion = "1.1.1",
-                    Title = "A test package!",
-                };
-
-                var packages = new[] { package };
-                packageService
-                    .Setup(p => p.FindPackagesById("Foo", /*includePackageRegistration:*/ true))
-                    .Returns(packages);
-
-                packageService
-                    .Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
-                    .Returns(package);
-
-                indexingService
-                    .Setup(i => i.GetLastWriteTime())
-                    .Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
-
-                featureFlag
-                    .Setup(x => x.IsDisplayPackagePageV2Enabled(It.IsAny<User>()))
-                    .Returns(enableV2);
-                featureFlag
-                    .Setup(x => x.IsDisplayPackagePageV2PreviewEnabled(It.IsAny<User>()))
-                    .Returns(enablePreview);
-
-                // Act
-                var result = await controller.DisplayPackage("Foo", version: null, preview: previewParam);
-
-                // Assert
-                ResultAssert.IsView<DisplayPackageViewModel>(result, expectedViewName);
-
-                var view = (ViewResult)result;
-
-                Assert.Equal(expectPreviewBanner, view.ViewBag.ShowRedesignPreviewBanner);
-                Assert.Equal(expectSurveyBanner, view.ViewBag.ShowRedesignSurveyBanner);
             }
 
             [Theory]
@@ -1293,7 +1223,7 @@ namespace NuGetGallery
                 var result = await controller.DisplayPackage(id, version: null);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal(isAtomFeedEnabled, model.IsAtomFeedEnabled);
             }
 
@@ -1346,7 +1276,7 @@ namespace NuGetGallery
                 var result = await controller.DisplayPackage(id, version: null);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal(isDeprecationEnabled, model.IsPackageDeprecationEnabled);
 
                 if (isDeprecationEnabled)
@@ -1405,7 +1335,7 @@ namespace NuGetGallery
                 var result = await controller.DisplayPackage(id, version: null);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal(isDeprecationEnabled, model.IsPackageDeprecationEnabled);
 
                 if (isDeprecationEnabled)
@@ -1480,7 +1410,7 @@ namespace NuGetGallery
                 var result = await controller.DisplayPackage(id, version: null);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
 
                 Assert.Equal("Hello", model.CustomMessage);
 
@@ -1491,10 +1421,10 @@ namespace NuGetGallery
             [InlineData(PackageDeprecationStatus.NotDeprecated, PackageDeprecationStatus.NotDeprecated, "")]
             [InlineData(PackageDeprecationStatus.CriticalBugs, PackageDeprecationStatus.NotDeprecated, 
                 "{0} is deprecated because it has critical bugs.")]
-            [InlineData(PackageDeprecationStatus.Legacy, PackageDeprecationStatus.NotDeprecated, 
-                "{0} is deprecated because it's legacy and no longer maintained.")]
+            [InlineData(PackageDeprecationStatus.Legacy, PackageDeprecationStatus.NotDeprecated,
+                "{0} is deprecated because it is no longer maintained.")]
             [InlineData(PackageDeprecationStatus.Legacy, PackageDeprecationStatus.CriticalBugs, 
-                "{0} is deprecated because it's legacy and has critical bugs.")]
+                "{0} is deprecated because it is no longer maintained and has critical bugs.")]
             [InlineData(PackageDeprecationStatus.Other, PackageDeprecationStatus.NotDeprecated, "{0} is deprecated.")]
             public async Task ShowsCorrectDeprecationIconTitle(
                 PackageDeprecationStatus deprecationStatus,
@@ -1576,7 +1506,7 @@ namespace NuGetGallery
                 var result = await controller.DisplayPackage(id, version: null);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal(string.Format(expectedIconTitle, version), model.PackageWarningIconTitle);
 
                 deprecationService.Verify();
@@ -1584,9 +1514,9 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData(false, false, "")]
-            [InlineData(true, false, "{0} is deprecated because it's legacy and no longer maintained.")]
+            [InlineData(true, false, "{0} is deprecated because it is no longer maintained.")]
             [InlineData(false, true, "{0} has at least one vulnerability with {1} severity.")]
-            [InlineData(true, true, "{0} is deprecated because it's legacy and no longer maintained; {0} has at least one vulnerability with {1} severity.")]
+            [InlineData(true, true, "{0} is deprecated because it is no longer maintained; {0} has at least one vulnerability with {1} severity.")]
             public async Task ShowsCombinedDeprecationAndVulnerabilitiesIconTitle(
                 bool isDeprecationEnabled,
                 bool isVulnerabilitiesEnabled,
@@ -1690,7 +1620,7 @@ namespace NuGetGallery
                 var result = await controller.DisplayPackage(id, version: null);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal(isDeprecationEnabled, model.IsPackageDeprecationEnabled);
                 Assert.Equal(isVulnerabilitiesEnabled, model.IsPackageVulnerabilitiesEnabled);
                 Assert.Equal(string.Format(expectedIconTitle, version, "moderate"), model.PackageWarningIconTitle);
@@ -1765,7 +1695,7 @@ namespace NuGetGallery
                 var result = await controller.DisplayPackage(id, version: null);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal(isRenamesEnabledForThisUser, model.IsPackageRenamesEnabled);
                 if (isRenamesEnabledForThisUser)
                 {
@@ -1830,7 +1760,7 @@ namespace NuGetGallery
                 splitterMock
                     .Verify(les => les.SplitExpression(It.IsAny<string>()), Times.Once);
 
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Same(segments, model.LicenseExpressionSegments);
             }
 
@@ -1879,7 +1809,7 @@ namespace NuGetGallery
                     .Verifiable();
 
                 var result = await controller.DisplayPackage(id, version: null);
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 iconUrlProvider
                     .Verify(iup => iup.GetIconUrlString(package), Times.AtLeastOnce);
                 Assert.Equal(iconUrl, model.IconUrl);
@@ -1921,7 +1851,7 @@ namespace NuGetGallery
                     .Returns(package);
 
                 var result = await controller.DisplayPackage(id, version: null);
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
 
                 Assert.Null(model.PackageDependents);
                 packageService
@@ -1970,7 +1900,7 @@ namespace NuGetGallery
                     .Returns(package);
 
                 var result = await controller.DisplayPackage(id, version: null);
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
 
                 Assert.Null(model.PackageDependents);
                 packageService
@@ -2024,7 +1954,7 @@ namespace NuGetGallery
                     .Returns(package);
 
                 var result = await controller.DisplayPackage(id, version: null);
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
 
                 Assert.Same(pd, model.PackageDependents);
                 packageService
@@ -2086,7 +2016,7 @@ namespace NuGetGallery
                     .Returns(gitHubInformation);
 
                 var result = await controller.DisplayPackage(id, version: null);
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
 
                 packageService
                     .Verify(iup => iup.GetPackageDependents(It.IsAny<string>()), Times.Once());
@@ -2150,9 +2080,9 @@ namespace NuGetGallery
                     .Returns(gitHubInformation);
 
                 var result1 = await controller.DisplayPackage(id1, version: null);
-                var model1 = ResultAssert.IsView<DisplayPackageViewModel>(result1, "DisplayPackage");
+                var model1 = ResultAssert.IsView<DisplayPackageViewModel>(result1);
                 var result2 = await controller.DisplayPackage(id2, version: null);
-                var model2 = ResultAssert.IsView<DisplayPackageViewModel>(result2, "DisplayPackage");
+                var model2 = ResultAssert.IsView<DisplayPackageViewModel>(result2);
 
                 Assert.Same(pd, model1.PackageDependents);
                 Assert.Same(pd, model2.PackageDependents);
@@ -2223,6 +2153,127 @@ namespace NuGetGallery
                 Assert.Empty(_cache);
                 packageService
                     .Verify(iup => iup.GetPackageDependents(It.IsAny<string>()), Times.Once());
+            }
+
+            [Fact]
+            public async Task IfDisplayAndComputeFrameworkFlagsAreFalseShouldNotCompute()
+            {
+                var featureFlagService = new Mock<IFeatureFlagService>();
+                var packageService = new Mock<IPackageService>();
+                var compatibilityFactory = new Mock<IPackageFrameworkCompatibilityFactory>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    featureFlagService: featureFlagService,
+                    compatibilityFactory: compatibilityFactory);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var id = "Foo";
+                var packageFramework = new PackageFramework { TargetFramework = "net5.0" };
+                var supportedFrameworks = new HashSet<PackageFramework> { packageFramework };
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = id,
+                        Owners = new List<User>()
+                    },
+                    SupportedFrameworks = supportedFrameworks,
+                    Version = "1.1.1",
+                    NormalizedVersion = "1.1.1",
+                    Title = "A test package!"
+                };
+
+                var packages = new[] { package };
+                packageService
+                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Returns(packages);
+
+                packageService
+                    .Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
+                    .Returns(package);
+
+                featureFlagService
+                    .Setup(x => x.IsComputeTargetFrameworkEnabled())
+                    .Returns(false);
+
+                featureFlagService
+                    .Setup(x => x.IsDisplayTargetFrameworkEnabled(TestUtility.FakeUser))
+                    .Returns(false);
+
+                compatibilityFactory
+                    .Setup(x => x.Create(supportedFrameworks))
+                    .Returns(new PackageFrameworkCompatibility());
+
+                // Arrange and Act
+                var result = await controller.DisplayPackage(id, version: null);
+
+                // Assert
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                compatibilityFactory.Verify(x => x.Create(It.IsAny<ICollection<PackageFramework>>()), Times.Never());
+                Assert.Null(model.PackageFrameworkCompatibility);
+            }
+
+            [Theory]
+            [InlineData(true, false)]
+            [InlineData(false, true)]
+            [InlineData(true, true)]
+            public async Task IfAtLeastOneDisplayOrComputeFrameworkFlagsAreTrueShouldCompute(bool computeFlag, bool displayFlag)
+            {
+                var featureFlagService = new Mock<IFeatureFlagService>();
+                var packageService = new Mock<IPackageService>();
+                var compatibilityFactory = new Mock<IPackageFrameworkCompatibilityFactory>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    featureFlagService: featureFlagService,
+                    compatibilityFactory: compatibilityFactory);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var id = "Foo";
+                var packageFramework = new PackageFramework { TargetFramework = "net5.0" };
+                var supportedFrameworks = new HashSet<PackageFramework> { packageFramework };
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = id,
+                        Owners = new List<User>()
+                    },
+                    SupportedFrameworks = supportedFrameworks,
+                    Version = "1.1.1",
+                    NormalizedVersion = "1.1.1",
+                    Title = "A test package!"
+                };
+
+                var packages = new[] { package };
+                packageService
+                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Returns(packages);
+
+                packageService
+                    .Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
+                    .Returns(package);
+
+                featureFlagService
+                    .Setup(x => x.IsComputeTargetFrameworkEnabled())
+                    .Returns(computeFlag);
+
+                featureFlagService
+                    .Setup(x => x.IsDisplayTargetFrameworkEnabled(TestUtility.FakeUser))
+                    .Returns(displayFlag);
+
+                compatibilityFactory
+                    .Setup(x => x.Create(supportedFrameworks))
+                    .Returns(new PackageFrameworkCompatibility());
+
+                // Arrange and Act
+                var result = await controller.DisplayPackage(id, version: null);
+
+                // Assert
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                compatibilityFactory.Verify(x => x.Create(supportedFrameworks), Times.Once());
+                Assert.NotNull(model.PackageFrameworkCompatibility);
             }
 
             protected override void Dispose(bool disposing)
@@ -4368,6 +4419,40 @@ namespace NuGetGallery
             [Theory]
             [InlineData(false)]
             [InlineData(true)]
+            public async Task ReturnsErrorIfUserIsLocked(bool listed)
+            {
+                // Arrange
+                var owner = new User { UserStatusKey = UserStatus.Locked };
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "Foo" },
+                    Version = "1.0",
+                    Listed = !listed,
+                };
+                package.PackageRegistration.Owners.Add(owner);
+
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService.Setup(svc => svc.FindPackageByIdAndVersionStrict("Foo", "1.0"))
+                    .Returns(package);
+                // Note: this Mock must be strict because it guarantees that MarkPackageListedAsync is not called!
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+                controller.SetCurrentUser(owner);
+                TestUtility.SetupUrlHelperForUrlGeneration(controller);
+
+                // Act
+                var result = await controller.UpdateListed("Foo", "1.0", listed);
+
+                // Assert
+                Assert.IsType<RedirectResult>(result);
+                Assert.Equal(ServicesStrings.UserAccountIsLocked, controller.TempData["ErrorMessage"]);
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
             public async Task Returns404IfDeleted(bool listed)
             {
                 // Arrange
@@ -4394,7 +4479,7 @@ namespace NuGetGallery
                 {
                     yield return new object[]
                     {
-                        null,
+                        new User { Key = 5535 },
                         TestUtility.FakeUser
                     };
 
@@ -4550,7 +4635,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WhenPackageRegistrationIsLockedReturns403()
+            public async Task WhenPackageRegistrationIsLockedReturns400()
             {
                 // Arrange
                 var package = new Package
@@ -4578,7 +4663,7 @@ namespace NuGetGallery
                 var result = await controller.UpdateListed("Foo", "1.0", true);
 
                 // Assert
-                ResultAssert.IsStatusCode(result, HttpStatusCode.Forbidden);
+                ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest);
             }
         }
 
@@ -4620,7 +4705,7 @@ namespace NuGetGallery
                 {
                     yield return new object[]
                     {
-                        null,
+                        new User { Key = 5535 },
                         TestUtility.FakeUser
                     };
 
@@ -5302,11 +5387,239 @@ namespace NuGetGallery
                 }
             }
 
+            public static IEnumerable<object[]> Credential_Data
+            {
+                get
+                {
+                    // Format:
+                    // 1. bool - true -> expecting to see safety categories
+                    // 2. First array is direct credentials (owners)
+                    // 3. Second array is an array of indirect credentials through owner organization members (first array contains credentials of the org itself)
+
+                    yield return new object[]
+                    {
+                        true, // no owners, we still want to enable safety reporting
+                        null,
+                        null
+                    };
+
+                    yield return new object[]
+                    {
+                        true,
+                        new object[]
+                        { // owners
+                            new object[] { "external.MicrosoftAccount" }
+                        },
+                        null
+                    };
+
+                    yield return new object[]
+                    {
+                        false,
+                        new object[]
+                        { // owners
+                            new object[] { "external.AzureActiveDirectory" }
+                        },
+                        null
+                    };
+
+                    yield return new object[]
+                    {
+                        false,
+                        new object[]
+                        { // owners
+                            new object[] { "external.AzureActiveDirectory" },
+                            new object[] { "external.MicrosoftAccount", "apikey.v1" }
+                        },
+                        null
+                    };
+
+                    yield return new object[]
+                    {
+                        false,
+                        new object[]
+                        { // owners
+                            new object[] { "external.AzureActiveDirectory", "external.MicrosoftAccount" }
+                        },
+                        null
+                    };
+
+                    yield return new object[]
+                    {
+                        false,
+                        new object[]
+                        { // owners
+                            new object[] { "external.MicrosoftAccount" },
+                            new object[] { "external.AzureActiveDirectory", "apikey.v4" },
+                            new object[] { "external.MicrosoftAccount", "apikey.v4" }
+                        },
+                        null
+                    };
+
+                    yield return new object[]
+                    {
+                        true,
+                        new object[]
+                        { // owners
+                            new object [] { "external.MicrosoftAccount" }
+                        },
+                        new object[]
+                        { // owner orgs
+                            new object[]
+                            { // members
+                                new object[] { "external.MicrosoftAccount" }, // org credentials
+                                new object [] { "external.MicrosoftAccount" }
+                            }
+                        },
+                    };
+
+                    yield return new object[]
+                    {
+                        true,
+                        null,
+                        new object[]
+                        { // owner orgs
+                            new object[]
+                            { // members
+                                new object[] { "external.MicrosoftAccount", "apikey.v4" }, // org credentials
+                                new object[] { "external.MicrosoftAccount" },
+                                new object[] { "external.MicrosoftAccount" },
+                                new object[] { "external.MicrosoftAccount" }
+                            },
+                            new object[]
+                            { // members
+                                new object[] { "external.MicrosoftAccount" }, // org credentials
+                                new object[] { "external.MicrosoftAccount", "apikey.v4", "apikey.v4" }
+                            }
+                        },
+                    };
+
+                    yield return new object[]
+                    {
+                        false,
+                        null,
+                        new object[]
+                        { // owner orgs
+                            new object[]
+                            { // members
+                                new object[] { "external.MicrosoftAccount", "apikey.v4" }, // org credentials
+                                new object[] { "external.MicrosoftAccount" }
+                            },
+                            new object[]
+                            { // members
+                                new object[] { "external.MicrosoftAccount" }, // org credentials
+                                new object[] {  "external.MicrosoftAccount", "apikey.v4", "apikey.v4" }
+                            },
+                            new object[]
+                            { // members
+                                new object[] { "external.MicrosoftAccount", "apikey.v4" }, // org credentials
+                                new object[] { "external.MicrosoftAccount", "apikey.v4" },
+                                new object[] { "external.MicrosoftAccount", "apikey.v4" },
+                                new object[] { "external.AzureActiveDirectory" }
+                            }
+                        },
+                    };
+
+                    yield return new object[]
+                    {
+                        true,
+                        new object[]
+                        { // owners
+                            new object[] {"external.MicrosoftAccount", "apikey.v4" }
+                        },
+                        new object[]
+                        { // owner orgs
+                            new object[]
+                            { // members
+                                new object[] { "external.MicrosoftAccount" }, // org credentials
+                                new object[] { "external.MicrosoftAccount" }
+                            },
+                            new object[]
+                            { // members
+                                new object[] { "external.MicrosoftAccount", "apikey.v4" }, // org credentials
+                                new object[] { "external.MicrosoftAccount" },
+                                new object[] { "apikey.v4", "external.MicrosoftAccount", "apikey.v4" }
+                            }
+                        },
+                    };
+
+                    yield return new object[]
+                    {
+                        false,
+                        new object[]
+                        { // owners
+                            new object[] {"external.MicrosoftAccount", "apikey.v4" }
+                        },
+                        new object[]
+                        { // owner orgs
+                            new object[]
+                            { // members
+                                new object[] { "apikey.v1", "external.MicrosoftAccount" }, // org credentials
+                                new object[] { "external.MicrosoftAccount" }
+                            },
+                            new object[]
+                            { // members
+                                new object[] { "external.MicrosoftAccount" }, // org credentials
+                                new object[] { "external.MicrosoftAccount", "apikey.v4" },
+                                new object[] { "external.AzureActiveDirectory", "apikey.v4" }
+                            }
+                        },
+                    };
+
+                    yield return new object[]
+                    {
+                        false,
+                        new object[]
+                        { // owners
+                            new object[] {"external.MicrosoftAccount", "apikey.v4" }
+                        },
+                        new object[]
+                        { // owner orgs
+                            new object[]
+                            { // members
+                                new object[] { "external.MicrosoftAccount" }, // org credentials
+                                new object[] { "external.MicrosoftAccount" }
+                            },
+                            new object[]
+                            { // members
+                                new object[] { "external.AzureActiveDirectory", "apikey.v4" }, // org credentials
+                                new object[] { "external.MicrosoftAccount", "apikey.v4" },
+                                new object[] { "external.MicrosoftAccount", "apikey.v4" }
+                            }
+                        },
+                    };
+
+                    yield return new object[]
+                    {
+                        false,
+                        new object[]
+                        { // owners
+                            new object[] {"external.MicrosoftAccount", "apikey.v4" }
+                        },
+                        new object[]
+                        { // owner orgs
+                            new object[]
+                            { // members
+                                new object[] { "external.MicrosoftAccount" }, // org credentials
+                                new object[] { "external.MicrosoftAccount" }
+                            },
+                            new object[] { }, // allow for corner case where an org has no members
+                            new object[]
+                            { // members
+                                new object[] { "external.MicrosoftAccount" }, // org credentials
+                                new object[] { "external.MicrosoftAccount", "apikey.v4" },
+                                new object[] { "external.AzureActiveDirectory", "apikey.v4" }
+                            }
+                        },
+                    };
+                }
+            }
+
             [Theory]
             [MemberData(nameof(NotOwner_Data))]
             public void ShowsFormWhenNotOwner(User currentUser, User owner)
             {
-                var result = GetReportAbuseResult(currentUser, owner, out var package);
+                var result = GetReportAbuseResult(currentUser, owner);
 
                 Assert.IsType<ViewResult>(result);
                 var viewResult = result as ViewResult;
@@ -5316,32 +5629,158 @@ namespace NuGetGallery
 
                 Assert.Equal(PackageId, model.PackageId);
                 Assert.Equal(PackageVersion, model.PackageVersion);
+                Assert.True(model.ShowReportAbuseForm);
+            }
+
+            [Theory]
+            [MemberData(nameof(NotOwner_Data))]
+            public void HidesFormForCertainPackages(User currentUser, User owner)
+            {
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = PackageId, Owners = { owner }, IsLocked = true },
+                    Version = PackageVersion,
+                    Listed = false,
+                    User = new User()
+                    {
+                        UserStatusKey = UserStatus.Locked
+                    }
+                };
+
+                var result = GetReportAbuseResult(currentUser, package);
+                Assert.IsType<ViewResult>(result);
+                var viewResult = result as ViewResult;
+
+                Assert.IsType<ReportAbuseViewModel>(viewResult.Model);
+                var model = viewResult.Model as ReportAbuseViewModel;
+
+                Assert.Equal(PackageId, model.PackageId);
+                Assert.Equal(PackageVersion, model.PackageVersion);
+                Assert.False(model.ShowReportAbuseForm);
             }
 
             [Theory]
             [MemberData(nameof(Owner_Data))]
             public void RedirectsToReportMyPackageWhenOwner(User currentUser, User owner)
             {
-                var result = GetReportAbuseResult(currentUser, owner, out var package);
+                var result = GetReportAbuseResult(currentUser, owner);
 
                 Assert.IsType<RedirectToRouteResult>(result);
                 var redirectResult = result as RedirectToRouteResult;
                 Assert.Equal("ReportMyPackage", redirectResult.RouteValues["Action"]);
             }
 
-            public ActionResult GetReportAbuseResult(User currentUser, User owner, out Package package)
+            [Theory]
+            [MemberData(nameof(Credential_Data))]
+            public void IncludesSafetyCategoriesWhenNotAadPresent(bool expectingSafetyCategories, object[] directOwnerCredentials, object[] indirectOwnerCredentials) 
             {
-                package = new Package
+                // Arrange
+                List<User> owners = new List<User>();
+
+                // -- Direct owners
+                if (directOwnerCredentials != null)
+                {
+                    foreach(var ownerCredentialTypes in directOwnerCredentials)
+                    {
+                        owners.Add(new User
+                        {
+                            Credentials = ((object[])ownerCredentialTypes).Select(ct => new Credential { Type = (string)ct }).ToList()
+                        });
+                    }
+                }
+
+                // -- Organization owners
+                if (indirectOwnerCredentials != null)
+                {
+                    foreach (var ownerMembers in indirectOwnerCredentials)
+                    {
+                        var organization = new Organization
+                        {
+                            Members = new List<Membership>()
+                        };
+
+                        var orgCredentialsDone = false;
+                        foreach(var memberCredentialTypes in (object[])ownerMembers)
+                        {
+                            // the first array in an organization object contains the credentials of the org itself
+                            if (!orgCredentialsDone)
+                            {
+                                organization.Credentials = ((object[])memberCredentialTypes).Select(ct => new Credential { Type = (string)ct }).ToList();
+                                orgCredentialsDone = true;
+                            }
+                            else
+                            {
+                                var membership = new Membership
+                                {
+                                    Organization = organization
+                                };
+
+                                var member = new User
+                                {
+                                    Credentials = ((object[])memberCredentialTypes).Select(ct => new Credential { Type = (string)ct }).ToList(),
+                                    Organizations = new List<Membership> { membership }
+                                };
+
+                                membership.Member = member;
+                                organization.Members.Add(membership);
+                            }
+                        }
+
+                        owners.Add(organization);
+                    }
+                }
+
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = PackageId, Owners = owners },
+                    Version = PackageVersion
+                };
+
+                var featureFlagService = new Mock<IFeatureFlagService>();
+                featureFlagService.Setup(ff => ff.IsShowReportAbuseSafetyChangesEnabled()).Returns(true);
+                featureFlagService.Setup(ff => ff.IsAllowAadContentSafetyReportsEnabled()).Returns(false);
+
+                // Act
+                var result = GetReportAbuseResult(null, package, featureFlagService);
+
+                // Assert
+                Assert.IsType<ViewResult>(result);
+                var viewResult = result as ViewResult;
+
+                Assert.IsType<ReportAbuseViewModel>(viewResult.Model);
+                var model = viewResult.Model as ReportAbuseViewModel;
+
+                Assert.Equal(expectingSafetyCategories, model.ReasonChoices.Contains(ReportPackageReason.ChildSexualExploitationOrAbuse));
+                Assert.Equal(expectingSafetyCategories, model.ReasonChoices.Contains(ReportPackageReason.TerrorismOrViolentExtremism));
+                Assert.Equal(expectingSafetyCategories, model.ReasonChoices.Contains(ReportPackageReason.ImminentHarm));
+                Assert.Equal(expectingSafetyCategories, model.ReasonChoices.Contains(ReportPackageReason.HateSpeech));
+                Assert.Equal(expectingSafetyCategories, model.ReasonChoices.Contains(ReportPackageReason.RevengePorn));
+                Assert.Equal(expectingSafetyCategories, model.ReasonChoices.Contains(ReportPackageReason.OtherNudityOrPornography));
+            }
+
+            private ActionResult GetReportAbuseResult(User currentUser, User owner)
+            {
+                var package = new Package
                 {
                     PackageRegistration = new PackageRegistration { Id = PackageId, Owners = { owner } },
                     Version = PackageVersion
                 };
+
+                return GetReportAbuseResult(currentUser, package);
+            }
+
+            private ActionResult GetReportAbuseResult(User currentUser, Package package) =>
+                GetReportAbuseResult(currentUser, package, featureFlagService: null);
+
+            private ActionResult GetReportAbuseResult(User currentUser, Package package, Mock<IFeatureFlagService> featureFlagService)
+            {
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(p => p.FindPackageByIdAndVersionStrict(PackageId, PackageVersion)).Returns(package);
                 var httpContext = new Mock<HttpContextBase>();
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
+                    featureFlagService: featureFlagService,
                     httpContext: httpContext);
                 controller.SetCurrentUser(currentUser);
                 TestUtility.SetupUrlHelper(controller, httpContext);
@@ -6053,6 +6492,16 @@ namespace NuGetGallery
                     x => x.SendMessageAsync(It.IsAny<ReportMyPackageMessage>(), false, false),
                     Times.Once);
             }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources
+                    _controller?.Dispose();
+                    base.Dispose(disposing);
+                }
+            }
         }
 
         public class TheUploadFileActionForGetRequests
@@ -6223,6 +6672,23 @@ namespace NuGetGallery
 
                 Assert.NotNull(result);
                 Assert.False(result.IsSymbolsUploadEnabled);
+            }
+
+            [Fact]
+            public async Task WillConsiderUserLockedStatus()
+            {
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(null));
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    uploadFileService: fakeUploadFileService);
+                var user = new User { UserStatusKey = UserStatus.Locked };
+                controller.SetCurrentUser(user);
+
+                var result = (await controller.UploadPackage() as ViewResult).Model as SubmitPackageRequest;
+
+                Assert.NotNull(result);
+                Assert.True(result.IsUserLocked);
             }
 
             [Fact]
@@ -7495,6 +7961,7 @@ namespace NuGetGallery
 
                     // Assert
                     fakeTelemetryService.Verify(x => x.TrackPackagePushFailureEvent(PackageId, new NuGetVersion(PackageVersion)), Times.Once());
+                    fakeTelemetryService.Verify(x => x.TrackPackagePushFailureEvent(null, null), Times.Never());
                 }
             }
 
@@ -8465,6 +8932,54 @@ namespace NuGetGallery
                 }
             }
 
+            /// <remarks>
+            /// There is a race condition between API and Web UI uploads where we can end up
+            /// in a situation where user may have "verify package page" open in their browser
+            /// pushes the same package with command line client, then clicks "Verify" in
+            /// the browser. Browser will report failure (as package already exists). That
+            /// failure must not be counted as "package push failure".
+            /// </remarks>
+            [Fact]
+            public async Task DoesNotReportPackagePushFailureOnDuplicatePackage()
+            {
+                // Arrange
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                using (var fakeFileStream = new MemoryStream())
+                {
+                    fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeFileStream));
+                    fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult(0));
+                    var fakePackageUploadService = GetValidPackageUploadService(PackageId, PackageVersion);
+                    fakePackageUploadService
+                        .Setup(pus => pus.GeneratePackageAsync(
+                            It.IsAny<string>(),
+                            It.IsAny<PackageArchiveReader>(),
+                            It.IsAny<PackageStreamMetadata>(),
+                            It.IsAny<User>(),
+                            It.IsAny<User>()))
+                        .Throws(new PackageAlreadyExistsException());
+
+                    var fakeUserService = new Mock<IUserService>();
+                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+
+                    var fakeTelemetryService = new Mock<ITelemetryService>();
+
+                    var controller = CreateController(
+                        GetConfigurationService(),
+                        packageUploadService: fakePackageUploadService,
+                        uploadFileService: fakeUploadFileService,
+                        userService: fakeUserService,
+                        telemetryService: fakeTelemetryService);
+                    controller.SetCurrentUser(TestUtility.FakeUser);
+
+                    // Act
+                    await Assert.ThrowsAsync<PackageAlreadyExistsException>(() => controller.VerifyPackage(new VerifyPackageRequest { Listed = true, Owner = TestUtility.FakeUser.Username }));
+
+                    // Assert
+                    fakeTelemetryService
+                        .Verify(ts => ts.TrackPackagePushFailureEvent(It.IsAny<string>(), It.IsAny<NuGetVersion>()), Times.Never);
+                }
+            }
+
             [Fact]
             public async Task WillNotCommitChangesToReadMeService()
             {
@@ -8541,6 +9056,82 @@ namespace NuGetGallery
                             It.IsAny<Encoding>(),
                             It.IsAny<bool>()),
                         Times.Once);
+                }
+            }
+
+            [Fact]
+            public async Task WillFailWhenCurrentUserIsLocked()
+            {
+                // Arrange
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                using (var fakeFileStream = new MemoryStream())
+                {
+                    var currentUser = new User { Key = 23, Username = "Bob", EmailAddress = "bob@example.com", UserStatusKey = UserStatus.Locked };
+                    fakeUploadFileService.Setup(x => x.GetUploadFileAsync(currentUser.Key)).Returns(Task.FromResult<Stream>(fakeFileStream));
+                    fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(currentUser.Key)).Returns(Task.CompletedTask);
+                    var fakePackageUploadService = GetValidPackageUploadService(PackageId, PackageVersion);
+                    var fakeNuGetPackage = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
+                    var fakeTelemetryService = new Mock<ITelemetryService>();
+
+                    var fakeUserService = new Mock<IUserService>();
+                    fakeUserService.Setup(x => x.FindByUsername(currentUser.Username, false)).Returns(currentUser);
+
+                    var controller = CreateController(
+                        GetConfigurationService(),
+                        packageUploadService: fakePackageUploadService,
+                        uploadFileService: fakeUploadFileService,
+                        fakeNuGetPackage: fakeNuGetPackage,
+                        telemetryService: fakeTelemetryService,
+                        userService: fakeUserService);
+
+                    controller.SetCurrentUser(currentUser);
+
+                    // Act
+                    var response = await controller.VerifyPackage(new VerifyPackageRequest { Listed = true, Owner = currentUser.Username });
+
+                    // Assert
+                    Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+                    Assert.Equal(ServicesStrings.UserAccountIsLocked, (response.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                }
+            }
+
+
+            [Fact]
+            public async Task WillFailWhenAddedOwnerIsLocked()
+            {
+                // Arrange
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                using (var fakeFileStream = new MemoryStream())
+                {
+                    var owner = new User { Key = 23, Username = "Bob", EmailAddress = "bob@example.com", UserStatusKey = UserStatus.Locked };
+                    var currentUser = TestUtility.FakeUser;
+                    fakeUploadFileService.Setup(x => x.GetUploadFileAsync(currentUser.Key)).Returns(Task.FromResult<Stream>(fakeFileStream));
+                    fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(currentUser.Key)).Returns(Task.CompletedTask);
+                    var fakePackageUploadService = GetValidPackageUploadService(PackageId, PackageVersion);
+                    var fakeNuGetPackage = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
+                    var fakeTelemetryService = new Mock<ITelemetryService>();
+
+                    var fakeUserService = new Mock<IUserService>();
+                    fakeUserService.Setup(x => x.FindByUsername(owner.Username, false)).Returns(owner);
+
+                    var controller = CreateController(
+                        GetConfigurationService(),
+                        packageUploadService: fakePackageUploadService,
+                        uploadFileService: fakeUploadFileService,
+                        fakeNuGetPackage: fakeNuGetPackage,
+                        telemetryService: fakeTelemetryService,
+                        userService: fakeUserService);
+
+                    controller.SetCurrentUser(currentUser);
+
+                    // Act
+                    var response = await controller.VerifyPackage(new VerifyPackageRequest { Listed = true, Owner = owner.Username });
+
+                    // Assert
+                    Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+                    Assert.Equal(
+                        string.Format(CultureInfo.CurrentCulture, ServicesStrings.SpecificAccountIsLocked, owner.Username),
+                        (response.Data as JsonValidationMessage[])[0].PlainTextMessage);
                 }
             }
 
@@ -9194,6 +9785,16 @@ namespace NuGetGallery
                 // Assert
                 Assert.IsType<HttpNotFoundResult>(result);
             }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources
+                    _target?.Dispose();
+                    base.Dispose(disposing);
+                }
+            }
         }
 
         public class TheRevalidateSymbolsMethod : TestContainer
@@ -9337,6 +9938,16 @@ namespace NuGetGallery
                 // Assert
                 Assert.IsType<HttpStatusCodeResult>(result);
                 ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest);
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources
+                    _target?.Dispose();
+                    base.Dispose(disposing);
+                }
             }
         }
 
@@ -9854,6 +10465,21 @@ namespace NuGetGallery
 
                 // act
                 var result = await controller.License(_packageId, _packageVersion);
+
+                // assert
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
+
+            [Fact]
+            public async Task GivenNullVersionReturns404()
+            {
+                // arrange
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: _packageService);
+
+                // act
+                var result = await controller.License(_packageId, version: null);
 
                 // assert
                 Assert.IsType<HttpNotFoundResult>(result);

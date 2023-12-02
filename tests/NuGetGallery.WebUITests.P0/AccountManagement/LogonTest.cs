@@ -19,6 +19,7 @@ namespace NuGetGallery.FunctionalTests.WebUITests.AccountManagement
         {
             PreAuthenticate = true;
         }
+
         public override IEnumerator<WebTestRequest> GetRequestEnumerator()
         {
             //Do initial login
@@ -37,4 +38,3 @@ namespace NuGetGallery.FunctionalTests.WebUITests.AccountManagement
         }
     }
 }
-

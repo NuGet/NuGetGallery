@@ -15,6 +15,8 @@ using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.MicrosoftAccount;
+using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
@@ -34,6 +36,111 @@ namespace NuGetGallery.Authentication
                 _fakes = Get<Fakes>();
                 _dateTimeProviderMock = GetMock<IDateTimeProvider>();
                 _authenticationService = Get<AuthenticationService>();
+                GetMock<IFeatureFlagService>()
+                    .Setup(f => f.IsNuGetAccountPasswordLoginEnabled())
+                    .Returns(true);
+            }
+
+            [Fact]
+            public async Task GivenValidUser_WhenPasswordLoginDisabledAndUserEmailNotOnExceptionList_ItReturnsFailure()
+            {
+                // Arrange
+                GetMock<IFeatureFlagService>()
+                    .Setup(f => f.IsNuGetAccountPasswordLoginEnabled())
+                    .Returns(false);
+
+                var configMock = new Mock<ILoginDiscontinuationConfiguration>();
+                configMock
+                    .Setup(x => x.IsEmailInExceptionsList(_fakes.User.EmailAddress))
+                    .Returns(false);
+                GetMock<IContentObjectService>()
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
+                    .Returns(configMock.Object);
+
+                // Act
+                var result = await _authenticationService.Authenticate(_fakes.User.EmailAddress, "bogus password!!");
+
+                // Assert
+                Assert.Equal(PasswordAuthenticationResult.AuthenticationResult.PasswordLoginUnsupported, result.Result);
+            }
+
+            [Fact]
+            public async Task GivenInvalidUser_WhenPasswordLoginDisabledAndUserEmailNotOnExceptionList_ItReturnsFailure()
+            {
+                // Arrange
+                GetMock<IFeatureFlagService>()
+                    .Setup(f => f.IsNuGetAccountPasswordLoginEnabled())
+                    .Returns(false);
+
+                var configMock = new Mock<ILoginDiscontinuationConfiguration>();
+                configMock
+                    .Setup(x => x.IsEmailInExceptionsList(null))
+                    .Returns(false);
+                GetMock<IContentObjectService>()
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
+                    .Returns(configMock.Object);
+                var fakeUserEmail = "fake@example.com";
+
+                // Act
+                var result = await _authenticationService.Authenticate(fakeUserEmail, "password");
+
+                // Assert
+                Assert.Equal(PasswordAuthenticationResult.AuthenticationResult.PasswordLoginUnsupported, result.Result);
+            }
+
+            [Fact]
+            public async Task WritesAuditRecordWhenGivenPasswordLoginIsDisabledAndUserEmailNotOnExceptionList()
+            {
+                // Arrange
+                GetMock<IFeatureFlagService>()
+                    .Setup(f => f.IsNuGetAccountPasswordLoginEnabled())
+                    .Returns(false);
+                var configMock = new Mock<ILoginDiscontinuationConfiguration>();
+                configMock
+                    .Setup(x => x.IsEmailInExceptionsList(It.IsAny<string>()))
+                    .Returns(false);
+                GetMock<IContentObjectService>()    
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
+                    .Returns(configMock.Object);
+                var fakeUserEmail = "fakeuser@example.com";
+
+                // Act
+                await _authenticationService.Authenticate(fakeUserEmail, "password");
+
+                // Assert
+                Assert.True(_authenticationService.Auditing.WroteRecord<FailedAuthenticatedOperationAuditRecord>(ar =>
+                    ar.Action == AuditedAuthenticatedOperationAction.PasswordLoginUnsupported &&
+                    ar.UsernameOrEmail == fakeUserEmail));
+            }
+
+            [Theory]
+            [InlineData(true, true)]
+            [InlineData(true, false)]
+            [InlineData(false, true)]
+            public async Task GivenPasswordLoginDisableFailedConditionsWithMatchingPasswordCredential_ItReturnsAuthenticatedUser(bool flagEnabled, bool isOnExceptionList)
+            {
+                // Arrange
+                GetMock<IFeatureFlagService>()
+                    .Setup(f => f.IsNuGetAccountPasswordLoginEnabled())
+                    .Returns(flagEnabled);
+                var user = _fakes.User;
+                var configMock = new Mock<ILoginDiscontinuationConfiguration>();
+                configMock
+                    .Setup(x => x.IsEmailInExceptionsList(It.IsAny<string>()))
+                    .Returns(isOnExceptionList);
+                GetMock<IContentObjectService>()
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
+                    .Returns(configMock.Object);
+
+                // Act
+                var result = await _authenticationService.Authenticate(user.EmailAddress, Fakes.Password);
+
+                // Assert
+                var expectedCred = user.Credentials.SingleOrDefault(
+                    c => string.Equals(c.Type, CredentialBuilder.LatestPasswordType, StringComparison.OrdinalIgnoreCase));
+                Assert.Equal(PasswordAuthenticationResult.AuthenticationResult.Success, result.Result);
+                Assert.Same(user, result.AuthenticatedUser.User);
+                Assert.Same(expectedCred, result.AuthenticatedUser.CredentialUsed);
             }
 
             [Fact]
@@ -677,7 +784,7 @@ namespace NuGetGallery.Authentication
             [Theory]
             [InlineData(CredentialTypes.ApiKey.V1, true)]
             [InlineData(CredentialTypes.ApiKey.V2, false)]
-            [InlineData(CredentialTypes.ApiKey.V3, false)] 
+            [InlineData(CredentialTypes.ApiKey.V3, false)]
             [InlineData(CredentialTypes.ApiKey.V4, false)]
             public async Task GivenMatchingApiKeyCredentialThatWasLastUsedTooLongAgo_ItReturnsNullAndExpiresTheApiKeyAndWritesAuditRecord(string apiKeyType, bool shouldExpire)
             {
@@ -724,7 +831,7 @@ namespace NuGetGallery.Authentication
                 configurationService.Current.ExpirationInDaysForApiKeyV1 = 10;
 
                 var cred = _fakes.User.Credentials.Single(c => string.Equals(c.Type, CredentialTypes.ApiKey.V3, StringComparison.OrdinalIgnoreCase));
-                
+
                 // Clear the scopes list, to simulate a V3 ApiKey that was generated from a V1 ApiKey
                 cred.Scopes = new List<Scope>();
 
@@ -1049,7 +1156,7 @@ namespace NuGetGallery.Authentication
             }
         }
 
-        public class TheRegisterMethod 
+        public class TheRegisterMethod
             : TestContainer
         {
             [Fact]
@@ -1068,6 +1175,7 @@ namespace NuGetGallery.Authentication
                             c.Value,
                             CredentialBuilder.LatestPasswordType,
                             password)),
+                        It.IsAny<bool>(),
                         It.IsAny<bool>()))
                     .CompletesWithNull()
                     .Verifiable();
@@ -1247,6 +1355,28 @@ namespace NuGetGallery.Authentication
                 Assert.True((DateTime.UtcNow - authUser.User.CreatedUtc) < TimeSpan.FromSeconds(5));
             }
 
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task SetsEnableMultiFactorAuthentication(bool enableMultifactorAuthentication)
+            {
+                // Arrange
+                var auth = Get<AuthenticationService>();
+
+                // Arrange
+                var authUser = await auth.Register(
+                    "newUser",
+                    "theEmailAddress",
+                    new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "", "", ""),
+                    enableMultiFactorAuthentication: enableMultifactorAuthentication);
+
+                // Assert
+                Assert.True(auth.Entities.Users.Contains(authUser.User));
+                auth.Entities.VerifyCommitChanges();
+
+                Assert.Equal(enableMultifactorAuthentication, authUser.User.EnableMultiFactorAuthentication);
+            }
+
             [Fact]
             public async Task WritesAnAuditRecord()
             {
@@ -1382,7 +1512,8 @@ namespace NuGetGallery.Authentication
                 var authService = Get<AuthenticationService>();
 
                 // Act & Assert
-                await Assert.ThrowsAsync<InvalidOperationException>(async () => {
+                await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                {
                     await authService.ReplaceCredential("testOrganization", fakes.Organization.Credentials.First());
                 });
             }
@@ -1914,7 +2045,8 @@ namespace NuGetGallery.Authentication
                 var authService = Get<AuthenticationService>();
 
                 // Act & Assert
-                await Assert.ThrowsAsync<InvalidOperationException>(async () => {
+                await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                {
                     await authService.AddCredential(fakes.Organization, credential);
                 });
             }
@@ -1940,6 +2072,51 @@ namespace NuGetGallery.Authentication
                     ar.AffectedCredential.Length == 1 &&
                     ar.AffectedCredential[0].Type == cred.Type &&
                     ar.AffectedCredential[0].Identity == cred.Identity));
+            }
+
+            [Fact]
+            public async Task WritesAuditRecordAfterDbCommit()
+            {
+                // Arrange
+                var entitiesContext = new Mock<IEntitiesContext>();
+                var auditingService = new Mock<IAuditingService>();
+                var credentialBuilder = new CredentialBuilder();
+
+                var authService = new AuthenticationService(
+                    entitiesContext.Object,
+                    Get<IAppConfiguration>(),
+                    Get<IDiagnosticsService>(),
+                    auditingService.Object,
+                    Enumerable.Empty<Authenticator>(),
+                    credentialBuilder,
+                    Get<ICredentialValidator>(),
+                    Get<IDateTimeProvider>(),
+                    Get<ITelemetryService>(),
+                    Get<IContentObjectService>(),
+                    Get<IFeatureFlagService>());
+                var operations = new List<string>();
+
+                var fakes = Get<Fakes>();
+                var user = fakes.CreateUser("test", credentialBuilder.CreatePasswordCredential(Fakes.Password));
+                var cred = credentialBuilder.CreateExternalCredential("flarg", "glarb", "blarb");
+                Mock
+                    .Get(authService.Auditing)
+                    .Setup(x => x.SaveAuditRecordAsync(It.IsAny<AuditRecord>()))
+                    .Returns(Task.CompletedTask)
+                    .Callback(() => operations.Add(nameof(IAuditingService.SaveAuditRecordAsync)));
+                Mock
+                    .Get(authService.Entities)
+                    .Setup(x => x.SaveChangesAsync())
+                    .ReturnsAsync(() => 0)
+                    .Callback(() => operations.Add(nameof(IEntitiesContext.SaveChangesAsync)));
+
+                // Act
+                await authService.AddCredential(user, cred);
+
+                // Assert
+                Assert.Equal(
+                    new List<string> { nameof(IEntitiesContext.SaveChangesAsync), nameof(IAuditingService.SaveAuditRecordAsync) },
+                    operations);
             }
         }
 
@@ -2357,7 +2534,7 @@ namespace NuGetGallery.Authentication
             }
         }
 
-        public class TheAuthenticateExternalLoginMethod: TestContainer
+        public class TheAuthenticateExternalLoginMethod : TestContainer
         {
             [Fact]
             public async Task GivenAnIdentityWithCredential_ItAuthenticates()
@@ -2448,9 +2625,9 @@ namespace NuGetGallery.Authentication
             var validator = CredentialValidator.Validators[algorithm];
             bool canAuthenticate = validator(password, new Credential { Value = hash });
 
-            bool sanity = validator("not_the_password", new Credential { Value = hash });
+            bool confidenceCheck = validator("not_the_password", new Credential { Value = hash });
 
-            return canAuthenticate && !sanity;
+            return canAuthenticate && !confidenceCheck;
         }
     }
 }

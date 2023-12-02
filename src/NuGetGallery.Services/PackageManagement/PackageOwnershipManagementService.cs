@@ -49,7 +49,7 @@ namespace NuGetGallery
         {
             await AddPackageOwnerAsync(packageRegistration, user, commitChanges: true);
 
-            var packageUrl = _urlHelper.Package(packageRegistration.Id, version: null, relativeUrl: false);
+            var packageUrl = _urlHelper.Package(packageRegistration.Id, version: null, relativeUrl: false, supportEmail: true);
 
             // Accumulate the tasks so that they are sent in parallel and as many messages as possible are sent even if
             // one fails (i.e. throws an exception).
@@ -155,7 +155,7 @@ namespace NuGetGallery
 
             var encodedMessage = HttpUtility.HtmlEncode(message ?? string.Empty);
 
-            var packageUrl = _urlHelper.Package(packageRegistration.Id, version: null, relativeUrl: false);
+            var packageUrl = _urlHelper.Package(packageRegistration.Id, version: null, relativeUrl: false, supportEmail: true);
 
             var ownerRequest = await AddPackageOwnershipRequestAsync(
                 packageRegistration, requestingOwner, newOwner);
@@ -164,13 +164,15 @@ namespace NuGetGallery
                 packageRegistration.Id,
                 newOwner.Username,
                 ownerRequest.ConfirmationCode,
-                relativeUrl: false);
+                relativeUrl: false,
+                supportEmail: true);
 
             var rejectionUrl = _urlHelper.RejectPendingOwnershipRequest(
                 packageRegistration.Id,
                 newOwner.Username,
                 ownerRequest.ConfirmationCode,
-                relativeUrl: false);
+                relativeUrl: false,
+                supportEmail: true);
 
             var manageUrl = _urlHelper.ManagePackageOwnership(
                 packageRegistration.Id,
@@ -247,15 +249,25 @@ namespace NuGetGallery
             return _packageOwnerRequestService.GetPackageOwnershipRequests(package, requestingOwner, newOwner);
         }
 
-        public async Task RemovePackageOwnerWithMessagesAsync(PackageRegistration packageRegistration, User requestingOwner, User ownerToBeRemoved)
+        public async Task RemovePackageOwnerWithMessagesAsync(PackageRegistration packageRegistration, User requestingOwner, User ownerToBeRemoved, bool requireNamespaceOwnership)
         {
-            await RemovePackageOwnerAsync(packageRegistration, requestingOwner, ownerToBeRemoved);
+            await RemovePackageOwnerAsync(packageRegistration, requestingOwner, ownerToBeRemoved, commitChanges: true, requireNamespaceOwnership);
 
             var emailMessage = new PackageOwnerRemovedMessage(_appConfiguration, requestingOwner, ownerToBeRemoved, packageRegistration);
             await _messageService.SendMessageAsync(emailMessage);
         }
 
         public async Task RemovePackageOwnerAsync(PackageRegistration packageRegistration, User requestingOwner, User ownerToBeRemoved, bool commitChanges = true)
+        {
+            await RemovePackageOwnerAsync(packageRegistration, requestingOwner, ownerToBeRemoved, commitChanges, requireNamespaceOwnership: true);
+        }
+
+        private async Task RemovePackageOwnerAsync(
+            PackageRegistration packageRegistration,
+            User requestingOwner,
+            User ownerToBeRemoved,
+            bool commitChanges,
+            bool requireNamespaceOwnership)
         {
             if (packageRegistration == null)
             {
@@ -272,7 +284,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(ownerToBeRemoved));
             }
 
-            if (OwnerHasPermissionsToRemove(requestingOwner, ownerToBeRemoved, packageRegistration))
+            if (!requireNamespaceOwnership || OwnerHasPermissionsToRemoveFromNamespace(requestingOwner, ownerToBeRemoved, packageRegistration))
             {
                 if (commitChanges)
                 {
@@ -390,7 +402,7 @@ namespace NuGetGallery
             }
         }
 
-        private static bool OwnerHasPermissionsToRemove(User requestingOwner, User ownerToBeRemoved, PackageRegistration packageRegistration)
+        private static bool OwnerHasPermissionsToRemoveFromNamespace(User requestingOwner, User ownerToBeRemoved, PackageRegistration packageRegistration)
         {
             var reservedNamespaces = packageRegistration.ReservedNamespaces.ToList();
             if (ActionsRequiringPermissions.AddPackageToReservedNamespace

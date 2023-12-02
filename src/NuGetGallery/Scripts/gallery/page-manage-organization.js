@@ -169,6 +169,9 @@
                 return self.AddMemberRole() == self.RoleNames()[0];
             });
             this.AddMember = function () {
+                // Hide any previous form success messages
+                $('#add-member-success-message').hide();
+
                 if (!self.NewMemberUsername()) {
                     self.Error("You must specify a user to add as a member.");
                     return;
@@ -212,6 +215,10 @@
                         });
 
                         self.Members.push(new OrganizationMemberViewModel(self, data));
+
+                        document.getElementById('add-member-success-message').innerHTML = "<b>" + data.Username + "</b> was successfully added to your organization (pending approval)";
+                        $('#add-member-success-message').show();
+
                         self.NewMemberUsername(null);
                     },
                     error: function (jqXHR, textStatus, errorThrown) {

@@ -4,7 +4,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using Moq;
+using Newtonsoft.Json.Linq;
 using NuGet.Services.Entities;
+using NuGetGallery.Helpers;
 using Xunit;
 
 namespace NuGetGallery.ViewModels
@@ -84,7 +86,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
         [Fact]
         public void LongDescriptionsSingleWordTruncatedToLimit()
         {
-            var charLimit = 300;
+            var charLimit = 210;
             var omission = "...";
             var description = @"abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz";
 
@@ -343,6 +345,159 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
             {
                 _package.CertificateKey = _certificate.Key;
                 _package.Certificate = _certificate;
+            }
+        }
+
+        public class IsDeprecated
+        {
+            [Theory]
+            [MemberData(nameof(DeprecationItemsHelper.ValidObjects), MemberType = typeof(DeprecationItemsHelper))]
+            public void SetDeprecationToTrueWhenIsValid(JObject docDeprecation)
+            {
+                var deprecations = SearchResponseHelper.GetDeprecationsOrNull(docDeprecation);
+                var package = new Package()
+                {
+                    Version = "1.0.0",
+                    PackageRegistration = new PackageRegistration { Id = "SomeId" },
+                    Deprecations = deprecations
+                };
+
+                var vm = CreateListPackageItemViewModel(package);
+
+                Assert.True(vm.IsDeprecated);
+            }
+
+            [Theory]
+            [MemberData(nameof(DeprecationItemsHelper.InvalidObjects), MemberType = typeof(DeprecationItemsHelper))]
+            public void SetDeprecationToFalseWhenIsInvalid(JObject docDeprecation)
+            {
+                var deprecations = SearchResponseHelper.GetDeprecationsOrNull(docDeprecation);
+                var package = new Package()
+                {
+                    Version = "1.0.0",
+                    PackageRegistration = new PackageRegistration { Id = "SomeId" },
+                    Deprecations = deprecations
+                };
+
+                var vm = CreateListPackageItemViewModel(package);
+
+                Assert.False(vm.IsDeprecated);
+            }
+        }
+
+        public class DeprecationTitle
+        {
+            [Theory]
+            [MemberData(nameof(DeprecationItemsHelper.ValidObjects), MemberType = typeof(DeprecationItemsHelper))]
+            public void SetDeprecationTitleWhenDeprecationIsValid(JObject docDeprecation)
+            {
+                var deprecations = SearchResponseHelper.GetDeprecationsOrNull(docDeprecation);
+                var package = new Package()
+                {
+                    Version = "1.0.0",
+                    PackageRegistration = new PackageRegistration { Id = "SomeId" },
+                    Deprecations = deprecations
+                };
+
+                var deprecationTitle = WarningTitleHelper.GetDeprecationTitle(package.Version, package.Deprecations.First().Status);
+
+                var vm = CreateListPackageItemViewModel(package);
+
+                Assert.Equal(deprecationTitle, vm.DeprecationTitle);
+            }
+
+            [Theory]
+            [MemberData(nameof(DeprecationItemsHelper.InvalidObjects), MemberType = typeof(DeprecationItemsHelper))]
+            public void DeprecationTitleIsNullWhenDeprecationIsInvalid(JObject docDeprecation)
+            {
+                var deprecations = SearchResponseHelper.GetDeprecationsOrNull(docDeprecation);
+                var package = new Package()
+                {
+                    Version = "1.0.0",
+                    PackageRegistration = new PackageRegistration { Id = "SomeId" },
+                    Deprecations = deprecations
+                };
+
+                var vm = CreateListPackageItemViewModel(package);
+
+                Assert.Null(vm.DeprecationTitle);
+            }
+        }
+
+        public class IsVulnerable
+        {
+            [Theory]
+            [MemberData(nameof(VulnerabilityItemsHelper.ValidObjects), MemberType = typeof(VulnerabilityItemsHelper))]
+            public void SetVulnerableToTrueWhenIsValid(JArray docVulnerabilities)
+            {
+                var vulnerabilities = SearchResponseHelper.GetVulnerabilities(docVulnerabilities);
+                var package = new Package()
+                {
+                    Version = "1.0.0",
+                    PackageRegistration = new PackageRegistration { Id = "SomeId" },
+                    VulnerablePackageRanges = vulnerabilities
+                };
+
+                var vm = CreateListPackageItemViewModel(package);
+
+                Assert.True(vm.IsVulnerable);
+            }
+
+            [Theory]
+            [MemberData(nameof(VulnerabilityItemsHelper.InvalidObjects), MemberType = typeof(VulnerabilityItemsHelper))]
+            public void SetVulnerableToFalseWhenIsInvalid(JArray docVulnerabilities)
+            {
+                var vulnerabilities = SearchResponseHelper.GetVulnerabilities(docVulnerabilities);
+                var package = new Package()
+                {
+                    Version = "1.0.0",
+                    PackageRegistration = new PackageRegistration { Id = "SomeId" },
+                    VulnerablePackageRanges = vulnerabilities
+                };
+
+                var vm = CreateListPackageItemViewModel(package);
+
+                Assert.False(vm.IsVulnerable);
+            }
+        }
+
+        public class VulnerabilityTitle
+        {
+            [Theory]
+            [MemberData(nameof(VulnerabilityItemsHelper.ValidObjects), MemberType = typeof(VulnerabilityItemsHelper))]
+            public void SetVulnerabilityTitleWhenVulnerabilitiesAreValid(JArray docVulnerabilities)
+            {
+                var vulnerabilities = SearchResponseHelper.GetVulnerabilities(docVulnerabilities);
+                var package = new Package()
+                {
+                    Version = "1.0.0",
+                    PackageRegistration = new PackageRegistration { Id = "SomeId" },
+                    VulnerablePackageRanges = vulnerabilities
+                };
+
+                var maxVulnerabilitySeverity = package.VulnerablePackageRanges.Max(vpr => vpr.Vulnerability.Severity);
+                var vulnerabilityTitle = WarningTitleHelper.GetVulnerabilityTitle(package.Version, maxVulnerabilitySeverity);
+
+                var vm = CreateListPackageItemViewModel(package);
+
+                Assert.Equal(vulnerabilityTitle, vm.VulnerabilityTitle);
+            }
+
+            [Theory]
+            [MemberData(nameof(VulnerabilityItemsHelper.InvalidObjects), MemberType = typeof(VulnerabilityItemsHelper))]
+            public void VulnerabilityTitleIsNullWhenVulnerabilitiesAreInvalid(JArray docVulnerabilities)
+            {
+                var vulnerabilities = SearchResponseHelper.GetVulnerabilities(docVulnerabilities);
+                var package = new Package()
+                {
+                    Version = "1.0.0",
+                    PackageRegistration = new PackageRegistration { Id = "SomeId" },
+                    VulnerablePackageRanges = vulnerabilities
+                };
+
+                var vm = CreateListPackageItemViewModel(package);
+
+                Assert.Null(vm.VulnerabilityTitle);
             }
         }
 

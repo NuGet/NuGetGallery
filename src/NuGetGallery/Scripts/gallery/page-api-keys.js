@@ -9,6 +9,8 @@
     var DeleteErrorMessage = "An error occurred while deleting the API key. Please try again.";
     var CreateErrorMessage = "An error occurred while creating a new API key. Please try again.";
     var EditErrorMessage = "An error occurred while editing an API key. Please try again.";
+    var ConfirmRevokeMessage = "Are you sure you want to revoke the API key?";
+    var RevokeErrorMessage = "An error occurred while revoking the API key. Please try again.";
 
     $(function () {
         function addAntiForgeryToken(data) {
@@ -516,6 +518,38 @@
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
                         parent.Error(DeleteErrorMessage);
+                    }
+                });
+            };
+
+            this.Revoke = function () {
+                if (!window.nuget.confirmEvent(ConfirmRevokeMessage)) {
+                    return;
+                }
+
+                // Build the request.
+                var data = {
+                    credentialType: this.Type(),
+                    credentialKey: this.Key(),
+                };
+                addAntiForgeryToken(data);
+
+                // Send the request.
+                $.ajax({
+                    url: initialData.RevokeUrl,
+                    type: 'POST',
+                    dataType: 'json',
+                    data: data,
+                    success: function (data) {
+                        parent.Error(null);
+                        self._UpdateData(data);
+                        self.JustCreated(false);
+                        self.JustRegenerated(false);
+                        parent.ApiKeys.remove(self);
+                        parent.ApiKeys.unshift(self);
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        parent.Error(RevokeErrorMessage);
                     }
                 });
             };

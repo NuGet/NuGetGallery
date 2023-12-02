@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Security.Claims;
 using System.Web.Helpers;
 using System.Web.Hosting;
@@ -134,7 +133,7 @@ namespace NuGetGallery
                 .Include("~/Scripts/gallery/jquery.validate.unobtrusive-3.2.6.js")
                 .Include("~/Scripts/gallery/knockout-3.5.1.js")
                 .Include("~/Scripts/gallery/bootstrap.js")
-                .Include("~/Scripts/gallery/moment-2.18.1.js")
+                .Include("~/Scripts/gallery/moment-2.29.4.js")
                 .Include("~/Scripts/gallery/common.js")
                 .Include("~/Scripts/gallery/autocomplete.js");
             BundleTable.Bundles.Add(scriptBundle);
@@ -170,11 +169,6 @@ namespace NuGetGallery
                 .Include("~/Scripts/gallery/clamp.js");
             BundleTable.Bundles.Add(displayPackageScriptBundle);
 
-            var displayPackageV2ScriptBundle = new ScriptBundle("~/Scripts/gallery/page-display-package-v2.min.js")
-                .Include("~/Scripts/gallery/page-display-package-v2.js")
-                .Include("~/Scripts/gallery/clamp.js");
-            BundleTable.Bundles.Add(displayPackageV2ScriptBundle);
-
             var listPackagesScriptBundle = new ScriptBundle("~/Scripts/gallery/page-list-packages.min.js")
                 .Include("~/Scripts/gallery/page-list-packages.js");
             BundleTable.Bundles.Add(listPackagesScriptBundle);
@@ -203,6 +197,10 @@ namespace NuGetGallery
                 .Include("~/Scripts/gallery/page-about.js");
             BundleTable.Bundles.Add(aboutScriptBundle);
 
+            var downloadsScriptBundle = new ScriptBundle("~/Scripts/gallery/page-downloads.min.js")
+                .Include("~/Scripts/gallery/page-downloads.js");
+            BundleTable.Bundles.Add(downloadsScriptBundle);
+
             var apiKeysScriptBundle = new ScriptBundle("~/Scripts/gallery/page-api-keys.min.js")
                 .Include("~/Scripts/gallery/page-api-keys.js");
             BundleTable.Bundles.Add(apiKeysScriptBundle);
@@ -219,6 +217,10 @@ namespace NuGetGallery
                 .Include("~/Scripts/gallery/page-add-organization.js")
                 .Include("~/Scripts/gallery/md5.js");
             BundleTable.Bundles.Add(addOrganizationScriptBundle);
+
+            var syntaxhighlightScriptBundle = new ScriptBundle("~/Scripts/gallery/syntaxhighlight.min.js")
+                .Include("~/Scripts/gallery/syntaxhighlight.js");
+            BundleTable.Bundles.Add(syntaxhighlightScriptBundle);
 
             // This is needed for the Admin database viewer.
             ScriptManager.ScriptResourceMapping.AddDefinition("jquery",
@@ -248,7 +250,7 @@ namespace NuGetGallery
             // Log unhandled exceptions
             GlobalConfiguration.Configuration.Services.Add(typeof(IExceptionLogger), new QuietExceptionLogger());
 
-            Routes.RegisterRoutes(RouteTable.Routes, configuration.FeedOnlyMode);
+            Routes.RegisterRoutes(RouteTable.Routes, configuration.FeedOnlyMode, configuration.AdminPanelEnabled);
             AreaRegistration.RegisterAllAreas();
 
             GlobalFilters.Filters.Add(new SendErrorsToTelemetryAttribute { View = "~/Views/Errors/InternalError.cshtml" });

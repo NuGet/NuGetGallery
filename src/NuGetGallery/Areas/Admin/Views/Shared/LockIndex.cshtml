@@ -1,0 +1,81 @@
+﻿@model LockViewModel
+@{
+    ViewBag.Title = Model.EntitiesLabel + " Locking";
+}
+
+<section role="main" class="container main-container">
+    <h2>@Model.EntitiesLabel Locking</h2>
+
+    <form method="get" action="@Url.Action(actionName: "Search")">
+        <p>
+            <textarea name="query" placeholder="Search for @(Model.IdentifersLabel)..." autocomplete="off" autofocus style="width: 100%" rows="5">@Model.Query</textarea>
+        </p>
+        <p>
+            <input type="submit" value="Search" />
+        </p>
+    </form>
+
+    @if (Model.HasQuery && !Model.HasResults)
+    {
+        <p>No results found.</p>
+    }
+    else if (!Model.HasQuery)
+    {
+        <p>To search for multiple @Model.EntitiesLabel.ToLower(), use a separate line for the @Model.IdentifersLabel.</p>
+    }
+
+    @if (Model.LockStates != null && Model.LockStates.Any())
+    {
+        using (Html.BeginForm("Update", Model.ControllerName, FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(model => model.Query)
+            <div>
+                <h3>Results</h3>
+                <br />
+                <button type="button" onclick="selectall()">Select All</button>
+                <button type="button" onclick="deselectall()">Deselect All</button>
+                <p>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>@Model.IdentifersLabel</th>
+                                <th>Is Locked?</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (int i = 0; i < Model.LockStates.Count; i++)
+                            {
+                                <tr>
+                                    <td>@Html.DisplayTextFor(model => model.LockStates[i].Identifier)</td>
+                                    @Html.HiddenFor(model => model.LockStates[i].Identifier)
+                                    <td>@Html.CheckBoxFor(model => model.LockStates[i].IsLocked, new { @class = "islockedcheckbox" })</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </p>
+                <p>
+                    <input type="submit" value="Apply" />
+                </p>
+            </div>
+        }
+    }
+
+</section>
+
+@section BottomScripts {
+    <script>
+        function selectall() {
+            $('.islockedcheckbox:checkbox').each(function () {
+                $(this).prop('checked', true);
+            })
+        }
+
+        function deselectall() {
+            $('.islockedcheckbox:checkbox').each(function () {
+                $(this).prop('checked', false);
+            })
+        }
+    </script>
+}
