@@ -557,6 +557,8 @@ namespace NuGetGallery
 
                         switch (anyInvalidZipEntry)
                         {
+                            case InvalidZipEntry.None:
+                                break;
                             case InvalidZipEntry.InFuture:
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
                                     CultureInfo.CurrentCulture,
@@ -573,7 +575,11 @@ namespace NuGetGallery
                                     Strings.PackageEntryWithDoubleBackSlash,
                                     invalidZipEntry.Name));
                             default:
-                                break;
+                                // Generic error message for unknown invalid zip entry
+                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
+                                    CultureInfo.CurrentCulture,
+                                    Strings.InvalidPackageEntry,
+                                    invalidZipEntry.Name));
                         }
                     }
                     catch (Exception ex)

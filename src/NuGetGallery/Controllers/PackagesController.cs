@@ -513,6 +513,8 @@ namespace NuGetGallery
 
             switch (anyInvalidZipEntry)
             {
+                case InvalidZipEntry.None:
+                    break;
                 case InvalidZipEntry.InFuture:
                     return Json(HttpStatusCode.BadRequest, new[] {
                     new JsonValidationMessage(string.Format(CultureInfo.CurrentCulture, Strings.PackageEntryFromTheFuture, invalidZipEntry.Name)) });
@@ -524,7 +526,10 @@ namespace NuGetGallery
                     {
                    new JsonValidationMessage(string.Format(CultureInfo.CurrentCulture, Strings.PackageEntryWithDoubleBackSlash, invalidZipEntry.Name)) });
                 default:
-                    break;
+                    return Json(HttpStatusCode.BadRequest, new[]
+                    {
+                       // Generic error message for unknown invalid zip entry
+                       new JsonValidationMessage(string.Format(CultureInfo.CurrentCulture, Strings.InvalidPackageEntry, invalidZipEntry.Name)) });
             }
 
             try

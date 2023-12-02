@@ -1139,6 +1139,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The package is invalid and cannot be uploaded. The package entry for &apos;{0}&apos; is not valid..
+        /// </summary>
+        public static string InvalidPackageEntry {
+            get {
+                return ResourceManager.GetString("InvalidPackageEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The package framework &apos;{0}&apos; is not supported. Frameworks within the portable profile are not allowed to have profiles themselves..
         /// </summary>
         public static string InvalidPortableFramework {

@@ -68,6 +68,8 @@ namespace NuGetGallery
 
                 switch (anyInvalidZipEntry)
                 {
+                    case InvalidZipEntry.None:
+                        break;
                     case InvalidZipEntry.InFuture:
                         return SymbolPackageValidationResult.Invalid(string.Format(
                             CultureInfo.CurrentCulture,
@@ -84,7 +86,11 @@ namespace NuGetGallery
                             Strings.PackageEntryWithDoubleBackSlash,
                             invalidZipEntry.Name));
                     default:
-                        break;
+                        // Generic error message for unknown invalid zip entry
+                        return SymbolPackageValidationResult.Invalid(string.Format(
+                            CultureInfo.CurrentCulture,
+                            Strings.InvalidPackageEntry,
+                            invalidZipEntry.Name));
                 }
 
                 using (var packageToPush = new PackageArchiveReader(symbolPackageStream, leaveStreamOpen: true))
