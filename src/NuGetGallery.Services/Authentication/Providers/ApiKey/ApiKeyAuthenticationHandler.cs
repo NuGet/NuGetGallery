@@ -243,7 +243,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                 return null;
             }
 
-            var subject = principal.GetClaimOrDefault("sub");
+            var subject = principal.GetClaimOrDefault(ClaimTypes.NameIdentifier);
             if (string.IsNullOrWhiteSpace(subject))
             {
                 Context.Set<string>("Message", "The token must have a 'sub' claim.");
