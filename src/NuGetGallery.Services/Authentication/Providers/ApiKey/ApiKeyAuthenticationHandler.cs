@@ -66,6 +66,10 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                     WriteStatus(ServicesStrings.ApiKeyRequired, 401);
                     Response.Headers.Append("WWW-Authenticate", String.Format(
                         CultureInfo.InvariantCulture,
+                        "Basic realm=\"{0}\"",
+                        Request.Uri.Host));
+                    Response.Headers.Append("WWW-Authenticate", String.Format(
+                        CultureInfo.InvariantCulture,
                         "ApiKey realm=\"{0}\"",
                         Request.Uri.Host));
                 }
@@ -130,15 +134,15 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
 
             // Create authentication ticket
             return new AuthenticationTicket(
-                    AuthenticationService.CreateIdentity(
-                        user,
-                        AuthenticationTypes.ApiKey,
-                        // In cases where the apikey in the DB differs from the user provided
-                        // value (like apikey.v4) this will hold the hashed value
-                        new Claim(NuGetClaims.ApiKey, credential.Value),
-                        new Claim(NuGetClaims.Scope, scopes),
-                        new Claim(NuGetClaims.CredentialKey, credential.Key.ToString())),
-                    new AuthenticationProperties());
+                AuthenticationService.CreateIdentity(
+                    user,
+                    AuthenticationTypes.ApiKey,
+                    // In cases where the apikey in the DB differs from the user provided
+                    // value (like apikey.v4) this will hold the hashed value
+                    new Claim(NuGetClaims.ApiKey, credential.Value),
+                    new Claim(NuGetClaims.Scope, scopes),
+                    new Claim(NuGetClaims.CredentialKey, credential.Key.ToString())),
+                new AuthenticationProperties());
         }
         
         private async Task<AuthenticationTicket> AuthenticateWithAuthorizationHeader(string authorizationHeader)
@@ -162,9 +166,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                 usernamePassword = Array.Empty<string>();
             }
 
-            if (usernamePassword.Length != 2
-                || string.IsNullOrWhiteSpace(usernamePassword[0])
-                || string.IsNullOrWhiteSpace(usernamePassword[1]))
+            if (usernamePassword.Length != 2 || string.IsNullOrWhiteSpace(usernamePassword[1]))
             {
                 Context.Set<string>("Message", "The provided Basic authorization credential is not valid.");
                 return null;
@@ -172,7 +174,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
 
             if (LooksLikeJwt(usernamePassword[1]))
             {
-                return await AuthenticateWithGitHubToken(usernamePassword[0], usernamePassword[1]);
+                return await AuthenticateWithGitHubToken(usernamePassword[1]);
             }
 
             Context.Set<string>("Message", "The provided Basic authorization password does not appear to be a JWT and will be ignored.");
@@ -198,7 +200,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
             }
         }
 
-        private async Task<AuthenticationTicket> AuthenticateWithGitHubToken(string username, string token)
+        private async Task<AuthenticationTicket> AuthenticateWithGitHubToken(string token)
         {
             // TODO: inject this via DI, maybe a singleton?
             var issuer = "https://token.actions.githubusercontent.com";
@@ -241,12 +243,30 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                 return null;
             }
 
-            var subject = principal.GetClaimOrDefault(ClaimTypes.NameIdentifier);
+            var subject = principal.GetClaimOrDefault("sub");
             if (string.IsNullOrWhiteSpace(subject))
             {
+                Context.Set<string>("Message", "The token must have a 'sub' claim.");
                 return null;
             }
 
+            var audience = principal.GetClaimOrDefault("aud");
+            if (string.IsNullOrWhiteSpace(audience))
+            {
+                Context.Set<string>("Message", "The token must have an 'aud' claim.");
+                return null;
+            }
+
+            var audiencePieces = audience.Split(new char[] { '@' }, 2);
+            if (audiencePieces.Length != 2
+                || string.IsNullOrWhiteSpace(audiencePieces[0])
+                || string.IsNullOrWhiteSpace(audiencePieces[1]))
+            {
+                Context.Set<string>("Message", "The provided 'aud' claim provided is not in the expected format of 'user@domain'.");
+                return null;
+            }
+
+            var username = audiencePieces[0];
             var user = Auth
                 .Entities
                 .Users
@@ -254,7 +274,13 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                 .Where(x => x.Username == username)
                 .FirstOrDefault();
 
-            if (user == null || !user.GitHubFederatedTokens.Any(x => x.Subject == subject))
+            if (user == null)
+            {
+                Context.Set<string>("Message", "The username provide in the token's 'aud' claim is not valid.");
+                return null;
+            }
+
+            if (!user.GitHubFederatedTokens.Any(x => x.Subject == subject))
             {
                 Context.Set<string>("Message", "The token is valid but cannot be used for the provided user account.");
                 Context.Set<int>("StatusCode", 403);
