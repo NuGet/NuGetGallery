@@ -107,10 +107,14 @@
             };
 
             let selectFilteredResults = function (isListedFilter) {
+                ko.utils.arrayForEach($self.searchResults(), function (result) {
+                    result.Selected(false);
+                });
+
                 var selection = parseInt(window.prompt("How many? (Default: All)", ""));
                 selection = isNaN(selection) ? $self.searchResults().length : selection;
-
-                if (selection === 0) {
+                
+                if (selection <= 0) {
                     return true;
                 }
 
