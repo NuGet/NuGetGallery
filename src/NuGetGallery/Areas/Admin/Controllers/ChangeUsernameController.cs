@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -123,19 +124,24 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 return Json(HttpStatusCode.BadRequest, "New username validation failed.", JsonRequestBehavior.AllowGet);
             }
 
-            var newAccountForOldUsername = new User()
-            {
-                Username = account.Username,
-                EmailAllowed = false,
-                IsDeleted = true,
-                CreatedUtc = _dateTimeProvider.UtcNow
-            };
-
-            account.Username = newUsername;
 
             await _auditingService.SaveAuditRecordAsync(new UserAuditRecord(account, AuditedUserAction.ChangeUsername));
 
-            _userRepository.InsertOnCommit(newAccountForOldUsername);
+            if (account.Username.Equals(newUsername, StringComparison.OrdinalIgnoreCase) == false)
+            {
+                // We're doing a full username change and not just a casing change so we need to lock the old username
+                var newAccountForOldUsername = new User()
+                {
+                    Username = account.Username,
+                    EmailAllowed = false,
+                    IsDeleted = true,
+                    CreatedUtc = _dateTimeProvider.UtcNow
+                };
+
+                _userRepository.InsertOnCommit(newAccountForOldUsername);
+            }
+
+            account.Username = newUsername;
 
             await _entitiesContext.SaveChangesAsync();
 
@@ -144,11 +150,13 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         private ValidateUsernameResult ValidateUsername(string username)
         {
-            var result = new ValidateUsernameResult();
-            result.IsFormatValid = UsernameValidationRegex.IsMatch(username);
-            result.IsAvailable = _userService.FindByUsername(username, includeDeleted: true) == null;
+            var foundUser = _userService.FindByUsername(username, includeDeleted: true);
 
-            return result;
+            return new ValidateUsernameResult()
+            {
+                IsFormatValid = UsernameValidationRegex.IsMatch(username),
+                IsAvailable = foundUser == null || foundUser.Username != username // The username check is in the event where we found a user in the DB but we're doing a cAsIng change
+            };
         }
     }
 }
