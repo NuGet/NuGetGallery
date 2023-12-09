@@ -123,9 +123,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 return Json(HttpStatusCode.BadRequest, "New username validation failed.", JsonRequestBehavior.AllowGet);
             }
 
-
-            await _auditingService.SaveAuditRecordAsync(new UserAuditRecord(account, AuditedUserAction.ChangeUsername));
-
             if (account.Username.Equals(newUsername, StringComparison.OrdinalIgnoreCase) == false)
             {
                 // We're doing a full username change and not just a casing change so we need to lock the old username
@@ -142,6 +139,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             account.Username = newUsername;
 
+            await _auditingService.SaveAuditRecordAsync(new UserAuditRecord(account, AuditedUserAction.ChangeUsername));
             await _entitiesContext.SaveChangesAsync();
 
             return Json(HttpStatusCode.OK, "Account renamed successfully!", JsonRequestBehavior.AllowGet);
