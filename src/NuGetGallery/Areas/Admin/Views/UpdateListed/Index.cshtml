@@ -106,22 +106,37 @@
                 return true;
             };
 
-            this.selectListed = function (e) {
+            let selectFilteredResults = function (isListedFilter) {
                 ko.utils.arrayForEach($self.searchResults(), function (result) {
-                    if (result.Listed) {
+                    result.Selected(false);
+                });
+
+                var selection = parseInt(window.prompt("How many? (Default: All)", ""));
+                selection = isNaN(selection) ? $self.searchResults().length : selection;
+                
+                if (selection <= 0) {
+                    return true;
+                }
+
+                let i = 0;
+                ko.utils.arrayFirst($self.searchResults(), function (result) {
+                    if (result.Listed == isListedFilter) {
                         result.Selected(true);
+                        i++;
                     }
+
+                    // Stop looping when we selected enough items
+                    return i >= selection;
                 });
                 return true;
+            }
+
+            this.selectListed = function (e) {
+                selectFilteredResults(true);
             };
 
             this.selectUnlisted = function (e) {
-                ko.utils.arrayForEach($self.searchResults(), function (result) {
-                    if (!result.Listed) {
-                        result.Selected(true);
-                    }
-                });
-                return true;
+                selectFilteredResults(false);                
             };
 
             this.generateValue = function (package) {
