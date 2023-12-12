@@ -43,7 +43,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     Id = pr.Id,
                     Version = pr.Packages
                         .Where(p => p.IsLatest || p.IsLatestStable || p.IsLatestSemVer2 || p.IsLatestStableSemVer2)
-                        .First()
+                        .FirstOrDefault()
                         .Version,
                     IsLatestCount = pr.Packages.Where(p => p.IsLatest).Count(),
                     IsLatestStableCount = pr.Packages.Where(p => p.IsLatestStable).Count(),
