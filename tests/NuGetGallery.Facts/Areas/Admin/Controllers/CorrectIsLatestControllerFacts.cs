@@ -177,14 +177,70 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     }
                 };
 
-                ReflowServiceSetupHelper.SetupPackages(PackageServiceMock, PackageFileServiceMock, new List<Package>() { ReflowPackage, ReflowPackage2 });
-
                 // Act
                 var result = await CorrectIsLatestController.ReflowPackages(request) as JsonResult;
 
                 // Assert
                 Assert.Equal(((int)HttpStatusCode.OK), CorrectIsLatestController.Response.StatusCode);
                 Assert.Equal("2 packages reflowed, 0 packages fail reflow.", result.Data);
+            }
+
+            [Fact]
+            public async Task WhenPackageInvalidReturnsReflowCount()
+            {
+                // Arrange
+                var request = new CorrectIsLatestRequest()
+                {
+                    Packages = new List<CorrectIsLatestPackageRequest>()
+                    {
+                        new CorrectIsLatestPackageRequest()
+                        {
+                            Id = FailReflowPackage.Id,
+                            Version = FailReflowPackage.Version
+                        },
+                        new CorrectIsLatestPackageRequest()
+                        {
+                            Id = FailReflowPackage2.Id,
+                            Version = FailReflowPackage2.Version
+                        }
+                    }
+                };
+
+                // Act
+                var result = await CorrectIsLatestController.ReflowPackages(request) as JsonResult;
+
+                // Assert
+                Assert.Equal(((int)HttpStatusCode.OK), CorrectIsLatestController.Response.StatusCode);
+                Assert.Equal("0 packages reflowed, 2 packages fail reflow.", result.Data);
+            }
+
+            [Fact]
+            public async Task WhenPackageValidAndInvalidReturnsReflowCount()
+            {
+                // Arrange
+                var request = new CorrectIsLatestRequest()
+                {
+                    Packages = new List<CorrectIsLatestPackageRequest>()
+                    {
+                        new CorrectIsLatestPackageRequest()
+                        {
+                            Id = ReflowPackage.Id,
+                            Version = ReflowPackage.Version
+                        },
+                        new CorrectIsLatestPackageRequest()
+                        {
+                            Id = FailReflowPackage.Id,
+                            Version = FailReflowPackage.Version
+                        }
+                    }
+                };
+
+                // Act
+                var result = await CorrectIsLatestController.ReflowPackages(request) as JsonResult;
+
+                // Assert
+                Assert.Equal(((int)HttpStatusCode.OK), CorrectIsLatestController.Response.StatusCode);
+                Assert.Equal("1 package reflowed, 1 package fail reflow.", result.Data);
             }
         }
 
@@ -196,6 +252,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             protected Package ReflowPackage;
             protected Package ReflowPackage2;
+            protected Package FailReflowPackage;
+            protected Package FailReflowPackage2;
 
             public FactsBase()
             {
@@ -245,6 +303,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
                 ReflowPackage = PackageServiceUtility.CreateTestPackage("ReflowPackage");
                 ReflowPackage2 = PackageServiceUtility.CreateTestPackage("ReflowPackage2");
+                FailReflowPackage = PackageServiceUtility.CreateTestPackage("FailReflowPackage");
+                FailReflowPackage2 = PackageServiceUtility.CreateTestPackage("FailReflowPackage2");
+
+                ReflowServiceSetupHelper.SetupPackages(PackageServiceMock, PackageFileServiceMock, new List<Package>() { ReflowPackage, ReflowPackage2 });
+                PackageServiceMock.ThrowFindPackageByIdAndVersionStrict(new List<Package>() { FailReflowPackage, FailReflowPackage2 });
 
                 CorrectIsLatestController = new CorrectIsLatestController(
                     PackageServiceMock.Object,

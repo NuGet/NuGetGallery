@@ -333,7 +333,7 @@ namespace NuGetGallery
 
         private static Stream CreateInvalidDependencyVersionTestPackageStream()
         {
-            return ReflowServiceSetupHelper.CreateTestPackageStream(@"<?xml version=""1.0""?>
+            var nuspec = @"<?xml version=""1.0""?>
                     <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
                       <metadata>
                         <id>test</id>
@@ -357,7 +357,9 @@ namespace NuGetGallery
                             </group>
                         </dependencies>
                       </metadata>
-                    </package>");
+                    </package>";
+
+            return ReflowServiceSetupHelper.CreateTestPackageStream(nuspec);
         }
     }
 }

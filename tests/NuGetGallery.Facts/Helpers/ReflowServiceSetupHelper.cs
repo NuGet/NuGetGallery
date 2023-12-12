@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -30,7 +31,7 @@ namespace NuGetGallery.Helpers
 
         public static void SetupPackages(Mock<PackageService> packageServiceMock, Mock<IPackageFileService> packageFileServiceMock, List<Package> packages)
         {
-            foreach(var package in packages)
+            foreach (var package in packages)
             {
                 packageServiceMock
                     .Setup(s => s.FindPackageByIdAndVersionStrict(package.Id, package.Version))
@@ -39,7 +40,17 @@ namespace NuGetGallery.Helpers
 
                 packageFileServiceMock
                     .Setup(s => s.DownloadPackageFileAsync(package))
-                    .Returns(Task.FromResult(ReflowServiceSetupHelper.CreateTestPackageStream(package.Id, $"{package.Id}.nuspec")));
+                    .Returns(Task.FromResult(ReflowServiceSetupHelper.CreateTestPackageStream(CreateTestNuspec(package.Id), $"{package.Id}.nuspec")));
+            }
+        }
+
+        public static void ThrowFindPackageByIdAndVersionStrict(this Mock<PackageService> packageServiceMock, List<Package> packages)
+        {
+            foreach (var package in packages)
+            {
+                packageServiceMock
+                    .Setup(s => s.FindPackageByIdAndVersionStrict(package.Id, package.Version))
+                    .Throws(new NotSupportedException($"Unknown deprecation fields 'test'"));
             }
         }
 
@@ -125,9 +136,9 @@ namespace NuGetGallery.Helpers
             return packageFileService;
         }
 
-        public static Stream CreateTestPackageStream(string id = "test", string nuspecName = "TestPackage.nuspec")
+        public static string CreateTestNuspec(string id = "test")
         {
-            var baseNuspec = $@"<?xml version=""1.0""?>
+            return $@"<?xml version=""1.0""?>
                     <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
                       <metadata>
                         <id>{id}</id>
@@ -152,14 +163,22 @@ namespace NuGetGallery.Helpers
                         </dependencies>
                       </metadata>
                     </package>";
+        }
+
+        public static Stream CreateTestPackageStream(string nuspec = null, string nuspecFilename = "TestPackage.nuspec")
+        {
+            if (string.IsNullOrEmpty(nuspec))
+            {
+                nuspec = CreateTestNuspec();
+            }
 
             var packageStream = new MemoryStream();
             using (var packageArchive = new ZipArchive(packageStream, ZipArchiveMode.Create, true))
             {
-                var nuspecEntry = packageArchive.CreateEntry(nuspecName, CompressionLevel.Fastest);
+                var nuspecEntry = packageArchive.CreateEntry(nuspecFilename, CompressionLevel.Fastest);
                 using (var streamWriter = new StreamWriter(nuspecEntry.Open()))
                 {
-                    streamWriter.WriteLine(baseNuspec);
+                    streamWriter.WriteLine(nuspec);
                 }
 
                 packageArchive.CreateEntry("content\\HelloWorld.cs", CompressionLevel.Fastest);
