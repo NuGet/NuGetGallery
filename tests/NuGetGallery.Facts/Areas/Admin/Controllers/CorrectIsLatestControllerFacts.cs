@@ -2,17 +2,24 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Net;
+using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
+using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Areas.Admin.Models;
+using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Framework;
+using NuGetGallery.Helpers;
+using NuGetGallery.TestUtils;
 using Xunit;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
     public class CorrectIsLatestControllerFacts
     {
-        public class CorrectIsLatestPackagesMethod: FactsBase
+        public class CorrectIsLatestPackagesMethod : FactsBase
         {
             [Fact]
             public void WhenPackagesHaveCorrectIsLatestReturnEmptyArray()
@@ -24,7 +31,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
 
             [Theory]
-            [MemberData(nameof(TestData))]
+            [MemberData(nameof(IsLatestTestData))]
             public void WhenPackageIsLatestAndIsUnlistedReturnsHasIsLatestUnlistedAsTrue(bool isLatest, bool isLatestStable, bool isLatestSemVer2, bool isLatestStableSemVer2)
             {
                 var validPackages = new HashSet<Package>();
@@ -66,14 +73,14 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
                 var correctIsLatestPackage = correctIsLatestPackages[0];
                 Assert.True(correctIsLatestPackage.HasIsLatestUnlisted);
-                Assert.True(correctIsLatestPackage.IsLatestCount > 0 || 
-                    correctIsLatestPackage.IsLatestStableCount > 0 || 
+                Assert.True(correctIsLatestPackage.IsLatestCount > 0 ||
+                    correctIsLatestPackage.IsLatestStableCount > 0 ||
                     correctIsLatestPackage.IsLatestSemVer2Count > 0 ||
                     correctIsLatestPackage.IsLatestStableSemVer2Count > 0);
             }
 
             [Theory]
-            [MemberData(nameof(TestData))]
+            [MemberData(nameof(IsLatestTestData))]
             public void WhenPackageHasMultipleIsLatestReturnSum(bool isLatest, bool isLatestStable, bool isLatestSemVer2, bool isLatestStableSemVer2)
             {
                 var packages = new HashSet<Package>();
@@ -135,16 +142,68 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
         }
 
-        public class ReflowPackagesMethod
+        public class ReflowPackagesMethod : FactsBase
         {
+            [Theory]
+            [MemberData(nameof(BadReflowPackagesTestData))]
+            public async Task WhenInvalidReturnsBadRequest(CorrectIsLatestRequest request)
+            {
+                // Act
+                var result = await CorrectIsLatestController.ReflowPackages(request) as JsonResult;
 
+                // Assert
+                Assert.Equal(((int)HttpStatusCode.BadRequest), CorrectIsLatestController.Response.StatusCode);
+                Assert.Equal("Packages cannot be null or empty.", result.Data);
+            }
+
+            [Fact]
+            public async Task WhenPackageValidReturnsReflowCount()
+            {
+                // Arrange
+                var request = new CorrectIsLatestRequest()
+                {
+                    Packages = new List<CorrectIsLatestPackageRequest>()
+                    {
+                        new CorrectIsLatestPackageRequest()
+                        {
+                            Id = ReflowPackage.Id,
+                            Version = ReflowPackage.Version
+                        },
+                        new CorrectIsLatestPackageRequest()
+                        {
+                            Id = ReflowPackage2.Id,
+                            Version = ReflowPackage2.Version
+                        }
+                    }
+                };
+
+                ReflowServiceSetupHelper.SetupPackages(PackageServiceMock, PackageFileServiceMock, new List<Package>() { ReflowPackage, ReflowPackage2 });
+
+                // Act
+                var result = await CorrectIsLatestController.ReflowPackages(request) as JsonResult;
+
+                // Assert
+                Assert.Equal(((int)HttpStatusCode.OK), CorrectIsLatestController.Response.StatusCode);
+                Assert.Equal("2 packages reflowed, 0 packages fail reflow.", result.Data);
+            }
         }
 
-        public class FactsBase: TestContainer
+        public class FactsBase : TestContainer
         {
             protected CorrectIsLatestController CorrectIsLatestController;
+            protected Mock<PackageService> PackageServiceMock;
+            protected Mock<IPackageFileService> PackageFileServiceMock;
 
-            public FactsBase() {
+            protected Package ReflowPackage;
+            protected Package ReflowPackage2;
+
+            public FactsBase()
+            {
+                var entitiesContextMock = ReflowServiceSetupHelper.SetupEntitiesContext();
+                var database = new Mock<IDatabase>();
+                database.Setup(x => x.BeginTransaction()).Returns(() => new Mock<IDbContextTransaction>().Object);
+                entitiesContextMock.Setup(m => m.GetDatabase()).Returns(database.Object);
+                
                 var correctPackages = new HashSet<Package>();
                 var correctPackageId = "TheCorrectIsLatestPackage";
                 correctPackages.Add(new Package()
@@ -177,14 +236,26 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 var fakeContext = GetFakeContext();
                 fakeContext.PackageRegistrations.Add(packageRegistration);
 
+                entitiesContextMock
+                    .SetupGet(ec => ec.PackageRegistrations)
+                    .Returns(fakeContext.PackageRegistrations);
+
+                PackageServiceMock = ReflowServiceSetupHelper.SetupPackageService();
+                PackageFileServiceMock = new Mock<IPackageFileService>();
+
+                ReflowPackage = PackageServiceUtility.CreateTestPackage("ReflowPackage");
+                ReflowPackage2 = PackageServiceUtility.CreateTestPackage("ReflowPackage2");
+
                 CorrectIsLatestController = new CorrectIsLatestController(
-                    GetMock<IPackageService>().Object,
-                    GetFakeContext(),
-                    GetMock<IPackageFileService>().Object,
+                    PackageServiceMock.Object,
+                    entitiesContextMock.Object,
+                    PackageFileServiceMock.Object,
                     GetMock<ITelemetryService>().Object);
+
+                TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), CorrectIsLatestController);
             }
 
-            public static IEnumerable<object[]> TestData
+            public static IEnumerable<object[]> IsLatestTestData
             {
                 get
                 {
@@ -192,6 +263,16 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     yield return new object[] { false, true, false, false };
                     yield return new object[] { false, false, true, false };
                     yield return new object[] { false, false, false, true };
+                }
+            }
+
+            public static IEnumerable<object[]> BadReflowPackagesTestData
+            {
+                get
+                {
+                    yield return new object[] { null };
+                    yield return new object[] { new CorrectIsLatestRequest() };
+                    yield return new object[] { new CorrectIsLatestRequest() { Packages = new List<CorrectIsLatestPackageRequest>() } };
                 }
             }
 

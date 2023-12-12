@@ -87,6 +87,7 @@
     <Compile Include="Extensions\CakeBuildManagerExtensionsFacts.cs" />
     <Compile Include="Filters\RequiresUserAgentAttributeFacts.cs" />
     <Compile Include="Helpers\PackageValidationHelperFacts.cs" />
+    <Compile Include="Helpers\ReflowServiceSetupHelper.cs" />
     <Compile Include="Infrastructure\Mail\Messages\ApiKeyRevokedMessageFacts.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageIdsQueryFacts.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageVersionsQueryFacts.cs" />

@@ -24,7 +24,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
-
         }
 
         [HttpGet]
