@@ -90,7 +90,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 return Json(HttpStatusCode.BadRequest, "Username cannot be null or empty.", JsonRequestBehavior.AllowGet);
             }
 
-            var result = ValidateUsername(newUsername);
+            var result = CheckUserExist(newUsername);
 
             return Json(result, JsonRequestBehavior.AllowGet);
         }
@@ -116,7 +116,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 return Json(HttpStatusCode.NotFound, "Old username account was not found.", JsonRequestBehavior.AllowGet);
             }
 
-            var newUsernameValidation = ValidateUsername(newUsername);
+            var newUsernameValidation = ValidateUsernameChange(account, newUsername);
 
             if (!newUsernameValidation.IsFormatValid || !newUsernameValidation.IsAvailable)
             {
@@ -145,14 +145,22 @@ namespace NuGetGallery.Areas.Admin.Controllers
             return Json(HttpStatusCode.OK, "Account renamed successfully!", JsonRequestBehavior.AllowGet);
         }
 
-        private ValidateUsernameResult ValidateUsername(string username)
+        private ValidateUsernameResult CheckUserExist(string username) {
+            return new ValidateUsernameResult()
+            {
+                IsFormatValid = UsernameValidationRegex.IsMatch(username),
+                IsAvailable = _userService.FindByUsername(username, includeDeleted: true) == null
+            };
+        }
+
+        private ValidateUsernameResult ValidateUsernameChange(User requestor, string username)
         {
             var foundUser = _userService.FindByUsername(username, includeDeleted: true);
 
             return new ValidateUsernameResult()
             {
                 IsFormatValid = UsernameValidationRegex.IsMatch(username),
-                IsAvailable = foundUser == null || foundUser.Username != username // The username check is in the event where we found a user in the DB but we're doing a cAsIng change
+                IsAvailable = foundUser == null || (requestor.Key == foundUser.Key && foundUser.Username != username) // The username check is in the event where we found a user in the DB but we're doing a cAsIng change
             };
         }
     }
