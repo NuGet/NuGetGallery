@@ -38,18 +38,19 @@ namespace NuGetGallery.Areas.Admin.Controllers
         {
             var result = _entitiesContext
                 .PackageRegistrations
+                .Where(pr => pr.Packages.Any(p => p.IsLatest || p.IsLatestStable || p.IsLatestSemVer2 || p.IsLatestStableSemVer2))
                 .Select(pr => new CorrectIsLatestPackage()
                 {
                     Id = pr.Id,
                     Version = pr.Packages
                         .Where(p => p.IsLatest || p.IsLatestStable || p.IsLatestSemVer2 || p.IsLatestStableSemVer2)
-                        .FirstOrDefault()
+                        .First()
                         .Version,
                     IsLatestCount = pr.Packages.Where(p => p.IsLatest).Count(),
                     IsLatestStableCount = pr.Packages.Where(p => p.IsLatestStable).Count(),
                     IsLatestSemVer2Count = pr.Packages.Where(p => p.IsLatestSemVer2).Count(),
                     IsLatestStableSemVer2Count = pr.Packages.Where(p => p.IsLatestStableSemVer2).Count(),
-                    HasIsLatestUnlisted = pr.Packages.All(p =>
+                    HasIsLatestUnlisted = pr.Packages.Any(p =>
                         !p.Listed
                         && (p.IsLatest
                         || p.IsLatestStable
@@ -62,7 +63,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     || pr.IsLatestStableSemVer2Count > 1
                     || pr.HasIsLatestUnlisted)
                 .OrderBy(pr => pr.Id)
-            .ToList();
+                .ToList();
 
             return Json(result, JsonRequestBehavior.AllowGet);
         }
