@@ -38,11 +38,14 @@
                     </text>
                 )
 
-                <h2><strong>To report a security vulnerability</strong></h2>
+                <h2><strong>To report a security vulnerability or copyright/trademark infringement</strong></h2>
                 @ViewHelpers.AlertWarning(isAlertRole: true, htmlContent:
                     @<text>
-                        Please report security vulnerabilities through the <a href="https://msrc.microsoft.com/create-report" title="report a security vulnerability">official portal</a>.
-                        If this is not a Microsoft - owned package, consider also <a href="@Url.ContactOwners(Model)" title="contact the owners">contacting the owners</a>.
+                        Please report security vulnerabilities through the <a href="https://msrc.microsoft.com/create-report" title="report a security vulnerability">official security vulnerabilities portal</a>.
+                        Please report copyright/trademark infringements through the <a href="https://msrc.microsoft.com/report/infringement" title="Notice of Copyright or Trademark Infringment">official copyright/trademark infringement portal</a>.
+                        <br />
+                        <br />
+                        If this is not a Microsoft-owned package, consider also <a href="@Url.ContactOwners(Model)" title="contact the owners">contacting the owners</a>.
                     </text>
                 )
 
@@ -80,7 +83,13 @@
                     <div class="reason-error-security-vulnerability" tabindex="0">
                         <p>
                             Please report security vulnerabilities through the <a href="https://msrc.microsoft.com/create-report" title="report a security vulnerability">official portal</a>.
-                            If this is not a Microsoft - owned package, consider also <a href="@Url.ContactOwners(Model)" title="contact the owners">contacting the owners</a>.
+                            If this is not a Microsoft-owned package, consider also <a href="@Url.ContactOwners(Model)" title="contact the owners">contacting the owners</a>.
+                        </p>
+                    </div>
+                    <div class="reason-error-copyright-infringement" tabindex="0">
+                        <p>
+                            Please report copyright/trademark infringements through the <a href="https://msrc.microsoft.com/report/infringement" title="Notice of Copyright or Trademark Infringment">official portal</a>.
+                            If this is not a Microsoft-owned package, consider also <a href="@Url.ContactOwners(Model)" title="contact the owners">contacting the owners</a>.
                         </p>
                     </div>
                     <div class="reason-error-revenge-porn" tabindex="0">
@@ -113,11 +122,6 @@
                                     </ul>
                                 </p>
                             </div>
-                            <div class="infringement-claim-requirements" tabindex="0">
-                                <p>
-                                    If you are reporting copyright infringement, please describe the copyrighted material with particularity and provide us with information about your copyright (i.e. title of copyrighted work, URL where to view your copyrighted work, description of your copyrighted work, and any copyright registrations you may have, etc.). For trademark infringement, include the name of your trademark, registration number, and country where registered.
-                                </p>
-                            </div>
                             <div class="imminent-harm" tabindex="0">
                                 <p>
                                     Note: please ensure when reporting this type of abuse that you've considered whether the following are present:
@@ -136,24 +140,6 @@
                             @Html.ShowCheckboxFor(m => m.CopySender)
                             @Html.ShowLabelFor(m => m.CopySender)
                             @Html.ShowValidationMessagesFor(m => m.CopySender)
-                        </div>
-                        <div class="form-group infringement-claim-requirements @Html.HasErrorFor(m => m.Signature)">
-                            <h2><span style="color:red">*</span> Required Statements for infringement claims</h2>
-                            <h2>Good Faith Belief:</h2>
-                            <p>
-                                By typing my name (electronic signature), I have a good faith belief that the use of the material is not authorized by the intellectual property owner, its agent, or the law (e.g., it is not fair use).
-                            </p>
-                            <h2>Authority to Act:</h2>
-                            <p>
-                                I represent that the information in the notification is accurate, and under penalty of perjury, that I am authorized to act on behalf of the owner of an exclusive right that is allegedly infringed.
-                            </p>
-                            <h2>512(f) Acknowledgement:</h2>
-                            <p>
-                                As applicable under 17 U.S.C. 512(f), I acknowledge that I may be subject to liability for damages if I knowingly materially misrepresent that material or activity is infringing.
-                            </p>
-                            @Html.ShowLabelFor(m => m.Signature)
-                            @Html.ShowTextBoxFor(m => m.Signature)
-                            @Html.ShowValidationMessagesFor(m => m.Signature)
                         </div>
                         <div class="form-group">
                             <input id="Submit" type="submit" class="btn btn-primary form-control" value="Report" />
@@ -179,6 +165,7 @@
             // For error conditions, hide the other form fields and show error messages
             if (val === 'HasABugOrFailedToInstall'
                 || val === 'ContainsSecurityVulnerability'
+                || val === 'ViolatesALicenseIOwn'
                 || val === 'RevengePorn') {
                 $('#report-abuse-form').hide();
             } else {
@@ -195,6 +182,12 @@
                 $form.find('.reason-error-security-vulnerability').show();
             } else {
                 $form.find('.reason-error-security-vulnerability').hide();
+            }
+
+            if (val === 'ViolatesALicenseIOwn') {
+                $form.find('.reason-error-copyright-infringement').show();
+            } else {
+                $form.find('.reason-error-copyright-infringement').hide();
             }
 
             if (val === 'RevengePorn') {
@@ -221,21 +214,6 @@
                 $form.find('.imminent-harm').show();
             } else {
                 $form.find('.imminent-harm').hide();
-            }
-
-            if (val == 'ViolatesALicenseIOwn') {
-                $form.find('.infringement-claim-requirements').show();
-                $('#Signature').rules("add", {
-                    required: true,
-                    maxlength: 1000,
-                    messages: {
-                        required: "Please sign using your name."
-                    }
-                });
-                $('#Signature').attr('data-val-required', 'Please sign using your name.');
-            } else {
-                $form.find('.infringement-claim-requirements').hide();
-                $('#Signature').rules('remove', 'required');
             }
         }
 
