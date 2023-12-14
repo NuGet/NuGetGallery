@@ -471,11 +471,6 @@ namespace NuGetGallery
                 .As<IPackageVulnerabilitiesCacheService>()
                 .SingleInstance();
 
-            builder.RegisterType<FrameworkCompatibilityService>()
-                .AsSelf()
-                .As<IFrameworkCompatibilityService>()
-                .SingleInstance();
-
             builder.RegisterType<PackageFrameworkCompatibilityFactory>()
                 .AsSelf()
                 .As<IPackageFrameworkCompatibilityFactory>()

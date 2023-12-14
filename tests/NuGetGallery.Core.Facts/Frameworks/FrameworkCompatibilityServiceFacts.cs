@@ -11,24 +11,18 @@ namespace NuGetGallery.Frameworks
 {
     public class FrameworkCompatibilityServiceFacts
     {
-        private readonly IFrameworkCompatibilityService _service;
         private readonly IFrameworkCompatibilityProvider CompatibilityProvider = DefaultCompatibilityProvider.Instance;
-
-        public FrameworkCompatibilityServiceFacts()
-        {
-            _service = new FrameworkCompatibilityService();
-        }
 
         [Fact]
         public void NullPackageFrameworksThrowsArgumentNullException()
         {
-            Assert.Throws<ArgumentNullException>(() => _service.GetCompatibleFrameworks(null));
+            Assert.Throws<ArgumentNullException>(() => FrameworkCompatibilityService.GetCompatibleFrameworks(null));
         }
 
         [Fact]
         public void EmptyPackageFrameworksReturnsEmptySet()
         {
-            var result = _service.GetCompatibleFrameworks(new List<NuGetFramework>());
+            var result = FrameworkCompatibilityService.GetCompatibleFrameworks(new List<NuGetFramework>());
 
             Assert.Empty(result);
         }
@@ -38,7 +32,7 @@ namespace NuGetGallery.Frameworks
         {
             var framework = NuGetFramework.Parse("net45-client");
             var frameworks = new List<NuGetFramework>() { framework };
-            var compatible = _service.GetCompatibleFrameworks(frameworks);
+            var compatible = FrameworkCompatibilityService.GetCompatibleFrameworks(frameworks);
 
             Assert.False(framework.IsUnsupported);
             Assert.Equal(expected: 1, compatible.Count);
@@ -53,7 +47,7 @@ namespace NuGetGallery.Frameworks
         {
             var unsupportedFramework = NuGetFramework.Parse(unsupportedFrameworkName);
 
-            var result = _service.GetCompatibleFrameworks(new List<NuGetFramework>() { unsupportedFramework });
+            var result = FrameworkCompatibilityService.GetCompatibleFrameworks(new List<NuGetFramework>() { unsupportedFramework });
 
             Assert.True(unsupportedFramework.IsUnsupported);
             Assert.Equal(expected: 0, actual: result.Count);
@@ -67,7 +61,7 @@ namespace NuGetGallery.Frameworks
         {
             var portableFramework = NuGetFramework.Parse(pclFrameworkName);
 
-            var result = _service.GetCompatibleFrameworks(new List<NuGetFramework>() { portableFramework });
+            var result = FrameworkCompatibilityService.GetCompatibleFrameworks(new List<NuGetFramework>() { portableFramework });
 
             Assert.True(portableFramework.IsPCL);
             Assert.Equal(expected: 0, actual: result.Count);
@@ -85,7 +79,7 @@ namespace NuGetGallery.Frameworks
                 frameworks.Add(NuGetFramework.Parse(frameworkName));
             }
 
-            var compatibleFrameworks = _service.GetCompatibleFrameworks(frameworks);
+            var compatibleFrameworks = FrameworkCompatibilityService.GetCompatibleFrameworks(frameworks);
 
             Assert.True(compatibleFrameworks.Count > 0);
 
@@ -108,7 +102,7 @@ namespace NuGetGallery.Frameworks
                 projectFrameworks.Add(NuGetFramework.Parse(frameworkName));
             }
 
-            var compatibleFrameworks = _service.GetCompatibleFrameworks(new HashSet<NuGetFramework>() { packageFramework });
+            var compatibleFrameworks = FrameworkCompatibilityService.GetCompatibleFrameworks(new HashSet<NuGetFramework>() { packageFramework });
             Assert.Equal(windowsProjectFrameworks.Length, compatibleFrameworks.Count);
 
             var containsAllCompatibleFrameworks = compatibleFrameworks.All(cf => projectFrameworks.Contains(cf));

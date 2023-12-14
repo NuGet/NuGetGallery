@@ -22,13 +22,6 @@ namespace NuGetGallery.Frameworks
         private readonly NuGetFrameworkSorter Sorter = new NuGetFrameworkSorter();
         private readonly int NetStartingMajorVersion = 5;
 
-        private readonly IFrameworkCompatibilityService _compatibilityService;
-
-        public PackageFrameworkCompatibilityFactory(IFrameworkCompatibilityService compatibilityService)
-        {
-            _compatibilityService = compatibilityService ?? throw new ArgumentNullException();
-        }
-
         public PackageFrameworkCompatibility Create(ICollection<PackageFramework> packageFrameworks)
         {
             if (packageFrameworks == null)
@@ -53,7 +46,7 @@ namespace NuGetGallery.Frameworks
 
         private IReadOnlyDictionary<string, IReadOnlyCollection<PackageFrameworkCompatibilityTableData>> CreateFrameworkCompatibilityTable(ICollection<NuGetFramework> filteredPackageFrameworks)
         {
-            var compatibleFrameworks = _compatibilityService.GetCompatibleFrameworks(filteredPackageFrameworks);
+            var compatibleFrameworks = FrameworkCompatibilityService.GetCompatibleFrameworks(filteredPackageFrameworks);
 
             var table = new Dictionary<string, SortedSet<PackageFrameworkCompatibilityTableData>>();
 

@@ -9,5 +9,6 @@ namespace NuGetGallery
     public interface IPackageRenameService
     {
         IReadOnlyList<PackageRename> GetPackageRenames(PackageRegistration package);
+        IReadOnlyList<PackageRename> GetPackageRenamesTo(PackageRegistration package);
     }
 }

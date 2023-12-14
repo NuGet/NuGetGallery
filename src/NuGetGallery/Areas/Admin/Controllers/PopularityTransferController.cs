@@ -98,37 +98,55 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 }
 
                 // create validated input result
-                var input = new PopularityTransferItem(CreatePackageSearchResult(packageFrom.Packages.First()),
-                                                       CreatePackageSearchResult(packageTo.Packages.First()),
-                                                       packageFrom.Key,
-                                                       packageTo.Key);
+                result.ValidatedInputs.Add(new PopularityTransferItem(packageFrom, packageTo));
 
-                result.ValidatedInputs.Add(input);
+                // checking for existing entries in the PackageRenames table
+                // 1. 'From' input that already has a 'From' entry in the PackageRenames table -- Conflict 
+                var existingRenames = _packageRenameService.GetPackageRenames(packageFrom);
 
-                // check for existing entries in the PackageRename table for the 'From' packages
-                var existingRenamesFrom = _packageRenameService.GetPackageRenames(packageFrom);
-
-                if (existingRenamesFrom.Any())
+                if (existingRenames.Any())
                 {
-                    if (existingRenamesFrom.Count == 1)
+                    if (existingRenames.Count == 1)
                     {
-                        var existingRenamesMessage = $"{packageFrom.Id} already has 1 entry in the PackageRenames table. This will be removed with this operation.";
-                        result.ExistingPackageRenames.Add(existingRenamesMessage);
+                        result.ExistingPackageRenamesMessagesConflict.Add($"{packageFrom.Id} already has 1 entry in the PackageRenames table. This will be removed with this operation.");
                     }
                     else
                     {
-                        var existingRenamesMessage = $"{packageFrom.Id} already has {existingRenamesFrom.Count} entries in the PackageRenames table. These will be removed with this operation.";
-                        result.ExistingPackageRenames.Add(existingRenamesMessage);
+                        result.ExistingPackageRenamesMessagesConflict.Add($"{packageFrom.Id} already has {existingRenames.Count} entries in the PackageRenames table. These will be removed with this operation.");
+                    }
+
+                    foreach (var existingRename in existingRenames)
+                    {
+                        result.ExistingPackageRenamesConflict.Add(new PopularityTransferItem(existingRename.FromPackageRegistration, existingRename.ToPackageRegistration));
                     }
                 }
 
-                // check for existing entries in the PackageRename table for the 'To' packages
-                var existingRenamesTo = _packageRenameService.GetPackageRenames(packageTo);
+                // 2. 'From' input that already has a 'To' entry in the PackageRenames table -- Transitive
+                existingRenames = _packageRenameService.GetPackageRenamesTo(packageFrom);
 
-                if (existingRenamesTo.Any())
+                if (existingRenames.Any())
+                {
+                    var existingRenamesMessage = $"{packageFrom.Id} already has entries in the PackageRenames table. This popularity transfer will result in a new transitive relationship. Please look at the PackageRenames table and verify your input before proceeding.";
+                    result.ExistingPackageRenamesMessagesTransitive.Add(existingRenamesMessage);
+
+                    foreach (var existingRename in existingRenames)
+                    {
+                        result.ExistingPackageRenamesTransitive.Add(new PopularityTransferItem(existingRename.FromPackageRegistration, existingRename.ToPackageRegistration));
+                    }
+                }
+
+                // 3. 'To' input that already has a 'From' entry in the PackageRenames table -- Transitive
+                existingRenames = _packageRenameService.GetPackageRenames(packageTo);
+
+                if (existingRenames.Any())
                 {
                     var existingRenamesMessage = $"{packageTo.Id} already has entries in the PackageRenames table. This popularity transfer will result in a new transitive relationship. Please look at the PackageRenames table and verify your input before proceeding.";
-                    result.ExistingPackageRenames.Insert(0, existingRenamesMessage);
+                    result.ExistingPackageRenamesMessagesTransitive.Add(existingRenamesMessage);
+
+                    foreach (var existingRename in existingRenames)
+                    {
+                        result.ExistingPackageRenamesTransitive.Add(new PopularityTransferItem(existingRename.FromPackageRegistration, existingRename.ToPackageRegistration));
+                    }
                 }
             }
 

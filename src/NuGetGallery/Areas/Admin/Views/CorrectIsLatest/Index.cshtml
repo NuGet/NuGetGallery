@@ -1,0 +1,193 @@
+﻿@model IReadOnlyList<NuGetGallery.Areas.Admin.Models.CorrectIsLatestPackage>
+@{
+    ViewBag.Title = "Correct IsLatest packages";
+}
+@ViewHelpers.AjaxAntiForgeryToken(Html)
+
+<section role="main" class="container main-container">
+    <h2>Correct IsLatest packages</h2>
+
+    <button type="submit" data-bind="click: correctIsLatestPackages">Get correct IsLatest packages</button>
+
+    <div style="display:none" data-bind="visible: loadingCorrectIsLatestPackages">
+        @ViewHelpers.AlertInfo(@<text><span>Loading packages...</span></text>)
+    </div>
+    <div style="display: none" data-bind="visible: emptyCorrectIsLatestPackages">
+        <p>No packages with incorrect IsLatest found.</p>
+    </div>
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+        <table class="table" id="correctIsLatestPackageResults" style="display: none" data-bind="visible: correctIsLatestPackageResults().length > 0" aria-label="Search results">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" data-bind="click: toggleSelectAll, checked: selectAllState" /></th>
+                    <th>Package</th>
+                    <th>Version</th>
+                    <th>IsLatestCount</th>
+                    <th>IsLatestStableCount</th>
+                    <th>IsLatestSemVer2Count</th>
+                    <th>IsLatestStableSemVer2Count</th>
+                    <th>HasIsLatestUnlisted</th>
+                </tr>
+            </thead>
+            <tbody data-bind="foreach: correctIsLatestPackageResults">
+                <tr>
+                    <td><input type="checkbox" data-bind="checked: Selected" /></td>
+                    <td><a href="#" data-bind="text: Id, attr: { href: $parent.generatePackageUrl($data) }"></a></td>
+                    <td><span data-bind="text: Version"></span></td>
+                    <td><span data-bind="text: IsLatestCount"></span></td>
+                    <td><span data-bind="text: IsLatestStableCount"></span></td>
+                    <td><span data-bind="text: IsLatestSemVer2Count"></span></td>
+                    <td><span data-bind="text: IsLatestStableSemVer2Count"></span></td>
+                    <td><span data-bind="text: HasIsLatestUnlisted"></span></td>
+                </tr>
+            </tbody>
+        </table>
+        <div style="display:none" data-bind="visible: reflowPackagesSuccessful">
+            @ViewHelpers.Alert(@<text><span data-bind="text: reflowPackagesSuccessful"></span></text>, "info", "Info")
+        </div>
+        <div style="display:none" data-bind="visible: loadingReflowPackages">
+            @ViewHelpers.AlertInfo(@<text><span>The packages are being reflowed. It may take a while for this change to propagate through our system.</span></text>)
+        </div>
+        <div style="display:none" data-bind="visible: errorReflowPackages">
+            @ViewHelpers.AlertDanger(@<text><span data-bind="text: errorReflowPackages"></span></text>)
+        </div>
+        <div class="form-group" data-bind="visible: arePackagesSelected()">
+            <input type="submit" class="btn btn-danger form-control" data-bind="click: reflowPackages" value="Reflow packages" />
+        </div>
+    }
+</section>
+
+@section BottomScripts {
+    <script>
+        $(document).ready(function() {
+            var viewModel = function () {
+                var $self = this;
+
+                this.correctIsLatestPackageResults = ko.observableArray([]);
+                this.selectAllState = ko.observable(false);
+
+                this.errorCorrectIsLatestPackages = ko.observable('');
+                this.emptyCorrectIsLatestPackages = ko.observable(false);
+                this.loadingCorrectIsLatestPackages = ko.observable(false);
+                this.loadingReflowPackages = ko.observable(false);
+                this.errorReflowPackages = ko.observable('');
+                this.reflowPackagesSuccessful = ko.observable('');
+
+                var actionUrlCorrectIsLatestPackages = '@Url.Action("CorrectIsLatestPackages", "CorrectIsLatest", new {area = "Admin"})';
+                var actionUrlReflowPackages = '@Url.Action("ReflowPackages", "CorrectIsLatest", new { area = "Admin" })';
+
+                this.correctIsLatestPackages = function () {
+                    $self.correctIsLatestPackageResults.removeAll();
+                    $self.loadingCorrectIsLatestPackages(true);
+                    $self.emptyCorrectIsLatestPackages(false);
+
+                    $.ajax({
+                        url: actionUrlCorrectIsLatestPackages,
+                        cache: false,
+                        dataType: 'json',
+                        success: function (data) {
+                            if (data.length == 0) {
+                                $self.emptyCorrectIsLatestPackages(true);
+                            }
+
+                            for (var i = 0; i < data.length; i++) {
+                                data[i].Selected = ko.observable(false);
+                            }
+                            $self.correctIsLatestPackageResults(data);
+                        }
+                    })
+                    .fail(function (jqXhr, textStatus, errorThrown) {
+                        if (jqXhr) {
+                            $self.errorCorrectIsLatestPackages(jqXhr.responseJSON);
+                        }
+                        else {
+                            alert('Error: ' + errorThrown);
+                        }
+                    })
+                    .always(function () {
+                        $self.loadingCorrectIsLatestPackages(false);
+                    });
+                };
+
+                this.reflowPackages = function (model, event) {
+                    $self.loadingReflowPackages(true);
+                    $self.reflowPackagesSuccessful('');
+                    $self.errorReflowPackages('');
+
+                    if (!$self.correctIsLatestPackageResults()) {
+                        return;
+                    }
+
+                    var generateRequestData = $self.correctIsLatestPackageResults()
+                        .filter(function (package) {
+                            return package.Selected();
+                        })
+                        .map(function (package) {
+                            return {
+                                Id: package.Id,
+                                Version: package.Version
+                            }
+                        })
+
+                    var data = {
+                        Packages: generateRequestData
+                    }
+
+                    $.ajax({
+                        url: actionUrlReflowPackages,
+                        cache: false,
+                        dataType: 'json',
+                        type: 'POST',
+                        data: window.nuget.addAjaxAntiForgeryToken(data),
+                        success: function (data) {
+                            $self.reflowPackagesSuccessful(data);
+                            $self.correctIsLatestPackages();
+                        }
+                    })
+                    .fail(function (jqXhr, textStatus, errorThrown) {
+                        if (jqXhr) {
+                            $self.errorReflowPackages(jqXhr.responseJSON);
+                        }
+                        else {
+                            alert('Error: ' + errorThrown);
+                        }
+                    })
+                    .always(function () {
+                        $self.loadingReflowPackages(false);
+                    });;
+                };
+
+                this.generatePackageUrl = function (result) {
+                    return '/packages/' + result.Id + '/' + result.Version;
+                };
+
+                this.toggleSelectAll = function (e) {
+                    $self.selectAllState(!$self.selectAllState());
+                    return true;
+                };
+
+                this.arePackagesSelected = ko.computed(function() {
+                    for (var i = 0; i < $self.correctIsLatestPackageResults().length; i++) {
+                        if ($self.correctIsLatestPackageResults()[i].Selected()) {
+                            return true;
+                        }
+                    }
+                    return false;
+                });
+
+                this.selectAllState.subscribe(function() {
+                    var state = $self.selectAllState();
+
+                    ko.utils.arrayForEach($self.correctIsLatestPackageResults(), function(result) {
+                        result.Selected(state);
+                    });
+                });
+            };
+
+            ko.applyBindings(new viewModel(), $('.main-container').get(0));
+        });
+    </script>
+}
