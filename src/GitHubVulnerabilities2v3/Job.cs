@@ -33,14 +33,15 @@ namespace GitHubVulnerabilities2v3
         {
             var collector = _serviceProvider.GetRequiredService<IAdvisoryCollector>();
             var cursor = _serviceProvider.GetRequiredService<ReadWriteCursor<DateTimeOffset>>();
-            await SetRunMode(cursor);
+            var config = _serviceProvider.GetRequiredService<GitHubVulnerabilities2v3Configuration>();
+            await SetRunMode(cursor, config);
             await collector.ProcessAsync(CancellationToken.None, updateCursor: false);
         }
 
-        private async Task SetRunMode(ReadWriteCursor<DateTimeOffset> cursor)
+        private async Task SetRunMode(ReadWriteCursor<DateTimeOffset> cursor, GitHubVulnerabilities2v3Configuration jobConfig)
         {
             await cursor.Load(CancellationToken.None);
-            if (DateTimeOffset.Compare(cursor.Value.AddDays(30), DateTimeOffset.UtcNow) <= 0)
+            if (DateTimeOffset.Compare(cursor.Value.AddDays(jobConfig.DaysBeforeBaseStale), DateTimeOffset.UtcNow) <= 0)
             {
                 cursor.Value = DateTimeOffset.FromUnixTimeSeconds(0);
             }

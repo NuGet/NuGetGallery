@@ -2,13 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Newtonsoft.Json;
-using System;
 
 namespace GitHubVulnerabilities2v3.Entities
 {
     public class Advisory
     {
-
         [JsonProperty(PropertyName = "url")]
         public string Url { get; set; }
 

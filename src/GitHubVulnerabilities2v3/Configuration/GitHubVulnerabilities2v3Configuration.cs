@@ -34,5 +34,17 @@ namespace GitHubVulnerabilities2v3.Configuration
         public string IndexFileName { get; set; } = "index.json";
         public string BaseFileName { get; set; } = "vulnerability.base.json";
         public string UpdateFileName { get; set; } = "vulnerability.update.json";
+
+        /// <summary>
+        /// Other Runtime Configurations
+        /// </summary>
+        public int DaysBeforeBaseStale { get; set; } = 30;
+
+        /// <summary>
+        /// Cache control headers.
+        /// </summary>
+        public string IndexCacheControlHeader { get; set; } = "max-age=259200, must-revalidate";
+        public string BaseCacheControlHeader { get; set; } = "max-age=604800, must-revalidate";
+        public string UpdateCacheControlHeader { get; set; } = "max-age=604800, must-revalidate";
     }
 }
