@@ -130,23 +130,24 @@ namespace NuGetGallery.Frameworks
 
         [Theory]
         [InlineData("net6.0-windows", "net6.0-windows", "net7.0-windows", "net8.0-windows")]
-        [InlineData("net6.0-windows7.0", "net6.0-windows7.0", "net7.0-windows7.0", "net8.0-windows7.0")]
+        [InlineData("net6.0-windows7.0", "net6.0-windows7.0", "net7.0-windows", "net8.0-windows")]
         [InlineData("net7.0-windows", "net7.0-windows", "net8.0-windows")]
-        [InlineData("net7.0-windows7.0", "net7.0-windows7.0", "net8.0-windows7.0")]
+        [InlineData("net7.0-windows7.0", "net7.0-windows7.0", "net8.0-windows")]
         [InlineData("net5.0-windows", "net5.0-windows", "net6.0-windows", "net7.0-windows", "net8.0-windows")]
-        [InlineData("net5.0-windows7.0", "net5.0-windows7.0", "net6.0-windows7.0", "net7.0-windows7.0", "net8.0-windows7.0")]
+        [InlineData("net5.0-windows7.0", "net5.0-windows7.0", "net6.0-windows", "net7.0-windows", "net8.0-windows")]
         [InlineData("net6.0-ios", "net6.0-ios", "net7.0-ios", "net8.0-ios")]
-        [InlineData("net6.0-ios15.0", "net6.0-ios15.0", "net7.0-ios15.0", "net8.0-ios15.0")]
+        [InlineData("net6.0-ios15.0", "net6.0-ios15.0", "net7.0-ios", "net8.0-ios")]
         [InlineData("net6.0-android", "net6.0-android", "net7.0-android", "net8.0-android")]
-        [InlineData("net6.0-android31.0", "net6.0-android31.0", "net7.0-android31.0", "net8.0-android31.0")]
-        [InlineData("net6.0-windows26.0", "net6.0-windows26.0", "net7.0-windows26.0", "net8.0-windows26.0")]
-        public void PlatformVersionsShouldContainAllSpecifiedFrameworks(string platformVersionFramework, params string[] expectedFrameworks) 
+        [InlineData("net6.0-android31.0", "net6.0-android31.0", "net7.0-android", "net8.0-android")]
+        [InlineData("net6.0-windows99.0", "net6.0-windows99.0", "net7.0-windows", "net8.0-windows")]
+        public void PlatformVersionsShouldContainAllSpecifiedFrameworks(string platformVersionFramework, params string[] expectedFrameworks)
         {
             // Arrange
             var packageFramework = NuGetFramework.Parse(platformVersionFramework);
             var projectFrameworks = new HashSet<NuGetFramework>();
 
-            foreach (var frameworkName in expectedFrameworks) {
+            foreach (var frameworkName in expectedFrameworks)
+            {
                 projectFrameworks.Add(NuGetFramework.Parse(frameworkName));
             }
 
@@ -157,6 +158,40 @@ namespace NuGetGallery.Frameworks
             Assert.Equal(expectedFrameworks.Length, compatibleFrameworks.Count);
 
             var containsAllCompatibleFrameworks = compatibleFrameworks.All(cf => projectFrameworks.Contains(cf));
+            Assert.True(containsAllCompatibleFrameworks);
+        }
+
+        [Theory]
+        [InlineData(new string[] { "net5.0-windows7.0", "net6.0-windows" },
+                    new string[] { "net5.0-windows7.0", "net6.0-windows", "net7.0-windows", "net8.0-windows" })]
+        [InlineData(new string[] { "net5.0-windows", "net6.0-windows7.0" },
+                    new string[] { "net5.0-windows", "net6.0-windows", "net7.0-windows", "net8.0-windows", "net6.0-windows7.0" })]
+        [InlineData(new string[] { "net5.0-windows7.0", "net6.0-windows7.0" },
+                    new string[] { "net5.0-windows7.0", "net6.0-windows", "net7.0-windows", "net8.0-windows", "net6.0-windows7.0" })]
+        [InlineData(new string[] { "net5.0-windows99.0", "net6.0-windows99.0" },
+                    new string[] { "net5.0-windows99.0", "net6.0-windows", "net7.0-windows", "net8.0-windows", "net6.0-windows99.0" })]
+        public void MultiplePlatformVersionCasesShouldContainAllSpecifiedFrameworks(string[] platformVersionFrameworks, string[] expectedFrameworks)
+        {
+            // Arrange
+            var packageFrameworks = new HashSet<NuGetFramework>();
+            foreach (var frameworkName in platformVersionFrameworks)
+            {
+                packageFrameworks.Add(NuGetFramework.Parse(frameworkName));
+            }
+
+            var expectedComputedFrameworks = new HashSet<NuGetFramework>();
+            foreach (var frameworkName in expectedFrameworks)
+            {
+                expectedComputedFrameworks.Add(NuGetFramework.Parse(frameworkName));
+            }
+
+            // Act
+            var compatibleFrameworks = FrameworkCompatibilityService.GetCompatibleFrameworks(packageFrameworks);
+
+            // Assert
+            Assert.Equal(expectedFrameworks.Length, compatibleFrameworks.Count);
+
+            var containsAllCompatibleFrameworks = compatibleFrameworks.All(cf => expectedComputedFrameworks.Contains(cf));
             Assert.True(containsAllCompatibleFrameworks);
         }
     }

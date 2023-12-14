@@ -47,7 +47,10 @@ namespace NuGetGallery.Frameworks
                 {
                     if (hasPlatformVersion)
                     {
-                        compatibleFrameworks = AddPlatformVersionToComputedTfms(compatibleFrameworks, packageFramework.PlatformVersion);
+                        compatibleFrameworks = compatibleFrameworks.ToHashSet(); // make a copy
+
+                        compatibleFrameworks.Remove(normalizedPackageFramework);
+                        compatibleFrameworks.Add(packageFramework);
                     }
 
                     allCompatibleFrameworks.UnionWith(compatibleFrameworks);
@@ -81,13 +84,6 @@ namespace NuGetGallery.Frameworks
             }
 
             return matrix;
-        }
-
-        private static ISet<NuGetFramework> AddPlatformVersionToComputedTfms(ISet<NuGetFramework> computedTfms, Version platformVersion)
-        {
-            return computedTfms
-                        .Select(tfm => new NuGetFramework(tfm.Framework, tfm.Version, tfm.Platform, platformVersion))
-                        .ToHashSet();
         }
     }
 }
