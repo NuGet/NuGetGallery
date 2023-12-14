@@ -10,14 +10,25 @@ A typical command line will look like this:
 VerifyGitHubVulnerabilities.exe -Configuration appsettings.json -InstrumentationKey <key> -HeartbeatIntervalSeconds 60
 ```
 
-### Using DEV resources
-
-The easiest way to run the tool if you are on the nuget.org team is to use the DEV environment resources:
+Setup for this command:
 
 1. Install the certificate used to authenticate as our client Microsoft Entra ID app registration into your `CurrentUser` certificate store.
-1. Clone our internal [`NuGetDeployment`](https://nuget.visualstudio.com/DefaultCollection/NuGetMicrosoft/_git/NuGetDeploymentp) repository.
-1. Take a copy of the [DEV VerifyGitHubVulnerabilities appsettings.json](https://nuget.visualstudio.com/NuGetMicrosoft/_git/NuGetDeployment?path=%2Fsrc%2FJobs%2FNuGet.Jobs.Cloud%2FJobs%VerifyGitHubVulnerabilities%2FDEV%2Fnorthcentralus%2Fappsettings.json) file and place it in the same directory as the `VerifyGitHubVulnerabilities.exe`. This will use our secrets to authenticate to the SQL server (this file also contains a reference to the secret used for the access token to GitHub).
-1. Run as per above.
+1. Create a file called `appsettings.json` in the same driectory as the `VerifyGitHubVulnerabilities.exe`. The contents of this JSON file should look like the following:
+
+   ```
+   {
+     "GalleryDb": {
+       "ConnectionString": <connection string>
+     },
+     "Initialization": {
+       "GitHubPersonalAccessToken": "<PAT for GitHub database access>",
+       "NuGetV3Index": "<index for v3 endpoint>"
+     },
+     "KeyVault_VaultName": "<key vault for secrets>",
+     "KeyVault_UseManagedIdentity": true
+   }
+   ```
+
 
 ## Algorithm
 
