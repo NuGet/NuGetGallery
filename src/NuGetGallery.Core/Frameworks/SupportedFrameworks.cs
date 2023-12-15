@@ -44,6 +44,7 @@ namespace NuGetGallery.Frameworks
         public static readonly NuGetFramework Net70Windows = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version7, "windows", EmptyVersion);
         public static readonly NuGetFramework Net80 = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version8); // https://github.com/NuGet/Engineering/issues/5112
         public static readonly NuGetFramework Net80Android = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version8, "android", EmptyVersion);
+        public static readonly NuGetFramework Net80Browser = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version8, "browser", EmptyVersion);
         public static readonly NuGetFramework Net80Ios = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version8, "ios", EmptyVersion);
         public static readonly NuGetFramework Net80MacOs = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version8, "macos", EmptyVersion);
         public static readonly NuGetFramework Net80MacCatalyst = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version8, "maccatalyst", EmptyVersion);
@@ -73,7 +74,7 @@ namespace NuGetGallery.Frameworks
                 Net50, Net50Windows,
                 Net60, Net60Android, Net60Ios, Net60MacCatalyst, Net60MacOs, Net60TvOs, Net60Windows,
                 Net70, Net70Android, Net70Ios, Net70MacCatalyst, Net70MacOs, Net70TvOs, Net70Windows,
-                Net80, Net80Android, Net80Ios, Net80MacCatalyst, Net80MacOs, Net80TvOs, Net80Windows,
+                Net80, Net80Android, Net80Ios, Net80MacCatalyst, Net80MacOs, Net80TvOs, Net80Windows, Net80Browser,
                 NetCore, NetCore45, NetCore451,
                 NetCoreApp10, NetCoreApp11, NetCoreApp20, NetCoreApp21, NetCoreApp22, NetCoreApp30, NetCoreApp31,
                 NetMf,
