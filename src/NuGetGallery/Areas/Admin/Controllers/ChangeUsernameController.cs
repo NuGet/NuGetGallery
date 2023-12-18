@@ -83,7 +83,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpGet]
-        public ActionResult ValidateNewUsername(string newUsername)
+        public ActionResult ValidateNewUsername(string newUsername, bool checkOwnedPackages)
         {
             if (string.IsNullOrEmpty(newUsername))
             {
