@@ -58,6 +58,8 @@
         <i>Validate if the new username is available and has a valid format.</i><br />
 
         <input type="text" placeholder="New username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="value: newUsername" />
+        <input type="checkbox" id="checkNonDeletedOwnedPackages" data-bind="value: checkOwnedPackages" />
+        <label for="checkNonDeletedOwnedPackages">Check Non-Deleted Owned Packages</label>
         <button type="submit" data-bind="click: validateNewUsername">Validate</button>
         <div style="display:none" data-bind="visible: errorNewUsername">
             @ViewHelpers.AlertDanger(@<text><span data-bind="text: errorNewUsername"></span></text>)
@@ -105,6 +107,7 @@
                 }
                 this.accountAdministrators = ko.observableArray([]);
                 this.newUsername = ko.observable('');
+                this.checkOwnedPackages = ko.observable(false);
                 this.validatationUsernameResult = {
                     IsFormatValid: ko.observable(false),
                     IsAvailable: ko.observable(false)
@@ -168,7 +171,7 @@
                         return;
                     }
 
-                    var queryParams = '?newUsername=' + encodeURIComponent($self.newUsername().trim());
+                    var queryParams = '?newUsername=' + encodeURIComponent($self.newUsername().trim()) + '&checkOwnedPackages=' + encodeURIComponent($self.checkOwnedPackages());
 
                     $.ajax({
                         url: actionUrlValidateNewUsername + queryParams,
