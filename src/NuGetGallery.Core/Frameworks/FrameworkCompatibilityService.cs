@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NuGet.Frameworks;
 
 namespace NuGetGallery.Frameworks
@@ -29,8 +30,29 @@ namespace NuGetGallery.Frameworks
                     continue;
                 }
 
-                if (CompatibilityMatrix.TryGetValue(packageFramework, out var compatibleFrameworks))
+                var normalizedPackageFramework = packageFramework;
+                bool hasPlatformVersion = false;
+
+                if (!string.IsNullOrEmpty(packageFramework.Platform) && (packageFramework.PlatformVersion != FrameworkConstants.EmptyVersion))
                 {
+                    normalizedPackageFramework = new NuGetFramework(packageFramework.Framework,
+                                                                    packageFramework.Version,
+                                                                    packageFramework.Platform,
+                                                                    FrameworkConstants.EmptyVersion);
+
+                    hasPlatformVersion = true;
+                }
+
+                if (CompatibilityMatrix.TryGetValue(normalizedPackageFramework, out var compatibleFrameworks))
+                {
+                    if (hasPlatformVersion)
+                    {
+                        compatibleFrameworks = compatibleFrameworks.ToHashSet(); // make a copy
+
+                        compatibleFrameworks.Remove(normalizedPackageFramework);
+                        compatibleFrameworks.Add(packageFramework);
+                    }
+
                     allCompatibleFrameworks.UnionWith(compatibleFrameworks);
                 }
                 else
@@ -60,11 +82,6 @@ namespace NuGetGallery.Frameworks
                     }
                 }
             }
-
-            matrix.Add(SupportedFrameworks.Net60Windows7, 
-                new HashSet<NuGetFramework>() {
-                    SupportedFrameworks.Net60Windows, SupportedFrameworks.Net60Windows7,
-                    SupportedFrameworks.Net70Windows, SupportedFrameworks.Net70Windows7 });
 
             return matrix;
         }
