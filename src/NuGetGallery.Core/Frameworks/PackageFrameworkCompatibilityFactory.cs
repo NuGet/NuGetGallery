@@ -22,7 +22,7 @@ namespace NuGetGallery.Frameworks
         private readonly NuGetFrameworkSorter Sorter = new NuGetFrameworkSorter();
         private readonly int NetStartingMajorVersion = 5;
 
-        public PackageFrameworkCompatibility Create(ICollection<PackageFramework> packageFrameworks)
+        public PackageFrameworkCompatibility Create(ICollection<PackageFramework> packageFrameworks, bool includeComputedBadges = false)
         {
             if (packageFrameworks == null)
             {
@@ -35,7 +35,7 @@ namespace NuGetGallery.Frameworks
                 .ToHashSet();
 
             var table = CreateFrameworkCompatibilityTable(filteredPackageFrameworks);
-            var badges = CreateFrameworkCompatibilityBadges(table);
+            var badges = CreateFrameworkCompatibilityBadges(table, includeComputedBadges);
 
             return new PackageFrameworkCompatibility
             {
@@ -44,16 +44,16 @@ namespace NuGetGallery.Frameworks
             };
         }
 
-        private IReadOnlyDictionary<string, IReadOnlyCollection<PackageFrameworkCompatibilityTableData>> CreateFrameworkCompatibilityTable(ICollection<NuGetFramework> filteredPackageFrameworks)
+        private IReadOnlyDictionary<string, IReadOnlyCollection<PackageFrameworkCompatibilityData>> CreateFrameworkCompatibilityTable(ICollection<NuGetFramework> filteredPackageFrameworks)
         {
             var compatibleFrameworks = FrameworkCompatibilityService.GetCompatibleFrameworks(filteredPackageFrameworks);
 
-            var table = new Dictionary<string, SortedSet<PackageFrameworkCompatibilityTableData>>();
+            var table = new Dictionary<string, SortedSet<PackageFrameworkCompatibilityData>>();
 
             foreach (var compatibleFramework in compatibleFrameworks)
             {
                 var productName = ResolveFrameworkProductName(compatibleFramework);
-                var data = new PackageFrameworkCompatibilityTableData
+                var data = new PackageFrameworkCompatibilityData
                 {
                     Framework = compatibleFramework,
                     IsComputed = !filteredPackageFrameworks.Contains(compatibleFramework)
@@ -65,8 +65,8 @@ namespace NuGetGallery.Frameworks
                 }
                 else
                 {
-                    var newCompatibleFrameworks = new SortedSet<PackageFrameworkCompatibilityTableData>
-                        (Comparer<PackageFrameworkCompatibilityTableData>.Create((a, b) => Sorter.Compare(a.Framework, b.Framework)));
+                    var newCompatibleFrameworks = new SortedSet<PackageFrameworkCompatibilityData>
+                        (Comparer<PackageFrameworkCompatibilityData>.Create((a, b) => Sorter.Compare(a.Framework, b.Framework)));
 
                     newCompatibleFrameworks.Add(data);
                     table.Add(productName, newCompatibleFrameworks);
@@ -118,9 +118,9 @@ namespace NuGetGallery.Frameworks
             return framework.Framework;
         }
 
-        private IReadOnlyDictionary<string, IReadOnlyCollection<PackageFrameworkCompatibilityTableData>> OrderDictionaryKeys(Dictionary<string, SortedSet<PackageFrameworkCompatibilityTableData>> table)
+        private IReadOnlyDictionary<string, IReadOnlyCollection<PackageFrameworkCompatibilityData>> OrderDictionaryKeys(Dictionary<string, SortedSet<PackageFrameworkCompatibilityData>> table)
         {
-            var orderedTable = new Dictionary<string, IReadOnlyCollection<PackageFrameworkCompatibilityTableData>>();
+            var orderedTable = new Dictionary<string, IReadOnlyCollection<PackageFrameworkCompatibilityData>>();
 
             AddOrderedKey(table, orderedTable, FrameworkProductNames.Net);
             AddOrderedKey(table, orderedTable, FrameworkProductNames.NetCore);
@@ -139,7 +139,7 @@ namespace NuGetGallery.Frameworks
             return orderedTable;
         }
 
-        private void AddOrderedKey(Dictionary<string, SortedSet<PackageFrameworkCompatibilityTableData>> table, Dictionary<string, IReadOnlyCollection<PackageFrameworkCompatibilityTableData>> orderedTable, string framework)
+        private void AddOrderedKey(Dictionary<string, SortedSet<PackageFrameworkCompatibilityData>> table, Dictionary<string, IReadOnlyCollection<PackageFrameworkCompatibilityData>> orderedTable, string framework)
         {
             if (table.TryGetValue(framework, out var compatibleFrameworks))
             {
@@ -147,12 +147,12 @@ namespace NuGetGallery.Frameworks
             }
         }
 
-        private PackageFrameworkCompatibilityBadges CreateFrameworkCompatibilityBadges(IReadOnlyDictionary<string, IReadOnlyCollection<PackageFrameworkCompatibilityTableData>> table)
+        private PackageFrameworkCompatibilityBadges CreateFrameworkCompatibilityBadges(IReadOnlyDictionary<string, IReadOnlyCollection<PackageFrameworkCompatibilityData>> table, bool includeComputed = false)
         {
-            var net = GetBadgeFramework(table, FrameworkProductNames.Net);
-            var netCore = GetBadgeFramework(table, FrameworkProductNames.NetCore);
-            var netStandard = GetBadgeFramework(table, FrameworkProductNames.NetStandard);
-            var netFramework = GetBadgeFramework(table, FrameworkProductNames.NetFramework);
+            var net = GetBadgeFramework(table, FrameworkProductNames.Net, includeComputed);
+            var netCore = GetBadgeFramework(table, FrameworkProductNames.NetCore, includeComputed);
+            var netStandard = GetBadgeFramework(table, FrameworkProductNames.NetStandard, includeComputed);
+            var netFramework = GetBadgeFramework(table, FrameworkProductNames.NetFramework, includeComputed);
 
             return new PackageFrameworkCompatibilityBadges
             {
@@ -163,14 +163,13 @@ namespace NuGetGallery.Frameworks
             };
         }
 
-        private NuGetFramework GetBadgeFramework(IReadOnlyDictionary<string, IReadOnlyCollection<PackageFrameworkCompatibilityTableData>> table, string productName)
+        private PackageFrameworkCompatibilityData GetBadgeFramework(IReadOnlyDictionary<string, IReadOnlyCollection<PackageFrameworkCompatibilityData>> table, string productName, bool includeComputed = false)
         {
             if (table.TryGetValue(productName, out var data))
             {
                 return data
-                    .Where(d => !d.IsComputed)
-                    .Select(d => d.Framework)
-                    .FirstOrDefault();
+                        .Where(d => includeComputed || !d.IsComputed)
+                        .FirstOrDefault();
             }
 
             return null;

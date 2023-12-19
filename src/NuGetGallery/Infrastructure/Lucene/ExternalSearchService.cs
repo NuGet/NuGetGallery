@@ -184,7 +184,7 @@ namespace NuGetGallery.Infrastructure.Search
                    .ToArray();
 
             var frameworks =
-                doc.Value<JArray>("SupportedFrameworks")
+                doc.Value<JArray>("Tfms")
                    .Select(v => new PackageFramework() { TargetFramework = v.Value<string>() })
                    .ToArray();
 

@@ -10,14 +10,14 @@ namespace NuGetGallery.Frameworks
     /// </summary>
     /// <remarks>
     /// All these properties are retrieved from the <see cref="PackageFrameworkCompatibility.Table"/>, one for each .NET product.<br></br>
-    /// Only package asset frameworks are considered. i.e. <see cref="PackageFrameworkCompatibilityTableData.IsComputed"/> <c>= false</c>.<br></br>
+    /// Only package asset frameworks are considered. i.e. <see cref="PackageFrameworkCompatibilityData.IsComputed"/> <c>= false</c>.<br></br>
     /// If there are no package asset frameworks for a particular .NET product, then the value will be <c>null</c>.
     /// </remarks>
     public class PackageFrameworkCompatibilityBadges
     {
-        public NuGetFramework Net { get; set; }
-        public NuGetFramework NetCore { get; set; }
-        public NuGetFramework NetStandard { get; set; }
-        public NuGetFramework NetFramework { get; set; }
+        public PackageFrameworkCompatibilityData Net { get; set; }
+        public PackageFrameworkCompatibilityData NetCore { get; set; }
+        public PackageFrameworkCompatibilityData NetStandard { get; set; }
+        public PackageFrameworkCompatibilityData NetFramework { get; set; }
     }
 }

@@ -282,6 +282,16 @@ img.reserved-indicator-icon {
     overflow-y: hidden;
     padding-right: 10px;
   }
+  .package-list li.package-tfm-badges {
+    display: block;
+    overflow-y: visible;
+  }
+  .package-list li.package-tfm-badges .framework-badges {
+    margin-bottom: 2px;
+  }
+  .package-list li.package-tfm-badges .framework-badges .framework-badge-computed {
+    color: #000;
+  }
   .package-list li.package-tags {
     display: block;
     overflow-y: visible;

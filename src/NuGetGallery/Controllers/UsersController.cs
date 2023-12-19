@@ -18,6 +18,7 @@ using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
+using NuGetGallery.Frameworks;
 using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Mail.Messages;
@@ -55,7 +56,8 @@ namespace NuGetGallery
             IPackageVulnerabilitiesService packageVulnerabilitiesService,
             IMessageServiceConfiguration messageServiceConfiguration,
             IIconUrlProvider iconUrlProvider,
-            IGravatarProxyService gravatarProxy)
+            IGravatarProxyService gravatarProxy,
+            IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory)
             : base(
                   authService,
                   packageService,
@@ -69,7 +71,8 @@ namespace NuGetGallery
                   deleteAccountService,
                   iconUrlProvider,
                   gravatarProxy,
-                  featureFlagService)
+                  featureFlagService,
+                  frameworkCompatibilityFactory)
         {
             _packageOwnerRequestService = packageOwnerRequestService ?? throw new ArgumentNullException(nameof(packageOwnerRequestService));
             _config = config ?? throw new ArgumentNullException(nameof(config));
@@ -79,8 +82,8 @@ namespace NuGetGallery
             _packageVulnerabilitiesService = packageVulnerabilitiesService ?? throw new ArgumentNullException(nameof(packageVulnerabilitiesService));
 
             _listPackageItemRequiredSignerViewModelFactory = new ListPackageItemRequiredSignerViewModelFactory(
-                securityPolicyService, iconUrlProvider, packageVulnerabilitiesService);
-            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(iconUrlProvider);
+                securityPolicyService, iconUrlProvider, packageVulnerabilitiesService, frameworkCompatibilityFactory);
+            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(iconUrlProvider, frameworkCompatibilityFactory);
         }
 
         public override string AccountAction => nameof(Account);
@@ -748,7 +751,7 @@ namespace NuGetGallery
                 .OrderByDescending(p => p.PackageRegistration.DownloadCount)
                 .Select(p =>
                 {
-                    var viewModel = _listPackageItemViewModelFactory.Create(p, currentUser);
+                    var viewModel = _listPackageItemViewModelFactory.Create(p, currentUser, false);
                     viewModel.DownloadCount = p.PackageRegistration.DownloadCount;
                     return viewModel;
                 }).ToList();

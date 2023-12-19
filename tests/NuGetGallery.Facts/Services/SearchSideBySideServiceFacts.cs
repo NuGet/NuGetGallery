@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
+using NuGetGallery.Frameworks;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Infrastructure.Search.Models;
 using Xunit;
@@ -134,6 +135,7 @@ namespace NuGetGallery
                 MessageService = new Mock<IMessageService>();
                 MessageServiceConfiguration = new Mock<IMessageServiceConfiguration>();
                 IconUrlProvider = new Mock<IIconUrlProvider>();
+                var compatibilityFactory = new Mock<IPackageFrameworkCompatibilityFactory>();
 
                 CurrentUser = new User
                 {
@@ -184,7 +186,8 @@ namespace NuGetGallery
                     TelemetryService.Object,
                     MessageService.Object,
                     MessageServiceConfiguration.Object,
-                    IconUrlProvider.Object);
+                    IconUrlProvider.Object,
+                    compatibilityFactory.Object);
             }
 
             public Mock<ISearchService> OldSearchService { get; }

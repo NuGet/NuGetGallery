@@ -3,6 +3,7 @@
 
 using System.Linq;
 using NuGet.Services.Entities;
+using NuGetGallery.Frameworks;
 using NuGetGallery.Helpers;
 
 namespace NuGetGallery
@@ -10,25 +11,27 @@ namespace NuGetGallery
     public class ListPackageItemViewModelFactory
     {
         private readonly PackageViewModelFactory _packageViewModelFactory;
+        private readonly IPackageFrameworkCompatibilityFactory _frameworkCompatibilityFactory;
 
-        public ListPackageItemViewModelFactory(IIconUrlProvider iconUrlProvider)
+        public ListPackageItemViewModelFactory(IIconUrlProvider iconUrlProvider, IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory)
         {
             _packageViewModelFactory = new PackageViewModelFactory(iconUrlProvider);
+            _frameworkCompatibilityFactory = frameworkCompatibilityFactory;
         }
 
-        public ListPackageItemViewModel Create(Package package, User currentUser)
+        public ListPackageItemViewModel Create(Package package, User currentUser, bool includeComputedBadges = false)
         {
             var viewModel = new ListPackageItemViewModel();
-            return Setup(viewModel, package, currentUser);
+            return Setup(viewModel, package, currentUser, includeComputedBadges);
         }
 
-        public ListPackageItemViewModel Setup(ListPackageItemViewModel viewModel, Package package, User currentUser)
+        public ListPackageItemViewModel Setup(ListPackageItemViewModel viewModel, Package package, User currentUser, bool includeComputedBadges = false)
         {
             _packageViewModelFactory.Setup(viewModel, package);
-            return SetupInternal(viewModel, package, currentUser);
+            return SetupInternal(viewModel, package, currentUser, includeComputedBadges);
         }
 
-        private ListPackageItemViewModel SetupInternal(ListPackageItemViewModel viewModel, Package package, User currentUser)
+        private ListPackageItemViewModel SetupInternal(ListPackageItemViewModel viewModel, Package package, User currentUser, bool includeComputedBadges = false)
         {
             viewModel.Tags = package.Tags?
                 .Split(' ')
@@ -42,6 +45,9 @@ namespace NuGetGallery
             viewModel.IsVerified = package.PackageRegistration?.IsVerified;
             viewModel.IsDeprecated = package.Deprecations?.Count > 0;
             viewModel.IsVulnerable = package.VulnerablePackageRanges?.Count > 0;
+
+            PackageFrameworkCompatibility packageFrameworkCompatibility = _frameworkCompatibilityFactory.Create(package.SupportedFrameworks, includeComputedBadges);
+            viewModel.FrameworkBadges = packageFrameworkCompatibility?.Badges;
 
             if (viewModel.IsDeprecated)
             {

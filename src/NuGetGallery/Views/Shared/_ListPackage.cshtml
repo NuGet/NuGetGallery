@@ -99,6 +99,9 @@
             }
 
             <ul class="package-list">
+                <li class="package-tfm-badges">
+                    @Html.Partial("../Packages/_SupportedFrameworksBadges", Model.FrameworkBadges)
+                </li>
                 <li>
                     <span class="icon-text">
                         <i class="ms-Icon ms-Icon--Download" aria-hidden="true"></i>
