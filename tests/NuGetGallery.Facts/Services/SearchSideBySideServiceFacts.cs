@@ -136,6 +136,7 @@ namespace NuGetGallery
                 MessageServiceConfiguration = new Mock<IMessageServiceConfiguration>();
                 IconUrlProvider = new Mock<IIconUrlProvider>();
                 var compatibilityFactory = new Mock<IPackageFrameworkCompatibilityFactory>();
+                var featureFlagService = new Mock<IFeatureFlagService>();
 
                 CurrentUser = new User
                 {
@@ -187,7 +188,8 @@ namespace NuGetGallery
                     MessageService.Object,
                     MessageServiceConfiguration.Object,
                     IconUrlProvider.Object,
-                    compatibilityFactory.Object);
+                    compatibilityFactory.Object,
+                    featureFlagService.Object);
             }
 
             public Mock<ISearchService> OldSearchService { get; }

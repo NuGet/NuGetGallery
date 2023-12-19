@@ -91,7 +91,7 @@ namespace NuGetGallery
             GravatarProxy = gravatarProxy ?? throw new ArgumentNullException(nameof(gravatarProxy));
             FeatureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
 
-            _deleteAccountListPackageItemViewModelFactory = new DeleteAccountListPackageItemViewModelFactory(PackageService, IconUrlProvider, frameworkCompatibilityFactory);
+            _deleteAccountListPackageItemViewModelFactory = new DeleteAccountListPackageItemViewModelFactory(PackageService, IconUrlProvider, frameworkCompatibilityFactory, featureFlagService);
         }
 
         public abstract string AccountAction { get; }

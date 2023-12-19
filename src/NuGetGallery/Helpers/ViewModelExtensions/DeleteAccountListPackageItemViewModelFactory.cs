@@ -12,9 +12,9 @@ namespace NuGetGallery
         private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
         private readonly IPackageService _packageService;
 
-        public DeleteAccountListPackageItemViewModelFactory(IPackageService packageService, IIconUrlProvider iconUrlProvider, IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory)
+        public DeleteAccountListPackageItemViewModelFactory(IPackageService packageService, IIconUrlProvider iconUrlProvider, IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory, IFeatureFlagService featureFlagService)
         {
-            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(iconUrlProvider, frameworkCompatibilityFactory);
+            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(iconUrlProvider, frameworkCompatibilityFactory, featureFlagService);
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
         }
 

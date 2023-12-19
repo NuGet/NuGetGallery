@@ -224,11 +224,11 @@ namespace NuGetGallery
             _abTestService = abTestService ?? throw new ArgumentNullException(nameof(abTestService));
             _iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
 
-            _displayPackageViewModelFactory = new DisplayPackageViewModelFactory(_iconUrlProvider, _compatibilityFactory);
+            _displayPackageViewModelFactory = new DisplayPackageViewModelFactory(_iconUrlProvider, _compatibilityFactory, featureFlagService);
             _displayLicenseViewModelFactory = new DisplayLicenseViewModelFactory(_iconUrlProvider, _markdownService, _featureFlagService);
-            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(_iconUrlProvider, _compatibilityFactory);
-            _managePackageViewModelFactory = new ManagePackageViewModelFactory(_iconUrlProvider, _compatibilityFactory);
-            _deletePackageViewModelFactory = new DeletePackageViewModelFactory(_iconUrlProvider, _compatibilityFactory);
+            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(_iconUrlProvider, _compatibilityFactory, _featureFlagService);
+            _managePackageViewModelFactory = new ManagePackageViewModelFactory(_iconUrlProvider, _compatibilityFactory, featureFlagService);
+            _deletePackageViewModelFactory = new DeletePackageViewModelFactory(_iconUrlProvider, _compatibilityFactory, featureFlagService);
         }
 
         [HttpGet]

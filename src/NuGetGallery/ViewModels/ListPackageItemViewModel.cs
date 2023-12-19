@@ -58,6 +58,7 @@ namespace NuGetGallery
         public bool CanReportAsOwner { get; set; }
         public bool CanSeeBreadcrumbWithProfile { get; set; }
         public bool CanDeleteSymbolsPackage { get; set; }
+        public bool CanDisplayTfmBadges { get; set; }
         public bool CanDeprecate { get; set; }
 
         public string VulnerabilityTitle { get; set; }

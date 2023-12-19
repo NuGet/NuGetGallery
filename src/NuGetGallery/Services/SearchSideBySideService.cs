@@ -29,7 +29,8 @@ namespace NuGetGallery
             IMessageService messageService,
             IMessageServiceConfiguration messageServiceConfiguration,
             IIconUrlProvider iconUrlProvider,
-            IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory)
+            IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory,
+            IFeatureFlagService featureFlagService)
         {
             _oldSearchService = oldSearchService ?? throw new ArgumentNullException(nameof(oldSearchService));
             _newSearchService = newSearchService ?? throw new ArgumentNullException(nameof(newSearchService));
@@ -38,7 +39,7 @@ namespace NuGetGallery
             _messageServiceConfiguration = messageServiceConfiguration ?? throw new ArgumentNullException(nameof(messageServiceConfiguration));
             _iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
 
-            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(_iconUrlProvider, frameworkCompatibilityFactory);
+            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(_iconUrlProvider, frameworkCompatibilityFactory, featureFlagService);
         }
 
         public async Task<SearchSideBySideViewModel> SearchAsync(string searchTerm, User currentUser)

@@ -39,7 +39,7 @@ namespace NuGetGallery.ViewModels
         public void WhenPackageIsNull_Throws()
         {
             var target = new ListPackageItemRequiredSignerViewModelFactory(
-                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>());
+                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>(), Mock.Of<IFeatureFlagService>());
             var exception = Assert.Throws<ArgumentNullException>(() => target.Create(
                 package: null,
                 currentUser: _currentUser,
@@ -57,7 +57,7 @@ namespace NuGetGallery.ViewModels
                 Version = "1.0.0"
             };
             var target = new ListPackageItemRequiredSignerViewModelFactory(
-                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>());
+                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>(), Mock.Of<IFeatureFlagService>());
 
             var exception = Assert.Throws<ArgumentNullException>(
                 () => target.Create(
@@ -78,7 +78,7 @@ namespace NuGetGallery.ViewModels
             };
 
             var exception = Assert.Throws<ArgumentNullException>(() => new ListPackageItemRequiredSignerViewModelFactory(
-                null, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>()));
+                null, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>(), Mock.Of<IFeatureFlagService>()));
 
             Assert.Equal("securityPolicyService", exception.ParamName);
         }
@@ -100,7 +100,7 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(policyName => policyName == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(false);
             var target = new ListPackageItemRequiredSignerViewModelFactory(
-                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>());
+                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>(), Mock.Of<IFeatureFlagService>());
 
             var viewModel = target.Create(
                 package,
@@ -131,7 +131,7 @@ namespace NuGetGallery.ViewModels
                 Version = "1.0.0"
             };
             var target = new ListPackageItemRequiredSignerViewModelFactory(
-                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>());
+                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>(), Mock.Of<IFeatureFlagService>());
 
             _securityPolicyService.Setup(x => x.IsSubscribed(
                     It.Is<User>(user => user == _currentUser),
@@ -167,7 +167,7 @@ namespace NuGetGallery.ViewModels
                 Version = "1.0.0"
             };
             var target = new ListPackageItemRequiredSignerViewModelFactory(
-                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>());
+                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>(), Mock.Of<IFeatureFlagService>());
 
             _securityPolicyService.Setup(x => x.IsSubscribed(
                     It.Is<User>(user => user == _currentUser),
@@ -202,7 +202,7 @@ namespace NuGetGallery.ViewModels
                 Version = "1.0.0"
             };
             var target = new ListPackageItemRequiredSignerViewModelFactory(
-                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>());
+                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>(), Mock.Of<IFeatureFlagService>());
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -238,7 +238,7 @@ namespace NuGetGallery.ViewModels
                 Version = "1.0.0"
             };
             var target = new ListPackageItemRequiredSignerViewModelFactory(
-                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>());
+                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>(), Mock.Of<IFeatureFlagService>());
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -289,7 +289,7 @@ namespace NuGetGallery.ViewModels
                 Version = "1.0.0"
             };
             var target = new ListPackageItemRequiredSignerViewModelFactory(
-                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>());
+                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>(), Mock.Of<IFeatureFlagService>());
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -326,7 +326,7 @@ namespace NuGetGallery.ViewModels
                 Version = "1.0.0"
             };
             var target = new ListPackageItemRequiredSignerViewModelFactory(
-                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>());
+                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>(), Mock.Of<IFeatureFlagService>());
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -363,7 +363,7 @@ namespace NuGetGallery.ViewModels
                 Version = "1.0.0"
             };
             var target = new ListPackageItemRequiredSignerViewModelFactory(
-                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>());
+                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>(), Mock.Of<IFeatureFlagService>());
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -427,7 +427,7 @@ namespace NuGetGallery.ViewModels
                 Version = "1.0.0"
             };
             var target = new ListPackageItemRequiredSignerViewModelFactory(
-                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>());
+                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>(), Mock.Of<IFeatureFlagService>());
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -464,7 +464,7 @@ namespace NuGetGallery.ViewModels
                 Version = "1.0.0"
             };
             var target = new ListPackageItemRequiredSignerViewModelFactory(
-                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>());
+                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>(), Mock.Of<IFeatureFlagService>());
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -501,7 +501,7 @@ namespace NuGetGallery.ViewModels
                 Version = "1.0.0"
             };
             var target = new ListPackageItemRequiredSignerViewModelFactory(
-                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>());
+                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>(), Mock.Of<IFeatureFlagService>());
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -549,7 +549,7 @@ namespace NuGetGallery.ViewModels
                 Version = "1.0.0"
             };
             var target = new ListPackageItemRequiredSignerViewModelFactory(
-                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>());
+                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>(), Mock.Of<IFeatureFlagService>());
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -608,7 +608,7 @@ namespace NuGetGallery.ViewModels
                 Version = "1.0.0"
             };
             var target = new ListPackageItemRequiredSignerViewModelFactory(
-                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>());
+                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>(), Mock.Of<IFeatureFlagService>());
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(

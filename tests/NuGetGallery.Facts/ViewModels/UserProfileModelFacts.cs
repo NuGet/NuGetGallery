@@ -135,7 +135,7 @@ namespace NuGetGallery.ViewModels
 
             private ListPackageItemViewModel CreatePackageItemViewModel(string version)
             {
-                return new ListPackageItemViewModelFactory(Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageFrameworkCompatibilityFactory>()).Create(new Package
+                return new ListPackageItemViewModelFactory(Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageFrameworkCompatibilityFactory>(), Mock.Of<IFeatureFlagService>()).Create(new Package
                 {
                     PackageRegistration = new PackageRegistration
                     {

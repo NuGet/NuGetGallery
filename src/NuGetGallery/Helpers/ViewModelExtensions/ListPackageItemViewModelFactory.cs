@@ -1,8 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using NuGet.Services.Entities;
+using NuGetGallery;
 using NuGetGallery.Frameworks;
 using NuGetGallery.Helpers;
 
@@ -12,11 +14,13 @@ namespace NuGetGallery
     {
         private readonly PackageViewModelFactory _packageViewModelFactory;
         private readonly IPackageFrameworkCompatibilityFactory _frameworkCompatibilityFactory;
+        private readonly IFeatureFlagService _featureFlagService;
 
-        public ListPackageItemViewModelFactory(IIconUrlProvider iconUrlProvider, IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory)
+        public ListPackageItemViewModelFactory(IIconUrlProvider iconUrlProvider, IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory, IFeatureFlagService featureFlagService)
         {
             _packageViewModelFactory = new PackageViewModelFactory(iconUrlProvider);
             _frameworkCompatibilityFactory = frameworkCompatibilityFactory;
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
         }
 
         public ListPackageItemViewModel Create(Package package, User currentUser, bool includeComputedBadges = false)
@@ -46,9 +50,6 @@ namespace NuGetGallery
             viewModel.IsDeprecated = package.Deprecations?.Count > 0;
             viewModel.IsVulnerable = package.VulnerablePackageRanges?.Count > 0;
 
-            PackageFrameworkCompatibility packageFrameworkCompatibility = _frameworkCompatibilityFactory.Create(package.SupportedFrameworks, includeComputedBadges);
-            viewModel.FrameworkBadges = packageFrameworkCompatibility?.Badges;
-
             if (viewModel.IsDeprecated)
             {
                 viewModel.DeprecationTitle = WarningTitleHelper.GetDeprecationTitle(package.Version, package.Deprecations.First().Status);
@@ -68,6 +69,10 @@ namespace NuGetGallery
             viewModel.CanSeeBreadcrumbWithProfile = CanPerformAction(currentUser, package, ActionsRequiringPermissions.ShowProfileBreadcrumb);
             viewModel.CanDeleteSymbolsPackage = CanPerformAction(currentUser, package, ActionsRequiringPermissions.DeleteSymbolPackage);
             viewModel.CanDeprecate = CanPerformAction(currentUser, package, ActionsRequiringPermissions.DeprecatePackage);
+            viewModel.CanDisplayTfmBadges = _featureFlagService.IsDisplayTfmBadgesEnabled(currentUser);
+
+            PackageFrameworkCompatibility packageFrameworkCompatibility = _frameworkCompatibilityFactory.Create(package.SupportedFrameworks, includeComputedBadges);
+            viewModel.FrameworkBadges = viewModel.CanDisplayTfmBadges ? packageFrameworkCompatibility?.Badges : new PackageFrameworkCompatibilityBadges();
 
             viewModel.SetShortDescriptionFrom(viewModel.Description);
 

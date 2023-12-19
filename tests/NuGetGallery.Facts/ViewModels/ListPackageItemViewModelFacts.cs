@@ -504,7 +504,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
 
         private static ListPackageItemViewModel CreateListPackageItemViewModel(Package package, User user = null)
         {
-            return new ListPackageItemViewModelFactory(Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageFrameworkCompatibilityFactory>()).Create(package, currentUser: user);
+            return new ListPackageItemViewModelFactory(Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageFrameworkCompatibilityFactory>(), Mock.Of<IFeatureFlagService>()).Create(package, currentUser: user);
         }
     }
 }

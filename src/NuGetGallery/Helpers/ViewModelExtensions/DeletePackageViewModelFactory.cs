@@ -12,9 +12,9 @@ namespace NuGetGallery
     {
         private readonly DisplayPackageViewModelFactory _displayPackageViewModelFactory;
 
-        public DeletePackageViewModelFactory(IIconUrlProvider iconUrlProvider, IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory)
+        public DeletePackageViewModelFactory(IIconUrlProvider iconUrlProvider, IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory, IFeatureFlagService featureFlagService)
         {
-            _displayPackageViewModelFactory = new DisplayPackageViewModelFactory(iconUrlProvider, frameworkCompatibilityFactory);
+            _displayPackageViewModelFactory = new DisplayPackageViewModelFactory(iconUrlProvider, frameworkCompatibilityFactory, featureFlagService);
         }
 
         public DeletePackageViewModel Create(

@@ -20,9 +20,10 @@ namespace NuGetGallery
             ISecurityPolicyService securityPolicyService, 
             IIconUrlProvider iconUrlProvider,
             IPackageVulnerabilitiesService packageVulnerabilitiesService,
-            IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory)
+            IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory,
+            IFeatureFlagService featureFlagService)
         {
-            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(iconUrlProvider, frameworkCompatibilityFactory);
+            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(iconUrlProvider, frameworkCompatibilityFactory, featureFlagService);
             _securityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
             _packageVulnerabilitiesService = packageVulnerabilitiesService ?? throw new ArgumentNullException(nameof(packageVulnerabilitiesService));
         }

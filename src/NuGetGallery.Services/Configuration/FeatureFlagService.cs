@@ -60,6 +60,7 @@ namespace NuGetGallery
         private const string NewAccount2FAEnforcementFeatureName = GalleryPrefix + "NewAccount2FAEnforcement";
         private const string NuGetAccountPasswordLoginFeatureName = GalleryPrefix + "NuGetAccountPasswordLogin";
         private const string FrameworkFilteringFeatureName = GalleryPrefix + "FrameworkFiltering";
+        private const string DisplayTfmBadgesFeatureName = GalleryPrefix + "DisplayTfmBadges";
 
         private const string ODataV1GetAllNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllNonHijacked";
         private const string ODataV1GetAllCountNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllCountNonHijacked";
@@ -402,6 +403,11 @@ namespace NuGetGallery
 
         public bool IsFrameworkFilteringEnabled(User user) {
             return _client.IsEnabled(FrameworkFilteringFeatureName, user, defaultValue: false);
+        }
+
+        public bool IsDisplayTfmBadgesEnabled(User user)
+        {
+            return _client.IsEnabled(DisplayTfmBadgesFeatureName, user, defaultValue: false);
         }
     }
 }

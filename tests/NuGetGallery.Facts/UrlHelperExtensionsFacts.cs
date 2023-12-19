@@ -147,7 +147,7 @@ namespace NuGetGallery
                 // Act
                 var result = urlHelper
                                     .PackageRegistrationTemplate()
-                                    .Resolve(new ListPackageItemViewModelFactory(Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageFrameworkCompatibilityFactory>())
+                                    .Resolve(new ListPackageItemViewModelFactory(Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageFrameworkCompatibilityFactory>(), Mock.Of<IFeatureFlagService>())
                                     .Create(package, currentUser: null));
 
                 // Assert
@@ -217,7 +217,7 @@ namespace NuGetGallery
                 var urlHelper = TestUtility.MockUrlHelper();
                 
                 var idModel = new TrivialPackageVersionModel(packageId, version: null);
-                var versionModel = new ListPackageItemViewModelFactory(Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageFrameworkCompatibilityFactory>())
+                var versionModel = new ListPackageItemViewModelFactory(Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageFrameworkCompatibilityFactory>(), Mock.Of<IFeatureFlagService>())
                                             .Create(package, currentUser: null);
 
                 // Act
