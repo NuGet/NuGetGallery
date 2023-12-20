@@ -83,6 +83,7 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' {
         (Join-Path $PSScriptRoot "src\DatabaseMigrationTools\Properties\AssemblyInfo.g.cs"), `
         (Join-Path $PSScriptRoot "src\AccountDeleter\Properties\AssemblyInfo.g.cs"), `
         (Join-Path $PSScriptRoot "src\GitHubVulnerabilities2Db\Properties\AssemblyInfo.g.cs"), `
+        (Join-Path $PSScriptRoot "src\GitHubVulnerabilities2v3\Properties\AssemblyInfo.g.cs"), `
         (Join-Path $PSScriptRoot "src\GalleryTools\Properties\AssemblyInfo.g.cs"), `
         (Join-Path $PSScriptRoot "src\VerifyMicrosoftPackage\Properties\AssemblyInfo.g.cs")
 
@@ -119,6 +120,7 @@ Invoke-BuildStep 'Creating artifacts' { `
     New-Package (Join-Path $PSScriptRoot "src\DatabaseMigrationTools\DatabaseMigration.Validation.nuspec") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch
     New-Package (Join-Path $PSScriptRoot "src\AccountDeleter\Gallery.AccountDeleter.nuspec") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch
     New-Package (Join-Path $PSScriptRoot "src\GitHubVulnerabilities2Db\GitHubVulnerabilities2Db.nuspec") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch
+    New-Package (Join-Path $PSScriptRoot "src\GitHubVulnerabilities2v3\GitHubVulnerabilities2v3.nuspec") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch
     New-Package (Join-Path $PSScriptRoot "src\GalleryTools\Gallery.GalleryTools.nuspec") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch
     New-Package (Join-Path $PSScriptRoot "src\VerifyGitHubVulnerabilities\VerifyGitHubVulnerabilities.nuspec") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch
 

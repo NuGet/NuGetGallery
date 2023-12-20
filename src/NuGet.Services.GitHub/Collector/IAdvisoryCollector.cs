@@ -12,6 +12,6 @@ namespace NuGet.Services.GitHub.Collector
         /// Queries for any new or updated advisories using a cursor, processes them, and then updates the cursor.
         /// </summary>
         /// <remarks>Whether or not any advisories were processed.</remarks>
-        Task<bool> ProcessAsync(CancellationToken token);
+        Task<bool> ProcessAsync(CancellationToken token, bool updateCursor = true);
     }
 }
