@@ -8,6 +8,6 @@ namespace NuGetGallery.Frameworks
 {
     public interface IPackageFrameworkCompatibilityFactory
     {
-        PackageFrameworkCompatibility Create(ICollection<PackageFramework> packageFrameworks, bool includeComputedBadges = false);
+        PackageFrameworkCompatibility Create(ICollection<PackageFramework> packageFrameworks, string packageId, bool includeComputedBadges = false);
     }
 }

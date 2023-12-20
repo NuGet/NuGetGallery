@@ -962,7 +962,7 @@ namespace NuGetGallery
 
             if (model.IsComputeTargetFrameworkEnabled || model.IsDisplayTargetFrameworkEnabled)
             {
-                model.PackageFrameworkCompatibility = _compatibilityFactory.Create(package.SupportedFrameworks);
+                model.PackageFrameworkCompatibility = _compatibilityFactory.Create(package.SupportedFrameworks, id);
             }
 
             if (model.IsPackageDependentsEnabled)

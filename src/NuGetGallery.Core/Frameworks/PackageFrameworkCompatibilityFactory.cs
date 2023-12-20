@@ -22,7 +22,7 @@ namespace NuGetGallery.Frameworks
         private readonly NuGetFrameworkSorter Sorter = new NuGetFrameworkSorter();
         private readonly int NetStartingMajorVersion = 5;
 
-        public PackageFrameworkCompatibility Create(ICollection<PackageFramework> packageFrameworks, bool includeComputedBadges = false)
+        public PackageFrameworkCompatibility Create(ICollection<PackageFramework> packageFrameworks, string packageId, bool includeComputedBadges = false)
         {
             if (packageFrameworks == null)
             {
@@ -35,7 +35,7 @@ namespace NuGetGallery.Frameworks
                 .ToHashSet();
 
             var table = CreateFrameworkCompatibilityTable(filteredPackageFrameworks);
-            var badges = CreateFrameworkCompatibilityBadges(table, includeComputedBadges);
+            var badges = CreateFrameworkCompatibilityBadges(table, packageId, includeComputedBadges);
 
             return new PackageFrameworkCompatibility
             {
@@ -147,7 +147,7 @@ namespace NuGetGallery.Frameworks
             }
         }
 
-        private PackageFrameworkCompatibilityBadges CreateFrameworkCompatibilityBadges(IReadOnlyDictionary<string, IReadOnlyCollection<PackageFrameworkCompatibilityData>> table, bool includeComputed = false)
+        private PackageFrameworkCompatibilityBadges CreateFrameworkCompatibilityBadges(IReadOnlyDictionary<string, IReadOnlyCollection<PackageFrameworkCompatibilityData>> table, string packageId, bool includeComputed = false)
         {
             var net = GetBadgeFramework(table, FrameworkProductNames.Net, includeComputed);
             var netCore = GetBadgeFramework(table, FrameworkProductNames.NetCore, includeComputed);
@@ -156,6 +156,7 @@ namespace NuGetGallery.Frameworks
 
             return new PackageFrameworkCompatibilityBadges
             {
+                FrameworksTabUrl = "/packages/" + packageId + "#supportedframeworks-body-tab",
                 Net = net,
                 NetCore = netCore,
                 NetStandard = netStandard,

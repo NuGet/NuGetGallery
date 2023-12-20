@@ -261,7 +261,7 @@ namespace NuGetGallery
             {
                 compatibilityFactory = new Mock<IPackageFrameworkCompatibilityFactory>();
                 compatibilityFactory
-                    .Setup(x => x.Create(It.IsAny<ICollection<PackageFramework>>(), false))
+                    .Setup(x => x.Create(It.IsAny<ICollection<PackageFramework>>(), string.Empty, false))
                     .Returns(new PackageFrameworkCompatibility());
             }
 
@@ -2202,7 +2202,7 @@ namespace NuGetGallery
                     .Returns(false);
 
                 compatibilityFactory
-                    .Setup(x => x.Create(supportedFrameworks, false))
+                    .Setup(x => x.Create(supportedFrameworks, id, false))
                     .Returns(new PackageFrameworkCompatibility());
 
                 // Arrange and Act
@@ -2263,7 +2263,7 @@ namespace NuGetGallery
                     .Returns(displayFlag);
 
                 compatibilityFactory
-                    .Setup(x => x.Create(supportedFrameworks, false))
+                    .Setup(x => x.Create(supportedFrameworks, id, false))
                     .Returns(new PackageFrameworkCompatibility());
 
                 // Arrange and Act

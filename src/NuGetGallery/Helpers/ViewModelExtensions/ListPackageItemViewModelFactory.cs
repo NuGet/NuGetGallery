@@ -71,7 +71,7 @@ namespace NuGetGallery
             viewModel.CanDeprecate = CanPerformAction(currentUser, package, ActionsRequiringPermissions.DeprecatePackage);
             viewModel.CanDisplayTfmBadges = _featureFlagService.IsDisplayTfmBadgesEnabled(currentUser);
 
-            PackageFrameworkCompatibility packageFrameworkCompatibility = _frameworkCompatibilityFactory.Create(package.SupportedFrameworks, includeComputedBadges);
+            PackageFrameworkCompatibility packageFrameworkCompatibility = _frameworkCompatibilityFactory.Create(package.SupportedFrameworks, package.Id, includeComputedBadges);
             viewModel.FrameworkBadges = viewModel.CanDisplayTfmBadges ? packageFrameworkCompatibility?.Badges : new PackageFrameworkCompatibilityBadges();
 
             viewModel.SetShortDescriptionFrom(viewModel.Description);
