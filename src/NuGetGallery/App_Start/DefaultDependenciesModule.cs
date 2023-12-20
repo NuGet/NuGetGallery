@@ -54,7 +54,6 @@ using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Infrastructure.Mail;
 using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.Infrastructure.Search.Correlation;
-using NuGetGallery.Login;
 using NuGetGallery.Security;
 using NuGetGallery.Services;
 using Role = NuGet.Services.Entities.Role;
@@ -407,6 +406,8 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<ICertificateService>()
                 .InstancePerLifetimeScope();
+            
+            RegisterTyposquattingServiceHelper(builder, loggerFactory);
 
             builder.RegisterType<TyposquattingService>()
                 .AsSelf()
@@ -1586,6 +1587,34 @@ namespace NuGetGallery
             }
 
             CookieComplianceService.Initialize(service ?? new NullCookieComplianceService(), logger);
+        }
+
+        private static void RegisterTyposquattingServiceHelper(ContainerBuilder builder, ILoggerFactory loggerFactory)
+        {
+            var logger = loggerFactory.CreateLogger(nameof(ITyposquattingServiceHelper));
+
+            builder.Register(c =>
+            {
+                var typosquattingService = GetAddInServices<ITyposquattingServiceHelper>(sp =>
+                {
+                    sp.ComposeExportedValue<ILogger>(logger);
+                }).FirstOrDefault();
+
+                if (typosquattingService == null)
+                {
+                    typosquattingService = new NullTyposquattingServiceHelper();
+                    logger.LogInformation("No typosquatting service helper was found, using NullTyposquattingServiceHelper instead.");
+                }
+                else
+                {
+                    logger.LogInformation("ITyposquattingServiceHelper found.");
+                }
+
+                return typosquattingService;
+            })
+            .AsSelf()
+            .As<ITyposquattingServiceHelper>()
+            .SingleInstance();
         }
     }
 }
