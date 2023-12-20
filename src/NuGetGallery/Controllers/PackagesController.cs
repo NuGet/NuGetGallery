@@ -69,18 +69,22 @@ namespace NuGetGallery
             ReportPackageReason.Other
         };
 
-        private static readonly IReadOnlyList<ReportPackageReason> ReportAbuseWithSafetyReasons = new[]
+        private static readonly IReadOnlyList<ReportPackageReason> SafetyReportAbuseReasons = new[]
         {
-            ReportPackageReason.ViolatesALicenseIOwn,
-            ReportPackageReason.ContainsMaliciousCode,
-            ReportPackageReason.ContainsSecurityVulnerability,
-            ReportPackageReason.HasABugOrFailedToInstall,
             ReportPackageReason.ChildSexualExploitationOrAbuse,
             ReportPackageReason.TerrorismOrViolentExtremism,
             ReportPackageReason.HateSpeech,
             ReportPackageReason.ImminentHarm,
             ReportPackageReason.RevengePorn,
             ReportPackageReason.OtherNudityOrPornography,
+        };
+
+        private static readonly IReadOnlyList<ReportPackageReason> ReportAbuseWithSafetyReasons = new[]
+        {
+            ReportPackageReason.ViolatesALicenseIOwn,
+            ReportPackageReason.ContainsMaliciousCode,
+            ReportPackageReason.ContainsSecurityVulnerability,
+            ReportPackageReason.HasABugOrFailedToInstall,
             ReportPackageReason.Other
         };
 
@@ -1387,7 +1391,7 @@ namespace NuGetGallery
             {
                 ReasonChoices = _featureFlagService.IsShowReportAbuseSafetyChangesEnabled()
                     && (_featureFlagService.IsAllowAadContentSafetyReportsEnabled() || PackageHasNoAadOwners(package))
-                    ? ReportAbuseWithSafetyReasons
+                    ? ReportAbuseReasons.Union(SafetyReportAbuseReasons).ToList()
                     : ReportAbuseReasons,
                 PackageId = id,
                 PackageVersion = package.Version,
@@ -1471,15 +1475,27 @@ namespace NuGetGallery
                     "The signature is required.");
             }
 
-            if (!ModelState.IsValid)
-            {
-                return ReportAbuse(id, version);
-            }
-
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
+
             if (package == null)
             {
                 return HttpNotFound();
+            }
+
+            var ReasonChoices = _featureFlagService.IsShowReportAbuseSafetyChangesEnabled()
+                    && (_featureFlagService.IsAllowAadContentSafetyReportsEnabled() || PackageHasNoAadOwners(package))
+                    ? ReportAbuseReasons.Union(SafetyReportAbuseReasons).ToList()
+                    : ReportAbuseReasons;
+
+            var reportReason = (ReportPackageReason)reportForm.Reason;
+            if (!ReasonChoices.Contains(reportReason) || SafetyReportAbuseReasons.Contains(reportReason))
+            {
+                return HttpNotFound();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return ReportAbuse(id, version);
             }
 
             User user = null;
