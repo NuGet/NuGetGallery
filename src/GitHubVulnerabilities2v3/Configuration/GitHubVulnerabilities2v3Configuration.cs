@@ -46,5 +46,10 @@ namespace GitHubVulnerabilities2v3.Configuration
         public string IndexCacheControlHeader { get; set; } = "max-age=259200, must-revalidate";
         public string BaseCacheControlHeader { get; set; } = "max-age=604800, must-revalidate";
         public string UpdateCacheControlHeader { get; set; } = "max-age=604800, must-revalidate";
+
+        /// <summary>
+        /// Enable/disable HTTP file compression.
+        /// </summary>
+        public bool GzipFileContent { get; set; } = true;
     }
 }
