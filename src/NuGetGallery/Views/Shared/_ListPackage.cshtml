@@ -75,11 +75,10 @@
                 }
             </div>
 
-
-            @if (Model.IsVulnerable || Model.IsDeprecated)
-            {
-                <ul class="package-list">
-                    <li>
+            <ul class="package-list">
+                @if (Model.IsVulnerable || Model.IsDeprecated)
+                {
+                    <li class="package-warning-indicators">
                         @if (Model.IsVulnerable)
                         {
                             <span class="icon-text package-warning--vulnerable" aria-label="@Model.VulnerabilityTitle" data-content="@Model.VulnerabilityTitle">
@@ -95,10 +94,7 @@
                             </span>
                         }
                     </li>
-                </ul>
-            }
-
-            <ul class="package-list">
+                }
                 <li class="package-tfm-badges">
                     @Html.Partial("../Packages/_SupportedFrameworksBadges", Model.FrameworkBadges)
                 </li>
