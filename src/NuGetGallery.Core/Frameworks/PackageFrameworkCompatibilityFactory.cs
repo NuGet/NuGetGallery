@@ -156,7 +156,7 @@ namespace NuGetGallery.Frameworks
 
             return new PackageFrameworkCompatibilityBadges
             {
-                FrameworksTabUrl = "/packages/" + packageId + "#supportedframeworks-body-tab",
+                PackageId = packageId,
                 Net = net,
                 NetCore = netCore,
                 NetStandard = netStandard,

@@ -15,7 +15,7 @@ namespace NuGetGallery.Frameworks
     /// </remarks>
     public class PackageFrameworkCompatibilityBadges
     {
-        public string FrameworksTabUrl { get; set; }
+        public string PackageId { get; set; }
         public PackageFrameworkCompatibilityData Net { get; set; }
         public PackageFrameworkCompatibilityData NetCore { get; set; }
         public PackageFrameworkCompatibilityData NetStandard { get; set; }

@@ -347,12 +347,10 @@ namespace NuGetGallery.Frameworks
         }
 
         [Fact]
-        public void BadgesIncludeFrameworksTabUrl()
+        public void BadgesIncludePackageIdForFrameworksTabUrl()
         {
             // Arrange
             var packageId = "Foo";
-            var expectedFrameworksTabUrl = "/packages/Foo#supportedframeworks-body-tab";
-
             var packageFrameworks = new HashSet<PackageFramework>();
             var packageAssetFramework = new PackageFramework() { TargetFramework = "net6" };
             packageFrameworks.Add(packageAssetFramework);
@@ -361,7 +359,7 @@ namespace NuGetGallery.Frameworks
             var result = _factory.Create(packageFrameworks.ToList(), packageId);
 
             // Assert
-            Assert.Equal(expectedFrameworksTabUrl, result.Badges.FrameworksTabUrl);
+            Assert.Equal(packageId, result.Badges.PackageId);
         }
     }
 }
