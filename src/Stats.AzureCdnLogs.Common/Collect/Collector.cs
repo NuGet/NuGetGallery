@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -144,6 +145,9 @@ namespace Stats.AzureCdnLogs.Common.Collect
 
             try
             {
+                var processingTime = Stopwatch.StartNew();
+                var sourceStartPosition = sourceStream.Position;
+                var targetStartPosition = targetStream.Position;
                 using (var sourceStreamReader = new StreamReader(sourceStream))
                 using (var targetStreamWriter = new StreamWriter(targetStream))
                 {
@@ -166,7 +170,16 @@ namespace Stats.AzureCdnLogs.Common.Collect
                         }
                     };
 
-                    _logger.LogInformation("ProcessLogStream: Finished writing to the destination stream.");
+                    processingTime.Stop();
+                    var totalSeconds = Math.Max(processingTime.Elapsed.TotalSeconds, 0.01);
+                    var bytesRead = sourceStream.Position - sourceStartPosition;
+                    var bytesWritten = targetStream.Position - targetStartPosition;
+                    _logger.LogInformation("ProcessLogStream: Finished writing to the destination stream ({Filename}). " +
+                        "{ReadLineCount} lines read ({ReadLinesPerSecond} lines/sec), {WriteLineCount} lines written ({WriteLinesPerSecond} lines/sec) in {TotalTime}. " +
+                        "{BytesRead} bytes read ({BytesReadPreSecond} bytes/sec), {BytesWritten} bytes written ({BytesWrittenPerSecond} bytes/sec). ",
+                        filename,
+                        rawLineNumber, (long)(rawLineNumber / totalSeconds), targetLineNumber, (long)(targetLineNumber / totalSeconds), processingTime.Elapsed,
+                        bytesRead, (long)(bytesRead / totalSeconds), bytesWritten, (long)(bytesWritten / totalSeconds));
                 }
             }
             catch (Exception ex)
