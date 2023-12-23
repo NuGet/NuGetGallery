@@ -26,7 +26,7 @@ namespace NuGetGallery
             {
                 var reference = DateTime.UtcNow.AddDays(1); // allow "some" clock skew
 
-                var entryInTheFuture = archive.Entries.FirstOrDefault(
+                ZipArchiveEntry entryInTheFuture = archive.Entries.FirstOrDefault(
                     e => e.LastWriteTime.UtcDateTime > reference);
 
                 if (entryInTheFuture != null)
@@ -35,16 +35,20 @@ namespace NuGetGallery
                     return InvalidZipEntry.InFuture;
                 }
 
-                var entryWithDoubleForwardSlash = archive.Entries.FirstOrDefault(
+                ZipArchiveEntry entryWithDoubleForwardSlash = archive.Entries.FirstOrDefault(
                     e => e.FullName.Contains("//"));
 
                 if (entryWithDoubleForwardSlash != null)
                 {
                     entry = entryWithDoubleForwardSlash;
-                    return InvalidZipEntry.DoubleForwardSlashesInPath;
+                    string entryFullName = entry.FullName.Replace("//", "/");
+                    bool duplicateExist = archive.Entries.Select(e => e.FullName.Replace("//", "/")).Count(f => string.Equals(f, entryFullName, StringComparison.OrdinalIgnoreCase)) > 1;
+
+                    if (duplicateExist)
+                        return InvalidZipEntry.DoubleForwardSlashesInPath;
                 }
 
-                var entryWithDoubleBackSlash = archive.Entries.FirstOrDefault(
+                ZipArchiveEntry entryWithDoubleBackSlash = archive.Entries.FirstOrDefault(
                     e => e.FullName.Contains("\\\\"));
 
                 if (entryWithDoubleBackSlash != null)
