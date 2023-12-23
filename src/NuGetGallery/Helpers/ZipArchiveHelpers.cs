@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Text;
 
 namespace NuGetGallery
 {
@@ -41,8 +42,9 @@ namespace NuGetGallery
                 if (entryWithDoubleForwardSlash != null)
                 {
                     entry = entryWithDoubleForwardSlash;
-                    string entryFullName = entry.FullName.Replace("//", "/");
-                    bool duplicateExist = archive.Entries.Select(e => e.FullName.Replace("//", "/")).Count(f => string.Equals(f, entryFullName, StringComparison.OrdinalIgnoreCase)) > 1;
+                    string entryFullName = NormalizeForwardSlashesInPath(entry.FullName);
+                    bool duplicateExist = archive.Entries.Select(e => NormalizeForwardSlashesInPath(e.FullName))
+                        .Count(f => string.Equals(f, entryFullName, StringComparison.OrdinalIgnoreCase)) > 1;
 
                     if (duplicateExist)
                         return InvalidZipEntry.DoubleForwardSlashesInPath;
@@ -59,6 +61,37 @@ namespace NuGetGallery
             }
 
             return InvalidZipEntry.None;
+        }
+
+        static string NormalizeForwardSlashesInPath(string path)
+        {
+            StringBuilder sb = new StringBuilder();
+            bool lastWasSlash = false;
+
+            foreach (char c in path)
+            {
+                if (c == '/')
+                {
+                    if (!lastWasSlash)
+                    {
+                        sb.Append(c);
+                        lastWasSlash = true;
+                    }
+                }
+                else
+                {
+                    sb.Append(c);
+                    lastWasSlash = false;
+                }
+
+                // Standard ZIP format specification has a limitation for file path lengths of 260 characters
+                if (sb.Length > 260)
+                {
+                    break;
+                }
+            }
+
+            return sb.ToString();
         }
     }
 }
