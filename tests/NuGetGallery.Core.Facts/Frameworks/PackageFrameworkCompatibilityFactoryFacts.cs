@@ -22,13 +22,13 @@ namespace NuGetGallery.Frameworks
         [Fact]
         public void NullPackageFrameworksThrowsArgumentNullException()
         {
-            Assert.Throws<ArgumentNullException>(() => _factory.Create(null, string.Empty));
+            Assert.Throws<ArgumentNullException>(() => _factory.Create(null, packageId: string.Empty));
         }
 
         [Fact]
         public void EmptyPackageFrameworksReturnsEmptyTable()
         {
-            var result = _factory.Create(new List<PackageFramework>(), string.Empty);
+            var result = _factory.Create(new List<PackageFramework>(), packageId: string.Empty);
 
             Assert.Empty(result.Table);
         }
@@ -44,7 +44,7 @@ namespace NuGetGallery.Frameworks
                 new PackageFramework() { TargetFramework = "x64" }
             };
 
-            var result = _factory.Create(packageFrameworks.ToList(), string.Empty);
+            var result = _factory.Create(packageFrameworks.ToList(), packageId: string.Empty);
 
             Assert.Empty(result.Table);
             Assert.Null(result.Badges.Net);
@@ -63,7 +63,7 @@ namespace NuGetGallery.Frameworks
                 new PackageFramework() { TargetFramework = "portable-net45+sl5+win8+wpa81+wp8" }
             };
 
-            var result = _factory.Create(packageFrameworks.ToList(), string.Empty);
+            var result = _factory.Create(packageFrameworks.ToList(), packageId: string.Empty);
 
             Assert.Empty(result.Table);
             Assert.Null(result.Badges.Net);
@@ -80,7 +80,7 @@ namespace NuGetGallery.Frameworks
                 new PackageFramework() { TargetFramework = "any" },
             };
 
-            var result = _factory.Create(packageFrameworks.ToList(), string.Empty);
+            var result = _factory.Create(packageFrameworks.ToList(), packageId: string.Empty);
 
             Assert.Empty(result.Table);
             Assert.Null(result.Badges.Net);
@@ -132,7 +132,7 @@ namespace NuGetGallery.Frameworks
                 packageFrameworks.Add(packageFramework);
             }
 
-            var result = _factory.Create(packageFrameworks.ToList(), string.Empty);
+            var result = _factory.Create(packageFrameworks.ToList(), packageId: string.Empty);
 
             Assert.True(result.Table.TryGetValue(productName, out var compatibleFrameworks));
             Assert.NotEmpty(compatibleFrameworks);
@@ -166,7 +166,7 @@ namespace NuGetGallery.Frameworks
                 new PackageFramework() { TargetFramework = "monoandroid" }
             };
 
-            var result = _factory.Create(packageFrameworks.ToList(), string.Empty);
+            var result = _factory.Create(packageFrameworks.ToList(), packageId: string.Empty);
 
             var productNames = result.Table.Keys.ToArray();
 
@@ -193,7 +193,7 @@ namespace NuGetGallery.Frameworks
                 new PackageFramework() { TargetFramework = "wpa81" }
             };
 
-            var result = _factory.Create(packageFrameworks.ToList(), string.Empty);
+            var result = _factory.Create(packageFrameworks.ToList(), packageId: string.Empty);
 
             var productNames = result.Table.Keys.Skip(4);
             var orderedProductNames = productNames.OrderBy(x => x);
@@ -211,7 +211,7 @@ namespace NuGetGallery.Frameworks
                 new PackageFramework() { TargetFramework = "netstandard10" },
                 new PackageFramework() { TargetFramework = "net45" }
             };
-            var result = _factory.Create(packageFrameworks.ToList(), string.Empty);
+            var result = _factory.Create(packageFrameworks.ToList(), packageId: string.Empty);
 
             Assert.NotEmpty(result.Table);
             foreach (var row in result.Table)
@@ -233,7 +233,7 @@ namespace NuGetGallery.Frameworks
                 new PackageFramework() { TargetFramework = "netstandard10" },
                 new PackageFramework() { TargetFramework = "net45" }
             };
-            var result = _factory.Create(packageFrameworks.ToList(), string.Empty);
+            var result = _factory.Create(packageFrameworks.ToList(), packageId: string.Empty);
 
             Assert.NotEmpty(result.Table);
             foreach (var row in result.Table)
@@ -245,7 +245,7 @@ namespace NuGetGallery.Frameworks
         [Fact]
         public void EmptyPackageFrameworksReturnsNullBadges()
         {
-            var result = _factory.Create(new List<PackageFramework>(), string.Empty);
+            var result = _factory.Create(new List<PackageFramework>(), packageId: string.Empty);
 
             Assert.Null(result.Badges.Net);
             Assert.Null(result.Badges.NetCore);
@@ -273,7 +273,7 @@ namespace NuGetGallery.Frameworks
             var lowestPackageFramework = new PackageFramework() { TargetFramework = lowestFramework };
             packageFrameworks.Add(lowestPackageFramework);
 
-            var result = _factory.Create(packageFrameworks.ToList(), string.Empty);
+            var result = _factory.Create(packageFrameworks.ToList(), packageId: string.Empty);
 
             NuGetFramework badgeFramework = null;
             switch (productFramework)
@@ -306,7 +306,7 @@ namespace NuGetGallery.Frameworks
             }
             var lowestPackageFramework = new PackageFramework() { TargetFramework = expectedFramework };
 
-            var result = _factory.Create(packageFrameworks.ToList(), string.Empty, includeComputed);
+            var result = _factory.Create(packageFrameworks.ToList(), packageId: string.Empty, includeComputed);
 
             NuGetFramework badgeFramework = null;
             switch (productFramework)
@@ -332,7 +332,7 @@ namespace NuGetGallery.Frameworks
             var packageAssetFramework = new PackageFramework() { TargetFramework = framework };
             packageFrameworks.Add(packageAssetFramework);
 
-            var result = _factory.Create(packageFrameworks.ToList(), string.Empty);
+            var result = _factory.Create(packageFrameworks.ToList(), packageId: string.Empty);
 
             var badges = new List<NuGetFramework>() {
                 result.Badges.Net?.Framework,
