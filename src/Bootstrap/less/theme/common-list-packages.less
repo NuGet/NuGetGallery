@@ -82,16 +82,16 @@
 @badge-border-radius: 2px;
 
 .package-warning {
-  padding-right: 8px;
-  padding-left: 8px;
+  padding: 1px 8px;
   border-radius: @badge-border-radius;
   margin-right: 5px;
-  color: @package-warning-color
+  color: @package-warning-color;
 }
 
 .package-warning--vulnerable {
   .package-warning;
   background-color: @severe-warning-background-color;
+  border: 1px solid darken(@severe-warning-background-color, 15%);
   i {
     color: @severe-warning-icon-color;
   }
@@ -100,4 +100,5 @@
 .package-warning--deprecated {
   .package-warning;
   background-color: @warning-background-color;
+  border: 1px solid darken(@warning-background-color, 35%);
 }

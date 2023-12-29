@@ -284,7 +284,9 @@ img.reserved-indicator-icon {
   }
   .package-list li.package-warning-indicators {
     display: block;
+    overflow-y: visible;
     margin-bottom: 5px;
+    font-size: 14px;
   }
   .package-list li.package-tfm-badges {
     display: block;
@@ -293,8 +295,12 @@ img.reserved-indicator-icon {
   .package-list li.package-tfm-badges .framework-badges {
     margin-bottom: 2px;
   }
+  .package-list li.package-tfm-badges .framework-badges span {
+    margin-right: 1px;
+  }
   .package-list li.package-tfm-badges .framework-badges .framework-badge-computed {
     color: #000;
+    border: 1px solid rgba(0, 0, 0, 0.15);
   }
   .package-list li.package-tags {
     display: block;
@@ -641,30 +647,29 @@ img.reserved-indicator-icon {
   margin-bottom: 0px;
 }
 .package-warning {
-  padding-right: 8px;
-  padding-left: 8px;
+  padding: 1px 8px;
   border-radius: 2px;
   margin-right: 5px;
   color: #323130;
 }
 .package-warning--vulnerable {
-  padding-right: 8px;
-  padding-left: 8px;
+  padding: 1px 8px;
   border-radius: 2px;
   margin-right: 5px;
   color: #323130;
   background-color: #fed9cc;
+  border: 1px solid #fda181;
 }
 .package-warning--vulnerable i {
   color: #d83b01;
 }
 .package-warning--deprecated {
-  padding-right: 8px;
-  padding-left: 8px;
+  padding: 1px 8px;
   border-radius: 2px;
   margin-right: 5px;
   color: #323130;
   background-color: #fff4ce;
+  border: 1px solid #ffcc1c;
 }
 .multi-select-dropdown {
   position: relative;

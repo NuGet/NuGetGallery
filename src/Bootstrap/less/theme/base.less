@@ -370,7 +370,9 @@ img.reserved-indicator-icon {
 
     li.package-warning-indicators {
       display: block;
+      overflow-y: visible;
       margin-bottom: 5px;
+      font-size: 14px;
     }
 
     li.package-tfm-badges {
@@ -380,8 +382,13 @@ img.reserved-indicator-icon {
       .framework-badges {
         margin-bottom: 2px;
 
+        span {
+          margin-right: 1px;
+        }
+
         .framework-badge-computed {
           color: #000;
+          border: 1px solid rgba(0,0,0,.15);
         }
       }
     }
