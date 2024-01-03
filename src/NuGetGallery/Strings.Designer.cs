@@ -1481,7 +1481,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The package is invalid and cannot be uploaded. One or more files, such as &apos;{0}&apos; have a date in the future..
+        ///   Looks up a localized string similar to The package is invalid and cannot be published. One or more files, such as &apos;{0}&apos; have a date in the future..
         /// </summary>
         public static string PackageEntryFromTheFuture {
             get {
@@ -1490,7 +1490,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The package is invalid and cannot be uploaded. The package entry for &apos;{0}&apos; has a  double back slashes in path..
+        ///   Looks up a localized string similar to The package is invalid and cannot be published. The package entry for &apos;{0}&apos; has a  double back slashes in path..
         /// </summary>
         public static string PackageEntryWithDoubleBackSlash {
             get {
@@ -1499,7 +1499,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The package is invalid and cannot be uploaded. The package entry for &apos;{0}&apos; has a  double forward slashes in path, which is causing a file name collision during extraction..
+        ///   Looks up a localized string similar to The package is invalid and cannot be published. The package entry for &apos;{0}&apos; has a  double forward slashes in path, which is causing a file name collision during extraction..
         /// </summary>
         public static string PackageEntryWithDoubleForwardSlash {
             get {
