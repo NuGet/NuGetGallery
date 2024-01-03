@@ -102,7 +102,7 @@ namespace NuGetGallery
                 reservedNamespaceService.Object,
                 telemetryService.Object,
                 typosquattingCheckListCacheService.Object,
-                new NullTyposquattingServiceHelper());
+                new ExactMatchTyposquattingServiceHelper());
         }
 
         [Fact]

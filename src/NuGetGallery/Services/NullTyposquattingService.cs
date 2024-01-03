@@ -3,7 +3,7 @@
 
 namespace NuGetGallery.Services
 {
-    public class NullTyposquattingServiceHelper : ITyposquattingServiceHelper
+    public class ExactMatchTyposquattingServiceHelper : ITyposquattingServiceHelper
     {
         public bool IsDistanceLessThanOrEqualToThreshold(string uploadedPackageId, string packageId)
         {

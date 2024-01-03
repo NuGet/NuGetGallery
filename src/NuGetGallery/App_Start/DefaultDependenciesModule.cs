@@ -1602,8 +1602,8 @@ namespace NuGetGallery
 
                 if (typosquattingService == null)
                 {
-                    typosquattingService = new NullTyposquattingServiceHelper();
-                    logger.LogInformation("No typosquatting service helper was found, using NullTyposquattingServiceHelper instead.");
+                    typosquattingService = new ExactMatchTyposquattingServiceHelper();
+                    logger.LogInformation("No typosquatting service helper was found, using ExactMatchTyposquattingServiceHelper instead.");
                 }
                 else
                 {
@@ -1612,7 +1612,6 @@ namespace NuGetGallery
 
                 return typosquattingService;
             })
-            .AsSelf()
             .As<ITyposquattingServiceHelper>()
             .SingleInstance();
         }
