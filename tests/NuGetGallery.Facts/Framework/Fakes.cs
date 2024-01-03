@@ -31,7 +31,7 @@ namespace NuGetGallery.Framework
 
             ApiKeyV3PlaintextValue = "889e180e-335c-491a-ac26-e83c4bd31d87";
 
-            User = new User("testUser")
+            User = new User("testUser") // NOTE: Do not change the casing of this username. It will break tests for the ChangeUsername in the Admin Panel
             {
                 Key = key++,
                 EmailAddress = "confirmed0@example.com",
@@ -58,7 +58,7 @@ namespace NuGetGallery.Framework
 
             ApiKeyV4PlaintextValue = apiKeyV4PlaintextValue;
 
-            Organization = new Organization("testOrganization")
+            Organization = new Organization("testOrganization") // NOTE: Do not change the casing of this username. It will break tests for the ChangeUsername in the Admin Panel
             {
                 Key = key++,
                 EmailAddress = "confirmedOrganization@example.com",

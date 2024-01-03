@@ -58,7 +58,8 @@
         <i>Validate if the new username is available and has a valid format.</i><br />
 
         <input type="text" placeholder="New username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="value: newUsername" />
-        <input type="checkbox" id="checkNonDeletedOwnedPackages" data-bind="value: checkOwnedPackages" />
+        <input type="text" placeholder="Old Username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="visible: checkOwnedPackages, value: oldUsername" />
+        <input type="checkbox" id="checkNonDeletedOwnedPackages" data-bind="checked: checkOwnedPackages" />
         <label for="checkNonDeletedOwnedPackages">Check Non-Deleted Owned Packages</label>
         <button type="submit" data-bind="click: validateNewUsername">Validate</button>
         <div style="display:none" data-bind="visible: errorNewUsername">
@@ -71,6 +72,18 @@
             <div style="display:none;" data-bind="visible: validatationUsernameResult.IsAvailable()"><i class="ms-Icon ms-Icon--CompletedSolid" style="color: green"></i> Username is available.</div>
             <div style="display:none;" data-bind="visible: !validatationUsernameResult.IsAvailable()"><i class="ms-Icon ms-Icon--StatusErrorFull" style="color: red"></i> Username is already taken.</div>
         </div>
+        <table class="table" id="ownedPackages" style="display: none" data-bind="visible: ownedPackages().length > 0 && checkOwnedPackages" aria-label="owned packages">
+            <thead>
+                <tr>
+                    <th>Owned Package Id</th>
+                </tr>
+            </thead>
+            <tbody data-bind="foreach: ownedPackages">
+                <tr>
+                    <td><span data-bind="text: $data"></span></td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 
     <div>
@@ -107,7 +120,9 @@
                 }
                 this.accountAdministrators = ko.observableArray([]);
                 this.newUsername = ko.observable('');
+                this.oldUsername = ko.observable('');
                 this.checkOwnedPackages = ko.observable(false);
+                this.ownedPackages = ko.observableArray([]);
                 this.validatationUsernameResult = {
                     IsFormatValid: ko.observable(false),
                     IsAvailable: ko.observable(false)
@@ -164,6 +179,7 @@
 
                 this.validateNewUsername = function () {
                     $self.doneValidatingNewUsername(false);
+                    $self.ownedPackages([]);
                     $self.errorNewUsername('');
 
                     if (!$self.newUsername()) {
@@ -171,7 +187,7 @@
                         return;
                     }
 
-                    var queryParams = '?newUsername=' + encodeURIComponent($self.newUsername().trim()) + '&checkOwnedPackages=' + encodeURIComponent($self.checkOwnedPackages());
+                    var queryParams = '?newUsername=' + encodeURIComponent($self.newUsername().trim()) + '&oldUsername=' + encodeURIComponent($self.oldUsername().trim()) + '&checkOwnedPackages=' + encodeURIComponent($self.checkOwnedPackages());
 
                     $.ajax({
                         url: actionUrlValidateNewUsername + queryParams,
@@ -180,6 +196,7 @@
                         success: function (data) {
                             $self.validatationUsernameResult.IsFormatValid(data.IsFormatValid);
                             $self.validatationUsernameResult.IsAvailable(data.IsAvailable);
+                            $self.ownedPackages(data.OwnedPackageIds);
                         }
                     })
                     .fail(function (jqXhr, textStatus, errorThrown) {

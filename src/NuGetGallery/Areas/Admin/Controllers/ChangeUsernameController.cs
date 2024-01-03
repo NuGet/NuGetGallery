@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -20,6 +21,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         private readonly IEntitiesContext _entitiesContext;
         private readonly IDateTimeProvider _dateTimeProvider;
         private readonly IAuditingService _auditingService;
+        private readonly IPackageService _packageService;
 
         private readonly Regex UsernameValidationRegex = new Regex(GalleryConstants.UsernameValidationRegex);
 
@@ -28,13 +30,15 @@ namespace NuGetGallery.Areas.Admin.Controllers
             IEntityRepository<User> userRepository,
             IEntitiesContext entitiesContext,
             IDateTimeProvider dateTimeProvider,
-            IAuditingService auditingService)
+            IAuditingService auditingService,
+            IPackageService packageService)
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _dateTimeProvider = dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider));
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
+            _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
         }
 
         [HttpGet]
@@ -83,7 +87,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpGet]
-        public ActionResult ValidateNewUsername(string newUsername, bool checkOwnedPackages)
+        public ActionResult ValidateNewUsername(string newUsername, bool checkOwnedPackages, string oldUsername = "")
         {
             if (string.IsNullOrEmpty(newUsername))
             {
@@ -91,6 +95,20 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
 
             var result = CheckUserExist(newUsername);
+
+            if (checkOwnedPackages)
+            {
+                var oldAccount = _userService.FindByUsername(oldUsername);
+                if(oldAccount == null)
+                {
+                    return Json(HttpStatusCode.NotFound, "Old username account was not found.", JsonRequestBehavior.AllowGet);
+                }
+
+                var ownedPackages = _packageService.FindPackagesByOwner(oldAccount, includeUnlisted: true)
+                    .Where(p => p.PackageStatusKey != PackageStatus.Deleted)
+                    .Select(p => p.PackageRegistration.Id);
+                result.OwnedPackageIds = ownedPackages;
+            }
 
             return Json(result, JsonRequestBehavior.AllowGet);
         }
