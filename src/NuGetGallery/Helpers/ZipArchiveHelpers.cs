@@ -63,7 +63,7 @@ namespace NuGetGallery
             return InvalidZipEntry.None;
         }
 
-        static string NormalizeForwardSlashesInPath(string path)
+        internal static string NormalizeForwardSlashesInPath(string path)
         {
             StringBuilder sb = new StringBuilder();
             bool lastWasSlash = false;
@@ -85,7 +85,7 @@ namespace NuGetGallery
                 }
 
                 // Standard ZIP format specification has a limitation for file path lengths of 260 characters
-                if (sb.Length > 260)
+                if (sb.Length >= 260)
                 {
                     break;
                 }

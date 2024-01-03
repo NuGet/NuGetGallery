@@ -338,6 +338,7 @@
     <EmbeddedResource Include="TestData\icon.jpg" />
     <EmbeddedResource Include="TestData\PackageWithDoubleBackwardSlash.1.0.0.nupkg" />
     <EmbeddedResource Include="TestData\PackageWithDoubleForwardSlash.1.0.0.nupkg" />
+    <EmbeddedResource Include="TestData\PackageWithVeryLongZipFileEntry.1.0.0.nupkg" />
     <EmbeddedResource Include="TestData\Zip64Package.Corrupted.1.0.0.nupkg" />
   </ItemGroup>
   <ItemGroup>

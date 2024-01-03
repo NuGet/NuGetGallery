@@ -6930,6 +6930,7 @@ namespace NuGetGallery
             [Theory]
             [InlineData("PackageWithDoubleForwardSlash.1.0.0.nupkg")]
             [InlineData("PackageWithDoubleBackwardSlash.1.0.0.nupkg")]
+            [InlineData("PackageWithVeryLongZipFileEntry.1.0.0.nupkg")]
             [UseInvariantCultureAttribute]
             public async Task WillRejectMalformedZipWithEntryDoubleSlashInPath(string zipPath)
             {
@@ -6952,9 +6953,16 @@ namespace NuGetGallery
                 {
                     Assert.Equal(String.Format(Strings.PackageEntryWithDoubleForwardSlash, "malformedfile.txt"), (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
                 }
-                else
+                else if (zipPath.Contains("Backward"))
                 {
                     Assert.Equal(String.Format(Strings.PackageEntryWithDoubleBackSlash, "malformedfile.txt"), (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                }
+                else
+                {
+                    string longFileName = "a".PadRight(270, 'a') + ".txt";
+                    Assert.Equal(String.Format(Strings.PackageEntryWithDoubleForwardSlash, longFileName), (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                    string normalizedZipEntry = ZipArchiveHelpers.NormalizeForwardSlashesInPath(longFileName);
+                    Assert.Equal(260, normalizedZipEntry.Length);
                 }
             }
 
