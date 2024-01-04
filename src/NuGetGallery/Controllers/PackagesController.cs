@@ -516,20 +516,26 @@ namespace NuGetGallery
                 case InvalidZipEntry.None:
                     break;
                 case InvalidZipEntry.InFuture:
-                    return Json(HttpStatusCode.BadRequest, new[] {
-                    new JsonValidationMessage(string.Format(CultureInfo.CurrentCulture, Strings.PackageEntryFromTheFuture, invalidZipEntry.Name)) });
+                    return Json(HttpStatusCode.BadRequest, new[]
+                    {
+                        new JsonValidationMessage(string.Format(CultureInfo.CurrentCulture, Strings.PackageEntryFromTheFuture, invalidZipEntry.Name))
+                    });
                 case InvalidZipEntry.DoubleForwardSlashesInPath:
-                    return Json(HttpStatusCode.BadRequest, new[] {
-                   new JsonValidationMessage(string.Format(CultureInfo.CurrentCulture, Strings.PackageEntryWithDoubleForwardSlash, invalidZipEntry.Name)) });
+                    return Json(HttpStatusCode.BadRequest, new[]
+                    {
+                        new JsonValidationMessage(string.Format(CultureInfo.CurrentCulture, Strings.PackageEntryWithDoubleForwardSlash, invalidZipEntry.Name))
+                    });
                 case InvalidZipEntry.DoubleBackwardSlashesInPath:
                     return Json(HttpStatusCode.BadRequest, new[]
                     {
-                   new JsonValidationMessage(string.Format(CultureInfo.CurrentCulture, Strings.PackageEntryWithDoubleBackSlash, invalidZipEntry.Name)) });
+                        new JsonValidationMessage(string.Format(CultureInfo.CurrentCulture, Strings.PackageEntryWithDoubleBackSlash, invalidZipEntry.Name))
+                    });
                 default:
                     return Json(HttpStatusCode.BadRequest, new[]
                     {
-                       // Generic error message for unknown invalid zip entry
-                       new JsonValidationMessage(string.Format(CultureInfo.CurrentCulture, Strings.InvalidPackageEntry, invalidZipEntry.Name)) });
+                        // Generic error message for unknown invalid zip entry
+                        new JsonValidationMessage(string.Format(CultureInfo.CurrentCulture, Strings.InvalidPackageEntry, invalidZipEntry.Name))
+                    });
             }
 
             try
