@@ -70,6 +70,8 @@ namespace NuGet.Services.SearchService.Controllers
             string packageType = null,
             string frameworks = null,
             string tfms = null,
+            bool? includeComputedFrameworks = true,
+            string frameworkFilterMode = null,
             bool? testData = false,
             bool? debug = false)
         {
@@ -89,6 +91,8 @@ namespace NuGet.Services.SearchService.Controllers
                 PackageType = packageType,
                 Frameworks = ParameterUtilities.ParseFrameworks(frameworks),
                 Tfms = ParameterUtilities.ParseTfms(tfms),
+                IncludeComputedFrameworks = includeComputedFrameworks ?? true,
+                FrameworkFilterMode = ParameterUtilities.ParseV2FrameworkFilterMode(frameworkFilterMode),
                 IncludeTestData = testData ?? false,
                 ShowDebug = debug ?? false,
             };

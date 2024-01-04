@@ -4,7 +4,7 @@
     <EnablePackageVersionOverride>false</EnablePackageVersionOverride>
     <ServerCommonPackageVersion>2.114.0</ServerCommonPackageVersion>
     <NuGetClientPackageVersion>6.6.1</NuGetClientPackageVersion>
-    <NuGetGalleryPackageVersion>4.4.5-dev-8445918</NuGetGalleryPackageVersion>
+    <NuGetGalleryPackageVersion>4.4.5-dev-8832253</NuGetGalleryPackageVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Autofac" Version="4.9.1" />

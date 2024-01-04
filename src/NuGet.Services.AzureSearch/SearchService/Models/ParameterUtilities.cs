@@ -28,6 +28,12 @@ namespace NuGet.Services.AzureSearch.SearchService
             { "totalDownloads-desc", V2SortBy.TotalDownloadsDesc },
         };
 
+        private static readonly IReadOnlyDictionary<string, V2FrameworkFilterMode> FrameworkFilterMode = new Dictionary<string, V2FrameworkFilterMode>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "all", V2FrameworkFilterMode.All },
+            { "any", V2FrameworkFilterMode.Any },
+        };
+
         private static readonly HashSet<string> FrameworkGenerationIdentifiers = new HashSet<string>{
                                                                                         AssetFrameworkHelper.FrameworkGenerationIdentifiers.Net,
                                                                                         AssetFrameworkHelper.FrameworkGenerationIdentifiers.NetFramework,
@@ -43,6 +49,17 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
 
             return parsedSortBy;
+        }
+
+        public static V2FrameworkFilterMode ParseV2FrameworkFilterMode(string frameworkFilterMode)
+        {
+            // if the input parameter is null or an unexpected value, default to 'All'
+            if (frameworkFilterMode == null || !FrameworkFilterMode.TryGetValue(frameworkFilterMode, out var parsedSelector))
+            {
+                parsedSelector = V2FrameworkFilterMode.All;
+            }
+
+            return parsedSelector;
         }
 
         public static bool ParseIncludeSemVer2(string semVerLevel)

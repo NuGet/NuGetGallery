@@ -65,6 +65,22 @@ namespace NuGet.Services.AzureSearch
             [SimpleField(IsFilterable = true)]
             public string[] Tfms { get; set; }
 
+            /// <summary>
+            /// The list of a package's 'computed' supported target framework generations. This is a superset of the
+            /// 'Frameworks' field.
+            /// eg. net, netframework
+            /// </summary>
+            [SimpleField(IsFilterable = true)]
+            public string[] ComputedFrameworks { get; set; }
+
+            /// <summary>
+            /// The list of a package's 'computed' supported target framework monikers, stored as normalized TFM strings
+            /// (same as the 'short folder name'). This is a superset of the 'Tfms' field.
+            /// eg. net5.0, net472, netcoreapp3.1, tizen40
+            /// </summary>
+            [SimpleField(IsFilterable = true)]
+            public string[] ComputedTfms { get; set; }
+
             public bool? IsLatestStable { get; set; }
             public bool? IsLatest { get; set; }
 

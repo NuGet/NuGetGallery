@@ -490,6 +490,8 @@ namespace NuGet.Services.AzureSearch.SearchService
 
             package.Frameworks = result.Frameworks;
             package.Tfms = result.Tfms;
+            package.ComputedFrameworks = result.ComputedFrameworks;
+            package.ComputedTfms = result.ComputedTfms;
             package.PackageRegistration.Owners = result.Owners ?? Array.Empty<string>();
             package.Listed = true;
             package.IsLatestStable = result.IsLatestStable.Value;

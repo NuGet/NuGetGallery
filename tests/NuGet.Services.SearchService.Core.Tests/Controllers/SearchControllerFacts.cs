@@ -147,6 +147,8 @@ namespace NuGet.Services.SearchService.Controllers
                 Assert.Null(lastRequest.PackageType);
                 Assert.Empty(lastRequest.Frameworks);
                 Assert.Empty(lastRequest.Tfms);
+                Assert.True(lastRequest.IncludeComputedFrameworks);
+                Assert.Equal(V2FrameworkFilterMode.All, lastRequest.FrameworkFilterMode);
             }
 
             [Fact]
@@ -171,7 +173,9 @@ namespace NuGet.Services.SearchService.Controllers
                     debug: null,
                     packageType: null,
                     frameworks: null,
-                    tfms: null);
+                    tfms: null,
+                    includeComputedFrameworks: null,
+                    frameworkFilterMode: null);
 
                 _searchService.Verify(x => x.V2SearchAsync(It.IsAny<V2SearchRequest>()), Times.Once);
                 Assert.NotNull(lastRequest);
@@ -187,6 +191,8 @@ namespace NuGet.Services.SearchService.Controllers
                 Assert.Null(lastRequest.PackageType);
                 Assert.Empty(lastRequest.Frameworks);
                 Assert.Empty(lastRequest.Tfms);
+                Assert.True(lastRequest.IncludeComputedFrameworks);
+                Assert.Equal(V2FrameworkFilterMode.All, lastRequest.FrameworkFilterMode);
             }
 
             [Fact]
@@ -211,7 +217,9 @@ namespace NuGet.Services.SearchService.Controllers
                     debug: true,
                     packageType: "dotnettool",
                     frameworks: "netcoreapp",
-                    tfms: "net5.0,netstandard2.1");
+                    tfms: "net5.0,netstandard2.1",
+                    includeComputedFrameworks: false,
+                    frameworkFilterMode: "any");
 
                 _searchService.Verify(x => x.V2SearchAsync(It.IsAny<V2SearchRequest>()), Times.Once);
                 Assert.NotNull(lastRequest);
@@ -227,6 +235,8 @@ namespace NuGet.Services.SearchService.Controllers
                 Assert.Equal("dotnettool", lastRequest.PackageType);
                 Assert.Equal(new List<string> {"netcoreapp"}, lastRequest.Frameworks);
                 Assert.Equal(new List<string> {"net5.0", "netstandard2.1"}, lastRequest.Tfms);
+                Assert.False(lastRequest.IncludeComputedFrameworks);
+                Assert.Equal(V2FrameworkFilterMode.Any, lastRequest.FrameworkFilterMode);
             }
 
             [Theory]
@@ -303,6 +313,55 @@ namespace NuGet.Services.SearchService.Controllers
                 var exception = await Assert.ThrowsAsync<InvalidSearchRequestException>(() => _target.V2SearchAsync(frameworks: frameworks, tfms: tfms));
 
                 Assert.Equal(expectedException, exception.Message);
+            }
+
+            [Theory]
+            [InlineData(true, true)]
+            [InlineData(false, false)]
+            public async Task ParsesIncludeComputedFrameworks(bool includeComputedFrameworksInput, bool includeComputedFrameworksExpected)
+            {
+                // arrange
+                V2SearchRequest lastRequest = null;
+                _searchService
+                    .Setup(x => x.V2SearchAsync(It.IsAny<V2SearchRequest>()))
+                    .ReturnsAsync(() => _v2SearchResponse)
+                    .Callback<V2SearchRequest>(x => lastRequest = x);
+
+                // act
+                await _target.V2SearchAsync(includeComputedFrameworks: includeComputedFrameworksInput);
+
+                // assert
+                _searchService.Verify(x => x.V2SearchAsync(It.IsAny<V2SearchRequest>()), Times.Once);
+
+                Assert.NotNull(lastRequest);
+                Assert.Equal(includeComputedFrameworksExpected, lastRequest.IncludeComputedFrameworks);
+            }
+
+            [Theory]
+            [InlineData(null, V2FrameworkFilterMode.All)] // default
+            [InlineData("", V2FrameworkFilterMode.All)] // default
+            [InlineData("blah", V2FrameworkFilterMode.All)] // default
+            [InlineData("all", V2FrameworkFilterMode.All)]
+            [InlineData("aLl", V2FrameworkFilterMode.All)]
+            [InlineData("any", V2FrameworkFilterMode.Any)]
+            [InlineData("AnY", V2FrameworkFilterMode.Any)]
+            public async Task ParsesFrameworkFilterMode(string frameworkFilterModeInput, V2FrameworkFilterMode frameworkFilterModeExpected)
+            {
+                // arrange
+                V2SearchRequest lastRequest = null;
+                _searchService
+                    .Setup(x => x.V2SearchAsync(It.IsAny<V2SearchRequest>()))
+                    .ReturnsAsync(() => _v2SearchResponse)
+                    .Callback<V2SearchRequest>(x => lastRequest = x);
+
+                // act
+                await _target.V2SearchAsync(frameworkFilterMode: frameworkFilterModeInput);
+
+                // assert
+                _searchService.Verify(x => x.V2SearchAsync(It.IsAny<V2SearchRequest>()), Times.Once);
+
+                Assert.NotNull(lastRequest);
+                Assert.Equal(frameworkFilterModeExpected, lastRequest.FrameworkFilterMode);
             }
         }
 
