@@ -116,12 +116,12 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData(true, "<p><img src=\"https://api.bintray.com/example/image.svg\" class=\"img-fluid\" alt=\"image\" /></p>")]
-            [InlineData(false, "<p><img src=\"https://api.bintray.com/example/image.svg\" alt=\"image\" /></p>")]
+            [InlineData(true, "<p><img src=\"https://api.codacy.com/example/image.svg\" class=\"img-fluid\" alt=\"image\" /></p>")]
+            [InlineData(false, "<p><img src=\"https://api.codacy.com/example/image.svg\" alt=\"image\" /></p>")]
             public void ConvertsMarkdownToHtmlWithImageDisaplyed(bool isMarkdigMdRenderingEnabled, string expectedHtml)
             {
-                string imageUrl = "https://api.bintray.com/example/image.svg";
-                string originalMd = "![image](https://api.bintray.com/example/image.svg)";
+                string imageUrl = "https://api.codacy.com/example/image.svg";
+                string originalMd = "![image](https://api.codacy.com/example/image.svg)";
 
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(isMarkdigMdRenderingEnabled);
                 _featureFlagService.Setup(x => x.IsImageAllowlistEnabled()).Returns(true);
