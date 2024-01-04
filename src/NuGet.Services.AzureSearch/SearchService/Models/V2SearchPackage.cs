@@ -42,6 +42,8 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         public string[] Frameworks { get; set; }
         public string[] Tfms { get; set; }
+        public string[] ComputedFrameworks { get; set; }
+        public string[] ComputedTfms { get; set; }
         public string MinClientVersion { get; set; }
         public string Hash { get; set; }
         public string HashAlgorithm { get; set; }

@@ -149,6 +149,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
                 _logger.LogInformation("OpenReadAsync: The blob was not found. Blob {BlobUri}", blobUri.AbsoluteUri);
                 return null;
             }
+            _logger.LogInformation("Opening blob {Filename}, {BlobSize} bytes", blob.Name, blob.Properties.Length);
             var inputRawStream = await blob.OpenReadAsync();
             switch (contentType)
             {
