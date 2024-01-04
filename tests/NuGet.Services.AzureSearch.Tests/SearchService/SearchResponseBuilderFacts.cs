@@ -144,6 +144,8 @@ namespace NuGet.Services.AzureSearch.SearchService
     ""CountOnly"": false,
     ""SortBy"": ""Popularity"",
     ""LuceneQuery"": false,
+    ""IncludeComputedFrameworks"": false,
+    ""FrameworkFilterMode"": ""All"",
     ""Skip"": 0,
     ""Take"": 0,
     ""IncludePrerelease"": true,
@@ -491,6 +493,8 @@ namespace NuGet.Services.AzureSearch.SearchService
     ""CountOnly"": false,
     ""SortBy"": ""Popularity"",
     ""LuceneQuery"": false,
+    ""IncludeComputedFrameworks"": false,
+    ""FrameworkFilterMode"": ""All"",
     ""Skip"": 0,
     ""Take"": 0,
     ""IncludePrerelease"": true,
@@ -597,6 +601,12 @@ namespace NuGet.Services.AzureSearch.SearchService
         ""netframework""
       ],
       ""Tfms"": [
+        ""net40-client""
+      ],
+      ""ComputedFrameworks"": [
+        ""netframework""
+      ],
+      ""ComputedTfms"": [
         ""net40-client""
       ],
       ""MinClientVersion"": ""2.12"",
@@ -1875,6 +1885,8 @@ namespace NuGet.Services.AzureSearch.SearchService
     ""CountOnly"": false,
     ""SortBy"": ""Popularity"",
     ""LuceneQuery"": false,
+    ""IncludeComputedFrameworks"": false,
+    ""FrameworkFilterMode"": ""All"",
     ""Skip"": 0,
     ""Take"": 0,
     ""IncludePrerelease"": true,

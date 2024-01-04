@@ -14,5 +14,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         public string PackageType { get; set; }
         public IReadOnlyList<string> Frameworks { get; set; }
         public IReadOnlyList<string> Tfms { get; set; }
+        public bool IncludeComputedFrameworks { get; set; }
+        public V2FrameworkFilterMode FrameworkFilterMode { get; set; }
     }
 }

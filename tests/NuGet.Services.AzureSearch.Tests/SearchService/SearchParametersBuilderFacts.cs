@@ -253,18 +253,40 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
 
             [Theory]
-            [MemberData(nameof(FrameworkAndTfmFilters))]
-            public void FrameworkAndTfmFiltering(List<string> frameworks, List<string> tfms, string expectedFilterString)
+            [MemberData(nameof(FrameworkAndTfmCases))]
+            [MemberData(nameof(ComputedFrameworkCases))]
+            public void FrameworkAndTfmFiltering(List<string> frameworks, List<string> tfms, string expectedFilterString, bool includeComputedFrameworks = false)
             {
                 // arrange
                 var request = new V2SearchRequest
                 {
                     Frameworks = frameworks,
-                    Tfms = tfms
+                    Tfms = tfms,
+                    IncludeComputedFrameworks = includeComputedFrameworks,
                 };
 
                 // act
-                var output = _target.V2Search(request, It.IsAny<bool>());
+                var output = _target.V2Search(request, isDefaultSearch: false);
+
+                // assert
+                Assert.Equal($"searchFilters eq 'Default' and {expectedFilterString}", output.Filter);
+            }
+
+            [Theory]
+            [MemberData(nameof(FrameworkFilterModeCases))]
+            public void FilterStringShouldMatchFrameworkFilterMode(List<string> frameworks, List<string> tfms, string frameworkFilterMode, string expectedFilterString)
+            {
+                // arrange
+                var request = new V2SearchRequest
+                {
+                    Frameworks = frameworks,
+                    Tfms = tfms,
+                    IncludeComputedFrameworks = false,
+                    FrameworkFilterMode = ParameterUtilities.ParseV2FrameworkFilterMode(frameworkFilterMode)
+                };
+
+                // act
+                var output = _target.V2Search(request, isDefaultSearch: false);
 
                 // assert
                 Assert.Equal($"searchFilters eq 'Default' and {expectedFilterString}", output.Filter);
@@ -588,22 +610,87 @@ namespace NuGet.Services.AzureSearch.SearchService
                 new object[] { "PackageType_With_Underscores" },
             };
 
-            public static IEnumerable<object[]> FrameworkAndTfmFilters => new[]
+            public static IEnumerable<object[]> FrameworkAndTfmCases => new[]
             {
-                new object[] { new List<string> {"netstandard"}, new List<string> {"net472"},
-                    "(frameworks/any(f: f eq 'netstandard')) and (tfms/any(f: f eq 'net472'))" },
-                new object[] { new List<string> {"netcoreapp"}, new List<string>(),
-                    "(frameworks/any(f: f eq 'netcoreapp'))" },
-                new object[] { new List<string>(), new List<string> {"net5.0"},
-                    "(tfms/any(f: f eq 'net5.0'))" },
-                new object[] { new List<string> {"net", "netstandard"},
-                    new List<string> {"netcoreapp3.1"},
-                    "(frameworks/any(f: f eq 'net') and frameworks/any(f: f eq 'netstandard'))" +
-                    " and (tfms/any(f: f eq 'netcoreapp3.1'))" },
-                new object[] { new List<string> {"netframework"},
-                    new List<string> {"netstandard2.1", "net40-client"},
-                    "(frameworks/any(f: f eq 'netframework'))" +
-                    " and (tfms/any(f: f eq 'netstandard2.1') and tfms/any(f: f eq 'net40-client'))" },
+                new object[] {  new List<string> {"netstandard"},
+                                new List<string> {"net472"},
+                                "((frameworks/any(f: f eq 'netstandard')) and (tfms/any(f: f eq 'net472')))" },
+                new object[] {  new List<string> {"netcoreapp"},
+                                new List<string>(),
+                                "((frameworks/any(f: f eq 'netcoreapp')))" },
+                new object[] {  new List<string>(),
+                                new List<string> {"net5.0"},
+                                "((tfms/any(f: f eq 'net5.0')))" },
+                new object[] {  new List<string> {"net", "netstandard"},
+                                new List<string> {"netcoreapp3.1"},
+                                "((frameworks/any(f: f eq 'net') and frameworks/any(f: f eq 'netstandard')) and (tfms/any(f: f eq 'netcoreapp3.1')))" },
+                new object[] {  new List<string> {"netframework"},
+                                new List<string> {"netstandard2.1", "net40-client"},
+                                "((frameworks/any(f: f eq 'netframework')) and (tfms/any(f: f eq 'netstandard2.1') and tfms/any(f: f eq 'net40-client')))" },
+                new object[] {  new List<string> {"net", "netstandard"},
+                                new List<string> {"netcoreapp3.1"},
+                                "((computedFrameworks/any(f: f eq 'net') and computedFrameworks/any(f: f eq 'netstandard')) and (computedTfms/any(f: f eq 'netcoreapp3.1')))",
+                                true },
+                new object[] {  new List<string> {"netframework"},
+                                new List<string> {"netstandard2.1", "net40-client"},
+                                "((computedFrameworks/any(f: f eq 'netframework')) and (computedTfms/any(f: f eq 'netstandard2.1') and computedTfms/any(f: f eq 'net40-client')))",
+                                true },
+            };
+
+            public static IEnumerable<object[]> ComputedFrameworkCases => new[]
+            {
+                new object[] {  new List<string> {"net", "netstandard"},
+                                new List<string> {"netcoreapp3.1"},
+                                "((computedFrameworks/any(f: f eq 'net') and computedFrameworks/any(f: f eq 'netstandard')) and (computedTfms/any(f: f eq 'netcoreapp3.1')))",
+                                true },
+                new object[] {  new List<string> {"net", "netstandard"},
+                                new List<string> {"netcoreapp3.1"},
+                                "((frameworks/any(f: f eq 'net') and frameworks/any(f: f eq 'netstandard')) and (tfms/any(f: f eq 'netcoreapp3.1')))",
+                                false },
+                new object[] {  new List<string> {"netframework"},
+                                new List<string> {"netstandard2.1", "net462"},
+                                "((computedFrameworks/any(f: f eq 'netframework')) and (computedTfms/any(f: f eq 'netstandard2.1') and computedTfms/any(f: f eq 'net462')))",
+                                true },
+                new object[] {  new List<string> {"netframework"},
+                                new List<string> {"netstandard2.1", "net462"},
+                                "((frameworks/any(f: f eq 'netframework')) and (tfms/any(f: f eq 'netstandard2.1') and tfms/any(f: f eq 'net462')))",
+                                false },
+            };
+
+            public static IEnumerable<object[]> FrameworkFilterModeCases => new[]
+            {
+                new object[] {  new List<string> {"net", "netstandard"},
+                                new List<string> {"netcoreapp3.1"},
+                                null, // null
+                                "((frameworks/any(f: f eq 'net') and frameworks/any(f: f eq 'netstandard')) and (tfms/any(f: f eq 'netcoreapp3.1')))" },
+                new object[] {  new List<string> {"net", "netstandard"},
+                                new List<string> {"netcoreapp3.1"},
+                                "blah", // unexpected value
+                                "((frameworks/any(f: f eq 'net') and frameworks/any(f: f eq 'netstandard')) and (tfms/any(f: f eq 'netcoreapp3.1')))" },
+                new object[] {  new List<string> {"net", "netstandard"},
+                                new List<string> {"netcoreapp3.1"},
+                                "all",
+                                "((frameworks/any(f: f eq 'net') and frameworks/any(f: f eq 'netstandard')) and (tfms/any(f: f eq 'netcoreapp3.1')))" },
+                new object[] {  new List<string> {"netframework"},
+                                new List<string> {"netstandard2.1", "net462"},
+                                "all",
+                                "((frameworks/any(f: f eq 'netframework')) and (tfms/any(f: f eq 'netstandard2.1') and tfms/any(f: f eq 'net462')))" },
+                new object[] {  new List<string> {"net", "netstandard"},
+                                new List<string> {"netcoreapp3.1"},
+                                "aLl", // case insensitive
+                                "((frameworks/any(f: f eq 'net') and frameworks/any(f: f eq 'netstandard')) and (tfms/any(f: f eq 'netcoreapp3.1')))" },
+                new object[] {  new List<string> {"net", "netstandard"},
+                                new List<string> {"netcoreapp3.1"},
+                                "any",
+                                "((frameworks/any(f: f eq 'net') or frameworks/any(f: f eq 'netstandard')) or (tfms/any(f: f eq 'netcoreapp3.1')))" },
+                new object[] {  new List<string> {"netframework"},
+                                new List<string> {"netstandard2.1", "net462"},
+                                "any",
+                                "((frameworks/any(f: f eq 'netframework')) or (tfms/any(f: f eq 'netstandard2.1') or tfms/any(f: f eq 'net462')))" },
+                new object[] {  new List<string> {"net", "netstandard"},
+                                new List<string> {"netcoreapp3.1"},
+                                "AnY", // case insensitive
+                                "((frameworks/any(f: f eq 'net') or frameworks/any(f: f eq 'netstandard')) or (tfms/any(f: f eq 'netcoreapp3.1')))" },
             };
 
             public BaseFacts()
