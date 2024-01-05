@@ -317,7 +317,7 @@
     <value>The package framework '{0}' is not supported. Frameworks within the portable profile are not allowed to have profiles themselves.</value>
   </data>
   <data name="PackageEntryFromTheFuture" xml:space="preserve">
-    <value>The package is invalid and cannot be uploaded. One or more files, such as '{0}' have a date in the future.</value>
+    <value>The package is invalid and cannot be published. One or more files, such as '{0}' have a date in the future.</value>
   </data>
   <data name="AzureActiveDirectory_SignInMessage" xml:space="preserve">
     <value>Sign in with Microsoft Entra ID</value>
@@ -1259,5 +1259,14 @@ The {1} Team</value>
   </data>
   <data name="Emails_ApiKeyRevoked_Subject" xml:space="preserve">
     <value>[{0}] API Key '{1}' Revoked</value>
+  </data>
+  <data name="PackageEntryWithDoubleBackSlash" xml:space="preserve">
+    <value>The package is invalid and cannot be published. The package entry for '{0}' has a  double back slashes in path.</value>
+  </data>
+  <data name="PackageEntryWithDoubleForwardSlash" xml:space="preserve">
+    <value>The package is invalid and cannot be published. The package entry for '{0}' has a  double forward slashes in path, which is causing a file name collision during extraction.</value>
+  </data>
+  <data name="InvalidPackageEntry" xml:space="preserve">
+    <value>The package is invalid and cannot be uploaded. The package entry for '{0}' is not valid.</value>
   </data>
 </root>
