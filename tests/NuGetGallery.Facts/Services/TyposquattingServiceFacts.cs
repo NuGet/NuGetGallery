@@ -3,11 +3,12 @@
 
 using System;
 using System.Linq;
-using System.Globalization;
 using System.Collections.Generic;
 using Moq;
 using Xunit;
 using NuGet.Services.Entities;
+using NuGetGallery.TestUtils;
+using NuGetGallery.Services;
 
 namespace NuGetGallery
 {
@@ -100,7 +101,8 @@ namespace NuGetGallery
                 packageService.Object,
                 reservedNamespaceService.Object,
                 telemetryService.Object,
-                typosquattingCheckListCacheService.Object);
+                typosquattingCheckListCacheService.Object,
+                new ExactMatchTyposquattingServiceHelper());
         }
 
         [Fact]
@@ -110,7 +112,7 @@ namespace NuGetGallery
             var uploadedPackageId = "new_package_for_testing";
 
             var newService = CreateService();
-            
+
             // Act
             var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
 
@@ -138,93 +140,6 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public void CheckIsTyposquattingByDifferentOwnersTest()
-        {
-            // Arrange            
-            var uploadedPackageId = "Mícrosoft.NetFramew0rk.v1";
-            var newService = CreateService();
-            
-            // Act
-            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
-
-            // Assert
-            Assert.True(typosquattingCheckResult);
-            Assert.Equal(1, typosquattingCheckCollisionIds.Count);
-            Assert.Equal("microsoft_netframework_v1", typosquattingCheckCollisionIds[0]);
-        }
-
-        [Fact]
-        public void CheckIsTyposquattingMultiCollisionsWithoutSameUser()
-        {
-            // Arrange
-            var uploadedPackageId = "microsoft_netframework.v1";
-            var pacakgeRegistrationsList = PacakgeRegistrationsList.Concat(new PackageRegistration[]
-            {
-                new PackageRegistration {
-                    Id = "microsoft-netframework-v1",
-                    DownloadCount = new Random().Next(0, 10000),
-                    IsVerified = true,
-                    Owners = new List<User> { new User() { Username = string.Format("owner{0}", _packageIds.Count() + 2), Key = _packageIds.Count() + 2} }
-                }
-            });
-            var mockPackageService = new Mock<IPackageService>();
-            mockPackageService
-                .Setup(x => x.GetAllPackageRegistrations())
-                .Returns(pacakgeRegistrationsList);
-            var mockTyposquattingCheckListCacheService = new Mock<ITyposquattingCheckListCacheService>();
-            mockTyposquattingCheckListCacheService
-                .Setup(x => x.GetTyposquattingCheckList(It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<IPackageService>()))
-                .Returns(pacakgeRegistrationsList.Select(pr => pr.Id).ToList());
-
-            var newService = CreateService(packageService: mockPackageService, typosquattingCheckListCacheService: mockTyposquattingCheckListCacheService);
-
-            // Act
-            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
-
-            // Assert
-            Assert.True(typosquattingCheckResult);
-            Assert.Equal(2, typosquattingCheckCollisionIds.Count);
-        }
-
-        [Fact]
-        public void CheckNotTyposquattingMultiCollisionsWithSameUsers()
-        {
-            // Arrange            
-            var uploadedPackageId = "microsoft_netframework.v1";
-            _uploadedPackageOwner.Username = "owner1";
-            _uploadedPackageOwner.Key = 1;
-            var pacakgeRegistrationsList = PacakgeRegistrationsList.Concat(new PackageRegistration[]
-            {
-                new PackageRegistration()
-                {
-                    Id = "microsoft-netframework-v1",
-                    DownloadCount = new Random().Next(0, 10000),
-                    IsVerified = true,
-                    Owners = new List<User> { new User() { Username = string.Format("owner{0}", _packageIds.Count() + 2), Key = _packageIds.Count() + 2 } }
-                }
-            });
-
-            var mockPackageService = new Mock<IPackageService>();
-            mockPackageService
-                .Setup(x => x.GetAllPackageRegistrations())
-                .Returns(pacakgeRegistrationsList);
-            var mockTyposquattingCheckListCacheService = new Mock<ITyposquattingCheckListCacheService>();
-            mockTyposquattingCheckListCacheService
-                .Setup(x => x.GetTyposquattingCheckList(It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<IPackageService>()))
-                .Returns(pacakgeRegistrationsList.Select(pr => pr.Id).ToList());
-
-            var newService = CreateService(packageService: mockPackageService, typosquattingCheckListCacheService: mockTyposquattingCheckListCacheService);
-
-            // Act
-            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
-
-            // Assert
-            Assert.False(typosquattingCheckResult);
-            Assert.Equal(1, typosquattingCheckCollisionIds.Count);
-            Assert.Equal("microsoft-netframework-v1", typosquattingCheckCollisionIds[0]);
-        }
-
-        [Fact]
         public void CheckNotTyposquattingWithinReservedNameSpace()
         {
             // Arrange
@@ -233,7 +148,7 @@ namespace NuGetGallery
             var mockReservedNamespaceService = new Mock<IReservedNamespaceService>();
             mockReservedNamespaceService
                 .Setup(x => x.GetReservedNamespacesForId(It.IsAny<string>()))
-                .Returns(new List<ReservedNamespace> { new ReservedNamespace()});
+                .Returns(new List<ReservedNamespace> { new ReservedNamespace() });
 
             var newService = CreateService(reservedNamespaceService: mockReservedNamespaceService);
 
@@ -309,7 +224,7 @@ namespace NuGetGallery
                 .Returns(new List<string>());
 
             var newService = CreateService(packageService: mockPackageService, typosquattingCheckListCacheService: mockTyposquattingCheckListCacheService);
-            
+
             // Act
             var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
 
@@ -361,7 +276,7 @@ namespace NuGetGallery
                 .Returns(20000);
 
             var newService = CreateService(contentObjectService: mockContentObjectService);
-            
+
             // Act
             var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
 
@@ -385,8 +300,9 @@ namespace NuGetGallery
                 .Returns(false);
 
             var newService = CreateService(featureFlagService: featureFlagService);
-            
+
             // Act
+
             var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
 
             // Assert
@@ -430,132 +346,6 @@ namespace NuGetGallery
                     It.IsAny<int>(),
                     It.IsAny<TimeSpan>()),
                 Times.Once);
-
-            mockTelemetryService.Verify(
-                x => x.TrackMetricForTyposquattingOwnersCheckTime(uploadedPackageId, It.IsAny<TimeSpan>()),
-                Times.Once);
-        }
-
-        [Theory]
-        [InlineData("Microsoft_NetFramework_v1", "Microsoft.NetFramework.v1", 0)]
-        [InlineData("Microsoft_NetFramework_v1", "microsoft-netframework-v1", 0)]
-        [InlineData("Microsoft_NetFramework_v1", "MicrosoftNetFrameworkV1", 0)]
-        [InlineData("Microsoft_NetFramework_v1", "Mícr0s0ft_NetFrάmѐw0rk_v1", 0)]
-        [InlineData("Dotnet.Script.Core.RoslynDependencies", "dotnet-script-core-rõslyndependencies", 1)]
-        [InlineData("Dotnet.Script.Core.RoslynDependencies", "DotnetScriptCoreRoslyndependncies", 1)]
-        [InlineData("MichaelBrandonMorris.Extensions.CollectionExtensions", "Michaelbrandonmorris.Extension.CollectionExtension", 2)]
-        [InlineData("MichaelBrandonMorris.Extensions.CollectionExtensions", "MichaelBrandonMoris_Extensions_CollectionExtension", 2)]
-        public void CheckTyposquattingDistance(string str1, string str2, int threshold)
-        {
-            // Arrange 
-            str1 = TyposquattingStringNormalization.NormalizeString(str1);
-            str2 = TyposquattingStringNormalization.NormalizeString(str2);
-
-            // Act
-            var checkResult = TyposquattingDistanceCalculation.IsDistanceLessThanOrEqualToThreshold(str1, str2, threshold);
-
-            // Assert
-            Assert.True(checkResult);
-        }
-
-        [Theory]
-        [InlineData("Lappa.ORM", "JCTools.I18N", 0)]
-        [InlineData("Cake.Intellisense.Core", "Cake.IntellisenseGenerator", 0)]
-        [InlineData("Hangfire.Net40", "Hangfire.SqlServer.Net40", 0)]
-        [InlineData("LogoFX.Client.Tests.Integration.SpecFlow.Core", "LogoFX.Client.Testing.EndToEnd.SpecFlow", 1)]
-        [InlineData("cordova-plugin-ms-adal.TypeScript.DefinitelyTyped", "eonasdan-bootstrap-datetimepicker.TypeScript.DefinitelyTyped", 2)]
-        public void CheckNotTyposquattingDistance(string str1, string str2, int threshold)
-        {
-            // Arrange
-            str1 = TyposquattingStringNormalization.NormalizeString(str1);
-            str2 = TyposquattingStringNormalization.NormalizeString(str2);
-
-            // Act
-            var checkResult = TyposquattingDistanceCalculation.IsDistanceLessThanOrEqualToThreshold(str1, str2, threshold);
-
-            // Assert
-            Assert.False(checkResult);
-        }
-
-        [Theory]
-        [InlineData("ă", "a")]
-        [InlineData("aă", "aa")]
-        [InlineData("aăăa", "aaaa")]
-        [InlineData("𐒎", "h")]
-        [InlineData("h𐒎", "hh")]
-        [InlineData("h𐒎𐒎h", "hhhh")]
-        [InlineData("aă𐒎a", "aaha")]
-        [InlineData("a𐒎ăa", "ahaa")]
-        [InlineData("aă𐒎ăa", "aahaa")]
-        [InlineData("a𐒎ă𐒎a", "ahaha")]
-        [InlineData("aă𐒎ă𐒎a", "aahaha")]
-        [InlineData("aă𐒎𐒎ăă𐒎a", "aahhaaha")]
-        [InlineData("aă𐒎𐒎a𐒎ăă𐒎ă𐒎a", "aahhahaahaha")]
-        [InlineData("Microsoft_NetFramework_v1", "microsoft_netframework_v1")]
-        [InlineData("Microsoft.netframework-v1", "microsoft_netframework_v1")]
-        [InlineData("mícr0s0ft.nёtFrǎmȇwὀrk.v1", "microsoft_netframework_v1")]
-        public void CheckNormalization(string str1, string str2)
-        {
-            // Arrange and Act
-            str1 = TyposquattingStringNormalization.NormalizeString(str1);
-
-            // Assert
-            Assert.Equal(str1, str2);
-        }
-
-        [Fact]
-        public void CheckNormalizationDictionary()
-        {
-            // Arrange
-            var similarCharacterDictionary = new Dictionary<string, string>()
-            {
-                { "a", "AΑАαаÀÁÂÃÄÅàáâãäåĀāĂăĄąǍǎǞǟǠǡǺǻȀȁȂȃȦȧȺΆάἀἁἂἃἄἅἆἇἈἉἊἋἌΆἍἎἏӐӑӒӓὰάᾀᾁᾂᾃᾄᾅᾆᾇᾈᾊᾋᾌᾍᾎᾏᾰᾱᾲᾳᾴᾶᾷᾸᾹᾺᾼДд"},
-                { "b", "BΒВЪЬƀƁƂƃƄƅɃḂḃϦЂБвъьѢѣҌҍႦႪხҔҕӃӄ"},
-                { "c", "CСсϹϲÇçĆćĈĉĊċČčƇƈȻȼҪҫ𐒨"},
-                { "d", "DƊԁÐĎďĐđƉƋƌǷḊḋԀԂԃ"},
-                { "e", "EΕЕеÈÉÊËèéêëĒēĔĕĖėĘęĚěȄȅȆȇȨȩɆɇΈЀЁЄѐёҼҽҾҿӖӗἘἙἚἛἜἝῈΈ"},
-                { "f", "FϜƑƒḞḟϝҒғӺӻ"},
-                { "g", "GǤԌĜĝĞğĠġĢģƓǥǦǧǴǵԍ"},
-                { "h", "HΗНһհҺĤĥħǶȞȟΉἨἩἪἫἬἭἮἯᾘᾙᾚᾛᾜᾝᾞᾟῊΉῌЋнћҢңҤҥӇӈӉӊԊԋԦԧԨԩႬႹ𐒅𐒌𐒎𐒣"},
-                { "i", "IΙІӀ¡ìíîïǐȉȋΐίιϊіїὶίῐῑῒΐῖῗΊΪȊȈἰἱἲἳἴἵἶἷἸἹἺἻἼἽἾἿῘῙῚΊЇӏÌÍÎÏĨĩĪīĬĭĮįİǏ"},
-                { "j", "JЈͿϳĴĵǰȷ"},
-                { "k", "KΚКKĶķĸƘƙǨǩκϏЌкќҚқҜҝҞҟҠҡԞԟ"},
-                { "l", "LĹĺĻļĽľĿŀŁłſƖƪȴẛ"},
-                { "m", "MΜМṀṁϺϻмӍӎ𐒄"},
-                { "n", "NΝпÑñŃńŅņŇňŉƝǸǹᾐᾑᾒᾓᾔᾕᾖᾗῂῃῄῆῇԤԥԮԯ𐒐"},
-                { "o", "OΟОՕჿоοÒÓÔÕÖðòóôõöøŌōŎŏŐőƠơǑǒǪǫǬǭȌȍȎȏȪȫȬȭȮȯȰȱΌδόϘϙὀὁὂὃὄὅὈὉὊὋὌὍὸόῸΌӦӧჾ𐒆𐒠0"},
-                { "p", "PΡРрρÞþƤƥƿṖṗϷϸῤῥῬҎҏႲႼ"},
-                { "q", "QգԛȡɊɋԚႭႳ"},
-                { "r", "RгŔŕŖŗŘřƦȐȑȒȓɌɼѓ"},
-                { "s", "SЅѕՏႽჽŚśŜŝŞşŠšȘșȿṠṡ𐒖𐒡"},
-                { "t", "TΤТͲͳŢţŤťŦŧƬƭƮȚțȾṪṫτтҬҭէ"},
-                { "u", "UՍႮÙÚÛÜùúûüŨũŪūŬŭŮůŰűŲųƯưǓǔǕǖǗǘǙǚǛǜȔȕȖȗμυϋύὐὑὒὓὔὕὖὗὺύῠῡῢΰῦῧ𐒩"},
-                { "v", "VνѴѵƔƲѶѷ"},
-                { "w", "WωшԜԝŴŵƜẀẁẂẃẄẅώШЩщѡѿὠὡὢὣὤὥὦὧὼώᾠᾡᾢᾣᾤᾥᾦᾧῲῳῴῶῷ"},
-                { "x", "XХΧх×χҲҳӼӽӾӿჯ"},
-                { "y", "YΥҮƳуУÝýÿŶŷŸƴȲȳɎɏỲỳΎΫγϒϓϔЎЧўүҶҷҸҹӋӌӮӯӰӱӲӳӴӵὙὛὝὟῨῩῪΎႯႸ𐒋𐒦"},
-                { "z", "ZΖჍŹźŻżŽžƵƶȤȥ"},
-                { "3", "ƷЗʒӡჳǮǯȜȝзэӞӟӠ"},
-                { "8", "Ȣȣ"},
-                { "_", ".-" }
-            };
-
-            var testPackageName = "testpackage";
-            foreach (var item in similarCharacterDictionary)
-            {
-                var textElementEnumerator = StringInfo.GetTextElementEnumerator(item.Value);
-                while (textElementEnumerator.MoveNext())
-                {
-                    var typoString = testPackageName + textElementEnumerator.GetTextElement();
-                    var baseString = testPackageName + item.Key;
-
-                    // Act
-                    var normalizedString = TyposquattingStringNormalization.NormalizeString(typoString);
-
-                    // Assert
-                    Assert.Equal(baseString, normalizedString);
-                }
-            }
         }
     }
 }
