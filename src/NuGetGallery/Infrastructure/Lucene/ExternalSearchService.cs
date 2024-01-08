@@ -183,10 +183,13 @@ namespace NuGetGallery.Infrastructure.Search
                    })
                    .ToArray();
 
-            var frameworks =
-                doc.Value<JArray>("SupportedFrameworks")
-                   .Select(v => new PackageFramework() { TargetFramework = v.Value<string>() })
-                   .ToArray();
+            var frameworks = Array.Empty<PackageFramework>();
+            if (doc.Value<JArray>("Tfms") != null)
+            {
+                frameworks = doc.Value<JArray>("Tfms")
+                                   .Select(v => new PackageFramework() { TargetFramework = v.Value<string>() })
+                                   .ToArray();
+            }
 
             var reg = doc["PackageRegistration"];
             PackageRegistration registration = null;

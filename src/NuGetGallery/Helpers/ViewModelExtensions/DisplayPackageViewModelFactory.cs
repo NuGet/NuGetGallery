@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
+using NuGetGallery.Frameworks;
 using NuGetGallery.Helpers;
 
 namespace NuGetGallery
@@ -14,9 +15,9 @@ namespace NuGetGallery
     {
         private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
 
-        public DisplayPackageViewModelFactory(IIconUrlProvider iconUrlProvider)
+        public DisplayPackageViewModelFactory(IIconUrlProvider iconUrlProvider, IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory, IFeatureFlagService featureFlagService)
         {
-            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(iconUrlProvider);
+            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(iconUrlProvider, frameworkCompatibilityFactory, featureFlagService);
         }
 
         public DisplayPackageViewModel Create(

@@ -359,6 +359,39 @@ img.reserved-indicator-icon {
     }
   }
 
+  li.package-warning-indicators {
+    display: block;
+    overflow-y: visible;
+    margin-bottom: 5px;
+    font-size: 14px;
+  }
+
+  li.package-tfm-badges {
+    display: block;
+    overflow-y: visible;
+
+    .framework-badges {
+      margin-bottom: 2px;
+
+      span {
+        margin-right: 1px;
+      }
+
+      .framework-badge-computed {
+        color: #000;
+        border: 1px solid rgba(0,0,0,.15);
+      }
+
+      @media (max-width: @screen-sm-min) {
+        a + a {
+          span {
+            margin-bottom: 4px;
+          }
+        }
+      }
+    }
+  }
+
   @media (min-width: @screen-sm-min) {
     li {
       display: inline-block;

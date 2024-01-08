@@ -1206,7 +1206,9 @@ namespace NuGetGallery
                     c.Resolve<ITelemetryService>(),
                     c.Resolve<IMessageService>(),
                     c.Resolve<IMessageServiceConfiguration>(),
-                    c.Resolve<IIconUrlProvider>()))
+                    c.Resolve<IIconUrlProvider>(),
+                    c.Resolve<IPackageFrameworkCompatibilityFactory>(),
+                    c.Resolve<IFeatureFlagService>()))
                 .As<ISearchSideBySideService>()
                 .InstancePerLifetimeScope();
 

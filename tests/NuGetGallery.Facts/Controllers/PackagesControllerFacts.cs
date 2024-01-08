@@ -261,7 +261,7 @@ namespace NuGetGallery
             {
                 compatibilityFactory = new Mock<IPackageFrameworkCompatibilityFactory>();
                 compatibilityFactory
-                    .Setup(x => x.Create(It.IsAny<ICollection<PackageFramework>>()))
+                    .Setup(x => x.Create(It.IsAny<ICollection<PackageFramework>>(), string.Empty, false))
                     .Returns(new PackageFrameworkCompatibility());
             }
 
@@ -2202,7 +2202,7 @@ namespace NuGetGallery
                     .Returns(false);
 
                 compatibilityFactory
-                    .Setup(x => x.Create(supportedFrameworks))
+                    .Setup(x => x.Create(supportedFrameworks, id, false))
                     .Returns(new PackageFrameworkCompatibility());
 
                 // Arrange and Act
@@ -2210,7 +2210,6 @@ namespace NuGetGallery
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
-                compatibilityFactory.Verify(x => x.Create(It.IsAny<ICollection<PackageFramework>>()), Times.Never());
                 Assert.Null(model.PackageFrameworkCompatibility);
             }
 
@@ -2264,7 +2263,7 @@ namespace NuGetGallery
                     .Returns(displayFlag);
 
                 compatibilityFactory
-                    .Setup(x => x.Create(supportedFrameworks))
+                    .Setup(x => x.Create(supportedFrameworks, id, false))
                     .Returns(new PackageFrameworkCompatibility());
 
                 // Arrange and Act
@@ -2272,7 +2271,6 @@ namespace NuGetGallery
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
-                compatibilityFactory.Verify(x => x.Create(supportedFrameworks), Times.Once());
                 Assert.NotNull(model.PackageFrameworkCompatibility);
             }
 

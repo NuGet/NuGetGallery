@@ -229,11 +229,11 @@ namespace NuGetGallery
             _abTestService = abTestService ?? throw new ArgumentNullException(nameof(abTestService));
             _iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
 
-            _displayPackageViewModelFactory = new DisplayPackageViewModelFactory(_iconUrlProvider);
+            _displayPackageViewModelFactory = new DisplayPackageViewModelFactory(_iconUrlProvider, _compatibilityFactory, featureFlagService);
             _displayLicenseViewModelFactory = new DisplayLicenseViewModelFactory(_iconUrlProvider, _markdownService, _featureFlagService);
-            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(_iconUrlProvider);
-            _managePackageViewModelFactory = new ManagePackageViewModelFactory(_iconUrlProvider);
-            _deletePackageViewModelFactory = new DeletePackageViewModelFactory(_iconUrlProvider);
+            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(_iconUrlProvider, _compatibilityFactory, _featureFlagService);
+            _managePackageViewModelFactory = new ManagePackageViewModelFactory(_iconUrlProvider, _compatibilityFactory, featureFlagService);
+            _deletePackageViewModelFactory = new DeletePackageViewModelFactory(_iconUrlProvider, _compatibilityFactory, featureFlagService);
         }
 
         [HttpGet]
@@ -989,7 +989,7 @@ namespace NuGetGallery
 
             if (model.IsComputeTargetFrameworkEnabled || model.IsDisplayTargetFrameworkEnabled)
             {
-                model.PackageFrameworkCompatibility = _compatibilityFactory.Create(package.SupportedFrameworks);
+                model.PackageFrameworkCompatibility = _compatibilityFactory.Create(package.SupportedFrameworks, id);
             }
 
             if (model.IsPackageDependentsEnabled)
@@ -1373,7 +1373,7 @@ namespace NuGetGallery
 
             var currentUser = GetCurrentUser();
             var items = results.Data
-                .Select(pv => _listPackageItemViewModelFactory.Create(pv, currentUser))
+                .Select(pv => _listPackageItemViewModelFactory.Create(pv, currentUser, false)) // the boolean here will eventually depend on the 'IncludeComputed' search parameter
                 .ToList();
 
             var viewModel = new PackageListViewModel(

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using NuGetGallery.Frameworks;
 using NuGetGallery.Helpers;
 
 namespace NuGetGallery
@@ -21,6 +22,7 @@ namespace NuGetGallery
         public string Authors { get; set; }
         public IReadOnlyCollection<BasicUserViewModel> Owners { get; set; }
         public IReadOnlyCollection<string> Tags { get; set; }
+        public PackageFrameworkCompatibilityBadges FrameworkBadges { get; set; }
         public string MinClientVersion { get; set; }
         public string ShortDescription { get; private set; }
         public bool IsDescriptionTruncated { get; set; }
@@ -56,6 +58,7 @@ namespace NuGetGallery
         public bool CanReportAsOwner { get; set; }
         public bool CanSeeBreadcrumbWithProfile { get; set; }
         public bool CanDeleteSymbolsPackage { get; set; }
+        public bool CanDisplayTfmBadges { get; set; }
         public bool CanDeprecate { get; set; }
 
         public string VulnerabilityTitle { get; set; }

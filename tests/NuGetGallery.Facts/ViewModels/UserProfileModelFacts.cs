@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Framework;
+using NuGetGallery.Frameworks;
 using Xunit;
 
 namespace NuGetGallery.ViewModels
@@ -134,7 +135,7 @@ namespace NuGetGallery.ViewModels
 
             private ListPackageItemViewModel CreatePackageItemViewModel(string version)
             {
-                return new ListPackageItemViewModelFactory(Mock.Of<IIconUrlProvider>()).Create(new Package
+                return new ListPackageItemViewModelFactory(Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageFrameworkCompatibilityFactory>(), Mock.Of<IFeatureFlagService>()).Create(new Package
                 {
                     PackageRegistration = new PackageRegistration
                     {
