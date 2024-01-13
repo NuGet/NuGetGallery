@@ -171,6 +171,8 @@ namespace NuGetGallery
             bool includePrerelease,
             string frameworks,
             string tfms,
+            bool includeComputedFrameworks,
+            string frameworkFilterMode,
             string packageType,
             string sortBy,
             bool relativeUrl = true)
@@ -200,6 +202,16 @@ namespace NuGetGallery
             if (!string.IsNullOrWhiteSpace(tfms))
             {
                 routeValues["tfms"] = tfms;
+            }
+
+            if (!includeComputedFrameworks)
+            {
+                routeValues["includeComputedFrameworks"] = "true";
+            }
+
+            if (!string.IsNullOrWhiteSpace(frameworkFilterMode))
+            {
+                routeValues["frameworkFilterMode"] = frameworkFilterMode;
             }
 
             if (!string.IsNullOrWhiteSpace(packageType))

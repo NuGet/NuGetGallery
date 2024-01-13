@@ -4,6 +4,7 @@ $(function() {
     $(".reserved-indicator").each(window.nuget.setPopovers);
     $(".package-warning--vulnerable").each(window.nuget.setPopovers);
     $(".package-warning--deprecated").each(window.nuget.setPopovers);
+    $(".frameworkfiltermode-info").each(window.nuget.setPopovers);
 
     const storage = window['localStorage'];
     const focusResultsColumnKey = 'focus_results_column';
@@ -120,11 +121,15 @@ $(function() {
             storage.setItem(focusResultsColumnKey, true);
         }
 
+        // Remove empty or default attributes from the URL
+        var frameworkFiltersSelected = false;
+
         var frameworks = document.getElementById('frameworks');
         frameworks.name = "";
         allFrameworks.forEach(function (framework) {
             if (framework.checked) {
                 frameworks.name = "frameworks";
+                frameworkFiltersSelected = true;
             }
         });
 
@@ -133,8 +138,18 @@ $(function() {
         allTfms.forEach(function (tfm) {
             if (tfm.checked) {
                 tfms.name = "tfms";
+                frameworkFiltersSelected = true;
             }
         });
+
+        if (!frameworkFiltersSelected) {
+            searchForm.includeComputedFrameworks.name = "";
+
+            var frameworkFilterModeOptions = document.querySelectorAll('[name="frameworkFilterMode"]');
+            frameworkFilterModeOptions.forEach(function (option) {
+                option.name = "";
+            });
+        }
 
         var packageTypes = document.getElementById('packagetype');
         var allPackages = packageTypes.querySelector('input[value=""]');

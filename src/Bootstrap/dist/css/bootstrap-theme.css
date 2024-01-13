@@ -2025,6 +2025,57 @@ p.frameworktableinfo-text {
 .page-list-packages .advanced-search-panel .tfmTab ul {
   list-style: none;
 }
+.page-list-packages .advanced-search-panel .computed-frameworks-option {
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 1px solid #e5e5e5;
+}
+.page-list-packages .advanced-search-panel .toggle-switch {
+  padding-top: 5px;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+.page-list-packages .advanced-search-panel .toggle-switch p {
+  margin: 0px;
+  float: left;
+  max-width: 50%;
+  font-size: small;
+}
+.page-list-packages .advanced-search-panel .toggle-switch i {
+  vertical-align: middle;
+}
+.page-list-packages .advanced-search-panel .toggle-switch .toggle-switch-control {
+  float: right;
+}
+.page-list-packages .advanced-search-panel .toggle-switch input {
+  opacity: 0;
+  width: 0px;
+}
+.page-list-packages .advanced-search-panel .toggle-switch label {
+  float: left;
+  text-align: center;
+  width: 45px;
+  padding: 7px;
+  margin: 0px;
+  vertical-align: middle;
+  color: #fff;
+  background-color: #8e9cca;
+  cursor: pointer;
+}
+.page-list-packages .advanced-search-panel .toggle-switch input:checked + label {
+  background-color: #4665c9;
+  font-weight: bolder;
+}
+.page-list-packages .advanced-search-panel .toggle-switch label[for="all-selector"] {
+  border-top-left-radius: 3px;
+  border-bottom-left-radius: 3px;
+}
+.page-list-packages .advanced-search-panel .toggle-switch label[for="any-selector"] {
+  border-top-right-radius: 3px;
+  border-bottom-right-radius: 3px;
+}
 @media (min-width: 768px) {
   .page-list-packages .text-align-right {
     text-align: right;

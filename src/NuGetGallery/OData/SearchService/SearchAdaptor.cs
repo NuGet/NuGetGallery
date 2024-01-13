@@ -45,6 +45,8 @@ namespace NuGetGallery.OData
             bool includePrerelease,
             string frameworks,
             string tfms,
+            bool includeComputedFrameworks,
+            string frameworkFilterMode,
             string packageType,
             string sortOrder,
             string context,
@@ -54,6 +56,7 @@ namespace NuGetGallery.OData
             page = page < 1 ? 1 : page; // pages are 1-based. 
             frameworks = frameworks ?? string.Empty;
             tfms = tfms ?? string.Empty;
+            frameworkFilterMode = frameworkFilterMode ?? "all";
             packageType = packageType ?? string.Empty;
 
             var searchFilter = new SearchFilter(context)
@@ -65,6 +68,8 @@ namespace NuGetGallery.OData
                 SemVerLevel = semVerLevel,
                 Frameworks = frameworks,
                 Tfms = tfms,
+                IncludeComputedFrameworks = includeComputedFrameworks,
+                FrameworkFilterMode = frameworkFilterMode,
                 PackageType = packageType,
                 IncludeTestData = includeTestData,
             };

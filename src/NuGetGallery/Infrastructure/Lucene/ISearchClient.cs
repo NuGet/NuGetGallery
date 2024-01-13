@@ -32,6 +32,8 @@ namespace NuGetGallery.Infrastructure.Search
             bool includePrerelease,
             string frameworks,
             string tfms,
+            bool includeComputedFrameworks,
+            string frameworkFilterMode,
             string packageType,
             SearchModels.SortOrder sortBy,
             int skip,

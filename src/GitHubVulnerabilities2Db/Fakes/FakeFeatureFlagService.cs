@@ -314,5 +314,10 @@ namespace GitHubVulnerabilities2Db.Fakes
         {
             throw new NotImplementedException();
         }
+
+        public bool IsAdvancedFrameworkFilteringEnabled(User user)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

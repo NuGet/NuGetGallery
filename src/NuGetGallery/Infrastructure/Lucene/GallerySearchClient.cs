@@ -51,6 +51,8 @@ namespace NuGetGallery.Infrastructure.Search
             bool includePrerelease = false,
             string frameworks = null,
             string tfms = null,
+            bool includeComputedFrameworks = true,
+            string frameworkFilterMode = null,
             string packageType = "",
             SearchModels.SortOrder sortBy = SearchModels.SortOrder.Relevance,
             int skip = 0,
@@ -76,6 +78,13 @@ namespace NuGetGallery.Infrastructure.Search
             if (!string.IsNullOrEmpty(tfms))
             {
                 nameValue.Add("tfms", tfms);
+            }
+
+            nameValue.Add("includeComputedFrameworks", includeComputedFrameworks.ToString().ToLower());
+
+            if (!string.IsNullOrEmpty(frameworkFilterMode))
+            {
+                nameValue.Add("frameworkFilterMode", frameworkFilterMode);
             }
 
             if (!string.IsNullOrEmpty(packageType))
