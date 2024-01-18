@@ -5,7 +5,7 @@ using NuGet.Frameworks;
 
 namespace NuGetGallery.Frameworks
 {
-    public class PackageFrameworkCompatibilityTableData
+    public class PackageFrameworkCompatibilityData
     {
         /// <summary>
         /// Compatible framework.

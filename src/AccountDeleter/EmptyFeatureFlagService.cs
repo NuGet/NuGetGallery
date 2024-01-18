@@ -306,7 +306,13 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
-        public bool IsFrameworkFilteringEnabled(User user) {
+        public bool IsFrameworkFilteringEnabled(User user)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsDisplayTfmBadgesEnabled(User user)
+        {
             throw new NotImplementedException();
         }
     }

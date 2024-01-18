@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
+using NuGetGallery.Frameworks;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.OData;
 
@@ -27,7 +28,9 @@ namespace NuGetGallery
             ITelemetryService telemetryService,
             IMessageService messageService,
             IMessageServiceConfiguration messageServiceConfiguration,
-            IIconUrlProvider iconUrlProvider)
+            IIconUrlProvider iconUrlProvider,
+            IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory,
+            IFeatureFlagService featureFlagService)
         {
             _oldSearchService = oldSearchService ?? throw new ArgumentNullException(nameof(oldSearchService));
             _newSearchService = newSearchService ?? throw new ArgumentNullException(nameof(newSearchService));
@@ -36,7 +39,7 @@ namespace NuGetGallery
             _messageServiceConfiguration = messageServiceConfiguration ?? throw new ArgumentNullException(nameof(messageServiceConfiguration));
             _iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
 
-            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(_iconUrlProvider);
+            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(_iconUrlProvider, frameworkCompatibilityFactory, featureFlagService);
         }
 
         public async Task<SearchSideBySideViewModel> SearchAsync(string searchTerm, User currentUser)
@@ -59,10 +62,10 @@ namespace NuGetGallery
                     SearchTerm = searchTerm,
                     OldSuccess = SearchResults.IsSuccessful(oldResults),
                     OldHits = oldResults.Hits,
-                    OldItems = oldResults.Data.Select(x => _listPackageItemViewModelFactory.Create(x, currentUser)).ToList(),
+                    OldItems = oldResults.Data.Select(x => _listPackageItemViewModelFactory.Create(x, currentUser, false)).ToList(),
                     NewSuccess = SearchResults.IsSuccessful(newResults),
                     NewHits = newResults.Hits,
-                    NewItems = newResults.Data.Select(x => _listPackageItemViewModelFactory.Create(x, currentUser)).ToList(),
+                    NewItems = newResults.Data.Select(x => _listPackageItemViewModelFactory.Create(x, currentUser, false)).ToList(),
                 };
 
                 _telemetryService.TrackSearchSideBySide(

@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
@@ -228,11 +229,11 @@ namespace NuGetGallery
             _abTestService = abTestService ?? throw new ArgumentNullException(nameof(abTestService));
             _iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
 
-            _displayPackageViewModelFactory = new DisplayPackageViewModelFactory(_iconUrlProvider);
+            _displayPackageViewModelFactory = new DisplayPackageViewModelFactory(_iconUrlProvider, _compatibilityFactory, featureFlagService);
             _displayLicenseViewModelFactory = new DisplayLicenseViewModelFactory(_iconUrlProvider, _markdownService, _featureFlagService);
-            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(_iconUrlProvider);
-            _managePackageViewModelFactory = new ManagePackageViewModelFactory(_iconUrlProvider);
-            _deletePackageViewModelFactory = new DeletePackageViewModelFactory(_iconUrlProvider);
+            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(_iconUrlProvider, _compatibilityFactory, _featureFlagService);
+            _managePackageViewModelFactory = new ManagePackageViewModelFactory(_iconUrlProvider, _compatibilityFactory, featureFlagService);
+            _deletePackageViewModelFactory = new DeletePackageViewModelFactory(_iconUrlProvider, _compatibilityFactory, featureFlagService);
         }
 
         [HttpGet]
@@ -508,11 +509,33 @@ namespace NuGetGallery
             // If the current user doesn't have the rights to upload the package, the package upload will be rejected by submitting the form.
             // Related: https://github.com/NuGet/NuGetGallery/issues/5043
             IEnumerable<User> accountsAllowedOnBehalfOf = new[] { currentUser };
-            var foundEntryInFuture = ZipArchiveHelpers.FoundEntryInFuture(uploadStream, out var entryInTheFuture);
-            if (foundEntryInFuture)
+            InvalidZipEntry anyInvalidZipEntry = ZipArchiveHelpers.ValidateArchiveEntries(uploadStream, out ZipArchiveEntry invalidZipEntry);
+
+            switch (anyInvalidZipEntry)
             {
-                return Json(HttpStatusCode.BadRequest, new[] {
-                    new JsonValidationMessage(string.Format(CultureInfo.CurrentCulture, Strings.PackageEntryFromTheFuture, entryInTheFuture.Name)) });
+                case InvalidZipEntry.None:
+                    break;
+                case InvalidZipEntry.InFuture:
+                    return Json(HttpStatusCode.BadRequest, new[]
+                    {
+                        new JsonValidationMessage(string.Format(CultureInfo.CurrentCulture, Strings.PackageEntryFromTheFuture, invalidZipEntry.Name))
+                    });
+                case InvalidZipEntry.DoubleForwardSlashesInPath:
+                    return Json(HttpStatusCode.BadRequest, new[]
+                    {
+                        new JsonValidationMessage(string.Format(CultureInfo.CurrentCulture, Strings.PackageEntryWithDoubleForwardSlash, invalidZipEntry.Name))
+                    });
+                case InvalidZipEntry.DoubleBackwardSlashesInPath:
+                    return Json(HttpStatusCode.BadRequest, new[]
+                    {
+                        new JsonValidationMessage(string.Format(CultureInfo.CurrentCulture, Strings.PackageEntryWithDoubleBackSlash, invalidZipEntry.Name))
+                    });
+                default:
+                    return Json(HttpStatusCode.BadRequest, new[]
+                    {
+                        // Generic error message for unknown invalid zip entry
+                        new JsonValidationMessage(string.Format(CultureInfo.CurrentCulture, Strings.InvalidPackageEntry, invalidZipEntry.Name))
+                    });
             }
 
             try
@@ -966,7 +989,7 @@ namespace NuGetGallery
 
             if (model.IsComputeTargetFrameworkEnabled || model.IsDisplayTargetFrameworkEnabled)
             {
-                model.PackageFrameworkCompatibility = _compatibilityFactory.Create(package.SupportedFrameworks);
+                model.PackageFrameworkCompatibility = _compatibilityFactory.Create(package.SupportedFrameworks, id);
             }
 
             if (model.IsPackageDependentsEnabled)
@@ -1350,7 +1373,7 @@ namespace NuGetGallery
 
             var currentUser = GetCurrentUser();
             var items = results.Data
-                .Select(pv => _listPackageItemViewModelFactory.Create(pv, currentUser))
+                .Select(pv => _listPackageItemViewModelFactory.Create(pv, currentUser, false)) // the boolean here will eventually depend on the 'IncludeComputed' search parameter
                 .ToList();
 
             var viewModel = new PackageListViewModel(

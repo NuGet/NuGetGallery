@@ -6,6 +6,7 @@ using System.Linq;
 using Moq;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Entities;
+using NuGetGallery.Frameworks;
 using NuGetGallery.Helpers;
 using Xunit;
 
@@ -503,7 +504,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
 
         private static ListPackageItemViewModel CreateListPackageItemViewModel(Package package, User user = null)
         {
-            return new ListPackageItemViewModelFactory(Mock.Of<IIconUrlProvider>()).Create(package, currentUser: user);
+            return new ListPackageItemViewModelFactory(Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageFrameworkCompatibilityFactory>(), Mock.Of<IFeatureFlagService>()).Create(package, currentUser: user);
         }
     }
 }

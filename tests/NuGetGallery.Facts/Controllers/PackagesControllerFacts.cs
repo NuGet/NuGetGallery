@@ -261,7 +261,7 @@ namespace NuGetGallery
             {
                 compatibilityFactory = new Mock<IPackageFrameworkCompatibilityFactory>();
                 compatibilityFactory
-                    .Setup(x => x.Create(It.IsAny<ICollection<PackageFramework>>()))
+                    .Setup(x => x.Create(It.IsAny<ICollection<PackageFramework>>(), string.Empty, false))
                     .Returns(new PackageFrameworkCompatibility());
             }
 
@@ -2202,7 +2202,7 @@ namespace NuGetGallery
                     .Returns(false);
 
                 compatibilityFactory
-                    .Setup(x => x.Create(supportedFrameworks))
+                    .Setup(x => x.Create(supportedFrameworks, id, false))
                     .Returns(new PackageFrameworkCompatibility());
 
                 // Arrange and Act
@@ -2210,7 +2210,6 @@ namespace NuGetGallery
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
-                compatibilityFactory.Verify(x => x.Create(It.IsAny<ICollection<PackageFramework>>()), Times.Never());
                 Assert.Null(model.PackageFrameworkCompatibility);
             }
 
@@ -2264,7 +2263,7 @@ namespace NuGetGallery
                     .Returns(displayFlag);
 
                 compatibilityFactory
-                    .Setup(x => x.Create(supportedFrameworks))
+                    .Setup(x => x.Create(supportedFrameworks, id, false))
                     .Returns(new PackageFrameworkCompatibility());
 
                 // Arrange and Act
@@ -2272,7 +2271,6 @@ namespace NuGetGallery
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
-                compatibilityFactory.Verify(x => x.Create(supportedFrameworks), Times.Once());
                 Assert.NotNull(model.PackageFrameworkCompatibility);
             }
 
@@ -6925,6 +6923,45 @@ namespace NuGetGallery
                 
                 Assert.NotNull(result);
                 Assert.Equal("Central Directory corrupt.", (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+            }
+
+            [Theory]
+            [InlineData("PackageWithDoubleForwardSlash.1.0.0.nupkg")]
+            [InlineData("PackageWithDoubleBackwardSlash.1.0.0.nupkg")]
+            [InlineData("PackageWithVeryLongZipFileEntry.1.0.0.nupkg")]
+            [UseInvariantCultureAttribute]
+            public async Task WillRejectMalformedZipWithEntryDoubleSlashInPath(string zipPath)
+            {
+                // Arrange
+                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
+                fakeUploadedFile.Setup(x => x.FileName).Returns("file.nupkg");
+                var fakeFileStream = new MemoryStream(TestDataResourceUtility.GetResourceBytes(zipPath));
+                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    fakeNuGetPackage: fakeFileStream);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
+
+                Assert.NotNull(result);
+
+                if (zipPath.Contains("Forward"))
+                {
+                    Assert.Equal(String.Format(Strings.PackageEntryWithDoubleForwardSlash, "malformedfile.txt"), (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                }
+                else if (zipPath.Contains("Backward"))
+                {
+                    Assert.Equal(String.Format(Strings.PackageEntryWithDoubleBackSlash, "malformedfile.txt"), (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                }
+                else
+                {
+                    string longFileName = "a".PadRight(270, 'a') + ".txt";
+                    Assert.Equal(String.Format(Strings.PackageEntryWithDoubleForwardSlash, longFileName), (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                    string normalizedZipEntry = ZipArchiveHelpers.NormalizeForwardSlashesInPath(longFileName);
+                    Assert.Equal(260, normalizedZipEntry.Length);
+                }
             }
 
             [Theory]

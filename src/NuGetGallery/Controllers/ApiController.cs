@@ -553,12 +553,33 @@ namespace NuGetGallery
                 {
                     try
                     {
-                        if (ZipArchiveHelpers.FoundEntryInFuture(packageStream, out ZipArchiveEntry entryInTheFuture))
+                        InvalidZipEntry anyInvalidZipEntry = ZipArchiveHelpers.ValidateArchiveEntries(packageStream, out ZipArchiveEntry invalidZipEntry);
+
+                        switch (anyInvalidZipEntry)
                         {
-                            return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
-                                CultureInfo.CurrentCulture,
-                                Strings.PackageEntryFromTheFuture,
-                                entryInTheFuture.Name));
+                            case InvalidZipEntry.None:
+                                break;
+                            case InvalidZipEntry.InFuture:
+                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
+                                    CultureInfo.CurrentCulture,
+                                    Strings.PackageEntryFromTheFuture,
+                                    invalidZipEntry.Name));
+                            case InvalidZipEntry.DoubleForwardSlashesInPath:
+                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
+                                    CultureInfo.CurrentCulture,
+                                    Strings.PackageEntryWithDoubleForwardSlash,
+                                    invalidZipEntry.Name));
+                            case InvalidZipEntry.DoubleBackwardSlashesInPath:
+                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
+                                    CultureInfo.CurrentCulture,
+                                    Strings.PackageEntryWithDoubleBackSlash,
+                                    invalidZipEntry.Name));
+                            default:
+                                // Generic error message for unknown invalid zip entry
+                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
+                                    CultureInfo.CurrentCulture,
+                                    Strings.InvalidPackageEntry,
+                                    invalidZipEntry.Name));
                         }
                     }
                     catch (Exception ex)

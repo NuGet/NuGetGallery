@@ -13,26 +13,21 @@ namespace NuGetGallery
 {
     public class TyposquattingService : ITyposquattingService
     {
-        private static readonly IReadOnlyList<ThresholdInfo> ThresholdsList = new List<ThresholdInfo>
-        {
-            new ThresholdInfo (lowerBound: 0, upperBound: 30, threshold: 0),
-            new ThresholdInfo (lowerBound: 30, upperBound: 50, threshold: 1),
-            new ThresholdInfo (lowerBound: 50, upperBound: 129, threshold: 2)
-        };
-
         private readonly IContentObjectService _contentObjectService;
         private readonly IFeatureFlagService _featureFlagService;
         private readonly IPackageService _packageService;
         private readonly IReservedNamespaceService _reservedNamespaceService;
         private readonly ITelemetryService _telemetryService;
         private readonly ITyposquattingCheckListCacheService _typosquattingCheckListCacheService;
+        private readonly ITyposquattingServiceHelper _typosquattingServiceHelper;
 
         public TyposquattingService(IContentObjectService contentObjectService,
                                     IFeatureFlagService featureFlagService,
                                     IPackageService packageService,
                                     IReservedNamespaceService reservedNamespaceService,
                                     ITelemetryService telemetryService,
-                                    ITyposquattingCheckListCacheService typosquattingCheckListCacheService)
+                                    ITyposquattingCheckListCacheService typosquattingCheckListCacheService,
+                                    ITyposquattingServiceHelper typosquattingServiceHelper)
         {
             _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
@@ -40,6 +35,7 @@ namespace NuGetGallery
             _reservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _typosquattingCheckListCacheService = typosquattingCheckListCacheService ?? throw new ArgumentNullException(nameof(typosquattingCheckListCacheService));
+            _typosquattingServiceHelper = typosquattingServiceHelper;
         }
 
         public bool IsUploadedPackageIdTyposquatting(string uploadedPackageId, User uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds)
@@ -70,13 +66,10 @@ namespace NuGetGallery
             _telemetryService.TrackMetricForTyposquattingChecklistRetrievalTime(uploadedPackageId, checklistRetrievalStopwatch.Elapsed);
 
             var algorithmProcessingStopwatch = Stopwatch.StartNew();
-            var threshold = GetThreshold(uploadedPackageId);
-            var normalizedUploadedPackageId = TyposquattingStringNormalization.NormalizeString(uploadedPackageId);
             var collisionIds = new ConcurrentBag<string>();
             Parallel.ForEach(packageIdsCheckList, (packageId, loopState) =>
             {
-                string normalizedPackageId = TyposquattingStringNormalization.NormalizeString(packageId);
-                if (TyposquattingDistanceCalculation.IsDistanceLessThanOrEqualToThreshold(normalizedUploadedPackageId, normalizedPackageId, threshold))
+                if (_typosquattingServiceHelper.IsDistanceLessThanOrEqualToThreshold(uploadedPackageId, packageId))
                 {
                     collisionIds.Add(packageId);
                 }
@@ -138,29 +131,5 @@ namespace NuGetGallery
 
             return wasUploadBlocked;
         }
-        private static int GetThreshold(string packageId)
-        {
-            foreach (var thresholdInfo in ThresholdsList)
-            {
-                if (packageId.Length >= thresholdInfo.LowerBound && packageId.Length < thresholdInfo.UpperBound)
-                {
-                    return thresholdInfo.Threshold;
-                }
-            }
-
-            throw new ArgumentException(String.Format("There is no predefined typo-squatting threshold for this package Id: {0}", packageId));
-        }
-    }
-    public class ThresholdInfo
-    {
-        public int LowerBound { get; }
-        public int UpperBound { get; }
-        public int Threshold { get; }
-        public ThresholdInfo(int lowerBound, int upperBound, int threshold)
-        {
-            LowerBound = lowerBound;
-            UpperBound = upperBound;
-            Threshold = threshold;
-        }        
     }
 }

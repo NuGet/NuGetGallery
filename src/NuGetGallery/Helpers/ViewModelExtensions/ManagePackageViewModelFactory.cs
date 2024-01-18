@@ -7,6 +7,7 @@ using System.Linq;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
+using NuGetGallery.Frameworks;
 
 namespace NuGetGallery
 {
@@ -14,9 +15,9 @@ namespace NuGetGallery
     {
         private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
 
-        public ManagePackageViewModelFactory(IIconUrlProvider iconUrlProvider)
+        public ManagePackageViewModelFactory(IIconUrlProvider iconUrlProvider, IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory, IFeatureFlagService featureFlagService)
         {
-            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(iconUrlProvider);
+            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(iconUrlProvider, frameworkCompatibilityFactory, featureFlagService);
         }
 
         public ManagePackageViewModel Create(

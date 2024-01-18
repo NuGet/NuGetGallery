@@ -1139,6 +1139,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The package is invalid and cannot be uploaded. The package entry for &apos;{0}&apos; is not valid..
+        /// </summary>
+        public static string InvalidPackageEntry {
+            get {
+                return ResourceManager.GetString("InvalidPackageEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The package framework &apos;{0}&apos; is not supported. Frameworks within the portable profile are not allowed to have profiles themselves..
         /// </summary>
         public static string InvalidPortableFramework {
@@ -1472,11 +1481,29 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The package is invalid and cannot be uploaded. One or more files, such as &apos;{0}&apos; have a date in the future..
+        ///   Looks up a localized string similar to The package is invalid and cannot be published. One or more files, such as &apos;{0}&apos; have a date in the future..
         /// </summary>
         public static string PackageEntryFromTheFuture {
             get {
                 return ResourceManager.GetString("PackageEntryFromTheFuture", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package is invalid and cannot be published. The package entry for &apos;{0}&apos; has a  double back slashes in path..
+        /// </summary>
+        public static string PackageEntryWithDoubleBackSlash {
+            get {
+                return ResourceManager.GetString("PackageEntryWithDoubleBackSlash", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package is invalid and cannot be published. The package entry for &apos;{0}&apos; has a  double forward slashes in path, which is causing a file name collision during extraction..
+        /// </summary>
+        public static string PackageEntryWithDoubleForwardSlash {
+            get {
+                return ResourceManager.GetString("PackageEntryWithDoubleForwardSlash", resourceCulture);
             }
         }
         

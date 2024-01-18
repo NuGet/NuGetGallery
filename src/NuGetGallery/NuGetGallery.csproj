@@ -240,6 +240,7 @@
     <Compile Include="Filters\AdminActionAttribute.cs" />
     <Compile Include="Filters\RequiresUserAgentAttribute.cs" />
     <Compile Include="Helpers\AdminHelper.cs" />
+    <Compile Include="Helpers\InvalidZipEntry.cs" />
     <Compile Include="Helpers\SearchResponseHelper.cs" />
     <Compile Include="Helpers\ViewModelExtensions\DeleteAccountListPackageItemViewModelFactory.cs" />
     <Compile Include="Helpers\ViewModelExtensions\DeletePackageViewModelFactory.cs" />
@@ -350,6 +351,7 @@
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
     <Compile Include="RequestModels\UpdateListedRequest.cs" />
     <Compile Include="Services\MissingLicenseValidationMessageV2.cs" />
+    <Compile Include="Services\NullTyposquattingService.cs" />
     <Compile Include="Services\UploadPackageMissingReadme.cs" />
     <Compile Include="Services\MissingLicenseValidationMessage.cs" />
     <Compile Include="Services\UploadPackageIdNamespaceConflict.cs" />
@@ -649,8 +651,6 @@
     <Compile Include="Services\PackageValidationResultType.cs" />
     <Compile Include="Services\ReadMeService.cs" />
     <Compile Include="Services\TyposquattingService.cs" />
-    <Compile Include="Services\TyposquattingDistanceCalculation.cs" />
-    <Compile Include="Services\TyposquattingStringNormalization.cs" />
     <Compile Include="Services\UpdateDeprecationError.cs" />
     <Compile Include="Services\ValidationService.cs" />
     <Compile Include="Strings.Designer.cs">

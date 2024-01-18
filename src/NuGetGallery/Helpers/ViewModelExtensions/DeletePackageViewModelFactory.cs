@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using NuGet.Services.Entities;
+using NuGetGallery.Frameworks;
 
 namespace NuGetGallery
 {
@@ -11,9 +12,9 @@ namespace NuGetGallery
     {
         private readonly DisplayPackageViewModelFactory _displayPackageViewModelFactory;
 
-        public DeletePackageViewModelFactory(IIconUrlProvider iconUrlProvider)
+        public DeletePackageViewModelFactory(IIconUrlProvider iconUrlProvider, IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory, IFeatureFlagService featureFlagService)
         {
-            _displayPackageViewModelFactory = new DisplayPackageViewModelFactory(iconUrlProvider);
+            _displayPackageViewModelFactory = new DisplayPackageViewModelFactory(iconUrlProvider, frameworkCompatibilityFactory, featureFlagService);
         }
 
         public DeletePackageViewModel Create(

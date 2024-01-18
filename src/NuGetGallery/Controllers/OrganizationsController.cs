@@ -11,6 +11,7 @@ using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
 using NuGetGallery.Authentication;
 using NuGetGallery.Filters;
+using NuGetGallery.Frameworks;
 using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Security;
@@ -35,7 +36,8 @@ namespace NuGetGallery
             IMessageServiceConfiguration messageServiceConfiguration,
             IIconUrlProvider iconUrlProvider,
             IFeatureFlagService features,
-            IGravatarProxyService gravatarProxy)
+            IGravatarProxyService gravatarProxy,
+            IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory)
             : base(
                   authService,
                   packageService,
@@ -49,7 +51,8 @@ namespace NuGetGallery
                   deleteAccountService,
                   iconUrlProvider,
                   gravatarProxy,
-                  features)
+                  features,
+                  frameworkCompatibilityFactory)
         {
             _features = features ?? throw new ArgumentNullException(nameof(features));
         }

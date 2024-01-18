@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NuGet.Services.Entities;
+using NuGetGallery.Frameworks;
 using NuGetGallery.Security;
 
 namespace NuGetGallery
@@ -18,9 +19,11 @@ namespace NuGetGallery
         public ListPackageItemRequiredSignerViewModelFactory(
             ISecurityPolicyService securityPolicyService, 
             IIconUrlProvider iconUrlProvider,
-            IPackageVulnerabilitiesService packageVulnerabilitiesService)
+            IPackageVulnerabilitiesService packageVulnerabilitiesService,
+            IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory,
+            IFeatureFlagService featureFlagService)
         {
-            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(iconUrlProvider);
+            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(iconUrlProvider, frameworkCompatibilityFactory, featureFlagService);
             _securityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
             _packageVulnerabilitiesService = packageVulnerabilitiesService ?? throw new ArgumentNullException(nameof(packageVulnerabilitiesService));
         }
