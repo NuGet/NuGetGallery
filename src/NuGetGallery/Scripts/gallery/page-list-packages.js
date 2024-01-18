@@ -143,12 +143,14 @@ $(function() {
         });
 
         if (!frameworkFiltersSelected) {
-            searchForm.includeComputedFrameworks.name = "";
+            if (searchForm.includeComputedFrameworks.value == true) {
+                searchForm.includeComputedFrameworks.name = "";
+            }
 
-            var frameworkFilterModeOptions = document.querySelectorAll('[name="frameworkFilterMode"]');
-            frameworkFilterModeOptions.forEach(function (option) {
-                option.name = "";
-            });
+            var frameworkFilterModeAll = document.getElementById('all-selector');
+            if (frameworkFilterModeAll.checked) {
+                frameworkFilterModeAll.name = "";
+            }
         }
 
         var packageTypes = document.getElementById('packagetype');

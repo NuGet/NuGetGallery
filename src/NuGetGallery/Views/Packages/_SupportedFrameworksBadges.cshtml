@@ -6,7 +6,7 @@
     @if (Model.Net != null)
     {
         <!-- .NET cannot be an empty version since the lowest version for this framework is "net5.0", if the package contains just "net" framework it will fall into .NET Framework badge instead.' -->
-        <a href=@Url.FrameworksTab(Model.PackageId)>
+        <a href=@Url.FrameworksTab(Model.PackageId, Model.PackageVersion)>
             <span class=@(Model.Net.IsComputed ? "framework-badge-computed" : "framework-badge-asset") aria-label="@String.SupportedFrameworks_Tooltip" data-content="@String.SupportedFrameworks_Tooltip">.NET @Model.Net.Framework.GetBadgeVersion()</span>
         </a>
     }
@@ -14,13 +14,13 @@
     {
         if (Model.NetCore.Framework.GetBadgeVersion().IsEmpty())
         {
-            <a href=@Url.FrameworksTab(Model.PackageId)>
+            <a href=@Url.FrameworksTab(Model.PackageId, Model.PackageVersion)>
                 <span class=@(Model.NetCore.IsComputed ? "framework-badge-computed" : "framework-badge-asset") aria-label="@String.SupportedFrameworks_EmptyVersionTooltip" data-content="@String.SupportedFrameworks_EmptyVersionTooltip">.NET Core</span>
             </a>
         }
         else
         {
-            <a href=@Url.FrameworksTab(Model.PackageId)>
+            <a href=@Url.FrameworksTab(Model.PackageId, Model.PackageVersion)>
                 <span class=@(Model.NetCore.IsComputed ? "framework-badge-computed" : "framework-badge-asset") aria-label="@String.SupportedFrameworks_Tooltip" data-content="@String.SupportedFrameworks_Tooltip">.NET Core @Model.NetCore.Framework.GetBadgeVersion()</span>
             </a>
         }
@@ -29,13 +29,13 @@
     {
         if (Model.NetStandard.Framework.GetBadgeVersion().IsEmpty())
         {
-            <a href=@Url.FrameworksTab(Model.PackageId)>
+            <a href=@Url.FrameworksTab(Model.PackageId, Model.PackageVersion)>
                 <span class=@(Model.NetStandard.IsComputed ? "framework-badge-computed" : "framework-badge-asset") aria-label="@String.SupportedFrameworks_EmptyVersionTooltip" data-content="@String.SupportedFrameworks_EmptyVersionTooltip">.NET Standard</span>
             </a>
         }
         else
         {
-            <a href=@Url.FrameworksTab(Model.PackageId)>
+            <a href=@Url.FrameworksTab(Model.PackageId, Model.PackageVersion)>
                 <span class=@(Model.NetStandard.IsComputed ? "framework-badge-computed" : "framework-badge-asset") aria-label="@String.SupportedFrameworks_Tooltip" data-content="@String.SupportedFrameworks_Tooltip">.NET Standard @Model.NetStandard.Framework.GetBadgeVersion()</span>
             </a>
         }
@@ -44,13 +44,13 @@
     {
         if (Model.NetFramework.Framework.GetBadgeVersion().IsEmpty())
         {
-            <a href=@Url.FrameworksTab(Model.PackageId)>
+            <a href=@Url.FrameworksTab(Model.PackageId, Model.PackageVersion)>
                 <span class=@(Model.NetFramework.IsComputed ? "framework-badge-computed" : "framework-badge-asset") aria-label="@String.SupportedFrameworks_EmptyVersionTooltip" data-content="@String.SupportedFrameworks_EmptyVersionTooltip">.NET Framework</span>
             </a>
         }
         else
         {
-            <a href=@Url.FrameworksTab(Model.PackageId)>
+            <a href=@Url.FrameworksTab(Model.PackageId, Model.PackageVersion)>
                 <span class=@(Model.NetFramework.IsComputed ? "framework-badge-computed" : "framework-badge-asset") aria-label="@String.SupportedFrameworks_Tooltip" data-content="@String.SupportedFrameworks_Tooltip">.NET Framework @Model.NetFramework.Framework.GetBadgeVersion()</span>
             </a>
         }

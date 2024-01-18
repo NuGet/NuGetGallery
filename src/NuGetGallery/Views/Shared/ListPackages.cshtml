@@ -97,21 +97,19 @@
                                     @if (Model.IsAdvancedFrameworkFilteringEnabled)
                                     {
                                         <div class="computed-frameworks-option">
+                                            <label for="computed-frameworks-checkbox" aria-label="Include computed frameworks when filtering for packages.">Include computed frameworks</label>
                                             <input type="checkbox" id="computed-frameworks-checkbox" checked="@Model.IncludeComputedFrameworks">
-                                            <label for="computed-frameworks-checkbox" aria-label="Include computed frameworks when filtering for packages.">
-                                                Include Computed Frameworks
-                                            </label>
                                             <input type="hidden" id="includeComputedFrameworks" name="includeComputedFrameworks" value="@Model.IncludeComputedFrameworks.ToString().ToLower()">
                                         </div>
-                                        <div class="toggle-switch" aria-label="ALL/ANY toggle that decides whether to show packages matching ALL of the selected Frameworks and TFMs, or ANY of them.">
+                                        <div class="framework-filter-mode-option toggle-switch" aria-label="ALL/ANY toggle that decides whether to show packages matching ALL of the selected Frameworks and TFMs, or ANY of them.">
                                             <p>
                                                 Framework Filter Mode
                                                 <i class="frameworkfiltermode-info ms-Icon ms-Icon--Info" title="Decides whether to show packages matching ALL of the selected Frameworks and TFMs, or ANY of them."></i>
                                             </p>
                                             <div class="toggle-switch-control">
-                                                <input type="radio" id="all-selector" name="frameworkFilterMode" value="all" @(Model.FrameworkFilterMode == "any" ? "" : "checked") />
+                                                <input type="radio" id="all-selector" name="frameworkFilterMode" value="all" tabindex="0" @(Model.FrameworkFilterMode == "any" ? "" : "checked") />
                                                 <label for="all-selector" aria-label="Show packages matching ALL of the selected Frameworks and TFMs.">ALL</label>
-                                                <input type="radio" id="any-selector" name="frameworkFilterMode" value="any" @(Model.FrameworkFilterMode == "any" ? "checked" : "") />
+                                                <input type="radio" id="any-selector" name="frameworkFilterMode" value="any" tabindex="0" @(Model.FrameworkFilterMode == "any" ? "checked" : "") />
                                                 <label for="any-selector" aria-label="Show packages matching ANY of the selected Frameworks or TFMs.">ANY</label>
                                             </div>
                                         </div>
@@ -140,11 +138,9 @@
                         <div>
                             <fieldset>
                                 <legend>Options</legend>
-                                <div>
-                                    <label aria-label="Options: Include prerelease">
-                                        <input id="prerel-checkbox" type="checkbox" checked="@Model.IncludePrerelease">
-                                        Include prerelease
-                                    </label>
+                                <div class="prerel-option">
+                                    <input id="prerel-checkbox" type="checkbox" checked="@Model.IncludePrerelease">
+                                    <label for="prerel-checkbox" aria-label="Options: Include prerelease">Include prerelease</label>
                                 </div>
                             </fieldset>
                         </div>
@@ -161,7 +157,7 @@
                     </div>
                 }
             </div>
-            <div class="@(Model.IsAdvancedSearchFlightEnabled ? "col-md-9" : "col-md-12")" id="results-column" tabindex="0">
+            <div class="@(Model.IsAdvancedSearchFlightEnabled ? "col-md-9" : "col-md-12")" id="results-column">
                 <div class="row">
                     <div class="col-md-9">
                         <h1 tabindex="0">
@@ -272,6 +268,10 @@
             PageIndex: @Model.PageIndex,
             TotalCount: @Model.TotalCount,
             IsPreviewSearch: '@Model.IsPreviewSearch',
+            Frameworks: '@Model.Frameworks',
+            Tfms: '@Model.Tfms',
+            IncludeComputedFrameworks: '@Model.IncludeComputedFrameworks',
+            FrameworkFilterMode: '@Model.FrameworkFilterMode',
             PackageType: @Html.ToJson(Model.PackageType ?? string.Empty),
             SortBy: @Html.ToJson(Model.SortBy)
         });
@@ -296,6 +296,10 @@
                     SincePageLoadMs: Date.now() - pageLoadTime,
                     SincePageLoadCount: sincePageLoadCount,
                     IsPreviewSearch: '@Model.IsPreviewSearch',
+                    Frameworks: '@Model.Frameworks',
+                    Tfms: '@Model.Tfms',
+                    IncludeComputedFrameworks: '@Model.IncludeComputedFrameworks',
+                    FrameworkFilterMode: '@Model.FrameworkFilterMode',
                     PackageType: @Html.ToJson(Model.PackageType ?? string.Empty),
                     SortBy: @Html.ToJson(Model.SortBy)
                 });

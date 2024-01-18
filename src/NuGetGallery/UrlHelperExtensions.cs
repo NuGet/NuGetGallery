@@ -1402,9 +1402,9 @@ namespace NuGetGallery
             return url.PackageVersionAction(nameof(PackagesController.License), package, relativeUrl);
         }
 
-        public static string FrameworksTab(this UrlHelper url, string packageId, bool relativeUrl = true)
+        public static string FrameworksTab(this UrlHelper url, string id, string version, bool relativeUrl = true)
         {
-            return url.Package(packageId, relativeUrl) + "#supportedframeworks-body-tab";
+            return url.Package(id, version, relativeUrl).TrimEnd('/') + "#supportedframeworks-body-tab";
         }
 
         public static string Terms(this UrlHelper url, bool relativeUrl = true)

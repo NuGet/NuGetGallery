@@ -2005,6 +2005,7 @@ p.frameworktableinfo-text {
   border: none;
   outline: none;
   float: right;
+  margin-right: -3px;
 }
 .page-list-packages .advanced-search-panel .active,
 .page-list-packages .advanced-search-panel .collapsible:hover {
@@ -2026,21 +2027,33 @@ p.frameworktableinfo-text {
   list-style: none;
 }
 .page-list-packages .advanced-search-panel .computed-frameworks-option {
-  margin-top: 5px;
-  padding-top: 5px;
-  border-top: 1px solid #e5e5e5;
+  margin-top: 8px;
+  margin-right: 1.5px;
+}
+.page-list-packages .advanced-search-panel .computed-frameworks-option label {
+  margin-left: 0px;
+}
+.page-list-packages .advanced-search-panel .computed-frameworks-option #computed-frameworks-checkbox {
+  float: right;
 }
 .page-list-packages .advanced-search-panel .toggle-switch {
-  padding-top: 5px;
   -webkit-box-align: center;
   -webkit-align-items: center;
   -ms-flex-align: center;
   align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  margin-top: 2px;
 }
 .page-list-packages .advanced-search-panel .toggle-switch p {
   margin: 0px;
   float: left;
-  max-width: 50%;
   font-size: small;
 }
 .page-list-packages .advanced-search-panel .toggle-switch i {
@@ -2048,33 +2061,42 @@ p.frameworktableinfo-text {
 }
 .page-list-packages .advanced-search-panel .toggle-switch .toggle-switch-control {
   float: right;
+  margin-right: -6px;
 }
 .page-list-packages .advanced-search-panel .toggle-switch input {
   opacity: 0;
   width: 0px;
 }
+.page-list-packages .advanced-search-panel .toggle-switch input:focus + label {
+  outline: 1px solid #000;
+  outline-offset: -1px;
+}
 .page-list-packages .advanced-search-panel .toggle-switch label {
+  cursor: pointer;
   float: left;
-  text-align: center;
-  width: 45px;
+  width: 40px;
   padding: 7px;
   margin: 0px;
+  text-align: center;
   vertical-align: middle;
-  color: #fff;
-  background-color: #8e9cca;
-  cursor: pointer;
+  color: #555;
+  font-size: x-small;
+  background-color: #d9d9d9;
+  border: 1px solid rgba(0, 0, 0, 0.15);
 }
 .page-list-packages .advanced-search-panel .toggle-switch input:checked + label {
-  background-color: #4665c9;
+  color: #fff;
   font-weight: bolder;
+  background-color: #337ab7;
+  border: 1px solid #337ab7;
 }
 .page-list-packages .advanced-search-panel .toggle-switch label[for="all-selector"] {
-  border-top-left-radius: 3px;
-  border-bottom-left-radius: 3px;
+  border-top-left-radius: 2px;
+  border-bottom-left-radius: 2px;
 }
 .page-list-packages .advanced-search-panel .toggle-switch label[for="any-selector"] {
-  border-top-right-radius: 3px;
-  border-bottom-right-radius: 3px;
+  border-top-right-radius: 2px;
+  border-bottom-right-radius: 2px;
 }
 @media (min-width: 768px) {
   .page-list-packages .text-align-right {
