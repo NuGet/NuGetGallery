@@ -2027,8 +2027,8 @@ p.frameworktableinfo-text {
   list-style: none;
 }
 .page-list-packages .advanced-search-panel .computed-frameworks-option {
-  margin-top: 8px;
-  margin-right: 1.5px;
+  margin-top: 3px;
+  margin-right: -2px;
 }
 .page-list-packages .advanced-search-panel .computed-frameworks-option label {
   margin-left: 0px;
@@ -2036,7 +2036,7 @@ p.frameworktableinfo-text {
 .page-list-packages .advanced-search-panel .computed-frameworks-option #computed-frameworks-checkbox {
   float: right;
 }
-.page-list-packages .advanced-search-panel .toggle-switch {
+.page-list-packages .advanced-search-panel .framework-filter-mode-option {
   -webkit-box-align: center;
   -webkit-align-items: center;
   -ms-flex-align: center;
@@ -2050,28 +2050,29 @@ p.frameworktableinfo-text {
   -ms-flex-pack: justify;
   justify-content: space-between;
   margin-top: 2px;
+  margin-bottom: 6px;
 }
-.page-list-packages .advanced-search-panel .toggle-switch p {
+.page-list-packages .advanced-search-panel .framework-filter-mode-option p {
   margin: 0px;
   float: left;
   font-size: small;
 }
-.page-list-packages .advanced-search-panel .toggle-switch i {
+.page-list-packages .advanced-search-panel .framework-filter-mode-option i {
   vertical-align: middle;
 }
-.page-list-packages .advanced-search-panel .toggle-switch .toggle-switch-control {
+.page-list-packages .advanced-search-panel .framework-filter-mode-option .toggle-switch-control {
   float: right;
-  margin-right: -6px;
+  margin-right: -9px;
 }
-.page-list-packages .advanced-search-panel .toggle-switch input {
+.page-list-packages .advanced-search-panel .framework-filter-mode-option input {
   opacity: 0;
   width: 0px;
 }
-.page-list-packages .advanced-search-panel .toggle-switch input:focus + label {
+.page-list-packages .advanced-search-panel .framework-filter-mode-option input:focus + label {
   outline: 1px solid #000;
   outline-offset: -1px;
 }
-.page-list-packages .advanced-search-panel .toggle-switch label {
+.page-list-packages .advanced-search-panel .framework-filter-mode-option label {
   cursor: pointer;
   float: left;
   width: 40px;
@@ -2084,17 +2085,17 @@ p.frameworktableinfo-text {
   background-color: #d9d9d9;
   border: 1px solid rgba(0, 0, 0, 0.15);
 }
-.page-list-packages .advanced-search-panel .toggle-switch input:checked + label {
+.page-list-packages .advanced-search-panel .framework-filter-mode-option input:checked + label {
   color: #fff;
   font-weight: bolder;
   background-color: #337ab7;
   border: 1px solid #337ab7;
 }
-.page-list-packages .advanced-search-panel .toggle-switch label[for="all-selector"] {
+.page-list-packages .advanced-search-panel .framework-filter-mode-option label[for="all-selector"] {
   border-top-left-radius: 2px;
   border-bottom-left-radius: 2px;
 }
-.page-list-packages .advanced-search-panel .toggle-switch label[for="any-selector"] {
+.page-list-packages .advanced-search-panel .framework-filter-mode-option label[for="any-selector"] {
   border-top-right-radius: 2px;
   border-bottom-right-radius: 2px;
 }

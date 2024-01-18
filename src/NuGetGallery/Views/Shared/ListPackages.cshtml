@@ -90,10 +90,6 @@
                                             <i class="framework-filter-info-icon ms-Icon ms-Icon--Info"></i>
                                         </a>
                                     </legend>
-                                    @foreach (var framework in Model.FrameworkFilters.Values)
-                                    {
-                                        @AddFrameworkGroupOption(framework.ShortName, framework.DisplayName, framework.Tfms);
-                                    }
                                     @if (Model.IsAdvancedFrameworkFilteringEnabled)
                                     {
                                         <div class="computed-frameworks-option">
@@ -101,7 +97,7 @@
                                             <input type="checkbox" id="computed-frameworks-checkbox" checked="@Model.IncludeComputedFrameworks">
                                             <input type="hidden" id="includeComputedFrameworks" name="includeComputedFrameworks" value="@Model.IncludeComputedFrameworks.ToString().ToLower()">
                                         </div>
-                                        <div class="framework-filter-mode-option toggle-switch" aria-label="ALL/ANY toggle that decides whether to show packages matching ALL of the selected Frameworks and TFMs, or ANY of them.">
+                                        <div class="framework-filter-mode-option" aria-label="ALL/ANY toggle that decides whether to show packages matching ALL of the selected Frameworks and TFMs, or ANY of them.">
                                             <p>
                                                 Framework Filter Mode
                                                 <i class="frameworkfiltermode-info ms-Icon ms-Icon--Info" title="Decides whether to show packages matching ALL of the selected Frameworks and TFMs, or ANY of them."></i>
@@ -113,6 +109,10 @@
                                                 <label for="any-selector" aria-label="Show packages matching ANY of the selected Frameworks or TFMs.">ANY</label>
                                             </div>
                                         </div>
+                                    }
+                                    @foreach (var framework in Model.FrameworkFilters.Values)
+                                    {
+                                        @AddFrameworkGroupOption(framework.ShortName, framework.DisplayName, framework.Tfms);
                                     }
                                 </fieldset>
                             </div>
