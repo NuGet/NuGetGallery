@@ -2051,6 +2051,7 @@ p.frameworktableinfo-text {
   justify-content: space-between;
   margin-top: 2px;
   margin-bottom: 6px;
+  margin-right: -2px;
 }
 .page-list-packages .advanced-search-panel .framework-filter-mode-option p {
   margin: 0px;
@@ -2062,11 +2063,12 @@ p.frameworktableinfo-text {
 }
 .page-list-packages .advanced-search-panel .framework-filter-mode-option .toggle-switch-control {
   float: right;
-  margin-right: -9px;
+  margin-right: -2px;
 }
 .page-list-packages .advanced-search-panel .framework-filter-mode-option input {
   opacity: 0;
   width: 0px;
+  margin: 0px;
 }
 .page-list-packages .advanced-search-panel .framework-filter-mode-option input:focus + label {
   outline: 1px solid #000;
