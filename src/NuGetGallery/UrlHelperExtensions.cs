@@ -206,7 +206,7 @@ namespace NuGetGallery
 
             if (!includeComputedFrameworks)
             {
-                routeValues["includeComputedFrameworks"] = "true";
+                routeValues["includeComputedFrameworks"] = "false";
             }
 
             if (!string.IsNullOrWhiteSpace(frameworkFilterMode))
