@@ -2096,12 +2096,10 @@ p.frameworktableinfo-text {
 .page-list-packages .advanced-search-panel .framework-filter-mode-option label[for="all-selector"] {
   border-top-left-radius: 2px;
   border-bottom-left-radius: 2px;
-  border-right: hidden;
 }
 .page-list-packages .advanced-search-panel .framework-filter-mode-option label[for="any-selector"] {
   border-top-right-radius: 2px;
   border-bottom-right-radius: 2px;
-  border-left: hidden;
 }
 @media (min-width: 768px) {
   .page-list-packages .text-align-right {
