@@ -2085,7 +2085,7 @@ p.frameworktableinfo-text {
   color: #555;
   font-size: x-small;
   background-color: #d9d9d9;
-  border: 1px solid #898989;
+  border: 1px solid #767676;
 }
 .page-list-packages .advanced-search-panel .framework-filter-mode-option input:checked + label {
   color: #fff;
