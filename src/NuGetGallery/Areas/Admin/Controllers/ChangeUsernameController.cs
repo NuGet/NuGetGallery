@@ -94,16 +94,16 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 return Json(HttpStatusCode.BadRequest, "Username cannot be null or empty.", JsonRequestBehavior.AllowGet);
             }
 
-            var result = CheckUserExist(newUsername);
+            var oldAccount = _userService.FindByUsername(oldUsername);
+            if (oldAccount == null)
+            {
+                return Json(HttpStatusCode.NotFound, "Old username account was not found.", JsonRequestBehavior.AllowGet);
+            }
+
+            var result = ValidateUsernameChange(oldAccount, newUsername);
 
             if (checkOwnedPackages)
             {
-                var oldAccount = _userService.FindByUsername(oldUsername);
-                if(oldAccount == null)
-                {
-                    return Json(HttpStatusCode.NotFound, "Old username account was not found.", JsonRequestBehavior.AllowGet);
-                }
-
                 var ownedPackages = _packageService.FindPackagesByOwner(oldAccount, includeUnlisted: true)
                     .Where(p => p.PackageStatusKey != PackageStatus.Deleted)
                     .Select(p => p.PackageRegistration.Id);
@@ -161,14 +161,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
             await _entitiesContext.SaveChangesAsync();
 
             return Json(HttpStatusCode.OK, "Account renamed successfully!", JsonRequestBehavior.AllowGet);
-        }
-
-        private ValidateUsernameResult CheckUserExist(string username) {
-            return new ValidateUsernameResult()
-            {
-                IsFormatValid = UsernameValidationRegex.IsMatch(username),
-                IsAvailable = _userService.FindByUsername(username, includeDeleted: true) == null
-            };
         }
 
         private ValidateUsernameResult ValidateUsernameChange(User requestor, string username)

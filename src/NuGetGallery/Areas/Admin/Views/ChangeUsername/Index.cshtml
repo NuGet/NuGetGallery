@@ -57,8 +57,8 @@
 
         <i>Validate if the new username is available and has a valid format.</i><br />
 
+        <input type="text" placeholder="Old Username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="value: oldUsername" />
         <input type="text" placeholder="New username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="value: newUsername" />
-        <input type="text" placeholder="Old Username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="visible: checkOwnedPackages, value: oldUsername" />
         <input type="checkbox" id="checkNonDeletedOwnedPackages" data-bind="checked: checkOwnedPackages" />
         <label for="checkNonDeletedOwnedPackages">Check Non-Deleted Owned Packages</label>
         <button type="submit" data-bind="click: validateNewUsername">Validate</button>
