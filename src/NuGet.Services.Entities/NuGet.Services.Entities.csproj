@@ -12,7 +12,7 @@
     <PackageReference Include="NuGet.Frameworks" Version="$(NuGetClientPackageVersion)" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
     <!-- This was lifted to a top-level dependency to resolve a Component Governance alert. -->
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
   </ItemGroup>
 
   <ItemGroup>
