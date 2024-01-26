@@ -58,13 +58,39 @@ namespace Stats.CollectAzureChinaCDNLogs
 
         public override async Task Run()
         {
-            CancellationTokenSource cts = new CancellationTokenSource();
-            cts.CancelAfter(_executionTimeoutInSeconds*1000);
-            var aggregateExceptions = await _chinaCollector.TryProcessAsync(maxFileCount: MaxFilesToProcess,
-                 fileNameTransform: s => $"{_configuration.DestinationFilePrefix}_{s}",
-                 sourceContentType: ContentType.GZip,
-                 destinationContentType: ContentType.GZip,
-                 token: cts.Token);
+            // StreamReader and StreamWriter used in Collector class to process logs
+            // don't have ReadLineAsync/WriteLineAsync overloads that accept CancellationToken,
+            // so we can't reliably terminate those if they get stuck or very slow. If migrated
+            // to .NET 6+ then we can properly propagate the token and this hack would no longer
+            // be needed.
+            
+            // Instead we'll wait a bit extra time after firing main CancellationTokenSource to
+            // let it gracefully stop if it is indeed just slow, then stop the process and let it
+            // retry processing on restart.
+            var forceStopCts = new CancellationTokenSource();
+            forceStopCts.CancelAfter(TimeSpan.FromSeconds(_executionTimeoutInSeconds + 60));
+
+            var cts = new CancellationTokenSource();
+            cts.CancelAfter(TimeSpan.FromSeconds(_executionTimeoutInSeconds));
+            Task<AggregateException> logProcessTask = _chinaCollector
+                .TryProcessAsync(maxFileCount: MaxFilesToProcess,
+                     fileNameTransform: s => $"{_configuration.DestinationFilePrefix}_{s}",
+                     sourceContentType: ContentType.GZip,
+                     destinationContentType: ContentType.GZip,
+                     token: cts.Token)
+                .WithCancellation(forceStopCts.Token);
+
+            AggregateException aggregateExceptions = null;
+
+            try
+            {
+                aggregateExceptions = await logProcessTask;
+            }
+            catch (TaskCanceledException)
+            {
+                Logger.LogWarning("Got TaskCancelledException, terminating");
+                return;
+            }
 
             if (aggregateExceptions != null)
             {

@@ -22,6 +22,7 @@
     <PackageReference Include="NuGet.Services.Sql" />
     <PackageReference Include="NuGet.Services.FeatureFlags" />
     <PackageReference Include="NuGetGallery.Core" />
+    <PackageReference Include="System.Data.SqlClient" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">

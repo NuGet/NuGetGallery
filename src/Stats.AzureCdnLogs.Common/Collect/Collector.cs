@@ -80,8 +80,9 @@ namespace Stats.AzureCdnLogs.Common.Collect
                     if (lockResult.LockIsTaken /*lockResult*/)
                     {
                         using (var inputStream = await _source.OpenReadAsync(file, sourceContentType, blobOperationToken))
+                        using (blobOperationToken.Register(() => inputStream.Close()))
                         {
-                            var blobToDeadLetter = ! await VerifyStreamInternalAsync(file, sourceContentType, blobOperationToken);
+                            var blobToDeadLetter = !await VerifyStreamInternalAsync(file, sourceContentType, blobOperationToken);
                             var filename = file.Segments.LastOrDefault();
                             // If verification passed continue with the rest of the action 
                             // If not just move the blob to deadletter
