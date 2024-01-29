@@ -69,8 +69,7 @@
     </PackageReference>
     <PackageReference Include="Dapper.StrongName" />
     <PackageReference Include="Microsoft.Data.Services.Client" />
-    <PackageReference Include="System.Data.SqlClient">
-    </PackageReference>
+    <PackageReference Include="System.Data.SqlClient" />
     <PackageReference Include="WindowsAzure.Storage" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
