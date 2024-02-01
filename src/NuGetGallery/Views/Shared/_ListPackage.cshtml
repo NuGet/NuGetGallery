@@ -41,7 +41,7 @@
                         href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null).TrimEnd('/')"
                         @if (itemIndex.HasValue)
                         {
-                            @:data-track="@eventName" data-track-value="@itemIndex"
+                            @:data-track="@eventName" data-track-value="@itemIndex" data-click-source="PackageId"
                             @:data-package-id="@Model.Id" data-package-version="@Model.Version" data-use-version="@Model.UseVersion"
                         }>
                             @Html.BreakWord(Model.Id)
@@ -69,7 +69,15 @@
                         by:
                         @foreach (var owner in Model.Owners)
                         {
-                            <a href="@Url.User(owner.Username)" title="View @owner.Username's profile">@owner.Username</a>
+                            <a href="@Url.User(owner.Username)" title="View @owner.Username's profile"
+                                @if (itemIndex.HasValue)
+                                {
+                                    @:data-track="@eventName" data-track-value="@itemIndex" data-click-source="Owner"
+                                    @:data-package-id="@Model.Id" data-package-version="@Model.Version" data-use-version="@Model.UseVersion"
+                                    @:data-owner="@owner.Username"
+                                }>
+                                    @owner.Username
+                            </a>
                         }
                     </span>
                 }
@@ -95,9 +103,9 @@
                         }
                     </li>
                 }
-                <li class="package-tfm-badges">
-                    @Html.Partial("../Packages/_SupportedFrameworksBadges", Model.FrameworkBadges)
-                </li>
+            <li class="package-tfm-badges">
+                @Html.Partial("../Packages/_SupportedFrameworksBadges", Model.FrameworkBadges, new ViewDataDictionary { { "itemIndex", itemIndex }, { "eventName", eventName } })
+            </li>
                 <li>
                     <span class="icon-text">
                         <i class="ms-Icon ms-Icon--Download" aria-hidden="true"></i>
