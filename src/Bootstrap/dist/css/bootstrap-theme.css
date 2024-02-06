@@ -861,6 +861,13 @@ img.reserved-indicator-icon {
   line-height: 20px;
   margin-bottom: 14px;
 }
+.framework-badges a {
+  display: inline-block;
+}
+.framework-badges a:hover,
+.framework-badges a:focus {
+  text-decoration: none;
+}
 .framework-badge {
   padding: 1px 8px;
   border-radius: 2px;
