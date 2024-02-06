@@ -188,4 +188,7 @@ $(function() {
         searchForm.addEventListener('submit', submitSearchForm);
         initializeFrameworkAndTfmCheckboxes();
     }
+
+    $(".framework-badge-asset").each(window.nuget.setPopovers);
+    $(".framework-badge-computed").each(window.nuget.setPopovers);
 });
