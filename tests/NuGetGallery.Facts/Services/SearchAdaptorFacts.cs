@@ -108,6 +108,8 @@ namespace NuGetGallery
                 const bool includePrerelease = true;
                 const string frameworks = "";
                 const string tfms = "";
+                const bool includeComputedFrameworks = true;
+                const string frameworkFilterMode = "";
                 const string packageType = "";
                 const string sortOrder = GalleryConstants.SearchSortNames.Relevance;
                 const string context = "someContext";
@@ -120,6 +122,8 @@ namespace NuGetGallery
                     includePrerelease,
                     frameworks,
                     tfms,
+                    includeComputedFrameworks,
+                    frameworkFilterMode,
                     packageType,
                     sortOrder,
                     context,
@@ -134,6 +138,8 @@ namespace NuGetGallery
                 Assert.Equal(semVerLevel, searchFilter.SemVerLevel);
                 Assert.Equal(string.Empty, searchFilter.Frameworks);
                 Assert.Equal(string.Empty, searchFilter.Tfms);
+                Assert.True(searchFilter.IncludeComputedFrameworks);
+                Assert.Equal(string.Empty, searchFilter.FrameworkFilterMode);
                 Assert.Equal(string.Empty, searchFilter.PackageType);
                 Assert.Equal(SortOrder.Relevance, searchFilter.SortOrder);
                 Assert.Equal(includeTestData, searchFilter.IncludeTestData);
@@ -148,6 +154,8 @@ namespace NuGetGallery
                     includePrerelease: true,
                     frameworks: null,
                     tfms: null,
+                    includeComputedFrameworks: true,
+                    frameworkFilterMode: null,
                     packageType: null,
                     sortOrder: null,
                     context: null,
@@ -162,6 +170,8 @@ namespace NuGetGallery
                 Assert.Null(searchFilter.SemVerLevel);
                 Assert.Equal(string.Empty, searchFilter.Frameworks);
                 Assert.Equal(string.Empty, searchFilter.Tfms);
+                Assert.True(searchFilter.IncludeComputedFrameworks);
+                Assert.Equal("all", searchFilter.FrameworkFilterMode);
                 Assert.Equal(string.Empty, searchFilter.PackageType);
                 Assert.Equal(SortOrder.Relevance, searchFilter.SortOrder);
                 Assert.True(searchFilter.IncludeTestData);
@@ -177,6 +187,8 @@ namespace NuGetGallery
                    includePrerelease: true,
                    frameworks: string.Empty,
                    tfms: string.Empty,
+                   includeComputedFrameworks: true,
+                   frameworkFilterMode: null,
                    packageType: "Dependency",
                    sortOrder: SortNames[sortOrder],
                    context: string.Empty,
@@ -191,6 +203,8 @@ namespace NuGetGallery
                 Assert.Equal("SomeSemVer", searchFilter.SemVerLevel);
                 Assert.Equal(string.Empty, searchFilter.Frameworks);
                 Assert.Equal(string.Empty, searchFilter.Tfms);
+                Assert.True(searchFilter.IncludeComputedFrameworks);
+                Assert.Equal("all", searchFilter.FrameworkFilterMode);
                 Assert.Equal("Dependency", searchFilter.PackageType);
                 Assert.Equal(sortOrder, searchFilter.SortOrder);
                 Assert.True(searchFilter.IncludeTestData);
@@ -206,6 +220,8 @@ namespace NuGetGallery
                        includePrerelease: true,
                        frameworks: string.Empty,
                        tfms: string.Empty,
+                       includeComputedFrameworks: true,
+                       frameworkFilterMode: null,
                        packageType: "Dependency",
                        sortOrder: SortNames[sortOrder].ToUpper(),
                        context: string.Empty,
@@ -220,6 +236,8 @@ namespace NuGetGallery
                 Assert.Equal("SomeSemVer", searchFilter.SemVerLevel);
                 Assert.Equal(string.Empty, searchFilter.Frameworks);
                 Assert.Equal(string.Empty, searchFilter.Tfms);
+                Assert.True(searchFilter.IncludeComputedFrameworks);
+                Assert.Equal("all", searchFilter.FrameworkFilterMode);
                 Assert.Equal("Dependency", searchFilter.PackageType);
                 Assert.Equal(sortOrder, searchFilter.SortOrder);
                 Assert.True(searchFilter.IncludeTestData);
@@ -227,7 +245,7 @@ namespace NuGetGallery
 
             [Theory]
             [MemberData(nameof(FrameworksAndTfmsFilterData))]
-            public void ParsesFrameworkAndTfmFilters(string frameworks, string tfms)
+            public void ParsesFrameworkAndTfmFilters(string frameworks, string tfms, bool includeComputedFrameworks, string frameworkFilterMode)
             {
                 const string query = "someQuery";
                 const int page = 1;
@@ -244,6 +262,8 @@ namespace NuGetGallery
                     includePrerelease,
                     frameworks,
                     tfms,
+                    includeComputedFrameworks,
+                    frameworkFilterMode,
                     packageType,
                     sortOrder,
                     context,
@@ -258,6 +278,8 @@ namespace NuGetGallery
                 Assert.Equal(semVerLevel, searchFilter.SemVerLevel);
                 Assert.Equal(frameworks, searchFilter.Frameworks);
                 Assert.Equal(tfms, searchFilter.Tfms);
+                Assert.Equal(includeComputedFrameworks, searchFilter.IncludeComputedFrameworks);
+                Assert.Equal(frameworkFilterMode, searchFilter.FrameworkFilterMode);
                 Assert.Equal(string.Empty, searchFilter.PackageType);
                 Assert.Equal(SortOrder.Relevance, searchFilter.SortOrder);
                 Assert.Equal(includeTestData, searchFilter.IncludeTestData);
@@ -265,10 +287,10 @@ namespace NuGetGallery
 
             public static IEnumerable<object[]> FrameworksAndTfmsFilterData => new[]
             {
-                new object[] { "", "" },
-                new object[] { "netstandard", "net472" },
-                new object[] { ",net,netframework", "" },
-                new object[] { ",,", "net5.0,netstandard2.1," }
+                new object[] { "", "", true, "all" },
+                new object[] { "netstandard", "net472", false, "all" },
+                new object[] { ",net,netframework", "", true, "any" },
+                new object[] { ",,", "net5.0,netstandard2.1,", false, "any" }
             };
         }
 

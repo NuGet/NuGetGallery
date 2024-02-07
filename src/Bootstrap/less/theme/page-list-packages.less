@@ -109,6 +109,7 @@
       border: none;
       outline: none;
       float: right;
+      margin-right: -3px;
     }
 
     .active, .collapsible:hover {
@@ -128,6 +129,85 @@
 
       ul {
         list-style: none;
+      }
+    }
+
+    .computed-frameworks-option {
+      margin-top: 3px;
+      margin-right: -2px;
+
+      label {
+        margin-left: 0px;
+      }
+
+      #computed-frameworks-checkbox {
+        float: right;
+      }
+    }
+
+    .framework-filter-mode-option {
+      align-items: center;
+      display: flex;
+      justify-content: space-between;
+      margin-top: 2px;
+      margin-bottom: 6px;
+      margin-right: -2px;
+
+      p {
+        margin: 0px;
+        float: left;
+        font-size: small;
+      }
+
+      i {
+        vertical-align: middle;
+      }
+
+      .toggle-switch-control {
+        float: right;
+        margin-right: -2px;
+      }
+
+      input {
+        opacity: 0;
+        width: 0px;
+        margin: 0px;
+      }
+
+      input:focus + label {
+        outline: 1px solid #000;
+        outline-offset: -1px;
+      }
+
+      label {
+        cursor: pointer;
+        float: left;
+        width: 35px;
+        padding: 4px 7px;
+        margin: 0px;
+        text-align: center;
+        vertical-align: middle;
+        color: #555;
+        font-size: x-small;
+        background-color: #d9d9d9;
+        border: 1px solid #767676;
+      }
+
+      input:checked + label {
+        color: #fff;
+        font-weight: bolder;
+        background-color: rgb(51, 122, 183);
+        border: 1px solid rgb(51, 122, 183);
+      }
+
+      label[for="all-selector"] {
+        border-top-left-radius: 2px;
+        border-bottom-left-radius: 2px;
+      }
+
+      label[for="any-selector"] {
+        border-top-right-radius: 2px;
+        border-bottom-right-radius: 2px;
       }
     }
   }

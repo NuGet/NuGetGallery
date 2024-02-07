@@ -116,6 +116,8 @@ namespace NuGetGallery
                 includePrerelease: true,
                 frameworks: null,
                 tfms: null,
+                includeComputedFrameworks: false,
+                frameworkFilterMode: null,
                 packageType: null,
                 sortOrder: null,
                 context: SearchFilter.UISearchContext,
