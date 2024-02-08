@@ -53,15 +53,17 @@
             </table>
         </div>
 
-        <h2>Validate new username</h2>
+        <h2>Validate &amp; Change new username</h2>
 
-        <i>Validate if the new username is available and has a valid format.</i><br />
+        <i>Validate &amp; Change if the new username is available and has a valid format.</i><br />
 
         <input type="text" placeholder="Old Username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="value: oldUsername" />
         <input type="text" placeholder="New username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="value: newUsername" />
         <input type="checkbox" id="checkNonDeletedOwnedPackages" data-bind="checked: checkOwnedPackages" />
         <label for="checkNonDeletedOwnedPackages">Check Non-Deleted Owned Packages</label>
         <button type="submit" data-bind="click: validateNewUsername">Validate</button>
+        <button type="submit" data-bind="click: changeUsername">Change</button>
+
         <div style="display:none" data-bind="visible: errorNewUsername">
             @ViewHelpers.AlertDanger(@<text><span data-bind="text: errorNewUsername"></span></text>)
         </div>
@@ -86,7 +88,7 @@
         </table>
     </div>
 
-    <div>
+    @*<div>
         <h2>Change username</h2>
         @using (Html.BeginForm())
         {
@@ -102,7 +104,7 @@
         <div style="display:none" data-bind="visible: errorChangeUsername">
             @ViewHelpers.AlertDanger(@<text><span data-bind="text: errorChangeUsername"></span></text>)
         </div>
-    </div>
+    </div>*@
 </section>
 
 @section BottomScripts {
@@ -213,16 +215,18 @@
                 };
 
                 this.changeUsername = function (model, event) {
-                    $self.errorChangeUsername('');
+                    $self.doneValidatingNewUsername(false);
+
+                    $self.errorNewUsername('');
                     $self.changeUsernameSuccessful('');
 
                     var data = {
-                        oldUsername: $self.changeOldUsername().trim(),
-                        newUsername: $self.changeNewUsername().trim(),
+                        oldUsername: $self.oldUsername().trim(),
+                        newUsername: $self.newUsername().trim(),
                     };
 
                     if (!data.oldUsername || !data.newUsername) {
-                        $self.errorChangeUsername('Usernames should not be empty.');
+                        $self.errorNewUsername('Usernames should not be empty.');
                         event.preventDefault();
                         return;
                     }
@@ -244,7 +248,7 @@
                     })
                     .fail(function (jqXhr, textStatus, errorThrown) {
                         if (jqXhr) {
-                            $self.errorChangeUsername(jqXhr.responseJSON);
+                            $self.errorNewUsername(jqXhr.responseJSON);
                         }
                         else {
                             alert('Error: ' + errorThrown);
