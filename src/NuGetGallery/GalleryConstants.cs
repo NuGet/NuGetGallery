@@ -24,7 +24,7 @@ namespace NuGetGallery
         public const int GravatarCacheDurationSeconds = 300;
 
         public const int MaxFileLengthBytes = 1024 * 1024; // 1MB for License, Icon, readme file
-        internal static readonly NuGetVersion MaxSupportedMinClientVersion = new NuGetVersion("6.6.0.0");
+        internal static readonly NuGetVersion MaxSupportedMinClientVersion = new NuGetVersion("6.9.1.0");
 
         public const string RecentSortOrder = "package-created";
 
