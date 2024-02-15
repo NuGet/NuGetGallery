@@ -1,0 +1,28 @@
+@model AccountViewModel
+@{
+    var parent = (WebViewPage)TempData["Parent"];
+    var controllerName = Model.IsOrganization ? "Organizations" : "Users";
+}
+
+@ViewHelpers.Section(parent,
+         "change-theme",
+        @<text>Theme</text>,
+    @<text><p id="user-prefered-theme"></p></text>,
+@<text>
+    @using (Html.BeginForm("ChangeTheme", controllerName))
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="row">
+            <div class="col-sm-6 col-md-4">
+                <select id="select-option-theme" class="form-control">
+                    <option value="system" id="option-theme-system">System</option>
+                    <option value="light" id="option-theme-light">Light</option>
+                    <option value="dark" id="option-theme-dark">Dark</option>
+                </select>
+            </div>
+        </div>
+    }
+</text>,
+ViewData.ModelState.Keys.Any(x => x.StartsWith("ChangeTheme")),
+disabled: !Model.CanManage)

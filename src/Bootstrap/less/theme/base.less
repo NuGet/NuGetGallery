@@ -3,15 +3,105 @@
 @default-margin-bottom: 24px;
 @package-list-line-height: 20px;
 
-//== Theme Definition
-html, body {
-  width: 100%;
-  height: 100%;
+.nuget-logo-image{
+  background-image: var(--nuget-logo-background-image);
+  background-repeat: no-repeat;
+  width: 94px;
+  height: 29px;
+  background-size: auto;
+  background-size: 94px 29px;
+}
+
+.home-link {
+  display: block;
+
+  &:focus-within {
+    outline: 4px solid var(--neutralStrokeFocus2Rest);
+    border-radius: 4px;
+  }
+}
+
+.nuget-logo-footer{
+  background-image: var(--nuget-logo-background-image);
+  background-repeat: no-repeat;
+  width: 184px;
+  height: 57px;
+  background-size: auto;
+  background-size: 184px 57px;
+}
+
+.large-title {
+  color: var(--neutralForeground1Rest, @jumbotron-heading-color);
+
+  /* Web/Large Title */
+  font-family: "Segoe UI";
+  font-size: 40px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 52px; /* 130% */
+}
+
+h1 {
+  color: var(--neutralForeground1Rest);
+
+  /* Web/Title 1 */
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 40px; /* 125% */
+}
+
+h2 {
+  color: var(--neutralForeground1Rest);
+
+  /* Web/Title 2 */
+  font-family: "Segoe UI";
+  font-size: 28px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 36px; /* 128.571% */
+}
+
+h3 {
+  color: var(--neutralForeground1Rest);
+
+  /* Web/Subtitle 1 */
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px; /* 140% */
+}
+
+h4 {
+  color: var(--brandForeground1Rest);
+
+  /* Web/Title 3 */
+  font-family: "Segoe UI";
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 32px; /* 133.333% */
+}
+
+p {
+  color: var(--neutralForeground1Rest);
+
+  /* Web/Body 2 */
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 22px; /* 137.5% */
+}
+
+.home-icons {
+  width: fit-content;
+  margin: auto;
+  padding: 60px;
+  border-radius: 300px;
+  background: var(--gradients-light-theme-blue-purple-primary, linear-gradient(129deg, #0B6CFF 14.05%, #512BD4 89.3%));
 }
 
 body {
   display: table;
-
+  background: var(--neutralBackground2Rest);
+  
   h1, h2, h3, p {
     margin-bottom: @default-margin-bottom;
   }
@@ -60,33 +150,50 @@ body {
 }
 
 .footer {
-  background-color: @panel-footer-bg;
-  color: @panel-footer-color;
+  background-color: transparent;
+  color: var(--neutralForeground1Rest);
   font-size: 1em;
   display: table-row;
   height: 1px;
 
   .footer-heading {
-    display: block;
     margin-bottom: 11px;
-    font-size: @font-size-h4;
+
+    a {
+      color: var(--neutralForeground1Rest);
+
+      &:hover {
+        color: var(--neutralForeground1Hover);
+        text-decoration: underline;
+      }
+
+      &:focus {
+        outline: 3px solid var(--neutralStrokeFocus2Rest);
+        outline-offset: 2px;
+        border-radius: 4px;
+      }
+    }
   }
 
   .container {
     margin-top: 50px;
     margin-bottom: 50px;
 
-    // This is a workaround for the following bug:
-    // https://github.com/microsoft/accessibility-insights-web/issues/692
-    background-color: @panel-footer-bg;
+    background-color: transparent;
   }
 
-  a {
-    color: @panel-footer-color;
+  .footer-release-info a {
+    color: var(--neutralForeground2LinkRest);
+    text-decoration: underline;
+
+    &:hover {
+      color: var(--neutralForeground2LinkHover);
+    }
 
     &:focus {
-      outline: 3px solid white;
+      outline: 3px solid var(--neutralStrokeFocus2Rest);
       outline-offset: 2px;
+      border-radius: 4px;
     }
   }
 
@@ -440,12 +547,13 @@ img.reserved-indicator-icon {
   line-height:0;
   height: 0;
   overflow: hidden;
+  color: var(--neutralForeground1Rest);
 }
 
 .showOnFocus:focus {
   line-height:2em;
   height: 2em;
-  color: @navbar-inverse-color;
+  color: var(--neutralForeground1Rest);
 }
 
 .breadcrumb-title {
@@ -488,4 +596,22 @@ img.reserved-indicator-icon {
     .hidden-xs {
         display: none !important;
     }
+}
+
+//== Theme Definition
+html {
+  height: 100%;
+}
+
+body[id="/"] {
+  background: var(--body-background-color);
+}
+
+body,
+body[id="/"] {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }

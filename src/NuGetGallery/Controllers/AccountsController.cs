@@ -458,6 +458,8 @@ namespace NuGetGallery
 
             model.ChangeEmail = new ChangeEmailViewModel();
 
+            model.ChangeTheme = new ChangeThemeViewModel();
+
             model.ChangeNotifications = model.ChangeNotifications ?? new ChangeNotificationsViewModel();
             model.ChangeNotifications.EmailAllowed = account.EmailAllowed;
             model.ChangeNotifications.NotifyPackagePushed = account.NotifyPackagePushed;

@@ -17,6 +17,15 @@
   .what-is-nuget {
     font-size: 1.15em;
     padding-bottom: 75px;
+
+    a {
+      color: var(--neutralForeground1Rest);
+  
+      &:hover {
+        color: var(--neutralForeground1Hover);
+        text-decoration: underline;
+      }
+    }
   }
 
   .triangle:after {
@@ -45,7 +54,7 @@
     height: 396px;
     position: relative;
     margin: 0 auto;
-    background-image: url('../img/circuit-board.svg');
+    background-image: var(--circuit-board-background-image);
     background-repeat: no-repeat;
     background-position: center bottom;
 

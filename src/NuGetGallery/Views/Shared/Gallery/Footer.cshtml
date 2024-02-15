@@ -2,23 +2,23 @@
     <div class="container">
         <div class="row">
             <div class="col-sm-4">
-                <span class="footer-heading"><a href="@Url.Contact()">Contact</a></span>
+                <h3 class="footer-heading"><a href="@Url.Contact()">Contact</a></h3>
                 <p>
                     Got questions about NuGet or the NuGet Gallery?
                 </p>
             </div>
             <div class="col-sm-4">
-                <span class="footer-heading"><a href="@this.Config.Current.ExternalStatusUrl">Status</a></span>
+                <h3 class="footer-heading"><a href="@this.Config.Current.ExternalStatusUrl">Status</a></h3>
                 <p>
                     Find out the service status of NuGet.org and its related services.
                 </p>
             </div>
             <div class="col-sm-4">
-                <span class="footer-heading">
+                <h3 class="footer-heading">
                     <a aria-label="Frequently Asked Questions" href="@GalleryConstants.FAQLinks.NuGetFAQ">
                         <abbr title="Frequently Asked Questions">FAQ</abbr>
                     </a>
-                </span>
+                </h3>
                 <p>
                     Read the Frequently Asked Questions about NuGet and see if your question made the list.
                 </p>
@@ -26,9 +26,7 @@
         </div>
         <div class="row">
             <div class="col-md-3 row-gap">
-                <img alt="" aria-hidden="true" width="184" height="57"
-                     src="~/Content/gallery/img/logo-footer.svg"
-                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/logo-footer-184x57.png")) />
+                <div class="nuget-logo-footer" alt="NuGet home" role="img" aria-label="NuGet Home" @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/logo-footer-184x57.png"))></div>
             </div>
             <div class="col-md-9 row-gap">
                 <div class="row">
