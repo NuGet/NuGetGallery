@@ -261,7 +261,7 @@ namespace NuGetGallery
             {
                 compatibilityFactory = new Mock<IPackageFrameworkCompatibilityFactory>();
                 compatibilityFactory
-                    .Setup(x => x.Create(It.IsAny<ICollection<PackageFramework>>(), string.Empty, false))
+                    .Setup(x => x.Create(It.IsAny<ICollection<PackageFramework>>(), string.Empty, string.Empty, false))
                     .Returns(new PackageFrameworkCompatibility());
             }
 
@@ -2169,6 +2169,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var id = "Foo";
+                var version = "1.0.0";
                 var packageFramework = new PackageFramework { TargetFramework = "net5.0" };
                 var supportedFrameworks = new HashSet<PackageFramework> { packageFramework };
                 var package = new Package()
@@ -2202,7 +2203,7 @@ namespace NuGetGallery
                     .Returns(false);
 
                 compatibilityFactory
-                    .Setup(x => x.Create(supportedFrameworks, id, false))
+                    .Setup(x => x.Create(supportedFrameworks, id, version, false))
                     .Returns(new PackageFrameworkCompatibility());
 
                 // Arrange and Act
@@ -2230,6 +2231,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var id = "Foo";
+                var version = "1.1.1";
                 var packageFramework = new PackageFramework { TargetFramework = "net5.0" };
                 var supportedFrameworks = new HashSet<PackageFramework> { packageFramework };
                 var package = new Package()
@@ -2240,8 +2242,8 @@ namespace NuGetGallery
                         Owners = new List<User>()
                     },
                     SupportedFrameworks = supportedFrameworks,
-                    Version = "1.1.1",
-                    NormalizedVersion = "1.1.1",
+                    Version = version,
+                    NormalizedVersion = version,
                     Title = "A test package!"
                 };
 
@@ -2263,11 +2265,11 @@ namespace NuGetGallery
                     .Returns(displayFlag);
 
                 compatibilityFactory
-                    .Setup(x => x.Create(supportedFrameworks, id, false))
+                    .Setup(x => x.Create(supportedFrameworks, id, version, false))
                     .Returns(new PackageFrameworkCompatibility());
 
                 // Arrange and Act
-                var result = await controller.DisplayPackage(id, version: null);
+                var result = await controller.DisplayPackage(id, version);
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);

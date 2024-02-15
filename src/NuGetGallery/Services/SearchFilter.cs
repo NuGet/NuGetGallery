@@ -28,6 +28,10 @@ namespace NuGetGallery
 
         public string Tfms { get; set; }
 
+        public bool IncludeComputedFrameworks { get; set; }
+
+        public string FrameworkFilterMode { get; set; }
+
         public string PackageType { get; set; }
 
         public SortOrder SortOrder { get; set; }

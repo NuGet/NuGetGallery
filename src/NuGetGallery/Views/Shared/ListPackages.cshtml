@@ -90,6 +90,26 @@
                                             <i class="framework-filter-info-icon ms-Icon ms-Icon--Info"></i>
                                         </a>
                                     </legend>
+                                    @if (Model.IsAdvancedFrameworkFilteringEnabled)
+                                    {
+                                        <div class="computed-frameworks-option">
+                                            <label for="computed-frameworks-checkbox" aria-label="Include computed frameworks when filtering for packages.">Include computed frameworks</label>
+                                            <input type="checkbox" id="computed-frameworks-checkbox" checked="@Model.IncludeComputedFrameworks">
+                                            <input type="hidden" id="includeComputedFrameworks" name="includeComputedFrameworks" value="@Model.IncludeComputedFrameworks.ToString().ToLower()">
+                                        </div>
+                                        <div class="framework-filter-mode-option" aria-label="ALL/ANY toggle that decides whether to show packages matching ALL of the selected Target Frameworks (TFMs), or ANY of them.">
+                                            <p>
+                                                Framework Filter Mode
+                                                <i class="frameworkfiltermode-info ms-Icon ms-Icon--Info" title="Decides whether to show packages matching ALL of the selected Target Frameworks (TFMs), or ANY of them."></i>
+                                            </p>
+                                            <div class="toggle-switch-control">
+                                                <input type="radio" id="all-selector" name="frameworkFilterMode" value="all" tabindex="0" @(Model.FrameworkFilterMode == "any" ? "" : "checked") />
+                                                <label for="all-selector" aria-label="Show packages matching ALL of the selected Frameworks and TFMs.">ALL</label>
+                                                <input type="radio" id="any-selector" name="frameworkFilterMode" value="any" tabindex="0" @(Model.FrameworkFilterMode == "any" ? "checked" : "") />
+                                                <label for="any-selector" aria-label="Show packages matching ANY of the selected Frameworks or TFMs.">ANY</label>
+                                            </div>
+                                        </div>
+                                    }
                                     @foreach (var framework in Model.FrameworkFilters.Values)
                                     {
                                         @AddFrameworkGroupOption(framework.ShortName, framework.DisplayName, framework.Tfms);
@@ -118,11 +138,9 @@
                         <div>
                             <fieldset>
                                 <legend>Options</legend>
-                                <div>
-                                    <label aria-label="Options: Include prerelease">
-                                        <input id="prerel-checkbox" type="checkbox" checked="@Model.IncludePrerelease">
-                                        Include prerelease
-                                    </label>
+                                <div class="prerel-option">
+                                    <input id="prerel-checkbox" type="checkbox" checked="@Model.IncludePrerelease">
+                                    <label for="prerel-checkbox" aria-label="Options: Include prerelease">Include prerelease</label>
                                 </div>
                             </fieldset>
                         </div>
@@ -139,7 +157,7 @@
                     </div>
                 }
             </div>
-            <div class="@(Model.IsAdvancedSearchFlightEnabled ? "col-md-9" : "col-md-12")" id="results-column" tabindex="0">
+            <div class="@(Model.IsAdvancedSearchFlightEnabled ? "col-md-9" : "col-md-12")" id="results-column">
                 <div class="row">
                     <div class="col-md-9">
                         <h1 tabindex="0">
@@ -250,6 +268,10 @@
             PageIndex: @Model.PageIndex,
             TotalCount: @Model.TotalCount,
             IsPreviewSearch: '@Model.IsPreviewSearch',
+            Frameworks: '@Model.Frameworks',
+            Tfms: '@Model.Tfms',
+            IncludeComputedFrameworks: '@Model.IncludeComputedFrameworks',
+            FrameworkFilterMode: '@Model.FrameworkFilterMode',
             PackageType: @Html.ToJson(Model.PackageType ?? string.Empty),
             SortBy: @Html.ToJson(Model.SortBy)
         });
@@ -261,22 +283,77 @@
             var $this = $(this);
             var data = $this.data();
             if ($this.attr('href') && data.track) {
-                window.nuget.sendMetric('BrowserSearchSelection', data.trackValue, {
-                    SearchId: '@searchId',
-                    SearchTerm: @Html.Raw(Json.Encode(Model.SearchTerm)),
-                    IncludePrerelease: '@Model.IncludePrerelease',
-                    PageIndex: @Model.PageIndex,
-                    TotalCount: @Model.TotalCount,
-                    ClickIndex: data.trackValue,
-                    PackageId: data.packageId,
-                    PackageVersion: data.packageVersion,
-                    UseVersion: data.useVersion,
-                    SincePageLoadMs: Date.now() - pageLoadTime,
-                    SincePageLoadCount: sincePageLoadCount,
-                    IsPreviewSearch: '@Model.IsPreviewSearch',
-                    PackageType: @Html.ToJson(Model.PackageType ?? string.Empty),
-                    SortBy: @Html.ToJson(Model.SortBy)
-                });
+                if (data.clickSource == "PackageId") {
+                    window.nuget.sendMetric('BrowserSearchSelection', data.trackValue, {
+                        SearchId: '@searchId',
+                        SearchTerm: @Html.Raw(Json.Encode(Model.SearchTerm)),
+                        IncludePrerelease: '@Model.IncludePrerelease',
+                        PageIndex: @Model.PageIndex,
+                        TotalCount: @Model.TotalCount,
+                        ClickIndex: data.trackValue,
+                        ClickSource: data.clickSource,
+                        PackageId: data.packageId,
+                        PackageVersion: data.packageVersion,
+                        UseVersion: data.useVersion,
+                        SincePageLoadMs: Date.now() - pageLoadTime,
+                        SincePageLoadCount: sincePageLoadCount,
+                        IsPreviewSearch: '@Model.IsPreviewSearch',
+                        Frameworks: '@Model.Frameworks',
+                        Tfms: '@Model.Tfms',
+                        IncludeComputedFrameworks: '@Model.IncludeComputedFrameworks',
+                        FrameworkFilterMode: '@Model.FrameworkFilterMode',
+                        PackageType: @Html.ToJson(Model.PackageType ?? string.Empty),
+                        SortBy: @Html.ToJson(Model.SortBy)
+                    });
+                }
+                else if (data.clickSource == "Owner") {
+                    window.nuget.sendMetric('BrowserSearchSelection', data.trackValue, {
+                        SearchId: '@searchId',
+                        SearchTerm: @Html.Raw(Json.Encode(Model.SearchTerm)),
+                        IncludePrerelease: '@Model.IncludePrerelease',
+                        PageIndex: @Model.PageIndex,
+                        TotalCount: @Model.TotalCount,
+                        ClickIndex: data.trackValue,
+                        ClickSource: data.clickSource,
+                        PackageId: data.packageId,
+                        PackageVersion: data.packageVersion,
+                        UseVersion: data.useVersion,
+                        Owner: data.owner,
+                        SincePageLoadMs: Date.now() - pageLoadTime,
+                        SincePageLoadCount: sincePageLoadCount,
+                        IsPreviewSearch: '@Model.IsPreviewSearch',
+                        Frameworks: '@Model.Frameworks',
+                        Tfms: '@Model.Tfms',
+                        IncludeComputedFrameworks: '@Model.IncludeComputedFrameworks',
+                        FrameworkFilterMode: '@Model.FrameworkFilterMode',
+                        PackageType: @Html.ToJson(Model.PackageType ?? string.Empty),
+                        SortBy: @Html.ToJson(Model.SortBy)
+                    });
+                }
+                else if (data.clickSource == "FrameworkBadge") {
+                    window.nuget.sendMetric('BrowserSearchSelection', data.trackValue, {
+                        SearchId: '@searchId',
+                        SearchTerm: @Html.Raw(Json.Encode(Model.SearchTerm)),
+                        IncludePrerelease: '@Model.IncludePrerelease',
+                        PageIndex: @Model.PageIndex,
+                        TotalCount: @Model.TotalCount,
+                        ClickIndex: data.trackValue,
+                        ClickSource: data.clickSource,
+                        PackageId: data.packageId,
+                        PackageVersion: data.packageVersion,
+                        BadgeFramework: data.badgeFramework,
+                        BadgeIsComputed: data.badgeIsComputed,
+                        SincePageLoadMs: Date.now() - pageLoadTime,
+                        SincePageLoadCount: sincePageLoadCount,
+                        IsPreviewSearch: '@Model.IsPreviewSearch',
+                        Frameworks: '@Model.Frameworks',
+                        Tfms: '@Model.Tfms',
+                        IncludeComputedFrameworks: '@Model.IncludeComputedFrameworks',
+                        FrameworkFilterMode: '@Model.FrameworkFilterMode',
+                        PackageType: @Html.ToJson(Model.PackageType ?? string.Empty),
+                        SortBy: @Html.ToJson(Model.SortBy)
+                    });
+                }
 
                 sincePageLoadCount++;
             }
@@ -295,6 +372,10 @@
 
     $('#prerel-checkbox').on('change', function (event) {
         $('#prerel').val($(event.target).is(':checked'));
+    });
+
+    $('#computed-frameworks-checkbox').on('change', function (event) {
+        $('#includeComputedFrameworks').val($(event.target).is(':checked'));
     });
 
     $('#reset-advanced-search').on('click', function () {

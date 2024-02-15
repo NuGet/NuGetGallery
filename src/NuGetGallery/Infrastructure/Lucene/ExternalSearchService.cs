@@ -64,6 +64,8 @@ namespace NuGetGallery.Infrastructure.Search
                 includePrerelease: filter.IncludePrerelease,
                 frameworks: filter.Frameworks,
                 tfms: filter.Tfms,
+                includeComputedFrameworks: filter.IncludeComputedFrameworks,
+                frameworkFilterMode: filter.FrameworkFilterMode,
                 packageType: filter.PackageType,
                 sortBy: filter.SortOrder,
                 skip: filter.Skip,

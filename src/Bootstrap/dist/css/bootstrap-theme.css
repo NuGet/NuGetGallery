@@ -861,6 +861,13 @@ img.reserved-indicator-icon {
   line-height: 20px;
   margin-bottom: 14px;
 }
+.framework-badges a {
+  display: inline-block;
+}
+.framework-badges a:hover,
+.framework-badges a:focus {
+  text-decoration: none;
+}
 .framework-badge {
   padding: 1px 8px;
   border-radius: 2px;
@@ -2005,6 +2012,7 @@ p.frameworktableinfo-text {
   border: none;
   outline: none;
   float: right;
+  margin-right: -3px;
 }
 .page-list-packages .advanced-search-panel .active,
 .page-list-packages .advanced-search-panel .collapsible:hover {
@@ -2024,6 +2032,81 @@ p.frameworktableinfo-text {
 }
 .page-list-packages .advanced-search-panel .tfmTab ul {
   list-style: none;
+}
+.page-list-packages .advanced-search-panel .computed-frameworks-option {
+  margin-top: 3px;
+  margin-right: -2px;
+}
+.page-list-packages .advanced-search-panel .computed-frameworks-option label {
+  margin-left: 0px;
+}
+.page-list-packages .advanced-search-panel .computed-frameworks-option #computed-frameworks-checkbox {
+  float: right;
+}
+.page-list-packages .advanced-search-panel .framework-filter-mode-option {
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  margin-top: 2px;
+  margin-bottom: 6px;
+  margin-right: -2px;
+}
+.page-list-packages .advanced-search-panel .framework-filter-mode-option p {
+  margin: 0px;
+  float: left;
+  font-size: small;
+}
+.page-list-packages .advanced-search-panel .framework-filter-mode-option i {
+  vertical-align: middle;
+}
+.page-list-packages .advanced-search-panel .framework-filter-mode-option .toggle-switch-control {
+  float: right;
+  margin-right: -2px;
+}
+.page-list-packages .advanced-search-panel .framework-filter-mode-option input {
+  opacity: 0;
+  width: 0px;
+  margin: 0px;
+}
+.page-list-packages .advanced-search-panel .framework-filter-mode-option input:focus + label {
+  outline: 1px solid #000;
+  outline-offset: -1px;
+}
+.page-list-packages .advanced-search-panel .framework-filter-mode-option label {
+  cursor: pointer;
+  float: left;
+  width: 35px;
+  padding: 4px 7px;
+  margin: 0px;
+  text-align: center;
+  vertical-align: middle;
+  color: #555;
+  font-size: x-small;
+  background-color: #d9d9d9;
+  border: 1px solid #767676;
+}
+.page-list-packages .advanced-search-panel .framework-filter-mode-option input:checked + label {
+  color: #fff;
+  font-weight: bolder;
+  background-color: #337ab7;
+  border: 1px solid #337ab7;
+}
+.page-list-packages .advanced-search-panel .framework-filter-mode-option label[for="all-selector"] {
+  border-top-left-radius: 2px;
+  border-bottom-left-radius: 2px;
+}
+.page-list-packages .advanced-search-panel .framework-filter-mode-option label[for="any-selector"] {
+  border-top-right-radius: 2px;
+  border-bottom-right-radius: 2px;
 }
 @media (min-width: 768px) {
   .page-list-packages .text-align-right {

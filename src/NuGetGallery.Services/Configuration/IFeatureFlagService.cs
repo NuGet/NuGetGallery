@@ -332,5 +332,10 @@ namespace NuGetGallery
         /// Whether or not to display TFM badges in search results
         /// </summary>
         bool IsDisplayTfmBadgesEnabled(User user);
+
+        /// <summary>
+        /// Whether or not to allow filtering by frameworks on NuGet.org search
+        /// </summary>
+        bool IsAdvancedFrameworkFilteringEnabled(User user);
     }
 }

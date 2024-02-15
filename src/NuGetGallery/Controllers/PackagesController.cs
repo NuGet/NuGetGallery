@@ -989,7 +989,7 @@ namespace NuGetGallery
 
             if (model.IsComputeTargetFrameworkEnabled || model.IsDisplayTargetFrameworkEnabled)
             {
-                model.PackageFrameworkCompatibility = _compatibilityFactory.Create(package.SupportedFrameworks, id);
+                model.PackageFrameworkCompatibility = _compatibilityFactory.Create(package.SupportedFrameworks, id, version);
             }
 
             if (model.IsPackageDependentsEnabled)
@@ -1056,6 +1056,8 @@ namespace NuGetGallery
                             includePrerelease: true,
                             frameworks: null,
                             tfms: null,
+                            includeComputedFrameworks: false,
+                            frameworkFilterMode: null,
                             packageType: null,
                             sortOrder: null,
                             context: SearchFilter.ODataSearchContext,
@@ -1264,6 +1266,7 @@ namespace NuGetGallery
             var page = searchAndListModel.Page;
             var q = searchAndListModel.Q;
             var includePrerelease = searchAndListModel.Prerel ?? true;
+            var includeComputedFrameworks = searchAndListModel.IncludeComputedFrameworks ?? true;
             var includeTestData = searchAndListModel.TestData ?? false;
 
             if (page < 1)
@@ -1289,6 +1292,7 @@ namespace NuGetGallery
             var searchService = isPreviewSearchEnabled ? _searchServiceFactory.GetPreviewService() : _searchServiceFactory.GetService();
             var isAdvancedSearchFlightEnabled = _featureFlagService.IsAdvancedSearchEnabled(GetCurrentUser());
             var isFrameworkFilteringEnabled = _featureFlagService.IsFrameworkFilteringEnabled(GetCurrentUser());
+            var isAdvancedFrameworkFilteringEnabled = _featureFlagService.IsAdvancedFrameworkFilteringEnabled(GetCurrentUser());
 
             // If advanced search is disabled, use the default experience
             if (!isAdvancedSearchFlightEnabled || !searchService.SupportsAdvancedSearch)
@@ -1296,6 +1300,8 @@ namespace NuGetGallery
                 searchAndListModel.SortBy = GalleryConstants.SearchSortNames.Relevance;
                 searchAndListModel.Frameworks = string.Empty;
                 searchAndListModel.Tfms = string.Empty;
+                searchAndListModel.IncludeComputedFrameworks = false;
+                searchAndListModel.FrameworkFilterMode = string.Empty;
                 searchAndListModel.PackageType = string.Empty;
             }
 
@@ -1324,6 +1330,8 @@ namespace NuGetGallery
                         includePrerelease: includePrerelease,
                         frameworks: searchAndListModel.Frameworks,
                         tfms: searchAndListModel.Tfms,
+                        includeComputedFrameworks: includeComputedFrameworks,
+                        frameworkFilterMode: searchAndListModel.FrameworkFilterMode,
                         packageType: searchAndListModel.PackageType,
                         sortOrder: searchAndListModel.SortBy,
                         context: SearchFilter.UISearchContext,
@@ -1355,6 +1363,8 @@ namespace NuGetGallery
                     includePrerelease: includePrerelease,
                     frameworks: searchAndListModel.Frameworks,
                     tfms: searchAndListModel.Tfms,
+                    includeComputedFrameworks: includeComputedFrameworks,
+                    frameworkFilterMode: searchAndListModel.FrameworkFilterMode,
                     packageType: searchAndListModel.PackageType,
                     sortOrder: searchAndListModel.SortBy,
                     context: SearchFilter.UISearchContext,
@@ -1373,7 +1383,7 @@ namespace NuGetGallery
 
             var currentUser = GetCurrentUser();
             var items = results.Data
-                .Select(pv => _listPackageItemViewModelFactory.Create(pv, currentUser, false)) // the boolean here will eventually depend on the 'IncludeComputed' search parameter
+                .Select(pv => _listPackageItemViewModelFactory.Create(pv, currentUser, includeComputedFrameworks))
                 .ToList();
 
             var viewModel = new PackageListViewModel(
@@ -1388,12 +1398,15 @@ namespace NuGetGallery
                 isPreviewSearchEnabled,
                 searchAndListModel.Frameworks,
                 searchAndListModel.Tfms,
+                includeComputedFrameworks,
+                searchAndListModel.FrameworkFilterMode,
                 searchAndListModel.PackageType,
                 searchAndListModel.SortBy);
 
             // If the experience hasn't been cached, it means it's not the default experienced, therefore, show the panel
             viewModel.IsAdvancedSearchFlightEnabled = searchService.SupportsAdvancedSearch && isAdvancedSearchFlightEnabled;
             viewModel.IsFrameworkFilteringEnabled = isFrameworkFilteringEnabled;
+            viewModel.IsAdvancedFrameworkFilteringEnabled = isAdvancedFrameworkFilteringEnabled;
 
             ViewBag.SearchTerm = q;
 
