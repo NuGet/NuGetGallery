@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Microsoft.Ajax.Utilities;
@@ -55,20 +54,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
                 if (user != null)
                 {
-                    var result = new UserCredentialSearchResult()
-                    {
-                        Username = user.Username,
-                        EmailAddress = user.EmailAddress,
-                        IsAADorMACredential = false
-                    };
-
-                    Credential microftAccountOrAADCredentail = user.Credentials.GetMicrosoftAccountCredential() ?? user.Credentials.GetAzureActiveDirectoryCredential();
-
-                    if (microftAccountOrAADCredentail != null)
-                    {
-                        result.IsAADorMACredential = true;
-                        result.Credential = GetMAorAADCredential(microftAccountOrAADCredentail);
-                    }
+                    UserCredentialSearchResult result = GetSearchResult(user);
 
                     results.Add(result);
                 }
@@ -139,6 +125,26 @@ namespace NuGetGallery.Areas.Admin.Controllers
             };
 
             return userCredential;
+        }
+
+        private UserCredentialSearchResult GetSearchResult(User user)
+        {
+            var result = new UserCredentialSearchResult()
+            {
+                Username = user.Username,
+                EmailAddress = user.EmailAddress,
+                IsAADorMACredential = false
+            };
+
+            Credential microftAccountOrAADCredentail = user.Credentials.GetMicrosoftAccountCredential() ?? user.Credentials.GetAzureActiveDirectoryCredential();
+
+            if (microftAccountOrAADCredentail != null)
+            {
+                result.IsAADorMACredential = true;
+                result.Credential = GetMAorAADCredential(microftAccountOrAADCredentail);
+            }
+
+            return result;
         }
     }
 }
