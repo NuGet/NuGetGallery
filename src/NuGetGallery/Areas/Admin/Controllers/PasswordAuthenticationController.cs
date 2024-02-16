@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Microsoft.Ajax.Utilities;
@@ -40,16 +41,27 @@ namespace NuGetGallery.Areas.Admin.Controllers
         public ActionResult Search(string query)
         {
             var results = new List<UserCredentialSearchResult>();
-            if (!string.IsNullOrWhiteSpace(query))
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return Json(results, JsonRequestBehavior.AllowGet);
+            }
+
+            var lines = query
+                .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(e => e.Trim())
+                .Where(e => !string.IsNullOrWhiteSpace(e))
+                .ToList();
+
+            foreach (var line in lines)
             {
                 User user;
-                if (Helpers.IsValidEmail(query))
+                if (Helpers.IsValidEmail(line))
                 {
-                    user = _userService.FindByEmailAddress(query);
+                    user = _userService.FindByEmailAddress(line);
                 }
                 else
                 {
-                    user = _userService.FindByUsername(query);            
+                    user = _userService.FindByUsername(line);
                 }
 
                 if (user != null)
@@ -59,7 +71,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     results.Add(result);
                 }
             }
-
             return Json(results, JsonRequestBehavior.AllowGet);
         }
 

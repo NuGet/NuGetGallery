@@ -384,6 +384,12 @@ img.reserved-indicator-icon {
     display: none !important;
   }
 }
+.unselectable {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
 .modal-backdrop.in {
   opacity: 0.8 !important;
   position: fixed;
