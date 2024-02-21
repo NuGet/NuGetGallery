@@ -15,6 +15,7 @@ using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery;
 using VerifyGitHubVulnerabilities.Configuration;
+using PackageVulnerabilitySeverity = NuGet.Services.Entities.PackageVulnerabilitySeverity;
 
 namespace VerifyGitHubVulnerabilities.Verify
 {
