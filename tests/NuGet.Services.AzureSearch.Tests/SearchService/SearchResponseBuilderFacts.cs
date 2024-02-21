@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
 using Microsoft.Extensions.Options;
@@ -2085,7 +2086,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             {
                 return JsonSerializer.Serialize(response, new System.Text.Json.JsonSerializerOptions
                 {
-                    IgnoreNullValues = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
                     Converters =
                         {
                             new System.Text.Json.Serialization.JsonStringEnumConverter(),
