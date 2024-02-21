@@ -2085,7 +2085,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             {
                 return JsonSerializer.Serialize(response, new System.Text.Json.JsonSerializerOptions
                 {
-                    IgnoreNullValues = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
                     Converters =
                         {
                             new System.Text.Json.Serialization.JsonStringEnumConverter(),
