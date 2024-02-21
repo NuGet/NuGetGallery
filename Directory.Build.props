@@ -1,8 +1,8 @@
 <Project>
   <PropertyGroup>
-    <NuGetClientPackageVersion>6.6.1</NuGetClientPackageVersion>
-    <ServerCommonPackageVersion>2.115.0</ServerCommonPackageVersion>
-    <NuGetJobsPackageVersion>4.3.0-dev-8972385</NuGetJobsPackageVersion>
+    <NuGetClientPackageVersion>6.9.1</NuGetClientPackageVersion>
+    <ServerCommonPackageVersion>2.117.0</ServerCommonPackageVersion>
+    <NuGetJobsPackageVersion>4.3.0-main-9110993</NuGetJobsPackageVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers">
