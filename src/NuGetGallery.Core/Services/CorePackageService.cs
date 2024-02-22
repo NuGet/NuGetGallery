@@ -300,23 +300,23 @@ namespace NuGetGallery
             string id, 
             PackageDeprecationFieldsToInclude deprecationFields = PackageDeprecationFieldsToInclude.None)
         {
-            bool includeDeprecation;
+            bool includeDeprecations;
             bool includeDeprecationRelationships;
 
             switch (deprecationFields)
             {
                 case PackageDeprecationFieldsToInclude.None:
-                    includeDeprecation = false;
+                    includeDeprecations = false;
                     includeDeprecationRelationships = false;
                     break;
 
                 case PackageDeprecationFieldsToInclude.Deprecation:
-                    includeDeprecation = true;
+                    includeDeprecations = true;
                     includeDeprecationRelationships = false;
                     break;
 
                 case PackageDeprecationFieldsToInclude.DeprecationAndRelationships:
-                    includeDeprecation = true;
+                    includeDeprecations = true;
                     includeDeprecationRelationships = true;
                     break;
 
@@ -330,8 +330,9 @@ namespace NuGetGallery
                 includePackageRegistration: true,
                 includeUser: true,
                 includeSymbolPackages: true,
-                includeDeprecation: includeDeprecation,
-                includeDeprecationRelationships: includeDeprecationRelationships);
+                includeDeprecations: includeDeprecations,
+                includeDeprecationRelationships: includeDeprecationRelationships,
+                includeSupportedFrameworks: false);
         }
 
         protected IQueryable<Package> GetPackagesByIdQueryable(
@@ -340,8 +341,9 @@ namespace NuGetGallery
             bool includePackageRegistration,
             bool includeUser,
             bool includeSymbolPackages,
-            bool includeDeprecation,
-            bool includeDeprecationRelationships)
+            bool includeDeprecations,
+            bool includeDeprecationRelationships,
+            bool includeSupportedFrameworks)
         {
             var packages = _packageRepository
                 .GetAll()
@@ -373,9 +375,14 @@ namespace NuGetGallery
                     .Include(p => p.Deprecations.Select(d => d.AlternatePackage.PackageRegistration))
                     .Include(p => p.Deprecations.Select(d => d.AlternatePackageRegistration));
             }
-            else if (includeDeprecation)
+            else if (includeDeprecations)
             {
                 packages = packages.Include(p => p.Deprecations);
+            }
+
+            if (includeSupportedFrameworks)
+            {
+                packages = packages.Include(p => p.SupportedFrameworks);
             }
 
             return packages;

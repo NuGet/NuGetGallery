@@ -226,7 +226,9 @@ namespace NuGetGallery
 
         public virtual IReadOnlyCollection<Package> FindPackagesById(
             string id,
-            bool includePackageRegistration)
+            bool includePackageRegistration,
+            bool includeDeprecations = false,
+            bool includeSupportedFrameworks = false)
         {
             if (id == null)
             {
@@ -239,8 +241,9 @@ namespace NuGetGallery
                 includePackageRegistration: includePackageRegistration,
                 includeUser: false,
                 includeSymbolPackages: false,
-                includeDeprecation: false,
-                includeDeprecationRelationships: false);
+                includeDeprecations: includeDeprecations,
+                includeDeprecationRelationships: false,
+                includeSupportedFrameworks: includeSupportedFrameworks);
 
             return packages.ToList();
         }
