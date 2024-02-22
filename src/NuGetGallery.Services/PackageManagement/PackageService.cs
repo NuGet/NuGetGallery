@@ -226,9 +226,31 @@ namespace NuGetGallery
 
         public virtual IReadOnlyCollection<Package> FindPackagesById(
             string id,
+            bool includePackageRegistration)
+        {
+            if (id == null)
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            var packages = GetPackagesByIdQueryable(
+                id,
+                includeLicenseReports: false,
+                includePackageRegistration: includePackageRegistration,
+                includeUser: false,
+                includeSymbolPackages: false,
+                includeDeprecations: false,
+                includeDeprecationRelationships: false,
+                includeSupportedFrameworks: false);
+
+            return packages.ToList();
+        }
+
+        public virtual IReadOnlyCollection<Package> FindPackagesById(
+            string id,
             bool includePackageRegistration,
-            bool includeDeprecations = false,
-            bool includeSupportedFrameworks = false)
+            bool includeDeprecations,
+            bool includeSupportedFrameworks)
         {
             if (id == null)
             {

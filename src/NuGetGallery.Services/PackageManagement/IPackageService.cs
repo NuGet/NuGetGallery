@@ -32,8 +32,16 @@ namespace NuGetGallery
         /// Includes deprecation fields based on <paramref name="deprecationFields"/>.
         /// </summary>
         IReadOnlyCollection<Package> FindPackagesById(
-            string id, 
+            string id,
             PackageDeprecationFieldsToInclude deprecationFields = PackageDeprecationFieldsToInclude.None);
+
+        /// <summary>
+        /// Returns all packages with an <see cref="Package.Id"/> of <paramref name="id"/>.
+        /// Includes the <see cref="Package.PackageRegistration"/> fields based on <paramref name="includePackageRegistration"/>.
+        /// </summary>
+        IReadOnlyCollection<Package> FindPackagesById(
+            string id,
+            bool includePackageRegistration);
 
         /// <summary>
         /// Returns all packages with an <see cref="Package.Id"/> of <paramref name="id"/>.
@@ -44,8 +52,8 @@ namespace NuGetGallery
         IReadOnlyCollection<Package> FindPackagesById(
             string id,
             bool includePackageRegistration,
-            bool includeDeprecations = false,
-            bool includeSupportedFrameworks = false);
+            bool includeDeprecations,
+            bool includeSupportedFrameworks);
 
         /// <summary>
         /// Gets the package with the given ID and version when exists;
