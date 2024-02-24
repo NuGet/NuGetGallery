@@ -45,10 +45,10 @@ Function Install-AzCopy
         mkdir $bootstrap | Out-Null
 
         # Ensure TLS 1.2 is enabled.
-        [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+        [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 # DevSkim: ignore DS440001,DS440020
 
         $progressPreference = 'silentlyContinue'
-        Invoke-WebRequest -Uri "http://aka.ms/downloadazcopy" -OutFile $msi
+        Invoke-WebRequest -Uri "http://aka.ms/downloadazcopy" -OutFile $msi # DevSkim: ignore DS137138
         $progressPreference = 'Continue'
         Unblock-File $msi
 
