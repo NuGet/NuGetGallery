@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.ServiceBus
@@ -20,5 +21,6 @@ namespace NuGet.Services.ServiceBus
         Task AbandonAsync();
         string GetBody();
         TStream GetBody<TStream>();
+        Stream GetRawBody();
     }
 }
