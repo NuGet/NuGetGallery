@@ -1,6 +1,6 @@
 param([string]$SiteName = "NuGet Gallery", [string]$SitePhysicalPath, [string]$AppCmdPath)
 
-function Get-SiteFQDN() {return "localhost"}
+function Get-SiteFQDN() {return "localhost"} # DevSkim: ignore DS162092
 function Get-SiteHttpHost() {return "$(Get-SiteFQDN):80"}
 function Get-SiteHttpsHost() {return "$(Get-SiteFQDN):443"}
 
@@ -88,7 +88,7 @@ if(!(Test-Path $AppCmdPath)) {
 
 # Enable access to the necessary URLs
 # S-1-1-0 is the unlocalized version for: user=Everyone 
-Invoke-Netsh http add urlacl "url=http://$(Get-SiteHttpHost)/" "sddl=D:(A;;GX;;;S-1-1-0)"
+Invoke-Netsh http add urlacl "url=http://$(Get-SiteHttpHost)/" "sddl=D:(A;;GX;;;S-1-1-0)" # DevSkim: ignore DS137138
 Invoke-Netsh http add urlacl "url=https://$(Get-SiteHttpsHost)/" "sddl=D:(A;;GX;;;S-1-1-0)"
 
 $SiteFullName = "$SiteName ($(Get-SiteFQDN))"
@@ -99,7 +99,7 @@ if($sites.Length -gt 0) {
     &$AppCmdPath delete site "$SiteFullName"
 }
 
-&$AppCmdPath add site /name:"$SiteFullName" /bindings:"http://$(Get-SiteHttpHost),https://$(Get-SiteHttpsHost)" /physicalPath:$SitePhysicalPath
+&$AppCmdPath add site /name:"$SiteFullName" /bindings:"http://$(Get-SiteHttpHost),https://$(Get-SiteHttpsHost)" /physicalPath:$SitePhysicalPath # DevSkim: ignore DS137138
 
 Write-Host "[DONE] Setting up IIS Express" -ForegroundColor Cyan
 Write-Host "[BEGIN] Setting SSL Certificate" -ForegroundColor Cyan
