@@ -246,7 +246,7 @@ namespace NuGetGallery
             return packages.ToList();
         }
 
-        public virtual IReadOnlyCollection<Package> FindPackagesById(
+        public IReadOnlyCollection<Package> FindPackagesById(
             string id,
             bool includePackageRegistration,
             bool includeDeprecations,
