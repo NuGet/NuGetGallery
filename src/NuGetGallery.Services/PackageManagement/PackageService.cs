@@ -239,8 +239,33 @@ namespace NuGetGallery
                 includePackageRegistration: includePackageRegistration,
                 includeUser: false,
                 includeSymbolPackages: false,
-                includeDeprecation: false,
-                includeDeprecationRelationships: false);
+                includeDeprecations: false,
+                includeDeprecationRelationships: false,
+                includeSupportedFrameworks: false);
+
+            return packages.ToList();
+        }
+
+        public IReadOnlyCollection<Package> FindPackagesById(
+            string id,
+            bool includePackageRegistration,
+            bool includeDeprecations,
+            bool includeSupportedFrameworks)
+        {
+            if (id == null)
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            var packages = GetPackagesByIdQueryable(
+                id,
+                includeLicenseReports: false,
+                includePackageRegistration: includePackageRegistration,
+                includeUser: false,
+                includeSymbolPackages: false,
+                includeDeprecations: includeDeprecations,
+                includeDeprecationRelationships: false,
+                includeSupportedFrameworks: includeSupportedFrameworks);
 
             return packages.ToList();
         }
