@@ -209,25 +209,30 @@ $(function() {
     $(".framework-badge-computed").each(window.nuget.setPopovers);
 
     // Set the background color on the FrameworkFilterMode tooltip - https://github.com/NuGet/NuGetGallery/issues/9818
-    const filterModetooltip = document.querySelector('.frameworkfiltermode-info');
+    const filterModeTooltip = document.querySelector('.frameworkfiltermode-info');
 
     const tooltipObserver = new MutationObserver(function (mutations) {
         mutations.forEach(function (mutation) {
             if (mutation.type === "attributes"
                 && mutation.attributeName === "aria-describedby"
-                && filterModetooltip.hasAttribute("aria-describedby")) {
+                && filterModeTooltip.hasAttribute("aria-describedby")) {
 
-                const popoverId = filterModetooltip.getAttribute("aria-describedby");
+                const popoverId = filterModeTooltip.getAttribute("aria-describedby");
                 const filterModePopover = document.getElementById(popoverId);
 
-                filterModePopover.querySelector(".popover-title").style.border = "none";
-                filterModePopover.querySelector(".popover-title").style.background = "white";
-                filterModePopover.querySelector(".popover-content").remove();
+                if (filterModePopover) {
+                    $(filterModePopover).find(".popover-title").css({
+                        border: "none",
+                        background: "white"
+                    });
+
+                    $(filterModePopover).find(".popover-content").remove();
+                }
             }
         });
     });
 
-    tooltipObserver.observe(filterModetooltip, {
+    tooltipObserver.observe(filterModeTooltip, {
         attributeFilter: ["aria-describedby"]
     });
 });
