@@ -54,16 +54,18 @@
         </div>
 
         <h2>Validate &amp; Change new username</h2>
+        @using (Html.BeginForm())
+        {
+            @Html.AntiForgeryToken()
+            <i>Validate &amp; Change if the new username is available and has a valid format.</i><br />
 
-        <i>Validate &amp; Change if the new username is available and has a valid format.</i><br />
-
-        <input type="text" placeholder="Old Username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="value: oldUsername" />
-        <input type="text" placeholder="New username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="value: newUsername" />
-        <input type="checkbox" id="checkNonDeletedOwnedPackages" data-bind="checked: checkOwnedPackages" />
-        <label for="checkNonDeletedOwnedPackages">Check Non-Deleted Owned Packages</label>
-        <button type="submit" data-bind="click: validateNewUsername">Validate</button>
-        <button type="submit" data-bind="click: changeUsername">Change</button>
-
+            <input type="text" placeholder="Old Username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="value: oldUsername" />
+            <input type="text" placeholder="New username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="value: newUsername" />
+            <input type="checkbox" id="checkNonDeletedOwnedPackages" data-bind="checked: checkOwnedPackages" />
+            <label for="checkNonDeletedOwnedPackages">Check Non-Deleted Owned Packages</label>
+            <button type="submit" data-bind="click: validateNewUsername">Validate</button>
+            <button type="submit" data-bind="click: changeUsername">Change</button>
+        }
         <div style="display:none" data-bind="visible: errorNewUsername">
             @ViewHelpers.AlertDanger(@<text><span data-bind="text: errorNewUsername"></span></text>)
         </div>
@@ -73,6 +75,12 @@
             <div style="display:none;" data-bind="visible: !validatationUsernameResult.IsFormatValid()"><i class="ms-Icon ms-Icon--StatusErrorFull" style="color: red"></i> Username has invalid format.</div>
             <div style="display:none;" data-bind="visible: validatationUsernameResult.IsAvailable()"><i class="ms-Icon ms-Icon--CompletedSolid" style="color: green"></i> Username is available.</div>
             <div style="display:none;" data-bind="visible: !validatationUsernameResult.IsAvailable()"><i class="ms-Icon ms-Icon--StatusErrorFull" style="color: red"></i> Username is already taken.</div>
+        </div>
+        <div style="display:none" data-bind="visible: changeUsernameSuccessful">
+            @ViewHelpers.Alert(@<text><span data-bind="text: changeUsernameSuccessful"></span></text>, "success", "Info")
+        </div>
+        <div style="display:none" data-bind="visible: errorChangeUsername">
+            @ViewHelpers.AlertDanger(@<text><span data-bind="text: errorChangeUsername"></span></text>)
         </div>
         <table class="table" id="ownedPackages" style="display: none" data-bind="visible: ownedPackages().length > 0 && checkOwnedPackages" aria-label="owned packages">
             <thead>
@@ -87,24 +95,6 @@
             </tbody>
         </table>
     </div>
-
-    @*<div>
-        <h2>Change username</h2>
-        @using (Html.BeginForm())
-        {
-            @Html.AntiForgeryToken()
-            <i>Update current account username.</i><br />
-            <input type="text" placeholder="Old username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="value: changeOldUsername" />
-            <input type="text" placeholder="New username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="value: changeNewUsername" />
-            <button type="submit" data-bind="click: changeUsername">Change</button>
-        }
-        <div style="display:none" data-bind="visible: changeUsernameSuccessful">
-            @ViewHelpers.Alert(@<text><span data-bind="text: changeUsernameSuccessful"></span></text>, "success", "Info")
-        </div>
-        <div style="display:none" data-bind="visible: errorChangeUsername">
-            @ViewHelpers.AlertDanger(@<text><span data-bind="text: errorChangeUsername"></span></text>)
-        </div>
-    </div>*@
 </section>
 
 @section BottomScripts {
