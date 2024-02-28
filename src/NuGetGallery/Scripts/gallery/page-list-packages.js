@@ -207,32 +207,4 @@ $(function() {
     $(".frameworkfiltermode-info").each(window.nuget.setPopovers);
     $(".framework-badge-asset").each(window.nuget.setPopovers);
     $(".framework-badge-computed").each(window.nuget.setPopovers);
-
-    // Set the background color on the FrameworkFilterMode tooltip - https://github.com/NuGet/NuGetGallery/issues/9818
-    const filterModeTooltip = document.querySelector('.frameworkfiltermode-info');
-
-    const tooltipObserver = new MutationObserver(function (mutations) {
-        mutations.forEach(function (mutation) {
-            if (mutation.type === "attributes"
-                && mutation.attributeName === "aria-describedby"
-                && filterModeTooltip.hasAttribute("aria-describedby")) {
-
-                const popoverId = filterModeTooltip.getAttribute("aria-describedby");
-                const filterModePopover = document.getElementById(popoverId);
-
-                if (filterModePopover) {
-                    $(filterModePopover).find(".popover-title").css({
-                        border: "none",
-                        background: "white"
-                    });
-
-                    $(filterModePopover).find(".popover-content").remove();
-                }
-            }
-        });
-    });
-
-    tooltipObserver.observe(filterModeTooltip, {
-        attributeFilter: ["aria-describedby"]
-    });
 });
