@@ -1,11 +1,6 @@
 $(function() {
     'use strict';
 
-    $(".reserved-indicator").each(window.nuget.setPopovers);
-    $(".package-warning--vulnerable").each(window.nuget.setPopovers);
-    $(".package-warning--deprecated").each(window.nuget.setPopovers);
-    $(".frameworkfiltermode-info").each(window.nuget.setPopovers);
-
     const storage = window['localStorage'];
     const focusResultsColumnKey = 'focus_results_column';
 
@@ -206,6 +201,10 @@ $(function() {
         initializeFrameworkAndTfmCheckboxes();
     }
 
+    $(".reserved-indicator").each(window.nuget.setPopovers);
+    $(".package-warning--vulnerable").each(window.nuget.setPopovers);
+    $(".package-warning--deprecated").each(window.nuget.setPopovers);
+    $(".frameworkfiltermode-info").each(window.nuget.setPopovers);
     $(".framework-badge-asset").each(window.nuget.setPopovers);
     $(".framework-badge-computed").each(window.nuget.setPopovers);
 });
