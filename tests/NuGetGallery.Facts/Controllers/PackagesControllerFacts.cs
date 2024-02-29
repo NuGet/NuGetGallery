@@ -508,7 +508,10 @@ namespace NuGetGallery
 
                 var packages = new List<Package> { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Setup(p => p.FindPackagesById(id,
+                    /*includePackageRegistration:*/ true,
+                    /*includeDeprecations:*/ true,
+                    /*includeSupportedFrameworks:*/ true))
                     .Returns(packages);
                 packageService
                     .Setup(p => p.FilterExactPackage(It.IsAny<IReadOnlyCollection<Package>>(), It.IsAny<string>()))
@@ -713,7 +716,10 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Setup(p => p.FindPackagesById(id,
+                    /*includePackageRegistration:*/ true,
+                    /*includeDeprecations:*/ true,
+                    /*includeSupportedFrameworks:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -840,7 +846,10 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Setup(p => p.FindPackagesById(id,
+                    /*includePackageRegistration:*/ true,
+                    /*includeDeprecations:*/ true,
+                    /*includeSupportedFrameworks:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -911,7 +920,10 @@ namespace NuGetGallery
                 };
 
                 packageService
-                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Setup(p => p.FindPackagesById(id,
+                    /*includePackageRegistration:*/ true,
+                    /*includeDeprecations:*/ true,
+                    /*includeSupportedFrameworks:*/ true))
                     .Returns(new[] { notLatestPackage, latestPackage, latestButNotPackage });
 
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
@@ -956,7 +968,10 @@ namespace NuGetGallery
 
                 var packages = new[] { notLatestPackage };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Setup(p => p.FindPackagesById(id,
+                    /*includePackageRegistration:*/ true,
+                    /*includeDeprecations:*/ true,
+                    /*includeSupportedFrameworks:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -1002,7 +1017,10 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById("Foo", /*includePackageRegistration:*/ true))
+                    .Setup(p => p.FindPackagesById("Foo",
+                    /*includePackageRegistration:*/ true,
+                    /*includeDeprecations:*/ true,
+                    /*includeSupportedFrameworks:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -1101,7 +1119,10 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Setup(p => p.FindPackagesById(id,
+                    /*includePackageRegistration:*/ true,
+                    /*includeDeprecations:*/ true,
+                    /*includeSupportedFrameworks:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -1148,7 +1169,11 @@ namespace NuGetGallery
                 };
 
                 var packages = new[] { package };
-                packageService.Setup(p => p.FindPackagesById("Foo", /*includePackageRegistration:*/ true))
+                packageService
+                    .Setup(p => p.FindPackagesById("Foo",
+                    /*includePackageRegistration:*/ true,
+                    /*includeDeprecations:*/ true,
+                    /*includeSupportedFrameworks:*/ true))
                     .Returns(packages);
 
                 packageService.Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
@@ -1204,7 +1229,10 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Setup(p => p.FindPackagesById(id,
+                    /*includePackageRegistration:*/ true,
+                    /*includeDeprecations:*/ true,
+                    /*includeSupportedFrameworks:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -1256,7 +1284,10 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Setup(p => p.FindPackagesById(id,
+                    /*includePackageRegistration:*/ true,
+                    /*includeDeprecations:*/ true,
+                    /*includeSupportedFrameworks:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -1315,7 +1346,10 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Setup(p => p.FindPackagesById(id,
+                    /*includePackageRegistration:*/ true,
+                    /*includeDeprecations:*/ true,
+                    /*includeSupportedFrameworks:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -1389,7 +1423,10 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Setup(p => p.FindPackagesById(id,
+                    /*includePackageRegistration:*/ true,
+                    /*includeDeprecations:*/ true,
+                    /*includeSupportedFrameworks:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -1482,7 +1519,10 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Setup(p => p.FindPackagesById(id,
+                    /*includePackageRegistration:*/ true,
+                    /*includeDeprecations:*/ true,
+                    /*includeSupportedFrameworks:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -1588,7 +1628,10 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Setup(p => p.FindPackagesById(id,
+                    /*includePackageRegistration:*/ true,
+                    /*includeDeprecations:*/ true,
+                    /*includeSupportedFrameworks:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -1671,7 +1714,10 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Setup(p => p.FindPackagesById(id,
+                    /*includePackageRegistration:*/ true,
+                    /*includeDeprecations:*/ true,
+                    /*includeSupportedFrameworks:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -1738,7 +1784,10 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Setup(p => p.FindPackagesById(id,
+                    /*includePackageRegistration:*/ true,
+                    /*includeDeprecations:*/ true,
+                    /*includeSupportedFrameworks:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -1796,7 +1845,10 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Setup(p => p.FindPackagesById(id,
+                    /*includePackageRegistration:*/ true,
+                    /*includeDeprecations:*/ true,
+                    /*includeSupportedFrameworks:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -1844,7 +1896,10 @@ namespace NuGetGallery
                     .Setup(f => f.IsPackageDependentsEnabled(It.IsAny<User>()))
                     .Returns(false);
                 packageService
-                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Setup(p => p.FindPackagesById(id,
+                    /*includePackageRegistration:*/ true,
+                    /*includeDeprecations:*/ true,
+                    /*includeSupportedFrameworks:*/ true))
                     .Returns(packages);
                 packageService
                     .Setup(p => p.FilterLatestPackage(It.IsAny<IReadOnlyCollection<Package>>(), It.IsAny<int?>(), true))
@@ -1893,7 +1948,10 @@ namespace NuGetGallery
                    .Returns(false);
                 var packages = new List<Package> { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Setup(p => p.FindPackagesById(id,
+                    /*includePackageRegistration:*/ true,
+                    /*includeDeprecations:*/ true,
+                    /*includeSupportedFrameworks:*/ true))
                     .Returns(packages);
                 packageService
                     .Setup(p => p.FilterLatestPackage(It.IsAny<IReadOnlyCollection<Package>>(), It.IsAny<int?>(), true))
@@ -1947,8 +2005,12 @@ namespace NuGetGallery
 
                 var packages = new List<Package> { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Setup(p => p.FindPackagesById(id,
+                    /*includePackageRegistration:*/ true,
+                    /*includeDeprecations:*/ true,
+                    /*includeSupportedFrameworks:*/ true))
                     .Returns(packages);
+
                 packageService
                     .Setup(p => p.FilterLatestPackage(It.IsAny<IReadOnlyCollection<Package>>(), It.IsAny<int?>(), true))
                     .Returns(package);
@@ -2003,7 +2065,10 @@ namespace NuGetGallery
                 var gitHubInformation = new NuGetPackageGitHubInformation(new List<RepositoryInformation>());
 
                 packageService
-                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Setup(p => p.FindPackagesById(id,
+                    /*includePackageRegistration:*/ true,
+                    /*includeDeprecations:*/ true,
+                    /*includeSupportedFrameworks:*/ true))
                     .Returns(packages);
                 packageService
                     .Setup(p => p.FilterLatestPackage(It.IsAny<IReadOnlyCollection<Package>>(), It.IsAny<int?>(), true))
@@ -2067,7 +2132,10 @@ namespace NuGetGallery
                 var gitHubInformation = new NuGetPackageGitHubInformation(new List<RepositoryInformation>());
 
                 packageService
-                    .Setup(p => p.FindPackagesById(It.IsAny<string>(), /*includePackageRegistration:*/ true))
+                    .Setup(p => p.FindPackagesById(It.IsAny<string>(),
+                    /*includePackageRegistration:*/ true,
+                    /*includeDeprecations:*/ true,
+                    /*includeSupportedFrameworks:*/ true))
                     .Returns(packages);
                 packageService
                     .Setup(p => p.FilterLatestPackage(It.IsAny<IReadOnlyCollection<Package>>(), It.IsAny<int?>(), true))
@@ -2133,7 +2201,10 @@ namespace NuGetGallery
                 var gitHubInformation = new NuGetPackageGitHubInformation(new List<RepositoryInformation>());
 
                 packageService
-                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Setup(p => p.FindPackagesById(id,
+                    /*includePackageRegistration:*/ true,
+                    /*includeDeprecations:*/ true,
+                    /*includeSupportedFrameworks:*/ true))
                     .Returns(packages);
                 packageService
                     .Setup(p => p.FilterLatestPackage(It.IsAny<IReadOnlyCollection<Package>>(), It.IsAny<int?>(), true))
@@ -2187,7 +2258,10 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Setup(p => p.FindPackagesById(id,
+                    /*includePackageRegistration:*/ true,
+                    /*includeDeprecations:*/ true,
+                    /*includeSupportedFrameworks:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -2249,7 +2323,10 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Setup(p => p.FindPackagesById(id,
+                    /*includePackageRegistration:*/ true,
+                    /*includeDeprecations:*/ true,
+                    /*includeSupportedFrameworks:*/ true))
                     .Returns(packages);
 
                 packageService
