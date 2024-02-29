@@ -11,28 +11,22 @@
     </div>
     <div class="row">
         <div class="col-md-4">
-            <h2 class="ms-fontSize-xxl">NuGet.exe</h2>
+            <h2 class="ms-fontSize-xxl">Windows x86 Commandline</h2>
             <ul class="list-unstyled list-tools">
                 <li><a href="https://dist.nuget.org/win-x86-commandline/latest/nuget.exe">nuget.exe - recommended latest</a></li>
             </ul>
         </div>
         <div class="col-md-4">
-            <h2 class="ms-fontSize-xxl">Visual Studio</h2>
-            <p>
-                NuGet Package Manager (PM UI and PM Console) is included with Visual Studio. Latest NuGet releases are delivered as part of Visual Studio updates. Note: nuget.exe itself is not included with any version of Visual Studio.
-            </p>
+            <h2 class="ms-fontSize-xxl">Visual Studio 2015</h2>
             <ul class="list-unstyled list-tools">
-                <li><a href="https://visualstudio.microsoft.com/downloads/">Download Visual Studio</a></li>
+                <li><a href="https://dist.nuget.org/visualstudio-2015-vsix/latest/NuGet.Tools.vsix">VS 2015 VSIX - latest</a></li>
             </ul>
         </div>
         <div class="col-md-4">
-            <h2 class="ms-fontSize-xxl">.NET SDK</h2>
+            <h2 class="ms-fontSize-xxl">Visual Studio 2017</h2>
             <p>
-                The CLI tool for .NET Core and .NET Standard libraries, and for any SDK-style project such as one that targets the .NET Framework. This CLI tool is included with the .NET Core SDK and provides core NuGet features on all platforms.
+                NuGet 4.x is included in the Visual Studio 2017 installation. Latest NuGet releases are delivered as part of Visual Studio updates.
             </p>
-            <ul class="list-unstyled list-tools">
-                <li><a href="https://dotnet.microsoft.com/en-us/download">Download .NET SDK</a></li>
-            </ul>
         </div>
     </div>
 </section>
@@ -46,21 +40,21 @@
     <div class="row">
         <div class="col-md-4">
             <!-- ko foreach: artifacts -->
-            <!-- ko if: name == "nuget-exe" -->
-            <div id="nuget-exe" data-bind="template: { name: 'tool-list-template', data: $data }"></div>
+            <!-- ko if: name == "win-x86-commandline" -->
+            <div id="win-x86-versions" data-bind="template: { name: 'tool-list-template', data: $data }"></div>
             <!-- /ko -->
             <!-- /ko -->
         </div>
         <div class="col-md-4">
             <!-- ko foreach: artifacts -->
-            <!-- ko if: name == "visualstudio-vsix" -->
+            <!-- ko if: name == "visualstudio-2017-vsix" -->
             <div data-bind="template: { name: 'tool-list-template', data: $data }"></div>
             <!-- /ko -->
             <!-- /ko -->
         </div>
         <div class="col-md-4">
             <!-- ko foreach: artifacts -->
-            <!-- ko if: name != "nuget-exe" && name != "visualstudio-vsix" -->
+            <!-- ko if: name != "win-x86-commandline" && name != "visualstudio-2017-vsix" -->
             <div data-bind="template: { name: 'tool-list-template', data: $data }"></div>
             <!-- /ko -->
             <!-- /ko -->
