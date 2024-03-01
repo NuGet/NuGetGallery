@@ -1269,4 +1269,13 @@ The {1} Team</value>
   <data name="InvalidPackageEntry" xml:space="preserve">
     <value>The package is invalid and cannot be uploaded. The package entry for '{0}' is not valid.</value>
   </data>
+  <data name="SupportedFrameworks_Asset_Tooltip" xml:space="preserve">
+    <value>This package targets {0}. The package is compatible with this framework or higher.</value>
+  </data>
+  <data name="SupportedFrameworks_Computed_Tooltip" xml:space="preserve">
+    <value>This package is compatible with {0} or higher.</value>
+  </data>
+  <data name="SupportedFrameworks_EmptyVersion_Template_Tooltip" xml:space="preserve">
+    <value>This package is compatible with all versions of {0}.</value>
+  </data>
 </root>

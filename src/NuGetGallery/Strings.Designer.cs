@@ -2157,6 +2157,33 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This package targets {0}. The package is compatible with this framework or higher..
+        /// </summary>
+        public static string SupportedFrameworks_Asset_Tooltip {
+            get {
+                return ResourceManager.GetString("SupportedFrameworks_Asset_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This package is compatible with {0} or higher..
+        /// </summary>
+        public static string SupportedFrameworks_Computed_Tooltip {
+            get {
+                return ResourceManager.GetString("SupportedFrameworks_Computed_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This package is compatible with all versions of {0}..
+        /// </summary>
+        public static string SupportedFrameworks_EmptyVersion_Template_Tooltip {
+            get {
+                return ResourceManager.GetString("SupportedFrameworks_EmptyVersion_Template_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This package is compatible with all versions of this framework..
         /// </summary>
         public static string SupportedFrameworks_EmptyVersionTooltip {
