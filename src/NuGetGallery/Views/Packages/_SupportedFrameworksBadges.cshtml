@@ -114,13 +114,13 @@
                     @:data-badge-framework="@Model.NetStandard.Framework.GetShortFolderName()" data-badge-is-computed="@Model.NetStandard.IsComputed"
             }>
             <span class=@(Model.NetStandard.IsComputed ? "framework-badge-computed" : "framework-badge-asset") aria-label="@GetBadgeTooltip(FrameworkContext.NetStandard, Model.NetStandard)" data-content="@GetBadgeTooltip(FrameworkContext.NetStandard, Model.NetStandard)">
-            @if (Model.NetCore.Framework.GetBadgeVersion().IsEmpty())
+            @if (Model.NetStandard.Framework.GetBadgeVersion().IsEmpty())
             {
                 @:.NET Standard
             }
             else
             {
-                @:.NET Standard @Model.NetCore.Framework.GetBadgeVersion()
+                @:.NET Standard @Model.NetStandard.Framework.GetBadgeVersion()
             }
             </span>
         </a>
@@ -135,13 +135,13 @@
                     @:data-badge-framework="@Model.NetFramework.Framework.GetShortFolderName()" data-badge-is-computed="@Model.NetFramework.IsComputed"
             }>
             <span class=@(Model.NetFramework.IsComputed ? "framework-badge-computed" : "framework-badge-asset") aria-label="@GetBadgeTooltip(FrameworkContext.NetFramework, Model.NetFramework)" data-content="@GetBadgeTooltip(FrameworkContext.NetFramework, Model.NetFramework)">
-            @if (Model.NetCore.Framework.GetBadgeVersion().IsEmpty())
+            @if (Model.NetFramework.Framework.GetBadgeVersion().IsEmpty())
             {
                 @:.NET Framework
             }
             else
             {
-                @:.NET Framework @Model.NetCore.Framework.GetBadgeVersion()
+                @:.NET Framework @Model.NetFramework.Framework.GetBadgeVersion()
             }
             </span>
         </a>
