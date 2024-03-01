@@ -22,7 +22,7 @@
 {
     public enum FrameworkContext
     {
-        DotNet,
+        Net,
         NetCore,
         NetStandard,
         NetFramework
@@ -34,7 +34,7 @@
         string tfmType;
         switch (context)
         {
-            case FrameworkContext.DotNet:
+            case FrameworkContext.Net:
                 tfmType = ".NET";
                 break;
             case FrameworkContext.NetCore:
@@ -78,7 +78,7 @@
                 @:data-package-id="@Model.PackageId" data-package-version="@Model.PackageVersion"
                 @:data-badge-framework="@Model.Net.Framework.GetShortFolderName()" data-badge-is-computed="@Model.Net.IsComputed"
             }>
-            <span class=@(Model.Net.IsComputed ? "framework-badge-computed" : "framework-badge-asset") aria-label="@GetBadgeTooltip(FrameworkContext.DotNet, Model.Net)" data-content="@GetBadgeTooltip(FrameworkContext.DotNet, Model.Net)">
+            <span class=@(Model.Net.IsComputed ? "framework-badge-computed" : "framework-badge-asset") aria-label="@GetBadgeTooltip(FrameworkContext.Net, Model.Net)" data-content="@GetBadgeTooltip(FrameworkContext.Net, Model.Net)">
                 .NET @Model.Net.Framework.GetBadgeVersion()
             </span>
         </a>
