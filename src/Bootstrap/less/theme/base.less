@@ -3,7 +3,7 @@
 @default-margin-bottom: 24px;
 @package-list-line-height: 20px;
 
-.nuget-logo-image{
+.nuget-logo-image {
   background-image: var(--nuget-logo-background-image);
   background-repeat: no-repeat;
   width: 94px;
@@ -21,7 +21,7 @@
   }
 }
 
-.nuget-logo-footer{
+.nuget-logo-footer {
   background-image: var(--nuget-logo-background-image);
   background-repeat: no-repeat;
   width: 184px;
@@ -30,55 +30,22 @@
   background-size: 184px 57px;
 }
 
-.large-title {
+h1 {
   color: var(--neutralForeground1Rest, @jumbotron-heading-color);
 
   /* Web/Large Title */
-  font-family: "Segoe UI";
   font-size: 40px;
-  font-style: normal;
   font-weight: 600;
   line-height: 52px; /* 130% */
 }
 
-h1 {
+h2 {
   color: var(--neutralForeground1Rest);
 
   /* Web/Title 1 */
   font-size: 32px;
   font-weight: 600;
   line-height: 40px; /* 125% */
-}
-
-h2 {
-  color: var(--neutralForeground1Rest);
-
-  /* Web/Title 2 */
-  font-family: "Segoe UI";
-  font-size: 28px;
-  font-style: normal;
-  font-weight: 600;
-  line-height: 36px; /* 128.571% */
-}
-
-h3 {
-  color: var(--neutralForeground1Rest);
-
-  /* Web/Subtitle 1 */
-  font-size: 20px;
-  font-weight: 600;
-  line-height: 28px; /* 140% */
-}
-
-h4 {
-  color: var(--brandForeground1Rest);
-
-  /* Web/Title 3 */
-  font-family: "Segoe UI";
-  font-size: 24px;
-  font-style: normal;
-  font-weight: 600;
-  line-height: 32px; /* 133.333% */
 }
 
 p {
@@ -155,6 +122,12 @@ body {
   font-size: 1em;
   display: table-row;
   height: 1px;
+
+  span {
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 28px;
+  }
 
   .footer-heading {
     margin-bottom: 11px;
@@ -598,7 +571,7 @@ img.reserved-indicator-icon {
     }
 }
 
-//== Theme Definition
+// Theme Definition
 html {
   height: 100%;
 }

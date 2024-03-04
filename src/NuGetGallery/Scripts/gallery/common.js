@@ -542,20 +542,21 @@
     const preferredTheme = localStorage.getItem("theme")
 
     // Check if the localStorage item is set, if not set it to the system theme
-    if (!preferredTheme) {
+    if (!preferredTheme || !(preferredTheme === "dark" || preferredTheme === "light")) {
         localStorage.setItem("theme", "system");
     }
-    else if (preferredTheme == "system") {
-        document.documentElement.setAttribute('data-theme', defaultTheme);
+
+    if (preferredTheme === "light" || preferredTheme === "dark") {
+        document.documentElement.setAttribute('data-theme', preferredTheme);
     }
     else {
-        document.documentElement.setAttribute('data-theme', preferredTheme || defaultTheme);
+        document.documentElement.setAttribute('data-theme', defaultTheme);
     }
 
     // Add listener to the theme selector
     var themeSelector = document.getElementById("select-option-theme");
     themeSelector.addEventListener("change", () => {
-        if (themeSelector.value == "system") {
+        if (themeSelector.value === "system") {
             localStorage.setItem("theme", "system");
             document.documentElement.setAttribute('data-theme', defaultTheme);
             document.getElementById("user-prefered-theme").textContent = "System";
@@ -565,7 +566,6 @@
             document.documentElement.setAttribute('data-theme', themeSelector.value);
             document.getElementById("user-prefered-theme").textContent = themeSelector.value == "light" ? "Light" : "Dark";
         }
-
     })
 
     // Set the theme selector to the user's preferred theme

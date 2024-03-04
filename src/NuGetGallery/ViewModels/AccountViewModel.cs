@@ -32,8 +32,6 @@ namespace NuGetGallery
 
         public ChangeNotificationsViewModel ChangeNotifications { get; set; }
 
-        public ChangeThemeViewModel ChangeTheme { get; set; }
-
         public bool HasPassword { get; set; }
 
         public string CurrentEmailAddress { get; set; }
@@ -41,7 +39,5 @@ namespace NuGetGallery
         public bool HasUnconfirmedEmailAddress { get; set; }
 
         public bool HasConfirmedEmailAddress { get; set; }
-
-        public string CurrentTheme { get; set; }
     }
 }

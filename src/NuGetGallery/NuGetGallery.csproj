@@ -773,7 +773,6 @@
     <Compile Include="UrlHelperWrapper.cs" />
     <Compile Include="ViewModels\AddOrganizationViewModel.cs" />
     <Compile Include="ViewModels\AddPackageOwnerViewModel.cs" />
-    <Compile Include="ViewModels\ChangeThemeViewModel.cs" />
     <Compile Include="ViewModels\CompositeLicenseExpressionSegmentViewModel.cs" />
     <Compile Include="ViewModels\DeleteOrganizationViewModel.cs" />
     <Compile Include="ViewModels\DeleteUserViewModel.cs" />
