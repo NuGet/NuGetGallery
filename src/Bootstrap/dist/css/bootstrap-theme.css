@@ -58,6 +58,9 @@ p {
   border-radius: 300px;
   background: var(--gradients-light-theme-blue-purple-primary, linear-gradient(129deg, #0B6CFF 14.05%, #512BD4 89.3%));
 }
+.home-icons .open-book {
+  background-image: url('../img/book-open-icon.svg');
+}
 body {
   display: table;
   background: var(--neutralBackground2Rest);

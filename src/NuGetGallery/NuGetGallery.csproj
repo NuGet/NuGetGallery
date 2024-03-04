@@ -1380,6 +1380,7 @@
     <Content Include="Content\gallery\img\api-key.svg" />
     <Content Include="Content\gallery\img\blue-circle-225x225.png" />
     <Content Include="Content\gallery\img\blue-circle.svg" />
+    <Content Include="Content\gallery\img\open-book-icon.svg" />
     <Content Include="Content\gallery\img\circuit-board.svg" />
     <Content Include="Content\gallery\img\circuit-board-dark-theme.svg" />
     <Content Include="Content\gallery\img\circuit-board-light-theme.svg" />
@@ -1412,8 +1413,10 @@
     <Content Include="Content\gallery\img\reserved-indicator-256x256.png" />
     <Content Include="Content\gallery\img\reserved-indicator-25x25.png" />
     <Content Include="Content\gallery\img\reserved-indicator.svg" />
+    <Content Include="Content\gallery\img\rocket-icon.svg" />
     <Content Include="Content\gallery\img\rss-36x36.png" />
     <Content Include="Content\gallery\img\rss.svg" />
+    <Content Include="Content\gallery\img\search-icon.svg" />
     <Content Include="Content\gallery\img\twitter-24x24.png" />
     <Content Include="Content\gallery\img\twitter-36x36.png" />
     <Content Include="Content\gallery\img\twitter.svg" />
