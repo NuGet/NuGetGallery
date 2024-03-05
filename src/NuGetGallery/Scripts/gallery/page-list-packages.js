@@ -207,4 +207,5 @@ $(function() {
     $(".frameworkfiltermode-info").each(window.nuget.setPopovers);
     $(".framework-badge-asset").each(window.nuget.setPopovers);
     $(".framework-badge-computed").each(window.nuget.setPopovers);
+    $(".frameworkfilters-info").each(window.nuget.setPopovers);
 });

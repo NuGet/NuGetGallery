@@ -86,21 +86,21 @@
                                 <fieldset id="frameworkfilters">
                                     <legend>
                                         Frameworks
-                                        <a href="@(Model.FrameworksFilteringInformationLink)" title="Filters packages based on the target frameworks included in the NuGet Package. Click here to learn more.">
+                                        <a href="@(Model.FrameworksFilteringInformationLink)" class="frameworkfilters-info" data-content="Filters packages based on the target frameworks they are compatible with. Click here to learn more.">
                                             <i class="framework-filter-info-icon ms-Icon ms-Icon--Info"></i>
                                         </a>
                                     </legend>
                                     @if (Model.IsAdvancedFrameworkFilteringEnabled)
                                     {
                                         <div class="computed-frameworks-option">
-                                            <label for="computed-frameworks-checkbox" aria-label="Include computed frameworks when filtering for packages.">Include computed frameworks</label>
+                                            <label for="computed-frameworks-checkbox" aria-label="Include computed compatible frameworks when filtering for packages.">Include computed frameworks</label>
                                             <input type="checkbox" id="computed-frameworks-checkbox" checked="@Model.IncludeComputedFrameworks">
                                             <input type="hidden" id="includeComputedFrameworks" name="includeComputedFrameworks" value="@Model.IncludeComputedFrameworks.ToString().ToLower()">
                                         </div>
                                         <div class="framework-filter-mode-option" aria-label="ALL/ANY toggle that decides whether to show packages matching ALL of the selected Target Frameworks (TFMs), or ANY of them.">
                                             <p>
                                                 Framework Filter Mode
-                                                <i class="frameworkfiltermode-info ms-Icon ms-Icon--Info" data-content="Decides whether to show packages matching ALL of the selected Target Frameworks (TFMs), or ANY of them."></i>
+                                                <i class="frameworkfiltermode-info ms-Icon ms-Icon--Info" tabindex="0" data-content="Decides whether to show packages matching ALL of the selected Target Frameworks (TFMs), or ANY of them."></i>
                                             </p>
                                             <div class="toggle-switch-control">
                                                 <input type="radio" id="all-selector" name="frameworkFilterMode" value="all" tabindex="0" @(Model.FrameworkFilterMode == "any" ? "" : "checked") />
