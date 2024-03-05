@@ -93,7 +93,7 @@
                                     @if (Model.IsAdvancedFrameworkFilteringEnabled)
                                     {
                                         <div class="computed-frameworks-option">
-                                            <label for="computed-frameworks-checkbox" aria-label="Include computed compatible frameworks when filtering for packages.">Include computed frameworks</label>
+                                            <label for="computed-frameworks-checkbox" aria-label="Include computed compatible frameworks when filtering for packages.">Include compatible frameworks</label>
                                             <input type="checkbox" id="computed-frameworks-checkbox" checked="@Model.IncludeComputedFrameworks">
                                             <input type="hidden" id="includeComputedFrameworks" name="includeComputedFrameworks" value="@Model.IncludeComputedFrameworks.ToString().ToLower()">
                                         </div>
