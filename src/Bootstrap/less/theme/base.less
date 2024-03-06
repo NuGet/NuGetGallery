@@ -57,6 +57,10 @@ p {
   line-height: 22px; /* 137.5% */
 }
 
+label {
+  color: var(--neutralForeground1Rest);
+}
+
 .home-icons {
   width: fit-content;
   margin: auto;
@@ -353,7 +357,7 @@ body {
 }
 
 .alert-transient-jumbotron {
-  background-color: #004880
+  background: transparent;
 }
 
 .ms-Icon-ul {
@@ -429,7 +433,11 @@ img.reserved-indicator-icon {
   margin-bottom: 8px;
   padding-left: 0;
   line-height: @package-list-line-height;
-  color: @gray-light;
+  color: var(--neutralForeground1Rest);
+
+  i {
+    color: var(--neutralForeground3Rest);
+  }
 
   li {
     list-style: none;
@@ -457,20 +465,25 @@ img.reserved-indicator-icon {
     .framework-badges {
       margin-bottom: 2px;
 
-      span {
-        margin-right: 1px;
+      .framework-badge-computed {
+        color: var(--brandForeground1Rest);
+        border-radius: 4px;
+        border: 1px solid var(--transparentStrokeRest);
+        height: 24px;
       }
 
-      .framework-badge-computed {
-        color: #000;
-        border: 1px solid rgba(0,0,0,.15);
+      .framework-badge-asset {
+        align-items: normal;
+        display: inline-flex;
+        color: var(--neutralForegroundOnBrandRest);
+        border-radius: 4px;
+        border: 1px solid var(--transparentStrokeRest);
+        height: 24px;
       }
 
       @media (max-width: @screen-sm-min) {
         a + a {
-          span {
-            margin-bottom: 4px;
-          }
+          margin-bottom: 4px;
         }
       }
     }
