@@ -80,13 +80,11 @@ namespace NuGetGallery
             ReportPackageReason.OtherNudityOrPornography,
         };
 
-        private static readonly IReadOnlyList<ReportPackageReason> ReportAbuseWithSafetyReasons = new[]
+        private static readonly IReadOnlyList<ReportPackageReason> DisallowedReportAbuseReasons = new[]
         {
             ReportPackageReason.ViolatesALicenseIOwn,
-            ReportPackageReason.ContainsMaliciousCode,
             ReportPackageReason.ContainsSecurityVulnerability,
-            ReportPackageReason.HasABugOrFailedToInstall,
-            ReportPackageReason.Other
+            ReportPackageReason.RevengePorn,
         };
 
         private static readonly IReadOnlyList<ReportPackageReason> ReportMyPackageReasons = new[]
@@ -1528,7 +1526,7 @@ namespace NuGetGallery
                     : ReportAbuseReasons;
 
             var reportReason = (ReportPackageReason)reportForm.Reason;
-            if (!ReasonChoices.Contains(reportReason) || SafetyReportAbuseReasons.Contains(reportReason))
+            if (!ReasonChoices.Contains(reportReason) || DisallowedReportAbuseReasons.Contains(reportReason))
             {
                 return HttpNotFound();
             }
