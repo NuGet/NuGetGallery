@@ -5876,7 +5876,7 @@ namespace NuGetGallery
                         It.Is<ReportAbuseMessage>(
                             r => r.Request.FromAddress.Address == ReporterEmailAddress
                                  && r.Request.Package == package
-                                 && r.Request.Reason == EnumHelper.GetDescription(ReportPackageReason.HasABugOrFailedToInstall)
+                                 && r.Request.Reason == EnumHelper.GetDescription(ReportPackageReason.ContainsMaliciousCode)
                                  && r.Request.Message == EncodedMessage
                                  && r.AlreadyContactedOwners),
                         false,
@@ -5887,9 +5887,9 @@ namespace NuGetGallery
             [InlineData(ReportPackageReason.ViolatesALicenseIOwn, true)]
             [InlineData(ReportPackageReason.ContainsSecurityVulnerability, true)]
             [InlineData(ReportPackageReason.RevengePorn, true)]
+            [InlineData(ReportPackageReason.HasABugOrFailedToInstall, true)]
             [InlineData(ReportPackageReason.ContainsMaliciousCode, false)]
-            [InlineData(ReportPackageReason.HasABugOrFailedToInstall, false)]
-            [InlineData(ReportPackageReason.Other,  false)]
+            [InlineData(ReportPackageReason.Other, false)]
             [InlineData(ReportPackageReason.ChildSexualExploitationOrAbuse, false)]
             [InlineData(ReportPackageReason.TerrorismOrViolentExtremism, false)]
             [InlineData(ReportPackageReason.HateSpeech, false)]
@@ -5939,13 +5939,13 @@ namespace NuGetGallery
                                  && r.Request.FromAddress.Address == currentUser.EmailAddress
                                  && r.Request.FromAddress.DisplayName == currentUser.Username
                                  && r.Request.Package == package
-                                 && r.Request.Reason == EnumHelper.GetDescription(ReportPackageReason.HasABugOrFailedToInstall)
+                                 && r.Request.Reason == EnumHelper.GetDescription(ReportPackageReason.ContainsMaliciousCode)
                                  && r.AlreadyContactedOwners),
                         false,
                         false));
             }
 
-            public Task<ActionResult> GetReportAbuseFormResult(User currentUser, User owner, out Package package, out Mock<IMessageService> messageService, ReportPackageReason reason = ReportPackageReason.HasABugOrFailedToInstall)
+            public Task<ActionResult> GetReportAbuseFormResult(User currentUser, User owner, out Package package, out Mock<IMessageService> messageService, ReportPackageReason reason = ReportPackageReason.ContainsMaliciousCode)
             {
                 messageService = new Mock<IMessageService>();
                 messageService.Setup(

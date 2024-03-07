@@ -84,6 +84,7 @@ namespace NuGetGallery
         {
             ReportPackageReason.ViolatesALicenseIOwn,
             ReportPackageReason.ContainsSecurityVulnerability,
+            ReportPackageReason.HasABugOrFailedToInstall,
             ReportPackageReason.RevengePorn,
         };
 
