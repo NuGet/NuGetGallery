@@ -74,8 +74,11 @@
                 @if (Model.IsAdvancedSearchFlightEnabled)
                 {
                     <div class="toggle-advanced-search-panel">
-                        Advanced search filters <button class ="advanced-search-toggle-button" aria-label="Toggles search filters on narrow screens" aria-expanded="false" aria-controls="advancedSearchToggleButton" tabindex="0" id="advancedSearchToggleButton" type="button">
-                        <i class="ms-Icon ms-Icon--ChevronDown" id="advancedSearchToggleChevron" ></i></button>
+                        Advanced search filters
+                        <button class="advanced-search-toggle-button" aria-label="Toggles search filters on narrow screens" aria-expanded="false"
+                                aria-controls="advancedSearchToggleButton" tabindex="0" id="advancedSearchToggleButton" type="button">
+                            <i class="ms-Icon ms-Icon--ChevronDown" id="advancedSearchToggleChevron"></i>
+                        </button>
                     </div>
                     <div class="row clearfix advanced-search-panel" id="advancedSearchPanel">
                         <input type="text" hidden id="frameworks" name="frameworks" value="@Model.Frameworks">
@@ -86,7 +89,9 @@
                                 <fieldset id="frameworkfilters">
                                     <legend>
                                         Frameworks
-                                        <a href="@(Model.FrameworksFilteringInformationLink)" class="frameworkfilters-info" data-content="Filters packages based on the target frameworks they are compatible with. Click here to learn more.">
+                                        <a href="@(Model.FrameworksFilteringInformationLink)" class="frameworkfilters-info"
+                                           data-content="@NuGetGallery.Strings.FrameworkFilters_Tooltip"
+                                           aria-label="@NuGetGallery.Strings.FrameworkFilters_Tooltip">
                                             <i class="framework-filter-info-icon ms-Icon ms-Icon--Info"></i>
                                         </a>
                                     </legend>
