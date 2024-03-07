@@ -1505,14 +1505,6 @@ namespace NuGetGallery
         {
             reportForm.Message = HttpUtility.HtmlEncode(reportForm.Message);
 
-            if (reportForm.Reason == ReportPackageReason.ViolatesALicenseIOwn
-                && string.IsNullOrWhiteSpace(reportForm.Signature))
-            {
-                ModelState.AddModelError(
-                    nameof(ReportAbuseViewModel.Signature),
-                    "The signature is required.");
-            }
-
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
 
             if (package == null)

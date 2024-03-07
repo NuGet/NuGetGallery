@@ -5883,6 +5883,16 @@ namespace NuGetGallery
                         false));
             }
 
+            [Theory]
+            [InlineData(ReportPackageReason.ViolatesALicenseIOwn)]
+            [InlineData(ReportPackageReason.ContainsSecurityVulnerability)]
+            [InlineData(ReportPackageReason.RevengePorn)]
+            public async Task FormRejectsRequestWhenReasonDisallowed(ReportPackageReason reason)
+            {
+                var result = await GetReportAbuseFormResult(null, Owner, out var package, out var messageService, reason);
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
+
             public static IEnumerable<object[]> FormSendsMessageToGalleryOwnerWithUserInfoWhenAuthenticated_Data
             {
                 get
@@ -5920,7 +5930,7 @@ namespace NuGetGallery
                         false));
             }
 
-            public Task<ActionResult> GetReportAbuseFormResult(User currentUser, User owner, out Package package, out Mock<IMessageService> messageService)
+            public Task<ActionResult> GetReportAbuseFormResult(User currentUser, User owner, out Package package, out Mock<IMessageService> messageService, ReportPackageReason reason = ReportPackageReason.HasABugOrFailedToInstall)
             {
                 messageService = new Mock<IMessageService>();
                 messageService.Setup(
@@ -5943,7 +5953,7 @@ namespace NuGetGallery
                 {
                     Email = ReporterEmailAddress,
                     Message = UnencodedMessage,
-                    Reason = ReportPackageReason.ViolatesALicenseIOwn,
+                    Reason = reason,
                     AlreadyContactedOwner = true,
                     Signature = Signature
                 };
