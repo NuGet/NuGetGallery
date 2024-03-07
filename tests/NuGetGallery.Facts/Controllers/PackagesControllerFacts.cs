@@ -5876,7 +5876,7 @@ namespace NuGetGallery
                         It.Is<ReportAbuseMessage>(
                             r => r.Request.FromAddress.Address == ReporterEmailAddress
                                  && r.Request.Package == package
-                                 && r.Request.Reason == EnumHelper.GetDescription(ReportPackageReason.ViolatesALicenseIOwn)
+                                 && r.Request.Reason == EnumHelper.GetDescription(ReportPackageReason.HasABugOrFailedToInstall)
                                  && r.Request.Message == EncodedMessage
                                  && r.AlreadyContactedOwners),
                         false,
@@ -5884,13 +5884,28 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData(ReportPackageReason.ViolatesALicenseIOwn)]
-            [InlineData(ReportPackageReason.ContainsSecurityVulnerability)]
-            [InlineData(ReportPackageReason.RevengePorn)]
-            public async Task FormRejectsRequestWhenReasonDisallowed(ReportPackageReason reason)
+            [InlineData(ReportPackageReason.ViolatesALicenseIOwn, true)]
+            [InlineData(ReportPackageReason.ContainsSecurityVulnerability, true)]
+            [InlineData(ReportPackageReason.RevengePorn, true)]
+            [InlineData(ReportPackageReason.ContainsMaliciousCode, false)]
+            [InlineData(ReportPackageReason.HasABugOrFailedToInstall, false)]
+            [InlineData(ReportPackageReason.Other,  false)]
+            [InlineData(ReportPackageReason.ChildSexualExploitationOrAbuse, false)]
+            [InlineData(ReportPackageReason.TerrorismOrViolentExtremism, false)]
+            [InlineData(ReportPackageReason.HateSpeech, false)]
+            [InlineData(ReportPackageReason.ImminentHarm, false)]
+            [InlineData(ReportPackageReason.OtherNudityOrPornography, false)]
+            public async Task FormRejectsDisallowedReportReasons(ReportPackageReason reason, bool shouldReject)
             {
                 var result = await GetReportAbuseFormResult(null, Owner, out var package, out var messageService, reason);
-                Assert.IsType<HttpNotFoundResult>(result);
+                if (shouldReject)
+                {
+                    Assert.IsType<HttpNotFoundResult>(result);
+                }
+                else
+                {
+                    Assert.IsNotType<HttpNotFoundResult>(result);
+                }
             }
 
             public static IEnumerable<object[]> FormSendsMessageToGalleryOwnerWithUserInfoWhenAuthenticated_Data
@@ -5924,7 +5939,7 @@ namespace NuGetGallery
                                  && r.Request.FromAddress.Address == currentUser.EmailAddress
                                  && r.Request.FromAddress.DisplayName == currentUser.Username
                                  && r.Request.Package == package
-                                 && r.Request.Reason == EnumHelper.GetDescription(ReportPackageReason.ViolatesALicenseIOwn)
+                                 && r.Request.Reason == EnumHelper.GetDescription(ReportPackageReason.HasABugOrFailedToInstall)
                                  && r.AlreadyContactedOwners),
                         false,
                         false));
