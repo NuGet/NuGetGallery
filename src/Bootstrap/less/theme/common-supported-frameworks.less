@@ -23,10 +23,11 @@
 
 .framework-badge {
   padding: 1px 8px;
-  border-radius: 2px;
+  border-radius: 4px;
   justify-content: center;
-  display: inline-block;
-  border: 1px solid @badge-dark;
+  display: inline-flex;
+  height: 24px;
+  border: 1px solid var(--transparentStrokeRest);
 }
 
 .framework-badge:not(:last-child) {
@@ -41,7 +42,7 @@
 
 .framework-badge-computed {
   .framework-badge;
-  color: var(--brandForeground1Rest);
+  color: var(--brandForeground2Rest);
   background: var(--brandBackground2Rest);
 }
 
@@ -97,6 +98,7 @@
 .frameworktableinfo-text {
   font-size: 14px;
   line-height: 16px;
+  color: var(--neutralForeground1Rest);
 }
 
 p.frameworktableinfo-text {

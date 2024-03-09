@@ -340,11 +340,11 @@ body {
 
 .alert {
   a {
-    color: @link-color-darker;
+    color: var(--brandForegroundLinkRest);;
 
     &:hover,
     &:focus {
-      color: @link-hover-color;
+      color: var(--brandForegroundLinkHover);;
     }
   }
 }
@@ -604,4 +604,5 @@ body[id="/"] {
   margin: 0;
   background-repeat: no-repeat;
   background-attachment: fixed;
+  color: var(--neutralForeground1Rest);
 }
