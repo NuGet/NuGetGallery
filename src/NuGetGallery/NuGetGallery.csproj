@@ -1380,7 +1380,10 @@
     <Content Include="Content\gallery\img\api-key.svg" />
     <Content Include="Content\gallery\img\blue-circle-225x225.png" />
     <Content Include="Content\gallery\img\blue-circle.svg" />
+    <Content Include="Content\gallery\img\open-book-icon.svg" />
     <Content Include="Content\gallery\img\circuit-board.svg" />
+    <Content Include="Content\gallery\img\circuit-board-dark-theme.svg" />
+    <Content Include="Content\gallery\img\circuit-board-light-theme.svg" />
     <Content Include="Content\gallery\img\default-package-icon-256x256.png" />
     <Content Include="Content\gallery\img\default-package-icon.svg" />
     <Content Include="Content\gallery\img\dotnet-foundation-42x42.png" />
@@ -1410,8 +1413,10 @@
     <Content Include="Content\gallery\img\reserved-indicator-256x256.png" />
     <Content Include="Content\gallery\img\reserved-indicator-25x25.png" />
     <Content Include="Content\gallery\img\reserved-indicator.svg" />
+    <Content Include="Content\gallery\img\rocket-icon.svg" />
     <Content Include="Content\gallery\img\rss-36x36.png" />
     <Content Include="Content\gallery\img\rss.svg" />
+    <Content Include="Content\gallery\img\search-icon.svg" />
     <Content Include="Content\gallery\img\twitter-24x24.png" />
     <Content Include="Content\gallery\img\twitter-36x36.png" />
     <Content Include="Content\gallery\img\twitter.svg" />
@@ -2342,6 +2347,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Areas\Admin\Views\CorrectIsLatest\Index.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Shared\_AccountChangeTheme.cshtml" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
