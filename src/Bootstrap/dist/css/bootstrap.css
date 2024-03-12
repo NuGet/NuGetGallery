@@ -2686,6 +2686,46 @@ fieldset[disabled] .btn-danger.focus {
   color: #df001e;
   background-color: #fff;
 }
+.btn-brand {
+  color: var(--neutralForegroundOnBrandRest);
+  background-color: var(--brandBackground1Rest);
+  border-color: var(--brandBackground1Rest);
+  border-radius: var(--Medium, 4px);
+  border: 2px solid transparent;
+}
+.btn-brand:focus,
+.btn-brand.focus {
+  color: var(--neutralForegroundOnBrandRest);
+  -webkit-box-shadow: inset 0px 0px 0px 1px var(--neutralStrokeFocus1Rest);
+  box-shadow: inset 0px 0px 0px 1px var(--neutralStrokeFocus1Rest);
+  border: 2px solid var(--neutralStrokeFocus2Rest);
+  outline: none;
+}
+.btn-brand:hover,
+.btn-brand.hover {
+  outline: none;
+  color: var(--neutralForegroundOnBrandRest);
+  background-color: var(--brandBackground1Hover);
+  border: 2px solid var(--brandBackground1Hover);
+}
+.btn-brand:active,
+.btn-brand.active {
+  color: var(--neutralForegroundOnBrandRest);
+  outline: none;
+}
+.btn-brand:active:hover,
+.btn-brand.active:hover,
+.btn-brand:active:focus,
+.btn-brand.active:focus,
+.btn-brand:active.focus,
+.btn-brand.active.focus {
+  color: var(--neutralForegroundOnBrandRest);
+  border: 2px solid var(--brandBackground1Pressed);
+  -webkit-box-shadow: none;
+  box-shadow: none;
+  background-color: var(--brandBackground1Pressed);
+  outline: none;
+}
 .btn-link {
   font-weight: 400;
   color: #337ab7;
@@ -3446,7 +3486,8 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
   }
 }
 .navbar a:focus {
-  outline: 4px solid white;
+  outline: 4px solid var(--neutralStrokeFocus2Rest, white);
+  border-radius: 4px;
   outline-offset: -2px;
 }
 @media (min-width: 768px) {
@@ -3862,8 +3903,7 @@ fieldset[disabled] .navbar-default .btn-link:focus {
   color: #ccc;
 }
 .navbar-inverse {
-  background-color: #004880;
-  border-color: #002b4d;
+  background-color: transparent;
 }
 .navbar-inverse .navbar-brand {
   color: #e3ebf1;
@@ -3877,12 +3917,14 @@ fieldset[disabled] .navbar-default .btn-link:focus {
   color: #e3ebf1;
 }
 .navbar-inverse .navbar-nav > li > a {
-  color: #e3ebf1;
-  font-weight: 100;
+  color: var(--neutralForeground2Rest);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 22px;
 }
 .navbar-inverse .navbar-nav > li > a:hover,
 .navbar-inverse .navbar-nav > li > a:focus {
-  color: #fff;
+  color: var(--neutralForeground2Hover);
   background-color: transparent;
 }
 .navbar-inverse .navbar-nav > .active > a,
@@ -3894,7 +3936,7 @@ fieldset[disabled] .navbar-default .btn-link:focus {
 .navbar-inverse .navbar-nav > .active > a:hover span,
 .navbar-inverse .navbar-nav > .active > a:focus span {
   padding: 5px 0;
-  border-bottom: 1px solid #fff;
+  border-bottom: 1px solid var(--neutralForeground2Rest);
 }
 .navbar-inverse .navbar-nav > .disabled > a,
 .navbar-inverse .navbar-nav > .disabled > a:hover,
@@ -4235,11 +4277,7 @@ a.badge:focus {
   padding-bottom: 30px;
   margin-bottom: 30px;
   color: #fff;
-  background-color: #004880;
-}
-.jumbotron h1,
-.jumbotron .h1 {
-  color: inherit;
+  background-color: transparent;
 }
 .jumbotron p {
   margin-bottom: 15px;

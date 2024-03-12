@@ -87,6 +87,46 @@
 .btn-danger {
   .button-variant(@btn-danger-color; @btn-danger-bg; @btn-danger-border);
 }
+// Brand appears as blue
+.btn-brand {
+  color: var(--neutralForegroundOnBrandRest);
+  background-color: var(--brandBackground1Rest);
+  border-color: var(--brandBackground1Rest);
+  border-radius: var(--Medium, 4px);
+  border: 2px solid transparent;
+
+  &:focus,
+  &.focus {
+    color: var(--neutralForegroundOnBrandRest);
+    box-shadow: inset 0px 0px 0px 1px var(--neutralStrokeFocus1Rest);
+    border: 2px solid var(--neutralStrokeFocus2Rest);
+    outline: none;
+  }
+
+  &:hover,
+  &.hover {
+    outline: none;
+    color: var(--neutralForegroundOnBrandRest);
+    background-color: var(--brandBackground1Hover);
+    border: 2px solid var(--brandBackground1Hover);
+  }
+
+  &:active,
+  &.active {
+    color: var(--neutralForegroundOnBrandRest);
+    outline: none;
+
+    &:hover,
+    &:focus,
+    &.focus {
+      color: var(--neutralForegroundOnBrandRest);
+      border: 2px solid var(--brandBackground1Pressed);
+      box-shadow: none;   
+      background-color: var(--brandBackground1Pressed);
+      outline: none;
+    }
+  }
+}
 
 // Link buttons
 // -------------------------
