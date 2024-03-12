@@ -17,6 +17,24 @@
   .what-is-nuget {
     font-size: 1.15em;
     padding-bottom: 75px;
+
+    p {
+      font-size: 20px;
+      font-weight: 600;
+      line-height: 28px;
+    }
+
+    a h3 {
+      color: var(--brandForegroundLinkRest);
+      font-size: 24px;
+      font-weight: 600;
+      line-height: 32px;
+
+      &:hover {
+        color: var(--brandForegroundLinkHover);
+        text-decoration: underline;
+      }
+    }
   }
 
   .triangle:after {
@@ -45,7 +63,7 @@
     height: 396px;
     position: relative;
     margin: 0 auto;
-    background-image: url('../img/circuit-board.svg');
+    background-image: var(--circuit-board-background-image);
     background-repeat: no-repeat;
     background-position: center bottom;
 

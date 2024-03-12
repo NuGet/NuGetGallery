@@ -43,7 +43,7 @@
     @ViewHelpers.ReleaseMeta()
     @ViewHelpers.InstrumentationScript(ViewBag)
 </head>
-<body>
+<body id=@Url.Current()>
     @Html.Partial("Gallery/Header")
     <div id="skippedToContent">
     @RenderBody()
