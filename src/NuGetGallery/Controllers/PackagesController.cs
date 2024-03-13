@@ -926,6 +926,10 @@ namespace NuGetGallery
 
             // Load all packages with the ID.
             var allVersions = _packageService.FindPackagesById(id, includePackageRegistration: true);
+                includePackageRegistration: true,
+                includeDeprecations: true,
+                includeSupportedFrameworks: true);
+
             var filterContext = new PackageFilterContext(RouteData?.Route, version);
             var package = _packageFilter.GetFiltered(allVersions, filterContext);
 
@@ -1288,9 +1292,11 @@ namespace NuGetGallery
 
             SearchResults results;
 
-            var isPreviewSearchEnabled = true;
+            var isPreviewSearchEnabled = _abTestService.IsPreviewSearchEnabled(GetCurrentUser());
             var searchService = isPreviewSearchEnabled ? _searchServiceFactory.GetPreviewService() : _searchServiceFactory.GetService();
-            var isAdvancedSearchFlightEnabled = true;
+            var isAdvancedSearchFlightEnabled = _featureFlagService.IsAdvancedSearchEnabled(GetCurrentUser());
+            var isFrameworkFilteringEnabled = _featureFlagService.IsFrameworkFilteringEnabled(GetCurrentUser());
+            var isAdvancedFrameworkFilteringEnabled = _featureFlagService.IsAdvancedFrameworkFilteringEnabled(GetCurrentUser());
 
             // If advanced search is disabled, use the default experience
             if (!isAdvancedSearchFlightEnabled || !searchService.SupportsAdvancedSearch)
@@ -1402,9 +1408,9 @@ namespace NuGetGallery
                 searchAndListModel.SortBy);
 
             // If the experience hasn't been cached, it means it's not the default experienced, therefore, show the panel
-            viewModel.IsAdvancedSearchFlightEnabled = true ;
-            viewModel.IsFrameworkFilteringEnabled = true;
-            viewModel.IsAdvancedFrameworkFilteringEnabled = true;
+            viewModel.IsAdvancedSearchFlightEnabled = searchService.SupportsAdvancedSearch && isAdvancedSearchFlightEnabled;
+            viewModel.IsFrameworkFilteringEnabled = isFrameworkFilteringEnabled;
+            viewModel.IsAdvancedFrameworkFilteringEnabled = isAdvancedFrameworkFilteringEnabled;
 
             ViewBag.SearchTerm = q;
 
@@ -3272,4 +3278,5 @@ namespace NuGetGallery
                 || string.Equals(sortBy, GalleryConstants.SearchSortNames.CreatedDesc, StringComparison.OrdinalIgnoreCase));
         }
     }
+}
 }
