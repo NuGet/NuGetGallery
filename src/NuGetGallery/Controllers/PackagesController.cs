@@ -80,13 +80,12 @@ namespace NuGetGallery
             ReportPackageReason.OtherNudityOrPornography,
         };
 
-        private static readonly IReadOnlyList<ReportPackageReason> ReportAbuseWithSafetyReasons = new[]
+        private static readonly IReadOnlyList<ReportPackageReason> DisallowedReportAbuseReasons = new[]
         {
             ReportPackageReason.ViolatesALicenseIOwn,
-            ReportPackageReason.ContainsMaliciousCode,
             ReportPackageReason.ContainsSecurityVulnerability,
             ReportPackageReason.HasABugOrFailedToInstall,
-            ReportPackageReason.Other
+            ReportPackageReason.RevengePorn,
         };
 
         private static readonly IReadOnlyList<ReportPackageReason> ReportMyPackageReasons = new[]
@@ -1507,14 +1506,6 @@ namespace NuGetGallery
         {
             reportForm.Message = HttpUtility.HtmlEncode(reportForm.Message);
 
-            if (reportForm.Reason == ReportPackageReason.ViolatesALicenseIOwn
-                && string.IsNullOrWhiteSpace(reportForm.Signature))
-            {
-                ModelState.AddModelError(
-                    nameof(ReportAbuseViewModel.Signature),
-                    "The signature is required.");
-            }
-
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
 
             if (package == null)
@@ -1528,7 +1519,7 @@ namespace NuGetGallery
                     : ReportAbuseReasons;
 
             var reportReason = (ReportPackageReason)reportForm.Reason;
-            if (!ReasonChoices.Contains(reportReason) || SafetyReportAbuseReasons.Contains(reportReason))
+            if (!ReasonChoices.Contains(reportReason) || DisallowedReportAbuseReasons.Contains(reportReason))
             {
                 return HttpNotFound();
             }
