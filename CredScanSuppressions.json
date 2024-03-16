@@ -1,0 +1,9 @@
+{
+    "tool": "Credential Scanner",
+    "suppressions": [
+        {
+            "file": "tests/NuGet.Services.KeyVault.Tests/KeyVaultReaderFormatterFacts.cs",
+            "_justification": "Test file containing fake credentials"
+        }
+    ]
+}
