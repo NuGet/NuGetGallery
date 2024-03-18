@@ -41,7 +41,7 @@
 
 @helper Alert(Func<MvcHtmlString, HelperResult> htmlContent, string subclass, string icon, bool isAlertRole = false)
 {
-    <div class="icon-text alert alert-@subclass" @if (isAlertRole) { <text> role="alert" aria-live="assertive" </text> }>
+    <div class="icon-text alert alert-brand-@subclass" @if (isAlertRole) { <text> role="alert" aria-live="assertive" </text> }>
         <i class="ms-Icon ms-Icon--@icon" aria-hidden="true"></i>
         @htmlContent(MvcHtmlString.Empty)
     </div>
@@ -577,7 +577,7 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
     </div>
     if (!disabled)
     {
-        <div class="panel panel-default panel-collapse collapse @(expanded ? "in" : string.Empty)"
+        <div class="panel panel-brand panel-collapse collapse @(expanded ? "in" : string.Empty)"
                 id="@id-container">
             <div class="panel-body">
                 @content(MvcHtmlString.Empty)

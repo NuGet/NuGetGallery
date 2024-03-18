@@ -30,24 +30,18 @@ h1 {
   /* Web/Large Title */
   font-size: 40px;
   font-weight: 600;
-  line-height: 52px;
-  /* 130% */
 }
 h2 {
   color: var(--neutralForeground1Rest);
   /* Web/Title 1 */
   font-size: 32px;
   font-weight: 600;
-  line-height: 40px;
-  /* 125% */
 }
 p {
   color: var(--neutralForeground1Rest);
   /* Web/Body 2 */
   font-size: 16px;
   font-weight: 400;
-  line-height: 22px;
-  /* 137.5% */
 }
 label {
   color: var(--neutralForeground1Rest);
@@ -272,11 +266,11 @@ body h3 {
   background: #fff4ce;
 }
 .alert a {
-  color: #2e6da4;
+  color: var(--brandForegroundLinkRest);
 }
 .alert a:hover,
 .alert a:focus {
-  color: #23527c;
+  color: var(--brandForegroundLinkHover);
 }
 .alert-transient .alert {
   margin: 0;
@@ -420,9 +414,9 @@ img.reserved-indicator-icon {
   pointer-events: none;
   opacity: 0.75;
 }
-.radio .label-sibling,
-.checkbox .label-sibling {
-  margin-left: 20px;
+.notifypackagepushed-checkbox .label-sibling,
+.emailallowed-checkbox .label-sibling {
+  margin-left: 32px;
 }
 .break-word {
   overflow-wrap: break-word;
@@ -496,6 +490,7 @@ body[id="/"] {
   margin: 0;
   background-repeat: no-repeat;
   background-attachment: fixed;
+  color: var(--neutralForeground1Rest);
 }
 .modal-backdrop.in {
   opacity: 0.8 !important;
@@ -1147,6 +1142,9 @@ p.frameworktableinfo-text {
 }
 .page-account-settings .form-section-title {
   margin-top: 40px;
+}
+.page-account-settings .form-section-title h2 a {
+  color: var(--neutralForeground1Rest);
 }
 @media (min-width: 768px) {
   .page-account-settings .form-section-title {
@@ -2359,6 +2357,9 @@ p.frameworktableinfo-text {
 .page-manage-organizations .form-section-title {
   margin-top: 40px;
 }
+.page-manage-organizations .form-section-title h2 a {
+  color: var(--neutralForeground1Rest);
+}
 @media (min-width: 768px) {
   .page-manage-organizations .form-section-title {
     float: left;
@@ -2511,6 +2512,9 @@ p.frameworktableinfo-text {
 .page-manage-packages .form-section-title {
   margin-top: 40px;
 }
+.page-manage-packages .form-section-title h2 a {
+  color: var(--neutralForeground1Rest);
+}
 @media (min-width: 768px) {
   .page-manage-packages .form-section-title {
     float: left;
@@ -2601,7 +2605,7 @@ p.frameworktableinfo-text {
   margin-top: 50px;
 }
 .page-profile .profile-details .statistics {
-  color: #000;
+  color: var(--neutralForeground1Rest);
   font-weight: 300;
 }
 .page-profile .profile-details .statistics .statistic {
@@ -3044,6 +3048,72 @@ p.frameworktableinfo-text {
 }
 .page-upload #browse-for-package-button {
   margin: 0;
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+.page-upload #browse-for-readme-button {
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+.page-upload h2 a {
+  color: var(--neutralForeground1Rest);
+}
+.page-upload .nav-tabs {
+  border: 0;
+}
+.page-upload .nav-tabs > li {
+  margin-right: 4px;
+  padding: 0;
+  margin-bottom: 0;
+}
+.page-upload .nav-tabs > li > a {
+  color: var(--neutralForeground1Rest);
+  background-color: var(--neutralBackgroundSubtleRest);
+  padding: 5px 10px;
+  border-radius: 6px 6px 0px 0px;
+  border-bottom: 0;
+  border-top: 2px solid transparent;
+  border-right: 2px solid transparent;
+  border-left: 2px solid transparent;
+}
+.page-upload .nav-tabs > li > a:hover {
+  background-color: var(--neutralBackgroundSubtleHover);
+  color: var(--neutralForeground1Hover);
+}
+.page-upload .nav-tabs > li > a:active:focus {
+  background-color: var(--neutralBackgroundSubtlePressed);
+  color: var(--neutralForeground1Pressed);
+}
+.page-upload .nav-tabs > li > a:focus {
+  background-color: var(--neutralBackground1Rest);
+  border-top: 2px solid var(--neutralStrokeFocus2Rest);
+  border-right: 2px solid var(--neutralStrokeFocus2Rest);
+  border-left: 2px solid var(--neutralStrokeFocus2Rest);
+  outline: none;
+}
+.page-upload .nav-tabs > li.active > a {
+  background-color: var(--neutralBackground1Rest);
+  border-radius: 6px 6px 0px 0px;
+  border-bottom: 0;
+  border-top: 2px solid var(--neutralStroke1Rest);
+  border-right: 2px solid var(--neutralStroke1Rest);
+  border-left: 2px solid var(--neutralStroke1Rest);
+  color: var(--neutralForeground1Rest);
+}
+.page-upload .nav-tabs > li.active > a:hover {
+  background-color: var(--neutralBackgroundSubtleHover);
+  color: var(--neutralForeground1Hover);
+}
+.page-upload .nav-tabs > li.active > a:active:focus {
+  background-color: var(--neutralBackgroundSubtlePressed);
+  color: var(--neutralForeground1Pressed);
+}
+.page-upload .nav-tabs > li.active > a:focus {
+  background-color: var(--neutralBackground1Rest);
+  border-top: 2px solid var(--neutralStrokeFocus2Rest);
+  border-right: 2px solid var(--neutralStrokeFocus2Rest);
+  border-left: 2px solid var(--neutralStrokeFocus2Rest);
+  outline: none;
 }
 .warning-icon {
   vertical-align: bottom;

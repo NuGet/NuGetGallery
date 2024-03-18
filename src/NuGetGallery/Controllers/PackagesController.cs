@@ -926,9 +926,6 @@ namespace NuGetGallery
 
             // Load all packages with the ID.
             var allVersions = _packageService.FindPackagesById(id, includePackageRegistration: true);
-                includePackageRegistration: true,
-                includeDeprecations: true,
-                includeSupportedFrameworks: true);
 
             var filterContext = new PackageFilterContext(RouteData?.Route, version);
             var package = _packageFilter.GetFiltered(allVersions, filterContext);
@@ -1408,9 +1405,9 @@ namespace NuGetGallery
                 searchAndListModel.SortBy);
 
             // If the experience hasn't been cached, it means it's not the default experienced, therefore, show the panel
-            viewModel.IsAdvancedSearchFlightEnabled = searchService.SupportsAdvancedSearch && isAdvancedSearchFlightEnabled;
-            viewModel.IsFrameworkFilteringEnabled = isFrameworkFilteringEnabled;
-            viewModel.IsAdvancedFrameworkFilteringEnabled = isAdvancedFrameworkFilteringEnabled;
+            viewModel.IsAdvancedSearchFlightEnabled = true;
+            viewModel.IsFrameworkFilteringEnabled = true;
+            viewModel.IsAdvancedFrameworkFilteringEnabled = true;
 
             ViewBag.SearchTerm = q;
 
@@ -3278,5 +3275,4 @@ namespace NuGetGallery
                 || string.Equals(sortBy, GalleryConstants.SearchSortNames.CreatedDesc, StringComparison.OrdinalIgnoreCase));
         }
     }
-}
 }

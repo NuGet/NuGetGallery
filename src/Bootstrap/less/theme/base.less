@@ -36,7 +36,6 @@ h1 {
   /* Web/Large Title */
   font-size: 40px;
   font-weight: 600;
-  line-height: 52px; /* 130% */
 }
 
 h2 {
@@ -45,7 +44,6 @@ h2 {
   /* Web/Title 1 */
   font-size: 32px;
   font-weight: 600;
-  line-height: 40px; /* 125% */
 }
 
 p {
@@ -54,7 +52,6 @@ p {
   /* Web/Body 2 */
   font-size: 16px;
   font-weight: 400;
-  line-height: 22px; /* 137.5% */
 }
 
 label {
@@ -340,11 +337,11 @@ body {
 
 .alert {
   a {
-    color: @link-color-darker;
+    color: var(--brandForegroundLinkRest);
 
     &:hover,
     &:focus {
-      color: @link-hover-color;
+      color: var(--brandForegroundLinkHover);
     }
   }
 }
@@ -519,9 +516,10 @@ img.reserved-indicator-icon {
   opacity: 0.75;
 }
 
-.radio, .checkbox {
+.notifypackagepushed-checkbox,
+.emailallowed-checkbox{
   .label-sibling {
-    margin-left: 20px;
+    margin-left: 32px;
   }
 }
 
@@ -604,4 +602,5 @@ body[id="/"] {
   margin: 0;
   background-repeat: no-repeat;
   background-attachment: fixed;
+  color: var(--neutralForeground1Rest)
 }

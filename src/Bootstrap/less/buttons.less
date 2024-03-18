@@ -148,6 +148,32 @@
     outline: none !important; // removes focus from .tab-focus()
   }
 }
+.btn-button-danger {
+  color: white;
+  background-color: var(--statusDangerBackground3Rest);
+  border-radius: var(--Medium, 4px);
+  border: 2px solid transparent;
+  box-shadow: none !important;
+  padding: 5px 12px;
+  
+  &:hover,
+  &:focus:hover {
+    color: var(--neutralForeground2BrandHover);
+  }
+  
+  &:active,
+  &:active:focus {
+    color: var(--neutralForeground2BrandPressed);
+  }
+
+  &:focus-within,
+  &:focus-visible,
+  &:focus {
+    color: var(--neutralForeground2Rest);
+    border: 2px solid var(--neutralStrokeFocus2Rest);
+    outline: none !important; // removes focus from .tab-focus()
+  }
+}
 
 // Link buttons
 // -------------------------

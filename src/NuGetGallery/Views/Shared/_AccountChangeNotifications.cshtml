@@ -51,19 +51,23 @@
             {
                 @Html.AntiForgeryToken()
 
-                <div class="checkbox">
-                    <label>
+                <div class="emailallowed-checkbox">
+                    <label class="brand-checkbox">
                         @Html.ShowCheckboxFor(x => x.ChangeNotifications.EmailAllowed)
-                        <b id="emailallowed-label">@ViewBag.EmailAllowedLabel</b>
+                        <span>
+                            <b id="emailallowed-label">@ViewBag.EmailAllowedLabel</b>
+                        </span>
                     </label>
                     <div class="label-sibling">@Html.Raw(ViewBag.EmailAllowedDescription)</div>
                     @Html.ShowValidationMessagesFor(x => x.ChangeNotifications.EmailAllowed)
                 </div>
 
-                <div class="checkbox">
-                    <label>
+                <div class="notifypackagepushed-checkbox">
+                    <label class="brand-checkbox">
                         @Html.ShowCheckboxFor(x => x.ChangeNotifications.NotifyPackagePushed)
-                        <b id="notifypackagepushed-label">@ViewBag.NotifyPackagePushedLabel</b>
+                        <span>
+                            <b id="notifypackagepushed-label">@ViewBag.NotifyPackagePushedLabel</b>
+                        </span>
                     </label>
                     <div class="label-sibling">@ViewBag.NotifyPackagePushedDescription</div>
                     @Html.ShowValidationMessagesFor(x => x.ChangeNotifications.NotifyPackagePushed)
@@ -71,12 +75,12 @@
 
                 <p><strong>Note: </strong>@ViewBag.PrivacyNotice</p>
 
-                <div class="row form-group">
+                <div class="row">
                     <div class="col-sm-6">
-                        <input type="submit" class="btn btn-primary form-control" value="Save" />
+                        <input type="submit" class="btn btn-brand form-control" value="Save" />
                     </div>
                     <div class="col-sm-6">
-                        <button type="button" class="btn btn-default form-control" id="cancel-change-notifications">
+                        <button type="button" class="btn brand-button-transparent form-control" id="cancel-change-notifications">
                             Cancel
                         </button>
                     </div>
