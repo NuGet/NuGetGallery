@@ -4412,6 +4412,73 @@ a.thumbnail.active {
 .alert-danger .alert-link {
   color: #000000;
 }
+.alert-brand-a a {
+  color: var(--brandForegroundLinkRest);
+}
+.alert-brand-a a:hover,
+.alert-brand-a a:focus {
+  color: var(--brandForegroundLinkHover);
+}
+.alert-brand-info {
+  background-color: var(--neutralBackground3Rest);
+  border: 2px solid var(--neutralStroke1Rest);
+  border-radius: 4px;
+}
+.alert-brand-info a {
+  color: var(--brandForegroundLinkRest);
+}
+.alert-brand-info a:hover,
+.alert-brand-info a:focus {
+  color: var(--brandForegroundLinkHover);
+}
+.alert-brand-info i {
+  color: var(--neutralForeground3Rest);
+}
+.alert-brand-warning {
+  background-color: var(--statusWarningBackground1Rest);
+  border: 2px solid var(--statusWarningStroke1Rest);
+  border-radius: 4px;
+}
+.alert-brand-warning a {
+  color: var(--brandForegroundLinkRest);
+}
+.alert-brand-warning a:hover,
+.alert-brand-warning a:focus {
+  color: var(--brandForegroundLinkHover);
+}
+.alert-brand-warning i {
+  color: var(--statusWarningForeground1Rest);
+}
+.alert-brand-success {
+  background-color: var(--statusSuccessBackground1Rest);
+  border: 2px solid var(--statusSuccessStroke1Rest);
+  border-radius: 4px;
+}
+.alert-brand-success a {
+  color: var(--brandForegroundLinkRest);
+}
+.alert-brand-success a:hover,
+.alert-brand-success a:focus {
+  color: var(--brandForegroundLinkHover);
+}
+.alert-brand-success i {
+  color: var(--statusSuccessForeground1Rest);
+}
+.alert-brand-danger {
+  background-color: var(--statusDangerBackground1Rest);
+  border: 2px solid var(--statusDangerStroke1Rest);
+  border-radius: 4px;
+}
+.alert-brand-danger i {
+  color: var(--statusDangerForeground1Rest);
+}
+.alert-brand-danger a {
+  color: var(--brandForegroundLinkRest);
+}
+.alert-brand-danger a:hover,
+.alert-brand-danger a:focus {
+  color: var(--brandForegroundLinkHover);
+}
 @-webkit-keyframes progress-bar-stripes {
   from {
     background-position: 40px 0;
