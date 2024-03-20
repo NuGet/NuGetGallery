@@ -15,5 +15,12 @@ namespace NuGetGallery
         /// <param name="packageId">Package Id compared to</param>
         /// <returns>Return true if distance is less than the threshold</returns>
         bool IsDistanceLessThanOrEqualToThreshold(string uploadedPackageId, string packageId);
+
+        /// <summary>
+        /// This method is used to normalize string.
+        /// </summary>
+        /// <param name="str">String to normalize</param>
+        /// <returns>Normalized string</returns>
+        string NormalizeString(string str);
     }
 }
