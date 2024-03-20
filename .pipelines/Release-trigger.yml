@@ -1,0 +1,14 @@
+name: Gallery release trigger $(Build.BuildId) - $(Date:yyyyMMdd)
+
+trigger:
+  branches:
+    include:
+    - main
+    - dev
+    - agr-*
+
+pool:
+  vmImage: 'windows-latest'
+
+steps:
+- powershell: Write-Host "Release trigger fired"
