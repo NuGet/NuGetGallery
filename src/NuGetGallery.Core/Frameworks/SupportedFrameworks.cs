@@ -21,8 +21,6 @@ namespace NuGetGallery.Frameworks
     /// </remarks>
     public static class SupportedFrameworks
     {
-        public static readonly Version Version8 = new Version(8, 0, 0, 0); // https://github.com/NuGet/Engineering/issues/5112
-
         public static readonly NuGetFramework MonoAndroid = new NuGetFramework(FrameworkIdentifiers.MonoAndroid, EmptyVersion);
         public static readonly NuGetFramework MonoTouch = new NuGetFramework(FrameworkIdentifiers.MonoTouch, EmptyVersion);
         public static readonly NuGetFramework MonoMac = new NuGetFramework(FrameworkIdentifiers.MonoMac, EmptyVersion);
@@ -42,7 +40,6 @@ namespace NuGetGallery.Frameworks
         public static readonly NuGetFramework Net70MacCatalyst = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version7, "maccatalyst", EmptyVersion);
         public static readonly NuGetFramework Net70TvOs = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version7, "tvos", EmptyVersion);
         public static readonly NuGetFramework Net70Windows = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version7, "windows", EmptyVersion);
-        public static readonly NuGetFramework Net80 = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version8); // https://github.com/NuGet/Engineering/issues/5112
         public static readonly NuGetFramework Net80Android = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version8, "android", EmptyVersion);
         public static readonly NuGetFramework Net80Browser = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version8, "browser", EmptyVersion);
         public static readonly NuGetFramework Net80Ios = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version8, "ios", EmptyVersion);
