@@ -38,9 +38,11 @@
         var validatorErrorClass = 'help-block';
         $.validator.setDefaults({
             highlight: function (element) {
+                $(element).closest('.form-group').addClass('has-error-brand');
                 $(element).closest('.form-group').addClass('has-error');
             },
             unhighlight: function (element) {
+                $(element).closest('.form-group').removeClass('has-error-brand');
                 $(element).closest('.form-group').removeClass('has-error');
             },
             errorElement: 'span',
@@ -603,7 +605,7 @@
         });
 
         // Select the first input that has an error.
-        $('.has-error')
+        $('.has-error-brand')
             .find('input,textarea,select')
             .filter(':visible:first')
             .trigger('focus');

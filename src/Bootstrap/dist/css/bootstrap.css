@@ -2063,61 +2063,12 @@ fieldset[disabled] .form-control {
   background-color: #dbdbdb;
   opacity: 1;
 }
-.form-control[disabled].input-brand,
-.form-control[readonly].input-brand,
-fieldset[disabled] .form-control.input-brand {
-  border-radius: 4px;
-  background-color: transparent;
-  color: var(--neutralForeground1Rest);
-  border-color: var(--neutralStrokeDisabledRest);
-  -webkit-box-shadow: none;
-  box-shadow: none;
-}
-.form-control[disabled].input-brand::-moz-placeholder,
-.form-control[readonly].input-brand::-moz-placeholder,
-fieldset[disabled] .form-control.input-brand::-moz-placeholder {
-  color: var(--neutralForegroundDisabledRest);
-  opacity: 1;
-}
-.form-control[disabled].input-brand:-ms-input-placeholder,
-.form-control[readonly].input-brand:-ms-input-placeholder,
-fieldset[disabled] .form-control.input-brand:-ms-input-placeholder {
-  color: var(--neutralForegroundDisabledRest);
-}
-.form-control[disabled].input-brand::-webkit-input-placeholder,
-.form-control[readonly].input-brand::-webkit-input-placeholder,
-fieldset[disabled] .form-control.input-brand::-webkit-input-placeholder {
-  color: var(--neutralForegroundDisabledRest);
-}
 .form-control[disabled],
 fieldset[disabled] .form-control {
   cursor: not-allowed;
 }
 textarea.form-control {
   height: auto;
-}
-.form-control.input-brand {
-  color: var(--neutralForeground1Rest);
-  background-color: var(--neutralBackground1Rest);
-  border-radius: 4px;
-  border: 1px solid var(--neutralStroke1Rest);
-  border-bottom: 1px solid var(--neutralStrokeAccessibleRest);
-  outline: none;
-  -webkit-box-shadow: none;
-  box-shadow: none;
-}
-.form-control.input-brand:focus {
-  border-bottom: 2px solid var(--brandStrokeCompoundRest);
-}
-.form-control.input-brand::-moz-placeholder {
-  color: var(--neutralForeground4Rest);
-  opacity: 1;
-}
-.form-control.input-brand:-ms-input-placeholder {
-  color: var(--neutralForeground4Rest);
-}
-.form-control.input-brand::-webkit-input-placeholder {
-  color: var(--neutralForeground4Rest);
 }
 .form-control.select-brand {
   color: var(--neutralForeground1Rest);
@@ -2136,27 +2087,64 @@ textarea.form-control {
   background-color: var(--neutralBackground1Rest);
   color: var(--neutralForeground2Rest);
 }
-.input-brand {
+input.input-brand {
   color: var(--neutralForeground1Rest);
   background-color: var(--neutralBackground1Rest);
   border-radius: 4px;
   border: 1px solid var(--neutralStroke1Rest);
-  border-bottom: 1px solid var(--neutralStrokeAccessibleRest);
-  outline: none;
-  -webkit-box-shadow: none;
-  box-shadow: none;
+  border-bottom: 2px solid var(--neutralStrokeAccessibleRest);
+  outline: none !important;
+  -webkit-box-shadow: none !important;
+  box-shadow: none !important;
 }
-.input-brand:focus {
+input.input-brand:hover {
+  border: 1px solid var(--neutralStroke1Hover);
+  border-bottom: 2px solid var(--neutralStrokeAccessibleHover);
+}
+input.input-brand:focus {
+  border: 1px solid var(--neutralStroke1Rest);
   border-bottom: 2px solid var(--brandStrokeCompoundRest);
 }
-.input-brand::-moz-placeholder {
+input.input-brand[aria-invalid='true'] {
+  border-color: var(--statusDangerStroke2Rest);
+}
+input.input-brand[disabled] {
+  background-color: transparent;
+  color: var(--neutralForegroundDisabledRest);
+  border-color: var(--neutralStrokeDisabledRest);
+}
+input.input-brand[disabled]::-moz-placeholder {
+  color: var(--neutralForegroundDisabledRest);
+  opacity: 1;
+}
+input.input-brand[disabled]:-ms-input-placeholder {
+  color: var(--neutralForegroundDisabledRest);
+}
+input.input-brand[disabled]::-webkit-input-placeholder {
+  color: var(--neutralForegroundDisabledRest);
+}
+input.input-brand[readonly] {
+  background-color: transparent;
+  border-color: var(--neutralStrokeDisabledRest);
+}
+input.input-brand[readonly]::-moz-placeholder {
+  color: var(--neutralForeground1Rest);
+  opacity: 1;
+}
+input.input-brand[readonly]:-ms-input-placeholder {
+  color: var(--neutralForeground1Rest);
+}
+input.input-brand[readonly]::-webkit-input-placeholder {
+  color: var(--neutralForeground1Rest);
+}
+input.input-brand::-moz-placeholder {
   color: var(--neutralForeground4Rest);
   opacity: 1;
 }
-.input-brand:-ms-input-placeholder {
+input.input-brand:-ms-input-placeholder {
   color: var(--neutralForeground4Rest);
 }
-.input-brand::-webkit-input-placeholder {
+input.input-brand::-webkit-input-placeholder {
   color: var(--neutralForeground4Rest);
 }
 @media screen and (-webkit-min-device-pixel-ratio: 0) {
@@ -2450,6 +2438,58 @@ select[multiple].input-lg {
 }
 .has-error .form-control-feedback {
   color: #a94442;
+}
+.has-error-brand .help-block,
+.has-error-brand .control-label,
+.has-error-brand .radio,
+.has-error-brand .checkbox,
+.has-error-brand .radio-inline,
+.has-error-brand .checkbox-inline,
+.has-error-brand.radio label,
+.has-error-brand.checkbox label,
+.has-error-brand.radio-inline label,
+.has-error-brand.checkbox-inline label {
+  color: var(--statusDangerForeground1Rest);
+}
+.has-error-brand .form-control {
+  border-color: var(--statusDangerStroke2Rest);
+}
+.has-error-brand .form-control:focus {
+  border-color: var(--statusDangerStroke2Rest);
+}
+.has-error-brand .input-group-addon {
+  color: var(--statusDangerForeground3Rest);
+  background-color: var(--statusDangerBackground1Rest);
+  border-color: var(--statusDangerStroke2Rest);
+}
+.has-error-brand .form-control-feedback {
+  color: var(--statusDangerForeground3Rest);
+}
+.form-control-validation-brand .help-block,
+.form-control-validation-brand .control-label,
+.form-control-validation-brand .radio,
+.form-control-validation-brand .checkbox,
+.form-control-validation-brand .radio-inline,
+.form-control-validation-brand .checkbox-inline,
+.form-control-validation-brand.radio label,
+.form-control-validation-brand.checkbox label,
+.form-control-validation-brand.radio-inline label,
+.form-control-validation-brand.checkbox-inline label {
+  color: var(--statusDangerForeground1Rest);
+}
+.form-control-validation-brand .form-control {
+  border-color: var(--statusDangerStroke2Rest);
+}
+.form-control-validation-brand .form-control:focus {
+  border-color: var(--statusDangerStroke2Rest);
+}
+.form-control-validation-brand .input-group-addon {
+  color: var(--statusDangerForeground3Rest);
+  background-color: var(--statusDangerBackground1Rest);
+  border-color: var(--statusDangerStroke2Rest);
+}
+.form-control-validation-brand .form-control-feedback {
+  color: var(--statusDangerForeground3Rest);
 }
 .has-feedback label ~ .form-control-feedback {
   top: 27px;

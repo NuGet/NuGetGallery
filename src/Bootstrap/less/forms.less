@@ -323,23 +323,6 @@ output {
   fieldset[disabled] & {
     background-color: @input-bg-disabled;
     opacity: 1; // iOS fix for unreadable disabled content; see https://github.com/twbs/bootstrap/issues/11655
-
-    &.input-brand {
-      border-radius: 4px;
-      background-color: transparent;
-      color: var(--neutralForeground1Rest);
-      border-color: var(--neutralStrokeDisabledRest);
-      box-shadow: none;
-      
-
-      // Firefox
-      &::-moz-placeholder {
-        color: var(--neutralForegroundDisabledRest);
-        opacity: 1; // Override Firefox's unusual default opacity; see https://github.com/twbs/bootstrap/pull/11526
-      }
-      &:-ms-input-placeholder { color: var(--neutralForegroundDisabledRest); } // Internet Explorer 10+
-      &::-webkit-input-placeholder  { color: var(--neutralForegroundDisabledRest); } // Safari and Chrome
-    }
   }
 
   &[disabled],
@@ -350,10 +333,6 @@ output {
   // Reset height for `textarea`s
   textarea& {
     height: auto;
-  }
-
-  &.input-brand {
-    .input-brand();
   }
 
   &.select-brand {
@@ -377,27 +356,67 @@ output {
   }
 }
 
-.input-brand {
+input.input-brand {
   color: var(--neutralForeground1Rest);
-    background-color: var(--neutralBackground1Rest);
-    border-radius: 4px;
+  background-color: var(--neutralBackground1Rest);
+  border-radius: 4px;
+  border: 1px solid var(--neutralStroke1Rest);
+  border-bottom: 2px solid var(--neutralStrokeAccessibleRest);
+
+  outline: none !important;
+  box-shadow: none !important;
+
+
+  &:hover {
+    border: 1px solid var(--neutralStroke1Hover);
+    border-bottom: 2px solid var(--neutralStrokeAccessibleHover);
+  }
+  
+  &:focus,
+  &:focus-within,
+  &:focus-visible {
     border: 1px solid var(--neutralStroke1Rest);
-    border-bottom: 1px solid var(--neutralStrokeAccessibleRest);
+    border-bottom: 2px solid var(--brandStrokeCompoundRest);
+  }
 
-    outline: none;
-    box-shadow: none;
+  &[aria-invalid='true'] {
+    border-color: var(--statusDangerStroke2Rest);
+  }
 
-    &:focus {
-      border-bottom: 2px solid var(--brandStrokeCompoundRest);
-    }
+  &[disabled] {
+    background-color: transparent;
+    color: var(--neutralForegroundDisabledRest);
+    border-color: var(--neutralStrokeDisabledRest);
 
     // Firefox
     &::-moz-placeholder {
-      color: var(--neutralForeground4Rest);
+      color: var(--neutralForegroundDisabledRest);
       opacity: 1; // Override Firefox's unusual default opacity; see https://github.com/twbs/bootstrap/pull/11526
     }
-    &:-ms-input-placeholder { color: var(--neutralForeground4Rest); } // Internet Explorer 10+
-    &::-webkit-input-placeholder  { color: var(--neutralForeground4Rest); } // Safari and Chrome
+    &:-ms-input-placeholder { color: var(--neutralForegroundDisabledRest); } // Internet Explorer 10+
+    &::-webkit-input-placeholder  { color: var(--neutralForegroundDisabledRest); } // Safari and Chrome
+  }
+
+  &[readonly] {
+    background-color: transparent;
+    border-color: var(--neutralStrokeDisabledRest);
+
+    // Firefox
+    &::-moz-placeholder {
+      color: var(--neutralForeground1Rest);
+      opacity: 1; // Override Firefox's unusual default opacity; see https://github.com/twbs/bootstrap/pull/11526
+    }
+    &:-ms-input-placeholder { color: var(--neutralForeground1Rest); } // Internet Explorer 10+
+    &::-webkit-input-placeholder  { color: var(--neutralForeground1Rest); } // Safari and Chrome
+  }
+  
+  // Firefox
+  &::-moz-placeholder {
+    color: var(--neutralForeground4Rest);
+    opacity: 1; // Override Firefox's unusual default opacity; see https://github.com/twbs/bootstrap/pull/11526
+  }
+  &:-ms-input-placeholder { color: var(--neutralForeground4Rest); } // Internet Explorer 10+
+  &::-webkit-input-placeholder  { color: var(--neutralForeground4Rest); } // Safari and Chrome
 }
 
 // Special styles for iOS temporal inputs
@@ -643,6 +662,43 @@ output {
 .has-error {
   .form-control-validation(@state-danger-text; @state-danger-text; @state-danger-bg);
 }
+.has-error-brand {
+  .form-control-validation-brand();
+}
+
+.form-control-validation-brand {
+  // Color the label and help text
+  .help-block,
+  .control-label,
+  .radio,
+  .checkbox,
+  .radio-inline,
+  .checkbox-inline,
+  &.radio label,
+  &.checkbox label,
+  &.radio-inline label,
+  &.checkbox-inline label  {
+    color: var(--statusDangerForeground1Rest);
+  }
+  // Set the border and box shadow on specific inputs to match
+  .form-control {
+    border-color: var(--statusDangerStroke2Rest);
+    &:focus {
+      border-color: var(--statusDangerStroke2Rest);
+    }
+  }
+  // Set validation states also for addons
+  .input-group-addon {
+    color: var(--statusDangerForeground3Rest);
+    background-color: var(--statusDangerBackground1Rest);
+    border-color: var(--statusDangerStroke2Rest);
+  }
+  // Optional feedback icon
+  .form-control-feedback {
+    color: var(--statusDangerForeground3Rest);
+  }
+}
+
 
 // Reposition feedback icon if input has visible label above
 .has-feedback label {

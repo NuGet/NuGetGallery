@@ -92,7 +92,7 @@ namespace NuGetGallery
         {
             if (IsError(htmlHelper, expression))
             {
-                return MvcHtmlString.Create("has-error");
+                return MvcHtmlString.Create("has-error-brand");
             }
             else
             {
@@ -139,9 +139,32 @@ namespace NuGetGallery
             return html.PasswordFor(expression, htmlAttributes);
         }
 
+        public static HtmlString ShowPasswordFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression, string brandClass)
+        {
+            var htmlAttributes = GetHtmlAttributes(html, expression, brandClass);
+            htmlAttributes["autocomplete"] = "off";
+            return html.PasswordFor(expression, htmlAttributes);
+        }
+
         public static HtmlString ShowTextBoxFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression, bool enabled = true, string placeholder = null)
         {
             var htmlAttributes = GetHtmlAttributes(html, expression);
+            if (!enabled)
+            {
+                htmlAttributes.Add("disabled", "true");
+            }
+
+            if (placeholder != null)
+            {
+                htmlAttributes.Add("placeholder", placeholder);
+            }
+
+            return html.TextBoxFor(expression, htmlAttributes);
+        }
+
+        public static HtmlString ShowTextBoxFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression, string brandClass, bool enabled = true, string placeholder = null)
+        {
+            var htmlAttributes = GetHtmlAttributes(html, expression, brandClass);
             if (!enabled)
             {
                 htmlAttributes.Add("disabled", "true");
@@ -204,6 +227,16 @@ namespace NuGetGallery
             bool isFormControl = true,
             bool isCheckbox = false)
         {
+            return GetHtmlAttributes(html, expression, null, isFormControl, isCheckbox);
+        }
+
+        private static Dictionary<string, object> GetHtmlAttributes<TModel, TProperty>(
+            HtmlHelper<TModel> html,
+            Expression<Func<TModel, TProperty>> expression,
+            string brandClass,
+            bool isFormControl = true,
+            bool isCheckbox = false)
+        {
             var metadata = ModelMetadata.FromLambdaExpression(expression, html.ViewData);
             var propertyName = metadata.PropertyName.ToLower();
             var htmlAttributes = new Dictionary<string, object>();
@@ -212,7 +245,14 @@ namespace NuGetGallery
 
             if (isFormControl)
             {
-                htmlAttributes["class"] = "form-control";
+                if (brandClass != null)
+                {
+                    htmlAttributes["class"] = $"form-control {brandClass}";
+                }
+                else
+                {
+                    htmlAttributes["class"] = "form-control";
+                }
             }
 
             // If the property is required, mark it as required unless it's a checkbox.
