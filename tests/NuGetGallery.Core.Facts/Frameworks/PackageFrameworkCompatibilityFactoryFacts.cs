@@ -217,7 +217,7 @@ namespace NuGetGallery.Frameworks
             foreach (var row in result.Table)
             {
                 var compatibleFrameworks = row.Value;
-                var expectedList = compatibleFrameworks.OrderBy(cf => cf.Framework, new NuGetFrameworkSorter());
+                var expectedList = compatibleFrameworks.OrderBy(cf => cf.Framework, NuGetFrameworkSorter.Instance);
 
                 Assert.True(expectedList.SequenceEqual(row.Value));
             }

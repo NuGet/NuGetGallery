@@ -9,5 +9,15 @@ namespace NuGetGallery.Services
         {
             return uploadedPackageId.ToLowerInvariant() == packageId.ToLowerInvariant();
         }
+
+        public string NormalizeString(string packageId)
+        {
+            if (string.IsNullOrEmpty(packageId))
+            {
+                return string.Empty;
+            }
+
+            return packageId.ToLowerInvariant();
+        }
     }
 }
