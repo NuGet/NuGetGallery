@@ -9,17 +9,17 @@
     .package-header {
       .package-title {
         font-size: 24px;
-        font-weight: 300;
-        line-height: 0.9;
+        font-weight: 600;
+        line-height: 32px;
 
         display: inline-block;
-        color: @link-color;
+        color: var(--brandForeground1Rest);
         width: auto;
         margin: 0px;
 
         &:hover,
         &:focus {
-          color: @link-hover-color;
+          color: var(--brandForegroundLinkHover);;
           text-decoration: @link-hover-decoration;
         }
       
@@ -43,7 +43,7 @@
 
       .package-by {
         margin-left: @padding-small-horizontal;
-        color: @text-color;
+        color: var(--neutralForeground1Rest);
 
         @media (max-width: @screen-xs-min) {
           margin-left: 0;
@@ -64,7 +64,7 @@
 
     .package-details {
       margin-top: 8px;
-      color: @text-color;
+      color: var(--neutralForeground1Rest);
       line-height: 20px;
     }
   }
