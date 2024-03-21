@@ -926,7 +926,6 @@ namespace NuGetGallery
 
             // Load all packages with the ID.
             var allVersions = _packageService.FindPackagesById(id, includePackageRegistration: true);
-
             var filterContext = new PackageFilterContext(RouteData?.Route, version);
             var package = _packageFilter.GetFiltered(allVersions, filterContext);
 
