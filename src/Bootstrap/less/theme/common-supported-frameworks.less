@@ -23,7 +23,7 @@
 
 .framework-badge {
   padding: 1px 8px;
-  border-radius: 2px;
+  border-radius: 4px;
   justify-content: center;
   display: inline-block;
   border: 1px solid @badge-dark;
@@ -35,13 +35,14 @@
 
 .framework-badge-asset {
   .framework-badge;
-  background: @badge-dark;
-  color: white;
+  background: var(--brandBackground1Rest);
+  color: var(--neutralForegroundOnBrandRest);
 }
 
 .framework-badge-computed {
   .framework-badge;
-  background: @badge-dark-opaque
+  color: var(--brandForeground2Rest);
+  background: var(--brandBackground2Rest);
 }
 
 .framework-table {
@@ -96,6 +97,7 @@
 .frameworktableinfo-text {
   font-size: 14px;
   line-height: 16px;
+  color: var(--neutralForeground1Rest);
 }
 
 p.frameworktableinfo-text {
