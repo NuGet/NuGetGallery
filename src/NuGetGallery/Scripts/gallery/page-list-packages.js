@@ -97,14 +97,15 @@ $(function() {
         const tfmCheckboxes = dataTab.querySelectorAll('[parent=' + this.getAttribute('tab') + ']');
 
         this.classList.toggle('active');
+        expandButton.classList.toggle('ms-Icon--ChevronRight');
         expandButton.classList.toggle('ms-Icon--ChevronDown');
-        expandButton.classList.toggle('ms-Icon--ChevronUp');
 
         if (this.classList.contains('active')) {
             this.setAttribute("aria-expanded", "true");
 
             dataTab.style.display = 'block';
             dataTab.style.maxHeight = dataTab.scrollHeight + "px";
+            dataTab.style.width = '100%';
         }
         else {
             this.setAttribute("aria-expanded", "false");
