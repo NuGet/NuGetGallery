@@ -26,9 +26,9 @@ legend {
   margin-bottom: @line-height-computed;
   font-size: (@font-size-base * 1.5);
   line-height: inherit;
-  color: @legend-color;
+  color: var(--neutralForeground2Rest);
   border: 0;
-  border-bottom: 1px solid @legend-border-color;
+  border-bottom: 1px solid var(--neutralStroke2Rest);
 }
 
 label {
@@ -57,6 +57,152 @@ input[type="search"] {
   // https://github.com/twbs/bootstrap/issues/11586.
   -webkit-appearance: none;
   appearance: none;
+}
+
+.brand-radio {
+  color: var(--neutralForeground3Rest);
+  padding-right: 8px;
+  display: flex;
+  cursor: pointer;
+
+  margin: 0px !important;
+
+  span {
+    margin: auto;
+  }
+
+  input[type="radio"] {
+    appearance: none;
+    outline: none !important; // Remove previous focs outline for new design;
+    cursor: pointer;
+    
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1px solid var(--neutralStrokeAccessibleRest);
+    margin: 8px;
+  }
+
+  input[type="radio"]:checked {
+    background: radial-gradient(var(--brandForegroundCompoundRest) 0%, var(--brandForegroundCompoundRest) 40%, transparent 50%, transparent);
+    border-color: var(--brandForegroundCompoundRest);
+  }
+
+  &:hover {  
+    input[type="radio"]:checked{
+      background: radial-gradient(var(--brandForegroundCompoundHover) 0%, var(--brandForegroundCompoundHover) 40%, transparent 50%, transparent);
+      border-color: var(--brandForegroundCompoundHover);
+      color: var(--neutralForeground1Rest);
+    }
+
+    input[type="radio"]:not(:checked){
+      border-color: var(--neutralStrokeAccessibleHover);
+      color: var(--neutra2Foreground1Rest);
+    }
+  }
+
+  &:active {
+    input[type="radio"]:checked{
+      background: radial-gradient(var(--brandStrokeCompoundPressed) 0%, var(--brandStrokeCompoundPressed) 40%, transparent 50%, transparent);
+      border-color: var(--brandStrokeCompoundPressed);
+    }
+
+    input[type="radio"]:not(:checked){
+      color: var(--neutralForeground1Rest);
+      border-color: var(--neutralStrokeAccessiblePressed);
+    }
+  }
+
+  &:focus-within,
+  &:focus-visible,
+  &:focus {
+    color: var(--neutralForeground3Rest);
+
+    outline: 2px solid var(--neutralStrokeFocus2Rest) !important;
+    outline-offset: 0px;
+    border-radius: 1px;
+
+    input[type="radio"]:checked::before{
+      background: radial-gradient(var(--brandForegroundCompoundRest) 0%, var(--brandForegroundCompoundRest) 40%, transparent 50%, transparent);
+      border-color: var(--brandForegroundCompoundRest);
+    }
+  }
+}
+
+.brand-checkbox {
+  color: var(--neutralForeground2Rest);
+  padding-right: 8px;
+  display: flex;
+  cursor: pointer;
+
+  span {
+    margin: auto 0;
+  }
+
+  input[type="checkbox"] {
+    appearance: none;
+    outline: none !important;
+    cursor: pointer;
+
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--neutralStrokeAccessibleRest);
+    border-radius: 2px;
+    margin: 8px !important;
+  }
+
+  input[type="checkbox"]:checked::after {
+    content: '\2713';
+    font-weight: bolder;
+    display: flex;
+    width: 16px;
+    height: 16px;
+    left: -1px;
+    top: -1px;
+    position: relative;
+    align-items: center;
+    justify-content: space-evenly;
+  }
+
+  input[type="checkbox"]:checked {
+    background-color: var(--brandBackgroundCompoundRest);
+    border-color: var(--brandBackgroundCompoundRest);
+    color: var(--neutralForegroundInverted1Rest);;
+  }
+
+  &:hover {
+    input[type="checkbox"]:checked {
+      background-color: var(--brandBackgroundCompoundHover);
+      border-color: var(--brandBackgroundCompoundHover);
+      color: var(--neutralForegroundInverted1Hover);
+    }
+
+    input[type="checkbox"]:not(:checked){
+      border-color: var(--neutralStrokeAccessibleHover);
+      color: var(--neutralForegroundInverted1Hover);
+    }
+  }
+
+  &:active {
+    input[type="checkbox"]:checked {
+      background-color: var(--brandBackgroundCompoundPressed);
+      border-color: var(--brandBackgroundCompoundPressed);
+      color: var(--neutralForegroundInverted1Pressed);
+    }
+
+    input[type="checkbox"]:not(:checked){
+      border-color: var(--neutralStrokeAccessiblePressed);
+      color: var(--neutralForegroundInverted1Pressed);
+    }
+  }
+
+  &:focus-within,
+  &:focus-visible,
+  &:focus {
+    outline: 2px solid var(--neutralStrokeFocus2Rest) !important;
+    outline-offset: 0px;
+    border-radius: 1px;
+  }
 }
 
 // Position radios and checkboxes better
