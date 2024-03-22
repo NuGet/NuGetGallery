@@ -90,7 +90,7 @@ namespace NuGet.Services.Validation
         private const string PackageCompatibilityIssuesTable = "PackageCompatibilityIssues";
 
         private const string ScanOperationStatesTable = "ScanOperationStates";
-        private const string ScanOperationStatesPackageValidationKeyAttemptIndex = "IX_ScanOperationStates_PackageValidationKey_AttemptIndex";
+        private const string ScanOperationStatesPackageValidationKeyOperationTypeAttemptIndex = "IX_ScanOperationStates_PackageValidationKey_OperationType_AttemptIndex";
         private const string ScanOperationStatesScanStateCreatedIndex = "IX_ScanOperationStates_ScanState_Created";
 
         private const string PackageRevalidationPackageIdPackageVersionIndex = "IX_PackageRevalidations_PackageId_PackageNormalizedVersion";
@@ -625,7 +625,19 @@ namespace NuGet.Services.Validation
                     IndexAnnotation.AnnotationName,
                     new IndexAnnotation(new[]
                     {
-                        new IndexAttribute(ScanOperationStatesPackageValidationKeyAttemptIndex, 0)
+                        new IndexAttribute(ScanOperationStatesPackageValidationKeyOperationTypeAttemptIndex, 0)
+                        {
+                            IsUnique = true
+                        }
+                    }));
+
+            modelBuilder.Entity<ScanOperationState>()
+                .Property(s => s.OperationType)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(new[]
+                    {
+                        new IndexAttribute(ScanOperationStatesPackageValidationKeyOperationTypeAttemptIndex, 1)
                         {
                             IsUnique = true
                         }
@@ -637,7 +649,7 @@ namespace NuGet.Services.Validation
                     IndexAnnotation.AnnotationName,
                     new IndexAnnotation(new[]
                     {
-                        new IndexAttribute(ScanOperationStatesPackageValidationKeyAttemptIndex, 1)
+                        new IndexAttribute(ScanOperationStatesPackageValidationKeyOperationTypeAttemptIndex, 2)
                         {
                             IsUnique = true
                         }
