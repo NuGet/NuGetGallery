@@ -23,12 +23,12 @@
                             </div>
                             <div class="text-row">
                                 <label for="newOwnerUserName">Please enter the username</label>
-                                <input type="text" id="usernameForAssistance" name="usernameForAssistance" data-bind="value: usernameForAssistance" aria-required="true" class="form-control" />
+                                <input type="text" id="usernameForAssistance" name="usernameForAssistance" data-bind="value: usernameForAssistance" aria-required="true" class="form-control input-brand" />
                                 <div class="text-danger form-error-message" data-bind="text: message"></div>
                             </div>
                         </div>
                         <div class="form-button-node username-submit">
-                            <input type="submit" class="btn btn-primary btn-block action-button" data-bind="click: getEmailAddress" value="Next" />
+                            <input type="submit" class="btn btn-brand btn-block action-button" data-bind="click: getEmailAddress" value="Next" />
                         </div>
                     </div>
                     <div id="email-entry" data-bind="visible: getEmail()">
@@ -38,12 +38,12 @@
                             </div>
                             <div class="text-row" data-bind="text: formattedEmailAddress()"></div>
                             <div class="text-row">
-                                <input class="form-control" type="text" id="emailAddress" name="emailAddress" data-bind="value: inputEmailAddress" aria-required="true" />
+                                <input class="form-control input-brand" type="text" id="emailAddress" name="emailAddress" data-bind="value: inputEmailAddress" aria-required="true" />
                             </div>
                             <div class="text-danger form-error-message" data-bind="text: message"></div>
                         </div>
                         <div class="form-button-node email-submit">
-                            <input type="submit" class="btn btn-primary btn-block action-button" data-bind="click: sendEmailNotification" value="Next" />
+                            <input type="submit" class="btn btn-brand btn-block action-button" data-bind="click: sendEmailNotification" value="Next" />
                         </div>
                     </div>
                 </div>
@@ -55,7 +55,7 @@
                         </div>
                     </div>
                     <div class="form-button-node close-button">
-                        <button type="button" class="btn btn-primary btn-block action-button" data-dismiss="modal" data-bind="click: resetViewModel" aria-label="Close">
+                        <button type="button" class="btn btn-brand btn-block action-button" data-dismiss="modal" data-bind="click: resetViewModel" aria-label="Close">
                             Close
                         </button>
                     </div>
