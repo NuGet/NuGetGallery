@@ -129,6 +129,72 @@ input[type="search"] {
   }
 }
 
+input[type="checkbox"].brand-checkbox {
+  appearance: none;
+  outline: none !important;
+  cursor: pointer;
+
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--neutralStrokeAccessibleRest);
+  border-radius: 2px;
+  // margin: 8px !important;
+  position: relative !important;
+}
+
+input[type="checkbox"].brand-checkbox:checked::after {
+  content: '\2713';
+  font-weight: bolder;
+  display: flex;
+  width: 16px;
+  height: 16px;
+  // left: -1px;
+  top: -1px;
+  position: relative;
+  align-items: center;
+  justify-content: space-evenly;
+}
+
+input[type="checkbox"].brand-checkbox:checked {
+  background-color: var(--brandBackgroundCompoundRest);
+  border-color: var(--brandBackgroundCompoundRest);
+  color: var(--neutralForegroundInverted1Rest);;
+}
+
+input[type="checkbox"].brand-checkbox:hover {
+  input[type="checkbox"].brand-checkbox:checked {
+    background-color: var(--brandBackgroundCompoundHover);
+    border-color: var(--brandBackgroundCompoundHover);
+    color: var(--neutralForegroundInverted1Hover);
+  }
+
+  input[type="checkbox"].brand-checkbox:not(:checked){
+    border-color: var(--neutralStrokeAccessibleHover);
+    color: var(--neutralForegroundInverted1Hover);
+  }
+}
+
+input[type="checkbox"].brand-checkbox:active {
+  input[type="checkbox"].brand-checkbox:checked {
+    background-color: var(--brandBackgroundCompoundPressed);
+    border-color: var(--brandBackgroundCompoundPressed);
+    color: var(--neutralForegroundInverted1Pressed);
+  }
+
+  input[type="checkbox"].brand-checkbox:not(:checked){
+    border-color: var(--neutralStrokeAccessiblePressed);
+    color: var(--neutralForegroundInverted1Pressed);
+  }
+}
+
+input[type="checkbox"].brand-checkbox:focus-within,
+input[type="checkbox"].brand-checkbox:focus-visible,
+input[type="checkbox"].brand-checkbox:focus {
+  outline: 2px solid var(--neutralStrokeFocus2Rest) !important;
+  outline-offset: 0px;
+  border-radius: 1px;
+}
+
 .brand-checkbox {
   color: var(--neutralForeground2Rest);
   padding-right: 8px;
@@ -149,6 +215,7 @@ input[type="search"] {
     border: 1px solid var(--neutralStrokeAccessibleRest);
     border-radius: 2px;
     margin: 8px !important;
+    position: relative !important;
   }
 
   input[type="checkbox"]:checked::after {
@@ -202,6 +269,77 @@ input[type="search"] {
     outline: 2px solid var(--neutralStrokeFocus2Rest) !important;
     outline-offset: 0px;
     border-radius: 1px;
+  }
+}
+
+textarea.textarea-brand {
+  color: var(--neutralForeground1Rest);
+  background-color: var(--neutralBackground1Rest);
+  border-radius: 4px;
+  border: 1px solid var(--neutralStroke1Rest);
+  border-bottom: 2px solid var(--neutralStrokeAccessibleRest);
+
+  outline: none !important;
+  box-shadow: none !important;
+
+  &:hover {
+    border: 1px solid var(--neutralStroke1Hover);
+    border-bottom: 2px solid var(--neutralStrokeAccessibleHover);
+  }
+
+  &:focus,
+  &:focus-within,
+  &:focus-visible {
+    border: 1px solid var(--neutralStroke1Rest);
+    border-bottom: 2px solid var(--brandStrokeCompoundRest);
+  }
+
+  &[disabled] {
+    background-color: transparent;
+    color: var(--neutralForegroundDisabledRest);
+    border-color: var(--neutralStrokeDisabledRest);
+
+    // Firefox
+    &::-moz-placeholder {
+      color: var(--neutralForegroundDisabledRest);
+      opacity: 1; // Override Firefox's unusual default opacity; see https://github.com/twbs/bootstrap/pull/11526
+    }
+    &:-ms-input-placeholder { color: var(--neutralForegroundDisabledRest); } // Internet Explorer 10+
+    &::-webkit-input-placeholder  { color: var(--neutralForegroundDisabledRest); } // Safari and Chrome
+  }
+
+  &[readonly] {
+    background-color: transparent;
+    border-color: var(--neutralStrokeDisabledRest);
+
+    // Firefox
+    &::-moz-placeholder {
+      color: var(--neutralForeground1Rest);
+      opacity: 1; // Override Firefox's unusual default opacity; see https://github.com/twbs/bootstrap/pull/11526
+    }
+    &:-ms-input-placeholder { color: var(--neutralForeground1Rest); } // Internet Explorer 10+
+    &::-webkit-input-placeholder  { color: var(--neutralForeground1Rest); } // Safari and Chrome
+  }
+
+  // Firefox
+  &::-moz-placeholder {
+    color: var(--neutralForeground4Rest);
+    opacity: 1; // Override Firefox's unusual default opacity; see https://github.com/twbs/bootstrap/pull/11526
+  }
+  &:-ms-input-placeholder { color: var(--neutralForeground4Rest); } // Internet Explorer 10+
+  &::-webkit-input-placeholder  { color: var(--neutralForeground4Rest); } // Safari and Chrome
+}
+
+textarea {
+  background: transparent;
+  border-radius: 4px;
+
+  border: 1px solid var(--neutralStroke1Rest);
+  border-bottom: 2px solid var(--neutralStrokeAccessibleRest);
+
+  outline: none;
+  &:focus{
+    border-bottom: 2px solid var(--brandStrokeCompoundRest);
   }
 }
 
@@ -335,8 +473,7 @@ output {
   }
 }
 
-textarea.textarea-brand,
-input.input-brand {
+.input-base-class {
   color: var(--neutralForeground1Rest);
   background-color: var(--neutralBackground1Rest);
   border-radius: 4px;
@@ -396,6 +533,20 @@ input.input-brand {
   }
   &:-ms-input-placeholder { color: var(--neutralForeground4Rest); } // Internet Explorer 10+
   &::-webkit-input-placeholder  { color: var(--neutralForeground4Rest); } // Safari and Chrome
+}
+
+select.select-brand {
+  .input-base-class();
+
+  > option {
+    background-color: var(--neutralBackground1Rest);
+    color: var(--neutralForeground1Rest);
+  }
+}
+
+textarea.textarea-brand,
+input.input-brand {
+  .input-base-class();
 }
 
 // Special styles for iOS temporal inputs

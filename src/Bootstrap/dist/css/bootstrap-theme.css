@@ -223,7 +223,7 @@ body h3 {
   margin-bottom: 3px;
 }
 .dependency-group li span {
-  color: #666;
+  color: var(--neutralForeground1Rest);
 }
 .borderless > tbody > tr > td {
   border: none;
@@ -272,11 +272,18 @@ body h3 {
   background: #fff4ce;
 }
 .alert a {
-  color: #2e6da4;
+  color: var(--brandForegroundLinkRest);
 }
 .alert a:hover,
 .alert a:focus {
-  color: #23527c;
+  color: var(--brandForegroundLinkHover);
+}
+.row-checkbox-label {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  gap: 10px;
 }
 .alert-transient .alert {
   margin: 0;
@@ -1203,6 +1210,10 @@ p.frameworktableinfo-text {
   margin-bottom: 8px;
   margin-top: 8px;
   font-size: 30px;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
 }
 .page-admin-index h2 .ms-Icon {
   font-size: 2.4rem;
@@ -1210,6 +1221,12 @@ p.frameworktableinfo-text {
 }
 .page-admin-index p {
   margin-bottom: 16px;
+}
+.page-admin-index h2 a {
+  color: var(--neutralForeground2Rest);
+}
+.page-admin-index h2 a:hover {
+  color: var(--neutralForeground2Hover);
 }
 .page-admin-popularity-transfers #popularityTransferSuccessMessage {
   white-space: pre-wrap;

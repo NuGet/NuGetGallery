@@ -271,7 +271,7 @@ body {
 .dependency-group {
 
   li span {
-    color: #666;
+    color: var(--neutralForeground1Rest);
   }
 }
 
@@ -340,13 +340,18 @@ body {
 
 .alert {
   a {
-    color: @link-color-darker;
+    color: var(--brandForegroundLinkRest);;
 
     &:hover,
     &:focus {
-      color: @link-hover-color;
+      color: var(--brandForegroundLinkHover);;
     }
   }
+}
+
+.row-checkbox-label {
+  display: flex;
+  gap: 10px;
 }
 
 .alert-transient {
@@ -608,5 +613,5 @@ body[id="/"] {
   margin: 0;
   background-repeat: no-repeat;
   background-attachment: fixed;
-  color: var(--neutralForeground1Rest)
+  color: var(--neutralForeground1Rest);
 }
