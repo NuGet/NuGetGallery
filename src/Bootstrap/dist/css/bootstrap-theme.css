@@ -282,6 +282,9 @@ body h3 {
   margin: 0;
   padding: 10px;
 }
+a {
+  color: var(--brandForegroundLinkRest);
+}
 .alert-transient-jumbotron {
   background: transparent;
 }
@@ -496,6 +499,7 @@ body[id="/"] {
   margin: 0;
   background-repeat: no-repeat;
   background-attachment: fixed;
+  color: var(--neutralForeground1Rest);
 }
 .modal-backdrop.in {
   opacity: 0.8 !important;
@@ -515,7 +519,7 @@ body[id="/"] {
 }
 .modal-container .modal-box {
   border-radius: 8px;
-  background-color: white;
+  background-color: var(--neutralBackground2Rest);
   margin-left: auto;
   margin-right: auto;
   min-height: 364px;
@@ -527,8 +531,8 @@ body[id="/"] {
   padding: 0px;
 }
 .modal-container .modal-box .modal-title {
-  background-color: #4181B8;
-  color: white;
+  background-color: var(--brandBackgroundStatic);
+  color: var(--neutralForegroundStaticInvertedRest);
   padding: 15px;
 }
 .modal-container .modal-box .modal-title .dismiss-button {
@@ -543,7 +547,7 @@ body[id="/"] {
   font-size: 14px;
 }
 .modal-container .modal-box .modal-body .tag-node {
-  background-color: #fff4ce;
+  background-color: var(--statusGenericMarigoldBackground2Rest);
   padding: 13px;
   text-align: left;
 }
@@ -3115,7 +3119,7 @@ p.frameworktableinfo-text {
   /* Brand colors */
   /* brand tokens have been swapped to use blues from the .NET brand colors */
   /* Brand Background Static */
-  --brandBackgroundStatic: var(--dotnetBluePrimary, #0b6cff);
+  --brandBackgroundStatic: var(--dotnetBluePrimary, #0f6cbd);
   /* Brand Background 1 */
   --brandBackground1Rest: var(--dotnetBluePrimary, #0b6cff);
   --brandBackground1Hover: var(--dotnetBlueShade10, #0956cc);
@@ -3455,7 +3459,7 @@ p.frameworktableinfo-text {
   /* Brand colors */
   /* brand tokens have been swapped to use blues from the .NET brand colors */
   /* Brand Background Static */
-  --brandBackgroundStatic: var(--dotnetBluePrimary, #0b6cff);
+  --brandBackgroundStatic: var(--dotnetBluePrimary, #0f6cbd);
   /* Brand Background 1 */
   --brandBackground1Rest: var(--dotnetBlueShade10, #0956cc);
   --brandBackground1Hover: var(--dotnetBluePrimary, #0b6cff);
