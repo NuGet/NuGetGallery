@@ -2069,7 +2069,8 @@ fieldset[disabled] .form-control {
 textarea.form-control {
   height: auto;
 }
-textarea.textarea-brand {
+textarea.textarea-brand,
+input.input-brand {
   color: var(--neutralForeground1Rest);
   background-color: var(--neutralBackground1Rest);
   border-radius: 4px;
@@ -2079,53 +2080,72 @@ textarea.textarea-brand {
   -webkit-box-shadow: none !important;
   box-shadow: none !important;
 }
-textarea.textarea-brand:hover {
+textarea.textarea-brand:hover,
+input.input-brand:hover {
   border: 1px solid var(--neutralStroke1Hover);
   border-bottom: 2px solid var(--neutralStrokeAccessibleHover);
 }
 textarea.textarea-brand:focus,
+input.input-brand:focus,
 textarea.textarea-brand:focus-within,
-textarea.textarea-brand:focus-visible {
+input.input-brand:focus-within,
+textarea.textarea-brand:focus-visible,
+input.input-brand:focus-visible {
   border: 1px solid var(--neutralStroke1Rest);
   border-bottom: 2px solid var(--brandStrokeCompoundRest);
 }
-textarea.textarea-brand[disabled] {
+textarea.textarea-brand[aria-invalid='true'],
+input.input-brand[aria-invalid='true'] {
+  border-color: var(--statusDangerStroke2Rest);
+}
+textarea.textarea-brand[disabled],
+input.input-brand[disabled] {
   background-color: transparent;
   color: var(--neutralForegroundDisabledRest);
   border-color: var(--neutralStrokeDisabledRest);
 }
-textarea.textarea-brand[disabled]::-moz-placeholder {
+textarea.textarea-brand[disabled]::-moz-placeholder,
+input.input-brand[disabled]::-moz-placeholder {
   color: var(--neutralForegroundDisabledRest);
   opacity: 1;
 }
-textarea.textarea-brand[disabled]:-ms-input-placeholder {
+textarea.textarea-brand[disabled]:-ms-input-placeholder,
+input.input-brand[disabled]:-ms-input-placeholder {
   color: var(--neutralForegroundDisabledRest);
 }
-textarea.textarea-brand[disabled]::-webkit-input-placeholder {
+textarea.textarea-brand[disabled]::-webkit-input-placeholder,
+input.input-brand[disabled]::-webkit-input-placeholder {
   color: var(--neutralForegroundDisabledRest);
 }
-textarea.textarea-brand[readonly] {
+textarea.textarea-brand[readonly],
+input.input-brand[readonly] {
   background-color: transparent;
   border-color: var(--neutralStrokeDisabledRest);
 }
-textarea.textarea-brand[readonly]::-moz-placeholder {
+textarea.textarea-brand[readonly]::-moz-placeholder,
+input.input-brand[readonly]::-moz-placeholder {
   color: var(--neutralForeground1Rest);
   opacity: 1;
 }
-textarea.textarea-brand[readonly]:-ms-input-placeholder {
+textarea.textarea-brand[readonly]:-ms-input-placeholder,
+input.input-brand[readonly]:-ms-input-placeholder {
   color: var(--neutralForeground1Rest);
 }
-textarea.textarea-brand[readonly]::-webkit-input-placeholder {
+textarea.textarea-brand[readonly]::-webkit-input-placeholder,
+input.input-brand[readonly]::-webkit-input-placeholder {
   color: var(--neutralForeground1Rest);
 }
-textarea.textarea-brand::-moz-placeholder {
+textarea.textarea-brand::-moz-placeholder,
+input.input-brand::-moz-placeholder {
   color: var(--neutralForeground4Rest);
   opacity: 1;
 }
-textarea.textarea-brand:-ms-input-placeholder {
+textarea.textarea-brand:-ms-input-placeholder,
+input.input-brand:-ms-input-placeholder {
   color: var(--neutralForeground4Rest);
 }
-textarea.textarea-brand::-webkit-input-placeholder {
+textarea.textarea-brand::-webkit-input-placeholder,
+input.input-brand::-webkit-input-placeholder {
   color: var(--neutralForeground4Rest);
 }
 @media screen and (-webkit-min-device-pixel-ratio: 0) {
@@ -2419,6 +2439,58 @@ select[multiple].input-lg {
 }
 .has-error .form-control-feedback {
   color: #a94442;
+}
+.has-error-brand .help-block,
+.has-error-brand .control-label,
+.has-error-brand .radio,
+.has-error-brand .checkbox,
+.has-error-brand .radio-inline,
+.has-error-brand .checkbox-inline,
+.has-error-brand.radio label,
+.has-error-brand.checkbox label,
+.has-error-brand.radio-inline label,
+.has-error-brand.checkbox-inline label {
+  color: var(--statusDangerForeground1Rest);
+}
+.has-error-brand .form-control {
+  border-color: var(--statusDangerStroke2Rest);
+}
+.has-error-brand .form-control:focus {
+  border-color: var(--statusDangerStroke2Rest);
+}
+.has-error-brand .input-group-addon {
+  color: var(--statusDangerForeground3Rest);
+  background-color: var(--statusDangerBackground1Rest);
+  border-color: var(--statusDangerStroke2Rest);
+}
+.has-error-brand .form-control-feedback {
+  color: var(--statusDangerForeground3Rest);
+}
+.form-control-validation-brand .help-block,
+.form-control-validation-brand .control-label,
+.form-control-validation-brand .radio,
+.form-control-validation-brand .checkbox,
+.form-control-validation-brand .radio-inline,
+.form-control-validation-brand .checkbox-inline,
+.form-control-validation-brand.radio label,
+.form-control-validation-brand.checkbox label,
+.form-control-validation-brand.radio-inline label,
+.form-control-validation-brand.checkbox-inline label {
+  color: var(--statusDangerForeground1Rest);
+}
+.form-control-validation-brand .form-control {
+  border-color: var(--statusDangerStroke2Rest);
+}
+.form-control-validation-brand .form-control:focus {
+  border-color: var(--statusDangerStroke2Rest);
+}
+.form-control-validation-brand .input-group-addon {
+  color: var(--statusDangerForeground3Rest);
+  background-color: var(--statusDangerBackground1Rest);
+  border-color: var(--statusDangerStroke2Rest);
+}
+.form-control-validation-brand .form-control-feedback {
+  color: var(--statusDangerForeground3Rest);
 }
 .has-feedback label ~ .form-control-feedback {
   top: 27px;
@@ -5054,11 +5126,11 @@ ul.list-packages {
 }
 .panel {
   margin-bottom: 22px;
-  background-color: #fff;
-  border: 1px solid transparent;
-  border-radius: 0px;
-  -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+  background-color: transparent;
+  border-radius: var(--X-Large, 8px);
+  -webkit-box-shadow: 0px 0px 2px 0px rgba(0, 0, 0, 0.12), 0px 2px 4px 0px rgba(0, 0, 0, 0.14);
+  box-shadow: 0px 0px 2px 0px rgba(0, 0, 0, 0.12), 0px 2px 4px 0px rgba(0, 0, 0, 0.14);
+  background-color: var(--neutralBackground1Rest);
 }
 .panel-body {
   padding: 15px;

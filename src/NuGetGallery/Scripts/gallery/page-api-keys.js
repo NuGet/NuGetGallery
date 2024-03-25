@@ -435,7 +435,7 @@
                 window.nuget.resetFormValidation(formElement);
 
                 // Remove error classes from the form groups.
-                $("#" + containerId + " .form-group.has-error").removeClass("has-error");
+                $("#" + containerId + " .form-group.has-error-brand").removeClass("has-error-brand");
 
                 // Scroll to the top of the available packages list.
                 $("#" + containerId + " .available-packages .panel-body").scrollTop(0);
