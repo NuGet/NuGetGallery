@@ -4,19 +4,21 @@
 
 <div id="form-field-reason" class="form-group @Html.HasErrorFor(m => m.Reason)">
     @Html.ShowLabelFor(m => m.Reason)
-    @Html.ShowEnumDropDownListFor(m => m.Reason, Model.ReasonChoices, "<Choose a Reason>")
+    @Html.ShowEnumDropDownListFor(m => m.Reason, Model.ReasonChoices, "<Choose a Reason>", "select-brand")
     @Html.ShowValidationMessagesFor(m => m.Reason)
 </div>
 
 <div class="form-group @Html.HasErrorFor(m => m.Signature)">
     @Html.ShowLabelFor(m => m.Signature)
-    @Html.ShowTextBoxFor(m => m.Signature)
+    @Html.ShowTextBoxFor(m => m.Signature, "input-brand")
     @Html.ShowValidationMessagesFor(m => m.Signature)
 </div>
 
 <div class="form-group">
-    @Html.ShowCheckboxFor(m => m.SoftDelete)
-    @Html.ShowLabelFor(m => m.SoftDelete)
+    <div class="row-checkbox-label">
+        @Html.ShowCheckboxFor(m => m.SoftDelete, customClass: "brand-checkbox")
+        @Html.ShowLabelFor(m => m.SoftDelete)
+    </div>
 
     <p>
         This will prevent new packages with the same id and version from being pushed to the gallery. It also displays "Package was deleted" on the package details page, helping existing users of the package to identify it was deleted.
@@ -24,13 +26,15 @@
 </div>
 
 <div class="form-group" id="DeleteEmptyPackageRegistrationContainer" style="display: none;">
-    @Html.ShowCheckboxFor(m => m.DeleteEmptyPackageRegistration)
-    @Html.ShowLabelFor(m => m.DeleteEmptyPackageRegistration)
+    <div class="row-checkbox-label">
+        @Html.ShowCheckboxFor(m => m.DeleteEmptyPackageRegistration, customClass: "brand-checkbox")
+        @Html.ShowLabelFor(m => m.DeleteEmptyPackageRegistration)
+    </div>
 
-    <p>
-        This will make the package id available again by removing the package registration. It's advised not to use this and leave the package registration intact, unless explicitly needed.
-    </p>
-</div>
+        <p>
+            This will make the package id available again by removing the package registration. It's advised not to use this and leave the package registration intact, unless explicitly needed.
+        </p>
+    </div>
 
 <hr />
 <p>
@@ -39,5 +43,5 @@
 <hr />
 
 <div class="form-group">
-    <input type="submit" class="btn btn-danger form-control" value="I understand the consequences, delete this package" />
+    <input type="submit" class="btn btn-brand-danger form-control" value="I understand the consequences, delete this package" />
 </div>

@@ -28,13 +28,13 @@
         }
         else
         {
-            @Html.ShowTextBoxFor(m => m.SignIn.UserNameOrEmail, brandClass: "input-brand")
+            @Html.ShowTextBoxFor(m => m.SignIn.UserNameOrEmail, customClass: "input-brand")
         }
         @Html.ShowValidationMessagesFor(m => m.SignIn.UserNameOrEmail)
     </div>
     <div class="form-group @Html.HasErrorFor(m => m.SignIn.Password)">
         @Html.ShowLabelFor(m => m.SignIn.Password)
-        @Html.ShowPasswordFor(m => m.SignIn.Password, brandClass: "input-brand")
+        @Html.ShowPasswordFor(m => m.SignIn.Password, customClass: "input-brand")
         @Html.ShowValidationMessagesFor(m => m.SignIn.Password)
     </div>
 

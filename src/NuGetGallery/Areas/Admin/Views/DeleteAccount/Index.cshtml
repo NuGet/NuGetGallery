@@ -7,8 +7,8 @@
 <section role="main" class="container main-container">
     <h2>Delete Account</h2>
     <form>
-        <textarea placeholder="Search for account to delete. Only one account at a time." autocomplete="off" autofocus style="width: 100%;" rows="5" data-bind="value: searchQuery"></textarea><br />
-        <input type="button" value="Search" data-bind="click: search" />
+        <textarea placeholder="Search for account to delete. Only one account at a time." autocomplete="off" autofocus style="width: 100%;" rows="5" class="textarea-brand" data-bind="value: searchQuery"></textarea><br />
+        <input type="button" class="btn-brand-secondary" value="Search" data-bind="click: search" />
     </form>
     <div style="display: none" data-bind="visible: searchResults().length === 0 && doneSearching()">
         <p>No account found.</p>
