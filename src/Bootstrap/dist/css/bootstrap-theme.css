@@ -1719,7 +1719,7 @@ p.frameworktableinfo-text {
 .page-package-details .used-by-desc {
   font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 14px;
-  color: #333333;
+  color: var(--neutralForeground3Rest);
   margin: 4px 0 0 0;
   line-height: 16px;
 }
@@ -1727,14 +1727,12 @@ p.frameworktableinfo-text {
   font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 16px;
   line-height: 19px;
-  color: #337ab7;
 }
 .page-package-details .gh-link,
 .page-package-details .ngp-link {
   font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 16px;
   line-height: 19px;
-  color: #337ab7;
   width: auto;
 }
 .page-package-details .used-by-download-icon {
@@ -1746,7 +1744,7 @@ p.frameworktableinfo-text {
   font-size: 14px;
   line-height: 16px;
   font-weight: 400;
-  color: #586069;
+  color: var(--neutralForeground3Rest);
 }
 .page-package-details .gh-star {
   font-size: 14px;
