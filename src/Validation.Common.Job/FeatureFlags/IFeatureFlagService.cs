@@ -18,5 +18,11 @@ namespace NuGet.Jobs.Validation
         /// https://github.com/NuGet/NuGetGallery/issues/7629
         /// </summary>
         bool IsOrchestratorLeaseEnabled();
+
+        /// <summary>
+        /// Determines whether do extra Validation logging:
+        /// https://github.com/NuGet/Engineering/issues/5250
+        /// </summary>
+        bool IsExtraValidationLoggingEnabled();
     }
 }
