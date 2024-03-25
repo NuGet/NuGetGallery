@@ -214,14 +214,16 @@
                 var cs = packageManager.InstallPackageCommands.Select((c, i) => i < lastIndex ? c + Environment.NewLine : c);
             }
             @* Writing out the install command must be on a single line to avoid undesired whitespace in the <pre> tag. *@
-            <pre class="install-script" id="@packageManager.Id-text">@foreach (var c in cs) {<span class="install-command-row">@c</span>}</pre>
-            <div class="copy-button">
-                <button id="@packageManager.Id-button" class="btn btn-default btn-warning" type="button"
-                        data-toggle="popover" data-placement="bottom" data-content="Copied."
-                        aria-label="@packageManager.CopyLabel" role="button">
-                    <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
-                </button>
-            </div>
+            <pre class="install-script" id="@packageManager.Id-text">@foreach (var c in cs) {<span class="install-command-row">@c</span>}
+                <div class="copy-button">
+                    <button id="@packageManager.Id-button" class="btn btn-brand-icon" type="button" 
+                    data-toggle="popover" data-placement="bottom" data-content="Copied."
+                    aria-label="@packageManager.CopyLabel" role="button">
+                        <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
+                        <span>Copy</span>
+                    </button>
+                </div>
+            </pre>
         </div>
 
         @switch (packageManager.AlertLevel)
@@ -922,7 +924,7 @@
                                     if ((packageVersion.Available && packageVersion.Listed && Model.ShowDetailsAndLinks)
                                         || (!packageVersion.Deleted && Model.CanDisplayPrivateMetadata))
                                     {
-                                        <tr class="@(packageVersion.IsCurrent(Model) ? "bg-info" : null)">
+                                        <tr class="@(packageVersion.IsCurrent(Model) ? "bg-brand-info" : null)">
                                             <td tabindex="0">
                                                 <a href="@Url.Package(packageVersion)" title="@packageVersion.Version">
                                                     @packageVersion.Version.Abbreviate(30)
