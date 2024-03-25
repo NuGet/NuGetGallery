@@ -138,10 +138,6 @@ input[type="checkbox"].brand-checkbox {
   height: 16px;
   border: 1px solid var(--neutralStrokeAccessibleRest);
   border-radius: 2px;
-<<<<<<< HEAD
-=======
-  // margin: 8px !important;
->>>>>>> 284e64c0b ([UI] Admin pages part 1)
   position: relative !important;
 }
 
@@ -272,64 +268,6 @@ input[type="checkbox"].brand-checkbox:focus {
     outline-offset: 0px;
     border-radius: 1px;
   }
-}
-
-textarea.textarea-brand {
-  color: var(--neutralForeground1Rest);
-  background-color: var(--neutralBackground1Rest);
-  border-radius: 4px;
-  border: 1px solid var(--neutralStroke1Rest);
-  border-bottom: 2px solid var(--neutralStrokeAccessibleRest);
-
-  outline: none !important;
-  box-shadow: none !important;
-
-  &:hover {
-    border: 1px solid var(--neutralStroke1Hover);
-    border-bottom: 2px solid var(--neutralStrokeAccessibleHover);
-  }
-
-  &:focus,
-  &:focus-within,
-  &:focus-visible {
-    border: 1px solid var(--neutralStroke1Rest);
-    border-bottom: 2px solid var(--brandStrokeCompoundRest);
-  }
-
-  &[disabled] {
-    background-color: transparent;
-    color: var(--neutralForegroundDisabledRest);
-    border-color: var(--neutralStrokeDisabledRest);
-
-    // Firefox
-    &::-moz-placeholder {
-      color: var(--neutralForegroundDisabledRest);
-      opacity: 1; // Override Firefox's unusual default opacity; see https://github.com/twbs/bootstrap/pull/11526
-    }
-    &:-ms-input-placeholder { color: var(--neutralForegroundDisabledRest); } // Internet Explorer 10+
-    &::-webkit-input-placeholder  { color: var(--neutralForegroundDisabledRest); } // Safari and Chrome
-  }
-
-  &[readonly] {
-    background-color: transparent;
-    border-color: var(--neutralStrokeDisabledRest);
-
-    // Firefox
-    &::-moz-placeholder {
-      color: var(--neutralForeground1Rest);
-      opacity: 1; // Override Firefox's unusual default opacity; see https://github.com/twbs/bootstrap/pull/11526
-    }
-    &:-ms-input-placeholder { color: var(--neutralForeground1Rest); } // Internet Explorer 10+
-    &::-webkit-input-placeholder  { color: var(--neutralForeground1Rest); } // Safari and Chrome
-  }
-
-  // Firefox
-  &::-moz-placeholder {
-    color: var(--neutralForeground4Rest);
-    opacity: 1; // Override Firefox's unusual default opacity; see https://github.com/twbs/bootstrap/pull/11526
-  }
-  &:-ms-input-placeholder { color: var(--neutralForeground4Rest); } // Internet Explorer 10+
-  &::-webkit-input-placeholder  { color: var(--neutralForeground4Rest); } // Safari and Chrome
 }
 
 textarea {
