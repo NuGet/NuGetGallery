@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <NuGetClientPackageVersion>6.9.1</NuGetClientPackageVersion>
-    <ServerCommonPackageVersion>2.120.0-dev-eryondon-extraValidation-9291953</ServerCommonPackageVersion>
+    <ServerCommonPackageVersion>2.220.0-main-9301227</ServerCommonPackageVersion>
     <NuGetJobsPackageVersion>4.3.0-dev-eryondon-extraValid-9293111</NuGetJobsPackageVersion>
   </PropertyGroup>
   <ItemGroup>
