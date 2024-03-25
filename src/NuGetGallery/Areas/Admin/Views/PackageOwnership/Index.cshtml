@@ -13,7 +13,7 @@
     </p>
 
     <form class="form-horizontal" method="get" action="@Url.Action("ValidateInput")">
-        <div class="form-group has-error"><div class="col-xs-12">@Html.ShowValidationMessagesForEmpty()</div></div>
+        <div class="form-group has-error-brand"><div class="col-xs-12">@Html.ShowValidationMessagesForEmpty()</div></div>
         <div class="form-group @Html.HasErrorFor(m => m.PackageIds)">
             <div class="col-xs-12">@Html.ShowValidationMessagesFor(m => m.PackageIds)</div>
             <div class="col-xs-12">
