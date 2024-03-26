@@ -54,7 +54,6 @@ namespace NuGetGallery
 
                         Cache = cacheQuery
                             .Select(pr => _typosquattingServiceHelper.NormalizeString(pr))
-                            .Distinct()
                             .ToList();
 
                         LastRefreshTime = DateTime.UtcNow;
