@@ -17,6 +17,14 @@ namespace NuGetGallery
         bool IsDistanceLessThanOrEqualToThreshold(string uploadedPackageId, string packageId);
 
         /// <summary>
+        /// This method is used to check if the distance between the currently uploaded package ID and another package ID is less than or equal to the threshold.
+        /// </summary>
+        /// <param name="uploadedPackageId">Uploaded package Id</param>
+        /// <param name="normalizedPackageId">Normalized Package Id compared to</param>
+        /// <returns>Return true if distance is less than the threshold</returns>
+        bool IsDistanceLessThanOrEqualToThresholdWithNormalizedPackageId(string uploadedPackageId, string normalizedPackageId);
+
+        /// <summary>
         /// This method is used to normalize string.
         /// </summary>
         /// <param name="str">String to normalize</param>
