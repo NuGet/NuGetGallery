@@ -87,11 +87,16 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpGet]
-        public ActionResult ValidateNewUsername(string newUsername, bool checkOwnedPackages, string oldUsername = "")
+        public ActionResult ValidateNewUsername(string newUsername, bool checkOwnedPackages, string oldUsername)
         {
             if (string.IsNullOrEmpty(newUsername))
             {
                 return Json(HttpStatusCode.BadRequest, "Username cannot be null or empty.", JsonRequestBehavior.AllowGet);
+            }
+
+            if (string.IsNullOrEmpty(oldUsername))
+            {
+                return Json(HttpStatusCode.BadRequest, "Old username cannot be null or empty.", JsonRequestBehavior.AllowGet);
             }
 
             var oldAccount = _userService.FindByUsername(oldUsername);

@@ -111,10 +111,23 @@ namespace NuGetGallery.Areas.Admin.Controllers
             [InlineData(null, false)]
             public void WhenInvalidNewUsernameReturnsBadRequestStatusCode(string newUsername, bool checkOwnedPackages)
             {
-                var result = ChangeUsernameController.ValidateNewUsername(newUsername, checkOwnedPackages) as JsonResult;
+                var result = ChangeUsernameController.ValidateNewUsername(newUsername, checkOwnedPackages, oldUsername: "testUser") as JsonResult;
 
                 Assert.Equal(((int)HttpStatusCode.BadRequest), ChangeUsernameController.Response.StatusCode);
                 Assert.Equal("Username cannot be null or empty.", result.Data);
+            }
+
+            [Theory]
+            [InlineData("", true)]
+            [InlineData("", false)]
+            [InlineData(null, true)]
+            [InlineData(null, false)]
+            public void WhenInvalidOldUsernameReturnsBadRequestStatusCode(string oldUsername, bool checkOwnedPackages)
+            {
+                var result = ChangeUsernameController.ValidateNewUsername("testUser", checkOwnedPackages, oldUsername) as JsonResult;
+
+                Assert.Equal(((int)HttpStatusCode.BadRequest), ChangeUsernameController.Response.StatusCode);
+                Assert.Equal("Old username cannot be null or empty.", result.Data);
             }
 
             [Theory]
@@ -123,7 +136,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             [InlineData("availableUsername", true, true)]
             public void WhenValidNewUsernameReturnsValidations(string newUsername, bool isFormatValid, bool isAvailable)
             {
-                var result = ChangeUsernameController.ValidateNewUsername(newUsername, checkOwnedPackages: false) as JsonResult;
+                var result = ChangeUsernameController.ValidateNewUsername(newUsername, checkOwnedPackages: false, oldUsername: "testUser") as JsonResult;
 
                 var validations = result.Data as ValidateUsernameResult;
 
