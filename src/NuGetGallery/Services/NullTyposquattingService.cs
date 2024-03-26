@@ -10,6 +10,11 @@ namespace NuGetGallery.Services
             return uploadedPackageId.ToLowerInvariant() == packageId.ToLowerInvariant();
         }
 
+        public bool IsDistanceLessThanOrEqualToThresholdWithNormalizedPackageId(string uploadedPackageId, string normalizedPackageId)
+        {
+            return uploadedPackageId.ToLowerInvariant() == normalizedPackageId.ToLowerInvariant();
+        }
+
         public string NormalizeString(string packageId)
         {
             if (string.IsNullOrEmpty(packageId))
