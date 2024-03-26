@@ -3186,6 +3186,42 @@ fieldset[disabled] .btn-danger.focus {
   box-shadow: inset 0px 0px 0px 1px var(--neutralStrokeFocus1Rest);
   outline: none !important;
 }
+.btn-brand-icon {
+  color: var(--neutralForegroundOnBrandRest);
+  background-color: var(--brandBackground1Rest);
+  border-color: var(--brandBackground1Rest);
+  border-radius: var(--Medium, 4px);
+  padding: 2px 8px;
+  border: 2px solid transparent;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+  outline: none;
+}
+.btn-brand-icon:hover {
+  border: 2px solid var(--brandBackground1Hover);
+  color: var(--neutralForegroundOnBrandRest);
+  background-color: var(--brandBackground1Hover);
+  -webkit-box-shadow: none;
+  box-shadow: none;
+  outline: none;
+}
+.btn-brand-icon:active {
+  border: 2px solid var(--brandBackground1Pressed);
+  color: var(--neutralForegroundOnBrandRest);
+  background-color: var(--brandBackground1Pressed);
+  -webkit-box-shadow: none;
+  box-shadow: none;
+  outline: none;
+}
+.btn-brand-icon:focus-within,
+.btn-brand-icon:focus-visible,
+.btn-brand-icon:focus {
+  border: 2px solid var(--neutralStrokeFocus2Rest);
+  color: var(--neutralForegroundOnBrandRest);
+  -webkit-box-shadow: inset 0px 0px 0px 1px var(--neutralStrokeFocus1Rest);
+  box-shadow: inset 0px 0px 0px 1px var(--neutralStrokeFocus1Rest);
+  outline: none !important;
+}
 .brand-button-transparent {
   color: var(--neutralForeground2Rest);
   background-color: var(--transparentBackgroundRest);
