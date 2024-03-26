@@ -129,5 +129,7 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
         public bool IsDisplayPackageReadmeWarningEnabled(User user) => throw new NotImplementedException();
 
         public bool IsFrameworkFilteringEnabled(User user) => throw new NotImplementedException();
+
+        public bool IsDisplayNuGetTrendsLinksEnabled() => throw new NotImplementedException();
     }
 }
