@@ -53,6 +53,7 @@ namespace NuGetGallery
                             .Select(pr => pr.Id)
                             .Take(TyposquattingCheckListConfiguredLength)
                             .Select(pr => _typosquattingServiceHelper.NormalizeString(pr))
+                            .Distinct()
                             .ToList();
 
                         LastRefreshTime = DateTime.UtcNow;
