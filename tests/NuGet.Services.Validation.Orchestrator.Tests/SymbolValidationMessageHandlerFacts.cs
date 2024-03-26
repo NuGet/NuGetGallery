@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -298,6 +299,11 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             public Task CompleteAsync() => throw new NotImplementedException();
             public string GetBody() => _inner.GetBody();
             public TStream GetBody<TStream>() => _inner.GetBody<TStream>();
+
+            public Stream GetRawBody()
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 

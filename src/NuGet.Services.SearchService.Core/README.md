@@ -128,22 +128,24 @@ depending on the `ignoreFilter` parameter.
 
 #### Request parameters
 
-Name         | Type    | Notes
------------- | ------- | -----
-q            | string  | The search terms used to filter packages
-skip         | integer | The number of results to skip, for pagination
-take         | integer | The number of results to return, for pagination
-prerelease   | boolean | `true` or `false` determining whether to include prerelease packages
-semVerLevel  | string  | A SemVer 1.0.0 version string: `1.0.0` or `2.0.0`
-ignoreFilter | boolean | `true` to include unlisted packages and ignore the `prerelease` parameter
-countOnly    | boolean | `true` to return only the total count and no metadata
-sortBy       | string  | Sort results using a specified ordering
-packageType  | string  | Filter results to those with the specified package type
-frameworks   | string  | Filter results to those targeting the specified framework generations
-tfms         | string  | Filter results to those targeting the specified asset framework TFMs (See [Target frameworks](https://learn.microsoft.com/en-us/nuget/reference/target-frameworks))
-luceneQuery  | bool    | `true` to treat a `q` starting with `id:` like `packageid:` (yes, it's silly, see [#7366](https://github.com/NuGet/NuGetGallery/issues/7366))
-testData     | bool    | `true` to include packages owned by nuget.org test accounts
-debug        | bool    | `true` to shows the raw Azure Search document and other diagnostic information
+Name                      | Type    | Notes
+------------------------- | ------- | -----
+q                         | string  | The search terms used to filter packages
+skip                      | integer | The number of results to skip, for pagination
+take                      | integer | The number of results to return, for pagination
+prerelease                | boolean | `true` to include prerelease packages
+semVerLevel               | string  | A SemVer 1.0.0 version string: `1.0.0` or `2.0.0`
+ignoreFilter              | boolean | `true` to include unlisted packages and ignore the `prerelease` parameter
+countOnly                 | boolean | `true` to return only the total count and no metadata
+sortBy                    | string  | Sort results using a specified ordering
+packageType               | string  | Filter results to those with the specified package type
+frameworks                | string  | Filter results to those targeting the specified framework generations
+tfms                      | string  | Filter results to those targeting the specified asset framework TFMs (See [Target frameworks](https://learn.microsoft.com/en-us/nuget/reference/target-frameworks))
+includeComputedFrameworks | boolean | `true` to filter packages based on their expanded list of computed frameworks, `false` to filter only on asset frameworks
+frameworkFilterMode       | string  | Values of `all` or `any` determining whether to show packages matching all of the specified frameworks and tfms filters, or any one of them
+luceneQuery               | bool    | `true` to treat a `q` starting with `id:` like `packageid:` (yes, it's silly, see [#7366](https://github.com/NuGet/NuGetGallery/issues/7366))
+testData                  | bool    | `true` to include packages owned by nuget.org test accounts
+debug                     | bool    | `true` to show the raw Azure Search document and other diagnostic information
 
 If no `q` is provided, all packages should be returned, within the boundaries imposed by skip and take.
 
@@ -185,9 +187,13 @@ For `title-asc` and `title-desc`, a package's ID is used if the package has no e
 
 The `packageType` parameter is a free form input. It defaults to an empty string, which means no filter. If there are no packages with the specified packageType in a request, an empty `data` array will be returned.
 
-The `frameworks` and `tfms` parameters are string inputs that take comma-separated lists of the framework generations and asset framework TFMs to filter search results by. They default to empty strings, which means no filter will be applied. Results will only include packages that target **ALL** of the framework generations and TFMs specified in the query.
+The `frameworks` and `tfms` parameters are string inputs that take comma-separated lists of the framework generations and TFMs to filter search results by. They default to empty strings, which means no filter will be applied.
 
 ```eg. ...&frameworks=netstandard&tfms=net6.0,net45```
+
+The `includeComputedFrameworks` parameter, `true` by default, determines whether we filter packages based on their expanded list of computed compatible frameworks, or just the asset frameworks that are explicitly targeted by the package.
+
+The `frameworkFilterMode` parameter, which can take values of `all` or `any`, determines whether to show packages matching all of the specified frameworks and tfms filters, or any one of them. When not included, it defaults to `all`.
 
 Test data may be always returned (i.e. the `testData` parameter is ignored) for certain optimized queries. For example,
 performing a `packageid:BaseTestPackage` query with `testData=false` will still return a result because internally this
@@ -211,6 +217,10 @@ different names (PascalCase instead of camelCase) and are arranged differently. 
   - `Published` - published timestamp
   - `LastEdited` - last edited timestamp
   - `FlattenedDependencies` - the package dependencies structured data but as a flat string using a custom encoding
+  - `Frameworks` - array of package's asset framework generations
+  - `Tfms` - array of package's asset TFMs
+  - `ComputedFrameworks` - array of package's computed compatible framework generations
+  - `ComputedTfms` - array of package's computed compatible TFMs
   - `MinClientVersion`
   - `Hash` - base64 encoded
   - `HashAlgorithm`
@@ -257,6 +267,20 @@ values but expects the properties to be present.
       "FlattenedDependencies": "",
       "Dependencies": [],
       "SupportedFrameworks": [],
+      "Frameworks": [
+        "net"
+      ],
+      "Tfms": [
+        "net6.0"
+      ],
+      "ComputedFrameworks": [
+        "net"
+      ],
+      "ComputedTfms": [
+        "net6.0",
+        "net7.0",
+        "net8.0"
+      ],
       "Hash": "kRvVPTmvFRa+EaKmYJhitnHbZLexclm3fLtKJGwigbExRlrmOCtYH+zXfGSeuxCE980x3aSgqwM9V5PaNlnFRw==",
       "HashAlgorithm": "SHA512",
       "PackageFileSize": 9988,
