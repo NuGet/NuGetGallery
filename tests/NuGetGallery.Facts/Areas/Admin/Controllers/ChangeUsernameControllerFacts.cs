@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -104,14 +105,29 @@ namespace NuGetGallery.Areas.Admin.Controllers
         public class ValidateNewUsernameMethod : FactsBase
         {
             [Theory]
-            [InlineData("")]
-            [InlineData(null)]
-            public void WhenInvalidNewUsernameReturnsBadRequestStatusCode(string newUsername)
+            [InlineData("", true)]
+            [InlineData("", false)]
+            [InlineData(null, true)]
+            [InlineData(null, false)]
+            public void WhenInvalidNewUsernameReturnsBadRequestStatusCode(string newUsername, bool checkOwnedPackages)
             {
-                var result = ChangeUsernameController.ValidateNewUsername(newUsername) as JsonResult;
+                var result = ChangeUsernameController.ValidateNewUsername(newUsername, checkOwnedPackages, oldUsername: "testUser") as JsonResult;
 
                 Assert.Equal(((int)HttpStatusCode.BadRequest), ChangeUsernameController.Response.StatusCode);
                 Assert.Equal("Username cannot be null or empty.", result.Data);
+            }
+
+            [Theory]
+            [InlineData("", true)]
+            [InlineData("", false)]
+            [InlineData(null, true)]
+            [InlineData(null, false)]
+            public void WhenInvalidOldUsernameReturnsBadRequestStatusCode(string oldUsername, bool checkOwnedPackages)
+            {
+                var result = ChangeUsernameController.ValidateNewUsername("testUser", checkOwnedPackages, oldUsername) as JsonResult;
+
+                Assert.Equal(((int)HttpStatusCode.BadRequest), ChangeUsernameController.Response.StatusCode);
+                Assert.Equal("Old username cannot be null or empty.", result.Data);
             }
 
             [Theory]
@@ -120,12 +136,34 @@ namespace NuGetGallery.Areas.Admin.Controllers
             [InlineData("availableUsername", true, true)]
             public void WhenValidNewUsernameReturnsValidations(string newUsername, bool isFormatValid, bool isAvailable)
             {
-                var result = ChangeUsernameController.ValidateNewUsername(newUsername) as JsonResult;
+                var result = ChangeUsernameController.ValidateNewUsername(newUsername, checkOwnedPackages: false, oldUsername: "testUser") as JsonResult;
 
                 var validations = result.Data as ValidateUsernameResult;
 
                 Assert.Equal(isFormatValid, validations.IsFormatValid);
                 Assert.Equal(isAvailable, validations.IsAvailable);
+            }
+
+            [Theory]
+            [InlineData("someNewUsername", "testOrganization", false)]
+            [InlineData("someNewUsername", "testUser", true)]
+            public void WhenCheckOwnedPackagesReturnThem(string newUsername, string oldUsername, bool expectPackages)
+            {
+                var result = ChangeUsernameController.ValidateNewUsername(newUsername, checkOwnedPackages: true, oldUsername) as JsonResult;
+
+                var validations = result.Data as ValidateUsernameResult;
+
+                Assert.True(validations.IsFormatValid);
+                Assert.True(validations.IsAvailable);
+
+                if(expectPackages)
+                {
+                    Assert.NotEmpty(validations.OwnedPackageIds);
+                }
+                else
+                {
+                    Assert.Empty(validations.OwnedPackageIds);
+                }
             }
         }
 
@@ -211,6 +249,32 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 Assert.Equal(((int)HttpStatusCode.OK), ChangeUsernameController.Response.StatusCode);
                 Assert.Equal("Account renamed successfully!", result.Data);
             }
+
+            [Fact]
+            public async void WhenValidAccountCasingChangeAndNewUsernameReturnsOkStatusCode()
+            {
+                var oldUsername = IndividualAccount.Username;
+
+                var result = await ChangeUsernameController.ChangeUsername(IndividualAccount.Username, IndividualAccount.Username.ToUpper()) as JsonResult;
+
+                GetMock<IUserService>().Verify(u => u.FindByUsername(oldUsername, false));
+                GetMock<IUserService>().Verify(u => u.FindByUsername(oldUsername.ToUpper(), true));
+                GetMock<IEntityRepository<User>>().Verify(r => r.InsertOnCommit(It.IsAny<User>()), Times.Never());
+                GetMock<IEntitiesContext>().Verify(c => c.SaveChangesAsync());
+
+                Assert.Equal(oldUsername.ToUpper(), IndividualAccount.Username);
+                Assert.Equal(((int)HttpStatusCode.OK), ChangeUsernameController.Response.StatusCode);
+                Assert.Equal("Account renamed successfully!", result.Data);
+            }
+
+            [Fact]
+            public async void FailWhenAccountCasingNotAvailable()
+            {
+                var result = await ChangeUsernameController.ChangeUsername(IndividualAccount.Username, OrganizationAccount.Username.ToUpper()) as JsonResult;
+
+                Assert.Equal(((int)HttpStatusCode.BadRequest), ChangeUsernameController.Response.StatusCode);
+                Assert.Equal("New username validation failed.", result.Data);
+            }
         }
 
         public class FactsBase : TestContainer
@@ -227,29 +291,36 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 OrganizationAccount = new Fakes().Organization;
                 OrganizationAdministrator = new Fakes().OrganizationAdmin;
 
+                // FindByUsername is case-insensitive in the database, so we need to simulate that here
                 GetMock<IUserService>()
-                    .Setup(u => u.FindByUsername(IndividualAccount.Username, It.IsAny<bool>()))
+                    .Setup(u => u.FindByUsername(It.Is<string>(x => string.Equals(IndividualAccount.Username, x, System.StringComparison.OrdinalIgnoreCase)), It.IsAny<bool>()))
                     .Returns(IndividualAccount);
                 GetMock<IUserService>()
-                    .Setup(u => u.FindByUsername(IndividualAccount.EmailAddress, false))
+                    .Setup(u => u.FindByUsername(It.Is<string>(x => string.Equals(IndividualAccount.EmailAddress, x, System.StringComparison.OrdinalIgnoreCase)), false))
                     .Returns(IndividualAccount);
 
                 GetMock<IUserService>()
-                    .Setup(u => u.FindByUsername(OrganizationAccount.Username, true))
+                    .Setup(u => u.FindByUsername(It.Is<string>(x => string.Equals(OrganizationAccount.Username, x, System.StringComparison.OrdinalIgnoreCase)), true))
                     .Returns(OrganizationAccount);
                 GetMock<IUserService>()
-                    .Setup(u => u.FindByUsername(OrganizationAccount.EmailAddress, true))
+                    .Setup(u => u.FindByUsername(It.Is<string>(x => string.Equals(OrganizationAccount.EmailAddress, x, System.StringComparison.OrdinalIgnoreCase)), true))
                     .Returns(OrganizationAccount);
                 GetMock<IUserService>()
-                    .Setup(u => u.FindByUsername(AvailableUsername, true))
+                    .Setup(u => u.FindByUsername(It.Is<string>(x => string.Equals(AvailableUsername, x, System.StringComparison.OrdinalIgnoreCase)), true))
                     .ReturnsNull();
+
+                GetMock<IPackageService>().Setup(p => p.FindPackagesByOwner(It.IsAny<User>(), It.IsAny<bool>(), It.IsAny<bool>()))
+                    .Returns(new List<Package>());
+                GetMock<IPackageService>().Setup(p => p.FindPackagesByOwner(It.Is<User>(u => u.Username == "testUser"), It.IsAny<bool>(), It.IsAny<bool>()))
+                    .Returns(new List<Package>() { new Package() { PackageRegistration = new PackageRegistration() { Id = "testPackage" } }});
 
                 ChangeUsernameController = new ChangeUsernameController(
                     GetMock<IUserService>().Object,
                     GetMock<IEntityRepository<User>>().Object,
                     GetMock<IEntitiesContext>().Object,
                     GetMock<IDateTimeProvider>().Object,
-                    GetMock<IAuditingService>().Object);
+                    GetMock<IAuditingService>().Object,
+                    GetMock<IPackageService>().Object);
 
                 TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), ChangeUsernameController);
             }
