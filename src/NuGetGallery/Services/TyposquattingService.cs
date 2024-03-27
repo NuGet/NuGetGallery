@@ -60,18 +60,20 @@ namespace NuGetGallery
 
             var totalTimeStopwatch = Stopwatch.StartNew();
             var checklistRetrievalStopwatch = Stopwatch.StartNew();
-            var packageIdsCheckList = _typosquattingCheckListCacheService.GetTyposquattingCheckList(checkListConfiguredLength, checkListExpireTimeInHours, _packageService);
+            
+            // It must be normalized during initial list creation
+            var normalizedPackageIdsCheckList = _typosquattingCheckListCacheService.GetTyposquattingCheckList(checkListConfiguredLength, checkListExpireTimeInHours, _packageService);
             checklistRetrievalStopwatch.Stop();
 
             _telemetryService.TrackMetricForTyposquattingChecklistRetrievalTime(uploadedPackageId, checklistRetrievalStopwatch.Elapsed);
 
             var algorithmProcessingStopwatch = Stopwatch.StartNew();
             var collisionIds = new ConcurrentBag<string>();
-            Parallel.ForEach(packageIdsCheckList, (packageId, loopState) =>
+            Parallel.ForEach(normalizedPackageIdsCheckList, (normalizedPackageId, loopState) =>
             {
-                if (_typosquattingServiceHelper.IsDistanceLessThanOrEqualToThreshold(uploadedPackageId, packageId))
+                if (_typosquattingServiceHelper.IsDistanceLessThanOrEqualToThresholdWithNormalizedPackageId(uploadedPackageId, normalizedPackageId))
                 {
-                    collisionIds.Add(packageId);
+                    collisionIds.Add(normalizedPackageId);
                 }
             });
             algorithmProcessingStopwatch.Stop();
@@ -86,7 +88,7 @@ namespace NuGetGallery
                     totalTimeStopwatch.Elapsed,
                     wasUploadBlocked,
                     typosquattingCheckCollisionIds,
-                    packageIdsCheckList.Count,
+                    normalizedPackageIdsCheckList.Count,
                     checkListExpireTimeInHours);
 
                 return false;
@@ -126,7 +128,7 @@ namespace NuGetGallery
                     totalTimeStopwatch.Elapsed,
                     wasUploadBlocked,
                     typosquattingCheckCollisionIds,
-                    packageIdsCheckList.Count,
+                    normalizedPackageIdsCheckList.Count,
                     checkListExpireTimeInHours);
 
             return wasUploadBlocked;
