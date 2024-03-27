@@ -180,6 +180,12 @@ namespace NuGetGallery
                 viewModel.NuGetPackageExplorerUrl = nugetPackageExplorerReadyUrl;
             }
 
+            var nugetTrendsUrl = $"https://nugettrends.com/packages?ids={package.Id}";
+            if (PackageHelper.TryPrepareUrlForRendering(nugetTrendsUrl, out string nugetTrendsReadyUrl))
+            {
+                viewModel.NuGetTrendsUrl = nugetTrendsReadyUrl;
+            }
+
             viewModel.EmbeddedLicenseType = package.EmbeddedLicenseType;
             viewModel.LicenseExpression = package.LicenseExpression;
 
