@@ -4,7 +4,7 @@
     <EnablePackageVersionOverride>false</EnablePackageVersionOverride>
     <ServerCommonPackageVersion>2.220.0-main-9301227</ServerCommonPackageVersion>
     <NuGetClientPackageVersion>6.9.1</NuGetClientPackageVersion>
-    <NuGetGalleryPackageVersion>4.4.6-dev-eryondon-extraValidation-9293959</NuGetGalleryPackageVersion>
+    <NuGetGalleryPackageVersion>4.4.5-dev-9313974</NuGetGalleryPackageVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Autofac" Version="4.9.1" />
