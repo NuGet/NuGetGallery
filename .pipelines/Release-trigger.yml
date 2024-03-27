@@ -7,6 +7,10 @@ trigger:
     - dev
     - agr-*
 
+variables:
+- name: NugetMultifeedWarnLevel
+  value: none
+  
 pool:
   vmImage: 'windows-latest'
 
