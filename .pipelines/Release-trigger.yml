@@ -1,0 +1,17 @@
+name: ServerCommon release trigger $(Build.BuildId) - $(Date:yyyyMMdd)
+
+trigger:
+  branches:
+    include:
+    - main
+    - dev
+
+variables:
+- name: NugetMultifeedWarnLevel
+  value: none
+  
+pool:
+  vmImage: 'windows-latest'
+
+steps:
+- powershell: Write-Host "Dummy task"
