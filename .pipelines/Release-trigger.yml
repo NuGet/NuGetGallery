@@ -5,7 +5,6 @@ trigger:
     include:
     - main
     - dev
-    - agr-*
 
 variables:
 - name: NugetMultifeedWarnLevel
