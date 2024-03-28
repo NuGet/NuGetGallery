@@ -303,6 +303,8 @@ a:focus {
 }
 a:focus {
   outline: 4px solid -webkit-focus-ring-color;
+  outline: 2px solid var(--neutralStrokeFocus2Rest);
+  border-radius: 4px;
   outline-offset: -2px;
 }
 figure {
@@ -2067,6 +2069,8 @@ input[type="file"]:focus,
 input[type="radio"]:focus,
 input[type="checkbox"]:focus {
   outline: 4px solid -webkit-focus-ring-color;
+  outline: 2px solid var(--neutralStrokeFocus2Rest);
+  border-radius: 4px;
   outline-offset: -2px;
 }
 @media (forced-colors: active) {
@@ -2814,6 +2818,8 @@ select[multiple].input-lg {
 .btn:active.focus,
 .btn.active.focus {
   outline: 4px solid -webkit-focus-ring-color;
+  outline: 2px solid var(--neutralStrokeFocus2Rest);
+  border-radius: 4px;
   outline-offset: -2px;
 }
 .btn:hover,
@@ -3291,7 +3297,6 @@ fieldset[disabled] .btn-danger.focus {
   border: 2px solid transparent;
   -webkit-box-shadow: none !important;
   box-shadow: none !important;
-  padding: 5px 12px;
 }
 .btn-brand-danger:hover,
 .btn-brand-danger:focus:hover {
@@ -3310,7 +3315,7 @@ fieldset[disabled] .btn-danger.focus {
 }
 .btn-link {
   font-weight: 400;
-  color: #337ab7;
+  color: var(--brandForegroundLinkRest);
   border-radius: 0;
 }
 .btn-link,
@@ -3330,7 +3335,7 @@ fieldset[disabled] .btn-link {
 }
 .btn-link:hover,
 .btn-link:focus {
-  color: #23527c;
+  color: var(--brandForegroundLinkHover);
   text-decoration: underline;
   background-color: transparent;
 }
@@ -3338,7 +3343,7 @@ fieldset[disabled] .btn-link {
 fieldset[disabled] .btn-link:hover,
 .btn-link[disabled]:focus,
 fieldset[disabled] .btn-link:focus {
-  color: #666666;
+  color: var(--neutralForegroundDisabledRest);
   text-decoration: none;
 }
 .btn-lg,
