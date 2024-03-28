@@ -15,4 +15,4 @@ pool:
   vmImage: 'windows-latest'
 
 steps:
-- powershell: Write-Host "Dummy task"
+- powershell: Write-Host "Dummy task."
