@@ -84,15 +84,22 @@
 @helper DisplayFrameworkBadge(PackageFrameworkCompatibilityData tfmCompatibilityData, FrameworkContext context, int? itemIndex, string eventName)
 {
     <a href=@Url.FrameworksTab(Model.PackageId, Model.PackageVersion)
-       @if (itemIndex.HasValue)
-       {
-            @: data-track="@eventName" data-track-value="@itemIndex" data-click-source="FrameworkBadge"
-            @: data-package-id="@Model.PackageId" data-package-version="@Model.PackageVersion"
-            @: data-badge-framework="@tfmCompatibilityData.Framework.GetShortFolderName()" data-badge-is-computed="@tfmCompatibilityData.IsComputed"
+       @if (itemIndex.HasValue) { @: data-track="@eventName" data-track-value="@itemIndex" data-click-source="FrameworkBadge"
+        @: data-package-id="@Model.PackageId" data-package-version="@Model.PackageVersion"
+        @: data-badge-framework="@tfmCompatibilityData.Framework.GetShortFolderName()" data-badge-is-computed="@tfmCompatibilityData.IsComputed"
+        @: class="tooltip-target"
        }>
-        <span class=@(tfmCompatibilityData.IsComputed ? "framework-badge-computed" : "framework-badge-asset") aria-label="@GetBadgeTooltip(context, tfmCompatibilityData)" data-content="@GetBadgeTooltip(context, tfmCompatibilityData)">
+        <span class=@(tfmCompatibilityData.IsComputed ? "framework-badge-computed" : "framework-badge-asset") >
             @GetBadgeDisplayName(context, tfmCompatibilityData)
         </span>
+        <div class="tooltip-block">
+            <div class="tooltip-wrapper popover right" role="tooltip">
+                <div class="arrow"></div>
+                <div class="popover-content">
+                    @GetBadgeTooltip(context, tfmCompatibilityData)
+                </div>
+            </div>
+        </div>
     </a>
 }
 

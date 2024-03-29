@@ -71,97 +71,117 @@
     <section role="main" class="container main-container page-list-packages">
         <div class="row clearfix no-margin">
             <div class="@(Model.IsAdvancedSearchFlightEnabled ? "col-md-3" : "") no-padding" id="filters-column">
-                @if (Model.IsAdvancedSearchFlightEnabled)
-                {
-                    <div class="toggle-advanced-search-panel">
-                        Advanced search filters
-                        <button class="advanced-search-toggle-button" aria-label="Toggles search filters on narrow screens" aria-expanded="false"
-                                aria-controls="advancedSearchToggleButton" tabindex="0" id="advancedSearchToggleButton" type="button">
-                            <i class="ms-Icon ms-Icon--ChevronDown" id="advancedSearchToggleChevron"></i>
-                        </button>
-                    </div>
-                    <div class="row clearfix advanced-search-panel" id="advancedSearchPanel">
-                        <input type="text" hidden id="frameworks" name="frameworks" value="@Model.Frameworks">
-                        <input type="text" hidden id="tfms" name="tfms" value="@Model.Tfms">
-                        @if (Model.IsFrameworkFilteringEnabled)
-                        {
-                            <div>
-                                <fieldset id="frameworkfilters">
-                                    <legend>
-                                        Frameworks
-                                        <a href="@(Model.FrameworksFilteringInformationLink)" class="frameworkfilters-info"
-                                           data-content="@NuGetGallery.Strings.FrameworkFilters_Tooltip"
-                                           aria-label="@NuGetGallery.Strings.FrameworkFilters_Tooltip">
-                                            <i class="framework-filter-info-icon ms-Icon ms-Icon--Info"></i>
-                                        </a>
-                                    </legend>
-                                    @if (Model.IsAdvancedFrameworkFilteringEnabled)
-                                    {
-                                        <div class="computed-frameworks-option">
-                                            <label for="computed-frameworks-checkbox" aria-label="Include computed compatible frameworks when filtering for packages.">Include compatible frameworks</label>
-                                            <input type="checkbox" id="computed-frameworks-checkbox" checked="@Model.IncludeComputedFrameworks">
-                                            <input type="hidden" id="includeComputedFrameworks" name="includeComputedFrameworks" value="@Model.IncludeComputedFrameworks.ToString().ToLower()">
-                                        </div>
-                                        <div class="framework-filter-mode-option" aria-label="ALL/ANY toggle that decides whether to show packages matching ALL of the selected Target Frameworks (TFMs), or ANY of them.">
-                                            <p>
-                                                Framework Filter Mode
-                                                <i class="frameworkfiltermode-info ms-Icon ms-Icon--Info" tabindex="0" data-content="Decides whether to show packages matching ALL of the selected Target Frameworks (TFMs), or ANY of them."></i>
-                                            </p>
-                                            <div class="toggle-switch-control">
-                                                <input type="radio" id="all-selector" name="frameworkFilterMode" value="all" tabindex="0" @(Model.FrameworkFilterMode == "any" ? "" : "checked") />
-                                                <label for="all-selector" aria-label="Show packages matching ALL of the selected Frameworks and TFMs.">ALL</label>
-                                                <input type="radio" id="any-selector" name="frameworkFilterMode" value="any" tabindex="0" @(Model.FrameworkFilterMode == "any" ? "checked" : "") />
-                                                <label for="any-selector" aria-label="Show packages matching ANY of the selected Frameworks or TFMs.">ANY</label>
-                                            </div>
-                                        </div>
-                                    }
-                                    @foreach (var framework in Model.FrameworkFilters.Values)
-                                    {
-                                        @AddFrameworkGroupOption(framework.ShortName, framework.DisplayName, framework.Tfms);
-                                    }
-                                </fieldset>
-                            </div>
-                        }
-                        @if (Model.PackageType != null && !UiSupportedPackageTypes.ContainsKey(Model.PackageType))
-                        {
-                            <div class="row warning-panel">
-                                <div class="col-md-12 icon-text alert alert-warning">
-                                    <i class="ms-Icon ms-Icon--Info" aria-hidden="true"></i>
-                                    Filtering on unrecognized package type: @Model.PackageType
-                                </div>
-                            </div>
-                        }
+            @if (Model.IsAdvancedSearchFlightEnabled)
+            {
+                <div class="toggle-advanced-search-panel">
+                    Advanced search filters
+                    <button class="advanced-search-toggle-button" aria-label="Toggles search filters on narrow screens" aria-expanded="false"
+                            aria-controls="advancedSearchToggleButton" tabindex="0" id="advancedSearchToggleButton" type="button">
+                        <i class="ms-Icon ms-Icon--ChevronDown" id="advancedSearchToggleChevron"></i>
+                    </button>
+                </div>
+                <div class="row clearfix advanced-search-panel" id="advancedSearchPanel">
+                    <input type="text" hidden id="frameworks" name="frameworks" value="@Model.Frameworks">
+                    <input type="text" hidden id="tfms" name="tfms" value="@Model.Tfms">
+                    @if (Model.IsFrameworkFilteringEnabled)
+                    {
                         <div>
-                            <fieldset id="packagetype">
-                                <legend>Package type</legend>
-                                @foreach (var packageType in UiSupportedPackageTypes)
+                            <fieldset id="frameworkfilters">
+                                <legend>
+                                    <a href="@(Model.FrameworksFilteringInformationLink)" class="frameworkfilters-info"
+                                       data-content="@NuGetGallery.Strings.FrameworkFilters_Tooltip"
+                                       aria-label="@NuGetGallery.Strings.FrameworkFilters_Tooltip">
+                                        Frameworks
+                                    </a>
+                                    <div class="tooltip-block">
+                                        <a href="javascript:void(0)" class="tooltip-target">
+                                            <i class="framework-filter-info-icon ms-Icon ms-Icon--Info" ></i>
+                                            <div class="tooltip-wrapper tooltip-with-icon popover right" role="tooltip" >
+                                                <div class="arrow"></div>
+                                                <div class="popover-content">
+                                                    @NuGetGallery.Strings.FrameworkFilters_Tooltip
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </legend>
+                                @if (Model.IsAdvancedFrameworkFilteringEnabled)
                                 {
-                                    @AddPackageFilterOption(packageType.Value, packageType.Key, isDefault: packageType.Key == DefaultPackageType)
+                                    <div class="computed-frameworks-option">
+                                        <label for="computed-frameworks-checkbox" aria-label="Include computed compatible frameworks when filtering for packages.">Include compatible frameworks</label>
+                                        <input type="checkbox" id="computed-frameworks-checkbox" checked="@Model.IncludeComputedFrameworks">
+                                        <input type="hidden" id="includeComputedFrameworks" name="includeComputedFrameworks" value="@Model.IncludeComputedFrameworks.ToString().ToLower()">
+                                    </div>
+                                    <div class="framework-filter-mode-option" aria-label="ALL/ANY toggle that decides whether to show packages matching ALL of the selected Target Frameworks (TFMs), or ANY of them.">
+                                        <p>
+                                            Framework Filter Mode
+                                            <div class="tooltip-block tooltip-with-icon">
+                                                <a href="javascript:void(0)" class="tooltip-target">
+                                                    <i class="frameworkfiltermode-info ms-Icon ms-Icon--Info"></i>
+                                                    <div class="tooltip-wrapper tooltip-with-icon popover right" role="tooltip">
+                                                        <div class="arrow"></div>
+                                                        <div class="popover-content">
+                                                            Decides whether to show packages matching ALL of the selected Target Frameworks (TFMs), or ANY of them.
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </p>
+                                        <div class="toggle-switch-control">
+                                            <input type="radio" id="all-selector" name="frameworkFilterMode" value="all" tabindex="0" @(Model.FrameworkFilterMode == "any" ? "" : "checked") />
+                                            <label for="all-selector" aria-label="Show packages matching ALL of the selected Frameworks and TFMs.">ALL</label>
+                                            <input type="radio" id="any-selector" name="frameworkFilterMode" value="any" tabindex="0" @(Model.FrameworkFilterMode == "any" ? "checked" : "") />
+                                            <label for="any-selector" aria-label="Show packages matching ANY of the selected Frameworks or TFMs.">ANY</label>
+                                        </div>
+                                    </div>
+                                }
+                                @foreach (var framework in Model.FrameworkFilters.Values)
+                                {
+                                    @AddFrameworkGroupOption(framework.ShortName, framework.DisplayName, framework.Tfms);
                                 }
                             </fieldset>
                         </div>
-                        <div>
-                            <fieldset>
-                                <legend>Options</legend>
-                                <div class="prerel-option">
-                                    <input id="prerel-checkbox" type="checkbox" checked="@Model.IncludePrerelease">
-                                    <label for="prerel-checkbox" aria-label="Options: Include prerelease">Include prerelease</label>
-                                </div>
-                            </fieldset>
-                        </div>
-                        <div class="row">
-                            <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
-                                <input class="btn btn-primary form-control" type="submit" value="Apply">
+                    }
+                    @if (Model.PackageType != null && !UiSupportedPackageTypes.ContainsKey(Model.PackageType))
+                    {
+                        <div class="row warning-panel">
+                            <div class="col-md-12 icon-text alert alert-warning">
+                                <i class="ms-Icon ms-Icon--Info" aria-hidden="true"></i>
+                                Filtering on unrecognized package type: @Model.PackageType
                             </div>
-                            <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 reset-btn">
-                                <input class="btn btn-link form-control" type="button" value="Reset" id="reset-advanced-search">
-                            </div>
-
                         </div>
-                        <input type="hidden" id="prerel" name="prerel" value="@Model.IncludePrerelease.ToString().ToLower()">
+                    }
+                    <div>
+                        <fieldset id="packagetype">
+                            <legend>Package type</legend>
+                            @foreach (var packageType in UiSupportedPackageTypes)
+                            {
+                                @AddPackageFilterOption(packageType.Value, packageType.Key, isDefault: packageType.Key == DefaultPackageType)
+                            }
+                        </fieldset>
                     </div>
-                }
-            </div>
+                    <div>
+                        <fieldset>
+                            <legend>Options</legend>
+                            <div class="prerel-option">
+                                <input id="prerel-checkbox" type="checkbox" checked="@Model.IncludePrerelease">
+                                <label for="prerel-checkbox" aria-label="Options: Include prerelease">Include prerelease</label>
+                            </div>
+                        </fieldset>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                            <input class="btn btn-primary form-control" type="submit" value="Apply">
+                        </div>
+                        <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 reset-btn">
+                            <input class="btn btn-link form-control" type="button" value="Reset" id="reset-advanced-search">
+                        </div>
+
+                    </div>
+                    <input type="hidden" id="prerel" name="prerel" value="@Model.IncludePrerelease.ToString().ToLower()">
+                </div>
+            }
+        </div>
             <div class="@(Model.IsAdvancedSearchFlightEnabled ? "col-md-9" : "col-md-12")" id="results-column">
                 <div class="row">
                     <div class="col-md-9">
