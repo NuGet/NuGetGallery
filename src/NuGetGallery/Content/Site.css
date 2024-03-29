@@ -1726,3 +1726,36 @@ img.contributors-contributor-avatar {
     font-size: 1.1em;
     padding: 5px 15px 5px 15px;
 }
+/* Packages page tooltip */
+.page-list-packages .frameworkfilters-info {
+    color: #333;
+    text-decoration: none;
+}
+
+.tooltip-target {
+    position: relative;
+    text-decoration: none;
+}
+
+.tooltip-block {
+    position: relative;
+    display: inline-block;
+    color: #333;
+}
+
+.tooltip-wrapper.popover {
+    min-width: 276px;
+    left: -6px;
+    position: absolute;
+    transform: translateY(-50%);
+    top: calc(50% - 6px);
+}
+
+.tooltip-wrapper.popover.tooltip-with-icon {
+    left: -7px;
+    top: calc(50% - 6px);
+}
+
+.tooltip-block .popover-content {
+    display: block;
+}
