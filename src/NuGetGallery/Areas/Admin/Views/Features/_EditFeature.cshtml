@@ -12,10 +12,10 @@
             @Html.Hidden("Name", Model.Name)
 
             <div class="row">
-                <div class="col-sm-6 form-group">
+                <div class="col-md-6 form-group">
                     @Html.EnumDropDownListFor(m => m.Status, new { @class = "select-brand"})
                 </div>
-                <div class="col-sm-6 form-group">
+                <div class="col-md-6 form-group">
                     <input id="Update" type="submit" class="btn btn-brand" value="Update" />
                 </div>
             </div>
