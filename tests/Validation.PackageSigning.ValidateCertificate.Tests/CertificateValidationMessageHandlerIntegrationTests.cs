@@ -55,7 +55,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
             _target = new CertificateValidationMessageHandler(
                 _certificateStore.Object,
                 certificateValidationService,
-                new OnlineCertificateVerifier(),
+                new OnlineCertificateVerifier(Mock.Of<ILogger<OnlineCertificateVerifier>>()),
                 _validationEnqueuer.Object,
                 _featureFlagService.Object,
                 Mock.Of<ILogger<CertificateValidationMessageHandler>>());

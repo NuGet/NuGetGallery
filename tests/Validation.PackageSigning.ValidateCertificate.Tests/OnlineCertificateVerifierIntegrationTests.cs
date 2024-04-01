@@ -4,6 +4,8 @@
 using System;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Moq;
 using NuGet.Services.Validation;
 using TestUtil;
 using Validation.PackageSigning.ValidateCertificate.Tests.Support;
@@ -23,7 +25,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
         {
             _fixture = fixture ?? throw new ArgumentNullException(nameof(fixture));
 
-            _target = new OnlineCertificateVerifier();
+            _target = new OnlineCertificateVerifier(Mock.Of<ILogger<OnlineCertificateVerifier>>());
         }
 
         [AdminOnlyFact]
