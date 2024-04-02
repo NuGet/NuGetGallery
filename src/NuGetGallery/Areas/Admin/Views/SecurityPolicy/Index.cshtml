@@ -14,8 +14,8 @@
     <h2>User Security Policies</h2>
 
     <form>
-        <textarea placeholder="Search for usernames (comma-separated)" autocomplete="off" autofocus style="width: 100%;" rows="5" data-bind="value: searchQuery"></textarea><br />
-        <input type="button" value="Search" title="Search" data-bind="click: search" />
+        <textarea placeholder="Search for usernames (comma-separated)" autocomplete="off" autofocus style="width: 100%;" rows="5" class="textarea-brand" data-bind="value: searchQuery"></textarea><br />
+        <input type="button" class="btn-brand-secondary" value="Search" title="Search" data-bind="click: search" />
     </form><br />
 
     <div data-bind="visible: searchResults().length > 0">
@@ -34,7 +34,7 @@
                             <th>Username</th>
                             @foreach (var subscription in Model.SubscriptionNames)
                             {
-                                <th><input type="checkbox" data-bind="click: toggleSelectAll, checked: selectAllState.@subscription" />@subscription</th>
+                                <th><input type="checkbox" class="brand-checkbox" data-bind="click: toggleSelectAll, checked: selectAllState.@subscription" />@subscription</th>
                             }
                         </tr>
                     </thead>
@@ -43,7 +43,7 @@
                             <td><a href="#" data-bind="text: Username, attr: { href: $parent.generateUserUrl($data) }"></a></td>
                             @foreach (var subscription in Model.SubscriptionNames)
                             {
-                                <td><input type="checkbox" data-bind="checked: $data.Selected.@subscription, value: $parent.generateValue($data, '@subscription')" /></td>
+                                <td><input type="checkbox" class="brand-checkbox" data-bind="checked: $data.Selected.@subscription, value: $parent.generateValue($data, '@subscription')" /></td>
                             }
                         </tr>
                     </tbody>
@@ -57,7 +57,7 @@
                         Onboarding users to security policy subscriptions could result in changes which <strong>CANNOT</strong> be undone.
                     </p>
 
-                    <input type="submit" value="I understand, update policies." title="I understand, update policies." data-bind="click: update" />
+                    <input type="submit" class="btn-brand-secondary" value="I understand, update policies." title="I understand, update policies." data-bind="click: update" />
                     <a class="cancel" href="@Url.Action("Index", "Home")" title="Cancel changes">Cancel</a>
                 </fieldset>
             </div>
