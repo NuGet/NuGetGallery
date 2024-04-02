@@ -271,7 +271,7 @@ body {
 .dependency-group {
 
   li span {
-    color: #666;
+    color: var(--neutralForeground1Rest);
   }
 }
 
@@ -347,6 +347,11 @@ body {
       color: var(--brandForegroundLinkHover);
     }
   }
+}
+
+.row-checkbox-label {
+  display: flex;
+  gap: 10px;
 }
 
 .alert-transient {
@@ -608,5 +613,5 @@ body[id="/"] {
   margin: 0;
   background-repeat: no-repeat;
   background-attachment: fixed;
-  color: var(--neutralForeground1Rest)
+  color: var(--neutralForeground1Rest);
 }
