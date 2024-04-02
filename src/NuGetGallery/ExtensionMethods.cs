@@ -197,6 +197,12 @@ namespace NuGetGallery
             return html.TextAreaFor(expression, rows, columns, htmlAttributes);
         }
 
+        public static HtmlString ShowTextAreaFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression, int rows, int columns, string customClass = "")
+        {
+            var htmlAttributes = GetHtmlAttributes(html, expression, customClass: customClass);
+            return html.TextAreaFor(expression, rows, columns, htmlAttributes);
+        }
+
         public static MvcHtmlString ShowEnumDropDownListFor<TModel, TEnum>(
             this HtmlHelper<TModel> html,
             Expression<Func<TModel, TEnum?>> expression,

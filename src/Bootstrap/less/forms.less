@@ -78,7 +78,7 @@ input[type="search"] {
     
     width: 16px;
     height: 16px;
-    border-radius: 50%;
+    border-radius: 50% !important;
     border: 1px solid var(--neutralStrokeAccessibleRest);
     margin: 8px;
   }
@@ -137,7 +137,7 @@ input[type="checkbox"].brand-checkbox {
   width: 16px;
   height: 16px;
   border: 1px solid var(--neutralStrokeAccessibleRest);
-  border-radius: 2px;
+  border-radius: 2px !important;
   position: relative !important;
 }
 
@@ -211,7 +211,7 @@ input[type="checkbox"].brand-checkbox:focus {
     width: 16px;
     height: 16px;
     border: 1px solid var(--neutralStrokeAccessibleRest);
-    border-radius: 2px;
+    border-radius: 2px !important;
     margin: 8px !important;
     position: relative !important;
   }
@@ -473,6 +473,10 @@ select.select-brand {
 
 textarea.textarea-brand,
 input.input-brand {
+  .input-base-class();
+}
+
+.multi-select-dropdown.dropdown-content.dropdown-selector.dropdown-filter {
   .input-base-class();
 }
 

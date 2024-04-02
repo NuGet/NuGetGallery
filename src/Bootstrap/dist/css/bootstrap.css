@@ -1855,7 +1855,7 @@ input[type="search"] {
   cursor: pointer;
   width: 16px;
   height: 16px;
-  border-radius: 50%;
+  border-radius: 50% !important;
   border: 1px solid var(--neutralStrokeAccessibleRest);
   margin: 8px;
 }
@@ -1911,7 +1911,7 @@ input[type="checkbox"].brand-checkbox {
   width: 16px;
   height: 16px;
   border: 1px solid var(--neutralStrokeAccessibleRest);
-  border-radius: 2px;
+  border-radius: 2px !important;
   position: relative !important;
 }
 input[type="checkbox"].brand-checkbox:checked::after {
@@ -1985,7 +1985,7 @@ input[type="checkbox"].brand-checkbox:focus {
   width: 16px;
   height: 16px;
   border: 1px solid var(--neutralStrokeAccessibleRest);
-  border-radius: 2px;
+  border-radius: 2px !important;
   margin: 8px !important;
   position: relative !important;
 }
@@ -2344,6 +2344,68 @@ input.input-brand:-ms-input-placeholder {
 }
 textarea.textarea-brand::-webkit-input-placeholder,
 input.input-brand::-webkit-input-placeholder {
+  color: var(--neutralForeground4Rest);
+}
+.multi-select-dropdown.dropdown-content.dropdown-selector.dropdown-filter {
+  color: var(--neutralForeground1Rest);
+  background-color: var(--neutralBackground1Rest);
+  border-radius: 4px;
+  border: 1px solid var(--neutralStroke1Rest);
+  border-bottom: 2px solid var(--neutralStrokeAccessibleRest);
+  outline: none !important;
+  -webkit-box-shadow: none !important;
+  box-shadow: none !important;
+}
+.multi-select-dropdown.dropdown-content.dropdown-selector.dropdown-filter:hover {
+  border: 1px solid var(--neutralStroke1Hover);
+  border-bottom: 2px solid var(--neutralStrokeAccessibleHover);
+}
+.multi-select-dropdown.dropdown-content.dropdown-selector.dropdown-filter:focus,
+.multi-select-dropdown.dropdown-content.dropdown-selector.dropdown-filter:focus-within,
+.multi-select-dropdown.dropdown-content.dropdown-selector.dropdown-filter:focus-visible {
+  border: 1px solid var(--neutralStroke1Rest);
+  border-bottom: 2px solid var(--brandStrokeCompoundRest);
+}
+.multi-select-dropdown.dropdown-content.dropdown-selector.dropdown-filter[aria-invalid='true'] {
+  border-color: var(--statusDangerStroke2Rest);
+}
+.multi-select-dropdown.dropdown-content.dropdown-selector.dropdown-filter[disabled] {
+  background-color: transparent;
+  color: var(--neutralForegroundDisabledRest);
+  border-color: var(--neutralStrokeDisabledRest);
+}
+.multi-select-dropdown.dropdown-content.dropdown-selector.dropdown-filter[disabled]::-moz-placeholder {
+  color: var(--neutralForegroundDisabledRest);
+  opacity: 1;
+}
+.multi-select-dropdown.dropdown-content.dropdown-selector.dropdown-filter[disabled]:-ms-input-placeholder {
+  color: var(--neutralForegroundDisabledRest);
+}
+.multi-select-dropdown.dropdown-content.dropdown-selector.dropdown-filter[disabled]::-webkit-input-placeholder {
+  color: var(--neutralForegroundDisabledRest);
+}
+.multi-select-dropdown.dropdown-content.dropdown-selector.dropdown-filter[readonly] {
+  background-color: transparent;
+  border-color: var(--neutralStrokeDisabledRest);
+}
+.multi-select-dropdown.dropdown-content.dropdown-selector.dropdown-filter[readonly]::-moz-placeholder {
+  color: var(--neutralForeground1Rest);
+  opacity: 1;
+}
+.multi-select-dropdown.dropdown-content.dropdown-selector.dropdown-filter[readonly]:-ms-input-placeholder {
+  color: var(--neutralForeground1Rest);
+}
+.multi-select-dropdown.dropdown-content.dropdown-selector.dropdown-filter[readonly]::-webkit-input-placeholder {
+  color: var(--neutralForeground1Rest);
+}
+.multi-select-dropdown.dropdown-content.dropdown-selector.dropdown-filter::-moz-placeholder {
+  color: var(--neutralForeground4Rest);
+  opacity: 1;
+}
+.multi-select-dropdown.dropdown-content.dropdown-selector.dropdown-filter:-ms-input-placeholder {
+  color: var(--neutralForeground4Rest);
+}
+.multi-select-dropdown.dropdown-content.dropdown-selector.dropdown-filter::-webkit-input-placeholder {
   color: var(--neutralForeground4Rest);
 }
 @media screen and (-webkit-min-device-pixel-ratio: 0) {
@@ -3204,6 +3266,10 @@ fieldset[disabled] .btn-danger.focus {
   border: 2px solid transparent;
   -webkit-box-shadow: none;
   box-shadow: none;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
   outline: none;
 }
 .btn-brand-icon:hover {

@@ -46,8 +46,6 @@ p {
   /* Web/Body 2 */
   font-size: 16px;
   font-weight: 400;
-  line-height: 22px;
-  /* 137.5% */
 }
 label {
   color: var(--neutralForeground1Rest);
@@ -1285,7 +1283,7 @@ p.frameworktableinfo-text {
   margin-bottom: 0;
 }
 .page-api-keys .upsert-api-key .available-packages .panel-body {
-  padding-top: 0;
+  padding-top: 2px;
   padding-bottom: 0;
 }
 @media (max-width: 768px) {
@@ -1356,7 +1354,7 @@ p.frameworktableinfo-text {
   }
 }
 .page-api-keys .upsert-api-key .required:after {
-  color: red;
+  color: var(--statusDangerStroke2Rest);
   content: " *";
 }
 .page-api-keys .add-api-key {
@@ -1375,7 +1373,7 @@ p.frameworktableinfo-text {
   top: 2px;
 }
 .page-api-keys .api-key-details .icon-details {
-  color: #666666;
+  color: var(--neutralForeground1Rest);
   margin: 10px 0;
 }
 .page-api-keys .api-key-details .icon-details li {
@@ -1384,7 +1382,7 @@ p.frameworktableinfo-text {
 .page-api-keys .api-key-details .icon-details li + li {
   margin-left: 10px;
   padding-left: 10px;
-  border-left: 1px solid #dbdbdb;
+  border-left: 1px solid var(--neutralForeground1Rest);
 }
 .page-api-keys .api-key-details .package-list li {
   overflow-y: visible;
@@ -1393,7 +1391,7 @@ p.frameworktableinfo-text {
   border-top: 1px solid #dbdbdb;
 }
 .page-api-keys .revoke-api-key {
-  color: #df001e;
+  color: var(--statusDangerStroke2Rest);
 }
 .page-blog {
   margin-top: 33px;
@@ -2034,7 +2032,7 @@ p.frameworktableinfo-text {
   display: none;
 }
 .page-downloads .older-versions-dropdown p {
-  color: #e50000;
+  color: var(--statusDangerForeground3Rest);
   font-size: 14px;
   display: none;
 }
@@ -2733,7 +2731,6 @@ p.frameworktableinfo-text {
   margin-top: 50px;
 }
 .page-profile .profile-details .statistics {
-  color: #000;
   font-weight: 300;
 }
 .page-profile .profile-details .statistics .statistic {
@@ -2842,7 +2839,7 @@ p.frameworktableinfo-text {
   margin: 20px;
 }
 .page-sign-in .required:after {
-  color: red;
+  color: var(--statusDangerForeground3Rest);
   content: " *";
 }
 .page-statistics-most-downloaded .show-all-packages-toggle {

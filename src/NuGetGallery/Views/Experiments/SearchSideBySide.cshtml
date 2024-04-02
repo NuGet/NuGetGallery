@@ -13,17 +13,17 @@
             <div class="row">
                 <div class="col-xs-offset-3 col-xs-6 text-center">
                     @ViewHelpers.AlertWarning(
-                        @<text>
-                            The side-by-side search page is now <b>closed</b>.
-                            <br /><br />
-                            Thank you for trying out the side-by-side preview. The new and improved NuGet search
-                            is now <a href="@Url.PackageList()">live</a>! For details about the initial release, check out the
-                            <a href="https://devblogs.microsoft.com/nuget/new-and-improved-nuget-search/">blog post</a>.
-                            The old search results are no longer available.
-                            <br /><br />
-                            Keep an eye on <a href="https://twitter.com/nuget">Twitter</a> to hear about future search
-                            improvements that you can try out.
-                        </text>)
+                            @<text>
+                                The side-by-side search page is now <b>closed</b>.
+                                <br /><br />
+                                Thank you for trying out the side-by-side preview. The new and improved NuGet search
+                                is now <a href="@Url.PackageList()">live</a>! For details about the initial release, check out the
+                                <a href="https://devblogs.microsoft.com/nuget/new-and-improved-nuget-search/">blog post</a>.
+                                The old search results are no longer available.
+                                <br /><br />
+                                Keep an eye on <a href="https://twitter.com/nuget">Twitter</a> to hear about future search
+                                improvements that you can try out.
+                            </text>)
                 </div>
             </div>
         }
@@ -35,36 +35,36 @@
                     @ViewHelpers.Section(
                         this,
                         "instructions",
-                            @<text>Instructions</text>,
+                                @<text>Instructions</text>,
                             @<text></text>,
-                            @<text>
-                                <p>
-                                    Enter a search query below. The query will be sent to our existing search service ("old
-                                    results") as well as to our new search implementation that is based on Azure Search ("new
-                                    results").
-                                </p>
-                                <p>
-                                    Once you provide a search query, take a look at the results and fill out the form below so
-                                    that we can understand your thoughts on how the new results can be improved. We're still
-                                    playing with how the search query is parsed and how relevant packages are ranked so any
-                                    input you can provide is helpful!
-                                </p>
-                                <p>
-                                    If you'd like us to be able to reach out to your concerning some feedback you have left,
-                                    please leave your email address. We'll read all of your feedback whether it is anonymous
-                                    or not and would be happy to start a conversation over email if you have more ideas or
-                                    concerns that don't fit well in the little comment box below.
-                                </p>
-                                <p>
-                                    If you're happy with the new results, we'd love to hear that too.
-                                </p>
-                                <p>
-                                    A lot of ideas have already been voiced on the
-                                    <a href="https://github.com/NuGet/NuGetGallery/issues/4124">Improve search on NuGet.org</a>
-                                    GitHub issue but this side-by-side page is intended to help us gather even more feedback.
-                                </p>
-                            </text> ,
-                    expanded: false)
+                        @<text>
+                            <p>
+                                Enter a search query below. The query will be sent to our existing search service ("old
+                                results") as well as to our new search implementation that is based on Azure Search ("new
+                                results").
+                            </p>
+                            <p>
+                                Once you provide a search query, take a look at the results and fill out the form below so
+                                that we can understand your thoughts on how the new results can be improved. We're still
+                                playing with how the search query is parsed and how relevant packages are ranked so any
+                                input you can provide is helpful!
+                            </p>
+                            <p>
+                                If you'd like us to be able to reach out to your concerning some feedback you have left,
+                                please leave your email address. We'll read all of your feedback whether it is anonymous
+                                or not and would be happy to start a conversation over email if you have more ideas or
+                                concerns that don't fit well in the little comment box below.
+                            </p>
+                            <p>
+                                If you're happy with the new results, we'd love to hear that too.
+                            </p>
+                            <p>
+                                A lot of ideas have already been voiced on the
+                                <a href="https://github.com/NuGet/NuGetGallery/issues/4124">Improve search on NuGet.org</a>
+                                GitHub issue but this side-by-side page is intended to help us gather even more feedback.
+                            </p>
+                        </text>,
+        expanded: false)
 
                     <form aria-label="Package search bar" action="@Url.SearchSideBySide()" method="get">
                         @Html.Partial("_SearchBar")
@@ -158,44 +158,46 @@
 
                                     <div class="form-group @Html.HasErrorFor(m => m.BetterSide)">
                                         @Html.ShowLabelFor(m => m.BetterSide)
-                                        <div class="radio">
-                                            <label>
+                                        <div class="row-checkbox-label">
+                                            <label class="brand-radio">
                                                 <input type="radio" name="BetterSide" id="better-side-old" value="Old">
-                                                Old results
+                                                <span>Old results</span>
                                             </label>
-                                            <label>
+                                            <label class="brand-radio">
                                                 <input type="radio" name="BetterSide" id="better-side-new" value="New">
-                                                New results
+                                                <span>
+                                                    New results
+                                                </span>
                                             </label>
-                                            <label>
+                                            <label class="brand-radio">
                                                 <input type="radio" name="BetterSide" id="better-side-neither" value="Neither">
-                                                Neither
+                                                <span>Neither</span>
                                             </label>
                                         </div>
                                         @Html.ShowValidationMessagesFor(m => m.BetterSide)
                                     </div>
                                     <div class="hidden form-group @Html.HasErrorFor(m => m.MostRelevantPackage)" id="most-revelant-package">
                                         @Html.ShowLabelFor(m => m.MostRelevantPackage)
-                                        @Html.ShowTextBoxFor(m => m.MostRelevantPackage, placeholder: "Package ID")
+                                        @Html.ShowTextBoxFor(m => m.MostRelevantPackage, placeholder: "Package ID", customClass: "input-brand")
                                         @Html.ShowValidationMessagesFor(m => m.MostRelevantPackage)
                                     </div>
                                     <div class="hidden form-group @Html.HasErrorFor(m => m.ExpectedPackages)" id="expected-packages">
                                         @Html.ShowLabelFor(m => m.ExpectedPackages)
-                                        @Html.ShowTextBoxFor(m => m.ExpectedPackages, placeholder: "PackageA, PackageB")
+                                        @Html.ShowTextBoxFor(m => m.ExpectedPackages, placeholder: "PackageA, PackageB", customClass: "input-brand")
                                         @Html.ShowValidationMessagesFor(m => m.ExpectedPackages)
                                     </div>
                                     <div class="form-group @Html.HasErrorFor(m => m.Comments)">
                                         @Html.ShowLabelFor(m => m.Comments)
-                                        @Html.ShowTextAreaFor(m => m.Comments, 5, 50)
+                                        @Html.ShowTextAreaFor(m => m.Comments, 5, 50, customClass: "textarea-brand")
                                         @Html.ShowValidationMessagesFor(m => m.Comments)
                                     </div>
                                     <div class="form-group @Html.HasErrorFor(m => m.EmailAddress)">
                                         @Html.ShowLabelFor(m => m.EmailAddress)
-                                        @Html.ShowTextBoxFor(m => m.EmailAddress)
+                                        @Html.ShowTextBoxFor(m => m.EmailAddress, customClass: "input-brand")
                                         @Html.ShowValidationMessagesFor(m => m.EmailAddress)
                                     </div>
                                     <div class="form-group">
-                                        <input type="submit" class="btn btn-primary form-control" value="Submit feedback" title="Submit feedback" />
+                                        <input type="submit" class="btn btn-brand form-control" value="Submit feedback" title="Submit feedback" />
                                     </div>
                                 </fieldset>
                                 <p>
