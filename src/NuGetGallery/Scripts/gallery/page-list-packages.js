@@ -48,17 +48,29 @@ $(function() {
         collapsible.addEventListener('click', toggleCollapsible);
     }
 
-    const advancedSearchToggleButton = document.getElementById('advancedSearchToggleButton');
-    advancedSearchToggleButton.addEventListener('click', toggleAdvancedSearchPanel);
     var resized = false;
     var initialScreenSize = window.innerWidth;
     const chevronIcon = document.getElementById('advancedSearchToggleChevron');
+
+    const advancedSearchToggleButton = document.getElementById('advancedSearchToggleButton');
+
+    if (advancedSearchToggleButton) {
+        advancedSearchToggleButton.addEventListener('click', toggleAdvancedSearchPanel);
+
+        window.addEventListener('resize', () => {
+            resized = true;
+            toggleAdvancedSearchPanel();
+        });
+    }
 
     /* For narrow screens only */
     function toggleAdvancedSearchPanel() {
 
         const filtersContent = document.getElementById('advancedSearchPanel');
-        var computedStyle = window.getComputedStyle(filtersContent);
+
+        if (filtersContent) {
+            var computedStyle = window.getComputedStyle(filtersContent);
+        }
 
         if (window.innerWidth <= 992 && !resized) {
             filtersContent.style.display = (computedStyle.display === 'none') ? 'block' : 'none';
@@ -78,11 +90,6 @@ $(function() {
         initialScreenSize = window.innerWidth;
         resized = false;
     }
-
-    window.addEventListener('resize', () => {
-        resized = true;
-        toggleAdvancedSearchPanel(); 
-    });
 
     function toggleCollapsible() {
         var dataTab = document.getElementById(this.getAttribute('tab') + 'tab');
