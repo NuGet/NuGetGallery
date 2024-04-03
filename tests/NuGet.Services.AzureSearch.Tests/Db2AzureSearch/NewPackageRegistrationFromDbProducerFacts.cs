@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using Moq;
+using NuGet.Protocol.Catalog;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using NuGet.Services.Entities;
 using NuGet.Services.Metadata.Catalog;
@@ -21,7 +22,7 @@ using Xunit.Abstractions;
 
 namespace NuGet.Services.AzureSearch.Db2AzureSearch
 {
-    public class NewPackageRegistrationProducerFacts
+    public class NewPackageRegistrationFromDbProducerFacts
     {
         public class ProduceWorkAsync
         {
@@ -31,17 +32,18 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             private readonly Mock<IOptionsSnapshot<Db2AzureSearchDevelopmentConfiguration>> _developmentOptions;
             private readonly Db2AzureSearchConfiguration _config;
             private readonly Db2AzureSearchDevelopmentConfiguration _developmentConfig;
-            private readonly RecordingLogger<NewPackageRegistrationProducer> _logger;
+            private readonly RecordingLogger<NewPackageRegistrationFromDbProducer> _logger;
             private readonly DbSet<PackageRegistration> _packageRegistrations;
             private readonly DbSet<Package> _packages;
             private readonly ConcurrentBag<NewPackageRegistration> _work;
             private readonly CancellationToken _token;
-            private readonly NewPackageRegistrationProducer _target;
+            private readonly NewPackageRegistrationFromDbProducer _target;
             private readonly Mock<IAuxiliaryFileClient> _auxiliaryFileClient;
             private readonly Mock<IDownloadsV1JsonClient> _downloadsV1JsonClient;
             private readonly Mock<IDatabaseAuxiliaryDataFetcher> _databaseFetcher;
             private readonly Mock<IDownloadTransferrer> _downloadTransferrer;
             private readonly Mock<IFeatureFlagService> _featureFlags;
+            private readonly Mock<ICatalogClient> _catalogClient;
             private readonly DownloadData _downloads;
             private readonly PopularityTransferData _popularityTransfers;
             private readonly SortedDictionary<string, long> _transferChanges;
@@ -59,7 +61,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 };
                 _developmentOptions = new Mock<IOptionsSnapshot<Db2AzureSearchDevelopmentConfiguration>>();
                 _developmentConfig =new Db2AzureSearchDevelopmentConfiguration();
-                _logger = output.GetLogger<NewPackageRegistrationProducer>();
+                _logger = output.GetLogger<NewPackageRegistrationFromDbProducer>();
                 _packageRegistrations = DbSetMockFactory.Create<PackageRegistration>();
                 _packages = DbSetMockFactory.Create<Package>();
                 _work = new ConcurrentBag<NewPackageRegistration>();
@@ -95,6 +97,8 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                     .Setup(x => x.IsPopularityTransferEnabled())
                     .Returns(true);
 
+                _catalogClient = new Mock<ICatalogClient>();
+
                 _entitiesContextFactory
                    .Setup(x => x.CreateAsync(It.IsAny<bool>()))
                    .ReturnsAsync(() => _entitiesContext.Object);
@@ -111,13 +115,14 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                     .Setup(x => x.Value)
                     .Returns(() => _developmentConfig);
 
-                _target = new NewPackageRegistrationProducer(
+                _target = new NewPackageRegistrationFromDbProducer(
                     _entitiesContextFactory.Object,
                     _auxiliaryFileClient.Object,
                     _downloadsV1JsonClient.Object,
                     _databaseFetcher.Object,
                     _downloadTransferrer.Object,
                     _featureFlags.Object,
+                    _catalogClient.Object,
                     _options.Object,
                     _developmentOptions.Object,
                     _logger);

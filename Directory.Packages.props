@@ -22,6 +22,7 @@
     <PackageVersion Include="Microsoft.AspNet.Web.Optimization" Version="1.1.3" />
     <PackageVersion Include="Microsoft.AspNet.WebApi.Client" Version="5.2.3" />
     <PackageVersion Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
+    <PackageVersion Include="Microsoft.Azure.Kusto.Data" Version="12.1.1" />
     <PackageVersion Include="Microsoft.Azure.Storage.DataMovement" Version="0.9.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="6.0.0" />
     <PackageVersion Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform" Version="3.6.0" />

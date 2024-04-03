@@ -148,7 +148,7 @@ namespace NuGet.Services.AzureSearch
             document.Created = leaf.Created;
             document.Description = leaf.Description;
             document.FileSize = leaf.PackageSize;
-            document.FlattenedDependencies = GetFlattenedDependencies(leaf);
+            document.FlattenedDependencies = GetFlattenedDependencies(leaf.DependencyGroups);
             document.Hash = leaf.PackageHash;
             document.HashAlgorithm = leaf.PackageHashAlgorithm;
             document.Language = leaf.Language;
@@ -246,15 +246,15 @@ namespace NuGet.Services.AzureSearch
         /// Example D (just target framework):
         ///     ::net20|::net35|::net40|::net45|NETStandard.Library:1.6.1:netstandard1.0
         /// </summary>
-        private static string GetFlattenedDependencies(PackageDetailsCatalogLeaf leaf)
+        public static string GetFlattenedDependencies(List<PackageDependencyGroup> dependencyGroups)
         {
-            if (leaf.DependencyGroups == null)
+            if (dependencyGroups == null)
             {
                 return null;
             }
 
             var builder = new StringBuilder();
-            foreach (var dependencyGroup in leaf.DependencyGroups)
+            foreach (var dependencyGroup in dependencyGroups)
             {
                 var targetFramework = dependencyGroup.ParseTargetFramework();
 

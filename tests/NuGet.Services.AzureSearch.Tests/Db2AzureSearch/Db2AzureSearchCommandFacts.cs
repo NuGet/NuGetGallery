@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Azure.Search.Documents.Models;
 using Microsoft.Extensions.Options;
 using Moq;
-using NuGet.Protocol.Catalog;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using NuGet.Services.Entities;
 using NuGet.Services.Metadata.Catalog.Persistence;
@@ -27,7 +26,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         private readonly Mock<IBlobContainerBuilder> _blobContainerBuilder;
         private readonly Mock<IIndexBuilder> _indexBuilder;
         private readonly Mock<IBatchPusher> _batchPusher;
-        private readonly Mock<ICatalogClient> _catalogClient;
         private readonly Mock<IStorageFactory> _storageFactory;
         private readonly Mock<IOwnerDataClient> _ownerDataClient;
         private readonly Mock<IDownloadDataClient> _downloadDataClient;
@@ -49,7 +47,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             _blobContainerBuilder = new Mock<IBlobContainerBuilder>();
             _indexBuilder = new Mock<IIndexBuilder>();
             _batchPusher = new Mock<IBatchPusher>();
-            _catalogClient = new Mock<ICatalogClient>();
             _storageFactory = new Mock<IStorageFactory>();
             _ownerDataClient = new Mock<IOwnerDataClient>();
             _downloadDataClient = new Mock<IDownloadDataClient>();
@@ -91,9 +88,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                         new VersionListData(new Dictionary<string, VersionPropertiesData>()),
                         AccessConditionWrapper.GenerateEmptyCondition())));
             _batchPusher.SetReturnsDefault(Task.FromResult(new BatchPusherResult()));
-            _catalogClient
-                .Setup(x => x.GetIndexAsync(It.IsAny<string>()))
-                .ReturnsAsync(new CatalogIndex());
             _storageFactory
                 .Setup(x => x.Create(It.IsAny<string>()))
                 .Returns(() => _storage);
@@ -107,7 +101,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 _blobContainerBuilder.Object,
                 _indexBuilder.Object,
                 () => _batchPusher.Object,
-                _catalogClient.Object,
                 _storageFactory.Object,
                 _ownerDataClient.Object,
                 _downloadDataClient.Object,
@@ -122,9 +115,9 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         public async Task SavesCatalogCommitTimestamp()
         {
             var initial = new DateTimeOffset(2017, 1, 1, 12, 0, 0, TimeSpan.FromHours(4));
-            _catalogClient
-                .Setup(x => x.GetIndexAsync(It.IsAny<string>()))
-                .ReturnsAsync(new CatalogIndex { CommitTimestamp = initial });
+            _producer
+                .Setup(x => x.GetInitialCursorValueAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(initial);
 
             await _target.ExecuteAsync();
 

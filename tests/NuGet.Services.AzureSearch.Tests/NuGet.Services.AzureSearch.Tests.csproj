@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="15.0">
   <Import Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
   <PropertyGroup>
@@ -60,7 +60,7 @@
     <Compile Include="DatabaseAuxiliaryDataFetcherFacts.cs" />
     <Compile Include="Db2AzureSearch\Db2AzureSearchCommandFacts.cs" />
     <Compile Include="Db2AzureSearch\EnumerableExtensionsFacts.cs" />
-    <Compile Include="Db2AzureSearch\NewPackageRegistrationProducerFacts.cs" />
+    <Compile Include="Db2AzureSearch\NewPackageRegistrationFromDbProducerFacts.cs" />
     <Compile Include="Db2AzureSearch\PackageEntityIndexActionBuilderFacts.cs" />
     <Compile Include="DocumentUtilitiesFacts.cs" />
     <Compile Include="DownloadTransferrerFacts.cs" />

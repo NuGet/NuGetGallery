@@ -21,5 +21,31 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         /// This is case insensitive. This should be empty on production environments.
         /// </summary>
         public IReadOnlyList<string> SkipPackagePrefixes { get; set; }
+
+        /// <summary>
+        /// The Kusto connection string to use for building the Azure Search index from NuGet.Insights Kusto data.
+        /// </summary>
+        public string KustoConnectionString { get; set; }
+
+        /// <summary>
+        /// The Kusto database name to use for building the Azure Search index from NuGet.Insights Kusto data.
+        /// </summary>
+        public string KustoDatabaseName { get; set; }
+
+        /// <summary>
+        /// This is the table name pattern to use for NuGet.Insights table names. It is a format string for 
+        /// <see cref="System.String.Format(string, object)"/> where the input is the default NuGet.Insights table name.
+        /// </summary>
+        public string KustoTableNameFormat { get; set; } = "{0}";
+
+        /// <summary>
+        /// If set to a number greater than 0, this will limit the number of packages to index from Kusto, ordered by total download count.
+        /// </summary>
+        public int KustoTopPackageCount { get; set; }
+
+        /// <summary>
+        /// If <see cref="KustoTopPackageCount"/> is set, this will limit the packages fetched from Kusto to only the latest versions.
+        /// </summary>
+        public bool KustoOnlyLatestPackages { get; set; }
     }
 }

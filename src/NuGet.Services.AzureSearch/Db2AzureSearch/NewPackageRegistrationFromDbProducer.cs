@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using NuGet.Protocol.Catalog;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using NuGet.Services.Entities;
 using NuGet.Services.Metadata.Catalog;
@@ -18,7 +19,7 @@ using NuGetGallery;
 
 namespace NuGet.Services.AzureSearch.Db2AzureSearch
 {
-    public class NewPackageRegistrationProducer : INewPackageRegistrationProducer
+    public class NewPackageRegistrationFromDbProducer : INewPackageRegistrationProducer
     {
         private readonly IEntitiesContextFactory _contextFactory;
         private readonly IAuxiliaryFileClient _auxiliaryFileClient;
@@ -26,20 +27,22 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         private readonly IDatabaseAuxiliaryDataFetcher _databaseFetcher;
         private readonly IDownloadTransferrer _downloadTransferrer;
         private readonly IFeatureFlagService _featureFlags;
+        private readonly ICatalogClient _catalogClient;
         private readonly IOptionsSnapshot<Db2AzureSearchConfiguration> _options;
         private readonly IOptionsSnapshot<Db2AzureSearchDevelopmentConfiguration> _developmentOptions;
-        private readonly ILogger<NewPackageRegistrationProducer> _logger;
+        private readonly ILogger<NewPackageRegistrationFromDbProducer> _logger;
 
-        public NewPackageRegistrationProducer(
+        public NewPackageRegistrationFromDbProducer(
             IEntitiesContextFactory contextFactory,
             IAuxiliaryFileClient auxiliaryFileClient,
             IDownloadsV1JsonClient downloadsV1JsonClient,
             IDatabaseAuxiliaryDataFetcher databaseFetcher,
             IDownloadTransferrer downloadTransferrer,
             IFeatureFlagService featureFlags,
+            ICatalogClient catalogClient,
             IOptionsSnapshot<Db2AzureSearchConfiguration> options,
             IOptionsSnapshot<Db2AzureSearchDevelopmentConfiguration> developmentOptions,
-            ILogger<NewPackageRegistrationProducer> logger)
+            ILogger<NewPackageRegistrationFromDbProducer> logger)
         {
             _contextFactory = contextFactory ?? throw new ArgumentNullException(nameof(contextFactory));
             _auxiliaryFileClient = auxiliaryFileClient ?? throw new ArgumentNullException(nameof(auxiliaryFileClient));
@@ -47,9 +50,31 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             _databaseFetcher = databaseFetcher ?? throw new ArgumentNullException(nameof(databaseFetcher));
             _downloadTransferrer = downloadTransferrer ?? throw new ArgumentNullException(nameof(downloadTransferrer));
             _featureFlags = featureFlags ?? throw new ArgumentNullException(nameof(featureFlags));
+            _catalogClient = catalogClient ?? throw new ArgumentNullException(nameof(catalogClient));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _developmentOptions = developmentOptions ?? throw new ArgumentNullException(nameof(developmentOptions));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
+        public async Task<DateTimeOffset> GetInitialCursorValueAsync(CancellationToken cancellationToken)
+        {
+            // Here, we fetch the current catalog timestamp to use as the initial cursor value for
+            // catalog2azuresearch. The idea here is that database is always more up-to-date than the catalog.
+            // We're about to read the database so if we capture a catalog timestamp now, we are guaranteed that
+            // any data we get from a database query will be more recent than the data represented by this catalog
+            // timestamp. When catalog2azuresearch starts up for the first time to update the index produced by this
+            // job, it will probably encounter some duplicate packages, but this is okay.
+            //
+            // Note that we could capture any dependency cursors here instead of catalog cursor, but this is
+            // pointless because there is no reliable way to filter out data fetched from the database based on a
+            // catalog-based cursor value. Suppose the dependency cursor is catalog2registration. If
+            // catalog2registration is very behind, then the index produced by this job will include packages that
+            // are not yet restorable (since they are not in the registration hives). This could lead to a case
+            // where a user is able to search for a package that he cannot restore. We mitigate this risk by
+            // trusting that our end-to-end tests will fail when catalog2registration (or any other V3 component) is
+            // broken, this blocking the deployment of new Azure Search indexes.
+            var catalogIndex = await _catalogClient.GetIndexAsync(_options.Value.CatalogIndexUrl);
+            return catalogIndex.CommitTimestamp;
         }
 
         public async Task<InitialAuxiliaryData> ProduceWorkAsync(

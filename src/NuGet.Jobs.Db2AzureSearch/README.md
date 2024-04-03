@@ -115,6 +115,59 @@ Once you've created your Azure resources, you can create your `settings.json` fi
 }
 ```
 
+#### Building from NuGet.Insights Kusto tables
+
+For local development and fast iteration, you can build the job with the [NuGet.Insights](https://github.com/NuGet/Insights) Kusto tables.
+
+You can use the following configuration as a starting point:
+
+```json
+{
+  "Db2AzureSearch": {
+    "AzureSearchBatchSize": 1000,
+    "MaxConcurrentBatches": 4,
+    "MaxConcurrentVersionListWriters": 8,
+    "SearchServiceName": "<AZURE AI SEARCH RESOURCE NAME>",
+    "SearchServiceUseDefaultCredential": true,
+    "SearchIndexName": "search-001",
+    "HijackIndexName": "hijack-001",
+    "StorageConnectionString": "<AZURE STORAGE CONNECTION STRING>",
+    "StorageContainer": "v3-azuresearch-001",
+    "StoragePath": "",
+    "GalleryBaseUrl": "https://www.nuget.org/",
+    "FlatContainerBaseUrl": "https://api.nuget.org/",
+    "FlatContainerContainerName": "v3-flatcontainer",
+    "AllIconsInFlatContainer": false,
+    "EnablePopularityTransfers": true,
+    "Scoring": {
+      "FieldWeights": {
+        "PackageId": 9,
+        "TokenizedPackageId": 9,
+        "Tags": 5
+      },
+      "DownloadScoreBoost": 30000,
+      "PopularityTransfer": 0.99
+    },
+    "Development": {
+      "ReplaceContainersAndIndexes": true,
+      "DisableVersionListWriters": false,
+      "KustoConnectionString": "https://<KUSTO CLUSTER NAME>.kusto.windows.net",
+      "KustoDatabaseName": "<KUSTO DATABASE NAME>",
+      "KustoTableNameFormat": "Ni{0}",
+      "KustoTopPackageCount": 100000,
+      "KustoOnlyLatestPackages": true
+    }
+  },
+
+  "FeatureFlags": {
+    "ConnectionString": "<FEATURE FLAGS AZURE STORAGE CONNECTION STRING>"
+  },
+
+  "KeyVault_VaultName": "<KEY VAULT NAME, IF NEEDED>",
+  "KeyVault_UseManagedIdentity": true
+}
+```
+
 ## Algorithm
 
 At a high-level, here's how Db2AzureSearch works:
