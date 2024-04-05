@@ -1,0 +1,92 @@
+name: NuGetGallery CI $(Build.BuildId)
+
+trigger:
+  branches:
+    include:
+    - '*'
+  batch: True
+
+variables:
+- name: Assemblies
+  value: ''
+- name: BuildConfiguration
+  value: Release
+- name: BuildType
+  value: Unsigned
+- name: Codeql.Enabled
+  value: true
+- name: NugetSecurityAnalysisWarningLevel
+  value: none
+- name: PackageVersion
+  value: $(SimplePackageVersion)$(PrereleaseVersion)
+- name: PrereleaseVersion
+  value: -$(NuGetGalleryBranch)-$(Build.BuildId)
+- name: SimplePackageVersion
+  value: 4.4.5
+- name: nugetMultiFeedWarnLevel
+  value: none
+- name: NuGetGalleryDirectory
+  value: ng
+- name: NuGetGalleryPath
+  value: $(Agent.BuildDirectory)\$(NuGetGalleryDirectory)
+- name: NuGetGalleryBranch
+  value: $(Build.SourceBranchName)
+
+resources:
+  repositories:
+  - repository: self
+    type: git
+    ref: refs/heads/main
+  - repository: 1ESPipelineTemplates
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
+
+extends:
+  template: v1/1ES.Unofficial.PipelineTemplate.yml@1ESPipelineTemplates
+  parameters:
+    pool:
+      name: NuGet-1ES-Hosted-Pool
+      image: NuGet-1ESPT-Win2022
+      os: windows
+    customBuildTags:
+    - ES365AIMigrationTooling
+    stages:
+    - stage: stage
+      jobs:
+      - job: Phase_1
+        displayName: Phase 1
+        cancelTimeoutInMinutes: 1
+        templateContext:
+          outputs:
+          - output: pipelineArtifact
+            displayName: 'Publish Artifact: UnsignedArtifacts'
+            targetPath: artifacts
+            artifactName: UnsignedArtifacts
+        steps:
+        - checkout: self
+          fetchDepth: 1
+          clean: true
+          fetchTags: false
+          path: $(NuGetGalleryDirectory)
+        - task: PowerShell@1
+          name: PowerShell_1
+          displayName: Build
+          inputs:
+            scriptName: $(NuGetGalleryPath)\build.ps1
+            arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SimpleVersion $(SimplePackageVersion) -SemanticVersion $(PackageVersion) -Branch $(NuGetGalleryBranch) -CommitSHA $(Build.SourceVersion)
+            workingFolder: $(NuGetGalleryPath)
+        - task: PowerShell@1
+          name: PowerShell_2
+          displayName: Run unit tests
+          inputs:
+            scriptName: $(NuGetGalleryPath)\test.ps1
+            arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId)
+            workingFolder: $(NuGetGalleryPath)
+        - task: PublishTestResults@1
+          name: PublishTestResults_3
+          displayName: Publish Test Results Results.*.xml
+          condition: succeededOrFailed()
+          inputs:
+            testRunner: XUnit
+            testResultsFiles: $(NuGetGalleryPath)\Results.*.xml
