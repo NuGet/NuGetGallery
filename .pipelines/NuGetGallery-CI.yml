@@ -63,10 +63,6 @@ extends:
             displayName: 'Publish Artifact: UnsignedArtifacts'
             targetPath: artifacts
             artifactName: UnsignedArtifacts
-          - output: pipelineArtifact
-            displayName: 'Publish Artifact: CodeAnalysisLogs'
-            targetPath: $(Build.SourcesDirectory)\CodeAnalysisLogs
-            artifactName: CodeAnalysisLogs
         steps:
         - checkout: self
           fetchDepth: 1
