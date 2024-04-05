@@ -15,16 +15,12 @@ variables:
   value: Unsigned
 - name: Codeql.Enabled
   value: true
-- name: DISABLED_NUGET_SNK_PATH
-  value: $(NuGetGalleryPath)\build\private\Signing\keys\35MSSharedLib1024.snk
 - name: NugetSecurityAnalysisWarningLevel
   value: none
 - name: PackageVersion
   value: $(SimplePackageVersion)$(PrereleaseVersion)
 - name: PrereleaseVersion
   value: -$(NuGetGalleryBranch)-$(Build.BuildId)
-- name: PRIVATE_BUILD_TOOLS_REPO
-  value: https://PAT:$(System.AccessToken)@nuget.visualstudio.com/DefaultCollection/_git/NuGetBuild
 - name: SimplePackageVersion
   value: 4.4.5
 - name: nugetMultiFeedWarnLevel
