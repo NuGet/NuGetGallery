@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Web.Mvc;
 
@@ -10,7 +11,7 @@ namespace NuGetGallery
     public class ReportMyPackageViewModel : ReportViewModel
     {
         public bool AllowDelete { get; set; }
-        
+
         public PackageDeleteDecision? DeleteDecision { get; set; }
 
         public bool DeleteConfirmation { get; set; }

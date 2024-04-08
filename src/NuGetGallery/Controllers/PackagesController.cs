@@ -1404,9 +1404,9 @@ namespace NuGetGallery
                 searchAndListModel.SortBy);
 
             // If the experience hasn't been cached, it means it's not the default experienced, therefore, show the panel
-            viewModel.IsAdvancedSearchFlightEnabled = searchService.SupportsAdvancedSearch && isAdvancedSearchFlightEnabled;
-            viewModel.IsFrameworkFilteringEnabled = isFrameworkFilteringEnabled;
-            viewModel.IsAdvancedFrameworkFilteringEnabled = isAdvancedFrameworkFilteringEnabled;
+            viewModel.IsAdvancedSearchFlightEnabled = true;
+            viewModel.IsFrameworkFilteringEnabled = true;
+            viewModel.IsAdvancedFrameworkFilteringEnabled = true;
 
             ViewBag.SearchTerm = q;
 
