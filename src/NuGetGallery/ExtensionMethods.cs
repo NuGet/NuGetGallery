@@ -250,7 +250,7 @@ namespace NuGetGallery
             {
                 htmlAttributes["class"] = $"form-control {customClass}";
             }
-            else if (customClass != string.Empty)
+            else if (!string.IsNullOrEmpty(customClass))
             {
                 htmlAttributes["class"] = $"{customClass}";
             }

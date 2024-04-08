@@ -9,17 +9,17 @@
     @if (!Model.TimeSinceLastRefresh.HasValue)
     {
         @ViewHelpers.AlertWarning(
-                @<text>
-                    The feature flags haven't loaded yet. Check the logs for errors.
-                </text>)
+            @<text>
+                The feature flags haven't loaded yet. Check the logs for errors.
+            </text>)
     }
     else if (Model.IsOutdated)
     {
         @ViewHelpers.AlertWarning(
-                @<text>
-                    The feature flags were last cached @Math.Round(Model.TimeSinceLastRefresh.Value.TotalSeconds) seconds ago
-                    but should refresh every @Model.RefreshInterval.TotalSeconds seconds. Check the logs for errors.
-                </text>)
+            @<text>
+                The feature flags were last cached @Math.Round(Model.TimeSinceLastRefresh.Value.TotalSeconds) seconds ago
+                but should refresh every @Model.RefreshInterval.TotalSeconds seconds. Check the logs for errors.
+            </text>)
     }
     else
     {
@@ -33,55 +33,55 @@
         @ViewHelpers.Section(
             this,
             "features-expander",
-                @<text>Features</text>,
+            @<text>Features</text>,
             @<text><p>View and edit features.</p></text>,
-        @<text>
-            <table class="table" aria-label="Features">
-                <tr>
-                    <th>Name</th>
-                    <th>Current Status</th>
-                    <th>Update Status</th>
-                    <th>Delete</th>
-                </tr>
-                <tbody>
-                    @foreach (var feature in Model.Features)
-                    {
-                        @Html.Partial("_EditFeature", new ModifyFeatureFlagsFeatureViewModel(feature, Model.ContentId))
-                    }
-                </tbody>
-            </table>
+            @<text>
+                <table class="table" aria-label="Features">
+                    <tr>
+                        <th>Name</th>
+                        <th>Current Status</th>
+                        <th>Update Status</th>
+                        <th>Delete</th>
+                    </tr>
+                    <tbody>
+                        @foreach (var feature in Model.Features)
+                        {
+                            @Html.Partial("_EditFeature", new ModifyFeatureFlagsFeatureViewModel(feature, Model.ContentId))
+                        }
+                    </tbody>
+                </table>
 
-            @Html.Partial("_AddFeature", new ModifyFeatureFlagsFeatureViewModel { ContentId = Model.ContentId })
-        </text>,
- expanded: true)
+                @Html.Partial("_AddFeature", new ModifyFeatureFlagsFeatureViewModel { ContentId = Model.ContentId })
+            </text>,
+            expanded: true)
 
         @ViewHelpers.Section(
             this,
             "flights-expander",
-                @<text>Flights</text>,
+            @<text>Flights</text>,
             @<text><p>View and edit flights.</p></text>,
-        @<text>
-            <table class="table" aria-label="Flights">
-                <tr>
-                    <th>Name</th>
-                    <th>All</th>
-                    <th>Site Admins</th>
-                    <th>Accounts</th>
-                    <th>Domains</th>
-                    <th>Update</th>
-                    <th>Delete</th>
-                </tr>
-                <tbody>
-                    @foreach (var flight in Model.Flights)
-                    {
-                        @Html.Partial("_EditFlight", new ModifyFeatureFlagsFlightViewModel(flight, Model.ContentId))
-                    }
-                </tbody>
-            </table>
+            @<text>
+                <table class="table" aria-label="Flights">
+                    <tr>
+                        <th>Name</th>
+                        <th>All</th>
+                        <th>Site Admins</th>
+                        <th>Accounts</th>
+                        <th>Domains</th>
+                        <th>Update</th>
+                        <th>Delete</th>
+                    </tr>
+                    <tbody>
+                        @foreach (var flight in Model.Flights)
+                        {
+                            @Html.Partial("_EditFlight", new ModifyFeatureFlagsFlightViewModel(flight, Model.ContentId))
+                        }
+                    </tbody>
+                </table>
 
-            @Html.Partial("_AddFlight", new ModifyFeatureFlagsFlightViewModel { ContentId = Model.ContentId })
-        </text>,
- expanded: true)
+                @Html.Partial("_AddFlight", new ModifyFeatureFlagsFlightViewModel { ContentId = Model.ContentId })
+            </text>,
+            expanded: true)
     </div>
 </section>
 
@@ -119,7 +119,7 @@
             var $notAll = $('#' + notAllId);
             var isAll = $notAll.is(':visible');
             $notAll.toggle();
-
+            
             var $input = $notAll.find('input');
             var $submit = $('#' + submitId);
             var offsetClass = 'col-sm-offset-7';
