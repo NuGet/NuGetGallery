@@ -114,6 +114,8 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
 
         public bool IsDisplayNuGetPackageExplorerLinkEnabled() => throw new NotImplementedException();
 
+        public bool IsDisplayNuGetTrendsLinksEnabled() => throw new NotImplementedException();
+
         public bool IsDisplayTargetFrameworkEnabled(User user) => throw new NotImplementedException();
 
         public bool IsComputeTargetFrameworkEnabled() => throw new NotImplementedException();
