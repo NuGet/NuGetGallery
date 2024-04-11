@@ -319,7 +319,7 @@ h2 a:focus,
 h3 a:focus,
 h2 a:active,
 h3 a:active {
-  color: #000;
+  color: var(--neutralForeground1Rest);
   text-decoration: none;
 }
 @media screen and (max-width: 768px) {
@@ -1245,16 +1245,16 @@ p.frameworktableinfo-text {
   width: 20%;
 }
 .page-admin-popularity-transfers .col-group-from-header {
-  background-color: #f2f2f2;
+  background-color: transparent;
 }
 .page-admin-popularity-transfers .col-group-to-header {
-  background-color: #ebebeb;
+  background-color: var(--neutralBackground1Rest);
 }
 .page-admin-popularity-transfers .col-group-from-data {
-  background-color: #f2f2f2;
+  background-color: transparent;
 }
 .page-admin-popularity-transfers .col-group-to-data {
-  background-color: #ebebeb;
+  background-color: var(--neutralBackground1Rest);
 }
 .page-api-keys .example-commands {
   background-color: #002440;

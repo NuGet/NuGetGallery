@@ -13,19 +13,19 @@
     <div class="row">
         <div class="col-sm-6 form-group @Html.HasErrorFor(m => m.Name)">
             @Html.ShowLabelFor(m => m.Name)<br />
-            @Html.ShowTextBoxFor(m => m.Name)
+            @Html.ShowTextBoxFor(m => m.Name, customClass: "input-brand")
             @Html.ShowValidationMessagesFor(m => m.Name)
         </div>
 
         <div class="col-sm-3 form-group @Html.HasErrorFor(m => m.Status)">
             @Html.ShowLabelFor(m => m.Status)<br />
-            @Html.EnumDropDownListFor(m => m.Status)
+            @Html.EnumDropDownListFor(m => m.Status, new { @class = "select-brand" })
             @Html.ShowValidationMessagesFor(m => m.Status)
         </div>
 
         <div class="col-sm-3">
             <br />
-            <input id="Add" type="submit" class="btn btn-primary form-control" value="Add" />
+            <input id="Add" type="submit" class="btn btn-brand form-control" value="Add" />
         </div>
     </div>
 }
