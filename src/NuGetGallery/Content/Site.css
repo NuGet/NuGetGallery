@@ -1726,14 +1726,6 @@ img.contributors-contributor-avatar {
     font-size: 1.1em;
     padding: 5px 15px 5px 15px;
 }
-.container h2 a,
-.container h2 a:hover,
-.container h2 a:focus,
-.container h2 a:active {
-    color: #337ab7;
-}
-
-.container h2 a:hover,
-.container h2 a:focus {
+.container h2 a{
     text-decoration: underline;
 }
