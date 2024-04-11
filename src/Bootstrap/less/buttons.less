@@ -223,7 +223,6 @@
   border-radius: var(--Medium, 4px);
   border: 2px solid transparent;
   box-shadow: none !important;
-  padding: 5px 12px;
 
   &:hover,
   &:focus:hover {
@@ -250,7 +249,7 @@
 // Make a button look and behave like a link
 .btn-link {
   font-weight: 400;
-  color: @link-color;
+  color: var(--brandForegroundLinkRest);
   border-radius: 0;
 
   &,
@@ -269,7 +268,7 @@
   }
   &:hover,
   &:focus {
-    color: @link-hover-color;
+    color: var(--brandForegroundLinkHover);
     text-decoration: @link-hover-decoration;
     background-color: transparent;
   }
@@ -277,7 +276,7 @@
   fieldset[disabled] & {
     &:hover,
     &:focus {
-      color: @btn-link-disabled-color;
+      color: var(--neutralForegroundDisabledRest);
       text-decoration: none;
     }
   }
