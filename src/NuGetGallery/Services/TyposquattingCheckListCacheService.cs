@@ -10,16 +10,18 @@ namespace NuGetGallery
     public class TyposquattingCheckListCacheService : ITyposquattingCheckListCacheService
     {
         private readonly object Locker = new object();
+        private readonly ITyposquattingServiceHelper _typosquattingServiceHelper;
 
         private List<string> Cache;
         private DateTime LastRefreshTime;
 
         private int TyposquattingCheckListConfiguredLength;
 
-        public TyposquattingCheckListCacheService()
+        public TyposquattingCheckListCacheService(ITyposquattingServiceHelper typosquattingServiceHelper)
         {
             TyposquattingCheckListConfiguredLength = -1;
             LastRefreshTime = DateTime.MinValue;
+            _typosquattingServiceHelper = typosquattingServiceHelper;
         }
 
         public IReadOnlyCollection<string> GetTyposquattingCheckList(int checkListConfiguredLength, TimeSpan checkListExpireTime, IPackageService packageService)
@@ -44,12 +46,15 @@ namespace NuGetGallery
                     if (ShouldCacheBeUpdated(checkListConfiguredLength, checkListExpireTime))
                     {
                         TyposquattingCheckListConfiguredLength = checkListConfiguredLength;
-
-                        Cache = packageService.GetAllPackageRegistrations()
+                        List<string> cachedPackages = packageService.GetAllPackageRegistrations()
                             .OrderByDescending(pr => pr.IsVerified)
                             .ThenByDescending(pr => pr.DownloadCount)
                             .Select(pr => pr.Id)
                             .Take(TyposquattingCheckListConfiguredLength)
+                            .ToList();
+
+                        Cache = cachedPackages
+                            .Select(pr => _typosquattingServiceHelper.NormalizeString(pr))
                             .ToList();
 
                         LastRefreshTime = DateTime.UtcNow;
