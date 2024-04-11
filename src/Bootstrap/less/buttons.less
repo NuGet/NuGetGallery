@@ -130,6 +130,7 @@
   padding: 2px 8px;
   border: 2px solid transparent;
   box-shadow: none;
+  // display: inline-flex;
   outline: none;
 
   &:hover {
@@ -227,11 +228,13 @@
   &:hover,
   &:focus:hover {
     color: var(--neutralForegroundStaticInvertedRest);
+    background-color: var(--statusDangerBackground3Hover);
   }
 
   &:active,
   &:active:focus {
     color: var(--neutralForegroundStaticInvertedRest);
+    background-color: var(--statusDangerBackground3Pressed);
   }
 
   &:focus-within,
