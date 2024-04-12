@@ -2060,6 +2060,66 @@ p.frameworktableinfo-text {
 .page-edit-package .readme-tabs {
   margin-top: 0.5em;
 }
+.page-edit-package .readme-tabs .nav-tabs > li {
+  padding-right: 2px;
+}
+.page-edit-package .readme-tabs .nav-tabs > li.active > a {
+  border-bottom-color: var(--brandStrokeCompoundRest);
+  border-bottom-width: 2px;
+  -webkit-text-stroke-width: -webkit-calc(0.5 * 0.04ex);
+  text-shadow: -webkit-calc(0.5 * -0.03ex) 0 0 currentColor, -webkit-calc(0.5 * 0.03ex) 0 0 currentColor;
+  text-shadow: calc(0.5 * -0.03ex) 0 0 currentColor, calc(0.5 * 0.03ex) 0 0 currentColor;
+  margin-bottom: -1px;
+  background-color: transparent;
+}
+.page-edit-package .readme-tabs .nav-tabs > li.active > a:hover {
+  border-bottom-color: var(--brandStrokeCompoundHover);
+  border-bottom-width: 2px;
+}
+.page-edit-package .readme-tabs .nav-tabs > li.active > a:active {
+  border-bottom-color: var(--brandStrokeCompoundPressed);
+  border-bottom-width: 2px;
+}
+.page-edit-package .readme-tabs .nav-tabs > li.active > a:focus {
+  border-radius: 2px;
+  outline: 3px solid var(--neutralStrokeFocus2Rest);
+  outline-offset: 1px;
+}
+.page-edit-package .readme-tabs .nav-tabs > li.active > a.body-warning-tab {
+  background-color: var(--statusWarningBackground1Rest);
+  border-bottom-color: var(--statusWarningStroke1Rest);
+  border-bottom-width: 2px;
+}
+.page-edit-package .readme-tabs .nav-tabs > li > a {
+  border-left: 0px;
+  border-right: 0px;
+  border-top: 0px;
+  border-bottom-width: 2px;
+  font-size: 14px;
+  font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: var(--neutralForeground1Rest);
+  background-color: transparent;
+}
+.page-edit-package .readme-tabs .nav-tabs > li > a:hover {
+  border-bottom-color: var(--neutralStroke1Hover);
+  border-bottom-width: 2px;
+  background-color: var(--neutralBackgroundSubtleHover);
+  border-radius: 2px 2px 0px 0px;
+}
+.page-edit-package .readme-tabs .nav-tabs > li > a:active {
+  border-bottom-color: var(--neutralStroke1Pressed);
+  border-bottom-width: 2px;
+  background-color: var(--neutralBackgroundSubtlePressed);
+}
+.page-edit-package .readme-tabs .nav-tabs > li > a:focus {
+  border-radius: 2px;
+  outline: 3px solid var(--neutralStrokeFocus2Rest);
+  outline-offset: 1px;
+}
+.page-edit-package .readme-tabs .nav-tabs > li > a .ms-Icon {
+  position: relative;
+  top: 2px;
+}
 .page-edit-package .readonly {
   display: none;
 }
@@ -3184,6 +3244,69 @@ p.frameworktableinfo-text {
 }
 .page-upload #browse-for-package-button {
   margin: 0;
+}
+.page-upload .readme-tabs {
+  margin-top: 0.5em;
+}
+.page-upload .readme-tabs .nav-tabs > li {
+  padding-right: 2px;
+}
+.page-upload .readme-tabs .nav-tabs > li.active > a {
+  border-bottom-color: var(--brandStrokeCompoundRest);
+  border-bottom-width: 2px;
+  -webkit-text-stroke-width: -webkit-calc(0.5 * 0.04ex);
+  text-shadow: -webkit-calc(0.5 * -0.03ex) 0 0 currentColor, -webkit-calc(0.5 * 0.03ex) 0 0 currentColor;
+  text-shadow: calc(0.5 * -0.03ex) 0 0 currentColor, calc(0.5 * 0.03ex) 0 0 currentColor;
+  margin-bottom: -1px;
+  background-color: transparent;
+}
+.page-upload .readme-tabs .nav-tabs > li.active > a:hover {
+  border-bottom-color: var(--brandStrokeCompoundHover);
+  border-bottom-width: 2px;
+}
+.page-upload .readme-tabs .nav-tabs > li.active > a:active {
+  border-bottom-color: var(--brandStrokeCompoundPressed);
+  border-bottom-width: 2px;
+}
+.page-upload .readme-tabs .nav-tabs > li.active > a:focus {
+  border-radius: 2px;
+  outline: 3px solid var(--neutralStrokeFocus2Rest);
+  outline-offset: 1px;
+}
+.page-upload .readme-tabs .nav-tabs > li.active > a.body-warning-tab {
+  background-color: var(--statusWarningBackground1Rest);
+  border-bottom-color: var(--statusWarningStroke1Rest);
+  border-bottom-width: 2px;
+}
+.page-upload .readme-tabs .nav-tabs > li > a {
+  border-left: 0px;
+  border-right: 0px;
+  border-top: 0px;
+  border-bottom-width: 2px;
+  font-size: 14px;
+  font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: var(--neutralForeground1Rest);
+  background-color: transparent;
+}
+.page-upload .readme-tabs .nav-tabs > li > a:hover {
+  border-bottom-color: var(--neutralStroke1Hover);
+  border-bottom-width: 2px;
+  background-color: var(--neutralBackgroundSubtleHover);
+  border-radius: 2px 2px 0px 0px;
+}
+.page-upload .readme-tabs .nav-tabs > li > a:active {
+  border-bottom-color: var(--neutralStroke1Pressed);
+  border-bottom-width: 2px;
+  background-color: var(--neutralBackgroundSubtlePressed);
+}
+.page-upload .readme-tabs .nav-tabs > li > a:focus {
+  border-radius: 2px;
+  outline: 3px solid var(--neutralStrokeFocus2Rest);
+  outline-offset: 1px;
+}
+.page-upload .readme-tabs .nav-tabs > li > a .ms-Icon {
+  position: relative;
+  top: 2px;
 }
 .warning-icon {
   vertical-align: bottom;
