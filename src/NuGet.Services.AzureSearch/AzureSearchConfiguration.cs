@@ -11,6 +11,13 @@ namespace NuGet.Services.AzureSearch
         public string SearchServiceApiKey { get; set; }
 
         /// <summary>
+        /// If true, use the Azure SDK default credential to authenticate with Azure Search. This will authenticate
+        /// as the current user based on the credential types documented here:
+        /// https://learn.microsoft.com/en-us/dotnet/api/azure.identity.defaultazurecredential
+        /// </summary>
+        public bool SearchServiceUseDefaultCredential { get; set; }
+
+        /// <summary>
         /// This is the client ID of the user managed identity that should be used when interacting with Azure Search.
         /// The client ID value can be obtained from Azure Portal. Note that this is different from the object (principal)
         /// ID.

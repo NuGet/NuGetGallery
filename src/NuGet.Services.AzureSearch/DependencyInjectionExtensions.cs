@@ -10,6 +10,9 @@ using Azure.Core.Pipeline;
 using Azure.Identity;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Indexes;
+using Kusto.Data;
+using Kusto.Data.Common;
+using Kusto.Data.Net.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -202,7 +205,6 @@ namespace NuGet.Services.AzureSearch
                     c.Resolve<IBlobContainerBuilder>(),
                     c.Resolve<IIndexBuilder>(),
                     c.Resolve<Func<IBatchPusher>>(),
-                    c.Resolve<ICatalogClient>(),
                     c.ResolveKeyed<IStorageFactory>(key),
                     c.Resolve<IOwnerDataClient>(),
                     c.Resolve<IDownloadDataClient>(),
@@ -241,6 +243,28 @@ namespace NuGet.Services.AzureSearch
             services.AddV3(telemetryGlobalDimensions, configurationRoot);
             services.AddTransient<IFeatureFlagService, FeatureFlagService>();
 
+            services.AddSingleton<ICslQueryProvider>(p =>
+            {
+                var options = p.GetRequiredService<IOptionsSnapshot<Db2AzureSearchDevelopmentConfiguration>>();
+
+                if (string.IsNullOrWhiteSpace(options.Value.KustoConnectionString))
+                {
+                    throw new InvalidOperationException(
+                        $"The {nameof(Db2AzureSearchDevelopmentConfiguration.KustoConnectionString)} " +
+                        $"configuration value must be set.");
+                }
+
+                var builder = new KustoConnectionStringBuilder(options.Value.KustoConnectionString);
+
+#if NETFRAMEWORK
+                builder = builder.WithAadUserPromptAuthentication();
+#else
+                builder = builder.WithAadAzCliAuthentication(interactive: true);
+#endif
+
+                return KustoClientFactory.CreateCslQueryProvider(builder);
+            });
+
             services.AddTransient<HttpPipelineTransport>(p => HttpClientTransport.Shared);
             services.AddSingleton<ISearchIndexClientWrapper, SearchIndexClientWrapper>();
             services
@@ -258,25 +282,33 @@ namespace NuGet.Services.AzureSearch
                     var hasManagedIdentity = !string.IsNullOrEmpty(options.Value.SearchServiceManagedIdentityClientId);
                     var hasApiKey = !string.IsNullOrEmpty(options.Value.SearchServiceApiKey);
 
-                    if (hasManagedIdentity == hasApiKey)
-                    {
-                        throw new InvalidOperationException($"Either the " +
-                            $"{nameof(AzureSearchConfiguration.SearchServiceManagedIdentityClientId)} or the " +
-                            $"{nameof(AzureSearchConfiguration.SearchServiceApiKey)} configuration value must be set, but not both.");
-                    }
-                    else if (hasManagedIdentity)
+                    if (hasManagedIdentity)
                     {
                         return new SearchIndexClient(
                             endpoint,
                             new ManagedIdentityCredential(options.Value.SearchServiceManagedIdentityClientId),
                             searchOptions);
                     }
-                    else
+                    else if (hasApiKey)
                     {
                         return new SearchIndexClient(
                             endpoint,
                             new AzureKeyCredential(options.Value.SearchServiceApiKey),
                             searchOptions);
+                    }
+                    else if (options.Value.SearchServiceUseDefaultCredential)
+                    {
+                        return new SearchIndexClient(
+                            endpoint,
+                            new DefaultAzureCredential(),
+                            searchOptions);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException($"Either the " +
+                            $"{nameof(AzureSearchConfiguration.SearchServiceManagedIdentityClientId)}, the " +
+                            $"{nameof(AzureSearchConfiguration.SearchServiceApiKey)}, or the " +
+                            $"{nameof(AzureSearchConfiguration.SearchServiceUseDefaultCredential)} configuration value must be set.");
                     }
                 });
 
@@ -311,7 +343,27 @@ namespace NuGet.Services.AzureSearch
             services.AddTransient<IHijackDocumentBuilder, HijackDocumentBuilder>();
             services.AddTransient<IIndexBuilder, IndexBuilder>();
             services.AddTransient<IIndexOperationBuilder, IndexOperationBuilder>();
-            services.AddTransient<INewPackageRegistrationProducer, NewPackageRegistrationProducer>();
+
+            services.AddTransient<NewPackageRegistrationFromDbProducer>();
+            services.AddTransient<NewPackageRegistrationFromKustoProducer>();
+            services.AddTransient<INewPackageRegistrationProducer>(s =>
+            {
+                var options = s.GetRequiredService<IOptionsSnapshot<Db2AzureSearchDevelopmentConfiguration>>();
+                var logger = s.GetRequiredService<ILogger<NewPackageRegistrationFromKustoProducer>>();
+
+                if (!string.IsNullOrEmpty(options.Value.KustoConnectionString))
+                {
+                    logger.LogInformation($"Package data will be produced from Kusto instead of the SQL database " +
+                        $"because {nameof(Db2AzureSearchDevelopmentConfiguration.KustoConnectionString)} is set.");
+                    return s.GetRequiredService<NewPackageRegistrationFromKustoProducer>();
+                }
+                else
+                {
+                    logger.LogInformation($"Package data will be produced from the SQL database.");
+                    return s.GetRequiredService<NewPackageRegistrationFromDbProducer>();
+                }
+            });
+
             services.AddTransient<IPackageEntityIndexActionBuilder, PackageEntityIndexActionBuilder>();
             services.AddTransient<ISearchDocumentBuilder, SearchDocumentBuilder>();
             services.AddTransient<ISearchIndexActionBuilder, SearchIndexActionBuilder>();

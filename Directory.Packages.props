@@ -4,7 +4,7 @@
     <EnablePackageVersionOverride>false</EnablePackageVersionOverride>
     <ServerCommonPackageVersion>2.220.0-main-9301227</ServerCommonPackageVersion>
     <NuGetClientPackageVersion>6.9.1</NuGetClientPackageVersion>
-    <NuGetGalleryPackageVersion>4.4.6-dev-eryondon-extraValidation-9293959</NuGetGalleryPackageVersion>
+    <NuGetGalleryPackageVersion>4.4.5-dev-9313974</NuGetGalleryPackageVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Autofac" Version="4.9.1" />
@@ -22,6 +22,7 @@
     <PackageVersion Include="Microsoft.AspNet.Web.Optimization" Version="1.1.3" />
     <PackageVersion Include="Microsoft.AspNet.WebApi.Client" Version="5.2.3" />
     <PackageVersion Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
+    <PackageVersion Include="Microsoft.Azure.Kusto.Data" Version="12.1.1" />
     <PackageVersion Include="Microsoft.Azure.Storage.DataMovement" Version="0.9.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="6.0.0" />
     <PackageVersion Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform" Version="3.6.0" />

@@ -143,18 +143,14 @@ namespace NuGet.Services.AzureSearch
                 }
             }
 
+            var extraVersionListData = _versionListDataResults.Keys.Except(_idReferenceCount.Keys);
             Guard.Assert(
-                !_versionListDataResults
-                    .Keys
-                    .Except(_idReferenceCount.Keys)
-                    .Any(),
-                "There are some version list data results without reference counts.");
+                !extraVersionListData.Any(),
+                $"There are some version list data results without reference counts, e.g. {string.Join(", ", extraVersionListData.Take(5))}.");
+            var extraReferenceCounts = _idReferenceCount.Keys.Except(_versionListDataResults.Keys);
             Guard.Assert(
-                !_idReferenceCount
-                    .Keys
-                    .Except(_versionListDataResults.Keys)
-                    .Any(),
-                "There are some reference counts without version list data results.");
+                !extraReferenceCounts.Any(),
+                $"There are some reference counts without version list data results, e.g. {string.Join(", ", extraReferenceCounts.Take(5))}");
 
             return failedPackageIds;
         }

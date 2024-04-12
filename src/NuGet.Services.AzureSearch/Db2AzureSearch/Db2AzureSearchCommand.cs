@@ -25,7 +25,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         private readonly IBlobContainerBuilder _blobContainerBuilder;
         private readonly IIndexBuilder _indexBuilder;
         private readonly Func<IBatchPusher> _batchPusherFactory;
-        private readonly ICatalogClient _catalogClient;
         private readonly IStorageFactory _storageFactory;
         private readonly IOwnerDataClient _ownerDataClient;
         private readonly IDownloadDataClient _downloadDataClient;
@@ -41,7 +40,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             IBlobContainerBuilder blobContainerBuilder,
             IIndexBuilder indexBuilder,
             Func<IBatchPusher> batchPusherFactory,
-            ICatalogClient catalogClient,
             IStorageFactory storageFactory,
             IOwnerDataClient ownerDataClient,
             IDownloadDataClient downloadDataClient,
@@ -56,7 +54,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             _blobContainerBuilder = blobContainerBuilder ?? throw new ArgumentNullException(nameof(blobContainerBuilder));
             _indexBuilder = indexBuilder ?? throw new ArgumentNullException(nameof(indexBuilder));
             _batchPusherFactory = batchPusherFactory ?? throw new ArgumentNullException(nameof(batchPusherFactory));
-            _catalogClient = catalogClient ?? throw new ArgumentNullException(nameof(catalogClient));
             _storageFactory = storageFactory ?? throw new ArgumentNullException(nameof(storageFactory));
             _ownerDataClient = ownerDataClient ?? throw new ArgumentNullException(nameof(ownerDataClient));
             _downloadDataClient = downloadDataClient ?? throw new ArgumentNullException(nameof(downloadDataClient));
@@ -87,23 +84,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 // Initialize the indexes, container and excluded packages data.
                 await InitializeAsync();
 
-                // Here, we fetch the current catalog timestamp to use as the initial cursor value for
-                // catalog2azuresearch. The idea here is that database is always more up-to-date than the catalog.
-                // We're about to read the database so if we capture a catalog timestamp now, we are guaranteed that
-                // any data we get from a database query will be more recent than the data represented by this catalog
-                // timestamp. When catalog2azuresearch starts up for the first time to update the index produced by this
-                // job, it will probably encounter some duplicate packages, but this is okay.
-                //
-                // Note that we could capture any dependency cursors here instead of catalog cursor, but this is
-                // pointless because there is no reliable way to filter out data fetched from the database based on a
-                // catalog-based cursor value. Suppose the dependency cursor is catalog2registration. If
-                // catalog2registration is very behind, then the index produced by this job will include packages that
-                // are not yet restorable (since they are not in the registration hives). This could lead to a case
-                // where a user is able to search for a package that he cannot restore. We mitigate this risk by
-                // trusting that our end-to-end tests will fail when catalog2registration (or any other V3 component) is
-                // broken, this blocking the deployment of new Azure Search indexes.
-                var catalogIndex = await _catalogClient.GetIndexAsync(_options.Value.CatalogIndexUrl);
-                var initialCursorValue = catalogIndex.CommitTimestamp;
+                var initialCursorValue = await _producer.GetInitialCursorValueAsync(token);
                 _logger.LogInformation("The initial cursor value will be {CursorValue:O}.", initialCursorValue);
 
                 var initialAuxiliaryData = await PushAllPackageRegistrationsAsync(cancelledCts, produceWorkCts);
