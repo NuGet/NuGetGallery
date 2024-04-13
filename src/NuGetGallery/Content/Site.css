@@ -1726,15 +1726,3 @@ img.contributors-contributor-avatar {
     font-size: 1.1em;
     padding: 5px 15px 5px 15px;
 }
-.container.page-statistics-overview td {
-    text-overflow: inherit;
-    overflow: auto;
-}
-
-.container.page-statistics-most-downloaded .table tbody td {
-    overflow: auto;
-    text-overflow:inherit;
-}
-
-
-
