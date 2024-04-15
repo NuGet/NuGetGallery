@@ -26,6 +26,7 @@
     "NuGetGallery.ManagePackagesVulnerabilities": "Enabled",
     "NuGetGallery.DisplayFuGetLinks": "Enabled",
     "NuGetGallery.DisplayNuGetPackageExplorerLink": "Enabled",
+    "NuGetGallery.DisplayNuGetTrendsLink": "Enabled",
     "NuGetGallery.PatternSetTfmHeuristics": "Enabled",
     "NuGetGallery.EmbeddedIcons": "Enabled",
     "NuGetGallery.MarkdigMdRendering": "Enabled",

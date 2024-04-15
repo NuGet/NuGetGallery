@@ -78,6 +78,11 @@ namespace NuGetGallery
         bool IsDisplayFuGetLinksEnabled();
 
         /// <summary>
+        /// Whether or not a nugettrends.com link is visible on a package's details page.
+        /// </summary>
+        bool IsDisplayNuGetTrendsLinksEnabled();
+
+        /// <summary>
         /// Whether or not a nuget.info (NuGet Package Explorer) link is visible on a package's details page.
         /// </summary>
         bool IsDisplayNuGetPackageExplorerLinkEnabled();
