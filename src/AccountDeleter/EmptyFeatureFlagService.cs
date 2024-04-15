@@ -75,7 +75,10 @@ namespace NuGetGallery.AccountDeleter
         {
             throw new NotImplementedException();
         }
-
+        public bool IsDisplayNuGetTrendsLinksEnabled()
+        {
+            throw new NotImplementedException();
+        }
         public bool IsDisplayTargetFrameworkEnabled(User user)
         {
             throw new NotImplementedException();

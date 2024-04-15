@@ -1166,6 +1166,23 @@
                         </li>
                     }
 
+                    @if (Model.CanDisplayNuGetTrendsLink() && Model.ShowDetailsAndLinks)
+                    {
+                        var disclaimer = "nugettrends.com is a 3rd party website, not controlled by Microsoft. This link is made available to you per the NuGet Terms of Use.";
+
+                        <li>
+                            <img class="icon"
+                                    aria-label="@disclaimer" title="@disclaimer"
+                                    src="@Url.Absolute("~/Content/gallery/img/nuget-trends.svg")"
+                                    @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/nuget-trends-32x32.png")) />
+                            <a href="@Model.NuGetTrendsUrl" data-track="outbound-nuget-trends-url"
+                                aria-label="open in nugetrends.com"
+                                title="Explore download trends on nugettrends.com" target="_blank" rel="nofollow noreferrer">
+                                Open in NuGet Trends
+                            </a>
+                        </li>
+                    }
+
                     @if (!Model.CanReportAsOwner && Model.Available && Model.ShowDetailsAndLinks)
                     {
                         <li class="report-link">

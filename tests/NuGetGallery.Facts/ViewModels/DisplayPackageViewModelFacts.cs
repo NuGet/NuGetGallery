@@ -295,6 +295,76 @@ namespace NuGetGallery.ViewModels
             Assert.False(model.CanDisplayFuGetLink());
         }
 
+        [Fact]
+        public void ItInitializesNuGetTrendsUrl()
+        {
+            var package = new Package
+            {
+                Version = "1.0.0",
+                NormalizedVersion = "1.0.0",
+                PackageRegistration = new PackageRegistration
+                {
+                    Id = "foo",
+                    Owners = Enumerable.Empty<User>().ToList(),
+                    Packages = Enumerable.Empty<Package>().ToList()
+                }
+            };
+
+            var model = CreateDisplayPackageViewModel(package, currentUser: null, packageKeyToDeprecation: null, readmeHtml: null);
+            Assert.Equal("https://nugettrends.com/packages?ids=foo", model.NuGetTrendsUrl);
+        }
+
+        [Fact]
+        public void CanDisplayNuGetTrendsLinkWhenValid()
+        {
+            var package = new Package
+            {
+                Version = "1.0.0",
+                NormalizedVersion = "1.0.0",
+                PackageRegistration = new PackageRegistration
+                {
+                    Id = "foo",
+                    Owners = Enumerable.Empty<User>().ToList(),
+                    Packages = Enumerable.Empty<Package>().ToList()
+                }
+            };
+
+            var model = CreateDisplayPackageViewModel(package, currentUser: null, packageKeyToDeprecation: null, readmeHtml: null);
+
+            model.IsNuGetTrendsLinksEnabled = true;
+            model.Available = true;
+
+            Assert.True(model.CanDisplayNuGetTrendsLink());
+        }
+
+        [Theory]
+        [InlineData(false, "https://nugettrends.com/packages?ids=foo", true)]
+        [InlineData(true, "", true)]
+        [InlineData(true, null, true)]
+        [InlineData(true, "https://nugettrends.com/packages?ids=foo", false)]
+        public void CannotDisplayNuGetTrendsLinkWhenInvalid(bool isEnabled, string url, bool isAvailable)
+        {
+            var package = new Package
+            {
+                Version = "1.0.0",
+                NormalizedVersion = "1.0.0",
+                PackageRegistration = new PackageRegistration
+                {
+                    Id = "foo",
+                    Owners = Enumerable.Empty<User>().ToList(),
+                    Packages = Enumerable.Empty<Package>().ToList()
+                }
+            };
+
+            var model = CreateDisplayPackageViewModel(package, currentUser: null, packageKeyToDeprecation: null, readmeHtml: null);
+
+            model.IsNuGetTrendsLinksEnabled = isEnabled;
+            model.NuGetTrendsUrl = url;
+            model.Available = isAvailable;
+
+            Assert.False(model.CanDisplayNuGetTrendsLink());
+        }
+
         [Theory]
         [InlineData(true, true, true)]
         [InlineData(false, true, true)]
