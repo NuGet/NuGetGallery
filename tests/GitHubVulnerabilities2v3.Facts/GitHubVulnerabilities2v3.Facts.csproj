@@ -46,9 +46,9 @@
     <Compile Include="BlobStorageVulnerabilityWriterFacts.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\GitHubVulnerabilities2v3\GitHubVulnerabilities2v3.csproj">
+    <ProjectReference Include="..\..\src\GitHubVulnerabilities2v3\GitHubVulnerabilities2V3.csproj">
       <Project>{dd9073af-838e-44e8-91fe-995586e8134a}</Project>
-      <Name>GitHubVulnerabilities2v3</Name>
+      <Name>GitHubVulnerabilities2V3</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\src\NuGet.Services.Entities\NuGet.Services.Entities.csproj">
       <Project>{6262f4fc-29be-4226-b676-db391c89d396}</Project>
