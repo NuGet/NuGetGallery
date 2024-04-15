@@ -566,6 +566,7 @@
             document.documentElement.setAttribute('data-theme', themeSelector.value);
             document.getElementById("user-prefered-theme").textContent = themeSelector.value == "light" ? "Light" : "Dark";
         }
+        window.nuget.sendMetric("ThemeChanged", 1, { "ThemeChanged": themeSelector.value });
     })
 
     // Set the theme selector to the user's preferred theme
