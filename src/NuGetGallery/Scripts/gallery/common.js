@@ -536,34 +536,17 @@
 
     initializeJQueryValidator();
 
-    // Check the browser preferred color scheme
-    const prefersDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const defaultTheme = prefersDarkMode ? "dark" : "light";
-    const preferredTheme = localStorage.getItem("theme")
-
-    // Check if the localStorage item is set, if not set it to the system theme
-    if (!preferredTheme || !(preferredTheme === "dark" || preferredTheme === "light")) {
-        localStorage.setItem("theme", "system");
-    }
-
-    if (preferredTheme === "light" || preferredTheme === "dark") {
-        document.documentElement.setAttribute('data-theme', preferredTheme);
-    }
-    else {
-        document.documentElement.setAttribute('data-theme', defaultTheme);
-    }
-
     // Add listener to the theme selector
     var themeSelector = document.getElementById("select-option-theme");
     themeSelector.addEventListener("change", () => {
         if (themeSelector.value === "system") {
             localStorage.setItem("theme", "system");
-            document.documentElement.setAttribute('data-theme', defaultTheme);
+            document.body.setAttribute('data-theme', defaultTheme);
             document.getElementById("user-prefered-theme").textContent = "System";
         }
         else {
             localStorage.setItem("theme", themeSelector.value);
-            document.documentElement.setAttribute('data-theme', themeSelector.value);
+            document.body.setAttribute('data-theme', themeSelector.value);
             document.getElementById("user-prefered-theme").textContent = themeSelector.value == "light" ? "Light" : "Dark";
         }
         window.nuget.sendMetric("ThemeChanged", 1, { "ThemeChanged": themeSelector.value });
