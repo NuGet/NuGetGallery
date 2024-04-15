@@ -101,7 +101,7 @@
                                     <td data-bind="text: ShortIssuer, attr: { title: Issuer }"></td>
                                     <td class="text-right align-middle package-controls">
                                         <span data-bind="visible: CanDelete">
-                                            <a class="btn" title="Delete certificate" tabindex="0" data-bind="attr: { 'data-href': DeleteUrl, 'aria-label': 'Delete certificate' }, click: $parent.deleteCertificate">
+                                            <a class="btn btn-brand-danger" title="Delete certificate" tabindex="0" data-bind="attr: { 'data-href': DeleteUrl, 'aria-label': 'Delete certificate' }, click: $parent.deleteCertificate">
                                                 <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
                                             </a>
                                         </span>
@@ -137,7 +137,7 @@
                 </div>
                 <div class="col-sm-6">
                     <label for="input-select-file" id="CertificateFileLabel" class="input-group-btn">
-                        <span id="register-new" class="btn btn-primary form-control" tabindex="0" aria-label="Register a new certificate" role="button">
+                        <span id="register-new" class="btn btn-brand form-control" tabindex="0" aria-label="Register a new certificate" role="button">
                             Register new<input type="file" name="uploadFile" accept=".cer" aria-labelledby="CertificateFileLabel" id="input-select-file" style="display:none;" />
                         </span>
                     </label>
