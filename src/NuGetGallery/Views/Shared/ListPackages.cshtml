@@ -227,7 +227,7 @@
                         <div class="sortby col-md-3">
                             <div class="row">
                                 <label for="sortby">Sort by</label>
-                                <select name="sortby" id="sortby" form="search-form" aria-label="sort package search results by">
+                                <select name="sortby" id="sortby" class="select-brand" form="search-form" aria-label="sort package search results by">
                                     <option value="relevance" aria-label="Sort By: Relevance" @(Model.SortBy == "relevance" ? "selected" : "")>Relevance</option>
                                     <option value="totalDownloads-desc" aria-label="Sort By: Downloads" @(Model.SortBy == "totalDownloads-desc" ? "selected" : "")>Downloads</option>
                                     <option value="created-desc" aria-label="Sort By: Recently updated" @(Model.SortBy == "created-desc" ? "selected" : "")>Recently updated</option>

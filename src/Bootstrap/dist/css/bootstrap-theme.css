@@ -46,8 +46,6 @@ p {
   /* Web/Body 2 */
   font-size: 16px;
   font-weight: 400;
-  line-height: 22px;
-  /* 137.5% */
 }
 label {
   color: var(--neutralForeground1Rest);
@@ -245,6 +243,7 @@ body h3 {
 .banner {
   padding-bottom: 10px;
   padding-top: 5px;
+  color: var(--neutralForegroundStaticRest);
 }
 .banner span {
   font-size: 1.25em;
@@ -820,9 +819,6 @@ body[id="/"] {
   align-items: center;
   padding: 5px;
   margin-bottom: 0px;
-  background-color: white;
-  border-style: inset;
-  border: 1px solid #7f7f7f;
 }
 .multi-select-dropdown .dropdown-btn span {
   white-space: nowrap;
@@ -994,38 +990,41 @@ body[id="/"] {
 }
 .framework-badge {
   padding: 1px 8px;
-  border-radius: 4px;
   -webkit-box-pack: center;
   -webkit-justify-content: center;
   -ms-flex-pack: center;
   justify-content: center;
   display: inline-block;
-  border: 1px solid #0078d4;
+  border-radius: 4px;
+  border: 1px solid var(--transparentStrokeRest);
+  height: 24px;
 }
 .framework-badge:not(:last-child) {
   margin-right: 8px;
 }
 .framework-badge-asset {
   padding: 1px 8px;
-  border-radius: 4px;
   -webkit-box-pack: center;
   -webkit-justify-content: center;
   -ms-flex-pack: center;
   justify-content: center;
   display: inline-block;
-  border: 1px solid #0078d4;
+  border-radius: 4px;
+  border: 1px solid var(--transparentStrokeRest);
+  height: 24px;
   background: var(--brandBackground1Rest);
   color: var(--neutralForegroundOnBrandRest);
 }
 .framework-badge-computed {
   padding: 1px 8px;
-  border-radius: 4px;
   -webkit-box-pack: center;
   -webkit-justify-content: center;
   -ms-flex-pack: center;
   justify-content: center;
   display: inline-block;
-  border: 1px solid #0078d4;
+  border-radius: 4px;
+  border: 1px solid var(--transparentStrokeRest);
+  height: 24px;
   color: var(--brandForeground2Rest);
   background: var(--brandBackground2Rest);
 }
@@ -2766,7 +2765,6 @@ p.frameworktableinfo-text {
   margin-top: 50px;
 }
 .page-profile .profile-details .statistics {
-  color: #000;
   font-weight: 300;
 }
 .page-profile .profile-details .statistics .statistic {
