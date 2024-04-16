@@ -56,12 +56,12 @@ $(function() {
 
     if (advancedSearchToggleButton) {
         advancedSearchToggleButton.addEventListener('click', toggleAdvancedSearchPanel);
-
-        window.addEventListener('resize', () => {
-            resized = true;
-            toggleAdvancedSearchPanel();
-        });
     }
+
+    window.addEventListener('resize', () => {
+        resized = true;
+        toggleAdvancedSearchPanel();
+    });
 
     /* For narrow screens only */
     function toggleAdvancedSearchPanel() {
@@ -70,21 +70,21 @@ $(function() {
 
         if (filtersContent) {
             var computedStyle = window.getComputedStyle(filtersContent);
-        }
 
-        if (window.innerWidth <= 992 && !resized) {
-            filtersContent.style.display = (computedStyle.display === 'none') ? 'block' : 'none';
-            chevronIcon.classList.toggle('ms-Icon--ChevronDown');
-            chevronIcon.classList.toggle('ms-Icon--ChevronUp');
-        }
-        else if (window.innerWidth <= 992 && initialScreenSize > 992 && resized) {
-            filtersContent.style.display = 'none';
-            chevronIcon.classList.add('ms-Icon--ChevronDown');
-            chevronIcon.classList.remove('ms-Icon--ChevronUp');
+            if (window.innerWidth <= 992 && !resized) {
+                filtersContent.style.display = (computedStyle.display === 'none') ? 'block' : 'none';
+                chevronIcon.classList.toggle('ms-Icon--ChevronDown');
+                chevronIcon.classList.toggle('ms-Icon--ChevronUp');
+            }
+            else if (window.innerWidth <= 992 && initialScreenSize > 992 && resized) {
+                filtersContent.style.display = 'none';
+                chevronIcon.classList.add('ms-Icon--ChevronDown');
+                chevronIcon.classList.remove('ms-Icon--ChevronUp');
 
-        }
-        else if (window.innerWidth > 992) {
-            filtersContent.style.display = 'block';
+            }
+            else if (window.innerWidth > 992) {
+                filtersContent.style.display = 'block';
+            }
         }
 
         initialScreenSize = window.innerWidth;
