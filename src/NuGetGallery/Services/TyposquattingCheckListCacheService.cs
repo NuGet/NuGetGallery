@@ -46,14 +46,13 @@ namespace NuGetGallery
                     if (ShouldCacheBeUpdated(checkListConfiguredLength, checkListExpireTime))
                     {
                         TyposquattingCheckListConfiguredLength = checkListConfiguredLength;
-                        List<string> cachedPackages = packageService.GetAllPackageRegistrations()
+                        IQueryable<string> cacheQuery = packageService.GetAllPackageRegistrations()
                             .OrderByDescending(pr => pr.IsVerified)
                             .ThenByDescending(pr => pr.DownloadCount)
                             .Select(pr => pr.Id)
-                            .Take(TyposquattingCheckListConfiguredLength)
-                            .ToList();
+                            .Take(TyposquattingCheckListConfiguredLength);
 
-                        Cache = cachedPackages
+                        Cache = cacheQuery
                             .Select(pr => _typosquattingServiceHelper.NormalizeString(pr))
                             .ToList();
 
