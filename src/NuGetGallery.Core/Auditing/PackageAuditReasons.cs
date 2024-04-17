@@ -32,6 +32,11 @@ namespace NuGetGallery.Auditing
     public static class PackageDeprecatedVia
     {
         /// <summary>
+        /// Package has been deprecated via NuGet API
+        /// </summary>
+        public const string Api = "Deprecated via API.";
+
+        /// <summary>
         /// Package has been deprecated via NuGet web interface (browser)
         /// </summary>
         public const string Web = "Deprecated via web.";
@@ -39,6 +44,11 @@ namespace NuGetGallery.Auditing
 
     public static class PackageUndeprecatedVia
     {
+        /// <summary>
+        /// Package has been undeprecated via NuGet API
+        /// </summary>
+        public const string Api = "Undeprecated via API.";
+
         /// <summary>
         /// Package has been undeprecated via NuGet web interface (browser)
         /// </summary>

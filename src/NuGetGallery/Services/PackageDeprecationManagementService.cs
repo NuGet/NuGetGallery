@@ -8,6 +8,7 @@ using System.Net;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
+using NuGetGallery.Auditing;
 
 namespace NuGetGallery
 {
@@ -43,6 +44,7 @@ namespace NuGetGallery
             User currentUser,
             string id,
             IReadOnlyCollection<string> versions, 
+            string auditReason,
             bool isLegacy = false, 
             bool hasCriticalBugs = false, 
             bool isOther = false, 
@@ -174,7 +176,8 @@ namespace NuGetGallery
                 alternatePackage,
                 customMessage,
                 currentUser,
-                listed);
+                listed,
+                auditReason);
 
             return null;
         }

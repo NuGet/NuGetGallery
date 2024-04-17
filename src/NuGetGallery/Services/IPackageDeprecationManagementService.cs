@@ -22,6 +22,7 @@ namespace NuGetGallery
         /// <param name="currentUser">The user that is performing the update.</param>
         /// <param name="id">The ID of the package to update.</param>
         /// <param name="versions">The versions of the package to update.</param>
+        /// <param name="auditReason">A reason description used for auditing purposes.</param>
         /// <param name="isLegacy">Whether or not the packages are legacy.</param>
         /// <param name="hasCriticalBugs">Whether or not the packages have critical bugs.</param>
         /// <param name="isOther">Whether or not the packages have an unlisted reason for being deprecated.</param>
@@ -37,6 +38,7 @@ namespace NuGetGallery
             User currentUser,
             string id,
             IReadOnlyCollection<string> versions,
+            string auditReason,
             bool isLegacy = false,
             bool hasCriticalBugs = false,
             bool isOther = false,

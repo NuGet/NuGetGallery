@@ -34,7 +34,8 @@ namespace NuGetGallery.Services
                         alternatePackage: null,
                         customMessage: null,
                         user: user,
-                        listed: null));
+                        listed: null,
+                        auditReason: null));
             }
 
             [Fact]
@@ -57,7 +58,8 @@ namespace NuGetGallery.Services
                         alternatePackage: null,
                         customMessage: null,
                         user: user,
-                        listed: null));
+                        listed: null,
+                        PackageUndeprecatedVia.Web));
             }
 
             [Fact]
@@ -119,7 +121,8 @@ namespace NuGetGallery.Services
 
                 var packageUpdateService = GetMock<IPackageUpdateService>();
                 packageUpdateService
-                    .Setup(b => b.UpdatePackagesAsync(packages, true))
+                    .Setup(b => b.UpdatePackagesAsync(
+                        It.Is<IReadOnlyList<Package>>(p => p.SequenceEqual(new[] { packageWithDeprecation1, packageWithDeprecation2 })), true))
                     .Returns(Task.CompletedTask)
                     .Verifiable();
 
@@ -127,7 +130,14 @@ namespace NuGetGallery.Services
 
                 var telemetryService = GetMock<ITelemetryService>();
                 telemetryService
-                    .Setup(x => x.TrackPackageDeprecate(packages, PackageDeprecationStatus.NotDeprecated, null, null, false, true))
+                    .Setup(x => x.TrackPackageDeprecate(
+                        It.Is<IReadOnlyList<Package>>(p => p.SequenceEqual(new[] { packageWithDeprecation1, packageWithDeprecation2 })),
+                        PackageDeprecationStatus.NotDeprecated, null, null, false, true))
+                    .Verifiable();
+                telemetryService
+                    .Setup(x => x.TrackPackageDeprecate(
+                        It.Is<IReadOnlyList<Package>>(p => p.SequenceEqual(new[] { packageWithoutDeprecation1, packageWithoutDeprecation2 })),
+                        PackageDeprecationStatus.NotDeprecated, null, null, false, false))
                     .Verifiable();
 
                 var user = new User { Key = 1 };
@@ -141,7 +151,8 @@ namespace NuGetGallery.Services
                     alternatePackage: null,
                     customMessage: null,
                     user: user,
-                    listed: null);
+                    listed: null,
+                    PackageUndeprecatedVia.Web);
 
                 // Assert
                 context.VerifyCommitChanges();
@@ -276,7 +287,8 @@ namespace NuGetGallery.Services
                     alternatePackage,
                     customMessage,
                     user,
-                    listed: null);
+                    listed: null,
+                    PackageUndeprecatedVia.Web);
 
                 // Assert
                 context.VerifyCommitChanges();
@@ -376,7 +388,8 @@ namespace NuGetGallery.Services
                     alternatePackage,
                     customMessage,
                     user,
-                    listed);
+                    listed,
+                    PackageUndeprecatedVia.Web);
 
                 // Assert
                 context.VerifyCommitChanges();
@@ -413,13 +426,13 @@ namespace NuGetGallery.Services
 
                 var id = "theId";
                 var registration = new PackageRegistration { Id = id };
-                var packageWithDeprecation1 = new Package
-                {
-                    PackageRegistration = registration,
-                    NormalizedVersion = "1.0.0",
-                    Deprecations = new List<PackageDeprecation> { new PackageDeprecation() },
-                    LastEdited = lastTimestamp
-                };
+
+                var customMessage = "message";
+                var user = new User { Key = 1 };
+                var status = (PackageDeprecationStatus)99;
+
+                var alternatePackageRegistration = new PackageRegistration { Key = 1 };
+                var alternatePackage = new Package { Key = 1 };
 
                 var packageWithDeprecation = new Package
                 {
@@ -430,7 +443,13 @@ namespace NuGetGallery.Services
                     {
                         new PackageDeprecation
                         {
-                            CustomMessage = "message"
+                            DeprecatedByUserKey = user.Key,
+                            CustomMessage = customMessage,
+                            Status = status,
+                            AlternatePackageKey = alternatePackage.Key,
+                            AlternatePackage = alternatePackage,
+                            AlternatePackageRegistrationKey = alternatePackageRegistration.Key,
+                            AlternatePackageRegistration = alternatePackageRegistration,
                         }
                     }
                 };
@@ -454,11 +473,6 @@ namespace NuGetGallery.Services
                 var packageUpdateService = GetMock<IPackageUpdateService>();
                 var auditingService = GetService<IAuditingService>();
 
-                var status = (PackageDeprecationStatus)99;
-
-                var alternatePackageRegistration = new PackageRegistration();
-                var alternatePackage = new Package();
-
                 var telemetryService = GetMock<ITelemetryService>();
                 telemetryService
                     .Setup(x => x.TrackPackageDeprecate(packages, status, alternatePackageRegistration, alternatePackage, true, false))
@@ -466,8 +480,6 @@ namespace NuGetGallery.Services
 
                 var service = Get<PackageDeprecationService>();
 
-                var customMessage = "message";
-                var user = new User { Key = 1 };
 
                 // Act
                 await service.UpdateDeprecation(
@@ -477,7 +489,8 @@ namespace NuGetGallery.Services
                     alternatePackage,
                     customMessage,
                     user,
-                    listed: null);
+                    listed: null,
+                    PackageUndeprecatedVia.Web);
 
                 // Assert
                 context.VerifyNoCommitChanges();

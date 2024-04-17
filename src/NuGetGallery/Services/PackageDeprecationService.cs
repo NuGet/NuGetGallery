@@ -7,6 +7,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
+using NuGetGallery.Areas.Admin.Services;
 using NuGetGallery.Auditing;
 
 namespace NuGetGallery
@@ -37,7 +38,8 @@ namespace NuGetGallery
            Package alternatePackage,
            string customMessage,
            User user,
-           bool? listed)
+           bool? listed,
+           string auditReason)
         {
             if (user == null)
             {
@@ -49,6 +51,11 @@ namespace NuGetGallery
                 throw new ArgumentException(nameof(packages));
             }
 
+            if (auditReason == null)
+            {
+                throw new ArgumentNullException(nameof(auditReason));
+            }
+
             var registration = packages.First().PackageRegistration;
             if (packages.Select(p => p.PackageRegistrationKey).Distinct().Count() > 1)
             {
@@ -57,8 +64,14 @@ namespace NuGetGallery
 
             var shouldDelete = status == PackageDeprecationStatus.NotDeprecated;
             var deprecations = new List<PackageDeprecation>();
+            var changedPackages = new List<Package>();
+            var unchangedPackages = new List<Package>();
             foreach (var package in packages)
             {
+                // This change tracking could theoretically be done via the Entity Framework change tracker, but given
+                // the low number of properties here, we'll track the changes ourselves. To use the change tracker to
+                // check if an individual entity has changed would require non-trivial changes to our DB abstractions.
+                var changed = false;
                 var deprecation = package.Deprecations.SingleOrDefault();
                 if (shouldDelete)
                 {
@@ -66,6 +79,7 @@ namespace NuGetGallery
                     {
                         package.Deprecations.Remove(deprecation);
                         deprecations.Add(deprecation);
+                        changed = true;
                     }
                 }
                 else
@@ -79,20 +93,53 @@ namespace NuGetGallery
 
                         package.Deprecations.Add(deprecation);
                         deprecations.Add(deprecation);
+                        changed = true;
                     }
 
-                    deprecation.Status = status;
-                    deprecation.DeprecatedByUser = user;
+                    if (deprecation.Status != status)
+                    {
+                        deprecation.Status = status;
+                        changed = true;
+                    }
 
-                    deprecation.AlternatePackageRegistration = alternatePackageRegistration;
-                    deprecation.AlternatePackage = alternatePackage;
+                    if (deprecation.DeprecatedByUserKey != user?.Key)
+                    {
+                        deprecation.DeprecatedByUser = user;
+                        changed = true;
+                    }
 
-                    deprecation.CustomMessage = customMessage;
+                    if (deprecation.AlternatePackageRegistrationKey != alternatePackageRegistration?.Key)
+                    {
+                        deprecation.AlternatePackageRegistration = alternatePackageRegistration;
+                        changed = true;
+                    }
+
+                    if (deprecation.AlternatePackageKey != alternatePackage?.Key)
+                    {
+                        deprecation.AlternatePackage = alternatePackage;
+                        changed = true;
+                    }
+
+                    if (deprecation.CustomMessage != customMessage)
+                    {
+                        deprecation.CustomMessage = customMessage;
+                        changed = true;
+                    }
                 }
 
-                if (listed.HasValue)
+                if (listed.HasValue && package.Listed != listed.Value)
                 {
                     package.Listed = listed.Value;
+                    changed = true;
+                }
+
+                if (changed)
+                {
+                    changedPackages.Add(package);
+                }
+                else
+                {
+                    unchangedPackages.Add(package);
                 }
             }
 
@@ -112,32 +159,33 @@ namespace NuGetGallery
                 {
                     await _entitiesContext.SaveChangesAsync();
 
-                    await _packageUpdateService.UpdatePackagesAsync(packages);
+                    await _packageUpdateService.UpdatePackagesAsync(changedPackages);
 
                     transaction.Commit();
 
                     _telemetryService.TrackPackageDeprecate(
-                        packages,
+                        changedPackages,
                         status,
                         alternatePackageRegistration,
                         alternatePackage,
                         !string.IsNullOrWhiteSpace(customMessage),
                         hasChanges: true);
 
-                    foreach (var package in packages)
+                    foreach (var package in changedPackages)
                     {
                         await _auditingService.SaveAuditRecordAsync(
                             new PackageAuditRecord(
                                 package,
                                 status == PackageDeprecationStatus.NotDeprecated ? AuditedPackageAction.Undeprecate : AuditedPackageAction.Deprecate,
-                                status == PackageDeprecationStatus.NotDeprecated ? PackageUndeprecatedVia.Web : PackageDeprecatedVia.Web));
+                                auditReason));
                     }
                 }
             }
-            else
+
+            if (unchangedPackages.Count > 0)
             {
                 _telemetryService.TrackPackageDeprecate(
-                    packages,
+                    unchangedPackages,
                     status,
                     alternatePackageRegistration,
                     alternatePackage,

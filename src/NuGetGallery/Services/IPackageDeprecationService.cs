@@ -23,7 +23,8 @@ namespace NuGetGallery
             Package alternatePackage,
             string customMessage,
             User user,
-            bool? listed);
+            bool? listed,
+            string auditReason);
 
         IReadOnlyList<PackageDeprecation> GetDeprecationsById(string id);
     }

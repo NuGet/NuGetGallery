@@ -7,6 +7,7 @@ using System.Net;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
+using NuGetGallery.Auditing;
 using NuGetGallery.Framework;
 using Xunit;
 
@@ -924,7 +925,8 @@ namespace NuGetGallery
                         alternatePackage,
                         customMessage,
                         currentUser,
-                        null)) // listed = null
+                        null, // listed = null
+                        PackageDeprecatedVia.Web))
                     .Completes()
                     .Verifiable();
 
@@ -969,6 +971,7 @@ namespace NuGetGallery
                     currentUser,
                     id,
                     versions,
+                    PackageDeprecatedVia.Web,
                     isLegacy,
                     hasCriticalBugs,
                     isOther,
