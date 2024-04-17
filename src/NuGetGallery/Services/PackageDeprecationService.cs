@@ -102,12 +102,6 @@ namespace NuGetGallery
                         changed = true;
                     }
 
-                    if (deprecation.DeprecatedByUserKey != user?.Key)
-                    {
-                        deprecation.DeprecatedByUser = user;
-                        changed = true;
-                    }
-
                     if (deprecation.AlternatePackageRegistrationKey != alternatePackageRegistration?.Key)
                     {
                         deprecation.AlternatePackageRegistration = alternatePackageRegistration;
@@ -123,6 +117,12 @@ namespace NuGetGallery
                     if (deprecation.CustomMessage != customMessage)
                     {
                         deprecation.CustomMessage = customMessage;
+                        changed = true;
+                    }
+
+                    if (changed && deprecation.DeprecatedByUserKey != user?.Key)
+                    {
+                        deprecation.DeprecatedByUser = user;
                         changed = true;
                     }
                 }
