@@ -2546,7 +2546,14 @@ p.frameworktableinfo-text {
 }
 .page-statistics-most-downloaded .table {
   margin-top: 40px;
-  table-layout: fixed;
+  table-layout: auto;
+  min-width: 100%;
+  max-width: -webkit-fit-content;
+  max-width: -moz-fit-content;
+  max-width: fit-content;
+  width: -webkit-fit-content;
+  width: -moz-fit-content;
+  width: fit-content;
 }
 .page-statistics-most-downloaded .table thead {
   padding-bottom: 4px;
@@ -2580,13 +2587,41 @@ p.frameworktableinfo-text {
   margin-bottom: 20px;
 }
 .page-statistics-most-downloaded .table tbody td {
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: visible;
+  text-overflow: initial;
+}
+@media (max-width: 1300px) {
+  .page-statistics-most-downloaded .table thead .packages th:nth-child(1) {
+    width: auto;
+  }
+  .page-statistics-most-downloaded .table thead .packages th:nth-child(2) {
+    width: auto;
+  }
+  .page-statistics-most-downloaded .table thead .packages th:nth-child(3) {
+    width: auto;
+  }
+  .page-statistics-most-downloaded .table thead .package-versions th:nth-child(1) {
+    width: auto;
+  }
+  .page-statistics-most-downloaded .table thead .package-versions th:nth-child(2) {
+    width: auto;
+  }
+  .page-statistics-most-downloaded .table thead .package-versions th:nth-child(3) {
+    width: auto;
+  }
+  .page-statistics-most-downloaded .table thead .package-versions th:nth-child(4) {
+    width: auto;
+  }
+}
+.page-statistics-most-downloaded .table-wrapper {
+  overflow: auto;
 }
 .page-statistics-overview td {
-  max-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  max-width: -webkit-fit-content;
+  max-width: -moz-fit-content;
+  max-width: fit-content;
+  overflow: visible;
+  text-overflow: initial;
   white-space: nowrap;
 }
 .page-statistics-overview .stats-title-text {
@@ -2596,6 +2631,9 @@ p.frameworktableinfo-text {
 .page-statistics-overview .chart {
   width: 98%;
   height: 300px;
+}
+.page-statistics-overview .chart .svg:not(:root) {
+  overflow: visible;
 }
 .page-statistics-overview circle.graph-dot {
   fill: steelblue;
@@ -2621,6 +2659,21 @@ p.frameworktableinfo-text {
 }
 .page-statistics-overview text.graph-y-axis-text {
   font-size: 0.9em;
+}
+.page-statistics-overview .table {
+  width: -webkit-fit-content;
+  width: -moz-fit-content;
+  width: fit-content;
+  max-width: -webkit-fit-content;
+  max-width: -moz-fit-content;
+  max-width: fit-content;
+  min-width: 100%;
+}
+.page-statistics-overview .table-wrapper {
+  overflow: auto;
+}
+.page-statistics-overview svg:not(:root) {
+  overflow: visible;
 }
 .page-stats-per-package .table {
   table-layout: fixed;
