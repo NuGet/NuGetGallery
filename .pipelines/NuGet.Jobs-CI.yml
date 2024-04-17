@@ -63,12 +63,6 @@ extends:
       - job: Phase_1
         displayName: Phase 1
         cancelTimeoutInMinutes: 1
-        templateContext:
-          outputs:
-          - output: pipelineArtifact
-            displayName: 'Publish Artifact: UnsignedArtifacts'
-            targetPath: $(ArtifactsFolder)
-            artifactName: UnsignedArtifacts
         steps:
         - checkout: self
           fetchDepth: 1
