@@ -81,7 +81,8 @@ namespace NuGetGallery.Controllers
                         isOther,
                         alternateId,
                         alternateVersion,
-                        customMessage))
+                        customMessage,
+                        null)) // listed = null
                     .ReturnsAsync(success ? null : new UpdateDeprecationError(errorStatus, errorMessage))
                     .Verifiable();
 

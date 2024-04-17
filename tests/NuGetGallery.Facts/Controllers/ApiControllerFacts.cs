@@ -2504,7 +2504,8 @@ namespace NuGetGallery
                             It.IsAny<bool>(),
                             It.IsAny<string>(),
                             It.IsAny<string>(),
-                            It.IsAny<string>()),
+                            It.IsAny<string>(),
+                            It.IsAny<bool?>()),
                         Times.Never());
             }
 
@@ -2554,7 +2555,8 @@ namespace NuGetGallery
                             It.IsAny<bool>(),
                             It.IsAny<string>(),
                             It.IsAny<string>(),
-                            It.IsAny<string>()),
+                            It.IsAny<string>(),
+                            It.IsAny<bool?>()),
                         Times.Never());
             }
 
@@ -2581,7 +2583,8 @@ namespace NuGetGallery
                             It.IsAny<bool>(),
                             It.IsAny<string>(),
                             It.IsAny<string>(),
-                            It.IsAny<string>()),
+                            It.IsAny<string>(),
+                            It.IsAny<bool?>()),
                         Times.Never());
 
                 var registration = new PackageRegistration { Id = id };
@@ -2632,6 +2635,7 @@ namespace NuGetGallery
                     Enumerable
                         .Repeat(
                             MemberDataHelper.BooleanDataSet(), 4)
+                        .Concat(new[] { MemberDataHelper.NullableBooleanDataSet() })
                         .ToArray());
 
             [Theory]
@@ -2640,7 +2644,8 @@ namespace NuGetGallery
                 bool isLegacy,
                 bool hasCriticalBugs,
                 bool isOther,
-                bool success)
+                bool success,
+                bool? listed)
             {
                 // Arrange
                 var id = "Crested.Gecko";
@@ -2666,7 +2671,8 @@ namespace NuGetGallery
                         isOther,
                         alternateId,
                         alternateVersion,
-                        customMessage))
+                        customMessage,
+                        listed))
                     .ReturnsAsync(success ? null : new UpdateDeprecationError(errorStatus, errorMessage))
                     .Verifiable();
 
@@ -2706,7 +2712,8 @@ namespace NuGetGallery
                     isOther,
                     alternateId,
                     alternateVersion,
-                    customMessage);
+                    customMessage,
+                    listed);
 
                 // Assert
                 if (success)

@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Transactions;
 using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
 
@@ -37,7 +36,8 @@ namespace NuGetGallery
            PackageRegistration alternatePackageRegistration,
            Package alternatePackage,
            string customMessage,
-           User user)
+           User user,
+           bool? listed)
         {
             if (user == null)
             {
@@ -88,6 +88,11 @@ namespace NuGetGallery
                     deprecation.AlternatePackage = alternatePackage;
 
                     deprecation.CustomMessage = customMessage;
+                }
+
+                if (listed.HasValue)
+                {
+                    package.Listed = listed.Value;
                 }
             }
 

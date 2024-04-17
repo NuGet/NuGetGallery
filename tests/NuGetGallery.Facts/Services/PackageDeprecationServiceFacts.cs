@@ -33,7 +33,8 @@ namespace NuGetGallery.Services
                         alternatePackageRegistration: null,
                         alternatePackage: null,
                         customMessage: null,
-                        user: user));
+                        user: user,
+                        listed: null));
             }
 
             [Fact]
@@ -55,7 +56,8 @@ namespace NuGetGallery.Services
                         alternatePackageRegistration: null,
                         alternatePackage: null,
                         customMessage: null,
-                        user: user));
+                        user: user,
+                        listed: null));
             }
 
             [Fact]
@@ -138,7 +140,8 @@ namespace NuGetGallery.Services
                     alternatePackageRegistration: null,
                     alternatePackage: null,
                     customMessage: null,
-                    user: user);
+                    user: user,
+                    listed: null);
 
                 // Assert
                 context.VerifyCommitChanges();
@@ -272,7 +275,8 @@ namespace NuGetGallery.Services
                     alternatePackageRegistration,
                     alternatePackage,
                     customMessage,
-                    user);
+                    user,
+                    listed: null);
 
                 // Assert
                 context.VerifyCommitChanges();
@@ -290,6 +294,107 @@ namespace NuGetGallery.Services
                     Assert.Equal(alternatePackageRegistration, deprecation.AlternatePackageRegistration);
                     Assert.Equal(alternatePackage, deprecation.AlternatePackage);
                     Assert.Equal(customMessage, deprecation.CustomMessage);
+
+                    auditingService.WroteRecord<PackageAuditRecord>(
+                        r => r.Action == (status == PackageDeprecationStatus.NotDeprecated ? AuditedPackageAction.Undeprecate : AuditedPackageAction.Deprecate)
+                        && r.Reason == (status == PackageDeprecationStatus.NotDeprecated ? PackageUndeprecatedVia.Web : PackageDeprecatedVia.Web)
+                        && r.DeprecationRecord == null
+                        && r.Id == id
+                        && r.PackageRecord.NormalizedVersion == package.NormalizedVersion);
+                }
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task SetsListedStatus(bool listed)
+            {
+                // Arrange
+                var lastTimestamp = new DateTime(2019, 3, 4);
+
+                var id = "theId";
+                var registration = new PackageRegistration { Id = id };
+
+                var packageWithoutDeprecation = new Package
+                {
+                    PackageRegistration = registration,
+                    NormalizedVersion = "2.0.0",
+                    LastEdited = lastTimestamp,
+                    Listed = !listed,
+                };
+
+                var packages = new[]
+                {
+                    packageWithoutDeprecation,
+                };
+
+                var transactionMock = new Mock<IDbContextTransaction>();
+                transactionMock
+                    .Setup(x => x.Commit())
+                    .Verifiable();
+
+                var databaseMock = new Mock<IDatabase>();
+                databaseMock
+                    .Setup(x => x.BeginTransaction())
+                    .Returns(transactionMock.Object);
+
+                var context = GetFakeContext();
+                context.SetupDatabase(databaseMock.Object);
+                context.Deprecations.AddRange(
+                    packages
+                        .Select(p => p.Deprecations.SingleOrDefault())
+                        .Where(d => d != null));
+
+                var packageUpdateService = GetMock<IPackageUpdateService>();
+                packageUpdateService
+                    .Setup(b => b.UpdatePackagesAsync(packages, true))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
+
+                var auditingService = GetService<IAuditingService>();
+
+                var status = (PackageDeprecationStatus)99;
+
+                var alternatePackageRegistration = new PackageRegistration();
+                var alternatePackage = new Package();
+
+                var telemetryService = GetMock<ITelemetryService>();
+                telemetryService
+                    .Setup(x => x.TrackPackageDeprecate(packages, status, alternatePackageRegistration, alternatePackage, true, true))
+                    .Verifiable();
+
+                var service = Get<PackageDeprecationService>();
+
+                var customMessage = "message";
+                var user = new User { Key = 1 };
+
+                // Act
+                await service.UpdateDeprecation(
+                    packages,
+                    status,
+                    alternatePackageRegistration,
+                    alternatePackage,
+                    customMessage,
+                    user,
+                    listed);
+
+                // Assert
+                context.VerifyCommitChanges();
+                databaseMock.Verify();
+                transactionMock.Verify();
+                packageUpdateService.Verify();
+                telemetryService.Verify();
+
+                Assert.Equal(packages.Count(), context.Deprecations.Count());
+                foreach (var package in packages)
+                {
+                    var deprecation = package.Deprecations.Single();
+                    Assert.Contains(deprecation, context.Deprecations);
+                    Assert.Equal(status, deprecation.Status);
+                    Assert.Equal(alternatePackageRegistration, deprecation.AlternatePackageRegistration);
+                    Assert.Equal(alternatePackage, deprecation.AlternatePackage);
+                    Assert.Equal(customMessage, deprecation.CustomMessage);
+                    Assert.Equal(listed, package.Listed);
 
                     auditingService.WroteRecord<PackageAuditRecord>(
                         r => r.Action == (status == PackageDeprecationStatus.NotDeprecated ? AuditedPackageAction.Undeprecate : AuditedPackageAction.Deprecate)
@@ -371,7 +476,8 @@ namespace NuGetGallery.Services
                     alternatePackageRegistration,
                     alternatePackage,
                     customMessage,
-                    user);
+                    user,
+                    listed: null);
 
                 // Assert
                 context.VerifyNoCommitChanges();

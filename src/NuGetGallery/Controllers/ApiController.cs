@@ -1010,7 +1010,8 @@ namespace NuGetGallery
             bool isOther = false, 
             string alternatePackageId = null, 
             string alternatePackageVersion = null, 
-            string message = null)
+            string message = null,
+            bool? listed = null)
         {
             var registration = PackageService.FindPackageRegistrationById(id);
             if (registration == null)
@@ -1040,7 +1041,8 @@ namespace NuGetGallery
                 isOther,
                 alternatePackageId,
                 alternatePackageVersion,
-                message);
+                message,
+                listed);
 
             if (error != null)
             {

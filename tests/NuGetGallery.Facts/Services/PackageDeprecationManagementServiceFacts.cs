@@ -923,7 +923,8 @@ namespace NuGetGallery
                         alternatePackageRegistration,
                         alternatePackage,
                         customMessage,
-                        currentUser))
+                        currentUser,
+                        null)) // listed = null
                     .Completes()
                     .Verifiable();
 

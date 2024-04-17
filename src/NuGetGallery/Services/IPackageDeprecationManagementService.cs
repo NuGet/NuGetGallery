@@ -28,6 +28,7 @@ namespace NuGetGallery
         /// <param name="alternatePackageId">An alternate package ID to use instead.</param>
         /// <param name="alternatePackageVersion">A version of <paramref name="alternatePackageId"/> to use instead.</param>
         /// <param name="message">A custom message to add to the deprecation.</param>
+        /// <param name="listed">Null to leave current listed status per package version, false to unlist each package, true to relist the package.</param>
         /// <returns>
         /// <c>null</c> if there were no issues updating the deprecation.
         /// Otherwise, a <see cref="UpdateDeprecationError"/> that describes the problem that was encountered.
@@ -41,6 +42,7 @@ namespace NuGetGallery
             bool isOther = false,
             string alternatePackageId = null,
             string alternatePackageVersion = null,
-            string message = null);
+            string message = null,
+            bool? listed = null);
     }
 }

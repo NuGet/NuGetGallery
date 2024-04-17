@@ -19,7 +19,7 @@ namespace NuGetGallery.Frameworks
             FrameworkProductNames.NetStandard,
             FrameworkProductNames.NetFramework
         };
-        private readonly NuGetFrameworkSorter Sorter = new NuGetFrameworkSorter();
+        private readonly NuGetFrameworkSorter Sorter = NuGetFrameworkSorter.Instance;
         private readonly int NetStartingMajorVersion = 5;
 
         public PackageFrameworkCompatibility Create(ICollection<PackageFramework> packageFrameworks, string packageId, string packageVersion, bool includeComputedBadges = false)

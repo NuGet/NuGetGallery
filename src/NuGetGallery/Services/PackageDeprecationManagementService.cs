@@ -48,7 +48,8 @@ namespace NuGetGallery
             bool isOther = false, 
             string alternatePackageId = null, 
             string alternatePackageVersion = null, 
-            string message = null)
+            string message = null,
+            bool? listed = null)
         {
             var status = PackageDeprecationStatus.NotDeprecated;
 
@@ -172,7 +173,8 @@ namespace NuGetGallery
                 alternatePackageRegistration,
                 alternatePackage,
                 customMessage,
-                currentUser);
+                currentUser,
+                listed);
 
             return null;
         }
