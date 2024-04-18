@@ -53,7 +53,7 @@
                         @Html.DropDownList("version-selection", Model.VersionSelectList,
                             new
                             {
-                                @class = "form-control",
+                                @class = "form-control select-brand",
                                 title = "Select a version",
                                 id = "input-select-version"
                             })
@@ -83,13 +83,13 @@
 
                         <div id="form-field-reason" class="form-group @Html.HasErrorFor(m => m.DeletePackagesRequest.Reason)">
                             @Html.ShowLabelFor(m => m.DeletePackagesRequest.Reason)
-                            @Html.ShowEnumDropDownListFor(m => m.DeletePackagesRequest.Reason, Model.DeletePackagesRequest.ReasonChoices, "<Choose a Reason>")
+                            @Html.ShowEnumDropDownListFor(m => m.DeletePackagesRequest.Reason, Model.DeletePackagesRequest.ReasonChoices, "<Choose a Reason>", customClass: "select-brand")
                             @Html.ShowValidationMessagesFor(m => m.DeletePackagesRequest.Reason)
                         </div>
 
                         <div class="form-group @Html.HasErrorFor(m => m.DeletePackagesRequest.Signature)">
                             @Html.ShowLabelFor(m => m.DeletePackagesRequest.Signature)
-                            @Html.ShowTextBoxFor(m => m.DeletePackagesRequest.Signature)
+                            @Html.ShowTextBoxFor(m => m.DeletePackagesRequest.Signature, customClass: "input-brand")
                             @Html.ShowValidationMessagesFor(m => m.DeletePackagesRequest.Signature)
                         </div>
 
@@ -100,7 +100,7 @@
                         <hr />
 
                         <div class="form-group">
-                            <input type="submit" class="btn btn-danger form-control" value="I understand the consequences, delete this symbols package" />
+                            <input type="submit" class="btn btn-brand-danger form-control" value="I understand the consequences, delete this symbols package" />
                         </div>
                     }
                 </div>
