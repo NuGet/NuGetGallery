@@ -80,7 +80,8 @@
                 @if (Model.IsAdvancedSearchFlightEnabled)
                 {
                     <div class="toggle-advanced-search-panel">
-                        <span>Advanced search filters </span><button class ="advanced-search-toggle-button brand-button-transparent" aria-label="Toggles search filters on narrow screens" aria-expanded="false" aria-controls="advancedSearchToggleButton" tabindex="0" id="advancedSearchToggleButton" type="button">
+                        <span>Advanced search filters</span>
+                        <button class ="advanced-search-toggle-button brand-button-transparent" aria-label="Toggles search filters on narrow screens" aria-expanded="false" aria-controls="advancedSearchToggleButton" tabindex="0" id="advancedSearchToggleButton" type="button">
                         <i class="ms-Icon ms-Icon--ChevronDown" id="advancedSearchToggleChevron" ></i></button>
                     </div>
                     <div class="row clearfix advanced-search-panel" id="advancedSearchPanel">
@@ -102,9 +103,9 @@
                                     {
                                         <div class="computed-frameworks-option">
                                             <p>
-                                                Include computed frameworks
+                                                Include compatible frameworks
                                             </p>
-                                            <label for="computed-frameworks-checkbox" class="brand-checkbox" aria-label="Include computed frameworks when filtering for packages.">
+                                            <label for="computed-frameworks-checkbox" class="brand-checkbox" aria-label="Include computed compatible frameworks when filtering for packages.">
                                                 <input type="checkbox" id="computed-frameworks-checkbox" checked="@Model.IncludeComputedFrameworks">
                                             </label>
                                             <input type="hidden" id="includeComputedFrameworks" name="includeComputedFrameworks" value="@Model.IncludeComputedFrameworks.ToString().ToLower()">
@@ -132,7 +133,7 @@
                         @if (Model.PackageType != null && !UiSupportedPackageTypes.ContainsKey(Model.PackageType))
                         {
                             <div class="row warning-panel">
-                                <div class="col-md-12 icon-text alert alert-brand-warning">
+                                <div class="col-md-12 icon-text alert alert-warning">
                                     <i class="ms-Icon ms-Icon--Info" aria-hidden="true"></i>
                                     Filtering on unrecognized package type: @Model.PackageType
                                 </div>
@@ -207,7 +208,7 @@
                         <div class="sortby col-md-3">
                             <div class="row">
                                 <label for="sortby">Sort by</label>
-                                <select name="sortby" id="sortby" class="select-brand" form="search-form" aria-label="sort package search results by">
+                                <select name="sortby" id="sortby" form="search-form" aria-label="sort package search results by">
                                     <option value="relevance" aria-label="Sort By: Relevance" @(Model.SortBy == "relevance" ? "selected" : "")>Relevance</option>
                                     <option value="totalDownloads-desc" aria-label="Sort By: Downloads" @(Model.SortBy == "totalDownloads-desc" ? "selected" : "")>Downloads</option>
                                     <option value="created-desc" aria-label="Sort By: Recently updated" @(Model.SortBy == "created-desc" ? "selected" : "")>Recently updated</option>
