@@ -24,11 +24,6 @@ namespace NuGetGallery.Framework
             return AsDataSet(false, true);
         }
 
-        public static IEnumerable<object[]> NullableBooleanDataSet()
-        {
-            return AsDataSet(null, false, true);
-        }
-
         public static IEnumerable<object[]> EnumDataSet<TEnum>()
         {
             return Enum.GetValues(typeof(TEnum)).Cast<TEnum>()

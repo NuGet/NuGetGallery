@@ -8,7 +8,6 @@ using System.Net;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
-using NuGetGallery.Auditing;
 
 namespace NuGetGallery
 {
@@ -51,7 +50,7 @@ namespace NuGetGallery
             string alternatePackageId = null, 
             string alternatePackageVersion = null, 
             string message = null,
-            bool? listed = null)
+            ListedVerb listedVerb = ListedVerb.Unchanged)
         {
             var status = PackageDeprecationStatus.NotDeprecated;
 
@@ -176,7 +175,7 @@ namespace NuGetGallery
                 alternatePackage,
                 customMessage,
                 currentUser,
-                listed,
+                listedVerb,
                 auditReason);
 
             return null;

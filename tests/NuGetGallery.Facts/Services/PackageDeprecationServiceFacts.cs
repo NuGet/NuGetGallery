@@ -34,7 +34,7 @@ namespace NuGetGallery.Services
                         alternatePackage: null,
                         customMessage: null,
                         user: user,
-                        listed: null,
+                        ListedVerb.Unchanged,
                         auditReason: null));
             }
 
@@ -58,7 +58,7 @@ namespace NuGetGallery.Services
                         alternatePackage: null,
                         customMessage: null,
                         user: user,
-                        listed: null,
+                        ListedVerb.Unchanged,
                         PackageUndeprecatedVia.Web));
             }
 
@@ -151,7 +151,7 @@ namespace NuGetGallery.Services
                     alternatePackage: null,
                     customMessage: null,
                     user: user,
-                    listed: null,
+                    ListedVerb.Unchanged,
                     PackageUndeprecatedVia.Web);
 
                 // Assert
@@ -174,8 +174,10 @@ namespace NuGetGallery.Services
                 }
             }
 
-            [Fact]
-            public async Task ReplacesExistingDeprecations()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task ReplacesExistingDeprecations(bool listed)
             {
                 // Arrange
                 var lastTimestamp = new DateTime(2019, 3, 4);
@@ -187,14 +189,16 @@ namespace NuGetGallery.Services
                     PackageRegistration = registration,
                     NormalizedVersion = "1.0.0",
                     Deprecations = new List<PackageDeprecation> { new PackageDeprecation() },
-                    LastEdited = lastTimestamp
+                    LastEdited = lastTimestamp,
+                    Listed = listed,
                 };
 
                 var packageWithoutDeprecation1 = new Package
                 {
                     PackageRegistration = registration,
                     NormalizedVersion = "2.0.0",
-                    LastEdited = lastTimestamp
+                    LastEdited = lastTimestamp,
+                    Listed = listed,
                 };
 
                 var packageWithDeprecation2 = new Package
@@ -207,14 +211,16 @@ namespace NuGetGallery.Services
                         new PackageDeprecation
                         {
                         }
-                    }
+                    },
+                    Listed = listed,
                 };
 
                 var packageWithoutDeprecation2 = new Package
                 {
                     PackageRegistration = registration,
                     NormalizedVersion = "4.0.0",
-                    LastEdited = lastTimestamp
+                    LastEdited = lastTimestamp,
+                    Listed = listed,
                 };
 
                 var packageWithDeprecation3 = new Package
@@ -227,7 +233,8 @@ namespace NuGetGallery.Services
                         new PackageDeprecation
                         {
                         }
-                    }
+                    },
+                    Listed = listed,
                 };
 
                 var packages = new[]
@@ -287,7 +294,7 @@ namespace NuGetGallery.Services
                     alternatePackage,
                     customMessage,
                     user,
-                    listed: null,
+                    ListedVerb.Unchanged,
                     PackageUndeprecatedVia.Web);
 
                 // Assert
@@ -306,6 +313,7 @@ namespace NuGetGallery.Services
                     Assert.Equal(alternatePackageRegistration, deprecation.AlternatePackageRegistration);
                     Assert.Equal(alternatePackage, deprecation.AlternatePackage);
                     Assert.Equal(customMessage, deprecation.CustomMessage);
+                    Assert.Equal(listed, package.Listed);
 
                     auditingService.WroteRecord<PackageAuditRecord>(
                         r => r.Action == (status == PackageDeprecationStatus.NotDeprecated ? AuditedPackageAction.Undeprecate : AuditedPackageAction.Deprecate)
@@ -317,9 +325,9 @@ namespace NuGetGallery.Services
             }
 
             [Theory]
-            [InlineData(false)]
-            [InlineData(true)]
-            public async Task SetsListedStatus(bool listed)
+            [InlineData(ListedVerb.Unlist)]
+            [InlineData(ListedVerb.Relist)]
+            public async Task SetsListedStatus(ListedVerb listedVerb)
             {
                 // Arrange
                 var lastTimestamp = new DateTime(2019, 3, 4);
@@ -332,7 +340,7 @@ namespace NuGetGallery.Services
                     PackageRegistration = registration,
                     NormalizedVersion = "2.0.0",
                     LastEdited = lastTimestamp,
-                    Listed = !listed,
+                    Listed = listedVerb != ListedVerb.Relist,
                 };
 
                 var packages = new[]
@@ -388,7 +396,7 @@ namespace NuGetGallery.Services
                     alternatePackage,
                     customMessage,
                     user,
-                    listed,
+                    listedVerb,
                     PackageUndeprecatedVia.Web);
 
                 // Assert
@@ -407,7 +415,7 @@ namespace NuGetGallery.Services
                     Assert.Equal(alternatePackageRegistration, deprecation.AlternatePackageRegistration);
                     Assert.Equal(alternatePackage, deprecation.AlternatePackage);
                     Assert.Equal(customMessage, deprecation.CustomMessage);
-                    Assert.Equal(listed, package.Listed);
+                    Assert.Equal(listedVerb == ListedVerb.Relist, package.Listed);
 
                     auditingService.WroteRecord<PackageAuditRecord>(
                         r => r.Action == (status == PackageDeprecationStatus.NotDeprecated ? AuditedPackageAction.Undeprecate : AuditedPackageAction.Deprecate)
@@ -489,7 +497,7 @@ namespace NuGetGallery.Services
                     alternatePackage,
                     customMessage,
                     user,
-                    listed: null,
+                    ListedVerb.Unchanged,
                     PackageUndeprecatedVia.Web);
 
                 // Assert

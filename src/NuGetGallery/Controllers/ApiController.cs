@@ -1012,7 +1012,7 @@ namespace NuGetGallery
             string alternatePackageId = null, 
             string alternatePackageVersion = null, 
             string message = null,
-            bool? listed = null)
+            ListedVerb listedVerb = ListedVerb.Unchanged)
         {
             var registration = PackageService.FindPackageRegistrationById(id);
             if (registration == null)
@@ -1044,7 +1044,7 @@ namespace NuGetGallery
                 alternatePackageId,
                 alternatePackageVersion,
                 message,
-                listed);
+                listedVerb);
 
             if (error != null)
             {

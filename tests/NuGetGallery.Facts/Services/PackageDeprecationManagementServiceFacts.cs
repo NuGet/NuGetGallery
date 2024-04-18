@@ -925,7 +925,7 @@ namespace NuGetGallery
                         alternatePackage,
                         customMessage,
                         currentUser,
-                        null, // listed = null
+                        ListedVerb.Unchanged,
                         PackageDeprecatedVia.Web))
                     .Completes()
                     .Verifiable();

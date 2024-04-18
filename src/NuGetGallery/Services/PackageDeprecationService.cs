@@ -7,7 +7,6 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
-using NuGetGallery.Areas.Admin.Services;
 using NuGetGallery.Auditing;
 
 namespace NuGetGallery
@@ -38,7 +37,7 @@ namespace NuGetGallery
            Package alternatePackage,
            string customMessage,
            User user,
-           bool? listed,
+           ListedVerb listedVerb,
            string auditReason)
         {
             if (user == null)
@@ -63,6 +62,7 @@ namespace NuGetGallery
             }
 
             var shouldDelete = status == PackageDeprecationStatus.NotDeprecated;
+            var listed = listedVerb == ListedVerb.Relist;
             var deprecations = new List<PackageDeprecation>();
             var changedPackages = new List<Package>();
             var unchangedPackages = new List<Package>();
@@ -127,9 +127,9 @@ namespace NuGetGallery
                     }
                 }
 
-                if (listed.HasValue && package.Listed != listed.Value)
+                if (listedVerb != ListedVerb.Unchanged && package.Listed != listed)
                 {
-                    package.Listed = listed.Value;
+                    package.Listed = listed;
                     changed = true;
                 }
 

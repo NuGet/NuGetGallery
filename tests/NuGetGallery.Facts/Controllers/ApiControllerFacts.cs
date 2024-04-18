@@ -2506,7 +2506,7 @@ namespace NuGetGallery
                             It.IsAny<string>(),
                             It.IsAny<string>(),
                             It.IsAny<string>(),
-                            It.IsAny<bool?>()),
+                            It.IsAny<ListedVerb>()),
                         Times.Never());
             }
 
@@ -2558,7 +2558,7 @@ namespace NuGetGallery
                             It.IsAny<string>(),
                             It.IsAny<string>(),
                             It.IsAny<string>(),
-                            It.IsAny<bool?>()),
+                            It.IsAny<ListedVerb>()),
                         Times.Never());
             }
 
@@ -2587,7 +2587,7 @@ namespace NuGetGallery
                             It.IsAny<string>(),
                             It.IsAny<string>(),
                             It.IsAny<string>(),
-                            It.IsAny<bool?>()),
+                            It.IsAny<ListedVerb>()),
                         Times.Never());
 
                 var registration = new PackageRegistration { Id = id };
@@ -2638,7 +2638,7 @@ namespace NuGetGallery
                     Enumerable
                         .Repeat(
                             MemberDataHelper.BooleanDataSet(), 4)
-                        .Concat(new[] { MemberDataHelper.NullableBooleanDataSet() })
+                        .Concat(new[] { MemberDataHelper.EnumDataSet<ListedVerb>() })
                         .ToArray());
 
             [Theory]
@@ -2648,7 +2648,7 @@ namespace NuGetGallery
                 bool hasCriticalBugs,
                 bool isOther,
                 bool success,
-                bool? listed)
+                ListedVerb listedVerb)
             {
                 // Arrange
                 var id = "Crested.Gecko";
@@ -2676,7 +2676,7 @@ namespace NuGetGallery
                         alternateId,
                         alternateVersion,
                         customMessage,
-                        listed))
+                        listedVerb))
                     .ReturnsAsync(success ? null : new UpdateDeprecationError(errorStatus, errorMessage))
                     .Verifiable();
 
@@ -2717,7 +2717,7 @@ namespace NuGetGallery
                     alternateId,
                     alternateVersion,
                     customMessage,
-                    listed);
+                    listedVerb);
 
                 // Assert
                 if (success)
