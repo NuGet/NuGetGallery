@@ -27,7 +27,7 @@
                 </div>
                 <div id="form-field-delete-decision" class="hidden form-group @Html.HasErrorFor(m => m.DeleteDecision)">
                     <p>Please select how you would like to proceed.</p>
-                    @Html.ShowEnumDropDownListFor(m => m.DeleteDecision, "<Choose how to proceed>")
+                    @Html.ShowEnumDropDownListFor(m => m.DeleteDecision, "<Choose how to proceed>", customClass: "select-brand")
                     @Html.ShowValidationMessagesFor(m => m.DeleteDecision)
                 </div>
                 <div id="form-field-confirm-delete" class="hidden checkbox">

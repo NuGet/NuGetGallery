@@ -19,7 +19,7 @@
                 </div>
                 <div class="ms-font-xxl">
                     <span>
-                        <select id="ownerFilter" class="form-control hidden" aria-label="Filter on package owner"
+                        <select id="ownerFilter" class="form-control select-brand hidden" aria-label="Filter on package owner"
                                 data-bind="options: Owners, value: OwnerFilter, optionsText: 'Username'"></select>
                     </span>
                 </div>
@@ -188,7 +188,7 @@
                     }
                         <td class="text-right align-middle package-controls">
                             <span data-bind="visible: CanEdit || CanManageOwners || CanDelete">
-                                <a class="btn" title="Manage Package" data-bind="attr: { href: ManageUrl,
+                                <a class="btn btn-brand-icon" title="Manage Package" data-bind="attr: { href: ManageUrl,
                         'aria-label': 'Manage Package ' + Id + ' Version ' + LatestVersion }">
 
                                     <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
@@ -300,7 +300,7 @@
                             </form>
                             <!-- /ko -->
                             <!-- ko if: !CanAccept && CanCancel -->
-                            <a class="btn" title="Manage Ownership" data-bind="attr: { href: ManagePackageOwnershipUrl, 'aria-label': 'Manage Ownership of ' + Id }">
+                            <a class="btn btn-brand-icon" title="Manage Ownership" data-bind="attr: { href: ManagePackageOwnershipUrl, 'aria-label': 'Manage Ownership of ' + Id }">
                                 <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
                             </a>
                             <!-- /ko -->
