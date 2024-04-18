@@ -590,6 +590,18 @@ img.reserved-indicator-icon {
   content: " *";
 }
 
+.sign-in-link a,
+.sign-in-link a:hover,
+.sign-in-link a:focus,
+.sign-in-link a:active {
+    color: var(--brandForegroundLinkRest);
+}
+
+.sign-in-link a:hover,
+.sign-in-link a:focus {
+    text-decoration: underline;
+}
+
 // Workaround. See https://github.com/NuGet/NuGetGallery/issues/8264
 @media (max-width: 767.9px) {
     .hidden-xs {
