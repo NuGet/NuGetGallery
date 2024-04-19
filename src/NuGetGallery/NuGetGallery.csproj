@@ -1380,7 +1380,7 @@
     <Content Include="Content\gallery\img\api-key.svg" />
     <Content Include="Content\gallery\img\blue-circle-225x225.png" />
     <Content Include="Content\gallery\img\blue-circle.svg" />
-    <Content Include="Content\gallery\img\open-book-icon.svg" />
+    <Content Include="Content\gallery\img\book-open-icon.svg" />
     <Content Include="Content\gallery\img\circuit-board.svg" />
     <Content Include="Content\gallery\img\circuit-board-dark-theme.svg" />
     <Content Include="Content\gallery\img\circuit-board-light-theme.svg" />
