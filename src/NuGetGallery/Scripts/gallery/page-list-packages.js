@@ -204,8 +204,31 @@ $(function() {
     $(".reserved-indicator").each(window.nuget.setPopovers);
     $(".package-warning--vulnerable").each(window.nuget.setPopovers);
     $(".package-warning--deprecated").each(window.nuget.setPopovers);
-    $(".frameworkfiltermode-info").each(window.nuget.setPopovers);
-    $(".framework-badge-asset").each(window.nuget.setPopovers);
-    $(".framework-badge-computed").each(window.nuget.setPopovers);
-    $(".frameworkfilters-info").each(window.nuget.setPopovers);
+    //for tooltip hover and focus
+    $('.tooltip-target').each(function () {
+        $(this).on('mouseenter focusin', function () {
+            $(this).find('.tooltip-wrapper').addClass('show');
+        });
+        $(this).on('mouseleave focusout', function () {
+            $(this).find('.tooltip-wrapper').removeClass('show');
+        });
+    });
+
+    // for using arrow keys in Framwork filter mode checkbox tree 
+    $('.tfmTab li input').each(function () {
+        $(this).on('keydown', function (e) {
+            switch (e.key) {
+                case "ArrowDown":
+                    if ($(this).parent().next().length > 0) {
+                        $(this).parent().next().find('.tfm').focus();
+                    }
+                    break;
+                case "ArrowUp":
+                    if ($(this).parent().prev().length > 0) {
+                        $(this).parent().prev().find('.tfm').focus();
+                    }
+                    break;
+            }
+        });
+    });
 });

@@ -11,6 +11,11 @@
     margin: 0 !important;
   }
 
+  .frameworkfilters-info {
+    color: #333;
+    text-decoration: none;
+  }
+
   @media (max-width: @screen-md) {
     .btn-filter {
       text-align: left;
@@ -219,7 +224,7 @@
   }
 
   @media (min-width: 992px) {
-    .advanced-search-panel{
+    .advanced-search-panel {
       position: relative;
       top: 0;
       margin-top: 30px;
@@ -227,8 +232,8 @@
     }
   }
 
-  @media (max-width: 992px){
-    .advanced-search-panel{
+  @media (max-width: 992px) {
+    .advanced-search-panel {
       margin-top: 0px;
     }
   }
@@ -263,12 +268,40 @@
   }
 
   @media (max-width: 992px) {
-    .toggle-advanced-search-panel{
+    .toggle-advanced-search-panel {
       display: block;
     }
-    .advanced-search-panel{
+
+    .advanced-search-panel {
       display: none;
     }
   }
-  
+}
+/* For tooltip */
+.tooltip-target {
+  position: relative;
+  text-decoration: none;
+}
+
+.tooltip-wrapper.popover {
+  min-width: 276px;
+  left: -6px;
+  position: absolute;
+  transform: translateY(-50%);
+  top: calc(50% - 6px);
+}
+
+.tooltip-wrapper.popover.tooltip-with-icon {
+  left: -7px;
+  top: calc(50% - 6px);
+}
+
+.tooltip-block {
+  position: relative;
+  display: inline-block;
+  color: #333;
+
+  .popover-content {
+    display: block;
+  }
 }
