@@ -160,6 +160,8 @@ module.exports = function (grunt) {
         expand: true,
         cwd: 'dist/css/',
         src: [
+          'bootstrap.min.css',
+          'bootstrap-theme.min.css',
           'bootstrap.css',
           'bootstrap-theme.css'
         ],
