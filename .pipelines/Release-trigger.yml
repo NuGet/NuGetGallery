@@ -6,6 +6,8 @@ trigger:
     - main
     - dev
 
+pr: none
+
 variables:
 - name: NugetMultifeedWarnLevel
   value: none
