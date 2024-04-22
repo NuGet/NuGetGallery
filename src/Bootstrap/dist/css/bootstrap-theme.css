@@ -1929,6 +1929,10 @@ p.frameworktableinfo-text {
 .page-list-packages .no-margin {
   margin: 0 !important;
 }
+.page-list-packages .frameworkfilters-info {
+  color: #333;
+  text-decoration: none;
+}
 @media (max-width: 992px) {
   .page-list-packages .btn-filter {
     text-align: left;
@@ -2158,6 +2162,35 @@ p.frameworktableinfo-text {
   .page-list-packages .advanced-search-panel {
     display: none;
   }
+}
+/* For tooltip */
+.tooltip-target {
+  position: relative;
+  text-decoration: none;
+}
+.tooltip-wrapper.popover {
+  min-width: 276px;
+  left: -6px;
+  position: absolute;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  -o-transform: translateY(-50%);
+  transform: translateY(-50%);
+  top: -webkit-calc(50% - 6px);
+  top: calc(50% - 6px);
+}
+.tooltip-wrapper.popover.tooltip-with-icon {
+  left: -7px;
+  top: -webkit-calc(50% - 6px);
+  top: calc(50% - 6px);
+}
+.tooltip-block {
+  position: relative;
+  display: inline-block;
+  color: #333;
+}
+.tooltip-block .popover-content {
+  display: block;
 }
 .page-manage-deprecation .full-line {
   display: block;
