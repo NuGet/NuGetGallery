@@ -118,8 +118,6 @@ namespace NuGetGallery
             // Add scripts bundles
             var newStyleBundle = new StyleBundle("~/Content/gallery/css/site.min.css");
             newStyleBundle
-                .Include("~/Content/gallery/css/bootstrap.css")
-                .Include("~/Content/gallery/css/bootstrap-theme.css")
                 .Include("~/Content/gallery/css/fabric.css");
             BundleTable.Bundles.Add(newStyleBundle);
 
