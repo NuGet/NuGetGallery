@@ -55,7 +55,6 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(auditReason));
             }
 
-            var registration = packages.First().PackageRegistration;
             if (packages.Select(p => p.PackageRegistrationKey).Distinct().Count() > 1)
             {
                 throw new ArgumentException("All packages to deprecate must have the same ID.", nameof(packages));
