@@ -162,8 +162,6 @@ module.exports = function (grunt) {
         src: [
           'bootstrap.min.css',
           'bootstrap-theme.min.css',
-          'bootstrap.css',
-          'bootstrap-theme.css'
         ],
         dest: '../NuGetGallery/Content/gallery/css/'
       },
