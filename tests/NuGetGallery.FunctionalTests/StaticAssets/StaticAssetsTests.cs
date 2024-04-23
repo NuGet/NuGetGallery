@@ -43,8 +43,6 @@ namespace NuGetGallery.FunctionalTests.StaticAssets
                 "Content/gallery/css/site.min.css",
                 new[]
                 {
-                    "Content/gallery/css/bootstrap.min.css",
-                    "Content/gallery/css/bootstrap-theme.min.css",
                     "Content/gallery/css/fabric.css",
                 }
             },
