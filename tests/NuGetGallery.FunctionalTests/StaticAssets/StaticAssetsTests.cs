@@ -115,8 +115,7 @@ namespace NuGetGallery.FunctionalTests.StaticAssets
 
         private static readonly IReadOnlyList<string> MinifiedFiles = new[]
         {
-            "Content/gallery/css/bootstrap-theme.css",
-            "Content/gallery/css/bootstrap.css",
+            "Content/gallery/css/bootstrap.min.css",
         };
 
         private static readonly HashSet<string> BundleInputPaths = new HashSet<string>(Bundles.SelectMany(x => x.Value));
