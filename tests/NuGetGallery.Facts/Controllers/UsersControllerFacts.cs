@@ -2402,7 +2402,7 @@ namespace NuGetGallery
                             new [] { "abc", "def" },
                             new []
                             {
-                               new Scope("abc", NuGetScopes.PackageUnlist),
+                                new Scope("abc", NuGetScopes.PackageUnlist),
                                 new Scope("abc", NuGetScopes.PackagePush),
                                 new Scope("def", NuGetScopes.PackageUnlist),
                                 new Scope("def", NuGetScopes.PackagePush)
@@ -2477,7 +2477,7 @@ namespace NuGetGallery
 
                 foreach (var expectedScope in expectedScopes)
                 {
-                    var expectedAction = NuGetScopes.Describe(expectedScope.AllowedAction);
+                    var expectedAction = NuGetScopes.Describe(expectedScope.AllowedAction, isDeprecateApiEnabled: false);
                     var actualScope = viewModel.Scopes.First(x => x == expectedAction);
                     Assert.NotNull(actualScope);
                 }

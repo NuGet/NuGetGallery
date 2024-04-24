@@ -11,7 +11,7 @@ namespace NuGetGallery.Authentication
         public const string PackageUnlist = "package:unlist";
         public const string PackageVerify = "package:verify";
 
-        public static string Describe(string scope)
+        public static string Describe(string scope, bool isDeprecateApiEnabled)
         {
             switch (scope.ToLowerInvariant())
             {
@@ -22,7 +22,7 @@ namespace NuGetGallery.Authentication
                 case PackagePushVersion:
                     return ServicesStrings.ScopeDescription_PushPackageVersion;
                 case PackageUnlist:
-                    return ServicesStrings.ScopeDescription_UnlistPackage;
+                    return isDeprecateApiEnabled ? ServicesStrings.ScopeDescription_UnlistDeprecatePackage : ServicesStrings.ScopeDescription_UnlistPackage;
                 case PackageVerify:
                     return ServicesStrings.ScopeDescription_VerifyPackage;
             }
