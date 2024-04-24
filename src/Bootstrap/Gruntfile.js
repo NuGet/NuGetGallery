@@ -160,8 +160,8 @@ module.exports = function (grunt) {
         expand: true,
         cwd: 'dist/css/',
         src: [
-          'bootstrap.css',
-          'bootstrap-theme.css'
+          'bootstrap.min.css',
+          'bootstrap-theme.min.css',
         ],
         dest: '../NuGetGallery/Content/gallery/css/'
       },
