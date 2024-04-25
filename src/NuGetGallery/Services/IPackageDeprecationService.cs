@@ -22,7 +22,9 @@ namespace NuGetGallery
             PackageRegistration alternatePackageRegistration,
             Package alternatePackage,
             string customMessage,
-            User user);
+            User user,
+            ListedVerb listedVerb,
+            string auditReason);
 
         IReadOnlyList<PackageDeprecation> GetDeprecationsById(string id);
     }

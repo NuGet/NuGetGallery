@@ -2499,12 +2499,14 @@ namespace NuGetGallery
                             It.IsAny<User>(),
                             It.IsAny<string>(),
                             It.IsAny<IReadOnlyCollection<string>>(),
+                            It.IsAny<string>(),
                             It.IsAny<bool>(),
                             It.IsAny<bool>(),
                             It.IsAny<bool>(),
                             It.IsAny<string>(),
                             It.IsAny<string>(),
-                            It.IsAny<string>()),
+                            It.IsAny<string>(),
+                            It.IsAny<ListedVerb>()),
                         Times.Never());
             }
 
@@ -2549,12 +2551,14 @@ namespace NuGetGallery
                             It.IsAny<User>(), 
                             It.IsAny<string>(), 
                             It.IsAny<IReadOnlyCollection<string>>(),
+                            It.IsAny<string>(),
                             It.IsAny<bool>(),
                             It.IsAny<bool>(),
                             It.IsAny<bool>(),
                             It.IsAny<string>(),
                             It.IsAny<string>(),
-                            It.IsAny<string>()),
+                            It.IsAny<string>(),
+                            It.IsAny<ListedVerb>()),
                         Times.Never());
             }
 
@@ -2576,12 +2580,14 @@ namespace NuGetGallery
                             It.IsAny<User>(),
                             It.IsAny<string>(),
                             It.IsAny<IReadOnlyCollection<string>>(),
+                            It.IsAny<string>(),
                             It.IsAny<bool>(),
                             It.IsAny<bool>(),
                             It.IsAny<bool>(),
                             It.IsAny<string>(),
                             It.IsAny<string>(),
-                            It.IsAny<string>()),
+                            It.IsAny<string>(),
+                            It.IsAny<ListedVerb>()),
                         Times.Never());
 
                 var registration = new PackageRegistration { Id = id };
@@ -2632,6 +2638,7 @@ namespace NuGetGallery
                     Enumerable
                         .Repeat(
                             MemberDataHelper.BooleanDataSet(), 4)
+                        .Concat(new[] { MemberDataHelper.EnumDataSet<ListedVerb>() })
                         .ToArray());
 
             [Theory]
@@ -2640,7 +2647,8 @@ namespace NuGetGallery
                 bool isLegacy,
                 bool hasCriticalBugs,
                 bool isOther,
-                bool success)
+                bool success,
+                ListedVerb listedVerb)
             {
                 // Arrange
                 var id = "Crested.Gecko";
@@ -2661,12 +2669,14 @@ namespace NuGetGallery
                         owner,
                         id,
                         versions,
+                        isLegacy || hasCriticalBugs || isOther ? PackageDeprecatedVia.Api : PackageUndeprecatedVia.Api,
                         isLegacy,
                         hasCriticalBugs,
                         isOther,
                         alternateId,
                         alternateVersion,
-                        customMessage))
+                        customMessage,
+                        listedVerb))
                     .ReturnsAsync(success ? null : new UpdateDeprecationError(errorStatus, errorMessage))
                     .Verifiable();
 
@@ -2706,7 +2716,8 @@ namespace NuGetGallery
                     isOther,
                     alternateId,
                     alternateVersion,
-                    customMessage);
+                    customMessage,
+                    listedVerb);
 
                 // Assert
                 if (success)

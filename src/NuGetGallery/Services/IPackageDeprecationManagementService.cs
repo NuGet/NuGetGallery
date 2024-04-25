@@ -22,12 +22,14 @@ namespace NuGetGallery
         /// <param name="currentUser">The user that is performing the update.</param>
         /// <param name="id">The ID of the package to update.</param>
         /// <param name="versions">The versions of the package to update.</param>
+        /// <param name="auditReason">A reason description used for auditing purposes.</param>
         /// <param name="isLegacy">Whether or not the packages are legacy.</param>
         /// <param name="hasCriticalBugs">Whether or not the packages have critical bugs.</param>
         /// <param name="isOther">Whether or not the packages have an unlisted reason for being deprecated.</param>
         /// <param name="alternatePackageId">An alternate package ID to use instead.</param>
         /// <param name="alternatePackageVersion">A version of <paramref name="alternatePackageId"/> to use instead.</param>
         /// <param name="message">A custom message to add to the deprecation.</param>
+        /// <param name="listedVerb">The action to perform on the listed status of each package version.</param>
         /// <returns>
         /// <c>null</c> if there were no issues updating the deprecation.
         /// Otherwise, a <see cref="UpdateDeprecationError"/> that describes the problem that was encountered.
@@ -36,11 +38,13 @@ namespace NuGetGallery
             User currentUser,
             string id,
             IReadOnlyCollection<string> versions,
+            string auditReason,
             bool isLegacy = false,
             bool hasCriticalBugs = false,
             bool isOther = false,
             string alternatePackageId = null,
             string alternatePackageVersion = null,
-            string message = null);
+            string message = null,
+            ListedVerb listedVerb = ListedVerb.Unchanged);
     }
 }

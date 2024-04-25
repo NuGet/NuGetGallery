@@ -350,6 +350,7 @@
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
     <Compile Include="RequestModels\UpdateListedRequest.cs" />
+    <Compile Include="Services\ListedVerb.cs" />
     <Compile Include="Services\MissingLicenseValidationMessageV2.cs" />
     <Compile Include="Services\NullTyposquattingService.cs" />
     <Compile Include="Services\UploadPackageMissingReadme.cs" />
