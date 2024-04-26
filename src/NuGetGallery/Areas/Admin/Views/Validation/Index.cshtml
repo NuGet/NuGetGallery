@@ -71,10 +71,21 @@
             <li>Validation set tracking ID: <code>e6db6737-bd77-44cd-af8b-74826e054d36</code></li>
             <li>Validation ID: <code>218d075b-99b6-4151-ba12-121872ffe7fe</code></li>
         </ul>
+        <h3>Manage scanner list</h3>
+        <input type="text" , placeholder="Publisher name" rows="1"/>
+        <button type="submit">Add publisher</button>
+        <input type="text" , placeholder="Publisher name" />
+        <button type="submit">Remove publisher</button>
+        <p></p>
+        <input type="text" , placeholder="Package name and version" />
+        <button type="submit">Add package</button>
+        <input type="text" , placeholder="Package name and version" />
+        <button type="submit">Remove package</button>
     }
 
     @foreach (var package in Model.Packages)
     {
+
         <div>
             <h3>
                 <a href="@Url.Action("Search", new { q = package.Id } )">@package.Id</a>
