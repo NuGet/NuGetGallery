@@ -131,6 +131,13 @@
                                 { "returnUrl", Url.Current() },
                             })
                         <br />
+                        <input type="text" , placeholder="Publisher name" rows="1" />
+                        <button type="submit">Add publisher</button>
+                        <input type="text" , placeholder="Publisher name" />
+                        <button type="submit">Remove publisher</button>
+                        <br />
+                        <a href="@Url.Package(package)">Add package to scanner list</a>
+                        <a href="@Url.Package(package)">Remove package from scanner list</a>
                     }
                     else if (package.ValidatingType == ValidatingType.SymbolPackage)
                     {
@@ -157,88 +164,88 @@
                 }
             </p>
 
-            @foreach (var set in package.ValidationSets)
-            {
-                <h4>Validation Set @set.Key</h4>
-                <div style="margin-left: 20px">
-                    <p>
-                        <b>Tracking ID:</b> <a href="@Url.Action("Search", new { q = set.ValidationTrackingId } )">@set.ValidationTrackingId</a><br />
-                        <b>Created:</b> @ShowTimestamp(set.Created)<br />
-                        @if (set.Created != set.Updated)
-                        {
-                            <b>Updated:</b> @ShowTimestamp(set.Updated)<br />
-                        }
-                        <b>Status:</b>
-                        @switch (set.ValidationSetStatus)
-                        {
-                            case ValidationSetStatus.Unknown:
-                                @:Unknown
-                                break;
-                            case ValidationSetStatus.InProgress:
-                                @:In progress
-                                break;
-                            case ValidationSetStatus.Completed:
-                                @:Complete
-                                break;
-                            default:
-                                @(set.ValidationSetStatus)
-                                break;
-                        }
-                    </p>
+                @foreach (var set in package.ValidationSets)
+                {
+                    <h4>Validation Set @set.Key</h4>
+                    <div style="margin-left: 20px">
+                        <p>
+                            <b>Tracking ID:</b> <a href="@Url.Action("Search", new { q = set.ValidationTrackingId } )">@set.ValidationTrackingId</a><br />
+                            <b>Created:</b> @ShowTimestamp(set.Created)<br />
+                            @if (set.Created != set.Updated)
+                            {
+                                <b>Updated:</b> @ShowTimestamp(set.Updated)<br />
+                            }
+                            <b>Status:</b>
+                            @switch (set.ValidationSetStatus)
+                            {
+                                case ValidationSetStatus.Unknown:
+                                    @:Unknown
+                                    break;
+                                case ValidationSetStatus.InProgress:
+                                    @:In progress
+                                    break;
+                                case ValidationSetStatus.Completed:
+                                    @:Complete
+                                    break;
+                                default:
+                                    @(set.ValidationSetStatus)
+                                    break;
+                            }
+                        </p>
 
-                    @if (!set.PackageValidations.Any())
-                    {
-                        <p>This validation set's validation records have not been created yet.</p>
-                    }
-                    else
-                    {
-                        <table class="table" style="width: 100%" aria-label="Package Validations">
-                            <thead>
-                                <tr>
-                                    <th>Key</th>
-                                    <th>Type</th>
-                                    <th>Started</th>
-                                    <th>Status</th>
-                                    <th>Status Timestamp</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var validation in set.PackageValidations)
-                                {
+                        @if (!set.PackageValidations.Any())
+                        {
+                            <p>This validation set's validation records have not been created yet.</p>
+                        }
+                        else
+                        {
+                            <table class="table" style="width: 100%" aria-label="Package Validations">
+                                <thead>
                                     <tr>
-                                        <td>@validation.Key</td>
-                                        <td>@validation.Type</td>
-                                        <td>@ShowTimestamp(validation.Started)</td>
-                                        <td>
-                                            @switch (validation.ValidationStatus)
-                                            {
-                                                case ValidationStatus.Failed:
-                                                    @:Failed
-                                                    break;
-                                                case ValidationStatus.Incomplete:
-                                                    @:Incomplete
-                                                    break;
-                                                case ValidationStatus.NotStarted:
-                                                    @:Not started
-                                                    break;
-                                                case ValidationStatus.Succeeded:
-                                                    @:Succeeded
-                                                    break;
-                                                default:
-                                                    @(validation.ValidationStatus)
-                                                    break;
-                                            }
-                                        </td>
-                                        <td>@ShowTimestamp(validation.ValidationStatusTimestamp)</td>
+                                        <th>Key</th>
+                                        <th>Type</th>
+                                        <th>Started</th>
+                                        <th>Status</th>
+                                        <th>Status Timestamp</th>
                                     </tr>
-                                }
-                            </tbody>
-                        </table>
-                    }
-                </div>
+                                </thead>
+                                <tbody>
+                                    @foreach (var validation in set.PackageValidations)
+                                    {
+                                        <tr>
+                                            <td>@validation.Key</td>
+                                            <td>@validation.Type</td>
+                                            <td>@ShowTimestamp(validation.Started)</td>
+                                            <td>
+                                                @switch (validation.ValidationStatus)
+                                                {
+                                                    case ValidationStatus.Failed:
+                                                        @:Failed
+                                                        break;
+                                                    case ValidationStatus.Incomplete:
+                                                        @:Incomplete
+                                                        break;
+                                                    case ValidationStatus.NotStarted:
+                                                        @:Not started
+                                                        break;
+                                                    case ValidationStatus.Succeeded:
+                                                        @:Succeeded
+                                                        break;
+                                                    default:
+                                                        @(validation.ValidationStatus)
+                                                        break;
+                                                }
+                                            </td>
+                                            <td>@ShowTimestamp(validation.ValidationStatusTimestamp)</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                    </div>
 
-            }
-        </div>
+                }
+            </div>
     }
 </section>
 
