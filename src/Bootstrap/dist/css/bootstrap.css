@@ -2010,26 +2010,51 @@ input[type="checkbox"].brand-checkbox:focus {
   -ms-flex-pack: space-evenly;
   justify-content: space-evenly;
 }
+.brand-checkbox input[type="checkbox"]:indeterminate::after {
+  content: '\2012';
+  font-weight: bolder;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  width: 16px;
+  height: 16px;
+  left: -1px;
+  top: -1.75px;
+  position: relative;
+  -webkit-box-align: end;
+  -webkit-align-items: flex-end;
+  -ms-flex-align: end;
+  align-items: flex-end;
+  -webkit-box-pack: space-evenly;
+  -webkit-justify-content: space-evenly;
+  -ms-flex-pack: space-evenly;
+  justify-content: space-evenly;
+}
+.brand-checkbox input[type="checkbox"]:indeterminate,
 .brand-checkbox input[type="checkbox"]:checked {
   background-color: var(--brandBackgroundCompoundRest);
   border-color: var(--brandBackgroundCompoundRest);
   color: var(--neutralForegroundInverted1Rest);
 }
+.brand-checkbox:hover input[type="checkbox"]:indeterminate,
 .brand-checkbox:hover input[type="checkbox"]:checked {
   background-color: var(--brandBackgroundCompoundHover);
   border-color: var(--brandBackgroundCompoundHover);
   color: var(--neutralForegroundInverted1Hover);
 }
-.brand-checkbox:hover input[type="checkbox"]:not(:checked) {
+.brand-checkbox:hover input[type="checkbox"]:not(:indeterminate):not(:checked),
+.brand-checkbox:hover input[type="checkbox"]:not(:checked):not(:indeterminate) {
   border-color: var(--neutralStrokeAccessibleHover);
   color: var(--neutralForegroundInverted1Hover);
 }
-.brand-checkbox:active input[type="checkbox"]:checked {
+.brand-checkbox:active input[type="checkbox"]:indeterminate input[type="checkbox"]:checked {
   background-color: var(--brandBackgroundCompoundPressed);
   border-color: var(--brandBackgroundCompoundPressed);
   color: var(--neutralForegroundInverted1Pressed);
 }
-.brand-checkbox:active input[type="checkbox"]:not(:checked) {
+.brand-checkbox:active input[type="checkbox"]:not(:indeterminate):not(:checked),
+.brand-checkbox:active input[type="checkbox"]:not(:checked):not(:indeterminate) {
   border-color: var(--neutralStrokeAccessiblePressed);
   color: var(--neutralForegroundInverted1Pressed);
 }
