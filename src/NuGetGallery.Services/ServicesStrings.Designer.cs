@@ -1841,7 +1841,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unlist or relist package version versions.
+        ///   Looks up a localized string similar to Unlist or relist package versions.
         /// </summary>
         public static string ScopeDescription_UnlistPackage {
             get {
