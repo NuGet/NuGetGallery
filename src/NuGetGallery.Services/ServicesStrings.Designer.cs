@@ -1832,7 +1832,16 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unlist package.
+        ///   Looks up a localized string similar to Unlist, relist, or deprecate package versions.
+        /// </summary>
+        public static string ScopeDescription_UnlistDeprecatePackage {
+            get {
+                return ResourceManager.GetString("ScopeDescription_UnlistDeprecatePackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unlist or relist package versions.
         /// </summary>
         public static string ScopeDescription_UnlistPackage {
             get {

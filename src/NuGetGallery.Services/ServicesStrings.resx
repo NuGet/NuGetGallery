@@ -359,7 +359,7 @@
     <value>Push only new package versions</value>
   </data>
   <data name="ScopeDescription_UnlistPackage" xml:space="preserve">
-    <value>Unlist package</value>
+    <value>Unlist or relist package versions</value>
   </data>
   <data name="ScopeDescription_Unknown" xml:space="preserve">
     <value>Unknown</value>
@@ -1141,5 +1141,8 @@ The {1} Team</value>
   </data>
   <data name="AuthenticationProviderNotFound" xml:space="preserve">
     <value>The given authentication provider is not supported.</value>
+  </data>
+  <data name="ScopeDescription_UnlistDeprecatePackage" xml:space="preserve">
+    <value>Unlist, relist, or deprecate package versions</value>
   </data>
 </root>

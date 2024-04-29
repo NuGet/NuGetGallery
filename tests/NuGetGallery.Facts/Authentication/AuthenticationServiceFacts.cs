@@ -2209,9 +2209,9 @@ namespace NuGetGallery.Authentication
                 Assert.Null(description.RevocationSource);
 
                 Assert.True(description.Scopes.Count == 2);
-                Assert.Equal(NuGetScopes.Describe(NuGetScopes.PackagePushVersion), description.Scopes[0].AllowedAction);
+                Assert.Equal(NuGetScopes.Describe(NuGetScopes.PackagePushVersion, isDeprecateApiEnabled: false), description.Scopes[0].AllowedAction);
                 Assert.Equal("123", description.Scopes[0].Subject);
-                Assert.Equal(NuGetScopes.Describe(NuGetScopes.PackageUnlist), description.Scopes[1].AllowedAction);
+                Assert.Equal(NuGetScopes.Describe(NuGetScopes.PackageUnlist, isDeprecateApiEnabled: false), description.Scopes[1].AllowedAction);
                 Assert.Equal("123", description.Scopes[1].Subject);
                 Assert.Equal(cred.ExpirationTicks.Value, description.ExpirationDuration.Value.Ticks);
             }
