@@ -288,13 +288,13 @@
                             <!-- ko if: CanAccept -->
                             <form method="post" data-bind="attr: { action: ConfirmUrl }">
                                 @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-default" title="Confirm Ownership" data-bind="attr: { 'aria-label': 'Confirm Ownership of ' + Id }">
+                                <button type="submit" class="btn btn-brand-secondary" title="Confirm Ownership" data-bind="attr: { 'aria-label': 'Confirm Ownership of ' + Id }">
                                     <i class="ms-Icon ms-Icon--Accept" aria-hidden="true"></i>
                                 </button>
                             </form>
                             <form method="post" data-bind="attr: { action: RejectUrl }">
                                 @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-default" title="Reject Ownership" data-bind="attr: { 'aria-label': 'Reject Ownership of ' + Id }">
+                                <button type="submit" class="btn btn-brand-secondary" title="Reject Ownership" data-bind="attr: { 'aria-label': 'Reject Ownership of ' + Id }">
                                     <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
                                 </button>
                             </form>

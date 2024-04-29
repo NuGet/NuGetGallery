@@ -77,13 +77,13 @@
 
                                             <form method="post" action="@accept">
                                                 @Html.AntiForgeryToken()
-                                                <button class="btn btn-default" type="submit" title="Accept Organization Membership Request" aria-label="@("Accept Organization Membership Request for " + organization.OrganizationName)">
+                                                <button class="btn btn-brand-secondary" type="submit" title="Accept Organization Membership Request" aria-label="@("Accept Organization Membership Request for " + organization.OrganizationName)">
                                                     <i class="ms-Icon ms-Icon--Accept" aria-hidden="true"></i>
                                                 </button>
                                             </form>
                                             <form method="post" action="@reject">
                                                 @Html.AntiForgeryToken()
-                                                <button class="btn btn-default" type="submit" title="Reject Organization Membership Request" aria-label="@("Reject Organization Membership Request for " + organization.OrganizationName)">
+                                                <button class="btn btn-brand-secondary" type="submit" title="Reject Organization Membership Request" aria-label="@("Reject Organization Membership Request for " + organization.OrganizationName)">
                                                     <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
                                                 </button>
                                             </form>

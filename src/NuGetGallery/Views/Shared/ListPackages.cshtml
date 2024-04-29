@@ -26,7 +26,7 @@
 {
     <div class="frameworkGroup">
         <div class="frameworkGroupRow">
-            <button type="button" class="brand-button-transparent collapsible" tab="@(frameworkShortName)" tabindex="0"
+            <button type="button" class="btn-brand-secondary collapsible" tab="@(frameworkShortName)" tabindex="0"
                     aria-label="shows and hides TFM filters for @(frameworkDisplayName)" aria-expanded="false" aria-controls="@(frameworkShortName)tab">
                 <i class="ms-Icon ms-Icon--ChevronRight" id="@(frameworkShortName)button"></i>
             </button>
@@ -166,7 +166,7 @@
                                 <input class="btn btn-brand form-control" type="submit" value="Apply">
                             </div>
                             <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 reset-btn">
-                                <input class="btn form-control brand-button-transparent" type="button" value="Reset" id="reset-advanced-search">
+                                <input class="btn form-control btn-brand-secondary" type="button" value="Reset" id="reset-advanced-search">
                             </div>
                         </div>
                         <input type="hidden" id="prerel" name="prerel" value="@Model.IncludePrerelease.ToString().ToLower()">

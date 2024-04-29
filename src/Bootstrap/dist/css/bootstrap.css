@@ -3318,7 +3318,7 @@ fieldset[disabled] .btn-danger.focus {
   box-shadow: inset 0px 0px 0px 1px var(--neutralStrokeFocus1Rest);
   outline: none !important;
 }
-.brand-button-transparent {
+.btn-brand-transparent {
   color: var(--neutralForeground2Rest);
   background-color: var(--transparentBackgroundRest);
   border-radius: var(--Medium, 4px);
@@ -3327,17 +3327,17 @@ fieldset[disabled] .btn-danger.focus {
   box-shadow: none !important;
   padding: 5px 12px;
 }
-.brand-button-transparent:hover,
-.brand-button-transparent:focus:hover {
+.btn-brand-transparent:hover,
+.btn-brand-transparent:focus:hover {
   color: var(--neutralForeground2BrandHover);
 }
-.brand-button-transparent:active,
-.brand-button-transparent:active:focus {
+.btn-brand-transparent:active,
+.btn-brand-transparent:active:focus {
   color: var(--neutralForeground2BrandPressed);
 }
-.brand-button-transparent:focus-within,
-.brand-button-transparent:focus-visible,
-.brand-button-transparent:focus {
+.btn-brand-transparent:focus-within,
+.btn-brand-transparent:focus-visible,
+.btn-brand-transparent:focus {
   color: var(--neutralForeground2Rest);
   border: 2px solid var(--neutralStrokeFocus2Rest);
   outline: none !important;
