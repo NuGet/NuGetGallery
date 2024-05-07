@@ -189,4 +189,6 @@ artifacts/
 # files are created at build time
 src/NuGetGallery/Content/gallery/css/bootstrap-theme.css
 src/NuGetGallery/Content/gallery/css/bootstrap.css
+src/NuGetGallery/Content/gallery/css/bootstrap-theme.min.css
+src/NuGetGallery/Content/gallery/css/bootstrap.min.css
 src/NuGetGallery/Scripts/gallery/bootstrap.js
