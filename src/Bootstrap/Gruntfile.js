@@ -141,13 +141,9 @@ module.exports = function (grunt) {
         }
       },
       core: {
-        src: 'dist/css/<%= pkg.name %>.css',
+        src: ['dist/css/<%= pkg.name %>.css', 'dist/css/<%= pkg.name %>-theme.css'],
         dest: 'dist/css/<%= pkg.name %>.min.css'
       },
-      theme: {
-        src: 'dist/css/<%= pkg.name %>-theme.css',
-        dest: 'dist/css/<%= pkg.name %>-theme.min.css'
-      }
     },
 
     copy: {
@@ -191,7 +187,7 @@ module.exports = function (grunt) {
   grunt.registerTask('dist-js', ['concat', 'uglify:core']);
 
   // CSS distribution task.
-  grunt.registerTask('dist-css', ['less:core', 'less:theme', 'postcss:core', 'postcss:theme', 'cssmin:core', 'cssmin:theme']);
+  grunt.registerTask('dist-css', ['less:core', 'less:theme', 'postcss:core', 'postcss:theme', 'cssmin:core']);
 
   // Full distribution task.
   grunt.registerTask('dist', ['clean:dist', 'dist-css', 'copy:fonts', 'dist-js', 'copy:gallerycss', 'copy:galleryjs']);
