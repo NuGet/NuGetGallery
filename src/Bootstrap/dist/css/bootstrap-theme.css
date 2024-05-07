@@ -2252,6 +2252,9 @@ p.frameworktableinfo-text {
 .page-home .circuit-board .circuit-board-up.triangle:after {
   left: 45px;
 }
+.page-list-packages {
+  /* For tooltip */
+}
 .page-list-packages h1 {
   margin-bottom: 33px;
 }
@@ -2536,12 +2539,11 @@ p.frameworktableinfo-text {
     display: none;
   }
 }
-/* For tooltip */
-.tooltip-target {
+.page-list-packages .tooltip-target {
   position: relative;
   text-decoration: none;
 }
-.tooltip-wrapper.popover {
+.page-list-packages .tooltip-wrapper.popover {
   min-width: 276px;
   left: -6px;
   position: absolute;
@@ -2552,17 +2554,17 @@ p.frameworktableinfo-text {
   top: -webkit-calc(50% - 6px);
   top: calc(50% - 6px);
 }
-.tooltip-wrapper.popover.tooltip-with-icon {
+.page-list-packages .tooltip-wrapper.popover.tooltip-with-icon {
   left: -7px;
   top: -webkit-calc(50% - 6px);
   top: calc(50% - 6px);
 }
-.tooltip-block {
+.page-list-packages .tooltip-block {
   position: relative;
   display: inline-block;
   color: #333;
 }
-.tooltip-block .popover-content {
+.page-list-packages .tooltip-block .popover-content {
   display: block;
 }
 .page-manage-deprecation .full-line {
