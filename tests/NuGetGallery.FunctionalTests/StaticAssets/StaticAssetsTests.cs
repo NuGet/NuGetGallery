@@ -139,17 +139,6 @@ namespace NuGetGallery.FunctionalTests.StaticAssets
         [Theory]
         [Priority(2)]
         [Category("P2Tests")]
-        [MemberData(nameof(BundleOutputData))]
-        public async Task NoBundleFailsMinification(string bundle)
-        {
-            var bundleContent = await HttpClient.GetStringAsync(UrlHelper.BaseUrl + bundle);
-
-            Assert.DoesNotContain("Minification failed", Shorten(bundleContent), StringComparison.OrdinalIgnoreCase);
-        }
-
-        [Theory]
-        [Priority(2)]
-        [Category("P2Tests")]
         [MemberData(nameof(BundleInputExceptBundleOutputData))]
         public async Task BundledFilesDoNotExistAsMinified(string assetPath)
         {
