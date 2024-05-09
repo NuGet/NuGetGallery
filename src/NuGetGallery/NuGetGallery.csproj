@@ -1368,7 +1368,6 @@
     <Content Include="Content\Images\icons\edit.png" />
     <Content Include="Content\Images\icons\expire.png" />
     <Content Include="Content\Images\icons\regenerate.png" />
-    <Content Include="Content\gallery\css\bootstrap.min.css" />
     <Content Include="Content\gallery\css\fabric.css" />
     <Content Include="Content\gallery\img\api-key-256x256.png" />
     <Content Include="Content\gallery\img\api-key-expired-256x256.png" />

@@ -742,6 +742,9 @@ body[id="/"] {
   color: var(--neutralForeground1Rest);
   line-height: 20px;
 }
+.list-packages .package .package-details a {
+  text-decoration: underline;
+}
 .pager {
   margin-top: 75px;
   margin-bottom: 0px;
@@ -844,8 +847,8 @@ body[id="/"] {
   font-size: 16px;
 }
 .readme-common pre code.hljs {
-  background-color: #f5f5f5;
-  color: #24292e;
+  background-color: var(--pre-bg);
+  color: var(--neutralForeground1Rest);
   white-space: pre;
 }
 .readme-common pre code.hljs .hljs-doctag,
@@ -855,13 +858,13 @@ body[id="/"] {
 .readme-common pre code.hljs .hljs-template-variable,
 .readme-common pre code.hljs .hljs-type,
 .readme-common pre code.hljs .hljs-variable.language_ .hljs-built_in {
-  color: #cc3745;
+  color: var(--statusDangerForeground1Rest);
 }
 .readme-common pre code.hljs .hljs-title,
 .readme-common pre code.hljs .hljs-title.class_,
 .readme-common pre code.hljs .hljs-title.class_.inherited__,
 .readme-common pre code.hljs .hljs-title.function_ {
-  color: #6f42c1;
+  color: var(--statusGenericLavenderForeground2Rest);
 }
 .readme-common pre code.hljs .hljs-attr,
 .readme-common pre code.hljs .hljs-attribute,
@@ -873,51 +876,51 @@ body[id="/"] {
 .readme-common pre code.hljs .hljs-selector-attr,
 .readme-common pre code.hljs .hljs-selector-class,
 .readme-common pre code.hljs .hljs-selector-id {
-  color: #005cc5;
+  color: var(--brandForeground2Rest);
 }
 .readme-common pre code.hljs .hljs-regexp,
 .readme-common pre code.hljs .hljs-string,
 .readme-common pre code.hljs .hljs-meta .hljs-string {
-  color: #032f62;
+  color: var(--statusGenericRoyalBlueForeground2Rest);
 }
 .readme-common pre code.hljs .hljs-built_in,
 .readme-common pre code.hljs .hljs-symbol {
-  color: #b74e05;
+  color: var(--statusWarningForeground1Rest);
 }
 .readme-common pre code.hljs .hljs-comment,
 .readme-common pre code.hljs .hljs-code,
 .readme-common pre code.hljs .hljs-formula {
-  color: #646d76;
+  color: var(--statusGenericPlatinumStrokeActiveRest);
 }
 .readme-common pre code.hljs .hljs-name,
 .readme-common pre code.hljs .hljs-quote,
 .readme-common pre code.hljs .hljs-selector-tag,
 .readme-common pre code.hljs .hljs-selector-pseudo {
-  color: #207f37;
+  color: var(--statusAvailableForeground3Rest);
 }
 .readme-common pre code.hljs .hljs-subst {
-  color: #24292e;
+  color: var(--neutralForeground1Rest);
 }
 .readme-common pre code.hljs .hljs-section {
-  color: #005cc5;
+  color: var(--brandForeground2Rest);
   font-weight: bold;
 }
 .readme-common pre code.hljs .hljs-bullet {
-  color: #735c0f;
+  color: var(--statusGenericGoldForeground2Rest);
 }
 .readme-common pre code.hljs .hljs-emphasis {
-  color: #24292e;
+  color: var(--neutralForeground1Rest);
   font-style: italic;
 }
 .readme-common pre code.hljs .hljs-strong {
-  color: #24292e;
+  color: var(--neutralForeground1Rest);
   font-weight: bold;
 }
 .readme-common pre code.hljs .hljs-addition {
-  color: #207f37;
+  color: var(--statusAvailableForeground3Rest);
 }
 .readme-common pre code.hljs .hljs-deletion {
-  color: #b31d28;
+  color: var(--statusGenericCranberryStrokeActiveRest);
 }
 #readme-preview {
   padding-top: 0.25em;
@@ -1511,13 +1514,13 @@ p.frameworktableinfo-text {
   border-collapse: unset;
 }
 .page-package-details .vulnerabilities-container .vulnerabilities-severity-critical {
-  color: var(--statusDangerForeground3Rest);
+  color: red;
 }
 .page-package-details .vulnerabilities-container .vulnerabilities-severity-high {
-  color: var(--statusDangerForeground3Rest);
+  color: red;
 }
 .page-package-details .vulnerabilities-container .vulnerabilities-severity-moderate {
-  color: var(--statusDangerForeground3Rest);
+  color: blue;
 }
 .page-package-details .failed-validation-alert-list {
   margin-top: 15px;
@@ -2559,9 +2562,6 @@ p.frameworktableinfo-text {
   color: #068918;
   font-size: 14px;
 }
-.page-profile .profile-title .organization-subtitle-divider {
-  color: #dbdbdb;
-}
 .page-profile .profile-title-divider {
   margin-top: 10px;
   margin-bottom: 10px;
@@ -2596,7 +2596,7 @@ p.frameworktableinfo-text {
   margin-bottom: 15px;
   font-size: 16px;
   font-weight: 600;
-  color: #000;
+  color: var(--neutralForeground1Rest);
 }
 .page-reset-password .reset-form {
   margin-top: 80px;
@@ -2688,11 +2688,7 @@ p.frameworktableinfo-text {
   margin-top: 40px;
   table-layout: auto;
   min-width: 100%;
-  max-width: -webkit-fit-content;
-  max-width: -moz-fit-content;
   max-width: fit-content;
-  width: -webkit-fit-content;
-  width: -moz-fit-content;
   width: fit-content;
 }
 .page-statistics-most-downloaded .table thead {
@@ -2757,8 +2753,6 @@ p.frameworktableinfo-text {
   overflow: auto;
 }
 .page-statistics-overview td {
-  max-width: -webkit-fit-content;
-  max-width: -moz-fit-content;
   max-width: fit-content;
   overflow: visible;
   text-overflow: initial;
@@ -2776,20 +2770,23 @@ p.frameworktableinfo-text {
   overflow: visible;
 }
 .page-statistics-overview circle.graph-dot {
-  fill: steelblue;
+  fill: var(--brandBackgroundCompoundRest);
 }
 .page-statistics-overview circle.graph-dot:hover {
-  fill: orange;
+  fill: var(--statusGenericMarigoldStrokeActiveRest);
 }
 .page-statistics-overview rect.graph-bar {
-  fill: steelblue;
+  fill: var(--brandBackgroundCompoundRest);
 }
 .page-statistics-overview rect.graph-bar:hover {
-  fill: orange;
+  fill: var(--statusGenericMarigoldStrokeActiveRest);
 }
 .page-statistics-overview line.graph-line {
-  stroke: steelblue;
+  stroke: var(--brandBackgroundCompoundRest);
   stroke-width: 2;
+}
+.page-statistics-overview text {
+  fill: var(--neutralForeground1Rest);
 }
 .page-statistics-overview text.graph-x-axis-text {
   font-size: 0.8em;
@@ -2801,11 +2798,7 @@ p.frameworktableinfo-text {
   font-size: 0.9em;
 }
 .page-statistics-overview .table {
-  width: -webkit-fit-content;
-  width: -moz-fit-content;
   width: fit-content;
-  max-width: -webkit-fit-content;
-  max-width: -moz-fit-content;
   max-width: fit-content;
   min-width: 100%;
 }
@@ -2814,6 +2807,12 @@ p.frameworktableinfo-text {
 }
 .page-statistics-overview svg:not(:root) {
   overflow: visible;
+}
+.page-stats-per-package text {
+  fill: var(--neutralForeground1Rest);
+}
+.page-stats-per-package line {
+  stroke: var(--neutralForeground1Rest);
 }
 .page-stats-per-package .table {
   table-layout: fixed;
@@ -2862,10 +2861,10 @@ p.frameworktableinfo-text {
   font-size: 0.8em;
 }
 .page-stats-per-package #stats-graph-svg .bar {
-  fill: steelblue;
+  fill: var(--brandBackgroundCompoundRest);
 }
 .page-stats-per-package #stats-graph-svg .bar:hover {
-  fill: orange;
+  fill: var(--statusGenericMarigoldStrokeActiveRest);
 }
 .page-stats-per-package #stats-graph-svg .bartext {
   font-size: 1em;
@@ -2897,19 +2896,22 @@ p.frameworktableinfo-text {
   margin-left: 10px;
 }
 .page-status .status-up {
-  background-color: #D1F0D5;
+  background-color: var(--statusSuccessBackground1Rest);
+}
+.page-status .status-up .ms-Icon {
+  color: var(--neutralForeground3Rest);
 }
 .page-status .status-down {
-  background-color: #FDE7E9;
+  background-color: var(--statusDangerBackground1Rest);
 }
 .page-status .status-down .ms-Icon {
-  color: red;
+  color: var(--statusDangerForeground1Rest);
 }
 .page-status .status-degraded {
-  background-color: #fff4ce;
+  background-color: var(--statusWarningBackground1Rest);
 }
 .page-status .status-degraded .ms-Icon {
-  color: orange;
+  color: var(--statusWarningForeground1Rest);
 }
 .page-status .update {
   margin-bottom: 24px;
@@ -2919,13 +2921,13 @@ p.frameworktableinfo-text {
   font-size: 1.25em;
 }
 .page-status .ms-Icon--CheckMark {
-  color: green;
+  color: var(--statusSuccessForeground1Rest);
 }
 .page-status .ms-Icon--Warning {
-  color: orange;
+  color: var(--statusWarningForeground1Rest);
 }
 .page-status .ms-Icon--Cancel {
-  color: red;
+  color: var(--statusDangerForeground1Rest);
 }
 .page-status .table {
   word-break: break-word;
@@ -2961,7 +2963,7 @@ p.frameworktableinfo-text {
 .page-status .table tbody.aggregate tr td:first-child a:hover,
 .page-status .table tbody.aggregate tr td:first-child a:focus,
 .page-status .table tbody.aggregate tr td:first-child a:active {
-  color: #000;
+  color: var(--neutralForeground1Rest);
   text-decoration: none;
 }
 .page-status .table tbody.aggregate tr td:first-child .ms-Icon {
@@ -3421,6 +3423,8 @@ p.frameworktableinfo-text {
   --statusWarningForeground1Rest: var(--orangeShade20, #bc4b09);
   --statusWarningForeground2Rest: var(--orangeShade30, #8a3707);
   --statusWarningStroke1Rest: var(--orangeTint40, #fdcfb4);
+  /* Syntax highlight colors */
+  --pre-bg: #f5f5f5;
 }
 [data-theme="dark"] {
   --body-background-color: linear-gradient(341deg, rgba(250, 250, 250, 0) 15.1%, rgba(11, 108, 255, 0.2) 105.92%), var(--neutralBackground2Rest);
@@ -3765,5 +3769,7 @@ p.frameworktableinfo-text {
   --statusWarningForeground1Rest: var(--orangeTint20, #f98845);
   --statusWarningForeground2Rest: var(--orangeTint40, #fdcfb4);
   --statusWarningStroke1Rest: var(--orangeShade10, #de590b);
+  /* Syntax highlight colors */
+  --pre-bg: #141414;
 }
 /*# sourceMappingURL=bootstrap-theme.css.map */
