@@ -661,6 +661,12 @@ namespace NuGetGallery.Authentication
                 }
             }
 
+            var isDeprecateApiEnabled = _featureFlagService != null && credential
+                .Scopes
+                .Select(s => s.Owner ?? credential.User)
+                .Where(u => u != null)
+                .Any(_featureFlagService.IsManageDeprecationApiEnabled);
+
             var credentialViewModel = new CredentialViewModel
             {
                 Key = credential.Key,
@@ -675,7 +681,7 @@ namespace NuGetGallery.Authentication
                 Scopes = credential.Scopes.Select(s => new ScopeViewModel(
                         s.Owner?.Username ?? credential.User.Username,
                         s.Subject,
-                        NuGetScopes.Describe(s.AllowedAction)))
+                        NuGetScopes.Describe(s.AllowedAction, isDeprecateApiEnabled)))
                     .ToList(),
                 ExpirationDuration = credential.ExpirationTicks != null ? new TimeSpan?(new TimeSpan(credential.ExpirationTicks.Value)) : null,
                 RevocationSource = credential.RevocationSourceKey != null ? Enum.GetName(typeof(CredentialRevocationSource), credential.RevocationSourceKey) : null,

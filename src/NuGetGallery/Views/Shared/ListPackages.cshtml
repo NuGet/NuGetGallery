@@ -88,11 +88,21 @@
                             <div>
                                 <fieldset id="frameworkfilters">
                                     <legend>
-                                        Frameworks
                                         <a href="@(Model.FrameworksFilteringInformationLink)" class="frameworkfilters-info"
                                            data-content="@NuGetGallery.Strings.FrameworkFilters_Tooltip"
                                            aria-label="@NuGetGallery.Strings.FrameworkFilters_Tooltip">
+                                            Frameworks
+                                        </a>
+                                        <a class="tooltip-target" href="javascript:void(0)">
                                             <i class="framework-filter-info-icon ms-Icon ms-Icon--Info"></i>
+                                            <span class="tooltip-block" role="tooltip">
+                                                <span class="tooltip-wrapper tooltip-with-icon popover right">
+                                                    <span class="arrow"></span>
+                                                    <span class="popover-content">
+                                                        @NuGetGallery.Strings.FrameworkFilters_Tooltip
+                                                    </span>
+                                                </span>
+                                            </span>
                                         </a>
                                     </legend>
                                     @if (Model.IsAdvancedFrameworkFilteringEnabled)
@@ -102,10 +112,20 @@
                                             <input type="checkbox" id="computed-frameworks-checkbox" checked="@Model.IncludeComputedFrameworks">
                                             <input type="hidden" id="includeComputedFrameworks" name="includeComputedFrameworks" value="@Model.IncludeComputedFrameworks.ToString().ToLower()">
                                         </div>
-                                        <div class="framework-filter-mode-option" aria-label="ALL/ANY toggle that decides whether to show packages matching ALL of the selected Target Frameworks (TFMs), or ANY of them.">
+                                        <div class="framework-filter-mode-option">
                                             <p>
                                                 Framework Filter Mode
-                                                <i class="frameworkfiltermode-info ms-Icon ms-Icon--Info" tabindex="0" data-content="Decides whether to show packages matching ALL of the selected Target Frameworks (TFMs), or ANY of them."></i>
+                                                <a class="tooltip-target" href="javascript:void(0)">
+                                                    <i class="frameworkfiltermode-info ms-Icon ms-Icon--Info"></i>
+                                                    <span class="tooltip-block" role="tooltip">
+                                                        <span class="tooltip-wrapper tooltip-with-icon popover right">
+                                                            <span class="arrow"></span>
+                                                            <span class="popover-content">
+                                                                Decides whether to show packages matching ALL of the selected Target Frameworks (TFMs), or ANY of them.
+                                                            </span>
+                                                        </span>
+                                                    </span>
+                                                </a>
                                             </p>
                                             <div class="toggle-switch-control">
                                                 <input type="radio" id="all-selector" name="frameworkFilterMode" value="all" tabindex="0" @(Model.FrameworkFilterMode == "any" ? "" : "checked") />

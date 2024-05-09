@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Transactions;
 using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
 
@@ -37,7 +36,9 @@ namespace NuGetGallery
            PackageRegistration alternatePackageRegistration,
            Package alternatePackage,
            string customMessage,
-           User user)
+           User user,
+           ListedVerb listedVerb,
+           string auditReason)
         {
             if (user == null)
             {
@@ -49,16 +50,27 @@ namespace NuGetGallery
                 throw new ArgumentException(nameof(packages));
             }
 
-            var registration = packages.First().PackageRegistration;
+            if (auditReason == null)
+            {
+                throw new ArgumentNullException(nameof(auditReason));
+            }
+
             if (packages.Select(p => p.PackageRegistrationKey).Distinct().Count() > 1)
             {
                 throw new ArgumentException("All packages to deprecate must have the same ID.", nameof(packages));
             }
 
             var shouldDelete = status == PackageDeprecationStatus.NotDeprecated;
+            var listed = listedVerb == ListedVerb.Relist;
             var deprecations = new List<PackageDeprecation>();
+            var changedPackages = new List<Package>();
+            var unchangedPackages = new List<Package>();
             foreach (var package in packages)
             {
+                // This change tracking could theoretically be done via the Entity Framework change tracker, but given
+                // the low number of properties here, we'll track the changes ourselves. To use the change tracker to
+                // check if an individual entity has changed would require non-trivial changes to our DB abstractions.
+                var changed = false;
                 var deprecation = package.Deprecations.SingleOrDefault();
                 if (shouldDelete)
                 {
@@ -66,6 +78,7 @@ namespace NuGetGallery
                     {
                         package.Deprecations.Remove(deprecation);
                         deprecations.Add(deprecation);
+                        changed = true;
                     }
                 }
                 else
@@ -79,15 +92,53 @@ namespace NuGetGallery
 
                         package.Deprecations.Add(deprecation);
                         deprecations.Add(deprecation);
+                        changed = true;
                     }
 
-                    deprecation.Status = status;
-                    deprecation.DeprecatedByUser = user;
+                    if (deprecation.Status != status)
+                    {
+                        deprecation.Status = status;
+                        changed = true;
+                    }
 
-                    deprecation.AlternatePackageRegistration = alternatePackageRegistration;
-                    deprecation.AlternatePackage = alternatePackage;
+                    if (deprecation.AlternatePackageRegistrationKey != alternatePackageRegistration?.Key)
+                    {
+                        deprecation.AlternatePackageRegistration = alternatePackageRegistration;
+                        changed = true;
+                    }
 
-                    deprecation.CustomMessage = customMessage;
+                    if (deprecation.AlternatePackageKey != alternatePackage?.Key)
+                    {
+                        deprecation.AlternatePackage = alternatePackage;
+                        changed = true;
+                    }
+
+                    if (deprecation.CustomMessage != customMessage)
+                    {
+                        deprecation.CustomMessage = customMessage;
+                        changed = true;
+                    }
+
+                    if (changed && deprecation.DeprecatedByUserKey != user?.Key)
+                    {
+                        deprecation.DeprecatedByUser = user;
+                        changed = true;
+                    }
+                }
+
+                if (listedVerb != ListedVerb.Unchanged && package.Listed != listed)
+                {
+                    package.Listed = listed;
+                    changed = true;
+                }
+
+                if (changed)
+                {
+                    changedPackages.Add(package);
+                }
+                else
+                {
+                    unchangedPackages.Add(package);
                 }
             }
 
@@ -107,32 +158,33 @@ namespace NuGetGallery
                 {
                     await _entitiesContext.SaveChangesAsync();
 
-                    await _packageUpdateService.UpdatePackagesAsync(packages);
+                    await _packageUpdateService.UpdatePackagesAsync(changedPackages);
 
                     transaction.Commit();
 
                     _telemetryService.TrackPackageDeprecate(
-                        packages,
+                        changedPackages,
                         status,
                         alternatePackageRegistration,
                         alternatePackage,
                         !string.IsNullOrWhiteSpace(customMessage),
                         hasChanges: true);
 
-                    foreach (var package in packages)
+                    foreach (var package in changedPackages)
                     {
                         await _auditingService.SaveAuditRecordAsync(
                             new PackageAuditRecord(
                                 package,
                                 status == PackageDeprecationStatus.NotDeprecated ? AuditedPackageAction.Undeprecate : AuditedPackageAction.Deprecate,
-                                status == PackageDeprecationStatus.NotDeprecated ? PackageUndeprecatedVia.Web : PackageDeprecatedVia.Web));
+                                auditReason));
                     }
                 }
             }
-            else
+
+            if (unchangedPackages.Count > 0)
             {
                 _telemetryService.TrackPackageDeprecate(
-                    packages,
+                    unchangedPackages,
                     status,
                     alternatePackageRegistration,
                     alternatePackage,

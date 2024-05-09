@@ -1,60 +1,105 @@
 .page-statistics-most-downloaded {
-    .show-all-packages-toggle {
+  .show-all-packages-toggle {
+    font-weight: bold;
+  }
+
+  .table {
+    margin-top: 40px;
+    table-layout: auto;
+    min-width: 100%;
+    max-width: fit-content;
+    width:fit-content;
+
+    thead {
+      padding-bottom: 4px;
+      margin-bottom: 10px;
+
+      th {
         font-weight: bold;
+      }
+
+      .packages {
+        th:nth-child(1) {
+          width: 10%;
+        }
+
+        th:nth-child(2) {
+          width: 70%;
+        }
+
+        th:nth-child(3) {
+          width: 20%;
+        }
+      }
+
+      .package-versions {
+        th:nth-child(1) {
+          width: 10%;
+        }
+
+        th:nth-child(2) {
+          width: 50%;
+        }
+
+        th:nth-child(3) {
+          width: 20%;
+        }
+
+        th:nth-child(4) {
+          width: 20%;
+        }
+      }
     }
 
-    .table {
-        margin-top: 40px;
-        table-layout: fixed;
-        
-        thead {
-            padding-bottom: 4px;
-            margin-bottom: 10px;
-            
-            th {
-                font-weight: bold;
-            }
-    
-            .packages {
-                th:nth-child(1) {
-                    width: 10%;
-                }
-                
-                th:nth-child(2) {
-                    width: 70%;
-                }
-                
-                th:nth-child(3) {
-                    width: 20%;
-                }
-            }
-    
-            .package-versions {
-                th:nth-child(1) {
-                    width: 10%;
-                }
-                
-                th:nth-child(2) {
-                    width: 50%;
-                }
-                
-                th:nth-child(3) {
-                    width: 20%;
-                }
-                
-                th:nth-child(4) {
-                    width: 20%;
-                }
-            }
-        }
-        
-        tbody {
-            margin-bottom: 20px;
-            
-            td {
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-        }
+    tbody {
+      margin-bottom: 20px;
+
+      td {
+        overflow: visible;
+        text-overflow: initial;
+      }
     }
+  }
+
+  @media (max-width: 1300px) {
+    .table {
+
+      thead {
+        .packages {
+          th:nth-child(1) {
+            width: auto;
+          }
+
+          th:nth-child(2) {
+            width: auto;
+          }
+
+          th:nth-child(3) {
+            width: auto;
+          }
+        }
+
+        .package-versions {
+          th:nth-child(1) {
+            width: auto;
+          }
+
+          th:nth-child(2) {
+            width: auto;
+          }
+
+          th:nth-child(3) {
+            width: auto;
+          }
+
+          th:nth-child(4) {
+            width: auto;
+          }
+        }
+      }
+    }
+  }
+  .table-wrapper{
+      overflow:auto;
+  }
 }

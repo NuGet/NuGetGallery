@@ -43,12 +43,14 @@ namespace NuGetGallery
             User currentUser,
             string id,
             IReadOnlyCollection<string> versions, 
+            string auditReason,
             bool isLegacy = false, 
             bool hasCriticalBugs = false, 
             bool isOther = false, 
             string alternatePackageId = null, 
             string alternatePackageVersion = null, 
-            string message = null)
+            string message = null,
+            ListedVerb listedVerb = ListedVerb.Unchanged)
         {
             var status = PackageDeprecationStatus.NotDeprecated;
 
@@ -172,7 +174,9 @@ namespace NuGetGallery
                 alternatePackageRegistration,
                 alternatePackage,
                 customMessage,
-                currentUser);
+                currentUser,
+                listedVerb,
+                auditReason);
 
             return null;
         }

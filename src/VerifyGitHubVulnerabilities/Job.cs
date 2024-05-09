@@ -19,6 +19,7 @@ using NuGet.Jobs.Configuration;
 using NuGetGallery;
 using VerifyGitHubVulnerabilities.Configuration;
 using VerifyGitHubVulnerabilities.Verify;
+using GitHubVulnerabilities2Db.Gallery;
 
 namespace VerifyGitHubVulnerabilities
 {
@@ -71,6 +72,10 @@ namespace VerifyGitHubVulnerabilities
             containerBuilder
                 .RegisterType<GitHubVersionRangeParser>()
                 .As<IGitHubVersionRangeParser>();
+
+            containerBuilder
+                .RegisterType<GalleryDbVulnerabilityWriter>()
+                .As<IVulnerabilityWriter>();
 
             containerBuilder
                 .RegisterType<AdvisoryIngestor>()

@@ -366,7 +366,7 @@
                                     </div>
                                     <label id="select-scopes-push-package" data-bind="attr: { for: PackagePushId }"
                                            aria-labelledby="select-scopes-push-package select-scopes">
-                                        @NuGetScopes.Describe(NuGetScopes.PackagePush)
+                                        @NuGetScopes.Describe(NuGetScopes.PackagePush, Model.IsDeprecationApiEnabled)
                                     </label>
                                 </div>
                             </li>
@@ -379,7 +379,7 @@
                                     </div>
                                     <label id="select-scopes-push-package-version" data-bind="attr: { for: PackagePushVersionId }" 
                                            aria-labelledby="select-scopes-push-package-version select-scopes">
-                                        @NuGetScopes.Describe(NuGetScopes.PackagePushVersion)
+                                        @NuGetScopes.Describe(NuGetScopes.PackagePushVersion, Model.IsDeprecationApiEnabled)
                                     </label>
                                 </div>
                             </li>
@@ -391,7 +391,7 @@
                                 <input type="checkbox" value="@NuGetScopes.PackageUnlist"
                                        aria-labelledby="select-scopes-unlist select-scopes"
                                        data-bind="checked: UnlistScopeChecked, enable: UnlistEnabled" />
-                                @NuGetScopes.Describe(NuGetScopes.PackageUnlist)
+                                @NuGetScopes.Describe(NuGetScopes.PackageUnlist, Model.IsDeprecationApiEnabled)
                             </label>
                         </div>
                     </li>

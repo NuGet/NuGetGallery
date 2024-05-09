@@ -48,41 +48,48 @@ $(function() {
         collapsible.addEventListener('click', toggleCollapsible);
     }
 
-    const advancedSearchToggleButton = document.getElementById('advancedSearchToggleButton');
-    advancedSearchToggleButton.addEventListener('click', toggleAdvancedSearchPanel);
     var resized = false;
     var initialScreenSize = window.innerWidth;
     const chevronIcon = document.getElementById('advancedSearchToggleChevron');
+
+    const advancedSearchToggleButton = document.getElementById('advancedSearchToggleButton');
+
+    if (advancedSearchToggleButton) {
+        advancedSearchToggleButton.addEventListener('click', toggleAdvancedSearchPanel);
+    }
+
+    window.addEventListener('resize', () => {
+        resized = true;
+        toggleAdvancedSearchPanel();
+    });
 
     /* For narrow screens only */
     function toggleAdvancedSearchPanel() {
 
         const filtersContent = document.getElementById('advancedSearchPanel');
-        var computedStyle = window.getComputedStyle(filtersContent);
 
-        if (window.innerWidth <= 992 && !resized) {
-            filtersContent.style.display = (computedStyle.display === 'none') ? 'block' : 'none';
-            chevronIcon.classList.toggle('ms-Icon--ChevronDown');
-            chevronIcon.classList.toggle('ms-Icon--ChevronUp');
-        }
-        else if (window.innerWidth <= 992 && initialScreenSize > 992 && resized) {
-            filtersContent.style.display = 'none';
-            chevronIcon.classList.add('ms-Icon--ChevronDown');
-            chevronIcon.classList.remove('ms-Icon--ChevronUp');
+        if (filtersContent) {
+            var computedStyle = window.getComputedStyle(filtersContent);
 
-        }
-        else if (window.innerWidth > 992) {
-            filtersContent.style.display = 'block';
+            if (window.innerWidth <= 992 && !resized) {
+                filtersContent.style.display = (computedStyle.display === 'none') ? 'block' : 'none';
+                chevronIcon.classList.toggle('ms-Icon--ChevronDown');
+                chevronIcon.classList.toggle('ms-Icon--ChevronUp');
+            }
+            else if (window.innerWidth <= 992 && initialScreenSize > 992 && resized) {
+                filtersContent.style.display = 'none';
+                chevronIcon.classList.add('ms-Icon--ChevronDown');
+                chevronIcon.classList.remove('ms-Icon--ChevronUp');
+
+            }
+            else if (window.innerWidth > 992) {
+                filtersContent.style.display = 'block';
+            }
         }
 
         initialScreenSize = window.innerWidth;
         resized = false;
     }
-
-    window.addEventListener('resize', () => {
-        resized = true;
-        toggleAdvancedSearchPanel(); 
-    });
 
     function toggleCollapsible() {
         var dataTab = document.getElementById(this.getAttribute('tab') + 'tab');
@@ -204,8 +211,31 @@ $(function() {
     $(".reserved-indicator").each(window.nuget.setPopovers);
     $(".package-warning--vulnerable").each(window.nuget.setPopovers);
     $(".package-warning--deprecated").each(window.nuget.setPopovers);
-    $(".frameworkfiltermode-info").each(window.nuget.setPopovers);
-    $(".framework-badge-asset").each(window.nuget.setPopovers);
-    $(".framework-badge-computed").each(window.nuget.setPopovers);
-    $(".frameworkfilters-info").each(window.nuget.setPopovers);
+    //for tooltip hover and focus
+    $('.tooltip-target').each(function () {
+        $(this).on('mouseenter focusin', function () {
+            $(this).find('.tooltip-wrapper').addClass('show');
+        });
+        $(this).on('mouseleave focusout', function () {
+            $(this).find('.tooltip-wrapper').removeClass('show');
+        });
+    });
+
+    // for using arrow keys in Framwork filter mode checkbox tree 
+    $('.tfmTab li input').each(function () {
+        $(this).on('keydown', function (e) {
+            switch (e.key) {
+                case "ArrowDown":
+                    if ($(this).parent().next().length > 0) {
+                        $(this).parent().next().find('.tfm').focus();
+                    }
+                    break;
+                case "ArrowUp":
+                    if ($(this).parent().prev().length > 0) {
+                        $(this).parent().prev().find('.tfm').focus();
+                    }
+                    break;
+            }
+        });
+    });
 });
