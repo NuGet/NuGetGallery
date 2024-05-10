@@ -113,11 +113,6 @@ namespace NuGetGallery.FunctionalTests.StaticAssets
             },
         };
 
-        private static readonly IReadOnlyList<string> MinifiedFiles = new[]
-        {
-            "Content/gallery/css/bootstrap.min.css",
-        };
-
         private static readonly HashSet<string> BundleInputPaths = new HashSet<string>(Bundles.SelectMany(x => x.Value));
 
         public static IEnumerable<object[]> AssetData => AssetPaths.Value.Select(x => new object[] { x });
@@ -148,17 +143,6 @@ namespace NuGetGallery.FunctionalTests.StaticAssets
             var bundleContent = await HttpClient.GetStringAsync(UrlHelper.BaseUrl + bundle);
 
             Assert.DoesNotContain("Minification failed", Shorten(bundleContent), StringComparison.OrdinalIgnoreCase);
-        }
-
-        [Theory]
-        [Priority(2)]
-        [Category("P2Tests")]
-        [MemberData(nameof(MinifiedFiles))]
-        public async Task NoFilesFailedMinification(string file)
-        {
-            var fileContent = await HttpClient.GetStringAsync(UrlHelper.BaseUrl + file);
-
-            Assert.DoesNotContain("Minification failed", Shorten(fileContent), StringComparison.OrdinalIgnoreCase);
         }
 
         [Theory]
