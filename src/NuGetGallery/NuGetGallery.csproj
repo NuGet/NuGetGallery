@@ -1368,9 +1368,8 @@
     <Content Include="Content\Images\icons\edit.png" />
     <Content Include="Content\Images\icons\expire.png" />
     <Content Include="Content\Images\icons\regenerate.png" />
-    <Content Include="Content\gallery\css\bootstrap-theme.css" />
-    <Content Include="Content\gallery\css\bootstrap.css" />
     <Content Include="Content\gallery\css\fabric.css" />
+    <Content Include="Content\gallery\css\bootstrap.min.css" />
     <Content Include="Content\gallery\img\api-key-256x256.png" />
     <Content Include="Content\gallery\img\api-key-expired-256x256.png" />
     <Content Include="Content\gallery\img\api-key-expired.svg" />
@@ -2391,8 +2390,7 @@
   </ProjectExtensions>
   <PropertyGroup>
     <PreBuildEvent>
-      copy "$(ProjectDir)..\Bootstrap\dist\css\bootstrap.css" "$(ProjectDir)Content\gallery\css" &gt;NUL
-      copy "$(ProjectDir)..\Bootstrap\dist\css\bootstrap-theme.css" "$(ProjectDir)Content\gallery\css" &gt;NUL
+      copy "$(ProjectDir)..\Bootstrap\dist\css\bootstrap.min.css" "$(ProjectDir)Content\gallery\css" &gt;NUL
       copy "$(ProjectDir)..\Bootstrap\dist\js\bootstrap.js" "$(ProjectDir)Scripts\gallery" &gt;NUL
     </PreBuildEvent>
   </PropertyGroup>
