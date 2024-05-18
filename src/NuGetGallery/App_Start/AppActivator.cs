@@ -118,11 +118,6 @@ namespace NuGetGallery
             // Bootstrap is no longer bundled in site.min.css given that the package that does the minification
             // cannot understand new CSS feature, instead we are using Grunt to create a bootstrap.min.css file
             // for all bootstrap styles.
-            var bootstrapBundle = new StyleBundle("~/Content/gallery/css/bootstrap.min.css");
-            bootstrapBundle
-                .Include("~/Content/gallery/css/bootstrap.min.css");
-            BundleTable.Bundles.Add(bootstrapBundle);
-
             var newStyleBundle = new StyleBundle("~/Content/gallery/css/site.min.css");
             newStyleBundle
                 .Include("~/Content/gallery/css/fabric.css");
