@@ -24,7 +24,6 @@ namespace NuGetGallery
             int? maxResults,
             BlobContinuationToken blobContinuationToken,
             BlobRequestOptions options,
-            OperationContext operationContext,
             CancellationToken cancellationToken)
         {
             var segment = await _blobContainer.ListBlobsSegmentedAsync(
@@ -34,8 +33,8 @@ namespace NuGetGallery
                 maxResults,
                 blobContinuationToken,
                 options,
-                operationContext,
-                cancellationToken);
+                operationContext: null,
+                cancellationToken: cancellationToken);
 
             return new BlobResultSegmentWrapper(segment);
         }
@@ -52,9 +51,9 @@ namespace NuGetGallery
             return new CloudBlobWrapper(_blobContainer.GetBlockBlobReference(blobAddressUri));
         }
 
-        public async Task<bool> ExistsAsync(BlobRequestOptions blobRequestOptions, OperationContext context)
+        public async Task<bool> ExistsAsync(BlobRequestOptions blobRequestOptions)
         {
-            return await _blobContainer.ExistsAsync(blobRequestOptions, context);
+            return await _blobContainer.ExistsAsync(blobRequestOptions, operationContext: null);
         }
 
         public async Task<bool> DeleteIfExistsAsync()

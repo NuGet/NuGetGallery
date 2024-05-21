@@ -13,6 +13,6 @@ namespace NuGetGallery
     /// </summary>
     public interface ICloudStorageStatusDependency
     {
-        Task<bool> IsAvailableAsync(BlobRequestOptions options, OperationContext operationContext);
+        Task<bool> IsAvailableAsync(BlobRequestOptions options);
     }
 }

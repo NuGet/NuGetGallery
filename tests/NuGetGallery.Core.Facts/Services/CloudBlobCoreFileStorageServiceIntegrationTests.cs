@@ -84,7 +84,6 @@ namespace NuGetGallery
                 maxResults: 2,
                 blobContinuationToken: null,
                 options: null,
-                operationContext: null,
                 cancellationToken: CancellationToken.None);
             var segmentB = await container.ListBlobsSegmentedAsync(
                 _prefixA,
@@ -93,7 +92,6 @@ namespace NuGetGallery
                 maxResults: 2,
                 blobContinuationToken: segmentA.ContinuationToken,
                 options: null,
-                operationContext: null,
                 cancellationToken: CancellationToken.None);
 
             // Assert
@@ -125,7 +123,6 @@ namespace NuGetGallery
                 maxResults: 2,
                 blobContinuationToken: null,
                 options: null,
-                operationContext: null,
                 cancellationToken: CancellationToken.None);
             var segmentB = await container.ListBlobsSegmentedAsync(
                 _prefixA,
@@ -134,7 +131,6 @@ namespace NuGetGallery
                 maxResults: 2,
                 blobContinuationToken: segmentA.ContinuationToken,
                 options: null,
-                operationContext: null,
                 cancellationToken: CancellationToken.None);
 
             // Assert

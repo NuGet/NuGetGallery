@@ -109,9 +109,9 @@ namespace NuGetGallery.Auditing
             }
         }
 
-        public Task<bool> IsAvailableAsync(BlobRequestOptions options, OperationContext operationContext)
+        public Task<bool> IsAvailableAsync(BlobRequestOptions options)
         {
-            return _auditContainerFactory().ExistsAsync(options, operationContext);
+            return _auditContainerFactory().ExistsAsync(options);
         }
 
         public override string RenderAuditEntry(AuditEntry entry)

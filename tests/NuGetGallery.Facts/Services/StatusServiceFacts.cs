@@ -173,7 +173,7 @@ namespace NuGetGallery.Services
                         _config = config;
                     }
 
-                    public async Task<bool> IsAvailableAsync(BlobRequestOptions options, OperationContext operationContext)
+                    public async Task<bool> IsAvailableAsync(BlobRequestOptions options)
                     {
                         AssertConfigLocationMode(_config, options);
                         return await Task.FromResult(true);
@@ -189,7 +189,7 @@ namespace NuGetGallery.Services
                         _config = config;
                     }
 
-                    public async Task<bool> IsAvailableAsync(BlobRequestOptions options, OperationContext operationContext)
+                    public async Task<bool> IsAvailableAsync(BlobRequestOptions options)
                     {
                         AssertConfigLocationMode(_config, options);
                         return await Task.FromResult(false);
@@ -205,7 +205,7 @@ namespace NuGetGallery.Services
                         _config = config;
                     }
 
-                    public async Task<bool> IsAvailableAsync(BlobRequestOptions options, OperationContext operationContext)
+                    public async Task<bool> IsAvailableAsync(BlobRequestOptions options)
                     {
                         AssertConfigLocationMode(_config, options);
                         // Just to go async.

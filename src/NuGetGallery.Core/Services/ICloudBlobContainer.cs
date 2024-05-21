@@ -12,7 +12,7 @@ namespace NuGetGallery
     {
         Task CreateIfNotExistAsync(bool enablePublicAccess);
         ISimpleCloudBlob GetBlobReference(string blobAddressUri);
-        Task<bool> ExistsAsync(BlobRequestOptions options, OperationContext operationContext);
+        Task<bool> ExistsAsync(BlobRequestOptions options);
         Task<bool> DeleteIfExistsAsync();
         Task CreateAsync(bool enablePublicAccess);
         Task<ISimpleBlobResultSegment> ListBlobsSegmentedAsync(
@@ -22,7 +22,6 @@ namespace NuGetGallery
             int? maxResults,
             BlobContinuationToken blobContinuationToken,
             BlobRequestOptions options,
-            OperationContext operationContext,
             CancellationToken cancellationToken);
     }
 }
