@@ -158,17 +158,28 @@ namespace NuGetGallery
                 {
                     await _entitiesContext.SaveChangesAsync();
 
-                    await _packageUpdateService.UpdatePackagesAsync(changedPackages);
+                    // Ideally, the number of changed packages should be zero if and only if the entity context has
+                    // no changes (therefore this line should not be reached). But it is possible that an entity can
+                    // be changed for other reasons, such as https://github.com/NuGet/NuGetGallery/issues/9950.
+                    // Therefore, allow the transaction to be committed but do not update the LastEdited property on
+                    // the package, to avoid unnecessary package edits flowing into V3.
+                    if (changedPackages.Count > 0)
+                    {
+                        await _packageUpdateService.UpdatePackagesAsync(changedPackages);
+                    }
 
                     transaction.Commit();
 
-                    _telemetryService.TrackPackageDeprecate(
-                        changedPackages,
-                        status,
-                        alternatePackageRegistration,
-                        alternatePackage,
-                        !string.IsNullOrWhiteSpace(customMessage),
-                        hasChanges: true);
+                    if (changedPackages.Count > 0)
+                    {
+                        _telemetryService.TrackPackageDeprecate(
+                            changedPackages,
+                            status,
+                            alternatePackageRegistration,
+                            alternatePackage,
+                            !string.IsNullOrWhiteSpace(customMessage),
+                            hasChanges: true);
+                    }
 
                     foreach (var package in changedPackages)
                     {
