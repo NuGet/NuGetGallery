@@ -40,21 +40,11 @@ namespace NuGetGallery
             return new BlobResultSegmentWrapper(segment);
         }
         
-        public Task CreateIfNotExistAsync(BlobContainerPermissions permissions)
+        public async Task CreateIfNotExistAsync(bool enablePublicAccess)
         {
-            var publicAccess = permissions?.PublicAccess;
+            var accessType = enablePublicAccess ? BlobContainerPublicAccessType.Blob : BlobContainerPublicAccessType.Off;
 
-            if (publicAccess.HasValue)
-            {
-                return _blobContainer.CreateIfNotExistsAsync(publicAccess.Value, options: null, operationContext: null);
-            }
-
-            return _blobContainer.CreateIfNotExistsAsync();
-        }
-
-        public async Task SetPermissionsAsync(BlobContainerPermissions permissions)
-        {
-            await _blobContainer.SetPermissionsAsync(permissions);
+            await _blobContainer.CreateIfNotExistsAsync(accessType, options: null, operationContext: null);
         }
 
         public ISimpleCloudBlob GetBlobReference(string blobAddressUri)
@@ -72,18 +62,11 @@ namespace NuGetGallery
             return await _blobContainer.DeleteIfExistsAsync();
         }
 
-        public async Task CreateAsync(BlobContainerPermissions permissions)
+        public async Task CreateAsync(bool enablePublicAccess)
         {
-            var publicAccess = permissions?.PublicAccess;
+            var accessType = enablePublicAccess ? BlobContainerPublicAccessType.Blob : BlobContainerPublicAccessType.Off;
 
-            if (publicAccess.HasValue)
-            {
-                await _blobContainer.CreateAsync(publicAccess.Value, options: null, operationContext: null);
-            }
-            else
-            {
-                await _blobContainer.CreateAsync();
-            }
+            await _blobContainer.CreateAsync(accessType, options: null, operationContext: null);
         }
     }
 }

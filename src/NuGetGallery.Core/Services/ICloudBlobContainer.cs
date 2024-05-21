@@ -10,12 +10,11 @@ namespace NuGetGallery
 {
     public interface ICloudBlobContainer
     {
-        Task CreateIfNotExistAsync(BlobContainerPermissions permissions);
-        Task SetPermissionsAsync(BlobContainerPermissions permissions);
+        Task CreateIfNotExistAsync(bool enablePublicAccess);
         ISimpleCloudBlob GetBlobReference(string blobAddressUri);
         Task<bool> ExistsAsync(BlobRequestOptions options, OperationContext operationContext);
         Task<bool> DeleteIfExistsAsync();
-        Task CreateAsync(BlobContainerPermissions permissions);
+        Task CreateAsync(bool enablePublicAccess);
         Task<ISimpleBlobResultSegment> ListBlobsSegmentedAsync(
             string prefix,
             bool useFlatBlobListing,
