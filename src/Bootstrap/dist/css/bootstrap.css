@@ -292,6 +292,9 @@ textarea {
   font-size: inherit;
   line-height: inherit;
 }
+a.inline {
+  text-decoration: underline;
+}
 a {
   color: var(--brandForegroundLinkRest);
   text-decoration: none;
@@ -751,15 +754,15 @@ samp {
 code {
   padding: 2px 4px;
   font-size: 90%;
-  color: #c7254e;
-  background-color: #f9f2f4;
+  color: var(--statusDangerForeground1Rest);
+  background-color: var(--statusDangerBackground1Rest);
   border-radius: 0px;
 }
 kbd {
   padding: 2px 4px;
   font-size: 90%;
-  color: #fff;
-  background-color: #333;
+  color: var(--neutralForeground1Rest);
+  background-color: var(--neutralBackground1Rest);
   border-radius: 0px;
   -webkit-box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.25);
   box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.25);
@@ -777,12 +780,12 @@ pre {
   margin: 0 0 11px;
   font-size: 15px;
   line-height: 1.42857143;
-  color: #333333;
+  color: var(--neutralForeground2Rest);
   word-break: break-all;
   word-wrap: break-word;
-  background-color: #f5f5f5;
-  border: 1px solid #ccc;
-  border-radius: 0px;
+  background-color: var(--neutralBackground1Rest);
+  border: 2px solid var(--neutralStroke1Rest);
+  border-radius: 4px;
 }
 pre code {
   padding: 0;
@@ -2010,26 +2013,51 @@ input[type="checkbox"].brand-checkbox:focus {
   -ms-flex-pack: space-evenly;
   justify-content: space-evenly;
 }
+.brand-checkbox input[type="checkbox"]:indeterminate::after {
+  content: '\2012';
+  font-weight: bolder;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  width: 16px;
+  height: 16px;
+  left: -1px;
+  top: -1.75px;
+  position: relative;
+  -webkit-box-align: end;
+  -webkit-align-items: flex-end;
+  -ms-flex-align: end;
+  align-items: flex-end;
+  -webkit-box-pack: space-evenly;
+  -webkit-justify-content: space-evenly;
+  -ms-flex-pack: space-evenly;
+  justify-content: space-evenly;
+}
+.brand-checkbox input[type="checkbox"]:indeterminate,
 .brand-checkbox input[type="checkbox"]:checked {
   background-color: var(--brandBackgroundCompoundRest);
   border-color: var(--brandBackgroundCompoundRest);
   color: var(--neutralForegroundInverted1Rest);
 }
+.brand-checkbox:hover input[type="checkbox"]:indeterminate,
 .brand-checkbox:hover input[type="checkbox"]:checked {
   background-color: var(--brandBackgroundCompoundHover);
   border-color: var(--brandBackgroundCompoundHover);
   color: var(--neutralForegroundInverted1Hover);
 }
-.brand-checkbox:hover input[type="checkbox"]:not(:checked) {
+.brand-checkbox:hover input[type="checkbox"]:not(:indeterminate):not(:checked),
+.brand-checkbox:hover input[type="checkbox"]:not(:checked):not(:indeterminate) {
   border-color: var(--neutralStrokeAccessibleHover);
   color: var(--neutralForegroundInverted1Hover);
 }
-.brand-checkbox:active input[type="checkbox"]:checked {
+.brand-checkbox:active input[type="checkbox"]:indeterminate input[type="checkbox"]:checked {
   background-color: var(--brandBackgroundCompoundPressed);
   border-color: var(--brandBackgroundCompoundPressed);
   color: var(--neutralForegroundInverted1Pressed);
 }
-.brand-checkbox:active input[type="checkbox"]:not(:checked) {
+.brand-checkbox:active input[type="checkbox"]:not(:indeterminate):not(:checked),
+.brand-checkbox:active input[type="checkbox"]:not(:checked):not(:indeterminate) {
   border-color: var(--neutralStrokeAccessiblePressed);
   color: var(--neutralForegroundInverted1Pressed);
 }
@@ -3293,7 +3321,7 @@ fieldset[disabled] .btn-danger.focus {
   box-shadow: inset 0px 0px 0px 1px var(--neutralStrokeFocus1Rest);
   outline: none !important;
 }
-.brand-button-transparent {
+.btn-brand-transparent {
   color: var(--neutralForeground2Rest);
   background-color: var(--transparentBackgroundRest);
   border-radius: var(--Medium, 4px);
@@ -3302,17 +3330,17 @@ fieldset[disabled] .btn-danger.focus {
   box-shadow: none !important;
   padding: 5px 12px;
 }
-.brand-button-transparent:hover,
-.brand-button-transparent:focus:hover {
+.btn-brand-transparent:hover,
+.btn-brand-transparent:focus:hover {
   color: var(--neutralForeground2BrandHover);
 }
-.brand-button-transparent:active,
-.brand-button-transparent:active:focus {
+.btn-brand-transparent:active,
+.btn-brand-transparent:active:focus {
   color: var(--neutralForeground2BrandPressed);
 }
-.brand-button-transparent:focus-within,
-.brand-button-transparent:focus-visible,
-.brand-button-transparent:focus {
+.btn-brand-transparent:focus-within,
+.btn-brand-transparent:focus-visible,
+.btn-brand-transparent:focus {
   color: var(--neutralForeground2Rest);
   border: 2px solid var(--neutralStrokeFocus2Rest);
   outline: none !important;
@@ -4791,24 +4819,28 @@ fieldset[disabled] .navbar-inverse .btn-link:focus {
   display: inline-block;
   padding: 5px 14px;
   font-size: 20px;
-  color: #666666;
+  color: var(--neutralForeground2Rest);
 }
 .pager li > a,
 .pager li > span {
-  color: #337ab7;
+  color: var(--neutralForeground2Rest);
+}
+.pager li > a:hover,
+.pager li > span:hover {
+  color: var(--neutralForeground2Hover);
 }
 .pager .next {
   border-left-style: solid;
   border-left-width: 1px;
-  border-left-color: #337ab7;
+  border-left-color: var(--neutralStrokeAccessibleRest);
 }
 .pager .disabled > a,
 .pager .disabled > a:hover,
 .pager .disabled > a:focus,
 .pager .disabled > span {
-  color: #666666;
+  color: var(--neutralForegroundDisabledRest);
   cursor: not-allowed;
-  background-color: #fff;
+  background-color: transparent;
 }
 .label {
   display: inline;
@@ -5065,6 +5097,7 @@ a.thumbnail.active {
 }
 .alert-brand-a a {
   color: var(--brandForegroundLinkRest);
+  text-decoration: underline;
 }
 .alert-brand-a a:hover,
 .alert-brand-a a:focus {
@@ -5077,6 +5110,7 @@ a.thumbnail.active {
 }
 .alert-brand-info a {
   color: var(--brandForegroundLinkRest);
+  text-decoration: underline;
 }
 .alert-brand-info a:hover,
 .alert-brand-info a:focus {
@@ -5092,6 +5126,7 @@ a.thumbnail.active {
 }
 .alert-brand-warning a {
   color: var(--brandForegroundLinkRest);
+  text-decoration: underline;
 }
 .alert-brand-warning a:hover,
 .alert-brand-warning a:focus {
@@ -5107,6 +5142,7 @@ a.thumbnail.active {
 }
 .alert-brand-success a {
   color: var(--brandForegroundLinkRest);
+  text-decoration: underline;
 }
 .alert-brand-success a:hover,
 .alert-brand-success a:focus {

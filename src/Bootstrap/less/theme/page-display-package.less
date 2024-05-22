@@ -149,15 +149,15 @@
     }
 
     .vulnerabilities-severity-critical {
-      color: red
+      color: var(--statusDangerForeground3Rest);
     }
 
     .vulnerabilities-severity-high {
-      color: red
+      color: var(--statusDangerForeground3Rest);
     }
 
     .vulnerabilities-severity-moderate {
-      color: blue
+      color: var(--brandForeground1Rest);
     }
   }
 
@@ -322,7 +322,7 @@
     font-size: 14px;
     line-height: 12px;
     /* Use a slightly darker orange color to increase contrast for accessibility */
-    color: darken(@brand-warning, 4.5%); //
+    color: var(--statusWarningForeground1Rest);
   }
 
   .used-by {

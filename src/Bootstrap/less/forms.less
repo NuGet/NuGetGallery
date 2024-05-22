@@ -229,6 +229,20 @@ input[type="checkbox"].brand-checkbox:focus {
     justify-content: space-evenly;
   }
 
+  input[type="checkbox"]:indeterminate::after {
+    content: '\2012';
+    font-weight: bolder;
+    display: flex;
+    width: 16px;
+    height: 16px;
+    left: -1px;
+    top: -1.75px;
+    position: relative;
+    align-items: flex-end;
+    justify-content: space-evenly;
+  }
+
+  input[type="checkbox"]:indeterminate,
   input[type="checkbox"]:checked {
     background-color: var(--brandBackgroundCompoundRest);
     border-color: var(--brandBackgroundCompoundRest);
@@ -236,26 +250,30 @@ input[type="checkbox"].brand-checkbox:focus {
   }
 
   &:hover {
+    input[type="checkbox"]:indeterminate,
     input[type="checkbox"]:checked {
       background-color: var(--brandBackgroundCompoundHover);
       border-color: var(--brandBackgroundCompoundHover);
       color: var(--neutralForegroundInverted1Hover);
     }
-
-    input[type="checkbox"]:not(:checked){
+    
+    input[type="checkbox"]:not(:indeterminate):not(:checked),
+    input[type="checkbox"]:not(:checked):not(:indeterminate) {
       border-color: var(--neutralStrokeAccessibleHover);
       color: var(--neutralForegroundInverted1Hover);
     }
   }
 
   &:active {
+    input[type="checkbox"]:indeterminate
     input[type="checkbox"]:checked {
       background-color: var(--brandBackgroundCompoundPressed);
       border-color: var(--brandBackgroundCompoundPressed);
       color: var(--neutralForegroundInverted1Pressed);
     }
 
-    input[type="checkbox"]:not(:checked){
+    input[type="checkbox"]:not(:indeterminate):not(:checked),
+    input[type="checkbox"]:not(:checked):not(:indeterminate) {
       border-color: var(--neutralStrokeAccessiblePressed);
       color: var(--neutralForegroundInverted1Pressed);
     }

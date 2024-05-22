@@ -10,7 +10,7 @@
       .package-title {
         font-size: 24px;
         font-weight: 600;
-        line-height: 32px;
+        line-height: .9;
 
         display: inline-block;
         color: var(--brandForeground1Rest);
@@ -66,6 +66,10 @@
       margin-top: 8px;
       color: var(--neutralForeground1Rest);
       line-height: 20px;
+      
+      a {
+        text-decoration: underline;
+    }
     }
   }
 }
@@ -75,30 +79,28 @@
   margin-bottom: 0px;
 }
 
-@severe-warning-background-color: rgb(254, 217, 204);
-@severe-warning-icon-color: rgb(216, 59, 1);
-@warning-background-color: rgb(255, 244, 206);
-@package-warning-color: rgb(50, 49, 48);
-@badge-border-radius: 2px;
-
 .package-warning {
   padding: 1px 8px;
-  border-radius: @badge-border-radius;
+  border-radius: 4px;
   margin-right: 5px;
-  color: @package-warning-color;
+  color: var(--neutralForeground1Rest);
 }
 
 .package-warning--vulnerable {
   .package-warning;
-  background-color: @severe-warning-background-color;
-  border: 1px solid darken(@severe-warning-background-color, 15%);
+  background-color: var(--statusDangerBackground1Rest);
+  border: 1px solid var(--statusDangerStroke1Rest);
   i {
-    color: @severe-warning-icon-color;
+    color: var(--statusDangerForeground3Rest);
   }
 }
 
 .package-warning--deprecated {
   .package-warning;
-  background-color: @warning-background-color;
-  border: 1px solid darken(@warning-background-color, 35%);
+  color: var(--neutralForeground1Rest);
+  background-color: var(--statusWarningBackground1Rest);
+  border: 1px solid var(--statusWarningStroke1Rest);
+  i {
+    color: var(--statusWarningForeground1Rest);
+  }
 }
