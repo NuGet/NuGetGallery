@@ -6,7 +6,6 @@ using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Blob.Protocol;
 using Newtonsoft.Json;
 using NuGetGallery.Auditing.Obfuscation;
@@ -109,9 +108,9 @@ namespace NuGetGallery.Auditing
             }
         }
 
-        public Task<bool> IsAvailableAsync(BlobRequestOptions options)
+        public Task<bool> IsAvailableAsync(CloudBlobLocationMode? locationMode)
         {
-            return _auditContainerFactory().ExistsAsync(options);
+            return _auditContainerFactory().ExistsAsync(locationMode);
         }
 
         public override string RenderAuditEntry(AuditEntry entry)

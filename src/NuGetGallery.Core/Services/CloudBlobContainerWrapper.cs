@@ -1,9 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace NuGetGallery
@@ -23,9 +23,24 @@ namespace NuGetGallery
             BlobListingDetails blobListingDetails,
             int? maxResults,
             BlobContinuationToken blobContinuationToken,
-            BlobRequestOptions options,
+            TimeSpan? requestTimeout,
+            CloudBlobLocationMode? cloudBlobLocationMode,
             CancellationToken cancellationToken)
         {
+            BlobRequestOptions options = null;
+            if (requestTimeout.HasValue || cloudBlobLocationMode.HasValue)
+            {
+                options = new BlobRequestOptions();
+                if (requestTimeout.HasValue)
+                {
+                    options.ServerTimeout = requestTimeout.Value;
+                }
+                if (cloudBlobLocationMode.HasValue)
+                {
+                    options.LocationMode = CloudWrapperHelpers.GetSdkRetryPolicy(cloudBlobLocationMode.Value);
+                }
+            }
+
             var segment = await _blobContainer.ListBlobsSegmentedAsync(
                 prefix,
                 useFlatBlobListing,
@@ -51,9 +66,17 @@ namespace NuGetGallery
             return new CloudBlobWrapper(_blobContainer.GetBlockBlobReference(blobAddressUri));
         }
 
-        public async Task<bool> ExistsAsync(BlobRequestOptions blobRequestOptions)
+        public async Task<bool> ExistsAsync(CloudBlobLocationMode? cloudBlobLocationMode)
         {
-            return await _blobContainer.ExistsAsync(blobRequestOptions, operationContext: null);
+            BlobRequestOptions options = null;
+            if (cloudBlobLocationMode.HasValue)
+            {
+                options = new BlobRequestOptions
+                {
+                    LocationMode = CloudWrapperHelpers.GetSdkRetryPolicy(cloudBlobLocationMode.Value),
+                };
+            }
+            return await _blobContainer.ExistsAsync(options, operationContext: null);
         }
 
         public async Task<bool> DeleteIfExistsAsync()

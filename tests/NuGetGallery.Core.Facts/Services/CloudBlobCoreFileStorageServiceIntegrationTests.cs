@@ -83,7 +83,8 @@ namespace NuGetGallery
                 blobListingDetails: BlobListingDetails.None,
                 maxResults: 2,
                 blobContinuationToken: null,
-                options: null,
+                requestTimeout: null,
+                cloudBlobLocationMode: null,
                 cancellationToken: CancellationToken.None);
             var segmentB = await container.ListBlobsSegmentedAsync(
                 _prefixA,
@@ -91,7 +92,8 @@ namespace NuGetGallery
                 blobListingDetails: BlobListingDetails.None,
                 maxResults: 2,
                 blobContinuationToken: segmentA.ContinuationToken,
-                options: null,
+                requestTimeout: null,
+                cloudBlobLocationMode: null,
                 cancellationToken: CancellationToken.None);
 
             // Assert
@@ -122,7 +124,8 @@ namespace NuGetGallery
                 blobListingDetails: BlobListingDetails.Snapshots,
                 maxResults: 2,
                 blobContinuationToken: null,
-                options: null,
+                requestTimeout: null,
+                cloudBlobLocationMode: null,
                 cancellationToken: CancellationToken.None);
             var segmentB = await container.ListBlobsSegmentedAsync(
                 _prefixA,
@@ -130,7 +133,8 @@ namespace NuGetGallery
                 blobListingDetails: BlobListingDetails.Snapshots,
                 maxResults: 2,
                 blobContinuationToken: segmentA.ContinuationToken,
-                options: null,
+                requestTimeout: null,
+                cloudBlobLocationMode: null,
                 cancellationToken: CancellationToken.None);
 
             // Assert
