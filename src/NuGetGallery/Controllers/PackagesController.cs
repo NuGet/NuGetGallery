@@ -382,6 +382,41 @@ namespace NuGetGallery
             verifyRequest.IsDisplayUploadWarningV2Enabled = _featureFlagService.IsDisplayUploadWarningV2Enabled(currentUser);
 
             model.InProgressUpload = verifyRequest;
+
+            _packageService.GetPackageDependents(verifyRequest.Dependencies.DependencySets.First().Value.First().Id);
+
+            var vulnerablePackages = new Dictionary<string, List<string>>();
+            var vulnerablePackagesString = "";
+            foreach (var d in verifyRequest.Dependencies.DependencySets)
+            {
+                foreach (var item in d.Value)
+                {
+                    var package = _packageService.FindPackageByIdAndVersion(item.Id, item.VersionRange.MinVersion.ToString());
+                    if (package != null)
+                    {
+                        var isPackageVulnerable = _vulnerabilitiesService.IsPackageVulnerable(package);
+                        if (isPackageVulnerable)
+                        {
+                            if (vulnerablePackages.ContainsKey(d.Key))
+                            {
+                                vulnerablePackages[d.Key].Add(package.Id);
+                                vulnerablePackages[d.Key].Add("test");
+                            }
+                            else
+                            {
+                                vulnerablePackages.Add(d.Key, new List<string>() { package.Id });
+                                vulnerablePackages[d.Key].Add("test");
+                            }
+                            vulnerablePackagesString = vulnerablePackagesString + " " + d.Key + "         " + package.Id + " " + package.NormalizedVersion + "," + "\n";
+                        }
+                    }
+                }
+            }
+
+            //verifyRequest.Warnings.Add(new JsonValidationMessage(new VulnerableDirectDependencyMessage(string.Format(Strings.WarningVulnerabilityFoundUploadPackage, vulnerablePackagesString))));
+
+            verifyRequest.VulnerableDependencies = vulnerablePackages;
+
             return View(model);
         }
 
@@ -2925,7 +2960,8 @@ namespace NuGetGallery
         private static bool PackageHasNoAadOwners(Package package)
         {
             var owners = package?.PackageRegistration?.Owners;
-            if (owners == null || !owners.Any()) {
+            if (owners == null || !owners.Any())
+            {
                 return true;
             }
 

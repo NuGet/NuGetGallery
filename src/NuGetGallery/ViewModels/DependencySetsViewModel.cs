@@ -59,7 +59,8 @@ namespace NuGetGallery
 
                 if (!String.IsNullOrEmpty(versionSpec))
                 {
-                    VersionSpec = VersionRange.Parse(versionSpec).PrettyPrint();
+                    VersionRange = VersionRange.Parse(versionSpec);
+                    VersionSpec = VersionRange.PrettyPrint();
                 }
 
                 if (HttpContext.Current != null)
@@ -71,6 +72,7 @@ namespace NuGetGallery
             public string Id { get; private set; }
             public string VersionSpec { get; private set; }
             public string PackageUrl { get; private set; }
+            public VersionRange VersionRange { get; private set; }
         }
     }
 }

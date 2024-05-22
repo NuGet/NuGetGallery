@@ -1263,4 +1263,7 @@ The {1} Team</value>
   <data name="FrameworkFilters_Tooltip" xml:space="preserve">
     <value>Filters packages based on the target frameworks they are compatible with. Click here to learn more.</value>
   </data>
+  <data name="WarningVulnerabilityFoundUploadPackage" xml:space="preserve">
+    <value>Vulnerability found for direct dependency {0}</value>
+  </data>
 </root>
