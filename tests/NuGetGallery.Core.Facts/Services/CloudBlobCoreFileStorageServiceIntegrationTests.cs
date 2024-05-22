@@ -80,7 +80,7 @@ namespace NuGetGallery
             var segmentA = await container.ListBlobsSegmentedAsync(
                 _prefixA,
                 useFlatBlobListing: true,
-                blobListingDetails: BlobListingDetails.None,
+                blobListingDetails: ListingDetails.None,
                 maxResults: 2,
                 blobContinuationToken: null,
                 requestTimeout: null,
@@ -89,7 +89,7 @@ namespace NuGetGallery
             var segmentB = await container.ListBlobsSegmentedAsync(
                 _prefixA,
                 useFlatBlobListing: true,
-                blobListingDetails: BlobListingDetails.None,
+                blobListingDetails: ListingDetails.None,
                 maxResults: 2,
                 blobContinuationToken: segmentA.ContinuationToken,
                 requestTimeout: null,
@@ -121,7 +121,7 @@ namespace NuGetGallery
             var segmentA = await container.ListBlobsSegmentedAsync(
                 _prefixA,
                 useFlatBlobListing: true,
-                blobListingDetails: BlobListingDetails.Snapshots,
+                blobListingDetails: ListingDetails.Snapshots,
                 maxResults: 2,
                 blobContinuationToken: null,
                 requestTimeout: null,
@@ -130,7 +130,7 @@ namespace NuGetGallery
             var segmentB = await container.ListBlobsSegmentedAsync(
                 _prefixA,
                 useFlatBlobListing: true,
-                blobListingDetails: BlobListingDetails.Snapshots,
+                blobListingDetails: ListingDetails.Snapshots,
                 maxResults: 2,
                 blobContinuationToken: segmentA.ContinuationToken,
                 requestTimeout: null,

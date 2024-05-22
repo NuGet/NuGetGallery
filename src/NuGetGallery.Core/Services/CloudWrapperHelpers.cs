@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
 
 namespace NuGetGallery
@@ -24,5 +25,7 @@ namespace NuGetGallery
                     throw new ArgumentOutOfRangeException(nameof(locationMode));
             }
         }
+
+        public static BlobListingDetails GetBlobListingDetails(ListingDetails listingDetails) => (BlobListingDetails)listingDetails;
     }
 }

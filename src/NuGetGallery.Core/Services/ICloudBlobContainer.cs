@@ -4,7 +4,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace NuGetGallery
 {
@@ -18,7 +17,7 @@ namespace NuGetGallery
         Task<ISimpleBlobResultSegment> ListBlobsSegmentedAsync(
             string prefix,
             bool useFlatBlobListing,
-            BlobListingDetails blobListingDetails,
+            ListingDetails blobListingDetails,
             int? maxResults,
             IBlobListContinuationToken blobContinuationToken,
             TimeSpan? requestTimeout,

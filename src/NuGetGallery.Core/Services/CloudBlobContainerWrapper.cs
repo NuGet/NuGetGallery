@@ -20,7 +20,7 @@ namespace NuGetGallery
         public async Task<ISimpleBlobResultSegment> ListBlobsSegmentedAsync(
             string prefix,
             bool useFlatBlobListing,
-            BlobListingDetails blobListingDetails,
+            ListingDetails blobListingDetails,
             int? maxResults,
             IBlobListContinuationToken blobContinuationToken,
             TimeSpan? requestTimeout,
@@ -57,7 +57,7 @@ namespace NuGetGallery
             var segment = await _blobContainer.ListBlobsSegmentedAsync(
                 prefix,
                 useFlatBlobListing,
-                blobListingDetails,
+                CloudWrapperHelpers.GetBlobListingDetails(blobListingDetails),
                 maxResults,
                 continuationToken,
                 options,
