@@ -20,7 +20,7 @@ namespace NuGetGallery
             bool useFlatBlobListing,
             BlobListingDetails blobListingDetails,
             int? maxResults,
-            BlobContinuationToken blobContinuationToken,
+            IBlobListContinuationToken blobContinuationToken,
             TimeSpan? requestTimeout,
             CloudBlobLocationMode? cloudBlobLocationMode,
             CancellationToken cancellationToken);

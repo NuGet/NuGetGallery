@@ -22,11 +22,24 @@ namespace NuGetGallery
             bool useFlatBlobListing,
             BlobListingDetails blobListingDetails,
             int? maxResults,
-            BlobContinuationToken blobContinuationToken,
+            IBlobListContinuationToken blobContinuationToken,
             TimeSpan? requestTimeout,
             CloudBlobLocationMode? cloudBlobLocationMode,
             CancellationToken cancellationToken)
         {
+            BlobContinuationToken continuationToken = null;
+            if (blobContinuationToken != null)
+            {
+                if (blobContinuationToken is BlobListContinuationToken token)
+                {
+                    continuationToken = token.ContinuationToken;
+                }
+                else
+                {
+                    throw new ArgumentException();
+                }
+            }
+
             BlobRequestOptions options = null;
             if (requestTimeout.HasValue || cloudBlobLocationMode.HasValue)
             {
@@ -46,7 +59,7 @@ namespace NuGetGallery
                 useFlatBlobListing,
                 blobListingDetails,
                 maxResults,
-                blobContinuationToken,
+                continuationToken,
                 options,
                 operationContext: null,
                 cancellationToken: cancellationToken);
