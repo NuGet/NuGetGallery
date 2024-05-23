@@ -27,7 +27,7 @@ namespace NuGetGallery
             }
         }
 
-        public static BlobListingDetails GetBlobListingDetails(ListingDetails listingDetails) => (BlobListingDetails)listingDetails;
+        public static BlobListingDetails GetSdkBlobListingDetails(ListingDetails listingDetails) => (BlobListingDetails)listingDetails;
 
         public static CloudBlobCopyStatus GetBlobCopyStatus(CopyStatus status)
         {

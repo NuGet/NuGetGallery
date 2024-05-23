@@ -57,7 +57,7 @@ namespace NuGetGallery
             var segment = await _blobContainer.ListBlobsSegmentedAsync(
                 prefix,
                 useFlatBlobListing,
-                CloudWrapperHelpers.GetBlobListingDetails(blobListingDetails),
+                CloudWrapperHelpers.GetSdkBlobListingDetails(blobListingDetails),
                 maxResults,
                 continuationToken,
                 options,
