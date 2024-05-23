@@ -1014,7 +1014,7 @@ namespace NuGetGallery
             private Mock<ICloudBlobProperties> _destProperties;
             private IDictionary<string, string> _destMetadata;
             private string _metadataSha512HashAlgorithmId;
-            private CopyState _destCopyState;
+            private Mock<ICloudBlobCopyState> _destCopyState;
             private Mock<ICloudBlobClient> _blobClient;
             private Mock<ICloudBlobContainer> _srcContainer;
             private Mock<ICloudBlobContainer> _destContainer;
@@ -1034,8 +1034,8 @@ namespace NuGetGallery
                 _destETag = "\"dest-etag\"";
                 _destUri = new Uri("https://destexample/destpackage.nupkg");
                 _destProperties = new Mock<ICloudBlobProperties>();
-                _destCopyState = new CopyState();
-                SetDestCopyStatus(CopyStatus.Success);
+                _destCopyState = new Mock<ICloudBlobCopyState>();
+                SetDestCopyStatus(CloudBlobCopyStatus.Success);
                 _metadataSha512HashAlgorithmId = CoreConstants.Sha512HashAlgorithmId;
 
                 _srcMetadata = new Dictionary<string, string>();
@@ -1080,7 +1080,7 @@ namespace NuGetGallery
                     .Returns(() => _destProperties.Object);
                 _destBlobMock
                     .Setup(x => x.CopyState)
-                    .Returns(() => _destCopyState);
+                    .Returns(() => _destCopyState.Object);
                 _destBlobMock
                     .Setup(x => x.Metadata)
                     .Returns(() => _destMetadata);
@@ -1104,7 +1104,7 @@ namespace NuGetGallery
                     .Returns(Task.FromResult(0))
                     .Callback<ISimpleCloudBlob, AccessCondition, AccessCondition>((_, __, ___) =>
                     {
-                        SetDestCopyStatus(CopyStatus.Success);
+                        SetDestCopyStatus(CloudBlobCopyStatus.Success);
                     });
 
                 // Act
@@ -1187,7 +1187,7 @@ namespace NuGetGallery
                 AccessCondition destAccessCondition = null;
                 ISimpleCloudBlob srcBlob = null;
 
-                SetDestCopyStatus(CopyStatus.Failed);
+                SetDestCopyStatus(CloudBlobCopyStatus.Failed);
 
                 _destBlobMock
                     .Setup(x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()))
@@ -1197,7 +1197,7 @@ namespace NuGetGallery
                         srcBlob = b;
                         srcAccessCondition = s;
                         destAccessCondition = d;
-                        SetDestCopyStatus(CopyStatus.Pending);
+                        SetDestCopyStatus(CloudBlobCopyStatus.Pending);
                     });
 
                 _destBlobMock
@@ -1207,7 +1207,7 @@ namespace NuGetGallery
                 _destBlobMock
                     .Setup(x => x.FetchAttributesAsync())
                     .Returns(Task.FromResult(0))
-                    .Callback(() => SetDestCopyStatus(CopyStatus.Success));
+                    .Callback(() => SetDestCopyStatus(CloudBlobCopyStatus.Success));
 
                 // Act
                 var srcETag = await _target.CopyFileAsync(
@@ -1242,7 +1242,7 @@ namespace NuGetGallery
                         srcBlob = b;
                         srcAccessCondition = s;
                         destAccessCondition = d;
-                        SetDestCopyStatus(CopyStatus.Success);
+                        SetDestCopyStatus(CloudBlobCopyStatus.Success);
                     });
 
                 // Act
@@ -1276,7 +1276,7 @@ namespace NuGetGallery
                         srcBlob = b;
                         srcAccessCondition = s;
                         destAccessCondition = d;
-                        SetDestCopyStatus(CopyStatus.Success);
+                        SetDestCopyStatus(CloudBlobCopyStatus.Success);
                     });
 
                 // Act
@@ -1370,7 +1370,7 @@ namespace NuGetGallery
                     .Returns(Task.FromResult(0))
                     .Callback<ISimpleCloudBlob, AccessCondition, AccessCondition>((_, __, ___) =>
                     {
-                        SetDestCopyStatus(CopyStatus.Failed);
+                        SetDestCopyStatus(CloudBlobCopyStatus.Failed);
                     });
 
                 // Act & Assert
@@ -1384,12 +1384,9 @@ namespace NuGetGallery
                 Assert.Contains("The blob copy operation had copy status Failed", ex.Message);
             }
 
-            private void SetDestCopyStatus(CopyStatus copyStatus)
+            private void SetDestCopyStatus(CloudBlobCopyStatus copyStatus)
             {
-                // We have to use reflection because the setter is not public.
-                typeof(CopyState)
-                    .GetProperty(nameof(CopyState.Status))
-                    .SetValue(_destCopyState, copyStatus, null);
+                _destCopyState.SetupGet(x => x.Status).Returns(copyStatus);
             }
 
             private void SetBlobLength(Mock<ICloudBlobProperties> properties, long length)

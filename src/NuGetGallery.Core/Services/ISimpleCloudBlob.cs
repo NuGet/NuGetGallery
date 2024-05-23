@@ -15,7 +15,7 @@ namespace NuGetGallery
     {
         ICloudBlobProperties Properties { get; }
         IDictionary<string, string> Metadata { get; }
-        CopyState CopyState { get; }
+        ICloudBlobCopyState CopyState { get; }
         Uri Uri { get; }
         string Name { get; }
         DateTime LastModifiedUtc { get; }

@@ -27,5 +27,24 @@ namespace NuGetGallery
         }
 
         public static BlobListingDetails GetBlobListingDetails(ListingDetails listingDetails) => (BlobListingDetails)listingDetails;
+
+        public static CloudBlobCopyStatus GetBlobCopyStatus(CopyStatus status)
+        {
+            switch (status)
+            {
+                case CopyStatus.Invalid:
+                    return CloudBlobCopyStatus.Invalid;
+                case CopyStatus.Pending:
+                    return CloudBlobCopyStatus.Pending;
+                case CopyStatus.Success:
+                    return CloudBlobCopyStatus.Success;
+                case CopyStatus.Aborted:
+                    return CloudBlobCopyStatus.Aborted;
+                case CopyStatus.Failed:
+                    return CloudBlobCopyStatus.Failed;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(status));
+            }
+        }
     }
 }

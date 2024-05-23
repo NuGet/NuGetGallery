@@ -19,7 +19,7 @@ namespace NuGetGallery
 
         public ICloudBlobProperties Properties { get; private set; }
         public IDictionary<string, string> Metadata => _blob.Metadata;
-        public CopyState CopyState => _blob.CopyState;
+        public ICloudBlobCopyState CopyState { get; private set; }
         public Uri Uri => _blob.Uri;
         public string Name => _blob.Name;
         public DateTime LastModifiedUtc => _blob.Properties.LastModified?.UtcDateTime ?? DateTime.MinValue;
@@ -29,7 +29,8 @@ namespace NuGetGallery
         public CloudBlobWrapper(CloudBlockBlob blob)
         {
             _blob = blob;
-            Properties = new CloudBlobPropertiesWrapper(_blob.Properties);
+            Properties = new CloudBlobPropertiesWrapper(_blob);
+            CopyState = new CloudBlobCopyState(_blob);
         }
 
         public static CloudBlobWrapper FromUri(Uri uri)

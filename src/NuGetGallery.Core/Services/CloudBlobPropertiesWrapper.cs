@@ -8,31 +8,31 @@ namespace NuGetGallery
 {
     internal class CloudBlobPropertiesWrapper : ICloudBlobProperties
     {
-        private readonly BlobProperties _blobProperties;
+        private readonly CloudBlockBlob _blob;
 
-        public CloudBlobPropertiesWrapper(BlobProperties blobProperties)
+        public CloudBlobPropertiesWrapper(CloudBlockBlob blob)
         {
-            _blobProperties = blobProperties ?? throw new ArgumentNullException(nameof(blobProperties));
+            _blob = blob ?? throw new ArgumentNullException(nameof(blob));
         }
 
-        public DateTimeOffset? LastModified => _blobProperties.LastModified;
+        public DateTimeOffset? LastModified => _blob.Properties.LastModified;
 
-        public long Length => _blobProperties.Length;
+        public long Length => _blob.Properties.Length;
 
         public string ContentType
         {
-            get => _blobProperties.ContentType;
-            set => _blobProperties.ContentType = value;
+            get => _blob.Properties.ContentType;
+            set => _blob.Properties.ContentType = value;
         }
         public string CacheControl
         {
-            get => _blobProperties.CacheControl;
-            set => _blobProperties.CacheControl = value;
+            get => _blob.Properties.CacheControl;
+            set => _blob.Properties.CacheControl = value;
         }
         public string ContentMD5
         {
-            get => _blobProperties.ContentMD5;
-            set => _blobProperties.ContentMD5 = value;
+            get => _blob.Properties.ContentMD5;
+            set => _blob.Properties.ContentMD5 = value;
         }
     }
 }

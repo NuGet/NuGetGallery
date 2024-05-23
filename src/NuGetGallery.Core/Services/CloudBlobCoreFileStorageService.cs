@@ -183,7 +183,7 @@ namespace NuGetGallery
             {
                 var sourceBlobMetadata = srcBlob.Metadata;
                 var destinationBlobMetadata = destBlob.Metadata;
-                if (destBlob.CopyState?.Status == CopyStatus.Failed)
+                if (destBlob.CopyState?.Status == CloudBlobCopyStatus.Failed)
                 {
                     // If the last copy failed, allow this copy to occur no matter what the caller's destination
                     // condition is. This is because the source blob is preferable over a failed copy. We use the etag
@@ -259,7 +259,7 @@ namespace NuGetGallery
             }
 
             var stopwatch = Stopwatch.StartNew();
-            while (destBlob.CopyState.Status == CopyStatus.Pending
+            while (destBlob.CopyState.Status == CloudBlobCopyStatus.Pending
                    && stopwatch.Elapsed < MaxCopyDuration)
             {
                 if (!await destBlob.ExistsAsync())
@@ -274,11 +274,11 @@ namespace NuGetGallery
                 await Task.Delay(CopyPollFrequency);
             }
 
-            if (destBlob.CopyState.Status == CopyStatus.Pending)
+            if (destBlob.CopyState.Status == CloudBlobCopyStatus.Pending)
             {
                 throw new TimeoutException($"Waiting for the blob copy operation to complete timed out after {MaxCopyDuration.TotalSeconds} seconds.");
             }
-            else if (destBlob.CopyState.Status != CopyStatus.Success)
+            else if (destBlob.CopyState.Status != CloudBlobCopyStatus.Success)
             {
                 throw new StorageException($"The blob copy operation had copy status {destBlob.CopyState.Status} ({destBlob.CopyState.StatusDescription}).");
             }
