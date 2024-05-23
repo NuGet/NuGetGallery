@@ -13,7 +13,7 @@ namespace NuGetGallery
 {
     public interface ISimpleCloudBlob
     {
-        BlobProperties Properties { get; }
+        ICloudBlobProperties Properties { get; }
         IDictionary<string, string> Metadata { get; }
         CopyState CopyState { get; }
         Uri Uri { get; }

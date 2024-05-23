@@ -17,7 +17,7 @@ namespace NuGetGallery
     {
         private readonly CloudBlockBlob _blob;
 
-        public BlobProperties Properties => _blob.Properties;
+        public ICloudBlobProperties Properties { get; private set; }
         public IDictionary<string, string> Metadata => _blob.Metadata;
         public CopyState CopyState => _blob.CopyState;
         public Uri Uri => _blob.Uri;
@@ -29,6 +29,7 @@ namespace NuGetGallery
         public CloudBlobWrapper(CloudBlockBlob blob)
         {
             _blob = blob;
+            Properties = new CloudBlobPropertiesWrapper(_blob.Properties);
         }
 
         public static CloudBlobWrapper FromUri(Uri uri)

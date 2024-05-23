@@ -477,7 +477,7 @@ namespace NuGetGallery
         public async Task SetPropertiesAsync(
             string folderName,
             string fileName,
-            Func<Lazy<Task<Stream>>, BlobProperties, Task<bool>> updatePropertiesAsync)
+            Func<Lazy<Task<Stream>>, ICloudBlobProperties, Task<bool>> updatePropertiesAsync)
         {
             if (folderName == null)
             {
