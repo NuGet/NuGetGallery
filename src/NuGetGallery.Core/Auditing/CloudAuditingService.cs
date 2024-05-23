@@ -88,7 +88,7 @@ namespace NuGetGallery.Auditing
         {
             try
             {
-                using (var stream = await blob.OpenWriteAsync(AccessCondition.GenerateIfNoneMatchCondition("*")))
+                using (var stream = await blob.OpenWriteAsync(AccessConditionWrapper.GenerateIfNoneMatchCondition("*")))
                 using (var writer = new StreamWriter(stream))
                 {
                     await writer.WriteAsync(auditData);

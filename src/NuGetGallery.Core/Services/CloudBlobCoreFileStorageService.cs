@@ -160,11 +160,6 @@ namespace NuGetGallery
             var destContainer = await GetContainerAsync(destFolderName);
             var destBlob = destContainer.GetBlobReference(destFileName);
             destAccessCondition = destAccessCondition ?? AccessConditionWrapper.GenerateIfNotExistsCondition();
-            var mappedDestAccessCondition = new AccessCondition
-            {
-                IfNoneMatchETag = destAccessCondition.IfNoneMatchETag,
-                IfMatchETag = destAccessCondition.IfMatchETag,
-            };
 
             if (!await srcBlob.ExistsAsync())
             {
@@ -176,7 +171,7 @@ namespace NuGetGallery
 
             // Determine the source blob etag.
             await srcBlob.FetchAttributesAsync();
-            var srcAccessCondition = AccessCondition.GenerateIfMatchCondition(srcBlob.ETag);
+            var srcAccessCondition = AccessConditionWrapper.GenerateIfMatchCondition(srcBlob.ETag);
 
             // Check if the destination blob already exists and fetch attributes.
             if (await destBlob.ExistsAsync())
@@ -195,7 +190,7 @@ namespace NuGetGallery
                         message: $"Destination blob '{destFolderName}/{destFileName}' already exists but has a " +
                         $"failed copy status. This blob will be replaced if the etag matches '{destBlob.ETag}'.");
 
-                    mappedDestAccessCondition = AccessCondition.GenerateIfMatchCondition(destBlob.ETag);
+                    destAccessCondition = AccessConditionWrapper.GenerateIfMatchCondition(destBlob.ETag);
                 }
                 else if (sourceBlobMetadata != null && destinationBlobMetadata != null)
                 {
@@ -235,7 +230,7 @@ namespace NuGetGallery
                 eventId: 0,
                 message: $"Copying of source blob '{srcBlob.Uri}' to '{destFolderName}/{destFileName}' with source " +
                 $"access condition {Log(srcAccessCondition)} and destination access condition " +
-                $"{Log(mappedDestAccessCondition)}.");
+                $"{Log(destAccessCondition)}.");
 
             // Start the server-side copy and wait for it to complete. If "If-None-Match: *" was specified and the
             // destination already exists, HTTP 409 is thrown. If "If-Match: ETAG" was specified and the destination
@@ -245,7 +240,7 @@ namespace NuGetGallery
                 await destBlob.StartCopyAsync(
                     srcBlob,
                     srcAccessCondition,
-                    mappedDestAccessCondition);
+                    destAccessCondition);
             }
             catch (StorageException ex) when (ex.IsFileAlreadyExistsException())
             {
@@ -286,7 +281,7 @@ namespace NuGetGallery
             return srcBlob.ETag;
         }
 
-        private static string Log(AccessCondition accessCondition)
+        private static string Log(IAccessCondition accessCondition)
         {
             if (accessCondition?.IfMatchETag != null)
             {
@@ -343,15 +338,9 @@ namespace NuGetGallery
 
             accessConditions = accessConditions ?? AccessConditionWrapper.GenerateIfNotExistsCondition();
 
-            var mappedAccessCondition = new AccessCondition
-            {
-                IfNoneMatchETag = accessConditions.IfNoneMatchETag,
-                IfMatchETag = accessConditions.IfMatchETag,
-            };
-
             try
             {
-                await blob.UploadFromStreamAsync(file, mappedAccessCondition);
+                await blob.UploadFromStreamAsync(file, accessConditions);
             }
             catch (StorageException ex) when (ex.IsFileAlreadyExistsException())
             {
@@ -456,13 +445,7 @@ namespace NuGetGallery
             if (wasUpdated)
             {
                 var accessCondition = AccessConditionWrapper.GenerateIfMatchCondition(blob.ETag);
-                var mappedAccessCondition = new AccessCondition
-                {
-                    IfNoneMatchETag = accessCondition.IfNoneMatchETag,
-                    IfMatchETag = accessCondition.IfMatchETag
-                };
-
-                await blob.SetMetadataAsync(mappedAccessCondition);
+                await blob.SetMetadataAsync(accessCondition);
             }
         }
 
@@ -505,13 +488,7 @@ namespace NuGetGallery
             if (wasUpdated)
             {
                 var accessCondition = AccessConditionWrapper.GenerateIfMatchCondition(blob.ETag);
-                var mappedAccessCondition = new AccessCondition
-                {
-                    IfNoneMatchETag = accessCondition.IfNoneMatchETag,
-                    IfMatchETag = accessCondition.IfMatchETag
-                };
-
-                await blob.SetPropertiesAsync(mappedAccessCondition);
+                await blob.SetPropertiesAsync(accessCondition);
             }
         }
 
@@ -583,7 +560,7 @@ namespace NuGetGallery
                     accessCondition:
                         ifNoneMatch == null ?
                         null :
-                        AccessCondition.GenerateIfNoneMatchCondition(ifNoneMatch));
+                        AccessConditionWrapper.GenerateIfNoneMatchCondition(ifNoneMatch));
             }
             catch (StorageException ex)
             {

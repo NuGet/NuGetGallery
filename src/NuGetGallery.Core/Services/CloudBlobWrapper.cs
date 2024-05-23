@@ -49,18 +49,18 @@ namespace NuGetGallery
             return new CloudBlobWrapper(blob);
         }
 
-        public async Task<Stream> OpenReadAsync(AccessCondition accessCondition)
+        public async Task<Stream> OpenReadAsync(IAccessCondition accessCondition)
         {
             return await _blob.OpenReadAsync(
-                accessCondition: accessCondition,
+                accessCondition: CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
                 options: null,
                 operationContext: null);
         }
 
-        public async Task<Stream> OpenWriteAsync(AccessCondition accessCondition)
+        public async Task<Stream> OpenWriteAsync(IAccessCondition accessCondition)
         {
             return await _blob.OpenWriteAsync(
-                accessCondition: accessCondition,
+                accessCondition: CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
                 options: null,
                 operationContext: null);
         }
@@ -79,7 +79,7 @@ namespace NuGetGallery
             return DownloadToStreamAsync(target, accessCondition: null);
         }
 
-        public async Task DownloadToStreamAsync(Stream target, AccessCondition accessCondition)
+        public async Task DownloadToStreamAsync(Stream target, IAccessCondition accessCondition)
         {
             // Note: Overloads of FromAsync that take an AsyncCallback and State to pass through are more efficient:
             //  http://blogs.msdn.com/b/pfxteam/archive/2009/06/09/9716439.aspx
@@ -89,7 +89,11 @@ namespace NuGetGallery
                 RetryPolicy = new DontRetryOnNotModifiedPolicy(new LinearRetry())
             };
 
-            await _blob.DownloadToStreamAsync(target, accessCondition, options, operationContext: null);
+            await _blob.DownloadToStreamAsync(
+                target,
+                CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
+                options,
+                operationContext: null);
         }
 
         public async Task<bool> ExistsAsync()
@@ -112,14 +116,20 @@ namespace NuGetGallery
             await _blob.SetPropertiesAsync();
         }
 
-        public async Task SetPropertiesAsync(AccessCondition accessCondition)
+        public async Task SetPropertiesAsync(IAccessCondition accessCondition)
         {
-            await _blob.SetPropertiesAsync(accessCondition, options: null, operationContext: null);
+            await _blob.SetPropertiesAsync(
+                CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
+                options: null,
+                operationContext: null);
         }
 
-        public async Task SetMetadataAsync(AccessCondition accessCondition)
+        public async Task SetMetadataAsync(IAccessCondition accessCondition)
         {
-            await _blob.SetMetadataAsync(accessCondition, options: null, operationContext: null);
+            await _blob.SetMetadataAsync(
+                CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
+                options: null,
+                operationContext: null);
         }
 
         public async Task UploadFromStreamAsync(Stream source, bool overwrite)
@@ -130,11 +140,20 @@ namespace NuGetGallery
             }
             else
             {
-                await UploadFromStreamAsync(source, AccessCondition.GenerateIfNoneMatchCondition("*"));
+                await UploadFromStreamAsync(source, AccessCondition.GenerateIfMatchCondition("*"));
             }
         }
 
-        public async Task UploadFromStreamAsync(Stream source, AccessCondition accessCondition)
+        public async Task UploadFromStreamAsync(Stream source, IAccessCondition accessCondition)
+        {
+            await _blob.UploadFromStreamAsync(
+                source,
+                CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
+                options: null,
+                operationContext: null);
+        }
+
+        private async Task UploadFromStreamAsync(Stream source, AccessCondition accessCondition)
         {
             await _blob.UploadFromStreamAsync(
                 source,
@@ -161,7 +180,7 @@ namespace NuGetGallery
             return signature;
         }
 
-        public async Task StartCopyAsync(ISimpleCloudBlob source, AccessCondition sourceAccessCondition, AccessCondition destAccessCondition)
+        public async Task StartCopyAsync(ISimpleCloudBlob source, IAccessCondition sourceAccessCondition, IAccessCondition destAccessCondition)
         {
             // To avoid this we would need to somehow abstract away the primary and secondary storage locations. This
             // is not worth the effort right now!
@@ -173,8 +192,8 @@ namespace NuGetGallery
 
             await _blob.StartCopyAsync(
                 sourceWrapper._blob,
-                sourceAccessCondition: sourceAccessCondition,
-                destAccessCondition: destAccessCondition,
+                sourceAccessCondition: CloudWrapperHelpers.GetSdkAccessCondition(sourceAccessCondition),
+                destAccessCondition: CloudWrapperHelpers.GetSdkAccessCondition(destAccessCondition),
                 options: null,
                 operationContext: null);
         }

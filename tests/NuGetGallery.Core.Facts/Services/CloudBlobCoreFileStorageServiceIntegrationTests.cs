@@ -268,7 +268,7 @@ namespace NuGetGallery
             var ex = await Assert.ThrowsAsync<StorageException>(
                 async () =>
                 {
-                    using (var stream = await file.OpenWriteAsync(AccessCondition.GenerateIfNotExistsCondition()))
+                    using (var stream = await file.OpenWriteAsync(AccessConditionWrapper.GenerateIfNotExistsCondition()))
                     {
                         await stream.WriteAsync(new byte[0], 0, 0);
                     }
@@ -292,7 +292,7 @@ namespace NuGetGallery
             var ex = await Assert.ThrowsAsync<StorageException>(
                 async () =>
                 {
-                    using (var stream = await file.OpenWriteAsync(AccessCondition.GenerateIfNotExistsCondition()))
+                    using (var stream = await file.OpenWriteAsync(AccessConditionWrapper.GenerateIfNotExistsCondition()))
                     {
                         stream.Write(new byte[1], 0, 1);
                         await stream.FlushAsync();
@@ -379,7 +379,7 @@ namespace NuGetGallery
 
             // Act & Assert
             var ex = await Assert.ThrowsAsync<StorageException>(
-                () => file.OpenReadAsync(accessCondition: AccessCondition.GenerateIfMatchCondition("WON'T MATCH")));
+                () => file.OpenReadAsync(accessCondition: AccessConditionWrapper.GenerateIfMatchCondition("WON'T MATCH")));
             Assert.Equal(HttpStatusCode.PreconditionFailed, (HttpStatusCode)ex.RequestInformation.HttpStatusCode);
         }
 
@@ -402,7 +402,7 @@ namespace NuGetGallery
 
             // Act & Assert
             var ex = await Assert.ThrowsAsync<StorageException>(
-                () => file.OpenReadAsync(accessCondition: AccessCondition.GenerateIfNoneMatchCondition(file.ETag)));
+                () => file.OpenReadAsync(accessCondition: AccessConditionWrapper.GenerateIfNoneMatchCondition(file.ETag)));
             Assert.Equal(HttpStatusCode.NotModified, (HttpStatusCode)ex.RequestInformation.HttpStatusCode);
         }
 
@@ -424,7 +424,7 @@ namespace NuGetGallery
             var file = container.GetBlobReference(fileName);
 
             // Act
-            using (var stream = await file.OpenReadAsync(accessCondition: AccessCondition.GenerateIfNoneMatchCondition("WON'T MATCH")))
+            using (var stream = await file.OpenReadAsync(accessCondition: AccessConditionWrapper.GenerateIfNoneMatchCondition("WON'T MATCH")))
             using (var streamReader = new StreamReader(stream))
             {
                 var actualContent = await streamReader.ReadToEndAsync();
