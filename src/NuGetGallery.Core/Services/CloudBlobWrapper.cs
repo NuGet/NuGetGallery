@@ -167,12 +167,12 @@ namespace NuGetGallery
             await _blob.FetchAttributesAsync();
         }
 
-        public string GetSharedAccessSignature(SharedAccessBlobPermissions permissions, DateTimeOffset? endOfAccess)
+        public string GetSharedAccessSignature(FileUriPermissions permissions, DateTimeOffset? endOfAccess)
         {
             var accessPolicy = new SharedAccessBlobPolicy
             {
                 SharedAccessExpiryTime = endOfAccess,
-                Permissions = permissions,
+                Permissions = CloudWrapperHelpers.GetSdkSharedAccessPermissions(permissions),
             };
 
             var signature = _blob.GetSharedAccessSignature(accessPolicy);

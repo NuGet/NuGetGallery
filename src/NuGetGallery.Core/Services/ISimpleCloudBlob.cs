@@ -51,7 +51,7 @@ namespace NuGetGallery
         /// Null for no time limit.
         /// </param>
         /// <returns>Shared access signature in form of URI query portion.</returns>
-        string GetSharedAccessSignature(SharedAccessBlobPermissions permissions, DateTimeOffset? endOfAccess);
+        string GetSharedAccessSignature(FileUriPermissions permissions, DateTimeOffset? endOfAccess);
 
         /// <summary>
         /// Opens the seekable read stream to the file in blob storage.

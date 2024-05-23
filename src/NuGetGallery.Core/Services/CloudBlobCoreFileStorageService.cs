@@ -379,7 +379,7 @@ namespace NuGetGallery
 
             return new Uri(
                 blob.Uri,
-                blob.GetSharedAccessSignature(MapFileUriPermissions(permissions), endOfAccess));
+                blob.GetSharedAccessSignature(permissions, endOfAccess));
         }
 
         public async Task<Uri> GetFileReadUriAsync(string folderName, string fileName, DateTimeOffset? endOfAccess)
@@ -403,7 +403,7 @@ namespace NuGetGallery
 
             return new Uri(
                 blob.Uri,
-                blob.GetSharedAccessSignature(SharedAccessBlobPermissions.Read, endOfAccess));
+                blob.GetSharedAccessSignature(FileUriPermissions.Read, endOfAccess));
         }
 
         /// <summary>

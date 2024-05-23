@@ -57,5 +57,8 @@ namespace NuGetGallery
 
             return new AccessCondition { IfMatchETag = accessCondition.IfMatchETag, IfNoneMatchETag = accessCondition.IfNoneMatchETag };
         }
+
+        public static SharedAccessBlobPermissions GetSdkSharedAccessPermissions(FileUriPermissions permissions)
+            => (SharedAccessBlobPermissions)permissions;
     }
 }
