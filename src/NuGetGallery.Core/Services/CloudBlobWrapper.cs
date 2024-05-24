@@ -140,7 +140,7 @@ namespace NuGetGallery
             }
             else
             {
-                await UploadFromStreamAsync(source, AccessCondition.GenerateIfMatchCondition("*"));
+                await UploadFromStreamAsync(source, AccessCondition.GenerateIfNoneMatchCondition("*"));
             }
         }
 
