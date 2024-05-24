@@ -10,6 +10,7 @@ namespace NuGetGallery
         DateTimeOffset? LastModified { get; }
         long Length { get; }
         string ContentType { get; set; }
+        string ContentEncoding { get; set; }
         string CacheControl { get; set; }
         string ContentMD5 { get; set; }
     }

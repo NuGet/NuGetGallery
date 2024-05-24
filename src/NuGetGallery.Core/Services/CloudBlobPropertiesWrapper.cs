@@ -24,11 +24,19 @@ namespace NuGetGallery
             get => _blob.Properties.ContentType;
             set => _blob.Properties.ContentType = value;
         }
+
+        public string ContentEncoding
+        {
+            get => _blob.Properties.ContentEncoding;
+            set => _blob.Properties.ContentEncoding = value;
+        }
+
         public string CacheControl
         {
             get => _blob.Properties.CacheControl;
             set => _blob.Properties.CacheControl = value;
         }
+
         public string ContentMD5
         {
             get => _blob.Properties.ContentMD5;
