@@ -2,8 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Net;
+using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.Blob.Protocol;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
 
 namespace NuGetGallery
@@ -60,5 +63,77 @@ namespace NuGetGallery
 
         public static SharedAccessBlobPermissions GetSdkSharedAccessPermissions(FileUriPermissions permissions)
             => (SharedAccessBlobPermissions)permissions;
+
+        public static async Task<TResult> WrapStorageException<TResult>(Func<Task<TResult>> @delegate)
+        {
+            try
+            {
+                return await @delegate();
+            }
+            catch (StorageException ex) when (ex.RequestInformation?.ExtendedErrorInformation?.ErrorCode == BlobErrorCodeStrings.ContainerNotFound)
+            {
+                throw new CloudBlobContainerNotFoundException(ex);
+            }
+            catch (StorageException ex) when (ex.RequestInformation.ExtendedErrorInformation?.ErrorCode == BlobErrorCodeStrings.BlobNotFound)
+            {
+                throw new CloudBlobNotFoundException(ex);
+            }
+            catch (StorageException ex) when (ex.RequestInformation != null && ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.NotFound)
+            {
+                throw new CloudBlobGenericNotFoundException(ex);
+            }
+            catch (StorageException ex) when (ex.RequestInformation != null && ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.Conflict)
+            {
+                throw new CloudBlobConflictException(ex);
+            }
+            catch (StorageException ex) when (ex.RequestInformation != null && ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.PreconditionFailed)
+            {
+                throw new CloudBlobPreconditionFailedException(ex);
+            }
+            catch (StorageException ex) when (ex.RequestInformation != null && ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.NotModified)
+            {
+                throw new CloudBlobNotModifiedException(ex);
+            }
+            catch (StorageException ex)
+            {
+                throw new CloudBlobStorageException(ex);
+            }
+        }
+
+        public static async Task WrapStorageException(Func<Task> @delegate)
+        {
+            try
+            {
+                await @delegate();
+            }
+            catch (StorageException ex) when (ex.RequestInformation?.ExtendedErrorInformation?.ErrorCode == BlobErrorCodeStrings.ContainerNotFound)
+            {
+                throw new CloudBlobContainerNotFoundException(ex);
+            }
+            catch (StorageException ex) when (ex.RequestInformation.ExtendedErrorInformation?.ErrorCode == BlobErrorCodeStrings.BlobNotFound)
+            {
+                throw new CloudBlobNotFoundException(ex);
+            }
+            catch (StorageException ex) when (ex.RequestInformation != null && ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.NotFound)
+            {
+                throw new CloudBlobGenericNotFoundException(ex);
+            }
+            catch (StorageException ex) when (ex.RequestInformation != null && ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.Conflict)
+            {
+                throw new CloudBlobConflictException(ex);
+            }
+            catch (StorageException ex) when (ex.RequestInformation != null && ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.PreconditionFailed)
+            {
+                throw new CloudBlobPreconditionFailedException(ex);
+            }
+            catch (StorageException ex) when (ex.RequestInformation != null && ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.NotModified)
+            {
+                throw new CloudBlobNotModifiedException(ex);
+            }
+            catch (StorageException ex)
+            {
+                throw new CloudBlobStorageException(ex);
+            }
+        }
     }
 }

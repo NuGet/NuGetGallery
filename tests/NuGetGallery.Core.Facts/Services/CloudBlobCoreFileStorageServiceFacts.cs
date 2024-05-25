@@ -4,11 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob.Protocol;
 using Moq;
 using NuGetGallery.Diagnostics;
 using Xunit;
@@ -274,7 +271,7 @@ namespace NuGetGallery
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
 
                 fakeBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>(), It.IsAny<IAccessCondition>())).Throws(
-                    new TestableStorageClientException { ErrorCode = BlobErrorCodeStrings.BlobNotFound });
+                    new CloudBlobNotFoundException(null));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
                 var stream = await service.GetFileAsync(folderName, "theFileName");
@@ -384,10 +381,7 @@ namespace NuGetGallery
                 var fakeBlob = new Mock<ISimpleCloudBlob>();
                 fakeBlob
                     .Setup(x => x.UploadFromStreamAsync(It.IsAny<Stream>(), false))
-                    .Throws(new StorageException(
-                        new RequestResult { HttpStatusCode = (int)HttpStatusCode.Conflict },
-                        "Conflict!",
-                        new Exception("inner")));
+                    .Throws(new CloudBlobConflictException(new Exception("inner")));
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
                 fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<bool>())).Returns(Task.FromResult(0));
@@ -612,10 +606,7 @@ namespace NuGetGallery
                 fakeBlob.Setup(x => x.Properties).Returns(Mock.Of<ICloudBlobProperties>());
                 fakeBlob
                     .Setup(x => x.UploadFromStreamAsync(It.IsAny<Stream>(), It.IsAny<IAccessCondition>()))
-                    .Throws(new StorageException(
-                        new RequestResult { HttpStatusCode = (int)HttpStatusCode.Conflict },
-                        "Conflict!",
-                        new Exception("inner")));
+                    .Throws(new CloudBlobConflictException(new Exception("inner")));
 
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
@@ -1166,7 +1157,7 @@ namespace NuGetGallery
                 // Arrange
                 _destBlobMock
                     .Setup(x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<IAccessCondition>(), It.IsAny<IAccessCondition>()))
-                    .Throws(new StorageException(new RequestResult { HttpStatusCode = (int)HttpStatusCode.Conflict }, "Conflict!", inner: null));
+                    .Throws(new CloudBlobConflictException(null));
 
                 // Act & Assert
                 await Assert.ThrowsAsync<FileAlreadyExistsException>(
@@ -1373,7 +1364,7 @@ namespace NuGetGallery
                     });
 
                 // Act & Assert
-                var ex = await Assert.ThrowsAsync<StorageException>(
+                var ex = await Assert.ThrowsAsync<CloudBlobStorageException>(
                     () => _target.CopyFileAsync(
                         _srcFolderName,
                         _srcFileName,
@@ -1646,7 +1637,7 @@ namespace NuGetGallery
             public async Task VerifyETagIsNullWhenBlobDoesNotExist()
             {
                 // Arrange
-                _blob.Setup(x => x.FetchAttributesAsync()).ThrowsAsync(new StorageException("Boo"));
+                _blob.Setup(x => x.FetchAttributesAsync()).ThrowsAsync(new CloudBlobStorageException("Boo"));
 
                 // Act 
                 var etagValue = await _service.GetETagOrNullAsync(folderName: CoreConstants.Folders.PackagesFolderName, fileName: "a");

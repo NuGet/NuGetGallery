@@ -9,9 +9,6 @@ using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.Blob.Protocol;
 using NuGetGallery.Diagnostics;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
@@ -242,7 +239,7 @@ namespace NuGetGallery
                     srcAccessCondition,
                     destAccessCondition);
             }
-            catch (StorageException ex) when (ex.IsFileAlreadyExistsException())
+            catch (CloudBlobConflictException ex)
             {
                 throw new FileAlreadyExistsException(
                     string.Format(
@@ -250,7 +247,7 @@ namespace NuGetGallery
                         "There is already a blob with name {0} in container {1}.",
                         destFileName,
                         destFolderName),
-                    ex);
+                    ex.InnerException);
             }
 
             var stopwatch = Stopwatch.StartNew();
@@ -275,7 +272,7 @@ namespace NuGetGallery
             }
             else if (destBlob.CopyState.Status != CloudBlobCopyStatus.Success)
             {
-                throw new StorageException($"The blob copy operation had copy status {destBlob.CopyState.Status} ({destBlob.CopyState.StatusDescription}).");
+                throw new CloudBlobStorageException($"The blob copy operation had copy status {destBlob.CopyState.Status} ({destBlob.CopyState.StatusDescription}).");
             }
 
             return srcBlob.ETag;
@@ -315,7 +312,7 @@ namespace NuGetGallery
             {
                 await blob.UploadFromStreamAsync(file, overwrite);
             }
-            catch (StorageException ex) when (ex.IsFileAlreadyExistsException())
+            catch (CloudBlobConflictException ex)
             {
                 throw new FileAlreadyExistsException(
                     string.Format(
@@ -323,7 +320,7 @@ namespace NuGetGallery
                         "There is already a blob with name {0} in container {1}.",
                         fileName,
                         folderName),
-                    ex);
+                    ex.InnerException);
             }
 
             blob.Properties.ContentType = contentType;
@@ -342,7 +339,7 @@ namespace NuGetGallery
             {
                 await blob.UploadFromStreamAsync(file, accessConditions);
             }
-            catch (StorageException ex) when (ex.IsFileAlreadyExistsException())
+            catch (CloudBlobConflictException ex)
             {
                 throw new FileAlreadyExistsException(
                     string.Format(
@@ -350,7 +347,7 @@ namespace NuGetGallery
                         "There is already a blob with name {0} in container {1}.",
                         fileName,
                         folderName),
-                    ex);
+                    ex.InnerException);
             }
 
             blob.Properties.ContentType = GetContentType(folderName);
@@ -507,15 +504,10 @@ namespace NuGetGallery
                 return blob.ETag;
             }
             // In case that the blob does not exist return null.
-            catch (StorageException)
+            catch (CloudBlobStorageException)
             {
                 return null;
             }
-        }
-
-        private static SharedAccessBlobPermissions MapFileUriPermissions(FileUriPermissions permissions)
-        {
-            return (SharedAccessBlobPermissions)permissions;
         }
 
         private async Task<ISimpleCloudBlob> GetBlobForUriAsync(string folderName, string fileName)
@@ -562,33 +554,15 @@ namespace NuGetGallery
                         null :
                         AccessConditionWrapper.GenerateIfNoneMatchCondition(ifNoneMatch));
             }
-            catch (StorageException ex)
+            catch (CloudBlobNotModifiedException)
             {
                 stream.Dispose();
-
-                if (ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.NotModified)
-                {
-                    return new StorageResult(HttpStatusCode.NotModified, null, blob.ETag);
-                }
-                else if (ex.RequestInformation.ExtendedErrorInformation?.ErrorCode == BlobErrorCodeStrings.BlobNotFound)
-                {
-                    return new StorageResult(HttpStatusCode.NotFound, null, blob.ETag);
-                }
-
-                throw;
+                return new StorageResult(HttpStatusCode.NotModified, null, blob.ETag);
             }
-            catch (TestableStorageClientException ex)
+            catch (CloudBlobNotFoundException)
             {
-                // This is for unit test only, because we can't construct an 
-                // StorageException object with the required ErrorCode
                 stream.Dispose();
-
-                if (ex.ErrorCode == BlobErrorCodeStrings.BlobNotFound)
-                {
-                    return new StorageResult(HttpStatusCode.NotFound, null, blob.ETag);
-                }
-
-                throw;
+                return new StorageResult(HttpStatusCode.NotFound, null, blob.ETag);
             }
 
             stream.Position = 0;

@@ -54,15 +54,16 @@ namespace NuGetGallery
                 }
             }
 
-            var segment = await _blobContainer.ListBlobsSegmentedAsync(
-                prefix,
-                useFlatBlobListing,
-                CloudWrapperHelpers.GetSdkBlobListingDetails(blobListingDetails),
-                maxResults,
-                continuationToken,
-                options,
-                operationContext: null,
-                cancellationToken: cancellationToken);
+            var segment = await CloudWrapperHelpers.WrapStorageException(() =>
+                _blobContainer.ListBlobsSegmentedAsync(
+                    prefix,
+                    useFlatBlobListing,
+                    CloudWrapperHelpers.GetSdkBlobListingDetails(blobListingDetails),
+                    maxResults,
+                    continuationToken,
+                    options,
+                    operationContext: null,
+                    cancellationToken: cancellationToken));
 
             return new BlobResultSegmentWrapper(segment);
         }
@@ -71,7 +72,8 @@ namespace NuGetGallery
         {
             var accessType = enablePublicAccess ? BlobContainerPublicAccessType.Blob : BlobContainerPublicAccessType.Off;
 
-            await _blobContainer.CreateIfNotExistsAsync(accessType, options: null, operationContext: null);
+            await CloudWrapperHelpers.WrapStorageException(() =>
+                _blobContainer.CreateIfNotExistsAsync(accessType, options: null, operationContext: null));
         }
 
         public ISimpleCloudBlob GetBlobReference(string blobAddressUri)
@@ -89,19 +91,22 @@ namespace NuGetGallery
                     LocationMode = CloudWrapperHelpers.GetSdkRetryPolicy(cloudBlobLocationMode.Value),
                 };
             }
-            return await _blobContainer.ExistsAsync(options, operationContext: null);
+            return await CloudWrapperHelpers.WrapStorageException(() =>
+                _blobContainer.ExistsAsync(options, operationContext: null));
         }
 
         public async Task<bool> DeleteIfExistsAsync()
         {
-            return await _blobContainer.DeleteIfExistsAsync();
+            return await CloudWrapperHelpers.WrapStorageException(() =>
+                _blobContainer.DeleteIfExistsAsync());
         }
 
         public async Task CreateAsync(bool enablePublicAccess)
         {
             var accessType = enablePublicAccess ? BlobContainerPublicAccessType.Blob : BlobContainerPublicAccessType.Off;
 
-            await _blobContainer.CreateAsync(accessType, options: null, operationContext: null);
+            await CloudWrapperHelpers.WrapStorageException(() =>
+                _blobContainer.CreateAsync(accessType, options: null, operationContext: null));
         }
     }
 }

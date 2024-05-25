@@ -5,8 +5,6 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob.Protocol;
 using Newtonsoft.Json;
 using NuGetGallery.Auditing.Obfuscation;
 
@@ -57,16 +55,9 @@ namespace NuGetGallery.Auditing
             {
                 await WriteBlob(auditData, fullPath, blob);
             }
-            catch (StorageException ex)
+            catch (CloudBlobContainerNotFoundException)
             {
-                if (ex.RequestInformation?.ExtendedErrorInformation?.ErrorCode == BlobErrorCodeStrings.ContainerNotFound)
-                {
-                    retry = true;
-                }
-                else
-                {
-                    throw;
-                }
+                retry = true;
             }
 
             if (retry)
@@ -94,17 +85,13 @@ namespace NuGetGallery.Auditing
                     await writer.WriteAsync(auditData);
                 }
             }
-            catch (StorageException ex)
+            catch (CloudBlobConflictException ex)
             {
-                if (ex.RequestInformation != null && ex.RequestInformation.HttpStatusCode == 409)
-                {
-                    // Blob already existed!
-                    throw new InvalidOperationException(String.Format(
-                        CultureInfo.CurrentCulture,
-                        CoreStrings.CloudAuditingService_DuplicateAuditRecord,
-                        fullPath), ex);
-                }
-                throw;
+                // Blob already existed!
+                throw new InvalidOperationException(String.Format(
+                    CultureInfo.CurrentCulture,
+                    CoreStrings.CloudAuditingService_DuplicateAuditRecord,
+                    fullPath), ex.InnerException);
             }
         }
 
