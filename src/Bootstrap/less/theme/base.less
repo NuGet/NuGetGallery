@@ -88,8 +88,8 @@ body {
 #autocomplete-results-container {
   position: absolute;
   z-index: 1;
-  background-color: white;
-  border: 1px solid black;
+  background-color: var(--neutralBackground2Rest);
+  border: 1px solid var(--neutralStroke1Rest);
   display: none;
   left: 0;
   right: 0;
@@ -261,8 +261,9 @@ body {
     line-height: 1.4;
 
     > span {
-      border-bottom: 1px solid #d8d8d8;
+      border-bottom: 1px solid var(--neutralForeground1Rest);
       margin-bottom: 3px;
+      text-decoration: none;
     }
   }
 }
@@ -289,15 +290,16 @@ body {
 }
 
 .tag {
-  color: @link-color-darker;
-  background-color: #eff9ff;
+  color: var(--brandForeground1Rest);
+  background: var(--brandBackground2Rest);
+  border-radius: 4px;
   padding: 2px 10px;
   line-height: 2em;
   margin: 0 2px;
 
   &:hover,
   &:focus {
-    color: @link-hover-color;
+    color: var(--brandForeground1Hover);
   }
 }
 
@@ -317,12 +319,12 @@ body {
   }
 
   a {
-    color: @link-hover-color;
+    color: var(--brandForegroundLinkRest);
     text-decoration: underline;
   }
 
   a:hover, a:focus {
-    color: darken(@link-hover-color, 15%);
+    color: var(--brandForegroundLinkHover)
   }
 
   &.banner-bright {
@@ -586,7 +588,7 @@ img.reserved-indicator-icon {
 }
 
 .form-group label.required::after {
-  color: red;
+  color: var(--statusDangerStroke2Rest);
   content: " *";
 }
 
