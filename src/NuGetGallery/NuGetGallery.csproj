@@ -1406,6 +1406,8 @@
     <Content Include="Content\gallery\img\manage-organizations.svg" />
     <Content Include="Content\gallery\img\microsoft-account-24x24.png" />
     <Content Include="Content\gallery\img\microsoft-account.svg" />
+    <Content Include="Content\gallery\img\nuget-lockup-dark-fill.svg" />
+    <Content Include="Content\gallery\img\nuget-lockup-white-fill.svg" />
     <Content Include="Content\gallery\img\orange-circle-225x225.png" />
     <Content Include="Content\gallery\img\orange-circle.svg" />
     <Content Include="Content\gallery\img\purple-circle-225x225.png" />
