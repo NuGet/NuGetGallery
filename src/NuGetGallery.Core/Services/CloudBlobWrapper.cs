@@ -237,7 +237,7 @@ namespace NuGetGallery
                 return await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                     _blob.DownloadTextAsync());
             }
-            catch (CloudBlobNotFoundException)
+            catch (CloudBlobGenericNotFoundException)
             {
                 return null;
             }
@@ -250,7 +250,7 @@ namespace NuGetGallery
                 await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                     _blob.FetchAttributesAsync());
             }
-            catch (CloudBlobNotFoundException)
+            catch (CloudBlobGenericNotFoundException)
             {
                 return false;
             }
@@ -263,7 +263,7 @@ namespace NuGetGallery
             {
                 return await OpenReadAsync(accessCondition: null);
             }
-            catch (CloudBlobNotFoundException)
+            catch (CloudBlobGenericNotFoundException)
             {
                 return null;
             }
