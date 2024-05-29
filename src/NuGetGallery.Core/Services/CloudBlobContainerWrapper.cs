@@ -54,7 +54,7 @@ namespace NuGetGallery
                 }
             }
 
-            var segment = await CloudWrapperHelpers.WrapStorageException(() =>
+            var segment = await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blobContainer.ListBlobsSegmentedAsync(
                     prefix,
                     useFlatBlobListing,
@@ -72,7 +72,7 @@ namespace NuGetGallery
         {
             var accessType = enablePublicAccess ? BlobContainerPublicAccessType.Blob : BlobContainerPublicAccessType.Off;
 
-            await CloudWrapperHelpers.WrapStorageException(() =>
+            await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blobContainer.CreateIfNotExistsAsync(accessType, options: null, operationContext: null));
         }
 
@@ -91,13 +91,13 @@ namespace NuGetGallery
                     LocationMode = CloudWrapperHelpers.GetSdkRetryPolicy(cloudBlobLocationMode.Value),
                 };
             }
-            return await CloudWrapperHelpers.WrapStorageException(() =>
+            return await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blobContainer.ExistsAsync(options, operationContext: null));
         }
 
         public async Task<bool> DeleteIfExistsAsync()
         {
-            return await CloudWrapperHelpers.WrapStorageException(() =>
+            return await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blobContainer.DeleteIfExistsAsync());
         }
 
@@ -105,7 +105,7 @@ namespace NuGetGallery
         {
             var accessType = enablePublicAccess ? BlobContainerPublicAccessType.Blob : BlobContainerPublicAccessType.Off;
 
-            await CloudWrapperHelpers.WrapStorageException(() =>
+            await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blobContainer.CreateAsync(accessType, options: null, operationContext: null));
         }
     }

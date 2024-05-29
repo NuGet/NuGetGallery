@@ -64,7 +64,7 @@ namespace NuGetGallery
         public static SharedAccessBlobPermissions GetSdkSharedAccessPermissions(FileUriPermissions permissions)
             => (SharedAccessBlobPermissions)permissions;
 
-        public static async Task<TResult> WrapStorageException<TResult>(Func<Task<TResult>> @delegate)
+        public static async Task<TResult> WrapStorageExceptionAsync<TResult>(Func<Task<TResult>> @delegate)
         {
             try
             {
@@ -100,7 +100,7 @@ namespace NuGetGallery
             }
         }
 
-        public static async Task WrapStorageException(Func<Task> @delegate)
+        public static async Task WrapStorageExceptionAsync(Func<Task> @delegate)
         {
             try
             {

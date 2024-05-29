@@ -51,7 +51,7 @@ namespace NuGetGallery
 
         public async Task<Stream> OpenReadAsync(IAccessCondition accessCondition)
         {
-            return await CloudWrapperHelpers.WrapStorageException(() =>
+            return await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blob.OpenReadAsync(
                     accessCondition: CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
                     options: null,
@@ -60,7 +60,7 @@ namespace NuGetGallery
 
         public async Task<Stream> OpenWriteAsync(IAccessCondition accessCondition)
         {
-            return await CloudWrapperHelpers.WrapStorageException(() =>
+            return await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blob.OpenWriteAsync(
                     accessCondition: CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
                     options: null,
@@ -69,7 +69,7 @@ namespace NuGetGallery
 
         public async Task DeleteIfExistsAsync()
         {
-            await CloudWrapperHelpers.WrapStorageException(() =>
+            await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blob.DeleteIfExistsAsync(
                     DeleteSnapshotsOption.IncludeSnapshots,
                     accessCondition: null,
@@ -92,7 +92,7 @@ namespace NuGetGallery
                 RetryPolicy = new DontRetryOnNotModifiedPolicy(new LinearRetry())
             };
 
-            await CloudWrapperHelpers.WrapStorageException(() =>
+            await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blob.DownloadToStreamAsync(
                     target,
                     CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
@@ -102,13 +102,13 @@ namespace NuGetGallery
 
         public async Task<bool> ExistsAsync()
         {
-            return await CloudWrapperHelpers.WrapStorageException(() =>
+            return await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blob.ExistsAsync());
         }
 
         public async Task SnapshotAsync(CancellationToken token)
         {
-            await CloudWrapperHelpers.WrapStorageException(() =>
+            await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blob.SnapshotAsync(
                     metadata: null,
                     accessCondition: null,
@@ -119,13 +119,13 @@ namespace NuGetGallery
 
         public async Task SetPropertiesAsync()
         {
-            await CloudWrapperHelpers.WrapStorageException(() =>
+            await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blob.SetPropertiesAsync());
         }
 
         public async Task SetPropertiesAsync(IAccessCondition accessCondition)
         {
-            await CloudWrapperHelpers.WrapStorageException(() =>
+            await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blob.SetPropertiesAsync(
                     CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
                     options: null,
@@ -134,7 +134,7 @@ namespace NuGetGallery
 
         public async Task SetMetadataAsync(IAccessCondition accessCondition)
         {
-            await CloudWrapperHelpers.WrapStorageException(() =>
+            await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blob.SetMetadataAsync(
                     CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
                     options: null,
@@ -145,7 +145,7 @@ namespace NuGetGallery
         {
             if (overwrite)
             {
-                await CloudWrapperHelpers.WrapStorageException(() =>
+                await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                     _blob.UploadFromStreamAsync(source));
             }
             else
@@ -156,7 +156,7 @@ namespace NuGetGallery
 
         public async Task UploadFromStreamAsync(Stream source, IAccessCondition accessCondition)
         {
-            await CloudWrapperHelpers.WrapStorageException(() =>
+            await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blob.UploadFromStreamAsync(
                     source,
                     CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
@@ -166,7 +166,7 @@ namespace NuGetGallery
 
         private async Task UploadFromStreamAsync(Stream source, AccessCondition accessCondition)
         {
-            await CloudWrapperHelpers.WrapStorageException(() =>
+            await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blob.UploadFromStreamAsync(
                     source,
                     accessCondition,
@@ -176,7 +176,7 @@ namespace NuGetGallery
 
         public async Task FetchAttributesAsync()
         {
-            await CloudWrapperHelpers.WrapStorageException(() =>
+            await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blob.FetchAttributesAsync());
         }
 
@@ -203,7 +203,7 @@ namespace NuGetGallery
                 throw new ArgumentException($"The source blob must be a {nameof(CloudBlobWrapper)}.");
             }
 
-            await CloudWrapperHelpers.WrapStorageException(() =>
+            await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blob.StartCopyAsync(
                     sourceWrapper._blob,
                     sourceAccessCondition: CloudWrapperHelpers.GetSdkAccessCondition(sourceAccessCondition),
@@ -226,7 +226,7 @@ namespace NuGetGallery
             };
             var operationContext = new OperationContext();
 
-            return await CloudWrapperHelpers.WrapStorageException(() =>
+            return await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blob.OpenReadAsync(accessCondition, blobRequestOptions, operationContext, cancellationToken));
         }
 
@@ -234,7 +234,7 @@ namespace NuGetGallery
         {
             try
             {
-                return await CloudWrapperHelpers.WrapStorageException(() =>
+                return await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                     _blob.DownloadTextAsync());
             }
             catch (CloudBlobNotFoundException)
@@ -247,7 +247,7 @@ namespace NuGetGallery
         {
             try
             {
-                await CloudWrapperHelpers.WrapStorageException(() =>
+                await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                     _blob.FetchAttributesAsync());
             }
             catch (CloudBlobNotFoundException)
