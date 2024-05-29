@@ -74,7 +74,7 @@ namespace NuGetGallery
             {
                 throw new CloudBlobContainerNotFoundException(ex);
             }
-            catch (StorageException ex) when (ex.RequestInformation.ExtendedErrorInformation?.ErrorCode == BlobErrorCodeStrings.BlobNotFound)
+            catch (StorageException ex) when (ex.RequestInformation?.ExtendedErrorInformation?.ErrorCode == BlobErrorCodeStrings.BlobNotFound)
             {
                 throw new CloudBlobNotFoundException(ex);
             }
@@ -110,7 +110,7 @@ namespace NuGetGallery
             {
                 throw new CloudBlobContainerNotFoundException(ex);
             }
-            catch (StorageException ex) when (ex.RequestInformation.ExtendedErrorInformation?.ErrorCode == BlobErrorCodeStrings.BlobNotFound)
+            catch (StorageException ex) when (ex.RequestInformation?.ExtendedErrorInformation?.ErrorCode == BlobErrorCodeStrings.BlobNotFound)
             {
                 throw new CloudBlobNotFoundException(ex);
             }
