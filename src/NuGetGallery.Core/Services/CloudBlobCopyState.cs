@@ -2,15 +2,15 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Azure.Storage.Blobs.Specialized;
 
 namespace NuGetGallery
 {
     internal class CloudBlobCopyState : ICloudBlobCopyState
     {
-        private readonly CloudBlockBlob _blob;
+        private readonly BlockBlobClient _blob;
 
-        public CloudBlobCopyState(CloudBlockBlob blob)
+        public CloudBlobCopyState(BlockBlobClient blob)
         {
             _blob = blob ?? throw new ArgumentNullException(nameof(blob));
         }

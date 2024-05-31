@@ -2,30 +2,47 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.RetryPolicies;
+using Azure;
+using Azure.Core;
+using Azure.Identity;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Specialized;
 
 namespace NuGetGallery
 {
     public class CloudBlobClientWrapper : ICloudBlobClient
     {
         private readonly string _storageConnectionString;
-        private readonly BlobRequestOptions _defaultRequestOptions;
-        private readonly bool _readAccessGeoRedundant;
-        private CloudBlobClient _blobClient;
+        private readonly bool _readAccessGeoRedundant = false;
+        private readonly Lazy<Uri> _primaryServiceUri;
+        private readonly Lazy<Uri> _grsServiceUri;
+        private BlobServiceClient _blobClient;
+        private TokenCredential _tokenCredential;
 
         public CloudBlobClientWrapper(string storageConnectionString, bool readAccessGeoRedundant)
+            : this()
         {
             _storageConnectionString = storageConnectionString;
             _readAccessGeoRedundant = readAccessGeoRedundant;
         }
 
-        public CloudBlobClientWrapper(string storageConnectionString, BlobRequestOptions defaultRequestOptions)
+        public CloudBlobClientWrapper(string storageConnectionString)
+            : this()
         {
             _storageConnectionString = storageConnectionString;
-            _defaultRequestOptions = defaultRequestOptions;
+        }
+
+        private CloudBlobClientWrapper()
+        {
+            _primaryServiceUri = new Lazy<Uri>(GetPrimaryUri);
+            _grsServiceUri = new Lazy<Uri>(GetGrsUri);
+        }
+
+        public static CloudBlobClientWrapper UsingMsi(string storageConnectionString, string clientId = null)
+        {
+            var client = new CloudBlobClientWrapper(storageConnectionString);
+            client._tokenCredential = new ManagedIdentityCredential(clientId);
+            return client;
         }
 
         public ISimpleCloudBlob GetBlobFromUri(Uri uri)
@@ -37,13 +54,14 @@ namespace NuGetGallery
                 var uriBuilder = new UriBuilder(uri);
                 uriBuilder.Query = string.Empty;
 
-                blob = new CloudBlobWrapper(new CloudBlockBlob(
+                blob = new CloudBlobWrapper(new BlockBlobClient(
                     uriBuilder.Uri,
-                    new StorageCredentials(uri.Query)));
+                    new AzureSasCredential(uri.Query)));
             }
             else
             {
-                blob = new CloudBlobWrapper(new CloudBlockBlob(uri));
+                // TODO: do we need authentication here?
+                blob = new CloudBlobWrapper(new BlockBlobClient(uri));
             }
 
             return blob;
@@ -53,19 +71,38 @@ namespace NuGetGallery
         {
             if (_blobClient == null)
             {
-                _blobClient = CloudStorageAccount.Parse(_storageConnectionString).CreateCloudBlobClient();
-
+                var options = new BlobClientOptions();
                 if (_readAccessGeoRedundant)
                 {
-                    _blobClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
+                    options.GeoRedundantSecondaryUri = _grsServiceUri.Value;
                 }
-                else if (_defaultRequestOptions != null)
+
+                if (_tokenCredential != null)
                 {
-                    _blobClient.DefaultRequestOptions = _defaultRequestOptions;
+                    _blobClient = new BlobServiceClient(_primaryServiceUri.Value, _tokenCredential, options);
+                }
+                else
+                {
+                    _blobClient = new BlobServiceClient(_storageConnectionString, options);
                 }
             }
 
-            return new CloudBlobContainerWrapper(_blobClient.GetContainerReference(containerAddress));
+            return new CloudBlobContainerWrapper(_blobClient.GetBlobContainerClient(containerAddress));
+        }
+
+        private Uri GetPrimaryUri()
+        {
+            var tempClient = new BlobServiceClient(_storageConnectionString);
+            return tempClient.Uri;
+        }
+
+        private Uri GetGrsUri()
+        {
+            var uriBuilder = new UriBuilder(_primaryServiceUri.Value);
+            var hostParts = uriBuilder.Host.Split('.');
+            hostParts[0] = hostParts[0] + "-secondary";
+            uriBuilder.Host = string.Join(".", hostParts);
+            return uriBuilder.Uri;
         }
     }
 }

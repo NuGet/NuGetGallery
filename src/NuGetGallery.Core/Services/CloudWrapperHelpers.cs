@@ -4,10 +4,8 @@
 using System;
 using System.Net;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.Blob.Protocol;
-using Microsoft.WindowsAzure.Storage.RetryPolicies;
+using Azure;
+using Azure.Storage.Blobs.Models;
 
 namespace NuGetGallery
 {
@@ -32,6 +30,38 @@ namespace NuGetGallery
 
         public static BlobListingDetails GetSdkBlobListingDetails(ListingDetails listingDetails) => (BlobListingDetails)listingDetails;
 
+        public static BlobTraits GetSdkBlobTraits(ListingDetails listingDetails)
+        {
+            BlobTraits traits = BlobTraits.None;
+            if (listingDetails.HasFlag(ListingDetails.Metadata))
+            {
+                traits |= BlobTraits.Metadata;
+            }
+            if (listingDetails.HasFlag(ListingDetails.Copy))
+            {
+                traits |= BlobTraits.CopyStatus;
+            }
+            return traits;
+        }
+
+        public static BlobStates GetSdkBlobStates(ListingDetails listingDetails)
+        {
+            BlobStates states = BlobStates.None;
+            if (listingDetails.HasFlag(ListingDetails.Snapshots))
+            {
+                states |= BlobStates.Snapshots;
+            }
+            if (listingDetails.HasFlag(ListingDetails.UncommittedBlobs))
+            {
+                states |= BlobStates.Uncommitted;
+            }
+            if (listingDetails.HasFlag(ListingDetails.Deleted))
+            {
+                states |= BlobStates.Deleted;
+            }
+            return states;
+        }
+
         public static CloudBlobCopyStatus GetBlobCopyStatus(CopyStatus status)
         {
             switch (status)
@@ -51,14 +81,18 @@ namespace NuGetGallery
             }
         }
 
-        public static AccessCondition GetSdkAccessCondition(IAccessCondition accessCondition)
+        public static BlobRequestConditions GetSdkAccessCondition(IAccessCondition accessCondition)
         {
             if (accessCondition == null)
             {
                 return null;
             }
 
-            return new AccessCondition { IfMatchETag = accessCondition.IfMatchETag, IfNoneMatchETag = accessCondition.IfNoneMatchETag };
+            return new BlobRequestConditions
+            {
+                IfMatch = string.IsNullOrEmpty(accessCondition.IfMatchETag) ? (ETag?)null : new Azure.ETag(accessCondition.IfMatchETag),
+                IfNoneMatch = string.IsNullOrEmpty(accessCondition.IfNoneMatchETag) ? (ETag?)null : new Azure.ETag(accessCondition.IfNoneMatchETag),
+            };
         }
 
         public static SharedAccessBlobPermissions GetSdkSharedAccessPermissions(FileUriPermissions permissions)

@@ -3,19 +3,19 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Azure.Storage.Blobs.Models;
 
 namespace NuGetGallery
 {
     public class BlobResultSegmentWrapper : ISimpleBlobResultSegment
     {
-        public BlobResultSegmentWrapper(BlobResultSegment segment)
+        public BlobResultSegmentWrapper(IReadOnlyList<BlobItem> items, string continuationToken)
         {
             // For now, assume all of the blobs are block blobs. This library's storage abstraction only allows
             // creation of block blobs so it's good enough for now. If another caller created a non-block blob, this
             // cast will fail at runtime.
             Results = segment.Results.Cast<CloudBlockBlob>().Select(x => new CloudBlobWrapper(x)).ToList();
-            ContinuationToken = new BlobListContinuationToken(segment.ContinuationToken);
+            ContinuationToken = new BlobListContinuationToken(continuationToken);
         }
 
         public IReadOnlyList<ISimpleCloudBlob> Results { get; }

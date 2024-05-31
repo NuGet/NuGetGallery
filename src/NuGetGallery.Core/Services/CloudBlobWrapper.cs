@@ -7,15 +7,15 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.RetryPolicies;
+using Azure.Storage.Blobs.Models;
+using Azure.Storage.Blobs.Specialized;
 
 namespace NuGetGallery
 {
     public class CloudBlobWrapper : ISimpleCloudBlob
     {
-        private readonly CloudBlockBlob _blob;
+        private readonly BlockBlobClient _blob;
+        private BlobProperties _blobProperties = null;
 
         public ICloudBlobProperties Properties { get; private set; }
         public IDictionary<string, string> Metadata => _blob.Metadata;
@@ -26,7 +26,7 @@ namespace NuGetGallery
         public string ETag => _blob.Properties.ETag;
         public bool IsSnapshot => _blob.IsSnapshot;
 
-        public CloudBlobWrapper(CloudBlockBlob blob)
+        public CloudBlobWrapper(BlockBlobClient blob)
         {
             _blob = blob;
             Properties = new CloudBlobPropertiesWrapper(_blob);
@@ -45,36 +45,43 @@ namespace NuGetGallery
                 throw new ArgumentException($"{nameof(uri)} must point to blob storage", nameof(uri));
             }
 
-            var blob = new CloudBlockBlob(uri);
+            var blob = new BlockBlobClient(uri);
             return new CloudBlobWrapper(blob);
         }
 
         public async Task<Stream> OpenReadAsync(IAccessCondition accessCondition)
         {
+            BlobOpenReadOptions options = null;
+            if (accessCondition != null)
+            {
+                options = new BlobOpenReadOptions(allowModifications: false)
+                {
+                    Conditions = CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
+                };
+            }
             return await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
-                _blob.OpenReadAsync(
-                    accessCondition: CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
-                    options: null,
-                    operationContext: null));
+                _blob.OpenReadAsync(options));
         }
 
         public async Task<Stream> OpenWriteAsync(IAccessCondition accessCondition)
         {
+            BlockBlobOpenWriteOptions options = null;
+            if (accessCondition != null)
+            {
+                options = new BlockBlobOpenWriteOptions
+                {
+                    OpenConditions = CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
+                };
+            }
             return await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
-                _blob.OpenWriteAsync(
-                    accessCondition: CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
-                    options: null,
-                    operationContext: null));
+                //TODO: how first argument interacts with access conditions?
+                _blob.OpenWriteAsync(true, options));
         }
 
         public async Task DeleteIfExistsAsync()
         {
             await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
-                _blob.DeleteIfExistsAsync(
-                    DeleteSnapshotsOption.IncludeSnapshots,
-                    accessCondition: null,
-                    options: null,
-                    operationContext: null));
+                _blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots));
         }
 
         public Task DownloadToStreamAsync(Stream target)
@@ -92,12 +99,17 @@ namespace NuGetGallery
                 RetryPolicy = new DontRetryOnNotModifiedPolicy(new LinearRetry())
             };
 
+            BlobDownloadToOptions downloadOptions = null;
+            if (accessCondition != null)
+            {
+                downloadOptions = new BlobDownloadToOptions
+                {
+                    Conditions = CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
+                };
+            }
+
             await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
-                _blob.DownloadToStreamAsync(
-                    target,
-                    CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
-                    options,
-                    operationContext: null));
+                _blob.DownloadToAsync(target, options));
         }
 
         public async Task<bool> ExistsAsync()
@@ -109,12 +121,7 @@ namespace NuGetGallery
         public async Task SnapshotAsync(CancellationToken token)
         {
             await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
-                _blob.SnapshotAsync(
-                    metadata: null,
-                    accessCondition: null,
-                    options: null,
-                    operationContext: null,
-                    token));
+                _blob.CreateSnapshotAsync(cancellationToken: token));
         }
 
         public async Task SetPropertiesAsync()
@@ -134,6 +141,7 @@ namespace NuGetGallery
 
         public async Task SetMetadataAsync(IAccessCondition accessCondition)
         {
+            var props = (await _blob.GetPropertiesAsync()).Value;
             await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blob.SetMetadataAsync(
                     CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
@@ -146,38 +154,32 @@ namespace NuGetGallery
             if (overwrite)
             {
                 await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
-                    _blob.UploadFromStreamAsync(source));
+                    _blob.UploadAsync(source));
             }
             else
             {
-                await UploadFromStreamAsync(source, AccessCondition.GenerateIfNoneMatchCondition("*"));
+                await UploadFromStreamAsync(source, AccessConditionWrapper.GenerateIfNoneMatchCondition("*"));
             }
         }
 
         public async Task UploadFromStreamAsync(Stream source, IAccessCondition accessCondition)
         {
+            BlobUploadOptions options = null;
+            if (accessCondition != null)
+            {
+                options = new BlobUploadOptions
+                {
+                    Conditions = CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
+                };
+            }
             await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
-                _blob.UploadFromStreamAsync(
-                    source,
-                    CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
-                    options: null,
-                    operationContext: null));
-        }
-
-        private async Task UploadFromStreamAsync(Stream source, AccessCondition accessCondition)
-        {
-            await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
-                _blob.UploadFromStreamAsync(
-                    source,
-                    accessCondition,
-                    options: null,
-                    operationContext: null));
+                _blob.UploadAsync(source, options));
         }
 
         public async Task FetchAttributesAsync()
         {
-            await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
-                _blob.FetchAttributesAsync());
+            _blobProperties = (await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
+                _blob.GetPropertiesAsync())).Value;
         }
 
         public string GetSharedAccessSignature(FileUriPermissions permissions, DateTimeOffset? endOfAccess)
@@ -247,8 +249,7 @@ namespace NuGetGallery
         {
             try
             {
-                await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
-                    _blob.FetchAttributesAsync());
+                await FetchAttributesAsync();
             }
             catch (CloudBlobGenericNotFoundException)
             {
