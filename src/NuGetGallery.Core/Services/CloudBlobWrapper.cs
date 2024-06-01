@@ -7,29 +7,35 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
+using Azure.Storage.Sas;
 
 namespace NuGetGallery
 {
     public class CloudBlobWrapper : ISimpleCloudBlob
     {
         private readonly BlockBlobClient _blob;
-        private BlobProperties _blobProperties = null;
+        private readonly CloudBlobContainerWrapper _container;
+        internal CloudBlobReadOnlyProperties _blobProperties = null;
+        internal BlobHttpHeaders _blobHeaders = null;
 
         public ICloudBlobProperties Properties { get; private set; }
-        public IDictionary<string, string> Metadata => _blob.Metadata;
+        public IDictionary<string, string> Metadata { get; private set; }
         public ICloudBlobCopyState CopyState { get; private set; }
         public Uri Uri => _blob.Uri;
         public string Name => _blob.Name;
-        public DateTime LastModifiedUtc => _blob.Properties.LastModified?.UtcDateTime ?? DateTime.MinValue;
-        public string ETag => _blob.Properties.ETag;
-        public bool IsSnapshot => _blob.IsSnapshot;
+        public DateTime LastModifiedUtc => _blobProperties.LastModifiedUtc;
+        public string ETag => _blobProperties.ETag;
+        public bool IsSnapshot => _blobProperties.IsSnapshot;
 
-        public CloudBlobWrapper(BlockBlobClient blob)
+        public CloudBlobWrapper(BlockBlobClient blob, CloudBlobContainerWrapper container)
         {
-            _blob = blob;
-            Properties = new CloudBlobPropertiesWrapper(_blob);
+            _blob = blob ?? throw new ArgumentNullException(nameof(blob));
+            _container = container; // container can be null
+
+            Properties = new CloudBlobPropertiesWrapper(this);
             CopyState = new CloudBlobCopyState(_blob);
         }
 
@@ -46,7 +52,7 @@ namespace NuGetGallery
             }
 
             var blob = new BlockBlobClient(uri);
-            return new CloudBlobWrapper(blob);
+            return new CloudBlobWrapper(blob, null);
         }
 
         public async Task<Stream> OpenReadAsync(IAccessCondition accessCondition)
@@ -91,13 +97,7 @@ namespace NuGetGallery
 
         public async Task DownloadToStreamAsync(Stream target, IAccessCondition accessCondition)
         {
-            // Note: Overloads of FromAsync that take an AsyncCallback and State to pass through are more efficient:
-            //  http://blogs.msdn.com/b/pfxteam/archive/2009/06/09/9716439.aspx
-            var options = new BlobRequestOptions()
-            {
-                // The default retry policy treats a 304 as an error that requires a retry. We don't want that!
-                RetryPolicy = new DontRetryOnNotModifiedPolicy(new LinearRetry())
-            };
+            // 304s are not retried with Azure.Storage.Blobs
 
             BlobDownloadToOptions downloadOptions = null;
             if (accessCondition != null)
@@ -108,8 +108,14 @@ namespace NuGetGallery
                 };
             }
 
-            await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
-                _blob.DownloadToAsync(target, options));
+            var response = await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
+                _blob.DownloadToAsync(target, downloadOptions));
+
+            if (response.Status == (int)HttpStatusCode.NotModified)
+            {
+                // calling code expects an exception thrown on not modified response
+                throw new CloudBlobNotModifiedException(null);
+            }
         }
 
         public async Task<bool> ExistsAsync()
@@ -127,16 +133,15 @@ namespace NuGetGallery
         public async Task SetPropertiesAsync()
         {
             await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
-                _blob.SetPropertiesAsync());
+                _blob.SetHttpHeadersAsync(_blobHeaders));
         }
 
         public async Task SetPropertiesAsync(IAccessCondition accessCondition)
         {
             await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
-                _blob.SetPropertiesAsync(
-                    CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
-                    options: null,
-                    operationContext: null));
+                _blob.SetHttpHeadersAsync(
+                    _blobHeaders,
+                    CloudWrapperHelpers.GetSdkAccessCondition(accessCondition)));
         }
 
         public async Task SetMetadataAsync(IAccessCondition accessCondition)
@@ -144,9 +149,8 @@ namespace NuGetGallery
             var props = (await _blob.GetPropertiesAsync()).Value;
             await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blob.SetMetadataAsync(
-                    CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
-                    options: null,
-                    operationContext: null));
+                    Metadata,
+                    CloudWrapperHelpers.GetSdkAccessCondition(accessCondition)));
         }
 
         public async Task UploadFromStreamAsync(Stream source, bool overwrite)
@@ -178,21 +182,64 @@ namespace NuGetGallery
 
         public async Task FetchAttributesAsync()
         {
-            _blobProperties = (await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
+            var blobProperties = (await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blob.GetPropertiesAsync())).Value;
+            _blobProperties = new CloudBlobReadOnlyProperties(blobProperties);
+            if (_blobHeaders == null)
+            {
+                _blobHeaders = new BlobHttpHeaders();
+            }
+            _blobHeaders.ContentType = blobProperties.ContentType;
+            _blobHeaders.ContentDisposition = blobProperties.ContentDisposition;
+            _blobHeaders.ContentEncoding = blobProperties.ContentEncoding;
+            _blobHeaders.ContentLanguage = blobProperties.ContentLanguage;
+            _blobHeaders.CacheControl = blobProperties.CacheControl;
+            _blobHeaders.ContentHash = blobProperties.ContentHash;
+            if (Metadata == null)
+            {
+                Metadata = new Dictionary<string, string>();
+            }
+            Metadata.Clear();
+            if (blobProperties.Metadata != null)
+            {
+                foreach (var kvp in blobProperties.Metadata)
+                {
+                    Metadata.Add(kvp.Key, kvp.Value);
+                }
+            }
         }
 
-        public string GetSharedAccessSignature(FileUriPermissions permissions, DateTimeOffset? endOfAccess)
+        public async Task<string> GetSharedAccessSignature(FileUriPermissions permissions, DateTimeOffset endOfAccess)
         {
-            var accessPolicy = new SharedAccessBlobPolicy
+            var sasBuilder = new BlobSasBuilder
             {
-                SharedAccessExpiryTime = endOfAccess,
-                Permissions = CloudWrapperHelpers.GetSdkSharedAccessPermissions(permissions),
+                BlobContainerName = _blob.BlobContainerName,
+                BlobName = _blob.Name,
+                Resource = "b",
+                StartsOn = DateTimeOffset.UtcNow.AddMinutes(-5),
+                ExpiresOn = endOfAccess,
             };
+            sasBuilder.SetPermissions(CloudWrapperHelpers.GetSdkSharedAccessPermissions(permissions));
 
-            var signature = _blob.GetSharedAccessSignature(accessPolicy);
-
-            return signature;
+            if (_blob.CanGenerateSasUri)
+            {
+                // regular SAS
+                return _blob.GenerateSasUri(sasBuilder).Query;
+            }
+            else if (_container?.Account?.UsingTokenCredential == true && _container?.Account?.Client != null)
+            {
+                // user delegation SAS
+                var userDelegationKey = (await _container.Account.Client.GetUserDelegationKeyAsync(sasBuilder.StartsOn, sasBuilder.ExpiresOn)).Value;
+                var blobUriBuilder = new BlobUriBuilder(_blob.Uri)
+                {
+                    Sas = sasBuilder.ToSasQueryParameters(userDelegationKey, _blob.AccountName),
+                };
+                return blobUriBuilder.ToUri().Query;
+            }
+            else
+            {
+                throw new InvalidOperationException("Unsupported blob authentication");
+            }
         }
 
         public async Task StartCopyAsync(ISimpleCloudBlob source, IAccessCondition sourceAccessCondition, IAccessCondition destAccessCondition)
@@ -219,14 +266,12 @@ namespace NuGetGallery
             TimeSpan maxExecutionTime,
             CancellationToken cancellationToken)
         {
-            var accessCondition = AccessCondition.GenerateEmptyCondition();
             var blobRequestOptions = new BlobRequestOptions
             {
                 ServerTimeout = serverTimeout,
                 MaximumExecutionTime = maxExecutionTime,
                 RetryPolicy = new ExponentialRetry(),
             };
-            var operationContext = new OperationContext();
 
             return await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blob.OpenReadAsync(accessCondition, blobRequestOptions, operationContext, cancellationToken));
@@ -273,35 +318,6 @@ namespace NuGetGallery
         private static bool IsBlobStorageUri(Uri uri)
         {
             return uri.Authority.EndsWith(".blob.core.windows.net");
-        }
-
-        // The default retry policy treats a 304 as an error that requires a retry. We don't want that!
-        private class DontRetryOnNotModifiedPolicy : IRetryPolicy
-        {
-            private IRetryPolicy _innerPolicy;
-
-            public DontRetryOnNotModifiedPolicy(IRetryPolicy policy)
-            {
-                _innerPolicy = policy;
-            }
-
-            public IRetryPolicy CreateInstance()
-            {
-                return new DontRetryOnNotModifiedPolicy(_innerPolicy.CreateInstance());
-            }
-
-            public bool ShouldRetry(int currentRetryCount, int statusCode, Exception lastException, out TimeSpan retryInterval, OperationContext operationContext)
-            {
-                if (statusCode == (int)HttpStatusCode.NotModified)
-                {
-                    retryInterval = TimeSpan.Zero;
-                    return false;
-                }
-                else
-                {
-                    return _innerPolicy.ShouldRetry(currentRetryCount, statusCode, lastException, out retryInterval, operationContext);
-                }
-            }
         }
     }
 }

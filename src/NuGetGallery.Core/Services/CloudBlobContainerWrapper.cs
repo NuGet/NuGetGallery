@@ -13,11 +13,13 @@ namespace NuGetGallery
 {
     public class CloudBlobContainerWrapper : ICloudBlobContainer
     {
+        private readonly CloudBlobClientWrapper _account;
         private readonly BlobContainerClient _blobContainer;
 
-        public CloudBlobContainerWrapper(BlobContainerClient blobContainer)
+        public CloudBlobContainerWrapper(BlobContainerClient blobContainer, CloudBlobClientWrapper account)
         {
-            _blobContainer = blobContainer;
+            _blobContainer = blobContainer ?? throw new ArgumentNullException(nameof(blobContainer));
+            _account = account ?? throw new ArgumentNullException(nameof(account));
         }
 
         public async Task<ISimpleBlobResultSegment> ListBlobsSegmentedAsync(
@@ -122,5 +124,7 @@ namespace NuGetGallery
             await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blobContainer.CreateAsync(accessType));
         }
+
+        internal CloudBlobClientWrapper Account => _account;
     }
 }

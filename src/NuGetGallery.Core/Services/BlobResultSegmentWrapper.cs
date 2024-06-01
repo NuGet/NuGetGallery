@@ -20,5 +20,10 @@ namespace NuGetGallery
 
         public IReadOnlyList<ISimpleCloudBlob> Results { get; }
         public IBlobListContinuationToken ContinuationToken { get; }
+
+        private static ISimpleCloudBlob ConvertListItem(BlobItem item)
+        {
+            
+        }
     }
 }

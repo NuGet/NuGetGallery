@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Azure;
 using Azure.Storage.Blobs.Models;
+using Azure.Storage.Sas;
 
 namespace NuGetGallery
 {
@@ -95,8 +96,35 @@ namespace NuGetGallery
             };
         }
 
-        public static SharedAccessBlobPermissions GetSdkSharedAccessPermissions(FileUriPermissions permissions)
-            => (SharedAccessBlobPermissions)permissions;
+        public static BlobAccountSasPermissions GetSdkSharedAccessPermissions(FileUriPermissions permissions)
+        {
+            BlobAccountSasPermissions convertedPermissions = (BlobAccountSasPermissions)0;
+            if (permissions.HasFlag(FileUriPermissions.Read))
+            {
+                convertedPermissions |= BlobAccountSasPermissions.Read;
+            }
+            if (permissions.HasFlag(FileUriPermissions.Write))
+            {
+                convertedPermissions |= BlobAccountSasPermissions.Write;
+            }
+            if (permissions.HasFlag(FileUriPermissions.Delete))
+            {
+                convertedPermissions |= BlobAccountSasPermissions.Delete;
+            }
+            if (permissions.HasFlag(FileUriPermissions.List))
+            {
+                convertedPermissions |= BlobAccountSasPermissions.List;
+            }
+            if (permissions.HasFlag(FileUriPermissions.Add))
+            {
+                convertedPermissions |= BlobAccountSasPermissions.Add;
+            }
+            if (permissions.HasFlag(FileUriPermissions.Create))
+            {
+                convertedPermissions |= BlobAccountSasPermissions.Create;
+            }
+            return convertedPermissions;
+        }
 
         public static async Task<TResult> WrapStorageExceptionAsync<TResult>(Func<Task<TResult>> @delegate)
         {

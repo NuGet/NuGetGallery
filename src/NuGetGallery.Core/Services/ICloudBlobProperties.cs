@@ -12,6 +12,6 @@ namespace NuGetGallery
         string ContentType { get; set; }
         string ContentEncoding { get; set; }
         string CacheControl { get; set; }
-        string ContentMD5 { get; set; }
+        string ContentMD5 { get; }
     }
 }

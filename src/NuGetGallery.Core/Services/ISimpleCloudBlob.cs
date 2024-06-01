@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace NuGetGallery
 {
@@ -51,7 +50,7 @@ namespace NuGetGallery
         /// Null for no time limit.
         /// </param>
         /// <returns>Shared access signature in form of URI query portion.</returns>
-        string GetSharedAccessSignature(FileUriPermissions permissions, DateTimeOffset? endOfAccess);
+        Task<string> GetSharedAccessSignature(FileUriPermissions permissions, DateTimeOffset endOfAccess);
 
         /// <summary>
         /// Opens the seekable read stream to the file in blob storage.

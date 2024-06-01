@@ -2,11 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Threading.Tasks;
 using Azure;
 using Azure.Core;
 using Azure.Identity;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Specialized;
+using Azure.Storage.Sas;
 
 namespace NuGetGallery
 {
@@ -87,8 +89,11 @@ namespace NuGetGallery
                 }
             }
 
-            return new CloudBlobContainerWrapper(_blobClient.GetBlobContainerClient(containerAddress));
+            return new CloudBlobContainerWrapper(_blobClient.GetBlobContainerClient(containerAddress), this);
         }
+
+        internal BlobServiceClient Client => _blobClient;
+        internal bool UsingTokenCredential => _tokenCredential != null;
 
         private Uri GetPrimaryUri()
         {
