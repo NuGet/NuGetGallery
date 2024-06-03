@@ -274,7 +274,7 @@
                                      @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
                             </span>
                             <span class="title">
-                                @Html.BreakWord(Model.Id)   
+                                @Html.BreakWord(Model.Id)
                             </span>
                             <span class="version-title">
                                 @Model.Version
@@ -1067,12 +1067,7 @@
                             {
                                 case DisplayPackageViewModel.RepositoryKind.GitHub:
                                 case DisplayPackageViewModel.RepositoryKind.Git:
-                                    @*<img class="icon" aria-hidden="true" alt="Git logo"
-                                            src="@Url.Absolute("~/Content/gallery/img/git-white.svg")"
-                                            @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/git-32x32.png")) />*@
-                                    <div class="git-image-icon icon" aria-hidden="true" role="img" alt="Git logo">
-
-                                    </div>
+                                    <div class="git-image-icon icon" aria-hidden="true" role="img" alt="Git logo"></div>
                                     break;
                                 default:
                                     <i class="ms-Icon ms-Icon--Code" aria-hidden="true"></i>
