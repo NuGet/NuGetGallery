@@ -70,15 +70,13 @@ extends:
             scriptName: $(NuGetGalleryPath)\build.ps1
             arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SimpleVersion $(SimplePackageVersion) -SemanticVersion $(PackageVersion) -Branch $(NuGetGalleryBranch) -CommitSHA $(Build.SourceVersion)
             workingFolder: $(NuGetGalleryPath)
-        - task: PowerShell@1
-          name: PowerShell_2
+        - task: PowerShell@2
           displayName: Run unit tests
           inputs:
             scriptName: $(NuGetGalleryPath)\test.ps1
             arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId)
             workingFolder: $(NuGetGalleryPath)
-        - task: PublishTestResults@1
-          name: PublishTestResults_3
+        - task: PublishTestResults@2
           displayName: Publish Test Results Results.*.xml
           condition: succeededOrFailed()
           inputs:
