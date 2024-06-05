@@ -223,7 +223,7 @@ namespace NuGetGallery
                             eventId: 0,
                             message: $"Destination blob '{destFolderName}/{destFileName}' already has Sha512 hash " +
                             $"'{destinationBlobSha512Hash}' and length '{destBlob.Properties.Length}'. The copy " +
-                            $"will be skipped.");
+                            "will be skipped.");
 
                         return srcBlob.ETag;
                     }

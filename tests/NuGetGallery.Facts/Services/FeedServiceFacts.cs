@@ -785,7 +785,7 @@ namespace NuGetGallery
                         configuration.Object,
                         searchService.Object,
                         telemetryService.Object);
-                    v2Service.RawUrl = $"https://localhost:8081/api/v2/Packages(Id=\'Foo\', Version=\'1.0.0\')";
+                    v2Service.RawUrl = "https://localhost:8081/api/v2/Packages(Id='Foo', Version='1.0.0')";
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, v2Service.RawUrl);
                     var options = new ODataQueryOptions<V2FeedPackage>(
                         new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)),
