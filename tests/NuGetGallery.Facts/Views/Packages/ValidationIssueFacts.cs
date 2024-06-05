@@ -58,7 +58,7 @@ namespace NuGetGallery.Views.Packages
 
         private string GetTemplate()
         {
-            using (var stream = GetType().Assembly.GetManifestResourceStream("NuGetGallery.Views.Packages._ValidationIssue.cshtml"))
+            using (var stream = GetType().Assembly.GetManifestResourceStream("NuGetGallery.Facts.Views.Packages._ValidationIssue.cshtml"))
             using (var streamReader = new StreamReader(stream))
             {
                 return streamReader.ReadToEnd();
