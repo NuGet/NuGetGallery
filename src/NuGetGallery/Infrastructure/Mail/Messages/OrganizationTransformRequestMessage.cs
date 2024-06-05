@@ -47,7 +47,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             return new EmailRecipients(
                 to: _adminUser.EmailAllowed
                     ? new[] { _adminUser.ToMailAddress() }
-                    : new MailAddress[0],
+                    : Array.Empty<MailAddress>(),
                 replyTo: new[] { _accountToTransform.ToMailAddress() });
         }
 

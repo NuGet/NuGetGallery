@@ -117,7 +117,7 @@ namespace NuGetGallery
 
             MockReservedNamespaceService
                 .Setup(s => s.GetReservedNamespacesForId(It.IsAny<string>()))
-                .Returns(new ReservedNamespace[0]);
+                .Returns(Array.Empty<ReservedNamespace>());
 
             MockPackageUploadService
                 .Setup(x => x.ValidateBeforeGeneratePackageAsync(
