@@ -198,10 +198,10 @@ namespace NuGetGallery.Infrastructure
             var elmahException = error.Exception as ElmahException;
             if (elmahException != null)
             {
-                var piiServerVaribles = elmahException.ServerVariables;
-                foreach (var key in piiServerVaribles.Keys)
+                var piiServerVariables = elmahException.ServerVariables;
+                foreach (var key in piiServerVariables.Keys)
                 {
-                    error.ServerVariables[key] = piiServerVaribles[key];
+                    error.ServerVariables[key] = piiServerVariables[key];
                 }
             }
 
