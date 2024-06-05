@@ -8,6 +8,5 @@ namespace NuGetGallery
         PrimaryOnly,
         PrimaryThenSecondary,
         SecondaryOnly,
-        SecondaryThenPrimary
     }
 }

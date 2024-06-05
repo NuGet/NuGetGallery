@@ -286,13 +286,24 @@ namespace NuGetGallery
             TimeSpan serverTimeout,
             CancellationToken cancellationToken)
         {
-            var newClient = _container.Account.CreateBlockBlobClient(this, new BlobClientOptions {
+            BlockBlobClient newClient;
+            BlobClientOptions options = new BlobClientOptions
+            {
                 Retry = {
                     NetworkTimeout = serverTimeout,
                     Mode = Azure.Core.RetryMode.Exponential,
                 },
-            });
-
+            };
+            if (_container?.Account != null)
+            {
+                newClient = _container.Account.CreateBlockBlobClient(this, options);
+            }
+            else
+            {
+                // this might happen if we created blob wrapper from URL, we'll assume authentication
+                // is built into URI or blob is public.
+                newClient = new BlockBlobClient(_blob.Uri, options);
+            }
             return await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 newClient.OpenReadAsync(options: null, cancellationToken));
         }
