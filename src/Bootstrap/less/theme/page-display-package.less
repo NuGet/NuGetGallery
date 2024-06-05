@@ -55,6 +55,8 @@
       align-items: center;
       border-radius: 100px;
       vertical-align: middle;
+      gap: 4px;
+      padding: 0px 6px;
 
       .reserved-indicator {
         width: 18px;
@@ -250,7 +252,8 @@
 
     li {
       margin-bottom: 14px;
-      display: block;
+      display: flex;
+      align-items: center;
       overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;
@@ -277,10 +280,23 @@
     }
   }
 
+  .git-image-icon{
+    background-image: var(--git-background-image);
+    width: 16px;
+    height: 16px;
+    background-size: 16px 16px;
+    position: absolute;
+    left: -24px;
+    top: 3px;
+  }
+
   .share-buttons {
-    img {
-      margin-right: 8px;
-      display: inline-block;
+    display: flex;
+    gap: 10px;
+
+    a {
+      display: flex;
+      align-items: center;
     }
   }
 

@@ -1863,36 +1863,36 @@ input[type="search"] {
   margin: 8px;
 }
 .brand-radio input[type="radio"]:checked {
-  background: -webkit-radial-gradient(var(--brandForegroundCompoundRest) 0%, var(--brandForegroundCompoundRest) 40%, transparent 50%, transparent);
-  background: -o-radial-gradient(var(--brandForegroundCompoundRest) 0%, var(--brandForegroundCompoundRest) 40%, transparent 50%, transparent);
-  background: radial-gradient(var(--brandForegroundCompoundRest) 0%, var(--brandForegroundCompoundRest) 40%, transparent 50%, transparent);
-  border-color: var(--brandForegroundCompoundRest);
+  background: -webkit-radial-gradient(var(--brandBackground1Rest) 0%, var(--brandBackground1Rest) 45%, transparent 50%, transparent);
+  background: -o-radial-gradient(var(--brandBackground1Rest) 0%, var(--brandBackground1Rest) 45%, transparent 50%, transparent);
+  background: radial-gradient(var(--brandBackground1Rest) 0%, var(--brandBackground1Rest) 45%, transparent 50%, transparent);
+  border-color: var(--brandBackground1Rest);
 }
 .brand-radio:hover input[type="radio"]:checked {
-  background: -webkit-radial-gradient(var(--brandForegroundCompoundHover) 0%, var(--brandForegroundCompoundHover) 40%, transparent 50%, transparent);
-  background: -o-radial-gradient(var(--brandForegroundCompoundHover) 0%, var(--brandForegroundCompoundHover) 40%, transparent 50%, transparent);
-  background: radial-gradient(var(--brandForegroundCompoundHover) 0%, var(--brandForegroundCompoundHover) 40%, transparent 50%, transparent);
-  border-color: var(--brandForegroundCompoundHover);
+  background: -webkit-radial-gradient(var(--brandBackground1Hover) 0%, var(--brandBackground1Hover) 45%, transparent 50%, transparent);
+  background: -o-radial-gradient(var(--brandBackground1Hover) 0%, var(--brandBackground1Hover) 45%, transparent 50%, transparent);
+  background: radial-gradient(var(--brandBackground1Hover) 0%, var(--brandBackground1Hover) 45%, transparent 50%, transparent);
+  border-color: var(--brandBackground1Hover);
   color: var(--neutralForeground1Rest);
 }
 .brand-radio:hover input[type="radio"]:not(:checked) {
-  border-color: var(--neutralStrokeAccessibleHover);
+  border-color: var(--brandBackground1Hover);
   color: var(--neutralForeground1Rest);
 }
 .brand-radio:active input[type="radio"]:checked {
-  background: -webkit-radial-gradient(var(--brandStrokeCompoundPressed) 0%, var(--brandStrokeCompoundPressed) 40%, transparent 50%, transparent);
-  background: -o-radial-gradient(var(--brandStrokeCompoundPressed) 0%, var(--brandStrokeCompoundPressed) 40%, transparent 50%, transparent);
-  background: radial-gradient(var(--brandStrokeCompoundPressed) 0%, var(--brandStrokeCompoundPressed) 40%, transparent 50%, transparent);
-  border-color: var(--brandStrokeCompoundPressed);
+  background: -webkit-radial-gradient(var(--neutralForeground2BrandSelected) 0%, var(--neutralForeground2BrandSelected) 45%, transparent 50%, transparent);
+  background: -o-radial-gradient(var(--neutralForeground2BrandSelected) 0%, var(--neutralForeground2BrandSelected) 45%, transparent 50%, transparent);
+  background: radial-gradient(var(--neutralForeground2BrandSelected) 0%, var(--neutralForeground2BrandSelected) 45%, transparent 50%, transparent);
+  border-color: var(--neutralForeground2BrandSelected);
 }
 .brand-radio:active input[type="radio"]:not(:checked) {
   color: var(--neutralForeground1Rest);
-  border-color: var(--neutralStrokeAccessiblePressed);
+  border-color: var(--neutralForeground2BrandSelected);
 }
 .brand-radio:focus-within,
 .brand-radio:focus-visible,
 .brand-radio:focus {
-  color: var(--neutralForeground3Rest);
+  color: var(--neutralForeground1Rest);
   outline: 2px solid var(--neutralStrokeFocus2Rest) !important;
   outline-offset: 0px;
   border-radius: 1px;
@@ -1940,7 +1940,7 @@ input[type="checkbox"].brand-checkbox:checked::after {
 input[type="checkbox"].brand-checkbox:checked {
   background-color: var(--brandBackgroundCompoundRest);
   border-color: var(--brandBackgroundCompoundRest);
-  color: var(--neutralForegroundInverted1Rest);
+  color: var(--neutralForeground1Rest);
 }
 input[type="checkbox"].brand-checkbox:hover input[type="checkbox"].brand-checkbox:checked {
   background-color: var(--brandBackgroundCompoundHover);
@@ -2036,30 +2036,31 @@ input[type="checkbox"].brand-checkbox:focus {
 }
 .brand-checkbox input[type="checkbox"]:indeterminate,
 .brand-checkbox input[type="checkbox"]:checked {
-  background-color: var(--brandBackgroundCompoundRest);
-  border-color: var(--brandBackgroundCompoundRest);
-  color: var(--neutralForegroundInverted1Rest);
+  background-color: var(--brandBackground1Rest);
+  border-color: var(--brandBackground1Rest);
+  color: var(--neutralForegroundOnBrandRest);
 }
 .brand-checkbox:hover input[type="checkbox"]:indeterminate,
 .brand-checkbox:hover input[type="checkbox"]:checked {
-  background-color: var(--brandBackgroundCompoundHover);
-  border-color: var(--brandBackgroundCompoundHover);
-  color: var(--neutralForegroundInverted1Hover);
+  background-color: var(--brandBackground1Hover);
+  border-color: var(--brandBackground1Hover);
+  color: var(--neutralForegroundOnBrandRest);
 }
 .brand-checkbox:hover input[type="checkbox"]:not(:indeterminate):not(:checked),
 .brand-checkbox:hover input[type="checkbox"]:not(:checked):not(:indeterminate) {
-  border-color: var(--neutralStrokeAccessibleHover);
-  color: var(--neutralForegroundInverted1Hover);
+  border-color: var(--brandBackground1Hover);
+  color: var(--neutralForegroundOnBrandRest);
 }
-.brand-checkbox:active input[type="checkbox"]:indeterminate input[type="checkbox"]:checked {
-  background-color: var(--brandBackgroundCompoundPressed);
-  border-color: var(--brandBackgroundCompoundPressed);
-  color: var(--neutralForegroundInverted1Pressed);
+.brand-checkbox:active input[type="checkbox"]:indeterminate,
+.brand-checkbox:active input[type="checkbox"]:checked {
+  background-color: var(--neutralForeground2BrandSelected);
+  border-color: var(--neutralForeground2BrandSelected);
+  color: var(--neutralForegroundOnBrandRest);
 }
 .brand-checkbox:active input[type="checkbox"]:not(:indeterminate):not(:checked),
 .brand-checkbox:active input[type="checkbox"]:not(:checked):not(:indeterminate) {
-  border-color: var(--neutralStrokeAccessiblePressed);
-  color: var(--neutralForegroundInverted1Pressed);
+  border-color: var(--neutralForeground2BrandSelected);
+  color: var(--neutralForegroundOnBrandRest);
 }
 .brand-checkbox:focus-within,
 .brand-checkbox:focus-visible,
@@ -3393,6 +3394,12 @@ fieldset[disabled] .btn-danger.focus {
   color: var(--neutralForegroundStaticInvertedRest);
   background-color: var(--statusDangerBackground3Hover);
 }
+.btn-brand-danger .ms-Icon {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
 .btn-brand-danger:active,
 .btn-brand-danger:active:focus {
   color: var(--neutralForegroundStaticInvertedRest);
@@ -4596,14 +4603,14 @@ fieldset[disabled] .navbar-default .btn-link:focus {
   color: #e3ebf1;
 }
 .navbar-inverse .navbar-nav > li > a {
-  color: var(--neutralForeground2Rest);
+  color: var(--neutralForeground1Rest);
   font-size: 16px;
   font-weight: 400;
   line-height: 22px;
 }
 .navbar-inverse .navbar-nav > li > a:hover,
 .navbar-inverse .navbar-nav > li > a:focus {
-  color: var(--neutralForeground2Hover);
+  color: var(--neutralForeground1Hover);
   background-color: transparent;
 }
 .navbar-inverse .navbar-nav > .active > a,
@@ -4615,7 +4622,7 @@ fieldset[disabled] .navbar-default .btn-link:focus {
 .navbar-inverse .navbar-nav > .active > a:hover span,
 .navbar-inverse .navbar-nav > .active > a:focus span {
   padding: 5px 0;
-  border-bottom: 1px solid var(--neutralForeground2Rest);
+  border-bottom: 1px solid var(--neutralForeground1Rest);
 }
 .navbar-inverse .navbar-nav > .disabled > a,
 .navbar-inverse .navbar-nav > .disabled > a:hover,

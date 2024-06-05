@@ -84,39 +84,39 @@ input[type="search"] {
   }
 
   input[type="radio"]:checked {
-    background: radial-gradient(var(--brandForegroundCompoundRest) 0%, var(--brandForegroundCompoundRest) 40%, transparent 50%, transparent);
-    border-color: var(--brandForegroundCompoundRest);
+    background: radial-gradient(var(--brandBackground1Rest) 0%, var(--brandBackground1Rest) 45%, transparent 50%, transparent);
+    border-color: var(--brandBackground1Rest);
   }
 
   &:hover {  
     input[type="radio"]:checked {
-      background: radial-gradient(var(--brandForegroundCompoundHover) 0%, var(--brandForegroundCompoundHover) 40%, transparent 50%, transparent);
-      border-color: var(--brandForegroundCompoundHover);
+      background: radial-gradient(var(--brandBackground1Hover) 0%, var(--brandBackground1Hover) 45%, transparent 50%, transparent);
+      border-color: var(--brandBackground1Hover);
       color: var(--neutralForeground1Rest);
     }
 
     input[type="radio"]:not(:checked) {
-      border-color: var(--neutralStrokeAccessibleHover);
+      border-color: var(--brandBackground1Hover);
       color: var(--neutralForeground1Rest);
     }
   }
 
   &:active {
     input[type="radio"]:checked {
-      background: radial-gradient(var(--brandStrokeCompoundPressed) 0%, var(--brandStrokeCompoundPressed) 40%, transparent 50%, transparent);
-      border-color: var(--brandStrokeCompoundPressed);
+      background: radial-gradient(var(--neutralForeground2BrandSelected) 0%, var(--neutralForeground2BrandSelected) 45%, transparent 50%, transparent);
+      border-color: var(--neutralForeground2BrandSelected);
     }
 
     input[type="radio"]:not(:checked) {
       color: var(--neutralForeground1Rest);
-      border-color: var(--neutralStrokeAccessiblePressed);
+      border-color: var(--neutralForeground2BrandSelected);
     }
   }
 
   &:focus-within,
   &:focus-visible,
   &:focus {
-    color: var(--neutralForeground3Rest);
+    color: var(--neutralForeground1Rest);
 
     outline: 2px solid var(--neutralStrokeFocus2Rest) !important;
     outline-offset: 0px;
@@ -156,7 +156,7 @@ input[type="checkbox"].brand-checkbox:checked::after {
 input[type="checkbox"].brand-checkbox:checked {
   background-color: var(--brandBackgroundCompoundRest);
   border-color: var(--brandBackgroundCompoundRest);
-  color: var(--neutralForegroundInverted1Rest);;
+  color: var(--neutralForeground1Rest);
 }
 
 input[type="checkbox"].brand-checkbox:hover {
@@ -244,38 +244,38 @@ input[type="checkbox"].brand-checkbox:focus {
 
   input[type="checkbox"]:indeterminate,
   input[type="checkbox"]:checked {
-    background-color: var(--brandBackgroundCompoundRest);
-    border-color: var(--brandBackgroundCompoundRest);
-    color: var(--neutralForegroundInverted1Rest);;
+    background-color: var(--brandBackground1Rest);
+    border-color: var(--brandBackground1Rest);
+    color: var(--neutralForegroundOnBrandRest);
   }
 
   &:hover {
     input[type="checkbox"]:indeterminate,
     input[type="checkbox"]:checked {
-      background-color: var(--brandBackgroundCompoundHover);
-      border-color: var(--brandBackgroundCompoundHover);
-      color: var(--neutralForegroundInverted1Hover);
+      background-color: var(--brandBackground1Hover);
+      border-color: var(--brandBackground1Hover);
+      color: var(--neutralForegroundOnBrandRest);
     }
     
     input[type="checkbox"]:not(:indeterminate):not(:checked),
     input[type="checkbox"]:not(:checked):not(:indeterminate) {
-      border-color: var(--neutralStrokeAccessibleHover);
-      color: var(--neutralForegroundInverted1Hover);
+      border-color: var(--brandBackground1Hover);
+      color: var(--neutralForegroundOnBrandRest);
     }
   }
 
   &:active {
-    input[type="checkbox"]:indeterminate
+    input[type="checkbox"]:indeterminate,
     input[type="checkbox"]:checked {
-      background-color: var(--brandBackgroundCompoundPressed);
-      border-color: var(--brandBackgroundCompoundPressed);
-      color: var(--neutralForegroundInverted1Pressed);
+      background-color: var(--neutralForeground2BrandSelected);
+      border-color: var(--neutralForeground2BrandSelected);
+      color: var(--neutralForegroundOnBrandRest);
     }
 
     input[type="checkbox"]:not(:indeterminate):not(:checked),
     input[type="checkbox"]:not(:checked):not(:indeterminate) {
-      border-color: var(--neutralStrokeAccessiblePressed);
-      color: var(--neutralForegroundInverted1Pressed);
+      border-color: var(--neutralForeground2BrandSelected);
+      color: var(--neutralForegroundOnBrandRest);
     }
   }
 

@@ -81,7 +81,7 @@
                 {
                     <div class="toggle-advanced-search-panel">
                         <span>Advanced search filters</span>
-                        <button class ="advanced-search-toggle-button brand-button-transparent" aria-label="Toggles search filters on narrow screens" aria-expanded="false" aria-controls="advancedSearchToggleButton" tabindex="0" id="advancedSearchToggleButton" type="button">
+                        <button class ="advanced-search-toggle-button btn-brand-transparent" aria-label="Toggles search filters on narrow screens" aria-expanded="false" aria-controls="advancedSearchToggleButton" tabindex="0" id="advancedSearchToggleButton" type="button">
                         <i class="ms-Icon ms-Icon--ChevronDown" id="advancedSearchToggleChevron" ></i></button>
                     </div>
                     <div class="row clearfix advanced-search-panel" id="advancedSearchPanel">
@@ -91,14 +91,17 @@
                         {
                             <div>
                                 <fieldset id="frameworkfilters">
-                                    <legend>
+                                    <legend style="display: flex; gap: 6px;">
                                         <a href="@(Model.FrameworksFilteringInformationLink)" class="frameworkfilters-info"
                                            data-content="@NuGetGallery.Strings.FrameworkFilters_Tooltip"
                                            aria-label="@NuGetGallery.Strings.FrameworkFilters_Tooltip">
                                             Frameworks
                                         </a>
                                         <a class="tooltip-target" href="javascript:void(0)">
+                                            <span>
                                             <i class="framework-filter-info-icon ms-Icon ms-Icon--Info"></i>
+
+                                            </span>
                                             <span class="tooltip-block" role="tooltip">
                                                 <span class="tooltip-wrapper tooltip-with-icon popover right">
                                                     <span class="arrow"></span>
