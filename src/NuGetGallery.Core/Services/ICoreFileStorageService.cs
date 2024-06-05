@@ -54,7 +54,7 @@ namespace NuGetGallery
         /// <param name="permissions">The permissions to give to the privileged URI.</param>
         /// <param name="endOfAccess">The time when the access ends.</param>
         /// <returns>The URI with privileged access.</returns>
-        Task<Uri> GetPriviledgedFileUriAsync(
+        Task<Uri> GetPrivilegedFileUriAsync(
             string folderName,
             string fileName,
             FileUriPermissions permissions,

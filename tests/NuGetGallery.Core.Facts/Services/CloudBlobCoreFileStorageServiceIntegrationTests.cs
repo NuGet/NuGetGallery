@@ -542,7 +542,7 @@ namespace NuGetGallery
                 new MemoryStream(Encoding.ASCII.GetBytes(expectedContent)),
                 overwrite: false);
 
-            var deleteUri = await _targetA.GetPriviledgedFileUriAsync(
+            var deleteUri = await _targetA.GetPrivilegedFileUriAsync(
                 folderName,
                 fileName,
                 FileUriPermissions.Read | FileUriPermissions.Delete,
