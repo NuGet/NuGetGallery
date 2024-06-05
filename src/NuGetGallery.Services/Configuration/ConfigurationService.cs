@@ -85,7 +85,6 @@ namespace NuGetGallery.Configuration
         /// Gets the site root using the specified protocol
         /// </summary>
         /// <param name="useHttps">If true, the root will be returned in HTTPS form, otherwise, HTTP.</param>
-        /// <returns></returns>
         public string GetSiteRoot(bool useHttps)
         {
             return useHttps ? _httpsSiteRootThunk.Value : _httpSiteRootThunk.Value;
@@ -94,7 +93,6 @@ namespace NuGetGallery.Configuration
         /// <summary>
         /// Gets the support email site root using the specified protocol
         /// </summary>
-        /// <returns></returns>
         public string GetSupportEmailSiteRoot()
         {
             return _httpsEmailSupportSiteRootThunk.Value;

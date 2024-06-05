@@ -95,7 +95,6 @@ namespace NuGetGallery
         /// <summary>
         /// Whether the icons are assumed to be present in flat container.
         /// </summary>
-        /// <returns></returns>
         bool IsForceFlatContainerIconsEnabled();
 
         /// <summary>

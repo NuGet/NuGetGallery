@@ -35,9 +35,9 @@ namespace NuGetGallery
 
         private static readonly Lazy<Expression<Func<Package, bool>>> _isSemVer2 = new Lazy<Expression<Func<Package, bool>>>(() =>
         {
-            /// Since <see cref="Unknown"/> is not a constant, we must explicitly construct the expression to force
-            /// that value to be considered a constant. If <see cref="Unknown"/> is not considered a constant, the
-            /// expression that is converted to SQL by Entity Framework is less efficient.
+            // Since <see cref="Unknown"/> is not a constant, we must explicitly construct the expression to force
+            // that value to be considered a constant. If <see cref="Unknown"/> is not considered a constant, the
+            // expression that is converted to SQL by Entity Framework is less efficient.
             var parameter = Expression.Parameter(typeof(Package), "p");
             var property = Expression.Property(parameter, nameof(Package.SemVerLevelKey));
             return Expression.Lambda<Func<Package, bool>>(

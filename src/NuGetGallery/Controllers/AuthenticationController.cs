@@ -104,7 +104,6 @@ namespace NuGetGallery
             return SignInNuGetAccountView(new LogOnViewModel());
         }
 
-        /// </summary>
         [HttpGet]
         public virtual ActionResult SignUp(string returnUrl)
         {

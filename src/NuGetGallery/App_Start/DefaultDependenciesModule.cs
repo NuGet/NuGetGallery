@@ -1428,12 +1428,12 @@ namespace NuGetGallery
 
         private static void ConfigureForAzureStorage(ContainerBuilder builder, IGalleryConfigurationService configuration, ITelemetryService telemetryService)
         {
-            /// The goal here is to initialize a <see cref="ICloudBlobClient"/> and <see cref="IFileStorageService"/>
-            /// instance for each unique connection string. Each dependent of <see cref="IFileStorageService"/> (that
-            /// is, each service that has a <see cref="IFileStorageService"/> constructor parameter) is registered in
-            /// <see cref="StorageDependent.GetAll(IAppConfiguration)"/> and is grouped by the respective storage
-            /// connection string. Each group is given a binding key which refers to the appropriate instance of the
-            /// <see cref="IFileStorageService"/>.
+            // The goal here is to initialize a <see cref="ICloudBlobClient"/> and <see cref="IFileStorageService"/>
+            // instance for each unique connection string. Each dependent of <see cref="IFileStorageService"/> (that
+            // is, each service that has a <see cref="IFileStorageService"/> constructor parameter) is registered in
+            // <see cref="StorageDependent.GetAll(IAppConfiguration)"/> and is grouped by the respective storage
+            // connection string. Each group is given a binding key which refers to the appropriate instance of the
+            // <see cref="IFileStorageService"/>.
             var completedBindingKeys = new HashSet<string>();
             foreach (var dependent in StorageDependent.GetAll(configuration.Current))
             {

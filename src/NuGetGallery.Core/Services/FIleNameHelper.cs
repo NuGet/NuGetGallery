@@ -68,7 +68,7 @@ namespace NuGetGallery
         /// method fixes the separators so those paths can be used to retrieve files from zip
         /// archive.
         /// </remarks>
-        /// <param name="fileName">File name to fix.</param>
+        /// <param name="filePath">File path to fix.</param>
         /// <returns>File path with proper path separators.</returns>
         public static string GetZipEntryPath(string filePath)
         {
