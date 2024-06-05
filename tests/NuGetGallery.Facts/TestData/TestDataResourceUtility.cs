@@ -9,7 +9,7 @@ namespace NuGetGallery
 {
     internal static class TestDataResourceUtility
     {
-        private static readonly string ResourceNameFormat = "NuGetGallery.TestData.{0}";
+        private static readonly string ResourceNameFormat = "NuGetGallery.Facts.TestData.{0}";
         private static readonly Assembly CurrentAssembly = typeof(TestDataResourceUtility).Assembly;
 
         internal static byte[] GetResourceBytes(string name)
@@ -32,7 +32,6 @@ namespace NuGetGallery
         private static Stream GetManifestResourceStream(string name)
         {
             var resourceName = GetResourceName(name);
-
             return CurrentAssembly.GetManifestResourceStream(resourceName);
         }
 
