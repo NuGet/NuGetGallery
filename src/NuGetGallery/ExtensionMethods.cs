@@ -283,7 +283,7 @@ namespace NuGetGallery
                     sb.Append(String.Join(", ",
                         profiles.Select(s => NuGetFramework.Parse(s).ToFriendlyName(allowRecurseProfile: false))));
 
-                    sb.Append(")");
+                    sb.Append(')');
                 }
             }
             else
