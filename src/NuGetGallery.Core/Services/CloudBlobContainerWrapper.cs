@@ -45,23 +45,19 @@ namespace NuGetGallery
                 }
             }
 
-            BlobRequestOptions options = null;
-            if (requestTimeout.HasValue || cloudBlobLocationMode.HasValue)
+            BlobContainerClient blobContainerClient = _blobContainer;
+            if (cloudBlobLocationMode.HasValue)
             {
-                options = new BlobRequestOptions();
-                if (requestTimeout.HasValue)
-                {
-                    options.ServerTimeout = requestTimeout.Value;
-                }
-                if (cloudBlobLocationMode.HasValue)
-                {
-                    options.LocationMode = CloudWrapperHelpers.GetSdkRetryPolicy(cloudBlobLocationMode.Value);
-                }
+                blobContainerClient = _account.CreateBlobContainerClient(cloudBlobLocationMode.Value, _blobContainer.Name, requestTimeout) ?? blobContainerClient;
+            }
+            else if (requestTimeout.HasValue)
+            {
+                blobContainerClient = _account.CreateBlobContainerClient(_blobContainer.Name, requestTimeout.Value);
             }
 
             BlobTraits traits = CloudWrapperHelpers.GetSdkBlobTraits(blobListingDetails);
             BlobStates states = CloudWrapperHelpers.GetSdkBlobStates(blobListingDetails);
-            var enumerable = _blobContainer
+            var enumerable = blobContainerClient
                 .GetBlobsAsync(traits: traits, states: states, prefix: prefix, cancellationToken: cancellationToken)
                 .AsPages(continuationToken, maxResults);
 
@@ -94,21 +90,18 @@ namespace NuGetGallery
 
         public ISimpleCloudBlob GetBlobReference(string blobAddressUri)
         {
-            return new CloudBlobWrapper(_blobContainer.GetBlockBlobClient(blobAddressUri));
+            return new CloudBlobWrapper(_blobContainer.GetBlockBlobClient(blobAddressUri), this);
         }
 
         public async Task<bool> ExistsAsync(CloudBlobLocationMode? cloudBlobLocationMode)
         {
-            BlobRequestOptions options = null;
+            BlobContainerClient containerClient = _blobContainer;
             if (cloudBlobLocationMode.HasValue)
             {
-                options = new BlobRequestOptions
-                {
-                    LocationMode = CloudWrapperHelpers.GetSdkRetryPolicy(cloudBlobLocationMode.Value),
-                };
+                containerClient = _account.CreateBlobContainerClient(cloudBlobLocationMode.Value, _blobContainer.Name) ?? containerClient;
             }
             return (await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
-                _blobContainer.ExistsAsync())).Value;
+                containerClient.ExistsAsync())).Value;
         }
 
         public async Task<bool> DeleteIfExistsAsync()

@@ -86,13 +86,33 @@ namespace NuGetGallery
             return new BlockBlobClient(_storageConnectionString, original.Container, original.Name, newOptions);
         }
 
-        internal BlobContainerClient CreateBlobContainerClient(CloudBlobLocationMode locationMode, string containerName)
+        internal BlobContainerClient CreateBlobContainerClient(string containerName, TimeSpan requestTimeout)
         {
+            if (containerName == null)
+            {
+                throw new ArgumentNullException(nameof(containerName));
+            }
+
+            var newService = CreateBlobServiceClient(CreateBlobOptions(_readAccessGeoRedundant, requestTimeout));
+            return newService.GetBlobContainerClient(containerName);
+        }
+
+        internal BlobContainerClient CreateBlobContainerClient(CloudBlobLocationMode locationMode, string containerName, TimeSpan? requestTimeout = null)
+        {
+            if (containerName == null)
+            {
+                throw new ArgumentNullException(nameof(containerName));
+            }
+
             if ((locationMode == CloudBlobLocationMode.PrimaryThenSecondary)
                 || (!_readAccessGeoRedundant && locationMode == CloudBlobLocationMode.PrimaryOnly))
             {
                 // Requested location mode is the same as we expect.
                 // If we are not supposed to be using RA-GRS, then there is no difference between PrimaryOnly and PrimaryThenSecondary
+                if (requestTimeout.HasValue)
+                {
+                    return CreateBlobContainerClient(containerName, requestTimeout.Value);
+                }
                 return null;
             }
 
@@ -102,12 +122,12 @@ namespace NuGetGallery
                 {
                     throw new InvalidOperationException("Can't get secondary region for non RA-GRS storage services");
                 }
-                var service = CreateSecondaryBlobServiceClient(options: null);
+                var service = CreateSecondaryBlobServiceClient(CreateBlobOptions(readAccessGeoRedundant: false, requestTimeout));
                 return service.GetBlobContainerClient(containerName);
             }
             if (locationMode == CloudBlobLocationMode.PrimaryOnly)
             {
-                var service = CreateBlobServiceClient(readAccessGeoRedundant: false);
+                var service = CreateBlobServiceClient(CreateBlobOptions(readAccessGeoRedundant: false, requestTimeout));
                 return service.GetBlobContainerClient(containerName);
             }
             throw new ArgumentOutOfRangeException(nameof(locationMode));
@@ -133,18 +153,22 @@ namespace NuGetGallery
 
         private BlobServiceClient CreateBlobServiceClient()
         {
-            return CreateBlobServiceClient(_readAccessGeoRedundant);
+            return CreateBlobServiceClient(CreateBlobOptions(_readAccessGeoRedundant));
         }
 
-        private BlobServiceClient CreateBlobServiceClient(bool readAccessGeoRedundant)
+        private BlobClientOptions CreateBlobOptions(bool readAccessGeoRedundant, TimeSpan? requestTimeout = null)
         {
             var options = new BlobClientOptions();
             if (readAccessGeoRedundant)
             {
                 options.GeoRedundantSecondaryUri = _grsServiceUri.Value;
             }
+            if (requestTimeout.HasValue)
+            {
+                options.Retry.NetworkTimeout = requestTimeout.Value;
+            }
 
-            return CreateBlobServiceClient(options);
+            return options;
         }
 
         private BlobServiceClient CreateBlobServiceClient(BlobClientOptions options)
