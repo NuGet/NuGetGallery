@@ -362,7 +362,7 @@ namespace NuGetGallery
             return blob.Uri;
         }
 
-        public async Task<Uri> GetPriviledgedFileUriAsync(
+        public async Task<Uri> GetPrivilegedFileUriAsync(
             string folderName,
             string fileName,
             FileUriPermissions permissions,

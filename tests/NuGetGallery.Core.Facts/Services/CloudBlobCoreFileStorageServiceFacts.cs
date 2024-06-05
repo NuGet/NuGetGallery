@@ -721,7 +721,7 @@ namespace NuGetGallery
             }
         }
 
-        public class TheGetPriviledgedFileUriAsyncMethod
+        public class TheGetPrivilegedFileUriAsyncMethod
         {
             private const string folderName = "theFolderName";
             private const string fileName = "theFileName";
@@ -732,7 +732,7 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.GetPriviledgedFileUriAsync(
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.GetPrivilegedFileUriAsync(
                     null,
                     fileName,
                     FileUriPermissions.Read,
@@ -745,7 +745,7 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.GetPriviledgedFileUriAsync(
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.GetPrivilegedFileUriAsync(
                     folderName,
                     null,
                     FileUriPermissions.Read,
@@ -759,7 +759,7 @@ namespace NuGetGallery
                 var service = CreateService();
 
                 DateTimeOffset inThePast = DateTimeOffset.UtcNow.AddSeconds(-1);
-                var ex = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => service.GetPriviledgedFileUriAsync(
+                var ex = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => service.GetPrivilegedFileUriAsync(
                     folderName,
                     fileName,
                     FileUriPermissions.Read,
@@ -782,7 +782,7 @@ namespace NuGetGallery
                     .ReturnsAsync(signature);
                 var service = CreateService(fakeBlobClient);
 
-                var uri = await service.GetPriviledgedFileUriAsync(
+                var uri = await service.GetPrivilegedFileUriAsync(
                     containerName,
                     fileName,
                     FileUriPermissions.Read,
@@ -812,7 +812,7 @@ namespace NuGetGallery
 
                 var service = CreateService(fakeBlobClient);
 
-                var uri = await service.GetPriviledgedFileUriAsync(
+                var uri = await service.GetPrivilegedFileUriAsync(
                     folderName,
                     fileName,
                     FileUriPermissions.Read | FileUriPermissions.Delete,
