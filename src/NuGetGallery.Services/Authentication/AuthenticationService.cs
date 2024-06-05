@@ -715,7 +715,7 @@ namespace NuGetGallery.Authentication
 
         public virtual async Task EditCredentialScopes(User user, Credential cred, ICollection<Scope> newScopes)
         {
-            foreach (var oldScope in cred.Scopes.ToArray())
+            foreach (var oldScope in cred.Scopes)
             {
                 Entities.Scopes.Remove(oldScope);
             }

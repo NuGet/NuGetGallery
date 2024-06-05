@@ -81,7 +81,7 @@ namespace NuGetGallery
                 Trace.Verbose("Cache Expired.");
 
                 // Get the file from the content service
-                var filenames = extensions.Select(extension => name + extension).ToArray();
+                var filenames = extensions.Select(extension => name + extension);
 
                 foreach (var filename in filenames)
                 {

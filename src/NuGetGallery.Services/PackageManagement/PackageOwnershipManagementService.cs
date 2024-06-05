@@ -315,7 +315,7 @@ namespace NuGetGallery
             await _packageService.RemovePackageOwnerAsync(packageRegistration, ownerToBeRemoved, commitChanges: false);
 
             // Remove this package registration from the namespaces owned by this user that are owned by no other package owners
-            foreach (var reservedNamespace in packageRegistration.ReservedNamespaces.ToArray())
+            foreach (var reservedNamespace in packageRegistration.ReservedNamespaces)
             {
                 if (!packageRegistration.Owners
                     .Any(o => ActionsRequiringPermissions.AddPackageToReservedNamespace
