@@ -186,16 +186,26 @@
         width: 0px;
         margin: 0px;
       }
+      
+      input:not(:checked):hover + label {
+        border-color: var(--brandBackground1Hover);
+      }
+
+      input:checked:hover + label {
+        background-color: var(--brandBackground1Hover);
+        border-color: var(--brandBackground1Hover);
+      }
+
+      input:checked:active + label {
+        background-color: var(--neutralForeground2BrandSelected);
+        border-color: var(--neutralForeground2BrandSelected);
+      }
 
       input:checked:focus + label {
         outline-offset: -2px;
         box-shadow: inset 0px 0px 0px 1px var(--neutralStrokeFocus2Rest), inset 0px 0px 0px 2px var(--neutralStrokeFocus1Rest);
         border: 1px solid var(--neutralStrokeFocus2Rest);
         outline: none;
-      }
-
-      input:checked:hover + label {
-        background-color: var(--brandBackground1Hover);
       }
 
       label {
@@ -260,6 +270,7 @@
     display: none;
     margin: 30px 0px;
     box-shadow: 0px 0px 2px 0px rgba(0, 0, 0, 0.12), 0px 2px 4px 0px rgba(0, 0, 0, 0.14);
+    border-radius: 4px;
     background-color: var(--neutralBackground1Rest);
     position: relative;
     border: none;
@@ -289,20 +300,17 @@
   
   .tooltip-wrapper.popover {
     min-width: 276px;
-    left: -6px;
     position: absolute;
     transform: translateY(-50%);
-    top: calc(50% - 6px);
+    top: calc(50%);
   }
   
   .tooltip-wrapper.popover.tooltip-with-icon {
-    left: -7px;
-    top: calc(50% - 6px);
+    top: calc(50%);
   }
   
   .tooltip-block {
     position: relative;
-    display: inline-block;
     color: var(--neutralForeground1Rest);
   
     .popover-content {
