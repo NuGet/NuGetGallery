@@ -12,8 +12,7 @@ namespace NuGetGallery
     {
         public static T ExpectOkNegotiatedContentResult<T>(this IHttpActionResult actionResult)
         {
-            var negotiatedContentResult = actionResult as OkNegotiatedContentResult<T>;
-            if (negotiatedContentResult != null)
+            if (actionResult is OkNegotiatedContentResult<T> negotiatedContentResult)
             {
                 return negotiatedContentResult.Content;
             }
@@ -23,8 +22,7 @@ namespace NuGetGallery
 
         public static QueryResult<T> ExpectQueryResult<T>(this IHttpActionResult actionResult)
         {
-            var queryResult = actionResult as QueryResult<T>;
-            if (queryResult != null)
+            if (actionResult is QueryResult<T> queryResult)
             {
                 return queryResult;
             }

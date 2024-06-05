@@ -272,8 +272,7 @@ namespace NuGetGallery
 
             if (configuration.StorageType == StorageType.AzureStorage)
             {
-                var cloudDownloadCountService = DependencyResolver.Current.GetService<IDownloadCountService>() as CloudDownloadCountService;
-                if (cloudDownloadCountService != null)
+                if (DependencyResolver.Current.GetService<IDownloadCountService>() is CloudDownloadCountService cloudDownloadCountService)
                 {
                     // Perform initial refresh + schedule new refreshes every 15 minutes
                     HostingEnvironment.QueueBackgroundWorkItem(_ => cloudDownloadCountService.RefreshAsync());

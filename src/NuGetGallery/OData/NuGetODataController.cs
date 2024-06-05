@@ -43,8 +43,7 @@ namespace NuGetGallery.OData
             object context;
             if (Request.Properties.TryGetValue("MS_HttpContext", out context))
             {
-                var httpContext = context as HttpContext;
-                if (httpContext != null)
+                if (context is HttpContext httpContext)
                 {
                     return new HttpContextWrapper(httpContext);
                 }

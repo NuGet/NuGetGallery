@@ -25,8 +25,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
         {
             base.ApplyToOwinSecurityOptions(options);
 
-            var opts = options as OpenIdConnectAuthenticationOptions;
-            if (opts != null)
+            if (options is OpenIdConnectAuthenticationOptions opts)
             {
                 // Set passive so that a HTTP 401 does not automatically trigger
                 // Microsoft Entra ID authentication. NuGet uses an explicit challenge to trigger

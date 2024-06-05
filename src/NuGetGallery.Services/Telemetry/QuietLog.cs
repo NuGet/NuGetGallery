@@ -22,8 +22,7 @@ namespace NuGetGallery
         {
             var aggregateExceptionId = Guid.NewGuid().ToString();
 
-            var aggregateException = e as AggregateException;
-            if (aggregateException != null)
+            if (e is AggregateException aggregateException)
             {
                 LogHandledExceptionCore(aggregateException, aggregateExceptionId);
 
@@ -47,8 +46,7 @@ namespace NuGetGallery
         {
             var aggregateExceptionId = Guid.NewGuid().ToString();
 
-            var aggregateException = e as AggregateException;
-            if (aggregateException != null)
+            if (e is AggregateException aggregateException)
             {
                 LogHandledExceptionCore(aggregateException, aggregateExceptionId, errorLog);
 

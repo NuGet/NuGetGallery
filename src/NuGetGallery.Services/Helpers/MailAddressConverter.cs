@@ -31,8 +31,7 @@ namespace NuGetGallery.Configuration
 
         public override object ConvertTo(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value, Type destinationType)
         {
-            MailAddress srcValue = value as MailAddress;
-            if (srcValue != null && destinationType == typeof(string))
+            if (value is MailAddress srcValue && destinationType == typeof(string))
             {
                 return String.Format(CultureInfo.CurrentCulture, "{0} <{1}>", srcValue.DisplayName, srcValue.Address);
             }

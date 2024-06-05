@@ -325,8 +325,7 @@ namespace NuGetGallery.WebApi
 
             var queryResult = queryOptions.ApplyTo(queryable, _querySettings);
 
-            var projection = queryResult as IQueryable<IEdmEntityObject>;
-            if (projection != null)
+            if (queryResult is IQueryable<IEdmEntityObject> projection)
             {
                 return projection;
             }
