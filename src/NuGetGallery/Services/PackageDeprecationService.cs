@@ -153,7 +153,7 @@ namespace NuGetGallery
 
             if (_entitiesContext.HasChanges)
             {
-                using (var strategy = new SuspendDbExecutionStrategy())
+                using (new SuspendDbExecutionStrategy())
                 using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
                 {
                     await _entitiesContext.SaveChangesAsync();
