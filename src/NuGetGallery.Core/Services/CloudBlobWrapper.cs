@@ -26,6 +26,7 @@ namespace NuGetGallery
         public ICloudBlobCopyState CopyState { get; private set; }
         public Uri Uri => _blob.Uri;
         public string Name => _blob.Name;
+        public string Container => _blob.BlobContainerName;
         public DateTime LastModifiedUtc => _blobProperties.LastModifiedUtc;
         public string ETag => _blobProperties.ETag;
         public bool IsSnapshot => _blobProperties.IsSnapshot;
@@ -252,29 +253,48 @@ namespace NuGetGallery
                 throw new ArgumentException($"The source blob must be a {nameof(CloudBlobWrapper)}.");
             }
 
+            // We sort of have 3 cases here:
+            // 1. sourceWrapper was created using connections string containing account key (shouldn't be the case any longer)
+            //    In this case sourcWrapper.Uri would be a "naked" URI to the blob request to which will fail unless blob is in
+            //    the public container. However, in this case we'd be able to generate SAS URL to use to access it.
+            // 2. sourceWrapper was created using connection string using SAS token. In this case sourceWrapper.Uri will have
+            //    the same SAS token attached to it automagically (that seems to be Azure.Storage.Blobs feature).
+            // 3. sourceWrapper uses token credential (MSI or something else provided by Azure.Identity). In this case URI will still
+            //    be naked blob URI. However, assuming destination blob also uses token credential, the implementation seem to use
+            //    destination's token to try to access source and if that gives access, everything works. As long as we use the same
+            //    credential to access both storage accounts (which should be true for all our services), it should also work.
+            //
+            // If source blob is public none of the above matters.
+            var sourceUri = sourceWrapper.Uri;
+            if (sourceWrapper._blob.CanGenerateSasUri)
+            {
+                sourceUri = sourceWrapper._blob.GenerateSasUri(BlobSasPermissions.Read, DateTimeOffset.UtcNow.AddMinutes(60));
+            }
+
+            var options = new BlobCopyFromUriOptions
+            {
+                SourceConditions = CloudWrapperHelpers.GetSdkAccessCondition(sourceAccessCondition),
+                DestinationConditions = CloudWrapperHelpers.GetSdkAccessCondition(destAccessCondition),
+            };
+
             await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
-                _blob.StartCopyAsync(
-                    sourceWrapper._blob,
-                    sourceAccessCondition: CloudWrapperHelpers.GetSdkAccessCondition(sourceAccessCondition),
-                    destAccessCondition: CloudWrapperHelpers.GetSdkAccessCondition(destAccessCondition),
-                    options: null,
-                    operationContext: null));
+                _blob.StartCopyFromUriAsync(
+                    sourceUri, options));
         }
 
         public async Task<Stream> OpenReadStreamAsync(
             TimeSpan serverTimeout,
-            TimeSpan maxExecutionTime,
             CancellationToken cancellationToken)
         {
-            var blobRequestOptions = new BlobRequestOptions
-            {
-                ServerTimeout = serverTimeout,
-                MaximumExecutionTime = maxExecutionTime,
-                RetryPolicy = new ExponentialRetry(),
-            };
+            var newClient = _container.Account.CreateBlockBlobClient(this, new BlobClientOptions {
+                Retry = {
+                    NetworkTimeout = serverTimeout,
+                    Mode = Azure.Core.RetryMode.Exponential,
+                },
+            });
 
             return await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
-                _blob.OpenReadAsync(accessCondition, blobRequestOptions, operationContext, cancellationToken));
+                newClient.OpenReadAsync(options: null, cancellationToken));
         }
 
         public async Task<string> DownloadTextIfExistsAsync()
@@ -282,11 +302,20 @@ namespace NuGetGallery
             try
             {
                 return await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
-                    _blob.DownloadTextAsync());
+                    DownloadTextAsync());
             }
             catch (CloudBlobGenericNotFoundException)
             {
                 return null;
+            }
+        }
+
+        private async Task<string> DownloadTextAsync()
+        {
+            using (var downloadResult = (await _blob.DownloadStreamingAsync()).Value)
+            using (var textReader = new StreamReader(downloadResult.Content))
+            {
+                return await textReader.ReadToEndAsync();
             }
         }
 

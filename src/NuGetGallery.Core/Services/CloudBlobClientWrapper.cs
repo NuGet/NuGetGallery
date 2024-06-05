@@ -92,6 +92,19 @@ namespace NuGetGallery
             return new CloudBlobContainerWrapper(_blobClient.GetBlobContainerClient(containerAddress), this);
         }
 
+        internal BlockBlobClient CreateBlockBlobClient(CloudBlobWrapper original, BlobClientOptions newOptions)
+        {
+            if (_readAccessGeoRedundant)
+            {
+                newOptions.GeoRedundantSecondaryUri = _grsServiceUri.Value;
+            }
+            if (_tokenCredential != null)
+            {
+                return new BlockBlobClient(original.Uri, _tokenCredential, newOptions);
+            }
+            return new BlockBlobClient(_storageConnectionString, original.Container, original.Name, newOptions);
+        }
+
         internal BlobServiceClient Client => _blobClient;
         internal bool UsingTokenCredential => _tokenCredential != null;
 

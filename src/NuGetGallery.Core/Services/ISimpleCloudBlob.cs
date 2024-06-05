@@ -61,7 +61,6 @@ namespace NuGetGallery
         /// <returns>Read stream for a blob in blob storage.</returns>
         Task<Stream> OpenReadStreamAsync(
             TimeSpan serverTimeout,
-            TimeSpan maxExecutionTime,
             CancellationToken cancellationToken);
 
         Task SnapshotAsync(CancellationToken token);
