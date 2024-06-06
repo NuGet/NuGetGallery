@@ -7,6 +7,7 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
@@ -20,6 +21,7 @@ namespace NuGetGallery
         private readonly CloudBlobContainerWrapper _container;
         internal CloudBlobReadOnlyProperties _blobProperties = null;
         internal BlobHttpHeaders _blobHeaders = null;
+        private string _lastSeenEtag = null;
 
         public ICloudBlobProperties Properties { get; private set; }
         public IDictionary<string, string> Metadata { get; private set; }
@@ -28,7 +30,7 @@ namespace NuGetGallery
         public string Name => _blob.Name;
         public string Container => _blob.BlobContainerName;
         public DateTime LastModifiedUtc => _blobProperties.LastModifiedUtc;
-        public string ETag => _blobProperties.ETag;
+        public string ETag => _lastSeenEtag;
         public bool IsSnapshot => _blobProperties.IsSnapshot;
 
         public CloudBlobWrapper(BlockBlobClient blob, CloudBlobContainerWrapper container)
@@ -118,7 +120,7 @@ namespace NuGetGallery
 
         public async Task DownloadToStreamAsync(Stream target, IAccessCondition accessCondition)
         {
-            // 304s are not retried with Azure.Storage.Blobs
+            // 304s are not retried with Azure.Storage.Blobs, so need for custom retry policy
 
             BlobDownloadToOptions downloadOptions = null;
             if (accessCondition != null)
@@ -129,8 +131,8 @@ namespace NuGetGallery
                 };
             }
 
-            var response = await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
-                _blob.DownloadToAsync(target, downloadOptions));
+            var response = UpdateEtag(await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
+                _blob.DownloadToAsync(target, downloadOptions)));
 
             if (response.Status == (int)HttpStatusCode.NotModified)
             {
@@ -153,33 +155,32 @@ namespace NuGetGallery
 
         public async Task SetPropertiesAsync()
         {
-            await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
-                _blob.SetHttpHeadersAsync(_blobHeaders));
+            UpdateEtag(await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
+                _blob.SetHttpHeadersAsync(_blobHeaders)));
         }
 
         public async Task SetPropertiesAsync(IAccessCondition accessCondition)
         {
-            await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
+            UpdateEtag(await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blob.SetHttpHeadersAsync(
                     _blobHeaders,
-                    CloudWrapperHelpers.GetSdkAccessCondition(accessCondition)));
+                    CloudWrapperHelpers.GetSdkAccessCondition(accessCondition))));
         }
 
         public async Task SetMetadataAsync(IAccessCondition accessCondition)
         {
-            var props = (await _blob.GetPropertiesAsync()).Value;
-            await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
+            UpdateEtag(await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blob.SetMetadataAsync(
                     Metadata,
-                    CloudWrapperHelpers.GetSdkAccessCondition(accessCondition)));
+                    CloudWrapperHelpers.GetSdkAccessCondition(accessCondition))));
         }
 
         public async Task UploadFromStreamAsync(Stream source, bool overwrite)
         {
             if (overwrite)
             {
-                await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
-                    _blob.UploadAsync(source));
+                UpdateEtag(await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
+                    _blob.UploadAsync(source)));
             }
             else
             {
@@ -197,13 +198,13 @@ namespace NuGetGallery
                     Conditions = CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
                 };
             }
-            await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
-                _blob.UploadAsync(source, options));
+            UpdateEtag(await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
+                _blob.UploadAsync(source, options)));
         }
 
         public async Task FetchAttributesAsync()
         {
-            var blobProperties = (await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
+            var blobProperties = UpdateEtag(await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blob.GetPropertiesAsync())).Value;
             _blobProperties = new CloudBlobReadOnlyProperties(blobProperties);
             ReplaceHttpHeaders(blobProperties);
@@ -353,7 +354,7 @@ namespace NuGetGallery
 
         private async Task<string> DownloadTextAsync()
         {
-            using (var downloadResult = (await _blob.DownloadStreamingAsync()).Value)
+            using (var downloadResult = UpdateEtag(await _blob.DownloadStreamingAsync()).Value)
             using (var textReader = new StreamReader(downloadResult.Content))
             {
                 return await textReader.ReadToEndAsync();
@@ -388,6 +389,51 @@ namespace NuGetGallery
         private static bool IsBlobStorageUri(Uri uri)
         {
             return uri.Authority.EndsWith(".blob.core.windows.net");
+        }
+
+        private Response UpdateEtag(Response response)
+        {
+            if (response?.Headers.ETag != null)
+            {
+                _lastSeenEtag = response.Headers.ETag.ToString();
+            }
+            return response;
+        }
+
+        private Response<BlobProperties> UpdateEtag(Response<BlobProperties> propertiesResponse)
+        {
+            if (propertiesResponse?.Value != null)
+            {
+                _lastSeenEtag = propertiesResponse.Value.ETag.ToString();
+            }
+            return propertiesResponse;
+        }
+        
+        private Response<BlobContentInfo> UpdateEtag(Response<BlobContentInfo> infoResponse)
+        {
+            if (infoResponse?.Value != null)
+            {
+                _lastSeenEtag = infoResponse.Value.ETag.ToString();
+            }
+            return infoResponse;
+        }
+
+        private Response<BlobInfo> UpdateEtag(Response<BlobInfo> infoResponse)
+        {
+            if (infoResponse?.Value != null)
+            {
+                _lastSeenEtag = infoResponse.Value.ETag.ToString();
+            }
+            return infoResponse;
+        }
+
+        private Response<BlobDownloadStreamingResult> UpdateEtag(Response<BlobDownloadStreamingResult> infoResponse)
+        {
+            if (infoResponse?.Value?.Details != null)
+            {
+                _lastSeenEtag = infoResponse.Value.Details.ETag.ToString();
+            }
+            return infoResponse;
         }
     }
 }

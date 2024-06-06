@@ -9,7 +9,6 @@ namespace NuGetGallery
     internal class CloudBlobReadOnlyProperties
     {
         public DateTime LastModifiedUtc { get; }
-        public string ETag { get; }
         public long Length { get; }
         public bool IsSnapshot { get; }
         public CopyStatus? CopyStatus { get; }
@@ -18,7 +17,6 @@ namespace NuGetGallery
         public CloudBlobReadOnlyProperties(BlobProperties blobProperties, bool isSnapshot = false)
         {
             LastModifiedUtc = blobProperties.LastModified.UtcDateTime;
-            ETag = blobProperties.ETag.ToString();
             Length = blobProperties.ContentLength;
             IsSnapshot = isSnapshot;
             CopyStatus = blobProperties.BlobCopyStatus;
@@ -28,7 +26,6 @@ namespace NuGetGallery
         public CloudBlobReadOnlyProperties(BlobItem blobItem)
         {
             LastModifiedUtc = blobItem.Properties?.LastModified?.UtcDateTime ?? DateTime.MinValue;
-            ETag = blobItem.Properties?.ETag?.ToString();
             Length = blobItem.Properties?.ContentLength ?? 0;
             IsSnapshot = blobItem.Snapshot != null;
             CopyStatus = null;

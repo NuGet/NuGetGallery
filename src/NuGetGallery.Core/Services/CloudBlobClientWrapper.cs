@@ -23,14 +23,16 @@ namespace NuGetGallery
         public CloudBlobClientWrapper(string storageConnectionString, bool readAccessGeoRedundant)
             : this()
         {
-            _storageConnectionString = storageConnectionString;
+            // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
+            _storageConnectionString = storageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
             _readAccessGeoRedundant = readAccessGeoRedundant;
         }
 
         public CloudBlobClientWrapper(string storageConnectionString)
             : this()
         {
-            _storageConnectionString = storageConnectionString;
+            // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
+            _storageConnectionString = storageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
         }
 
         private CloudBlobClientWrapper()
@@ -139,7 +141,11 @@ namespace NuGetGallery
         private Uri GetPrimaryUri()
         {
             var tempClient = new BlobServiceClient(_storageConnectionString);
-            return tempClient.Uri;
+            // if _storageConnectionString has SAS token, Uri will contain SAS signature, we need to strip it
+            var uriBuilder = new UriBuilder(tempClient.Uri);
+            uriBuilder.Query = "";
+            uriBuilder.Fragment = "";
+            return uriBuilder.Uri;
         }
 
         private Uri GetGrsUri()
