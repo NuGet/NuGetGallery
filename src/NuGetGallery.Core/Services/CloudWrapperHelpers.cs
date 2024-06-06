@@ -115,31 +115,31 @@ namespace NuGetGallery
             {
                 return await @delegate();
             }
-            catch (StorageException ex) when (ex.RequestInformation?.ExtendedErrorInformation?.ErrorCode == BlobErrorCodeStrings.ContainerNotFound || ex.RequestInformation?.ErrorCode == BlobErrorCodeStrings.ContainerNotFound)
+            catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.ContainerNotFound)
             {
                 throw new CloudBlobContainerNotFoundException(ex);
             }
-            catch (StorageException ex) when (ex.RequestInformation?.ExtendedErrorInformation?.ErrorCode == BlobErrorCodeStrings.BlobNotFound || ex.RequestInformation?.ErrorCode == BlobErrorCodeStrings.BlobNotFound)
+            catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
             {
                 throw new CloudBlobNotFoundException(ex);
             }
-            catch (StorageException ex) when (ex.RequestInformation?.HttpStatusCode == (int)HttpStatusCode.NotFound)
+            catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.NotFound)
             {
                 throw new CloudBlobGenericNotFoundException(ex);
             }
-            catch (StorageException ex) when (ex.RequestInformation?.HttpStatusCode == (int)HttpStatusCode.Conflict)
+            catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.Conflict)
             {
                 throw new CloudBlobConflictException(ex);
             }
-            catch (StorageException ex) when (ex.RequestInformation?.HttpStatusCode == (int)HttpStatusCode.PreconditionFailed)
+            catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.PreconditionFailed)
             {
                 throw new CloudBlobPreconditionFailedException(ex);
             }
-            catch (StorageException ex) when (ex.RequestInformation?.HttpStatusCode == (int)HttpStatusCode.NotModified)
+            catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.NotModified)
             {
                 throw new CloudBlobNotModifiedException(ex);
             }
-            catch (StorageException ex)
+            catch (RequestFailedException ex)
             {
                 throw new CloudBlobStorageException(ex);
             }
@@ -151,31 +151,31 @@ namespace NuGetGallery
             {
                 await @delegate();
             }
-            catch (StorageException ex) when (ex.RequestInformation?.ExtendedErrorInformation?.ErrorCode == BlobErrorCodeStrings.ContainerNotFound || ex.RequestInformation?.ErrorCode == BlobErrorCodeStrings.ContainerNotFound)
+            catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.ContainerNotFound)
             {
                 throw new CloudBlobContainerNotFoundException(ex);
             }
-            catch (StorageException ex) when (ex.RequestInformation?.ExtendedErrorInformation?.ErrorCode == BlobErrorCodeStrings.BlobNotFound || ex.RequestInformation?.ErrorCode == BlobErrorCodeStrings.BlobNotFound)
+            catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
             {
                 throw new CloudBlobNotFoundException(ex);
             }
-            catch (StorageException ex) when (ex.RequestInformation?.HttpStatusCode == (int)HttpStatusCode.NotFound)
+            catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.NotFound)
             {
                 throw new CloudBlobGenericNotFoundException(ex);
             }
-            catch (StorageException ex) when (ex.RequestInformation?.HttpStatusCode == (int)HttpStatusCode.Conflict)
+            catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.Conflict)
             {
                 throw new CloudBlobConflictException(ex);
             }
-            catch (StorageException ex) when (ex.RequestInformation?.HttpStatusCode == (int)HttpStatusCode.PreconditionFailed)
+            catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.PreconditionFailed)
             {
                 throw new CloudBlobPreconditionFailedException(ex);
             }
-            catch (StorageException ex) when (ex.RequestInformation?.HttpStatusCode == (int)HttpStatusCode.NotModified)
+            catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.NotModified)
             {
                 throw new CloudBlobNotModifiedException(ex);
             }
-            catch (StorageException ex)
+            catch (RequestFailedException ex)
             {
                 throw new CloudBlobStorageException(ex);
             }
