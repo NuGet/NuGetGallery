@@ -7,7 +7,6 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -385,7 +384,7 @@ namespace NuGetGallery
                 QuietLog.LogHandledException(e);
                 return null;
             }
-            catch (StorageException e)
+            catch (CloudBlobStorageException e)
             {
                 QuietLog.LogHandledException(e);
                 return null;
@@ -443,7 +442,7 @@ namespace NuGetGallery
                 QuietLog.LogHandledException(e);
                 return null;
             }
-            catch (StorageException e)
+            catch (CloudBlobStorageException e)
             {
                 QuietLog.LogHandledException(e);
                 return null;

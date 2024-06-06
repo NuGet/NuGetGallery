@@ -1,9 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace NuGetGallery
@@ -20,41 +20,60 @@ namespace NuGetGallery
         public async Task<ISimpleBlobResultSegment> ListBlobsSegmentedAsync(
             string prefix,
             bool useFlatBlobListing,
-            BlobListingDetails blobListingDetails,
+            ListingDetails blobListingDetails,
             int? maxResults,
-            BlobContinuationToken blobContinuationToken,
-            BlobRequestOptions options,
-            OperationContext operationContext,
+            IBlobListContinuationToken blobContinuationToken,
+            TimeSpan? requestTimeout,
+            CloudBlobLocationMode? cloudBlobLocationMode,
             CancellationToken cancellationToken)
         {
-            var segment = await _blobContainer.ListBlobsSegmentedAsync(
-                prefix,
-                useFlatBlobListing,
-                blobListingDetails,
-                maxResults,
-                blobContinuationToken,
-                options,
-                operationContext,
-                cancellationToken);
+            BlobContinuationToken continuationToken = null;
+            if (blobContinuationToken != null)
+            {
+                if (blobContinuationToken is BlobListContinuationToken token)
+                {
+                    continuationToken = token.ContinuationToken;
+                }
+                else
+                {
+                    throw new ArgumentException();
+                }
+            }
+
+            BlobRequestOptions options = null;
+            if (requestTimeout.HasValue || cloudBlobLocationMode.HasValue)
+            {
+                options = new BlobRequestOptions();
+                if (requestTimeout.HasValue)
+                {
+                    options.ServerTimeout = requestTimeout.Value;
+                }
+                if (cloudBlobLocationMode.HasValue)
+                {
+                    options.LocationMode = CloudWrapperHelpers.GetSdkRetryPolicy(cloudBlobLocationMode.Value);
+                }
+            }
+
+            var segment = await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
+                _blobContainer.ListBlobsSegmentedAsync(
+                    prefix,
+                    useFlatBlobListing,
+                    CloudWrapperHelpers.GetSdkBlobListingDetails(blobListingDetails),
+                    maxResults,
+                    continuationToken,
+                    options,
+                    operationContext: null,
+                    cancellationToken: cancellationToken));
 
             return new BlobResultSegmentWrapper(segment);
         }
         
-        public Task CreateIfNotExistAsync(BlobContainerPermissions permissions)
+        public async Task CreateIfNotExistAsync(bool enablePublicAccess)
         {
-            var publicAccess = permissions?.PublicAccess;
+            var accessType = enablePublicAccess ? BlobContainerPublicAccessType.Blob : BlobContainerPublicAccessType.Off;
 
-            if (publicAccess.HasValue)
-            {
-                return _blobContainer.CreateIfNotExistsAsync(publicAccess.Value, options: null, operationContext: null);
-            }
-
-            return _blobContainer.CreateIfNotExistsAsync();
-        }
-
-        public async Task SetPermissionsAsync(BlobContainerPermissions permissions)
-        {
-            await _blobContainer.SetPermissionsAsync(permissions);
+            await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
+                _blobContainer.CreateIfNotExistsAsync(accessType, options: null, operationContext: null));
         }
 
         public ISimpleCloudBlob GetBlobReference(string blobAddressUri)
@@ -62,28 +81,32 @@ namespace NuGetGallery
             return new CloudBlobWrapper(_blobContainer.GetBlockBlobReference(blobAddressUri));
         }
 
-        public async Task<bool> ExistsAsync(BlobRequestOptions blobRequestOptions, OperationContext context)
+        public async Task<bool> ExistsAsync(CloudBlobLocationMode? cloudBlobLocationMode)
         {
-            return await _blobContainer.ExistsAsync(blobRequestOptions, context);
+            BlobRequestOptions options = null;
+            if (cloudBlobLocationMode.HasValue)
+            {
+                options = new BlobRequestOptions
+                {
+                    LocationMode = CloudWrapperHelpers.GetSdkRetryPolicy(cloudBlobLocationMode.Value),
+                };
+            }
+            return await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
+                _blobContainer.ExistsAsync(options, operationContext: null));
         }
 
         public async Task<bool> DeleteIfExistsAsync()
         {
-            return await _blobContainer.DeleteIfExistsAsync();
+            return await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
+                _blobContainer.DeleteIfExistsAsync());
         }
 
-        public async Task CreateAsync(BlobContainerPermissions permissions)
+        public async Task CreateAsync(bool enablePublicAccess)
         {
-            var publicAccess = permissions?.PublicAccess;
+            var accessType = enablePublicAccess ? BlobContainerPublicAccessType.Blob : BlobContainerPublicAccessType.Off;
 
-            if (publicAccess.HasValue)
-            {
-                await _blobContainer.CreateAsync(publicAccess.Value, options: null, operationContext: null);
-            }
-            else
-            {
-                await _blobContainer.CreateAsync();
-            }
+            await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
+                _blobContainer.CreateAsync(accessType, options: null, operationContext: null));
         }
     }
 }

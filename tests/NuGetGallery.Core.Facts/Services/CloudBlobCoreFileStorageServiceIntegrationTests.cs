@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.IO;
-using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -80,20 +79,20 @@ namespace NuGetGallery
             var segmentA = await container.ListBlobsSegmentedAsync(
                 _prefixA,
                 useFlatBlobListing: true,
-                blobListingDetails: BlobListingDetails.None,
+                blobListingDetails: ListingDetails.None,
                 maxResults: 2,
                 blobContinuationToken: null,
-                options: null,
-                operationContext: null,
+                requestTimeout: null,
+                cloudBlobLocationMode: null,
                 cancellationToken: CancellationToken.None);
             var segmentB = await container.ListBlobsSegmentedAsync(
                 _prefixA,
                 useFlatBlobListing: true,
-                blobListingDetails: BlobListingDetails.None,
+                blobListingDetails: ListingDetails.None,
                 maxResults: 2,
                 blobContinuationToken: segmentA.ContinuationToken,
-                options: null,
-                operationContext: null,
+                requestTimeout: null,
+                cloudBlobLocationMode: null,
                 cancellationToken: CancellationToken.None);
 
             // Assert
@@ -121,20 +120,20 @@ namespace NuGetGallery
             var segmentA = await container.ListBlobsSegmentedAsync(
                 _prefixA,
                 useFlatBlobListing: true,
-                blobListingDetails: BlobListingDetails.Snapshots,
+                blobListingDetails: ListingDetails.Snapshots,
                 maxResults: 2,
                 blobContinuationToken: null,
-                options: null,
-                operationContext: null,
+                requestTimeout: null,
+                cloudBlobLocationMode: null,
                 cancellationToken: CancellationToken.None);
             var segmentB = await container.ListBlobsSegmentedAsync(
                 _prefixA,
                 useFlatBlobListing: true,
-                blobListingDetails: BlobListingDetails.Snapshots,
+                blobListingDetails: ListingDetails.Snapshots,
                 maxResults: 2,
                 blobContinuationToken: segmentA.ContinuationToken,
-                options: null,
-                operationContext: null,
+                requestTimeout: null,
+                cloudBlobLocationMode: null,
                 cancellationToken: CancellationToken.None);
 
             // Assert
@@ -170,7 +169,7 @@ namespace NuGetGallery
 
             // Act & Assert
             // This should throw due to timeout.
-            var ex = await Assert.ThrowsAsync<StorageException>(() => file.DownloadToStreamAsync(destination));
+            var ex = await Assert.ThrowsAsync<CloudBlobStorageException>(() => file.DownloadToStreamAsync(destination));
             Assert.Contains("timeout", ex.Message);
         }
 
@@ -265,15 +264,14 @@ namespace NuGetGallery
             var file = container.GetBlobReference(fileName);
 
             // Act & Assert
-            var ex = await Assert.ThrowsAsync<StorageException>(
+            var ex = await Assert.ThrowsAsync<CloudBlobConflictException>(
                 async () =>
                 {
-                    using (var stream = await file.OpenWriteAsync(AccessCondition.GenerateIfNotExistsCondition()))
+                    using (var stream = await file.OpenWriteAsync(AccessConditionWrapper.GenerateIfNotExistsCondition()))
                     {
                         await stream.WriteAsync(new byte[0], 0, 0);
                     }
                 });
-            Assert.Equal(HttpStatusCode.Conflict, (HttpStatusCode)ex.RequestInformation.HttpStatusCode);
         }
 
         [BlobStorageFact]
@@ -289,10 +287,10 @@ namespace NuGetGallery
             var writeCount = 0;
 
             // Act & Assert
-            var ex = await Assert.ThrowsAsync<StorageException>(
+            var ex = await Assert.ThrowsAsync<CloudBlobConflictException>(
                 async () =>
                 {
-                    using (var stream = await file.OpenWriteAsync(AccessCondition.GenerateIfNotExistsCondition()))
+                    using (var stream = await file.OpenWriteAsync(AccessConditionWrapper.GenerateIfNotExistsCondition()))
                     {
                         stream.Write(new byte[1], 0, 1);
                         await stream.FlushAsync();
@@ -309,7 +307,6 @@ namespace NuGetGallery
                         writeCount++;
                     }
                 });
-            Assert.Equal(HttpStatusCode.Conflict, (HttpStatusCode)ex.RequestInformation.HttpStatusCode);
             Assert.Equal(2, writeCount);
         }
 
@@ -355,9 +352,8 @@ namespace NuGetGallery
 
             // Act & Assert
             Assert.False(exists);
-            var ex = await Assert.ThrowsAsync<StorageException>(
+            var ex = await Assert.ThrowsAsync<CloudBlobNotFoundException>(
                 () => file.OpenReadAsync(accessCondition: null));
-            Assert.Equal(HttpStatusCode.NotFound, (HttpStatusCode)ex.RequestInformation.HttpStatusCode);
         }
 
         [BlobStorageFact]
@@ -378,9 +374,8 @@ namespace NuGetGallery
             await file.FetchAttributesAsync();
 
             // Act & Assert
-            var ex = await Assert.ThrowsAsync<StorageException>(
-                () => file.OpenReadAsync(accessCondition: AccessCondition.GenerateIfMatchCondition("WON'T MATCH")));
-            Assert.Equal(HttpStatusCode.PreconditionFailed, (HttpStatusCode)ex.RequestInformation.HttpStatusCode);
+            var ex = await Assert.ThrowsAsync<CloudBlobPreconditionFailedException>(
+                () => file.OpenReadAsync(accessCondition: AccessConditionWrapper.GenerateIfMatchCondition("WON'T MATCH")));
         }
 
         [BlobStorageFact]
@@ -401,9 +396,8 @@ namespace NuGetGallery
             await file.FetchAttributesAsync();
 
             // Act & Assert
-            var ex = await Assert.ThrowsAsync<StorageException>(
-                () => file.OpenReadAsync(accessCondition: AccessCondition.GenerateIfNoneMatchCondition(file.ETag)));
-            Assert.Equal(HttpStatusCode.NotModified, (HttpStatusCode)ex.RequestInformation.HttpStatusCode);
+            var ex = await Assert.ThrowsAsync<CloudBlobNotModifiedException>(
+                () => file.OpenReadAsync(accessCondition: AccessConditionWrapper.GenerateIfNoneMatchCondition(file.ETag)));
         }
 
         [BlobStorageFact]
@@ -424,7 +418,7 @@ namespace NuGetGallery
             var file = container.GetBlobReference(fileName);
 
             // Act
-            using (var stream = await file.OpenReadAsync(accessCondition: AccessCondition.GenerateIfNoneMatchCondition("WON'T MATCH")))
+            using (var stream = await file.OpenReadAsync(accessCondition: AccessConditionWrapper.GenerateIfNoneMatchCondition("WON'T MATCH")))
             using (var streamReader = new StreamReader(stream))
             {
                 var actualContent = await streamReader.ReadToEndAsync();

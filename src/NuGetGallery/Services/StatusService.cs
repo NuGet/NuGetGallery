@@ -10,8 +10,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using NuGetGallery.Configuration;
 using NuGetGallery.Helpers;
 
@@ -90,12 +88,11 @@ namespace NuGetGallery
             try
             {
                 // Check Storage Availability
-                BlobRequestOptions options = new BlobRequestOptions();
                 // Used the LocationMode.SecondaryOnly and not PrimaryThenSecondary for two reasons:
                 // 1. When the primary is down and secondary is up if PrimaryThenSecondary is used there will be an extra and not needed call to the primary.
                 // 2. When the primary is up the secondary status check will return the primary status instead of secondary.
-                options.LocationMode = _config.ReadOnlyMode ? LocationMode.SecondaryOnly : LocationMode.PrimaryOnly;
-                var tasks = _cloudStorageAvailabilityChecks.Select(s => s.IsAvailableAsync(options, operationContext : null));
+                var locationMode = _config.ReadOnlyMode ? CloudBlobLocationMode.SecondaryOnly : CloudBlobLocationMode.PrimaryOnly;
+                var tasks = _cloudStorageAvailabilityChecks.Select(s => s.IsAvailableAsync(locationMode));
                 var eachAvailable = await Task.WhenAll(tasks);
                 storageAvailable = eachAvailable.All(a => a);
             }

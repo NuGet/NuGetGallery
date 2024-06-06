@@ -15,10 +15,10 @@ namespace NuGetGallery
             // creation of block blobs so it's good enough for now. If another caller created a non-block blob, this
             // cast will fail at runtime.
             Results = segment.Results.Cast<CloudBlockBlob>().Select(x => new CloudBlobWrapper(x)).ToList();
-            ContinuationToken = segment.ContinuationToken;
+            ContinuationToken = new BlobListContinuationToken(segment.ContinuationToken);
         }
 
         public IReadOnlyList<ISimpleCloudBlob> Results { get; }
-        public BlobContinuationToken ContinuationToken { get; }
+        public IBlobListContinuationToken ContinuationToken { get; }
     }
 }

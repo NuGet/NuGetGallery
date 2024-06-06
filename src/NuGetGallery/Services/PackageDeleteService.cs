@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Auditing;
@@ -529,7 +528,7 @@ namespace NuGetGallery
                     await _packageFileService.DeleteReadMeMdFileAsync(package);
                 }
             }
-            catch (StorageException) { }
+            catch (CloudBlobStorageException) { }
         }
 
         private void UnlinkPackageDeprecations(Package package)

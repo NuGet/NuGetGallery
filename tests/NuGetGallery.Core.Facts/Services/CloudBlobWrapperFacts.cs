@@ -3,7 +3,6 @@
 
 using System;
 using System.IO;
-using System.Net;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -35,7 +34,7 @@ namespace NuGetGallery.Services
             var target = new CloudBlobWrapper(_cloudBlobMock.Object);
             _cloudBlobMock
                 .Setup(cb => cb.DownloadTextAsync())
-                .ThrowsAsync(CreateBlobNotFoundException())
+                .ThrowsAsync(new CloudBlobNotFoundException(null))
                 .Verifiable();
 
             var result = await target.DownloadTextIfExistsAsync();
@@ -76,7 +75,7 @@ namespace NuGetGallery.Services
             var target = new CloudBlobWrapper(_cloudBlobMock.Object);
             _cloudBlobMock
                 .Setup(cb => cb.FetchAttributesAsync())
-                .ThrowsAsync(CreateBlobNotFoundException())
+                .ThrowsAsync(new CloudBlobNotFoundException(null))
                 .Verifiable();
 
             var result = await target.FetchAttributesIfExistsAsync();
@@ -122,7 +121,7 @@ namespace NuGetGallery.Services
             var target = new CloudBlobWrapper(_cloudBlobMock.Object);
             _cloudBlobMock
                 .Setup(cb => cb.OpenReadAsync(It.IsAny<AccessCondition>(), It.IsAny<BlobRequestOptions>(), It.IsAny<OperationContext>()))
-                .ThrowsAsync(CreateBlobNotFoundException())
+                .ThrowsAsync(new CloudBlobNotFoundException(null))
                 .Verifiable();
 
             var returnedStream = await target.OpenReadIfExistsAsync();
@@ -147,18 +146,6 @@ namespace NuGetGallery.Services
 
         private class TestException : Exception
         {
-
-        }
-
-        private static StorageException CreateBlobNotFoundException()
-        {
-            var responseMock = new Mock<HttpWebResponse>();
-            responseMock
-                .SetupGet(r => r.StatusCode)
-                .Returns(HttpStatusCode.NotFound);
-            var innerException = new WebException("inner", null, WebExceptionStatus.Success, responseMock.Object);
-            var exception = new StorageException("nope", innerException);
-            return exception;
         }
 
         private Mock<CloudBlockBlob> _cloudBlobMock;
