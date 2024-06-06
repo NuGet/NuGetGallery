@@ -14,6 +14,5 @@
     <ProjectReference Include="..\..\src\DatabaseMigrationTools\DatabaseMigrationTools.csproj" />
     <ProjectReference Include="..\..\src\NuGet.Services.DatabaseMigration\NuGet.Services.DatabaseMigration.csproj" />
     <ProjectReference Include="..\..\src\NuGet.Services.Entities\NuGet.Services.Entities.csproj" />
-    <ProjectReference Include="..\..\src\NuGetGallery.Core\NuGetGallery.Core.csproj" />
   </ItemGroup>
 </Project>
