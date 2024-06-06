@@ -778,8 +778,8 @@ namespace NuGetGallery
                 var blobUri = setupResult.Item3;
 
                 fakeBlob
-                    .Setup(b => b.GetSharedAccessSignature(FileUriPermissions.Read, It.IsAny<DateTimeOffset?>()))
-                    .Returns(signature);
+                    .Setup(b => b.GetSharedAccessSignature(FileUriPermissions.Read, It.IsAny<DateTimeOffset>()))
+                    .ReturnsAsync(signature);
                 var service = CreateService(fakeBlobClient);
 
                 var uri = await service.GetPriviledgedFileUriAsync(
@@ -807,7 +807,7 @@ namespace NuGetGallery
                     .Setup(b => b.GetSharedAccessSignature(
                         FileUriPermissions.Read | FileUriPermissions.Delete,
                         endOfAccess))
-                    .Returns(signature)
+                    .ReturnsAsync(signature)
                     .Verifiable();
 
                 var service = CreateService(fakeBlobClient);
@@ -825,7 +825,7 @@ namespace NuGetGallery
                     Times.Once);
                 fakeBlob.Verify(
                     b => b.GetSharedAccessSignature(It.IsAny<FileUriPermissions>(),
-                    It.IsAny<DateTimeOffset?>()), Times.Once);
+                    It.IsAny<DateTimeOffset>()), Times.Once);
             }
 
             private static Tuple<Mock<ICloudBlobClient>, Mock<ISimpleCloudBlob>, Uri> Setup(string folderName, string fileName)
@@ -901,8 +901,8 @@ namespace NuGetGallery
                 var blobUri = setupResult.Item3;
 
                 fakeBlob
-                    .Setup(b => b.GetSharedAccessSignature(FileUriPermissions.Read, It.IsAny<DateTimeOffset?>()))
-                    .Returns(signature);
+                    .Setup(b => b.GetSharedAccessSignature(FileUriPermissions.Read, It.IsAny<DateTimeOffset>()))
+                    .ReturnsAsync(signature);
                 var fakeFolderInformationProvider = new Mock<ICloudBlobContainerInformationProvider>();
                 fakeFolderInformationProvider
                     .Setup(fip => fip.IsPublicContainer(containerName))
@@ -957,7 +957,7 @@ namespace NuGetGallery
 
                 fakeBlob
                     .Setup(b => b.GetSharedAccessSignature(FileUriPermissions.Read, endOfAccess))
-                    .Returns(signature)
+                    .ReturnsAsync(signature)
                     .Verifiable();
 
                 var service = CreateService(fakeBlobClient);
@@ -967,7 +967,7 @@ namespace NuGetGallery
                 string expectedUri = new Uri(blobUri, signature).AbsoluteUri;
                 Assert.Equal(expectedUri, uri.AbsoluteUri);
                 fakeBlob.Verify(b => b.GetSharedAccessSignature(FileUriPermissions.Read, endOfAccess), Times.Once);
-                fakeBlob.Verify(b => b.GetSharedAccessSignature(It.IsAny<FileUriPermissions>(), It.IsAny<DateTimeOffset?>()), Times.Once);
+                fakeBlob.Verify(b => b.GetSharedAccessSignature(It.IsAny<FileUriPermissions>(), It.IsAny<DateTimeOffset>()), Times.Once);
             }
 
             private static Tuple<Mock<ICloudBlobClient>, Mock<ISimpleCloudBlob>, Uri> Setup(string folderName, string fileName)

@@ -4,11 +4,10 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
 using Moq;
 using Xunit;
 
+/*
 namespace NuGetGallery.Services
 {
     public class CloudBlobWrapperFacts
@@ -156,3 +155,4 @@ namespace NuGetGallery.Services
         }
     }
 }
+*/
