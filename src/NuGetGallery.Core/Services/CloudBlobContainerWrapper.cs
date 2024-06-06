@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
@@ -69,7 +70,7 @@ namespace NuGetGallery
                 {
                     var page = enumerator.Current;
                     var nextContinuationToken = string.IsNullOrEmpty(page.ContinuationToken) ? null : page.ContinuationToken;
-                    return new BlobResultSegmentWrapper(page.Values, nextContinuationToken);
+                    return new BlobResultSegmentWrapper(page.Values.Select(x => GetBlobReference(x)).ToList(), nextContinuationToken);
                 }
             }
             finally
@@ -77,7 +78,7 @@ namespace NuGetGallery
                 await enumerator.DisposeAsync();
             }
 
-            return new BlobResultSegmentWrapper(new List<BlobItem>(), null);
+            return new BlobResultSegmentWrapper(new List<ISimpleCloudBlob>(), null);
         }
         
         public async Task CreateIfNotExistAsync(bool enablePublicAccess)
@@ -91,6 +92,11 @@ namespace NuGetGallery
         public ISimpleCloudBlob GetBlobReference(string blobAddressUri)
         {
             return new CloudBlobWrapper(_blobContainer.GetBlockBlobClient(blobAddressUri), this);
+        }
+
+        private ISimpleCloudBlob GetBlobReference(BlobItem item)
+        {
+            return new CloudBlobWrapper(_blobContainer.GetBlockBlobClient(item.Name), item, this);
         }
 
         public async Task<bool> ExistsAsync(CloudBlobLocationMode? cloudBlobLocationMode)

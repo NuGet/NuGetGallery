@@ -373,14 +373,18 @@ namespace NuGetGallery
             }
 
             var blob = await GetBlobForUriAsync(folderName, fileName);
+            string sas = await blob.GetSharedAccessSignature(permissions, endOfAccess);
 
-            return new Uri(
-                blob.Uri,
-                blob.GetSharedAccessSignature(permissions, endOfAccess));
+            return new Uri(blob.Uri, sas);
         }
 
         public async Task<Uri> GetFileReadUriAsync(string folderName, string fileName, DateTimeOffset? endOfAccess)
         {
+            if (!endOfAccess.HasValue)
+            {
+                throw new ArgumentNullException(nameof(endOfAccess));
+            }
+
             var blob = await GetBlobForUriAsync(folderName, fileName);
 
             if (IsPublicContainer(folderName))
@@ -398,9 +402,9 @@ namespace NuGetGallery
                 throw new ArgumentOutOfRangeException(nameof(endOfAccess), $"{nameof(endOfAccess)} is in the past");
             }
 
-            return new Uri(
-                blob.Uri,
-                blob.GetSharedAccessSignature(FileUriPermissions.Read, endOfAccess));
+            string sas = await blob.GetSharedAccessSignature(FileUriPermissions.Read, endOfAccess.Value);
+
+            return new Uri(blob.Uri, sas);
         }
 
         /// <summary>

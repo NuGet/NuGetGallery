@@ -37,7 +37,27 @@ namespace NuGetGallery
             _container = container; // container can be null
 
             Properties = new CloudBlobPropertiesWrapper(this);
-            CopyState = new CloudBlobCopyState(_blob);
+            CopyState = new CloudBlobCopyState(this);
+        }
+
+        public CloudBlobWrapper(BlockBlobClient blob, BlobItem blobData, CloudBlobContainerWrapper container)
+            : this(blob, container)
+        {
+            if (blobData != null)
+            {
+                ReplaceMetadata(blobData.Metadata);
+                _blobProperties = new CloudBlobReadOnlyProperties(blobData);
+                if (blobData.Properties != null)
+                {
+                    _blobHeaders = new BlobHttpHeaders();
+                    _blobHeaders.ContentType = blobData.Properties.ContentType;
+                    _blobHeaders.ContentDisposition = blobData.Properties.ContentDisposition;
+                    _blobHeaders.ContentEncoding = blobData.Properties.ContentEncoding;
+                    _blobHeaders.ContentLanguage = blobData.Properties.ContentLanguage;
+                    _blobHeaders.CacheControl = blobData.Properties.CacheControl;
+                    _blobHeaders.ContentHash = blobData.Properties.ContentHash;
+                }
+            }
         }
 
         public static CloudBlobWrapper FromUri(Uri uri)
@@ -186,6 +206,12 @@ namespace NuGetGallery
             var blobProperties = (await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blob.GetPropertiesAsync())).Value;
             _blobProperties = new CloudBlobReadOnlyProperties(blobProperties);
+            ReplaceHttpHeaders(blobProperties);
+            ReplaceMetadata(blobProperties.Metadata);
+        }
+
+        private void ReplaceHttpHeaders(BlobProperties blobProperties)
+        {
             if (_blobHeaders == null)
             {
                 _blobHeaders = new BlobHttpHeaders();
@@ -196,14 +222,18 @@ namespace NuGetGallery
             _blobHeaders.ContentLanguage = blobProperties.ContentLanguage;
             _blobHeaders.CacheControl = blobProperties.CacheControl;
             _blobHeaders.ContentHash = blobProperties.ContentHash;
+        }
+
+        private void ReplaceMetadata(IDictionary<string, string> newMetadata)
+        {
             if (Metadata == null)
             {
                 Metadata = new Dictionary<string, string>();
             }
             Metadata.Clear();
-            if (blobProperties.Metadata != null)
+            if (newMetadata != null)
             {
-                foreach (var kvp in blobProperties.Metadata)
+                foreach (var kvp in newMetadata)
                 {
                     Metadata.Add(kvp.Key, kvp.Value);
                 }

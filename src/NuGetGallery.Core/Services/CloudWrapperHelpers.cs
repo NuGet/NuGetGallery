@@ -12,25 +12,6 @@ namespace NuGetGallery
 {
     internal static class CloudWrapperHelpers
     {
-        public static LocationMode GetSdkRetryPolicy(CloudBlobLocationMode locationMode)
-        {
-            switch (locationMode)
-            {
-                case CloudBlobLocationMode.PrimaryOnly:
-                    return LocationMode.PrimaryOnly;
-                case CloudBlobLocationMode.PrimaryThenSecondary:
-                    return LocationMode.PrimaryThenSecondary;
-                case CloudBlobLocationMode.SecondaryOnly:
-                    return LocationMode.SecondaryOnly;
-                case CloudBlobLocationMode.SecondaryThenPrimary:
-                    return LocationMode.SecondaryThenPrimary;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(locationMode));
-            }
-        }
-
-        public static BlobListingDetails GetSdkBlobListingDetails(ListingDetails listingDetails) => (BlobListingDetails)listingDetails;
-
         public static BlobTraits GetSdkBlobTraits(ListingDetails listingDetails)
         {
             BlobTraits traits = BlobTraits.None;
@@ -63,12 +44,14 @@ namespace NuGetGallery
             return states;
         }
 
-        public static CloudBlobCopyStatus GetBlobCopyStatus(CopyStatus status)
+        public static CloudBlobCopyStatus GetBlobCopyStatus(CopyStatus? status)
         {
-            switch (status)
+            if (!status.HasValue)
             {
-                case CopyStatus.Invalid:
-                    return CloudBlobCopyStatus.Invalid;
+                return CloudBlobCopyStatus.None;
+            }
+            switch (status.Value)
+            {
                 case CopyStatus.Pending:
                     return CloudBlobCopyStatus.Pending;
                 case CopyStatus.Success:

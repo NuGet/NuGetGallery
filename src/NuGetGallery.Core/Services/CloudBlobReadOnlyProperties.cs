@@ -12,13 +12,17 @@ namespace NuGetGallery
         public string ETag { get; }
         public long Length { get; }
         public bool IsSnapshot { get; }
+        public CopyStatus? CopyStatus { get; }
+        public string CopyStatusDescription { get; }
 
         public CloudBlobReadOnlyProperties(BlobProperties blobProperties, bool isSnapshot = false)
         {
-            LastModifiedUtc = blobProperties?.LastModified.UtcDateTime ?? DateTime.MinValue;
-            ETag = blobProperties?.ETag.ToString();
+            LastModifiedUtc = blobProperties.LastModified.UtcDateTime;
+            ETag = blobProperties.ETag.ToString();
             Length = blobProperties.ContentLength;
             IsSnapshot = isSnapshot;
+            CopyStatus = blobProperties.BlobCopyStatus;
+            CopyStatusDescription = blobProperties.CopyStatusDescription;
         }
 
         public CloudBlobReadOnlyProperties(BlobItem blobItem)
@@ -27,6 +31,8 @@ namespace NuGetGallery
             ETag = blobItem.Properties?.ETag?.ToString();
             Length = blobItem.Properties?.ContentLength ?? 0;
             IsSnapshot = blobItem.Snapshot != null;
+            CopyStatus = null;
+            CopyStatusDescription = null;
         }
     }
 }

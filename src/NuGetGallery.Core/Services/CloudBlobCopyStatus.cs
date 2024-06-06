@@ -5,7 +5,7 @@ namespace NuGetGallery
 {
     public enum CloudBlobCopyStatus
     {
-        Invalid,
+        None,
         Pending,
         Success,
         Aborted,
