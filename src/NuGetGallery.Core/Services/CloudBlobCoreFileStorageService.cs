@@ -380,11 +380,6 @@ namespace NuGetGallery
 
         public async Task<Uri> GetFileReadUriAsync(string folderName, string fileName, DateTimeOffset? endOfAccess)
         {
-            if (!endOfAccess.HasValue)
-            {
-                throw new ArgumentNullException(nameof(endOfAccess));
-            }
-
             var blob = await GetBlobForUriAsync(folderName, fileName);
 
             if (IsPublicContainer(folderName))
