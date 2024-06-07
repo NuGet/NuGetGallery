@@ -227,6 +227,20 @@ namespace NuGetGallery
             _blobHeaders.ContentHash = blobProperties.ContentHash;
         }
 
+        private void ReplaceHttpHeaders(BlobDownloadDetails details)
+        {
+            if (_blobHeaders == null)
+            {
+                _blobHeaders = new BlobHttpHeaders();
+            }
+            _blobHeaders.ContentType = details.ContentType;
+            _blobHeaders.ContentDisposition = details.ContentDisposition;
+            _blobHeaders.ContentEncoding = details.ContentEncoding;
+            _blobHeaders.ContentLanguage = details.ContentLanguage;
+            _blobHeaders.CacheControl = details.CacheControl;
+            _blobHeaders.ContentHash = details.ContentHash;
+        }
+
         private void ReplaceMetadata(IDictionary<string, string> newMetadata)
         {
             if (Metadata == null)
@@ -345,21 +359,13 @@ namespace NuGetGallery
         {
             try
             {
-                return await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
-                    DownloadTextAsync());
+                var content = await CloudWrapperHelpers.WrapStorageExceptionAsync(() => _blob.DownloadContentAsync());
+                UpdateEtag(content.Value.Details);
+                return content.Value.Content.ToString();
             }
             catch (CloudBlobGenericNotFoundException)
             {
                 return null;
-            }
-        }
-
-        private async Task<string> DownloadTextAsync()
-        {
-            using (var downloadResult = UpdateEtag(await _blob.DownloadStreamingAsync()).Value)
-            using (var textReader = new StreamReader(downloadResult.Content))
-            {
-                return await textReader.ReadToEndAsync();
             }
         }
 
@@ -429,13 +435,13 @@ namespace NuGetGallery
             return infoResponse;
         }
 
-        private Response<BlobDownloadStreamingResult> UpdateEtag(Response<BlobDownloadStreamingResult> infoResponse)
+        private void UpdateEtag(BlobDownloadDetails details)
         {
-            if (infoResponse?.Value?.Details != null)
+            if (details != null)
             {
-                _lastSeenEtag = infoResponse.Value.Details.ETag.ToString();
+                _lastSeenEtag = details.ETag.ToString();
+                ReplaceHttpHeaders(details);
             }
-            return infoResponse;
         }
     }
 }
