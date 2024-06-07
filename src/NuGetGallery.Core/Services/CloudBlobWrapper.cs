@@ -181,6 +181,7 @@ namespace NuGetGallery
             {
                 UpdateEtag(await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                     _blob.UploadAsync(source)));
+                await FetchAttributesAsync();
             }
             else
             {
@@ -200,6 +201,7 @@ namespace NuGetGallery
             }
             UpdateEtag(await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blob.UploadAsync(source, options)));
+            await FetchAttributesAsync();
         }
 
         public async Task FetchAttributesAsync()
