@@ -654,6 +654,7 @@
     <Compile Include="Services\TyposquattingService.cs" />
     <Compile Include="Services\UpdateDeprecationError.cs" />
     <Compile Include="Services\ValidationService.cs" />
+    <Compile Include="Services\VulnerableDirectDependencyMessage.cs" />
     <Compile Include="Strings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -787,6 +788,8 @@
     <Compile Include="ViewModels\PendingOrganizationMigrationRequestViewModel.cs" />
     <Compile Include="ViewModels\SearchSideBySideViewModel.cs" />
     <Compile Include="ViewModels\SignerViewModel.cs" />
+    <Compile Include="ViewModels\VulnerableDependencyModel.cs" />
+    <Compile Include="ViewModels\VulnerableDependencySetsViewModel.cs" />
     <Compile Include="WebRole.cs" />
     <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
     <Compile Include="Areas\Admin\Controllers\AdminControllerBase.cs" />

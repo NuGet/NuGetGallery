@@ -8,6 +8,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Elmah.ContentSyndication;
+using Microsoft.Extensions.Azure;
 using NuGet.Packaging;
 using NuGet.Packaging.Licenses;
 using NuGet.Services.Entities;
@@ -16,6 +18,7 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Helpers;
 using NuGetGallery.Packaging;
+using NuGetGallery.ViewModels;
 
 namespace NuGetGallery
 {
@@ -71,6 +74,7 @@ namespace NuGetGallery
         private readonly ITelemetryService _telemetryService;
         private readonly IDiagnosticsSource _trace;
         private readonly IFeatureFlagService _featureFlagService;
+        private readonly IPackageVulnerabilitiesService _packageVulnerabilitiesService;
 
         public PackageMetadataValidationService(
             IPackageService packageService,
@@ -78,7 +82,8 @@ namespace NuGetGallery
             ITyposquattingService typosquattingService,
             ITelemetryService telemetryService,
             IDiagnosticsService diagnosticsService,
-            IFeatureFlagService featureFlagService)
+            IFeatureFlagService featureFlagService,
+            IPackageVulnerabilitiesService vulnerabilitiesService)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _config = config ?? throw new ArgumentNullException(nameof(config));
@@ -90,6 +95,7 @@ namespace NuGetGallery
             }
             _trace = diagnosticsService.GetSource(nameof(PackageUploadService));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
+            _packageVulnerabilitiesService = vulnerabilitiesService ?? throw new ArgumentNullException(nameof(vulnerabilitiesService));
         }
 
         public async Task<PackageValidationResult> ValidateMetadataBeforeUploadAsync(
@@ -158,7 +164,37 @@ namespace NuGetGallery
                 return result;
             }
 
+            result = CheckPackageDirectDependencies(packageMetadata, warnings);
+            if (result != null)
+            {
+                // Log telemetry
+                return result;
+            }
+
             return PackageValidationResult.AcceptedWithWarnings(warnings);
+        }
+
+        private PackageValidationResult CheckPackageDirectDependencies(PackageMetadata packageMetadata, List<IValidationMessage> warnings)
+        {
+            var dependencyGroups = packageMetadata.GetDependencyGroups();
+
+            IEnumerable<NuGet.Packaging.Core.PackageDependency> packages = dependencyGroups.SelectMany(dg => dg.Packages).Distinct();
+            foreach (var package in packages)
+            {
+                var dbPackage = _packageService.FindPackageByIdAndVersion(package.Id, package.VersionRange.MinVersion.ToString());
+                var packagesVulnerability = _packageVulnerabilitiesService.GetVulnerabilitiesById(package.Id);
+
+                if (packagesVulnerability != null && packagesVulnerability.Any())
+                {
+                    var packageVulnerabilities = packagesVulnerability.First(p => p.Key == dbPackage.Key);
+                    if (packageVulnerabilities.Value != null && packageVulnerabilities.Value.Any())
+                    {
+                        warnings.AddRange(packageVulnerabilities.Value.Select(v => new VulnerableDirectDependencyMessage(package.Id, package.VersionRange.PrettyPrint(), v.AdvisoryUrl, v.AdvisoryUrl, v.Severity.ToString())));
+                    }
+                }
+            }
+
+            return null;
         }
 
         private async Task<PackageValidationResult> CheckLicenseMetadataAsync(PackageArchiveReader nuGetPackage, List<IValidationMessage> warnings, User user)

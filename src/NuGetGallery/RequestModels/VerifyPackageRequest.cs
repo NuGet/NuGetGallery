@@ -122,6 +122,7 @@ namespace NuGetGallery
         public bool IsDisplayUploadWarningV2Enabled { get; set; }
 
         public List<JsonValidationMessage> Warnings { get; set; } = new List<JsonValidationMessage>();
+        public VulnerableDependencySetsViewModel VulnerableDependencies { get; set; }
 
         private static IReadOnlyCollection<string> ParseUserList(IEnumerable<User> users)
         {
