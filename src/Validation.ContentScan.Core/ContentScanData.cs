@@ -75,5 +75,6 @@ namespace NuGet.Jobs.Validation.ContentScan
         public CheckContentScanStatusData CheckContentScanStatus { get; }
         public StartContentScanData StartContentScan { get; }
         public int DeliveryCount { get; }
+        //test comment that will be removed
     }
 }
