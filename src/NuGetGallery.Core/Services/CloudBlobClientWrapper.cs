@@ -15,24 +15,19 @@ namespace NuGetGallery
         private const string SecondaryHostPostfix = "-secondary";
         private readonly string _storageConnectionString;
         private readonly bool _readAccessGeoRedundant = false;
+        private readonly TimeSpan? _requestTimeout;
         private readonly Lazy<Uri> _primaryServiceUri;
         private readonly Lazy<Uri> _grsServiceUri;
         private readonly Lazy<BlobServiceClient> _blobClient;
         private TokenCredential _tokenCredential;
 
-        public CloudBlobClientWrapper(string storageConnectionString, bool readAccessGeoRedundant)
+        public CloudBlobClientWrapper(string storageConnectionString, bool readAccessGeoRedundant = false, TimeSpan? requestTimeout = null)
             : this()
         {
             // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
             _storageConnectionString = storageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
             _readAccessGeoRedundant = readAccessGeoRedundant;
-        }
-
-        public CloudBlobClientWrapper(string storageConnectionString)
-            : this()
-        {
-            // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
-            _storageConnectionString = storageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+            _requestTimeout = requestTimeout; // OK to be null
         }
 
         private CloudBlobClientWrapper()
@@ -172,6 +167,10 @@ namespace NuGetGallery
             if (requestTimeout.HasValue)
             {
                 options.Retry.NetworkTimeout = requestTimeout.Value;
+            }
+            else if (_requestTimeout.HasValue)
+            {
+                options.Retry.NetworkTimeout = _requestTimeout.Value;
             }
 
             return options;
