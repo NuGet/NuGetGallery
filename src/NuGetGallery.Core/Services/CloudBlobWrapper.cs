@@ -80,6 +80,7 @@ namespace NuGetGallery
 
         public async Task<Stream> OpenReadAsync(IAccessCondition accessCondition)
         {
+            await FetchAttributesIfExistsAsync();
             BlobOpenReadOptions options = null;
             if (accessCondition != null)
             {
