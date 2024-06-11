@@ -80,17 +80,18 @@ namespace NuGetGallery
 
         public async Task<Stream> OpenReadAsync(IAccessCondition accessCondition)
         {
-            await FetchAttributesIfExistsAsync();
-            BlobOpenReadOptions options = null;
+            BlobDownloadOptions options = null;
             if (accessCondition != null)
             {
-                options = new BlobOpenReadOptions(allowModifications: false)
+                options = new BlobDownloadOptions()
                 {
                     Conditions = CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
                 };
             }
-            return await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
-                _blob.OpenReadAsync(options));
+            var result = await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
+                _blob.DownloadStreamingAsync(options));
+            UpdateEtag(result.Value.Details);
+            return result.Value.Content;
         }
 
         public async Task<Stream> OpenWriteAsync(IAccessCondition accessCondition)
@@ -442,6 +443,7 @@ namespace NuGetGallery
             {
                 _lastSeenEtag = details.ETag.ToString();
                 ReplaceHttpHeaders(details);
+                ReplaceMetadata(details.Metadata);
             }
         }
     }
