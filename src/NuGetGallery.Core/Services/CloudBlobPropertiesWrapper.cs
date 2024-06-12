@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Azure.Storage.Blobs.Models;
 
 namespace NuGetGallery
 {
@@ -21,24 +22,36 @@ namespace NuGetGallery
         public string ContentType
         {
             get => _blob._blobHeaders.ContentType;
-            set => _blob._blobHeaders.ContentType = value;
+            set => SafeHeaders.ContentType = value;
         }
 
         public string ContentEncoding
         {
             get => _blob._blobHeaders.ContentEncoding;
-            set => _blob._blobHeaders.ContentEncoding = value;
+            set => SafeHeaders.ContentEncoding = value;
         }
 
         public string CacheControl
         {
             get => _blob._blobHeaders.CacheControl;
-            set => _blob._blobHeaders.CacheControl = value;
+            set => SafeHeaders.CacheControl = value;
         }
 
         public string ContentMD5
         {
             get => ToHexString(_blob._blobHeaders.ContentHash);
+        }
+
+        private BlobHttpHeaders SafeHeaders
+        {
+            get
+            {
+                if (_blob._blobHeaders == null)
+                {
+                    _blob._blobHeaders = new BlobHttpHeaders();
+                }
+                return _blob._blobHeaders;
+            }
         }
 
         private static string ToHexString(byte[] array)

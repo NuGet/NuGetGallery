@@ -181,6 +181,14 @@ namespace NuGetGallery
         {
             if (overwrite)
             {
+                BlobUploadOptions options = null;
+                if (_blobHeaders != null)
+                {
+                    options = new BlobUploadOptions
+                    {
+                        HttpHeaders = _blobHeaders,
+                    };
+                }
                 UpdateEtag(await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                     _blob.UploadAsync(source)));
                 await FetchAttributesAsync();
@@ -194,11 +202,12 @@ namespace NuGetGallery
         public async Task UploadFromStreamAsync(Stream source, IAccessCondition accessCondition)
         {
             BlobUploadOptions options = null;
-            if (accessCondition != null)
+            if (accessCondition != null || _blobHeaders != null)
             {
                 options = new BlobUploadOptions
                 {
                     Conditions = CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
+                    HttpHeaders = _blobHeaders,
                 };
             }
             UpdateEtag(await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
