@@ -205,9 +205,8 @@ namespace NuGetGallery
 
                 return StatisticsReportResult.Success(reportContent.LastUpdatedUtc);
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                QuietLog.LogHandledException(e);
                 return StatisticsReportResult.Failed;
             }
         }
@@ -372,7 +371,7 @@ namespace NuGetGallery
             catch (StatisticsReportNotFoundException)
             {
                 //do no logging and just return null. Since this exception will thrown for all packages which doesn't have downloads in last 6 weeks, we don't
-                //want to flood the elmah logs.
+                //want to flood the logs.
                 return null;
             }
             catch (NullReferenceException e)

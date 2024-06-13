@@ -8,13 +8,10 @@ using Microsoft.ApplicationInsights;
 namespace NuGetGallery.Diagnostics
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true)]
-    public sealed class SendErrorsToTelemetryAttribute
-        : ElmahHandleErrorAttribute
+    public sealed class SendErrorsToTelemetryAttribute : Attribute
     {
-        public override void OnException(ExceptionContext context)
+        public void OnException(ExceptionContext context)
         {
-            base.OnException(context);
-
             if (context != null)
             {
                 try

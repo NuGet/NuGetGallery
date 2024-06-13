@@ -13,7 +13,6 @@
     <ThirdPartyBinaries Include="CsvHelper.dll" />
     <ThirdPartyBinaries Include="Dapper.StrongName.dll" />
     <ThirdPartyBinaries Include="DynamicData.EFCodeFirstProvider.dll" />
-    <ThirdPartyBinaries Include="Elmah.dll" />
     <ThirdPartyBinaries Include="ICSharpCode.SharpZipLib.dll" />
     <ThirdPartyBinaries Include="Knapcode.MiniZip.dll" />
     <ThirdPartyBinaries Include="Lucene.Net.Contrib.Analyzers.dll" />

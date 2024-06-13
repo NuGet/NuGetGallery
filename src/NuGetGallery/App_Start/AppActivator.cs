@@ -13,7 +13,6 @@ using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
 using System.Web.UI;
-using Elmah;
 using Microsoft.Extensions.DependencyInjection;
 using NuGetGallery;
 using NuGetGallery.Configuration;
@@ -253,7 +252,6 @@ namespace NuGetGallery
             Routes.RegisterRoutes(RouteTable.Routes, configuration.FeedOnlyMode, configuration.AdminPanelEnabled);
             AreaRegistration.RegisterAllAreas();
 
-            GlobalFilters.Filters.Add(new SendErrorsToTelemetryAttribute { View = "~/Views/Errors/InternalError.cshtml" });
             GlobalFilters.Filters.Add(new ReadOnlyModeErrorFilter());
             GlobalFilters.Filters.Add(new AntiForgeryErrorFilter());
             GlobalFilters.Filters.Add(new UserDeletedErrorFilter());
@@ -295,7 +293,7 @@ namespace NuGetGallery
                 {
                     RestartSchedulerOnFailure = true
                 };
-                _jobManager.Fail(e => ErrorLog.GetDefault(null).Log(new Error(e)));
+                _jobManager.Fail(e => { /* fail silently */ });
                 _jobManager.Start();
             }
         }
