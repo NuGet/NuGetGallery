@@ -17,6 +17,6 @@ namespace NuGetGallery
         }
 
         public IReadOnlyList<ISimpleCloudBlob> Results { get; }
-        public IBlobListContinuationToken ContinuationToken { get; }
+        public BlobListContinuationToken ContinuationToken { get; }
     }
 }

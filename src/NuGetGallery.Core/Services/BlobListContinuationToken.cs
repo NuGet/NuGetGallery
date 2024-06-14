@@ -3,12 +3,13 @@
 
 namespace NuGetGallery
 {
-    internal class BlobListContinuationToken : IBlobListContinuationToken
+    public class BlobListContinuationToken
     {
-        public BlobListContinuationToken(string continuationToken)
+        internal BlobListContinuationToken(string continuationToken)
         {
             ContinuationToken = continuationToken;
         }
-        public string ContinuationToken { get; }
+
+        internal string ContinuationToken { get; }
     }
 }

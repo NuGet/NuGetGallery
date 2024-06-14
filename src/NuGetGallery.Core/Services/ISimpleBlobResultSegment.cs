@@ -8,6 +8,6 @@ namespace NuGetGallery
     public interface ISimpleBlobResultSegment
     {
         IReadOnlyList<ISimpleCloudBlob> Results { get; }
-        IBlobListContinuationToken ContinuationToken { get; }
+        BlobListContinuationToken ContinuationToken { get; }
     }
 }
