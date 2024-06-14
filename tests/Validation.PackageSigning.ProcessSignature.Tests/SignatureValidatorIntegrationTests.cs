@@ -1869,7 +1869,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             VerifyNU3008(result);
         }
 
-        [AdminOnlyFact]
+        [Fact]
         public async Task RejectsInvalidSignatureContent()
         {
             // Arrange
