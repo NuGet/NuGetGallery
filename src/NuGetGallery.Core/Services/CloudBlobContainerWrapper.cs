@@ -33,18 +33,7 @@ namespace NuGetGallery
             CloudBlobLocationMode? cloudBlobLocationMode,
             CancellationToken cancellationToken)
         {
-            string continuationToken = null;
-            if (blobContinuationToken != null)
-            {
-                if (blobContinuationToken is BlobListContinuationToken token)
-                {
-                    continuationToken = token.ContinuationToken;
-                }
-                else
-                {
-                    throw new ArgumentException("Unsupported continuation token type", nameof(blobContinuationToken));
-                }
-            }
+            string continuationToken = blobContinuationToken?.ContinuationToken;
 
             BlobContainerClient blobContainerClient = _blobContainer;
             if (cloudBlobLocationMode.HasValue)
