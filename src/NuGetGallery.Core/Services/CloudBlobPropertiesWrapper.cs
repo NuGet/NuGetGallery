@@ -15,42 +15,42 @@ namespace NuGetGallery
             _blob = cloudBlobWrapper ?? throw new ArgumentNullException(nameof(cloudBlobWrapper));
         }
 
-        public DateTimeOffset? LastModified => _blob._blobProperties.LastModifiedUtc;
+        public DateTimeOffset? LastModified => _blob.BlobProperties.LastModifiedUtc;
 
-        public long Length => _blob._blobProperties.Length;
+        public long Length => _blob.BlobProperties.Length;
 
         public string ContentType
         {
-            get => _blob._blobHeaders.ContentType;
+            get => _blob.BlobHeaders.ContentType;
             set => SafeHeaders.ContentType = value;
         }
 
         public string ContentEncoding
         {
-            get => _blob._blobHeaders.ContentEncoding;
+            get => _blob.BlobHeaders.ContentEncoding;
             set => SafeHeaders.ContentEncoding = value;
         }
 
         public string CacheControl
         {
-            get => _blob._blobHeaders.CacheControl;
+            get => _blob.BlobHeaders.CacheControl;
             set => SafeHeaders.CacheControl = value;
         }
 
         public string ContentMD5
         {
-            get => ToHexString(_blob._blobHeaders.ContentHash);
+            get => ToHexString(_blob.BlobHeaders.ContentHash);
         }
 
         private BlobHttpHeaders SafeHeaders
         {
             get
             {
-                if (_blob._blobHeaders == null)
+                if (_blob.BlobHeaders == null)
                 {
-                    _blob._blobHeaders = new BlobHttpHeaders();
+                    _blob.BlobHeaders = new BlobHttpHeaders();
                 }
-                return _blob._blobHeaders;
+                return _blob.BlobHeaders;
             }
         }
 

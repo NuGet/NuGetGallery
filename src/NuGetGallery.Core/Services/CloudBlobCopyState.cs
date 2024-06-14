@@ -13,8 +13,8 @@ namespace NuGetGallery
         {
             _blob = blob ?? throw new ArgumentNullException(nameof(blob));
         }
-        public CloudBlobCopyStatus Status => CloudWrapperHelpers.GetBlobCopyStatus(_blob._blobProperties?.CopyStatus);
+        public CloudBlobCopyStatus Status => CloudWrapperHelpers.GetBlobCopyStatus(_blob.BlobProperties?.CopyStatus);
 
-        public string StatusDescription => _blob._blobProperties?.CopyStatusDescription;
+        public string StatusDescription => _blob.BlobProperties?.CopyStatusDescription;
     }
 }

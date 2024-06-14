@@ -19,8 +19,6 @@ namespace NuGetGallery
     {
         private readonly BlockBlobClient _blob;
         private readonly CloudBlobContainerWrapper _container;
-        internal CloudBlobReadOnlyProperties _blobProperties = null;
-        internal BlobHttpHeaders _blobHeaders = null;
         private string _lastSeenEtag = null;
 
         public ICloudBlobProperties Properties { get; private set; }
@@ -29,9 +27,13 @@ namespace NuGetGallery
         public Uri Uri => _blob.Uri;
         public string Name => _blob.Name;
         public string Container => _blob.BlobContainerName;
-        public DateTime LastModifiedUtc => _blobProperties.LastModifiedUtc;
+        public DateTime LastModifiedUtc => BlobProperties.LastModifiedUtc;
         public string ETag => _lastSeenEtag;
-        public bool IsSnapshot => _blobProperties.IsSnapshot;
+        public bool IsSnapshot => BlobProperties.IsSnapshot;
+
+        internal Uri BlobSasUri { get; } = null;
+        internal CloudBlobReadOnlyProperties BlobProperties { get; set; } = null;
+        internal BlobHttpHeaders BlobHeaders { get; set; } = null;
 
         public CloudBlobWrapper(BlockBlobClient blob, CloudBlobContainerWrapper container)
         {
@@ -48,18 +50,24 @@ namespace NuGetGallery
             if (blobData != null)
             {
                 ReplaceMetadata(blobData.Metadata);
-                _blobProperties = new CloudBlobReadOnlyProperties(blobData);
+                BlobProperties = new CloudBlobReadOnlyProperties(blobData);
                 if (blobData.Properties != null)
                 {
-                    _blobHeaders = new BlobHttpHeaders();
-                    _blobHeaders.ContentType = blobData.Properties.ContentType;
-                    _blobHeaders.ContentDisposition = blobData.Properties.ContentDisposition;
-                    _blobHeaders.ContentEncoding = blobData.Properties.ContentEncoding;
-                    _blobHeaders.ContentLanguage = blobData.Properties.ContentLanguage;
-                    _blobHeaders.CacheControl = blobData.Properties.CacheControl;
-                    _blobHeaders.ContentHash = blobData.Properties.ContentHash;
+                    BlobHeaders = new BlobHttpHeaders();
+                    BlobHeaders.ContentType = blobData.Properties.ContentType;
+                    BlobHeaders.ContentDisposition = blobData.Properties.ContentDisposition;
+                    BlobHeaders.ContentEncoding = blobData.Properties.ContentEncoding;
+                    BlobHeaders.ContentLanguage = blobData.Properties.ContentLanguage;
+                    BlobHeaders.CacheControl = blobData.Properties.CacheControl;
+                    BlobHeaders.ContentHash = blobData.Properties.ContentHash;
                 }
             }
+        }
+
+        internal CloudBlobWrapper(BlockBlobClient blob, Uri blobSasUri)
+            : this(blob, container: null)
+        {
+            BlobSasUri = blobSasUri ?? throw new ArgumentNullException(nameof(blobSasUri));
         }
 
         public static CloudBlobWrapper FromUri(Uri uri)
@@ -75,7 +83,7 @@ namespace NuGetGallery
             }
 
             var blob = new BlockBlobClient(uri);
-            return new CloudBlobWrapper(blob, null);
+            return new CloudBlobWrapper(blob, container: null);
         }
 
         public async Task<Stream> OpenReadAsync(IAccessCondition accessCondition)
@@ -158,14 +166,14 @@ namespace NuGetGallery
         public async Task SetPropertiesAsync()
         {
             UpdateEtag(await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
-                _blob.SetHttpHeadersAsync(_blobHeaders)));
+                _blob.SetHttpHeadersAsync(BlobHeaders)));
         }
 
         public async Task SetPropertiesAsync(IAccessCondition accessCondition)
         {
             UpdateEtag(await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blob.SetHttpHeadersAsync(
-                    _blobHeaders,
+                    BlobHeaders,
                     CloudWrapperHelpers.GetSdkAccessCondition(accessCondition))));
         }
 
@@ -182,11 +190,11 @@ namespace NuGetGallery
             if (overwrite)
             {
                 BlobUploadOptions options = null;
-                if (_blobHeaders != null)
+                if (BlobHeaders != null)
                 {
                     options = new BlobUploadOptions
                     {
-                        HttpHeaders = _blobHeaders,
+                        HttpHeaders = BlobHeaders,
                     };
                 }
                 UpdateEtag(await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
@@ -202,12 +210,12 @@ namespace NuGetGallery
         public async Task UploadFromStreamAsync(Stream source, IAccessCondition accessCondition)
         {
             BlobUploadOptions options = null;
-            if (accessCondition != null || _blobHeaders != null)
+            if (accessCondition != null || BlobHeaders != null)
             {
                 options = new BlobUploadOptions
                 {
                     Conditions = CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
-                    HttpHeaders = _blobHeaders,
+                    HttpHeaders = BlobHeaders,
                 };
             }
             UpdateEtag(await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
@@ -219,37 +227,37 @@ namespace NuGetGallery
         {
             var blobProperties = UpdateEtag(await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blob.GetPropertiesAsync())).Value;
-            _blobProperties = new CloudBlobReadOnlyProperties(blobProperties);
+            BlobProperties = new CloudBlobReadOnlyProperties(blobProperties);
             ReplaceHttpHeaders(blobProperties);
             ReplaceMetadata(blobProperties.Metadata);
         }
 
         private void ReplaceHttpHeaders(BlobProperties blobProperties)
         {
-            if (_blobHeaders == null)
+            if (BlobHeaders == null)
             {
-                _blobHeaders = new BlobHttpHeaders();
+                BlobHeaders = new BlobHttpHeaders();
             }
-            _blobHeaders.ContentType = blobProperties.ContentType;
-            _blobHeaders.ContentDisposition = blobProperties.ContentDisposition;
-            _blobHeaders.ContentEncoding = blobProperties.ContentEncoding;
-            _blobHeaders.ContentLanguage = blobProperties.ContentLanguage;
-            _blobHeaders.CacheControl = blobProperties.CacheControl;
-            _blobHeaders.ContentHash = blobProperties.ContentHash;
+            BlobHeaders.ContentType = blobProperties.ContentType;
+            BlobHeaders.ContentDisposition = blobProperties.ContentDisposition;
+            BlobHeaders.ContentEncoding = blobProperties.ContentEncoding;
+            BlobHeaders.ContentLanguage = blobProperties.ContentLanguage;
+            BlobHeaders.CacheControl = blobProperties.CacheControl;
+            BlobHeaders.ContentHash = blobProperties.ContentHash;
         }
 
         private void ReplaceHttpHeaders(BlobDownloadDetails details)
         {
-            if (_blobHeaders == null)
+            if (BlobHeaders == null)
             {
-                _blobHeaders = new BlobHttpHeaders();
+                BlobHeaders = new BlobHttpHeaders();
             }
-            _blobHeaders.ContentType = details.ContentType;
-            _blobHeaders.ContentDisposition = details.ContentDisposition;
-            _blobHeaders.ContentEncoding = details.ContentEncoding;
-            _blobHeaders.ContentLanguage = details.ContentLanguage;
-            _blobHeaders.CacheControl = details.CacheControl;
-            _blobHeaders.ContentHash = details.ContentHash;
+            BlobHeaders.ContentType = details.ContentType;
+            BlobHeaders.ContentDisposition = details.ContentDisposition;
+            BlobHeaders.ContentEncoding = details.ContentEncoding;
+            BlobHeaders.ContentLanguage = details.ContentLanguage;
+            BlobHeaders.CacheControl = details.CacheControl;
+            BlobHeaders.ContentHash = details.ContentHash;
         }
 
         private void ReplaceMetadata(IDictionary<string, string> newMetadata)
@@ -311,9 +319,9 @@ namespace NuGetGallery
                 throw new ArgumentException($"The source blob must be a {nameof(CloudBlobWrapper)}.");
             }
 
-            // We sort of have 3 cases here:
+            // We sort of have 4 cases here:
             // 1. sourceWrapper was created using connections string containing account key (shouldn't be the case any longer)
-            //    In this case sourcWrapper.Uri would be a "naked" URI to the blob request to which will fail unless blob is in
+            //    In this case sourceWrapper.Uri would be a "naked" URI to the blob request to which will fail unless blob is in
             //    the public container. However, in this case we'd be able to generate SAS URL to use to access it.
             // 2. sourceWrapper was created using connection string using SAS token. In this case sourceWrapper.Uri will have
             //    the same SAS token attached to it automagically (that seems to be Azure.Storage.Blobs feature).
@@ -321,12 +329,19 @@ namespace NuGetGallery
             //    be naked blob URI. However, assuming destination blob also uses token credential, the implementation seem to use
             //    destination's token to try to access source and if that gives access, everything works. As long as we use the same
             //    credential to access both storage accounts (which should be true for all our services), it should also work.
+            // 4. sourceWrapper has BlobSasUri property set (which is indicative of using ICloudBlobClient.GetBlobFromUri with SAS token
+            //    to create the source object). The internal client has the SAS token properly set, but there is no way to fish it out
+            //    so, we assume that property instead contains the appropriate URL that would allow copying from.
             //
             // If source blob is public none of the above matters.
             var sourceUri = sourceWrapper.Uri;
             if (sourceWrapper._blob.CanGenerateSasUri)
             {
                 sourceUri = sourceWrapper._blob.GenerateSasUri(BlobSasPermissions.Read, DateTimeOffset.UtcNow.AddMinutes(60));
+            }
+            else if (sourceWrapper.BlobSasUri != null)
+            {
+                sourceUri = sourceWrapper.BlobSasUri;
             }
 
             var options = new BlobCopyFromUriOptions
