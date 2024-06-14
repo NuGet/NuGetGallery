@@ -335,9 +335,10 @@ namespace NuGetGallery
                 DestinationConditions = CloudWrapperHelpers.GetSdkAccessCondition(destAccessCondition),
             };
 
-            await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
+            var copyOperation = await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blob.StartCopyFromUriAsync(
                     sourceUri, options));
+            await FetchAttributesAsync();
         }
 
         public async Task<Stream> OpenReadStreamAsync(

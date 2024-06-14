@@ -174,6 +174,7 @@ namespace NuGetGallery
             if (await destBlob.ExistsAsync())
             {
                 var sourceBlobMetadata = srcBlob.Metadata;
+                await destBlob.FetchAttributesAsync();
                 var destinationBlobMetadata = destBlob.Metadata;
                 if (destBlob.CopyState?.Status == CloudBlobCopyStatus.Failed)
                 {
