@@ -1194,10 +1194,17 @@ namespace NuGetGallery
                     .Setup(x => x.ExistsAsync())
                     .ReturnsAsync(true);
 
+                var numCalls = 0;
                 _destBlobMock
                     .Setup(x => x.FetchAttributesAsync())
                     .Returns(Task.FromResult(0))
-                    .Callback(() => SetDestCopyStatus(CloudBlobCopyStatus.Success));
+                    .Callback(() =>
+                    {
+                        if (++numCalls == 2)
+                        {
+                            SetDestCopyStatus(CloudBlobCopyStatus.Success);
+                        } 
+                    });
 
                 // Act
                 var srcETag = await _target.CopyFileAsync(
