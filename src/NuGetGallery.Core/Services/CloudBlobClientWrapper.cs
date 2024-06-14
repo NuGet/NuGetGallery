@@ -55,11 +55,11 @@ namespace NuGetGallery
 
                 blob = new CloudBlobWrapper(new BlockBlobClient(
                     uriBuilder.Uri,
-                    new AzureSasCredential(uri.Query)), null);
+                    new AzureSasCredential(uri.Query)), container: null);
             }
             else
             {
-                blob = new CloudBlobWrapper(new BlockBlobClient(uri), null);
+                blob = new CloudBlobWrapper(new BlockBlobClient(uri), container: null);
             }
 
             return blob;
