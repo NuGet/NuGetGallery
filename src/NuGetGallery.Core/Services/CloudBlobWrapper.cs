@@ -24,7 +24,15 @@ namespace NuGetGallery
         public ICloudBlobProperties Properties { get; private set; }
         public IDictionary<string, string> Metadata { get; private set; }
         public ICloudBlobCopyState CopyState { get; private set; }
-        public Uri Uri => _blob.Uri;
+        public Uri Uri
+        {
+            get
+            {
+                var builder = new UriBuilder(_blob.Uri);
+                builder.Query = string.Empty;
+                return builder.Uri;
+            }
+        }
         public string Name => _blob.Name;
         public string Container => _blob.BlobContainerName;
         public DateTime LastModifiedUtc => BlobProperties.LastModifiedUtc;
@@ -320,10 +328,10 @@ namespace NuGetGallery
             }
 
             // We sort of have 4 cases here:
-            // 1. sourceWrapper was created using connections string containing account key (shouldn't be the case any longer)
-            //    In this case sourceWrapper.Uri would be a "naked" URI to the blob request to which will fail unless blob is in
+            // 1. sourceWrapper was created using connection string containing account key (shouldn't be the case any longer)
+            //    In this case sourceWrapper._blob.Uri would be a "naked" URI to the blob request to which will fail unless blob is in
             //    the public container. However, in this case we'd be able to generate SAS URL to use to access it.
-            // 2. sourceWrapper was created using connection string using SAS token. In this case sourceWrapper.Uri will have
+            // 2. sourceWrapper was created using connection string using SAS token. In this case sourceWrapper._blob.Uri will have
             //    the same SAS token attached to it automagically (that seems to be Azure.Storage.Blobs feature).
             // 3. sourceWrapper uses token credential (MSI or something else provided by Azure.Identity). In this case URI will still
             //    be naked blob URI. However, assuming destination blob also uses token credential, the implementation seem to use
@@ -334,7 +342,7 @@ namespace NuGetGallery
             //    so, we assume that property instead contains the appropriate URL that would allow copying from.
             //
             // If source blob is public none of the above matters.
-            var sourceUri = sourceWrapper.Uri;
+            var sourceUri = sourceWrapper._blob.Uri;
             if (sourceWrapper._blob.CanGenerateSasUri)
             {
                 sourceUri = sourceWrapper._blob.GenerateSasUri(BlobSasPermissions.Read, DateTimeOffset.UtcNow.AddMinutes(60));

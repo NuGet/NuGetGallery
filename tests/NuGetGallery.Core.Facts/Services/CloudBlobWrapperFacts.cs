@@ -7,11 +7,21 @@ using System.Threading.Tasks;
 using Moq;
 using Xunit;
 
-/*
 namespace NuGetGallery.Services
 {
     public class CloudBlobWrapperFacts
     {
+        [Fact]
+        public void UriHasNoQuery()
+        {
+            var client = new CloudBlobClientWrapper("DefaultEndpointsProtocol=https;AccountName=example;SharedAccessSignature=something=somethingelse&sig=somesignature");
+            var container = client.GetContainerReference("testcontainer");
+            var blob = container.GetBlobReference("testblob");
+
+            Assert.Empty(blob.Uri.Query);
+        }
+
+/*
         [Fact]
         public async Task DownloadsText()
         {
@@ -153,6 +163,6 @@ namespace NuGetGallery.Services
         {
             _cloudBlobMock = new Mock<CloudBlockBlob>(new Uri("https://example.com/blob"));
         }
+*/
     }
 }
-*/
