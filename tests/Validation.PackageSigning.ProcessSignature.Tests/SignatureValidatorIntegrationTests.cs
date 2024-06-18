@@ -1869,7 +1869,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             VerifyNU3008(result);
         }
 
-        [Fact]
+        [AdminOnlyFact]
         public async Task RejectsInvalidSignatureContent()
         {
             // Arrange
@@ -1983,12 +1983,9 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     zipFile.IsStreamOwner = false;
 
                     zipFile.BeginUpdate();
-
-                    if (zipFile.FindEntry(SigningSpecifications.V1.SignaturePath, true) >= 0)
-                    {
-                        zipFile.Delete(SigningSpecifications.V1.SignaturePath);
-                    }
-
+                    zipFile.Delete(SigningSpecifications.V1.SignaturePath);
+                    zipFile.CommitUpdate();
+                    zipFile.BeginUpdate();
                     zipFile.Add(
                         new StreamDataSource(new MemoryStream(fileContent)),
                         SigningSpecifications.V1.SignaturePath,
