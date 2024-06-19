@@ -1560,6 +1560,8 @@ p.frameworktableinfo-text {
   padding-left: 0;
   padding-right: 0;
   text-align: right;
+  display: flex;
+  justify-content: center;
 }
 .page-package-details .package-details-info .ms-Icon-ul li {
   margin-bottom: 18px;
@@ -2377,6 +2379,11 @@ p.frameworktableinfo-text {
 .page-list-packages .tooltip-target {
   position: relative;
   text-decoration: none;
+  color: var(--brandForegroundLinkRest);
+  cursor: pointer;
+}
+.page-list-packages .tooltip-target:hover {
+  color: var(--brandForegroundLinkHover);
 }
 .page-list-packages .tooltip-wrapper.popover {
   min-width: 276px;

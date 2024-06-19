@@ -1261,6 +1261,6 @@ The {1} Team</value>
     <value>This package is compatible with all versions of {0}.</value>
   </data>
   <data name="FrameworkFilters_Tooltip" xml:space="preserve">
-    <value>Filters packages based on the target frameworks they are compatible with. Click here to learn more.</value>
+    <value>Filters packages based on the target frameworks they are compatible with.</value>
   </data>
 </root>
