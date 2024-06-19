@@ -15,33 +15,38 @@ namespace NuGetGallery
         private const string SecondaryHostPostfix = "-secondary";
         private readonly string _storageConnectionString;
         private readonly bool _readAccessGeoRedundant = false;
-        private readonly TimeSpan? _requestTimeout;
+        private readonly TimeSpan? _requestTimeout = null;
         private readonly Lazy<Uri> _primaryServiceUri;
-        private readonly Lazy<Uri> _grsServiceUri;
+        private readonly Lazy<Uri> _secondaryServiceUri;
         private readonly Lazy<BlobServiceClient> _blobClient;
-        private TokenCredential _tokenCredential;
+        private readonly TokenCredential _tokenCredential = null;
 
         public CloudBlobClientWrapper(string storageConnectionString, bool readAccessGeoRedundant = false, TimeSpan? requestTimeout = null)
-            : this()
+            : this(storageConnectionString)
         {
-            // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
-            _storageConnectionString = storageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
             _readAccessGeoRedundant = readAccessGeoRedundant;
             _requestTimeout = requestTimeout; // OK to be null
         }
 
-        private CloudBlobClientWrapper()
+        private CloudBlobClientWrapper(string storageConnectionString, ManagedIdentityCredential tokenCredential)
+            : this(storageConnectionString)
         {
-            _primaryServiceUri = new Lazy<Uri>(GetPrimaryUri);
-            _grsServiceUri = new Lazy<Uri>(GetGrsUri);
+            _tokenCredential = tokenCredential ?? throw new ArgumentNullException(nameof(tokenCredential));
+        }
+
+        private CloudBlobClientWrapper(string storageConnectionString)
+        {
+            // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
+            _storageConnectionString = storageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+            _primaryServiceUri = new Lazy<Uri>(GetPrimaryServiceUri);
+            _secondaryServiceUri = new Lazy<Uri>(GetSecondaryServiceUri);
             _blobClient = new Lazy<BlobServiceClient>(CreateBlobServiceClient);
         }
 
         public static CloudBlobClientWrapper UsingMsi(string storageConnectionString, string clientId = null)
         {
-            var client = new CloudBlobClientWrapper(storageConnectionString);
-            client._tokenCredential = new ManagedIdentityCredential(clientId);
-            return client;
+            var tokenCredential = new ManagedIdentityCredential(clientId);
+            return new CloudBlobClientWrapper(storageConnectionString, tokenCredential);
         }
 
         public ISimpleCloudBlob GetBlobFromUri(Uri uri)
@@ -74,7 +79,7 @@ namespace NuGetGallery
         {
             if (_readAccessGeoRedundant)
             {
-                newOptions.GeoRedundantSecondaryUri = _grsServiceUri.Value;
+                newOptions.GeoRedundantSecondaryUri = _secondaryServiceUri.Value;
             }
             if (_tokenCredential != null)
             {
@@ -133,7 +138,7 @@ namespace NuGetGallery
         internal BlobServiceClient Client => _blobClient.Value;
         internal bool UsingTokenCredential => _tokenCredential != null;
 
-        private Uri GetPrimaryUri()
+        private Uri GetPrimaryServiceUri()
         {
             var tempClient = new BlobServiceClient(_storageConnectionString);
             // if _storageConnectionString has SAS token, Uri will contain SAS signature, we need to strip it
@@ -143,7 +148,7 @@ namespace NuGetGallery
             return uriBuilder.Uri;
         }
 
-        private Uri GetGrsUri()
+        private Uri GetSecondaryServiceUri()
         {
             var uriBuilder = new UriBuilder(_primaryServiceUri.Value);
             var hostParts = uriBuilder.Host.Split('.');
@@ -162,7 +167,7 @@ namespace NuGetGallery
             var options = new BlobClientOptions();
             if (readAccessGeoRedundant)
             {
-                options.GeoRedundantSecondaryUri = _grsServiceUri.Value;
+                options.GeoRedundantSecondaryUri = _secondaryServiceUri.Value;
             }
             if (requestTimeout.HasValue)
             {
@@ -189,7 +194,7 @@ namespace NuGetGallery
         {
             if (_tokenCredential != null)
             {
-                return new BlobServiceClient(_grsServiceUri.Value, _tokenCredential, options);
+                return new BlobServiceClient(_secondaryServiceUri.Value, _tokenCredential, options);
             }
             string secondaryConnectionString = GetSecondaryConnectionString();
             return new BlobServiceClient(secondaryConnectionString, options);
@@ -198,7 +203,7 @@ namespace NuGetGallery
         private string GetSecondaryConnectionString()
         {
             var primaryAccountName = _primaryServiceUri.Value.Host.Split('.')[0];
-            var secondaryAccountName = _grsServiceUri.Value.Host.Split('.')[0];
+            var secondaryAccountName = _secondaryServiceUri.Value.Host.Split('.')[0];
             var secondaryConnectionString = _storageConnectionString
                 .Replace($"https://{primaryAccountName}.", $"https://{secondaryAccountName}.")
                 .Replace($"AccountName={primaryAccountName};", $"AccountName={secondaryAccountName};");

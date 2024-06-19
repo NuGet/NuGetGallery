@@ -334,9 +334,10 @@ namespace NuGetGallery
             // 2. sourceWrapper was created using connection string using SAS token. In this case sourceWrapper._blob.Uri will have
             //    the same SAS token attached to it automagically (that seems to be Azure.Storage.Blobs feature).
             // 3. sourceWrapper uses token credential (MSI or something else provided by Azure.Identity). In this case URI will still
-            //    be naked blob URI. However, assuming destination blob also uses token credential, the implementation seem to use
-            //    destination's token to try to access source and if that gives access, everything works. As long as we use the same
-            //    credential to access both storage accounts (which should be true for all our services), it should also work.
+            //    be naked blob URI. However, assuming destination blob also uses token credential, the underlying implementation
+            //    (in Azure.Storage.Blobs) seem to use destination's token to try to access source and if that gives access,
+            //    everything works. As long as we use the same credential to access both storage accounts (which should be true
+            //    for all our services), it should also work.
             // 4. sourceWrapper has BlobSasUri property set (which is indicative of using ICloudBlobClient.GetBlobFromUri with SAS token
             //    to create the source object). The internal client has the SAS token properly set, but there is no way to fish it out
             //    so, we assume that property instead contains the appropriate URL that would allow copying from.
