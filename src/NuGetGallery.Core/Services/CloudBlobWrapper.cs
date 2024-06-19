@@ -121,8 +121,11 @@ namespace NuGetGallery
                 };
             }
             return await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
-                //TODO: how first argument interacts with access conditions?
-                _blob.OpenWriteAsync(true, options));
+                // overwrite must be set to true for BlockBlobClient.OpenWriteAsync call *shrug*
+                // The value itself does not seem to be otherwise used anywhere.
+                // https://github.com/Azure/azure-sdk-for-net/blob/aec1a1389636a2ef76270ab4bdcb0715a2abb1aa/sdk/storage/Azure.Storage.Blobs/src/BlockBlobClient.cs#L2776-L2779
+                // https://github.com/Azure/azure-sdk-for-net/blob/aec1a1389636a2ef76270ab4bdcb0715a2abb1aa/sdk/storage/Azure.Storage.Blobs/tests/BlobClientOpenWriteTests.cs#L124-L133
+                _blob.OpenWriteAsync(overwrite: true, options));
         }
 
         public async Task DeleteIfExistsAsync()

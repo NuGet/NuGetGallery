@@ -54,7 +54,6 @@ namespace NuGetGallery
             var enumerator = enumerable.GetAsyncEnumerator(cancellationToken);
             try
             {
-                // TODO: make another WrapStorageExceptionAsync overload with ValueTask?..
                 if (await CloudWrapperHelpers.WrapStorageExceptionAsync(() => enumerator.MoveNextAsync().AsTask()))
                 {
                     var page = enumerator.Current;
