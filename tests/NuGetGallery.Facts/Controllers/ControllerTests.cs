@@ -159,7 +159,7 @@ namespace NuGetGallery.Controllers
 
             // Only certain actions should support discontinued password login
             var actionsSupportingDiscontinuedLogins = actions
-                .Where(m => m.GetCustomAttributes().Any(a => a is UIAuthorizeAttribute && ((UIAuthorizeAttribute)a).AllowDiscontinuedLogins))
+                .Where(m => m.GetCustomAttributes().Any(a => a is UIAuthorizeAttribute attribute && attribute.AllowDiscontinuedLogins))
                 .Select(m => new ControllerActionRuleException(m))
                 .Distinct();
 
