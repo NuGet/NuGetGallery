@@ -1121,7 +1121,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Filters packages based on the target frameworks they are compatible with. Click here to learn more..
+        ///   Looks up a localized string similar to Filters packages based on the target frameworks they are compatible with..
         /// </summary>
         public static string FrameworkFilters_Tooltip {
             get {

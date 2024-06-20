@@ -1,4 +1,7 @@
 .list-packages {
+  .package-default-icon {
+    content: var(--default-package-icon, url(../img/default-package-icon-256x256.png));
+  }
 
   .package {
     .break-word;
@@ -34,11 +37,13 @@
         margin-left: 3px;
         vertical-align: top;
         width: 20px;
+        color: var(--brandBackground1Rest);
       }
 
       .edit-button {
         vertical-align: text-bottom;
         margin-left: 10px;
+        display: inline-flex;
       }
 
       .package-by {

@@ -2174,6 +2174,7 @@ textarea.form-control {
   border-radius: 4px;
   border: 1px solid var(--neutralStroke1Rest);
   border-bottom: 2px solid var(--neutralStrokeAccessibleRest);
+  padding: 6px 12px !important;
   outline: none !important;
   -webkit-box-shadow: none !important;
   box-shadow: none !important;
@@ -2236,6 +2237,7 @@ select.select-brand {
   border-radius: 4px;
   border: 1px solid var(--neutralStroke1Rest);
   border-bottom: 2px solid var(--neutralStrokeAccessibleRest);
+  padding: 6px 12px !important;
   outline: none !important;
   -webkit-box-shadow: none !important;
   box-shadow: none !important;
@@ -2303,6 +2305,7 @@ input.input-brand {
   border-radius: 4px;
   border: 1px solid var(--neutralStroke1Rest);
   border-bottom: 2px solid var(--neutralStrokeAccessibleRest);
+  padding: 6px 12px !important;
   outline: none !important;
   -webkit-box-shadow: none !important;
   box-shadow: none !important;
@@ -2381,6 +2384,7 @@ input.input-brand::-webkit-input-placeholder {
   border-radius: 4px;
   border: 1px solid var(--neutralStroke1Rest);
   border-bottom: 2px solid var(--neutralStrokeAccessibleRest);
+  padding: 6px 12px !important;
   outline: none !important;
   -webkit-box-shadow: none !important;
   box-shadow: none !important;
