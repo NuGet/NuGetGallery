@@ -1094,6 +1094,9 @@ p.frameworktableinfo-text {
     white-space: nowrap;
   }
 }
+.user-package-list .manage-package-listing .package-default-icon {
+  content: var(--default-package-icon, url(../img/default-package-icon-256x256.png));
+}
 .user-package-list .table {
   border-bottom: 1px solid #ddd;
 }
@@ -1418,6 +1421,9 @@ p.frameworktableinfo-text {
 .page-delete-account .red-check {
   font-size: 25px;
   color: var(--statusDangerForeground1Rest);
+}
+.page-package-details .package-default-icon {
+  content: var(--default-package-icon, url(../img/default-package-icon-256x256.png));
 }
 .page-package-details .no-border {
   border: 0;
@@ -2591,6 +2597,9 @@ p.frameworktableinfo-text {
     float: right;
     text-align: right;
   }
+}
+.page-manage-packages .package-default-icon {
+  content: var(--default-package-icon, url(../img/default-package-icon-256x256.png));
 }
 .page-manage-packages .panel {
   margin-top: 5px;

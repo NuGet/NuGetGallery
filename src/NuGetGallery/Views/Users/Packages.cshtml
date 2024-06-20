@@ -131,7 +131,7 @@
                     <tr class="manage-package-listing" data-bind="visible: Visible">
                         <td class="align-middle hidden-xs">
                             <img class="package-icon img-responsive" aria-hidden="true"
-                                 data-bind="attr: { src: PackageIconUrl, onerror: PackageIconUrlFallback, alt: 'Icon for ' + Id }" />
+                                 data-bind="attr: { src: PackageIconUrl, onerror: PackageIconUrlFallback, alt: 'Icon for ' + Id, class: PackageIconUrl == null ? 'package-icon img-responsive package-default-icon' : 'package-icon img-responsive' }" />
                         </td>
                         <td class="align-middle package-id text-nowrap">
                             <a title="View Package" data-bind="attr: { href: PackageUrl }">
@@ -513,7 +513,6 @@
                             .Select(r => GetSerializableOwnerRequest(r)),
                          RequestsSent = Model.OwnerRequests.Sent.Requests
                             .Select(r => GetSerializableOwnerRequest(r)),
-                         DefaultPackageIconUrl = Url.Absolute("~/Content/gallery/img/default-package-icon.svg"),
                          PackageIconUrlFallback = Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")
                      });
     </script>

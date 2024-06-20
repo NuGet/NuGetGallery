@@ -43,9 +43,8 @@
                                 }
                             </td>
                             <td class="align-middle hidden-xs">
-                                <img class="package-icon img-responsive" aria-hidden="true" alt="Package Icon"
-                                     src="@(PackageHelper.ShouldRenderUrl(package.IconUrl) ? package.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
-                                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
+                                <img class="package-icon img-responsive @(!PackageHelper.ShouldRenderUrl(package.IconUrl) ? "package-default-icon" : null)" aria-hidden="true" alt="Package Icon"
+                                     src="@(PackageHelper.ShouldRenderUrl(package.IconUrl) ? package.IconUrl : null)" />
                             </td>
                             <td class="align-middle package-id"><a href="@Url.Package(package.Id)">@Html.BreakWord(package.Id.Abbreviate(40))</a></td>
                             <td class="align-middle">
