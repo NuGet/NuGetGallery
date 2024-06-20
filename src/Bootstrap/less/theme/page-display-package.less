@@ -1,4 +1,8 @@
 .page-package-details {
+  .package-default-icon {
+    content: var(--default-package-icon, url(../img/default-package-icon-256x256.png));
+  }
+  
   .no-border {
     border: 0;
   }
@@ -177,6 +181,8 @@
       padding-left: 0;
       padding-right: 0;
       text-align: right;
+      display: flex;
+      justify-content: center;
     }
   }
 

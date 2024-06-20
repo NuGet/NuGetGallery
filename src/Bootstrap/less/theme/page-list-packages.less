@@ -38,8 +38,12 @@
 
   .sortby {
     margin-top: 47px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
 
     label {
+      white-space: nowrap;
       font-weight: 500;
       font-size: large;
     }
@@ -296,6 +300,12 @@
   .tooltip-target {
     position: relative;
     text-decoration: none;
+    color: var(--brandForegroundLinkRest);
+    cursor: pointer;
+
+    &:hover {
+      color: var(--brandForegroundLinkHover);
+    }
   }
   
   .tooltip-wrapper.popover {
