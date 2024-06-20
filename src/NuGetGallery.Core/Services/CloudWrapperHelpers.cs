@@ -94,11 +94,15 @@ namespace NuGetGallery
             {
                 convertedPermissions |= BlobAccountSasPermissions.Delete;
             }
+#pragma warning disable CS0612
             if (permissions.HasFlag(FileUriPermissions.List))
+#pragma warning restore CS0612
             {
                 convertedPermissions |= BlobAccountSasPermissions.List;
             }
+#pragma warning disable CS0612
             if (permissions.HasFlag(FileUriPermissions.Add))
+#pragma warning restore CS0612
             {
                 convertedPermissions |= BlobAccountSasPermissions.Add;
             }
