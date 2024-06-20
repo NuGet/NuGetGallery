@@ -51,8 +51,8 @@
                         @Html.ShowValidationMessagesFor(m => m.SiteAdmins)
                     </div>
 
-                    <div class="flight-array col-sm-3" name="Accounts" data-items="@string.Join(";", Model.Accounts ?? new string[0])" data-bind="template: { name: 'flight-array', data: $data }"></div>
-                    <div class="flight-array col-sm-3" name="Domains" data-items="@string.Join(";", Model.Domains ?? new string[0])" data-bind="template: { name: 'flight-array', data: $data }"></div>
+                    <div class="flight-array col-sm-3" name="Accounts" data-items="@string.Join(";", Model.Accounts ?? Array.Empty<string>())" data-bind="template: { name: 'flight-array', data: $data }"></div>
+                    <div class="flight-array col-sm-3" name="Domains" data-items="@string.Join(";", Model.Domains ?? Array.Empty<string>())" data-bind="template: { name: 'flight-array', data: $data }"></div>
                 </div>
 
                 <div class="col-sm-2 @(Model.All ? "col-sm-offset-7" : "")" id="@rowFormSubmitId">

@@ -81,7 +81,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
                 foreach (var line in lines)
                 {
-                    var parts = line.Split(new char[0], StringSplitOptions.RemoveEmptyEntries);
+                    var parts = line.Split(Array.Empty<char>(), StringSplitOptions.RemoveEmptyEntries);
 
                     if (parts.Length != 2)
                     {

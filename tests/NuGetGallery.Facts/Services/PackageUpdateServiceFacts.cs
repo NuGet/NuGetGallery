@@ -27,7 +27,7 @@ namespace NuGetGallery.Services
 
         public class TheUpdateDeprecationMethod : TestContainer
         {
-            public static IEnumerable<object[]> ThrowsIfPackagesEmpty_Data => MemberDataHelper.AsDataSet(null, new Package[0]);
+            public static IEnumerable<object[]> ThrowsIfPackagesEmpty_Data => MemberDataHelper.AsDataSet(null, Array.Empty<Package>());
 
             [Theory]
             [MemberData(nameof(ThrowsIfPackagesEmpty_Data))]
@@ -324,7 +324,7 @@ namespace NuGetGallery.Services
                     .Verifiable();
             }
 
-            public static IEnumerable<object[]> ThrowsIfNullOrEmptyPackages_Data => MemberDataHelper.AsDataSet(null, new Package[0]);
+            public static IEnumerable<object[]> ThrowsIfNullOrEmptyPackages_Data => MemberDataHelper.AsDataSet(null, Array.Empty<Package>());
 
             [Theory]
             [MemberData(nameof(ThrowsIfNullOrEmptyPackages_Data))]
