@@ -381,6 +381,10 @@ namespace NuGetGallery
             verifyRequest.IsMarkdigMdSyntaxHighlightEnabled = _featureFlagService.IsMarkdigMdSyntaxHighlightEnabled();
             verifyRequest.IsDisplayUploadWarningV2Enabled = _featureFlagService.IsDisplayUploadWarningV2Enabled(currentUser);
 
+            IEnumerable<VulnerableDirectDependencyMessage> vulWarnings = validationResult.Warnings.OfType<VulnerableDirectDependencyMessage>();
+            var vulnerableDependencyModels = vulWarnings.Select(vw => new VulnerableDependencyModel(vw.PackageId, vw.VersionSpec, vw.AdvisoryLink, vw.PackageLink, vw.VulnerabilitySeverity));
+            verifyRequest.VulnerableDependencies = new VulnerableDependencySetsViewModel(vulnerableDependencyModels);
+
             model.InProgressUpload = verifyRequest;
             return View(model);
         }

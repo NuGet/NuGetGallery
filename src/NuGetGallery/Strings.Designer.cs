@@ -3346,6 +3346,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Vulnerability found for direct dependency {0}.
+        /// </summary>
+        public static string WarningVulnerabilityFoundUploadPackage {
+            get {
+                return ResourceManager.GetString("WarningVulnerabilityFoundUploadPackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Yes.
         /// </summary>
         public static string Yes {
