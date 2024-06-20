@@ -1818,7 +1818,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             Assert.Equal("The commitment-type-indication attribute contains an invalid combination of values.", typedIssue.ClientMessage);
         }
 
-        [AdminOnlyTheory]
+        [Theory]
         [InlineData("MA0GCyqGSIb3DQEJEAYD")] // base64 of ASN.1 encoded "1.2.840.113549.1.9.16.6.3" OID.
         [InlineData(null)] // No commitment type.
         public async Task AllowsNonAuthorAndRepositoryCounterSignatures(string commitmentTypeOidBase64)
@@ -1983,9 +1983,11 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     zipFile.IsStreamOwner = false;
 
                     zipFile.BeginUpdate();
-                    zipFile.Delete(SigningSpecifications.V1.SignaturePath);
-                    zipFile.CommitUpdate();
-                    zipFile.BeginUpdate();
+
+                    if (zipFile.FindEntry(SigningSpecifications.V1.SignaturePath, true) >= 0){
+                        zipFile.Delete(SigningSpecifications.V1.SignaturePath);
+                    }
+
                     zipFile.Add(
                         new StreamDataSource(new MemoryStream(fileContent)),
                         SigningSpecifications.V1.SignaturePath,
