@@ -2167,8 +2167,12 @@ p.frameworktableinfo-text {
 }
 .page-list-packages .sortby {
   margin-top: 47px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }
 .page-list-packages .sortby label {
+  white-space: nowrap;
   font-weight: 500;
   font-size: large;
 }
