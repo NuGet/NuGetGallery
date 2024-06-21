@@ -293,7 +293,7 @@ namespace NuGetGallery
                 {
                     RestartSchedulerOnFailure = true
                 };
-                _jobManager.Fail(e => { /* fail silently */ });
+                _jobManager.Fail(e => { Trace.TraceError($"{nameof(BackgroundJobsPostStart)} failure: {e.Message}"); });
                 _jobManager.Start();
             }
         }
