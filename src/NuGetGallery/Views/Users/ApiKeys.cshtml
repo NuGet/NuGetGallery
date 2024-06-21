@@ -284,7 +284,7 @@
             <div class="col-sm-7 form-group">
                 <label class="control-label required" data-bind="attr: { for: DescriptionId,
                                           id: DescriptionId() + '-label' }">Key Name</label>
-                <input type="text" class="form-control"
+                <input type="text" class="form-control input-brand"
                        data-bind="attr: { id: DescriptionId,
                                           name: DescriptionId,
                                           'aria-labelledby': DescriptionId() + '-label ' + DescriptionId() + '-validation-message' },
@@ -299,7 +299,7 @@
             {
                 <div class="col-sm-5 form-group">
                     <label data-bind="attr: { id: ExpiresInId() + '-label', for: ExpiresInId() }">Expires In</label>
-                    <select class="form-control"
+                    <select class="form-control select-brand"
                             data-bind="attr: { id: ExpiresInId(),
                                                name: ExpiresInId(),
                                                'aria-labelledby': ExpiresInId() + '-label' },
@@ -329,13 +329,13 @@
             <div class="col-sm-7 form-group">
                 <label class="required" data-bind="attr: { for: PackageOwnerId,
                                             id: PackageOwnerId() + '-label' }">Package Owner</label>
-                <select class="form-control"
+                <select class="form-control select-brand"
                         aria-required="true"
                         data-bind="attr: { id: PackageOwnerId,
                                                     name: PackageOwnerId,
                                                     'aria-labelledby': PackageOwnerId() + '-label' },
                                             options: PackageOwners, value: PackageOwner, optionsText: 'Owner', optionsCaption: 'Select an owner...' "></select>
-                <div class="has-error">
+                <div class="has-error-brand">
                     <span class="field-validation-valid help-block"
                           data-bind="text: PackageOwner() ?  '' : 'A package owner must be selected.'" aria-live="polite" role="alert"></span>
                 </div>
@@ -345,53 +345,53 @@
         <div class="row">
             <div class="col-sm-12 form-group">
                 <h4 id="select-scopes" class="ms-fontSize-xl"><b>Select Scopes</b></h4>
-                <span class="has-error">
+                <span class="has-error-brand">
                     <span class="help-block" data-bind="text: ScopesError" aria-live="polite" role="alert"></span>
                 </span>
                 <ul role="presentation">
                     <li>
-                        <div class="checkbox">
-                            <label id="select-scopes-push">
+                        <div class="row-checkbox-label">
+                            <label id="select-scopes-push" class="brand-checkbox">
                                 <input type="checkbox" data-bind="checked: PushEnabled, enable: PushAnyEnabled" aria-labelledby="select-scopes-push select-scopes" />
-                                Push
+                                <span>Push</span>
                             </label>
                         </div>
                         <ul role="presentation" data-bind="css: { disabled: !PushEnabled() }">
                             <li>
-                                <div class="radio">
+                                <div class="row-checkbox-label">
                                     <div class="label-sibling">
+                                    </div>
+                                    <label id="select-scopes-push-package" class="brand-radio" data-bind="attr: { for: PackagePushId }"
+                                           aria-labelledby="select-scopes-push-package select-scopes">
                                         <input name="PushScope" type="radio" value="@NuGetScopes.PackagePush"
                                                data-bind="checked: PushScope, enable: PushNewEnabled,
                                                           attr: { id: PackagePushId }" />
-                                    </div>
-                                    <label id="select-scopes-push-package" data-bind="attr: { for: PackagePushId }"
-                                           aria-labelledby="select-scopes-push-package select-scopes">
-                                        @NuGetScopes.Describe(NuGetScopes.PackagePush, Model.IsDeprecationApiEnabled)
+                                        <span>@NuGetScopes.Describe(NuGetScopes.PackagePush, Model.IsDeprecationApiEnabled)</span>
                                     </label>
                                 </div>
                             </li>
                             <li>
-                                <div class="radio">
+                                <div class="row-checkbox-label">
                                     <div class="label-sibling">
+                                    </div>
+                                    <label id="select-scopes-push-package-version" class="brand-radio" data-bind="attr: { for: PackagePushVersionId }" 
+                                           aria-labelledby="select-scopes-push-package-version select-scopes">
                                         <input name="PushScope" type="radio" value="@NuGetScopes.PackagePushVersion"
                                                data-bind="checked: PushScope, enable: PushExistingEnabled,
                                                           attr: { id: PackagePushVersionId }" />
-                                    </div>
-                                    <label id="select-scopes-push-package-version" data-bind="attr: { for: PackagePushVersionId }" 
-                                           aria-labelledby="select-scopes-push-package-version select-scopes">
-                                        @NuGetScopes.Describe(NuGetScopes.PackagePushVersion, Model.IsDeprecationApiEnabled)
+                                        <span>@NuGetScopes.Describe(NuGetScopes.PackagePushVersion, Model.IsDeprecationApiEnabled)</span>
                                     </label>
                                 </div>
                             </li>
                         </ul>
                     </li>
                     <li>
-                        <div class="checkbox">
-                            <label id="select-scopes-unlist">
+                        <div class="row-checkbox-label">
+                            <label id="select-scopes-unlist" class="brand-checkbox">
                                 <input type="checkbox" value="@NuGetScopes.PackageUnlist"
                                        aria-labelledby="select-scopes-unlist select-scopes"
                                        data-bind="checked: UnlistScopeChecked, enable: UnlistEnabled" />
-                                @NuGetScopes.Describe(NuGetScopes.PackageUnlist, Model.IsDeprecationApiEnabled)
+                                <span>@NuGetScopes.Describe(NuGetScopes.PackageUnlist, Model.IsDeprecationApiEnabled)</span>
                             </label>
                         </div>
                     </li>
@@ -406,10 +406,10 @@
                     To select which packages to associate with a key, use a glob pattern, select
                     individual packages, or both.
                 </p>
-                <div class="has-error">
+                <div class="has-error-brand">
                     <span class="help-block" data-bind="text: SubjectsError" aria-live="polite" role="alert"></span>
                 </div>
-                <div class="has-error">
+                <div class="has-error-brand">
                     <span class="field-validation-valid help-block"
                           data-valmsg-replace="true"
                           data-bind="attr: { 'data-valmsg-for': GlobPatternId,
@@ -429,7 +429,7 @@
             <div class="col-sm-7 select-packages-inputs">
                 <div>
                     <div class="form-group">
-                        <input type="text" class="form-control" data-val="true"
+                        <input type="text" class="form-control input-brand" data-val="true"
                                data-val-regex="Invalid glob pattern. See the example glob patterns below for further details."
                                data-val-regex-pattern="^[\*\w_.-]*$"
                                data-bind="textInput: PendingGlobPattern,
@@ -443,13 +443,12 @@
                         <div class="panel panel-default available-packages">
                             <div class="panel-body">
                                 <!-- ko foreach: PendingPackages -->
-                                <div class="checkbox" data-bind="css: { disabled: Matched }">
-                                    <label>
+                                <div class="row-checkbox-label" data-bind="css: { disabled: Matched }">
+                                    <label class="brand-checkbox">
                                         <input type="checkbox" name="Packages"
                                                data-bind="checked: Checked,
                                                       enable: $parent.SelectPackagesEnabled" />
-                                        <!-- ko text: Id -->
-                                        <!-- /ko -->
+                                        <span data-bind="text: Id"></span>
                                     </label>
                                 </div>
                                 <!-- /ko -->
@@ -496,7 +495,7 @@
         </div>
         <div class="row">
             <div class="col-sm-6 form-group">
-                <input type="submit" class="btn btn-primary btn-block"
+                <input type="submit" class="btn btn-brand btn-block"
                        data-bind="enable: SelectPackagesEnabled() && !PendingCreateOrEdit(),
                                   attr: { value: Key() ? 'Edit' : 'Create' }" />
             </div>
@@ -506,7 +505,7 @@
                                            id: CancelEditId },
                                    enable: SelectPackagesEnabled() && !PendingCreateOrEdit(),
                                    click: CancelEdit"
-                        class="btn btn-default btn-block">
+                        class="btn btn-brand-secondary btn-block">
                     Cancel
                 </button>
             </div>

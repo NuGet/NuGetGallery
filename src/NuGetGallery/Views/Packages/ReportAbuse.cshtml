@@ -71,7 +71,7 @@
                     <div id="form-field-reason" class="form-group @Html.HasErrorFor(m => m.Reason)">
                         @Html.ShowLabelFor(m => m.Reason)
                         <p tabindex="0">Please select the reason for contacting support about this package. This package contains:</p>
-                        @Html.ShowEnumDropDownListFor(m => m.Reason, Model.ReasonChoices, "<Choose a Reason>")
+                        @Html.ShowEnumDropDownListFor(m => m.Reason, Model.ReasonChoices, "<Choose a Reason>", customClass: "select-brand")
                         @Html.ShowValidationMessagesFor(m => m.Reason)
                     </div>
 
@@ -100,11 +100,11 @@
                     <div id="report-abuse-form">
                         <div class="form-group @Html.HasErrorFor(m => m.Email)">
                             @Html.ShowLabelFor(m => m.Email)
-                            @Html.ShowTextBoxFor(m => m.Email)
+                            @Html.ShowTextBoxFor(m => m.Email, customClass: "input-brand")
                             @Html.ShowValidationMessagesFor(m => m.Email)
                         </div>
-                        <div class="form-group already-contacted-owner @Html.HasErrorFor(m => m.AlreadyContactedOwner)">
-                            @Html.ShowCheckboxFor(m => m.AlreadyContactedOwner)
+                        <div class="form-group already-contacted-owner row-checkbox-label @Html.HasErrorFor(m => m.AlreadyContactedOwner)">
+                            @Html.ShowCheckboxFor(m => m.AlreadyContactedOwner, "brand-checkbox")
                             @Html.ShowLabelFor(m => m.AlreadyContactedOwner)
                             @Html.ShowValidationMessagesFor(m => m.AlreadyContactedOwner)
                         </div>
@@ -133,16 +133,16 @@
                                     </ul>
                                 </p>
                             </div>
-                            @Html.ShowTextAreaFor(m => m.Message, 10, 50)
+                            @Html.ShowTextAreaFor(m => m.Message, 10, 50, customClass: "textarea-brand")
                             @Html.ShowValidationMessagesFor(m => m.Message)
                         </div>
-                        <div class="form-group @Html.HasErrorFor(m => m.CopySender)">
-                            @Html.ShowCheckboxFor(m => m.CopySender)
+                        <div class="form-group row-checkbox-label @Html.HasErrorFor(m => m.CopySender)">
+                            @Html.ShowCheckboxFor(m => m.CopySender, customClass: "brand-checkbox")
                             @Html.ShowLabelFor(m => m.CopySender)
                             @Html.ShowValidationMessagesFor(m => m.CopySender)
                         </div>
                         <div class="form-group">
-                            <input id="Submit" type="submit" class="btn btn-primary form-control" value="Report" />
+                            <input id="Submit" type="submit" class="btn btn-brand form-control" value="Report" />
                         </div>
                     </div>
                 }

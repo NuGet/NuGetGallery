@@ -22,20 +22,22 @@
                 <div id="form-field-reason" class="form-group @Html.HasErrorFor(m => m.Reason)">
                     @Html.ShowLabelFor(m => m.Reason)
                     <p>Please select the reason for contacting support about this package.</p>
-                    @Html.ShowEnumDropDownListFor(m => m.Reason, Model.ReasonChoices, "<Choose a reason>")
+                    @Html.ShowEnumDropDownListFor(m => m.Reason, Model.ReasonChoices, "<Choose a reason>", customClass: "select-brand")
                     @Html.ShowValidationMessagesFor(m => m.Reason)
                 </div>
                 <div id="form-field-delete-decision" class="hidden form-group @Html.HasErrorFor(m => m.DeleteDecision)">
                     <p>Please select how you would like to proceed.</p>
-                    @Html.ShowEnumDropDownListFor(m => m.DeleteDecision, "<Choose how to proceed>")
+                    @Html.ShowEnumDropDownListFor(m => m.DeleteDecision, "<Choose how to proceed>", customClass: "select-brand")
                     @Html.ShowValidationMessagesFor(m => m.DeleteDecision)
                 </div>
-                <div id="form-field-confirm-delete" class="hidden checkbox">
-                    <label>
+                <div id="form-field-confirm-delete" class="hidden">
+                    <label class="brand-checkbox">
                         @Html.ShowCheckboxFor(m => m.DeleteConfirmation)
-                        I understand that this action cannot be undone. This will permanently delete the package
-                        @Model.PackageId @Model.PackageVersion and make it unavailable for download and package restore.
-                        This does not allow uploading a new package with the same version.
+                        <span>
+                            I understand that this action cannot be undone. This will permanently delete the package
+                            @Model.PackageId @Model.PackageVersion and make it unavailable for download and package restore.
+                            This does not allow uploading a new package with the same version.
+                        </span>
                     </label>
                     <div class="@Html.HasErrorFor(m => m.DeleteConfirmation)">
                         @Html.ShowValidationMessagesFor(m => m.DeleteConfirmation)
@@ -46,7 +48,7 @@
                     <p>
                         Please provide a detailed description of the problem.
                     </p>
-                    @Html.ShowTextAreaFor(m => m.Message, 10, 50)
+                    @Html.ShowTextAreaFor(m => m.Message, 10, 50, customClass: "textarea-brand")
                     @Html.ShowValidationMessagesFor(m => m.Message)
                 </div>
                 <div id="form-field-copy-sender" class="form-group @Html.HasErrorFor(m => m.CopySender)">
@@ -54,7 +56,7 @@
                     @Html.ShowLabelFor(m => m.CopySender)
                     @Html.ShowValidationMessagesFor(m => m.CopySender)
                 </div>
-                <input type="submit" class="btn btn-primary form-control" value="Submit"
+                <input type="submit" class="btn btn-brand form-control" value="Submit"
                        title="Submit your problem with '@Model.PackageId'" id="Submit" />
             }
         </div>

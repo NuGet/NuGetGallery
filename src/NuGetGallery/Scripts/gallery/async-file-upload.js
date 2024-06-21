@@ -246,6 +246,7 @@
             $("#submit-block").remove();
             $("#verify-collapser-container").addClass("hidden");
             $("#submit-collapser-container").addClass("hidden");
+            $("#readme-collapser-container").addClass("hidden");
 
             if (model != null) {
                 var reportContainerElement = document.createElement("div");
@@ -300,7 +301,8 @@
 
                 $("#verify-collapser-container").removeClass("hidden");
                 $("#submit-collapser-container").removeClass("hidden");
-
+                $("#readme-collapser-container").removeClass("hidden");
+                
                 if (model != null && model.IsDisplayUploadWarningV2Enabled) {
                     $('#upload-package-form').collapse('hide');
                     $('#warning-container').addClass('hidden');

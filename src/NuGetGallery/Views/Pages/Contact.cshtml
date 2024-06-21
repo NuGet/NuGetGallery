@@ -5,7 +5,7 @@
     ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
 }
 
-<section role="main" class="container main-container">
+<section role="main" class="container main-container page-contact">
     <div class="row">
         <div class="col-xs-12 text-center">
             <h1>Contact</h1>
@@ -57,7 +57,7 @@
 
             @if (!User.Identity.IsAuthenticated)
             {
-                <h2 class="ms-fontSize-xl ms-fontWeight-semibold">The above doesn't help? @Html.ActionLink("Sign in", "LogOn", new { controller = "Authentication", ReturnUrl = "/policies/Contact" }) to contact Support.</h2>
+                <h2 class="ms-fontSize-xl ms-fontWeight-semibold sign-in-link">The above doesn't help? @Html.ActionLink("Sign in", "LogOn", new { controller = "Authentication", ReturnUrl = "/policies/Contact" }) to contact Support.</h2>
                 <p>
                     Need help with your nuget.org account? Please feel free to <span id="emailUs"></span>.
                 </p>
@@ -75,21 +75,21 @@
                         @Html.AntiForgeryToken()
                         <div class="form-group @Html.HasErrorFor(m => m.SubjectLine)">
                             @Html.ShowLabelFor(m => m.SubjectLine)
-                            @Html.ShowTextBoxFor(m => m.SubjectLine)
+                            @Html.ShowTextBoxFor(m => m.SubjectLine, customClass: "input-brand")
                             @Html.ShowValidationMessagesFor(m => m.SubjectLine)
                         </div>
                         <div class="form-group @Html.HasErrorFor(m => m.Message)">
                             @Html.ShowLabelFor(m => m.Message)
-                            @Html.ShowTextAreaFor(m => m.Message, 10, 50)
+                            @Html.ShowTextAreaFor(m => m.Message, 10, 50, customClass: "textarea-brand")
                             @Html.ShowValidationMessagesFor(m => m.Message)
                         </div>
-                        <div class="form-group @Html.HasErrorFor(m => m.CopySender)">
-                            @Html.ShowCheckboxFor(m => m.CopySender)
+                        <div class="form-group row-checkbox-label @Html.HasErrorFor(m => m.CopySender)">
+                            @Html.ShowCheckboxFor(m => m.CopySender, customClass: "brand-checkbox")
                             @Html.ShowLabelFor(m => m.CopySender)
                             @Html.ShowValidationMessagesFor(m => m.CopySender)
                         </div>
                         <div class="form-group">
-                            <input id="Submit" type="submit" class="btn btn-primary form-control" value="Contact" title="Contact Support" />
+                            <input id="Submit" type="submit" class="btn btn-brand form-control" value="Contact" title="Contact Support" />
                         </div>
                     </fieldset>
                 }
