@@ -15,8 +15,8 @@ samp {
 code {
   padding: 2px 4px;
   font-size: 90%;
-  color: @code-color;
-  background-color: @code-bg;
+  color: var(--statusDangerForeground1Rest);
+  background-color: var(--statusDangerBackground1Rest);
   border-radius: @border-radius-base;
 }
 
@@ -24,8 +24,8 @@ code {
 kbd {
   padding: 2px 4px;
   font-size: 90%;
-  color: @kbd-color;
-  background-color: @kbd-bg;
+  color: var(--neutralForeground1Rest);
+  background-color: var(--neutralBackground1Rest);
   border-radius: @border-radius-small;
   box-shadow: inset 0 -1px 0 rgba(0, 0, 0, .25);
 
@@ -44,12 +44,12 @@ pre {
   margin: 0 0 (@line-height-computed / 2);
   font-size: (@font-size-base - 1); // 14px to 13px
   line-height: @line-height-base;
-  color: @pre-color;
+  color: var(--neutralForeground2Rest);
   word-break: break-all;
   word-wrap: break-word;
-  background-color: @pre-bg;
-  border: 1px solid @pre-border-color;
-  border-radius: @border-radius-base;
+  background-color: var(--neutralBackground1Rest);
+  border: 2px solid var(--neutralStroke1Rest);
+  border-radius: 4px;
 
   // Account for some code outputs that place code tags in pre tags
   code {

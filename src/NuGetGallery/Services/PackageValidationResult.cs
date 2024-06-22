@@ -12,7 +12,7 @@ namespace NuGetGallery
     /// </summary>
     public class PackageValidationResult
     {
-        private static readonly IReadOnlyList<IValidationMessage> EmptyList = new IValidationMessage[0];
+        private static readonly IReadOnlyList<IValidationMessage> EmptyList = Array.Empty<IValidationMessage>();
 
         public PackageValidationResult(PackageValidationResultType type, IValidationMessage message)
             : this(type, message, warnings: null)

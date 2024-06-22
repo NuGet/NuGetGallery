@@ -58,10 +58,10 @@
                             <a href="#" id="transform-tooltip" data-toggle="tooltip" title="Please enter a username for the organization administrator.">
                                 <i class="ms-Icon ms-Icon--Info" aria-hidden="true" style="vertical-align: -2px"></i>
                             </a>
-                            @Html.ShowTextBoxFor(m => m.AdminUsername, placeholder: "Add existing NuGet.org user")
+                            @Html.ShowTextBoxFor(m => m.AdminUsername, placeholder: "Add existing NuGet.org user", customClass: "input-brand")
                             @Html.ShowValidationMessagesFor(m => m.AdminUsername)
                         </div>
-                        <div class="form-group has-error">
+                        <div class="form-group has-error-brand">
                             @Html.ShowValidationMessagesForEmpty()
                         </div>
                     </div>
@@ -82,10 +82,10 @@
 
                 <div class="row form-group">
                     <div class="col-md-6">
-                        <input type="submit" class="btn btn-primary form-control" value="Transform" />
+                        <input type="submit" class="btn btn-brand form-control" value="Transform" />
                     </div>
                     <div class="col-md-6">
-                        <button type="button" onclick="window.location.href ='@Url.Home()'" role="button" class="btn btn-default form-control" id="cancel-transform">
+                        <button type="button" onclick="window.location.href ='@Url.Home()'" role="button" class="btn btn-brand-secondary form-control" id="cancel-transform">
                             Cancel
                         </button>
                     </div>

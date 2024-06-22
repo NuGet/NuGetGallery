@@ -47,7 +47,7 @@ namespace NuGetGallery.Auditing
         {
             // Act & Assert.
             Assert.Throws<ArgumentException>(() => new UserSecurityPolicyAuditRecord("user",
-                AuditedSecurityPolicyAction.Create, new UserSecurityPolicy[0], true));
+                AuditedSecurityPolicyAction.Create, Array.Empty<UserSecurityPolicy>(), true));
         }
 
         [Fact]

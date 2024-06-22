@@ -17,17 +17,17 @@ namespace NuGetGallery.Frameworks
 
             var builder = new StringBuilder();
             builder.Append(framework.Version.Major);
-            builder.Append(".");
+            builder.Append('.');
             builder.Append(framework.Version.Minor);
 
             if (framework.Version.Build != 0)
             {
-                builder.Append(".");
+                builder.Append('.');
                 builder.Append(framework.Version.Build);
 
                 if (framework.Version.Revision != 0)
                 {
-                    builder.Append(".");
+                    builder.Append('.');
                     builder.Append(framework.Version.Revision);
                 }
             }

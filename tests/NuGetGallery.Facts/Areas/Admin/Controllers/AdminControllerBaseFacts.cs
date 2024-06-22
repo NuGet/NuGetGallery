@@ -197,10 +197,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 PackageService
                     .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
                     .Returns<string, string>((i, v) => Packages
-                        .Where(x =>
+                        .FirstOrDefault(x =>
                             x.PackageRegistration.Id.Equals(i, StringComparison.OrdinalIgnoreCase) &&
-                            x.NormalizedVersion.Equals(NuGetVersionFormatter.Normalize(v), StringComparison.OrdinalIgnoreCase))
-                        .FirstOrDefault());
+                            x.NormalizedVersion.Equals(NuGetVersionFormatter.Normalize(v), StringComparison.OrdinalIgnoreCase)));
 
                 Target = new AdminControllerBase();
 

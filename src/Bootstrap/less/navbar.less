@@ -23,7 +23,8 @@
   }
 
   a:focus {
-    outline: 4px solid white;
+    outline: 4px solid var(--neutralStrokeFocus2Rest, white);
+    border-radius: 4px;
     outline-offset: -2px;
   }
 }
@@ -528,15 +529,14 @@
 // Inverse navbar
 
 .navbar-inverse {
-  background-color: @navbar-inverse-bg;
-  border-color: @navbar-inverse-border;
+  background-color: transparent;
 
   .navbar-brand {
     color: @navbar-inverse-brand-color;
     &:hover,
     &:focus {
       color: @navbar-inverse-brand-hover-color;
-      background-color: @navbar-inverse-brand-hover-bg;
+      background-color: transparent;
     }
   }
 
@@ -546,13 +546,15 @@
 
   .navbar-nav {
     > li > a {
-      color: @navbar-inverse-link-color;
-      font-weight: 100;
+      color: var(--neutralForeground1Rest);
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 22px;
 
       &:hover,
       &:focus {
-        color: @navbar-inverse-link-hover-color;
-        background-color: @navbar-inverse-link-hover-bg;
+        color: var(--neutralForeground1Hover);
+        background-color: transparent;
       }
     }
     > .active > a {
@@ -563,7 +565,7 @@
 
         span {
           padding: 5px 0;
-          border-bottom: 1px solid #fff;
+          border-bottom: 1px solid var(--neutralForeground1Rest);
         }
       }
     }
@@ -581,8 +583,8 @@
       &,
       &:hover,
       &:focus {
-        color: @navbar-inverse-link-active-color;
-        background-color: @navbar-inverse-link-active-bg;
+        color: var(--neutralForeground1Rest);
+        background-color: transparent;
       }
     }
 
