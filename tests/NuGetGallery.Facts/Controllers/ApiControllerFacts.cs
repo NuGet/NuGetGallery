@@ -39,22 +39,22 @@ namespace NuGetGallery
     internal class TestableApiController
         : ApiController
     {
-        public Mock<IApiScopeEvaluator> MockApiScopeEvaluator { get; private set; }
-        public Mock<IEntitiesContext> MockEntitiesContext { get; private set; }
-        public Mock<IPackageService> MockPackageService { get; private set; }
-        public Mock<IPackageDeprecationManagementService> MockPackageDeprecationManagementService { get; private set; }
-        public Mock<IPackageUpdateService> MockPackageUpdateService { get; private set; }
-        public Mock<IPackageFileService> MockPackageFileService { get; private set; }
-        public Mock<IUserService> MockUserService { get; private set; }
+        public Mock<IApiScopeEvaluator> MockApiScopeEvaluator { get; }
+        public Mock<IEntitiesContext> MockEntitiesContext { get; }
+        public Mock<IPackageService> MockPackageService { get; }
+        public Mock<IPackageDeprecationManagementService> MockPackageDeprecationManagementService { get; }
+        public Mock<IPackageUpdateService> MockPackageUpdateService { get; }
+        public Mock<IPackageFileService> MockPackageFileService { get; }
+        public Mock<IUserService> MockUserService { get; }
         public Mock<IContentService> MockContentService { get; private set; }
-        public Mock<IStatisticsService> MockStatisticsService { get; private set; }
+        public Mock<IStatisticsService> MockStatisticsService { get; }
         public Mock<IIndexingService> MockIndexingService { get; private set; }
-        public Mock<IMessageService> MockMessageService { get; private set; }
-        public Mock<ITelemetryService> MockTelemetryService { get; private set; }
-        public Mock<AuthenticationService> MockAuthenticationService { get; private set; }
-        public Mock<ISecurityPolicyService> MockSecurityPolicyService { get; private set; }
-        public Mock<IReservedNamespaceService> MockReservedNamespaceService { get; private set; }
-        public Mock<IPackageUploadService> MockPackageUploadService { get; private set; }
+        public Mock<IMessageService> MockMessageService { get; }
+        public Mock<ITelemetryService> MockTelemetryService { get; }
+        public Mock<AuthenticationService> MockAuthenticationService { get; }
+        public Mock<ISecurityPolicyService> MockSecurityPolicyService { get; }
+        public Mock<IReservedNamespaceService> MockReservedNamespaceService { get; }
+        public Mock<IPackageUploadService> MockPackageUploadService { get; }
         public Mock<IPackageDeleteService> MockPackageDeleteService { get; set; }
         public Mock<ISymbolPackageFileService> MockSymbolPackageFileService { get; set; }
         public Mock<ISymbolPackageUploadService> MockSymbolPackageUploadService { get; set; }

@@ -24,9 +24,9 @@ namespace NuGetGallery.Controllers
 
         private class ControllerActionRuleException : IEquatable<ControllerActionRuleException>
         {
-            public Type Controller { get; private set; }
+            public Type Controller { get; }
 
-            public string Name { get; private set; }
+            public string Name { get; }
 
             public ControllerActionRuleException(Type controller, string name)
             {

@@ -14,7 +14,7 @@ namespace NuGetGallery.Configuration
         public string Password { get; private set; }
         public string Host { get; private set; }
         public int Port { get; private set; }
-        public bool Secure { get; private set; }
+        public bool Secure { get; }
 
         public SmtpUri(Uri uri)
         {

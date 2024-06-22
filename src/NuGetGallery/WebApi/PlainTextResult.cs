@@ -14,9 +14,9 @@ namespace NuGetGallery.WebApi
         : IHttpActionResult
     {
         private readonly HttpRequestMessage _request;
-        public string Content { get; private set; }
+        public string Content { get; }
 
-        public HttpStatusCode StatusCode { get; private set; }
+        public HttpStatusCode StatusCode { get; }
 
         public PlainTextResult(string content, HttpRequestMessage request, HttpStatusCode statusCode):this(content, request)
         {

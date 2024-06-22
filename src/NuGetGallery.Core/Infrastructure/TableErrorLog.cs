@@ -18,37 +18,15 @@ namespace NuGetGallery.Infrastructure
     {
         public Error Error { get; set; }
 
-        string ITableEntity.ETag
-        {
-            get;
-            set;
-        }
+        string ITableEntity.ETag { get; set; }
 
-        string ITableEntity.PartitionKey
-        {
-            get;
-            set;
-        }
+        string ITableEntity.PartitionKey { get; set; }
 
-        string ITableEntity.RowKey
-        {
-            get;
-            set;
-        }
+        string ITableEntity.RowKey { get; set; }
 
-        DateTimeOffset ITableEntity.Timestamp
-        {
-            get;
-            set;
-        }
+        DateTimeOffset ITableEntity.Timestamp { get; set; }
 
-        public long LogicalIndex
-        {
-            get
-            {
-                return AzureEntityList<ErrorEntity>.GetLogicalIndex(this);
-            }
-        }
+        public long LogicalIndex => AzureEntityList<ErrorEntity>.GetLogicalIndex(this);
 
         public ErrorEntity() { }
 

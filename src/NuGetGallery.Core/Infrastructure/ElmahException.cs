@@ -17,10 +17,7 @@ namespace NuGetGallery
         /// <summary>
         /// Server variables values in Elmah logs will be overwritten by these values.
         /// </summary>
-        public Dictionary<string, string> ServerVariables
-        {
-            get;
-        }
+        public Dictionary<string, string> ServerVariables { get; }
 
         public ElmahException(Exception e, Dictionary<string, string> serverVariables) : base(e.Message, e.InnerException)
         {

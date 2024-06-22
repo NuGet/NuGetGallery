@@ -15,26 +15,14 @@ namespace NuGetGallery.AsyncFileUpload
 
         [ScriptIgnore]
         [DataMember]
-        public int ContentLength
-        {
-            get;
-            set;
-        }
+        public int ContentLength { get; set; }
 
         [ScriptIgnore]
         [DataMember]
-        public int TotalBytesRead
-        {
-            get;
-            set;
-        }
+        public int TotalBytesRead { get; set; }
 
         [DataMember]
-        public string FileName
-        {
-            get;
-            set;
-        }
+        public string FileName { get; set; }
 
         public int Progress
         {

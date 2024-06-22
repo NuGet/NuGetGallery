@@ -78,9 +78,9 @@ namespace NuGetGallery
 
         private class Cookie
         {
-            public string Name { get; private set; }
-            public string Value { get; private set; }
-            public IDictionary<string, string> Fields { get; private set; }
+            public string Name { get; }
+            public string Value { get; }
+            public IDictionary<string, string> Fields { get; }
 
             public Cookie(string name, string value, IDictionary<string, string> fields)
             {

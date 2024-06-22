@@ -63,7 +63,7 @@ namespace NuGetGallery
                 IncludePermissions = includePermissions;
             }
 
-            private bool IncludePermissions { get; set; }
+            private bool IncludePermissions { get; }
 
             public override IEnumerable<object[]> GetData(MethodInfo testMethod)
             {

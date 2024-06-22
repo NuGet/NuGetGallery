@@ -335,7 +335,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
         // Why a TestableNNN class? Because we need to access protected members.
         public class TestableApiKeyAuthenticationHandler : ApiKeyAuthenticationHandler
         {
-            public Mock<AuthenticationService> MockAuth { get; private set; }
+            public Mock<AuthenticationService> MockAuth { get; }
             public Mock<ILogger> MockLogger { get; private set; }
             public IOwinContext OwinContext { get { return base.Context; } }
 

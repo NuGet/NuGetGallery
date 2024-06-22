@@ -216,7 +216,7 @@ namespace NuGetGallery
 
             // Either Next is not null or this is a leaf in the pivot tree, in which case Amount is valid
 
-            public IDictionary<string, Level> Next { get; set; }
+            public IDictionary<string, Level> Next { get; }
             public long Amount { get; set; }
 
             // Count is the count of child nodes in the tree - recursively so grandchildren etc. also get counted

@@ -23,9 +23,9 @@ namespace NuGetGallery
 
         public IReadOnlyCollection<T> Items { get; private set; }
 
-        public bool HasNextPage { get; private set; }
-        public bool HasPreviousPage { get; private set; }
-        public string NextPageUrl { get; private set; }
-        public string PreviousPageUrl { get; private set; }
+        public bool HasNextPage { get; }
+        public bool HasPreviousPage { get; }
+        public string NextPageUrl { get; }
+        public string PreviousPageUrl { get; }
     }
 }

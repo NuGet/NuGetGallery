@@ -14,11 +14,7 @@ namespace NuGetGallery.Services
 
         public int OpenCount { get { return _openCount; } }
 
-        public string ContentId
-        {
-            get;
-            private set;
-        }
+        public string ContentId { get; }
 
         public TestFileReference(byte[] content, string contentId)
         {

@@ -8,10 +8,6 @@ namespace NuGetGallery.OData.QueryFilter
 {
     public class ODataQueryRequest
     {
-        public List<string> AllowedOperatorPatterns
-        {
-            get;
-            set;
-        }
+        public List<string> AllowedOperatorPatterns { get; set; }
     }
 }

@@ -9,8 +9,8 @@ namespace NuGetGallery
 {
     public class SafeRedirectResult : ActionResult
     {
-        public string Url { get; private set; }
-        public string SafeUrl { get; private set; }
+        public string Url { get; }
+        public string SafeUrl { get; }
 
         public SafeRedirectResult(string url, string safeUrl)
         {

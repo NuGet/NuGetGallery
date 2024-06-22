@@ -16,7 +16,7 @@ namespace NuGetGallery
             Subtext = subtext;
         }
 
-        public string Subtext { get; private set; }
+        public string Subtext { get; }
         public bool AllowHtml { get; set; }
 
         public override object TypeId

@@ -5,17 +5,9 @@ namespace NuGetGallery.Services
 {
     public class SimpleBlobStorageConfiguration : IBlobStorageConfiguration
     {
-        public string ConnectionString
-        {
-            get;
-            private set;
-        }
+        public string ConnectionString { get; }
 
-        public bool ReadAccessGeoRedundant
-        {
-            get;
-            private set;
-        }
+        public bool ReadAccessGeoRedundant { get; }
 
     public SimpleBlobStorageConfiguration(string connectionString, bool readAccessGeoRedundant)
         {

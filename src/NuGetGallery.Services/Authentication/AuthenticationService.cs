@@ -66,9 +66,9 @@ namespace NuGetGallery.Authentication
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
         }
 
-        public IEntitiesContext Entities { get; private set; }
-        public IDictionary<string, Authenticator> Authenticators { get; private set; }
-        public IAuditingService Auditing { get; private set; }
+        public IEntitiesContext Entities { get; }
+        public IDictionary<string, Authenticator> Authenticators { get; }
+        public IAuditingService Auditing { get; }
 
         private void InitCredentialFormatters()
         {
