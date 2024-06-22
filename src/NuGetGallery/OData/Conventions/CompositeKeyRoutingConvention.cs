@@ -22,8 +22,7 @@ namespace NuGetGallery.OData.Conventions
                 var routeValues = controllerContext.RouteData.Values;
                 if (routeValues.TryGetValue(ODataRouteConstants.Key, out var value))
                 {
-                    var keyRaw = value as string;
-                    if (keyRaw != null)
+                    if (value is string keyRaw)
                     {
                         if (!CompositeODataKeyHelper.TryEnrichRouteValues(keyRaw, routeValues))
                         {
