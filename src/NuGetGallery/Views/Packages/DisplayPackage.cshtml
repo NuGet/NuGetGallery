@@ -206,7 +206,6 @@
 
 @helper CommandPanel(PackageManagerViewModel packageManager, bool active)
 {
-    var thirdPartyPackageManager = packageManager as ThirdPartyPackageManagerViewModel;
     <div role="tabpanel" class="tab-pane @(active ? "active" : string.Empty)" id="@packageManager.Id">
         <div class="install-script-row">
             @{
