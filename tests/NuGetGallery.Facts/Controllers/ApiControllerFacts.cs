@@ -15,7 +15,6 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
-using Autofac;
 using Moq;
 using Newtonsoft.Json.Linq;
 using NuGet.Packaging;
