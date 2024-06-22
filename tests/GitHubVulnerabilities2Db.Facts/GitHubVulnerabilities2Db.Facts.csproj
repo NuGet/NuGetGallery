@@ -3,8 +3,6 @@
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System.Data.DataSetExtensions" />
-
     <ProjectReference Include="..\..\src\GitHubVulnerabilities2Db\GitHubVulnerabilities2Db.csproj" />
     <ProjectReference Include="..\..\src\NuGet.Services.Entities\NuGet.Services.Entities.csproj" />
     <ProjectReference Include="..\..\src\NuGet.Services.Github\NuGet.Services.GitHub.csproj" />
