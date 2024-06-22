@@ -58,8 +58,7 @@ namespace NuGetGallery
                 queryString += "&testData=true";
             }
 
-            NuGetVersion semVerLevelVersion;
-            if (!string.IsNullOrEmpty(semVerLevel) && NuGetVersion.TryParse(semVerLevel, out semVerLevelVersion))
+            if (!string.IsNullOrEmpty(semVerLevel) && NuGetVersion.TryParse(semVerLevel, out _))
             {
                 queryString += $"&semVerLevel={semVerLevel}";
             }
