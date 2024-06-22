@@ -20,9 +20,10 @@ namespace NuGetGallery.OData.Conventions
             if (action != null)
             {
                 var routeValues = controllerContext.RouteData.Values;
-                if (routeValues.ContainsKey(ODataRouteConstants.Key))
+                if (routeValues.TryGetValue(ODataRouteConstants.Key, out var value))
                 {
-                    if (routeValues[ODataRouteConstants.Key] is string keyRaw)
+                    var keyRaw = value as string;
+                    if (keyRaw != null)
                     {
                         if (!CompositeODataKeyHelper.TryEnrichRouteValues(keyRaw, routeValues))
                         {
