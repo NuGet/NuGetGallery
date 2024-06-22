@@ -31,10 +31,10 @@ namespace NuGetGallery.Configuration
 
         public override object ConvertTo(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value, Type destinationType)
         {
-            MailAddress srcValue = value as MailAddress;
-            if (srcValue != null && destinationType == typeof(string))
+            if (value is MailAddress mail &&
+                destinationType == typeof(string))
             {
-                return String.Format(CultureInfo.CurrentCulture, "{0} <{1}>", srcValue.DisplayName, srcValue.Address);
+                return String.Format(CultureInfo.CurrentCulture, "{0} <{1}>", mail.DisplayName, mail.Address);
             }
             return null;
         }

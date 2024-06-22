@@ -195,8 +195,7 @@ namespace NuGetGallery.Infrastructure
             }
 
             //ServerVariables overrides requiring context from the http request should be handled in NuGetGallery.QuietLog
-            var elmahException = error.Exception as ElmahException;
-            if (elmahException != null)
+            if (error.Exception is ElmahException elmahException)
             {
                 var piiServerVariables = elmahException.ServerVariables;
                 foreach (var key in piiServerVariables.Keys)

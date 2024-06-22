@@ -12,10 +12,9 @@ namespace NuGetGallery
             base.OnDataBinding(e);
 
             object entity;
-            ICustomTypeDescriptor rowDescriptor = Row as ICustomTypeDescriptor;
-            if (rowDescriptor != null)
+            if (Row is ICustomTypeDescriptor descriptor)
             {
-                entity = rowDescriptor.GetPropertyOwner(null);
+                entity = descriptor.GetPropertyOwner(null);
             }
             else
             {
@@ -23,10 +22,10 @@ namespace NuGetGallery
             }
 
             var entityCollection = Column.EntityTypeProperty.GetValue(entity, null);
-            var realEntityCollection = entityCollection as RelatedEnd;
-            if (realEntityCollection != null && !realEntityCollection.IsLoaded)
+            if (entityCollection is RelatedEnd relatedEnd &&
+                !relatedEnd.IsLoaded)
             {
-                realEntityCollection.Load();
+                relatedEnd.Load();
             }
 
             Repeater1.DataSource = entityCollection;

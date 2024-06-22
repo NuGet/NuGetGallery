@@ -22,8 +22,7 @@ namespace NuGetGallery.Authentication.Providers.MicrosoftAccount
         {
             base.ApplyToOwinSecurityOptions(options);
 
-            var opts = options as MicrosoftAccountAuthenticationOptions;
-            if (opts != null)
+            if (options is MicrosoftAccountAuthenticationOptions opts)
             {
                 if (String.IsNullOrEmpty(ClientId))
                 {

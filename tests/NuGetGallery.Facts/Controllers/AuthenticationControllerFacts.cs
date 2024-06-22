@@ -2860,10 +2860,9 @@ namespace NuGetGallery.Controllers
             {
                 auther.BaseConfig.Enabled = true;
 
-                var azureActiveDirectoryAuthenticator = auther as AzureActiveDirectoryAuthenticator;
-                if (azureActiveDirectoryAuthenticator != null)
+                if (auther is AzureActiveDirectoryAuthenticator azureAuthenticator)
                 {
-                    azureActiveDirectoryAuthenticator.Config.ShowOnLoginPage = true;
+                    azureAuthenticator.Config.ShowOnLoginPage = true;
                 }
             }
         }

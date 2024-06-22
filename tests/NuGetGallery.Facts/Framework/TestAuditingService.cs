@@ -26,8 +26,7 @@ namespace NuGetGallery.Framework
     {
         public static bool WroteNoRecords(this IAuditingService self)
         {
-            TestAuditingService testService = self as TestAuditingService;
-            if (testService != null)
+            if (self is TestAuditingService testService)
             {
                 return !testService.Records.Any();
             }
@@ -41,8 +40,7 @@ namespace NuGetGallery.Framework
 
         public static bool WroteRecord<T>(this IAuditingService self, Func<T, bool> predicate) where T : AuditRecord
         {
-            TestAuditingService testService = self as TestAuditingService;
-            if (testService != null)
+            if (self is TestAuditingService testService)
             {
                 return testService.Records.OfType<T>().Any(predicate);
             }

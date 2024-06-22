@@ -44,11 +44,10 @@ namespace NuGetGallery.Framework
             Routes.RegisterRoutes(routeCollection);
             c.Url = new UrlHelper(c.ControllerContext.RequestContext, routeCollection);
 
-            var appCtrl = c as AppController;
-            if (appCtrl != null)
+            if (c is AppController appController)
             {
-                appCtrl.SetOwinContextOverride(Fakes.CreateOwinContext());
-                appCtrl.NuGetContext.Config = GetConfigurationService();
+                appController.SetOwinContextOverride(Fakes.CreateOwinContext());
+                appController.NuGetContext.Config = GetConfigurationService();
             }
 
             return c;

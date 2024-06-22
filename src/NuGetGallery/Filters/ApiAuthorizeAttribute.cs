@@ -20,9 +20,10 @@ namespace NuGetGallery.Filters
         public override void OnAuthorization(AuthorizationContext filterContext)
         {
             // Add a warning header if the API key is about to expire (or has expired)
-            var identity = filterContext.HttpContext.User.Identity as ClaimsIdentity;
-            var controller = filterContext.Controller as AppController;
-            if (identity != null && identity.IsAuthenticated && identity.AuthenticationType == AuthenticationTypes.ApiKey && controller != null)
+            if (filterContext.HttpContext.User.Identity is ClaimsIdentity identity &&
+                identity.IsAuthenticated &&
+                identity.AuthenticationType == AuthenticationTypes.ApiKey &&
+                filterContext.Controller is AppController controller)
             {
                 var user = controller.GetCurrentUser();
                 var apiKeyCredential =  user.GetCurrentApiKeyCredential(identity);

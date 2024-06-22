@@ -22,8 +22,8 @@ namespace NuGetGallery.Filters
 
         protected override bool AuthorizeCore(HttpContextBase httpContext)
         {
-            var identity = httpContext.User.Identity as ClaimsIdentity;
-            if (identity != null && identity.IsAuthenticated)
+            if (httpContext.User.Identity is ClaimsIdentity identity &&
+                identity.IsAuthenticated)
             {
                 return identity.HasScopeThatAllowsActions(ScopeActions);
             }

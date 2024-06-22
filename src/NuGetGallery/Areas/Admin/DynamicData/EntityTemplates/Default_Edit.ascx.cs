@@ -25,9 +25,9 @@ namespace NuGetGallery
         protected void Label_PreRender(object sender, EventArgs e) {
             Label label = (Label)sender;
             DynamicControl dynamicControl = (DynamicControl)label.FindControl("DynamicControl");
-            FieldTemplateUserControl ftuc = dynamicControl.FieldTemplate as FieldTemplateUserControl;
-            if (ftuc != null && ftuc.DataControl != null) {
-                label.AssociatedControlID = ftuc.DataControl.GetUniqueIDRelativeTo(label);
+            if (dynamicControl.FieldTemplate is FieldTemplateUserControl userControl &&
+                userControl.DataControl != null) {
+                label.AssociatedControlID = userControl.DataControl.GetUniqueIDRelativeTo(label);
             }
         }
     
