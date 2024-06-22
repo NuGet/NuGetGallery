@@ -189,7 +189,7 @@ namespace NuGetGallery.Infrastructure.Authentication
                 {
                     // Shift left
                     retval <<= shift1;
-                    
+
                     // If not last byte in input, include necessary bits from next byte in token
                     if (byteOffset + 1 < data.Length)
                     {

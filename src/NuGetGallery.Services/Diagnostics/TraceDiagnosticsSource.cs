@@ -9,10 +9,10 @@ using Microsoft.Extensions.Logging;
 namespace NuGetGallery.Diagnostics
 {
     /// <summary>
-    /// Gallery diagnostics source. 
+    /// Gallery diagnostics source.
     /// Trace events (including LogError extension) and Exception events are tracked in ApplicationInsights.
     /// 
-    /// ILogger implementation based on https://github.com/aspnet/Logging/tree/master/src/Microsoft.Extensions.Logging.TraceSource 
+    /// ILogger implementation based on https://github.com/aspnet/Logging/tree/master/src/Microsoft.Extensions.Logging.TraceSource
     /// </summary>
     public sealed class TraceDiagnosticsSource : IDiagnosticsSource
     {

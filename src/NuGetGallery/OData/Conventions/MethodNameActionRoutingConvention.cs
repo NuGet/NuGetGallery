@@ -12,7 +12,7 @@ namespace NuGetGallery.OData.Conventions
     /// <summary>
     /// Routes an OData request with a given action to a method with the same name as the action.
     /// </summary>
-    public class MethodNameActionRoutingConvention 
+    public class MethodNameActionRoutingConvention
         : IODataRoutingConvention
     {
         private readonly string _controllerName;

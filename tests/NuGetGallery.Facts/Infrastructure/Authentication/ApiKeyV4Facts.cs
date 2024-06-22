@@ -51,7 +51,7 @@ namespace NuGetGallery.Infrastructure.Authentication
         [InlineData("OY2IUVOUCVIOUOJNRBZAQXJEWDOP3YSEPPNQLEWVAVHUPM", "oy2iuvoucviouojnrbza", "qxjewdop3yseppnqlewvavhupm")]
         public void TryParseSucceedsForValidApiKeys(string inputApiKey, string idPart, string passwordPart)
         {
-            // Act 
+            // Act
             bool result = ApiKeyV4.TryParse(inputApiKey, out var apiKey);
 
             // Assert
@@ -93,7 +93,7 @@ namespace NuGetGallery.Infrastructure.Authentication
         [InlineData("OY2IUVOUCVIOUOJNRBZAQXJEWDOP3YSEPPNQLEWVAVHUPM", "oy2iuvoucviouojnrbzaAEAAAAABAAACOEAAAAABAMHUIIUXSFAIOTEAFWF3K2E7L6YRUDOZDPHKSRX3YEOFUWPCID325EZH5JXBBGBMYBECT4KCGMWOQQ======")]
         public void VerifySucceedsOnValidApiKeys(string inputApiKey, string hashedApiKey)
         {
-            // Arrange 
+            // Arrange
             Assert.True(ApiKeyV4.TryParse(inputApiKey, out var apiKey));
 
             // Act & Assert

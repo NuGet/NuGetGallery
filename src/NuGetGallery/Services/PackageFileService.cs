@@ -47,7 +47,7 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException(nameof(package));
             }
-            
+
             var fileName = FileNameHelper.BuildFileName(package, ReadMeFilePathTemplateActive, ServicesConstants.MarkdownFileExtension);
 
             return _fileStorageService.DeleteFileAsync(CoreConstants.Folders.PackageReadMesFolderName, fileName);
@@ -83,7 +83,7 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException(nameof(package));
             }
-            
+
             var fileName = FileNameHelper.BuildFileName(package, ReadMeFilePathTemplateActive, ServicesConstants.MarkdownFileExtension);
 
             using (var readMeMdStream = await _fileStorageService.GetFileAsync(CoreConstants.Folders.PackageReadMesFolderName, fileName))

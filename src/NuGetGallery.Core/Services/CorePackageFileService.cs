@@ -104,7 +104,7 @@ namespace NuGetGallery
                 normalizedVersion,
                 _metadata.FileSavePathTemplate,
                 _metadata.FileExtension);
-            
+
             return _fileStorageService.DeleteFileAsync(_metadata.ValidationFolderName, fileName);
         }
 

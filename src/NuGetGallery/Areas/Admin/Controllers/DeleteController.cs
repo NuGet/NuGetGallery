@@ -52,7 +52,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             {
                 results.Add(CreatePackageSearchResult(package));
             }
-            
+
             return Json(results, JsonRequestBehavior.AllowGet);
         }
 

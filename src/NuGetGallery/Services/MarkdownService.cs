@@ -42,8 +42,8 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(markdownString));
             }
 
-            if (_features.IsMarkdigMdRenderingEnabled()) 
-            { 
+            if (_features.IsMarkdigMdRenderingEnabled())
+            {
                 return GetHtmlFromMarkdownMarkdig(markdownString, 1);
             }
             else

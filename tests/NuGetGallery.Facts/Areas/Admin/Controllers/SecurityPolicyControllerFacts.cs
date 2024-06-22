@@ -204,8 +204,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             // Act.
             // Simulates changes to the configurable state of all existing policy subscriptions
-            users.ForEach(u => 
-                u.SecurityPolicies.Where(p => p.Subscription == subscription.SubscriptionName).ToList().ForEach(p => 
+            users.ForEach(u =>
+                u.SecurityPolicies.Where(p => p.Subscription == subscription.SubscriptionName).ToList().ForEach(p =>
                     p.Value = Guid.NewGuid().ToString()));
 
             // Assert.

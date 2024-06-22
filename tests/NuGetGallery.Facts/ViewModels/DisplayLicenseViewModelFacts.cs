@@ -151,7 +151,7 @@ namespace NuGetGallery.ViewModels
                 .Returns(true);
             _markdownService.Setup(x => x.GetHtmlFromMarkdown(licenseFileContents))
                 .Returns(expectedlicenseContentResult);
-            
+
             // act
             var model = displayLicenseViewModelFactory.Create(package, null, licenseFileContents, user);
 

@@ -897,8 +897,8 @@ namespace NuGetGallery
                 var expectedStatus = new DeleteAccountStatus();
                 GetMock<IDeleteAccountService>()
                     .Setup(stub => stub.DeleteAccountAsync(
-                        testUser, 
-                        adminUser, 
+                        testUser,
+                        adminUser,
                         shouldUnlist ? AccountDeletionOrphanPackagePolicy.UnlistOrphans : AccountDeletionOrphanPackagePolicy.KeepOrphans))
                     .ReturnsAsync(expectedStatus);
 

@@ -9,7 +9,7 @@ namespace NuGetGallery
         [Fact]
         public void ValidatePropertyValues()
         {
-            // Arrange + Act 
+            // Arrange + Act
             var data = new PackageFileMetadataService();
 
             // Assert

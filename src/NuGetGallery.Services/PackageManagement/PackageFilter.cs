@@ -18,7 +18,7 @@ namespace NuGetGallery.Services
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
         }
-            
+
         /// <inheritdoc />
         public Package GetFiltered(IReadOnlyCollection<Package> packages, PackageFilterContext context)
         {
@@ -30,24 +30,24 @@ namespace NuGetGallery.Services
             }
 
             var version = context.Version;
-            
+
             if (string.Equals(version, LatestPackageRouteVerifier.SupportedRoutes.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
             {
                 // The user is looking for the absolute latest version and not an exact version.
                 result = packages.FirstOrDefault(p => p.IsLatestSemVer2);
             }
-            
+
             result = result ?? _packageService.FilterExactPackage(packages, version);
-            
+
             if (LatestPackageRouteVerifier.IsLatestRoute(routeUrl, out var preRelease))
             {
                 result = result ?? _packageService.FilterLatestPackageBySuffix(packages, version, preRelease);
             }
-            
-            // The package still wasn't found so let's just get the latest version. This applies when 
+
+            // The package still wasn't found so let's just get the latest version. This applies when
             // no version is specified, or when the version asked for (in context.Version) wasn't found
             result =  result ?? _packageService.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, allowPrerelease: true);
-            
+
             return result;
         }
     }

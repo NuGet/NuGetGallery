@@ -68,7 +68,7 @@ namespace NuGetGallery
             // machine key but we choose to aggressively execute the initialization here outside of the request context
             // since it is internally awaiting an asynchronous API in a synchronous method. This cannot be done in a
             // request context because it will cause a deadlock.
-            // 
+            //
             // Note that is is technically possible for some code before this to initialize the machine key (e.g. by
             // calling an API that uses the  machine key configuration). If this happens, the machine key will be
             // fetched from KeyVault seperately. This will be slightly slower (two KeyVault secret resolutions instead
@@ -208,7 +208,7 @@ namespace NuGetGallery
         {
             if (telemetryService != null)
             {
-                HostingEnvironment.QueueBackgroundWorkItem(async token => 
+                HostingEnvironment.QueueBackgroundWorkItem(async token =>
                 {
                     var startTime = Process.GetCurrentProcess().StartTime.ToUniversalTime();
                     while (!token.IsCancellationRequested)

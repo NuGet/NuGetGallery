@@ -42,7 +42,7 @@ namespace NuGetGallery
         public string Username { get; private set; }
         public string EmailAddress { get; private set; }
         public string UnconfirmedEmailAddress { get; set; }
-        public bool HasEnabledMultiFactorAuthentication 
+        public bool HasEnabledMultiFactorAuthentication
         {
             get
             {

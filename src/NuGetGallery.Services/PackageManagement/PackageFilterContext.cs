@@ -8,7 +8,7 @@ namespace NuGetGallery.Services
     public class PackageFilterContext
     {
         public RouteBase RouteBase { get; }
-            
+
         public string Version { get; }
 
         public PackageFilterContext(RouteBase routeBase, string version)

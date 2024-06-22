@@ -101,8 +101,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
         {
             var model = await GetModel();
 
-            var errorMessage = ValidateModelState() 
-                ?? ApplyChange<TModify, TBase>(model, change, type) 
+            var errorMessage = ValidateModelState()
+                ?? ApplyChange<TModify, TBase>(model, change, type)
                 ?? await TrySaveFlags(model, change.ContentId);
             if (errorMessage != null)
             {

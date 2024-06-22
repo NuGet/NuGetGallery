@@ -78,7 +78,7 @@ namespace GitHubVulnerabilities2Db.Facts
                 {
                     Package = new SecurityVulnerabilityPackage { Name = "crested.gecko" },
                     VulnerableVersionRange = "homeOnTheRange",
-                    FirstPatchedVersion = vulnerabilityHasFirstPatchedVersion 
+                    FirstPatchedVersion = vulnerabilityHasFirstPatchedVersion
                         ? new SecurityVulnerabilityPackageVersion { Identifier = "1.2.3" } : null
                 };
 

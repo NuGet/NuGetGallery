@@ -21,7 +21,7 @@ namespace NuGet.Services.Entities
         /// Gets or sets the primary key for the entity.
         /// </summary>
         public int Key { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the package affected by this deprecation.
         /// </summary>

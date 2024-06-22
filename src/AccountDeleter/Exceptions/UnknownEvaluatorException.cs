@@ -15,7 +15,7 @@ namespace NuGetGallery.AccountDeleter
         public UnknownEvaluatorException(EvaluatorKey requestedEvaluator, string source)
             : base(String.Format(_messageTemplate, source, requestedEvaluator))
         {
-            
+
         }
 
         public UnknownEvaluatorException() : base() { }

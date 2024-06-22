@@ -10,10 +10,10 @@ namespace NuGetGallery
 {
     public class ReadOnlyEntitiesContext : IReadOnlyEntitiesContext
     {
-        private readonly EntitiesContext _entitiesContext; 
-        
+        private readonly EntitiesContext _entitiesContext;
+
         public ReadOnlyEntitiesContext(DbConnection connection)
-        { 
+        {
             _entitiesContext = new EntitiesContext(connection, readOnly: true);
         }
 

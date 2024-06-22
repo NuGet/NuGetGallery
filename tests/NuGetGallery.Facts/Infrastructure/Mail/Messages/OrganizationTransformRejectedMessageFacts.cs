@@ -48,11 +48,11 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             public void AddsAccountToSendToToListWhenAccountToSendToEmailAllowed(bool isCanceledByAdminUser)
             {
                 var accountToSendTo = isCanceledByAdminUser
-                    ? Fakes.RequestingUser 
+                    ? Fakes.RequestingUser
                     : Fakes.OrganizationAdmin;
 
                 var message = CreateMessage(
-                    accountToTransformEmailAllowed: true, 
+                    accountToTransformEmailAllowed: true,
                     isCanceledByAdmin: isCanceledByAdminUser);
 
                 var recipients = message.GetRecipients();
@@ -67,7 +67,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             public void ReturnsRecipientsNoneWhenAccountToTransformEmailNotAllowed(bool isCanceledByAdminUser)
             {
                 var message = CreateMessage(
-                    accountToTransformEmailAllowed: false, 
+                    accountToTransformEmailAllowed: false,
                     isCanceledByAdmin: isCanceledByAdminUser);
 
                 var recipients = message.GetRecipients();

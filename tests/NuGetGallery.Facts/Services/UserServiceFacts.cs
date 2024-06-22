@@ -590,7 +590,7 @@ namespace NuGetGallery
                 });
 
                 Assert.Equal(string.Format(CultureInfo.CurrentCulture,
-                        Strings.AddMember_PolicyFailure, error), 
+                        Strings.AddMember_PolicyFailure, error),
                         e.Message);
 
                 UserService.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
@@ -1429,12 +1429,12 @@ namespace NuGetGallery
                 service.MockUserRepository
                        .Setup(r => r.GetAll())
                        .Returns(new[] { user }.AsQueryable());
-                
+
                 // Disable notifications
                 await service.ChangeEmailSubscriptionAsync(user, false, false);
                 Assert.False(user.EmailAllowed);
                 Assert.False(user.NotifyPackagePushed);
-                
+
                 // Enable contact notifications
                 await service.ChangeEmailSubscriptionAsync(user, true, false);
                 Assert.True(user.EmailAllowed);
@@ -1689,7 +1689,7 @@ namespace NuGetGallery
                 var admin = CreateAdminUser();
 
                 service.MockUserRepository.Setup(r => r.CommitChangesAsync()).Returns(Task.CompletedTask).Verifiable();
-                
+
                 DateTime? requestDate = null;
                 string requestToken = null;
                 for (int i = 0; i < (testOverwrite ? 2 : 1); i++)
@@ -1933,7 +1933,7 @@ namespace NuGetGallery
                 return result;
             }
         }
-        
+
         public class TheAddOrganizationAccountMethod
         {
             private const string OrgName = "myOrg";
@@ -2152,7 +2152,7 @@ namespace NuGetGallery
 
                 _service.MockOrganizationRepository.Verify(x => x.InsertOnCommit(It.IsAny<Organization>()), Times.Once());
                 _service.MockSecurityPolicyService.Verify(
-                    sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), false), 
+                    sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), false),
                     subscribedToPolicy ? Times.Once() : Times.Never());
                 Assert.True(_service.Auditing.WroteRecord<UserAuditRecord>(ar =>
                     ar.Action == AuditedUserAction.AddOrganization &&

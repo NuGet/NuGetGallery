@@ -108,7 +108,7 @@ namespace NuGetGallery
         [Fact]
         public void CheckNotTyposquattingByDifferentOwnersTest()
         {
-            // Arrange            
+            // Arrange
             var uploadedPackageId = "new_package_for_testing";
 
             var newService = CreateService();
@@ -124,7 +124,7 @@ namespace NuGetGallery
         [Fact]
         public void CheckNotTyposquattingBySameOwnersTest()
         {
-            // Arrange            
+            // Arrange
             _uploadedPackageOwner.Username = "owner1";
             _uploadedPackageOwner.Key = 1;
             var uploadedPackageId = "microsoft_netframework.v1";

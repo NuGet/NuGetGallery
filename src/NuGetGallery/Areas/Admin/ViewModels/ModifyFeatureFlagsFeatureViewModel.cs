@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace NuGetGallery.Areas.Admin.ViewModels
 {
-    public class ModifyFeatureFlagsFeatureViewModel 
+    public class ModifyFeatureFlagsFeatureViewModel
         : FeatureFlagsFeatureViewModel, IModifyFeatureFlagsViewModel<FeatureFlagsFeatureViewModel>
     {
         public ModifyFeatureFlagsFeatureViewModel()

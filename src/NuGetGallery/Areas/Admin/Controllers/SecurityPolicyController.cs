@@ -81,7 +81,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     g => g.Key, // username
                     g => g.Select(obj => obj["g"].ToString()) // subscriptions
                 );
-            
+
             var unsubscribeRequests = subscriptionsJson?.Select(JsonConvert.DeserializeObject<JObject>)
                 .Where(obj => !obj["v"].ToObject<bool>())
                 .GroupBy(obj => obj["u"].ToString())

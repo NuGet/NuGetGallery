@@ -600,7 +600,7 @@ namespace NuGetGallery
             }
             catch (TestableStorageClientException ex)
             {
-                // This is for unit test only, because we can't construct an 
+                // This is for unit test only, because we can't construct an
                 // StorageException object with the required ErrorCode
                 stream.Dispose();
 

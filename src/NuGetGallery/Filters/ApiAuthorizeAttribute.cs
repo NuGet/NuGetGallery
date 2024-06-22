@@ -13,7 +13,7 @@ namespace NuGetGallery.Filters
 {
     public sealed class ApiAuthorizeAttribute : AuthorizeAttribute
     {
-        
+
         public ApiAuthorizeAttribute()
         {}
 

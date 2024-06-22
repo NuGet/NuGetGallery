@@ -10,7 +10,7 @@ namespace NuGetGallery
     /// A validation initiator that immediately marks the package as validated. In other words, no asynchronous
     /// validation is performed by this implementation.
     /// </summary>
-    public class ImmediatePackageValidator<TPackageEntity> : IPackageValidationInitiator<TPackageEntity> 
+    public class ImmediatePackageValidator<TPackageEntity> : IPackageValidationInitiator<TPackageEntity>
         where TPackageEntity: IPackageEntity
     {
         public PackageStatus GetPackageStatus(TPackageEntity package)

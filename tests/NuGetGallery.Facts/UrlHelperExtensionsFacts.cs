@@ -31,7 +31,7 @@ namespace NuGetGallery
                 Assert.Null(fixedUrl);
             }
         }
-    
+
         public class ThePackageBaseHelperMethod
             : TestContainer
         {
@@ -215,7 +215,7 @@ namespace NuGetGallery
                 };
 
                 var urlHelper = TestUtility.MockUrlHelper();
-                
+
                 var idModel = new TrivialPackageVersionModel(packageId, version: null);
                 var versionModel = new ListPackageItemViewModelFactory(Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageFrameworkCompatibilityFactory>(), Mock.Of<IFeatureFlagService>())
                                             .Create(package, currentUser: null);
@@ -293,7 +293,7 @@ namespace NuGetGallery
 
                 var result = UrlHelperExtensions.ExternalPrivacyUrl(TestUtility.MockUrlHelper());
 
-                Assert.Equal(expectedUrl, result);  
+                Assert.Equal(expectedUrl, result);
             }
         }
 

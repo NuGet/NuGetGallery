@@ -7,11 +7,13 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace NuGetGallery.Areas.Admin.DynamicData {
-    
-    
-    public partial class Site {
-        
+namespace NuGetGallery.Areas.Admin.DynamicData
+{
+
+
+    public partial class Site
+    {
+
         /// <summary>
         /// head control.
         /// </summary>
@@ -20,7 +22,7 @@ namespace NuGetGallery.Areas.Admin.DynamicData {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.ContentPlaceHolder head;
-        
+
         /// <summary>
         /// form1 control.
         /// </summary>
@@ -29,7 +31,7 @@ namespace NuGetGallery.Areas.Admin.DynamicData {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.HtmlControls.HtmlForm form1;
-        
+
         /// <summary>
         /// ScriptManager1 control.
         /// </summary>
@@ -38,7 +40,7 @@ namespace NuGetGallery.Areas.Admin.DynamicData {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.ScriptManager ScriptManager1;
-        
+
         /// <summary>
         /// ContentPlaceHolder1 control.
         /// </summary>

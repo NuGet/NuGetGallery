@@ -16,7 +16,7 @@
         </asp:ContentPlaceHolder>
     </head>
 <body>
-    <% 
+    <%
         // Cheap and easy DI. Not too clean :)
         var config = DependencyResolver.Current.GetService<IAppConfiguration>();
         string cls = "banner-warning";
@@ -26,7 +26,7 @@
             cls = "banner-urgent";
             message = "YOU ARE WORKING ON LIVE PRODUCTION DATA. USE EXTREME CAUTION";
         }
-     %>
+%>
     <div class="<%: cls %>"><%: message %></div>
     <div id="outer-wrapper">
         <div style="padding-left: 2em; padding-right: 2em;">

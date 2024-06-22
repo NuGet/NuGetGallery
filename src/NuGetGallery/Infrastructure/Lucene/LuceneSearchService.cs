@@ -328,7 +328,7 @@ namespace NuGetGallery
             return query;
         }
 
-        // Helper function 
+        // Helper function
         // 1) fix cases of field names: ID -> Id
         // 2) null out field names that we don't understand (so we will search them as non-field-specific terms)
         // 3) For ID search, split search terms such as Id:"Foo.Bar" and "Foo-Bar" into a phrase "Foo Bar" which will work better for analyzed field search

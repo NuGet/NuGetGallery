@@ -80,7 +80,7 @@ namespace NuGetGallery.Security
             var expected = UserPoliciesSubscription.Object.Policies.ToList();
 
             Assert.Equal(expected.Count, actual.Count);
-            
+
             for (int i = 0; i < expected.Count; i++)
             {
                 Assert.True(expected[i].Equals(actual[i]));
@@ -98,7 +98,7 @@ namespace NuGetGallery.Security
                 failedPolicy = expectedPolicy1 ? nameof(MockPolicyHandler2) : nameof(MockPolicyHandler1);
             }
             Assert.Contains(failedPolicy, actual.ErrorMessage);
-            
+
             MockPolicyHandler1.Verify(p => p.EvaluateAsync(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
             MockPolicyHandler2.Verify(p => p.EvaluateAsync(It.IsAny<UserSecurityPolicyEvaluationContext>()),
                 expectedPolicy2.HasValue ? Times.Once() : Times.Never());
@@ -117,7 +117,7 @@ namespace NuGetGallery.Security
                 .Returns<UserSecurityPolicyEvaluationContext>(x =>
                 {
                     var subscription = x.Policies.First().Subscription;
-                    return resultPerSubscription[subscription] == true ? 
+                    return resultPerSubscription[subscription] == true ?
                         Task.FromResult(SecurityPolicyResult.SuccessResult) :
                         Task.FromResult(SecurityPolicyResult.CreateErrorResult($"{subscription}-{name}"));
                 }).Verifiable();

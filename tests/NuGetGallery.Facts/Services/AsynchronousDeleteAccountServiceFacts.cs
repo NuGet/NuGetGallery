@@ -146,7 +146,7 @@ namespace NuGetGallery.Services
                 Assert.Equal(ServicesStrings.AccountDelete_CreateSupportRequestFails, result.Description);
             }
         }
- 
+
 
         public class TestAsynchronousDeleteAccountService
         {

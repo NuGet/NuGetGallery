@@ -100,11 +100,11 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                     // Create authentication ticket
                     return new AuthenticationTicket(
                             AuthenticationService.CreateIdentity(
-                                user, 
+                                user,
                                 AuthenticationTypes.ApiKey,
                                 // In cases where the apikey in the DB differs from the user provided
                                 // value (like apikey.v4) this will hold the hashed value
-                                new Claim(NuGetClaims.ApiKey, credential.Value), 
+                                new Claim(NuGetClaims.ApiKey, credential.Value),
                                 new Claim(NuGetClaims.Scope, scopes),
                                 new Claim(NuGetClaims.CredentialKey, credential.Key.ToString())),
                             new AuthenticationProperties());

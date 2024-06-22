@@ -39,7 +39,7 @@ namespace NuGetGallery
 
             return new BlobResultSegmentWrapper(segment);
         }
-        
+
         public Task CreateIfNotExistAsync(BlobContainerPermissions permissions)
         {
             var publicAccess = permissions?.PublicAccess;

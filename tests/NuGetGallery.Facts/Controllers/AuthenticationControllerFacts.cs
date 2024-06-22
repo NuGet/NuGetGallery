@@ -2398,7 +2398,7 @@ namespace NuGetGallery.Controllers
                 var msAuther = new MicrosoftAccountAuthenticator();
                 var msaUI = msAuther.GetUI();
 
-                GetMock<AuthenticationService>(); // Force a mock to be created                
+                GetMock<AuthenticationService>(); // Force a mock to be created
 
                 var controller = GetController<AuthenticationController>();
 
@@ -2624,7 +2624,7 @@ namespace NuGetGallery.Controllers
 
                 var controller = GetController<AuthenticationController>();
 
-                // Act     
+                // Act
                 var result = controller.ShouldEnforceMultiFactorAuthentication(null);
 
                 // Assert

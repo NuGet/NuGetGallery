@@ -11,12 +11,12 @@ using System.Web.Http.Hosting;
 
 namespace NuGetGallery.Infrastructure.Search.Correlation
 {
-    public class WebApiCorrelationHandler 
+    public class WebApiCorrelationHandler
         : DelegatingHandler
     {
         public static string CallContextKey = "CorrelatingHttpHandler_CID";
         public static string CorrelationIdHttpHeaderName = "X-CorrelationId";
-        
+
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             // Determine correlation id

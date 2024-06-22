@@ -179,7 +179,7 @@ namespace NuGetGallery.App_Start
                 configurationService.AppSettingStub = string.Empty;
                 configurationService.ConnectionStringStub = "abc";
 
-                // Act 
+                // Act
                 string result = await configurationService.ReadSettingAsync("any");
 
                 // Assert
@@ -193,11 +193,11 @@ namespace NuGetGallery.App_Start
                 var secretInjectorMock = new Mock<ICachingSecretInjector>();
                 secretInjectorMock.Setup(x => x.InjectAsync(It.IsAny<string>()))
                                   .Returns<string>(s => Task.FromResult(s + "parsed"));
-                
+
                 var configurationService = new TestableConfigurationService(secretInjectorMock.Object);
                 configurationService.ConnectionStringStub = "somevalue";
 
-                // Act 
+                // Act
                 string result = await configurationService.ReadSettingAsync("any");
 
                 // Assert

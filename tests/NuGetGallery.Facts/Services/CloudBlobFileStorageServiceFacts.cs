@@ -173,8 +173,8 @@ namespace NuGetGallery
                 var service = CreateService(fakeBlobClient: fakeBlobClient, redirectPolicy: fakePolicy);
 
                 var result = await service.CreateDownloadFileActionResultAsync(
-                    new Uri(HttpsRequestUrlString), 
-                    CoreConstants.Folders.PackagesFolderName, 
+                    new Uri(HttpsRequestUrlString),
+                    CoreConstants.Folders.PackagesFolderName,
                     "theFileName") as RedirectResult;
                 fakePolicy.Verify();
             }
@@ -195,12 +195,12 @@ namespace NuGetGallery
 
                 await Assert.ThrowsAsync<InvalidOperationException>(
                     () => service.CreateDownloadFileActionResultAsync(
-                        new Uri(HttpsRequestUrlString), 
+                        new Uri(HttpsRequestUrlString),
                         CoreConstants.Folders.PackagesFolderName, "theFileName")
                     );
             }
         }
-        
+
         private static HttpContextBase GetContext(string protocol = "http://")
         {
             var httpRequest = new Mock<HttpRequestBase>();

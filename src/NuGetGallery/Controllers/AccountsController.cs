@@ -56,7 +56,7 @@ namespace NuGetGallery
         protected IIconUrlProvider IconUrlProvider { get; }
 
         protected IGravatarProxyService GravatarProxy { get; }
-        
+
         protected IFeatureFlagService FeatureFlagService { get; }
 
         private readonly DeleteAccountListPackageItemViewModelFactory _deleteAccountListPackageItemViewModelFactory;

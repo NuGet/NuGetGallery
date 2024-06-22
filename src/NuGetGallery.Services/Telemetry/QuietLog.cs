@@ -140,7 +140,7 @@ namespace NuGetGallery
             {
                 return null;
             }
-            
+
             var obfuscatedServerVariables = new Dictionary<string, string>();
             var obfuscatedURL = Obfuscator.DefaultObfuscatedUrl(currentContext.Request.Url);
             obfuscatedServerVariables.Add("HTTP_REFERER", obfuscatedURL);

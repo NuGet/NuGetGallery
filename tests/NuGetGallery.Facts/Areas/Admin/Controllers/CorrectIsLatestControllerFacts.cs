@@ -261,7 +261,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 var database = new Mock<IDatabase>();
                 database.Setup(x => x.BeginTransaction()).Returns(() => new Mock<IDbContextTransaction>().Object);
                 entitiesContextMock.Setup(m => m.GetDatabase()).Returns(database.Object);
-                
+
                 var correctPackages = new HashSet<Package>();
                 var correctPackageId = "TheCorrectIsLatestPackage";
                 correctPackages.Add(new Package()

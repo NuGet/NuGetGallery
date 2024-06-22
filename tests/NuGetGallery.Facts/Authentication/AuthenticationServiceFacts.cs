@@ -99,7 +99,7 @@ namespace NuGetGallery.Authentication
                 configMock
                     .Setup(x => x.IsEmailInExceptionsList(It.IsAny<string>()))
                     .Returns(false);
-                GetMock<IContentObjectService>()    
+                GetMock<IContentObjectService>()
                     .Setup(x => x.LoginDiscontinuationConfiguration)
                     .Returns(configMock.Object);
                 var fakeUserEmail = "fakeuser@example.com";
@@ -388,7 +388,7 @@ namespace NuGetGallery.Authentication
                     return new[]
                     {
                         // No failed logins
-                        new object[] {0, null, DateTime.UtcNow, 0}, 
+                        new object[] {0, null, DateTime.UtcNow, 0},
                         // Small number of failed logins, no lock required
                         new object[] {1, new DateTime(2016, 9, 30, 0, 0, 0), new DateTime(2016, 9, 30, 0, 0, 1), 0},
                         new object[] {5, new DateTime(2016, 9, 30, 0, 0, 0), new DateTime(2016, 9, 30, 0, 0, 1), 0},
@@ -1125,7 +1125,7 @@ namespace NuGetGallery.Authentication
             [Fact]
             public async Task WritesAnAuditRecord()
             {
-                // Arrange                
+                // Arrange
                 var fakes = Get<Fakes>();
                 var context = Fakes.CreateOwinContext();
 

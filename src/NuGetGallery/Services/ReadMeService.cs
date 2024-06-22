@@ -93,7 +93,7 @@ namespace NuGetGallery
             {
                 Content = readMeMd,
                 ImagesRewritten = false,
-                ImageSourceDisallowed = false, 
+                ImageSourceDisallowed = false,
                 IsMarkdigMdSyntaxHighlightEnabled = false
             };
 

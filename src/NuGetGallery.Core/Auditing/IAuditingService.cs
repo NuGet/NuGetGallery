@@ -15,7 +15,7 @@ namespace NuGetGallery.Auditing
         /// Persists the audit record to storage.
         /// </summary>
         /// <param name="record">An audit record.</param>
-        /// <returns>A <see cref="Task"/> that represents the asynchronous save operation.</returns> 
+        /// <returns>A <see cref="Task"/> that represents the asynchronous save operation.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="record" /> is <c>null</c>.</exception>
         Task SaveAuditRecordAsync(AuditRecord record);
     }

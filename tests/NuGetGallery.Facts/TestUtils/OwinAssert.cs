@@ -15,7 +15,7 @@ namespace NuGetGallery
 
         private static Regex _cookieRegex = new Regex(@"^\s*(?<name>[^=]*)=(?<val>[^;]*)(;(?<fields>.*))?\s*$");
         private static Regex _fieldRegex = new Regex(@"^\s*(?<name>[^=]*)=(?<val>.*)\s*$");
-        
+
         public static void WillRedirect(IOwinContext context, string expectedLocation)
         {
             Assert.Equal(302, context.Response.StatusCode);
@@ -70,7 +70,7 @@ namespace NuGetGallery
                             .Select(s => _fieldRegex.Match(s))
                             .Where(m => m.Success)
                             .ToDictionary(
-                                m => m.Groups["name"].Value, 
+                                m => m.Groups["name"].Value,
                                 m => m.Groups["val"].Value));
                 }
             }

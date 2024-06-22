@@ -27,7 +27,7 @@ namespace NuGetGallery.Infrastructure.Search
         [Fact]
         public async Task GetDiagnosticsUsesTheCorrectPath()
         {
-            // Arrange 
+            // Arrange
             var gallerySearchClient = new GallerySearchClient(ResilientClientForTest.GetTestInstance(HttpStatusCode.OK));
 
             // Act
@@ -49,7 +49,7 @@ namespace NuGetGallery.Infrastructure.Search
         [MemberData(nameof(AllSortOrders))]
         public async Task MapsAllSortOrders(SortOrder sortOrder)
         {
-            // Arrange 
+            // Arrange
             var gallerySearchClient = new GallerySearchClient(ResilientClientForTest.GetTestInstance(HttpStatusCode.OK));
 
             // Act
@@ -64,7 +64,7 @@ namespace NuGetGallery.Infrastructure.Search
         }
 
         [Theory]
-        [InlineData(null, null, false, "", "", true, "all", "dependency", SortOrder.Relevance, 1, 10, false, false, false, false, null, null, 
+        [InlineData(null, null, false, "", "", true, "all", "dependency", SortOrder.Relevance, 1, 10, false, false, false, false, null, null,
             "q=&skip=1&take=10&includeComputedFrameworks=true&frameworkFilterMode=all&packageType=dependency&luceneQuery=false&sortBy=relevance")]
         [InlineData("query", "projectTypeFilter", true, null, null, true, "all", "dotnettool" ,SortOrder.LastEdited, 1, 10, true, true, true, true, "supportedFramework", "semVerLevel",
             "q=query&skip=1&take=10&includeComputedFrameworks=true&frameworkFilterMode=all&packageType=dotnettool&semVerLevel=semVerLevel&supportedFramework=supportedFramework&projectType=projectTypeFilter&prerelease=true&explanation=true&ignoreFilter=true&countOnly=true&sortBy=lastEdited")]
@@ -97,7 +97,7 @@ namespace NuGetGallery.Infrastructure.Search
             string semVerLevel,
             string expectedResult)
         {
-            // Arrange 
+            // Arrange
             var gallerySearchClient = new GallerySearchClient(ResilientClientForTest.GetTestInstance(HttpStatusCode.OK));
 
             // Act

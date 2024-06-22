@@ -48,7 +48,7 @@ namespace NuGetGallery
         public bool IsDownloadPackageAvailable { get; set; }
 
         public bool IsDownloadPackageVersionsAvailable { get; set; }
-        
+
         public bool IsDownloadCommunityPackageAvailable { get; set; }
 
         public bool IsDownloadCommunityPackageVersionsAvailable { get; set; }
@@ -170,7 +170,7 @@ namespace NuGetGallery
             }
 
             // If trailing char/s is/are decimal point separator, trim it
-            if (formattedNum.Length > decimalPoint.Length && 
+            if (formattedNum.Length > decimalPoint.Length &&
                 formattedNum.Substring(formattedNum.Length - decimalPoint.Length, decimalPoint.Length) == decimalPoint)
             {
                 formattedNum = formattedNum.Substring(0, formattedNum.Length - decimalPoint.Length);
@@ -180,7 +180,7 @@ namespace NuGetGallery
             {
                 return formattedNum + $" 10^{numDiv*3}";
             }
-            
+
             return formattedNum + _magnitudeAbbreviations[numDiv];
         }
     }

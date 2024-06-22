@@ -49,7 +49,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                         "NuGet.Frameworks|5.4.0",
                     }
                 };
-                
+
                 // Act
                 var result = await Target.UpdateListed(input);
 

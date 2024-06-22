@@ -13,7 +13,7 @@ namespace NuGetGallery
         private readonly IPackageVulnerabilitiesCacheService _packageVulnerabilitiesCacheService;
         private IServiceScopeFactory _serviceScopeFactory;
 
-        public PackageVulnerabilitiesCacheRefreshJob(TimeSpan interval, 
+        public PackageVulnerabilitiesCacheRefreshJob(TimeSpan interval,
             IPackageVulnerabilitiesCacheService packageVulnerabilitiesCacheService,
             IServiceScopeFactory serviceScopeFactory)
             : base("", interval)

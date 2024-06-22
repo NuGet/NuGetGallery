@@ -23,7 +23,7 @@ namespace NuGetGallery.OData.QueryInterceptors
         {
             if (IsSortingOnColumnName(node))
             {
-                // The expression is of the format Queryable.ThenBy(OrderBy(<Expression>, <Order-by-params>), <Then-by-params>). To avoid performing the 
+                // The expression is of the format Queryable.ThenBy(OrderBy(<Expression>, <Order-by-params>), <Then-by-params>). To avoid performing the
                 // method, we ignore it, traversing the passed in expression instead.
                 return Visit(node.Arguments[0]);
             }
@@ -69,7 +69,7 @@ namespace NuGetGallery.OData.QueryInterceptors
             {
                 // Note that if Flag has already been set to true, we need to retain that state
                 // as our visitor can be called multiple times.
-                // Example using Version column: The expression can either be p => p.Version or p => p.ExpandedWrapper.Version where the 
+                // Example using Version column: The expression can either be p => p.Version or p => p.ExpandedWrapper.Version where the
                 // latter is some funky OData type wrapper. We need to ensure we handle both these cases
                 Flag = Flag || String.Equals(node.Member.Name, _columnName, StringComparison.Ordinal);
                 return base.VisitMember(node);

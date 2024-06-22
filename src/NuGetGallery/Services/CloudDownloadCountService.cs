@@ -61,7 +61,7 @@ namespace NuGetGallery
             downloadCount = 0;
             return false;
         }
-        
+
         public bool TryGetDownloadCountForPackage(string id, string version, out long downloadCount)
         {
             if (string.IsNullOrEmpty(id))

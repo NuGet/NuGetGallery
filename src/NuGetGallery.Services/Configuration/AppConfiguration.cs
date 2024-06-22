@@ -32,7 +32,7 @@ namespace NuGetGallery.Configuration
         public int SSLPort { get; set; }
 
         /// <summary>
-        /// A string containing a path exluded from forcing the HTTP to HTTPS redirection. 
+        /// A string containing a path exluded from forcing the HTTP to HTTPS redirection.
         /// To provide multiple paths separate them with ;
         /// </summary>
         [DefaultValue(null)]
@@ -237,21 +237,21 @@ namespace NuGetGallery.Configuration
         public bool AutoUpdateSearchIndex { get; set; }
 
         /// <summary>
-        /// Gets a string indicating which authentication provider(s) are supported for administrators. 
+        /// Gets a string indicating which authentication provider(s) are supported for administrators.
         /// When specified, the gallery will ensure admin users are logging in using any of the specified authentication providers.
         /// Blank means any authentication provider can be used by administrators.
         /// </summary>
         public string EnforcedAuthProviderForAdmin { get; set; }
 
         /// <summary>
-        /// Gets a string indicating which Microsoft Entra tenant ID should be used for administrators. 
+        /// Gets a string indicating which Microsoft Entra tenant ID should be used for administrators.
         /// When specified, the gallery will ensure admin users are logging in using only the specified tenant ID.
         /// Blank means any Microsoft Entra tenant ID can be used by administrators.
         /// </summary>
         public string EnforcedTenantIdForAdmin { get; set; }
 
         /// <summary>
-        /// A regex to validate password format. The default regex requires the password to be atlease 8 characters, 
+        /// A regex to validate password format. The default regex requires the password to be atlease 8 characters,
         /// include at least one uppercase letter, one lowercase letter and a digit.
         /// </summary>
         [Required]

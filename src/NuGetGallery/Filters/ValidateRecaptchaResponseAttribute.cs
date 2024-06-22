@@ -23,7 +23,7 @@ namespace NuGetGallery.Filters
         {
             var controller = filterContext.Controller as AppController;
             var privateKey = controller.NuGetContext.Config.Current.ReCaptchaPrivateKey;
-            
+
             if (!string.IsNullOrEmpty(privateKey))
             {
                 var response = controller.HttpContext.Request.Form[RecaptchaResponseId];

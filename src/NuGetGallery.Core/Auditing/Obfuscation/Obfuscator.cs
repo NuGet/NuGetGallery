@@ -22,7 +22,7 @@ namespace NuGetGallery.Auditing
             if (IPAddress.TryParse(IP, out address))
             {
                 var bytes = address.GetAddressBytes();
-                //If the length 4 is IPV4 if the length is 16 IPV6 
+                //If the length 4 is IPV4 if the length is 16 IPV6
                 var length = bytes.Length;
                 switch (length)
                 {

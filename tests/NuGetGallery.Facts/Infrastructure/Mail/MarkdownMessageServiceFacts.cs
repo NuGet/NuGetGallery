@@ -2483,7 +2483,7 @@ namespace NuGetGallery
                 Assert.Empty(messageService.MockMailSender.Sent);
             }
         }
-               
+
         private static void AssertMessageSentToPackageOwnershipManagersOfOrganizationOnly(MailMessage message, Organization organization)
         {
             AssertMessageSentToMembersOfOrganizationWithPermissionOnly(message, organization, ActionsRequiringPermissions.HandlePackageOwnershipRequest);

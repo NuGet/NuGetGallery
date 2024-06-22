@@ -54,7 +54,7 @@ namespace NuGetGallery
         {
             return c?.Type?.Equals(type, StringComparison.OrdinalIgnoreCase) ?? false;
         }
-      
+
         internal static IReadOnlyList<string> SupportedCredentialTypes = new List<string>
         {
             Password.Sha1,

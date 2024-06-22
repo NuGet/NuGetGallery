@@ -335,7 +335,7 @@ namespace NuGet.VerifyMicrosoftPackage.Facts
             using (var fileStream = File.OpenWrite(fullPath))
             {
                 packageBuilder.Save(fileStream);
-            }   
+            }
         }
 
         private class TextOutputWriter : TextWriter

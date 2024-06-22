@@ -257,7 +257,7 @@ namespace NuGetGallery
                 Assert.True(ReadMeService.HasReadMeSource(new ReadMeRequest() { SourceType = ReadMeService.TypeFile, SourceFile = sourceFile.Object }));
             }
         }
-        
+
         public class TheGetReadMeHtmlAsyncMethod
         {
             [Fact]
@@ -265,7 +265,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var readMeService = new ReadMeService(
-                    new Mock<IPackageFileService>().Object, 
+                    new Mock<IPackageFileService>().Object,
                     new Mock<IEntitiesContext>().Object,
                     new Mock<IMarkdownService>().Object,
                     new Mock<ICoreReadmeFileService>().Object);

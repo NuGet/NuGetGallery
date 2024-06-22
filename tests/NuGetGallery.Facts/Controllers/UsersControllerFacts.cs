@@ -386,7 +386,7 @@ namespace NuGetGallery
 
                 try
                 {
-                    // Act 
+                    // Act
                     await controller.ForgotPassword(model);
                 }
                 catch (Exception e)
@@ -408,7 +408,7 @@ namespace NuGetGallery
 
                 var result = controller.ForgotPassword() as ViewResult;
                 var model = result.Model as ForgotPasswordViewModel;
-                
+
                 Assert.NotNull(result);
                 Assert.IsNotType<RedirectResult>(result);
                 Assert.Equal(flagEnabled, model.IsPasswordLoginEnabled);
@@ -663,7 +663,7 @@ namespace NuGetGallery
             [Theory]
             public async Task WhenEmptyDescriptionProvidedRedirectsToAccountPageWithError(string description)
             {
-                // Arrange 
+                // Arrange
                 var user = new User { Username = "the-username" };
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
@@ -683,7 +683,7 @@ namespace NuGetGallery
             [Fact]
             public async Task WhenUserIsLockedReturnsError()
             {
-                // Arrange 
+                // Arrange
                 var user = new User { Username = "the-username", UserStatusKey = UserStatus.Locked };
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
@@ -723,7 +723,7 @@ namespace NuGetGallery
             [MemberData(nameof(WhenScopeOwnerDoesNotMatch_ReturnsBadRequest_Data))]
             public async Task WhenScopeOwnerDoesNotMatch_ReturnsBadRequest(Func<Fakes, User> getCurrentUser)
             {
-                // Arrange 
+                // Arrange
                 var fakes = new Fakes();
                 var currentUser = getCurrentUser(fakes);
                 var userInOwnerScope = fakes.ShaUser;
@@ -771,7 +771,7 @@ namespace NuGetGallery
             [MemberData(nameof(WhenScopeOwnerMatchesOrganizationWithPermission_ReturnsSuccess_Data))]
             public async Task WhenScopeOwnerMatchesOrganizationWithPermission_ReturnsSuccess(bool isAdmin, string scope)
             {
-                // Arrange 
+                // Arrange
                 var fakes = new Fakes();
                 var user = isAdmin ? fakes.OrganizationAdmin : fakes.OrganizationCollaborator;
                 var orgUser = fakes.Organization;
@@ -814,7 +814,7 @@ namespace NuGetGallery
             [Theory]
             public async Task WhenExpirationInDaysIsProvidedItsUsed(int? inputExpirationInDays, int expectedExpirationInDays)
             {
-                // Arrange 
+                // Arrange
                 var user = new User("the-username");
 
                 var configurationService = GetConfigurationService();
@@ -923,7 +923,7 @@ namespace NuGetGallery
             [Theory]
             public async Task CreatesNewApiKeyCredential(string description, string[] scopes, string[] subjects, Scope[] expectedScopes)
             {
-                // Arrange 
+                // Arrange
                 var user = new User("the-username");
                 GetMock<IUserService>()
                     .Setup(u => u.FindByUsername(user.Username, false))
@@ -973,7 +973,7 @@ namespace NuGetGallery
             [Theory]
             public async Task CreatesNewApiKeyCredentialSecurely(string description, string[] scopes, string[] subjects, Scope[] expectedScopes)
             {
-                // Arrange 
+                // Arrange
                 var user = new User("the-username");
                 GetMock<IUserService>()
                     .Setup(u => u.FindByUsername(user.Username, false))
@@ -4057,7 +4057,7 @@ namespace NuGetGallery
                 PackageRegistration packageRegistration2 = CreatePackageRegistration("Company.AlphaPackage", 1, "1.0.0", "first");
                 PackageRegistration packageRegistration3 = CreatePackageRegistration("Company.NormalPackage", 1, "1.0.0", "middle");
 
-                var userPackages = new List<Package> { 
+                var userPackages = new List<Package> {
                     packageRegistration1.Packages.First(),
                     packageRegistration2.Packages.First(),
                     packageRegistration3.Packages.First()
@@ -4079,7 +4079,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void PackagesVersionSortOrderIsSetBySemVer()  
+            public void PackagesVersionSortOrderIsSetBySemVer()
             {
                 PackageRegistration packageRegistration1 = CreatePackageRegistration("Company.ZebraPackage", 1, "1.0.0", "middle");
                 PackageRegistration packageRegistration2 = CreatePackageRegistration("Company.NormalPackage", 1, "0.0.1", "first");

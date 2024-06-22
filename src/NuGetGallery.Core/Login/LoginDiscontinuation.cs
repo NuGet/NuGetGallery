@@ -19,7 +19,7 @@ namespace NuGetGallery.Login
         public HashSet<string> ExceptionsForEmailAddresses { get; set; }
         public HashSet<string> ForceTransformationToOrganizationForEmailAddresses { get; }
         public HashSet<OrganizationTenantPair> EnabledOrganizationAadTenants { get; }
-        
+
         public LoginDiscontinuation(
             ICollection<string> discontinuedForEmailAddresses,
             ICollection<string> discontinuedForDomains,
@@ -91,18 +91,18 @@ namespace NuGetGallery.Login
         }
 
         public bool AddEmailToExceptionsList(string emailAddress)
-        { 
+        {
             if (string.IsNullOrEmpty(emailAddress))
-            { 
+            {
                 return false;
             }
             return ExceptionsForEmailAddresses.Add(emailAddress);
         }
-        
+
         public bool RemoveEmailFromExceptionsList(string emailAddress)
-        { 
+        {
             if (string.IsNullOrEmpty(emailAddress))
-            { 
+            {
                 return false;
             }
             return ExceptionsForEmailAddresses.Remove(emailAddress);

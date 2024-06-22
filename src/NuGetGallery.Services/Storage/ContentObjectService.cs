@@ -43,7 +43,7 @@ namespace NuGetGallery
 
         public async Task Refresh()
         {
-            LoginDiscontinuationConfiguration = 
+            LoginDiscontinuationConfiguration =
                 await Refresh<LoginDiscontinuationConfiguration>(ServicesConstants.ContentNames.LoginDiscontinuationConfiguration) ??
                 new LoginDiscontinuationConfiguration();
 
@@ -59,7 +59,7 @@ namespace NuGetGallery
                await Refresh<TyposquattingConfiguration>(ServicesConstants.ContentNames.TyposquattingConfiguration) ??
                new TyposquattingConfiguration();
 
-            var reposCache = 
+            var reposCache =
                 await Refresh<IReadOnlyCollection<RepositoryInformation>>(ServicesConstants.ContentNames.NuGetPackagesGitHubDependencies) ??
                 Array.Empty<RepositoryInformation>();
             GitHubUsageConfiguration = new GitHubUsageConfiguration(reposCache);

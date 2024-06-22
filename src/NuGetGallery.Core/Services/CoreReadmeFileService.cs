@@ -25,7 +25,7 @@ namespace NuGetGallery
 
         /// <summary>
         /// Saves the package readme.md file to storage. This method should throw if the package
-        /// does not have an embedded readme file 
+        /// does not have an embedded readme file
         /// </summary>
         /// <param name="package">The package associated with the readme.</param>
         /// <param name="readmeFile">The content of readme file.</param>
@@ -53,7 +53,7 @@ namespace NuGetGallery
 
         /// <summary>
         /// Save the readme file from package stream. This method should throw if the package
-        /// does not have an embedded readme file 
+        /// does not have an embedded readme file
         /// </summary>
         /// <param name="package">Package information.</param>
         /// <param name="packageStream">Package stream with .nupkg contents.</param>

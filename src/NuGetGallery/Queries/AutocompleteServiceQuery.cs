@@ -27,7 +27,7 @@ namespace NuGetGallery
         }
 
         public async Task<IReadOnlyList<string>> RunServiceQuery(
-            string queryString, 
+            string queryString,
             bool? includePrerelease,
             bool? includeTestData,
             string semVerLevel = null)

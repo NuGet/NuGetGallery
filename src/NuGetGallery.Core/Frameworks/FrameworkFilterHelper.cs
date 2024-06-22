@@ -28,7 +28,7 @@ namespace NuGetGallery.Frameworks
 
         public static readonly Dictionary<string, FrameworkFilterGroup> FrameworkFilters = new Dictionary<string, FrameworkFilterGroup>()
         {
-            { 
+            {
                 AssetFrameworkHelper.FrameworkGenerationIdentifiers.Net,
                 new FrameworkFilterGroup(
                     AssetFrameworkHelper.FrameworkGenerationIdentifiers.Net,
@@ -38,7 +38,7 @@ namespace NuGetGallery.Frameworks
                         .ToList()
                 )
             },
-            {   
+            {
                 AssetFrameworkHelper.FrameworkGenerationIdentifiers.NetCoreApp,
                 new FrameworkFilterGroup(
                     AssetFrameworkHelper.FrameworkGenerationIdentifiers.NetCoreApp,
@@ -48,7 +48,7 @@ namespace NuGetGallery.Frameworks
                         .ToList()
                 )
             },
-            { 
+            {
                 AssetFrameworkHelper.FrameworkGenerationIdentifiers.NetStandard,
                 new FrameworkFilterGroup(
                     AssetFrameworkHelper.FrameworkGenerationIdentifiers.NetStandard,
@@ -58,7 +58,7 @@ namespace NuGetGallery.Frameworks
                         .ToList()
                 )
             },
-            { 
+            {
                 AssetFrameworkHelper.FrameworkGenerationIdentifiers.NetFramework,
                 new FrameworkFilterGroup(
                     AssetFrameworkHelper.FrameworkGenerationIdentifiers.NetFramework,

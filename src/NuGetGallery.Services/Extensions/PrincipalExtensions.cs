@@ -213,7 +213,7 @@ namespace NuGetGallery
 
             return false;
         }
-        
+
         /// <summary>
         /// Get the tenant ID from the claims, if available. If no such claim exists, null is returned.
         /// </summary>
@@ -259,7 +259,7 @@ namespace NuGetGallery
             var identity = self as ClaimsIdentity;
             return identity?.GetClaimOrDefault(NuGetClaims.Scope);
         }
-        
+
         private static bool IsEmptyScopeClaim(string scopeClaim)
         {
             return string.IsNullOrEmpty(scopeClaim) || scopeClaim == "[]";

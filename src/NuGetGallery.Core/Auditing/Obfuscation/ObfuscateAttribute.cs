@@ -8,7 +8,7 @@ namespace NuGetGallery.Auditing.Obfuscation
 
     public class ObfuscateAttribute : Attribute
     {
-        public ObfuscationType ObfuscationType { get; } 
+        public ObfuscationType ObfuscationType { get; }
 
         public ObfuscateAttribute(ObfuscationType obfuscationType)
         {

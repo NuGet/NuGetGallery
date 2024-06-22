@@ -202,7 +202,7 @@ WHERE [Key] IN ({0})";
             var query = string.Format(
                 UpdateBulkPackagesQueryFormat,
                 string.Join(
-                    ", ", 
+                    ", ",
                     packageKeys
                         .OrderBy(k => k)));
 

@@ -12,13 +12,13 @@ using System.Web.Http.OData.Batch;
 
 namespace NuGetGallery.OData
 {
-    public class ODataServiceVersionHeaderPropagatingBatchHandler 
+    public class ODataServiceVersionHeaderPropagatingBatchHandler
         : DefaultODataBatchHandler
     {
         private const string DataServiceVersionHeader = "DataServiceVersion";
         private const string MaxDataServiceVersionHeader = "MaxDataServiceVersion";
 
-        public ODataServiceVersionHeaderPropagatingBatchHandler(HttpServer httpServer) 
+        public ODataServiceVersionHeaderPropagatingBatchHandler(HttpServer httpServer)
             : base(httpServer)
         {
         }

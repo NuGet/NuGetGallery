@@ -179,7 +179,7 @@ namespace NuGetGallery
                 }
             }
 
-            // Validate repository metadata	
+            // Validate repository metadata
             if (packageMetadata.RepositoryType != null && packageMetadata.RepositoryType.Length > 100)
             {
                 throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "RepositoryType", "100");

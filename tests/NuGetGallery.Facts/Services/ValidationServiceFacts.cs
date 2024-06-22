@@ -46,7 +46,7 @@ namespace NuGetGallery
                     x => x.UpdatePackageStatusAsync(_package, packageStatus, false),
                     Times.Once);
 
-                /// The implementation should not change the package status on its own. It should depend on 
+                /// The implementation should not change the package status on its own. It should depend on
                 /// <see cref="IPackageService"/> to do this.
                 Assert.Equal(PackageStatus.Available, _package.PackageStatusKey);
             }
@@ -71,7 +71,7 @@ namespace NuGetGallery
                     x => x.UpdatePackageStatusAsync(_package, packageStatus, false),
                     Times.Once);
 
-                /// The implementation should not change the package status on its own. It should depend on 
+                /// The implementation should not change the package status on its own. It should depend on
                 /// <see cref="IPackageService"/> to do this.
                 Assert.Equal(PackageStatus.Available, _package.PackageStatusKey);
             }
@@ -107,7 +107,7 @@ namespace NuGetGallery
                     x => x.UpdateStatusAsync(_symbolPackage, packageStatus, false),
                     Times.Once);
 
-                /// The implementation should not change the package status on its own. It should depend on 
+                /// The implementation should not change the package status on its own. It should depend on
                 /// <see cref="ISymbolPackageService"/> to do this.
                 Assert.Equal(PackageStatus.Available, _symbolPackage.StatusKey);
             }
@@ -132,7 +132,7 @@ namespace NuGetGallery
                     x => x.UpdateStatusAsync(_symbolPackage, packageStatus, false),
                     Times.Once);
 
-                /// The implementation should not change the package status on its own. It should depend on 
+                /// The implementation should not change the package status on its own. It should depend on
                 /// <see cref="IPackageService"/> to do this.
                 Assert.Equal(PackageStatus.Available, _symbolPackage.StatusKey);
             }
@@ -168,7 +168,7 @@ namespace NuGetGallery
                     x => x.UpdatePackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), It.IsAny<bool>()),
                     Times.Never);
 
-                /// The implementation should not change the package status on its own. It should depend on 
+                /// The implementation should not change the package status on its own. It should depend on
                 /// <see cref="IPackageService"/> to do this.
                 Assert.Equal(PackageStatus.Available, _package.PackageStatusKey);
             }

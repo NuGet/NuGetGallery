@@ -7,7 +7,7 @@ using Microsoft.Data.Edm;
 
 namespace NuGetGallery.OData.Serializers
 {
-    public class CustomSerializerProvider 
+    public class CustomSerializerProvider
         : DefaultODataSerializerProvider
     {
         private readonly ODataEdmTypeSerializer _entitySerializer;

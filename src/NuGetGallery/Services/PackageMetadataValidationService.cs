@@ -544,7 +544,7 @@ namespace NuGetGallery
             // nuget.exe 4.9.0 and its dotnet and msbuild counterparts encode spaces as "+"
             // when generating legacy license URL, which is bad. We explicitly forbid such
             // URLs. On the other hand, if license expression does not contain spaces they
-            // generate good URLs which we don't want to reject. This method detects the 
+            // generate good URLs which we don't want to reject. This method detects the
             // case when spaces are in the expression in a meaningful way.
 
             if (Uri.TryCreate(licenseUrl, UriKind.Absolute, out var url))
@@ -704,7 +704,7 @@ namespace NuGetGallery
         }
 
         /// <summary>
-        /// Validate repository metadata: 
+        /// Validate repository metadata:
         /// 1. If the type is "git" - allow the URL scheme "git://" or "https://". We will translate "git://" to "https://" at display time for known domains.
         /// 2. For types other then "git" - URL scheme should be "https://"
         /// </summary>

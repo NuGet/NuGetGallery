@@ -9,7 +9,7 @@ namespace NuGetGallery
 {
     public static class AdminHelper
     {
-        private static Lazy<bool> AdminPanelEnabled = new Lazy<bool>(() =>  
+        private static Lazy<bool> AdminPanelEnabled = new Lazy<bool>(() =>
             DependencyResolver.Current.GetService<IGalleryConfigurationService>()
                 .Current.AdminPanelEnabled);
 

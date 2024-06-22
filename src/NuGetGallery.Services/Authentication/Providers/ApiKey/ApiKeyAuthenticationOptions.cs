@@ -8,7 +8,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
     {
         public string ApiKeyHeaderName { get; set; }
         public string ApiKeyClaim { get; set; }
-        
+
         public ApiKeyAuthenticationOptions() : base(AuthenticationTypes.ApiKey) {
             ApiKeyHeaderName = ServicesConstants.ApiKeyHeaderName;
             ApiKeyClaim = NuGetClaims.ApiKey;

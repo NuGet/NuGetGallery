@@ -27,7 +27,7 @@ namespace NuGetGallery
         [InlineData("****1bB***")]
         public void Accepts(string password)
         {
-            
+
             var match = new Regex(_defaultPasswordRegex).IsMatch(password);
             Assert.True(match);
         }

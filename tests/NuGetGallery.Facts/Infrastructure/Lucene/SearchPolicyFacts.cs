@@ -78,7 +78,7 @@ namespace NuGetGallery.Infrastructure.Search
             onCircuitBreakerfallBackInfo = _logger.Informations.Count(s => s.StartsWith("On circuit breaker fallback."));
             circuitBreakerWarning = _logger.Warnings.Count(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for"));
 
-            // No other info added 
+            // No other info added
             Assert.Equal(2, retryInfo);
             Assert.Equal(2, onCircuitBreakerfallBackInfo);
             Assert.Equal(1, circuitBreakerWarning);
@@ -93,7 +93,7 @@ namespace NuGetGallery.Infrastructure.Search
             onCircuitBreakerfallBackInfo = _logger.Informations.Count(s => s.StartsWith("On circuit breaker fallback."));
             circuitBreakerWarning = _logger.Warnings.Count(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for"));
 
-            // No other info added 
+            // No other info added
             Assert.Equal(2, retryInfo);
             Assert.Equal(3, onCircuitBreakerfallBackInfo);
             Assert.Equal(1, circuitBreakerWarning);
@@ -127,7 +127,7 @@ namespace NuGetGallery.Infrastructure.Search
             onCircuitBreakerfallBackInfo = _logger.Informations.Count(s => s.StartsWith("On circuit breaker fallback."));
             circuitBreakerWarning = _logger.Warnings.Count(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for"));
 
-            // No other info added 
+            // No other info added
             Assert.Equal(0, retryInfo);
             Assert.Equal(2, onCircuitBreakerfallBackInfo);
             Assert.Equal(1, circuitBreakerWarning);
@@ -140,7 +140,7 @@ namespace NuGetGallery.Infrastructure.Search
             onCircuitBreakerfallBackInfo = _logger.Informations.Count(s => s.StartsWith("On circuit breaker fallback."));
             circuitBreakerWarning = _logger.Warnings.Count(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for"));
 
-            // No other info added 
+            // No other info added
             Assert.Equal(0, retryInfo);
             Assert.Equal(3, onCircuitBreakerfallBackInfo);
             Assert.Equal(1, circuitBreakerWarning);
@@ -220,7 +220,7 @@ namespace NuGetGallery.Infrastructure.Search
 
             Task.Delay(TimeSpan.FromSeconds(_circuitBreakerShortDelaySeconds)).Wait();
 
-            // Request again with correct uri. The circuit breaker delay should be expired and will do the trial and pass 
+            // Request again with correct uri. The circuit breaker delay should be expired and will do the trial and pass
             var r2 = await invalidHttpClient.GetAsync(validUri);
 
             retryInfo = _logger.Informations.Count(s => s.StartsWith("Policy retry - it will retry after"));
@@ -229,7 +229,7 @@ namespace NuGetGallery.Infrastructure.Search
             onCircuitBreakerReset = _logger.Informations.Count(s => s.StartsWith("SearchCircuitBreaker logging: Call ok! Closed the circuit again!"));
             onCircuitBreakerHalfOpen = _logger.Informations.Count(s => s.StartsWith("SearchCircuitBreaker logging: Half-open: Next call is a trial!"));
 
-            // No other info added 
+            // No other info added
             Assert.Equal(2, retryInfo);
             Assert.Equal(1, onCircuitBreakerfallBackInfo);
             Assert.Equal(1, circuitBreakerWarning);

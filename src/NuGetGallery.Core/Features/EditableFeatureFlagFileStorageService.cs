@@ -90,9 +90,9 @@ namespace NuGetGallery.Features
             var result = await TrySaveInternalAsync(flags, contentId);
             await _auditing.SaveAuditRecordAsync(
                 new FeatureFlagsAuditRecord(
-                    AuditedFeatureFlagsAction.Update, 
-                    flags, 
-                    contentId, 
+                    AuditedFeatureFlagsAction.Update,
+                    flags,
+                    contentId,
                     result));
 
             return result;

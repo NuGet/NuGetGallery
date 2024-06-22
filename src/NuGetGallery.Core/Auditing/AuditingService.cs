@@ -30,7 +30,7 @@ namespace NuGetGallery.Auditing
         /// Persists the audit record to storage.
         /// </summary>
         /// <param name="record">An audit record.</param>
-        /// <returns>A <see cref="Task"/> that represents the asynchronous save operation.</returns> 
+        /// <returns>A <see cref="Task"/> that represents the asynchronous save operation.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="record" /> is <c>null</c>.</exception>
         public async Task SaveAuditRecordAsync(AuditRecord record)
         {
@@ -82,7 +82,7 @@ namespace NuGetGallery.Auditing
         /// <param name="filePath">The file-system path to use to identify the audit record</param>
         /// <param name="action">The action recorded in this audit record</param>
         /// <param name="timestamp">A timestamp indicating when the record was created</param>
-        /// <returns>A <see cref="Task"/> that represents the asynchronous save operation.</returns> 
+        /// <returns>A <see cref="Task"/> that represents the asynchronous save operation.</returns>
         protected abstract Task SaveAuditRecordAsync(string auditData, string resourceType, string filePath, string action, DateTime timestamp);
 
         protected virtual Task<AuditActor> GetActorAsync()
@@ -102,7 +102,7 @@ namespace NuGetGallery.Auditing
                 MissingMemberHandling = MissingMemberHandling.Ignore,
                 NullValueHandling = NullValueHandling.Include,
                 TypeNameHandling = TypeNameHandling.None,
-                
+
             };
             settings.Converters.Add(new StringEnumConverter());
             return settings;

@@ -133,7 +133,7 @@ namespace NuGetGallery.Features
                 await Assert.ThrowsAsync<JsonReaderException>(() => _target.GetReferenceAsync());
             }
         }
-    
+
         public class TrySaveAsync : FactsBase
         {
             [Fact]
@@ -533,12 +533,12 @@ namespace NuGetGallery.Features
                             r => r.Action == AuditedFeatureFlagsAction.Update
                                 && r.ContentId == "fake-content-id"
                                 && r.Result == ContentSaveResult.Conflict
-                                && !r.Features.Any() 
+                                && !r.Features.Any()
                                 && r.Flights.SingleOrDefault(
-                                    f => f.Name == "A" 
+                                    f => f.Name == "A"
                                         && !f.All
                                         && !f.SiteAdmins
-                                        && f.Accounts.Single() == "user2" 
+                                        && f.Accounts.Single() == "user2"
                                         && !f.Domains.Any()) != null)),
                     Times.Exactly(3));
             }

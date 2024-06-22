@@ -35,7 +35,7 @@ namespace NuGetGallery.Areas.Admin
         IReadOnlyCollection<Issue> GetIssues(int? assignedTo = null, string reason = null, int? issueStatusId = null, string galleryUsername = null);
 
         Task<Issue> AddNewSupportRequestAsync(
-            string subject, 
+            string subject,
             string message,
             string requestorEmailAddress,
             string reason,

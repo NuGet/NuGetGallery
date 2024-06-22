@@ -23,7 +23,7 @@ namespace NuGetGallery.Configuration
         string GetSupportEmailSiteRoot();
 
         /// <summary>
-        /// Populate the properties of <param name="instance"></param> from configuration. 
+        /// Populate the properties of <param name="instance"></param> from configuration.
         /// </summary>
         /// <typeparam name="T">The type to populate.</typeparam>
         /// <param name="instance">The instance.</param>

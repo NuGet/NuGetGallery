@@ -186,8 +186,8 @@ namespace NuGetGallery.Controllers
         // /api/v2/Packages(Id=,Version=)
         [HttpGet]
         public async Task<IHttpActionResult> Get(
-            ODataQueryOptions<V2FeedPackage> options, 
-            string id, 
+            ODataQueryOptions<V2FeedPackage> options,
+            string id,
             string version,
             [FromUri] bool hijack = true)
         {
@@ -196,8 +196,8 @@ namespace NuGetGallery.Controllers
             // The client is requesting a specific package version and should support what it requests.
             // If not, too bad :)
             var result = await GetCoreAsync(
-                options, 
-                id, 
+                options,
+                id,
                 version,
                 semVerLevel: SemVerLevelKey.SemVerLevel2,
                 allowHijack: hijack,
@@ -211,7 +211,7 @@ namespace NuGetGallery.Controllers
         [HttpGet]
         [HttpPost]
         public async Task<IHttpActionResult> FindPackagesById(
-            ODataQueryOptions<V2FeedPackage> options, 
+            ODataQueryOptions<V2FeedPackage> options,
             [FromODataUri]string id,
             [FromUri]string semVerLevel = null)
         {
@@ -269,9 +269,9 @@ namespace NuGetGallery.Controllers
         }
 
         private async Task<IHttpActionResult> GetCoreAsync(
-            ODataQueryOptions<V2FeedPackage> options, 
-            string id, 
-            string version, 
+            ODataQueryOptions<V2FeedPackage> options,
+            string id,
+            string version,
             string semVerLevel,
             bool allowHijack,
             bool return404NotFoundWhenNoResults,
@@ -389,8 +389,8 @@ namespace NuGetGallery.Controllers
             }
 
             var queryable = packages.ToV2FeedPackageQuery(
-                GetSiteRoot(), 
-                _configurationService.Features.FriendlyLicenses, 
+                GetSiteRoot(),
+                _configurationService.Features.FriendlyLicenses,
                 semVerLevelKey);
 
             return TrackedQueryResult(options, queryable, MaxPageSize, customQuery);
@@ -647,8 +647,8 @@ namespace NuGetGallery.Controllers
             var queryable = GetUpdates(packages, versionLookup, targetFrameworkValues, includeAllVersions, semVerLevel)
                 .AsQueryable()
                 .ToV2FeedPackageQuery(
-                    GetSiteRoot(), 
-                    _configurationService.Features.FriendlyLicenses, 
+                    GetSiteRoot(),
+                    _configurationService.Features.FriendlyLicenses,
                     semVerLevelKey);
 
             return TrackedQueryResult(options, queryable, MaxPageSize, customQuery: false);
@@ -669,13 +669,13 @@ namespace NuGetGallery.Controllers
         {
             _telemetryService.TrackApiRequest("/api/v2/GetUpdates()/$count?packageIds=&versions=&includePrerelease=&includeAllVersions=&targetFrameworks=&versionConstraints=&semVerLevel=");
             return GetUpdates(
-                options, 
-                packageIds, 
-                versions, 
-                includePrerelease, 
-                includeAllVersions, 
-                targetFrameworks, 
-                versionConstraints, 
+                options,
+                packageIds,
+                versions,
+                includePrerelease,
+                includeAllVersions,
+                targetFrameworks,
+                versionConstraints,
                 semVerLevel)
                 .FormattedAsCountResult<V2FeedPackage>();
         }
@@ -699,11 +699,11 @@ namespace NuGetGallery.Controllers
 
                                     VersionRange versionConstraint = versionTuple.Item2;
 
-                                    return version > clientVersion 
-                                            && (targetFrameworkValues == null 
-                                                || !supportedPackageFrameworks.Any() 
-                                                || targetFrameworkValues.Any(s => supportedPackageFrameworks.Any(supported => NuGetFrameworkUtility.IsCompatibleWithFallbackCheck(s, supported)))) 
-                                            && (versionConstraint == null 
+                                    return version > clientVersion
+                                            && (targetFrameworkValues == null
+                                                || !supportedPackageFrameworks.Any()
+                                                || targetFrameworkValues.Any(s => supportedPackageFrameworks.Any(supported => NuGetFrameworkUtility.IsCompatibleWithFallbackCheck(s, supported))))
+                                            && (versionConstraint == null
                                                 || versionConstraint.Satisfies(version));
                                 })
                           select p;

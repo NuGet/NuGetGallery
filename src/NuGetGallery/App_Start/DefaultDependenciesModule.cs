@@ -382,7 +382,7 @@ namespace NuGetGallery
             builder.RegisterType<MarkdownService>()
                 .As<IMarkdownService>()
                 .InstancePerLifetimeScope();
-            
+
             builder.RegisterType<ImageDomainValidator>()
                 .As<IImageDomainValidator>()
                 .InstancePerLifetimeScope();
@@ -406,7 +406,7 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<ICertificateService>()
                 .InstancePerLifetimeScope();
-            
+
             RegisterTyposquattingServiceHelper(builder, loggerFactory);
 
             builder.RegisterType<TyposquattingService>()
@@ -1038,7 +1038,7 @@ namespace NuGetGallery
                 .RegisterType<NuGet.Services.Validation.ServiceBusMessageSerializer>()
                 .As<NuGet.Services.Validation.IServiceBusMessageSerializer>();
 
-            // We need to setup two enqueuers for Package validation and symbol validation each publishes 
+            // We need to setup two enqueuers for Package validation and symbol validation each publishes
             // to a different topic for validation.
             builder
                 .RegisterType<PackageValidationEnqueuer>()

@@ -18,25 +18,25 @@ namespace NuGetGallery.Authentication
         }
 
         public ApiScopeEvaluationResult Evaluate(
-            User currentUser, 
-            IEnumerable<Scope> scopes, 
-            IActionRequiringEntityPermissions<PackageRegistration> action, 
-            PackageRegistration packageRegistration, 
+            User currentUser,
+            IEnumerable<Scope> scopes,
+            IActionRequiringEntityPermissions<PackageRegistration> action,
+            PackageRegistration packageRegistration,
             params string[] requestedActions)
         {
             return Evaluate(currentUser, scopes, action, packageRegistration, pr => pr.Id, requestedActions);
         }
 
         public ApiScopeEvaluationResult Evaluate(
-            User currentUser, 
-            IEnumerable<Scope> scopes, 
-            IActionRequiringEntityPermissions<ActionOnNewPackageContext> action, 
-            ActionOnNewPackageContext context, 
+            User currentUser,
+            IEnumerable<Scope> scopes,
+            IActionRequiringEntityPermissions<ActionOnNewPackageContext> action,
+            ActionOnNewPackageContext context,
             params string[] requestedActions)
         {
             return Evaluate(currentUser, scopes, action, context, c => c.PackageId, requestedActions);
         }
-        
+
         /// <remarks>This method is internal because it is tested directly.</remarks>
         internal ApiScopeEvaluationResult Evaluate<TEntity>(
             User currentUser,
@@ -64,8 +64,8 @@ namespace NuGetGallery.Authentication
             }
 
             var matchingScope = scopes
-                .FirstOrDefault(scope => 
-                    scope.AllowsSubject(getSubjectFromEntity(entity)) && 
+                .FirstOrDefault(scope =>
+                    scope.AllowsSubject(getSubjectFromEntity(entity)) &&
                     scope.AllowsActions(requestedActions));
 
             ownerInScope = ownerScope.HasValue ? _userService.FindByKey(ownerScope.Value) : currentUser;
@@ -74,7 +74,7 @@ namespace NuGetGallery.Authentication
             {
                 return new ApiScopeEvaluationResult(ownerInScope, PermissionsCheckResult.Unknown, scopesAreValid: false);
             }
-            
+
             var isActionAllowed = action.CheckPermissions(currentUser, ownerInScope, entity);
             return new ApiScopeEvaluationResult(ownerInScope, isActionAllowed, scopesAreValid: true);
         }

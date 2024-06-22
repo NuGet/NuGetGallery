@@ -148,7 +148,7 @@ namespace NuGetGallery
                 fileStorageSvc.VerifyAll();
             }
         }
-        
+
         public class TheSaveValidationPackageFileMethod : FactsBase
         {
             [Fact]
@@ -619,7 +619,7 @@ namespace NuGetGallery
                         path = p;
                         position = s.Position;
                     });
-                
+
                 var package = CreatePackage();
                 package.PackageRegistration.Id = Id;
                 package.NormalizedVersion = NormalizedVersion;

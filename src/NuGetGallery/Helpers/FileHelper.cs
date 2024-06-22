@@ -12,8 +12,8 @@ namespace NuGetGallery.Helpers
         internal static readonly string[] BinaryFileExtensions = new[]
                                                                 {
                                                                     ".DLL", ".EXE", ".WINMD", ".CHM", ".PDF",
-                                                                    ".DOCX", ".DOC", ".RTF", ".PDB", ".ZIP", 
-                                                                    ".RAR", ".XAP", ".VSIX", ".NUPKG", ".SNK", 
+                                                                    ".DOCX", ".DOC", ".RTF", ".PDB", ".ZIP",
+                                                                    ".RAR", ".XAP", ".VSIX", ".NUPKG", ".SNK",
                                                                     ".PFX", ".PRI"
                                                                 };
 

@@ -73,7 +73,7 @@ namespace NuGetGallery.Queries
             {
                 var queryResult = await _packageVersionsQuery.Execute("nuget", null, null);
 
-                var allVersionsAreFromPackagesThatAreListed = queryResult.All(version => 
+                var allVersionsAreFromPackagesThatAreListed = queryResult.All(version =>
                 {
                     _packageDictionary.TryGetValue(version, out var package);
                     return package.Listed;
@@ -92,7 +92,7 @@ namespace NuGetGallery.Queries
             public async Task ValidPackageIdWithSemVerLevelReturnVersionsWhosePackagesHaveSemVerLevelCompliant(string semVerLevel)
             {
                 var queryResult = await _packageVersionsQuery.Execute("nuget", null, null, semVerLevel);
-                
+
                 var allVersionsAreFromPackagesWithSemVerLevelCompliant = queryResult.All(version =>
                 {
                     _packageDictionary.TryGetValue(version, out var package);
@@ -138,7 +138,7 @@ namespace NuGetGallery.Queries
             protected readonly AutocompleteDatabasePackageVersionsQuery _packageVersionsQuery;
             protected readonly Mock<IReadOnlyEntityRepository<Package>> _packageRepository;
             protected readonly IDictionary<string, Package> _packageDictionary;
-        
+
             public FactBase()
             {
                 _packageRepository = new Mock<IReadOnlyEntityRepository<Package>>();

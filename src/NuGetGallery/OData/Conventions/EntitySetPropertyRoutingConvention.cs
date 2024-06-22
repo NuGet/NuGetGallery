@@ -13,7 +13,7 @@ namespace NuGetGallery.OData.Conventions
     /// <summary>
     /// Routes an OData request with a given entityset, key and property to a method with the structure GetPropertyFrom[EntitySet](string propertyName, ...).
     /// </summary>
-    public class EntitySetPropertyRoutingConvention 
+    public class EntitySetPropertyRoutingConvention
         : IODataRoutingConvention
     {
         private readonly string _controllerName;

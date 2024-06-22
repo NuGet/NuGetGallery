@@ -61,7 +61,7 @@ namespace NuGetGallery.Framework
             builder.Register(_ =>
                     {
                         var mockService = new Mock<IPackageService>();
-                        
+
                         foreach (var packageRegistration in fakes.PackageRegistrations)
                         {
                             mockService

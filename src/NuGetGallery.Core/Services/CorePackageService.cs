@@ -297,7 +297,7 @@ namespace NuGetGallery
         }
 
         protected IQueryable<Package> GetPackagesByIdQueryable(
-            string id, 
+            string id,
             PackageDeprecationFieldsToInclude deprecationFields = PackageDeprecationFieldsToInclude.None)
         {
             bool includeDeprecations;

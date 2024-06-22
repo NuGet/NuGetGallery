@@ -10,7 +10,7 @@ using Newtonsoft.Json.Linq;
 
 namespace GalleryTools.Utils
 {
-    public class ServiceDiscoveryClient 
+    public class ServiceDiscoveryClient
     {
         private readonly HttpClient _httpClient;
         private readonly Uri _serviceDiscoveryEndpoint;
@@ -64,7 +64,7 @@ namespace GalleryTools.Utils
             {
                 return;
             }
-            
+
             // Lock to make sure that we can only attempt one update at a time.
             var performServiceIndexDocumentUpdate = false;
             if (!_serviceIndexDocumentUpdating)

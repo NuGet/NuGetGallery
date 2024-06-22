@@ -16,9 +16,9 @@ namespace GalleryTools.Commands
     public sealed class BackfillTfmMetadataCommand : BackfillCommand<List<string>>
     {
         protected override string MetadataFileName => "tfmMetadata.txt";
-        
+
         protected override MetadataSourceType SourceType => MetadataSourceType.Nupkg;
-        
+
         protected override Expression<Func<Package, object>> QueryIncludes => p => p.SupportedFrameworks;
 
         protected override int CollectBatchSize => 1000;
@@ -92,7 +92,7 @@ namespace GalleryTools.Commands
             }
 
             var newTFMs = metadata == null || metadata.Count == 0
-                ? Enumerable.Empty<string>() 
+                ? Enumerable.Empty<string>()
                 : metadata.OrderBy(f => f);
 
             if (Enumerable.SequenceEqual(existingTFMs, newTFMs))

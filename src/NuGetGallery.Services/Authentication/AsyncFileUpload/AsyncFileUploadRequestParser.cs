@@ -81,7 +81,7 @@ namespace NuGetGallery.AsyncFileUpload
 
                         if (beforeContentDisposition)
                         {
-                            // found a new line character here. now start parsing the content-disposition 
+                            // found a new line character here. now start parsing the content-disposition
                             _contentDisposition.Clear();
                             ReadNewLine(buffer, i + 1, lastIndex, false);
                         }

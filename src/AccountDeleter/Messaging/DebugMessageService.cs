@@ -25,7 +25,7 @@ namespace NuGetGallery.AccountDeleter
             _logger.LogInformation("Message Sending with Subject: {Subject}", emailBuilder.GetSubject());
             _logger.LogInformation("Body: {Body}", emailBuilder.GetBody(EmailFormat.PlainText));
             _logger.LogInformation("Sender: {Sender}", emailBuilder.Sender.Address);
-            
+
             _logger.LogWarning("Empty messenger used. Sending a message is no-oping.");
             return Task.CompletedTask;
         }

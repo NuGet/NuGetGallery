@@ -12,7 +12,7 @@ namespace NuGetGallery
     {
         private readonly Stream _stream;
 
-        public TestPackageReader(Stream stream) 
+        public TestPackageReader(Stream stream)
             : base(stream)
         {
             _stream = stream;

@@ -9,7 +9,7 @@ namespace NuGetGallery
     /// <summary>
     /// Initiates validation for a specific package.
     /// </summary>
-    public interface IPackageValidationInitiator<TPackageEntity> 
+    public interface IPackageValidationInitiator<TPackageEntity>
         where TPackageEntity: IPackageEntity
     {
         /// <summary>

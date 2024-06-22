@@ -16,10 +16,10 @@ namespace NuGetGallery
 
         public bool HasRawHtmlRepresentation => true;
 
-        public string RawHtmlMessage 
+        public string RawHtmlMessage
             => HttpUtility.HtmlEncode(
-                Strings.UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates 
-                + " " 
+                Strings.UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates
+                + " "
                 + Strings.UploadPackage_PackageIsSignedButMissingCertificate_ManageCertificate);
     }
 }

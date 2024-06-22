@@ -35,7 +35,7 @@ namespace NuGetGallery
             {
                 return true;
             }
-            
+
             if (versionText.Equals(LatestPackageRouteVerifier.SupportedRoutes.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
             {
                 return true;

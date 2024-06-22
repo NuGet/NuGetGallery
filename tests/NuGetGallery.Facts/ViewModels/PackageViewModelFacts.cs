@@ -80,7 +80,7 @@ namespace NuGetGallery.ViewModels
                 Listed = isListed
             };
 
-            // Act 
+            // Act
             var packageViewModel = CreatePackageViewModel(package);
 
             // Assert

@@ -138,7 +138,7 @@ namespace NuGetGallery
                 {
                     i += 1;
                 }
-                
+
                 if (i >= s.Length)
                 {
                     // Eof while reading s[i]

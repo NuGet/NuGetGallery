@@ -77,7 +77,7 @@ namespace NuGetGallery
 
             if (originalVersion.IsSemVer2)
             {
-                // No need to further check the dependencies: 
+                // No need to further check the dependencies:
                 // the original version already is identified to be SemVer2-compliant, but not SemVer1-compliant.
                 return SemVer2;
             }
@@ -112,7 +112,7 @@ namespace NuGetGallery
         /// Returns <c>null</c> when unknown; otherwise the identified SemVer-level key.
         /// </returns>
         /// <remarks>
-        /// Older clients don't send the semVerLevel query parameter at all, 
+        /// Older clients don't send the semVerLevel query parameter at all,
         /// so we default to Unknown for backwards-compatibility.
         /// </remarks>
         public static int? ForSemVerLevel(string semVerLevel)

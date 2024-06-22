@@ -107,7 +107,7 @@ namespace NuGetGallery
             {
                 yield return otherAllowed;
             }
-            
+
         }
     }
 }

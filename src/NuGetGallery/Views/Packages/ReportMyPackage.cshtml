@@ -9,10 +9,10 @@
     <div class="row report-form">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             @Html.Partial(
-                "_PackageHeading", 
+                "_PackageHeading",
                 new PackageHeadingModel(
-                    Model.PackageId, 
-                    Model.PackageVersion, 
+                    Model.PackageId,
+                    Model.PackageVersion,
                     "Contact support"))
             <br />
             @using (Html.BeginForm())

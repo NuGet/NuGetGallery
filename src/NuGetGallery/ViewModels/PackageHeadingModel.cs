@@ -42,7 +42,7 @@ namespace NuGetGallery
         public PackageHeadingModel(User currentUser, PackageRegistration packageRegistration, string pageHeading)
             : this(packageRegistration.Id, pageHeading)
         {
-            ShowProfileBreadcrumb = 
+            ShowProfileBreadcrumb =
                 ActionsRequiringPermissions.ShowProfileBreadcrumb.CheckPermissionsOnBehalfOfAnyAccount(currentUser, packageRegistration) == PermissionsCheckResult.Allowed;
         }
 

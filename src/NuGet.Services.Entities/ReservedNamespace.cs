@@ -8,7 +8,7 @@ namespace NuGet.Services.Entities
 {
     public class ReservedNamespace : IEntity
     {
-        public ReservedNamespace() 
+        public ReservedNamespace()
             : this(value: null, isSharedNamespace: false, isPrefix: false)
         {
         }

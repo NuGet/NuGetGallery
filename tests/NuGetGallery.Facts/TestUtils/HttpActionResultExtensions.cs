@@ -17,7 +17,7 @@ namespace NuGetGallery
             {
                 return negotiatedContentResult.Content;
             }
-            throw new ArgumentException(string.Format("The argument is not of type OkNegotiatedContentResult<{0}>. Got {1} instead.", 
+            throw new ArgumentException(string.Format("The argument is not of type OkNegotiatedContentResult<{0}>. Got {1} instead.",
                 typeof(T).FullName, actionResult.GetType().FullName), "actionResult");
         }
 

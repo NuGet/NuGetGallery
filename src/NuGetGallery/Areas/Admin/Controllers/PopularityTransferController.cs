@@ -101,7 +101,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 result.ValidatedInputs.Add(new PopularityTransferItem(packageFrom, packageTo));
 
                 // checking for existing entries in the PackageRenames table
-                // 1. 'From' input that already has a 'From' entry in the PackageRenames table -- Conflict 
+                // 1. 'From' input that already has a 'From' entry in the PackageRenames table -- Conflict
                 var existingRenames = _packageRenameService.GetPackageRenames(packageFrom);
 
                 if (existingRenames.Any())
@@ -159,7 +159,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         {
             var newPackageRenames = new List<PackageRename>();
             var previousPackageRenames = new List<PackageRename>();
-            
+
             // keeping track of this so we can pad the success message
             int maxIdLength = 0;
 

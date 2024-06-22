@@ -479,7 +479,7 @@ namespace GalleryTools.Commands
                 IgnoreComments = true,
                 IgnoreProcessingInstructions = true,
             };
-            
+
             // This is intentionally separate from the object initializer so that FXCop can see it.
             settings.XmlResolver = null;
 

@@ -60,7 +60,7 @@ namespace NuGetGallery
 
             var totalTimeStopwatch = Stopwatch.StartNew();
             var checklistRetrievalStopwatch = Stopwatch.StartNew();
-            
+
             // It must be normalized during initial list creation
             var normalizedPackageIdsCheckList = _typosquattingCheckListCacheService.GetTyposquattingCheckList(checkListConfiguredLength, checkListExpireTimeInHours, _packageService);
             checklistRetrievalStopwatch.Stop();

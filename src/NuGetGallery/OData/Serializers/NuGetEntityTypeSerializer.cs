@@ -36,7 +36,7 @@ namespace NuGetGallery.OData.Serializers
                     annotationStrategy.Annotate(entityInstanceContext.Request, entry, entityInstanceContext.EntityInstance);
                 }
             }
-            
+
             return entry;
         }
 

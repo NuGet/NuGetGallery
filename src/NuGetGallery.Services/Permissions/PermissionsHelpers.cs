@@ -97,7 +97,7 @@ namespace NuGetGallery
 
         private static bool IsRequirementSatisfied(PermissionsRequirement permissionsRequirement, bool isUserAdmin, Func<User, bool> isUserMatch, ICollection<User> entityOwners)
         {
-            if (isUserAdmin && 
+            if (isUserAdmin &&
                 WouldSatisfy(PermissionsRequirement.SiteAdmin, permissionsRequirement))
             {
                 return true;

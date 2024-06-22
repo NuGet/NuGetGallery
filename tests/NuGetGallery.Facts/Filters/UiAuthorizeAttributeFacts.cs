@@ -44,17 +44,17 @@ namespace NuGetGallery.Filters
                         foreach (var authType in AuthTypes)
                         {
                             yield return MemberDataHelper.AsData(
-                                allowsDiscontinuedLogin, 
+                                allowsDiscontinuedLogin,
                                 BuildClaimsIdentity(
-                                    authType, 
-                                    authenticated: false, 
+                                    authType,
+                                    authenticated: false,
                                     hasDiscontinuedLoginClaim: false).Object);
 
                             yield return MemberDataHelper.AsData(
-                                allowsDiscontinuedLogin, 
+                                allowsDiscontinuedLogin,
                                 BuildClaimsIdentity(
-                                    authType, 
-                                    authenticated: false, 
+                                    authType,
+                                    authenticated: false,
                                     hasDiscontinuedLoginClaim: true).Object);
                         }
                     }
@@ -90,8 +90,8 @@ namespace NuGetGallery.Filters
             {
                 var context = BuildAuthorizationContext(
                     BuildClaimsIdentity(
-                        authType, 
-                        authenticated: true, 
+                        authType,
+                        authenticated: true,
                         hasDiscontinuedLoginClaim: hasDiscontinuedLoginClaim).Object).Object;
                 var attribute = new UIAuthorizeAttribute(allowsDiscontinuedLogin);
 
@@ -102,7 +102,7 @@ namespace NuGetGallery.Filters
                 Assert.Null(context.Result);
             }
 
-            public static IEnumerable<object[]> RedirectsToHomepageForAuthenticatedUserWithDiscontinuedLogin_Data => 
+            public static IEnumerable<object[]> RedirectsToHomepageForAuthenticatedUserWithDiscontinuedLogin_Data =>
                 AuthTypes.Select(t => MemberDataHelper.AsData(t));
 
             [Theory]
@@ -111,8 +111,8 @@ namespace NuGetGallery.Filters
             {
                 var context = BuildAuthorizationContext(
                     BuildClaimsIdentity(
-                        authType, 
-                        authenticated: true, 
+                        authType,
+                        authenticated: true,
                         hasDiscontinuedLoginClaim: true).Object).Object;
                 var attribute = new UIAuthorizeAttribute();
 

@@ -16,7 +16,7 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="file">The certificate file.</param>
         /// <returns>A task that represents the asynchronous operation.
-        /// The task result (<see cref="Task{TResult}.Result" />) returns a <see cref="Certificate" /> 
+        /// The task result (<see cref="Task{TResult}.Result" />) returns a <see cref="Certificate" />
         /// entity.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="file" /> is <c>null</c>.</exception>
         Task<Certificate> AddCertificateAsync(HttpPostedFileBase file);

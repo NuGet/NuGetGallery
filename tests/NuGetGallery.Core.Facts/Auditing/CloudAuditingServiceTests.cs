@@ -33,7 +33,7 @@ namespace NuGetGallery.Auditing
             };
             PackageAuditRecord packageAuditRecord = new PackageAuditRecord(p, AuditedPackageAction.Create);
 
-            // Act 
+            // Act
             var auditEntry = service.RenderAuditEntry(new AuditEntry(packageAuditRecord, auditActor));
 
             // Assert

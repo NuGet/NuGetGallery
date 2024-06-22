@@ -61,7 +61,7 @@ namespace NuGetGallery.Infrastructure.Authentication
         }
 
         /// <summary>
-        /// Verified this ApiKey with provided hashed ApiKey. 
+        /// Verified this ApiKey with provided hashed ApiKey.
         /// </summary>
         public bool Verify(string hashedApiKey)
         {

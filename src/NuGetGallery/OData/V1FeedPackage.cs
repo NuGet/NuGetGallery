@@ -43,7 +43,7 @@ namespace NuGetGallery.OData
         public string Title { get; set; }
         public long VersionDownloadCount { get; set; }
 
-        // Deprecated properties        
+        // Deprecated properties
         public int RatingsCount
         {
             get { return 0; }

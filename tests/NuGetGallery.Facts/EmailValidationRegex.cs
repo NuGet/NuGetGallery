@@ -6,7 +6,7 @@ using Xunit;
 namespace NuGetGallery
 {
     /// <summary>
-    /// Notes, we do not follow strictly the RFCs at this time, and we choose not to support many obscure email address variants, 
+    /// Notes, we do not follow strictly the RFCs at this time, and we choose not to support many obscure email address variants,
     /// such as those with quotes and parentheses.
     /// We may add international character support in the function.
     /// </summary>

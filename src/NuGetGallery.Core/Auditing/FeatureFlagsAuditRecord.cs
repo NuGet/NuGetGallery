@@ -17,7 +17,7 @@ namespace NuGetGallery.Auditing
         public ContentSaveResult Result { get; }
 
         public FeatureFlagsAuditRecord(
-            AuditedFeatureFlagsAction action, 
+            AuditedFeatureFlagsAction action,
             FeatureFlags flags,
             string contentId,
             ContentSaveResult result)
@@ -32,7 +32,7 @@ namespace NuGetGallery.Auditing
 
             Features = AuditedFeatureFlagFeature.CreateFrom(flags);
             Flights = AuditedFeatureFlagFlight.CreateFrom(flags);
-            
+
             Result = result;
 
             // Group feature flags changes by the month they occurred in.

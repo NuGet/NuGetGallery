@@ -65,8 +65,8 @@ namespace NuGetGallery
             }
 
             // Mark the new namespace as shared if it matches any liberal namespace which is a shared
-            // namespace. For eg: A.B.* is a shared namespace, when reserving A.B.C.* namespace, 
-            // make it a shared namespace. This ensures that all namespaces under a shared 
+            // namespace. For eg: A.B.* is a shared namespace, when reserving A.B.C.* namespace,
+            // make it a shared namespace. This ensures that all namespaces under a shared
             // namespace are also shared to keep the data consistent.
             if (!newNamespace.IsSharedNamespace && ShouldForceSharedNamespace(newNamespace.Value))
             {
@@ -94,7 +94,7 @@ namespace NuGetGallery
                     ?? throw new InvalidOperationException(string.Format(
                         CultureInfo.CurrentCulture, ServicesStrings.ReservedNamespace_NamespaceNotFound, existingNamespace));
 
-                // Delete verified flags on corresponding packages for this prefix if 
+                // Delete verified flags on corresponding packages for this prefix if
                 // it is the only prefix matching the package registration.
                 var packageRegistrationsToMarkUnverified = namespaceToDelete
                     .PackageRegistrations
@@ -238,7 +238,7 @@ namespace NuGetGallery
             // Remove verified mark for package registrations if the user to be removed is the only prefix owner
             // for the given package registration.
             var packageRegistrationsToMarkUnverified = packagesOwnedByUserMatchingPrefix
-                .Where(pr => !pr.Owners.Any(o => 
+                .Where(pr => !pr.Owners.Any(o =>
                     ActionsRequiringPermissions.AddPackageToReservedNamespace.CheckPermissionsOnBehalfOfAnyAccount(
                         o, new[] { namespaceToModify }) == PermissionsCheckResult.Allowed))
                 .ToList();
@@ -250,7 +250,7 @@ namespace NuGetGallery
 
                 await PackageService.UpdatePackageVerifiedStatusAsync(packageRegistrationsToMarkUnverified, isVerified: false, commitChanges: false);
             }
-            
+
             if (commitChanges)
             {
                 await ReservedNamespaceRepository.CommitChangesAsync();
@@ -261,7 +261,7 @@ namespace NuGetGallery
 
 
         /// <summary>
-        /// This method fetches the reserved namespace matching the prefix and adds the 
+        /// This method fetches the reserved namespace matching the prefix and adds the
         /// package registration entry to the reserved namespace, the provided package registration
         /// should be an entry in the database or an entity from memory to be committed. It is the caller's
         /// responsibility to commit the changes to the entity context.
@@ -289,9 +289,9 @@ namespace NuGetGallery
         }
 
         /// <summary>
-        /// This method fetches the reserved namespace matching the prefix and removes the 
+        /// This method fetches the reserved namespace matching the prefix and removes the
         /// package registration entry from the reserved namespace, the provided package registration
-        /// should be an entry in the database. It is the caller's responsibility to commit the 
+        /// should be an entry in the database. It is the caller's responsibility to commit the
         /// changes to the entity context.
         /// </summary>
         /// <param name="prefix">The prefix value of the reserved namespace to modify</param>
@@ -386,7 +386,7 @@ namespace NuGetGallery
 
         public bool ShouldMarkNewPackageIdVerified(User account, string id, out IReadOnlyCollection<ReservedNamespace> ownedMatchingReservedNamespaces)
         {
-            ownedMatchingReservedNamespaces = 
+            ownedMatchingReservedNamespaces =
                 GetReservedNamespacesForId(id)
                     .Where(rn => rn.Owners.AnySafe(o => account.MatchesUser(o)))
                     .ToList()

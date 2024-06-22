@@ -127,7 +127,7 @@ namespace NuGetGallery
                 var result = await InvokeUpdateDeprecation(
                     service,
                     currentUser: null,
-                    id: "id", 
+                    id: "id",
                     isOther: true);
 
                 // Assert
@@ -151,7 +151,7 @@ namespace NuGetGallery
                 var result = await InvokeUpdateDeprecation(
                     service,
                     currentUser,
-                    "id", 
+                    "id",
                     versions);
 
                 // Assert
@@ -211,7 +211,7 @@ namespace NuGetGallery
                 var result = await InvokeUpdateDeprecation(
                     service,
                     currentUser,
-                    "id", 
+                    "id",
                     new[] { "1.0.0" });
 
                 // Assert
@@ -257,7 +257,7 @@ namespace NuGetGallery
                 var result = await InvokeUpdateDeprecation(
                     service,
                     currentUser,
-                    id, 
+                    id,
                     new[] { "1.0.0" });
 
                 // Assert
@@ -322,7 +322,7 @@ namespace NuGetGallery
                 var result = await InvokeUpdateDeprecation(
                     service,
                     currentUser,
-                    id, 
+                    id,
                     new[] { "1.0.0" });
 
                 // Assert
@@ -401,7 +401,7 @@ namespace NuGetGallery
                 var result = await InvokeUpdateDeprecation(
                     service,
                     currentUser,
-                    id, 
+                    id,
                     new[] { "1.0.0" });
 
                 // Assert
@@ -455,8 +455,8 @@ namespace NuGetGallery
                 var result = await InvokeUpdateDeprecation(
                     service,
                     currentUser,
-                    id, 
-                    new[] { "1.0.0" }, 
+                    id,
+                    new[] { "1.0.0" },
                     alternatePackageId: alternatePackageId);
 
                 // Assert
@@ -511,9 +511,9 @@ namespace NuGetGallery
                 var result = await InvokeUpdateDeprecation(
                     service,
                     currentUser,
-                    id, 
-                    new[] { "1.0.0" }, 
-                    alternatePackageId: alternatePackageId, 
+                    id,
+                    new[] { "1.0.0" },
+                    alternatePackageId: alternatePackageId,
                     alternatePackageVersion: alternatePackageVersion);
 
                 // Assert
@@ -611,7 +611,7 @@ namespace NuGetGallery
                 var result = await InvokeUpdateDeprecation(
                     service,
                     currentUser,
-                    id, 
+                    id,
                     new[] { "1.0.0" });
 
                 // Assert
@@ -722,9 +722,9 @@ namespace NuGetGallery
                 var result = await InvokeUpdateDeprecation(
                     service,
                     currentUser,
-                    id, 
-                    new[] { version }, 
-                    alternatePackageId: id, 
+                    id,
+                    new[] { version },
+                    alternatePackageId: id,
                     alternatePackageVersion: version);
 
                 // Assert
@@ -878,7 +878,7 @@ namespace NuGetGallery
                 Package alternatePackage = null;
                 if (alternatePackageState != ReturnsSuccessful_AlternatePackage_State.None)
                 {
-                    var alternateRegistration = 
+                    var alternateRegistration =
                         alternatePackageState == ReturnsSuccessful_AlternatePackage_State.PackageSameId
                         ? registration
                         : new PackageRegistration
@@ -896,7 +896,7 @@ namespace NuGetGallery
                             .Returns(alternateRegistration)
                             .Verifiable();
                     }
-                    else if (alternatePackageState == ReturnsSuccessful_AlternatePackage_State.PackageSameId || 
+                    else if (alternatePackageState == ReturnsSuccessful_AlternatePackage_State.PackageSameId ||
                         alternatePackageState == ReturnsSuccessful_AlternatePackage_State.PackageDifferentId)
                     {
                         alternatePackageVersion = "1.2.3-alt";

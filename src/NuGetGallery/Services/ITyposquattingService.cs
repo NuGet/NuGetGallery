@@ -7,7 +7,7 @@ using NuGet.Services.Entities;
 namespace NuGetGallery
 {
     /// <summary>
-    /// This interface is used to check typo-squatting of uploaded package ID with the owner.  
+    /// This interface is used to check typo-squatting of uploaded package ID with the owner.
     /// </summary>
     public interface ITyposquattingService
     {

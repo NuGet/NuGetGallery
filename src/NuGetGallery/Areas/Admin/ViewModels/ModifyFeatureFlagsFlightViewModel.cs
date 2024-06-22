@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace NuGetGallery.Areas.Admin.ViewModels
 {
-    public class ModifyFeatureFlagsFlightViewModel 
+    public class ModifyFeatureFlagsFlightViewModel
         : FeatureFlagsFlightViewModel, IModifyFeatureFlagsViewModel<FeatureFlagsFlightViewModel>
     {
         public ModifyFeatureFlagsFlightViewModel()

@@ -60,10 +60,10 @@ namespace NuGetGallery
             }
             
             return GetContentItemCore(
-                name, new [] { 
+                name, new [] {
                     ServicesConstants.HtmlFileExtension,
                     ServicesConstants.MarkdownFileExtension,
-                    ServicesConstants.JsonFileExtension }, 
+                    ServicesConstants.JsonFileExtension },
                 expiresIn);
         }
 

@@ -110,11 +110,11 @@ namespace NuGetGallery
 
                 packageService.Verify(
                     x => x.CreatePackageAsync(
-                        It.IsAny<PackageArchiveReader>(), 
-                        It.IsAny<PackageStreamMetadata>(), 
-                        owner, 
-                        currentUser, 
-                        false), 
+                        It.IsAny<PackageArchiveReader>(),
+                        It.IsAny<PackageStreamMetadata>(),
+                        owner,
+                        currentUser,
+                        false),
                     Times.Once);
 
                 vulnerabilityService.Verify(
@@ -155,7 +155,7 @@ namespace NuGetGallery
                 var vulnerabilityService = new Mock<IPackageVulnerabilitiesManagementService>();
 
                 var packageUploadService = CreateService(
-                    reservedNamespaceService: reservedNamespaceService, 
+                    reservedNamespaceService: reservedNamespaceService,
                     vulnerabilityService: vulnerabilityService);
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: id);
 

@@ -24,7 +24,7 @@ namespace NuGetGallery
                 WHERE p.[PackageRegistrationKey] = @key)
             BEGIN
                 DELETE por FROM PackageOwnerRequests As por
-                WHERE por.[PackageRegistrationKey] = @key                
+                WHERE por.[PackageRegistrationKey] = @key
 
                 DELETE pro FROM PackageRegistrationOwners AS pro
                 WHERE pro.[PackageRegistrationKey] = @key
@@ -177,13 +177,13 @@ namespace NuGetGallery
             {
                 return IsAccepted(details,  UserPackageDeleteOutcome.TooLate);
             }
-            
+
             return IsAccepted(details, UserPackageDeleteOutcome.Accepted);
         }
-        
+
         private bool IsAccepted(UserPackageDeleteEvent details, UserPackageDeleteOutcome outcome)
         {
-            // Only report telemetry if a reason has been specified. 
+            // Only report telemetry if a reason has been specified.
             if (details.ReportPackageReason.HasValue)
             {
                 _telemetryService.TrackUserPackageDeleteChecked(details, outcome);

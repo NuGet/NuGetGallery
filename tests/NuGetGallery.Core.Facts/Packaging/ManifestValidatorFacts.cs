@@ -449,7 +449,7 @@ namespace NuGetGallery.Packaging
         {
             const string version = "1.0.0-beta.1";
             var nuspecStream = CreateNuspecStream(string.Format(NuSpecDependencyVersionPlaceholder, version));
-            
+
             Assert.Empty(GetErrors(nuspecStream));
         }
 
@@ -468,7 +468,7 @@ namespace NuGetGallery.Packaging
         {
             const string version = "3.0.0-beta+12";
             var nuspecStream = CreateNuspecStream(string.Format(NuSpecDependencyVersionPlaceholder, version));
-            
+
             Assert.Equal(new[] { String.Format(CoreStrings.Manifest_InvalidDependencyVersion, version) }, GetErrors(nuspecStream));
         }
 
@@ -484,15 +484,15 @@ namespace NuGetGallery.Packaging
         public void ReturnsErrorIfDependencySetContainsInvalidId()
         {
             var nuspecStream = CreateNuspecStream(NuSpecDependencySetContainsInvalidId);
-            
+
             Assert.Equal(new[] {"Invalid package version for a dependency with id 'jQuery' in package 'packageA.1.0.1-alpha': ''"}, GetErrors(nuspecStream));
         }
-        
+
         [Fact]
         public void NoErrorIfDependencySetContainsEmptyTargetFramework()
         {
             var nuspecStream = CreateNuspecStream(NuSpecDependencySetContainsEmptyTargetFramework);
-            
+
             Assert.Empty(GetErrors(nuspecStream));
         }
 
@@ -532,7 +532,7 @@ namespace NuGetGallery.Packaging
         public void NoErrorIfFrameworkAssemblyReferenceContainsEmptyTargetFramework()
         {
             var nuspecStream = CreateNuspecStream(NuSpecFrameworkAssemblyReferenceContainsEmptyTargetFramework);
-            
+
             Assert.Empty(GetErrors(nuspecStream));
         }
 

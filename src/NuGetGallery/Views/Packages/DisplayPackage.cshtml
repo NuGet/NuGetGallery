@@ -89,7 +89,7 @@
             new PackageManagerViewModel("SDK")
             {
                 Id = "sdk",
-                InstallPackageCommands = new [] { string.Format("<Sdk Name=\"{0}\" Version=\"{1}\" />", 
+                InstallPackageCommands = new [] { string.Format("<Sdk Name=\"{0}\" Version=\"{1}\" />",
                 Model.Id, Model.Version) },
                 AlertLevel = AlertLevel.Info,
                 AlertMessage = string.Format("For projects that support Sdk, copy this XML node into the project file to reference the package."),
@@ -393,7 +393,7 @@
                             </text>
                         )
                     }
-                    
+
                     if (Model.NuGetVersion.HasMetadata)
                     {
                         @ViewHelpers.AlertInfo(
@@ -402,7 +402,7 @@
                             </text>
                         )
                     }
-                    
+
                     if (Model.VersionRequestedWasNotFound)
                     {
                         @ViewHelpers.AlertWarning(
@@ -411,7 +411,7 @@
                             </text>
                         )
                     }
-                    
+
                     if (Model.HasNewerRelease)
                     {
                         @ViewHelpers.AlertInfo(
@@ -564,7 +564,7 @@
                                 @if (Model.CanDisplayReadmeWarning && Model.CanDisplayPrivateMetadata)
                                 {
                                     <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
-                                } 
+                                }
                                 else
                                 {
                                     <i class="ms-Icon ms-Icon--Dictionary" aria-hidden="true"></i>
@@ -1397,8 +1397,8 @@
         var packageManagers = @Html.ToJson(packageManagers.Select(pm => pm.Id).ToList());
     </script>
 
-    @if (Model.IsMarkdigMdSyntaxHighlightEnabled) 
-    { 
+    @if (Model.IsMarkdigMdSyntaxHighlightEnabled)
+    {
         @ViewHelpers.IncludeSyntaxHighlightScript();
 
         <script>

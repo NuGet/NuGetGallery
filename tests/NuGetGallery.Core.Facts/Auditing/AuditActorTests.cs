@@ -313,14 +313,14 @@ namespace NuGetGallery.Auditing
             var identity = new Mock<IIdentity>();
             var user = new Mock<IPrincipal>();
             var context = new Mock<HttpContextBase>();
- 
+
             request.SetupGet(x => x.ServerVariables)
                 .Returns(new NameValueCollection() { { "HTTP_X_FORWARDED_FOR", "1.2.3.4" } });
             identity.Setup(x => x.Name)
                 .Returns("b");
             identity.Setup(x => x.AuthenticationType)
                 .Returns("c");
- 
+
             var cliamsIdentity = new ClaimsIdentity(identity.Object, new List<Claim> { new Claim(NuGetClaims.CredentialKey, "99") });
             user.Setup(x => x.Identity)
                 .Returns(cliamsIdentity);
@@ -328,9 +328,9 @@ namespace NuGetGallery.Auditing
                 .Returns(request.Object);
             context.Setup(x => x.User)
                 .Returns(user.Object);
- 
+
             var actor = await AuditActor.GetAspNetOnBehalfOfAsync(context.Object);
- 
+
             Assert.NotNull(actor);
             Assert.Equal("c", actor.AuthenticationType);
             Assert.Equal("99", actor.CredentialKey);

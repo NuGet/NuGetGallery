@@ -12,12 +12,12 @@ namespace NuGetGallery.OData.Conventions
     /// <summary>
     /// Maps /$count on an EntitySet to an action method called GetCount().
     /// </summary>
-    public class EntitySetCountRoutingConvention 
+    public class EntitySetCountRoutingConvention
         : EntitySetRoutingConvention
     {
         public override string SelectAction(ODataPath odataPath, HttpControllerContext controllerContext, ILookup<string, HttpActionDescriptor> actionMap)
         {
-            if (controllerContext.Request.Method == HttpMethod.Get 
+            if (controllerContext.Request.Method == HttpMethod.Get
                 && odataPath.PathTemplate == "~/entityset/$count"
                 && actionMap.Contains("GetCount"))
             {

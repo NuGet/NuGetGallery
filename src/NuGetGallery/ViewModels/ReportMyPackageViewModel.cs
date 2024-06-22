@@ -10,11 +10,11 @@ namespace NuGetGallery
     public class ReportMyPackageViewModel : ReportViewModel
     {
         public bool AllowDelete { get; set; }
-        
+
         public PackageDeleteDecision? DeleteDecision { get; set; }
 
         public bool DeleteConfirmation { get; set; }
-                
+
         [AllowHtml]
         [StringLength(4000)]
         [Display(Name = "Details")]

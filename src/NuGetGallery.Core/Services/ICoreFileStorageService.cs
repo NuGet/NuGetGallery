@@ -25,7 +25,7 @@ namespace NuGetGallery
         /// <param name="ifNoneMatch">The <see cref="IFileReference.ContentId"/> value to use in an If-None-Match request</param>
         /// <returns>A <see cref="IFileReference"/> representing the file reference</returns>
         Task<IFileReference> GetFileReferenceAsync(string folderName, string fileName, string ifNoneMatch = null);
-        
+
         /// <summary>
         /// Gets a file URI.
         /// </summary>

@@ -632,7 +632,7 @@ namespace NuGetGallery.ViewModels
 
             var package = new Package
             {
-                // Simulating that lowest package version was pushed latest, on-purpose, 
+                // Simulating that lowest package version was pushed latest, on-purpose,
                 // to assert we use the *oldest* package version in the calculation.
                 Created = utcNow,
                 Dependencies = Enumerable.Empty<PackageDependency>().ToList(),

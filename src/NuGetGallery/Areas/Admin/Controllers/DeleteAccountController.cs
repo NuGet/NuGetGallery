@@ -36,7 +36,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     results.Add(result);
                 }
             }
-           
+
             return Json(results, JsonRequestBehavior.AllowGet);
         }
     }

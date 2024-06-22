@@ -143,7 +143,7 @@ namespace NuGetGallery.WebApi
                         // When semVerLevel=2.0.0, we should not restrict the filter to only return IsLatest(Stable)=true,
                         // but also include IsLatest(Stable)SemVer2=true. These additional properties are not exposed on the OData entities however.
                         // As the proper filtering already should 've happened earlier in the pipeline (SQL or search service),
-                        // the OData filter is redundant, so all we need to do here is to avoid 
+                        // the OData filter is redundant, so all we need to do here is to avoid
                         // the OData filter to be applied on an already correctly filtered result set.
                     }
                     else

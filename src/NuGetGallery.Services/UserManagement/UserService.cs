@@ -630,7 +630,7 @@ namespace NuGetGallery
             }
 
             if (!ContentObjectService.LoginDiscontinuationConfiguration.IsTenantIdPolicySupportedForOrganization(
-                organization.EmailAddress ?? organization.UnconfirmedEmailAddress, 
+                organization.EmailAddress ?? organization.UnconfirmedEmailAddress,
                 tenantId))
             {
                 DiagnosticsSource.LogInformation("Will not apply tenant policy to organization because policy is not supported for email-tenant pair.");

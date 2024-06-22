@@ -108,7 +108,7 @@ namespace GitHubVulnerabilities2Db.Facts
             {
                 Vulnerabilities = new ConnectionResponseData<SecurityVulnerability>
                 {
-                    Edges = new[] 
+                    Edges = new[]
                     {
                         new Edge<SecurityVulnerability> { Node = firstVulnerability },
                         new Edge<SecurityVulnerability> { Node = secondVulnerability }

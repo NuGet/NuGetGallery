@@ -5,7 +5,7 @@ namespace NuGetGallery
 {
     public partial class TextField : System.Web.DynamicData.FieldTemplateUserControl {
         private const int MAX_DISPLAYLENGTH_IN_LIST = 25;
-    
+
         public override string FieldValueString {
             get {
                 string value = base.FieldValueString;
@@ -17,12 +17,12 @@ namespace NuGetGallery
                 return value;
             }
         }
-    
+
         public override Control DataControl {
             get {
                 return Literal1;
             }
         }
-    
+
     }
 }

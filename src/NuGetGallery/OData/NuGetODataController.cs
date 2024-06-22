@@ -17,7 +17,7 @@ using NuGetGallery.WebApi;
 
 namespace NuGetGallery.OData
 {
-    public abstract class NuGetODataController 
+    public abstract class NuGetODataController
         : ODataController
     {
         private readonly IGalleryConfigurationService _configurationService;
@@ -121,7 +121,7 @@ namespace NuGetGallery.OData
         }
 
         /// <summary>
-        /// The OrderById will be skipped when the request has an OrderBy clause that does not include Id 
+        /// The OrderById will be skipped when the request has an OrderBy clause that does not include Id
         /// </summary>
         /// <param name="options">The request OData options.</param>
         /// <returns></returns>

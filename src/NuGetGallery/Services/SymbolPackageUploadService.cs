@@ -46,7 +46,7 @@ namespace NuGetGallery
 
         /// <summary>
         /// This method does not perform the ownership validations for the symbols package. It is the responsibility
-        /// of the caller to do it. Also, this method does not dispose the <see cref="Stream"/> object, the caller 
+        /// of the caller to do it. Also, this method does not dispose the <see cref="Stream"/> object, the caller
         /// should take care of it.
         /// </summary>
         /// <param name="symbolPackageStream"><see cref="Stream"/> object for the symbols package.</param>
@@ -155,7 +155,7 @@ namespace NuGetGallery
         }
 
         /// <summary>
-        /// This method creates the symbol db entities and invokes the validations for the uploaded snupkg. 
+        /// This method creates the symbol db entities and invokes the validations for the uploaded snupkg.
         /// It will send the message for validation and upload the snupkg to the "validations"/"symbols-packages" container
         /// based on the result. It will then update the references in the database for persistence with appropriate status.
         /// </summary>
@@ -191,8 +191,8 @@ namespace NuGetGallery
             {
                 if (symbolPackage.StatusKey == PackageStatus.Validating)
                 {
-                    // If the last uploaded symbol package has failed validation, it will leave the snupkg in the 
-                    // validations container. We could possibly overwrite it, but that might introduce a concurrency 
+                    // If the last uploaded symbol package has failed validation, it will leave the snupkg in the
+                    // validations container. We could possibly overwrite it, but that might introduce a concurrency
                     // issue on multiple snupkg uploads with a prior failed validation. The best thing to do would be
                     // to delete the failed validation snupkg from validations container and then proceed with normal
                     // upload.
@@ -229,7 +229,7 @@ namespace NuGetGallery
                     }
 
                     // Caveat: This doesn't really affect our prod flow since the package is validating, however, when the async validation
-                    // is disabled there is a chance that there could be concurrency issues when pushing multiple symbols simultaneously. 
+                    // is disabled there is a chance that there could be concurrency issues when pushing multiple symbols simultaneously.
                     // This could result in an inconsistent data or multiple symbol entities marked as available. This could be sovled using etag
                     // for saving files, however since it doesn't really affect nuget.org which happen have async validations flow I will leave it as is.
                     await _symbolPackageFileService.SavePackageFileAsync(symbolPackage.Package, symbolPackageFile, overwrite);

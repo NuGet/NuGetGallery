@@ -14,7 +14,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 namespace NuGetGallery.Infrastructure
 {
     /// <summary>
-    /// Random-access list/stack thing backed by Azure Table Store. 
+    /// Random-access list/stack thing backed by Azure Table Store.
     /// Supports add-to-end (push) and set (update item) but no other add/remove.
     /// </summary>
     public class AzureEntityList<T> : IEnumerable<T> where T : ITableEntity, new()

@@ -515,7 +515,7 @@ namespace NuGetGallery
             TestUtility.SetupUrlHelperForUrlGeneration(controller);
 
             var invalidDimension = "this_dimension_does_not_exist";
-            
+
             var actualReport = (StatisticsPackagesReport)((JsonResult)await controller.PackageDownloadsByVersionReport(PackageId, new[] { GalleryConstants.StatisticsDimensions.Version, invalidDimension })).Data;
 
             int sum = 0;
@@ -543,7 +543,7 @@ namespace NuGetGallery
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object, new DateTimeProvider()));
 
             TestUtility.SetupUrlHelperForUrlGeneration(controller);
-            
+
             var model = (StatisticsPackagesViewModel)((ViewResult)await controller.PackageDownloadsDetail(PackageId, PackageVersion, new string[] { "ClientName" })).Model;
 
             Assert.Equal(PackageId, model.PackageId);
@@ -617,7 +617,7 @@ namespace NuGetGallery
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object, new DateTimeProvider()));
 
             TestUtility.SetupUrlHelperForUrlGeneration(controller);
-            
+
             var actualReport = (StatisticsPackagesReport)((JsonResult)await controller.PackageDownloadsDetailReport(PackageId, PackageVersion, new string[] { "ClientName" })).Data;
 
             int sum = 0;

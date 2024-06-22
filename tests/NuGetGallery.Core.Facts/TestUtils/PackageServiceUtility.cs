@@ -89,13 +89,13 @@ namespace NuGetGallery.TestUtils
             byte[] readmeFileContents = null)
         {
             var testPackage = CreateNuGetPackageStream(
-                    id:id, 
-                    version: version, 
+                    id:id,
+                    version: version,
                     title: title,
                     summary:summary,
                     authors:authors,
                     owners: owners,
-                    description: description, 
+                    description: description,
                     tags: tags,
                     language: language,
                     copyright: copyright,
@@ -225,7 +225,7 @@ namespace NuGetGallery.TestUtils
                             WriteEntry(archive, entryName);
                         }
                     }
-                }, 
+                },
                 desiredTotalEntryCount: desiredTotalEntryCount,
                 getCustomNuspecNodes: getCustomNuspecNodes,
                 licenseExpression: licenseExpression,

@@ -11,12 +11,12 @@ namespace NuGetGallery
             }
             HyperLink1.NavigateUrl = url;
         }
-    
+
         public override Control DataControl {
             get {
                 return HyperLink1;
             }
         }
-    
+
     }
 }

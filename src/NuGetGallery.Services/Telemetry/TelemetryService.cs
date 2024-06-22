@@ -1166,7 +1166,7 @@ namespace NuGetGallery
 
         private IDisposable TrackSqlConnectionCreationDuration(string kind)
         {
-            return new DurationTracker(duration => 
+            return new DurationTracker(duration =>
                 _telemetryClient.TrackAggregatedMetric(Events.CreateSqlConnectionDurationMs, duration.TotalMilliseconds, Kind, kind));
         }
 

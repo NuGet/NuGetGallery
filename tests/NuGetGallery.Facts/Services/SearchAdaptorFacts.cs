@@ -23,7 +23,7 @@ namespace NuGetGallery
         protected static ODataQueryOptions<V2FeedPackage> GetODataQueryOptionsForTest(Uri requestUri)
         {
             return new ODataQueryOptions<V2FeedPackage>(
-                new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), 
+                new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)),
                 new HttpRequestMessage(HttpMethod.Get, requestUri));
         }
 
@@ -425,7 +425,7 @@ namespace NuGetGallery
 
                 // Act
                 var nextLink = SearchAdaptor.GetNextLink(requestUri, resultCount, null,
-                    GetODataQueryOptionsForTest(requestUri), 
+                    GetODataQueryOptionsForTest(requestUri),
                     GetODataQuerySettingsForTest());
 
                 // Assert
@@ -441,7 +441,7 @@ namespace NuGetGallery
 
                 // Act
                 var nextLink = SearchAdaptor.GetNextLink(requestUri, resultCount, null,
-                    GetODataQueryOptionsForTest(requestUri), 
+                    GetODataQueryOptionsForTest(requestUri),
                     GetODataQuerySettingsForTest());
 
                 // Assert
@@ -456,16 +456,16 @@ namespace NuGetGallery
                 var resultCount = 200; // our result set contains 200 elements
 
                 // Act
-                var nextLink = SearchAdaptor.GetNextLink(requestUri, resultCount, null, 
-                    GetODataQueryOptionsForTest(requestUri), 
+                var nextLink = SearchAdaptor.GetNextLink(requestUri, resultCount, null,
+                    GetODataQueryOptionsForTest(requestUri),
                     GetODataQuerySettingsForTest());
 
                 // Assert
                 Assert.Equal(new Uri("https://localhost:8081/api/v2/Packages?$skip=100"), nextLink);
 
                 // Act 2
-                nextLink = SearchAdaptor.GetNextLink(nextLink, resultCount, null, 
-                    GetODataQueryOptionsForTest(nextLink), 
+                nextLink = SearchAdaptor.GetNextLink(nextLink, resultCount, null,
+                    GetODataQueryOptionsForTest(nextLink),
                     GetODataQuerySettingsForTest());
 
                 // Assert 2
@@ -480,7 +480,7 @@ namespace NuGetGallery
                 var resultCount = 210; // our result set contains 210 elements
 
                 // Act
-                var nextLink = SearchAdaptor.GetNextLink(requestUri, resultCount, null, 
+                var nextLink = SearchAdaptor.GetNextLink(requestUri, resultCount, null,
                     GetODataQueryOptionsForTest(requestUri),
                     GetODataQuerySettingsForTest());
 
@@ -488,8 +488,8 @@ namespace NuGetGallery
                 Assert.Equal(new Uri("https://localhost:8081/api/v2/Packages?$skip=100"), nextLink);
 
                 // Act 2
-                nextLink = SearchAdaptor.GetNextLink(nextLink, resultCount, null, 
-                    GetODataQueryOptionsForTest(nextLink), 
+                nextLink = SearchAdaptor.GetNextLink(nextLink, resultCount, null,
+                    GetODataQueryOptionsForTest(nextLink),
                     GetODataQuerySettingsForTest());
 
                 // Assert 2
@@ -497,7 +497,7 @@ namespace NuGetGallery
 
                 // Act 3
                 nextLink = SearchAdaptor.GetNextLink(nextLink, resultCount, null,
-                    GetODataQueryOptionsForTest(nextLink), 
+                    GetODataQueryOptionsForTest(nextLink),
                     GetODataQuerySettingsForTest());
 
                 // Assert 3

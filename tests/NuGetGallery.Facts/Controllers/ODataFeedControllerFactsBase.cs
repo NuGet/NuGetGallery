@@ -131,10 +131,10 @@ namespace NuGetGallery.Controllers
 
             return await GetValueFromQueryResult(queryResult);
         }
-        
+
         protected async Task<int> GetInt<TFeedPackage>(
             Func<TController, ODataQueryOptions<TFeedPackage>, IHttpActionResult> controllerAction,
-            string requestPath) 
+            string requestPath)
             where TFeedPackage : class
         {
             var queryResult = (QueryResult<TFeedPackage>)GetActionResult(controllerAction, requestPath);
@@ -144,7 +144,7 @@ namespace NuGetGallery.Controllers
 
         protected async Task<int> GetInt<TFeedPackage>(
             Func<TController, ODataQueryOptions<TFeedPackage>, Task<IHttpActionResult>> asyncControllerAction,
-            string requestPath) 
+            string requestPath)
             where TFeedPackage : class
         {
             var queryResult = (QueryResult<TFeedPackage>)await GetActionResultAsync(asyncControllerAction, requestPath);

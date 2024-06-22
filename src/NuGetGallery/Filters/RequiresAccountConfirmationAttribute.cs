@@ -27,10 +27,10 @@ namespace NuGetGallery.Filters
             {
                 throw new InvalidOperationException("Requires account confirmation attribute is only valid on authenticated actions.");
             }
-            
+
             var controller = ((AppController)filterContext.Controller);
             var user = controller.GetCurrentUser();
-            
+
             if (!user.Confirmed)
             {
                 controller.TempData["ConfirmationRequiredMessage"] = string.Format(

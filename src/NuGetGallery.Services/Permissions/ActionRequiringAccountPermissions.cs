@@ -12,7 +12,7 @@ namespace NuGetGallery
     public class ActionRequiringAccountPermissions
     {
         public PermissionsRequirement AccountPermissionsRequirement { get; }
-        
+
         public ActionRequiringAccountPermissions(PermissionsRequirement accountPermissionsRequirement)
         {
             AccountPermissionsRequirement = accountPermissionsRequirement;
@@ -23,7 +23,7 @@ namespace NuGetGallery
         /// </summary>
         public PermissionsCheckResult CheckPermissions(User currentUser, User account)
         {
-            return PermissionsHelpers.IsRequirementSatisfied(AccountPermissionsRequirement, currentUser, account) ? 
+            return PermissionsHelpers.IsRequirementSatisfied(AccountPermissionsRequirement, currentUser, account) ?
                 PermissionsCheckResult.Allowed : PermissionsCheckResult.AccountFailure;
         }
 
@@ -32,7 +32,7 @@ namespace NuGetGallery
         /// </summary>
         public PermissionsCheckResult CheckPermissions(IPrincipal currentPrincipal, User account)
         {
-            return PermissionsHelpers.IsRequirementSatisfied(AccountPermissionsRequirement, currentPrincipal, account) ? 
+            return PermissionsHelpers.IsRequirementSatisfied(AccountPermissionsRequirement, currentPrincipal, account) ?
                 PermissionsCheckResult.Allowed : PermissionsCheckResult.AccountFailure;
         }
     }

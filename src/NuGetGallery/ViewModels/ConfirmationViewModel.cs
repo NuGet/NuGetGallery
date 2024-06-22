@@ -26,13 +26,13 @@ namespace NuGetGallery
         public string ConfirmedEmailAddress { get; }
 
         public string UnconfirmedEmailAddress { get; }
-    
+
         public ConfirmationViewModel(string username)
         {
             AccountName = username;
             AlreadyConfirmed = true;
         }
-        
+
         public ConfirmationViewModel(User user)
         {
             IsOrganization = user is Organization;

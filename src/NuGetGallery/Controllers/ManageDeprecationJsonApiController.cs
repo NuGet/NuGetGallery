@@ -59,7 +59,7 @@ namespace NuGetGallery
 
             var packagePluralString = request.Versions.Count() > 1 ? "packages have" : "package has";
             var deprecatedString = isDeprecated ? "deprecated" : "undeprecated";
-            TempData["Message"] = 
+            TempData["Message"] =
                 $"Your {packagePluralString} been {deprecatedString}. " +
                 "It may take several hours for this change to propagate through our system.";
 

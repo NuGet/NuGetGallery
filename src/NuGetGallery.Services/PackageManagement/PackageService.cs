@@ -298,7 +298,7 @@ namespace NuGetGallery
 
                 if (string.IsNullOrEmpty(version) && !allowPrerelease)
                 {
-                    // If there's a specific version given, don't bother filtering by prerelease. 
+                    // If there's a specific version given, don't bother filtering by prerelease.
                     // You could be asking for a prerelease package.
                     packagesQuery = packagesQuery.Where(p => !p.IsPrerelease);
                 }
@@ -404,7 +404,7 @@ namespace NuGetGallery
             }
 
             // Fallback behavior: collect the latest version.
-            // If SemVer-level is not defined, 
+            // If SemVer-level is not defined,
             // or SemVer-level = 2.0.0 and no package was marked as SemVer2-latest,
             // then check for packages marked as non-SemVer2 latest.
             if (semVerLevelKey == SemVerLevelKey.Unknown
@@ -561,7 +561,7 @@ namespace NuGetGallery
 
         public bool WillPackageBeOrphanedIfOwnerRemoved(PackageRegistration packageRegistration, User ownerToRemove)
         {
-            // If the registration has no packages, no packages will be orphaned if the owner is removed. 
+            // If the registration has no packages, no packages will be orphaned if the owner is removed.
             if (!packageRegistration.Packages.Any())
             {
                 return false;
@@ -684,7 +684,7 @@ namespace NuGetGallery
                 package.Authors.Add(new PackageAuthor { Name = author });
             }
 #pragma warning restore 618
-            
+
             var supportedFrameworkNames = GetSupportedFrameworks(packageArchive)
                 .Select(fn => fn.GetShortFolderName())
                 .Where(fn => fn != null)

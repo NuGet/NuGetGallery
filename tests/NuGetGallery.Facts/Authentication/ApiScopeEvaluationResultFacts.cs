@@ -25,9 +25,9 @@ namespace NuGetGallery.Authentication
                             foreach (var scopesAreValid in new[] { false, true })
                             {
                                 yield return MemberDataHelper.AsData(
-                                    scopesAreValid, 
-                                    result, 
-                                    user, 
+                                    scopesAreValid,
+                                    result,
+                                    user,
                                     scopesAreValid && result == PermissionsCheckResult.Allowed && (user?.Confirmed ?? false));
                             }
                         }

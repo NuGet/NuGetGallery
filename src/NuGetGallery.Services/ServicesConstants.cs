@@ -36,7 +36,7 @@ namespace NuGetGallery
         public static TimeSpan EmailValidationRegexTimeout = TimeSpan.FromSeconds(5);
 
         /// <summary>
-        /// Parameters for calculating account lockout period after 
+        /// Parameters for calculating account lockout period after
         /// wrong password entry.
         /// </summary>
         public const double AccountLockoutMultiplierInMinutes = 10;

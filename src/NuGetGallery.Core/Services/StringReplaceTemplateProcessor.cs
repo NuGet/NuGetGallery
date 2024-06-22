@@ -28,7 +28,7 @@ namespace NuGetGallery
         /// Initializes the instance.
         /// </summary>
         /// <param name="template">String template. Can be null, in that case <see cref="Process(TInput)"/> will always produce null, too.</param>
-        /// <param name="placeholderProcessors">The map of placeholders to delegates that extract the appropriate value 
+        /// <param name="placeholderProcessors">The map of placeholders to delegates that extract the appropriate value
         /// to substitute with from the <typeparamref name="TInput"/> object. Placeholders are case-sensitive.</param>
         public StringReplaceTemplateProcessor(string template, IReadOnlyDictionary<string, Func<TInput, string>> placeholderProcessors)
         {

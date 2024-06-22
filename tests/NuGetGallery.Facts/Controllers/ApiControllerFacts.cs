@@ -298,7 +298,7 @@ namespace NuGetGallery
             [Fact]
             public async Task CreateSymbolPackage_UnauthorizedUserWillGet403()
             {
-                // Arrange	
+                // Arrange
                 var user = new User() { EmailAddress = "confirmed@email.com" };
                 var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(user);
@@ -829,7 +829,7 @@ namespace NuGetGallery
                 ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest);
                 Assert.Equal(Strings.FailedToReadUploadFile, (result as HttpStatusCodeWithBodyResult).StatusDescription);
             }
-            
+
             [Theory]
             [InlineData("PackageWithDoubleForwardSlash.1.0.0.nupkg")]
             [InlineData("PackageWithDoubleBackwardSlash.1.0.0.nupkg")]
@@ -2548,8 +2548,8 @@ namespace NuGetGallery
                 controller.MockPackageDeprecationManagementService
                     .Verify(
                         x => x.UpdateDeprecation(
-                            It.IsAny<User>(), 
-                            It.IsAny<string>(), 
+                            It.IsAny<User>(),
+                            It.IsAny<string>(),
                             It.IsAny<IReadOnlyCollection<string>>(),
                             It.IsAny<string>(),
                             It.IsAny<bool>(),

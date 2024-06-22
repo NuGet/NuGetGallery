@@ -55,9 +55,9 @@ namespace NuGetGallery.Login
                     {
                         return;
                     };
-                   
+
                 }
-                
+
                 if (operation is ContentOperations.Remove)
                 {
                     if(!logins.RemoveEmailFromExceptionsList(emailAddress))
@@ -79,7 +79,7 @@ namespace NuGetGallery.Login
                 {
                     return;
                 }
-                
+
                 _logger.LogWarning(
                     "Failed to {operation} emailAddress from exception list, attempt {Attempt} of {MaxAttempts}...",
                     operation.ToString(),
@@ -98,7 +98,7 @@ namespace NuGetGallery.Login
         }
 
         public async Task<IReadOnlyList<string>> GetListOfExceptionEmailList()
-        {       
+        {
             var loginDiscontinuation = await GetAsync();
 
             return loginDiscontinuation.ExceptionsForEmailAddresses.ToList();

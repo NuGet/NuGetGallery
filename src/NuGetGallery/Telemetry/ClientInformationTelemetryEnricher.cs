@@ -28,7 +28,7 @@ namespace NuGetGallery
                     // https://github.com/Microsoft/ApplicationInsights-Home/issues/300
                     var itemTelemetry = (ISupportProperties)telemetry;
 
-                    // ClientVersion is available for NuGet clients starting version 4.1.0-~4.5.0 
+                    // ClientVersion is available for NuGet clients starting version 4.1.0-~4.5.0
                     // Was deprecated and replaced by Protocol version
                     itemTelemetry.Properties[TelemetryService.ClientVersion]
                         = httpContext.Request.Headers[ServicesConstants.ClientVersionHeaderName];

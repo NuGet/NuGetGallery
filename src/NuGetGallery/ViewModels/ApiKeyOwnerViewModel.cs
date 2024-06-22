@@ -15,7 +15,7 @@ namespace NuGetGallery
             CanUnlist = canUnlist;
             PackageIds = packageIds;
         }
-        
+
         public string Owner { get; }
         public bool CanPushNew { get; }
         public bool CanPushExisting { get; }

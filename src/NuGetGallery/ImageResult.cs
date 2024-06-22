@@ -37,7 +37,7 @@ namespace NuGetGallery
 
             HttpResponseBase response = context.HttpContext.Response;
             response.ContentType = ContentType;
-            
+
             ImageStream.CopyTo(response.OutputStream);
             response.End();
         }

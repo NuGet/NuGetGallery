@@ -10,7 +10,7 @@ namespace NuGetGallery.OData.QueryInterceptors
     {
         private static MemberInfo _versionMember = typeof(V2FeedPackage).GetProperty("Version");
         private static MemberInfo _normalizedVersionMember = typeof(V2FeedPackage).GetProperty("NormalizedVersion");
-        
+
         protected override Expression VisitBinary(BinaryExpression node)
         {
             // Change equality comparisons on Version to normalized comparisons on NormalizedVersion
@@ -24,7 +24,7 @@ namespace NuGetGallery.OData.QueryInterceptors
                     if (memberSide != null && memberSide.Member == _versionMember)
                     {
                         // We have a "Package.Version == <constant>" expression!
-                        
+
                         // Transform the constant version into a normalized version
                         string newVersion = NuGetVersionFormatter.Normalize((string)constSide.Value);
 

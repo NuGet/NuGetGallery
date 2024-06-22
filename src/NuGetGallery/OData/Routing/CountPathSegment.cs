@@ -7,7 +7,7 @@ using Microsoft.Data.Edm.Library;
 
 namespace NuGetGallery.OData.Routing
 {
-    public class CountPathSegment 
+    public class CountPathSegment
         : ODataPathSegment
     {
         public override string SegmentKind

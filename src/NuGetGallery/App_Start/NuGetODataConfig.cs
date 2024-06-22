@@ -37,7 +37,7 @@ namespace NuGetGallery
             // If WebAPI is ever enabled, ensure to update this to have JSON/XML support.
             config.Formatters.Clear();
             config.Formatters.InsertRange(0, filteredFormatters);
-            
+
             // Register feeds
             NuGetODataV1FeedConfig.Register(config);
             NuGetODataV2FeedConfig.Register(config);

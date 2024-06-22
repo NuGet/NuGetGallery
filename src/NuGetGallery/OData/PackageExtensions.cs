@@ -94,8 +94,8 @@ namespace NuGetGallery.OData
                     DownloadCount = p.PackageRegistration.DownloadCount > Int32.MaxValue ? (long)Int32.MaxValue : p.PackageRegistration.DownloadCount,
                     GalleryDetailsUrl = siteRoot + "packages/" + p.PackageRegistration.Id + "/" + p.NormalizedVersion,
                     IconUrl = p.IconUrl,
-                    // We do not expose the internal IsLatestSemVer2 and IsLatestStableSemVer2 properties; 
-                    // instead the existing IsAbsoluteLatestVersion and IsLatestVersion properties will be updated based on the 
+                    // We do not expose the internal IsLatestSemVer2 and IsLatestStableSemVer2 properties;
+                    // instead the existing IsAbsoluteLatestVersion and IsLatestVersion properties will be updated based on the
                     // semver-level supported by the caller.
                     IsLatestVersion = semVerLevelKey == SemVerLevelKey.SemVer2 ? p.IsLatestStableSemVer2 : p.IsLatestStable,
                     // To maintain parity with v1 behavior of the feed, IsLatestVersion would only be used for stable versions.
@@ -126,8 +126,8 @@ namespace NuGetGallery.OData
         }
 
         internal static IQueryable<TVal> WithoutSortOnColumn<TVal>(
-            this IQueryable<TVal> feedQuery, 
-            string columnName, 
+            this IQueryable<TVal> feedQuery,
+            string columnName,
             bool confirmToIgnoreSort = true)
         {
             return confirmToIgnoreSort ? feedQuery.InterceptWith(new ODataRemoveSorter(columnName)) : feedQuery;

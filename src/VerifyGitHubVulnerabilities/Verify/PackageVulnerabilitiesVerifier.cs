@@ -228,8 +228,8 @@ namespace VerifyGitHubVulnerabilities.Verify
         private async Task VerifyVulnerabilityForRangeAsync(
             string packageId,
             IList<string> ranges,
-            string advisoryUrl, 
-            int advisoryDatabaseKey, 
+            string advisoryUrl,
+            int advisoryDatabaseKey,
             PackageVulnerabilitySeverity advisorySeverity)
         {
             // Fetch metadata from registration blobs for verification--a collection of all versions of the package Id

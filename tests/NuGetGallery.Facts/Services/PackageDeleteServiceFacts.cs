@@ -35,7 +35,7 @@ namespace NuGetGallery
             Mock<ISymbolPackageService> symbolPackageService = null,
             Mock<IEntityRepository<SymbolPackage>> symbolPackageRepository = null,
             Mock<ICoreLicenseFileService> coreLicenseFileService = null,
-            Mock<ICoreReadmeFileService> coreReadmeFileService = null, 
+            Mock<ICoreReadmeFileService> coreReadmeFileService = null,
             Action<Mock<TestPackageDeleteService>> setup = null,
             bool useRealConstructor = false)
         {
@@ -583,7 +583,7 @@ namespace NuGetGallery
                 var user = new User("test");
 
                 await service.SoftDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
-                
+
                 packageRepository.Verify(x => x.CommitChangesAsync());
                 symbolPackageRepository.Verify(x => x.CommitChangesAsync());
                 packageDeleteRepository.Verify(x => x.InsertOnCommit(It.IsAny<PackageDelete>()));
@@ -831,7 +831,7 @@ namespace NuGetGallery
                 var user = new User("test");
 
                 await service.SoftDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
-                
+
                 packageFileService.Verify(x => x.DeleteReadMeMdFileAsync(package), Times.Once);
             }
 
@@ -1317,7 +1317,7 @@ namespace NuGetGallery
                     packageRegistrationRepository: packageRegistrationRepository,
                     auditingService: auditingService,
                     telemetryService: telemetryService);
-                
+
                 if (succeeds)
                 {
                     await service.ReflowHardDeletedPackageAsync(id, version);
@@ -1326,7 +1326,7 @@ namespace NuGetGallery
                 {
                     await Assert.ThrowsAsync<UserSafeException>(() => service.ReflowHardDeletedPackageAsync(id, version));
                 }
-                
+
                 auditingService.Verify(
                     x => x.SaveAuditRecordAsync(It.IsAny<AuditRecord>()),
                     succeeds ? Times.Once() : Times.Never());

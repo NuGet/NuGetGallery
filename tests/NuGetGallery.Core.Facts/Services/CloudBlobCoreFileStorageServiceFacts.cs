@@ -19,7 +19,7 @@ namespace NuGetGallery
     public class CloudBlobCoreFileStorageServiceFacts
     {
         private static CloudBlobCoreFileStorageService CreateService(
-            Mock<ICloudBlobClient> fakeBlobClient = null, 
+            Mock<ICloudBlobClient> fakeBlobClient = null,
             Mock<ICloudBlobContainerInformationProvider> fakeFolderInformationProvider = null)
         {
             if (fakeBlobClient == null)
@@ -71,7 +71,7 @@ namespace NuGetGallery
             public async Task WillSetPermissionsForDemandedFolderInBlobContainers(string folderName, bool isPublic)
             {
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
-                
+
                 var simpleCloudBlob = new Mock<ISimpleCloudBlob>();
                 simpleCloudBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>(), It.IsAny<AccessCondition>())).Returns(Task.FromResult(0));
 
@@ -891,9 +891,9 @@ namespace NuGetGallery
                     .Returns(false);
                 var service = CreateService(setupResult.Item1, fakeFolderInformationProvider);
                 DateTimeOffset inThePast = DateTimeOffset.UtcNow.AddSeconds(-1);
-                
+
                 var ex = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => service.GetFileReadUriAsync(folderName, fileName, inThePast));
-                
+
                 Assert.Equal("endOfAccess", ex.ParamName);
             }
 
@@ -1640,10 +1640,10 @@ namespace NuGetGallery
                 // Arrange
                 _blob.SetupGet(x => x.ETag).Returns(_etag);
 
-                // Act 
+                // Act
                 var etagValue = await _service.GetETagOrNullAsync(folderName: CoreConstants.Folders.PackagesFolderName, fileName: "a");
 
-                // Assert 
+                // Assert
                 Assert.Equal(_etag, etagValue);
             }
 
@@ -1654,10 +1654,10 @@ namespace NuGetGallery
                 // Arrange
                 _blob.Setup(x => x.FetchAttributesAsync()).ThrowsAsync(new StorageException("Boo"));
 
-                // Act 
+                // Act
                 var etagValue = await _service.GetETagOrNullAsync(folderName: CoreConstants.Folders.PackagesFolderName, fileName: "a");
 
-                // Assert 
+                // Assert
                 Assert.Null(etagValue);
             }
         }

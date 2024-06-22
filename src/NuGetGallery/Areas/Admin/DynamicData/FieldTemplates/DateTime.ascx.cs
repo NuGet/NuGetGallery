@@ -8,6 +8,6 @@ namespace NuGetGallery
                 return Literal1;
             }
         }
-    
+
     }
 }

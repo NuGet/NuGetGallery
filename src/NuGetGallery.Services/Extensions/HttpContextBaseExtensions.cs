@@ -57,7 +57,7 @@ namespace NuGetGallery
 
         /// <summary>
         /// Best effort attempt to extract client information from the user-agent header.
-        /// According to documentation here: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent 
+        /// According to documentation here: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent
         /// the common structure for user-agent header is:
         /// User-Agent: Mozilla/<version> (<system-information>) <platform> (<platform-details>) <extensions>
         /// Thus, extracting the part before the first '(', should give us product and version tokens in MOST cases.

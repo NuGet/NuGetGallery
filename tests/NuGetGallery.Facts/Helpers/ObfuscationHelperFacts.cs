@@ -37,7 +37,7 @@ namespace NuGetGallery.Helpers
             [Fact]
             public void WithNullRoutesReturnsEmptyString()
             {
-                //Arrange 
+                //Arrange
                 var context = GetMockedHttpContext();
 
                 // Assert + Assert
@@ -48,7 +48,7 @@ namespace NuGetGallery.Helpers
             [Fact]
             public void ValidData()
             {
-                //Arrange 
+                //Arrange
                 var context = GetMockedHttpContext();
 
                 // Assert + Assert
@@ -61,7 +61,7 @@ namespace NuGetGallery.Helpers
                 var context = new Mock<HttpContextBase>();
                 var request = new Mock<HttpRequestBase>();
                 context.Setup(ctx => ctx.Request).Returns(request.Object);
-                
+
                 request.Setup(req => req.Url).Returns(new Uri($"https://localhost/{_relativeTestPath}"));
                 request.Setup(req => req.AppRelativeCurrentExecutionFilePath).Returns($"~/{_relativeTestPath}");
                 return context.Object;

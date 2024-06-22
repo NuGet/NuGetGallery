@@ -48,7 +48,7 @@ namespace NuGetGallery
         bool CanTransformUserToOrganization(User accountToTransform, User adminUser, out string errorReason);
 
         Task RequestTransformToOrganizationAccount(User accountToTransform, User adminUser);
-        
+
         Task<bool> TransformUserToOrganization(User accountToTransform, User adminUser, string token);
 
         Task<bool> RejectTransformUserToOrganizationRequest(User accountToTransform, User adminUser, string token);

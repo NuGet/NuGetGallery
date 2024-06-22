@@ -582,7 +582,7 @@ namespace NuGetGallery
             }
             else
             {
-                // The identity value contains cookie non-compliant characters like `<, >`(eg: John Doe <john@doe.com>), 
+                // The identity value contains cookie non-compliant characters like `<, >`(eg: John Doe <john@doe.com>),
                 // These need to be replaced so that they are not treated as HTML tags
                 TempData["RawErrorMessage"] = string.Format(Strings.ChangeCredential_Failed,
                     HttpUtility.HtmlEncode(newCredential.Identity),
@@ -858,7 +858,7 @@ namespace NuGetGallery
             var providers = GetProviders();
 
             // Select one provider to authenticate for linking when multiple external providers are enabled.
-            // This is for backwards compatibility with MicrosoftAccount provider. 
+            // This is for backwards compatibility with MicrosoftAccount provider.
             return ExternalAuthenticationPriority
                 .FirstOrDefault(authenticator => providers.Any(p => p.ProviderName.Equals(authenticator, StringComparison.OrdinalIgnoreCase)));
         }

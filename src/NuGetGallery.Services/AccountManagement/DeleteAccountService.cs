@@ -96,10 +96,10 @@ namespace NuGetGallery
                     AccountName = userToBeDeleted.Username
                 };
             }
-            
+
             var status = await RunAccountDeletionTask(
                 () => DeleteAccountImplAsync(
-                    userToBeDeleted, 
+                    userToBeDeleted,
                     userToExecuteTheDelete,
                     orphanPackagePolicy),
                 userToBeDeleted,
@@ -140,7 +140,7 @@ namespace NuGetGallery
                 // Another account with the same username cannot be created.
                 RemoveUserDataInUserTable(userToBeDeleted);
                 InsertDeleteAccount(
-                    userToBeDeleted, 
+                    userToBeDeleted,
                     userToExecuteTheDelete);
             }
 
@@ -270,7 +270,7 @@ namespace NuGetGallery
                 deprecation.DeprecatedByUser = null;
             }
         }
-        
+
         private async Task RemoveMemberships(User user, User requestingUser, AccountDeletionOrphanPackagePolicy orphanPackagePolicy)
         {
             foreach (var membership in user.Organizations.ToList())

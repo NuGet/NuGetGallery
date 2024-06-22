@@ -28,7 +28,7 @@ namespace NuGetGallery
                 var action = new TestableActionRequiringEntityPermissions(PermissionsRequirement.None, (account, entity) => failureToReturn);
                 AssertIsAllowed(action, failureToReturn);
             }
-            
+
             private void AssertIsAllowed(IActionRequiringEntityPermissions<TestablePermissionsEntity> action, PermissionsCheckResult expectedFailure)
             {
                 Assert.Equal(expectedFailure, action.CheckPermissions((User)null, null, null));
@@ -140,7 +140,7 @@ namespace NuGetGallery
 
                 var expectedAccountsList = new[] { user, entityOwner, organization }.Where(a => ((int)Math.Pow(2, a.Key - 1) & expectedAccounts) > 0);
 
-                var action = new TestableActionRequiringEntityPermissions(PermissionsRequirement.None, 
+                var action = new TestableActionRequiringEntityPermissions(PermissionsRequirement.None,
                     (a, e) => expectedAccountsList.Any(u => u.MatchesUser(a)) ? PermissionsCheckResult.Allowed : (PermissionsCheckResult)99);
 
                 Assert.Equal(PermissionsCheckResult.Allowed, action.CheckPermissionsOnBehalfOfAnyAccount(user, entity));

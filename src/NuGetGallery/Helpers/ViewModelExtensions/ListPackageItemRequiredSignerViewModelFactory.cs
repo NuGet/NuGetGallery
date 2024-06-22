@@ -17,7 +17,7 @@ namespace NuGetGallery
         private readonly IPackageVulnerabilitiesService _packageVulnerabilitiesService;
 
         public ListPackageItemRequiredSignerViewModelFactory(
-            ISecurityPolicyService securityPolicyService, 
+            ISecurityPolicyService securityPolicyService,
             IIconUrlProvider iconUrlProvider,
             IPackageVulnerabilitiesService packageVulnerabilitiesService,
             IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory,

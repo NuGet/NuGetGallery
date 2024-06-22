@@ -21,7 +21,7 @@ namespace NuGetGallery
 
         /// <summary>
         /// Add the user as an owner to the package. Also add the package registration
-        /// to the reserved namespaces owned by this user if the Id matches any of the 
+        /// to the reserved namespaces owned by this user if the Id matches any of the
         /// reserved prefixes. Also mark the package registration as verified if it matches any
         /// of the user owned reserved namespaces.
         /// </summary>

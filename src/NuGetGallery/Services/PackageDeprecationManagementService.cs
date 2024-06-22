@@ -42,13 +42,13 @@ namespace NuGetGallery
         public async Task<UpdateDeprecationError> UpdateDeprecation(
             User currentUser,
             string id,
-            IReadOnlyCollection<string> versions, 
+            IReadOnlyCollection<string> versions,
             string auditReason,
-            bool isLegacy = false, 
-            bool hasCriticalBugs = false, 
-            bool isOther = false, 
-            string alternatePackageId = null, 
-            string alternatePackageVersion = null, 
+            bool isLegacy = false,
+            bool hasCriticalBugs = false,
+            bool isOther = false,
+            string alternatePackageId = null,
+            string alternatePackageVersion = null,
             string message = null,
             ListedVerb listedVerb = ListedVerb.Unchanged)
         {

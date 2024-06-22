@@ -50,7 +50,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 }
                 else
                 {
-                    user = _userService.FindByUsername(query);            
+                    user = _userService.FindByUsername(query);
                 }
 
                 if (user != null)
@@ -120,7 +120,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         private async Task<string> GetContentIdBeforeChange()
         {
-            var result = await _storage.GetReferenceAsync(); 
+            var result = await _storage.GetReferenceAsync();
             return result.ContentId;
         }
 

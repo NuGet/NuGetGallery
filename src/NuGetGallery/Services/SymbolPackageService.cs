@@ -78,7 +78,7 @@ namespace NuGetGallery
         }
 
         /// <remarks>
-        /// This method will create the symbol package entity. The caller should validate the ownership of packages and 
+        /// This method will create the symbol package entity. The caller should validate the ownership of packages and
         /// metadata for the symbols associated for this package. Its the caller's responsibility to commit as well.
         /// </remarks>
         public SymbolPackage CreateSymbolPackage(Package nugetPackage, PackageStreamMetadata symbolPackageStreamMetadata)

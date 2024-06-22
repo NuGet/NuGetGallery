@@ -12,17 +12,17 @@ namespace NuGetGallery {
 
         private string ProcessUrl(string url) {
             if (url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || url.StartsWith("https://", StringComparison.OrdinalIgnoreCase)) {
-                return url;    
+                return url;
             }
-    
+
             return "http://" + url;
         }
-    
+
         public override Control DataControl {
             get {
                 return HyperLinkUrl;
             }
         }
-    
+
     }
 }

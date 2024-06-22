@@ -13,14 +13,14 @@ namespace NuGetGallery.Services.Helpers
             public const string LatestUrlWithPreleaseAndVersionString = "packages/{id}/latest/prerelease/{version}";
             public const string AbsoluteLatestUrlString = "absoluteLatest";
         }
-        
+
         public static bool IsLatestRoute(string routeUrl, out bool prerelease)
         {
             prerelease = false;
-            
+
             if (routeUrl == null)
                 return false;
-            
+
             if (routeUrl.Equals(SupportedRoutes.LatestUrlString, StringComparison.InvariantCultureIgnoreCase))
             {
                 return true;

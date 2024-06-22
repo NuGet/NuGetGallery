@@ -448,9 +448,9 @@ namespace NuGetGallery
             public async Task HandlesMissingLicenseAccordingToSettingsWhenDisplayUploadWarningV2Enabled(bool allowLicenselessPackages, bool expectedSuccess)
             {
                 _nuGetPackage = GeneratePackageWithUserContent(
-                    licenseUrl: null, 
-                    licenseExpression: null, 
-                    licenseFilename: null, 
+                    licenseUrl: null,
+                    licenseExpression: null,
+                    licenseFilename: null,
                     readmeFilename:"readme.md",
                     readmeFileContents: "read me");
 

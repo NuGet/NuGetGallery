@@ -57,7 +57,7 @@ namespace NuGetGallery
             field.Boost = 0.8f;
             document.Add(field);
 
-            // Style 3: camel-case tokenized (so you can search using parts of the camelCasedWord). 
+            // Style 3: camel-case tokenized (so you can search using parts of the camelCasedWord).
             // De-boosted since matches are less likely to be meaningful
             field = new Field("Id", CamelSplitId(package.Id), Field.Store.NO, Field.Index.ANALYZED);
             field.Boost = 0.25f;
@@ -187,7 +187,7 @@ namespace NuGetGallery
             // First tokenize the result by id-separators. For e.g. tokenize SignalR.EventStream as SignalR and EventStream
             var tokens = term.Split(IdSeparators, StringSplitOptions.RemoveEmptyEntries);
 
-            // For each token, further attempt to tokenize camelcase values. e.g. .EventStream -> Event, Stream. 
+            // For each token, further attempt to tokenize camelcase values. e.g. .EventStream -> Event, Stream.
             var result = tokens.Concat(new[] { term })
                 .Concat(tokens.SelectMany(CamelCaseTokenize))
                 .Distinct(StringComparer.OrdinalIgnoreCase)

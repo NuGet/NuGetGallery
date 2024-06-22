@@ -39,7 +39,7 @@ namespace NuGetGallery
         }
 
         internal static Dictionary<string, ObfuscatedPathMetadata[]> ObfuscatedRouteMap = new Dictionary<string, ObfuscatedPathMetadata[]>();
-        internal static ObfuscatedQueryMetadata[] ObfuscatedReturnUrlMetadata = new ObfuscatedQueryMetadata[] 
+        internal static ObfuscatedQueryMetadata[] ObfuscatedReturnUrlMetadata = new ObfuscatedQueryMetadata[]
         {
             new ObfuscatedQueryMetadata("returnUrl", Obfuscator.DefaultTelemetryReturnUrl),
             new ObfuscatedQueryMetadata("ReturnUrl", Obfuscator.DefaultTelemetryReturnUrl)

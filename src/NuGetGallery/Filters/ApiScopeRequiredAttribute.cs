@@ -10,11 +10,11 @@ using AuthorizationContext = System.Web.Mvc.AuthorizationContext;
 
 namespace NuGetGallery.Filters
 {
-    public sealed class ApiScopeRequiredAttribute 
+    public sealed class ApiScopeRequiredAttribute
         : AuthorizeAttribute
     {
         public string[] ScopeActions { get; private set; }
-        
+
         public ApiScopeRequiredAttribute(params string[] scopeActions)
         {
             ScopeActions = scopeActions;

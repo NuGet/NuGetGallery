@@ -11,7 +11,7 @@ namespace NuGetGallery.Infrastructure.Search.Correlation
     /// <summary>
     /// Attaches correlation id to outgoing HTTP requests when using HttpClient.
     /// </summary>
-    public class CorrelatingHttpClientHandler 
+    public class CorrelatingHttpClientHandler
         : DelegatingHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
@@ -22,7 +22,7 @@ namespace NuGetGallery.Infrastructure.Search.Correlation
                 if (!request.Headers.Contains(WebApiCorrelationHandler.CorrelationIdHttpHeaderName))
                 {
                     request.Headers.Add(
-                        WebApiCorrelationHandler.CorrelationIdHttpHeaderName, 
+                        WebApiCorrelationHandler.CorrelationIdHttpHeaderName,
                         correlationId.ToString());
                 }
             }

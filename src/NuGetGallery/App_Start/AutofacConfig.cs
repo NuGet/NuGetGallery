@@ -35,7 +35,7 @@ namespace NuGetGallery
             builder.RegisterFilterProvider();
 
             builder.RegisterAssemblyModules(currentAssembly);
-            
+
             // Hook it up
             var container = builder.Build();
             httpConfiguration.DependencyResolver = new AutofacWebApiDependencyResolver(container);

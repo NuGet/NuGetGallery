@@ -108,7 +108,7 @@ namespace NuGetGallery.Infrastructure
             var decoded1 = encoded.FromBase32String();
             var success = encoded.TryDecodeBase32String(out var decoded2);
 
-            // Assert           
+            // Assert
             Assert.True(success);
             Assert.True(byteArr.SequenceEqual(decoded1));
             Assert.True(byteArr.SequenceEqual(decoded2));
@@ -122,7 +122,7 @@ namespace NuGetGallery.Infrastructure
         [InlineData(5)] // Padding length: 0
         public void WhenPaddingIsRemovedItCanBeAppendedBack(int byteArrayLength)
         {
-            // Arrange 
+            // Arrange
             byte[] byteArr = new byte[byteArrayLength];
             _random.NextBytes(byteArr);
 

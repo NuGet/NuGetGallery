@@ -6,7 +6,7 @@ namespace NuGetGallery.Security
     /// <summary>
     /// Policy handler that defines behavior for specific user policy types.
     /// </summary>
-    public abstract class UserSecurityPolicyHandler 
+    public abstract class UserSecurityPolicyHandler
         : SecurityPolicyHandler<UserSecurityPolicyEvaluationContext>
     {
         public UserSecurityPolicyHandler(string name, SecurityPolicyAction action)

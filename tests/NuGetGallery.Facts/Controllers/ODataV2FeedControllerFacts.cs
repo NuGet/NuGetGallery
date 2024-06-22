@@ -547,7 +547,7 @@ namespace NuGetGallery.Controllers
         [InlineData(false)]
         public void TestReadOnlyFeatureFlag(bool readOnly)
         {
-            var packagesRepositoryMock = new Mock<IReadOnlyEntityRepository<Package>>();          
+            var packagesRepositoryMock = new Mock<IReadOnlyEntityRepository<Package>>();
             var readWritePackagesRepositoryMock = new Mock<IEntityRepository<Package>>();
             var configurationService = Mock.Of<IGalleryConfigurationService>();
             var searchService = Mock.Of<ISearchService>();

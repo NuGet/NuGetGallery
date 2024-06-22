@@ -1,5 +1,5 @@
 ﻿@model GalleryHomeViewModel
-@{ 
+@{
     var title = Model.TransformIntoOrganization ? "Transform to an organization" : "Sign-in with Microsoft account";
     var hasExternalIdentity = !string.IsNullOrWhiteSpace(Model.Identity);
 }

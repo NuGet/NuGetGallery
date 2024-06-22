@@ -13,37 +13,37 @@ namespace NuGetGallery
                 }
                 PopulateListControl(DropDownList1);
             }
-    
+
             SetUpValidator(RequiredFieldValidator1);
             SetUpValidator(DynamicValidator1);
         }
-    
+
         protected override void OnDataBinding(EventArgs e) {
             base.OnDataBinding(e);
-    
+
             string selectedValueString = GetSelectedValueString();
             ListItem item = DropDownList1.Items.FindByValue(selectedValueString);
             if (item != null) {
                 DropDownList1.SelectedValue = selectedValueString;
             }
-        
+
         }
-    
+
         protected override void ExtractValues(IOrderedDictionary dictionary) {
             // If it's an empty string, change it to null
             string value = DropDownList1.SelectedValue;
             if (String.IsNullOrEmpty(value)) {
                 value = null;
             }
-    
+
             ExtractForeignKey(dictionary, value);
         }
-    
+
         public override Control DataControl {
             get {
                 return DropDownList1;
             }
         }
-    
+
     }
 }

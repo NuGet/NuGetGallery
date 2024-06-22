@@ -47,7 +47,7 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="permissions">The permissions to include in the SAS token.</param>
         /// <param name="endOfAccess">
-        /// "End of access" timestamp. After the specified timestamp, 
+        /// "End of access" timestamp. After the specified timestamp,
         /// the returned signature becomes invalid if implementation supports it.
         /// Null for no time limit.
         /// </param>

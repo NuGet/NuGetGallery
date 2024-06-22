@@ -48,7 +48,7 @@
                             </td>
                             <td class="align-middle package-id"><a href="@Url.Package(package.Id)">@Html.BreakWord(package.Id.Abbreviate(40))</a></td>
                             <td class="align-middle">
-                                @{ 
+                                @{
                                     var index = -1;
                                     var ownerCount = package.Owners.Count;
                                     foreach (var owner in package.Owners)

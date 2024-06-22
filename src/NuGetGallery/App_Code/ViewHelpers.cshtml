@@ -416,7 +416,7 @@ int lastId = (int)(HttpContext.Current.Items[dataKey] ?? 0);
 int id = lastId + 1;
 HttpContext.Current.Items[dataKey] = id;
 string name = groupName + "-" + id.ToString();
-string actionsId = name + "-actions"; 
+string actionsId = name + "-actions";
 
 var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
     <li id="@hlp.ItemId" class="accordion-item @(enabled ? "accordion-item-enabled" : "accordion-item-disabled")">
@@ -607,9 +607,9 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
 
 @helper BreadcrumbWithProfile(UrlHelper url, User currentUser, bool showDivider, params Func<MvcHtmlString, HelperResult>[] segments)
 {
-    var newSegments = new Func<MvcHtmlString, HelperResult>[] 
-    { 
-        @<text><a href="@url.User(currentUser.Username)" aria-label="View my profile"><i class="ms-Icon ms-Icon--Contact ms-font-l" aria-hidden="true"></i></a></text> 
+    var newSegments = new Func<MvcHtmlString, HelperResult>[]
+    {
+        @<text><a href="@url.User(currentUser.Username)" aria-label="View my profile"><i class="ms-Icon ms-Icon--Contact ms-font-l" aria-hidden="true"></i></a></text>
     }.Concat(segments).ToArray();
 
     @Breadcrumb(showDivider, newSegments);

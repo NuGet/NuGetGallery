@@ -9,7 +9,7 @@ namespace NuGetGallery.Infrastructure
 {
     /// <summary>
     /// A wrapper around HttpClient.
-    /// It enables better unit testing and typed dependency injection pattern for the search http clients. 
+    /// It enables better unit testing and typed dependency injection pattern for the search http clients.
     /// </summary>
     public interface IHttpClientWrapper
     {

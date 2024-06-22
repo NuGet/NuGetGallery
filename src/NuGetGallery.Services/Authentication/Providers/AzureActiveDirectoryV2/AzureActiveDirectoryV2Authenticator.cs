@@ -75,9 +75,9 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
         {
             // Fetch site root from configuration
             var siteRoot = config.Current.SiteRoot.TrimEnd('/') + "/";
-            
+
             // We *always* require SSL for Authentication
-            if (siteRoot.StartsWith("http://", StringComparison.OrdinalIgnoreCase)) 
+            if (siteRoot.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
             {
                 siteRoot = siteRoot.Replace("http://", "https://");
             }
@@ -172,7 +172,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
             {
                 authenticationType = AuthenticationType.MicrosoftAccount;
 
-                // The MSA v2 authentication identifier is returned as 32 character alphanumeric value(padded with 0 and -), 
+                // The MSA v2 authentication identifier is returned as 32 character alphanumeric value(padded with 0 and -),
                 // where as the existing Microsoft account identifiers are 16 character wide.
                 // For e.g old format: 0ae45d63e22e4a60, newer format: 00000000-0000-0000-0AE4-5D63-E22E4A60
                 // We need to format the values into the older format for backwards compatibility
@@ -205,7 +205,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
             return true;
         }
 
-        // The OpenIdConnect.<AuthenticateCoreAsync> throws OpenIdConnectProtocolException upon denial of access permissions by the user, 
+        // The OpenIdConnect.<AuthenticateCoreAsync> throws OpenIdConnectProtocolException upon denial of access permissions by the user,
         // this could result in an internal server error, catch this exception and continue to the controller where appropriate
         // error handling is done.
         private Task AuthenticationFailed(AuthenticationFailedNotification<OpenIdConnectMessage, OpenIdConnectAuthenticationOptions> notification)

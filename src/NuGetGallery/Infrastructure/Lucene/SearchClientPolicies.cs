@@ -13,7 +13,7 @@ using Polly.Timeout;
 
 namespace NuGetGallery.Infrastructure.Search
 {
-    // Implements Polly policies 
+    // Implements Polly policies
     // Samples at https://github.com/App-vNext/Polly-Samples
     // Docs: https://github.com/App-vNext/Polly/wiki/Circuit-Breaker
     public class SearchClientPolicies
@@ -23,10 +23,10 @@ namespace NuGetGallery.Infrastructure.Search
 
         /// <summary>
         /// Builds the CircuitBreakerPolicy. Through this policy if <paramref name="breakAfterCount"/> consecutive requests will fail with transient HttpErrors
-        /// the circuit breaker will move into Open state. 
+        /// the circuit breaker will move into Open state.
         /// It will stay in this state(Open) for the <paramref name="breakDuration"/>. This means that requests made while the circuit is in this state will fail fast.
         /// When the timeout expires trial requsts are allowed. The state will be changed to a Close state if they succeed.
-        /// If they do not succeed the circuit will be moved back in the Open state for another <paramref name="breakDuration"/>. 
+        /// If they do not succeed the circuit will be moved back in the Open state for another <paramref name="breakDuration"/>.
         /// </summary>
         /// <param name="breakAfterCount">The number of allowed failures until circuit will be open.</param>
         /// <param name="breakDuration">The <see cref="TimeSpan"/> for the circuit to stay open.</param>
@@ -60,7 +60,7 @@ namespace NuGetGallery.Infrastructure.Search
         }
 
         /// <summary>
-        /// A WaitAndRetryForever policy to be used with the SearchClientCircuitBreakerPolicy. 
+        /// A WaitAndRetryForever policy to be used with the SearchClientCircuitBreakerPolicy.
         /// The policy will retry for <paramref name="retryCount"/> on any transient error and will not retry on <see cref="BrokenCircuitException"/> to avoid non-necessary retries due to circuit breaker exceptions.
         /// </summary>
         /// <param name="retryCount">The allowed number of retries.</param>
@@ -76,7 +76,7 @@ namespace NuGetGallery.Infrastructure.Search
                         .Or<BrokenCircuitException>(
                             (ex) =>
                             {
-                                // When the circuit breaker is open a BrokenCircuitException is thrown 
+                                // When the circuit breaker is open a BrokenCircuitException is thrown
                                 // There should not be any retry in this case
                                 return false;
                             }).
@@ -139,7 +139,7 @@ namespace NuGetGallery.Infrastructure.Search
                                         Content = new StringContent(Strings.SearchServiceIsNotAvailable),
                                         StatusCode = HttpStatusCode.ServiceUnavailable
                                     });
-                                }, 
+                                },
                                 onFallbackAsync: async (delegateResult, context) =>
                                 {
                                     // only to go async

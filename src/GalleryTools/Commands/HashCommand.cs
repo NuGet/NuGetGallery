@@ -45,7 +45,7 @@ namespace GalleryTools.Commands
             {
                 var allCredentials = (IQueryable<Credential>)context.Set<Credential>();
 
-                // Get all V1/V2 credentials that are active: 
+                // Get all V1/V2 credentials that are active:
                 // V1 credentials that have no expiration date, but were used in the last year
                 // V1/V2 credentials that have a future expiration date
 

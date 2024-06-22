@@ -61,7 +61,7 @@ namespace NuGetGallery.Helpers
         /// </summary>
         /// <param name="stream">Stream to read from.</param>
         /// <param name="expectedBytes">Expected bytes.</param>
-        /// <returns>True if it manages to read the same amount of bytes as in <paramref name="expectedBytes"/> and 
+        /// <returns>True if it manages to read the same amount of bytes as in <paramref name="expectedBytes"/> and
         /// the bytes read are the same as in <paramref name="expectedBytes"/> array, false otherwise.</returns>
         /// <remarks>
         /// The method assumes that stream is properly positioned before calling by the caller. It will not seek anywhere.

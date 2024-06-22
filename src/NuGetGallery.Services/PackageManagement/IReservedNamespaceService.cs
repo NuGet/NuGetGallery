@@ -27,7 +27,7 @@ namespace NuGetGallery
 
         /// <summary>
         /// Adds the specified user as an owner to the reserved namespace.
-        /// Also, all the package registrations owned by this user which match the 
+        /// Also, all the package registrations owned by this user which match the
         /// specified namespace will be marked as verified.
         /// </summary>
         /// <param name="prefix">The reserved namespace to modify</param>
@@ -37,7 +37,7 @@ namespace NuGetGallery
 
         /// <summary>
         /// Remove the specified user as an owner from the reserved namespace.
-        /// Also, all the package registrations owned by this user which match the 
+        /// Also, all the package registrations owned by this user which match the
         /// specified namespace only will be marked as unverifed.
         /// </summary>
         /// <param name="prefix">The reserved namespace to modify</param>

@@ -77,12 +77,12 @@ namespace NuGetGallery.OData.QueryFilter
         public HashSet<ODataOperators> AllowedOperatorPatterns => _allowedOperatorPatterns;
 
         /// <summary>
-        /// Parses <paramref name="odataOptions"/> used parameters and returns <see cref="ODataOperators"/> 
+        /// Parses <paramref name="odataOptions"/> used parameters and returns <see cref="ODataOperators"/>
         /// that represents the set of operators used by this odataOptions.
         /// </summary>
         /// <typeparam name="T">The entity type for the odataOptions.</typeparam>
         /// <param name="odataOptions">The <see cref="ODataQueryOptions"/> to be validated.</param>
-        /// <returns>The <see cref="ODataOperators"/> representation of the operators in the OData options. 
+        /// <returns>The <see cref="ODataOperators"/> representation of the operators in the OData options.
         /// If no operator is used the result will be <see cref="ODataOperators.none"/>.</returns>
         public static ODataOperators ODataOptionsMap<T>(ODataQueryOptions<T> odataOptions)
         {

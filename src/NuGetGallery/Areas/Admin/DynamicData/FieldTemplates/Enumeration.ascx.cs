@@ -10,22 +10,22 @@ namespace NuGetGallery
                 return Literal1;
             }
         }
-    
+
         public string EnumFieldValueString {
             get {
                 if (FieldValue == null) {
                     return FieldValueString;
                 }
-    
+
                 Type enumType = Column.GetEnumType();
                 if (enumType != null) {
                     object enumValue = System.Enum.ToObject(enumType, FieldValue);
                     return FormatFieldValue(enumValue);
                 }
-    
+
                 return FieldValueString;
             }
         }
-    
+
     }
 }

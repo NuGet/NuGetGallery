@@ -246,8 +246,8 @@ namespace NuGetGallery
         public Task<Uri> GetFileReadUriAsync(string folderName, string fileName, DateTimeOffset? endOfAccess)
         {
             // technically, we would be able to generate the file:/// url here, but we don't need it right now
-            // and implementation would be a bit non-trivial: System.Uri handles the "%" character in paths 
-            // in a funny way: 
+            // and implementation would be a bit non-trivial: System.Uri handles the "%" character in paths
+            // in a funny way:
             // new Uri(@"c:\%41foo%20bar%25.baz")
             // produces the
             // file:///c:/Afoo%20bar%2525.baz
@@ -271,7 +271,7 @@ namespace NuGetGallery
 
         public Task SetPropertiesAsync(
             string folderName,
-            string fileName, 
+            string fileName,
             Func<Lazy<Task<Stream>>, BlobProperties, Task<bool>> updatePropertiesAsync)
         {
             return Task.CompletedTask;

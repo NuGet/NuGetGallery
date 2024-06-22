@@ -334,7 +334,7 @@ namespace NuGetGallery
 
         private static string mockGetHtml(string markdown)
         {
-            if (markdown == null) 
+            if (markdown == null)
             {
                 return null;
             }
@@ -1456,11 +1456,11 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData(PackageDeprecationStatus.NotDeprecated, PackageDeprecationStatus.NotDeprecated, "")]
-            [InlineData(PackageDeprecationStatus.CriticalBugs, PackageDeprecationStatus.NotDeprecated, 
+            [InlineData(PackageDeprecationStatus.CriticalBugs, PackageDeprecationStatus.NotDeprecated,
                 "{0} is deprecated because it has critical bugs.")]
             [InlineData(PackageDeprecationStatus.Legacy, PackageDeprecationStatus.NotDeprecated,
                 "{0} is deprecated because it is no longer maintained.")]
-            [InlineData(PackageDeprecationStatus.Legacy, PackageDeprecationStatus.CriticalBugs, 
+            [InlineData(PackageDeprecationStatus.Legacy, PackageDeprecationStatus.CriticalBugs,
                 "{0} is deprecated because it is no longer maintained and has critical bugs.")]
             [InlineData(PackageDeprecationStatus.Other, PackageDeprecationStatus.NotDeprecated, "{0} is deprecated.")]
             public async Task ShowsCorrectDeprecationIconTitle(
@@ -2969,7 +2969,7 @@ namespace NuGetGallery
                 packageService.Setup(p => p.FindPackageRegistrationById(package.Id)).Returns(package);
 
                 var packageOwnershipManagementService = new Mock<IPackageOwnershipManagementService>();
-                
+
                 var request = new PackageOwnerRequest
                 {
                     PackageRegistration = package,
@@ -3075,7 +3075,7 @@ namespace NuGetGallery
                 packageService.Setup(p => p.FindPackageRegistrationById(package.Id)).Returns(package);
 
                 var packageOwnershipManagementService = new Mock<IPackageOwnershipManagementService>();
-                
+
                 var request = new PackageOwnerRequest
                 {
                     PackageRegistration = package,
@@ -5295,10 +5295,10 @@ namespace NuGetGallery
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var result = await controller
-                    .ListPackages(new PackageListSearchViewModel 
-                    { 
+                    .ListPackages(new PackageListSearchViewModel
+                    {
                         Q = string.Empty,
-                        SortBy = GalleryConstants.SearchSortNames.TotalDownloadsDesc, 
+                        SortBy = GalleryConstants.SearchSortNames.TotalDownloadsDesc,
                         PackageType = "dotnettool"
                     });
 
@@ -5749,7 +5749,7 @@ namespace NuGetGallery
 
             [Theory]
             [MemberData(nameof(Credential_Data))]
-            public void IncludesSafetyCategoriesWhenNotAadPresent(bool expectingSafetyCategories, object[] directOwnerCredentials, object[] indirectOwnerCredentials) 
+            public void IncludesSafetyCategoriesWhenNotAadPresent(bool expectingSafetyCategories, object[] directOwnerCredentials, object[] indirectOwnerCredentials)
             {
                 // Arrange
                 List<User> owners = new List<User>();
@@ -7024,7 +7024,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
-                
+
                 Assert.NotNull(result);
                 Assert.Equal("Central Directory corrupt.", (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
             }

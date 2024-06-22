@@ -34,7 +34,7 @@ namespace NuGetGallery.Framework
         {
             return Enumerable
                 .Range(
-                    0, 
+                    0,
                     Enum.GetValues(typeof(TEnum)).Cast<int>().Max() * 2)
                 .Cast<TEnum>()
                 .Select(e => new object[] { e });

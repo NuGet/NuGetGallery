@@ -7,7 +7,7 @@ namespace NuGetGallery
 {
     public partial class DefaultEntityTemplate : System.Web.DynamicData.EntityTemplateUserControl {
         private MetaColumn currentColumn;
-    
+
         protected override void OnLoad(EventArgs e) {
             foreach (MetaColumn column in Table.GetScaffoldColumns(Mode, ContainerType)) {
                 currentColumn = column;
@@ -16,18 +16,18 @@ namespace NuGetGallery
                 EntityTemplate1.Controls.Add(item);
             }
         }
-    
+
         protected void Label_Init(object sender, EventArgs e) {
             Label label = (Label)sender;
             label.Text = currentColumn.DisplayName;
         }
-    
+
         protected void DynamicControl_Init(object sender, EventArgs e) {
             DynamicControl dynamicControl = (DynamicControl)sender;
             dynamicControl.DataField = currentColumn.Name;
         }
-    
+
         public class _NamingContainer : Control, INamingContainer { }
-    
+
     }
 }

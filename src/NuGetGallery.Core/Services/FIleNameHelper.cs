@@ -62,7 +62,7 @@ namespace NuGetGallery
         /// Enforces the correct file separators for passing paths to work with zip file entries.
         /// </summary>
         /// <remarks>
-        /// When client packs the nupkg, it enforces all zip file entries to use forward slashes 
+        /// When client packs the nupkg, it enforces all zip file entries to use forward slashes
         /// and relative paths.
         /// At the same time, paths in nuspec can contain backslashes and start with dot. This
         /// method fixes the separators so those paths can be used to retrieve files from zip

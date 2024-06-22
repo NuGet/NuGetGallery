@@ -16,7 +16,7 @@ namespace NuGetGallery
             var message = _serializer.Deserialize(brokeredMessage);
 
             return new AccountDeleteMessage(
-                message.Username, 
+                message.Username,
                 message.Source);
         }
 

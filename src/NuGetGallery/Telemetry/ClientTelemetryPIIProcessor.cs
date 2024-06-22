@@ -42,7 +42,7 @@ namespace NuGetGallery
 
         private void ModifyRequestItem(RequestTelemetry requestTelemetryItem)
         {
-            // In some cases, Application Insights reports an intermediate request as a workaround 
+            // In some cases, Application Insights reports an intermediate request as a workaround
             // when AI lost correlation context and has to restore it.
             // Hence, RequestTelemetry.Url may be null.
             // See https://github.com/microsoft/ApplicationInsights-dotnet-server/pull/898

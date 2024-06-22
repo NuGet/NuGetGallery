@@ -93,7 +93,7 @@ namespace NuGetGallery.Authentication
                     await Auditing.SaveAuditRecordAsync(
                         new FailedAuthenticatedOperationAuditRecord(
                             userNameOrEmail, AuditedAuthenticatedOperationAction.PasswordLoginUnsupported));
-                    
+
                     return new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.PasswordLoginUnsupported);
                 }
 

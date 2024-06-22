@@ -12,7 +12,7 @@ namespace NuGetGallery.OData.Conventions
     /// <summary>
     /// Maps /$count on an Action to an action method called ActionCount().
     /// </summary>
-    public class ActionCountRoutingConvention 
+    public class ActionCountRoutingConvention
         : IODataRoutingConvention
     {
         private readonly string _controllerName;

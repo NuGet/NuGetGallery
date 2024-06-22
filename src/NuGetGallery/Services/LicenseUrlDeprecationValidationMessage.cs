@@ -15,7 +15,7 @@ namespace NuGetGallery
         private string DeprecationLink => $"<a href=\"{GalleryConstants.LicenseDeprecationUrl}\" aria-label=\"{Strings.UploadPackage_LearnMore_LicenseUrlDreprecation}\">{Strings.UploadPackage_LearnMore}</a>.";
 
         private readonly string _baseMessage;
-        
+
         public LicenseUrlDeprecationValidationMessage(string basePlainTextMessage)
         {
             if (string.IsNullOrWhiteSpace(basePlainTextMessage))

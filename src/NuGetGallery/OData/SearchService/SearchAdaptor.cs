@@ -53,7 +53,7 @@ namespace NuGetGallery.OData
             string semVerLevel,
             bool includeTestData)
         {
-            page = page < 1 ? 1 : page; // pages are 1-based. 
+            page = page < 1 ? 1 : page; // pages are 1-based.
             frameworks = frameworks ?? string.Empty;
             tfms = tfms ?? string.Empty;
             frameworkFilterMode = frameworkFilterMode ?? "all";
@@ -166,9 +166,9 @@ namespace NuGetGallery.OData
         public static async Task<SearchAdaptorResult> SearchCore(
             ISearchService searchService,
             HttpRequestBase request,
-            IQueryable<Package> packages, 
-            string searchTerm, 
-            string targetFramework, 
+            IQueryable<Package> packages,
+            string searchTerm,
+            string targetFramework,
             bool includePrerelease,
             string semVerLevel)
         {
@@ -202,7 +202,7 @@ namespace NuGetGallery.OData
             }
 
             packages = packages.Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevelPredicate(semVerLevel));
-    
+
             return new SearchAdaptorResult(false, packages.Search(searchTerm));
         }
 
@@ -230,8 +230,8 @@ namespace NuGetGallery.OData
 
             searchFilter = new SearchFilter(SearchFilter.ODataSearchContext)
             {
-                // The way the default paging works is WCF attempts to read up to the MaxPageSize elements. If it finds as many, it'll assume there 
-                // are more elements to be paged and generate a continuation link. Consequently we'll always ask to pull MaxPageSize elements so WCF generates the 
+                // The way the default paging works is WCF attempts to read up to the MaxPageSize elements. If it finds as many, it'll assume there
+                // are more elements to be paged and generate a continuation link. Consequently we'll always ask to pull MaxPageSize elements so WCF generates the
                 // link for us and then allow it to do a Take on the results. Further down, we'll also parse $skiptoken as a custom IDataServicePagingProvider
                 // sneakily injects the Skip value in the continuation token.
                 Take = MaxPageSize,
@@ -255,8 +255,8 @@ namespace NuGetGallery.OData
             string filter;
             if (queryTerms.TryGetValue("$filter", out filter))
             {
-                if (!ignoreLatestVersionFilter 
-                    && !(filter.Equals(ODataQueryFilter.IsLatestVersion, StringComparison.Ordinal) 
+                if (!ignoreLatestVersionFilter
+                    && !(filter.Equals(ODataQueryFilter.IsLatestVersion, StringComparison.Ordinal)
                         || filter.Equals(ODataQueryFilter.IsAbsoluteLatestVersion, StringComparison.Ordinal)))
                 {
                     searchFilter = null;
@@ -268,7 +268,7 @@ namespace NuGetGallery.OData
                 searchFilter = null;
                 return false;
             }
-            
+
             string skipStr;
             if (queryTerms.TryGetValue("$skip", out skipStr))
             {
@@ -344,14 +344,14 @@ namespace NuGetGallery.OData
 
             return true;
         }
-        
+
         public static Uri GetNextLink(Uri currentRequestUri, long? totalResultCount, object queryParameters, ODataQueryOptions options, ODataQuerySettings settings, int? semVerLevelKey = null)
         {
             if (!totalResultCount.HasValue || totalResultCount.Value <= MaxPageSize || totalResultCount.Value == 0)
             {
                 return null; // no need for a next link if there are no additional results on this page
             }
-           
+
             var skipCount = (options.Skip != null ? options.Skip.Value : 0) + Math.Min(totalResultCount.Value, (settings.PageSize != null ? settings.PageSize.Value : SearchAdaptor.MaxPageSize));
 
             if (totalResultCount.Value <= skipCount)
@@ -360,7 +360,7 @@ namespace NuGetGallery.OData
             }
 
             var queryBuilder = new StringBuilder();
-            
+
             var queryParametersCollection = new RouteValueDictionary(queryParameters);
             foreach (var queryParameter in queryParametersCollection)
             {

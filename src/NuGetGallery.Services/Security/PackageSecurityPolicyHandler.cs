@@ -8,7 +8,7 @@ namespace NuGetGallery.Security
     /// </summary>
     public abstract class PackageSecurityPolicyHandler : SecurityPolicyHandler<PackageSecurityPolicyEvaluationContext>
     {
-        public PackageSecurityPolicyHandler(string name, SecurityPolicyAction action) 
+        public PackageSecurityPolicyHandler(string name, SecurityPolicyAction action)
             : base(name, action)
         {
         }

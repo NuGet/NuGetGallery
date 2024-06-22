@@ -8,10 +8,10 @@
     <div class="form-group">
         <div class="form-group package-controls">
             @ViewHelpers.OrganizationsBreadcrumb(
-                Url, 
-                CurrentUser, 
-                true, 
-                @<text><a href="@Url.ManageMyOrganization(Model.AccountName)">@Model.AccountName</a></text>, 
+                Url,
+                CurrentUser,
+                true,
+                @<text><a href="@Url.ManageMyOrganization(Model.AccountName)">@Model.AccountName</a></text>,
                 @<text>Delete</text>)
 
             @ViewHelpers.AlertWarning(@<text><strong class="keywords">Important</strong>

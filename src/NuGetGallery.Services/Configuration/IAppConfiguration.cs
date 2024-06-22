@@ -19,7 +19,7 @@ namespace NuGetGallery.Configuration
         string Environment { get; set; }
 
         /// <summary>
-        /// Gets the warning banner text 
+        /// Gets the warning banner text
         /// </summary>
         string WarningBanner { get; set; }
 
@@ -257,14 +257,14 @@ namespace NuGetGallery.Configuration
         bool AutoUpdateSearchIndex { get; set; }
 
         /// <summary>
-        /// Gets a string indicating which authentication provider(s) are supported for administrators. 
+        /// Gets a string indicating which authentication provider(s) are supported for administrators.
         /// When specified, the gallery will ensure admin users are logging in using any of the specified authentication providers.
         /// Blank means any authentication provider can be used by administrators.
         /// </summary>
         string EnforcedAuthProviderForAdmin { get; set; }
 
         /// <summary>
-        /// Gets a string indicating which Microsoft Entra tenant ID should be used for administrators. 
+        /// Gets a string indicating which Microsoft Entra tenant ID should be used for administrators.
         /// When specified, the gallery will ensure admin users are logging in using only the specified tenant ID.
         /// Blank means any Microsoft Entra tenant ID can be used by administrators.
         /// </summary>
@@ -474,7 +474,7 @@ namespace NuGetGallery.Configuration
         /// <summary>
         /// Allows to override the default (or externally configured) minWorkerThreads setting. Must be specified with <see cref="MinIoThreads"/>.
         /// This is a global (not per CPU core) limit.
-        /// See more: 
+        /// See more:
         /// https://docs.microsoft.com/en-us/dotnet/api/system.threading.threadpool.setminthreads?view=netframework-4.7.2
         /// https://docs.microsoft.com/en-us/previous-versions/dotnet/netframework-4.0/7w2sway1(v=vs.100)?redirectedfrom=MSDN
         /// </summary>
@@ -483,7 +483,7 @@ namespace NuGetGallery.Configuration
         /// <summary>
         /// Allows to override the default (or externally configured) maxWorkerThreads setting. Must be specified with <see cref="MaxIoThreads"/>
         /// This is a global (not per CPU core) limit.
-        /// See more: 
+        /// See more:
         /// https://docs.microsoft.com/en-us/dotnet/api/system.threading.threadpool.setmaxthreads?view=netframework-4.7.2
         /// https://docs.microsoft.com/en-us/previous-versions/dotnet/netframework-4.0/7w2sway1(v=vs.100)?redirectedfrom=MSDN
         /// </summary>
@@ -492,7 +492,7 @@ namespace NuGetGallery.Configuration
         /// <summary>
         /// Allows to override the default (or externally configured) minIoThreads setting. Must be specified with <see cref="MinWorkerThreads"/>.
         /// This is a global (not per CPU core) limit.
-        /// See more: 
+        /// See more:
         /// https://docs.microsoft.com/en-us/dotnet/api/system.threading.threadpool.setminthreads?view=netframework-4.7.2
         /// https://docs.microsoft.com/en-us/previous-versions/dotnet/netframework-4.0/7w2sway1(v=vs.100)?redirectedfrom=MSDN
         /// </summary>
@@ -501,7 +501,7 @@ namespace NuGetGallery.Configuration
         /// <summary>
         /// Allows to override the default (or externally configured) maxIoThreads setting. Must be specified with <see cref="MaxWorkerThreads"/>.
         /// This is a global (not per CPU core) limit.
-        /// See more: 
+        /// See more:
         /// https://docs.microsoft.com/en-us/dotnet/api/system.threading.threadpool.setmaxthreads?view=netframework-4.7.2
         /// https://docs.microsoft.com/en-us/previous-versions/dotnet/netframework-4.0/7w2sway1(v=vs.100)?redirectedfrom=MSDN
         /// </summary>

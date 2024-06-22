@@ -76,7 +76,7 @@ namespace NuGetGallery
 
             return packageService.Object;
         }
-        
+
         public class TheFindPackageBySuffixMethod
         {
             private Package InvokeMethod(IReadOnlyCollection<Package> packages, string version, bool preRelease)
@@ -84,7 +84,7 @@ namespace NuGetGallery
                 var service = CreateService();
                 return service.FilterLatestPackageBySuffix(packages, version, preRelease);
             }
-            
+
             [Theory]
             [InlineData("alpha", true, 4)]
             [InlineData("alpha2-internal", true, 4)]
@@ -113,8 +113,8 @@ namespace NuGetGallery
                         ("1.0.23-internal.510", false, true),
                         ("1.0.23-internal.6", false, false),
                     }
-                    .Select(data => new Package() { 
-                        IsPrerelease = r.IsMatch(data.Item1), 
+                    .Select(data => new Package() {
+                        IsPrerelease = r.IsMatch(data.Item1),
                         NormalizedVersion = NuGetVersion.Parse(data.Item1).ToNormalizedString(),
                         IsLatestStableSemVer2 = data.Item2,
                         IsLatestSemVer2 = data.Item3
@@ -124,7 +124,7 @@ namespace NuGetGallery
                 var result = InvokeMethod(testData, version, preRelease);
                 Assert.Equal(testData[expectedResultIndex].NormalizedVersion, result.NormalizedVersion);
             }
-            
+
             [Fact]
             public void VerifyFallbackToStableIfNoPrerelease()
             {
@@ -134,8 +134,8 @@ namespace NuGetGallery
                         ("1.0.0", 1, false, false),
                         ("1.0.23", 2, true, false),
                     }
-                    .Select(data => new Package() { 
-                        IsPrerelease = r.IsMatch(data.Item1), 
+                    .Select(data => new Package() {
+                        IsPrerelease = r.IsMatch(data.Item1),
                         NormalizedVersion = SemanticVersion.Parse(data.Item1).ToNormalizedString(),
                         IsLatestStableSemVer2 = data.Item3,
                         IsLatestSemVer2 = data.Item4
@@ -145,7 +145,7 @@ namespace NuGetGallery
                 var result = InvokeMethod(testData, "alpha", true);
                 Assert.Equal(testData[1].NormalizedVersion, result.NormalizedVersion);
             }
-            
+
             [Fact]
             public void VerifyDoesNotThrowIfNoPackages()
             {
@@ -1096,7 +1096,7 @@ namespace NuGetGallery
                     // - see this: https://github.com/NuGet/Home/issues/6197#issuecomment-349495271 - "any" covers portables.
                     new object[] {true, new List<string> {"tools/netcoreapp3.1/_._"}, new List<string>()},
                     new object[] {true, new List<string> {"tools/netcoreapp3.1/win10-x86/_._"}, new List<string> {"netcoreapp3.1"}},
-                    new object[] {true, new List<string> {"tools/netcoreapp3.1/win10-x86/tool1/_._", "tools/netcoreapp3.1/win10-x86/tool2/_._" }, 
+                    new object[] {true, new List<string> {"tools/netcoreapp3.1/win10-x86/tool1/_._", "tools/netcoreapp3.1/win10-x86/tool2/_._" },
                         new List<string> {"netcoreapp3.1"}},
                     new object[] {true, new List<string> {"tools/netcoreapp3.1/any/_._"}, new List<string> {"netcoreapp3.1"}},
                     new object[] {true, new List<string> {"tools/netcoreapp3.1/win/tool1/_._"}, new List<string> {"netcoreapp3.1"}},
@@ -1113,7 +1113,7 @@ namespace NuGetGallery
                         new List<string>{"net45", "netcoreapp3.1"}},
 
                     // Combinations
-                    new object[] 
+                    new object[]
                     {
                         false,
                         new List<string>
@@ -1127,11 +1127,11 @@ namespace NuGetGallery
                             "build/netstandard20/Foo.targets",
                             "tools/netcoreapp3.1/win10-x86/tool1/_._",
                             "tools/netcoreapp3.1/win10-x86/tool2/_._"
-                        }, 
+                        },
                         new List<string>{"net40", "net471", "net5.0-watchos", "netstandard2.0", "netstandard2.1"}
                     },
                     // - note that a tools package (true below) is *only* a tools package when evaluating TFM support
-                    new object[] 
+                    new object[]
                     {
                         true, // tools package
                         new List<string>
@@ -1145,7 +1145,7 @@ namespace NuGetGallery
                             "build/netstandard20/Foo.targets",
                             "tools/netcoreapp3.1/win10-x86/tool1/_._",
                             "tools/netcoreapp3.1/win10-x86/tool2/_._"
-                        }, 
+                        },
                         new List<string> {"netcoreapp3.1"}
                     },
                     new object[]
@@ -1160,14 +1160,14 @@ namespace NuGetGallery
                             "ref/xamarinios/_2._",
                             "build/netstandard21/Foo.props",
                             "build/netstandard21/Foo.targets",
-                            "contentFiles/vb/net45/_._", 
+                            "contentFiles/vb/net45/_._",
                             "contentFiles/cs/netstandard2.1/_._"
                         },
                         new List<string>{"net45", "netstandard2.1", "xamarinios"}
                     },
                     new object[]
                     {
-                        false, 
+                        false,
                         new List<string>
                         {
                             ".signature.p7s",
@@ -1276,7 +1276,7 @@ namespace NuGetGallery
             public void ReturnsVersionIfExists(string version)
             {
                 var package = CreateTestPackage("1.0.0-a");
-                var packages = new[] 
+                var packages = new[]
                 {
                     package,
                     CreateTestPackage("2.0.0")
@@ -1430,8 +1430,8 @@ namespace NuGetGallery
             }
 
             protected override Package InvokeMethod(
-                IReadOnlyCollection<Package> packages, 
-                int? semVerLevelKey = 2, 
+                IReadOnlyCollection<Package> packages,
+                int? semVerLevelKey = 2,
                 bool allowPrerelease = true)
             {
                 var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
@@ -2370,7 +2370,7 @@ namespace NuGetGallery
             {
                 // Create users to test
                 var user = new User("testUser") { Key = 0 };
-               
+
                 // Configure package registration ownership
                 var packageRegistration = new PackageRegistration() { Key = 1 };
                 packageRegistration.Owners.Add(user);
@@ -2817,10 +2817,10 @@ namespace NuGetGallery
                         Assert.False(currentPackage.IsVerified);
                     }
 
-                    else 
+                    else
                     {
                         Assert.True(currentPackage.IsVerified);
-                    }    
+                    }
                 }
             }
 

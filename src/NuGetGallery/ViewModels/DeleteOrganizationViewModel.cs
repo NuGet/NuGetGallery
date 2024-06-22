@@ -11,7 +11,7 @@ namespace NuGetGallery
     public class DeleteOrganizationViewModel : DeleteAccountViewModel
     {
         public DeleteOrganizationViewModel(
-            Organization organizationToDelete, 
+            Organization organizationToDelete,
             IReadOnlyCollection<DeleteAccountListPackageItemViewModel> ownedPackages,
             IReadOnlyList<OrganizationMemberViewModel> members,
             IReadOnlyList<OrganizationMemberViewModel> additionalMembers)
@@ -22,7 +22,7 @@ namespace NuGetGallery
         }
 
         public IReadOnlyList<OrganizationMemberViewModel> Members { get; set; }
-        
+
         public IReadOnlyList<OrganizationMemberViewModel> AdditionalMembers { get; set; }
 
         public bool HasAdditionalMembers => AdditionalMembers.Any();

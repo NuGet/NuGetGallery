@@ -15,7 +15,7 @@ namespace NuGetGallery.Areas.Admin.ViewModels
             State = state ?? throw new ArgumentNullException(nameof(state));
             Statistics = statistics ?? throw new ArgumentNullException(nameof(statistics));
         }
-        
+
         public RevalidationState State { get; }
         public RevalidationStatistics Statistics { get; }
     }

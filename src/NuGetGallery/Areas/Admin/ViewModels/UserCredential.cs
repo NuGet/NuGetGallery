@@ -3,8 +3,8 @@
 
 namespace NuGetGallery.Areas.Admin.ViewModels
 {
-    public class UserCredential 
-    { 
+    public class UserCredential
+    {
         public string TenantId { get; set; }
 
         public string Type { get; set; }

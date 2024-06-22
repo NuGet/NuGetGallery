@@ -37,7 +37,7 @@ namespace NuGetGallery.Infrastructure
                 Credentials = credentials
             };
 
-            // Act 
+            // Act
             var userAuditRecord = new UserAuditRecord(user, AuditedUserAction.AddCredential);
 
             // Assert

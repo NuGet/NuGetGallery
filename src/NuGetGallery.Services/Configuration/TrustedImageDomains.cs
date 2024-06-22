@@ -53,7 +53,7 @@ namespace NuGetGallery.Services
                 if (string.IsNullOrEmpty(subdomain))
                 {
                     expandedImageDomainList.Add("www." + imageDomain);
-                } 
+                }
                 else if (subdomain == "www")
                 {
                     expandedImageDomainList.Add(imageDomain.Substring(subdomain.Length));
@@ -72,7 +72,7 @@ namespace NuGetGallery.Services
                 return domain.Substring(0, index);
             }
 
-            return null; 
+            return null;
         }
     }
 }

@@ -85,7 +85,7 @@ namespace NuGetGallery
                 .Distinct()
                 .SingleOrDefault();
         }
-        
+
         private static bool AllowsAction(this Scope scope, string requestedAction)
         {
             if (scope == null)

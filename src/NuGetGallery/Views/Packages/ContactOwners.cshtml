@@ -9,9 +9,9 @@
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             @Html.Partial(
-                "_PackageHeading", 
+                "_PackageHeading",
                 new PackageHeadingModel(
-                    Model.PackageId, 
+                    Model.PackageId,
                     Model.PackageVersion,
                     "Contact owners"))
             @if (Model.Owners.Any())

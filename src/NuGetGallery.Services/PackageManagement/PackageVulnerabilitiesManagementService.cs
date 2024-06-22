@@ -117,7 +117,7 @@ namespace NuGetGallery
             if (withdrawn)
             {
                 _logger.LogInformation(
-                    "Will not add vulnerability with GitHub key {GitHubDatabaseKey} to database because it is withdrawn", 
+                    "Will not add vulnerability with GitHub key {GitHubDatabaseKey} to database because it is withdrawn",
                     vulnerability.GitHubDatabaseKey);
                 return;
             }
@@ -125,7 +125,7 @@ namespace NuGetGallery
             if (!vulnerability.AffectedRanges.Any())
             {
                 // If the vulnerability does not have any vulnerable ranges, it cannot affect any packages.
-                // Even if no packages are currently vulnerable to the vulnerability, as long as it has a vulnerable range, 
+                // Even if no packages are currently vulnerable to the vulnerability, as long as it has a vulnerable range,
                 // there is at least one package that could be uploaded that would be vulnerable to it.
                 _logger.LogInformation(
                     "Will not add vulnerability with GitHub key {GitHubDatabaseKey} to database because it affects no packages",

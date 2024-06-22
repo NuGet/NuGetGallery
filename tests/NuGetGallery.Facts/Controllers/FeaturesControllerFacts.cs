@@ -68,7 +68,7 @@ namespace NuGetGallery.Controllers
                     Flags.Flights);
             }
 
-            public static IEnumerable<ModifyFeatureFlagsFeatureViewModel> ValidModels = 
+            public static IEnumerable<ModifyFeatureFlagsFeatureViewModel> ValidModels =
                 new[] { ValidDisabledModel, ValidEnabledModel };
 
             public static IEnumerable<object[]> ValidModelsWithLastUpdated_Data
@@ -380,9 +380,9 @@ namespace NuGetGallery.Controllers
             {
                 var flights = Flags.Flights.ToDictionary(f => f.Key, f => f.Value);
                 var flight = new Flight(
-                    model.All, 
-                    model.SiteAdmins, 
-                    model.Accounts?.ToList() ?? new List<string>(), 
+                    model.All,
+                    model.SiteAdmins,
+                    model.Accounts?.ToList() ?? new List<string>(),
                     model.Domains?.ToList() ?? new List<string>());
 
                 flights[model.Name] = flight;
@@ -708,7 +708,7 @@ namespace NuGetGallery.Controllers
 
             protected void AssertSuccessMessage(FeaturesController controller)
             {
-                AssertTempData(controller, "Message", 
+                AssertTempData(controller, "Message",
                     $"Your feature flags have been saved! It may take up to {RefreshInterval.TotalSeconds} seconds for this change to propagate everywhere.");
                 AssertTempData(controller, "ErrorMessage", null);
             }

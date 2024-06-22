@@ -20,7 +20,7 @@ namespace NuGetGallery
             {
                 return;
             }
-            
+
             foreach (var interceptor in Interceptors)
             {
                 interceptor.InterceptObjectMaterialized(entity);

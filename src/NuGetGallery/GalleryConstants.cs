@@ -54,7 +54,7 @@ namespace NuGetGallery
             "User names must start and end with a letter or number, and may only contain letters, numbers, underscores, periods, and hyphens in between.";
 
         internal const string WarningHeaderName = "X-NuGet-Warning";
-        
+
         /// <summary>
         /// This header is for internal use only. It indicates whether an OData query is "custom". Custom means not
         /// not optimized for search hijacking. Queries made by the official client should be optimized and therefore

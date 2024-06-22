@@ -87,11 +87,11 @@ namespace NuGetGallery
                                         .ToDictionary(kv => kv.Key,
                                             kv => kv.ToList().AsReadOnly() as IReadOnlyList<PackageVulnerability>),
                                 // we need this lookup to be case insensitive for package details page load URLs to work regardless of case
-                                StringComparer.InvariantCultureIgnoreCase); 
+                                StringComparer.InvariantCultureIgnoreCase);
                     }
 
                     stopwatch.Stop();
-                    
+
                     _telemetryService.TrackVulnerabilitiesCacheRefreshDuration(TimeSpan.FromMilliseconds(stopwatch.ElapsedMilliseconds));
                 }
                 catch (Exception ex)

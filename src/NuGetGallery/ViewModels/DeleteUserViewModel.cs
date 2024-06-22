@@ -22,7 +22,7 @@ namespace NuGetGallery
                 .Select(u => new ManageOrganizationsItemViewModel(u, packageService));
 
             HasPendingRequests = supportRequestService.GetIssues()
-                .Where(issue => 
+                .Where(issue =>
                     (issue.UserKey.HasValue && issue.UserKey.Value == userToDelete.Key) &&
                     string.Equals(issue.IssueTitle, Strings.AccountDelete_SupportRequestTitle) &&
                     issue.Key != IssueStatusKeys.Resolved).Any();

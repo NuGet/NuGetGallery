@@ -389,7 +389,7 @@ namespace NuGetGallery.Services
             private Task SetupAndInvokeMethod(IReadOnlyList<Package> packages, bool sqlQuerySucceeds)
             {
                 var packageKeyStrings = string.Join(
-                    ", ", 
+                    ", ",
                     packages
                         .Select(p => p.Key)
                         .OrderBy(k => k));

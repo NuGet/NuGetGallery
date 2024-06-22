@@ -26,7 +26,7 @@ namespace NuGetGallery.Infrastructure.Search
         public async Task<HttpResponseMessage> GetAsync(string path, string queryString)
         {
             Stopwatch sw = Stopwatch.StartNew();
-            Uri searchUri = null; 
+            Uri searchUri = null;
             foreach(var client in _httpClients)
             {
                 searchUri = client.BaseAddress.AppendPathToUri(path, queryString);
@@ -45,8 +45,8 @@ namespace NuGetGallery.Infrastructure.Search
 
         private static HttpResponseMessage GetSearchServiceNotAvailableHttpResponseMessage(string path, string queryString)
         {
-            var content = new JObject( 
-                            new JProperty("data", 
+            var content = new JObject(
+                            new JProperty("data",
                                 new JObject(new JProperty("message", Strings.SearchServiceIsNotAvailable))));
 
             return new HttpResponseMessage()

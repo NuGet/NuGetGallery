@@ -197,7 +197,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
             listPackageItemViewModel.LatestStableVersionSemVer2 = true;
             Assert.False(listPackageItemViewModel.UseVersion);
         }
-        
+
         public class SignerInformation
         {
             private readonly User _user1;

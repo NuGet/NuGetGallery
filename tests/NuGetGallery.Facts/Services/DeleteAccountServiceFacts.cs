@@ -36,7 +36,7 @@ namespace NuGetGallery.Services
 
                 // Assert
                 await Assert.ThrowsAsync<ArgumentNullException>(() => deleteAccountService.DeleteAccountAsync(
-                    null, 
+                    null,
                     new User("AdminUser") { Key = Key++ },
                     orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans));
             }
@@ -136,7 +136,7 @@ namespace NuGetGallery.Services
                     Assert.Empty(testableService.DeletedAccounts);
                     Assert.NotEmpty(testableService.PackageOwnerRequests);
                     Assert.False(testableService.HasDeletedOwnerScope);
-                    Assert.Empty(testableService.AuditService.Records); 
+                    Assert.Empty(testableService.AuditService.Records);
                     Assert.NotNull(testUser.OrganizationMigrationRequest);
                     Assert.NotEmpty(testUser.OrganizationMigrationRequests);
                     Assert.NotEmpty(testUser.OrganizationRequests);
@@ -363,7 +363,7 @@ namespace NuGetGallery.Services
                 Assert.Empty(testableService.PackageOwnerRequests);
                 Assert.True(testableService.HasDeletedOwnerScope);
                 Assert.Single(testableService.AuditService.Records);
-                
+
                 var deleteRecord = testableService.AuditService.Records[0] as DeleteAccountAuditRecord;
                 Assert.True(deleteRecord != null);
             }
@@ -403,7 +403,7 @@ namespace NuGetGallery.Services
                 var newOwner = new User("newOwner");
                 newOwner.EmailAddress = "newOwner@email.com";
                 if (multipleOwners)
-                {                  
+                {
                     registration.Owners.Add(newOwner);
                 }
 
@@ -744,7 +744,7 @@ namespace NuGetGallery.Services
 
                 return packageDeleteRepository;
             }
-          
+
             private Mock<IEntityRepository<PackageDeprecation>> SetupDeprecationRepository()
             {
                 var deprecationRepository = new Mock<IEntityRepository<PackageDeprecation>>();
@@ -781,7 +781,7 @@ namespace NuGetGallery.Services
             private Mock<IEntityRepository<Scope>> SetupScopeRepository()
             {
                 var scopeRepository = new Mock<IEntityRepository<Scope>>();
-                
+
                 var user = new User("userWithApiKeyScopedToDeletedUser") { Key = 54325 };
                 var credential = new Credential("CredentialType", "CredentialValue") { User = user };
                 user.Credentials.Add(credential);

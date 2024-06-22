@@ -6,7 +6,7 @@ using NuGetGallery.Auditing.AuditedEntities;
 
 namespace NuGetGallery.Auditing
 {
-    public class FailedAuthenticatedOperationAuditRecord 
+    public class FailedAuthenticatedOperationAuditRecord
         : AuditRecord<AuditedAuthenticatedOperationAction>
     {
         private const string Path = "all";
@@ -16,10 +16,10 @@ namespace NuGetGallery.Auditing
         public CredentialAuditRecord AttemptedCredential { get; }
 
         public FailedAuthenticatedOperationAuditRecord(
-            string usernameOrEmail, 
+            string usernameOrEmail,
             AuditedAuthenticatedOperationAction action,
             AuditedPackageIdentifier attemptedPackage = null,
-            Credential attemptedCredential = null) 
+            Credential attemptedCredential = null)
             : base(action)
         {
             UsernameOrEmail = usernameOrEmail;

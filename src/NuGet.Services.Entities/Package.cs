@@ -200,7 +200,7 @@ namespace NuGet.Services.Entities
         public string NormalizedVersion { get; set; }
 
         /// <summary>
-        /// Gets or sets the minimum required SemVer level for consumers of this package, 
+        /// Gets or sets the minimum required SemVer level for consumers of this package,
         /// based on the Version property containing the original version string,
         /// or the dependency version ranges of this package.
         /// </summary>

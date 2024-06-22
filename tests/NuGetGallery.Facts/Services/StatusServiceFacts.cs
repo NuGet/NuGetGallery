@@ -77,7 +77,7 @@ namespace NuGetGallery.Services
                 var result = await statusTestService.IsAzureStorageAvailable();
 
                 // Assert
-                Assert.True(result.Value);    
+                Assert.True(result.Value);
             }
 
             [Theory]
@@ -210,7 +210,7 @@ namespace NuGetGallery.Services
                         AssertConfigLocationMode(_config, options);
                         // Just to go async.
                         await Task.Yield();
-                        throw new Exception("Boo"); 
+                        throw new Exception("Boo");
                     }
                 }
             }

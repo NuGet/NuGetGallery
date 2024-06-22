@@ -16,7 +16,7 @@ namespace NuGetGallery.Authentication
         /// The claim url for the claim that stores the serialized set of <see cref="NuGetGallery.Scope"/>s that the current <see cref="CredentialTypes.ApiKey"/> has access to.
         /// </summary>
         public const string Scope = ClaimsDomain + "scope";
-        
+
         /// <summary>
         /// The claim url for the claim that stores the <see cref="Credential.Key"/> of the <see cref="Credential"/> used to authenticate the request.
         /// </summary>

@@ -43,12 +43,12 @@ namespace NuGetGallery.Services
                                         foreach (var isPasswordDiscontinuedForAll in new[] { true, false })
                                         {
                                             yield return MemberDataHelper.AsData(
-                                                isOnWhiteList, 
-                                                isOnDomainList, 
-                                                isOnExceptionList, 
-                                                isOnTransformList, 
-                                                isOnTenantPairList, 
-                                                isWrongCase, 
+                                                isOnWhiteList,
+                                                isOnDomainList,
+                                                isOnExceptionList,
+                                                isOnTransformList,
+                                                isOnTenantPairList,
+                                                isWrongCase,
                                                 isPasswordDiscontinuedForAll);
                                         }
                                     }
@@ -63,30 +63,30 @@ namespace NuGetGallery.Services
         public static ILoginDiscontinuationConfiguration CreateConfiguration(WhitelistMethodData data)
         {
             return CreateConfiguration(
-                data.IsOnWhiteList, 
-                data.IsOnDomainList, 
-                data.IsOnExceptionList, 
-                data.IsOnTransformList, 
-                data.IsOnTenantPairList, 
-                data.IsWrongCase, 
+                data.IsOnWhiteList,
+                data.IsOnDomainList,
+                data.IsOnExceptionList,
+                data.IsOnTransformList,
+                data.IsOnTenantPairList,
+                data.IsWrongCase,
                 data.IsPasswordDiscontinuedForAll);
         }
 
         public static ILoginDiscontinuationConfiguration CreateConfiguration(
-            bool isOnWhiteList, 
-            bool isOnDomainList, 
-            bool isOnExceptionList, 
-            bool isOnTransformList, 
-            bool isOnTenantPairList, 
-            bool isWrongCase, 
+            bool isOnWhiteList,
+            bool isOnDomainList,
+            bool isOnExceptionList,
+            bool isOnTransformList,
+            bool isOnTenantPairList,
+            bool isWrongCase,
             bool isPasswordDiscontinuedForAll)
         {
             var emails = ToUppercaseIfWrongCase(new[] { isOnWhiteList ? _email : _incorrectEmail }, isWrongCase);
             var domains = ToUppercaseIfWrongCase(new[] { isOnDomainList ? _domain : _incorrectDomain }, isWrongCase);
             var exceptions = ToUppercaseIfWrongCase(new[] { isOnExceptionList ? _email : _incorrectException }, isWrongCase);
             var shouldTransforms = ToUppercaseIfWrongCase(new[] { isOnTransformList ? _email : _incorrectException }, isWrongCase);
-            var orgTenantPairs = ToUppercaseIfWrongCase(new[] { isOnTenantPairList 
-                ? new OrganizationTenantPair(_domain, _tenant) 
+            var orgTenantPairs = ToUppercaseIfWrongCase(new[] { isOnTenantPairList
+                ? new OrganizationTenantPair(_domain, _tenant)
                 : new OrganizationTenantPair(_incorrectDomain, _incorrectTenant) }, isWrongCase);
 
             return new LoginDiscontinuationConfiguration(emails, domains, exceptions, shouldTransforms, orgTenantPairs, isPasswordDiscontinuedForAll);
@@ -137,12 +137,12 @@ namespace NuGetGallery.Services
                                             foreach (var isPasswordDiscontinuedForAll in new[] { true, false })
                                             {
                                                 yield return MemberDataHelper.AsData(
-                                                    credentialPasswordType, 
-                                                    isOnWhiteList, 
-                                                    isOnDomainList, 
-                                                    isOnExceptionList, 
-                                                    isOnTransformList, 
-                                                    isWrongCase, 
+                                                    credentialPasswordType,
+                                                    isOnWhiteList,
+                                                    isOnDomainList,
+                                                    isOnExceptionList,
+                                                    isOnTransformList,
+                                                    isWrongCase,
                                                     isPasswordDiscontinuedForAll);
                                             }
                                         }
@@ -157,21 +157,21 @@ namespace NuGetGallery.Services
             [Theory]
             [MemberData(nameof(IfPasswordLoginReturnsTrueIfOnWhitelists_Data))]
             public void IfPasswordLoginReturnsTrueIfOnWhitelists(
-                string credentialPasswordType, 
-                bool isOnWhiteList, 
-                bool isOnDomainList, 
-                bool isOnExceptionList, 
-                bool isOnTransformList, 
-                bool isWrongCase, 
+                string credentialPasswordType,
+                bool isOnWhiteList,
+                bool isOnDomainList,
+                bool isOnExceptionList,
+                bool isOnTransformList,
+                bool isWrongCase,
                 bool isPasswordDiscontinuedForAll)
             {
                 TestIsLoginDiscontinued(
-                    credentialPasswordType, 
-                    isOnWhiteList, 
-                    isOnDomainList, 
-                    isOnExceptionList, 
-                    isOnTransformList, 
-                    isWrongCase, 
+                    credentialPasswordType,
+                    isOnWhiteList,
+                    isOnDomainList,
+                    isOnExceptionList,
+                    isOnTransformList,
+                    isWrongCase,
                     isPasswordDiscontinuedForAll,
                     expectedResult: (isPasswordDiscontinuedForAll || isOnWhiteList || isOnDomainList) && !isOnExceptionList);
             }
@@ -202,12 +202,12 @@ namespace NuGetGallery.Services
                                             foreach (var isPasswordDiscontinuedForAll in new[] { true, false })
                                             {
                                                 yield return MemberDataHelper.AsData(
-                                                    credentialType, 
-                                                    isOnWhiteList, 
-                                                    isOnDomainList, 
-                                                    isOnExceptionList, 
-                                                    isOnTransformList, 
-                                                    isWrongCase, 
+                                                    credentialType,
+                                                    isOnWhiteList,
+                                                    isOnDomainList,
+                                                    isOnExceptionList,
+                                                    isOnTransformList,
+                                                    isWrongCase,
                                                     isPasswordDiscontinuedForAll);
                                             }
                                         }
@@ -222,33 +222,33 @@ namespace NuGetGallery.Services
             [Theory]
             [MemberData(nameof(IfNotPasswordLoginReturnsFalse_Data))]
             public void IfNotPasswordLoginReturnsFalse(
-                string credentialType, 
-                bool isOnWhiteList, 
-                bool isOnDomainList, 
-                bool isOnExceptionList, 
-                bool isOnTransformList, 
-                bool isWrongCase, 
+                string credentialType,
+                bool isOnWhiteList,
+                bool isOnDomainList,
+                bool isOnExceptionList,
+                bool isOnTransformList,
+                bool isWrongCase,
                 bool isPasswordDiscontinuedForAll)
             {
                 TestIsLoginDiscontinued(
-                    credentialType, 
-                    isOnWhiteList, 
-                    isOnDomainList, 
-                    isOnExceptionList, 
-                    isOnTransformList, 
-                    isWrongCase, 
-                    isPasswordDiscontinuedForAll, 
+                    credentialType,
+                    isOnWhiteList,
+                    isOnDomainList,
+                    isOnExceptionList,
+                    isOnTransformList,
+                    isWrongCase,
+                    isPasswordDiscontinuedForAll,
                     expectedResult: false);
             }
 
             private void TestIsLoginDiscontinued(
-                string credentialType, 
-                bool isOnWhiteList, 
-                bool isOnDomainList, 
-                bool isOnExceptionList, 
-                bool isOnTransformList, 
-                bool isWrongCase, 
-                bool isPasswordDiscontinuedForAll, 
+                string credentialType,
+                bool isOnWhiteList,
+                bool isOnDomainList,
+                bool isOnExceptionList,
+                bool isOnTransformList,
+                bool isWrongCase,
+                bool isPasswordDiscontinuedForAll,
                 bool expectedResult)
             {
                 // Arrange
@@ -257,12 +257,12 @@ namespace NuGetGallery.Services
                 var authUser = new AuthenticatedUser(user, credential);
 
                 var config = CreateConfiguration(
-                    isOnWhiteList, 
-                    isOnDomainList, 
-                    isOnExceptionList, 
-                    isOnTransformList, 
-                    isOnTenantPairList: false, 
-                    isWrongCase: isWrongCase, 
+                    isOnWhiteList,
+                    isOnDomainList,
+                    isOnExceptionList,
+                    isOnTransformList,
+                    isOnTenantPairList: false,
+                    isWrongCase: isWrongCase,
                     isPasswordDiscontinuedForAll: isPasswordDiscontinuedForAll);
 
                 // Act
@@ -349,7 +349,7 @@ namespace NuGetGallery.Services
                 // Assert
                 Assert.Equal(false, isOnWhiteList);
                 Assert.Equal(false, shouldTransformIntoOrganization);
-                
+
                 foreach (var orgEmail in new[] { null, _email })
                 {
                     foreach (var orgTenant in new[] { null, _tenant })

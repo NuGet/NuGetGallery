@@ -12,7 +12,7 @@ namespace NuGetGallery
     public static class HttpRequestExtensions
     {
         /// <summary>
-        /// Retrieve culture of client. 
+        /// Retrieve culture of client.
         /// </summary>
         /// <param name="request">Current request.</param>
         /// <returns><c>null</c> if not to be determined.</returns>
@@ -20,9 +20,9 @@ namespace NuGetGallery
         {
             return DetermineClientCulture(new HttpRequestWrapper(request));
         }
-        
+
         /// <summary>
-        /// Retrieve culture of client. 
+        /// Retrieve culture of client.
         /// </summary>
         /// <param name="request">Current request.</param>
         /// <returns><c>null</c> if not to be determined.</returns>

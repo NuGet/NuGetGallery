@@ -25,7 +25,7 @@ namespace NuGetGallery.Security
         [Fact]
         public void Constructor_DefaultsToPackagePushSecurityPolicyAction()
         {
-            // Arrange            
+            // Arrange
             // Act
             var policyHandler = new RequirePackageMetadataCompliancePolicy();
 

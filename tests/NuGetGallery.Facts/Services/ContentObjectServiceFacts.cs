@@ -100,7 +100,7 @@ namespace NuGetGallery.Services
                     alwaysEnabledForDomains: alwaysEnabledForDomains,
                     alwaysEnabledForEmailAddresses: alwaysEnabledForEmailAddresses);
                 var symbolsJson = JsonConvert.SerializeObject(symbolsConfiguration);
-                
+
                 var packageIdChecklistLength = 20000;
                 var packageIdChecklistCacheExpireTimeInHours = 12.0;
 

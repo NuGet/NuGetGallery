@@ -21,7 +21,7 @@ namespace NuGetGallery
             Id = packageMetadata.Id;
             Version = packageMetadata.Version.ToFullStringSafe();
             OriginalVersion = packageMetadata.Version.OriginalVersion;
-            
+
             // Verifiable fields
             Language = packageMetadata.Language;
             MinClientVersionDisplay = packageMetadata.MinClientVersion.ToFullStringSafe();

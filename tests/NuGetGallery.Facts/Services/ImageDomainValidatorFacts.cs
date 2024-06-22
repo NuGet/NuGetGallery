@@ -41,7 +41,7 @@ namespace NuGetGallery.Services
             {
                 _contentObjectService
                     .Setup(x => x.TrustedImageDomains.IsImageDomainTrusted(It.IsAny<string>()))
-                    .Returns(istrusted); 
+                    .Returns(istrusted);
                 Assert.Equal(expectConversion, _imageDomainValidator.TryPrepareImageUrlForRendering(input, out string readyUriString));
                 Assert.Equal(expectedOutput, readyUriString);
             }

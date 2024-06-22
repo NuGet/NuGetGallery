@@ -44,7 +44,7 @@ namespace NuGetGallery.Infrastructure.Authentication
             {
                 throw new ArgumentException("Invalid format for ApiKey V1/V2");
             }
-            
+
             apiKeyV3.HashedApiKey = apiKeyV3.IdPart + V3Hasher.GenerateHash(apiKeyV3.PasswordPart);
 
             return apiKeyV3;
@@ -61,7 +61,7 @@ namespace NuGetGallery.Infrastructure.Authentication
         }
 
         /// <summary>
-        /// Verified this ApiKey with provided hashed ApiKey. 
+        /// Verified this ApiKey with provided hashed ApiKey.
         /// </summary>
         public bool Verify(string hashedApiKey)
         {

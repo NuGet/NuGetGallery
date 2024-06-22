@@ -12,8 +12,8 @@ namespace NuGetGallery
     public static class ZipArchiveHelpers
     {
         /// <summary>
-        /// This method checks all the <see cref="ZipArchiveEntry"/> in a given 
-        /// <see cref="Stream"/> if it has an entry with a future datetime or a double slash in the path, 
+        /// This method checks all the <see cref="ZipArchiveEntry"/> in a given
+        /// <see cref="Stream"/> if it has an entry with a future datetime or a double slash in the path,
         /// it will return the first entry found in the future or with a double slash in the path.
         /// </summary>
         /// <param name="stream"><see cref="Stream"/> object to verify</param>

@@ -23,12 +23,12 @@ namespace NuGetGallery
                 args.Context = (ObjectContext)table.CreateContext();
             };
 
-            // Set the search data fields to all the string columns 
+            // Set the search data fields to all the string columns
             var searchExpression = (SearchExpression)GridQueryExtender.Expressions[1];
             searchExpression.DataFields = String.Join(",", table.Columns.Where(c => c.IsString).Select(c => c.Name));
             if (string.IsNullOrEmpty(searchExpression.DataFields))
             {
-                // No string fields, remove the search elements 
+                // No string fields, remove the search elements
                 SearchPanel.Visible = false;
                 GridQueryExtender.Expressions.Remove(searchExpression);
             }

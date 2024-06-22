@@ -9,7 +9,7 @@ using NuGetGallery.Infrastructure.Search;
 
 namespace NuGetGallery
 {
-    public class AutocompleteServicePackageIdsQuery 
+    public class AutocompleteServicePackageIdsQuery
         : AutocompleteServiceQuery, IAutocompletePackageIdsQuery
     {
         public AutocompleteServicePackageIdsQuery(IAppConfiguration configuration, IResilientSearchClient resilientSearchClient)
@@ -18,7 +18,7 @@ namespace NuGetGallery
         }
 
         public async Task<IReadOnlyList<string>> Execute(
-            string partialId, 
+            string partialId,
             bool? includePrerelease,
             bool? includeTestData,
             string semVerLevel = null)

@@ -24,7 +24,7 @@ namespace NuGetGallery.Services
                 id == _packageVulnerable.PackageRegistration.Id
                     ? new Dictionary<int, IReadOnlyList<PackageVulnerability>> {
                         { _packageVulnerable.Key, new List<PackageVulnerability> { _vulnerabilityModerate } }
-                    } 
+                    }
                     : null
             );
 

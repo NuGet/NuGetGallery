@@ -126,7 +126,7 @@ namespace NuGetGallery
             [Fact]
             public async Task WillReturnMissingPackageForDeletedPackage()
             {
-                // Arrange 
+                // Arrange
                 var packageService = new Mock<IPackageService>();
                 Package package = new Package() { PackageStatusKey = PackageStatus.Deleted };
                 packageService
@@ -146,7 +146,7 @@ namespace NuGetGallery
             [Fact]
             public async Task WillReturnSymbolPackageExistsForPendingValidation()
             {
-                // Arrange 
+                // Arrange
                 var packageService = new Mock<IPackageService>();
                 Package package = new Package() { PackageStatusKey = PackageStatus.Available };
                 var symbolPackage = new SymbolPackage() { Package = package, Key = 10, StatusKey = PackageStatus.Validating };
@@ -168,7 +168,7 @@ namespace NuGetGallery
             [Fact]
             public async Task WillReturnInvalidWhenSynchronousSymbolValidationsFailAndTrackTelemetry()
             {
-                // Arrange 
+                // Arrange
                 Package package = new Package() { PackageStatusKey = PackageStatus.Available };
                 var packageService = new Mock<IPackageService>();
                 packageService
@@ -197,7 +197,7 @@ namespace NuGetGallery
             [Fact]
             public async Task WillReturnAcceptedForValidPackage()
             {
-                // Arrange 
+                // Arrange
                 Package package = new Package() { PackageStatusKey = PackageStatus.Available };
                 var packageService = new Mock<IPackageService>();
                 packageService
@@ -272,7 +272,7 @@ namespace NuGetGallery
                     .Setup(x => x.EnsureValidAsync(It.IsAny<PackageArchiveReader>()))
                     .Completes();
                 var service = CreateService(packageService: packageService, symbolPackageService: symbolPackageService);
-                
+
                 var symbolPackageStream = CreateSymbolPackageStreamWithEntries(entryNames);
 
                 // Act
