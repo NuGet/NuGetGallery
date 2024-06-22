@@ -19,8 +19,7 @@ namespace NuGetGallery
                 return true;
             }
 
-            object versionValue;
-            if (!values.TryGetValue(parameterName, out versionValue))
+            if (!values.TryGetValue(parameterName, out var versionValue))
             {
                 return true;
             }

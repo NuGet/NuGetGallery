@@ -18,8 +18,7 @@ namespace NuGetGallery.Auditing
         /// <returns></returns>
         public static string ObfuscateIp(string IP)
         {
-            IPAddress address;
-            if (IPAddress.TryParse(IP, out address))
+            if (IPAddress.TryParse(IP, out var address))
             {
                 var bytes = address.GetAddressBytes();
                 //If the length 4 is IPV4 if the length is 16 IPV6 

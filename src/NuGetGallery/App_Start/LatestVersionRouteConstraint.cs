@@ -15,8 +15,7 @@ namespace NuGetGallery
         /// <inheritdoc />
         public bool Match(HttpContextBase httpContext, Route route, string parameterName, RouteValueDictionary values, RouteDirection routeDirection)
         {
-            object versionValue;
-            if (!values.TryGetValue(parameterName, out versionValue))
+            if (!values.TryGetValue(parameterName, out var versionValue))
             {
                 return true;
             }

@@ -61,8 +61,7 @@ namespace NuGetGallery.Infrastructure
         {
             // This can occasionally fail because someone didn't finish creating the entity yet.
 
-            EntityProperty value;
-            if (properties.TryGetValue("SerializedError", out value))
+            if (properties.TryGetValue("SerializedError", out var value))
             {
                 Error = ErrorXml.DecodeString(value.StringValue);
             }

@@ -122,8 +122,7 @@ namespace NuGetGallery
                 lastEdited = DateTime.Parse(doc.Get("LastEdited"), CultureInfo.InvariantCulture);
             }
 
-            bool hideLicenseReport;
-            if (!Boolean.TryParse(doc.Get("HideLicenseReport") ?? "false", out hideLicenseReport))
+            if (!Boolean.TryParse(doc.Get("HideLicenseReport") ?? "false", out var hideLicenseReport))
             {
                 hideLicenseReport = false;
             }

@@ -32,8 +32,7 @@ namespace NuGetGallery
             }
 
             User user = null;
-            object obj;
-            if (self.Environment.TryGetValue(CurrentUserOwinEnvironmentKey, out obj))
+            if (self.Environment.TryGetValue(CurrentUserOwinEnvironmentKey, out var obj))
             {
                 user = obj as User;
             }

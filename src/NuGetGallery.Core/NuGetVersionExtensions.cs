@@ -11,8 +11,7 @@ namespace NuGetGallery
     {
         public static string Normalize(string version)
         {
-            NuGetVersion parsed;
-            if (!NuGetVersion.TryParse(version, out parsed))
+            if (!NuGetVersion.TryParse(version, out var parsed))
             {
                 return version;
             }
@@ -22,8 +21,7 @@ namespace NuGetGallery
 
         public static string ToFullString(string version)
         {
-            NuGetVersion nugetVersion;
-            if (NuGetVersion.TryParse(version, out nugetVersion))
+            if (NuGetVersion.TryParse(version, out var nugetVersion))
             {
                 return nugetVersion.ToFullString();
             }

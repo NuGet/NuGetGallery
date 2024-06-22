@@ -120,9 +120,7 @@ namespace NuGetGallery.Authentication
                     return new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.BadCredentials);
                 }
 
-                int remainingMinutes;
-
-                if (IsAccountLocked(user, out remainingMinutes))
+                if (IsAccountLocked(user, out var remainingMinutes))
                 {
                     _trace.Information($"Login failed. User account is locked for the next {remainingMinutes} minutes.");
 
@@ -131,8 +129,7 @@ namespace NuGetGallery.Authentication
                 }
 
                 // Validate the password
-                Credential matched;
-                if (!ValidatePasswordCredential(user.Credentials, password, out matched))
+                if (!ValidatePasswordCredential(user.Credentials, password, out var matched))
                 {
                     _trace.Information("Password validation failed.");
 
@@ -605,9 +602,7 @@ namespace NuGetGallery.Authentication
 
         public virtual ActionResult Challenge(string providerName, string redirectUrl, AuthenticationPolicy policy = null)
         {
-            Authenticator provider;
-
-            if (!Authenticators.TryGetValue(providerName, out provider))
+            if (!Authenticators.TryGetValue(providerName, out var provider))
             {
                 throw new InvalidOperationException(string.Format(
                     CultureInfo.CurrentCulture,
@@ -879,8 +874,7 @@ namespace NuGetGallery.Authentication
             string prefix = splitted[0];
             string subtype = credentialType.Substring(splitted[0].Length + 1);
 
-            Func<string, string> formatter;
-            if (!_credentialFormatters.TryGetValue(prefix, out formatter))
+            if (!_credentialFormatters.TryGetValue(prefix, out var formatter))
             {
                 return credentialType;
             }
@@ -889,8 +883,7 @@ namespace NuGetGallery.Authentication
 
         private string FormatExternalCredentialType(string externalType)
         {
-            Authenticator authenticator;
-            if (!Authenticators.TryGetValue(externalType, out authenticator))
+            if (!Authenticators.TryGetValue(externalType, out var authenticator))
             {
                 return externalType;
             }

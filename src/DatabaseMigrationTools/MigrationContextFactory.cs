@@ -40,8 +40,7 @@ namespace NuGetGallery.DatabaseMigrationTools
 
         public async Task<IMigrationContext> CreateMigrationContextAsync(string migrationTargetDatabase, IServiceProvider serviceProvider)
         {
-            Func<IServiceProvider, Task<IMigrationContext>> migrationContext;
-            if (_dictionary.TryGetValue(migrationTargetDatabase, out migrationContext))
+            if (_dictionary.TryGetValue(migrationTargetDatabase, out var migrationContext))
             {
                 return await migrationContext(serviceProvider);
             }

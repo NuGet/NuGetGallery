@@ -40,8 +40,7 @@ namespace NuGetGallery.OData
 
         protected virtual HttpContextBase GetTraditionalHttpContext()
         {
-            object context;
-            if (Request.Properties.TryGetValue("MS_HttpContext", out context))
+            if (Request.Properties.TryGetValue("MS_HttpContext", out var context))
             {
                 var httpContext = context as HttpContext;
                 if (httpContext != null)

@@ -436,8 +436,7 @@ namespace NuGetGallery
             bool f = true;
             if (Request != null && Request.Browser != null && Request.Browser.Browser == "IE")
             {
-                float version;
-                if (float.TryParse(Request.Browser.Version, out version))
+                if (float.TryParse(Request.Browser.Version, out var version))
                 {
                     f = version > 8.0;
                 }

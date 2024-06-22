@@ -199,8 +199,7 @@ namespace GalleryTools.Commands
                         continue;
                     }
 
-                    NuGetVersion version;
-                    if (string.IsNullOrWhiteSpace(unparsedVersion) || !NuGetVersion.TryParse(unparsedVersion, out version))
+                    if (string.IsNullOrWhiteSpace(unparsedVersion) || !NuGetVersion.TryParse(unparsedVersion, out var version))
                     {
                         Console.WriteLine($"Line {lineNumber}: Ignoring invalid version.");
                         continue;

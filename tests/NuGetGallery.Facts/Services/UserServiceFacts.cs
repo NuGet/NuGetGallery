@@ -1589,8 +1589,7 @@ namespace NuGetGallery
                     .Returns(passwordConfigMock.Object);
 
                 // Act
-                string errorReason;
-                var result = service.CanTransformUserToOrganization(user, user, out errorReason);
+                var result = service.CanTransformUserToOrganization(user, user, out var errorReason);
 
                 // Assert
                 Assert.False(result);
@@ -1613,8 +1612,7 @@ namespace NuGetGallery
                     .Returns(passwordConfigMock.Object);
 
                 // Act
-                string errorReason;
-                var result = service.CanTransformUserToOrganization(user, unconfirmedUser, out errorReason);
+                var result = service.CanTransformUserToOrganization(user, unconfirmedUser, out var errorReason);
 
                 // Assert
                 Assert.False(result);
@@ -1637,8 +1635,7 @@ namespace NuGetGallery
                     .Returns(passwordConfigMock.Object);
 
                 // Act
-                string errorReason;
-                var result = service.CanTransformUserToOrganization(user, organization, out errorReason);
+                var result = service.CanTransformUserToOrganization(user, organization, out var errorReason);
 
                 // Assert
                 Assert.False(result);

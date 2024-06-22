@@ -125,7 +125,6 @@ namespace NuGetGallery.OData
                    string version,
                    string semVerLevel)
         {
-            SearchFilter searchFilter;
             // We can only use Lucene if:
             //  a) The Index contains all versions of each package
             //  b) The sort order is something Lucene can handle
@@ -134,7 +133,7 @@ namespace NuGetGallery.OData
                 request.RawUrl,
                 searchService.ContainsAllVersions,
                 SortOrder.CreatedAscending,
-                out searchFilter) && !string.IsNullOrWhiteSpace(id))
+                out var searchFilter) && !string.IsNullOrWhiteSpace(id))
             {
                 var normalizedRegistrationId = id.Normalize(NormalizationForm.FormC);
 
@@ -172,7 +171,6 @@ namespace NuGetGallery.OData
             bool includePrerelease,
             string semVerLevel)
         {
-            SearchFilter searchFilter;
             // We can only use Lucene if:
             //  a) We are looking for the latest version of a package OR the Index contains all versions of each package
             //  b) The sort order is something Lucene can handle
@@ -181,7 +179,7 @@ namespace NuGetGallery.OData
                 request.RawUrl,
                 ignoreLatestVersionFilter: false,
                 defaultSortOrder: SortOrder.Relevance,
-                searchFilter: out searchFilter))
+                searchFilter: out var searchFilter))
             {
                 searchFilter.SearchTerm = searchTerm;
                 searchFilter.IncludePrerelease = includePrerelease;
@@ -252,8 +250,7 @@ namespace NuGetGallery.OData
             }
 
             // We'll only use the index if we the query searches for latest / latest-stable packages *or* the index contains all versions
-            string filter;
-            if (queryTerms.TryGetValue("$filter", out filter))
+            if (queryTerms.TryGetValue("$filter", out var filter))
             {
                 if (!ignoreLatestVersionFilter 
                     && !(filter.Equals(ODataQueryFilter.IsLatestVersion, StringComparison.Ordinal) 
@@ -268,30 +265,25 @@ namespace NuGetGallery.OData
                 searchFilter = null;
                 return false;
             }
-            
-            string skipStr;
-            if (queryTerms.TryGetValue("$skip", out skipStr))
+
+            if (queryTerms.TryGetValue("$skip", out var skipStr))
             {
-                int skip;
-                if (int.TryParse(skipStr, out skip))
+                if (int.TryParse(skipStr, out var skip))
                 {
                     searchFilter.Skip = skip;
                 }
             }
 
-            string topStr;
-            if (queryTerms.TryGetValue("$top", out topStr))
+            if (queryTerms.TryGetValue("$top", out var topStr))
             {
-                int top;
-                if (int.TryParse(topStr, out top))
+                if (int.TryParse(topStr, out var top))
                 {
                     searchFilter.Take = Math.Max(top, MaxPageSize);
                 }
             }
 
             //  only certain orderBy clauses are supported from the Lucene search
-            string orderBy;
-            if (queryTerms.TryGetValue("$orderby", out orderBy))
+            if (queryTerms.TryGetValue("$orderby", out var orderBy))
             {
                 if (string.IsNullOrEmpty(orderBy))
                 {

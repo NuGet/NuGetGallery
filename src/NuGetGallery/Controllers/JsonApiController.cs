@@ -171,8 +171,7 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public async Task<JsonResult> RemovePackageOwner(string id, string username)
         {
-            ManagePackageOwnerModel model;
-            if (TryGetManagePackageOwnerModel(id, username, isAddOwner: false, model: out model))
+            if (TryGetManagePackageOwnerModel(id, username, isAddOwner: false, model: out var model))
             {
                 var request = _packageOwnershipManagementService.GetPackageOwnershipRequests(package: model.Package, newOwner: model.User).FirstOrDefault();
 

@@ -60,8 +60,7 @@ namespace NuGetGallery.Areas.Admin.DynamicData
 
         private static IEnumerable<MetaColumn> SortColumns(MetaTable table, IEnumerable<MetaColumn> columns)
         {
-            string[] order;
-            if (!SortOrders.TryGetValue(table.Name, out order))
+            if (!SortOrders.TryGetValue(table.Name, out var order))
             {
                 order = Array.Empty<string>();
             }

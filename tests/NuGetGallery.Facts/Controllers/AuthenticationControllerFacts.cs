@@ -2835,8 +2835,7 @@ namespace NuGetGallery.Controllers
                     new Credential { Type = providerUsedForLogin });
 
                 // Act
-                ActionResult challengeResult;
-                var result = controller.ShouldChallengeEnforcedProvider(enforcedProvider, authUser, null, out challengeResult);
+                var result = controller.ShouldChallengeEnforcedProvider(enforcedProvider, authUser, null, out var challengeResult);
 
                 // Assert
                 Assert.Equal(shouldChallenge, result);

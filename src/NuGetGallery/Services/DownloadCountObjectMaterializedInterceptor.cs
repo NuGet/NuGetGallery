@@ -35,8 +35,7 @@ namespace NuGetGallery
                 ? NuGetVersionFormatter.Normalize(package.Version)
                 : package.NormalizedVersion;
 
-            long downloadCount;
-            if (_downloadCountService.TryGetDownloadCountForPackage(package.PackageRegistration.Id, packageNormalizedVersion, out downloadCount))
+            if (_downloadCountService.TryGetDownloadCountForPackage(package.PackageRegistration.Id, packageNormalizedVersion, out var downloadCount))
             {
                 if (downloadCount < package.DownloadCount)
                 {
@@ -54,8 +53,7 @@ namespace NuGetGallery
                 return;
             }
 
-            long downloadCount;
-            if (_downloadCountService.TryGetDownloadCountForPackageRegistration(packageRegistration.Id, out downloadCount))
+            if (_downloadCountService.TryGetDownloadCountForPackageRegistration(packageRegistration.Id, out var downloadCount))
             {
                 if (downloadCount < packageRegistration.DownloadCount)
                 {

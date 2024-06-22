@@ -150,8 +150,7 @@ namespace NuGetGallery.Infrastructure.Search
 
         private static string GetValueFromContext(string contextKey, Context context)
         {
-            object objValue = null;
-            return context.TryGetValue(contextKey, out objValue) ? objValue.ToString() : string.Empty;
+            return context.TryGetValue(contextKey, out var objValue) ? objValue.ToString() : string.Empty;
         }
     }
 }

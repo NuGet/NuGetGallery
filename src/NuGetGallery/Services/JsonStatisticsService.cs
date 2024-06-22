@@ -474,8 +474,7 @@ namespace NuGetGallery
                     var clientVersion = (string)perClient["ClientVersion"];
                     var operation = "unknown";
 
-                    JToken opt;
-                    if (perClient.TryGetValue("Operation", out opt))
+                    if (perClient.TryGetValue("Operation", out var opt))
                     {
                         operation = (string)opt;
                     }

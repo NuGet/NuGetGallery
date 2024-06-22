@@ -106,8 +106,7 @@ namespace NuGetGallery.Controllers
             try
             {
                 var searchService = _searchServiceFactory.GetService();
-                HijackableQueryParameters hijackableQueryParameters = null;
-                if (searchService is ExternalSearchService && SearchHijacker.IsHijackable(options, out hijackableQueryParameters))
+                if (searchService is ExternalSearchService && SearchHijacker.IsHijackable(options, out var hijackableQueryParameters))
                 {
                     var searchAdaptorResult = await SearchAdaptor.FindByIdAndVersionCore(
                         searchService,
@@ -285,8 +284,7 @@ namespace NuGetGallery.Controllers
 
             if (!string.IsNullOrEmpty(version))
             {
-                NuGetVersion nugetVersion;
-                if (NuGetVersion.TryParse(version, out nugetVersion))
+                if (NuGetVersion.TryParse(version, out var nugetVersion))
                 {
                     // Our APIs expect to receive normalized version strings.
                     // We need to compare normalized versions or we can never retrieve SemVer2 package versions.
@@ -617,8 +615,7 @@ namespace NuGetGallery.Controllers
 
             var versionLookup = idValues.Select((id, i) =>
             {
-                NuGetVersion currentVersion;
-                if (NuGetVersion.TryParse(versionValues[i], out currentVersion))
+                if (NuGetVersion.TryParse(versionValues[i], out var currentVersion))
                 {
                     VersionRange versionConstraint = null;
                     if (versionConstraintValues[i] != null)

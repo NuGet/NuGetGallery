@@ -20,9 +20,7 @@ namespace NuGetGallery.Infrastructure.Authentication
 
         public bool ValidatePasswordCredential(Credential credential, string providedPassword)
         {
-            Func<string, Credential, bool> validator;
-
-            if (!Validators.TryGetValue(credential.Type, out validator))
+            if (!Validators.TryGetValue(credential.Type, out var validator))
             {
                 return false;
             }

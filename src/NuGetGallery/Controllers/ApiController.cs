@@ -616,9 +616,7 @@ namespace NuGetGallery
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, message);
                             }
 
-                            NuspecReader nuspec;
-                            PackageMetadata packageMetadata;
-                            var errors = ManifestValidator.Validate(packageToPush.GetNuspec(), out nuspec, out packageMetadata).ToArray();
+                            var errors = ManifestValidator.Validate(packageToPush.GetNuspec(), out var nuspec, out var packageMetadata).ToArray();
                             if (errors.Length > 0)
                             {
                                 var errorsString = string.Join("', '", errors.Select(error => error.ErrorMessage));

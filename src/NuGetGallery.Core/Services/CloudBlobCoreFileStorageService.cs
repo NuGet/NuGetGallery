@@ -551,8 +551,7 @@ namespace NuGetGallery
 
         protected async Task<ICloudBlobContainer> GetContainerAsync(string folderName)
         {
-            ICloudBlobContainer container;
-            if (_containers.TryGetValue(folderName, out container))
+            if (_containers.TryGetValue(folderName, out var container))
             {
                 return container;
             }

@@ -84,8 +84,7 @@ namespace NuGetGallery.Packaging
                 throw new FormatException(string.Format(CoreStrings.PackageMetadata_VersionStringInvalid, versionString));
             }
 
-            NuGetVersion nugetVersion;
-            if (NuGetVersion.TryParse(versionString, out nugetVersion))
+            if (NuGetVersion.TryParse(versionString, out var nugetVersion))
             {
                 Version = nugetVersion;
             }
@@ -184,8 +183,7 @@ namespace NuGetGallery.Packaging
         {
             var value = GetValue(key, alternateValue.ToString());
 
-            bool result;
-            if (bool.TryParse(value, out result))
+            if (bool.TryParse(value, out var result))
             {
                 return result;
             }
@@ -198,8 +196,7 @@ namespace NuGetGallery.Packaging
             var value = GetValue(key, (string)null);
             if (!string.IsNullOrEmpty(value))
             {
-                Uri result;
-                if (Uri.TryCreate(value, UriKind.Absolute, out result))
+                if (Uri.TryCreate(value, UriKind.Absolute, out var result))
                 {
                     return result;
                 }

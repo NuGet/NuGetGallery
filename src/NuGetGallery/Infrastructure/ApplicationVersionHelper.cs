@@ -98,13 +98,12 @@ namespace NuGetGallery
                 string dateString = TryGet(metadata, "BuildDateUtc");
                 string repoUriString = TryGet(metadata, "RepositoryUrl");
 
-                DateTime buildDate;
-                if (!DateTime.TryParse(dateString, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out buildDate))
+                if (!DateTime.TryParse(dateString, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var buildDate))
                 {
                     buildDate = DateTime.MinValue;
                 }
-                Uri repoUri;
-                if (!Uri.TryCreate(repoUriString, UriKind.Absolute, out repoUri))
+
+                if (!Uri.TryCreate(repoUriString, UriKind.Absolute, out var repoUri))
                 {
                     repoUri = null;
                 }
@@ -124,8 +123,7 @@ namespace NuGetGallery
 
         private static string TryGet(Dictionary<string, string> metadata, string key)
         {
-            string val;
-            if (!metadata.TryGetValue(key, out val))
+            if (!metadata.TryGetValue(key, out var val))
             {
                 return String.Empty;
             }

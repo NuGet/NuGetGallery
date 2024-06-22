@@ -23,8 +23,7 @@ namespace NuGetGallery.Telemetry
             route.Values.Add("action", action);
 
             // Act
-            string operation;
-            bool result = QuietLog.IsPIIRoute(route, out operation);
+            bool result = QuietLog.IsPIIRoute(route, out var operation);
 
             // Assert
             Assert.True(result);

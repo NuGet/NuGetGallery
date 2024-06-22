@@ -146,8 +146,7 @@ namespace NuGetGallery
         {
             var accountToTransform = GetCurrentUser();
 
-            string errorReason;
-            if (!UserService.CanTransformUserToOrganization(accountToTransform, out errorReason))
+            if (!UserService.CanTransformUserToOrganization(accountToTransform, out var errorReason))
             {
                 return TransformToOrganizationFailed(errorReason);
             }

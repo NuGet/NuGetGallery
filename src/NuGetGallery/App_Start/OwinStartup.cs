@@ -109,24 +109,21 @@ namespace NuGetGallery
             var tds = new TraceDiagnosticsSource(nameof(OwinStartup), dependencyResolver.GetService<ITelemetryClient>());
             if (config.Current.MaxWorkerThreads.HasValue && config.Current.MaxIoThreads.HasValue)
             {
-                int defaultMaxWorkerThreads, defaultMaxIoThreads;
-                ThreadPool.GetMaxThreads(out defaultMaxWorkerThreads, out defaultMaxIoThreads);
+                ThreadPool.GetMaxThreads(out var defaultMaxWorkerThreads, out var defaultMaxIoThreads);
                 tds.Information($"Default maxWorkerThreads: {defaultMaxWorkerThreads}, maxIoThreads: {defaultMaxIoThreads}");
                 var success = ThreadPool.SetMaxThreads(config.Current.MaxWorkerThreads.Value, config.Current.MaxIoThreads.Value);
                 tds.Information($"Attempt to update max threads to {config.Current.MaxWorkerThreads.Value}, {config.Current.MaxIoThreads.Value}, success: {success}");
             }
             if (config.Current.MinWorkerThreads.HasValue && config.Current.MinIoThreads.HasValue)
             {
-                int defaultMinWorkerThreads, defaultMinIoThreads;
-                ThreadPool.GetMinThreads(out defaultMinWorkerThreads, out defaultMinIoThreads);
+                ThreadPool.GetMinThreads(out var defaultMinWorkerThreads, out var defaultMinIoThreads);
                 tds.Information($"Default minWorkerThreads: {defaultMinWorkerThreads}, minIoThreads: {defaultMinIoThreads}");
                 var success = ThreadPool.SetMinThreads(config.Current.MinWorkerThreads.Value, config.Current.MinIoThreads.Value);
                 tds.Information($"Attempt to update min threads to {config.Current.MinWorkerThreads.Value}, {config.Current.MinIoThreads.Value}, success: {success}");
             }
 
             // Get the local user auth provider, if present and attach it first
-            Authenticator localUserAuthenticator;
-            if (auth.Authenticators.TryGetValue(Authenticator.GetName(typeof(LocalUserAuthenticator)), out localUserAuthenticator))
+            if (auth.Authenticators.TryGetValue(Authenticator.GetName(typeof(LocalUserAuthenticator)), out var localUserAuthenticator))
             {
                 // Configure cookie auth now
                 localUserAuthenticator.Startup(config, app).Wait();

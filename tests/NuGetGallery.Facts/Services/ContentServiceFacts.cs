@@ -175,8 +175,7 @@ namespace NuGetGallery.Services
 
             public ContentItem GetCached(string key)
             {
-                ContentItem item;
-                if (!ContentCache.TryGetValue(key, out item))
+                if (!ContentCache.TryGetValue(key, out var item))
                 {
                     return null;
                 }

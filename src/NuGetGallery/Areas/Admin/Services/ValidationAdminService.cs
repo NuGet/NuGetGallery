@@ -233,8 +233,7 @@ namespace NuGetGallery.Areas.Admin.Services
             if (line.Contains(' '))
             {
                 var pieces = line.Split(' ');
-                NuGetVersion version;
-                if (NuGetVersion.TryParse(pieces[1], out version))
+                if (NuGetVersion.TryParse(pieces[1], out var version))
                 {
                     var normalizedVersion = version.ToNormalizedString();
                     var id = pieces[0];

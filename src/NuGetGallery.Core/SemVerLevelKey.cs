@@ -89,8 +89,7 @@ namespace NuGetGallery
                     // Check the package dependencies for SemVer-compliance.
                     // As soon as a SemVer2-compliant dependency version is found that is not SemVer1-compliant,
                     // this package in itself is to be identified as to have SemVerLevelKey.SemVer2.
-                    VersionRange dependencyVersionRange;
-                    if (dependency.VersionSpec != null && VersionRange.TryParse(dependency.VersionSpec, out dependencyVersionRange))
+                    if (dependency.VersionSpec != null && VersionRange.TryParse(dependency.VersionSpec, out var dependencyVersionRange))
                     {
                         if ((dependencyVersionRange.MinVersion != null && dependencyVersionRange.MinVersion.IsSemVer2)
                             || (dependencyVersionRange.MaxVersion != null && dependencyVersionRange.MaxVersion.IsSemVer2))
@@ -122,8 +121,7 @@ namespace NuGetGallery
                 return Unknown;
             }
 
-            NuGetVersion parsedVersion;
-            if (NuGetVersion.TryParse(semVerLevel, out parsedVersion))
+            if (NuGetVersion.TryParse(semVerLevel, out var parsedVersion))
             {
                 return _semVer2Version <= parsedVersion ? SemVer2 : Unknown;
             }

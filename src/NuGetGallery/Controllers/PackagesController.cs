@@ -321,8 +321,7 @@ namespace NuGetGallery
             var packageForUploadingSymbols = symbolsPackageValidationResult.Package;
             var existingPackageRegistration = packageForUploadingSymbols.PackageRegistration;
 
-            IEnumerable<User> accountsAllowedOnBehalfOf = Enumerable.Empty<User>();
-            bool isAllowed = ActionsRequiringPermissions.UploadSymbolPackage.CheckPermissionsOnBehalfOfAnyAccount(currentUser, existingPackageRegistration, out accountsAllowedOnBehalfOf) == PermissionsCheckResult.Allowed;
+            bool isAllowed = ActionsRequiringPermissions.UploadSymbolPackage.CheckPermissionsOnBehalfOfAnyAccount(currentUser, existingPackageRegistration, out var accountsAllowedOnBehalfOf) == PermissionsCheckResult.Allowed;
             if (!isAllowed)
             {
                 accountsAllowedOnBehalfOf = new[] { currentUser };
@@ -418,9 +417,7 @@ namespace NuGetGallery
                 try
                 {
                     PackageArchiveReader packageArchiveReader = CreatePackage(uploadStream);
-                    NuspecReader nuspec;
-                    PackageMetadata packageMetadata;
-                    var errors = ManifestValidator.Validate(packageArchiveReader.GetNuspec(), out nuspec, out packageMetadata).ToArray();
+                    var errors = ManifestValidator.Validate(packageArchiveReader.GetNuspec(), out var nuspec, out var packageMetadata).ToArray();
                     if (errors.Length > 0)
                     {
                         var errorStrings = new List<JsonValidationMessage>();
@@ -461,8 +458,6 @@ namespace NuGetGallery
         {
             var currentUser = GetCurrentUser();
 
-            IEnumerable<User> accountsAllowedOnBehalfOf = new[] { currentUser };
-
             var symbolsPackageValidationResult = await _symbolPackageUploadService.ValidateUploadedSymbolsPackage(uploadStream, currentUser);
             var uploadResult = GetJsonResultOrNull(symbolsPackageValidationResult);
             if (uploadResult != null)
@@ -476,7 +471,7 @@ namespace NuGetGallery
             // Evaluate the permissions for user on behalf of any account possible, since the user 
             // could change the ownership before submitting the package.
             if (ActionsRequiringPermissions.UploadSymbolPackage.CheckPermissionsOnBehalfOfAnyAccount(
-                currentUser, existingPackageRegistration, out accountsAllowedOnBehalfOf) != PermissionsCheckResult.Allowed)
+                currentUser, existingPackageRegistration, out var accountsAllowedOnBehalfOf) != PermissionsCheckResult.Allowed)
             {
                 return Json(HttpStatusCode.Conflict, new[] {
                     new JsonValidationMessage(string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, existingPackageRegistration.Id)) });

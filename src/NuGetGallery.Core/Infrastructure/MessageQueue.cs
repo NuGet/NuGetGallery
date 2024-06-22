@@ -39,15 +39,13 @@ namespace NuGetGallery
                 throw new InvalidOperationException("Items cannot be read from the EventQueue unless it is enabled!");
             }
 
-            ConcurrentQueue<object> queue;
-            if (!_queues.TryGetValue(queueName, out queue))
+            if (!_queues.TryGetValue(queueName, out var queue))
             {
                 yield break;
             }
             
             // Dump the queue
-            object item;
-            while (queue.TryDequeue(out item))
+            while (queue.TryDequeue(out var item))
             {
                 yield return (T)item;
             }

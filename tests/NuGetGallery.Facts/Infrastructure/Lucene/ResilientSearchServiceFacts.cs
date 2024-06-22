@@ -31,11 +31,9 @@ namespace NuGet.Services.Search.Client
                 string baseAddress2 = "https://foo222.com";
                 Uri u1 = new Uri($"{baseAddress1}/{path}?{queryString}");
                 Uri u2 = new Uri($"{baseAddress2}/{path}?{queryString}");
-                Mock<IHttpClientWrapper> mockISearchHttpClient1;
-                Mock<IHttpClientWrapper> mockISearchHttpClient2;
                 var resilientTestClient = GetResilientSearchClient(baseAddress1, baseAddress2,
                     GetResponseMessage(u1, HttpStatusCode.BadRequest), GetResponseMessage(u2, HttpStatusCode.BadRequest),
-                    out mockISearchHttpClient1, out mockISearchHttpClient2);
+                    out var mockISearchHttpClient1, out var mockISearchHttpClient2);
 
                 // Act
                 var result = await resilientTestClient.GetAsync(path, queryString);
@@ -59,11 +57,9 @@ namespace NuGet.Services.Search.Client
                 string baseAddress2 = "https://foo222.com";
                 Uri u1 = new Uri($"{baseAddress1}/{path}?{queryString}");
                 Uri u2 = new Uri($"{baseAddress2}/{path}?{queryString}");
-                Mock<IHttpClientWrapper> mockISearchHttpClient1;
-                Mock<IHttpClientWrapper> mockISearchHttpClient2;
                 var response1 = GetResponseMessage(u1, HttpStatusCode.OK);
                 var response2 = GetResponseMessage(u2, HttpStatusCode.OK);
-                var resilientTestClient = GetResilientSearchClient(baseAddress1, baseAddress2, response1, response2, out mockISearchHttpClient1, out mockISearchHttpClient2);
+                var resilientTestClient = GetResilientSearchClient(baseAddress1, baseAddress2, response1, response2, out var mockISearchHttpClient1, out var mockISearchHttpClient2);
 
                 // Act
                 var result = await resilientTestClient.GetAsync(path, queryString);
@@ -84,11 +80,9 @@ namespace NuGet.Services.Search.Client
                 string baseAddress2 = "https://foo222.com";
                 Uri u1 = new Uri($"{baseAddress1}/{path}?{queryString}");
                 Uri u2 = new Uri($"{baseAddress2}/{path}?{queryString}");
-                Mock<IHttpClientWrapper> mockISearchHttpClient1;
-                Mock<IHttpClientWrapper> mockISearchHttpClient2;
                 var response1 = GetResponseMessage(u1, HttpStatusCode.ServiceUnavailable);
                 var response2 = GetResponseMessage(u2, HttpStatusCode.OK);
-                var resilientTestClient = GetResilientSearchClient(baseAddress1, baseAddress2, response1, response2, out mockISearchHttpClient1, out mockISearchHttpClient2);
+                var resilientTestClient = GetResilientSearchClient(baseAddress1, baseAddress2, response1, response2, out var mockISearchHttpClient1, out var mockISearchHttpClient2);
 
                 // Act
                 var result = await resilientTestClient.GetAsync(path, queryString);

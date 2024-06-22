@@ -36,8 +36,7 @@ namespace NuGetGallery.Helpers
                     return new KeyValuePair<object, string>(v, description);
                 }).ToDictionary(p => p.Key, p => p.Value));
 
-            string desc;
-            if (descriptions == null || !descriptions.TryGetValue(value, out desc))
+            if (descriptions == null || !descriptions.TryGetValue(value, out var desc))
             {
                 return value.ToString();
             }

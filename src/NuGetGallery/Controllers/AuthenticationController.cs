@@ -195,9 +195,8 @@ namespace NuGetGallery
 
             // If we are an administrator and Gallery.EnforcedAuthProviderForAdmin is set
             // to require a specific authentication provider, challenge that provider if needed.
-            ActionResult challenge;
             if (ShouldChallengeEnforcedProvider(
-                NuGetContext.Config.Current.EnforcedAuthProviderForAdmin, authenticatedUser, returnUrl, out challenge))
+                    NuGetContext.Config.Current.EnforcedAuthProviderForAdmin, authenticatedUser, returnUrl, out var challenge))
             {
                 return challenge;
             }
@@ -351,9 +350,8 @@ namespace NuGetGallery
 
             // If we are an administrator and Gallery.EnforcedAuthProviderForAdmin is set
             // to require a specific authentication provider, challenge that provider if needed.
-            ActionResult challenge;
             if (ShouldChallengeEnforcedProvider(
-                NuGetContext.Config.Current.EnforcedAuthProviderForAdmin, user, returnUrl, out challenge))
+                    NuGetContext.Config.Current.EnforcedAuthProviderForAdmin, user, returnUrl, out var challenge))
             {
                 return challenge;
             }
@@ -609,9 +607,8 @@ namespace NuGetGallery
             {
                 // If we are an administrator and Gallery.EnforcedAuthProviderForAdmin is set
                 // to require a specific authentication provider, challenge that provider if needed.
-                ActionResult challenge;
                 if (ShouldChallengeEnforcedProvider(
-                    NuGetContext.Config.Current.EnforcedAuthProviderForAdmin, result.Authentication, returnUrl, out challenge))
+                        NuGetContext.Config.Current.EnforcedAuthProviderForAdmin, result.Authentication, returnUrl, out var challenge))
                 {
                     return challenge;
                 }
