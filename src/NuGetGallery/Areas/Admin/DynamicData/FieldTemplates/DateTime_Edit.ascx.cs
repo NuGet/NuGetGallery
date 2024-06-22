@@ -36,8 +36,7 @@ namespace NuGetGallery
         }
     
         protected void DateValidator_ServerValidate(object source, ServerValidateEventArgs args) {
-            DateTime dummyResult;
-            args.IsValid = DateTime.TryParse(args.Value, out dummyResult);
+            args.IsValid = DateTime.TryParse(args.Value, out _);
         }
     
         protected override void ExtractValues(IOrderedDictionary dictionary) {

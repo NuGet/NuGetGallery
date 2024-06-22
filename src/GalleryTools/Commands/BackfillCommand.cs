@@ -269,7 +269,7 @@ namespace GalleryTools.Commands
 
                             await csv.NextRecordAsync();
 
-                            logger.LogPackage(package.Id, package.NormalizedVersion, $"Metadata saved");
+                            logger.LogPackage(package.Id, package.NormalizedVersion, "Metadata saved");
                         }
 
                         counter++;

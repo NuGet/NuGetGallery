@@ -13,7 +13,7 @@
     margin-bottom: @padding-large-vertical;
 
     .remove-owner a {
-      color: @brand-danger;
+      color: var(--statusDangerForeground3Rest);
 
       .ms-Icon {
         position: relative;
@@ -22,7 +22,7 @@
     }
 
     .remove-owner-disabled a {
-      color: @gray;
+      color: var(--neutralForegroundDisabledRest);
 
       .ms-Icon {
         position: relative;
@@ -31,11 +31,11 @@
     }
 
     .remove-owner a:hover, .remove-owner a:active {
-      color: darken(@brand-danger, 10%);
+      color: var(--statusDangerBackground3Hover);
     }
 
     .remove-owner-disabled a:hover, .remove-owner-disabled a:active {
-      color: darken(@gray, 10%);
+      cursor: @cursor-disabled;
     }
 
     .remove-owner-disabled .icon-link:hover span {

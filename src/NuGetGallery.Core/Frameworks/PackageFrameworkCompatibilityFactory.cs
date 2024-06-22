@@ -174,8 +174,7 @@ namespace NuGetGallery.Frameworks
             if (table.TryGetValue(productName, out var data))
             {
                 return data
-                        .Where(d => includeComputed || !d.IsComputed)
-                        .FirstOrDefault();
+                    .FirstOrDefault(d => includeComputed || !d.IsComputed);
             }
 
             return null;

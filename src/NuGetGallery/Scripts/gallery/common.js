@@ -38,10 +38,10 @@
         var validatorErrorClass = 'help-block';
         $.validator.setDefaults({
             highlight: function (element) {
-                $(element).closest('.form-group').addClass('has-error');
+                $(element).closest('.form-group').addClass('has-error-brand');
             },
             unhighlight: function (element) {
-                $(element).closest('.form-group').removeClass('has-error');
+                $(element).closest('.form-group').removeClass('has-error-brand');
             },
             errorElement: 'span',
             errorClass: validatorErrorClass,
@@ -536,6 +536,29 @@
 
     initializeJQueryValidator();
 
+    // Add listener to the theme selector
+    var themeSelector = document.getElementById("select-option-theme");
+    if (themeSelector != null) {
+        themeSelector.addEventListener("change", () => {
+            if (themeSelector.value === "system") {
+                localStorage.setItem("theme", "system");
+                document.body.setAttribute('data-theme', defaultTheme);
+                document.getElementById("user-prefered-theme").textContent = "System";
+            }
+            else {
+                localStorage.setItem("theme", themeSelector.value);
+                document.body.setAttribute('data-theme', themeSelector.value);
+                document.getElementById("user-prefered-theme").textContent = themeSelector.value == "light" ? "Light" : "Dark";
+            }
+            window.nuget.sendMetric("ThemeChanged", 1, { "ThemeChanged": themeSelector.value });
+        })
+
+        // Set the theme selector to the user's preferred theme
+        var theme = localStorage.getItem("theme")
+        themeSelector.value = theme;
+        document.getElementById("user-prefered-theme").textContent = theme.charAt(0).toUpperCase() + theme.slice(1);
+    }
+
     $(function () {
         // Enable the POST links. These are links that perform a POST via a form instead of traditional navigation.
         $(".post-link").on('click', function () {
@@ -566,7 +589,7 @@
         });
 
         // Select the first input that has an error.
-        $('.has-error')
+        $('.has-error-brand')
             .find('input,textarea,select')
             .filter(':visible:first')
             .trigger('focus');

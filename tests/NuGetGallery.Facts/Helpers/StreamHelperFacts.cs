@@ -94,7 +94,7 @@ namespace NuGetGallery.Helpers
         [Fact]
         public async Task NextBytesMatchThrowsWhenStreamIsNull()
         {
-            var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => StreamHelper.NextBytesMatchAsync(stream: null, expectedBytes: new byte[0]));
+            var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => StreamHelper.NextBytesMatchAsync(stream: null, expectedBytes: Array.Empty<byte>()));
             Assert.Equal("stream", ex.ParamName);
         }
 

@@ -11,8 +11,10 @@
 
         <i>Verify if the requester is a valid owner of the account.</i><br />
 
-        <input type="text" placeholder="Account email or username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="value: accountEmailOrUsername" />
-        <button type="submit" data-bind="click: verifyAccount">Verify</button>
+        <div class="row-checkbox-label">
+            <input type="text" class="input-brand" placeholder="Account email or username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="value: accountEmailOrUsername" />
+            <button type="submit" class="btn btn-brand" data-bind="click: verifyAccount">Verify</button>
+        </div>
 
         <div style="display:none" data-bind="visible: errorAccount">
             @ViewHelpers.AlertDanger(@<text><span data-bind="text: errorAccount"></span></text>)
@@ -57,8 +59,10 @@
 
         <i>Validate if the new username is available and has a valid format.</i><br />
 
-        <input type="text" placeholder="New username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="value: newUsername" />
-        <button type="submit" data-bind="click: validateNewUsername">Validate</button>
+        <div class="row-checkbox-label">
+            <input type="text" class="input-brand" placeholder="New username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="value: newUsername" />
+            <button type="submit" class="btn btn-brand" data-bind="click: validateNewUsername">Validate</button>
+        </div>
         <div style="display:none" data-bind="visible: errorNewUsername">
             @ViewHelpers.AlertDanger(@<text><span data-bind="text: errorNewUsername"></span></text>)
         </div>
@@ -77,9 +81,11 @@
         {
             @Html.AntiForgeryToken()
             <i>Update current account username.</i><br />
-            <input type="text" placeholder="Old username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="value: changeOldUsername" />
-            <input type="text" placeholder="New username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="value: changeNewUsername" />
-            <button type="submit" data-bind="click: changeUsername">Change</button>
+            <div class="row-checkbox-label">
+                <input type="text" class="input-brand" placeholder="Old username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="value: changeOldUsername" />
+                <input type="text" class="input-brand" placeholder="New username" autocomplete="off" autofocus style="width: 200px;" rows="1" data-bind="value: changeNewUsername" />
+                <button type="submit" class="btn btn-brand" data-bind="click: changeUsername">Change</button>
+            </div>
         }
         <div style="display:none" data-bind="visible: changeUsernameSuccessful">
             @ViewHelpers.Alert(@<text><span data-bind="text: changeUsernameSuccessful"></span></text>, "success", "Info")
