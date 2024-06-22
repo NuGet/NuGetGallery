@@ -1587,7 +1587,6 @@ namespace NuGetGallery
             [InlineData(1024 * 1024 + 1, false)]
             public async Task RejectsLongReadme(int fileLength, bool expectedSuccess)
             {
-
                 var readmeText = new String('a', fileLength);
 
                 _nuGetPackage = GeneratePackageWithUserContent(

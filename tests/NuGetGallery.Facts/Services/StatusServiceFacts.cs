@@ -133,7 +133,6 @@ namespace NuGetGallery.Services
 
             private class CloudStorageStatusDependencyFactory
             {
-
                 private CloudStorageStatusDependencyFactory()
                 {
                 }

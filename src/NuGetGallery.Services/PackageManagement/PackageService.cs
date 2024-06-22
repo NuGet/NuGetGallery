@@ -170,7 +170,7 @@ namespace NuGetGallery
             // all subsequent parameter values of the same query. This could result in a non-optimal query plan getting
             // cached depending on what package ID is viewed first. Using OPTIMIZE FOR UNKNOWN causes a predictable
             // query plan to be cached.
-            // 
+            //
             // For example, the query plan for Newtonsoft.Json is very good for that specific parameter value since
             // there are so many package dependents but the same query plan takes a very long time for packages with few
             // or no dependents. The query plan for "UNKNOWN" (that is a package ID with unknown SQL Server statistic)
@@ -607,7 +607,6 @@ namespace NuGetGallery
 
             if (packageRegistration == null)
             {
-
                 packageRegistration = new PackageRegistration
                 {
                     Id = packageMetadata.Id,

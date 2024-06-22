@@ -1507,7 +1507,6 @@ namespace NuGetGallery
                     };
 
                     deprecations = new List<PackageDeprecation> {deprecation};
-
                 }
                 else
                 {
@@ -3114,7 +3113,6 @@ namespace NuGetGallery
 
             public class TheCancelPendingOwnershipRequestMethod : TestContainer
             {
-
                 public static IEnumerable<object[]> NotOwner_Data
                 {
                     get

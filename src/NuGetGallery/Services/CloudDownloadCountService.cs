@@ -106,7 +106,6 @@ namespace NuGetGallery
                     await RefreshCoreAsync();
                     stopwatch.Stop();
                     _telemetryService.TrackDownloadJsonRefreshDuration(TimeSpan.FromMilliseconds(stopwatch.ElapsedMilliseconds));
-
                 }
                 catch (WebException ex)
                 {
