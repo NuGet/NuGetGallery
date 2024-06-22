@@ -13,10 +13,6 @@ namespace NuGetGallery.Filters
 {
     public sealed class ApiAuthorizeAttribute : AuthorizeAttribute
     {
-        
-        public ApiAuthorizeAttribute()
-        {}
-
         public override void OnAuthorization(AuthorizationContext filterContext)
         {
             // Add a warning header if the API key is about to expire (or has expired)

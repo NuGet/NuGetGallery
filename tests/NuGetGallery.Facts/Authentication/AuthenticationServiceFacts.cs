@@ -2594,10 +2594,6 @@ namespace NuGetGallery.Authentication
             public IIdentity ShimIdentity { get; set; }
             public string[] InvokedAuthTypes { get; private set; }
 
-            public AuthenticateThunk()
-            {
-            }
-
             public void Attach(IOwinContext context)
             {
                 // Go-go gadget Owin delegate names!

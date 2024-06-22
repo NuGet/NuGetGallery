@@ -39,10 +39,6 @@ namespace NuGetGallery.Security
 
         public string SubscriptionName => Name;
 
-        public MicrosoftTeamSubscription()
-        {
-        }
-
         public IEnumerable<UserSecurityPolicy> Policies => _policies.Value;
 
         public Task OnSubscribeAsync(UserSecurityPolicySubscriptionContext context)

@@ -9,6 +9,5 @@ namespace NuGetGallery
     /// </summary>
     public class CurrentUserDeletedException : HttpException
     {
-        public CurrentUserDeletedException(): base() { }
     }
 }
