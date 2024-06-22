@@ -90,7 +90,7 @@ namespace NuGet.Services.Entities
 
         private static bool HasAnyCertificate(User user)
         {
-            return user.UserCertificates.Any();
+            return user.UserCertificates.Any() || user.UserCertificatePatterns.Any();
         }
 
         private static bool CanUseCertificate(User user, string thumbprint)

@@ -431,11 +431,30 @@ namespace NuGetGallery
                         IsUnique = true,
                     }));
 
+            modelBuilder.Entity<UserCertificatePattern>()
+                .HasKey(uc => uc.Key);
+
+            modelBuilder.Entity<UserCertificatePattern>()
+                .Property(pv => pv.CreatedUtc)
+                .HasColumnType("datetime2");
+
+            // This unique index may need to be expanded to include more columns in the future if more pattern types
+            // are introduced. For example, an "issuer" foreign key for a subject name + issuer pattern.
+            modelBuilder.Entity<UserCertificatePattern>()
+                .HasIndex(pv => new { pv.UserKey, pv.PatternType, pv.Identifier })
+                .IsUnique();
+
             modelBuilder.Entity<User>()
                 .HasMany(u => u.UserCertificates)
                 .WithRequired(uc => uc.User)
                 .HasForeignKey(uc => uc.UserKey)
                 .WillCascadeOnDelete(true); // Deleting a User entity will also delete related UserCertificate entities.
+
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.UserCertificatePatterns)
+                .WithRequired(uc => uc.User)
+                .HasForeignKey(uc => uc.UserKey)
+                .WillCascadeOnDelete(true); // Deleting a User entity will also delete related UserCertificatePattern entities.
 
             modelBuilder.Entity<Certificate>()
                 .HasMany(c => c.UserCertificates)

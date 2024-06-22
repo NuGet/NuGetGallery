@@ -250,7 +250,9 @@ namespace NuGetGallery
 
             return _packageRegistrationRepository.GetAll()
                 .Include(pr => pr.Owners.Select(o => o.UserCertificates))
+                .Include(pr => pr.Owners.Select(o => o.UserCertificatePatterns))
                 .Include(pr => pr.RequiredSigners.Select(rs => rs.UserCertificates))
+                .Include(pr => pr.RequiredSigners.Select(rs => rs.UserCertificatePatterns))
                 .Where(registration => registration.Id == packageId)
                 .SingleOrDefault();
         }
