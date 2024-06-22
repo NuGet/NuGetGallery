@@ -4,7 +4,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Net.Http" />
 
     <ProjectReference Include="..\..\src\GitHubVulnerabilities2Db\GitHubVulnerabilities2Db.csproj" />
     <ProjectReference Include="..\..\src\NuGet.Services.Entities\NuGet.Services.Entities.csproj" />
