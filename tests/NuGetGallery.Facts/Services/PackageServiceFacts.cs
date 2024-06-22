@@ -1248,7 +1248,7 @@ namespace NuGetGallery
             [InlineData("1.0.0")]
             public void ReturnsNullIfEmptyList(string version)
             {
-                Assert.Equal(null, InvokeMethod(new Package[0], version));
+                Assert.Equal(null, InvokeMethod(Array.Empty<Package>(), version));
             }
 
             [Theory]

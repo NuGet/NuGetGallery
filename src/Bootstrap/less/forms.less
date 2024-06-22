@@ -26,9 +26,9 @@ legend {
   margin-bottom: @line-height-computed;
   font-size: (@font-size-base * 1.5);
   line-height: inherit;
-  color: @legend-color;
+  color: var(--neutralForeground2Rest);
   border: 0;
-  border-bottom: 1px solid @legend-border-color;
+  border-bottom: 1px solid var(--neutralStroke2Rest);
 }
 
 label {
@@ -57,6 +57,235 @@ input[type="search"] {
   // https://github.com/twbs/bootstrap/issues/11586.
   -webkit-appearance: none;
   appearance: none;
+}
+
+.brand-radio {
+  color: var(--neutralForeground1Rest);
+  padding-right: 8px;
+  display: flex;
+  cursor: pointer;
+
+  margin: 0px !important;
+
+  span {
+    margin: auto;
+  }
+
+  input[type="radio"] {
+    appearance: none;
+    outline: none !important; // Remove previous focs outline for new design;
+    cursor: pointer;
+    
+    width: 16px;
+    height: 16px;
+    border-radius: 50% !important;
+    border: 1px solid var(--neutralStrokeAccessibleRest);
+    margin: 8px;
+  }
+
+  input[type="radio"]:checked {
+    background: radial-gradient(var(--brandBackground1Rest) 0%, var(--brandBackground1Rest) 45%, transparent 50%, transparent);
+    border-color: var(--brandBackground1Rest);
+  }
+
+  &:hover {  
+    input[type="radio"]:checked {
+      background: radial-gradient(var(--brandBackground1Hover) 0%, var(--brandBackground1Hover) 45%, transparent 50%, transparent);
+      border-color: var(--brandBackground1Hover);
+      color: var(--neutralForeground1Rest);
+    }
+
+    input[type="radio"]:not(:checked) {
+      border-color: var(--brandBackground1Hover);
+      color: var(--neutralForeground1Rest);
+    }
+  }
+
+  &:active {
+    input[type="radio"]:checked {
+      background: radial-gradient(var(--neutralForeground2BrandSelected) 0%, var(--neutralForeground2BrandSelected) 45%, transparent 50%, transparent);
+      border-color: var(--neutralForeground2BrandSelected);
+    }
+
+    input[type="radio"]:not(:checked) {
+      color: var(--neutralForeground1Rest);
+      border-color: var(--neutralForeground2BrandSelected);
+    }
+  }
+
+  &:focus-within,
+  &:focus-visible,
+  &:focus {
+    color: var(--neutralForeground1Rest);
+
+    outline: 2px solid var(--neutralStrokeFocus2Rest) !important;
+    outline-offset: 0px;
+    border-radius: 1px;
+
+    input[type="radio"]:checked::before{
+      background: radial-gradient(var(--brandForegroundCompoundRest) 0%, var(--brandForegroundCompoundRest) 40%, transparent 50%, transparent);
+      border-color: var(--brandForegroundCompoundRest);
+    }
+  }
+}
+
+input[type="checkbox"].brand-checkbox {
+  appearance: none;
+  outline: none !important;
+  cursor: pointer;
+
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--neutralStrokeAccessibleRest);
+  border-radius: 2px !important;
+  position: relative !important;
+}
+
+input[type="checkbox"].brand-checkbox:checked::after {
+  content: '\2713';
+  font-weight: bolder;
+  display: flex;
+  width: 16px;
+  height: 16px;
+  top: -1px;
+  position: relative;
+  align-items: center;
+  justify-content: space-evenly;
+}
+
+input[type="checkbox"].brand-checkbox:checked {
+  background-color: var(--brandBackgroundCompoundRest);
+  border-color: var(--brandBackgroundCompoundRest);
+  color: var(--neutralForeground1Rest);
+}
+
+input[type="checkbox"].brand-checkbox:hover {
+  input[type="checkbox"].brand-checkbox:checked {
+    background-color: var(--brandBackgroundCompoundHover);
+    border-color: var(--brandBackgroundCompoundHover);
+    color: var(--neutralForegroundInverted1Hover);
+  }
+
+  input[type="checkbox"].brand-checkbox:not(:checked){
+    border-color: var(--neutralStrokeAccessibleHover);
+    color: var(--neutralForegroundInverted1Hover);
+  }
+}
+
+input[type="checkbox"].brand-checkbox:active {
+  input[type="checkbox"].brand-checkbox:checked {
+    background-color: var(--brandBackgroundCompoundPressed);
+    border-color: var(--brandBackgroundCompoundPressed);
+    color: var(--neutralForegroundInverted1Pressed);
+  }
+
+  input[type="checkbox"].brand-checkbox:not(:checked){
+    border-color: var(--neutralStrokeAccessiblePressed);
+    color: var(--neutralForegroundInverted1Pressed);
+  }
+}
+
+input[type="checkbox"].brand-checkbox:focus-within,
+input[type="checkbox"].brand-checkbox:focus-visible,
+input[type="checkbox"].brand-checkbox:focus {
+  outline: 2px solid var(--neutralStrokeFocus2Rest) !important;
+  outline-offset: 0px;
+  border-radius: 1px;
+}
+
+.brand-checkbox {
+  color: var(--neutralForeground1Rest);
+  padding-right: 8px;
+  display: flex;
+  cursor: pointer;
+
+  span {
+    margin: auto 0;
+  }
+
+  input[type="checkbox"] {
+    appearance: none;
+    outline: none !important;
+    cursor: pointer;
+
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--neutralStrokeAccessibleRest);
+    border-radius: 2px !important;
+    margin: 8px !important;
+    position: relative !important;
+  }
+
+  input[type="checkbox"]:checked::after {
+    content: '\2713';
+    font-weight: bolder;
+    display: flex;
+    width: 16px;
+    height: 16px;
+    left: -1px;
+    top: -1px;
+    position: relative;
+    align-items: center;
+    justify-content: space-evenly;
+  }
+
+  input[type="checkbox"]:indeterminate::after {
+    content: '\2012';
+    font-weight: bolder;
+    display: flex;
+    width: 16px;
+    height: 16px;
+    left: -1px;
+    top: -1.75px;
+    position: relative;
+    align-items: flex-end;
+    justify-content: space-evenly;
+  }
+
+  input[type="checkbox"]:indeterminate,
+  input[type="checkbox"]:checked {
+    background-color: var(--brandBackground1Rest);
+    border-color: var(--brandBackground1Rest);
+    color: var(--neutralForegroundOnBrandRest);
+  }
+
+  &:hover {
+    input[type="checkbox"]:indeterminate,
+    input[type="checkbox"]:checked {
+      background-color: var(--brandBackground1Hover);
+      border-color: var(--brandBackground1Hover);
+      color: var(--neutralForegroundOnBrandRest);
+    }
+    
+    input[type="checkbox"]:not(:indeterminate):not(:checked),
+    input[type="checkbox"]:not(:checked):not(:indeterminate) {
+      border-color: var(--brandBackground1Hover);
+      color: var(--neutralForegroundOnBrandRest);
+    }
+  }
+
+  &:active {
+    input[type="checkbox"]:indeterminate,
+    input[type="checkbox"]:checked {
+      background-color: var(--neutralForeground2BrandSelected);
+      border-color: var(--neutralForeground2BrandSelected);
+      color: var(--neutralForegroundOnBrandRest);
+    }
+
+    input[type="checkbox"]:not(:indeterminate):not(:checked),
+    input[type="checkbox"]:not(:checked):not(:indeterminate) {
+      border-color: var(--neutralForeground2BrandSelected);
+      color: var(--neutralForegroundOnBrandRest);
+    }
+  }
+
+  &:focus-within,
+  &:focus-visible,
+  &:focus {
+    outline: 2px solid var(--neutralStrokeFocus2Rest) !important;
+    outline-offset: 0px;
+    border-radius: 1px;
+  }
 }
 
 // Position radios and checkboxes better
@@ -189,6 +418,85 @@ output {
   }
 }
 
+.input-base-class {
+  color: var(--neutralForeground1Rest);
+  background-color: var(--neutralBackground1Rest);
+  border-radius: 4px;
+  border: 1px solid var(--neutralStroke1Rest);
+  border-bottom: 2px solid var(--neutralStrokeAccessibleRest);
+  padding: 6px 12px !important;
+
+  outline: none !important;
+  box-shadow: none !important;
+
+  &:hover {
+    border: 1px solid var(--neutralStroke1Hover);
+    border-bottom: 2px solid var(--neutralStrokeAccessibleHover);
+  }
+
+  &:focus,
+  &:focus-within,
+  &:focus-visible {
+    border: 1px solid var(--neutralStroke1Rest);
+    border-bottom: 2px solid var(--brandStrokeCompoundRest);
+  }
+
+  &[aria-invalid='true'] {
+    border-color: var(--statusDangerStroke2Rest);
+  }
+
+  &[disabled] {
+    background-color: transparent;
+    color: var(--neutralForegroundDisabledRest);
+    border-color: var(--neutralStrokeDisabledRest);
+
+    // Firefox
+    &::-moz-placeholder {
+      color: var(--neutralForegroundDisabledRest);
+      opacity: 1; // Override Firefox's unusual default opacity; see https://github.com/twbs/bootstrap/pull/11526
+    }
+    &:-ms-input-placeholder { color: var(--neutralForegroundDisabledRest); } // Internet Explorer 10+
+    &::-webkit-input-placeholder  { color: var(--neutralForegroundDisabledRest); } // Safari and Chrome
+  }
+
+  &[readonly] {
+    background-color: transparent;
+    border-color: var(--neutralStrokeDisabledRest);
+
+    // Firefox
+    &::-moz-placeholder {
+      color: var(--neutralForeground1Rest);
+      opacity: 1; // Override Firefox's unusual default opacity; see https://github.com/twbs/bootstrap/pull/11526
+    }
+    &:-ms-input-placeholder { color: var(--neutralForeground1Rest); } // Internet Explorer 10+
+    &::-webkit-input-placeholder  { color: var(--neutralForeground1Rest); } // Safari and Chrome
+  }
+  
+  // Firefox
+  &::-moz-placeholder {
+    color: var(--neutralForeground4Rest);
+    opacity: 1; // Override Firefox's unusual default opacity; see https://github.com/twbs/bootstrap/pull/11526
+  }
+  &:-ms-input-placeholder { color: var(--neutralForeground4Rest); } // Internet Explorer 10+
+  &::-webkit-input-placeholder  { color: var(--neutralForeground4Rest); } // Safari and Chrome
+}
+
+select.select-brand {
+  .input-base-class();
+
+  > option {
+    background-color: var(--neutralBackground1Rest);
+    color: var(--neutralForeground1Rest);
+  }
+}
+
+textarea.textarea-brand,
+input.input-brand {
+  .input-base-class();
+}
+.multi-select-dropdown .dropdown-content .dropdown-selector .dropdown-filter {
+  .input-base-class();
+}
 
 // Special styles for iOS temporal inputs
 //
@@ -433,6 +741,43 @@ output {
 .has-error {
   .form-control-validation(@state-danger-text; @state-danger-text; @state-danger-bg);
 }
+.has-error-brand {
+  .form-control-validation-brand();
+}
+
+.form-control-validation-brand {
+  // Color the label and help text
+  .help-block,
+  .control-label,
+  .radio,
+  .checkbox,
+  .radio-inline,
+  .checkbox-inline,
+  &.radio label,
+  &.checkbox label,
+  &.radio-inline label,
+  &.checkbox-inline label  {
+    color: var(--statusDangerForeground1Rest);
+  }
+  // Set the border and box shadow on specific inputs to match
+  .form-control {
+    border-color: var(--statusDangerStroke2Rest);
+    &:focus {
+      border-color: var(--statusDangerStroke2Rest);
+    }
+  }
+  // Set validation states also for addons
+  .input-group-addon {
+    color: var(--statusDangerForeground3Rest);
+    background-color: var(--statusDangerBackground1Rest);
+    border-color: var(--statusDangerStroke2Rest);
+  }
+  // Optional feedback icon
+  .form-control-feedback {
+    color: var(--statusDangerForeground3Rest);
+  }
+}
+
 
 // Reposition feedback icon if input has visible label above
 .has-feedback label {

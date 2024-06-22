@@ -2,7 +2,7 @@
   .readme-container {
     display: block;
     padding: 10.5px;
-    border: 2px solid #ccc;
+    border: 1px solid var(--neutralStroke1Rest);
     word-break: normal;
     margin-bottom: @default-margin-bottom;
     overflow: auto;
@@ -45,8 +45,8 @@
 
   pre {
     code.hljs {
-      background-color: @pre-bg;
-      color: #24292e; 
+      background-color: var(--neutralBackground1Rest);
+      color: var(--neutralForeground1Rest); 
       white-space: pre;
       
       .hljs-doctag,
@@ -57,14 +57,14 @@
       .hljs-type,
       .hljs-variable.language_ 
       .hljs-built_in {
-        color: #cc3745;
+        color: var(--statusDangerForeground1Rest);
       }
 
       .hljs-title,
       .hljs-title.class_,
       .hljs-title.class_.inherited__,
       .hljs-title.function_ {
-        color: #6f42c1;
+        color: var(--statusGenericLavenderForeground2Rest);
       }
 
       .hljs-attr,
@@ -77,62 +77,62 @@
       .hljs-selector-attr,
       .hljs-selector-class,
       .hljs-selector-id {
-        color: #005cc5;
+        color: var(--brandForeground2Rest);
       }
 
       .hljs-regexp,
       .hljs-string,
       .hljs-meta .hljs-string {
-        color: #032f62;
+        color: var(--statusGenericRoyalBlueForeground2Rest);
       }
       
       .hljs-built_in,
       .hljs-symbol {
-        color: #b74e05;
+        color: var(--statusWarningForeground1Rest);
       }
       
       .hljs-comment,
       .hljs-code,
       .hljs-formula {
-        color: #646d76;
+        color: var(--neutralForeground4Rest);
       }
       
       .hljs-name,
       .hljs-quote,
       .hljs-selector-tag,
       .hljs-selector-pseudo {
-        color: #207f37;
+        color: var(--statusAvailableForeground3Rest);
       }
       
       .hljs-subst {
-        color: #24292e;
+        color: var(--neutralForeground1Rest);
       }
       
       .hljs-section {
-        color: #005cc5;
+        color: var(--brandForeground2Rest);
         font-weight: bold;
       }
       
       .hljs-bullet {
-        color: #735c0f;
+        color: var(--statusGenericGoldForeground2Rest);
       }
       
       .hljs-emphasis {
-        color: #24292e;
+        color: var(--neutralForeground1Rest);
         font-style: italic;
       }
       
       .hljs-strong {
-        color: #24292e;
+        color: var(--neutralForeground1Rest);
         font-weight: bold;
       }
       
       .hljs-addition {
-        color: #207f37;
+        color: var(--statusAvailableForeground3Rest);
       }
       
       .hljs-deletion {
-        color: #b31d28;
+        color: var(--statusGenericCranberryStrokeActiveRest);
       }
     }
   }

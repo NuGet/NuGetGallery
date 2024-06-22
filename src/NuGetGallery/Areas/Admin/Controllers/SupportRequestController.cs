@@ -256,9 +256,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 viewModel.IssueStatusName = issue.IssueStatus.Name;
 
                 // Email may not be available, because the delete workflow hard deletes unconfirmed users.
-                if (issue.UserKey.HasValue && userEmails.ContainsKey(issue.UserKey.Value))
+                if (issue.UserKey.HasValue && userEmails.TryGetValue(issue.UserKey.Value, out var email))
                 {
-                    viewModel.UserEmail = userEmails[issue.UserKey.Value];
+                    viewModel.UserEmail = email;
                 }
                 else
                 {

@@ -906,7 +906,7 @@ namespace NuGetGallery
 
             TrackMetric(Events.AccountDeleteCompleted, 1, properties =>
             {
-                properties.Add(AccountDeletedByRole, BuildArrayProperty(deletedBy.Roles?.Select(role => role.Name) ?? new string[0]));
+                properties.Add(AccountDeletedByRole, BuildArrayProperty(deletedBy.Roles?.Select(role => role.Name) ?? Array.Empty<string>()));
                 properties.Add(AccountIsSelfDeleted, $"{deletedUser.Key == deletedBy.Key}");
                 properties.Add(AccountDeletedIsOrganization, $"{deletedUser is Organization}");
                 properties.Add(AccountDeleteSucceeded, $"{success}");

@@ -818,7 +818,7 @@ namespace NuGetGallery
                     },
                     new object[]
                     {
-                        new Package[0]
+                        Array.Empty<Package>()
                     },
                     new object[]
                     {
