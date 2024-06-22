@@ -20,9 +20,9 @@ namespace NuGetGallery.Framework
 
         protected override string GetAppSetting(string settingName)
         {
-            if (Settings.ContainsKey(settingName))
+            if (Settings.TryGetValue(settingName, out var setting))
             {
-                return Settings[settingName];
+                return setting;
             }
 
             // Will cause ResolveConfigObject to populate a class with default values.
