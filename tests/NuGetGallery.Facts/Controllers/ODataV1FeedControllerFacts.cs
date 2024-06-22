@@ -26,7 +26,7 @@ namespace NuGetGallery.Controllers
 
             // Assert
             AssertSemVer2PackagesFilteredFromResult(resultSet);
-            Assert.Equal(NonSemVer2Packages.Where(p => !p.IsPrerelease).Count(), resultSet.Count);
+            Assert.Equal(NonSemVer2Packages.Count(p => !p.IsPrerelease), resultSet.Count);
         }
 
         [Fact]
@@ -104,7 +104,7 @@ namespace NuGetGallery.Controllers
                 "/api/v1/Packages/$count");
 
             // Assert
-            Assert.Equal(NonSemVer2Packages.Where(p => !p.IsPrerelease).Count(), count);
+            Assert.Equal(NonSemVer2Packages.Count(p => !p.IsPrerelease), count);
         }
 
         [Fact]
@@ -117,7 +117,7 @@ namespace NuGetGallery.Controllers
 
             // Assert
             AssertSemVer2PackagesFilteredFromResult(resultSet);
-            Assert.Equal(NonSemVer2Packages.Where(p => !p.IsPrerelease).Count(), resultSet.Count);
+            Assert.Equal(NonSemVer2Packages.Count(p => !p.IsPrerelease), resultSet.Count);
         }
 
         [Fact]
@@ -165,7 +165,7 @@ namespace NuGetGallery.Controllers
                 $"/api/v1/FindPackagesById/$count?id='{TestPackageId}'");
 
             // Assert
-            Assert.Equal(NonSemVer2Packages.Where(p => !p.IsPrerelease).Count(), count);
+            Assert.Equal(NonSemVer2Packages.Count(p => !p.IsPrerelease), count);
         }
 
         [Fact]
@@ -178,7 +178,7 @@ namespace NuGetGallery.Controllers
 
             // Assert
             AssertSemVer2PackagesFilteredFromResult(resultSet);
-            Assert.Equal(NonSemVer2Packages.Where(p => !p.IsPrerelease).Count(), resultSet.Count);
+            Assert.Equal(NonSemVer2Packages.Count(p => !p.IsPrerelease), resultSet.Count);
         }
 
         [Fact]
@@ -226,7 +226,7 @@ namespace NuGetGallery.Controllers
                 $"/api/v1/Search/$count?searchTerm='{TestPackageId}'");
 
             // Assert
-            Assert.Equal(NonSemVer2Packages.Where(p => !p.IsPrerelease).Count(), searchCount);
+            Assert.Equal(NonSemVer2Packages.Count(p => !p.IsPrerelease), searchCount);
         }
 
         [Theory]

@@ -43,9 +43,8 @@
                                 }
                             </td>
                             <td class="align-middle hidden-xs">
-                                <img class="package-icon img-responsive" aria-hidden="true" alt="Package Icon"
-                                     src="@(PackageHelper.ShouldRenderUrl(package.IconUrl) ? package.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
-                                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
+                                <img class="package-icon img-responsive @(!PackageHelper.ShouldRenderUrl(package.IconUrl) ? "package-default-icon" : null)" aria-hidden="true" alt="Package Icon"
+                                     src="@(PackageHelper.ShouldRenderUrl(package.IconUrl) ? package.IconUrl : null)" />
                             </td>
                             <td class="align-middle package-id"><a href="@Url.Package(package.Id)">@Html.BreakWord(package.Id.Abbreviate(40))</a></td>
                             <td class="align-middle">
@@ -77,7 +76,7 @@
                             <td class="align-middle text-nowrap">@package.TotalDownloadCount.ToNuGetNumberString()</td>
                             <td class="align-middle text-nowrap">@package.FullVersion.Abbreviate(15)</td>
                             <td class="text-right align-middle package-controls">
-                                <a href="@Url.ManagePackage(package)" class="btn" title="Manage" aria-label="Manage Package @package.Id">
+                                <a href="@Url.ManagePackage(package)" class="btn-brand-icon" title="Manage" aria-label="Manage Package @package.Id">
                                     <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i>
                                 </a>
                             </td>

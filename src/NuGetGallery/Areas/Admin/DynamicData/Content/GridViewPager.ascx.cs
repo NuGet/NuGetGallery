@@ -16,9 +16,9 @@ namespace NuGetGallery.Areas.Admin.DynamicData
             Control c = Parent;
             while (c != null)
             {
-                if (c is GridView)
+                if (c is GridView view)
                 {
-                    _gridView = (GridView)c;
+                    _gridView = view;
                     break;
                 }
                 c = c.Parent;

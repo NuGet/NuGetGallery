@@ -365,7 +365,7 @@ namespace NuGetGallery.OData
             foreach (var queryParameter in queryParametersCollection)
             {
                 queryBuilder.Append(Uri.EscapeDataString(queryParameter.Key));
-                queryBuilder.Append("=");
+                queryBuilder.Append('=');
                 if (queryParameter.Value != null)
                 {
                     if (queryParameter.Value is string)
@@ -381,7 +381,7 @@ namespace NuGetGallery.OData
                         queryBuilder.Append(queryParameter.Value.ToString().ToLowerInvariant());
                     }
                 }
-                queryBuilder.Append("&");
+                queryBuilder.Append('&');
             }
 
             if (options.SelectExpand != null)
@@ -390,13 +390,13 @@ namespace NuGetGallery.OData
                 {
                     queryBuilder.Append("$select=");
                     queryBuilder.Append(options.SelectExpand.RawSelect);
-                    queryBuilder.Append("&");
+                    queryBuilder.Append('&');
                 }
                 if (!string.IsNullOrEmpty(options.SelectExpand.RawExpand))
                 {
                     queryBuilder.Append("$expand=");
                     queryBuilder.Append(options.SelectExpand.RawExpand);
-                    queryBuilder.Append("&");
+                    queryBuilder.Append('&');
                 }
             }
 
@@ -404,28 +404,28 @@ namespace NuGetGallery.OData
             {
                 queryBuilder.Append("$filter=");
                 queryBuilder.Append(options.Filter.RawValue);
-                queryBuilder.Append("&");
+                queryBuilder.Append('&');
             }
 
             if (options.OrderBy != null)
             {
                 queryBuilder.Append("$orderby=");
                 queryBuilder.Append(options.OrderBy.RawValue);
-                queryBuilder.Append("&");
+                queryBuilder.Append('&');
             }
 
             if (skipCount > 0)
             {
                 queryBuilder.Append("$skip=");
                 queryBuilder.Append(skipCount);
-                queryBuilder.Append("&");
+                queryBuilder.Append('&');
             }
 
             if (options.Top != null)
             {
                 queryBuilder.Append("$top=");
                 queryBuilder.Append(options.Top.RawValue);
-                queryBuilder.Append("&");
+                queryBuilder.Append('&');
             }
 
             if (semVerLevelKey != null)
@@ -434,7 +434,7 @@ namespace NuGetGallery.OData
                 {
                     queryBuilder.Append("semVerLevel=");
                     queryBuilder.Append(SemVerLevelKey.SemVerLevel2);
-                    queryBuilder.Append("&");
+                    queryBuilder.Append('&');
                 }
             }
 

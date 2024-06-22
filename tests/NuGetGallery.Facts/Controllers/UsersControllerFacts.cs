@@ -1958,7 +1958,7 @@ namespace NuGetGallery
                         },
                         new object[]
                         {
-                            new Scope[0]{ },
+                            Array.Empty<Scope>(),
                             Strings.NonScopedApiKeyDescription
                         }
                     };

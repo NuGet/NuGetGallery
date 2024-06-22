@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using NuGet.Services.FeatureFlags;
 
@@ -18,7 +19,7 @@ namespace NuGetGallery.Auditing.AuditedEntities
         {
             return flags.Flights?
                 .Select(f => CreateFrom(f.Key, f.Value))
-                .ToArray() ?? new AuditedFeatureFlagFlight[0];
+                .ToArray() ?? Array.Empty<AuditedFeatureFlagFlight>();
         }
 
         public static AuditedFeatureFlagFlight CreateFrom(string name, Flight flight)
@@ -28,8 +29,8 @@ namespace NuGetGallery.Auditing.AuditedEntities
                 Name = name,
                 All = flight.All,
                 SiteAdmins = flight.SiteAdmins,
-                Accounts = flight.Accounts?.ToArray() ?? new string[0],
-                Domains = flight.Domains?.ToArray() ?? new string[0]
+                Accounts = flight.Accounts?.ToArray() ?? Array.Empty<string>(),
+                Domains = flight.Domains?.ToArray() ?? Array.Empty<string>()
             };
         }
     }

@@ -148,7 +148,7 @@ namespace NuGetGallery
                 reservedNamespaceService = new Mock<IReservedNamespaceService>();
                 IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces = new List<ReservedNamespace>();
                 reservedNamespaceService.Setup(s => s.GetReservedNamespacesForId(It.IsAny<string>()))
-                    .Returns(new ReservedNamespace[0]);
+                    .Returns(Array.Empty<ReservedNamespace>());
             }
 
             if (packageUploadService == null)
@@ -554,7 +554,7 @@ namespace NuGetGallery
                     packageService: packageService);
 
                 var version = "1.1.1";
-                var packages = new Package[0];
+                var packages = Array.Empty<Package>();
                 packageService.Setup(p => p.FindPackagesById("Foo", PackageDeprecationFieldsToInclude.Deprecation))
                     .Returns(packages);
 
@@ -3902,7 +3902,7 @@ namespace NuGetGallery
             protected override Mock<IPackageService> SetupPackageService(bool isPackageMissing = false)
             {
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
-                var packages = isPackageMissing ? new Package[0] : new[] { Package };
+                var packages = isPackageMissing ? Array.Empty<Package>() : new[] { Package };
                 packageService
                     .Setup(p => p.FindPackagesById(PackageRegistration.Id, PackageDeprecationFieldsToInclude.DeprecationAndRelationships))
                     .Returns(packages)
@@ -4019,7 +4019,7 @@ namespace NuGetGallery
                 var packageService = new Mock<IPackageService>();
                 packageService
                     .Setup(x => x.FindPackagesById(_packageRegistration.Id, PackageDeprecationFieldsToInclude.None))
-                    .Returns(new Package[0]);
+                    .Returns(Array.Empty<Package>());
 
                 packageService
                     .Setup(p => p.FilterExactPackage(It.IsAny<IReadOnlyCollection<Package>>(), It.IsAny<string>()))
