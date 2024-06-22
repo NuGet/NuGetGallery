@@ -84,8 +84,6 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(fileName));
             }
 
-            ICloudBlobContainer container = await GetContainerAsync(folderName);
-            var blob = container.GetBlobReference(fileName);
             var result = await GetBlobContentAsync(folderName, fileName, ifNoneMatch);
             if (result.StatusCode == HttpStatusCode.NotModified)
             {
