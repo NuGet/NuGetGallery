@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
@@ -12,13 +11,11 @@ using NuGetGallery.Auditing;
 
 namespace NuGetGallery
 {
-    public sealed class CertificateService : ICertificateService
+    public sealed class CertificateService : CoreCertificateService, ICertificateService
     {
         private readonly ICertificateValidator _certificateValidator;
-        private readonly IEntityRepository<Certificate> _certificateRepository;
         private readonly IEntityRepository<User> _userRepository;
         private readonly IEntitiesContext _entitiesContext;
-        private readonly IFileStorageService _fileStorageService;
         private readonly IAuditingService _auditingService;
         private readonly ITelemetryService _telemetryService;
 
@@ -27,15 +24,13 @@ namespace NuGetGallery
             IEntityRepository<Certificate> certificateRepository,
             IEntityRepository<User> userRepository,
             IEntitiesContext entitiesContext,
-            IFileStorageService fileStorageService,
+            ICoreFileStorageService fileStorageService,
             IAuditingService auditingService,
-            ITelemetryService telemetryService)
+            ITelemetryService telemetryService) : base(certificateRepository, fileStorageService)
         {
             _certificateValidator = certificateValidator ?? throw new ArgumentNullException(nameof(certificateValidator));
-            _certificateRepository = certificateRepository ?? throw new ArgumentNullException(nameof(certificateRepository));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
-            _fileStorageService = fileStorageService ?? throw new ArgumentNullException(nameof(fileStorageService));
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
         }
@@ -49,36 +44,14 @@ namespace NuGetGallery
 
             _certificateValidator.Validate(file);
 
-            using (var certificateFile = CertificateFile.Create(file.InputStream))
-            {
-                var certificate = GetCertificate(certificateFile.Sha256Thumbprint);
+            var certificate = await AddCertificateAsync(file.InputStream);
 
-                if (certificate == null)
-                {
-                    await SaveToFileStorageAsync(certificateFile);
+            await _auditingService.SaveAuditRecordAsync(
+                new CertificateAuditRecord(AuditedCertificateAction.Add, certificate.Thumbprint));
 
-                    certificate = new Certificate()
-                    {
-#pragma warning disable CS0618 // Only set the SHA1 thumbprint, for backwards compatibility. Never read it.
-                        // CodeQL [SM02196] Only set the SHA1 thumbprint, for backwards compatibility. Never read it.
-                        Sha1Thumbprint = certificateFile.Sha1Thumbprint,
-#pragma warning restore CS0618
-                        Thumbprint = certificateFile.Sha256Thumbprint,
-                        UserCertificates = new List<UserCertificate>()
-                    };
+            _telemetryService.TrackCertificateAdded(certificate.Thumbprint);
 
-                    _certificateRepository.InsertOnCommit(certificate);
-
-                    await _certificateRepository.CommitChangesAsync();
-
-                    await _auditingService.SaveAuditRecordAsync(
-                        new CertificateAuditRecord(AuditedCertificateAction.Add, certificate.Thumbprint));
-
-                    _telemetryService.TrackCertificateAdded(certificateFile.Sha256Thumbprint);
-                }
-
-                return certificate;
-            }
+            return certificate;
         }
 
         public async Task ActivateCertificateAsync(string thumbprint, User account)
@@ -166,33 +139,6 @@ namespace NuGetGallery
                 .Where(u => u.Key == account.Key)
                 .SelectMany(u => u.UserCertificates)
                 .Select(uc => uc.Certificate);
-        }
-
-        private async Task SaveToFileStorageAsync(CertificateFile certificateFile)
-        {
-            var filePath = $"SHA-256/{certificateFile.Sha256Thumbprint}{CoreConstants.CertificateFileExtension}";
-
-            try
-            {
-                await _fileStorageService.SaveFileAsync(
-                    CoreConstants.Folders.UserCertificatesFolderName,
-                    filePath,
-                    certificateFile.Stream,
-                    overwrite: false);
-            }
-            catch (FileAlreadyExistsException)
-            {
-                // A certificate is being uploaded again.
-                // The fact that the certificate already exists in storage is ignorable.
-            }
-        }
-
-        private Certificate GetCertificate(string thumbprint)
-        {
-            return _certificateRepository.GetAll()
-                .Where(c => c.Thumbprint == thumbprint)
-                .Include(c => c.UserCertificates)
-                .SingleOrDefault();
         }
     }
 }
