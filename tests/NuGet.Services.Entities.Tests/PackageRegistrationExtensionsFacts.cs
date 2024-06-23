@@ -64,6 +64,19 @@ namespace NuGet.Services.Entities.Tests
             }
 
             [Fact]
+            public void IsSigningAllowed_WithOneOwner_WhenRequiredSignerIsNullAndOwnerHasCertificatePattern_ReturnsTrue()
+            {
+                _user.UserCertificatePatterns.Add(new UserCertificatePattern
+                {
+                    Key = 4,
+                    User = _user,
+                    UserKey = _user.Key
+                });
+
+                Assert.True(_packageRegistration.IsSigningAllowed());
+            }
+
+            [Fact]
             public void IsSigningAllowed_WithTwoOwners_WhenRequiredSignerIsNullAndOnlyOwnerHasCertificate_ReturnsTrue()
             {
                 var otherOwner = new User()
@@ -272,6 +285,19 @@ namespace NuGet.Services.Entities.Tests
             public void IsSigningRequired_WithOneOwner_WhenRequiredSignerIsNullAndOwnerHasCertificate_ReturnsTrue()
             {
                 _user.UserCertificates.Add(new UserCertificate()
+                {
+                    Key = 4,
+                    User = _user,
+                    UserKey = _user.Key
+                });
+
+                Assert.True(_packageRegistration.IsSigningRequired());
+            }
+
+            [Fact]
+            public void IsSigningRequired_WithOneOwner_WhenRequiredSignerIsNullAndOwnerHasCertificatePattern_ReturnsTrue()
+            {
+                _user.UserCertificatePatterns.Add(new UserCertificatePattern
                 {
                     Key = 4,
                     User = _user,
