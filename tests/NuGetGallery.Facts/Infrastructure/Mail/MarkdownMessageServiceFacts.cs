@@ -1247,17 +1247,23 @@ namespace NuGetGallery
                             {
                                 foreach (var user2EmailAllowed in new[] { false, true })
                                 {
-                                    foreach (var validationIssue in new[] {
-                                        ValidationIssue.AuthorAndRepositoryCounterSignaturesNotSupported,
-                                        ValidationIssue.AuthorCounterSignaturesNotSupported,
-                                        ValidationIssue.OnlyAuthorSignaturesSupported,
-                                        ValidationIssue.OnlySignatureFormatVersion1Supported,
-                                        ValidationIssue.PackageIsNotSigned,
-                                        ValidationIssue.PackageIsSigned,
-                                        ValidationIssue.PackageIsZip64,
-                                        ValidationIssue.Unknown,
-                                        new ClientSigningVerificationFailure("NU9999", "test message"),
-                                        new UnauthorizedCertificateFailure("asdfasdfasdf")})
+                                    foreach (var validationIssue in new[]
+                                        {
+                                            ValidationIssue.AuthorAndRepositoryCounterSignaturesNotSupported,
+                                            ValidationIssue.AuthorCounterSignaturesNotSupported,
+                                            ValidationIssue.OnlyAuthorSignaturesSupported,
+                                            ValidationIssue.OnlySignatureFormatVersion1Supported,
+                                            ValidationIssue.PackageIsNotSigned,
+                                            ValidationIssue.PackageIsSigned,
+                                            ValidationIssue.PackageIsZip64,
+                                            ValidationIssue.Unknown,
+                                            new ClientSigningVerificationFailure("NU9999", "test message"),
+#pragma warning disable 618
+                                            new UnauthorizedCertificateFailure("fingerprint"),
+#pragma warning restore 618
+                                            new UnauthorizedCertificateSha256Failure("fingerprint-sha256"),
+                                            new UnauthorizedAzureTrustedSigningCertificateFailure("fingerprint-sha256", "1.2.3.4.5.6"),
+                                        })
                                     {
                                         yield return MemberDataHelper.AsData(validationIssue, user1PushAllowed, user2PushAllowed, user1EmailAllowed, user2EmailAllowed);
                                     }
@@ -1370,9 +1376,17 @@ namespace NuGetGallery
                         return "Author countersignatures are not supported.";
                     case ValidationIssueCode.PackageIsNotSigned:
                         return "This package must be signed with a registered certificate. [Read more...](https://aka.ms/nuget-signed-ref)";
+#pragma warning disable 618
                     case ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificate:
-                        var certIssue = (UnauthorizedCertificateFailure)validationIssue;
-                        return $"The package was signed, but the signing certificate (SHA-1 thumbprint {certIssue.Sha1Thumbprint}) is not associated with your account. You must register this certificate to publish signed packages. [Read more...](https://aka.ms/nuget-signed-ref)";
+                        var sha1 = (UnauthorizedCertificateFailure)validationIssue;
+#pragma warning restore 618
+                        return $"The package was signed, but the signing certificate (SHA-1 thumbprint {sha1.Sha1Thumbprint}) is not associated with your account. You must register this certificate to publish signed packages. [Read more...](https://aka.ms/nuget-signed-ref)";
+                    case ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificateSha256:
+                        var sha256 = (UnauthorizedCertificateSha256Failure)validationIssue;
+                        return $"The package was signed, but the signing certificate (SHA-256 thumbprint {sha256.Sha256Thumbprint}) is not associated with your account. You must register this certificate to publish signed packages. [Read more...](https://aka.ms/nuget-signed-ref)";
+                    case ValidationIssueCode.PackageIsSignedWithUnauthorizedAzureTrustedSigningCertificate:
+                        var trustedSigning = (UnauthorizedAzureTrustedSigningCertificateFailure)validationIssue;
+                        return $"The package was signed, but the signing certificate (SHA-256 thumbprint {trustedSigning.Sha256Thumbprint}) is not associated with your account. The certificate is issued by Azure Trusted Signing and has an enhanced key usage (EKU) value of {trustedSigning.EnhancedKeyUsageOid}. You must register this certificate to publish signed packages. [Read more...](https://aka.ms/nuget-signed-ref)";
                     default:
                         return "There was an unknown failure when validating your package.";
                 }
@@ -2313,8 +2327,10 @@ namespace NuGetGallery
                         return "Author countersignatures are not supported.";
                     case ValidationIssueCode.PackageIsNotSigned:
                         return "This package must be signed with a registered certificate. [Read more...](https://aka.ms/nuget-signed-ref)";
+#pragma warning disable 618
                     case ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificate:
                         var certIssue = (UnauthorizedCertificateFailure)validationIssue;
+#pragma warning restore 618
                         return $"The package was signed, but the signing certificate (SHA-1 thumbprint {certIssue.Sha1Thumbprint}) is not associated with your account. You must register this certificate to publish signed packages. [Read more...](https://aka.ms/nuget-signed-ref)";
                     case ValidationIssueCode.SymbolErrorCode_ChecksumDoesNotMatch:
                         return "The checksum does not match for the dll(s) and corresponding pdb(s).";
@@ -2483,7 +2499,7 @@ namespace NuGetGallery
                 Assert.Empty(messageService.MockMailSender.Sent);
             }
         }
-               
+
         private static void AssertMessageSentToPackageOwnershipManagersOfOrganizationOnly(MailMessage message, Organization organization)
         {
             AssertMessageSentToMembersOfOrganizationWithPermissionOnly(message, organization, ActionsRequiringPermissions.HandlePackageOwnershipRequest);

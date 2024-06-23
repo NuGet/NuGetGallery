@@ -35,9 +35,7 @@ namespace NuGetGallery
                     return $"This package could not be published since it is signed. We do not accept signed packages at this moment. To be notified about package signing and more, watch our [Announcements]({announcementsUrl}) page or follow us on [Twitter]({twitterUrl}).";
                 case ValidationIssueCode.ClientSigningVerificationFailure:
                     var clientIssue = (ClientSigningVerificationFailure)validationIssue;
-                    return clientIssue != null
-                        ? $"**{clientIssue.ClientCode}**: {clientIssue.ClientMessage}"
-                        : "This package's signature was unable to get verified.";
+                    return $"**{clientIssue.ClientCode}**: {clientIssue.ClientMessage}";
                 case ValidationIssueCode.PackageIsZip64:
                     return "Zip64 packages are not supported.";
                 case ValidationIssueCode.OnlyAuthorSignaturesSupported:
@@ -50,9 +48,17 @@ namespace NuGetGallery
                     return "Author countersignatures are not supported.";
                 case ValidationIssueCode.PackageIsNotSigned:
                     return "This package must be signed with a registered certificate. [Read more...](https://aka.ms/nuget-signed-ref)";
+#pragma warning disable 618
                 case ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificate:
-                    var certIssue = (UnauthorizedCertificateFailure)validationIssue;
-                    return $"The package was signed, but the signing certificate {(certIssue != null ? $"(SHA-1 thumbprint {certIssue.Sha1Thumbprint})" : "")} is not associated with your account. You must register this certificate to publish signed packages. [Read more...](https://aka.ms/nuget-signed-ref)";
+                    var sha1 = (UnauthorizedCertificateFailure)validationIssue;
+#pragma warning restore 618                    
+                    return $"The package was signed, but the signing certificate (SHA-1 thumbprint {sha1.Sha1Thumbprint}) is not associated with your account. You must register this certificate to publish signed packages. [Read more...](https://aka.ms/nuget-signed-ref)";
+                case ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificateSha256:
+                    var sha256 = (UnauthorizedCertificateSha256Failure)validationIssue;
+                    return $"The package was signed, but the signing certificate (SHA-256 thumbprint {sha256.Sha256Thumbprint}) is not associated with your account. You must register this certificate to publish signed packages. [Read more...](https://aka.ms/nuget-signed-ref)";
+                case ValidationIssueCode.PackageIsSignedWithUnauthorizedAzureTrustedSigningCertificate:
+                    var trustedSigning = (UnauthorizedAzureTrustedSigningCertificateFailure)validationIssue;
+                    return $"The package was signed, but the signing certificate (SHA-256 thumbprint {trustedSigning.Sha256Thumbprint}) is not associated with your account. The certificate is issued by Azure Trusted Signing and has an enhanced key usage (EKU) value of {trustedSigning.EnhancedKeyUsageOid}. You must register this certificate to publish signed packages. [Read more...](https://aka.ms/nuget-signed-ref)";
                 case ValidationIssueCode.SymbolErrorCode_ChecksumDoesNotMatch:
                     return "The checksum does not match for the dll(s) and corresponding pdb(s).";
                 case ValidationIssueCode.SymbolErrorCode_MatchingAssemblyNotFound:

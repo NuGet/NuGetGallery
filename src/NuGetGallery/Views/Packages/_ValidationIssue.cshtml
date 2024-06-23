@@ -49,11 +49,32 @@
             This package must be signed with a registered certificate. <a href="https://aka.ms/nuget-signed-ref">Read more...</a>
         </text>
         break;
+    @{ #pragma warning disable 618 }
     case ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificate:
         {
             var typedIssue = (UnauthorizedCertificateFailure)Model;
             <text>
                 The package was signed, but the signing certificate (SHA-1 thumbprint @typedIssue.Sha1Thumbprint) is not associated with your account.
+                You must register this certificate to publish signed packages. <a href="https://aka.ms/nuget-signed-ref">Read more...</a>
+            </text>
+            break;
+        }
+    @{ #pragma warning restore 618 }
+    case ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificateSha256:
+        {
+            var typedIssue = (UnauthorizedCertificateSha256Failure)Model;
+            <text>
+                The package was signed, but the signing certificate (SHA-256 thumbprint @typedIssue.Sha256Thumbprint) is not associated with your account.
+                You must register this certificate to publish signed packages. <a href="https://aka.ms/nuget-signed-ref">Read more...</a>
+            </text>
+            break;
+        }
+    case ValidationIssueCode.PackageIsSignedWithUnauthorizedAzureTrustedSigningCertificate:
+        {
+            var typedIssue = (UnauthorizedAzureTrustedSigningCertificateFailure)Model;
+            <text>
+                The package was signed, but the signing certificate (SHA-256 thumbprint @typedIssue.Sha256Thumbprint) is not associated with your account.
+                The certificate is issued by Azure Trusted Signing and has an enhanced key usage (EKU) value of @(typedIssue.EnhancedKeyUsageOid).
                 You must register this certificate to publish signed packages. <a href="https://aka.ms/nuget-signed-ref">Read more...</a>
             </text>
             break;
@@ -77,7 +98,7 @@
         <text>
             The uploaded symbols package does not contain any symbol files.
         </text>
-	break;
+        break;
     case ValidationIssueCode.SymbolErrorCode_SnupkgContainsEntriesNotSafeForExtraction:
         <text>
             The uploaded symbols package contains entries that are not safe for extraction.

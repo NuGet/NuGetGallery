@@ -8,20 +8,11 @@ using System.Linq;
 using NuGet.Services.Validation;
 using NuGet.Services.Validation.Issues;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace NuGetGallery.Views.Packages
 {
     public class ValidationIssueFacts
     {
-        private const string UnknownIssueMessage = "There was an unknown failure when validating your package.";
-        private readonly ITestOutputHelper _output;
-
-        public ValidationIssueFacts(ITestOutputHelper output)
-        {
-            _output = output;
-        }
-
         [Theory]
         [MemberData(nameof(HasACaseForAllIssueTypesTestData))]
         public void HasACaseForAllIssueTypes(ValidationIssue issue)
@@ -82,7 +73,11 @@ namespace NuGetGallery.Views.Packages
                 yield return ValidationIssue.SymbolErrorCode_PdbIsNotPortable;
                 yield return ValidationIssue.SymbolErrorCode_SnupkgDoesNotContainSymbols;
                 yield return ValidationIssue.SymbolErrorCode_SnupkgContainsEntriesNotSafeForExtraction;
+#pragma warning disable 618
                 yield return new UnauthorizedCertificateFailure("thumbprint");
+#pragma warning restore 618
+                yield return new UnauthorizedCertificateSha256Failure("thumbprint-sha256");
+                yield return new UnauthorizedAzureTrustedSigningCertificateFailure("thumbprint-sha256", "1.2.3.4.5.6");
             }
         }
 
