@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <NuGetClientPackageVersion>6.9.1</NuGetClientPackageVersion>
-    <ServerCommonPackageVersion>2.121.0-jver-trusted-signing-9771599</ServerCommonPackageVersion>
+    <ServerCommonPackageVersion>2.121.0-jver-trusted-signing-9771630</ServerCommonPackageVersion>
     <NuGetJobsPackageVersion>4.3.0-main-9408418</NuGetJobsPackageVersion>
   </PropertyGroup>
   <ItemGroup>

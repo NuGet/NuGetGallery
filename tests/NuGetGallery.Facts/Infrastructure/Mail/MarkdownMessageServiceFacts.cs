@@ -1261,8 +1261,8 @@ namespace NuGetGallery
 #pragma warning disable 618
                                             new UnauthorizedCertificateFailure("fingerprint"),
 #pragma warning restore 618
-                                            new UnauthorizedCertificateSha256Failure("fingerprint-sha256"),
-                                            new UnauthorizedAzureTrustedSigningCertificateFailure("fingerprint-sha256", "1.2.3.4.5.6"),
+                                            new UnauthorizedCertificateSha256Failure("thumbprint-sha1", "fingerprint-sha256"),
+                                            new UnauthorizedAzureTrustedSigningCertificateFailure("thumbprint-sha1", "fingerprint-sha256", "1.2.3.4.5.6"),
                                         })
                                     {
                                         yield return MemberDataHelper.AsData(validationIssue, user1PushAllowed, user2PushAllowed, user1EmailAllowed, user2EmailAllowed);

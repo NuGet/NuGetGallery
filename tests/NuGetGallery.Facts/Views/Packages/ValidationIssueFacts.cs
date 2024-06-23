@@ -76,8 +76,8 @@ namespace NuGetGallery.Views.Packages
 #pragma warning disable 618
                 yield return new UnauthorizedCertificateFailure("thumbprint");
 #pragma warning restore 618
-                yield return new UnauthorizedCertificateSha256Failure("thumbprint-sha256");
-                yield return new UnauthorizedAzureTrustedSigningCertificateFailure("thumbprint-sha256", "1.2.3.4.5.6");
+                yield return new UnauthorizedCertificateSha256Failure("thumbprint-sha1", "thumbprint-sha256");
+                yield return new UnauthorizedAzureTrustedSigningCertificateFailure("thumbprint-sha1", "thumbprint-sha256", "1.2.3.4.5.6");
             }
         }
 
