@@ -2,6 +2,7 @@
 @using NuGet.Services.Validation.Issues
 @model ValidationIssue
 
+@{ #pragma warning disable 618 }
 @switch (Model.IssueCode)
 {
     case ValidationIssueCode.PackageIsSigned:
@@ -49,7 +50,6 @@
             This package must be signed with a registered certificate. <a href="https://aka.ms/nuget-signed-ref">Read more...</a>
         </text>
         break;
-    @{ #pragma warning disable 618 }
     case ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificate:
         {
             var typedIssue = (UnauthorizedCertificateFailure)Model;
@@ -59,7 +59,6 @@
             </text>
             break;
         }
-    @{ #pragma warning restore 618 }
     case ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificateSha256:
         {
             var typedIssue = (UnauthorizedCertificateSha256Failure)Model;
@@ -110,3 +109,4 @@
         </text>
         break;
 }
+@{ #pragma warning restore 618 }
