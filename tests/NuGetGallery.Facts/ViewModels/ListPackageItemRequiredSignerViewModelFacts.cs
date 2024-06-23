@@ -452,6 +452,70 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
+        public void WhenPackageHasMultipleOwners_WhenOwnersHaveVaryingCertificatePatternCounts()
+        {
+            User currentUser = new User()
+            {
+                Key = 1,
+                Username = "a",
+                UserCertificatePatterns = new List<UserCertificatePattern>()
+                {
+                    new UserCertificatePattern() { Key = 1 }
+                }
+            };
+
+            User otherUser1 = new User()
+            {
+                Key = 2,
+                Username = "b"
+            };
+
+            User otherUser2 = new User()
+            {
+                Key = 3,
+                Username = "c",
+                UserCertificates = new List<UserCertificate>()
+                {
+                    new UserCertificate() { Key = 2 },
+                    new UserCertificate() { Key = 3 }
+                }
+            };
+
+            var package = new Package()
+            {
+                PackageRegistration = new PackageRegistration()
+                {
+                    Owners = new List<User>() { otherUser1, currentUser, otherUser2 },
+                    RequiredSigners = new HashSet<User>() { currentUser }
+                },
+                Version = "1.0.0"
+            };
+            var target = new ListPackageItemRequiredSignerViewModelFactory(
+                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageVulnerabilitiesService>(), Mock.Of<IPackageFrameworkCompatibilityFactory>(), Mock.Of<IFeatureFlagService>());
+
+            _securityPolicyService.Setup(
+                x => x.IsSubscribed(
+                    It.IsNotNull<User>(),
+                    It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
+                .Returns(false);
+
+            var viewModel = target.Create(
+                package,
+                currentUser,
+                wasAADLoginOrMultiFactorAuthenticated: true);
+
+            Assert.Equal(currentUser.Username, viewModel.RequiredSigner.Username);
+            Assert.Equal($"{currentUser.Username} (1 certificate)", viewModel.RequiredSigner.DisplayText);
+            Assert.Null(viewModel.RequiredSignerMessage);
+            VerifySigners(package.PackageRegistration.Owners, viewModel.AllSigners, expectAnySigner: true);
+            Assert.True(viewModel.ShowRequiredSigner);
+            Assert.False(viewModel.ShowTextBox);
+            Assert.True(viewModel.CanEditRequiredSigner);
+
+            _securityPolicyService.Verify();
+        }
+
+        [Fact]
         public void WhenPackageHasTwoOwnersAndTheCurrentUserIsAnOwner_WhenCurrentUserHasRequiredSignerControl()
         {
             var package = new Package()
@@ -675,7 +739,7 @@ namespace NuGetGallery.ViewModels
 
                 Assert.Equal(expectedSigner.Username, actualSigner.Username);
 
-                var activeCertificatesCount = expectedSigner.UserCertificates.Count();
+                var activeCertificatesCount = expectedSigner.UserCertificates.Count() + expectedSigner.UserCertificatePatterns.Count();
                 var expectedDisplayText = $"{expectedSigner.Username} ({activeCertificatesCount} certificate{(activeCertificatesCount == 1 ? "" : "s")})";
 
                 Assert.Equal(expectedDisplayText, actualSigner.DisplayText);

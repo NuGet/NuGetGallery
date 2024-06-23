@@ -183,7 +183,7 @@ namespace NuGetGallery
                 return null;
             }
 
-            var certificatesCount = user.UserCertificates.Count();
+            var certificatesCount = user.UserCertificates.Count() + user.UserCertificatePatterns.Count();
             var displayText = $"{user.Username} ({certificatesCount} certificate{(certificatesCount == 1 ? string.Empty : "s")})";
 
             return new SignerViewModel(user.Username, displayText, certificatesCount > 0);
