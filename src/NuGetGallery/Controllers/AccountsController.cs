@@ -521,6 +521,64 @@ namespace NuGetGallery
             return Json(HttpStatusCode.Created, new { certificate.Thumbprint });
         }
 
+        [HttpPost]
+        [UIAuthorize]
+        [ValidateAntiForgeryToken]
+        [RequiresAccountConfirmation("add a certificate pattern")]
+        public virtual async Task<JsonResult> AddCertificatePattern(string accountName, CertificatePatternType patternType, string identifier)
+        {
+            if (identifier == null)
+            {
+                return Json(HttpStatusCode.BadRequest, new[] { Strings.CertificatePatternIdentifierIsRequired });
+            }
+
+            var currentUser = GetCurrentUser();
+            var account = GetAccount(accountName);
+
+            if (currentUser == null)
+            {
+                return Json(HttpStatusCode.Unauthorized);
+            }
+
+            if (account == null)
+            {
+                return Json(HttpStatusCode.NotFound);
+            }
+
+            if (!CanManageCertificates(currentUser, account))
+            {
+                return Json(HttpStatusCode.Forbidden, new { Strings.Unauthorized });
+            }
+
+            Certificate certificate;
+
+            try
+            {
+                using (var uploadStream = uploadFile.InputStream)
+                {
+                    certificate = await CertificateService.AddCertificateAsync(uploadFile);
+                }
+
+                await CertificateService.ActivateCertificateAsync(certificate.Thumbprint, account);
+            }
+            catch (UserSafeException ex)
+            {
+                ex.Log();
+
+                return Json(HttpStatusCode.BadRequest, new[] { ex.Message });
+            }
+
+            var activeCertificateCount = CertificateService.GetCertificates(account).Count();
+
+            if (activeCertificateCount == 1 &&
+                SecurityPolicyService.IsSubscribed(account, AutomaticallyOverwriteRequiredSignerPolicy.PolicyName))
+            {
+                await PackageService.SetRequiredSignerAsync(account);
+            }
+
+            return Json(HttpStatusCode.Created, new { certificate.Thumbprint });
+        }
+
         [HttpDelete]
         [UIAuthorize]
         [ValidateAntiForgeryToken]
@@ -558,6 +616,48 @@ namespace NuGetGallery
         [HttpGet]
         [UIAuthorize]
         public virtual JsonResult GetCertificates(string accountName)
+        {
+            var currentUser = GetCurrentUser();
+            var account = GetAccount(accountName);
+
+            if (currentUser == null)
+            {
+                return Json(HttpStatusCode.Unauthorized);
+            }
+
+            if (account == null)
+            {
+                return Json(HttpStatusCode.NotFound);
+            }
+
+            if (ActionsRequiringPermissions.ViewAccount.CheckPermissions(currentUser, account)
+                != PermissionsCheckResult.Allowed)
+            {
+                return Json(HttpStatusCode.Forbidden);
+            }
+
+            var canManageCertificates = CanManageCertificates(currentUser, account);
+            var template = GetDeleteCertificateForAccountTemplate(accountName);
+
+            var certificates = CertificateService.GetCertificates(account)
+                .Select(certificate =>
+                {
+                    string deactivateUrl = null;
+
+                    if (canManageCertificates)
+                    {
+                        deactivateUrl = template.Resolve(certificate.Thumbprint);
+                    }
+
+                    return new ListCertificateItemViewModel(certificate, deactivateUrl);
+                });
+
+            return Json(HttpStatusCode.OK, certificates, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
+        [UIAuthorize]
+        public virtual JsonResult GetCertificatePatterns(string accountName)
         {
             var currentUser = GetCurrentUser();
             var account = GetAccount(accountName);

@@ -1263,4 +1263,7 @@ The {1} Team</value>
   <data name="FrameworkFilters_Tooltip" xml:space="preserve">
     <value>Filters packages based on the target frameworks they are compatible with.</value>
   </data>
+  <data name="CertificatePatternIdentifierIsRequired" xml:space="preserve">
+    <value>An identifier string is required for the certificate pattern.</value>
+  </data>
 </root>

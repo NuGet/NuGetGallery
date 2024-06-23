@@ -14,6 +14,7 @@ namespace NuGetGallery
     public sealed class CertificateService : CoreCertificateService, ICertificateService
     {
         private readonly ICertificateValidator _certificateValidator;
+        private readonly IEntityRepository<UserCertificatePattern> _certificatePatternRepository;
         private readonly IEntityRepository<User> _userRepository;
         private readonly IEntitiesContext _entitiesContext;
         private readonly IAuditingService _auditingService;
@@ -22,6 +23,7 @@ namespace NuGetGallery
         public CertificateService(
             ICertificateValidator certificateValidator,
             IEntityRepository<Certificate> certificateRepository,
+            IEntityRepository<UserCertificatePattern> certificatePatternRepository,
             IEntityRepository<User> userRepository,
             IEntitiesContext entitiesContext,
             ICoreFileStorageService fileStorageService,
@@ -29,6 +31,7 @@ namespace NuGetGallery
             ITelemetryService telemetryService) : base(certificateRepository, fileStorageService)
         {
             _certificateValidator = certificateValidator ?? throw new ArgumentNullException(nameof(certificateValidator));
+            _certificatePatternRepository = certificatePatternRepository ?? throw new ArgumentNullException(nameof(certificatePatternRepository));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
@@ -72,6 +75,43 @@ namespace NuGetGallery
             {
                 throw new ArgumentException(Strings.CertificateDoesNotExist, nameof(thumbprint));
             }
+
+            var userCertificate = certificate.UserCertificates.SingleOrDefault(uc => uc.UserKey == account.Key);
+
+            if (userCertificate == null)
+            {
+                userCertificate = new UserCertificate()
+                {
+                    CertificateKey = certificate.Key,
+                    UserKey = account.Key
+                };
+
+                _entitiesContext.UserCertificates.Add(userCertificate);
+
+                await _entitiesContext.SaveChangesAsync();
+
+                await _auditingService.SaveAuditRecordAsync(
+                    new CertificateAuditRecord(AuditedCertificateAction.Activate, certificate.Thumbprint));
+
+                _telemetryService.TrackCertificateActivated(thumbprint);
+            }
+        }
+
+        public async Task ActivateCertificatePatternAsync(CertificatePatternType patternType, string identifier, User account)
+        {
+            if (string.IsNullOrEmpty(identifier))
+            {
+                throw new ArgumentException(Strings.ArgumentCannotBeNullOrEmpty, nameof(identifier));
+            }
+
+            if (account == null)
+            {
+                throw new ArgumentNullException(nameof(account));
+            }
+
+            account
+                .UserCertificatePatterns
+                .Where(usp => usp.)
 
             var userCertificate = certificate.UserCertificates.SingleOrDefault(uc => uc.UserKey == account.Key);
 

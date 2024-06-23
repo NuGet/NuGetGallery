@@ -614,6 +614,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An identifier string is required for the certificate pattern..
+        /// </summary>
+        public static string CertificatePatternIdentifierIsRequired {
+            get {
+                return ResourceManager.GetString("CertificatePatternIdentifierIsRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to update the Microsoft account with &apos;{0}&apos;. This could happen if it is already linked to another NuGet account. See {1} for more details..
         /// </summary>
         public static string ChangeCredential_Failed {
