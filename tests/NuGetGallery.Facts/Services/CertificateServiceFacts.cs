@@ -246,6 +246,13 @@ namespace NuGetGallery.Services
             _certificateValidator.Setup(x => x.Validate(It.IsNotNull<HttpPostedFileBase>()));
             _certificateRepository.Setup(x => x.GetAll())
                 .Returns(new EnumerableQuery<Certificate>(new[] { _certificate }));
+            _auditingService.Setup(
+                x => x.SaveAuditRecordAsync(
+                    It.Is<CertificateAuditRecord>(record =>
+                        record.Action == AuditedCertificateAction.Add && record.Thumbprint == _sha256Thumbprint)))
+                .Returns(Task.CompletedTask);
+            _telemetryService.Setup(
+                x => x.TrackCertificateAdded(It.Is<string>(thumbprint => thumbprint == _sha256Thumbprint)));
 
             var service = GetCertificateService();
 
