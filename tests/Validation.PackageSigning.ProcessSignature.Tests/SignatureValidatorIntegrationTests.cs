@@ -1978,9 +1978,9 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         {
             try
             {
-                using (var zipFile = new ICSharpCode.SharpZipLib.Zip.ZipFile(packageStream, false))
+                using (var zipFile = new ICSharpCode.SharpZipLib.Zip.ZipFile(packageStream))
                 {
-                    //zipFile.IsStreamOwner = false;
+                    zipFile.IsStreamOwner = false;
 
                     zipFile.BeginUpdate();
                     zipFile.Delete(SigningSpecifications.V1.SignaturePath);
