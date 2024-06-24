@@ -59,7 +59,7 @@ namespace NuGetGallery
 
                 reservedNamespaceService
                     .Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
-                    .Returns(new ReservedNamespace[0]);
+                    .Returns(Array.Empty<ReservedNamespace>());
             }
 
             if (vulnerabilityService == null)

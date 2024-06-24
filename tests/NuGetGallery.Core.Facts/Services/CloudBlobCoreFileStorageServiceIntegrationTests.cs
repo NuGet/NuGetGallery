@@ -270,7 +270,7 @@ namespace NuGetGallery
                 {
                     using (var stream = await file.OpenWriteAsync(AccessCondition.GenerateIfNotExistsCondition()))
                     {
-                        await stream.WriteAsync(new byte[0], 0, 0);
+                        await stream.WriteAsync(Array.Empty<byte>(), 0, 0);
                     }
                 });
             Assert.Equal(HttpStatusCode.Conflict, (HttpStatusCode)ex.RequestInformation.HttpStatusCode);
@@ -442,7 +442,7 @@ namespace NuGetGallery
             // Arrange
             var folderName = CoreConstants.Folders.ValidationFolderName;
             var fileName = _prefixA;
-            await _targetA.SaveFileAsync(folderName, fileName, new MemoryStream(new byte[0]));
+            await _targetA.SaveFileAsync(folderName, fileName, new MemoryStream(Array.Empty<byte>()));
             var initialReference = await _targetA.GetFileReferenceAsync(folderName, fileName);
             initialReference.OpenRead().Dispose();
 

@@ -206,7 +206,6 @@
 
 @helper CommandPanel(PackageManagerViewModel packageManager, bool active)
 {
-    var thirdPartyPackageManager = packageManager as ThirdPartyPackageManagerViewModel;
     <div role="tabpanel" class="tab-pane @(active ? "active" : string.Empty)" id="@packageManager.Id">
         <div class="install-script-row">
             @{
@@ -214,14 +213,16 @@
                 var cs = packageManager.InstallPackageCommands.Select((c, i) => i < lastIndex ? c + Environment.NewLine : c);
             }
             @* Writing out the install command must be on a single line to avoid undesired whitespace in the <pre> tag. *@
-            <pre class="install-script" id="@packageManager.Id-text">@foreach (var c in cs) {<span class="install-command-row">@c</span>}</pre>
-            <div class="copy-button">
-                <button id="@packageManager.Id-button" class="btn btn-default btn-warning" type="button"
-                        data-toggle="popover" data-placement="bottom" data-content="Copied."
-                        aria-label="@packageManager.CopyLabel" role="button">
-                    <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
-                </button>
-            </div>
+            <pre class="install-script" id="@packageManager.Id-text">@foreach (var c in cs) {<span class="install-command-row">@c</span>}
+                <div class="copy-button">
+                    <button id="@packageManager.Id-button" class="btn btn-brand-icon" type="button" 
+                    data-toggle="popover" data-placement="bottom" data-content="Copied."
+                    aria-label="@packageManager.CopyLabel" role="button">
+                        <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
+                        <span>Copy</span>
+                    </button>
+                </div>
+            </pre>
         </div>
 
         @switch (packageManager.AlertLevel)
@@ -267,9 +268,8 @@
                     <div class="package-title">
                         <h1>
                             <span class="pull-left">
-                                <img class="package-icon img-responsive" aria-hidden="true" alt=""
-                                     src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) && Model.ShowDetailsAndLinks ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
-                                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
+                                <img class="package-icon img-responsive @(PackageHelper.ShouldRenderUrl(Model.IconUrl) && Model.ShowDetailsAndLinks ? null : "package-default-icon")" aria-hidden="true" alt=""
+                                     src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) && Model.ShowDetailsAndLinks ? Model.IconUrl : null)" />
                             </span>
                             <span class="title">
                                 @Html.BreakWord(Model.Id)
@@ -281,17 +281,14 @@
 
                         @if (Model.IsVerified.HasValue && Model.IsVerified.Value)
                         {
+                        }
                             <span class="prefix-reserve-title">
-                                <img class="reserved-indicator"
-                                     src="~/Content/gallery/img/reserved-indicator.svg"
-                                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-25x25.png"))
-                                     data-content="@Strings.ReservedNamespace_ReservedIndicatorTooltip" tabindex="0"
-                                     alt="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
+                                <i class="ms-Icon ms-Icon--SkypeCircleCheck reserved-indicator" data-content="@Strings.ReservedNamespace_ReservedIndicatorTooltip" tabindex="0"
+                                   alt="@Strings.ReservedNamespace_ReservedIndicatorTooltip"></i>
                                 <a href="https://docs.microsoft.com/nuget/nuget-org/id-prefix-reservation" class="prefix-reserve-label">
                                     Prefix Reserved
                                 </a>
                             </span>
-                        }
                     </div>
                 }
                 else
@@ -816,11 +813,8 @@
                                                         </a>
                                                         @if (item.IsVerified)
                                                         {
-                                                            <img class="reserved-indicator"
-                                                                 src="~/Content/gallery/img/reserved-indicator.svg"
-                                                                 @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-14x14.png"))
-                                                                 alt="@Strings.ReservedNamespace_ReservedIndicatorTooltip"
-                                                                 title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
+                                                            <i class="ms-Icon ms-Icon--SkypeCircleCheck reserved-indicator" title="@Strings.ReservedNamespace_ReservedIndicatorTooltip"
+                                                               alt="@Strings.ReservedNamespace_ReservedIndicatorTooltip"></i>
                                                         }
                                                         <p class="used-by-desc">@item.Description</p>
                                                     </td>
@@ -922,7 +916,7 @@
                                     if ((packageVersion.Available && packageVersion.Listed && Model.ShowDetailsAndLinks)
                                         || (!packageVersion.Deleted && Model.CanDisplayPrivateMetadata))
                                     {
-                                        <tr class="@(packageVersion.IsCurrent(Model) ? "bg-info" : null)">
+                                        <tr class="@(packageVersion.IsCurrent(Model) ? "bg-brand-info" : null)">
                                             <td tabindex="0">
                                                 <a href="@Url.Package(packageVersion)" title="@packageVersion.Version">
                                                     @packageVersion.Version.Abbreviate(30)
@@ -978,7 +972,7 @@
                                             else
                                             {
                                                 <td tabindex="0" class="package-icon-cell package-warning-icon" aria-label="@packageVersion.PackageWarningIconTitle">
-                                                    <i class="ms-Icon ms-Icon--Warning package-icon" title="@packageVersion.PackageWarningIconTitle"></i>
+                                                    <i tabindex="0" class="ms-Icon ms-Icon--Warning package-icon" title="@packageVersion.PackageWarningIconTitle"></i>
                                                 </td>
                                             }
                                         </tr>
@@ -1071,9 +1065,7 @@
                             {
                                 case DisplayPackageViewModel.RepositoryKind.GitHub:
                                 case DisplayPackageViewModel.RepositoryKind.Git:
-                                    <img class="icon" aria-hidden="true" alt="Git logo"
-                                            src="@Url.Absolute("~/Content/gallery/img/git.svg")"
-                                            @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/git-32x32.png")) />
+                                    <div class="git-image-icon icon" aria-hidden="true" role="img" alt="Git logo"></div>
                                     break;
                                 default:
                                     <i class="ms-Icon ms-Icon--Code" aria-hidden="true"></i>
@@ -1171,13 +1163,10 @@
                         var disclaimer = "nugettrends.com is a 3rd party website, not controlled by Microsoft. This link is made available to you per the NuGet Terms of Use.";
 
                         <li>
-                            <img class="icon"
-                                    aria-label="@disclaimer" title="@disclaimer"
-                                    src="@Url.Absolute("~/Content/gallery/img/nuget-trends.svg")"
-                                    @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/nuget-trends-32x32.png")) />
+                            <i class="ms-Icon ms-Icon--BarChartVerticalFill" aria-hidden="true" aria-label="@disclaimer" title="@disclaimer"></i>
                             <a href="@Model.NuGetTrendsUrl" data-track="outbound-nuget-trends-url"
-                                aria-label="open in nugetrends.com"
-                                title="Explore download trends on nugettrends.com" target="_blank" rel="nofollow noreferrer">
+                               aria-label="open in nugetrends.com"
+                               title="Explore download trends on nugettrends.com" target="_blank" rel="nofollow noreferrer">
                                 Open in NuGet Trends
                             </a>
                         </li>

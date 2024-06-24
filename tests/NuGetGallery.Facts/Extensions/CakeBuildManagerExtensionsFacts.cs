@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -232,8 +233,7 @@ namespace NuGetGallery.Extensions
 
         public static IEnumerable<object[]> PackageTagsNotKnownToBeCakeExtensions => new[]
         {
-            null,
-            new string[0],
+            null, Array.Empty<string>(),
             new string[] { null },
             new[] { "json" },
         }.Select(tags => new object[] { tags });

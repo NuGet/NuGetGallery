@@ -17,10 +17,10 @@
 
                     <div class="row">
                         <div class="col-sm-6">
-                            <input type="submit" class="btn btn-primary form-control" value="Reset to Confirmed Email Address" />
+                            <input type="submit" class="btn btn-brand form-control" value="Reset to Confirmed Email Address" />
                         </div>
                         <div class="col-sm-6">
-                            <button type="button" class="btn btn-default form-control" id="cancel-change-email">
+                            <button type="button" class="btn btn-brand-secondary form-control" id="cancel-change-email">
                                 Cancel
                             </button>
                         </div>
@@ -37,22 +37,22 @@
                     {
                         <div class="form-group @Html.HasErrorFor(m => m.ChangeEmail.Password)">
                             @Html.ShowLabelFor(m => m.ChangeEmail.Password)
-                            @Html.ShowPasswordFor(m => m.ChangeEmail.Password)
+                            @Html.ShowPasswordFor(m => m.ChangeEmail.Password, customClass: "input-brand")
                             @Html.ShowValidationMessagesFor(m => m.ChangeEmail.Password)
                         </div>
                     }
                     <div class="form-group @Html.HasErrorFor(m => m.ChangeEmail.NewEmail)">
                         @Html.ShowLabelFor(m => m.ChangeEmail.NewEmail, isrequired: true)
-                        @Html.ShowTextBoxFor(m => m.ChangeEmail.NewEmail)
+                        @Html.ShowTextBoxFor(m => m.ChangeEmail.NewEmail, customClass: "input-brand")
                         @Html.ShowValidationMessagesFor(m => m.ChangeEmail.NewEmail)
                     </div>
 
                     <div class="row">
                         <div class="col-sm-6">
-                            <input type="submit" class="btn btn-primary form-control" value="Save" />
+                            <input type="submit" class="btn btn-brand form-control" value="Save" />
                         </div>
                         <div class="col-sm-6">
-                            <button type="button" class="btn btn-default form-control" id="cancel-change-email">
+                            <button type="button" class="btn btn-brand-secondary form-control" id="cancel-change-email">
                                 Cancel
                             </button>
                         </div>

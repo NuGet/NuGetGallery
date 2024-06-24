@@ -457,10 +457,9 @@ namespace NuGetGallery
         private static IList<StatisticsFact> CreateFacts(JObject data)
         {
             IList<StatisticsFact> facts = new List<StatisticsFact>();
-            JToken itemsToken;
 
             // Check if the "Items" exist before trying to access them.
-            if (!data.TryGetValue("Items", out itemsToken))
+            if (!data.TryGetValue("Items", out _))
             {
                 throw new StatisticsReportNotFoundException();
             }

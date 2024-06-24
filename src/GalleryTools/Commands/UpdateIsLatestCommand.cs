@@ -71,7 +71,7 @@ namespace GalleryTools.Commands
 
                         Console.Write($"  [{pct.ToString("N2")} %] Updating {packageRegistration.Id} ...");
                         await packageService.UpdateIsLatestAsync(packageRegistration, commitChanges: true);
-                        Console.WriteLine($" OK");
+                        Console.WriteLine(" OK");
                     }
                 }
             }

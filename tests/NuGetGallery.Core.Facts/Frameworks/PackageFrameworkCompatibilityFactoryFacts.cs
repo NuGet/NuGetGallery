@@ -343,7 +343,7 @@ namespace NuGetGallery.Frameworks
 
             var badgeFramework = badges.Single(f => f != null);
             Assert.Equal(packageAssetFramework.FrameworkName, badgeFramework);
-            Assert.Equal(expected: 3, badges.Where(f => f == null).Count());
+            Assert.Equal(expected: 3, badges.Count(f => f == null));
         }
 
         [Fact]
