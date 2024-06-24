@@ -464,6 +464,11 @@ namespace NuGetGallery
             return Url.DeleteOrganizationCertificateTemplate(accountName);
         }
 
+        protected override RouteUrlTemplate<int> GetDeleteCertificatePatternForAccountTemplate(string accountName)
+        {
+            return Url.DeleteOrganizationCertificatePatternTemplate(accountName);
+        }
+
         private OrganizationMemberViewModel ToOrganizationMemberViewModel(Membership membership)
         {
             var avatarUrl = Url.Avatar(

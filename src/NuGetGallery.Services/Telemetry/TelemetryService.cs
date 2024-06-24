@@ -59,8 +59,10 @@ namespace NuGetGallery
             public const string OrganizationTransformCancelled = "OrganizationTransformCancelled";
             public const string OrganizationAdded = "OrganizationAdded";
             public const string CertificateAdded = "CertificateAdded";
+            public const string CertificatePatternAdded = "CertificatePatternAdded";
             public const string CertificateActivated = "CertificateActivated";
             public const string CertificateDeactivated = "CertificateDeactivated";
+            public const string CertificatePatternDeleted = "CertificatePatternDeleted";
             public const string PackageRegistrationRequiredSignerSet = "PackageRegistrationRequiredSignerSet";
             public const string AccountDeleteCompleted = "AccountDeleteCompleted";
             public const string AccountDeleteRequested = "AccountDeleteRequested";
@@ -181,6 +183,8 @@ namespace NuGetGallery
 
         // Certificate properties
         public const string Sha256Thumbprint = "Sha256Thumbprint";
+        public const string CertificatePatternType = "CertificatePatternType";
+        public const string CertificatePatternIdentifier = "CertificatePatternIdentifier";
 
         //Account Delete Properties
         public const string AccountDeletedByRole = "AccountDeletedByRole";
@@ -587,9 +591,37 @@ namespace NuGetGallery
             TrackMetricForCertificateActivity(Events.CertificateActivated, thumbprint);
         }
 
+        public void TrackCertificatePatternAdded(CertificatePatternType patternType, string identifier)
+        {
+            if (string.IsNullOrEmpty(identifier))
+            {
+                throw new ArgumentException(ServicesStrings.ArgumentCannotBeNullOrEmpty, nameof(identifier));
+            }
+
+            TrackMetric(Events.CertificatePatternAdded, 1, properties =>
+            {
+                properties.Add(CertificatePatternType, patternType.ToString());
+                properties.Add(CertificatePatternIdentifier, identifier);
+            });
+        }
+
         public void TrackCertificateDeactivated(string thumbprint)
         {
             TrackMetricForCertificateActivity(Events.CertificateDeactivated, thumbprint);
+        }
+
+        public void TrackCertificatePatternDeleted(CertificatePatternType patternType, string identifier)
+        {
+            if (string.IsNullOrEmpty(identifier))
+            {
+                throw new ArgumentException(ServicesStrings.ArgumentCannotBeNullOrEmpty, nameof(identifier));
+            }
+
+            TrackMetric(Events.CertificatePatternDeleted, 1, properties =>
+            {
+                properties.Add(CertificatePatternType, patternType.ToString());
+                properties.Add(CertificatePatternIdentifier, identifier);
+            });
         }
 
         public void TrackRequiredSignerSet(string packageId)

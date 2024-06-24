@@ -560,6 +560,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The Azure Code Signing extended key usage value must begin with &apos;{0}&apos;..
+        /// </summary>
+        public static string AzureCodeSigningIdentifierIsNotValid {
+            get {
+                return ResourceManager.GetString("AzureCodeSigningIdentifierIsNotValid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The Azure Code Signing extended key usage value must not be &apos;{0}&apos;..
+        /// </summary>
+        public static string AzureCodeSigningIdentifierMustNotBePublicTrustEku {
+            get {
+                return ResourceManager.GetString("AzureCodeSigningIdentifierMustNotBePublicTrustEku", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The pending organization member was deleted..
         /// </summary>
         public static string CancelMemberRequest_Success {
@@ -619,6 +637,15 @@ namespace NuGetGallery {
         public static string CertificatePatternIdentifierIsRequired {
             get {
                 return ResourceManager.GetString("CertificatePatternIdentifierIsRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The provided certificate pattern type is not recognized..
+        /// </summary>
+        public static string CertificatePatternTypeIsUnrecognized {
+            get {
+                return ResourceManager.GetString("CertificatePatternTypeIsUnrecognized", resourceCulture);
             }
         }
         

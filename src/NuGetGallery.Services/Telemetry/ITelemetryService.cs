@@ -118,12 +118,28 @@ namespace NuGetGallery
         void TrackCertificateActivated(string thumbprint);
 
         /// <summary>
+        /// A telemetry event emitted when a certificate pattern is added to an account.
+        /// </summary>
+        /// <param name="patternType">The certificate pattern type.</param>
+        /// <param name="identifier">The certificate pattern identifier.</param>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="identifier" /> is <c>null</c> or empty.</exception>
+        void TrackCertificatePatternAdded(CertificatePatternType patternType, string identifier);
+
+        /// <summary>
         /// A telemetry event emitted when a certificate is deactivated for an account.
         /// </summary>
         /// <param name="thumbprint">The certificate thumbprint.</param>
         /// <exception cref="ArgumentException">Thrown if <paramref name="thumbprint" /> is <c>null</c>
         /// or empty.</exception>
         void TrackCertificateDeactivated(string thumbprint);
+
+        /// <summary>
+        /// A telemetry event emitted when a certificate pattern is removed from an account.
+        /// </summary>
+        /// <param name="patternType">The certificate pattern type.</param>
+        /// <param name="identifier">The certificate pattern identifier.</param>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="identifier" /> is <c>null</c> or empty.</exception>
+        void TrackCertificatePatternDeleted(CertificatePatternType patternType, string identifier);
 
         /// <summary>
         /// A telemetry event emitted when the required signer is set on a package registration.

@@ -401,11 +401,23 @@ namespace GitHubVulnerabilities2Db.Gallery
             throw new NotImplementedException();
         }
 
-        public void TrackDownloadJsonTotalPackageIds(int totalPackageIds) {
+        public void TrackDownloadJsonTotalPackageIds(int totalPackageIds)
+        {
             throw new NotImplementedException();
         }
 
-        public void TrackDownloadJsonTotalPackageVersions(int totalPackageVersions) {
+        public void TrackDownloadJsonTotalPackageVersions(int totalPackageVersions)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void TrackCertificatePatternAdded(CertificatePatternType patternType, string identifier)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void TrackCertificatePatternDeleted(CertificatePatternType patternType, string identifier)
+        {
             throw new NotImplementedException();
         }
     }

@@ -579,6 +579,24 @@ namespace NuGetGallery
             return new RouteUrlTemplate<string>(linkGenerator, routesGenerator);
         }
 
+        public static RouteUrlTemplate<int> DeleteUserCertificatePatternTemplate(
+            this UrlHelper url,
+            bool relativeUrl = true)
+        {
+            var routesGenerator = new Dictionary<string, Func<int, object>>
+            {
+                { "patternKey", x => x },
+            };
+
+            Func<RouteValueDictionary, string> linkGenerator = rv => GetRouteLink(
+                url,
+                RouteName.DeleteUserCertificatePattern,
+                relativeUrl,
+                routeValues: rv);
+
+            return new RouteUrlTemplate<int>(linkGenerator, routesGenerator);
+        }
+
         public static RouteUrlTemplate<string> DeleteOrganizationCertificateTemplate(
             this UrlHelper url,
             string accountName,
@@ -597,6 +615,26 @@ namespace NuGetGallery
                 routeValues: rv);
 
             return new RouteUrlTemplate<string>(linkGenerator, routesGenerator);
+        }
+
+        public static RouteUrlTemplate<int> DeleteOrganizationCertificatePatternTemplate(
+            this UrlHelper url,
+            string accountName,
+            bool relativeUrl = true)
+        {
+            var routesGenerator = new Dictionary<string, Func<int, object>>
+            {
+                { "accountName", x => accountName },
+                { "patternKey", x => x },
+            };
+
+            Func<RouteValueDictionary, string> linkGenerator = rv => GetRouteLink(
+                url,
+                RouteName.DeleteOrganizationCertificatePattern,
+                relativeUrl,
+                routeValues: rv);
+
+            return new RouteUrlTemplate<int>(linkGenerator, routesGenerator);
         }
 
         /// <summary>

@@ -29,6 +29,7 @@ namespace NuGetGallery.Services
         private readonly Mock<IFileStorageService> _fileStorageService;
         private readonly Mock<ITelemetryService> _telemetryService;
         private readonly Mock<IEntityRepository<User>> _userRepository;
+        private readonly Mock<IEntityRepository<UserCertificatePattern>> _patternRepository;
 
         private readonly User _user;
         private readonly Certificate _certificate;
@@ -42,6 +43,7 @@ namespace NuGetGallery.Services
             _fileStorageService = new Mock<IFileStorageService>(MockBehavior.Strict);
             _telemetryService = new Mock<ITelemetryService>(MockBehavior.Strict);
             _userRepository = new Mock<IEntityRepository<User>>(MockBehavior.Strict);
+            _patternRepository = new Mock<IEntityRepository<UserCertificatePattern>>(MockBehavior.Strict);
 
             _user = new User()
             {
@@ -68,6 +70,7 @@ namespace NuGetGallery.Services
                 () => new CertificateService(
                     certificateValidator,
                     _certificateRepository.Object,
+                    _patternRepository.Object,
                     _userRepository.Object,
                     _entitiesContext.Object,
                     _fileStorageService.Object,
@@ -86,6 +89,7 @@ namespace NuGetGallery.Services
                 () => new CertificateService(
                     _certificateValidator.Object,
                     certificateRepository,
+                    _patternRepository.Object,
                     _userRepository.Object,
                     _entitiesContext.Object,
                     _fileStorageService.Object,
@@ -93,6 +97,25 @@ namespace NuGetGallery.Services
                     _telemetryService.Object));
 
             Assert.Equal("certificateRepository", exception.ParamName);
+        }
+
+        [Fact]
+        public void Constructor_WhenPatternRepositoryIsNull_Throws()
+        {
+            IEntityRepository<UserCertificatePattern> patternRepository = null;
+
+            var exception = Assert.Throws<ArgumentNullException>(
+                () => new CertificateService(
+                    _certificateValidator.Object,
+                    _certificateRepository.Object,
+                    patternRepository,
+                    _userRepository.Object,
+                    _entitiesContext.Object,
+                    _fileStorageService.Object,
+                    _auditingService.Object,
+                    _telemetryService.Object));
+
+            Assert.Equal("patternRepository", exception.ParamName);
         }
 
         [Fact]
@@ -104,6 +127,7 @@ namespace NuGetGallery.Services
                 () => new CertificateService(
                     _certificateValidator.Object,
                     _certificateRepository.Object,
+                    _patternRepository.Object,
                     userRepository,
                     _entitiesContext.Object,
                     _fileStorageService.Object,
@@ -122,6 +146,7 @@ namespace NuGetGallery.Services
                 () => new CertificateService(
                     _certificateValidator.Object,
                     _certificateRepository.Object,
+                    _patternRepository.Object,
                     _userRepository.Object,
                     entitiesContext,
                     _fileStorageService.Object,
@@ -140,6 +165,7 @@ namespace NuGetGallery.Services
                 () => new CertificateService(
                     _certificateValidator.Object,
                     _certificateRepository.Object,
+                    _patternRepository.Object,
                     _userRepository.Object,
                     _entitiesContext.Object,
                     fileStorageService,
@@ -158,6 +184,7 @@ namespace NuGetGallery.Services
                 () => new CertificateService(
                     _certificateValidator.Object,
                     _certificateRepository.Object,
+                    _patternRepository.Object,
                     _userRepository.Object,
                     _entitiesContext.Object,
                     _fileStorageService.Object,
@@ -176,6 +203,7 @@ namespace NuGetGallery.Services
                 () => new CertificateService(
                     _certificateValidator.Object,
                     _certificateRepository.Object,
+                    _patternRepository.Object,
                     _userRepository.Object,
                     _entitiesContext.Object,
                     _fileStorageService.Object,
@@ -544,6 +572,7 @@ namespace NuGetGallery.Services
             return new CertificateService(
                 _certificateValidator.Object,
                 _certificateRepository.Object,
+                _patternRepository.Object,
                 _userRepository.Object,
                 _entitiesContext.Object,
                 _fileStorageService.Object,

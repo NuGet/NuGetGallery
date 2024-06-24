@@ -13,8 +13,20 @@ namespace NuGetGallery
 {
     public sealed class CertificateService : CoreCertificateService, ICertificateService
     {
+        /// <summary>
+        /// This OID is used to mark all Trusted Signing Public Trust certificates.
+        /// Source: https://learn.microsoft.com/en-us/azure/trusted-signing/concept-trusted-signing-cert-management
+        /// </summary>
+        private const string AzureTrustedSigningPublicTrustEku = "1.3.6.1.4.1.311.97.1.0";
+
+        /// <summary>
+        /// This OID prefix is specific to the user.
+        /// Source: https://learn.microsoft.com/en-us/azure/trusted-signing/concept-trusted-signing-cert-management
+        /// </summary>
+        private const string AzureTrustedSigningPublicTrustIdentifierPrefix = "1.3.6.1.4.1.311.97.";
+
         private readonly ICertificateValidator _certificateValidator;
-        private readonly IEntityRepository<UserCertificatePattern> _certificatePatternRepository;
+        private readonly IEntityRepository<UserCertificatePattern> _patternRepository;
         private readonly IEntityRepository<User> _userRepository;
         private readonly IEntitiesContext _entitiesContext;
         private readonly IAuditingService _auditingService;
@@ -23,7 +35,7 @@ namespace NuGetGallery
         public CertificateService(
             ICertificateValidator certificateValidator,
             IEntityRepository<Certificate> certificateRepository,
-            IEntityRepository<UserCertificatePattern> certificatePatternRepository,
+            IEntityRepository<UserCertificatePattern> patternRepository,
             IEntityRepository<User> userRepository,
             IEntitiesContext entitiesContext,
             ICoreFileStorageService fileStorageService,
@@ -31,7 +43,7 @@ namespace NuGetGallery
             ITelemetryService telemetryService) : base(certificateRepository, fileStorageService)
         {
             _certificateValidator = certificateValidator ?? throw new ArgumentNullException(nameof(certificateValidator));
-            _certificatePatternRepository = certificatePatternRepository ?? throw new ArgumentNullException(nameof(certificatePatternRepository));
+            _patternRepository = patternRepository ?? throw new ArgumentNullException(nameof(patternRepository));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
@@ -97,7 +109,7 @@ namespace NuGetGallery
             }
         }
 
-        public async Task ActivateCertificatePatternAsync(CertificatePatternType patternType, string identifier, User account)
+        public async Task<UserCertificatePattern> AddCertificatePatternAsync(CertificatePatternType patternType, string identifier, User account)
         {
             if (string.IsNullOrEmpty(identifier))
             {
@@ -109,29 +121,47 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(account));
             }
 
-            account
-                .UserCertificatePatterns
-                .Where(usp => usp.)
-
-            var userCertificate = certificate.UserCertificates.SingleOrDefault(uc => uc.UserKey == account.Key);
-
-            if (userCertificate == null)
+            switch (patternType)
             {
-                userCertificate = new UserCertificate()
+                case CertificatePatternType.AzureTrustedSigning:
+                    identifier = identifier.Trim();
+                    if (!identifier.StartsWith(AzureTrustedSigningPublicTrustIdentifierPrefix))
+                    {
+                        throw new UserSafeException(string.Format(Strings.AzureCodeSigningIdentifierIsNotValid, AzureTrustedSigningPublicTrustIdentifierPrefix));
+                    }
+                    if (identifier == AzureTrustedSigningPublicTrustEku)
+                    {
+                        throw new UserSafeException(string.Format(Strings.AzureCodeSigningIdentifierMustNotBePublicTrustEku, AzureTrustedSigningPublicTrustEku));
+                    }
+                    break;
+                default:
+                    throw new UserSafeException(Strings.CertificatePatternTypeIsUnrecognized);
+            }
+
+            var pattern = GetCertificatePatterns(account)
+                .Where(usp => usp.PatternType == patternType && usp.Identifier == identifier)
+                .SingleOrDefault();
+
+            if (pattern == null)
+            {
+                pattern = new UserCertificatePattern
                 {
-                    CertificateKey = certificate.Key,
-                    UserKey = account.Key
+                    User = account,
+                    PatternType = patternType,
+                    Identifier = identifier,
                 };
 
-                _entitiesContext.UserCertificates.Add(userCertificate);
+                _patternRepository.InsertOnCommit(pattern);
 
                 await _entitiesContext.SaveChangesAsync();
 
                 await _auditingService.SaveAuditRecordAsync(
-                    new CertificateAuditRecord(AuditedCertificateAction.Activate, certificate.Thumbprint));
+                    new CertificatePatternAuditRecord(AuditedCertificatePatternAction.Add, patternType, identifier));
 
-                _telemetryService.TrackCertificateActivated(thumbprint);
+                _telemetryService.TrackCertificatePatternAdded(patternType, identifier);
             }
+
+            return pattern;
         }
 
         public async Task DeactivateCertificateAsync(string thumbprint, User account)
@@ -168,6 +198,28 @@ namespace NuGetGallery
             }
         }
 
+        public async Task DeleteCertificatePatternAsync(int patternKey, User account)
+        {
+            if (account == null)
+            {
+                throw new ArgumentNullException(nameof(account));
+            }
+
+            var pattern = GetCertificatePatterns(account).SingleOrDefault(p => p.Key == patternKey);
+
+            if (pattern != null)
+            {
+                _patternRepository.DeleteOnCommit(pattern);
+
+                await _entitiesContext.SaveChangesAsync();
+
+                await _auditingService.SaveAuditRecordAsync(
+                    new CertificatePatternAuditRecord(AuditedCertificatePatternAction.Delete, pattern.PatternType, pattern.Identifier));
+
+                _telemetryService.TrackCertificatePatternDeleted(pattern.PatternType, pattern.Identifier);
+            }
+        }
+
         public IEnumerable<Certificate> GetCertificates(User account)
         {
             if (account == null)
@@ -179,6 +231,18 @@ namespace NuGetGallery
                 .Where(u => u.Key == account.Key)
                 .SelectMany(u => u.UserCertificates)
                 .Select(uc => uc.Certificate);
+        }
+
+        public IEnumerable<UserCertificatePattern> GetCertificatePatterns(User account)
+        {
+            if (account == null)
+            {
+                throw new ArgumentNullException(nameof(account));
+            }
+
+            return _patternRepository
+                .GetAll()
+                .Where(u => u.Key == account.Key);
         }
     }
 }

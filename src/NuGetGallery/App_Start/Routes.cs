@@ -385,15 +385,33 @@ namespace NuGetGallery
                 constraints: new { httpMethod = new HttpMethodConstraint("DELETE") });
 
             routes.MapRoute(
+                RouteName.DeleteUserCertificatePattern,
+                "account/certificates-patterns/{patternKey}",
+                new { controller = "Users", action = "DeleteCertificatePattern" },
+                constraints: new { httpMethod = new HttpMethodConstraint("DELETE") });
+
+            routes.MapRoute(
                 RouteName.GetUserCertificates,
                 "account/certificates",
                 new { controller = "Users", action = "GetCertificates" },
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
+                RouteName.GetUserCertificatePatterns,
+                "account/certificates",
+                new { controller = "Users", action = "GetCertificatePatterns" },
+                constraints: new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
                 RouteName.AddUserCertificate,
                 "account/certificates",
                 new { controller = "Users", action = "AddCertificate" },
+                constraints: new { httpMethod = new HttpMethodConstraint("POST") });
+
+            routes.MapRoute(
+                RouteName.AddUserCertificatePattern,
+                "account/certificates-patterns",
+                new { controller = "Users", action = "AddCertificatePattern" },
                 constraints: new { httpMethod = new HttpMethodConstraint("POST") });
 
             routes.MapRoute(
@@ -559,6 +577,13 @@ namespace NuGetGallery
                 obfuscationMetadata: new RouteExtensions.ObfuscatedPathMetadata(1, Obfuscator.DefaultTelemetryUserName));
 
             routes.MapRoute(
+                RouteName.DeleteOrganizationCertificatePattern,
+                "organization/{accountName}/certificate-patterns/{patternKey}",
+                new { controller = "Organizations", action = "DeleteCertificatePattern" },
+                constraints: new { httpMethod = new HttpMethodConstraint("DELETE") },
+                obfuscationMetadata: new RouteExtensions.ObfuscatedPathMetadata(1, Obfuscator.DefaultTelemetryUserName));
+
+            routes.MapRoute(
                 RouteName.GetOrganizationCertificates,
                 "organization/{accountName}/certificates",
                 new { controller = "Organizations", action = "GetCertificates" },
@@ -566,9 +591,23 @@ namespace NuGetGallery
                 obfuscationMetadata: new RouteExtensions.ObfuscatedPathMetadata(1, Obfuscator.DefaultTelemetryUserName));
 
             routes.MapRoute(
+                RouteName.GetOrganizationCertificatePatterns,
+                "organization/{accountName}/certificate-patterns",
+                new { controller = "Organizations", action = "GetCertificatePatterns" },
+                constraints: new { httpMethod = new HttpMethodConstraint("GET") },
+                obfuscationMetadata: new RouteExtensions.ObfuscatedPathMetadata(1, Obfuscator.DefaultTelemetryUserName));
+
+            routes.MapRoute(
                 RouteName.AddOrganizationCertificate,
                 "organization/{accountName}/certificates",
                 new { controller = "Organizations", action = "AddCertificate" },
+                constraints: new { httpMethod = new HttpMethodConstraint("POST") },
+                obfuscationMetadata: new RouteExtensions.ObfuscatedPathMetadata(1, Obfuscator.DefaultTelemetryUserName));
+
+            routes.MapRoute(
+                RouteName.AddOrganizationCertificatePattern,
+                "organization/{accountName}/certificate-patterns",
+                new { controller = "Organizations", action = "AddCertificatePattern" },
                 constraints: new { httpMethod = new HttpMethodConstraint("POST") },
                 obfuscationMetadata: new RouteExtensions.ObfuscatedPathMetadata(1, Obfuscator.DefaultTelemetryUserName));
 

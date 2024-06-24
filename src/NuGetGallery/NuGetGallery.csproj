@@ -785,6 +785,7 @@
     <Compile Include="ViewModels\ListCertificateItemViewModel.cs" />
     <Compile Include="ViewModels\GalleryHomeViewModel.cs" />
     <Compile Include="ViewModels\HandleOrganizationMembershipRequestModel.cs" />
+    <Compile Include="ViewModels\ListCertificatePatternItemViewModel.cs" />
     <Compile Include="ViewModels\ListPackageItemRequiredSignerViewModel.cs" />
     <Compile Include="ViewModels\ManagePackageViewModel.cs" />
     <Compile Include="ViewModels\BasicUserViewModel.cs" />

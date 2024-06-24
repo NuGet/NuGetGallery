@@ -550,16 +550,13 @@ namespace NuGetGallery
                 return Json(HttpStatusCode.Forbidden, new { Strings.Unauthorized });
             }
 
-            Certificate certificate;
-
+            UserCertificatePattern pattern;
             try
             {
-                using (var uploadStream = uploadFile.InputStream)
-                {
-                    certificate = await CertificateService.AddCertificateAsync(uploadFile);
-                }
-
-                await CertificateService.ActivateCertificateAsync(certificate.Thumbprint, account);
+                pattern = await CertificateService.AddCertificatePatternAsync(
+                    patternType,
+                    identifier,
+                    account);
             }
             catch (UserSafeException ex)
             {
@@ -568,15 +565,7 @@ namespace NuGetGallery
                 return Json(HttpStatusCode.BadRequest, new[] { ex.Message });
             }
 
-            var activeCertificateCount = CertificateService.GetCertificates(account).Count();
-
-            if (activeCertificateCount == 1 &&
-                SecurityPolicyService.IsSubscribed(account, AutomaticallyOverwriteRequiredSignerPolicy.PolicyName))
-            {
-                await PackageService.SetRequiredSignerAsync(account);
-            }
-
-            return Json(HttpStatusCode.Created, new { certificate.Thumbprint });
+            return Json(HttpStatusCode.Created, new { pattern.Key, pattern.PatternType, pattern.Identifier });
         }
 
         [HttpDelete]
@@ -609,6 +598,35 @@ namespace NuGetGallery
             }
 
             await CertificateService.DeactivateCertificateAsync(thumbprint, account);
+
+            return Json(HttpStatusCode.OK);
+        }
+
+        [HttpDelete]
+        [UIAuthorize]
+        [ValidateAntiForgeryToken]
+        [RequiresAccountConfirmation("delete a certificate pattern")]
+        public virtual async Task<JsonResult> DeleteCertificatePattern(string accountName, int patternKey)
+        {
+            var currentUser = GetCurrentUser();
+            var account = GetAccount(accountName);
+
+            if (currentUser == null)
+            {
+                return Json(HttpStatusCode.Unauthorized);
+            }
+
+            if (account == null)
+            {
+                return Json(HttpStatusCode.NotFound);
+            }
+
+            if (!CanManageCertificates(currentUser, account))
+            {
+                return Json(HttpStatusCode.Forbidden, new { Strings.Unauthorized });
+            }
+
+            await CertificateService.DeleteCertificatePatternAsync(patternKey, account);
 
             return Json(HttpStatusCode.OK);
         }
@@ -679,22 +697,22 @@ namespace NuGetGallery
             }
 
             var canManageCertificates = CanManageCertificates(currentUser, account);
-            var template = GetDeleteCertificateForAccountTemplate(accountName);
+            var template = GetDeleteCertificatePatternForAccountTemplate(accountName);
 
-            var certificates = CertificateService.GetCertificates(account)
-                .Select(certificate =>
+            var patterns = CertificateService.GetCertificatePatterns(account)
+                .Select(pattern =>
                 {
-                    string deactivateUrl = null;
+                    string deleteUrl = null;
 
                     if (canManageCertificates)
                     {
-                        deactivateUrl = template.Resolve(certificate.Thumbprint);
+                        deleteUrl = template.Resolve(pattern.Key);
                     }
 
-                    return new ListCertificateItemViewModel(certificate, deactivateUrl);
+                    return new ListCertificatePatternItemViewModel(pattern, deleteUrl);
                 });
 
-            return Json(HttpStatusCode.OK, certificates, JsonRequestBehavior.AllowGet);
+            return Json(HttpStatusCode.OK, patterns, JsonRequestBehavior.AllowGet);
         }
 
         [HttpGet]
@@ -767,5 +785,6 @@ namespace NuGetGallery
         }
 
         protected abstract RouteUrlTemplate<string> GetDeleteCertificateForAccountTemplate(string accountName);
+        protected abstract RouteUrlTemplate<int> GetDeleteCertificatePatternForAccountTemplate(string accountName);
     }
 }

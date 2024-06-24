@@ -1266,4 +1266,15 @@ The {1} Team</value>
   <data name="CertificatePatternIdentifierIsRequired" xml:space="preserve">
     <value>An identifier string is required for the certificate pattern.</value>
   </data>
+  <data name="AzureCodeSigningIdentifierIsNotValid" xml:space="preserve">
+    <value>The Azure Code Signing extended key usage value must begin with '{0}'.</value>
+    <comment>{0} is the required prefix.</comment>
+  </data>
+  <data name="AzureCodeSigningIdentifierMustNotBePublicTrustEku" xml:space="preserve">
+    <value>The Azure Code Signing extended key usage value must not be '{0}'.</value>
+    <comment>{0} is the common public trust EKU value.</comment>
+  </data>
+  <data name="CertificatePatternTypeIsUnrecognized" xml:space="preserve">
+    <value>The provided certificate pattern type is not recognized.</value>
+  </data>
 </root>

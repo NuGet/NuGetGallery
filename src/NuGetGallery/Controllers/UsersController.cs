@@ -1093,6 +1093,11 @@ namespace NuGetGallery
             return Url.DeleteUserCertificateTemplate();
         }
 
+        protected override RouteUrlTemplate<int> GetDeleteCertificatePatternForAccountTemplate(string accountName)
+        {
+            return Url.DeleteUserCertificatePatternTemplate();
+        }
+
         private async Task<CredentialViewModel> GenerateApiKeyInternal(string description, ICollection<Scope> scopes, TimeSpan? expiration)
         {
             var user = GetCurrentUser();
