@@ -1386,6 +1386,7 @@
     <Content Include="Content\gallery\img\circuit-board-light-theme.svg" />
     <Content Include="Content\gallery\img\default-package-icon-256x256.png" />
     <Content Include="Content\gallery\img\default-package-icon.svg" />
+    <Content Include="Content\gallery\img\default-package-icon-white.png" />
     <Content Include="Content\gallery\img\dotnet-foundation-42x42.png" />
     <Content Include="Content\gallery\img\dotnet-foundation.svg" />
     <Content Include="Content\gallery\img\facebook-24x24.png" />

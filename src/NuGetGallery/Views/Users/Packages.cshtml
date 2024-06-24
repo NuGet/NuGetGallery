@@ -222,11 +222,7 @@
                 <tbody data-bind="foreach: Namespaces">
                     <tr class="manage-package-listing" data-bind="visible: Visible">
                         <td class="align-middle hidden-xs">
-                            <img class="reserved-indicator-icon img-responsive"
-                                 src="~/Content/gallery/img/reserved-indicator.svg"
-                                 alt="Reserved namespace icon"
-                                 @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-256x256.png"))
-                                 title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
+                            <i class="ms-Icon ms-Icon--SkypeCircleCheck reserved-indicator" title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" alt="Reserved namespace icon"></i>
                         </td>
                         <td class="align-middle reserved-id">
                             <a data-bind="text: Pattern, attr: { href: SearchUrl, target: '_blank' }"></a>

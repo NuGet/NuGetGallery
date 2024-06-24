@@ -1157,6 +1157,9 @@ p.frameworktableinfo-text {
   margin-top: 6px;
   margin-bottom: 6px;
 }
+.page-add-organization .package-default-icon {
+  content: var(--default-package-icon, url(../img/default-package-icon-256x256.png));
+}
 .page-add-organization .required:after {
   color: var(--statusDangerStroke2Rest);
   content: " *";
@@ -1475,6 +1478,7 @@ p.frameworktableinfo-text {
   width: 18px;
   margin-right: 5px;
   margin-left: 2px;
+  color: var(--brandBackground1Rest);
 }
 .page-package-details .package-title .prefix-reserve-title .prefix-reserve-label {
   font-size: 14px;
@@ -1706,6 +1710,7 @@ p.frameworktableinfo-text {
   margin-bottom: 3px;
   margin-left: 2px;
   vertical-align: middle;
+  color: var(--brandBackground1Rest);
 }
 .page-package-details .used-by-adjust-table-head {
   word-break: normal;
@@ -1832,6 +1837,9 @@ p.frameworktableinfo-text {
   text-shadow: calc(0.5 * -0.03ex) 0 0 currentColor, calc(0.5 * 0.03ex) 0 0 currentColor;
   margin-bottom: -1px;
   background-color: transparent;
+}
+.page-package-details .body-tabs .nav-tabs > li.active > a i {
+  color: var(--brandStrokeCompoundRest);
 }
 .page-package-details .body-tabs .nav-tabs > li.active > a:hover {
   border-bottom-color: var(--brandStrokeCompoundHover);
