@@ -966,7 +966,7 @@ namespace NuGetGallery
                 // arrange
                 // - create a package that responds differently to each set of heuristics
                 var nuspec =
-                    $@"<?xml version=""1.0""?>
+                    @"<?xml version=""1.0""?>
                         <package xmlns = ""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
                             <metadata>
                                 <id>Foo</id>
@@ -1248,7 +1248,7 @@ namespace NuGetGallery
             [InlineData("1.0.0")]
             public void ReturnsNullIfEmptyList(string version)
             {
-                Assert.Equal(null, InvokeMethod(new Package[0], version));
+                Assert.Equal(null, InvokeMethod(Array.Empty<Package>(), version));
             }
 
             [Theory]

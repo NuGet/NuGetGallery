@@ -99,7 +99,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 }
                 else
                 {
-                    sb.Append(" ");
+                    sb.Append(' ');
                 }
 
                 sb.AppendLine(HttpUtility.HtmlEncode(value.Trim()));

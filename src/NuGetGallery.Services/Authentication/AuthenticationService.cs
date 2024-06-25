@@ -584,7 +584,6 @@ namespace NuGetGallery.Authentication
         {
             var hasPassword = user.Credentials.Any(
                 c => c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase));
-            Credential _;
             if (hasPassword && !ValidatePasswordCredential(user.Credentials, oldPassword, out _))
             {
                 // Invalid old password!

@@ -58,8 +58,8 @@ namespace NuGetGallery.Auditing
             Credentials = user.Credentials.Where(CredentialTypes.IsSupportedCredential)
                                           .Select(c => new CredentialAuditRecord(c, removedOrRevoked: false)).ToArray();
 
-            AffectedCredential = new CredentialAuditRecord[0];
-            AffectedPolicies = new AuditedUserSecurityPolicy[0];
+            AffectedCredential = Array.Empty<CredentialAuditRecord>();
+            AffectedPolicies = Array.Empty<AuditedUserSecurityPolicy>();
         }
 
         public UserAuditRecord(User user, AuditedUserAction action, Credential affected, string revocationSource)

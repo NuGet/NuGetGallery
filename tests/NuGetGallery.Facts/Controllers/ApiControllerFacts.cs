@@ -117,7 +117,7 @@ namespace NuGetGallery
 
             MockReservedNamespaceService
                 .Setup(s => s.GetReservedNamespacesForId(It.IsAny<string>()))
-                .Returns(new ReservedNamespace[0]);
+                .Returns(Array.Empty<ReservedNamespace>());
 
             MockPackageUploadService
                 .Setup(x => x.ValidateBeforeGeneratePackageAsync(
@@ -2853,11 +2853,9 @@ namespace NuGetGallery
                 dynamic json = jsonResult?.Data;
                 Assert.NotNull(json);
 
-                Guid key;
-                Assert.True(Guid.TryParse(json.Key, out key));
+                Assert.True(Guid.TryParse(json.Key, out Guid _));
 
-                DateTime expires;
-                Assert.True(DateTime.TryParse(json.Expires, out expires));
+                Assert.True(DateTime.TryParse(json.Expires, out DateTime _));
 
                 // Assert - the invocations
                 controller.MockAuthenticationService.Verify(s => s.AddCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Once);

@@ -19,7 +19,7 @@
                 </div>
                 <div class="ms-font-xxl">
                     <span>
-                        <select id="ownerFilter" class="form-control hidden" aria-label="Filter on package owner"
+                        <select id="ownerFilter" class="form-control select-brand hidden" aria-label="Filter on package owner"
                                 data-bind="options: Owners, value: OwnerFilter, optionsText: 'Username'"></select>
                     </span>
                 </div>
@@ -131,7 +131,7 @@
                     <tr class="manage-package-listing" data-bind="visible: Visible">
                         <td class="align-middle hidden-xs">
                             <img class="package-icon img-responsive" aria-hidden="true"
-                                 data-bind="attr: { src: PackageIconUrl, onerror: PackageIconUrlFallback, alt: 'Icon for ' + Id }" />
+                                 data-bind="attr: { src: PackageIconUrl, onerror: PackageIconUrlFallback, alt: 'Icon for ' + Id, class: PackageIconUrl == null ? 'package-icon img-responsive package-default-icon' : 'package-icon img-responsive' }" />
                         </td>
                         <td class="align-middle package-id text-nowrap">
                             <a title="View Package" data-bind="attr: { href: PackageUrl }">
@@ -156,7 +156,7 @@
                             <span data-bind="text: RequiredSigner" />
                             <!-- /ko -->
                             <!-- ko ifnot: $data.ShowTextBox -->
-                            <select class="form-control required-signer"
+                            <select class="form-control required-signer select-brand"
                                     aria-label="Select the signing owner"
                                     data-bind="options: AllSigners,
                                     optionsText: 'OptionText',
@@ -188,7 +188,7 @@
                     }
                         <td class="text-right align-middle package-controls">
                             <span data-bind="visible: CanEdit || CanManageOwners || CanDelete">
-                                <a class="btn" title="Manage Package" data-bind="attr: { href: ManageUrl,
+                                <a class="btn btn-brand-icon" title="Manage Package" data-bind="attr: { href: ManageUrl,
                         'aria-label': 'Manage Package ' + Id + ' Version ' + LatestVersion }">
 
                                     <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
@@ -222,11 +222,7 @@
                 <tbody data-bind="foreach: Namespaces">
                     <tr class="manage-package-listing" data-bind="visible: Visible">
                         <td class="align-middle hidden-xs">
-                            <img class="reserved-indicator-icon img-responsive"
-                                 src="~/Content/gallery/img/reserved-indicator.svg"
-                                 alt="Reserved namespace icon"
-                                 @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-256x256.png"))
-                                 title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
+                            <i class="ms-Icon ms-Icon--SkypeCircleCheck reserved-indicator" title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" alt="Reserved namespace icon"></i>
                         </td>
                         <td class="align-middle reserved-id">
                             <a data-bind="text: Pattern, attr: { href: SearchUrl, target: '_blank' }"></a>
@@ -288,19 +284,19 @@
                             <!-- ko if: CanAccept -->
                             <form method="post" data-bind="attr: { action: ConfirmUrl }">
                                 @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-default" title="Confirm Ownership" data-bind="attr: { 'aria-label': 'Confirm Ownership of ' + Id }">
+                                <button type="submit" class="btn btn-brand-secondary" title="Confirm Ownership" data-bind="attr: { 'aria-label': 'Confirm Ownership of ' + Id }">
                                     <i class="ms-Icon ms-Icon--Accept" aria-hidden="true"></i>
                                 </button>
                             </form>
                             <form method="post" data-bind="attr: { action: RejectUrl }">
                                 @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-default" title="Reject Ownership" data-bind="attr: { 'aria-label': 'Reject Ownership of ' + Id }">
+                                <button type="submit" class="btn btn-brand-secondary" title="Reject Ownership" data-bind="attr: { 'aria-label': 'Reject Ownership of ' + Id }">
                                     <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
                                 </button>
                             </form>
                             <!-- /ko -->
                             <!-- ko if: !CanAccept && CanCancel -->
-                            <a class="btn" title="Manage Ownership" data-bind="attr: { href: ManagePackageOwnershipUrl, 'aria-label': 'Manage Ownership of ' + Id }">
+                            <a class="btn btn-brand-icon" title="Manage Ownership" data-bind="attr: { href: ManagePackageOwnershipUrl, 'aria-label': 'Manage Ownership of ' + Id }">
                                 <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
                             </a>
                             <!-- /ko -->
@@ -513,7 +509,6 @@
                             .Select(r => GetSerializableOwnerRequest(r)),
                          RequestsSent = Model.OwnerRequests.Sent.Requests
                             .Select(r => GetSerializableOwnerRequest(r)),
-                         DefaultPackageIconUrl = Url.Absolute("~/Content/gallery/img/default-package-icon.svg"),
                          PackageIconUrlFallback = Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")
                      });
     </script>

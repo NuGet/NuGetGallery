@@ -12,8 +12,8 @@
     </p>
 
     <form>
-        <textarea placeholder="Search for packages to delete (e.g. jQuery 1.8.0)" autocomplete="off" autofocus style="width: 100%;" rows="5" data-bind="value: searchQuery"></textarea><br />
-        <input type="button" value="Search" data-bind="click: search" />
+        <textarea placeholder="Search for packages to delete (e.g. jQuery 1.8.0)" autocomplete="off" autofocus style="width: 100%;" rows="5" class="textarea-brand" data-bind="value: searchQuery"></textarea><br />
+        <input type="button" class="btn-brand-secondary" value="Search" data-bind="click: search" />
     </form>
 
     @using (Html.BeginForm("Delete", "Packages", new { area = "" }, FormMethod.Post, new { id = "delete-form" }))
@@ -21,7 +21,7 @@
         <table class="table" id="searchResults" style="display: none" data-bind="visible: searchResults().length > 0" aria-label="Search results">
             <thead>
                 <tr>
-                    <th><input type="checkbox" data-bind="click: toggleSelectAll, checked: selectAllState" /></th>
+                    <th><input type="checkbox" class="brand-checkbox" data-bind="click: toggleSelectAll, checked: selectAllState" /></th>
                     <th>Package</th>
                     <th>Version</th>
                     <th>Downloads</th>
@@ -33,7 +33,7 @@
             </thead>
             <tbody data-bind="foreach: searchResults">
                 <tr>
-                    <td><input type="checkbox" name="Packages[]" data-bind="checked: Selected, value: $parent.generateValue($data)" /></td>
+                    <td><input type="checkbox" class="brand-checkbox" name="Packages[]" data-bind="checked: Selected, value: $parent.generateValue($data)" /></td>
                     <td><a href="#" data-bind="text: PackageId, attr: { href: $parent.generatePackageUrl($data) }"></a></td>
                     <td><span data-bind="text: PackageVersionNormalized"></span></td>
                     <td><span data-bind="text: DownloadCount"></span></td>

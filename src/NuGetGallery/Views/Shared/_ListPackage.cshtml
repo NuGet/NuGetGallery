@@ -30,9 +30,8 @@
 
     <div class="row">
         <div class="col-sm-1 hidden-xs hidden-sm col-package-icon">
-            <img class="package-icon img-responsive" aria-hidden="true" alt=""
-                 src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
-                 @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
+            <img class="package-icon img-responsive @(!PackageHelper.ShouldRenderUrl(Model.IconUrl) ? "package-default-icon" : null)" aria-hidden="true" alt=""
+                 src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : null)" />
         </div>
         <div class="col-sm-11">
             <div class="package-header">
@@ -50,10 +49,8 @@
 
                 @if (Model.IsVerified.HasValue && Model.IsVerified.Value)
                 {
-                    <img class="reserved-indicator"
-                         src="~/Content/gallery/img/reserved-indicator.svg"
-                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-20x20.png"))
-                         data-content="@Strings.ReservedNamespace_ReservedIndicatorTooltip" tabindex="0" alt="@Strings.ReservedNamespace_ReservedIndicatorTooltip"/>
+                    <i class="ms-Icon ms-Icon--SkypeCircleCheck reserved-indicator"
+                        data-content="@Strings.ReservedNamespace_ReservedIndicatorTooltip" tabindex="0" alt="@Strings.ReservedNamespace_ReservedIndicatorTooltip"></i>
                 }
 
                 @if (showEditButton && (Model.CanEdit || Model.CanManageOwners || Model.CanUnlistOrRelist))

@@ -170,10 +170,10 @@ namespace NuGetGallery.Services
                         _config = config;
                     }
 
-                    public async Task<bool> IsAvailableAsync(CloudBlobLocationMode? locationMode)
+                    public Task<bool> IsAvailableAsync(CloudBlobLocationMode? locationMode)
                     {
                         AssertConfigLocationMode(_config, locationMode);
-                        return await Task.FromResult(true);
+                        return Task.FromResult(true);
                     }
                 }
 
@@ -186,10 +186,10 @@ namespace NuGetGallery.Services
                         _config = config;
                     }
 
-                    public async Task<bool> IsAvailableAsync(CloudBlobLocationMode? locationMode)
+                    public Task<bool> IsAvailableAsync(CloudBlobLocationMode? locationMode)
                     {
                         AssertConfigLocationMode(_config, locationMode);
-                        return await Task.FromResult(false);
+                        return Task.FromResult(false);
                     }
                 }
 

@@ -17,7 +17,7 @@ namespace NuGetGallery.Services
     {
         public class TheUpdateDeprecationMethod : TestContainer
         {
-            public static IEnumerable<object[]> ThrowsIfPackagesEmpty_Data => MemberDataHelper.AsDataSet(null, new Package[0]);
+            public static IEnumerable<object[]> ThrowsIfPackagesEmpty_Data => MemberDataHelper.AsDataSet(null, Array.Empty<Package>());
 
             [Theory]
             [MemberData(nameof(ThrowsIfPackagesEmpty_Data))]
@@ -502,6 +502,107 @@ namespace NuGetGallery.Services
 
                 // Assert
                 context.VerifyNoCommitChanges();
+                databaseMock.Verify();
+                transactionMock.Verify();
+                packageUpdateService.Verify();
+                telemetryService.Verify();
+
+                Assert.Equal(packages.Count(), context.Deprecations.Count());
+                foreach (var package in packages)
+                {
+                    var deprecation = package.Deprecations.Single();
+                    Assert.Contains(deprecation, context.Deprecations);
+                    Assert.Equal(status, deprecation.Status);
+                    Assert.Equal(alternatePackageRegistration, deprecation.AlternatePackageRegistration);
+                    Assert.Equal(alternatePackage, deprecation.AlternatePackage);
+                    Assert.Equal(customMessage, deprecation.CustomMessage);
+
+                    auditingService.WroteNoRecords();
+                }
+            }
+
+            [Fact]
+            public async Task SavesChangesWithExtraEntityChangesButNoDeprecationChanges()
+            {
+                // Arrange
+                var lastTimestamp = new DateTime(2019, 3, 4);
+
+                var id = "theId";
+                var registration = new PackageRegistration { Id = id };
+
+                var customMessage = "message";
+                var user = new User { Key = 1 };
+                var status = (PackageDeprecationStatus)99;
+
+                var alternatePackageRegistration = new PackageRegistration { Key = 1 };
+                var alternatePackage = new Package { Key = 1 };
+
+                var packageWithDeprecation = new Package
+                {
+                    PackageRegistration = registration,
+                    NormalizedVersion = "3.0.0",
+                    LastEdited = lastTimestamp,
+                    Deprecations = new List<PackageDeprecation>
+                    {
+                        new PackageDeprecation
+                        {
+                            DeprecatedByUserKey = user.Key,
+                            CustomMessage = customMessage,
+                            Status = status,
+                            AlternatePackageKey = alternatePackage.Key,
+                            AlternatePackage = alternatePackage,
+                            AlternatePackageRegistrationKey = alternatePackageRegistration.Key,
+                            AlternatePackageRegistration = alternatePackageRegistration,
+                        }
+                    }
+                };
+
+                var packages = new[]
+                {
+                    packageWithDeprecation,
+                };
+
+                var transactionMock = new Mock<IDbContextTransaction>();
+                transactionMock
+                    .Setup(x => x.Commit())
+                    .Verifiable();
+
+                var databaseMock = new Mock<IDatabase>();
+                databaseMock
+                    .Setup(x => x.BeginTransaction())
+                    .Returns(transactionMock.Object);
+
+                var context = GetFakeContext();
+                context.HasChanges = true;
+                context.SetupDatabase(databaseMock.Object);
+                context.Deprecations.AddRange(
+                    packages
+                        .Select(p => p.Deprecations.SingleOrDefault())
+                        .Where(d => d != null));
+
+                var packageUpdateService = GetMock<IPackageUpdateService>();
+                var auditingService = GetService<IAuditingService>();
+
+                var telemetryService = GetMock<ITelemetryService>();
+                telemetryService
+                    .Setup(x => x.TrackPackageDeprecate(packages, status, alternatePackageRegistration, alternatePackage, true, false))
+                    .Verifiable();
+
+                var service = Get<PackageDeprecationService>();
+
+                // Act
+                await service.UpdateDeprecation(
+                    packages,
+                    status,
+                    alternatePackageRegistration,
+                    alternatePackage,
+                    customMessage,
+                    user,
+                    ListedVerb.Unchanged,
+                    PackageUndeprecatedVia.Web);
+
+                // Assert
+                context.VerifyCommitChanges();
                 databaseMock.Verify();
                 transactionMock.Verify();
                 packageUpdateService.Verify();

@@ -24,22 +24,26 @@
     }
     
     .status-up {
-        background-color: #D1F0D5;
+        background-color: var(--statusSuccessBackground1Rest);
+
+        .ms-Icon {
+            color: var(--neutralForeground3Rest);
+        }
     }
     
     .status-down {
-        background-color: #FDE7E9;
+        background-color: var(--statusDangerBackground1Rest);
         
         .ms-Icon {
-            color: red;
+            color: var(--statusDangerForeground1Rest);
         }
     }
     
     .status-degraded {
-        background-color: @info-bg;
+        background-color: var(--statusWarningBackground1Rest);
         
         .ms-Icon {
-            color: orange;
+            color: var(--statusWarningForeground1Rest);
         }
     }
     
@@ -53,15 +57,15 @@
     }
         
     .ms-Icon--CheckMark {
-        color: green;
+        color: var(--statusSuccessForeground1Rest);
     }
         
     .ms-Icon--Warning {
-        color: orange;
+        color: var(--statusWarningForeground1Rest);
     }
     
     .ms-Icon--Cancel {
-        color: red;
+        color: var(--statusDangerForeground1Rest)
     }
     
     .table {
@@ -105,7 +109,7 @@
             font-size: 1.5em;
             
             a, a:hover, a:focus, a:active {
-                color: @text-color;
+                color: var(--neutralForeground1Rest);
                 text-decoration: none;
             }
             

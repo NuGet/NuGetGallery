@@ -81,8 +81,6 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(fileName));
             }
 
-            ICloudBlobContainer container = await GetContainerAsync(folderName);
-            var blob = container.GetBlobReference(fileName);
             var result = await GetBlobContentAsync(folderName, fileName, ifNoneMatch);
             if (result.StatusCode == HttpStatusCode.NotModified)
             {
@@ -216,7 +214,7 @@ namespace NuGetGallery
                             eventId: 0,
                             message: $"Destination blob '{destFolderName}/{destFileName}' already has Sha512 hash " +
                             $"'{destinationBlobSha512Hash}' and length '{destBlob.Properties.Length}'. The copy " +
-                            $"will be skipped.");
+                            "will be skipped.");
 
                         return srcBlob.ETag;
                     }

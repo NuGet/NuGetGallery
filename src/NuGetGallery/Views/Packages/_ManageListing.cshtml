@@ -25,7 +25,7 @@
         @Html.DropDownList("version-selection", Model.VersionSelectList,
             new
             {
-                @class = "form-control",
+                @class = "form-control select-brand",
                 title = "Select a version",
                 id = "input-select-version"
             })
@@ -51,15 +51,17 @@
                     @Html.AntiForgeryToken()
                     @Html.Hidden("version", @Model.Version, new { id = "input-list-package" })
                     <div class="form-group @Html.HasErrorFor(package => package.Listed)">
-                        @Html.ShowCheckboxFor(package => package.Listed)
-                        @Html.ShowLabelFor(package => package.Listed, "List in search results.", isrequired: false)
+                        <div class="row-checkbox-label">
+                            @Html.ShowCheckboxFor(package => package.Listed, customClass: "brand-checkbox")
+                            @Html.ShowLabelFor(package => package.Listed, "List in search results.", isrequired: false)
+                        </div>
                         @Html.ShowValidationMessagesFor(package => package.Listed)
 
                         <p>Unlisted packages cannot be installed directly and do not show up in search results.</p>
                     </div>
 
                     <div class="form-group">
-                        <input type="submit" class="btn btn-primary form-control" value="Save" />
+                        <input type="submit" class="btn btn-brand form-control" value="Save" />
                     </div>
                 }
             </div>
@@ -84,7 +86,7 @@
                 {
                     foreach (var p in Model.DeletePackagesRequest.Packages)
                     {
-                        <input id="input-delete-package" type="hidden" name="Packages[]" value="@p" />
+                        <input id="input-delete-package" class="input-brand" type="hidden" name="Packages[]" value="@p" />
                     }
 
                     @Html.Partial("_DeletePackage", Model.DeletePackagesRequest)
