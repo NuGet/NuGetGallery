@@ -53,7 +53,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 return Json(HttpStatusCode.BadRequest, "Invalid empty input!");
             }
 
-            var queries = verifyQuery.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Select(q => q.Trim()).ToList();
+            var queries = verifyQuery.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Select(q => q.Trim());
 
             var results = new List<ApiKeyRevokeViewModel>();
             var verifiedApiKey = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
