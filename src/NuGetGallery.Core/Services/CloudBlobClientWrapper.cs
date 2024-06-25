@@ -28,7 +28,7 @@ namespace NuGetGallery
             _requestTimeout = requestTimeout; // OK to be null
         }
 
-        private CloudBlobClientWrapper(string storageConnectionString, ManagedIdentityCredential tokenCredential)
+        private CloudBlobClientWrapper(string storageConnectionString, TokenCredential tokenCredential)
             : this(storageConnectionString)
         {
             _tokenCredential = tokenCredential ?? throw new ArgumentNullException(nameof(tokenCredential));
