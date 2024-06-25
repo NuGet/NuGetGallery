@@ -28,7 +28,6 @@ namespace NuGetGallery.AccountDeleter
         public string AzureStorage_Auditing_ConnectionString { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string AzureStorage_UserCertificates_ConnectionString { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string AzureStorage_Content_ConnectionString { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public string AzureStorage_Errors_ConnectionString { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string AzureStorage_Packages_ConnectionString { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string AzureStorage_FlatContainer_ConnectionString { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string AzureStorage_Statistics_ConnectionString { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }

@@ -41,8 +41,7 @@ namespace NuGetGallery
                 return true;
             }
 
-            NuGetVersion ignored;
-            return NuGetVersion.TryParse(versionText, out ignored);
+            return NuGetVersion.TryParse(versionText, out _);
         }
     }
 }
