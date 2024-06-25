@@ -141,7 +141,7 @@ namespace NuGetGallery
 
         public async Task DownloadToStreamAsync(Stream target, IAccessCondition accessCondition)
         {
-            // 304s are not retried with Azure.Storage.Blobs, so need for custom retry policy
+            // 304s are not retried with Azure.Storage.Blobs, so no need for custom retry policy.
 
             BlobDownloadToOptions downloadOptions = null;
             if (accessCondition != null)
