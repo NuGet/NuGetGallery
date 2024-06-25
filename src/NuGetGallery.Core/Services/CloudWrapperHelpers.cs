@@ -15,11 +15,11 @@ namespace NuGetGallery
         public static BlobTraits GetSdkBlobTraits(ListingDetails listingDetails)
         {
             BlobTraits traits = BlobTraits.None;
-            if (listingDetails.HasFlag(ListingDetails.Metadata))
+            if ((listingDetails & ListingDetails.Metadata) != 0)
             {
                 traits |= BlobTraits.Metadata;
             }
-            if (listingDetails.HasFlag(ListingDetails.Copy))
+            if ((listingDetails & ListingDetails.Copy) != 0)
             {
                 traits |= BlobTraits.CopyStatus;
             }
@@ -29,15 +29,15 @@ namespace NuGetGallery
         public static BlobStates GetSdkBlobStates(ListingDetails listingDetails)
         {
             BlobStates states = BlobStates.None;
-            if (listingDetails.HasFlag(ListingDetails.Snapshots))
+            if ((listingDetails & ListingDetails.Snapshots) != 0)
             {
                 states |= BlobStates.Snapshots;
             }
-            if (listingDetails.HasFlag(ListingDetails.UncommittedBlobs))
+            if ((listingDetails & ListingDetails.UncommittedBlobs) != 0)
             {
                 states |= BlobStates.Uncommitted;
             }
-            if (listingDetails.HasFlag(ListingDetails.Deleted))
+            if ((listingDetails & ListingDetails.Deleted) != 0)
             {
                 states |= BlobStates.Deleted;
             }
@@ -82,31 +82,31 @@ namespace NuGetGallery
         public static BlobAccountSasPermissions GetSdkSharedAccessPermissions(FileUriPermissions permissions)
         {
             BlobAccountSasPermissions convertedPermissions = (BlobAccountSasPermissions)0;
-            if (permissions.HasFlag(FileUriPermissions.Read))
+            if ((permissions & FileUriPermissions.Read) != 0)
             {
                 convertedPermissions |= BlobAccountSasPermissions.Read;
             }
-            if (permissions.HasFlag(FileUriPermissions.Write))
+            if ((permissions & FileUriPermissions.Write) != 0)
             {
                 convertedPermissions |= BlobAccountSasPermissions.Write;
             }
-            if (permissions.HasFlag(FileUriPermissions.Delete))
+            if ((permissions & FileUriPermissions.Delete) != 0)
             {
                 convertedPermissions |= BlobAccountSasPermissions.Delete;
             }
 #pragma warning disable CS0612
-            if (permissions.HasFlag(FileUriPermissions.List))
+            if ((permissions & FileUriPermissions.List) != 0)
 #pragma warning restore CS0612
             {
                 convertedPermissions |= BlobAccountSasPermissions.List;
             }
 #pragma warning disable CS0612
-            if (permissions.HasFlag(FileUriPermissions.Add))
+            if ((permissions & FileUriPermissions.Add) != 0)
 #pragma warning restore CS0612
             {
                 convertedPermissions |= BlobAccountSasPermissions.Add;
             }
-            if (permissions.HasFlag(FileUriPermissions.Create))
+            if ((permissions & FileUriPermissions.Create) != 0)
             {
                 convertedPermissions |= BlobAccountSasPermissions.Create;
             }
