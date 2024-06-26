@@ -276,7 +276,7 @@ namespace NuGetGallery
             var writeCount = 0;
 
             // Act & Assert
-            var ex = await Assert.ThrowsAsync<FileAlreadyExistsException>(
+            var ex = await Assert.ThrowsAsync<CloudBlobStorageException>(
                 async () =>
                 {
                     using (var stream = await file.OpenWriteAsync(AccessConditionWrapper.GenerateIfNotExistsCondition()))
