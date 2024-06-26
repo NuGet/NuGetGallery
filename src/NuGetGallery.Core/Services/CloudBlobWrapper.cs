@@ -8,6 +8,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
+using Azure.Core;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
@@ -17,6 +18,11 @@ namespace NuGetGallery
 {
     public class CloudBlobWrapper : ISimpleCloudBlob
     {
+        private const string ContentDispositionHeaderName = "Content-Disposition";
+        private const string ContentEncodingHeaderName = "Content-Encoding";
+        private const string ContentLanguageHeaderName = "Content-Language";
+        private const string CacheControlHeaderName = "Cache-Control";
+        private const string ContentMd5HeaderName = "Content-Md5";
         private readonly BlockBlobClient _blob;
         private readonly CloudBlobContainerWrapper _container;
         private string _lastSeenEtag = null;
@@ -274,6 +280,30 @@ namespace NuGetGallery
             BlobHeaders.ContentHash = details.ContentHash;
         }
 
+        private void ReplaceHttpHeaders(ResponseHeaders headers)
+        {
+            if (BlobHeaders == null)
+            {
+                BlobHeaders = new BlobHttpHeaders();
+            }
+            BlobHeaders.ContentType = headers.ContentType;
+            BlobHeaders.ContentDisposition = headers.TryGetValue(ContentDispositionHeaderName, out var contentDisposition) ? contentDisposition : null;
+            BlobHeaders.ContentEncoding = headers.TryGetValue(ContentEncodingHeaderName, out var contentEncoding) ? contentEncoding : null;
+            BlobHeaders.ContentLanguage = headers.TryGetValue(ContentLanguageHeaderName, out var contentLanguage) ? contentLanguage : null;
+            BlobHeaders.CacheControl = headers.TryGetValue(CacheControlHeaderName, out var cacheControl) ? cacheControl : null;
+            if (headers.TryGetValue(ContentMd5HeaderName, out var contentHash))
+            {
+                try
+                {
+                    BlobHeaders.ContentHash = Convert.FromBase64String(contentHash);
+                }
+                catch
+                {
+                    BlobHeaders.ContentHash = null;
+                }
+            }
+        }
+
         private void ReplaceMetadata(IDictionary<string, string> newMetadata)
         {
             if (Metadata == null)
@@ -443,9 +473,14 @@ namespace NuGetGallery
 
         private Response UpdateEtag(Response response)
         {
-            if (response?.Headers.ETag != null)
+            if (response?.Headers != null)
             {
-                _lastSeenEtag = response.Headers.ETag.ToString();
+                if (response.Headers.ETag != null)
+                {
+                    _lastSeenEtag = response.Headers.ETag.ToString();
+                }
+
+                ReplaceHttpHeaders(response.Headers);
             }
             return response;
         }
