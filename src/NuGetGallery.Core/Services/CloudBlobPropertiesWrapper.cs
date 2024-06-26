@@ -39,7 +39,7 @@ namespace NuGetGallery
 
         public string ContentMD5
         {
-            get => ToHexString(_blob.BlobHeaders.ContentHash);
+            get => ToBase64String(_blob.BlobHeaders.ContentHash);
         }
 
         private BlobHttpHeaders SafeHeaders
@@ -54,9 +54,13 @@ namespace NuGetGallery
             }
         }
 
-        private static string ToHexString(byte[] array)
+        private static string ToBase64String(byte[] array)
         {
-            return BitConverter.ToString(array).Replace("-", "").ToLowerInvariant();
+            if (array == null)
+            {
+                return null;
+            }
+            return Convert.ToBase64String(array);
         }
     }
 }
