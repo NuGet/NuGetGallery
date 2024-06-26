@@ -110,14 +110,17 @@ namespace NuGetGallery
             return result.Value.Content;
         }
 
-        public async Task<Stream> OpenWriteAsync(IAccessCondition accessCondition)
+        public async Task<Stream> OpenWriteAsync(IAccessCondition accessCondition, string contentType = null)
         {
-            BlockBlobOpenWriteOptions options = null;
-            if (accessCondition != null)
+            BlockBlobOpenWriteOptions options = new BlockBlobOpenWriteOptions
             {
-                options = new BlockBlobOpenWriteOptions
+                OpenConditions = CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
+            };
+            if (contentType != null)
+            {
+                options.HttpHeaders = new BlobHttpHeaders
                 {
-                    OpenConditions = CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
+                    ContentType = contentType,
                 };
             }
             return await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
