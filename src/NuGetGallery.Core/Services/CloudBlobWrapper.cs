@@ -475,9 +475,9 @@ namespace NuGetGallery
         {
             if (response?.Headers != null)
             {
-                if (response.Headers.ETag != null)
+                if (response.Headers.ETag.HasValue)
                 {
-                    _lastSeenEtag = response.Headers.ETag.ToString();
+                    _lastSeenEtag = EtagToString(response.Headers.ETag.Value);
                 }
 
                 ReplaceHttpHeaders(response.Headers);
@@ -489,7 +489,7 @@ namespace NuGetGallery
         {
             if (propertiesResponse?.Value != null)
             {
-                _lastSeenEtag = propertiesResponse.Value.ETag.ToString();
+                _lastSeenEtag = EtagToString(propertiesResponse.Value.ETag);
             }
             return propertiesResponse;
         }
@@ -498,7 +498,7 @@ namespace NuGetGallery
         {
             if (infoResponse?.Value != null)
             {
-                _lastSeenEtag = infoResponse.Value.ETag.ToString();
+                _lastSeenEtag = EtagToString(infoResponse.Value.ETag);
             }
             return infoResponse;
         }
@@ -507,7 +507,7 @@ namespace NuGetGallery
         {
             if (infoResponse?.Value != null)
             {
-                _lastSeenEtag = infoResponse.Value.ETag.ToString();
+                _lastSeenEtag = EtagToString(infoResponse.Value.ETag);
             }
             return infoResponse;
         }
@@ -516,10 +516,14 @@ namespace NuGetGallery
         {
             if (details != null)
             {
-                _lastSeenEtag = details.ETag.ToString();
+                _lastSeenEtag = EtagToString(details.ETag);
                 ReplaceHttpHeaders(details);
                 ReplaceMetadata(details.Metadata);
             }
         }
+
+        // workaround for https://github.com/Azure/azure-sdk-for-net/issues/29942 
+        private static string EtagToString(ETag etag)
+            => etag.ToString("H");
     }
 }
