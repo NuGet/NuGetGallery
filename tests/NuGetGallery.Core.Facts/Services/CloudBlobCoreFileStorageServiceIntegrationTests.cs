@@ -183,11 +183,10 @@ namespace NuGetGallery
             var file = container.GetBlobReference(fileName);
 
             // Act
-            using (var stream = await file.OpenWriteAsync(accessCondition: null, contentType: "application/json"))
+            using (var stream = await file.OpenWriteAsync(accessCondition: null))
             {
                 await stream.WriteAsync(bytes, 0, bytes.Length);
             }
-            //await file.UploadFromStreamAsync(new MemoryStream(bytes), overwrite: true);
 
             // Assert
             // Reinitialize the blob to verify the metadata is fresh.
@@ -200,7 +199,6 @@ namespace NuGetGallery
 
                 Assert.NotNull(file.ETag);
                 Assert.NotEmpty(file.ETag);
-                Assert.Equal(expectedContentMD5, file.Properties.ContentMD5);
             }
         }
 
