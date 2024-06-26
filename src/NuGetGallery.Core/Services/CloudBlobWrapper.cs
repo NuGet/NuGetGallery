@@ -112,6 +112,11 @@ namespace NuGetGallery
             }
             var result = await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blob.DownloadStreamingAsync(options));
+            if (result.GetRawResponse().Status == (int)HttpStatusCode.NotModified)
+            {
+                // calling code expects an exception thrown on not modified response
+                throw new CloudBlobNotModifiedException(null);
+            }
             UpdateEtag(result.Value.Details);
             return result.Value.Content;
         }
