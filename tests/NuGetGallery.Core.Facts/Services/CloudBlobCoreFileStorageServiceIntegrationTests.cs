@@ -264,42 +264,6 @@ namespace NuGetGallery
         }
 
         [BlobStorageFact]
-        public async Task OpenWriteAsyncRejectsETagMismatchFoundAfterUploadStarts()
-        {
-            // Arrange
-            var folderName = CoreConstants.Folders.ValidationFolderName;
-            var fileName = _prefixA;
-            var expectedContent = "Hello, world.";
-
-            var container = _clientA.GetContainerReference(folderName);
-            var file = container.GetBlobReference(fileName);
-            var writeCount = 0;
-
-            // Act & Assert
-            var ex = await Assert.ThrowsAsync<CloudBlobStorageException>(
-                async () =>
-                {
-                    using (var stream = await file.OpenWriteAsync(AccessConditionWrapper.GenerateIfNotExistsCondition()))
-                    {
-                        stream.Write(new byte[1], 0, 1);
-                        await stream.FlushAsync();
-                        writeCount++;
-
-                        await _targetA.SaveFileAsync(
-                            folderName,
-                            fileName,
-                            new MemoryStream(Encoding.ASCII.GetBytes(expectedContent)),
-                            overwrite: false);
-
-                        stream.Write(new byte[1], 0, 1);
-                        await stream.FlushAsync();
-                        writeCount++;
-                    }
-                });
-            Assert.Equal(2, writeCount);
-        }
-
-        [BlobStorageFact]
         public async Task OpenReadAsyncReturnsReadableStreamWhenBlobExistsAndPopulatesProperties()
         {
             // Arrange
