@@ -13,7 +13,6 @@ using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
 using System.Web.UI;
-using Elmah;
 using Microsoft.Extensions.DependencyInjection;
 using NuGetGallery;
 using NuGetGallery.Configuration;
@@ -294,7 +293,7 @@ namespace NuGetGallery
                 {
                     RestartSchedulerOnFailure = true
                 };
-                _jobManager.Fail(e => ErrorLog.GetDefault(null).Log(new Error(e)));
+                _jobManager.Fail(e => { Trace.TraceError($"{nameof(BackgroundJobsPostStart)} failure: {e.Message}"); });
                 _jobManager.Start();
             }
         }

@@ -2,6 +2,10 @@
   .package-default-icon {
     content: var(--default-package-icon, url(../img/default-package-icon-256x256.png));
   }
+
+  .nuget-trends-icon {
+    filter: brightness(0) invert(var(--nuget-trends-icon-invert-value));
+  }
   
   .no-border {
     border: 0;
@@ -66,6 +70,7 @@
         width: 18px;
         margin-right: 5px;
         margin-left: 2px;
+        color: var(--brandBackground1Rest);
       }
 
       .prefix-reserve-label {
@@ -359,6 +364,7 @@
       margin-bottom: 3px;
       margin-left: 2px;
       vertical-align: middle;
+      color: var(--brandBackground1Rest);
     }
   }
 
@@ -516,6 +522,10 @@
                            calc(0.5 * 0.03ex) 0 0 currentColor;
       margin-bottom: -1px;
       background-color: transparent;
+
+      i {
+        color: var(--brandStrokeCompoundRest);
+      }
 
       &:hover {
         border-bottom-color: var(--brandStrokeCompoundHover);

@@ -584,7 +584,6 @@ namespace NuGetGallery.Authentication
         {
             var hasPassword = user.Credentials.Any(
                 c => c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase));
-            Credential _;
             if (hasPassword && !ValidatePasswordCredential(user.Credentials, oldPassword, out _))
             {
                 // Invalid old password!
@@ -715,7 +714,7 @@ namespace NuGetGallery.Authentication
 
         public virtual async Task EditCredentialScopes(User user, Credential cred, ICollection<Scope> newScopes)
         {
-            foreach (var oldScope in cred.Scopes.ToArray())
+            foreach (var oldScope in cred.Scopes)
             {
                 Entities.Scopes.Remove(oldScope);
             }

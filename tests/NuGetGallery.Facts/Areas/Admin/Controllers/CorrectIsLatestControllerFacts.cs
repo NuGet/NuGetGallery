@@ -24,8 +24,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
             [Fact]
             public void WhenPackagesHaveCorrectIsLatestReturnEmptyArray()
             {
-                var result = CorrectIsLatestController.CorrectIsLatestPackages() as JsonResult;
-                var packages = result.Data as List<CorrectIsLatestPackage>;
+                var result = (JsonResult)CorrectIsLatestController.CorrectIsLatestPackages();
+                var packages = (List<CorrectIsLatestPackage>)result.Data;
 
                 Assert.Empty(packages);
             }
@@ -66,8 +66,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 var fakeContext = GetFakeContext();
                 fakeContext.PackageRegistrations.Add(packageRegistration);
 
-                var result = CorrectIsLatestController.CorrectIsLatestPackages() as JsonResult;
-                var correctIsLatestPackages = result.Data as List<CorrectIsLatestPackage>;
+                var result = (JsonResult)CorrectIsLatestController.CorrectIsLatestPackages();
+                var correctIsLatestPackages = (List<CorrectIsLatestPackage>)result.Data;
 
                 Assert.NotEmpty(correctIsLatestPackages);
 
@@ -115,8 +115,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 var fakeContext = GetFakeContext();
                 fakeContext.PackageRegistrations.Add(packageRegistration);
 
-                var result = CorrectIsLatestController.CorrectIsLatestPackages() as JsonResult;
-                var correctIsLatestPackages = result.Data as List<CorrectIsLatestPackage>;
+                var result = (JsonResult)CorrectIsLatestController.CorrectIsLatestPackages();
+                var correctIsLatestPackages = (List<CorrectIsLatestPackage>)result.Data;
 
                 Assert.NotEmpty(packages);
 
@@ -149,7 +149,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             public async Task WhenInvalidReturnsBadRequest(CorrectIsLatestRequest request)
             {
                 // Act
-                var result = await CorrectIsLatestController.ReflowPackages(request) as JsonResult;
+                var result = (JsonResult)await CorrectIsLatestController.ReflowPackages(request);
 
                 // Assert
                 Assert.Equal(((int)HttpStatusCode.BadRequest), CorrectIsLatestController.Response.StatusCode);
@@ -178,7 +178,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 };
 
                 // Act
-                var result = await CorrectIsLatestController.ReflowPackages(request) as JsonResult;
+                var result = (JsonResult)await CorrectIsLatestController.ReflowPackages(request);
 
                 // Assert
                 Assert.Equal(((int)HttpStatusCode.OK), CorrectIsLatestController.Response.StatusCode);
@@ -207,7 +207,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 };
 
                 // Act
-                var result = await CorrectIsLatestController.ReflowPackages(request) as JsonResult;
+                var result = (JsonResult)await CorrectIsLatestController.ReflowPackages(request);
 
                 // Assert
                 Assert.Equal(((int)HttpStatusCode.OK), CorrectIsLatestController.Response.StatusCode);
@@ -236,7 +236,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 };
 
                 // Act
-                var result = await CorrectIsLatestController.ReflowPackages(request) as JsonResult;
+                var result = (JsonResult)await CorrectIsLatestController.ReflowPackages(request);
 
                 // Assert
                 Assert.Equal(((int)HttpStatusCode.OK), CorrectIsLatestController.Response.StatusCode);

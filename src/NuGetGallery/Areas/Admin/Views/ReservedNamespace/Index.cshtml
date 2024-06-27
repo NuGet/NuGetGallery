@@ -180,12 +180,7 @@
                                 <td>
                                     @if (pr.IsVerified)
                                     {
-                                        <img class="img-responsive"
-                                             src="~/Content/gallery/img/reserved-indicator.svg"
-                                             alt="Reserved namespace icon"
-                                             width="24" height="24"
-                                             @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-256x256.png"))
-                                             title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
+                                        <i class="ms-Icon ms-Icon--SkypeCircleCheck reserved-indicator" title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" alt="Reserved namespace icon"></i>
                                     }
                                 </td>
                                 <td>@pr.DownloadCount.ToNuGetNumberString()</td>
