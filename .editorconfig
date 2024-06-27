@@ -9,7 +9,6 @@ dotnet_analyzer_diagnostic.category-reliability.severity = none
 dotnet_analyzer_diagnostic.category-security.severity = warning
 dotnet_analyzer_diagnostic.category-usage.severity = none
 dotnet_analyzer_diagnostic.category-Maintainability.severity = none
-dotnet_analyzer_diagnostic.category-Style.severity = none
 
 # Addtional suppress to be compatible with different version among VS2019
 
