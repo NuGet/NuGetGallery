@@ -8,7 +8,6 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Web.Hosting;
 using System.Web.Mvc;
-using Microsoft.WindowsAzure.Storage.Blob;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery
@@ -255,7 +254,7 @@ namespace NuGetGallery
             throw new NotImplementedException();
         }
 
-        public Task<Uri> GetPriviledgedFileUriAsync(string folderName, string fileName, FileUriPermissions permissions, DateTimeOffset endOfAccess)
+        public Task<Uri> GetPrivilegedFileUriAsync(string folderName, string fileName, FileUriPermissions permissions, DateTimeOffset endOfAccess)
         {
             /// Not implemented for the same reason as <see cref="GetFileReadUriAsync(string, string, DateTimeOffset?)"/>.
             throw new NotImplementedException();
@@ -272,7 +271,7 @@ namespace NuGetGallery
         public Task SetPropertiesAsync(
             string folderName,
             string fileName, 
-            Func<Lazy<Task<Stream>>, BlobProperties, Task<bool>> updatePropertiesAsync)
+            Func<Lazy<Task<Stream>>, ICloudBlobProperties, Task<bool>> updatePropertiesAsync)
         {
             return Task.CompletedTask;
         }

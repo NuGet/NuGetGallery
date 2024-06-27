@@ -1,13 +1,19 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System;
 
 namespace NuGetGallery
 {
-    public interface ISimpleBlobResultSegment
+    [Flags]
+    public enum ListingDetails
     {
-        IReadOnlyList<ISimpleCloudBlob> Results { get; }
-        BlobListContinuationToken ContinuationToken { get; }
+        None = 0,
+        Snapshots = 1,
+        Metadata = 2,
+        UncommittedBlobs = 4,
+        Copy = 8,
+        Deleted = 0x10,
+        All = 0x1F
     }
 }
