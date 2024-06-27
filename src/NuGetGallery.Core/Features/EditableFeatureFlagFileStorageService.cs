@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
@@ -117,7 +116,7 @@ namespace NuGetGallery.Features
                     return ContentSaveResult.Ok;
                 }
             }
-            catch (StorageException e) when (e.IsPreconditionFailedException())
+            catch (CloudBlobPreconditionFailedException)
             {
                 return ContentSaveResult.Conflict;
             }

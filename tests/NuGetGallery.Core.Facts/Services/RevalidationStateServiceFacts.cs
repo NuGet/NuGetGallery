@@ -5,7 +5,6 @@ using System;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
 using Moq;
 using Newtonsoft.Json;
 using Xunit;
@@ -252,16 +251,9 @@ namespace NuGetGallery.Services
 
                 if (storageExceptionCode.HasValue)
                 {
-                    var concurrencyResult = new RequestResult
-                    {
-                        HttpStatusCode = (int)HttpStatusCode.PreconditionFailed
-                    };
-
-                    var concurrencyException = new StorageException(concurrencyResult, "Concurrency exception", inner: null);
-
                     _storage
                         .Setup(s => s.SaveFileAsync("revalidation", "state.json", It.IsAny<Stream>(), It.IsAny<IAccessCondition>()))
-                        .ThrowsAsync(concurrencyException);
+                        .ThrowsAsync(new CloudBlobPreconditionFailedException(null));
                 }
                 else
                 {

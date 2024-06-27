@@ -7,7 +7,6 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -205,9 +204,8 @@ namespace NuGetGallery
 
                 return StatisticsReportResult.Success(reportContent.LastUpdatedUtc);
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                QuietLog.LogHandledException(e);
                 return StatisticsReportResult.Failed;
             }
         }
@@ -372,7 +370,7 @@ namespace NuGetGallery
             catch (StatisticsReportNotFoundException)
             {
                 //do no logging and just return null. Since this exception will thrown for all packages which doesn't have downloads in last 6 weeks, we don't
-                //want to flood the elmah logs.
+                //want to flood the logs.
                 return null;
             }
             catch (NullReferenceException e)
@@ -385,7 +383,7 @@ namespace NuGetGallery
                 QuietLog.LogHandledException(e);
                 return null;
             }
-            catch (StorageException e)
+            catch (CloudBlobStorageException e)
             {
                 QuietLog.LogHandledException(e);
                 return null;
@@ -443,7 +441,7 @@ namespace NuGetGallery
                 QuietLog.LogHandledException(e);
                 return null;
             }
-            catch (StorageException e)
+            catch (CloudBlobStorageException e)
             {
                 QuietLog.LogHandledException(e);
                 return null;
@@ -458,10 +456,9 @@ namespace NuGetGallery
         private static IList<StatisticsFact> CreateFacts(JObject data)
         {
             IList<StatisticsFact> facts = new List<StatisticsFact>();
-            JToken itemsToken;
 
             // Check if the "Items" exist before trying to access them.
-            if (!data.TryGetValue("Items", out itemsToken))
+            if (!data.TryGetValue("Items", out _))
             {
                 throw new StatisticsReportNotFoundException();
             }

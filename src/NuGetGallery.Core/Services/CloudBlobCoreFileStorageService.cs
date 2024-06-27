@@ -9,9 +9,6 @@ using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.Blob.Protocol;
 using NuGetGallery.Diagnostics;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
@@ -84,8 +81,6 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(fileName));
             }
 
-            ICloudBlobContainer container = await GetContainerAsync(folderName);
-            var blob = container.GetBlobReference(fileName);
             var result = await GetBlobContentAsync(folderName, fileName, ifNoneMatch);
             if (result.StatusCode == HttpStatusCode.NotModified)
             {
@@ -160,11 +155,6 @@ namespace NuGetGallery
             var destContainer = await GetContainerAsync(destFolderName);
             var destBlob = destContainer.GetBlobReference(destFileName);
             destAccessCondition = destAccessCondition ?? AccessConditionWrapper.GenerateIfNotExistsCondition();
-            var mappedDestAccessCondition = new AccessCondition
-            {
-                IfNoneMatchETag = destAccessCondition.IfNoneMatchETag,
-                IfMatchETag = destAccessCondition.IfMatchETag,
-            };
 
             if (!await srcBlob.ExistsAsync())
             {
@@ -176,14 +166,15 @@ namespace NuGetGallery
 
             // Determine the source blob etag.
             await srcBlob.FetchAttributesAsync();
-            var srcAccessCondition = AccessCondition.GenerateIfMatchCondition(srcBlob.ETag);
+            var srcAccessCondition = AccessConditionWrapper.GenerateIfMatchCondition(srcBlob.ETag);
 
             // Check if the destination blob already exists and fetch attributes.
             if (await destBlob.ExistsAsync())
             {
                 var sourceBlobMetadata = srcBlob.Metadata;
+                await destBlob.FetchAttributesAsync();
                 var destinationBlobMetadata = destBlob.Metadata;
-                if (destBlob.CopyState?.Status == CopyStatus.Failed)
+                if (destBlob.CopyState?.Status == CloudBlobCopyStatus.Failed)
                 {
                     // If the last copy failed, allow this copy to occur no matter what the caller's destination
                     // condition is. This is because the source blob is preferable over a failed copy. We use the etag
@@ -195,7 +186,7 @@ namespace NuGetGallery
                         message: $"Destination blob '{destFolderName}/{destFileName}' already exists but has a " +
                         $"failed copy status. This blob will be replaced if the etag matches '{destBlob.ETag}'.");
 
-                    mappedDestAccessCondition = AccessCondition.GenerateIfMatchCondition(destBlob.ETag);
+                    destAccessCondition = AccessConditionWrapper.GenerateIfMatchCondition(destBlob.ETag);
                 }
                 else if (sourceBlobMetadata != null && destinationBlobMetadata != null)
                 {
@@ -223,7 +214,7 @@ namespace NuGetGallery
                             eventId: 0,
                             message: $"Destination blob '{destFolderName}/{destFileName}' already has Sha512 hash " +
                             $"'{destinationBlobSha512Hash}' and length '{destBlob.Properties.Length}'. The copy " +
-                            $"will be skipped.");
+                            "will be skipped.");
 
                         return srcBlob.ETag;
                     }
@@ -235,7 +226,7 @@ namespace NuGetGallery
                 eventId: 0,
                 message: $"Copying of source blob '{srcBlob.Uri}' to '{destFolderName}/{destFileName}' with source " +
                 $"access condition {Log(srcAccessCondition)} and destination access condition " +
-                $"{Log(mappedDestAccessCondition)}.");
+                $"{Log(destAccessCondition)}.");
 
             // Start the server-side copy and wait for it to complete. If "If-None-Match: *" was specified and the
             // destination already exists, HTTP 409 is thrown. If "If-Match: ETAG" was specified and the destination
@@ -245,9 +236,9 @@ namespace NuGetGallery
                 await destBlob.StartCopyAsync(
                     srcBlob,
                     srcAccessCondition,
-                    mappedDestAccessCondition);
+                    destAccessCondition);
             }
-            catch (StorageException ex) when (ex.IsFileAlreadyExistsException())
+            catch (CloudBlobConflictException ex)
             {
                 throw new FileAlreadyExistsException(
                     string.Format(
@@ -255,11 +246,11 @@ namespace NuGetGallery
                         "There is already a blob with name {0} in container {1}.",
                         destFileName,
                         destFolderName),
-                    ex);
+                    ex.InnerException);
             }
 
             var stopwatch = Stopwatch.StartNew();
-            while (destBlob.CopyState.Status == CopyStatus.Pending
+            while (destBlob.CopyState.Status == CloudBlobCopyStatus.Pending
                    && stopwatch.Elapsed < MaxCopyDuration)
             {
                 if (!await destBlob.ExistsAsync())
@@ -274,19 +265,19 @@ namespace NuGetGallery
                 await Task.Delay(CopyPollFrequency);
             }
 
-            if (destBlob.CopyState.Status == CopyStatus.Pending)
+            if (destBlob.CopyState.Status == CloudBlobCopyStatus.Pending)
             {
                 throw new TimeoutException($"Waiting for the blob copy operation to complete timed out after {MaxCopyDuration.TotalSeconds} seconds.");
             }
-            else if (destBlob.CopyState.Status != CopyStatus.Success)
+            else if (destBlob.CopyState.Status != CloudBlobCopyStatus.Success)
             {
-                throw new StorageException($"The blob copy operation had copy status {destBlob.CopyState.Status} ({destBlob.CopyState.StatusDescription}).");
+                throw new CloudBlobStorageException($"The blob copy operation had copy status {destBlob.CopyState.Status} ({destBlob.CopyState.StatusDescription}).");
             }
 
             return srcBlob.ETag;
         }
 
-        private static string Log(AccessCondition accessCondition)
+        private static string Log(IAccessCondition accessCondition)
         {
             if (accessCondition?.IfMatchETag != null)
             {
@@ -320,7 +311,7 @@ namespace NuGetGallery
             {
                 await blob.UploadFromStreamAsync(file, overwrite);
             }
-            catch (StorageException ex) when (ex.IsFileAlreadyExistsException())
+            catch (CloudBlobConflictException ex)
             {
                 throw new FileAlreadyExistsException(
                     string.Format(
@@ -328,7 +319,7 @@ namespace NuGetGallery
                         "There is already a blob with name {0} in container {1}.",
                         fileName,
                         folderName),
-                    ex);
+                    ex.InnerException);
             }
 
             blob.Properties.ContentType = contentType;
@@ -343,17 +334,11 @@ namespace NuGetGallery
 
             accessConditions = accessConditions ?? AccessConditionWrapper.GenerateIfNotExistsCondition();
 
-            var mappedAccessCondition = new AccessCondition
-            {
-                IfNoneMatchETag = accessConditions.IfNoneMatchETag,
-                IfMatchETag = accessConditions.IfMatchETag,
-            };
-
             try
             {
-                await blob.UploadFromStreamAsync(file, mappedAccessCondition);
+                await blob.UploadFromStreamAsync(file, accessConditions);
             }
-            catch (StorageException ex) when (ex.IsFileAlreadyExistsException())
+            catch (CloudBlobConflictException ex)
             {
                 throw new FileAlreadyExistsException(
                     string.Format(
@@ -361,7 +346,7 @@ namespace NuGetGallery
                         "There is already a blob with name {0} in container {1}.",
                         fileName,
                         folderName),
-                    ex);
+                    ex.InnerException);
             }
 
             blob.Properties.ContentType = GetContentType(folderName);
@@ -375,7 +360,7 @@ namespace NuGetGallery
             return blob.Uri;
         }
 
-        public async Task<Uri> GetPriviledgedFileUriAsync(
+        public async Task<Uri> GetPrivilegedFileUriAsync(
             string folderName,
             string fileName,
             FileUriPermissions permissions,
@@ -387,10 +372,9 @@ namespace NuGetGallery
             }
 
             var blob = await GetBlobForUriAsync(folderName, fileName);
+            string sas = await blob.GetSharedAccessSignature(permissions, endOfAccess);
 
-            return new Uri(
-                blob.Uri,
-                blob.GetSharedAccessSignature(MapFileUriPermissions(permissions), endOfAccess));
+            return new Uri(blob.Uri, sas);
         }
 
         public async Task<Uri> GetFileReadUriAsync(string folderName, string fileName, DateTimeOffset? endOfAccess)
@@ -412,9 +396,9 @@ namespace NuGetGallery
                 throw new ArgumentOutOfRangeException(nameof(endOfAccess), $"{nameof(endOfAccess)} is in the past");
             }
 
-            return new Uri(
-                blob.Uri,
-                blob.GetSharedAccessSignature(SharedAccessBlobPermissions.Read, endOfAccess));
+            string sas = await blob.GetSharedAccessSignature(FileUriPermissions.Read, endOfAccess.Value);
+
+            return new Uri(blob.Uri, sas);
         }
 
         /// <summary>
@@ -456,13 +440,7 @@ namespace NuGetGallery
             if (wasUpdated)
             {
                 var accessCondition = AccessConditionWrapper.GenerateIfMatchCondition(blob.ETag);
-                var mappedAccessCondition = new AccessCondition
-                {
-                    IfNoneMatchETag = accessCondition.IfNoneMatchETag,
-                    IfMatchETag = accessCondition.IfMatchETag
-                };
-
-                await blob.SetMetadataAsync(mappedAccessCondition);
+                await blob.SetMetadataAsync(accessCondition);
             }
         }
 
@@ -477,7 +455,7 @@ namespace NuGetGallery
         public async Task SetPropertiesAsync(
             string folderName,
             string fileName,
-            Func<Lazy<Task<Stream>>, BlobProperties, Task<bool>> updatePropertiesAsync)
+            Func<Lazy<Task<Stream>>, ICloudBlobProperties, Task<bool>> updatePropertiesAsync)
         {
             if (folderName == null)
             {
@@ -505,13 +483,7 @@ namespace NuGetGallery
             if (wasUpdated)
             {
                 var accessCondition = AccessConditionWrapper.GenerateIfMatchCondition(blob.ETag);
-                var mappedAccessCondition = new AccessCondition
-                {
-                    IfNoneMatchETag = accessCondition.IfNoneMatchETag,
-                    IfMatchETag = accessCondition.IfMatchETag
-                };
-
-                await blob.SetPropertiesAsync(mappedAccessCondition);
+                await blob.SetPropertiesAsync(accessCondition);
             }
         }
 
@@ -530,15 +502,10 @@ namespace NuGetGallery
                 return blob.ETag;
             }
             // In case that the blob does not exist return null.
-            catch (StorageException)
+            catch (CloudBlobStorageException)
             {
                 return null;
             }
-        }
-
-        private static SharedAccessBlobPermissions MapFileUriPermissions(FileUriPermissions permissions)
-        {
-            return (SharedAccessBlobPermissions)permissions;
         }
 
         private async Task<ISimpleCloudBlob> GetBlobForUriAsync(string folderName, string fileName)
@@ -583,35 +550,17 @@ namespace NuGetGallery
                     accessCondition:
                         ifNoneMatch == null ?
                         null :
-                        AccessCondition.GenerateIfNoneMatchCondition(ifNoneMatch));
+                        AccessConditionWrapper.GenerateIfNoneMatchCondition(ifNoneMatch));
             }
-            catch (StorageException ex)
+            catch (CloudBlobNotModifiedException)
             {
                 stream.Dispose();
-
-                if (ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.NotModified)
-                {
-                    return new StorageResult(HttpStatusCode.NotModified, null, blob.ETag);
-                }
-                else if (ex.RequestInformation.ExtendedErrorInformation?.ErrorCode == BlobErrorCodeStrings.BlobNotFound)
-                {
-                    return new StorageResult(HttpStatusCode.NotFound, null, blob.ETag);
-                }
-
-                throw;
+                return new StorageResult(HttpStatusCode.NotModified, null, blob.ETag);
             }
-            catch (TestableStorageClientException ex)
+            catch (CloudBlobNotFoundException)
             {
-                // This is for unit test only, because we can't construct an 
-                // StorageException object with the required ErrorCode
                 stream.Dispose();
-
-                if (ex.ErrorCode == BlobErrorCodeStrings.BlobNotFound)
-                {
-                    return new StorageResult(HttpStatusCode.NotFound, null, blob.ETag);
-                }
-
-                throw;
+                return new StorageResult(HttpStatusCode.NotFound, null, blob.ETag);
             }
 
             stream.Position = 0;
@@ -631,12 +580,7 @@ namespace NuGetGallery
         private async Task<ICloudBlobContainer> PrepareContainer(string folderName, bool isPublic)
         {
             var container = _client.GetContainerReference(folderName);
-            var permissions = new BlobContainerPermissions
-            {
-                PublicAccess = isPublic ? BlobContainerPublicAccessType.Blob : BlobContainerPublicAccessType.Off
-            };
-
-            await container.CreateIfNotExistAsync(permissions);
+            await container.CreateIfNotExistAsync(isPublic);
 
             return container;
         }
