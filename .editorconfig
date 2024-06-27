@@ -37,3 +37,8 @@ dotnet_diagnostic.CA2214.severity = none
 # Suppressions we want to reset
 dotnet_diagnostic.CA2017.severity = warning
 dotnet_diagnostic.IDE0005.severity = default # unnecessary usings
+
+# Prefer "var" nowhere
+csharp_style_var_for_built_in_types = false:error
+csharp_style_var_when_type_is_apparent = false:error
+csharp_style_var_elsewhere = false:error
