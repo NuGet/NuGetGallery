@@ -22,7 +22,6 @@
     <Compile Remove="Entities\SuspendDbExecutionStrategy.cs" />
     <Compile Remove="Extensions\PackageValidationSetExtensions.cs" />
     <Compile Remove="Extensions\ValidationIssueExtensions.cs" />
-    <Compile Remove="Infrastructure\AzureEntityList.cs" />
     <Compile Remove="Infrastructure\Mail\Messages\CredentialRevokedMessage.cs" />
     <Compile Remove="Infrastructure\Mail\Messages\PackageAddedMessage.cs" />
     <Compile Remove="Infrastructure\Mail\Messages\PackageValidationFailedMessage.cs" />
@@ -30,7 +29,6 @@
     <Compile Remove="Infrastructure\Mail\Messages\SymbolPackageAddedMessage.cs" />
     <Compile Remove="Infrastructure\Mail\Messages\SymbolPackageValidationFailedMessage.cs" />
     <Compile Remove="Infrastructure\Mail\Messages\SymbolPackageValidationTakingTooLongMessage.cs" />
-    <Compile Remove="Infrastructure\TableErrorLog.cs" />
     <Compile Remove="Services\CorePackageFileService.cs" />
   </ItemGroup>
 
@@ -43,15 +41,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="WindowsAzure.Storage" Version="9.3.3" />
+
+    <PackageReference Include="Azure.Core" Version="1.39.0" />
+    <PackageReference Include="Azure.Identity" Version="1.11.3" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.20.0" />
     <PackageReference Include="EntityFramework" Version="6.4.4" />
     <PackageReference Include="NuGet.Packaging">
       <Version>$(NuGetClientPackageVersion)</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.FeatureFlags">
       <Version>$(ServerCommonPackageVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="WindowsAzure.Storage">
-      <Version>9.3.3</Version>
     </PackageReference>
   </ItemGroup>
   
@@ -64,9 +64,6 @@
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation.Issues">
       <Version>$(ServerCommonPackageVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="NuGet.StrongName.elmah.corelibrary">
-      <Version>1.2.2</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Data.Services.Client">
       <Version>5.8.4</Version>

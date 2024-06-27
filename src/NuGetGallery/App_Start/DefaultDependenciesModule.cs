@@ -20,7 +20,6 @@ using AnglicanGeek.MarkdownMailer;
 using Autofac;
 using Autofac.Core;
 using Autofac.Extensions.DependencyInjection;
-using Elmah;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.Implementation;
 using Microsoft.Extensions.DependencyInjection;
@@ -611,8 +610,6 @@ namespace NuGetGallery
             }
 
             telemetryConfiguration.TelemetryProcessorChainBuilder.Build();
-
-            QuietLog.UseTelemetryClient(telemetryClientWrapper);
 
             telemetryClient = telemetryClientWrapper;
 
@@ -1408,10 +1405,6 @@ namespace NuGetGallery
                 .As<IAggregateStatsService>()
                 .InstancePerLifetimeScope();
 
-            builder.RegisterInstance(new SqlErrorLog(configuration.Current.SqlConnectionString))
-                .As<ErrorLog>()
-                .SingleInstance();
-
             builder.RegisterType<GalleryContentFileMetadataService>()
                 .As<IContentFileMetadataService>()
                 .SingleInstance();
@@ -1476,14 +1469,6 @@ namespace NuGetGallery
             }
 
             RegisterStatisticsServices(builder, configuration);
-
-            builder.Register(c =>
-                {
-                    var configurationFactory = c.Resolve<Func<IAppConfiguration>>();
-                    return new TableErrorLog(() => configurationFactory().AzureStorage_Errors_ConnectionString, configurationFactory().AzureStorageReadAccessGeoRedundant);
-                })
-                .As<ErrorLog>()
-                .SingleInstance();
 
             builder.RegisterType<FlatContainerContentFileMetadataService>()
                 .As<IContentFileMetadataService>()
