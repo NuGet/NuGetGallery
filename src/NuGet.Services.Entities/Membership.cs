@@ -26,7 +26,7 @@ namespace NuGet.Services.Entities
         /// <summary>
         /// The <see cref="User"/> that is a member of the <see cref="Organization"/>.
         /// 
-        /// Note that there is no database contraint preventing memberships of Organizations into other
+        /// Note that there is no database constraint preventing memberships of Organizations into other
         /// Organizations. For now this is restricted by the Gallery, but could be considered in the
         /// future if we want to support Organization teams.
         /// </summary>
