@@ -21,11 +21,7 @@ namespace NuGetGallery
         bool IsSnapshot { get; }
 
         Task<Stream> OpenReadAsync(IAccessCondition accessCondition);
-<<<<<<< HEAD
-        Task<Stream> OpenWriteAsync(IAccessCondition accessCondition);
-=======
         Task<Stream> OpenWriteAsync(IAccessCondition accessCondition, string contentType = null);
->>>>>>> dev
 
         Task DeleteIfExistsAsync();
         Task DownloadToStreamAsync(Stream target);

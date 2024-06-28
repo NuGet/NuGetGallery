@@ -47,20 +47,6 @@ namespace NuGetGallery
         {
             var tokenCredential = new ManagedIdentityCredential(clientId);
             return new CloudBlobClientWrapper(storageConnectionString, tokenCredential);
-<<<<<<< HEAD
-        }
-
-        public static CloudBlobClientWrapper UsingServicePrincipal(
-            string storageConnectionString, 
-            string appID, 
-            string subjectAlternativeName, 
-            string tenantId, 
-            string authorityHost) 
-        {
-            var tokenCredential = TokenHelper.GetCredentialUsingServicePrincipal(appID, subjectAlternativeName, tenantId, authorityHost);
-            return new CloudBlobClientWrapper(storageConnectionString, tokenCredential);
-=======
->>>>>>> dev
         }
 
         public ISimpleCloudBlob GetBlobFromUri(Uri uri)
