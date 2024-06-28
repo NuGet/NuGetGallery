@@ -28,8 +28,12 @@ namespace NuGetGallery
             _requestTimeout = requestTimeout; // OK to be null
         }
 
-        private CloudBlobClientWrapper(string storageConnectionString, TokenCredential tokenCredential)
-            : this(storageConnectionString)
+        private CloudBlobClientWrapper(
+            string storageConnectionString,
+            TokenCredential tokenCredential,
+            bool readAccessGeoRedundant = false,
+            TimeSpan? requestTimeout = null)
+            : this(storageConnectionString, readAccessGeoRedundant, requestTimeout)
         {
             _tokenCredential = tokenCredential ?? throw new ArgumentNullException(nameof(tokenCredential));
         }
@@ -43,10 +47,14 @@ namespace NuGetGallery
             _blobClient = new Lazy<BlobServiceClient>(CreateBlobServiceClient);
         }
 
-        public static CloudBlobClientWrapper UsingMsi(string storageConnectionString, string clientId = null)
+        public static CloudBlobClientWrapper UsingMsi(
+            string storageConnectionString,
+            string clientId = null,
+            bool readAccessGeoRedundant = false,
+            TimeSpan? requestTimeout = null)
         {
             var tokenCredential = new ManagedIdentityCredential(clientId);
-            return new CloudBlobClientWrapper(storageConnectionString, tokenCredential);
+            return new CloudBlobClientWrapper(storageConnectionString, tokenCredential, readAccessGeoRedundant, requestTimeout);
         }
 
         public ISimpleCloudBlob GetBlobFromUri(Uri uri)
