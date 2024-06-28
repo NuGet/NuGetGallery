@@ -415,7 +415,7 @@ string dataKey = "___AccordionCounter_" + groupName;
 int lastId = (int)(HttpContext.Current.Items[dataKey] ?? 0);
 int id = lastId + 1;
 HttpContext.Current.Items[dataKey] = id;
-string name = groupName + "-" + id.ToString();
+string name = groupName + "-" + id;
 string actionsId = name + "-actions"; 
 
 var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);

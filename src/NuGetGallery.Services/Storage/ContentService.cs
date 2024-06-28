@@ -75,7 +75,7 @@ namespace NuGetGallery
                 ContentItem cachedItem = null;
                 if (ContentCache.TryGetValue(name, out cachedItem) && DateTime.UtcNow < cachedItem.ExpiryUtc)
                 {
-                    Trace.Verbose("Cache Valid. Expires at: " + cachedItem.ExpiryUtc.ToString());
+                    Trace.Verbose("Cache Valid. Expires at: " + cachedItem.ExpiryUtc);
                     return cachedItem.Content;
                 }
                 Trace.Verbose("Cache Expired.");
