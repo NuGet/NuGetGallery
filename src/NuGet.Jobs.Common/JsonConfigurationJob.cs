@@ -204,7 +204,7 @@ namespace NuGet.Jobs
                     var options = c.Resolve<IOptionsSnapshot<FeatureFlagConfiguration>>();
                     return new CloudBlobClientWrapper(
                         options.Value.ConnectionString,
-                        GetFeatureFlagBlobRequestOptions());
+                        requestTimeout: TimeSpan.FromMinutes(2));
                 })
                 .Keyed<ICloudBlobClient>(FeatureFlagBindingKey);
 

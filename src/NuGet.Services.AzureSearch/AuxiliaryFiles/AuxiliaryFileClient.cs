@@ -8,7 +8,6 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGetGallery;
@@ -66,7 +65,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
                     var stopwatch = Stopwatch.StartNew();
                     var blob = Container.GetBlobReference(blobName);
-                    using (var stream = await blob.OpenReadAsync(AccessCondition.GenerateEmptyCondition()))
+                    using (var stream = await blob.OpenReadAsync(AccessConditionWrapper.GenerateEmptyCondition()))
                     using (var textReader = new StreamReader(stream))
                     using (var jsonReader = new JsonTextReader(textReader))
                     {
@@ -80,7 +79,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                             stopwatch.Elapsed);
                     };
                 },
-                ex => ex is StorageException se && se.IsPreconditionFailedException(),
+                ex => ex is CloudBlobPreconditionFailedException,
                 maxRetries: 5,
                 initialWaitInterval: TimeSpan.Zero,
                 waitIncrement: TimeSpan.FromSeconds(10));

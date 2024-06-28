@@ -115,7 +115,7 @@ namespace NuGet.Services.AzureSearch
                     var options = c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>();
                     return new CloudBlobClientWrapper(
                         options.Value.StorageConnectionString,
-                        DefaultBlobRequestOptions.Create());
+                        requestTimeout: DefaultBlobRequestOptions.ServerTimeout);
                 })
                 .Keyed<ICloudBlobClient>(key);
 
@@ -223,7 +223,7 @@ namespace NuGet.Services.AzureSearch
                     var options = c.Resolve<IOptionsSnapshot<AuxiliaryDataStorageConfiguration>>();
                     return new CloudBlobClientWrapper(
                         options.Value.AuxiliaryDataStorageConnectionString,
-                        DefaultBlobRequestOptions.Create());
+                        requestTimeout: DefaultBlobRequestOptions.ServerTimeout);
                 })
                 .Keyed<ICloudBlobClient>(key);
 

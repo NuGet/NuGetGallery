@@ -2,12 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.IO;
-using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
 using Moq;
 using NuGet.Services.AzureSearch.Db2AzureSearch;
 using NuGetGallery;
@@ -34,7 +31,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 ]
 ";
                 _blob
-                    .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
+                    .Setup(x => x.OpenReadAsync(It.IsAny<IAccessCondition>()))
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
 
                 var actual = await _target.LoadExcludedPackagesAsync();
@@ -47,25 +44,18 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 _blobClient.Verify(x => x.GetContainerReference(It.IsAny<string>()), Times.Once);
                 _container.Verify(x => x.GetBlobReference("my-excluded-packages.json"), Times.Once);
                 _container.Verify(x => x.GetBlobReference(It.IsAny<string>()), Times.Once);
-                _blob.Verify(x => x.OpenReadAsync(It.Is<AccessCondition>(a => a.IfMatchETag == null && a.IfNoneMatchETag == null)), Times.Once);
-                _blob.Verify(x => x.OpenReadAsync(It.IsAny<AccessCondition>()), Times.Once);
+                _blob.Verify(x => x.OpenReadAsync(It.Is<IAccessCondition>(a => a.IfMatchETag == null && a.IfNoneMatchETag == null)), Times.Once);
+                _blob.Verify(x => x.OpenReadAsync(It.IsAny<IAccessCondition>()), Times.Once);
             }
 
             [Fact]
             public async Task ThrowsStorageExceptionWhenNotFound()
             {
                 _blob
-                    .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
-                    .ThrowsAsync(new StorageException(
-                        res: new RequestResult()
-                        {
-                            HttpStatusCode = (int)HttpStatusCode.NotFound,
-                        },
-                        message: "Not so fast, buddy!",
-                        inner: null));
+                    .Setup(x => x.OpenReadAsync(It.IsAny<IAccessCondition>()))
+                    .ThrowsAsync(new CloudBlobNotFoundException(null));
 
-                var exception = await Assert.ThrowsAsync<StorageException>(async () => await _target.LoadExcludedPackagesAsync());
-                Assert.True(exception.RequestInformation?.HttpStatusCode == (int)HttpStatusCode.NotFound);
+                var exception = await Assert.ThrowsAsync<CloudBlobNotFoundException>(async () => await _target.LoadExcludedPackagesAsync());
             }
         }
 
@@ -112,14 +102,14 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     .Setup(x => x.GetBlobReference(It.IsAny<string>()))
                     .Returns(() => _blob.Object);
                 _blob
-                    .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
+                    .Setup(x => x.OpenReadAsync(It.IsAny<IAccessCondition>()))
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes("[]")));
                 _blob
                     .Setup(x => x.ETag)
                     .Returns(() => _etag);
                 _blob
                     .Setup(x => x.Properties)
-                    .Returns(new BlobProperties());
+                    .Returns(Mock.Of<ICloudBlobProperties>());
 
                 _target = new AuxiliaryFileClient(
                     _blobClient.Object,

@@ -6,11 +6,9 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
 using Moq;
 using NuGet.Protocol.Catalog;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
@@ -481,15 +479,9 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             {
                 _auxiliaryFileClient
                     .Setup(x => x.LoadExcludedPackagesAsync())
-                    .ThrowsAsync(new StorageException(
-                        new RequestResult
-                        {
-                            HttpStatusCode = (int)HttpStatusCode.NotFound,
-                        },
-                        message: "Not found.",
-                        inner: null));
+                    .ThrowsAsync(new CloudBlobNotFoundException(null));
 
-                await Assert.ThrowsAsync<StorageException>(async () => await _target.ProduceWorkAsync(_work, _token));
+                await Assert.ThrowsAsync<CloudBlobNotFoundException>(async () => await _target.ProduceWorkAsync(_work, _token));
             }
 
             [Fact]

@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.V3;
@@ -104,11 +103,7 @@ namespace NuGet.Jobs.Catalog2Registration
             var container = _cloudBlobClient.GetContainerReference(containerName);
 
             _logger.LogInformation("Creating container {Container} with blobs publicly available if it does not already exist.", containerName);
-            var permissions = new BlobContainerPermissions
-            {
-                PublicAccess = BlobContainerPublicAccessType.Blob,
-            };
-            await container.CreateIfNotExistAsync(permissions);
+            await container.CreateIfNotExistAsync(enablePublicAccess: true);
         }
 
         private void LogContainerUrl(HiveType hive, Func<Catalog2RegistrationConfiguration, string> getContainer)

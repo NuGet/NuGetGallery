@@ -60,7 +60,7 @@ namespace Validation.Common.Job.Tests.Storage
         {
             DateTimeOffset endOfAccess = default(DateTimeOffset);
             _fileStorageService
-                .Setup(x => x.GetPriviledgedFileUriAsync(
+                .Setup(x => x.GetPrivilegedFileUriAsync(
                     _folderName,
                     _fileName,
                     FileUriPermissions.Read | FileUriPermissions.Delete,

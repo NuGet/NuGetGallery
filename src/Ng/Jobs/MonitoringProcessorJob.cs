@@ -18,6 +18,7 @@ using NuGet.Services.Metadata.Catalog.Monitoring;
 using NuGet.Services.Sql;
 using NuGet.Services.Storage;
 using NuGet.Versioning;
+using NuGetGallery;
 
 namespace Ng.Jobs
 {

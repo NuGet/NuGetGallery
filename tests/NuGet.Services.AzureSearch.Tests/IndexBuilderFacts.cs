@@ -5,13 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using Azure;
 using Azure.Search.Documents.Indexes.Models;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
 using Moq;
 using NuGet.Services.AzureSearch.ScoringProfiles;
 using NuGet.Services.AzureSearch.SearchService;
@@ -38,8 +35,8 @@ namespace NuGet.Services.AzureSearch
                 await _target.CreateAsync(retryOnConflict);
 
                 VerifyGetContainer();
-                _cloudBlobContainer.Verify(x => x.CreateAsync(It.Is<BlobContainerPermissions>(p => p.PublicAccess == BlobContainerPublicAccessType.Blob)), Times.Once);
-                _cloudBlobContainer.Verify(x => x.CreateIfNotExistAsync(It.IsAny<BlobContainerPermissions>()), Times.Never);
+                _cloudBlobContainer.Verify(x => x.CreateAsync(true), Times.Once);
+                _cloudBlobContainer.Verify(x => x.CreateIfNotExistAsync(It.IsAny<bool>()), Times.Never);
                 _cloudBlobContainer.Verify(x => x.DeleteIfExistsAsync(), Times.Never);
             }
 
@@ -52,7 +49,7 @@ namespace NuGet.Services.AzureSearch
                 await _target.CreateAsync(retryOnConflict: true);
                 sw.Stop();
 
-                _cloudBlobContainer.Verify(x => x.CreateAsync(It.Is<BlobContainerPermissions>(p => p.PublicAccess == BlobContainerPublicAccessType.Blob)), Times.Exactly(2));
+                _cloudBlobContainer.Verify(x => x.CreateAsync(true), Times.Exactly(2));
                 Assert.InRange(sw.Elapsed, _retryDuration, TimeSpan.MaxValue);
             }
 
@@ -61,7 +58,7 @@ namespace NuGet.Services.AzureSearch
             {
                 EnableConflict();
 
-                await Assert.ThrowsAsync<StorageException>(() => _target.CreateAsync(retryOnConflict: false));
+                await Assert.ThrowsAsync<CloudBlobConflictException>(() => _target.CreateAsync(retryOnConflict: false));
             }
         }
 
@@ -74,34 +71,34 @@ namespace NuGet.Services.AzureSearch
             [Fact]
             public async Task CreatesIndexIfNotExists()
             {
-                _cloudBlobContainer.Setup(x => x.ExistsAsync(null, null)).ReturnsAsync(false);
+                _cloudBlobContainer.Setup(x => x.ExistsAsync(null)).ReturnsAsync(false);
 
                 await _target.CreateIfNotExistsAsync();
 
                 VerifyGetContainer();
-                _cloudBlobContainer.Verify(x => x.CreateAsync(It.Is<BlobContainerPermissions>(p => p.PublicAccess == BlobContainerPublicAccessType.Blob)), Times.Once);
-                _cloudBlobContainer.Verify(x => x.CreateIfNotExistAsync(It.IsAny<BlobContainerPermissions>()), Times.Never);
+                _cloudBlobContainer.Verify(x => x.CreateAsync(true), Times.Once);
+                _cloudBlobContainer.Verify(x => x.CreateIfNotExistAsync(It.IsAny<bool>()), Times.Never);
                 _cloudBlobContainer.Verify(x => x.DeleteIfExistsAsync(), Times.Never);
             }
 
             [Fact]
             public async Task DoesNotCreateIndexIfExists()
             {
-                _cloudBlobContainer.Setup(x => x.ExistsAsync(null, null)).ReturnsAsync(true);
+                _cloudBlobContainer.Setup(x => x.ExistsAsync(null)).ReturnsAsync(true);
 
                 await _target.CreateIfNotExistsAsync();
 
-                _cloudBlobContainer.Verify(x => x.CreateAsync(It.IsAny<BlobContainerPermissions>()), Times.Never);
-                _cloudBlobContainer.Verify(x => x.CreateIfNotExistAsync(It.IsAny<BlobContainerPermissions>()), Times.Never);
+                _cloudBlobContainer.Verify(x => x.CreateAsync(It.IsAny<bool>()), Times.Never);
+                _cloudBlobContainer.Verify(x => x.CreateIfNotExistAsync(It.IsAny<bool>()), Times.Never);
             }
 
             [Fact]
             public async Task DoesNotRetryOnConflict()
             {
                 EnableConflict();
-                _cloudBlobContainer.Setup(x => x.ExistsAsync(null, null)).ReturnsAsync(false);
+                _cloudBlobContainer.Setup(x => x.ExistsAsync(null)).ReturnsAsync(false);
 
-                await Assert.ThrowsAsync<StorageException>(() => _target.CreateIfNotExistsAsync());
+                await Assert.ThrowsAsync<CloudBlobConflictException>(() => _target.CreateIfNotExistsAsync());
             }
         }
 
@@ -118,8 +115,8 @@ namespace NuGet.Services.AzureSearch
 
                 VerifyGetContainer();
                 _cloudBlobContainer.Verify(x => x.DeleteIfExistsAsync(), Times.Once);
-                _cloudBlobContainer.Verify(x => x.CreateAsync(It.IsAny<BlobContainerPermissions>()), Times.Never);
-                _cloudBlobContainer.Verify(x => x.CreateIfNotExistAsync(It.IsAny<BlobContainerPermissions>()), Times.Never);
+                _cloudBlobContainer.Verify(x => x.CreateAsync(It.IsAny<bool>()), Times.Never);
+                _cloudBlobContainer.Verify(x => x.CreateIfNotExistAsync(It.IsAny<bool>()), Times.Never);
             }
         }
 
@@ -162,14 +159,8 @@ namespace NuGet.Services.AzureSearch
             protected void EnableConflict()
             {
                 _cloudBlobContainer
-                    .SetupSequence(x => x.CreateAsync(It.IsAny<BlobContainerPermissions>()))
-                    .Throws(new StorageException(
-                        new RequestResult
-                        {
-                            HttpStatusCode = (int)HttpStatusCode.Conflict,
-                        },
-                        "Conflict.",
-                        inner: null))
+                    .SetupSequence(x => x.CreateAsync(It.IsAny<bool>()))
+                    .Throws(new CloudBlobConflictException(null))
                     .Returns(Task.CompletedTask);
             }
 

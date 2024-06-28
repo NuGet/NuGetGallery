@@ -33,7 +33,7 @@ namespace NuGet.Jobs.Catalog2Registration
                     var options = c.Resolve<IOptionsSnapshot<Catalog2RegistrationConfiguration>>();
                     return new CloudBlobClientWrapper(
                         options.Value.StorageConnectionString,
-                        DefaultBlobRequestOptions.Create());
+                        requestTimeout: DefaultBlobRequestOptions.ServerTimeout);
                 });
 
             containerBuilder.Register(c => new Catalog2RegistrationCommand(

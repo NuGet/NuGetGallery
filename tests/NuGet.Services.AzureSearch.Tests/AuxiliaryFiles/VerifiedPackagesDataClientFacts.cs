@@ -5,12 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
 using Moq;
 using Newtonsoft.Json;
 using NuGetGallery;
@@ -32,10 +29,10 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             {
                 var json = JsonConvert.SerializeObject(new HashSet<string>());
                 CloudBlob
-                    .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
+                    .Setup(x => x.OpenReadAsync(It.IsAny<IAccessCondition>()))
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
 
-                var output = await Target.ReadLatestAsync(AccessCondition.Object, StringCache);
+                var output = await Target.ReadLatestAsync(IAccessCondition.Object, StringCache);
 
                 Assert.True(output.Modified);
                 Assert.Empty(output.Data);
@@ -46,16 +43,10 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             public async Task AllowsNotModifiedBlob()
             {
                 CloudBlob
-                    .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
-                    .ThrowsAsync(new StorageException(
-                        new RequestResult
-                        {
-                            HttpStatusCode = (int)HttpStatusCode.NotModified,
-                        },
-                        message: "Not modified.",
-                        inner: null));
+                    .Setup(x => x.OpenReadAsync(It.IsAny<IAccessCondition>()))
+                    .ThrowsAsync(new CloudBlobNotModifiedException(null));
 
-                var output = await Target.ReadLatestAsync(AccessCondition.Object, StringCache);
+                var output = await Target.ReadLatestAsync(IAccessCondition.Object, StringCache);
 
                 Assert.False(output.Modified);
                 Assert.Null(output.Data);
@@ -65,19 +56,13 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             [Fact]
             public async Task RejectsMissingBlob()
             {
-                var expected = new StorageException(
-                    new RequestResult
-                    {
-                        HttpStatusCode = (int)HttpStatusCode.NotFound,
-                    },
-                    message: "Not found.",
-                    inner: null);
+                var expected = new CloudBlobNotFoundException(null);
                 CloudBlob
-                    .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
+                    .Setup(x => x.OpenReadAsync(It.IsAny<IAccessCondition>()))
                     .ThrowsAsync(expected);
 
-                var actual = await Assert.ThrowsAsync<StorageException>(
-                    () => Target.ReadLatestAsync(AccessCondition.Object, StringCache));
+                var actual = await Assert.ThrowsAsync<CloudBlobNotFoundException>(
+                    () => Target.ReadLatestAsync(IAccessCondition.Object, StringCache));
                 Assert.Same(actual, expected);
             }
 
@@ -90,12 +75,12 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     Ids = new[] { "nuget.versioning", "EntityFramework" },
                 });
                 CloudBlob
-                    .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
+                    .Setup(x => x.OpenReadAsync(It.IsAny<IAccessCondition>()))
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
 
 
                 var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-                    () => Target.ReadLatestAsync(AccessCondition.Object, StringCache));
+                    () => Target.ReadLatestAsync(IAccessCondition.Object, StringCache));
                 Assert.Equal("The first token should be the start of an array.", ex.Message);
             }
 
@@ -109,10 +94,10 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     "NuGet.Core",
                 });
                 CloudBlob
-                    .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
+                    .Setup(x => x.OpenReadAsync(It.IsAny<IAccessCondition>()))
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
 
-                var output = await Target.ReadLatestAsync(AccessCondition.Object, StringCache);
+                var output = await Target.ReadLatestAsync(IAccessCondition.Object, StringCache);
 
                 Assert.True(output.Modified);
                 Assert.Equal(new[] { "EntityFramework", "NuGet.Core", "nuget.versioning" }, output.Data.OrderBy(x => x).ToArray());
@@ -129,10 +114,10 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     "nuget.core",
                 });
                 CloudBlob
-                    .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
+                    .Setup(x => x.OpenReadAsync(It.IsAny<IAccessCondition>()))
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
 
-                var output = await Target.ReadLatestAsync(AccessCondition.Object, StringCache);
+                var output = await Target.ReadLatestAsync(IAccessCondition.Object, StringCache);
 
                 Assert.True(output.Modified);
                 Assert.Single(output.Data);
@@ -152,7 +137,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             {
                 var newData = new HashSet<string>();
 
-                await Target.ReplaceLatestAsync(newData, AccessCondition.Object);
+                await Target.ReplaceLatestAsync(newData, IAccessCondition.Object);
 
                 var bytes = Assert.Single(SavedBytes);
                 Assert.Equal((byte)'[', bytes[0]);
@@ -163,7 +148,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             {
                 var newData = new HashSet<string>();
 
-                await Target.ReplaceLatestAsync(newData, AccessCondition.Object);
+                await Target.ReplaceLatestAsync(newData, IAccessCondition.Object);
 
                 Assert.Equal("application/json", CloudBlob.Object.Properties.ContentType);
             }
@@ -177,7 +162,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     "NuGet.Core",
                 };
 
-                await Target.ReplaceLatestAsync(newData, AccessCondition.Object);
+                await Target.ReplaceLatestAsync(newData, IAccessCondition.Object);
 
                 var json = Assert.Single(SavedStrings);
                 Assert.DoesNotContain("\n", json);
@@ -193,7 +178,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     "NuGet.Core",
                 };
 
-                await Target.ReplaceLatestAsync(newData, AccessCondition.Object);
+                await Target.ReplaceLatestAsync(newData, IAccessCondition.Object);
 
                 // Pretty-ify and sort the JSON to make the assertion clearer.
                 var json = Assert.Single(SavedStrings);
@@ -227,7 +212,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 };
 
                 ETag = "\"some-etag\"";
-                AccessCondition = new Mock<IAccessCondition>();
+                IAccessCondition = new Mock<IAccessCondition>();
                 StringCache = new StringCache();
 
                 Options
@@ -244,7 +229,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     .Setup(x => x.ETag)
                     .Returns(ETag);
                 CloudBlob
-                    .Setup(x => x.OpenWriteAsync(It.IsAny<AccessCondition>()))
+                    .Setup(x => x.OpenWriteAsync(It.IsAny<IAccessCondition>(), It.IsAny<string>()))
                     .ReturnsAsync(() => new RecordingStream(bytes =>
                     {
                         SavedBytes.Add(bytes);
@@ -252,7 +237,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     }));
                 CloudBlob
                     .Setup(x => x.Properties)
-                    .Returns(new CloudBlockBlob(new Uri("https://example/blob")).Properties);
+                    .Returns(Mock.Of<ICloudBlobProperties>());
 
                 Target = new VerifiedPackagesDataClient(
                     CloudBlobClient.Object,
@@ -269,7 +254,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             public RecordingLogger<VerifiedPackagesDataClient> Logger { get; }
             public AzureSearchConfiguration Config { get; }
             public string ETag { get; }
-            public Mock<IAccessCondition> AccessCondition { get; }
+            public Mock<IAccessCondition> IAccessCondition { get; }
             public StringCache StringCache { get; }
             public VerifiedPackagesDataClient Target { get; }
 

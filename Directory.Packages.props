@@ -4,12 +4,12 @@
     <EnablePackageVersionOverride>false</EnablePackageVersionOverride>
     <ServerCommonPackageVersion>2.120.0</ServerCommonPackageVersion>
     <NuGetClientPackageVersion>6.9.1</NuGetClientPackageVersion>
-    <NuGetGalleryPackageVersion>4.4.5-dev-9313974</NuGetGalleryPackageVersion>
+    <NuGetGalleryPackageVersion>4.4.5-dev-9801477</NuGetGalleryPackageVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Autofac" Version="4.9.1" />
     <PackageVersion Include="Autofac.Extensions.DependencyInjection" Version="4.4.0" />
-    <PackageVersion Include="Azure.Identity" Version="1.10.4" />
+    <PackageVersion Include="Azure.Identity" Version="1.11.3" />
     <PackageVersion Include="Azure.Search.Documents" Version="11.4.0-beta.6" />
     <PackageVersion Include="Dapper.StrongName" Version="1.50.2" />
     <PackageVersion Include="dotNetRDF" Version="1.0.8.3533" />

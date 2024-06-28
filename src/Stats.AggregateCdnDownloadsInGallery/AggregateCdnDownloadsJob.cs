@@ -7,7 +7,6 @@ using System.ComponentModel.Design;
 using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -16,15 +15,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
-using Newtonsoft.Json;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
-using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using NuGet.Services.FeatureFlags;
 using NuGet.Services.Metadata.Catalog;
-using NuGet.Services.Metadata.Catalog.Helpers;
-using NuGetGallery;
 using IPackageIdGroup = System.Linq.IGrouping<string, Stats.AggregateCdnDownloadsInGallery.DownloadCountData>;
 
 namespace Stats.AggregateCdnDownloadsInGallery
