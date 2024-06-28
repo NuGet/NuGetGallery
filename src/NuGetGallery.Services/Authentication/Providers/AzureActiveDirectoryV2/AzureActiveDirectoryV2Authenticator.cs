@@ -88,8 +88,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
                     .Current
                     .AlternateSiteRootList
                     .Split(';')
-                    .Select(d => d.Trim())
-                    .ToArray();
+                    .Select(d => d.Trim());
 
                 _alternateSiteRootList = new HashSet<string>(alternateSiteRootList, StringComparer.OrdinalIgnoreCase);
             }

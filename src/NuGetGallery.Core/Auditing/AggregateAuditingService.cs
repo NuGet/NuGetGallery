@@ -43,9 +43,7 @@ namespace NuGetGallery.Auditing
                 throw new ArgumentNullException(nameof(record));
             }
 
-            var tasks = _services.Select(service => service.SaveAuditRecordAsync(record))
-                                 .ToArray();
-
+            var tasks = _services.Select(service => service.SaveAuditRecordAsync(record));
             await Task.WhenAll(tasks);
         }
     }

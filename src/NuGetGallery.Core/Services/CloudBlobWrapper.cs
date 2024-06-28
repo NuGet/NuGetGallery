@@ -8,6 +8,10 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
+<<<<<<< HEAD
+=======
+using Azure.Core;
+>>>>>>> dev
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
@@ -17,6 +21,14 @@ namespace NuGetGallery
 {
     public class CloudBlobWrapper : ISimpleCloudBlob
     {
+<<<<<<< HEAD
+=======
+        private const string ContentDispositionHeaderName = "Content-Disposition";
+        private const string ContentEncodingHeaderName = "Content-Encoding";
+        private const string ContentLanguageHeaderName = "Content-Language";
+        private const string CacheControlHeaderName = "Cache-Control";
+        private const string ContentMd5HeaderName = "Content-Md5";
+>>>>>>> dev
         private readonly BlockBlobClient _blob;
         private readonly CloudBlobContainerWrapper _container;
         private string _lastSeenEtag = null;
@@ -106,10 +118,19 @@ namespace NuGetGallery
             }
             var result = await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blob.DownloadStreamingAsync(options));
+<<<<<<< HEAD
+=======
+            if (result.GetRawResponse().Status == (int)HttpStatusCode.NotModified)
+            {
+                // calling code expects an exception thrown on not modified response
+                throw new CloudBlobNotModifiedException(null);
+            }
+>>>>>>> dev
             UpdateEtag(result.Value.Details);
             return result.Value.Content;
         }
 
+<<<<<<< HEAD
         public async Task<Stream> OpenWriteAsync(IAccessCondition accessCondition)
         {
             BlockBlobOpenWriteOptions options = null;
@@ -118,6 +139,19 @@ namespace NuGetGallery
                 options = new BlockBlobOpenWriteOptions
                 {
                     OpenConditions = CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
+=======
+        public async Task<Stream> OpenWriteAsync(IAccessCondition accessCondition, string contentType = null)
+        {
+            BlockBlobOpenWriteOptions options = new BlockBlobOpenWriteOptions
+            {
+                OpenConditions = CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
+            };
+            if (contentType != null)
+            {
+                options.HttpHeaders = new BlobHttpHeaders
+                {
+                    ContentType = contentType,
+>>>>>>> dev
                 };
             }
             return await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
@@ -271,6 +305,33 @@ namespace NuGetGallery
             BlobHeaders.ContentHash = details.ContentHash;
         }
 
+<<<<<<< HEAD
+=======
+        private void ReplaceHttpHeaders(ResponseHeaders headers)
+        {
+            if (BlobHeaders == null)
+            {
+                BlobHeaders = new BlobHttpHeaders();
+            }
+            BlobHeaders.ContentType = headers.ContentType;
+            BlobHeaders.ContentDisposition = headers.TryGetValue(ContentDispositionHeaderName, out var contentDisposition) ? contentDisposition : null;
+            BlobHeaders.ContentEncoding = headers.TryGetValue(ContentEncodingHeaderName, out var contentEncoding) ? contentEncoding : null;
+            BlobHeaders.ContentLanguage = headers.TryGetValue(ContentLanguageHeaderName, out var contentLanguage) ? contentLanguage : null;
+            BlobHeaders.CacheControl = headers.TryGetValue(CacheControlHeaderName, out var cacheControl) ? cacheControl : null;
+            if (headers.TryGetValue(ContentMd5HeaderName, out var contentHash))
+            {
+                try
+                {
+                    BlobHeaders.ContentHash = Convert.FromBase64String(contentHash);
+                }
+                catch
+                {
+                    BlobHeaders.ContentHash = null;
+                }
+            }
+        }
+
+>>>>>>> dev
         private void ReplaceMetadata(IDictionary<string, string> newMetadata)
         {
             if (Metadata == null)
@@ -440,9 +501,20 @@ namespace NuGetGallery
 
         private Response UpdateEtag(Response response)
         {
+<<<<<<< HEAD
             if (response?.Headers.ETag != null)
             {
                 _lastSeenEtag = response.Headers.ETag.ToString();
+=======
+            if (response?.Headers != null)
+            {
+                if (response.Headers.ETag.HasValue)
+                {
+                    _lastSeenEtag = EtagToString(response.Headers.ETag.Value);
+                }
+
+                ReplaceHttpHeaders(response.Headers);
+>>>>>>> dev
             }
             return response;
         }
@@ -451,7 +523,11 @@ namespace NuGetGallery
         {
             if (propertiesResponse?.Value != null)
             {
+<<<<<<< HEAD
                 _lastSeenEtag = propertiesResponse.Value.ETag.ToString();
+=======
+                _lastSeenEtag = EtagToString(propertiesResponse.Value.ETag);
+>>>>>>> dev
             }
             return propertiesResponse;
         }
@@ -460,7 +536,11 @@ namespace NuGetGallery
         {
             if (infoResponse?.Value != null)
             {
+<<<<<<< HEAD
                 _lastSeenEtag = infoResponse.Value.ETag.ToString();
+=======
+                _lastSeenEtag = EtagToString(infoResponse.Value.ETag);
+>>>>>>> dev
             }
             return infoResponse;
         }
@@ -469,7 +549,11 @@ namespace NuGetGallery
         {
             if (infoResponse?.Value != null)
             {
+<<<<<<< HEAD
                 _lastSeenEtag = infoResponse.Value.ETag.ToString();
+=======
+                _lastSeenEtag = EtagToString(infoResponse.Value.ETag);
+>>>>>>> dev
             }
             return infoResponse;
         }
@@ -478,10 +562,18 @@ namespace NuGetGallery
         {
             if (details != null)
             {
+<<<<<<< HEAD
                 _lastSeenEtag = details.ETag.ToString();
+=======
+                _lastSeenEtag = EtagToString(details.ETag);
+>>>>>>> dev
                 ReplaceHttpHeaders(details);
                 ReplaceMetadata(details.Metadata);
             }
         }
+
+        // workaround for https://github.com/Azure/azure-sdk-for-net/issues/29942 
+        private static string EtagToString(ETag etag)
+            => etag.ToString("H");
     }
 }
