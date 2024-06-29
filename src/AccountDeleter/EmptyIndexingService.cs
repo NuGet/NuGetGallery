@@ -14,11 +14,6 @@ namespace NuGetGallery.AccountDeleter
     /// </summary>
     public class EmptyIndexingService : IIndexingService
     {
-        public EmptyIndexingService()
-        {
-
-        }
-
         public string IndexPath => throw new NotImplementedException();
 
         public bool IsLocal => throw new NotImplementedException();

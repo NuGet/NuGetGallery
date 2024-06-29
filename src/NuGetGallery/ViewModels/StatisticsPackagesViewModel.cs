@@ -23,10 +23,6 @@ namespace NuGetGallery
 
         private DateTime? _lastUpdatedUtc;
 
-        public StatisticsPackagesViewModel()
-        {
-        }
-
         public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackagesSummary { get; set; }
 
         public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackageVersionsSummary { get; set; }
