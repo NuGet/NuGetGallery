@@ -33,7 +33,7 @@ namespace NuGetGallery.App_Start
 
                 public string StubConfiguredSiteRoot { get; set; }
                 public string StubConfiguredSupportEmailSiteRoot { get; set; }
-                public Mock<HttpRequestBase> StubRequest { get; set; }
+                public Mock<HttpRequestBase> StubRequest { get; }
 
                 protected override string GetAppSetting(string settingName)
                 {

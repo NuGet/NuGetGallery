@@ -67,7 +67,7 @@ namespace NuGetGallery
             return new QueryHintScope(this, queryHint);
         }
 
-        public bool ReadOnly { get; private set; }
+        public bool ReadOnly { get; }
         public string QueryHint { get; private set; }
         public DbSet<Package> Packages { get; set; }
         public DbSet<PackageDeprecation> Deprecations { get; set; }

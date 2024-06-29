@@ -12,11 +12,7 @@ namespace NuGetGallery.Filters
         /// Gets or sets the cache duration in seconds. The default is 10 seconds.
         /// </summary>
         /// <value>The cache duration in seconds.</value>
-        public int Duration
-        {
-            get;
-            set;
-        }
+        public int Duration { get; set; }
 
         public CacheFilterAttribute()
         {

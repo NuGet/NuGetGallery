@@ -16,11 +16,11 @@ namespace NuGetGallery
         public bool Present { get; private set; }
         public string Version { get; private set; }
         public string Branch { get; private set; }
-        public string Commit { get; private set; }
+        public string Commit { get; }
         public DateTime BuildDateUtc { get; private set; }
 
         // Calculated
-        public string ShortCommit { get; private set; }
+        public string ShortCommit { get; }
         public Uri BranchUri { get; private set; }
         public Uri CommitUri { get; private set; }
 

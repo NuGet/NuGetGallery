@@ -21,7 +21,7 @@ namespace NuGetGallery
         // so we don't want data just vanishing from a cache.
         private ConcurrentDictionary<string, ContentItem> _contentCache = new ConcurrentDictionary<string, ContentItem>(StringComparer.OrdinalIgnoreCase);
 
-        private IDiagnosticsSource Trace { get; set; }
+        private IDiagnosticsSource Trace { get; }
 
         public IFileStorageService FileStorage { get; protected set; }
 
@@ -176,8 +176,8 @@ namespace NuGetGallery
 
         public class ContentItem
         {
-            public IHtmlString Content { get; private set; }
-            public string ContentId { get; private set; }
+            public IHtmlString Content { get; }
+            public string ContentId { get; }
             public DateTime RetrievedUtc { get; private set; }
             public DateTime ExpiryUtc { get; set; }
 

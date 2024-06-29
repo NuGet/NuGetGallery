@@ -37,8 +37,8 @@ namespace NuGetGallery
             CanViewAccount = ActionsRequiringPermissions.ViewAccount.CheckPermissions(currentUser, user) == PermissionsCheckResult.Allowed;
         }
 
-        public int PackagePageTotalCount { get; private set; }
-        public User User { get; private set; }
+        public int PackagePageTotalCount { get; }
+        public User User { get; }
         public string Username { get; private set; }
         public string EmailAddress { get; private set; }
         public string UnconfirmedEmailAddress { get; set; }
@@ -62,12 +62,12 @@ namespace NuGetGallery
         }
 
         public bool IsLocked { get; set; }
-        public ICollection<ListPackageItemViewModel> AllPackages { get; private set; }
+        public ICollection<ListPackageItemViewModel> AllPackages { get; }
         public ICollection<ListPackageItemViewModel> PagedPackages { get; private set; }
         public long TotalPackageDownloadCount { get; private set; }
-        public int TotalPackages { get; private set; }
+        public int TotalPackages { get; }
         public int PackagePage { get; private set; }
-        public int PackagePageSize { get; private set; }
+        public int PackagePageSize { get; }
         public IPreviousNextPager Pager { get; private set; }
         public bool CanManageAccount { get; private set; }
         public bool CanViewAccount { get; private set; }

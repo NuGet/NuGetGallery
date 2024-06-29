@@ -165,8 +165,8 @@ namespace NuGetGallery.Services
 
         public class TestableContentService : ContentService
         {
-            public Mock<IFileStorageService> MockFileStorage { get; private set; }
-            public Mock<ICacheService> MockCache { get; private set; }
+            public Mock<IFileStorageService> MockFileStorage { get; }
+            public Mock<ICacheService> MockCache { get; }
 
             public TestableContentService()
             {

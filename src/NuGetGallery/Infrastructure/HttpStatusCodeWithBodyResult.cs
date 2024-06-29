@@ -14,7 +14,7 @@ namespace NuGetGallery
 
         private static readonly string[] LineEndings = new[] { "\n", "\r" };
 
-        public string Body { get; private set; }
+        public string Body { get; }
 
         public HttpStatusCodeWithBodyResult(HttpStatusCode statusCode, string statusDescription)
             : this(statusCode, statusDescription, statusDescription)

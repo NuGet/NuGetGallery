@@ -48,7 +48,7 @@ namespace NuGetGallery
             }
         }
 
-        public IDictionary<string, IEnumerable<DependencyViewModel>> DependencySets { get; private set; }
+        public IDictionary<string, IEnumerable<DependencyViewModel>> DependencySets { get; }
         public bool OnlyHasAllFrameworks { get; private set; }
 
         public class DependencyViewModel

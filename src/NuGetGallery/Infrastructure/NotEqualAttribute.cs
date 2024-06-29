@@ -10,7 +10,7 @@ namespace NuGetGallery.Infrastructure
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = true)]
     public sealed class NotEqualAttribute : ValidationAttribute, IClientValidatable
     {
-        public object DisallowedValue { get; private set; }
+        public object DisallowedValue { get; }
         public NotEqualAttribute(object disallowedValue) : base()
         {
             DisallowedValue = disallowedValue;

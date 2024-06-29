@@ -25,8 +25,8 @@ namespace NuGetGallery
             ContentType = contentType;
         }
 
-        public Stream ImageStream { get; private set; }
-        public string ContentType { get; private set; }
+        public Stream ImageStream { get; }
+        public string ContentType { get; }
 
         public override void ExecuteResult(ControllerContext context)
         {

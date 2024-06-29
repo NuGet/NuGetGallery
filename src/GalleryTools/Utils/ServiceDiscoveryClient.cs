@@ -118,8 +118,8 @@ namespace GalleryTools.Utils
 
         class ServiceIndexDocument
         {
-            public JObject Doc { get; private set; }
-            public DateTime UpdateTime { get; private set; }
+            public JObject Doc { get; }
+            public DateTime UpdateTime { get; }
 
             public ServiceIndexDocument(JObject doc, DateTime updateTime)
             {

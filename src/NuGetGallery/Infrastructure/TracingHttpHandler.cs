@@ -10,7 +10,7 @@ namespace NuGetGallery.Infrastructure
 {
     public class TracingHttpHandler : DelegatingHandler
     {
-        public IDiagnosticsSource Trace { get; private set; }
+        public IDiagnosticsSource Trace { get; }
 
         public TracingHttpHandler(IDiagnosticsSource trace)
         {

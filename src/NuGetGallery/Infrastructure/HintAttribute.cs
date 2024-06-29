@@ -15,7 +15,7 @@ namespace NuGetGallery
             Hint = hint;
         }
 
-        public string Hint { get; private set; }
+        public string Hint { get; }
 
         public override object TypeId
         {

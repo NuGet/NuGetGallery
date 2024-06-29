@@ -22,7 +22,7 @@ namespace NuGetGallery.Infrastructure.Search
 
         private JObject _diagCache;
 
-        protected IDiagnosticsSource Trace { get; private set; }
+        protected IDiagnosticsSource Trace { get; }
 
         public string IndexPath
         {

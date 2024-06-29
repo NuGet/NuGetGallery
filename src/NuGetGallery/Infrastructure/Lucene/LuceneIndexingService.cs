@@ -34,7 +34,7 @@ namespace NuGetGallery
         private readonly Func<bool> _getShouldAutoUpdate;
         private readonly ILuceneDocumentFactory _luceneDocumentFactory;
 
-        private IDiagnosticsSource Trace { get; set; }
+        private IDiagnosticsSource Trace { get; }
 
         public string IndexPath
         {
