@@ -58,7 +58,7 @@ namespace NuGetGallery
                 throw new ArgumentException("All packages to change the listing status of must have the same ID.", nameof(packages));
             }
 
-            using (var strategy = new SuspendDbExecutionStrategy())
+            using (new SuspendDbExecutionStrategy())
             using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
             {
                 foreach (var package in packages)

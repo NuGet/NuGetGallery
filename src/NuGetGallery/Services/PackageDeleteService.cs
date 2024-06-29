@@ -252,7 +252,7 @@ namespace NuGetGallery
 
         public async Task SoftDeletePackagesAsync(IEnumerable<Package> packages, User deletedBy, string reason, string signature)
         {
-            using (var strategy = new SuspendDbExecutionStrategy())
+            using (new SuspendDbExecutionStrategy())
             using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
             {
                 // Increase command timeout
@@ -322,7 +322,7 @@ namespace NuGetGallery
 
         public async Task HardDeletePackagesAsync(IEnumerable<Package> packages, User deletedBy, string reason, string signature, bool deleteEmptyPackageRegistration)
         {
-            using (var strategy = new SuspendDbExecutionStrategy())
+            using (new SuspendDbExecutionStrategy())
             using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
             {
                 // Increase command timeout

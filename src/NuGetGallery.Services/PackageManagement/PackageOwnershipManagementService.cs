@@ -77,7 +77,7 @@ namespace NuGetGallery
 
             if (commitChanges)
             {
-                using (var strategy = new SuspendDbExecutionStrategy())
+                using (new SuspendDbExecutionStrategy())
                 using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
                 {
                     await AddPackageOwnerTask(packageRegistration, user, commitChanges);
@@ -288,7 +288,7 @@ namespace NuGetGallery
             {
                 if (commitChanges)
                 {
-                    using (var strategy = new SuspendDbExecutionStrategy())
+                    using (new SuspendDbExecutionStrategy())
                     using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
                     {
                         await RemovePackageOwnerImplAsync(packageRegistration, ownerToBeRemoved);

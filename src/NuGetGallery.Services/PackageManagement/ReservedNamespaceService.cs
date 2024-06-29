@@ -87,7 +87,7 @@ namespace NuGetGallery
                 throw new ArgumentException(ServicesStrings.ReservedNamespace_InvalidNamespace);
             }
 
-            using (var strategy = new SuspendDbExecutionStrategy())
+            using (new SuspendDbExecutionStrategy())
             using (var transaction = EntitiesContext.GetDatabase().BeginTransaction())
             {
                 var namespaceToDelete = FindReservedNamespaceForPrefix(existingNamespace)
@@ -199,7 +199,7 @@ namespace NuGetGallery
             List<PackageRegistration> packageRegistrationsToMarkUnverified;
             if (commitChanges)
             {
-                using (var strategy = new SuspendDbExecutionStrategy())
+                using (new SuspendDbExecutionStrategy())
                 using (var transaction = EntitiesContext.GetDatabase().BeginTransaction())
                 {
                     packageRegistrationsToMarkUnverified = await DeleteOwnerFromReservedNamespaceImplAsync(prefix, username, namespaceToModify);
