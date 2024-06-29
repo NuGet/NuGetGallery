@@ -159,14 +159,12 @@ namespace NuGetGallery.OData
             {
                 var binExpr = lambda.Body as BinaryExpression;
 
-                var left = binExpr.Left as BinaryExpression;
-                if (left != null)
+                if (binExpr.Left is BinaryExpression left)
                 {
                     yield return ExtractComparison(left);
                 }
 
-                var right = binExpr.Right as BinaryExpression;
-                if (right != null)
+                if (binExpr.Right is BinaryExpression right)
                 {
                     yield return ExtractComparison(right);
                 }
@@ -197,8 +195,7 @@ namespace NuGetGallery.OData
             if (memberSide == null)
             {
                 // That did not work... This may be Web API OData wrapping our expression
-                UnaryExpression temp = binExpr.Left as UnaryExpression;
-                if (temp != null)
+                if (binExpr.Left is UnaryExpression temp)
                 {
                     memberSide = temp.Operand as MemberExpression;
                 }

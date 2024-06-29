@@ -12,8 +12,7 @@ namespace NuGetGallery
             base.OnDataBinding(e);
 
             object entity;
-            ICustomTypeDescriptor rowDescriptor = Row as ICustomTypeDescriptor;
-            if (rowDescriptor != null)
+            if (Row is ICustomTypeDescriptor rowDescriptor)
             {
                 entity = rowDescriptor.GetPropertyOwner(null);
             }
@@ -23,8 +22,7 @@ namespace NuGetGallery
             }
 
             var entityCollection = Column.EntityTypeProperty.GetValue(entity, null);
-            var realEntityCollection = entityCollection as RelatedEnd;
-            if (realEntityCollection != null && !realEntityCollection.IsLoaded)
+            if (entityCollection is RelatedEnd realEntityCollection && !realEntityCollection.IsLoaded)
             {
                 realEntityCollection.Load();
             }

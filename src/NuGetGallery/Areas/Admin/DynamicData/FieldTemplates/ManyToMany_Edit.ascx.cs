@@ -78,8 +78,7 @@ namespace NuGetGallery
             if (Mode == DataBoundControlMode.Edit)
             {
                 object entity;
-                ICustomTypeDescriptor rowDescriptor = Row as ICustomTypeDescriptor;
-                if (rowDescriptor != null)
+                if (Row is ICustomTypeDescriptor rowDescriptor)
                 {
                     entity = rowDescriptor.GetPropertyOwner(null);
                 }
@@ -89,8 +88,7 @@ namespace NuGetGallery
                 }
 
                 entityCollection = (IEnumerable<object>)Column.EntityTypeProperty.GetValue(entity, null);
-                var realEntityCollection = entityCollection as RelatedEnd;
-                if (realEntityCollection != null && !realEntityCollection.IsLoaded)
+                if (entityCollection is RelatedEnd realEntityCollection && !realEntityCollection.IsLoaded)
                 {
                     realEntityCollection.Load();
                 }

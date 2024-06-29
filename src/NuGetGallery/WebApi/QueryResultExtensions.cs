@@ -9,8 +9,7 @@ namespace NuGetGallery.WebApi
     {
         public static IHttpActionResult FormattedAsCountResult<T>(this IHttpActionResult current)
         {
-            var queryResult = current as QueryResult<T>;
-            if (queryResult != null)
+            if (current is QueryResult<T> queryResult)
             {
                 queryResult.FormatAsCountResult = true;
                 return queryResult;
@@ -21,8 +20,7 @@ namespace NuGetGallery.WebApi
 
         public static IHttpActionResult FormattedAsSingleResult<T>(this IHttpActionResult current)
         {
-            var queryResult = current as QueryResult<T>;
-            if (queryResult != null)
+            if (current is QueryResult<T> queryResult)
             {
                 queryResult.FormatAsSingleResult = true;
                 return queryResult;

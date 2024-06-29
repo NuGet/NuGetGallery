@@ -44,8 +44,7 @@ namespace NuGetGallery.Framework
             Routes.RegisterRoutes(routeCollection);
             c.Url = new UrlHelper(c.ControllerContext.RequestContext, routeCollection);
 
-            var appCtrl = c as AppController;
-            if (appCtrl != null)
+            if (c is AppController appCtrl)
             {
                 appCtrl.SetOwinContextOverride(Fakes.CreateOwinContext());
                 appCtrl.NuGetContext.Config = GetConfigurationService();

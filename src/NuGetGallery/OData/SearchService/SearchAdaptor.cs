@@ -91,8 +91,7 @@ namespace NuGetGallery.OData
 
         private static async Task<SearchResults> GetRawResultsFromSearchService(ISearchService searchService, SearchFilter searchFilter)
         {
-            var externalSearchService = searchService as ExternalSearchService;
-            if (externalSearchService != null)
+            if (searchService is ExternalSearchService externalSearchService)
             {
                 return await externalSearchService.RawSearch(searchFilter);
             }

@@ -26,8 +26,7 @@ namespace NuGetGallery.Framework
     {
         public static bool WroteNoRecords(this IAuditingService self)
         {
-            TestAuditingService testService = self as TestAuditingService;
-            if (testService != null)
+            if (self is TestAuditingService testService)
             {
                 return !testService.Records.Any();
             }

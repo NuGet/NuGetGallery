@@ -1032,8 +1032,7 @@ namespace NuGetGallery
             }
 
             var searchService = _searchServiceFactory.GetService();
-            var externalSearchService = searchService as ExternalSearchService;
-            if (searchService.ContainsAllVersions && externalSearchService != null)
+            if (searchService.ContainsAllVersions && searchService is ExternalSearchService externalSearchService)
             {
                 // A package can be re-indexed when it is created or edited. Determine the latest of these times.
                 var sinceLatestUpsert = package.Created;
