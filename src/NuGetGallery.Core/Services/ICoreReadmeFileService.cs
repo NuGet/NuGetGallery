@@ -30,7 +30,6 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="id">The package ID. This value is case-insensitive.</param>
         /// <param name="version">The package version. This value is case-insensitive and need not be normalized.</param>
-        /// <returns></returns>
         Task DeleteReadmeFileAsync(string id, string version);
     }
 }

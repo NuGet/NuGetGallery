@@ -19,7 +19,7 @@ namespace NuGetGallery.Infrastructure.Search
         /// <summary>
         /// Create a search service client.
         /// </summary>
-        /// <param name="httpClient">The <see cref="HttpClient"/> to be used for the requests.</param>
+        /// <param name="resilientHttpClient">The <see cref="HttpClient"/> to be used for the requests.</param>
         public GallerySearchClient(IResilientSearchClient resilientHttpClient) 
         {
             _httpClient = resilientHttpClient ?? throw new ArgumentNullException(nameof(resilientHttpClient));

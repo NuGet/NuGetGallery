@@ -83,7 +83,7 @@ namespace NuGetGallery.OData.QueryFilter
         /// <typeparam name="T">The entity type for the odataOptions.</typeparam>
         /// <param name="odataOptions">The <see cref="ODataQueryOptions"/> to be validated.</param>
         /// <returns>The <see cref="ODataOperators"/> representation of the operators in the OData options. 
-        /// If no operator is used the result will be <see cref="ODataOperators.none"/>.</returns>
+        /// If no operator is used the result will be <see cref="ODataOperators.None"/>.</returns>
         public static ODataOperators ODataOptionsMap<T>(ODataQueryOptions<T> odataOptions)
         {
             if(odataOptions == null)

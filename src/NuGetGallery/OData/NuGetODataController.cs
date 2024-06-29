@@ -124,7 +124,6 @@ namespace NuGetGallery.OData
         /// The OrderById will be skipped when the request has an OrderBy clause that does not include Id 
         /// </summary>
         /// <param name="options">The request OData options.</param>
-        /// <returns></returns>
         protected bool TryShouldIgnoreOrderById<T>(ODataQueryOptions<T> options, out bool shouldIgnoreOrderById)
         {
             shouldIgnoreOrderById = false;

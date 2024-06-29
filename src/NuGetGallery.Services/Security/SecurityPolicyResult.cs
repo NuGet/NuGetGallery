@@ -25,8 +25,6 @@ namespace NuGetGallery.Security
         /// <summary>
         /// Create a failed security policy result.
         /// </summary>
-        /// <param name="errorMessage"></param>
-        /// <returns></returns>
         public static SecurityPolicyResult CreateErrorResult(string errorMessage)
         {
             if (string.IsNullOrEmpty(errorMessage))
@@ -41,8 +39,6 @@ namespace NuGetGallery.Security
         /// <summary>
         /// Create a warning package security policy result.
         /// </summary>
-        /// <param name="warningMessages"></param>
-        /// <returns></returns>
         public static SecurityPolicyResult CreateWarningResult(params string[] warningMessages)
         {
             if (warningMessages == null)

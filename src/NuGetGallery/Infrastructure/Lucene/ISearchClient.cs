@@ -25,7 +25,6 @@ namespace NuGetGallery.Infrastructure.Search
         /// <param name="supportedFramework">SupportedFramework</param>
         /// <param name="semVerLevel">SemVerLevel</param>
         /// <param name="includeTestData">Whether or not to include test data in the results.</param>
-        /// <returns></returns>
         Task<ServiceResponse<SearchModels.SearchResults>> Search(
             string query,
             string projectTypeFilter,
@@ -49,7 +48,6 @@ namespace NuGetGallery.Infrastructure.Search
         /// <summary>
         /// Returns the search diag.
         /// </summary>
-        /// <returns></returns>
         Task<ServiceResponse<JObject>> GetDiagnostics();
     }
 }

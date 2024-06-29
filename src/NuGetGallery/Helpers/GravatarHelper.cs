@@ -47,7 +47,7 @@ namespace NuGetGallery.Helpers
         /// Generates a URL to Gravatar that is proxied.
         /// </summary>
         /// <param name="email">The user's email address.</param>
-        /// <param name="size">The size of the gravatar image.</param>
+        /// <param name="imageSize">The size of the gravatar image.</param>
         /// <returns>The image URL, proxied.</returns>
         public static string Url(UrlHelper url, string email, string username, int imageSize)
         {

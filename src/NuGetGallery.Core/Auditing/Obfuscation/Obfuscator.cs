@@ -14,8 +14,6 @@ namespace NuGetGallery.Auditing
         /// For IPv4 zero the last octet
         /// For IPv6 zero the last 4 sextets
         /// </summary>
-        /// <param name="IP"></param>
-        /// <returns></returns>
         public static string ObfuscateIp(string IP)
         {
             IPAddress address;

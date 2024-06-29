@@ -586,7 +586,6 @@ namespace NuGetGallery
         /// <param name="currentUser"></param>
         /// <param name="wasAADLoginOrMultiFactorAuthenticated"></param>
         /// <param name="predicate"></param>
-        /// <returns></returns>
         private List<ListPackageItemRequiredSignerViewModel> GetPackages(
             IEnumerable<Package> packages,
             User currentUser,

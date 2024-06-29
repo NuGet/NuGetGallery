@@ -243,6 +243,7 @@ namespace NuGetGallery
         /// Callers should only use this API if they need to generate many links, such as the ManagePackages view
         /// does. This template reduces the calls to RouteCollection.GetVirtualPath which can be expensive. Callers
         /// that only need a single link should call Url.Package instead.
+        /// </summary>
         public static RouteUrlTemplate<IPackageVersionModel> PackageRegistrationTemplate(
             this UrlHelper url,
             bool relativeUrl = true)
@@ -605,6 +606,7 @@ namespace NuGetGallery
         /// Callers should only use this API if they need to generate many links, such as the ManagePackages view
         /// does. This template reduces the calls to RouteCollection.GetVirtualPath which can be expensive. Callers
         /// that only need a single link should call Url.Package instead.
+        /// </summary>
         public static RouteUrlTemplate<IPackageVersionModel> SetRequiredSignerTemplate(
             this UrlHelper url,
             bool relativeUrl = true)
@@ -679,6 +681,7 @@ namespace NuGetGallery
         /// Callers should only use this API if they need to generate many links, such as the ManagePackages view
         /// does. This template reduces the calls to RouteCollection.GetVirtualPath which can be expensive. Callers
         /// that only need a single link should call Url.User instead.
+        /// </summary>
         public static RouteUrlTemplate<User> UserTemplate(
             this UrlHelper url,
             string scheme = null,
@@ -742,6 +745,7 @@ namespace NuGetGallery
         /// Callers should only use this API if they need to generate many links, such as the ManagePackages view
         /// does. This template reduces the calls to RouteCollection.GetVirtualPath which can be expensive. Callers
         /// that only need a single link should call Url.PackageVersionAction instead.
+        /// </summary>
         public static RouteUrlTemplate<IPackageVersionModel> PackageVersionActionTemplate(
             this UrlHelper url,
             string action,
@@ -810,6 +814,7 @@ namespace NuGetGallery
         /// Callers should only use this API if they need to generate many links, such as the ManagePackages view
         /// does. This template reduces the calls to RouteCollection.GetVirtualPath which can be expensive. Callers
         /// that only need a single link should call Url.ManagePackage instead.
+        /// </summary>
         public static RouteUrlTemplate<IPackageVersionModel> ManagePackageTemplate(
             this UrlHelper url,
             bool relativeUrl = true)

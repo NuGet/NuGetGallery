@@ -9,7 +9,6 @@ namespace NuGetGallery.AccountDeleter
         /// Returns an <see cref="IUserEvaluator"/> instance that corresponds to the requested name
         /// </summary>
         /// <param name="source"></param>
-        /// <returns></returns>
         /// <exception cref="UnknownEvaluatorException"></exception>
         IUserEvaluator GetEvaluatorForSource(string source);
     }

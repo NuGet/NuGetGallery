@@ -70,8 +70,6 @@ namespace NuGetGallery
         /// Determines whether a credential is supported (internal or from the UI). For forward compatibility,
         /// this version supports only the credentials below and ignores any others.
         /// </summary>
-        /// <param name="credential"></param>
-        /// <returns></returns>
         public static bool IsSupportedCredential(this Credential credential)
         {
             return credential.IsViewSupportedCredential() || IsPackageVerificationApiKey(credential.Type);
@@ -81,8 +79,6 @@ namespace NuGetGallery
         /// Determines whether a credential is supported from the user interface. For forward compatibility,
         /// this version supports only the credentials below and ignores any others.
         /// </summary>
-        /// <param name="credential"></param>
-        /// <returns></returns>
         public static bool IsViewSupportedCredential(this Credential credential)
         {
             return

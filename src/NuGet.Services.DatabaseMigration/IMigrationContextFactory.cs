@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NuGet.Services.DatabaseMigration
 {
-    // <summary>
+    /// <summary>
     /// A factory to create migration context for different target databases <see cref="IMigrationContext"/>.
     /// </summary>
     public interface IMigrationContextFactory

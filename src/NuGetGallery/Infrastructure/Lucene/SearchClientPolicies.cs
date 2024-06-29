@@ -98,7 +98,6 @@ namespace NuGetGallery.Infrastructure.Search
         /// In case of exception a <see cref="HttpResponseMessage"/> with status code = 503 is returned.
         /// </summary>
         /// <param name="logger">An <see cref="ILogger"/> instance.</param>
-        /// <returns></returns>
         public static IAsyncPolicy<HttpResponseMessage> SearchClientTimeoutPolicy(TimeSpan timeout, ILogger logger, string searchName, ITelemetryService telemetryService)
         {
             return Policy.TimeoutAsync<HttpResponseMessage>(
@@ -124,7 +123,6 @@ namespace NuGetGallery.Infrastructure.Search
         /// In case of exception a <see cref="HttpResponseMessage"/> with status code = 503 is returned.
         /// </summary>
         /// <param name="logger">An <see cref="ILogger"/> instance.</param>
-        /// <returns></returns>
         public static IAsyncPolicy<HttpResponseMessage> SearchClientFallBackCircuitBreakerPolicy(ILogger logger, string searchName, ITelemetryService telemetryService)
         {
             return HttpPolicyExtensions

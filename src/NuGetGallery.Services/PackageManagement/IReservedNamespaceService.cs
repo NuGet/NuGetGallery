@@ -96,7 +96,6 @@ namespace NuGetGallery
         /// <param name="account">The <see cref="User"/> that will own the new package.</param>
         /// <param name="id">The <see cref="PackageRegistration.Id"/> of the new package.</param>
         /// <param name="ownedMatchingReservedNamespaces">The <see cref="ReservedNamespace"/>s that <paramref name="account"/> owns that match <paramref name="id"/>.</param>
-        /// <returns></returns>
         bool ShouldMarkNewPackageIdVerified(User account, string id, out IReadOnlyCollection<ReservedNamespace> ownedMatchingReservedNamespaces);
     }
 }

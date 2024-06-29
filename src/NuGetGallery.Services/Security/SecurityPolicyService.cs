@@ -126,7 +126,6 @@ namespace NuGetGallery.Security
         /// </summary>
         /// <param name="action">Gallery action to evaluate.</param>
         /// <param name="httpContext">Current http context.</param>
-        /// <returns></returns>
         public async Task<SecurityPolicyResult> EvaluateUserPoliciesAsync(
             SecurityPolicyAction action,
             User currentUser,
@@ -169,7 +168,6 @@ namespace NuGetGallery.Security
         /// <param name="httpContext">Current http context.</param>
         /// <param name="package">The package to evaluate.</param>
         /// <param name="packageRegistration">The package registration. Will be <code>null</code> if the <paramref name="package"/> has a new package ID.</param>
-        /// <returns></returns>
         public Task<SecurityPolicyResult> EvaluatePackagePoliciesAsync(
             SecurityPolicyAction action,
             Package package,
@@ -255,7 +253,6 @@ namespace NuGetGallery.Security
         /// <param name="action">Gallery action to evaluate.</param>
         /// <param name="organization">Organization (policy source) account.</param>
         /// <param name="account">Member, current or future, (policy target) account.</param>
-        /// <returns></returns>
         public Task<SecurityPolicyResult> EvaluateOrganizationPoliciesAsync(
             SecurityPolicyAction action,
             Organization organization,
