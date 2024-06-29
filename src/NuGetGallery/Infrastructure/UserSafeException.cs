@@ -43,21 +43,19 @@ namespace NuGetGallery
 
         public static string GetUserSafeMessage(this Exception self)
         {
-            IUserSafeException uvex = self as IUserSafeException;
-            if (uvex != null)
+            if (self is IUserSafeException userSafeException)
             {
-                return uvex.UserMessage;
+                return userSafeException.UserMessage;
             }
             return Strings.DefaultUserSafeExceptionMessage;
         }
 
         public static void Log(this Exception self)
         {
-            IUserSafeException uvex = self as IUserSafeException;
-            if (uvex != null)
+            if (self is IUserSafeException userSafeException)
             {
                 // Log the exception that the User-Visible wrapper marked as to-be-logged
-                QuietLog.LogHandledException(uvex.LoggedException);
+                QuietLog.LogHandledException(userSafeException.LoggedException);
             }
             else
             {

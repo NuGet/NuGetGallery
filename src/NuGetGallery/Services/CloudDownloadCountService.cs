@@ -114,8 +114,8 @@ namespace NuGetGallery
 
                     if (ex.Status == WebExceptionStatus.ProtocolError)
                     {
-                        var response = ex.Response as HttpWebResponse;
-                        if (response != null && response.StatusCode == HttpStatusCode.PreconditionFailed)
+                        if (ex.Response is HttpWebResponse response &&
+                            response.StatusCode == HttpStatusCode.PreconditionFailed)
                         {
                             // HTTP 412 - the blob has been updated just now
                             // don't rethrow, we'll just fetch the new data on the next refresh

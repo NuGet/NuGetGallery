@@ -12,9 +12,7 @@ namespace NuGetGallery
     {
         public void Initialize(ITelemetry telemetry)
         {
-            var request = telemetry as RequestTelemetry;
-
-            if (request != null)
+            if (telemetry is RequestTelemetry)
             {
                 var httpContext = GetHttpContext();
                 if (httpContext != null && httpContext.Request != null)

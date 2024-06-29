@@ -58,10 +58,10 @@ namespace NuGetGallery
         {
             Label label = (Label)sender;
             DynamicFilter dynamicFilter = (DynamicFilter)label.FindControl("DynamicFilter");
-            QueryableFilterUserControl fuc = dynamicFilter.FilterTemplate as QueryableFilterUserControl;
-            if (fuc != null && fuc.FilterControl != null)
+            if (dynamicFilter.FilterTemplate is QueryableFilterUserControl queryableFilter &&
+                queryableFilter.FilterControl != null)
             {
-                label.AssociatedControlID = fuc.FilterControl.GetUniqueIDRelativeTo(label);
+                label.AssociatedControlID = queryableFilter.FilterControl.GetUniqueIDRelativeTo(label);
             }
         }
 
@@ -133,8 +133,8 @@ namespace NuGetGallery
         {
             foreach (Control c in row.Cells[0].Controls)
             {
-                LinkButton button = c as LinkButton;
-                if (button != null && button.CommandName == DataControlCommands.DeleteCommandName)
+                if (c is LinkButton button &&
+                    button.CommandName == DataControlCommands.DeleteCommandName)
                 {
                     button.OnClientClick = "return confirm('Are you sure you want to delete this item?');";
                 }

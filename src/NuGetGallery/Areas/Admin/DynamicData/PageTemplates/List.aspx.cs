@@ -53,10 +53,10 @@ namespace NuGetGallery
         {
             Label label = (Label)sender;
             DynamicFilter dynamicFilter = (DynamicFilter)label.FindControl("DynamicFilter");
-            QueryableFilterUserControl fuc = dynamicFilter.FilterTemplate as QueryableFilterUserControl;
-            if (fuc != null && fuc.FilterControl != null)
+            if (dynamicFilter.FilterTemplate is QueryableFilterUserControl queryableFilter &&
+                queryableFilter.FilterControl != null)
             {
-                label.AssociatedControlID = fuc.FilterControl.GetUniqueIDRelativeTo(label);
+                label.AssociatedControlID = queryableFilter.FilterControl.GetUniqueIDRelativeTo(label);
             }
         }
 

@@ -12,10 +12,9 @@ namespace NuGetGallery
     {
         public static T ExpectOkNegotiatedContentResult<T>(this IHttpActionResult actionResult)
         {
-            var negotiatedContentResult = actionResult as OkNegotiatedContentResult<T>;
-            if (negotiatedContentResult != null)
+            if (actionResult is OkNegotiatedContentResult<T> negotiatedResult)
             {
-                return negotiatedContentResult.Content;
+                return negotiatedResult.Content;
             }
             throw new ArgumentException(string.Format("The argument is not of type OkNegotiatedContentResult<{0}>. Got {1} instead.", 
                 typeof(T).FullName, actionResult.GetType().FullName), "actionResult");
@@ -23,8 +22,7 @@ namespace NuGetGallery
 
         public static QueryResult<T> ExpectQueryResult<T>(this IHttpActionResult actionResult)
         {
-            var queryResult = actionResult as QueryResult<T>;
-            if (queryResult != null)
+            if (actionResult is QueryResult<T> queryResult)
             {
                 return queryResult;
             }
