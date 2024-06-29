@@ -15,7 +15,7 @@ namespace NuGetGallery
         private const string CustomerResourceId = "CustomerResourceId";
         private const string CustomerResourceIdConstant = "CustomerResourceIdConstant";
         private const string Prefix = "/tenants/";
-        private static readonly string Empty = Prefix + Guid.Empty.ToString();
+        private static readonly string Empty = Prefix + Guid.Empty;
 
         private static readonly HashSet<string> CustomMetricNames = new HashSet<string>
         {

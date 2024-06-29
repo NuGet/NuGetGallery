@@ -240,7 +240,7 @@ namespace NuGetGallery.Telemetry
             var piiRoutes = _currentRoutes.Where((r) =>
             {
                 Route webRoute = r as Route;
-                return webRoute != null ? IsPIIUrl(webRoute.Url.ToString()) : false;
+                return webRoute != null ? IsPIIUrl(webRoute.Url) : false;
             }).Select((r) =>
             {
                 var dd = ((Route)r).Defaults;
@@ -255,7 +255,7 @@ namespace NuGetGallery.Telemetry
             var piiRoutes = _currentRoutes.Where((r) =>
             {
                 Route webRoute = r as Route;
-                return webRoute != null ? IsPIIUrl(webRoute.Url.ToString()) : false;
+                return webRoute != null ? IsPIIUrl(webRoute.Url) : false;
             }).Select((r) => ((Route)r).Url).Distinct().ToList();
 
             return piiRoutes;

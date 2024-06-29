@@ -19,7 +19,7 @@ namespace NuGetGallery.Diagnostics
             }
             catch(Exception ex)
             {
-                System.Diagnostics.Trace.WriteLine("Error getting trace source: " + ex.ToString());
+                System.Diagnostics.Trace.WriteLine($"Error getting trace source: {ex}");
                 return NullDiagnosticsSource.Instance;
             }
         }

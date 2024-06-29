@@ -156,7 +156,7 @@ namespace NuGetGallery
 
                 if (packageType.Version != null)
                 {
-                    output.AppendFormat(" version=\"{0}\"", packageType.Version.ToString());
+                    output.AppendFormat(" version=\"{0}\"", packageType.Version);
                 }
 
                 output.Append("/>");

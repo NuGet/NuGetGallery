@@ -472,7 +472,7 @@ namespace NuGetGallery
             public async Task IsIndexCheckOnlyHappensForRecentlyChangedPackages(DateTime created, DateTime? lastEdited, int searchTimes)
             {
                 // Arrange
-                var id = "Test" + Guid.NewGuid().ToString();
+                var id = "Test" + Guid.NewGuid();
                 var packageService = new Mock<IPackageService>();
                 var diagnosticsService = new Mock<IDiagnosticsService>();
                 var searchClient = new Mock<ISearchClient>();
@@ -9614,7 +9614,7 @@ namespace NuGetGallery
 
         public class TheUploadProgressAction : TestContainer
         {
-            private static readonly string FakeUploadName = "upload-" + TestUtility.FakeUserName + Guid.Empty.ToString();
+            private static readonly string FakeUploadName = "upload-" + TestUtility.FakeUserName + Guid.Empty;
 
             [Fact]
             public void WillReturnHttpNotFoundForUnknownUser()

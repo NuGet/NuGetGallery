@@ -162,7 +162,7 @@ namespace NuGetGallery.Infrastructure.Search
                 var resp = await _searchClient.GetDiagnostics();
                 if (!resp.IsSuccessStatusCode)
                 {
-                    Trace.Error("HTTP Error when retrieving diagnostics: " + ((int)resp.StatusCode).ToString());
+                    Trace.Error("HTTP Error when retrieving diagnostics: " + ((int)resp.StatusCode));
                     _diagCache = new JObject();
                 }
                 else

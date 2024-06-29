@@ -25,7 +25,7 @@ namespace NuGetGallery.Infrastructure
                 resp = await base.SendAsync(request, cancellationToken);
             }
 
-            string message = ((int)resp.StatusCode).ToString() + " " + request.RequestUri.AbsoluteUri;
+            string message = ((int)resp.StatusCode) + " " + request.RequestUri.AbsoluteUri;
             if (resp.IsSuccessStatusCode)
             {
                 Trace.Information(message);

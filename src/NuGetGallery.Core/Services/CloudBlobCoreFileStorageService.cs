@@ -197,14 +197,14 @@ namespace NuGetGallery
                         _trace.TraceEvent(
                            LogLevel.Information,
                            eventId: 0,
-                           message: $"Source blob ('{srcBlob.Uri.ToString()}') doesn't have the Sha512 hash.");
+                           message: $"Source blob ('{srcBlob.Uri}') doesn't have the Sha512 hash.");
                     }
                     if (!destinationBlobHasSha512Hash)
                     {
                         _trace.TraceEvent(
                            LogLevel.Information,
                            eventId: 0,
-                           message: $"Destination blob ('{destBlob.Uri.ToString()}') doesn't have the Sha512 hash.");
+                           message: $"Destination blob ('{destBlob.Uri}') doesn't have the Sha512 hash.");
                     }
                     if (sourceBlobHasSha512Hash && destinationBlobHasSha512Hash && sourceBlobSha512Hash == destinationBlobSha512Hash && srcBlob.Properties.Length == destBlob.Properties.Length)
                     {
