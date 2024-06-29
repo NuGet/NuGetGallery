@@ -3,8 +3,4 @@
 
 using System.Reflection;
 using Xunit;
-
-[assembly: AssemblyTitle("NuGetGallery.Facts")]
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]

@@ -88,7 +88,7 @@ namespace NuGetGallery.Views
             // $(SolutionDir)\tests\NuGetGallery.Facts\bin\Debug
             var pathToViewsFolder = Path.Combine(
                 Directory.GetCurrentDirectory(),
-                @"..\..\..\..\src\NuGetGallery\Views");
+                @"..\..\..\..\..\src\NuGetGallery\Views");
 
             return Directory.GetFiles(
                 pathToViewsFolder,
