@@ -36,4 +36,6 @@ dotnet_diagnostic.CA2214.severity = none
 
 # Suppressions we want to reset
 dotnet_diagnostic.CA2017.severity = warning
-dotnet_diagnostic.IDE0005.severity = default # unnecessary usings
+
+# unnecessary usings
+dotnet_diagnostic.IDE0005.severity = error

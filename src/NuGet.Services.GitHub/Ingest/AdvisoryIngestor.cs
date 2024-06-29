@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using NuGet.Services.GitHub.GraphQL;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Entities;
-using NuGetGallery;
 
 namespace NuGet.Services.GitHub.Ingest
 {

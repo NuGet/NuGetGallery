@@ -28,7 +28,6 @@ using NuGetGallery.Filters;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Packaging;
-using NuGetGallery.RequestModels;
 using NuGetGallery.Security;
 using PackageIdValidator = NuGetGallery.Packaging.PackageIdValidator;
 

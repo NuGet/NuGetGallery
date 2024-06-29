@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using Moq;
 using Xunit;
 using NuGet.Services.Entities;
-using NuGetGallery.TestUtils;
 using NuGetGallery.Services;
 
 namespace NuGetGallery
