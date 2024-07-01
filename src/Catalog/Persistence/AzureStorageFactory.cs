@@ -1,15 +1,12 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-
-using System;
-using Microsoft.WindowsAzure.Storage;
+﻿using System;
+using Azure.Storage.Blobs;
 using NuGet.Protocol;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public class AzureStorageFactory : StorageFactory
     {
-        private readonly CloudStorageAccount _account;
+        private readonly BlobServiceClient _blobServiceClient;
         private readonly string _containerName;
         private readonly string _path;
         private readonly Uri _differentBaseAddress = null;
@@ -19,7 +16,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         private readonly bool _initializeContainer;
 
         public AzureStorageFactory(
-            CloudStorageAccount account,
+            BlobServiceClient blobServiceClient,
             string containerName,
             TimeSpan maxExecutionTime,
             TimeSpan serverTimeout,
@@ -31,7 +28,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             bool initializeContainer,
             IThrottle throttle) : base(throttle)
         {
-            _account = account;
+            _blobServiceClient = blobServiceClient;
             _containerName = containerName;
             _path = null;
             _maxExecutionTime = maxExecutionTime;
@@ -46,7 +43,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             _differentBaseAddress = baseAddress;
 
-            var blobEndpointBuilder = new UriBuilder(account.BlobEndpoint)
+            var blobEndpointBuilder = new UriBuilder(blobServiceClient.Uri)
             {
                 Scheme = "http", // Convert base address to http. 'https' can be used for communication but is not part of the names.
                 Port = 80
@@ -93,9 +90,10 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 newBase = new Uri(_differentBaseAddress, name + "/");
             }
 
+            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
+
             return new AzureStorage(
-                _account,
-                _containerName,
+                blobContainerClient,
                 path,
                 newBase,
                 _maxExecutionTime,

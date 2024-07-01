@@ -10,6 +10,7 @@ using Azure.Core.Pipeline;
 using Azure.Identity;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Indexes;
+using Azure.Storage.Blobs;
 using Kusto.Data;
 using Kusto.Data.Common;
 using Kusto.Data.Net.Client;
@@ -18,9 +19,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Rest;
-using Microsoft.WindowsAzure.Storage;
 using NuGet.Protocol;
-using NuGet.Protocol.Catalog;
 using NuGet.Services.AzureSearch.Auxiliary2AzureSearch;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using NuGet.Services.AzureSearch.Catalog2AzureSearch;
@@ -129,18 +128,19 @@ namespace NuGet.Services.AzureSearch
                 .Register(c =>
                 {
                     var options = c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>();
-                    return CloudStorageAccount.Parse(options.Value.StorageConnectionString);
+                    return new BlobServiceClient(options.Value.StorageConnectionString);
                 })
-                .Keyed<CloudStorageAccount>(key);
+                .Keyed<BlobServiceClient>(key);
 
 #if NETFRAMEWORK
             containerBuilder
                 .Register<IStorageFactory>(c =>
                 {
                     var options = c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>();
+                    BlobServiceClient blobServiceClient = c.ResolveKeyed<BlobServiceClient>(key);
+                    BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient(options.Value.StorageContainer);
                     return new AzureStorageFactory(
-                        c.ResolveKeyed<CloudStorageAccount>(key),
-                        options.Value.StorageContainer,
+                        containerClient,
                         maxExecutionTime: AzureStorage.DefaultMaxExecutionTime,
                         serverTimeout: AzureStorage.DefaultServerTimeout,
                         path: options.Value.NormalizeStoragePath(),
