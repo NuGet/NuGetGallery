@@ -7,7 +7,7 @@
 <section role="main" class="container main-container">
     <h2>Correct IsLatest packages</h2>
 
-    <button type="submit" data-bind="click: correctIsLatestPackages">Get correct IsLatest packages</button>
+    <button type="submit" class="btn-brand" data-bind="click: correctIsLatestPackages">Get correct IsLatest packages</button>
 
     <div style="display:none" data-bind="visible: loadingCorrectIsLatestPackages">
         @ViewHelpers.AlertInfo(@<text><span>Loading packages...</span></text>)
@@ -55,7 +55,7 @@
             @ViewHelpers.AlertDanger(@<text><span data-bind="text: errorReflowPackages"></span></text>)
         </div>
         <div class="form-group" data-bind="visible: arePackagesSelected()">
-            <input type="submit" class="btn btn-danger form-control" data-bind="click: reflowPackages" value="Reflow packages" />
+            <input type="submit" class="btn btn-brand-danger form-control" data-bind="click: reflowPackages" value="Reflow packages" />
         </div>
     }
 </section>

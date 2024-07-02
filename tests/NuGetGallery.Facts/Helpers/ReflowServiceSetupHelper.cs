@@ -50,7 +50,7 @@ namespace NuGetGallery.Helpers
             {
                 packageServiceMock
                     .Setup(s => s.FindPackageByIdAndVersionStrict(package.Id, package.Version))
-                    .Throws(new NotSupportedException($"Unknown deprecation fields 'test'"));
+                    .Throws(new NotSupportedException("Unknown deprecation fields 'test'"));
             }
         }
 

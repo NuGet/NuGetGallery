@@ -12,11 +12,11 @@
             @Html.Hidden("Name", Model.Name)
 
             <div class="row">
-                <div class="col-sm-6 form-group">
-                    @Html.EnumDropDownListFor(m => m.Status)
+                <div class="col-md-6 form-group">
+                    @Html.EnumDropDownListFor(m => m.Status, new { @class = "select-brand"})
                 </div>
-                <div class="col-sm-6 form-group">
-                    <input id="Update" type="submit" class="btn btn-primary" value="Update" />
+                <div class="col-md-6 form-group">
+                    <input id="Update" type="submit" class="btn btn-brand" value="Update" />
                 </div>
             </div>
         }
@@ -28,7 +28,7 @@
             @Html.Hidden("ContentId", Model.ContentId)
             @Html.Hidden("Name", Model.Name)
 
-            <input id="Delete" type="submit" class="btn btn-danger" value="Delete" onclick="return FormDeleteConfirmation(event, '@Model.Name', 'feature')" />
+            <input id="Delete" type="submit" class="btn btn-brand-danger" value="Delete" onclick="return FormDeleteConfirmation(event, '@Model.Name', 'feature')" />
         }
     </td>
 </tr>

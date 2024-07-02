@@ -100,7 +100,7 @@ namespace NuGetGallery
         public async Task<bool> IsAvailableAsync()
         {
             var container = await GetContainerAsync(CoreConstants.Folders.PackagesFolderName);
-            return await container.ExistsAsync(options: null, operationContext: null);
+            return await container.ExistsAsync(cloudBlobLocationMode: null);
         }
     }
 }

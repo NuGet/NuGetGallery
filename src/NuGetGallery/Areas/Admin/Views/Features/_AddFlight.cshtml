@@ -17,30 +17,30 @@
     <div class="row">
         <div class="col-sm-3 form-group @Html.HasErrorFor(m => m.Name)">
             @Html.ShowLabelFor(m => m.Name)<br />
-            @Html.ShowTextBoxFor(m => m.Name)
+            @Html.ShowTextBoxFor(m => m.Name, customClass: "input-brand")
             @Html.ShowValidationMessagesFor(m => m.Name)
         </div>
 
         <div class="col-sm-1 form-group @Html.HasErrorFor(m => m.All)" onchange="FlightFormToggleAll('@formNotAllId', '@formAddId')">
             @Html.ShowLabelFor(m => m.All)<br />
-            @Html.ShowCheckboxFor(m => m.All)
+            @Html.ShowCheckboxFor(m => m.All, customClass: "brand-checkbox")
             @Html.ShowValidationMessagesFor(m => m.All)
         </div>
 
         <div id="@formNotAllId" style="@(Model.All ? "display: none" : "")">
             <div class="col-sm-1 form-group @Html.HasErrorFor(m => m.SiteAdmins)">
                 @Html.ShowLabelFor(m => m.SiteAdmins)<br />
-                @Html.ShowCheckboxFor(m => m.SiteAdmins)
+                @Html.ShowCheckboxFor(m => m.SiteAdmins, customClass: "brand-checkbox")
                 @Html.ShowValidationMessagesFor(m => m.SiteAdmins)
             </div>
 
-            <div class="flight-array col-sm-3" name="Accounts" data-items="@string.Join(";", Model.Accounts ?? new string[0])" data-bind="template: { name: 'flight-array', data: $data }"></div>
-            <div class="flight-array col-sm-3" name="Domains" data-items="@string.Join(";", Model.Domains ?? new string[0])" data-bind="template: { name: 'flight-array', data: $data }"></div>
+            <div class="flight-array col-sm-3" name="Accounts" data-items="@string.Join(";", Model.Accounts ?? Array.Empty<string>())" data-bind="template: { name: 'flight-array', data: $data }"></div>
+            <div class="flight-array col-sm-3" name="Domains" data-items="@string.Join(";", Model.Domains ?? Array.Empty<string>())" data-bind="template: { name: 'flight-array', data: $data }"></div>
         </div>
 
         <div class="col-sm-1 @(Model.All ? "col-sm-offset-7" : "")" id="@formAddId">
             <br />
-            <input id="Add" type="submit" class="btn btn-primary form-control" value="Add" />
+            <input id="Add" type="submit" class="btn btn-brand form-control" value="Add" />
         </div>
     </div>
 }

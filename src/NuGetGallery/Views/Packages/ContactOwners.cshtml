@@ -42,16 +42,18 @@
                     </div>
                     <div class="form-group @Html.HasErrorFor(m => m.Message)">
                         @Html.ShowLabelFor(m => m.Message)
-                        @Html.ShowTextAreaFor(m => m.Message, 10, 50)
+                        @Html.ShowTextAreaFor(m => m.Message, 10, 50, customClass: "textarea-brand")
                         @Html.ShowValidationMessagesFor(m => m.Message)
                     </div>
                     <div class="form-group @Html.HasErrorFor(m => m.CopySender)">
-                        @Html.ShowCheckboxFor(m => m.CopySender)
-                        @Html.ShowLabelFor(m => m.CopySender)
-                        @Html.ShowValidationMessagesFor(m => m.CopySender)
+                        <div class="row-checkbox-label">
+                            @Html.ShowCheckboxFor(m => m.CopySender, customClass: "brand-checkbox")
+                            @Html.ShowLabelFor(m => m.CopySender)
+                            @Html.ShowValidationMessagesFor(m => m.CopySender)
+                        </div>
                     </div>
                     <div class="form-group">
-                        <input id="Submit" type="submit" class="btn btn-primary form-control" value="Send" />
+                        <input id="Submit" type="submit" class="btn btn-brand form-control" value="Send" />
                     </div>
                 }
             }

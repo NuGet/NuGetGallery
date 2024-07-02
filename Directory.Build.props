@@ -2,7 +2,7 @@
   <PropertyGroup>
     <NuGetClientPackageVersion>6.9.1</NuGetClientPackageVersion>
     <ServerCommonPackageVersion>2.120.0</ServerCommonPackageVersion>
-    <NuGetJobsPackageVersion>4.3.0-main-9408418</NuGetJobsPackageVersion>
+    <NuGetJobsPackageVersion>4.3.0-agr-gal-stsdk-9768098</NuGetJobsPackageVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers">

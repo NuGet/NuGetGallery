@@ -35,7 +35,7 @@ else if (AskUserToEnable2FA)
     </script>
     <div id="popUp2FAModal" class="modal fade modal-container" data-backdrop="static">
         @Html.Partial("_Enable2FA", Model)
-    </div> 
+    </div>
 }
 
 <section role="main" class="page-home">
@@ -43,7 +43,7 @@ else if (AskUserToEnable2FA)
         <div class="container">
             <div class="row">
                 <div class="col">
-                    <h1>Create .NET apps faster with NuGet</h1>
+                    <h1 class="large-title">Create .NET apps faster with NuGet</h1>
                 </div>
             </div>
             <div class="row">
@@ -86,9 +86,9 @@ else if (AskUserToEnable2FA)
             <div class="col-sm-4">
                 <a href="https://docs.microsoft.com/nuget/quickstart/use-a-package"
                    title="Learn about how to use NuGet packages">
-                    <img width="225" height="225" alt="Learn to use packages"
-                         src="~/Content/gallery/img/orange-circle.svg"
-                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/orange-circle-225x225.png")) />
+                    <div class="home-icons">
+                        <img src="@Url.Absolute("~/Content/gallery/img/book-open-icon.svg")" alt="Learn to use packages" width="96" height="96" />
+                    </div>
                     <h3>Learn</h3>
                 </a>
                 <p>
@@ -98,9 +98,9 @@ else if (AskUserToEnable2FA)
             <div class="col-sm-4">
                 <a href="@Url.PackageList()"
                    title="Explore packages available on NuGet.org">
-                    <img width="225" height="225" alt="Find packages"
-                         src="~/Content/gallery/img/purple-circle.svg"
-                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/purple-circle-225x225.png")) />
+                    <div class="home-icons">
+                        <img src="@Url.Absolute("~/Content/gallery/img/search-icon.svg")" alt="Find packages" width="96" height="96" />
+                    </div>
                     <h3>Explore</h3>
                 </a>
                 <p>
@@ -110,9 +110,9 @@ else if (AskUserToEnable2FA)
             <div class="col-sm-4">
                 <a href="https://docs.microsoft.com/nuget/quickstart/create-and-publish-a-package"
                    title="Learn how to create a NuGet package">
-                    <img width="225" height="225" alt="Learn to create packages"
-                         src="~/Content/gallery/img/blue-circle.svg"
-                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/blue-circle-225x225.png")) />
+                    <div class="home-icons">
+                        <img src="@Url.Absolute("~/Content/gallery/img/rocket-icon.svg")" alt="Learn to create packages" width="96" height="96" />
+                    </div>
                     <h3>Create</h3>
                 </a>
                 <p>

@@ -2,17 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.WindowsAzure.Storage;
 using Moq;
 using Newtonsoft.Json;
-using NuGet.Services.FeatureFlags;
 using NuGetGallery.Shared;
 using Xunit;
 
@@ -464,7 +460,7 @@ namespace NuGetGallery.Login
         {
             protected readonly Mock<ICoreFileStorageService> _storage;
             protected readonly EditableLoginConfigurationFileStorageService _target;
-            protected readonly StorageException _preconditionException;
+            protected readonly CloudBlobPreconditionFailedException _preconditionException;
 
             public FactsBase()
             {
@@ -474,13 +470,7 @@ namespace NuGetGallery.Login
                 _target = new EditableLoginConfigurationFileStorageService(
                     _storage.Object, logger);
 
-                _preconditionException = new StorageException(
-                    new RequestResult
-                    {
-                        HttpStatusCode = (int)HttpStatusCode.PreconditionFailed
-                    },
-                    "Precondition failed",
-                    new Exception());
+                _preconditionException = new CloudBlobPreconditionFailedException(new Exception());
             }
             protected Stream BuildStream(string content)
             {

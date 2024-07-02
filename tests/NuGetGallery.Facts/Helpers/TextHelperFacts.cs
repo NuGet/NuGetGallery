@@ -22,7 +22,7 @@ namespace NuGetGallery.Helpers
             new object[] { Encoding.UTF8.GetBytes("тест тест"), true},
             new object[] { Encoding.UTF8.GetBytes("test\tlicense. Some line breaks\r\nSome non-latin characters: тест тест\n some random \r line \n breaks.\n\f\nAnd a form feed."), true},
             new object[] { Encoding.UTF32.GetBytes("UTF-32 text is considered binary"), false},
-            new object[] { new byte[0], true },
+            new object[] { Array.Empty<byte>(), true },
         };
 
         // any characters with code <32 except line break and tab characters should be rejected

@@ -26,9 +26,8 @@ namespace NuGetGallery
             if (Enabled)
             {
                 var queue = _queues.GetOrAdd(queueName, _ => new ConcurrentQueue<object>());
-                
-                object __;
-                while (queue.Count > (MaxPerQueue - 1) && queue.TryDequeue(out __)) { }
+
+                while (queue.Count > (MaxPerQueue - 1) && queue.TryDequeue(out _)) { }
                 queue.Enqueue(payload);
             }
         }

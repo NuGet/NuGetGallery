@@ -6,8 +6,8 @@
     <h2>Unlist/relist packages</h2>
 
     <form>
-        <textarea placeholder="Search for packages to unlist/relist (e.g. jQuery 1.8.0)" autocomplete="off" autofocus style="width: 100%;" rows="5" data-bind="value: searchQuery"></textarea><br />
-        <input type="button" value="Search" data-bind="click: search" />
+        <textarea placeholder="Search for packages to unlist/relist (e.g. jQuery 1.8.0)" autocomplete="off" autofocus style="width: 100%;" rows="5" class="textarea-brand" data-bind="value: searchQuery"></textarea><br />
+        <input type="button" class="btn btn-brand-secondary" value="Search" data-bind="click: search" />
         <button type="button" class="btn btn-link" data-bind="click: selectListed">Select listed</button>
         <button type="button" class="btn btn-link" data-bind="click: selectUnlisted">Select unlisted</button>
     </form>
@@ -18,7 +18,7 @@
         <table class="table" id="searchResults" style="display: none" data-bind="visible: searchResults().length > 0" aria-label="Search results">
             <thead>
                 <tr>
-                    <th><input type="checkbox" data-bind="click: toggleSelectAll, checked: selectAllState" /></th>
+                    <th><input type="checkbox" class="brand-checkbox" data-bind="click: toggleSelectAll, checked: selectAllState" /></th>
                     <th>Package</th>
                     <th>Version</th>
                     <th>Downloads</th>
@@ -30,7 +30,7 @@
             </thead>
             <tbody data-bind="foreach: searchResults">
                 <tr>
-                    <td><input type="checkbox" name="Packages[]" data-bind="checked: Selected, value: $parent.generateValue($data)" /></td>
+                    <td><input type="checkbox" class="brand-checkbox" name="Packages[]" data-bind="checked: Selected, value: $parent.generateValue($data)" /></td>
                     <td><a href="#" data-bind="text: PackageId, attr: { href: $parent.generatePackageUrl($data) }"></a></td>
                     <td><span data-bind="text: PackageVersionNormalized"></span></td>
                     <td><span data-bind="text: DownloadCount"></span></td>
@@ -49,10 +49,10 @@
 
         <div class="danger-zone" style="display: none;" data-bind="visible: arePackagesSelected">
             <div class="form-group">
-                <button type="submit" class="btn btn-danger form-control" name="listed" value="true">Make selected packages <b>LISTED</b>.</button>
+                <button type="submit" class="btn btn-brand-danger form-control" name="listed" value="true">Make selected packages <b>LISTED</b>.</button>
             </div>
             <div class="form-group">
-                <button type="submit" class="btn btn-danger form-control" name="listed" value="false">Make selected packages <b>UNLISTED</b>.</button>
+                <button type="submit" class="btn btn-brand-danger form-control" name="listed" value="false">Make selected packages <b>UNLISTED</b>.</button>
             </div>
         </div>
     }

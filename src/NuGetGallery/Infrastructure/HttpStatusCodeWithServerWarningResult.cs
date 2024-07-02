@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -15,7 +16,7 @@ namespace NuGetGallery
         public HttpStatusCodeWithServerWarningResult(HttpStatusCode statusCode, IReadOnlyList<string> warnings)
             : base((int)statusCode)
         {
-            Warnings = warnings ?? new string[0];
+            Warnings = warnings ?? Array.Empty<string>();
         }
 
         public HttpStatusCodeWithServerWarningResult(HttpStatusCode statusCode, IReadOnlyList<IValidationMessage> warnings)

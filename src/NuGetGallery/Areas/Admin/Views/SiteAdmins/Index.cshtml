@@ -33,7 +33,9 @@
     @using (Html.BeginForm("AddAdmin", "SiteAdmins"))
     {
         @Html.AntiForgeryToken()
-        <input type="text" name="username" />
-        <button type="submit">Add</button>
+        <div class="row-checkbox-label">
+            <input type="text" class="form-control input-brand" name="username" />
+            <button type="submit" class="btn btn-brand">Add</button>
+        </div>
     }
 </section>

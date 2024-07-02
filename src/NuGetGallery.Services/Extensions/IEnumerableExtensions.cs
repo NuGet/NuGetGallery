@@ -23,7 +23,7 @@ namespace NuGetGallery
                 return String.Empty;
             }
 
-            return String.Join(", ", list.ToArray());
+            return String.Join(", ", list);
         }
 
         public static HelperResult Flatten<T>(this IEnumerable<T> items, Func<T, HelperResult> template)
@@ -34,7 +34,7 @@ namespace NuGetGallery
             }
             var formattedItems = items.Select(item => template(item).ToHtmlString());
 
-            return new HelperResult(writer => { writer.Write(String.Join(", ", formattedItems.ToArray())); });
+            return new HelperResult(writer => { writer.Write(String.Join(", ", formattedItems)); });
         }
 
         public static bool AnySafe<T>(this IEnumerable<T> items)

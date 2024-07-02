@@ -1017,7 +1017,7 @@ namespace NuGetGallery
                 var user2 = new User { Key = 101, Username = "user2" };
                 var packageOwnerRequestService = new Mock<IPackageOwnerRequestService>();
                 var auditingService = new Mock<IAuditingService>();
-                packageOwnerRequestService.Setup(x => x.GetPackageOwnershipRequestsWithUsers(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>())).Returns(new PackageOwnerRequest[0]).Verifiable();
+                packageOwnerRequestService.Setup(x => x.GetPackageOwnershipRequestsWithUsers(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>())).Returns(Array.Empty<PackageOwnerRequest>()).Verifiable();
                 var service = CreateService(packageOwnerRequestService: packageOwnerRequestService, auditingService: auditingService.Object, useDefaultSetup: false);
                 await DeletePackageOwnershipRequestAsync(service, packageRegistration: package, requestingOwner: user1, newOwner: user2);
                 packageOwnerRequestService.Verify(x => x.DeletePackageOwnershipRequest(It.IsAny<PackageOwnerRequest>(), It.IsAny<bool>()), Times.Never);

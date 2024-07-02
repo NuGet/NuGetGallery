@@ -6,18 +6,6 @@ The .NET Foundation (http://www.dotnetfoundation.org).
 
 NuGet includes works distributed under the licenses listed below. The full text for most of the licenses listed below can be found in the LICENSE.txt file accompanying each work. The original copyright notices have been preserved within the respective files and or packages. Please refer to the specific files and/or packages for more detailed information about the authors, copyright notices, and licenses.
 
-Elmah 1.1
------ 
-Website:      http://code.google.com/p/elmah/ 
-Copyright:    Copyright (c) 2010 Atif Azis
-License:      Apache 2.0
-
-Elmah.Contrib.Mvc 1.0
-----
-Website:      http://nuget.org/List/Packages/Elmah.Contrib.Mvc
-Copyright:    Copyright (c) 2011, Fabian Vilers
-License:      Ms-PL
-
 jQuery 1.6.2
 ----
 Website:      http://jquery.com/

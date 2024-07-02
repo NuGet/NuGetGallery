@@ -31,7 +31,7 @@ namespace NuGet.VerifyMicrosoftPackage.Facts
         [Fact]
         public void ReturnsNegativeOneForNoArguments()
         {
-            var args = new string[0];
+            var args = Array.Empty<string>();
 
             var exitCode = Program.Run(args, _console);
 
@@ -65,7 +65,7 @@ namespace NuGet.VerifyMicrosoftPackage.Facts
         [Fact]
         public void ReturnsNegativeTwoForException()
         {
-            File.WriteAllBytes(Path.Combine(_directory, "bad.nupkg"), new byte[0]);
+            File.WriteAllBytes(Path.Combine(_directory, "bad.nupkg"), Array.Empty<byte>());
             var args = new[] { Path.Combine(_directory, "*.nupkg") };
 
             var exitCode = Program.Run(args, _console);

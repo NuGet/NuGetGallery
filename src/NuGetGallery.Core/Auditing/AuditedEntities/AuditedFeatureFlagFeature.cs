@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using NuGet.Services.FeatureFlags;
 
@@ -15,7 +16,7 @@ namespace NuGetGallery.Auditing.AuditedEntities
         {
             return flags.Features?
                 .Select(f => CreateFrom(f.Key, f.Value))
-                .ToArray() ?? new AuditedFeatureFlagFeature[0];
+                .ToArray() ?? Array.Empty<AuditedFeatureFlagFeature>();
         }
 
         public static AuditedFeatureFlagFeature CreateFrom(string name, FeatureStatus status)

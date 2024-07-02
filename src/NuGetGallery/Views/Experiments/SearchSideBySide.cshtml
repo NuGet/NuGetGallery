@@ -158,44 +158,46 @@
 
                                     <div class="form-group @Html.HasErrorFor(m => m.BetterSide)">
                                         @Html.ShowLabelFor(m => m.BetterSide)
-                                        <div class="radio">
-                                            <label>
+                                        <div class="row-checkbox-label">
+                                            <label class="brand-radio">
                                                 <input type="radio" name="BetterSide" id="better-side-old" value="Old">
-                                                Old results
+                                                <span>Old results</span>
                                             </label>
-                                            <label>
+                                            <label class="brand-radio">
                                                 <input type="radio" name="BetterSide" id="better-side-new" value="New">
-                                                New results
+                                                <span>
+                                                    New results
+                                                </span>
                                             </label>
-                                            <label>
+                                            <label class="brand-radio">
                                                 <input type="radio" name="BetterSide" id="better-side-neither" value="Neither">
-                                                Neither
+                                                <span>Neither</span>
                                             </label>
                                         </div>
                                         @Html.ShowValidationMessagesFor(m => m.BetterSide)
                                     </div>
                                     <div class="hidden form-group @Html.HasErrorFor(m => m.MostRelevantPackage)" id="most-revelant-package">
                                         @Html.ShowLabelFor(m => m.MostRelevantPackage)
-                                        @Html.ShowTextBoxFor(m => m.MostRelevantPackage, placeholder: "Package ID")
+                                        @Html.ShowTextBoxFor(m => m.MostRelevantPackage, placeholder: "Package ID", customClass: "input-brand")
                                         @Html.ShowValidationMessagesFor(m => m.MostRelevantPackage)
                                     </div>
                                     <div class="hidden form-group @Html.HasErrorFor(m => m.ExpectedPackages)" id="expected-packages">
                                         @Html.ShowLabelFor(m => m.ExpectedPackages)
-                                        @Html.ShowTextBoxFor(m => m.ExpectedPackages, placeholder: "PackageA, PackageB")
+                                        @Html.ShowTextBoxFor(m => m.ExpectedPackages, placeholder: "PackageA, PackageB", customClass: "input-brand")
                                         @Html.ShowValidationMessagesFor(m => m.ExpectedPackages)
                                     </div>
                                     <div class="form-group @Html.HasErrorFor(m => m.Comments)">
                                         @Html.ShowLabelFor(m => m.Comments)
-                                        @Html.ShowTextAreaFor(m => m.Comments, 5, 50)
+                                        @Html.ShowTextAreaFor(m => m.Comments, 5, 50, customClass: "textarea-brand")
                                         @Html.ShowValidationMessagesFor(m => m.Comments)
                                     </div>
                                     <div class="form-group @Html.HasErrorFor(m => m.EmailAddress)">
                                         @Html.ShowLabelFor(m => m.EmailAddress)
-                                        @Html.ShowTextBoxFor(m => m.EmailAddress)
+                                        @Html.ShowTextBoxFor(m => m.EmailAddress, customClass: "input-brand")
                                         @Html.ShowValidationMessagesFor(m => m.EmailAddress)
                                     </div>
                                     <div class="form-group">
-                                        <input type="submit" class="btn btn-primary form-control" value="Submit feedback" title="Submit feedback" />
+                                        <input type="submit" class="btn btn-brand form-control" value="Submit feedback" title="Submit feedback" />
                                     </div>
                                 </fieldset>
                                 <p>

@@ -28,7 +28,7 @@
         </ul>
     </td>
     <td class="@rowClass">
-        <button class="btn btn-primary" onclick="$('.@rowClass').hide(); $('#@rowFormId').show()">Update</button>
+        <button class="btn btn-brand" onclick="$('.@rowClass').hide(); $('#@rowFormId').show()">Update</button>
     </td>
     <td colspan="5" id="@rowFormId" style="display: none">
         @using (Html.BeginForm("EditFlight", "Features", FormMethod.Post))
@@ -36,31 +36,29 @@
             @Html.AntiForgeryToken()
             @Html.Hidden("ContentId", Model.ContentId)
             @Html.Hidden("Name", Model.Name)
-
-            <div class="row">
-                <div class="col-sm-2 form-group @Html.HasErrorFor(m => m.All)" onchange="FlightFormToggleAll('@rowFormNotAllId', '@rowFormSubmitId')">
+            <div class="row-checkbox-label">
+                <div class="form-group @Html.HasErrorFor(m => m.All)" onchange="FlightFormToggleAll('@rowFormNotAllId', '@rowFormSubmitId')">
                     @Html.ShowLabelFor(m => m.All)
-                    @Html.ShowCheckboxFor(m => m.All)
+                    @Html.ShowCheckboxFor(m => m.All, customClass: "brand-checkbox")
                     @Html.ShowValidationMessagesFor(m => m.All)
                 </div>
 
-                <div id="@rowFormNotAllId" style="@(Model.All ? "display: none" : "")">
-                    <div class="col-sm-2 form-group @Html.HasErrorFor(m => m.SiteAdmins)">
+                <div id="@rowFormNotAllId" style="@(Model.All ? "display: none" : "flex-grow: 1")">
+                    <div class="form-group @Html.HasErrorFor(m => m.SiteAdmins)">
                         @Html.ShowLabelFor(m => m.SiteAdmins)
-                        @Html.ShowCheckboxFor(m => m.SiteAdmins)
+                        @Html.ShowCheckboxFor(m => m.SiteAdmins, customClass: "brand-checkbox")
                         @Html.ShowValidationMessagesFor(m => m.SiteAdmins)
                     </div>
-
-                    <div class="flight-array col-sm-3" name="Accounts" data-items="@string.Join(";", Model.Accounts ?? new string[0])" data-bind="template: { name: 'flight-array', data: $data }"></div>
-                    <div class="flight-array col-sm-3" name="Domains" data-items="@string.Join(";", Model.Domains ?? new string[0])" data-bind="template: { name: 'flight-array', data: $data }"></div>
+                    <div class="flight-array" name="Accounts" data-items="@string.Join(";", Model.Accounts ?? new string[0])" data-bind="template: { name: 'flight-array', data: $data }"></div>
+                    <div class="flight-array" name="Domains" data-items="@string.Join(";", Model.Domains ?? new string[0])" data-bind="template: { name: 'flight-array', data: $data }"></div>
                 </div>
 
-                <div class="col-sm-2 @(Model.All ? "col-sm-offset-7" : "")" id="@rowFormSubmitId">
+                <div style="margin-left: auto" id="@rowFormSubmitId">
                     <div class="form-group">
-                        <input id="Update" type="submit" class="btn btn-primary form-control" value="Update" />
+                        <input id="Update" type="submit" class="btn btn-brand form-control" value="Update" />
                     </div>
                     <div class="form-group">
-                        <button type="button" class="btn btn-default form-control" onclick="$('.@rowClass').show(); $('#@rowFormId').hide()">Cancel</button>
+                        <button type="button" class="btn btn-brand-secondary form-control" onclick="$('.@rowClass').show(); $('#@rowFormId').hide()">Cancel</button>
                     </div>
                 </div>
             </div>
@@ -74,7 +72,7 @@
             @Html.Hidden("Name", Model.Name)
 
             <div class="form-group">
-                <input id="Delete" type="submit" class="btn btn-danger form-control" value="Delete" onclick="return FormDeleteConfirmation(event, '@Model.Name', 'flight')" />
+                <input id="Delete" type="submit" class="btn btn-brand-danger form-control" value="Delete" onclick="return FormDeleteConfirmation(event, '@Model.Name', 'flight')" />
             </div>
         }
     </td>

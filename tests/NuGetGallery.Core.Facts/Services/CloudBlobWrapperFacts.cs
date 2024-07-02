@@ -3,10 +3,12 @@
 
 using System;
 using System.IO;
-using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Azure;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using Azure.Storage.Blobs.Specialized;
 using Moq;
 using Xunit;
 
@@ -15,27 +17,22 @@ namespace NuGetGallery.Services
     public class CloudBlobWrapperFacts
     {
         [Fact]
-        public async Task DownloadsText()
+        public void UriHasNoQuery()
         {
-            var target = new CloudBlobWrapper(_cloudBlobMock.Object);
-            const string text = "sometext";
-            _cloudBlobMock
-                .Setup(cb => cb.DownloadTextAsync())
-                .ReturnsAsync(text)
-                .Verifiable();
+            var client = new CloudBlobClientWrapper("DefaultEndpointsProtocol=https;AccountName=example;SharedAccessSignature=something=somethingelse&sig=somesignature");
+            var container = client.GetContainerReference("testcontainer");
+            var blob = container.GetBlobReference("testblob");
 
-            var result = await target.DownloadTextIfExistsAsync();
-            _cloudBlobMock.VerifyAll();
-            Assert.Equal(text, result);
+            Assert.Empty(blob.Uri.Query);
         }
 
         [Fact]
         public async Task DownloadTextReturnsNullIfBlobDoesntExist()
         {
-            var target = new CloudBlobWrapper(_cloudBlobMock.Object);
+            var target = new CloudBlobWrapper(_cloudBlobMock.Object, container: null);
             _cloudBlobMock
-                .Setup(cb => cb.DownloadTextAsync())
-                .ThrowsAsync(CreateBlobNotFoundException())
+                .Setup(cb => cb.DownloadContentAsync())
+                .ThrowsAsync(new CloudBlobNotFoundException(null))
                 .Verifiable();
 
             var result = await target.DownloadTextIfExistsAsync();
@@ -45,24 +42,25 @@ namespace NuGetGallery.Services
         [Fact]
         public async Task DownloadTextPassesThroughExceptions()
         {
-            var target = new CloudBlobWrapper(_cloudBlobMock.Object);
+            var target = new CloudBlobWrapper(_cloudBlobMock.Object, container: null);
             var exception = new TestException();
             _cloudBlobMock
-                .Setup(cb => cb.DownloadTextAsync())
+                .Setup(cb => cb.DownloadContentAsync())
                 .ThrowsAsync(exception)
                 .Verifiable();
 
             var thrownException = await Assert.ThrowsAsync<TestException>(() => target.DownloadTextIfExistsAsync());
             Assert.Same(exception, thrownException);
         }
-
         [Fact]
         public async Task FetchAttributesIfExistsAsyncReturnsTrueOnSuccess()
         {
-            var target = new CloudBlobWrapper(_cloudBlobMock.Object);
+            var blobProperties = new BlobProperties();
+            var response = Response.FromValue(blobProperties, response: null);
+            var target = new CloudBlobWrapper(_cloudBlobMock.Object, container: null);
             _cloudBlobMock
-                .Setup(cb => cb.FetchAttributesAsync())
-                .Returns(Task.CompletedTask)
+                .Setup(cb => cb.GetPropertiesAsync(It.IsAny<BlobRequestConditions>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(response)
                 .Verifiable();
 
             var result = await target.FetchAttributesIfExistsAsync();
@@ -73,10 +71,10 @@ namespace NuGetGallery.Services
         [Fact]
         public async Task FetchAttributesIfExistsAsyncReturnsFalseOnNoBlob()
         {
-            var target = new CloudBlobWrapper(_cloudBlobMock.Object);
+            var target = new CloudBlobWrapper(_cloudBlobMock.Object, container: null);
             _cloudBlobMock
-                .Setup(cb => cb.FetchAttributesAsync())
-                .ThrowsAsync(CreateBlobNotFoundException())
+                .Setup(cb => cb.GetPropertiesAsync(It.IsAny<BlobRequestConditions>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new CloudBlobNotFoundException(null))
                 .Verifiable();
 
             var result = await target.FetchAttributesIfExistsAsync();
@@ -87,10 +85,10 @@ namespace NuGetGallery.Services
         [Fact]
         public async Task FetchAttributesIfExistsAsyncPassesThroughExceptions()
         {
-            var target = new CloudBlobWrapper(_cloudBlobMock.Object);
+            var target = new CloudBlobWrapper(_cloudBlobMock.Object, container: null);
             var exception = new TestException();
             _cloudBlobMock
-                .Setup(cb => cb.FetchAttributesAsync())
+                .Setup(cb => cb.GetPropertiesAsync(It.IsAny<BlobRequestConditions>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(exception)
                 .Verifiable();
 
@@ -100,29 +98,12 @@ namespace NuGetGallery.Services
         }
 
         [Fact]
-        public async Task OpenReadIfExistsAsyncReturnsStream()
-        {
-            var target = new CloudBlobWrapper(_cloudBlobMock.Object);
-            using (var stream = new MemoryStream())
-            {
-                _cloudBlobMock
-                    .Setup(cb => cb.OpenReadAsync(It.IsAny<AccessCondition>(), It.IsAny<BlobRequestOptions>(), It.IsAny<OperationContext>()))
-                    .ReturnsAsync(stream)
-                    .Verifiable();
-
-                var returnedStream = await target.OpenReadIfExistsAsync();
-                _cloudBlobMock.VerifyAll();
-                Assert.Same(stream, returnedStream);
-            }
-        }
-
-        [Fact]
         public async Task OpenReadIfExistsAsyncReturnsNullOnNoBlob()
         {
-            var target = new CloudBlobWrapper(_cloudBlobMock.Object);
+            var target = new CloudBlobWrapper(_cloudBlobMock.Object, container: null);
             _cloudBlobMock
-                .Setup(cb => cb.OpenReadAsync(It.IsAny<AccessCondition>(), It.IsAny<BlobRequestOptions>(), It.IsAny<OperationContext>()))
-                .ThrowsAsync(CreateBlobNotFoundException())
+                .Setup(cb => cb.DownloadStreamingAsync(It.IsAny<BlobDownloadOptions>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new CloudBlobNotFoundException(null))
                 .Verifiable();
 
             var returnedStream = await target.OpenReadIfExistsAsync();
@@ -133,10 +114,10 @@ namespace NuGetGallery.Services
         [Fact]
         public async Task OpenReadIfExistsAsyncPassesThroughExceptions()
         {
-            var target = new CloudBlobWrapper(_cloudBlobMock.Object);
+            var target = new CloudBlobWrapper(_cloudBlobMock.Object, container: null);
             var exception = new TestException();
             _cloudBlobMock
-                .Setup(cb => cb.OpenReadAsync(It.IsAny<AccessCondition>(), It.IsAny<BlobRequestOptions>(), It.IsAny<OperationContext>()))
+                .Setup(cb => cb.DownloadStreamingAsync(It.IsAny<BlobDownloadOptions>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(exception)
                 .Verifiable();
 
@@ -147,25 +128,13 @@ namespace NuGetGallery.Services
 
         private class TestException : Exception
         {
-
         }
 
-        private static StorageException CreateBlobNotFoundException()
-        {
-            var responseMock = new Mock<HttpWebResponse>();
-            responseMock
-                .SetupGet(r => r.StatusCode)
-                .Returns(HttpStatusCode.NotFound);
-            var innerException = new WebException("inner", null, WebExceptionStatus.Success, responseMock.Object);
-            var exception = new StorageException("nope", innerException);
-            return exception;
-        }
-
-        private Mock<CloudBlockBlob> _cloudBlobMock;
+        private Mock<BlockBlobClient> _cloudBlobMock;
 
         public CloudBlobWrapperFacts()
         {
-            _cloudBlobMock = new Mock<CloudBlockBlob>(new Uri("https://example.com/blob"));
+            _cloudBlobMock = new Mock<BlockBlobClient>();
         }
     }
 }

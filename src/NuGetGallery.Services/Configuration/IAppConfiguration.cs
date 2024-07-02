@@ -56,11 +56,6 @@ namespace NuGetGallery.Configuration
         string AzureStorage_Content_ConnectionString { get; set; }
 
         /// <summary>
-        /// The Azure Storage connection string used for Elmah error logs.
-        /// </summary>
-        string AzureStorage_Errors_ConnectionString { get; set; }
-
-        /// <summary>
         /// The Azure Storage connection string used for packages, after upload.
         /// </summary>
         string AzureStorage_Packages_ConnectionString { get; set; }

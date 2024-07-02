@@ -13,54 +13,53 @@
     </p>
 
     <form class="form-horizontal" method="get" action="@Url.Action("ValidateInput")">
-        <div class="form-group has-error"><div class="col-xs-12">@Html.ShowValidationMessagesForEmpty()</div></div>
+        <div class="form-group has-error-brand"><div class="col-xs-12">@Html.ShowValidationMessagesForEmpty()</div></div>
         <div class="form-group @Html.HasErrorFor(m => m.PackageIds)">
             <div class="col-xs-12">@Html.ShowValidationMessagesFor(m => m.PackageIds)</div>
             <div class="col-xs-12">
                 <label for="packageIds" class="control-label">Package IDs</label>
-                <textarea class="form-control" rows="6" id="packageIds" name="packageIds" placeholder="Package IDs, one per line">@Model.PackageIds</textarea>
+                <textarea class="form-control textarea-brand" rows="6" id="packageIds" name="packageIds" placeholder="Package IDs, one per line">@Model.PackageIds</textarea>
             </div>
         </div>
         <div class="form-group @Html.HasErrorFor(m => m.Requestor)">
             <div class="col-xs-12">@Html.ShowValidationMessagesFor(m => m.Requestor)</div>
             <label for="requestor" class="col-sm-2 control-label">Requestor (sender)</label>
             <div class="col-sm-10">
-                <input type="text" class="form-control" id="requestor" name="requestor" placeholder="RequestorUser" value="@(Model.Requestor ?? ViewBag.AdminSenderUser)">
+                <input type="text" class="form-control input-brand" id="requestor" name="requestor" placeholder="RequestorUser" value="@(Model.Requestor ?? ViewBag.AdminSenderUser)">
             </div>
         </div>
         <div class="form-group @Html.HasErrorFor(m => m.AddOwners)">
             <div class="col-xs-12">@Html.ShowValidationMessagesFor(m => m.AddOwners)</div>
             <label for="addOwners" class="col-sm-2 control-label">Add owner(s)</label>
             <div class="col-sm-10">
-                <input type="text" class="form-control" id="addOwners" name="addOwners" placeholder="NewUserA, NewUserB" value="@Model.AddOwners">
+                <input type="text" class="form-control input-brand" id="addOwners" name="addOwners" placeholder="NewUserA, NewUserB" value="@Model.AddOwners">
             </div>
         </div>
         <div class="form-group @Html.HasErrorFor(m => m.RemoveOwners)">
             <div class="col-xs-12">@Html.ShowValidationMessagesFor(m => m.RemoveOwners)</div>
             <label for="removeOwners" class="col-sm-2 control-label">Remove owner(s)</label>
             <div class="col-sm-10">
-                <input type="text" class="form-control" id="removeOwners" name="removeOwners" placeholder="ExistingUserC, ExistingUserD" value="@Model.RemoveOwners">
+                <input type="text" class="form-control input-brand" id="removeOwners" name="removeOwners" placeholder="ExistingUserC, ExistingUserD" value="@Model.RemoveOwners">
             </div>
         </div>
         <div class="form-group @Html.HasErrorFor(m => m.Message)">
             <div class="col-xs-12">@Html.ShowValidationMessagesFor(m => m.Message)</div>
             <div class="col-xs-12">
                 <label for="message" class="control-label">Message</label>
-                <textarea class="form-control" rows="3" id="message" name="message" placeholder="Message to include in each add ownership request">@Model.Message</textarea>
+                <textarea class="form-control textarea-brand" rows="3" id="message" name="message" placeholder="Message to include in each add ownership request">@Model.Message</textarea>
             </div>
         </div>
         <div class="form-group">
             <div class="col-xs-12">
-                <div class="checkbox">
-                    <label>
-                        <input id="skipRequestFlow" name="skipRequestFlow" type="checkbox" value="true" checked="@Model.SkipRequestFlow"> Skip request flow (immediately add owners)
-                    </label>
+                <div class="row-checkbox-label">
+                    <label for="skipRequestFlow"></label>
+                    <input id="skipRequestFlow" name="skipRequestFlow" type="checkbox" value="true" checked="@Model.SkipRequestFlow" class="brand-checkbox"> Skip request flow (immediately add owners)
                 </div>
             </div>
         </div>
         <div class="form-group">
             <div class="col-xs-12">
-                <button type="submit" class="btn btn-block btn-primary">Validate input</button>
+                <button type="submit" class="btn btn-block btn-brand">Validate input</button>
             </div>
         </div>
     </form>

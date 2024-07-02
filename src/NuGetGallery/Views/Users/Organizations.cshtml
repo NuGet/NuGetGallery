@@ -66,7 +66,7 @@
                                     <td class="text-right align-middle package-controls">
                                         @if (!organization.IsPendingRequest && !organization.IsPendingTransformRequest)
                                         {
-                                            <a class="btn" href="@Url.ManageMyOrganization(organization.OrganizationName)" title="Edit Organization" aria-label="@("Edit Organization " + organization.OrganizationName)">
+                                            <a class="btn btn-brand-icon" href="@Url.ManageMyOrganization(organization.OrganizationName)" title="Edit Organization" aria-label="@("Edit Organization " + organization.OrganizationName)">
                                                 <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
                                             </a>
                                         }
@@ -77,13 +77,13 @@
 
                                             <form method="post" action="@accept">
                                                 @Html.AntiForgeryToken()
-                                                <button class="btn btn-default" type="submit" title="Accept Organization Membership Request" aria-label="@("Accept Organization Membership Request for " + organization.OrganizationName)">
+                                                <button class="btn btn-brand-secondary" type="submit" title="Accept Organization Membership Request" aria-label="@("Accept Organization Membership Request for " + organization.OrganizationName)">
                                                     <i class="ms-Icon ms-Icon--Accept" aria-hidden="true"></i>
                                                 </button>
                                             </form>
                                             <form method="post" action="@reject">
                                                 @Html.AntiForgeryToken()
-                                                <button class="btn btn-default" type="submit" title="Reject Organization Membership Request" aria-label="@("Reject Organization Membership Request for " + organization.OrganizationName)">
+                                                <button class="btn btn-brand-secondary" type="submit" title="Reject Organization Membership Request" aria-label="@("Reject Organization Membership Request for " + organization.OrganizationName)">
                                                     <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
                                                 </button>
                                             </form>

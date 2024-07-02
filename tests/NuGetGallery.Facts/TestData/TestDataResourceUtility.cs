@@ -20,15 +20,6 @@ namespace NuGetGallery
             }
         }
 
-        internal static string GetResourceString(string name)
-        {
-            using (var resourceStream = GetManifestResourceStream(name))
-            using (var streamReader = new StreamReader(resourceStream))
-            {
-                return streamReader.ReadToEnd();
-            }
-        }
-
         private static Stream GetManifestResourceStream(string name)
         {
             var resourceName = GetResourceName(name);

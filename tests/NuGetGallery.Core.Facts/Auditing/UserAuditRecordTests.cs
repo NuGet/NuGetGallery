@@ -58,7 +58,7 @@ namespace NuGetGallery.Auditing
         public void Constructor_WithAffectedPolicies_ThrowsIfPoliciesEmpty()
         {
             Assert.Throws<ArgumentException>(() => new UserAuditRecord(user: new User(),
-                action: AuditedUserAction.SubscribeToPolicies, affectedPolicies: new UserSecurityPolicy[0]));
+                action: AuditedUserAction.SubscribeToPolicies, affectedPolicies: Array.Empty<UserSecurityPolicy>()));
         }
 
         [Fact]

@@ -20,14 +20,14 @@
 
     <div class="form-group @Html.HasErrorFor(m => m.Register.Username)">
         @Html.ShowLabelFor(m => m.Register.Username, isrequired: true)
-        @Html.ShowTextBoxFor(m => m.Register.Username)
+        @Html.ShowTextBoxFor(m => m.Register.Username, "input-brand")
         @Html.ShowValidationMessagesFor(m => m.Register.Username)
     </div>
     if (Model.External == null)
     {
         <div class="form-group @Html.HasErrorFor(m => m.Register.Password)">
             @Html.ShowLabelFor(m => m.Register.Password)
-            @Html.ShowPasswordFor(m => m.Register.Password)
+            @Html.ShowPasswordFor(m => m.Register.Password, "input-brand")
             @Html.ShowValidationMessagesFor(m => m.Register.Password)
         </div>
     }
@@ -40,7 +40,7 @@
         }
         else
         {
-            @Html.ShowEmailBoxFor(m => m.Register.EmailAddress)
+            @Html.ShowEmailBoxFor(m => m.Register.EmailAddress, "input-brand")
         }
         @Html.ShowValidationMessagesFor(m => m.Register.EmailAddress)
     </div>
@@ -51,6 +51,6 @@
         </div>
     </div>
     <div class="form-group">
-        <input type="submit" class="btn btn-primary form-control" value="Register" />
+        <input type="submit" class="btn btn-brand form-control" value="Register" />
     </div>
 }

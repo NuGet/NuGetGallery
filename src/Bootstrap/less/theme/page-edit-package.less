@@ -1,6 +1,77 @@
 .page-edit-package {
     .readme-tabs {
-        margin-top: 0.5em;
+      margin-top: 0.5em;
+
+      .nav-tabs > li {
+        padding-right: 2px;
+      }
+        
+      .nav-tabs > li.active > a {
+        border-bottom-color: var(--brandStrokeCompoundRest);
+        border-bottom-width: 2px;
+        -webkit-text-stroke-width: calc(0.5 * 0.04ex);
+                text-shadow: calc(0.5 * -0.03ex) 0 0 currentColor,
+                              calc(0.5 * 0.03ex) 0 0 currentColor;
+        margin-bottom: -1px;
+        background-color: transparent;
+  
+        &:hover {
+          border-bottom-color: var(--brandStrokeCompoundHover);
+          border-bottom-width: 2px;
+        }
+  
+        &:active {
+          border-bottom-color: var(--brandStrokeCompoundPressed);
+          border-bottom-width: 2px;
+        }
+  
+        &:focus {
+          border-radius: 2px;
+          outline: 3px solid var(--neutralStrokeFocus2Rest);
+          outline-offset: 1px;
+        }
+      }
+  
+      .nav-tabs > li.active > a.body-warning-tab > {
+        background-color: var(--statusWarningBackground1Rest);
+        border-bottom-color: var(--statusWarningStroke1Rest);
+        border-bottom-width: 2px;
+      }
+  
+      .nav-tabs > li > a {
+        border-left: 0px;
+        border-right: 0px;
+        border-top: 0px;
+        border-bottom-width: 2px;
+        font-size: 14px;
+        font-family: @font-family-base;
+        color: var(--neutralForeground1Rest);
+        background-color: transparent;
+        
+        &:hover {
+          border-bottom-color: var(--neutralStroke1Hover);
+          border-bottom-width: 2px;
+          background-color: var(--neutralBackgroundSubtleHover);
+          border-radius: 2px 2px 0px 0px;
+        }
+        
+        &:active {
+          border-bottom-color: var(--neutralStroke1Pressed);
+          border-bottom-width: 2px;
+          background-color: var(--neutralBackgroundSubtlePressed);
+        }
+        
+        &:focus {
+          border-radius: 2px;
+          outline: 3px solid var(--neutralStrokeFocus2Rest);
+          outline-offset: 1px;
+        }
+  
+        .ms-Icon {
+          position: relative;
+          top: 2px;
+        }
+      }
     }
 
     .readonly {

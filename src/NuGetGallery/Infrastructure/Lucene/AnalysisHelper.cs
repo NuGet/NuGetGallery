@@ -75,9 +75,9 @@ namespace NuGetGallery
             foreach (var field in fields)
             {
                 var q = GetFieldQuery(analyzer, field, queryText);
-                if (q is BooleanQuery)
+                if (q is BooleanQuery query)
                 {
-                    Debug.Assert((q as BooleanQuery).Clauses.Count == 0,
+                    Debug.Assert(query.Clauses.Count == 0,
                                  "Only *empty* boolean queries should be returned by GetFieldQuery");
                     continue;
                 }

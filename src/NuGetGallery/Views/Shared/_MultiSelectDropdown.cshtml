@@ -1,24 +1,24 @@
 ﻿<script type="text/html" id="multi-select-dropdown">
     <div class="multi-select-dropdown">
-        <button class="dropdown-btn" data-bind="click: toggleDropdown, attr: { 'aria-label': toggleLabel }">
+        <button class="dropdown-btn input-base-class" data-bind="click: toggleDropdown, attr: { 'aria-label': toggleLabel }">
             <span data-bind="text: toggleText"></span>
             <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
         </button>
         <div class="dropdown-content panel panel-default" data-bind="visible: dropdownOpen">
             <div class="panel-body dropdown-selector">
-                <div class="form-group dropdown-filter form-control full-line">
+                <div class="form-group dropdown-filter input-brand form-control full-line">
                     <i class="ms-Icon ms-Icon--Search" aria-hidden="true"></i>
-                    <input name="filter" type="text" data-bind="textInput: filter, attr: { placeholder: filterPlaceholder }" />
+                    <input name="filter" class="input-brand" type="text" data-bind="textInput: filter, attr: { placeholder: filterPlaceholder }" />
                 </div>
                 <div class="unbolded-label">
-                    <label>
+                    <label class="brand-checkbox">
                         <input name="selectAll" type="checkbox" value="true" data-bind="checked: selectAllChecked, click: toggleSelectAll, clickBubble false" />
                         <span data-bind="text: selectAllText"></span>
                     </label>
                 </div>
                 <div data-bind="foreach: items">
                     <div class="unbolded-label" data-bind="visible: visible">
-                        <label>
+                        <label class="brand-checkbox">
                             <input type="checkbox" value="true" data-bind="checked: checked, attr: { name: value }" />
                             <span data-bind="text: text, css: { 'text-danger': isRed }"></span>
                         </label>

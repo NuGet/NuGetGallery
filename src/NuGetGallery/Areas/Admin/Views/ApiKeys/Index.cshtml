@@ -12,8 +12,8 @@
         {"ApiKey":"oy2apikey2","LeakedUrl":"https://leakedUrl2","RevocationSource":"GitHub"}
     </p>
     <form>
-        <textarea class="form-control" placeholder="Verify API keys to revoke" autocomplete="off" autofocus rows="5" data-bind="value: verifyQuery"></textarea><br />
-        <input type="button" value="Verify" data-bind="click: verify" /><br />
+        <textarea class="form-control textarea-brand" placeholder="Verify API keys to revoke" autocomplete="off" autofocus rows="5" data-bind="value: verifyQuery"></textarea><br />
+        <input type="button" class="btn btn-brand-secondary" value="Verify" data-bind="click: verify" /><br />
     </form>
     <div style="display: none" data-bind="visible: Error">
         @ViewHelpers.AlertDanger(@<text><span data-bind="html: Error"></span></text>)
@@ -34,7 +34,7 @@
             <tbody data-bind="foreach: verifiedResults">
                 <tr>
                     <td class="col-sm-1" style="vertical-align: middle">
-                        <input type="checkbox" name="SelectedApiKeys" data-bind="visible: IsRevocable, checked: Selected, value: ko.toJSON($data)" />
+                        <input type="checkbox" class="brand-checkbox" name="SelectedApiKeys" data-bind="visible: IsRevocable, checked: Selected, value: ko.toJSON($data)" />
                     </td>
                     <td class="col-sm-5" style="vertical-align: middle">
                         <span data-bind="text: ApiKey"></span>
@@ -84,7 +84,7 @@
                 This will expire and revoke the selected API keys, and send the emails to notify customers!
             </p>
             <hr />
-            <input type="submit" class="btn btn-danger form-control" value="I understand the consequences, revoke the API keys" />
+            <input type="submit" class="btn btn-brand-danger form-control" value="I understand the consequences, revoke the API keys" />
         </div>
     }
 </section>

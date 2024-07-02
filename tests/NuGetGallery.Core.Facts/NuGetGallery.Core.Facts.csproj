@@ -87,7 +87,6 @@
     <Compile Include="Frameworks\FrameworkCompatibilityServiceFacts.cs" />
     <Compile Include="Frameworks\SupportedFrameworksFacts.cs" />
     <Compile Include="GitHub\GitHubUsageConfigurationFacts.cs" />
-    <Compile Include="Infrastructure\ElmahExceptionFacts.cs" />
     <Compile Include="Extensions\UserExtensionsCoreFacts.cs" />
     <Compile Include="Infrastructure\Mail\Messages\CredentialRevokedMessageFacts.cs" />
     <Compile Include="Infrastructure\Mail\Messages\MarkdownMessageBuilderFacts.cs" />
@@ -99,7 +98,6 @@
     <Compile Include="Infrastructure\Mail\Messages\SymbolPackageValidationTakingTooLongMessageFacts.cs" />
     <Compile Include="Infrastructure\Mail\TestMessageServiceConfiguration.cs" />
     <Compile Include="Login\EditableLoginConfigurationFileStorageServiceFacts.cs" />
-    <Compile Include="Infrastructure\TableErrorLogFacts.cs" />
     <Compile Include="Packaging\ManifestValidatorFacts.cs" />
     <Compile Include="Packaging\PackageIdValidatorTest.cs" />
     <Compile Include="Packaging\PackageMetadataFacts.cs" />
@@ -119,7 +117,6 @@
     <Compile Include="TestUtils\BlobStorageCollection.cs" />
     <Compile Include="TestUtils\BlobStorageFact.cs" />
     <Compile Include="TestUtils\BlobStorageFixture.cs" />
-    <Compile Include="Services\CloudBlobClientWrapperFacts.cs" />
     <Compile Include="Services\CloudBlobCoreFileStorageServiceFacts.cs" />
     <Compile Include="Services\CloudBlobCoreFileStorageServiceIntegrationTests.cs" />
     <Compile Include="Services\CorePackageFileServiceFacts.cs" />

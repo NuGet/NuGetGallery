@@ -39,7 +39,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 to: RequestingOwner.EmailAllowed
                     ? GalleryEmailRecipientsUtility.GetAddressesWithPermission(
                         RequestingOwner, ActionsRequiringPermissions.HandlePackageOwnershipRequest)
-                    : new MailAddress[0],
+                    : Array.Empty<MailAddress>(),
                 replyTo: new[] { NewOwner.ToMailAddress() });
         }
 

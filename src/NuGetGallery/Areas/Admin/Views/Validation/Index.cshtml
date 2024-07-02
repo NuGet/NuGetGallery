@@ -51,10 +51,10 @@
 
     <form method="get" action="@Url.Action(actionName: "Search")">
         <p>
-            <textarea name="q" placeholder="Search for package validations..." autocomplete="off" autofocus style="width: 100%" rows="5">@Model.Query</textarea>
+            <textarea name="q" placeholder="Search for package validations..." autocomplete="off" autofocus style="width: 100%" rows="5" class="textarea-brand">@Model.Query</textarea>
         </p>
         <p>
-            <input type="submit" value="Search" />
+            <input type="submit" class="btn btn-brand-secondary" value="Search" />
         </p>
     </form>
 

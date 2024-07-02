@@ -42,13 +42,12 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 {
                     Id = pr.Id,
                     Version = pr.Packages
-                        .Where(p => p.IsLatest || p.IsLatestStable || p.IsLatestSemVer2 || p.IsLatestStableSemVer2)
-                        .FirstOrDefault()
+                        .FirstOrDefault(p => p.IsLatest || p.IsLatestStable || p.IsLatestSemVer2 || p.IsLatestStableSemVer2)
                         .Version,
-                    IsLatestCount = pr.Packages.Where(p => p.IsLatest).Count(),
-                    IsLatestStableCount = pr.Packages.Where(p => p.IsLatestStable).Count(),
-                    IsLatestSemVer2Count = pr.Packages.Where(p => p.IsLatestSemVer2).Count(),
-                    IsLatestStableSemVer2Count = pr.Packages.Where(p => p.IsLatestStableSemVer2).Count(),
+                    IsLatestCount = pr.Packages.Count(p => p.IsLatest),
+                    IsLatestStableCount = pr.Packages.Count(p => p.IsLatestStable),
+                    IsLatestSemVer2Count = pr.Packages.Count(p => p.IsLatestSemVer2),
+                    IsLatestStableSemVer2Count = pr.Packages.Count(p => p.IsLatestStableSemVer2),
                     HasIsLatestUnlisted = pr.Packages.Any(p =>
                         !p.Listed
                         && (p.IsLatest

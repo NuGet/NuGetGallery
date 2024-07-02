@@ -260,7 +260,7 @@ namespace NuGetGallery
             if (!File.Exists(metadataPath))
             {
                 // Create the index and add a timestamp to it that specifies the time at which it was created.
-                File.WriteAllBytes(metadataPath, new byte[0]);
+                File.WriteAllBytes(metadataPath, Array.Empty<byte>());
             }
             else
             {

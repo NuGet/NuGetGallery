@@ -4,8 +4,12 @@
     margin-bottom: 6px;
   }
 
+  .package-default-icon {
+    content: var(--default-package-icon, url(../img/default-package-icon-256x256.png));
+  }
+
   .required:after {
-    color: red;
+    color: var(--statusDangerStroke2Rest);
     content: " *";
   }
 }

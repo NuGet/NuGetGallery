@@ -28,13 +28,13 @@
         }
         else
         {
-            @Html.ShowTextBoxFor(m => m.SignIn.UserNameOrEmail)
+            @Html.ShowTextBoxFor(m => m.SignIn.UserNameOrEmail, customClass: "input-brand")
         }
         @Html.ShowValidationMessagesFor(m => m.SignIn.UserNameOrEmail)
     </div>
     <div class="form-group @Html.HasErrorFor(m => m.SignIn.Password)">
         @Html.ShowLabelFor(m => m.SignIn.Password)
-        @Html.ShowPasswordFor(m => m.SignIn.Password)
+        @Html.ShowPasswordFor(m => m.SignIn.Password, customClass: "input-brand")
         @Html.ShowValidationMessagesFor(m => m.SignIn.Password)
     </div>
 
@@ -46,17 +46,17 @@
     {
         <div class="form-group row">
             <div class="col-sm-6">
-                <input type="submit" class="btn btn-primary form-control" value="Sign in" />
+                <input type="submit" class="btn btn-brand form-control" value="Sign in" />
             </div>
             <div class="col-sm-6">
-                <input type="reset" class="btn btn-default form-control" value="Cancel" id="cancel-sign-in" />
+                <input type="reset" class="btn btn-brand-transparent form-control" value="Cancel" id="cancel-sign-in" />
             </div>
         </div>
     }
     else
     {
         <div class="form-group">
-            <input type="submit" class="btn btn-primary form-control" value="Sign in" />
+            <input type="submit" class="btn btn-brand form-control" value="Sign in" />
         </div>
         if (!this.Config.Current.DeprecateNuGetPasswordLogins && (Model.External == null || !Model.External.FoundExistingUser))
         {

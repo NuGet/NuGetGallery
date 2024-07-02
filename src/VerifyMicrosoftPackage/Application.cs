@@ -102,8 +102,7 @@ namespace NuGet.VerifyMicrosoftPackage
 
                 var commitId = _thisAssembly
                     .GetCustomAttributes<AssemblyMetadataAttribute>()
-                    .Where(x => x.Key == "CommitId")
-                    .FirstOrDefault();
+                    .FirstOrDefault(x => x.Key == "CommitId");
                 if (commitId != null)
                 {
                     _console.WriteLine($"Commit ID: {commitId.Value}");

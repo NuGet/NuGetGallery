@@ -34,7 +34,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             return new EmailRecipients(
                 to: Organization.EmailAllowed
                     ? new[] { Organization.ToMailAddress() }
-                    : new MailAddress[0],
+                    : Array.Empty<MailAddress>(),
                 replyTo: new[] { RemovedUser.ToMailAddress() });
         }
 

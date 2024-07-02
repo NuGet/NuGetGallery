@@ -73,9 +73,7 @@ namespace NuGetGallery.App_Start
 
                 // Assert
                 Assert.NotNull(telemetryClient);
-                Assert.IsType<TelemetryClientWrapper>(telemetryClient);
-
-                var telemetryClientWrapper = (TelemetryClientWrapper)telemetryClient;
+                var telemetryClientWrapper = Assert.IsType<TelemetryClientWrapper>(telemetryClient);
 
                 Assert.Equal(
                     _appConfiguration.AppInsightsInstrumentationKey,

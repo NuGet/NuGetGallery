@@ -132,9 +132,9 @@ namespace NuGetGallery.Infrastructure.Search
                         .OrResult(r => r.StatusCode == HttpStatusCode.Forbidden)
                         .Or<Exception>()
                         .FallbackAsync(
-                                fallbackAction: async (context, cancellationToken) =>
+                                fallbackAction: (context, cancellationToken) =>
                                 {
-                                    return await Task.FromResult(new HttpResponseMessage()
+                                    return Task.FromResult(new HttpResponseMessage()
                                     {
                                         Content = new StringContent(Strings.SearchServiceIsNotAvailable),
                                         StatusCode = HttpStatusCode.ServiceUnavailable

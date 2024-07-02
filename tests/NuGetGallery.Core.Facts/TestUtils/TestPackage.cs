@@ -179,7 +179,7 @@ namespace NuGetGallery
                 {
                     builder.AppendFormat(" targetFramework=\"{0}\"", packageDependencyGroup.TargetFramework.GetShortFolderName());
                 }
-                builder.Append(">");
+                builder.Append('>');
 
                 foreach (var packageDependency in packageDependencyGroup.Packages)
                 {
@@ -188,7 +188,7 @@ namespace NuGetGallery
                     {
                         builder.AppendFormat(" version=\"{0}\"", packageDependency.VersionRange);
                     }
-                    builder.Append(">");
+                    builder.Append('>');
                     builder.Append("</dependency>");
                 }
 

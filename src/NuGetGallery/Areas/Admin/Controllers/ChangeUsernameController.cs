@@ -66,9 +66,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 EmailAddress = account.EmailAddress
             };
 
-            if (account is Organization)
+            if (account is Organization organization)
             {
-                foreach (var admin in (account as Organization).Administrators)
+                foreach (var admin in organization.Administrators)
                 {
                     var owner = new ValidateAccount()
                     {

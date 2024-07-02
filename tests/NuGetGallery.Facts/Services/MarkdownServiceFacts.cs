@@ -209,7 +209,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void TestToHtmlWithAddtionalList()
+            public void TestToHtmlWithAdditionalList()
             {
                 var originalMd = @"1.   First item
 

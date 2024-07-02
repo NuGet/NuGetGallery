@@ -212,7 +212,7 @@ namespace NuGetGallery
                 await service.DeleteReadMeMdFileAsync(package);
 
                 // Assert.
-                fileServiceMock.Verify(fs => fs.DeleteFileAsync(CoreConstants.Folders.PackageReadMesFolderName, $"active/test/1.0.0.md"), Times.Once);
+                fileServiceMock.Verify(fs => fs.DeleteFileAsync(CoreConstants.Folders.PackageReadMesFolderName, "active/test/1.0.0.md"), Times.Once);
             }
         }
 
@@ -301,7 +301,7 @@ namespace NuGetGallery
                     // Assert.
                     Assert.Equal(expectedMd, actualMd);
 
-                    fileServiceMock.Verify(f => f.GetFileAsync(CoreConstants.Folders.PackageReadMesFolderName, $"active/foo/1.1.1.md"), Times.Once);
+                    fileServiceMock.Verify(f => f.GetFileAsync(CoreConstants.Folders.PackageReadMesFolderName, "active/foo/1.1.1.md"), Times.Once);
                 }
             }
 
@@ -330,7 +330,7 @@ namespace NuGetGallery
                 // Assert
                 Assert.Null(result);
 
-                fileServiceMock.Verify(f => f.GetFileAsync(CoreConstants.Folders.PackageReadMesFolderName, $"active/foo/1.1.1.md"), Times.Once);
+                fileServiceMock.Verify(f => f.GetFileAsync(CoreConstants.Folders.PackageReadMesFolderName, "active/foo/1.1.1.md"), Times.Once);
             }
         }
 

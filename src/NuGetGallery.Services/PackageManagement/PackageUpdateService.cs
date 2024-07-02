@@ -215,7 +215,7 @@ WHERE [Key] IN ({0})";
             if (result != expectedResult)
             {
                 throw new InvalidOperationException(
-                    $"Updated an unexpected number of packages when performing a bulk update! " +
+                    "Updated an unexpected number of packages when performing a bulk update! " +
                     $"Updated {result} packages instead of {expectedResult}.");
             }
         }

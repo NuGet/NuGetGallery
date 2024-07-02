@@ -41,18 +41,18 @@ namespace NuGetGallery.TestUtils.Infrastructure
 
         public object GetService(Type serviceType)
         {
-            if (_registeredServices.ContainsKey(serviceType))
+            if (_registeredServices.TryGetValue(serviceType, out var service))
             {
-                return _registeredServices[serviceType];
+                return service;
             }
             return (object)null;
         }
 
         public IEnumerable<object> GetServices(Type serviceType)
         {
-            if (_registeredServices.ContainsKey(serviceType))
+            if (_registeredServices.TryGetValue(serviceType, out var service))
             {
-                return new[] { _registeredServices[serviceType] };
+                return new[] {service};
             }
             return Enumerable.Empty<object>();
         }

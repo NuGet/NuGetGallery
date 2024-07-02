@@ -860,7 +860,7 @@ namespace NuGetGallery.Services
                 supportService.Setup(m => m.GetIssues(null, null, null, null)).Returns(SupportRequests);
                 if (_user != null)
                 {
-                    var issue = SupportRequests.Where(i => string.Equals(i.CreatedBy, _user.Username)).FirstOrDefault();
+                    var issue = SupportRequests.FirstOrDefault(i => string.Equals(i.CreatedBy, _user.Username));
                     supportService.Setup(m => m.DeleteSupportRequestsAsync(_user))
                         .Returns(Task.FromResult(true))
                         .Callback(() => SupportRequests.Remove(issue));

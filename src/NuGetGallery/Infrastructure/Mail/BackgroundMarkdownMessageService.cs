@@ -6,7 +6,6 @@ using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web.Hosting;
 using AnglicanGeek.MarkdownMailer;
-using Elmah;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Infrastructure.Mail
@@ -17,16 +16,13 @@ namespace NuGetGallery.Infrastructure.Mail
             IMailSender mailSender,
             IAppConfiguration config,
             ITelemetryService telemetryService,
-            ErrorLog errorLog,
             Func<BackgroundMarkdownMessageService> messageServiceFactory)
             : base(mailSender, config, telemetryService)
         {
-            _errorLog = errorLog ?? throw new ArgumentNullException(nameof(errorLog));
             _messageServiceFactory = messageServiceFactory ?? throw new ArgumentNullException(nameof(messageServiceFactory));
             _sentMessage = false;
         }
 
-        private readonly ErrorLog _errorLog;
         private Func<BackgroundMarkdownMessageService> _messageServiceFactory;
         private bool _sentMessage;
 
@@ -57,10 +53,9 @@ namespace NuGetGallery.Infrastructure.Mail
                         {
                             await base.SendMessageInternalAsync(messageCopy);
                         }
-                        catch (Exception ex)
+                        catch (Exception)
                         {
-                            // Log but swallow the exception.
-                            QuietLog.LogHandledException(ex, _errorLog);
+                            // Swallow the exception.
                         }
                         finally
                         {

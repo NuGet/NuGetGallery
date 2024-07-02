@@ -87,6 +87,167 @@
 .btn-danger {
   .button-variant(@btn-danger-color; @btn-danger-bg; @btn-danger-border);
 }
+// Brand appears as blue
+.btn-brand {
+  color: var(--neutralForegroundOnBrandRest);
+  background-color: var(--brandBackground1Rest);
+  border-color: var(--brandBackground1Rest);
+  border-radius: var(--Medium, 4px);
+  border: 2px solid transparent;
+  box-shadow: none;
+  outline: none;
+
+  &:hover {
+    border: 2px solid var(--brandBackground1Hover);
+    color: var(--neutralForegroundOnBrandRest);
+    background-color: var(--brandBackground1Hover);
+    box-shadow: none;
+    outline: none;
+  }
+
+  &:active {
+    border: 2px solid var(--brandBackground1Pressed);
+    color: var(--neutralForegroundOnBrandRest);
+    background-color: var(--brandBackground1Pressed);
+    box-shadow: none;
+    outline: none;
+  }
+
+  &:focus-within,
+  &:focus-visible,
+  &:focus {
+    border: 2px solid var(--neutralStrokeFocus2Rest);
+    color: var(--neutralForegroundOnBrandRest);
+    box-shadow: inset 0px 0px 0px 1px var(--neutralStrokeFocus1Rest);
+    outline: none !important; // removes focus from .tab-focus()
+  }
+}
+.btn-brand-icon {
+  color: var(--neutralForegroundOnBrandRest);
+  background-color: var(--brandBackground1Rest);
+  border-color: var(--brandBackground1Rest);
+  border-radius: var(--Medium, 4px);
+  padding: 2px 8px;
+  border: 2px solid transparent;
+  box-shadow: none;
+  outline: none;
+
+  &:hover {
+    border: 2px solid var(--brandBackground1Hover);
+    color: var(--neutralForegroundOnBrandRest);
+    background-color: var(--brandBackground1Hover);
+    box-shadow: none;
+    outline: none;
+  }
+
+  &:active {
+    border: 2px solid var(--brandBackground1Pressed);
+    color: var(--neutralForegroundOnBrandRest);
+    background-color: var(--brandBackground1Pressed);
+    box-shadow: none;
+    outline: none;
+  }
+
+  &:focus-within,
+  &:focus-visible,
+  &:focus {
+    border: 2px solid var(--neutralStrokeFocus2Rest);
+    color: var(--neutralForegroundOnBrandRest);
+    box-shadow: inset 0px 0px 0px 1px var(--neutralStrokeFocus1Rest);
+    outline: none !important; // removes focus from .tab-focus()
+  }
+}
+.btn-brand-transparent {
+  color: var(--neutralForeground2Rest);
+  background-color: var(--transparentBackgroundRest);
+  border-radius: var(--Medium, 4px);
+  border: 2px solid transparent;
+  box-shadow: none !important;
+  padding: 5px 12px;
+  
+  &:hover,
+  &:focus:hover {
+    color: var(--neutralForeground2BrandHover);
+  }
+  
+  &:active,
+  &:active:focus {
+    color: var(--neutralForeground2BrandPressed);
+  }
+
+  &:focus-within,
+  &:focus-visible,
+  &:focus {
+    color: var(--neutralForeground2Rest);
+    border: 2px solid var(--neutralStrokeFocus2Rest);
+    outline: none !important; // removes focus from .tab-focus()
+  }
+}
+.btn-brand-secondary {
+  color: var(--neutralForeground1Rest);
+  background-color: var(--neutralBackground1Rest);
+  border-radius: var(--Medium, 4px);
+  border: 1px solid var(--neutralStroke1Rest);
+  padding: 5px 12px;
+  box-shadow: none;
+  outline: none;
+
+  &:hover {
+    border: 1px solid var(--neutralStroke1Rest);
+    color: var(--neutralForeground1Hover);
+    background-color: var(--neutralBackground1Hover);
+    box-shadow: none;
+    outline: none;
+  }
+
+  &:active {
+    border: 1px solid var(--neutralStroke1Pressed);
+    color: var(--neutralForeground1Pressed);
+    background-color: var(--neutralBackground1Pressed);
+    box-shadow: none;
+    outline: none;
+  }
+
+  &:focus-within,
+  &:focus-visible,
+  &:focus {
+    border: 1px solid var(--neutralStrokeFocus2Rest);
+    color: var(--neutralForeground1Rest);
+    box-shadow: inset 0px 0px 0px 1px var(--neutralStrokeFocus2Rest);
+    outline: none !important; // removes focus from .tab-focus()
+  }
+}
+.btn-brand-danger {
+  color: var(--neutralForegroundStaticInvertedRest);
+  background-color: var(--statusDangerBackground3Rest);
+  border-radius: var(--Medium, 4px);
+  border: 2px solid transparent;
+  box-shadow: none !important;
+
+  &:hover,
+  &:focus:hover {
+    color: var(--neutralForegroundStaticInvertedRest);
+    background-color: var(--statusDangerBackground3Hover);
+  }
+
+  .ms-Icon {
+    display: flex;
+  }
+  
+  &:active,
+  &:active:focus {
+    color: var(--neutralForegroundStaticInvertedRest);
+    background-color: var(--statusDangerBackground3Pressed);
+  }
+
+  &:focus-within,
+  &:focus-visible,
+  &:focus {
+    color: var(--neutralForegroundStaticInvertedRest);
+    border: 2px solid var(--neutralStrokeFocus2Rest);
+    outline: none !important; // removes focus from .tab-focus()
+  }
+}
 
 // Link buttons
 // -------------------------
@@ -94,7 +255,7 @@
 // Make a button look and behave like a link
 .btn-link {
   font-weight: 400;
-  color: @link-color;
+  color: var(--brandForegroundLinkRest);
   border-radius: 0;
 
   &,
@@ -113,7 +274,7 @@
   }
   &:hover,
   &:focus {
-    color: @link-hover-color;
+    color: var(--brandForegroundLinkHover);
     text-decoration: @link-hover-decoration;
     background-color: transparent;
   }
@@ -121,7 +282,7 @@
   fieldset[disabled] & {
     &:hover,
     &:focus {
-      color: @btn-link-disabled-color;
+      color: var(--neutralForegroundDisabledRest);
       text-decoration: none;
     }
   }

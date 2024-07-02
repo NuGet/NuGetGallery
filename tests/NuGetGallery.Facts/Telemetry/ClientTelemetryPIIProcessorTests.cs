@@ -304,7 +304,7 @@ namespace NuGetGallery.Telemetry
                 yield return new string[] { "profiles/{accountName}/avatar", $"https://localhost/profiles/{user}/avatar", "https://localhost/profiles/ObfuscatedUserName/avatar" };
             }
 
-            yield return new string[] { "account/transform/cancel/{token}", $"https://localhost/account/transform/cancel/sometoken", "https://localhost/account/transform/cancel/ObfuscatedToken" };
+            yield return new string[] { "account/transform/cancel/{token}", "https://localhost/account/transform/cancel/sometoken", "https://localhost/account/transform/cancel/ObfuscatedToken" };
         }
 
         public static List<string> GenerateUserNames()

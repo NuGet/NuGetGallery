@@ -61,7 +61,7 @@ namespace NuGetGallery
             var deprecatedString = isDeprecated ? "deprecated" : "undeprecated";
             TempData["Message"] = 
                 $"Your {packagePluralString} been {deprecatedString}. " +
-                $"It may take several hours for this change to propagate through our system.";
+                "It may take several hours for this change to propagate through our system.";
 
             return Json(HttpStatusCode.OK);
         }

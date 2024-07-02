@@ -3,15 +3,80 @@
 @default-margin-bottom: 24px;
 @package-list-line-height: 20px;
 
-//== Theme Definition
-html, body {
-  width: 100%;
-  height: 100%;
+.nuget-logo-image {
+  background-image: var(--nuget-logo-background-image);
+  background-repeat: no-repeat;
+  width: 94px;
+  height: 29px;
+  background-size: auto;
+  background-size: 94px 29px;
+}
+
+.home-link {
+  display: block;
+
+  &:focus-within {
+    outline: 4px solid var(--neutralStrokeFocus2Rest);
+    border-radius: 4px;
+  }
+}
+
+.nuget-logo-footer {
+  background-image: var(--nuget-logo-background-image);
+  background-repeat: no-repeat;
+  width: 184px;
+  height: 57px;
+  background-size: auto;
+  background-size: 184px 57px;
+}
+
+h1 {
+  color: var(--neutralForeground1Rest, @jumbotron-heading-color);
+
+  /* Web/Large Title */
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 52px; /* 130% */
+}
+
+h2 {
+  color: var(--neutralForeground1Rest);
+  display: flex;
+
+  /* Web/Title 1 */
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 40px; /* 125% */
+}
+
+p {
+  color: var(--neutralForeground1Rest);
+
+  /* Web/Body 2 */
+  font-size: 16px;
+  font-weight: 400;
+}
+
+label {
+  color: var(--neutralForeground1Rest);
+}
+
+.home-icons {
+  width: fit-content;
+  margin: auto;
+  padding: 60px;
+  border-radius: 300px;
+  background: var(--gradients-light-theme-blue-purple-primary, linear-gradient(129deg, #0B6CFF 14.05%, #512BD4 89.3%));
+
+  .open-book {
+    background-image: url('../img/book-open-icon.svg');
+  }
 }
 
 body {
   display: table;
-
+  background: var(--neutralBackground2Rest);
+  
   h1, h2, h3, p {
     margin-bottom: @default-margin-bottom;
   }
@@ -24,8 +89,8 @@ body {
 #autocomplete-results-container {
   position: absolute;
   z-index: 1;
-  background-color: white;
-  border: 1px solid black;
+  background-color: var(--neutralBackground2Rest);
+  border: 1px solid var(--neutralStroke1Rest);
   display: none;
   left: 0;
   right: 0;
@@ -60,33 +125,56 @@ body {
 }
 
 .footer {
-  background-color: @panel-footer-bg;
-  color: @panel-footer-color;
+  background-color: transparent;
+  color: var(--neutralForeground1Rest);
   font-size: 1em;
   display: table-row;
   height: 1px;
 
+  span {
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 28px;
+  }
+
   .footer-heading {
-    display: block;
     margin-bottom: 11px;
-    font-size: @font-size-h4;
+
+    a {
+      color: var(--neutralForeground1Rest);
+
+      &:hover {
+        color: var(--neutralForeground1Hover);
+        text-decoration: underline;
+      }
+
+      &:focus {
+        outline: 3px solid var(--neutralStrokeFocus2Rest);
+        outline-offset: 2px;
+        border-radius: 4px;
+      }
+    }
   }
 
   .container {
     margin-top: 50px;
     margin-bottom: 50px;
 
-    // This is a workaround for the following bug:
-    // https://github.com/microsoft/accessibility-insights-web/issues/692
-    background-color: @panel-footer-bg;
+    background-color: transparent;
   }
 
-  a {
-    color: @panel-footer-color;
+  .footer-release-info a {
+    color: var(--neutralForeground2LinkRest);
+    text-decoration: underline;
+
+    &:hover {
+      color: var(--neutralForeground2LinkHover);
+    }
 
     &:focus {
-      outline: 3px solid white;
+      outline: 3px solid var(--neutralStrokeFocus2Rest);
       outline-offset: 2px;
+      border-radius: 4px;
     }
   }
 
@@ -174,8 +262,9 @@ body {
     line-height: 1.4;
 
     > span {
-      border-bottom: 1px solid #d8d8d8;
+      border-bottom: 1px solid var(--neutralForeground1Rest);
       margin-bottom: 3px;
+      text-decoration: none;
     }
   }
 }
@@ -183,7 +272,7 @@ body {
 .dependency-group {
 
   li span {
-    color: #666;
+    color: var(--neutralForeground1Rest);
   }
 }
 
@@ -202,21 +291,23 @@ body {
 }
 
 .tag {
-  color: @link-color-darker;
-  background-color: #eff9ff;
+  color: var(--brandForeground1Rest);
+  background: var(--brandBackground2Rest);
+  border-radius: 4px;
   padding: 2px 10px;
   line-height: 2em;
   margin: 0 2px;
 
   &:hover,
   &:focus {
-    color: @link-hover-color;
+    color: var(--brandForeground1Hover);
   }
 }
 
 .banner {
   padding-bottom: 10px;
   padding-top: 5px;
+  color: var(--neutralForegroundStaticRest);
 
   span {
     font-size: 1.25em;
@@ -229,12 +320,12 @@ body {
   }
 
   a {
-    color: @link-hover-color;
+    color: var(--brandForegroundLinkRest);
     text-decoration: underline;
   }
 
   a:hover, a:focus {
-    color: darken(@link-hover-color, 15%);
+    color: var(--brandForegroundLinkHover)
   }
 
   &.banner-bright {
@@ -252,13 +343,18 @@ body {
 
 .alert {
   a {
-    color: @link-color-darker;
+    color: var(--brandForegroundLinkRest);
 
     &:hover,
     &:focus {
-      color: @link-hover-color;
+      color: var(--brandForegroundLinkHover);
     }
   }
+}
+
+.row-checkbox-label {
+  display: flex;
+  gap: 10px;
 }
 
 .alert-transient {
@@ -268,8 +364,12 @@ body {
   }
 }
 
+a {
+  color: var(--brandForegroundLinkRest);
+}
+
 .alert-transient-jumbotron {
-  background-color: #004880
+  background: transparent;
 }
 
 .ms-Icon-ul {
@@ -293,7 +393,7 @@ h2, h3 {
   }
 
   a, a:hover, a:focus, a:active {
-    color: @text-color;
+    color: var(--neutralForeground1Rest);
     text-decoration: none;
   }
 }
@@ -345,7 +445,11 @@ img.reserved-indicator-icon {
   margin-bottom: 8px;
   padding-left: 0;
   line-height: @package-list-line-height;
-  color: @gray-light;
+  color: var(--neutralForeground1Rest);
+
+  i {
+    color: var(--neutralForeground3Rest);
+  }
 
   li {
     list-style: none;
@@ -373,20 +477,25 @@ img.reserved-indicator-icon {
     .framework-badges {
       margin-bottom: 2px;
 
-      span {
-        margin-right: 1px;
+      .framework-badge-computed {
+        color: var(--brandForeground2Rest);
+        border-radius: 4px;
+        border: 1px solid var(--transparentStrokeRest);
+        height: 24px;
       }
 
-      .framework-badge-computed {
-        color: #000;
-        border: 1px solid rgba(0,0,0,.15);
+      .framework-badge-asset {
+        align-items: normal;
+        display: inline-flex;
+        color: var(--neutralForegroundOnBrandRest);
+        border-radius: 4px;
+        border: 1px solid var(--transparentStrokeRest);
+        height: 24px;
       }
 
       @media (max-width: @screen-sm-min) {
         a + a {
-          span {
-            margin-bottom: 4px;
-          }
+          margin-bottom: 4px;
         }
       }
     }
@@ -440,16 +549,21 @@ img.reserved-indicator-icon {
   line-height:0;
   height: 0;
   overflow: hidden;
+  color: var(--neutralForeground1Rest);
 }
 
 .showOnFocus:focus {
   line-height:2em;
   height: 2em;
-  color: @navbar-inverse-color;
+  color: var(--neutralForeground1Rest);
 }
 
 .breadcrumb-title {
   margin-bottom: 0px;
+
+  a {
+    display: inline-block;
+  }
 }
 
 .breadcrumb-divider {
@@ -479,8 +593,20 @@ img.reserved-indicator-icon {
 }
 
 .form-group label.required::after {
-  color: red;
+  color: var(--statusDangerStroke2Rest);
   content: " *";
+}
+
+.sign-in-link a,
+.sign-in-link a:hover,
+.sign-in-link a:focus,
+.sign-in-link a:active {
+    color: var(--brandForegroundLinkRest);
+}
+
+.sign-in-link a:hover,
+.sign-in-link a:focus {
+    text-decoration: underline;
 }
 
 // Workaround. See https://github.com/NuGet/NuGetGallery/issues/8264
@@ -488,4 +614,23 @@ img.reserved-indicator-icon {
     .hidden-xs {
         display: none !important;
     }
+}
+
+// Theme Definition
+html {
+  height: 100%;
+}
+
+body[id="/"] {
+  background: var(--body-background-color);
+}
+
+body,
+body[id="/"] {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  color: var(--neutralForeground1Rest);
 }

@@ -82,7 +82,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
                 var body = message.GetBody(EmailFormat.Markdown);
 
-                Assert.Equal($@"The following feedback has come from the search side-by-side page.
+                Assert.Equal(@"The following feedback has come from the search side-by-side page.
 
 **Search Query:** [](https://localhost/experiments/search-sxs?q=json)
 
@@ -107,7 +107,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
                 var body = message.GetBody(EmailFormat.Markdown);
 
-                Assert.Equal($@"The following feedback has come from the search side-by-side page.
+                Assert.Equal(@"The following feedback has come from the search side-by-side page.
 
 **Search Query:** [nuget](https://localhost/experiments/search-sxs?q=json)
 

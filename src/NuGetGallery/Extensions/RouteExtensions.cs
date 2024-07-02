@@ -81,11 +81,11 @@ namespace NuGetGallery
         public static string ObfuscateUrlPath(this Route route, string urlPath)
         {
             var path = route.Url;
-            if (!ObfuscatedRouteMap.ContainsKey(path))
+            if (!ObfuscatedRouteMap.TryGetValue(path, out var metadatas))
             {
                 return null;
             }
-            var metadatas = ObfuscatedRouteMap[path];
+
             string[] segments = urlPath.Split('/');
             foreach (var metadata in metadatas)
             {

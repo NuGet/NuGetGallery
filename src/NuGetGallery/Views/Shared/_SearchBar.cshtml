@@ -1,10 +1,10 @@
 ﻿<div class="input-group">
-    <input name="q" type="text" class="form-control" id="search" aria-label="Enter packages to search"
+    <input name="q" type="text" class="form-control input-brand" id="search" aria-label="Enter packages to search"
            placeholder="Search for packages..." autocomplete="off"
            value="@(String.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : ViewBag.SearchTerm)"
            @(ViewBag.AutofocusSearch == true ? "autofocus" : string.Empty) />
     <span class="input-group-btn">
-        <button class="btn btn-default btn-warning btn-search" type="submit"
+        <button class="btn btn-brand btn-search" type="submit"
                 title="Search for packages" aria-label="Search">
             <span class="ms-Icon ms-Icon--Search" aria-hidden="true"></span>
         </button>

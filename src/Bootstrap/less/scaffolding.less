@@ -44,14 +44,17 @@ textarea {
 
 
 // Links
+a.inline {
+  text-decoration: underline;
+}
 
 a {
-  color: @link-color;
+  color: var(--brandForegroundLinkRest);
   text-decoration: none;
 
   &:hover,
   &:focus {
-    color: @link-hover-color;
+    color: var(--brandForegroundLinkHover);
     text-decoration: @link-hover-decoration;
   }
 

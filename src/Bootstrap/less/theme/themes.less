@@ -1,0 +1,828 @@
+/* This file contains light and dark themes for nuget.org based on the Fluent Global Colors and the .NET Global colors. */
+
+:root,
+[data-theme="light"] {
+    --circuit-board-background-image: url('../img/circuit-board-light-theme.svg');
+    --git-background-image: url('../img/git.svg');
+    --nuget-logo-background-image: url('../img/nuget-lockup-dark-fill.svg');
+    --default-package-icon: url('../img/default-package-icon.svg');
+    --body-background-color: linear-gradient(341deg, rgba(250, 250, 250, 0.00) 15.1%, rgba(11, 108, 255, 0.20) 105.92%), var(--neutralBackground2Rest);
+    --nuget-trends-icon-invert-value: 0;
+
+    /* Brand colors */
+    /* brand tokens have been swapped to use blues from the .NET brand colors */
+
+    /* Brand Background Static */
+    --brandBackgroundStatic: var(--dotnetBluePrimary, #0f6cbd);
+
+    /* Brand Background 1 */
+    --brandBackground1Rest: var(--dotnetBluePrimary, #0b6cff);
+    --brandBackground1Hover: var(--dotnetBlueShade10, #0956cc);
+    --brandBackground1Pressed: var(--dotnetBlueShade30, #042b66);
+    --brandBackground1Selected: var(--dotnetBlueShade20, #074199);
+
+    /* Brand Background Compound */
+    --brandBackgroundCompoundRest: var(--dotnetBluePrimary, #0b6cff);
+    --brandBackgroundCompoundHover: var(--dotnetBlueShade10, #0956cc);
+    --brandBackgroundCompoundPressed: var(--dotnetBlueShade20, #074199);
+
+    /* Brand Background 2 */
+    --brandBackground2Rest: var(--dotnetBlueTint45, #e7f0ff);
+    --brandBackground2Hover: var(--dotnetBlueTint35, #b6d3ff);
+    --brandBackground2Pressed: var(--dotnetBlueTint20, #6da7ff);
+
+    /* Brand Foreground 1 */
+    --brandForeground1Rest: var(--dotnetBluePrimary, #0b6cff);
+
+    /* Brand Foreground 2 */
+    --brandForeground2Rest: var(--dotnetBlueShade10, #0956cc);
+    --brandForeground2Hover: var(--dotnetBlueShade20, #074199);
+    --brandForeground2Pressed: var(--dotnetBlueShade30, #042b66);
+
+    /* Brand Foreground Compound */
+    --brandForegroundCompoundRest: var(--dotnetBluePrimary, #0b6cff);
+    --brandForegroundCompoundHover: var(--dotnetBlueShade10, #0956cc);
+    --brandForegroundCompoundPressed: var(--dotnetBlueShade20, #074199);
+
+    /* Brand Foreground Inverted */
+    --brandForegroundInvertedRest: var(--dotnetBlueTint20, #6da7ff);
+    --brandForegroundInvertedHover: var(--dotnetBlueTint30, #9dc4ff);
+    --brandForegroundInvertedPressed: var(--dotnetBlueTint35, #b6d3ff);
+
+    /* Brand Foreground Link */
+    --brandForegroundLinkRest: var(--dotnetBlueShade10, #0956cc);
+    --brandForegroundLinkHover: var(--dotnetBlueShade20, #074199);
+    --brandForegroundLinkPressed: var(--dotnetBlueShade30, #042b66);
+    --brandForegroundLinkSelected: var(--dotnetBlueShade10, #0956cc);
+
+    /* Brand Foreground On Light */
+    --brandForegroundOnLightRest: var(--dotnetBluePrimary, #0b6cff);
+    --brandForegroundOnLightHover: var(--dotnetBlueShade10, #0956cc);
+    --brandForegroundOnLightPressed: var(--dotnetBlueShade30, #042b66);
+    --brandForegroundOnLightSelected: var(--dotnetBlueShade20, #074199);
+
+    /* Brand Stroke Contrast */
+    --brandStrokeContrast: var(--dotnetBlueTint35, #b6d3ff);
+
+    /* Brand Stroke 1 */
+    --brandStroke1Rest: var(--dotnetBluePrimary, #0b6cff);
+
+    /* Brand Stroke 2 */
+    --brandStroke2Rest: var(--dotnetBlueTint45, #e7f0ff);
+    --brandStroke2Hover: var(--dotnetBlueTint35, #b6d3ff);
+    --brandStroke2Pressed: var(--dotnetBluePrimary, #0b6cff);
+   
+    /* Brand Stroke Compound*/
+    --brandStrokeCompoundRest: var(--dotnetBluePrimary, #0b6cff);
+    --brandStrokeCompoundHover: var(--dotnetBlueShade10, #0956cc);
+    --brandStrokeCompoundPressed: var(--dotnetBlueShade20, #074199);
+
+    /* Gradients */
+    --gradientBrand1: linear-gradient(90deg, var(--dotnetBluePrimary, #0b6cff) 14.05%, var(--dotnetPurplePrimary, #512BD4) 89.3%);
+    --gradientBrandToNeutral: linear-gradient(341deg, rgba(250, 250, 250, 0.00) 15.1%, rgba(157, 196, 255, 0.20) 105.92%); /* use this on top of var(--neutralBackground2Rest) */
+
+
+    /* Neutral colors */
+    /* neutrals are all from the Fluent set and brand hover, pressed, and selected have been updated to match the values used above */
+    
+    /* Neutral Background 1 */
+    --neutralBackground1Rest: var(--neutralGreyWhite, #ffffff);
+    --neutralBackground1Hover: var(--neutralGrey96, #f5f5f5);
+    --neutralBackground1Pressed: var(--neutralGrey88, #e0e0e0);
+    --neutralBackground1Selected: var(--neutralGrey92, #ebebeb);
+
+    /* Neutral Background 2 */
+    --neutralBackground2Rest: var(--neutralGrey98, #fafafa);
+    --neutralBackground2Hover: var(--neutralGrey94, #f0f0f0);
+    --neutralBackground2Pressed: var(--neutralGrey86, #dbdbdb);
+    --neutralBackground2Selected: var(--neutralGrey90, #e6e6e6);
+    
+    /* Neutral Background 3 */
+    --neutralBackground3Rest: var(--neutralGrey96, #f5f5f5);
+    --neutralBackground3Hover: var(--neutralGrey92, #ebebeb);
+    --neutralBackground3Pressed: var(--neutralGrey84, #d6d6d6);
+    --neutralBackground3Selected: var(--neutralGrey88, #e0e0e0);
+
+    /* Neutral Background 4 */
+    --neutralBackground4Rest: var(--neutralGrey94, #f0f0f0);
+    --neutralBackground4Hover: var(--neutralGrey98, #fafafa);
+    --neutralBackground4Pressed: var(--neutralGrey96, #f5f5f5);
+    --neutralBackground4Selected: var(--neutralGreyWhite, #ffffff);
+
+    /* Neutral Background 5 */
+    --neutralBackground5Rest: var(--neutralGrey92, #ebebeb);
+    --neutralBackground5Hover: var(--neutralGrey96, #f5f5f5);
+    --neutralBackground5Pressed: var(--neutralGrey94, #f0f0f0);
+    --neutralBackground5Selected: var(--neutralGrey98, #fafafa);
+
+    /* Neutral Background 6 */
+    --neutralBackground6Rest: var(--neutralGrey90, #e6e6e6);
+
+    /* Neutral Background Alpha 1 */
+    --neutralBackgroundAlpha1Rest: var(--whiteAlpha50, #ffffff80);
+
+    /* Neutral Background Alpha 2 */
+    --neutralBackgroundAlpha2Rest: var(--whiteAlpha80, #ffffffcc);
+
+    /* Neutral Background Disabled */
+    --neutralBackgroundDisabledRest: var(--neutralGrey94, #f0f0f0);
+
+    /* Neutral Background Inverted */
+    --neutralBackgroundInvertedRest: var(--neutralGrey16, #292929);
+
+    /* Neutral Background Inverted Disabled */
+    --neutralBackgroundInvertedDisabledRest: var(--neutralGrey94, #f0f0f0);
+
+    /* Neutral Background Overlay */
+    --neutralBackgroundOverlayRest: var(--blackAlpha40, #00000066);
+
+    /* Neutral Background Overlay Scrollbar */
+    --neutralBackgroundOverlayScrollbarRest: var(--blackAlpha50, #00000080);
+
+    /* Neutral Background Static */
+    --neutralBackgroundStaticRest: var(--neutralGrey20, #333333);
+
+    /* Neutral Background Stencil 1 */
+    --neutralBackgroundStencil1Rest: var(--neutralGrey90, #e6e6e6);
+
+    /* Neutral Background Stencil 2 */
+    --neutralBackgroundStencil2Rest: var(--neutralGrey98, #fafafa);
+
+    /* Neutral Background Subtle */
+    --neutralBackgroundSubtleRest: var(--whiteAlpha0, #ffffff00);
+    --neutralBackgroundSubtleHover: var(--neutralGrey96, #f5f5f5);
+    --neutralBackgroundSubtlePressed: var(--neutralGrey88, #e0e0e0);
+    --neutralBackgroundSubtleSelected: var(--neutralGrey92, #ebebeb);
+
+    /* Neutral Background Subtle Inverted */
+    --neutralBackgroundSubtleInvertedRest: var(--blackAlpha0, #00000000);
+    --neutralBackgroundSubtleInvertedHover: var(--blackAlpha10, #0000001a);
+    --neutralBackgroundSubtleInvertedPressed: var(--blackAlpha30, #0000004d);
+    --neutralBackgroundSubtleInvertedSelected: var(--blackAlpha20, #00000033);
+
+    /* Neutral Background Subtle Light Alpha */
+    --neutralBackgroundSubtleLightAlphaHover: var(--whiteAlpha70, #ffffffb3);
+    --neutralBackgroundSubtleLightAlphaPressed: var(--whiteAlpha50, #ffffff80);
+    --neutralBackgroundSubtleLightAlphaSelected: var(--whiteAlpha0, #ffffff00);
+
+    /* Neutral Background Transparent */
+    --neutralBackgroundTransparentRest: var(--whiteAlpha0, #ffffff00);
+    --neutralBackgroundTransparentHover: var(--whiteAlpha0, #ffffff00);
+    --neutralBackgroundTransparentPressed: var(--whiteAlpha0, #ffffff00);
+    --neutralBackgroundTransparentSelected: var(--whiteAlpha0, #ffffff00);
+
+    /* Neutral Foreground 1 */
+    --neutralForeground1Rest: var(--neutralGrey14, #242424);
+    --neutralForeground1Hover: var(--neutralGrey14, #242424);
+    --neutralForeground1Pressed: var(--neutralGrey14, #242424);
+    --neutralForeground1Selected: var(--neutralGrey14, #242424);
+
+    /* Neutral Foreground 2 */
+    --neutralForeground2Rest: var(--neutralGrey26, #424242);
+    --neutralForeground2Hover: var(--neutralGrey14, #242424);
+    --neutralForeground2Pressed: var(--neutralGrey14, #242424);
+    --neutralForeground2Selected: var(--neutralGrey14, #242424);
+    --neutralForeground2BrandHover: var(--dotnetBluePrimary, #0b6cff);
+    --neutralForeground2BrandPressed: var(--dotnetBlueShade10, #0956cc);
+    --neutralForeground2BrandSelected: var(--dotnetBluePrimary, #0b6cff);
+    --neutralForeground2LinkHover: var(--neutralGrey14, #242424);
+    --neutralForeground2LinkPressed: var(--neutralGrey14, #242424);
+    --neutralForeground2LinkRest: var(--neutralGrey26, #424242);
+    --neutralForeground2LinkSelected: var(--neutralGrey14, #242424);
+
+    /* Neutral Foreground 3 */
+    --neutralForeground3Rest: var(--neutralGrey38, #616161);
+    --neutralForeground3Hover: var(--neutralGrey26, #424242);
+    --neutralForeground3Pressed: var(--neutralGrey26, #424242);
+    --neutralForeground3Selected: var(--neutralGrey26, #424242);
+    --neutralForeground3BrandHover: var(--dotnetBluePrimary, #0b6cff);
+    --neutralForeground3BrandPressed: var(--dotnetBlueShade10, #0956cc);
+    --neutralForeground3BrandSelected: var(--dotnetBluePrimary, #0b6cff);
+
+    /* Neutral Foreground 4 */
+    --neutralForeground4Rest: var(--neutralGrey44, #707070);
+
+    /* Neutral Foreground Disabled*/
+    --neutralForegroundDisabledRest: var(--neutralGrey74, #bdbdbd);
+
+    /* Neutral Foreground Inverted 1 */
+    --neutralForegroundInverted1Rest: var(--neutralGreyWhite, #ffffff);
+    --neutralForegroundInverted1Hover: var(--neutralGreyWhite, #ffffff);
+    --neutralForegroundInverted1Pressed: var(--neutralGreyWhite, #ffffff);
+    --neutralForegroundInverted1Selected: var(--neutralGreyWhite, #ffffff);
+
+    /* Neutral Foreground Inverted 2 */
+    --neutralForegroundInverted2Rest: var(--neutralGreyWhite, #ffffff);
+    
+    /* Neutals Foreground Inverted Disabled */
+    --neutralForegroundInvertedDisabledRest: var(--whiteAlpha40, #ffffff66);
+    
+    /* Neutral Foreground Inverted Link */
+    --neutralForegroundInvertedLinkRest: var(--neutralGreyWhite, #ffffff);
+    --neutralForegroundInvertedLinkHover: var(--neutralGreyWhite, #ffffff);
+    --neutralForegroundInvertedLinkPressed: var(--neutralGreyWhite, #ffffff);
+    --neutralForegroundInvertedLinkSelected: var(--neutralGreyWhite, #ffffff);
+
+    /* Neutral Foreground On Brand */
+    --neutralForegroundOnBrandRest: var(--neutralGreyWhite, #ffffff);
+
+    /* Neutral Foreground Static */
+    --neutralForegroundStaticRest: var(--neutralGrey14, #242424);
+    --neutralForegroundStaticInvertedRest: var(--neutralGreyWhite, #ffffff);
+
+    /* Neutral Stroke 1 */
+    --neutralStroke1Rest: var(--neutralGrey82, #d1d1d1);
+    --neutralStroke1Hover: var(--neutralGrey78, #c7c7c7);
+    --neutralStroke1Pressed: var(--neutralGrey70, #b3b3b3);
+    --neutralStroke1Selected: var(--neutralGrey74, #bdbdbd);
+
+    /* Neutral Stroke 2 */
+    --neutralStroke2Rest: var(--neutralGrey88, #e0e0e0);
+
+    /* Neutral Stroke 3 */
+    --neutralStroke3Rest: var(--neutralGrey94, #f0f0f0);
+
+    /* Neutral Stroke Accessible */
+    --neutralStrokeAccessibleRest: var(--neutralGrey38, #616161);
+    --neutralStrokeAccessibleHover: var(--neutralGrey34, #575757);
+    --neutralStrokeAccessiblePressed: var(--neutralGrey30, #4d4d4d);
+    --neutralStrokeAccessibleSelected: var(--dotnetBluePrimary, #0b6cff);
+
+    /* Neutral Stroke Alpha 1 */
+    --neutralStrokeAlpha1Rest: var(--blackAlpha5, rgba(0, 0, 0, 0.05));
+
+    /* Neutral Stroke Alpha 2 */
+    --neutralStrokeAlpha2Rest: var(--whiteAlpha20, #ffffff33);
+
+    /* Neutral Stroke Disabled */
+    --neutralStrokeDisabledRest: var(--neutralGrey88, #E0E0E0);
+
+    /* Neutral Stroke Disabled Inverted */
+    --neutralStrokeDisabledInvertedRest: var(--whiteAlpha40, #ffffff66);
+
+    /* Neutral Stroke Focus */
+    --neutralStrokeFocus1Rest: var(--neutralGreyWhite, #ffffff);
+    --neutralStrokeFocus2Rest: var(--neutralGreyBlack, #000000);
+
+    /* Neutral Stroke Transparent */
+    --neutralStrokeTransparentRest: var(--whiteAlpha0, #ffffff00);
+
+    /* Neutral Stroke Transparent Disabled */
+    --neutralStrokeTransparentDisabledRest: var(--whiteAlpha0, #ffffff00);
+
+    /* Neutral Stroke Transparent Interactive */
+    --neutralStrokeTransparentInteractiveRest: var(--whiteAlpha0, #ffffff00);
+    
+    /* Neutral Stroke on Brand 2 */
+    --neutralStrokeOnBrand2Rest: var(--neutralGreyWhite, #ffffff);
+    --neutralStrokeOnBrand2Hover: var(--neutralGreyWhite, #ffffff);
+    --neutralStrokeOnBrand2Pressed: var(--neutralGreyWhite, #ffffff);
+    --neutralStrokeOnBrand2Selected: var(--neutralGreyWhite, #ffffff);
+
+    /* Shadow */
+    --shadowAmbient: #0000001f;
+    --shadowAmbientDarker: #00000033;
+    --shadowAmbientLighter: #0000000f;
+    --shadowBrandAmbient: #00000040;
+    --shadowBrandKey: #0000004d;
+    --shadowKey: #00000024;
+    --shadowKeyDarker: #0000003d;
+    --shadowKeyLighter: #00000012;
+
+    /* Status colors */
+    --statusAvailableForeground3Rest: var(--lightGreenPrimary, #13a10e);
+    --statusAwayBackground3Rest: var(--marigoldPrimary, #eaa300);
+    --statusDangerBackground1Rest: var(--cranberryTint60, #fdf3f4);
+    --statusDangerBackground3Rest: var(--cranberryPrimary, #c50f1f);
+    --statusDangerBackground3Hover: #b10e1c;
+    --statusDangerBackground3Pressed: #960b18;
+    --statusDangerForeground1Rest: var(--cranberryShade10, #b10e1c);
+    --statusDangerForeground3Rest: var(--cranberryPrimary, #c50f1f);
+    --statusDangerStroke1Rest: var(--cranberryTint40, #eeacb2);
+    --statusDangerStroke2Rest: var(--cranberryPrimary, #c50f1f);
+    --statusGenericAnchorBackground2Rest: var(--anchorTint40, #bcc3c7);
+    --statusGenericAnchorForeground2Rest: var(--anchorShade30, #202427);
+    --statusGenericAnchorStrokeActiveRest: var(--anchorPrimary, #394146);
+    --statusGenericBeigeBackground2Rest: var(--beigeTint40, #d7d4d4);
+    --statusGenericBeigeForeground2Rest: var(--beigeShade30, #444241);
+    --statusGenericBeigeStrokeActiveRest: var(--beigePrimary, #7a7574);
+    --statusGenericBlueBackground2Rest: var(--blueTint40, #a9d3f2);
+    --statusGenericBlueForeground2Rest: var(--blueShade30, #004377);
+    --statusGenericBlueStrokeActiveRest: var(--bluePrimary, #0078d4);
+    --statusGenericBrassBackground2Rest: var(--brassTint40, #e0cea2);
+    --statusGenericBrassForeground2Rest: var(--brassShade30, #553e06);
+    --statusGenericBrassStrokeActiveRest: var(--brassPrimary, #986f0b);
+    --statusGenericBrownBackground2Rest: var(--brownTint40, #ddc3b0);
+    --statusGenericBrownForeground2Rest: var(--brownShade30, #50301a);
+    --statusGenericBrownStrokeActiveRest: var(--brownPrimary, #8e562e);
+    --statusGenericCornflowerBackground2Rest: var(--cornflowerTint40, #c8d1fa);
+    --statusGenericCornflowerForeground2Rest: var(--cornflowerShade30, #2c3c85);
+    --statusGenericCornflowerStrokeActiveRest: var(--cornflowerPrimary, #4f6bed);
+    --statusGenericCranberryBackground2Rest: var(--cranberryTint40, #eeacb2);
+    --statusGenericCranberryForeground2Rest: var(--cranberryShade30, #6e0811);
+    --statusGenericCranberryStrokeActiveRest: var(--cranberryPrimary, #c50f1f);
+    --statusGenericDarkGreenBackground2Rest: var(--darkGreenTint40, #9ad29a);
+    --statusGenericDarkGreenForeground2Rest: var(--darkGreenShade30, #063b06);
+    --statusGenericDarkGreenStrokeActiveRest: var(--darkGreenPrimary, #0b6a0b);
+    --statusGenericDarkRedBackground2Rest: var(--darkRedTint40, #d69ca5);
+    --statusGenericDarkRedForeground2Rest: var(--darkRedShade30, #420610);
+    --statusGenericDarkRedStrokeActiveRest: var(--darkRedPrimary, #750b1c);
+    --statusGenericForestBackground2Rest: var(--forestTint40, #bdd99b);
+    --statusGenericForestForeground2Rest: var(--forestShade30, #294903);
+    --statusGenericForestStrokeActiveRest: var(--forestPrimary, #498205);
+    --statusGenericGoldBackground2Rest: var(--goldTint40, #ecdfa5);
+    --statusGenericGoldForeground2Rest: var(--goldShade30, #6c5700);
+    --statusGenericGoldStrokeActiveRest: var(--goldPrimary, #c19c00);
+    --statusGenericGrapeBackground2Rest: var(--grapeTint40, #d9a7e0);
+    --statusGenericGrapeForeground2Rest: var(--grapeShade30, #4c0d55);
+    --statusGenericGrapeStrokeActiveRest: var(--grapePrimary, #881798);
+    --statusGenericLavenderBackground2Rest: var(--navyTint40, #a3b2e8);
+    --statusGenericLavenderForeground2Rest: var(--lavenderShade30, #3f3682);
+    --statusGenericLavenderStrokeActiveRest: var(--lavenderPrimary, #7160e8);
+    --statusGenericLightTealBackground2Rest: var(--lightTealTint40, #a6e9ed);
+    --statusGenericLightTealForeground2Rest: var(--lightTealShade30, #00666d);
+    --statusGenericLightTealStrokeActiveRest: var(--lightTealPrimary, #00b7c3);
+    --statusGenericLilacBackground2Rest: var(--lilacTint40, #e6bfed);
+    --statusGenericLilacForeground2Rest: var(--lilacShade30, #63276d);
+    --statusGenericLilacStrokeActiveRest: var(--lilacPrimary, #b146c2);
+    --statusGenericMagentaBackground2Rest: var(--magentaTint40, #eca5d1);
+    --statusGenericMagentaForeground2Rest: var(--magentaShade30, #6b0043);
+    --statusGenericMagentaStrokeActiveRest: var(--magentaPrimary, #bf0077);
+    --statusGenericMarigoldBackground2Rest: var(--marigoldTint40, #f9e2ae);
+    --statusGenericMarigoldForeground2Rest: var(--marigoldShade30, #835b00);
+    --statusGenericMarigoldStrokeActiveRest: var(--marigoldPrimary, #eaa300);
+    --statusGenericMinkBackground2Rest: var(--minkTint40, #cecccb);
+    --statusGenericMinkForeground2Rest: var(--minkShade30, #343231);
+    --statusGenericMinkStrokeActiveRest: var(--minkPrimary, #5d5a58);
+    --statusGenericNavyBackground2Rest: var(--navyTint40, #a3b2e8);
+    --statusGenericNavyForeground2Rest: var(--navyShade30, #001665);
+    --statusGenericNavyStrokeActiveRest: var(--navyPrimary, #0027b4);
+    --statusGenericPeachBackground2Rest: var(--peachTint40, #ffddb3);
+    --statusGenericPeachForeground2Rest: var(--peachShade30, #8f4e00);
+    --statusGenericPeachStrokeActiveRest: var(--peachPrimary, #ff8c00);
+    --statusGenericPinkBackground2Rest: var(--pinkTint40, #f7c0e3);
+    --statusGenericPinkForeground2Rest: var(--pinkShade30, #80215d);
+    --statusGenericPinkStrokeActiveRest: var(--pinkPrimary, #e43ba6);
+    --statusGenericPlatinumBackground2Rest: var(--platinumTint40, #cdd6d8);
+    --statusGenericPlatinumForeground2Rest: var(--platinumShade30, #3b4447);
+    --statusGenericPlatinumStrokeActiveRest: var(--platinumPrimary, #69797e);
+    --statusGenericPlumBackground2Rest: var(--plumTint40, #d696c0);
+    --statusGenericPlumForeground2Rest: var(--plumShade30, #43002b);
+    --statusGenericPlumStrokeActiveRest: var(--magentaPrimary, #bf0077);
+    --statusGenericPumpkinBackground2Rest: var(--pumpkinTint40, #efc4ad);
+    --statusGenericPumpkinForeground2Rest: var(--pumpkinShade30, #712d09);
+    --statusGenericPumpkinStrokeActiveRest: var(--pumpkinPrimary, #ca5010);
+    --statusGenericPurpleBackground2Rest: var(--purpleTint40, #c6b1de);
+    --statusGenericPurpleForeground2Rest: var(--purpleShade30, #341a51);
+    --statusGenericPurpleStrokeActiveRest: var(--purplePrimary, #5c2e91);
+    --statusGenericRedBackground2Rest: var(--RedTint40, #f1bbbc);
+    --statusGenericRedForeground2Rest: var(--RedShade30, #751d1f);
+    --statusGenericRedStrokeActiveRest: var(--RedPrimary, #d13438);
+    --statusGenericRoyalBlueBackground2Rest: var(--RoyalBlueTint40, #9abfdc);
+    --statusGenericRoyalBlueForeground2Rest: var(--RoyalBlueShade30, #002c4e);
+    --statusGenericRoyalBlueStrokeActiveRest: var(--RoyalBluePrimary, #004e8c);
+    --statusGenericSeafoamBackground2Rest: var(--SeafoamTint40, #a8f0cd);
+    --statusGenericSeafoamForeground2Rest: var(--SeafoamShade30, #00723b);
+    --statusGenericSeafoamStrokeActiveRest: var(--SeafoamPrimary, #00cc6a);
+    --statusGenericSteelBackground2Rest: var(--SteelTint40, #94c8d4);
+    --statusGenericSteelForeground2Rest: var(--SteelShade30, #00333f);
+    --statusGenericSteelStrokeActiveRest: var(--SteelPrimary, #005b70);
+    --statusGenericTealBackground2Rest: var(--TealTint40, #9bd9db);
+    --statusGenericTealForeground2Rest: var(--TealShade30, #02494c);
+    --statusGenericTealStrokeActiveRest: var(--TealPrimary, #038387);
+    --statusOofForeground3Rest: var(--berryPrimary, #c239b3);
+    --statusSevereBackground1Rest: var(--dark-orangeTint60, #fdf6f3);
+    --statusSevereBackground3Rest: var(--dark-orangePrimary, #da3b01);
+    --statusSevereForeground1Rest: var(--dark-orangeShade10, #c43501);
+    --statusSevereForeground3Rest: var(--dark-orangePrimary, #da3b01);
+    --statusSevereStroke1Rest: var(--dark-orangeTint40, #f4bfab);
+    --statusSuccessBackground1Rest: var(--greenTint60, #f1faf1);
+    --statusSuccessBackground3Rest: var(--greenPrimary, #107c10);
+    --statusSuccessForeground1Rest: var(--greenShade10, #0e700e);
+    --statusSuccessForeground3Rest: var(--greenPrimary, #107c10);
+    --statusSuccessForegroundInvertedRest: var(--greenTint20, #359b35);
+    --statusSuccessStroke1Rest: var(--greenTint40, #9fd89f);
+    --statusSuccessStroke2Rest: var(--greenPrimary, #107c10);
+    --statusWarningBackground1Rest: var(--orangeTint60, #fff9f5);
+    --statusWarningBackground2Rest: var(--orangeTint60, #fdcfb4);
+    --statusWarningBackground3Rest: var(--orangePrimary, #f7630c);
+    --statusWarningForeground1Rest: var(--orangeShade20, #bc4b09);
+    --statusWarningForeground2Rest: var(--orangeShade30, #8a3707);
+    --statusWarningStroke1Rest: var(--orangeTint40, #fdcfb4);
+    --statusWarningStroke2Rest: var(--orangeTint40, #bc4b09);
+}
+
+
+[data-theme="dark"] {
+    --body-background-color: linear-gradient(341deg, rgba(250, 250, 250, 0.00) 15.1%, rgba(11, 108, 255, 0.20) 105.92%), var(--neutralBackground2Rest);
+    --circuit-board-background-image: url('../img/circuit-board-dark-theme.svg');
+    --git-background-image: url('../img/git-white.svg');
+    --nuget-logo-background-image: url('../img/nuget-lockup-white-fill.svg');
+    --default-package-icon: url('../img/default-package-icon-white.png');
+    --nuget-trends-icon-invert-value: 1;
+
+    /* Brand colors */
+    /* brand tokens have been swapped to use blues from the .NET brand colors */
+
+    /* Brand Background Static */
+    --brandBackgroundStatic: var(--dotnetBluePrimary, #0f6cbd);
+
+    /* Brand Background 1 */
+    --brandBackground1Rest: var(--dotnetBlueShade10, #0956cc);
+    --brandBackground1Hover: var(--dotnetBluePrimary, #0b6cff);
+    --brandBackground1Pressed: var(--dotnetBlueShade30, #042b66);
+    --brandBackground1Selected: var(--dotnetBlueShade20, #074199);
+
+    /* Brand Background Compound */
+    --brandBackgroundCompoundRest: var(--dotnetBlueTint10, #3c89ff);
+    --brandBackgroundCompoundHover: var(--dotnetBlueTint30, #9dc4ff);
+    --brandBackgroundCompoundPressed: var(--dotnetBlueSTint20, #6da7ff);
+
+    /* Brand Background 2 */
+    --brandBackground2Rest: var(--dotnetBlueShade40, #021633);
+    --brandBackground2Hover: var(--dotnetBlueShade20, #074199);
+    --brandBackground2Pressed: var(--dotnetBlueShade45, #010b1a);
+
+    /* Brand Foreground 1 */
+    --brandForeground1Rest: var(--dotnetBlueTint20, #6da7ff);
+    
+    /* Brand Foreground 2 */
+    --brandForeground2Rest: var(--dotnetBlueTint30, #9dc4ff);
+    --brandForeground2Hover: var(--dotnetBlueTint35, #b6d3ff);
+    --brandForeground2Pressed: var(--dotnetBlueTint40, #cee2ff);
+
+    /* Brand Foreground Compound */
+    --brandForegroundCompoundRest: var(--dotnetBlueTint10, #3c89ff);
+    --brandForegroundCompoundHover: var(--dotnetBlueTint30, #9dc4ff);
+    --brandForegroundCompoundPressed: var(--dotnetBlueSTint20, #6da7ff);
+
+    /* Brand Foreground Inverted */
+    --brandForegroundInvertedRest: var(--dotnetBluePrimary, #0b6cff);
+    --brandForegroundInvertedHover: var(--dotnetBlueShade10, #0956cc);
+    --brandForegroundInvertedPressed: var(--dotnetBlueShade20, #074199);
+    
+    /* Brand Foreground Link */
+    --brandForegroundLinkRest: var(--dotnetBlueTint30, #9dc4ff);
+    --brandForegroundLinkHover: var(--dotnetBlueTint35, #b6d3ff);
+    --brandForegroundLinkPressed: var(--dotnetBlueTint10, #3c89ff);
+    --brandForegroundLinkSelected: var(--dotnetBlueTint30, #9dc4ff);
+
+    /* Brand Foreground On Light */
+    --brandForegroundOnLightRest: var(--dotnetBluePrimary, #0b6cff);
+    --brandForegroundOnLightHover: var(--dotnetBlueShade10, #0956cc);
+    --brandForegroundOnLightPressed: var(--dotnetBlueShade30, #042b66);
+    --brandForegroundOnLightSelected: var(--dotnetBlueShade20, #074199);
+
+    /* Brand Stroke Contrast*/
+    --brandStrokeContrast: var(--dotnetBlueShade35, #03204d);
+
+    /* Brand Stroke 1 */
+    --brandStroke1Rest: var(--dotnetBlueTint10, #3c89ff);
+
+    /* Brand Stroke 2 */
+    --brandStroke2Rest: var(--dotnetBlueShade20, #074199);
+    --brandStroke2Hover: var(--dotnetBlueShade20, #074199);
+    --brandStroke2Pressed: var(--dotnetBlueShade35, #03204d);
+
+    /* Brand Stroke Compound*/
+    --brandStrokeCompoundRest: var(--dotnetBlueTint10, #3c89ff);
+    --brandStrokeCompoundHover: var(--dotnetBlueTint30, ##9dc4ff);
+    --brandStrokeCompoundPressed: var(--dotnetBlueSTint20, #6da7ff);
+
+    /* Gradients */
+    --gradientBrand1: linear-gradient(90deg, var(--dotnetBluePrimary, #0b6cff) 14.05%, var(--dotnetPurpleTint10, #7455dd) 89.3%);
+    --gradientBrandToNeutral: linear-gradient(341deg, rgba(31, 31, 31, 0.20) 15.1%, rgba(11, 108, 255, 0.20) 105.92%); /* use this on top of var(--neutralBackground2Rest) */
+
+
+    /* Neutral colors */
+    /* neutrals are all from the Fluent set and brand hover, pressed, and selected have been updated to match the values used above */
+
+    /* Neutral Background 1 */
+    --neutralBackground1Rest: var(--neutralGrey16, #292929);
+    --neutralBackground1Hover: var(--neutralGrey24, #3d3d3d);
+    --neutralBackground1Pressed: var(--neutralGrey12, #1f1f1f);
+    --neutralBackground1Selected: var(--neutralGrey22, #383838);
+
+    /* Neutral Background 2 */
+    --neutralBackground2Rest: var(--neutralGrey12, #1f1f1f);
+    --neutralBackground2Hover: var(--neutralGrey20, #333333);
+    --neutralBackground2Pressed: var(--neutralGrey8, #141414);
+    --neutralBackground2Selected: var(--neutralGrey18, #2e2e2e);
+
+    /* Neutral Background 3 */
+    --neutralBackground3Rest: var(--neutralGrey8, #141414);
+    --neutralBackground3Hover: var(--neutralGrey16, #292929);
+    --neutralBackground3Pressed: var(--neutralGrey4, #0a0a0a);
+    --neutralBackground3Selected: var(--neutralGrey14, #242424);
+
+    /* Neutral Background 4 */
+    --neutralBackground4Rest: var(--neutralGrey4, #0a0a0a);
+    --neutralBackground4Hover: var(--neutralGrey12, #1f1f1f);
+    --neutralBackground4Pressed: var(--neutralGreyBlack, #000000);
+    --neutralBackground4Selected: var(--neutralGrey10, #1a1a1a);
+
+    /* Neutral Background 5 */
+    --neutralBackground5Rest: var(--neutralGreyBlack, #000000);
+    --neutralBackground5Hover: var(--neutralGrey8, #141414);
+    --neutralBackground5Pressed: var(--neutralGrey2, #050505);
+    --neutralBackground5Selected: var(--neutralGrey6, #0f0f0f);
+
+    /* Neutral Background 6 */
+    --neutralBackground6Rest: var(--neutralGrey20, #333333);
+
+    /* Neutral Background Alpha 1 */
+    --neutralBackgroundAlpha1Rest: var(--alphaGrey1050, #1a1a1a80);
+
+    /* Neutral Background Alpha 2 */
+    --neutralBackgroundAlpha2Rest: var(--alphaGrey1270, #1f1f1fb3);
+
+    /* Neutral Background Disabled */
+    --neutralBackgroundDisabledRest: var(--neutralGrey8, #141414);
+
+    /* Neutral Background Inverted */
+    --neutralBackgroundInvertedRest: var(--neutralGreyWhite, #ffffff);
+
+    /* Neutral Background Inverted Disabled */
+    --neutralBackgroundInvertedDisabledRest: var(--whiteAlpha10, #ffffff1a);
+
+    /* Neutral Background Overlay */
+    --neutralBackgroundOverlayRest: var(--blackAlpha50, #00000080);
+
+    /* Neutral Background Overlay Scrollbar */
+    --neutralBackgroundOverlayScrollbarRest: var(--whiteAlpha60, #ffffff99);
+
+    /* Neutral Background Static */
+    --neutralBackgroundStaticRest: var(--neutralGrey24, #3d3d3d);
+
+    /* Neutral Background Stencil 1 */
+    --neutralBackgroundStencil1Rest: var(--neutralGrey34, #575757);
+
+    /* Neutral Background Stencil 2 */
+    --neutralBackgroundStencil2Rest: var(--neutralGrey20, #333333);
+
+    /* Neutral Background Subtle */
+    --neutralBackgroundSubtleRest: var(--blackAlpha0, #00000000);
+    --neutralBackgroundSubtleHover: var(--neutralGrey22, #383838);
+    --neutralBackgroundSubtlePressed: var(--neutralGrey18, #2e2e2e);
+    --neutralBackgroundSubtleSelected: var(--neutralGrey20, #333333);
+
+    /* Neutral Background Subtle Inverted */
+    --neutralBackgroundSubtleInvertedRest: var(--blackAlpha0, #00000000);
+    --neutralBackgroundSubtleInvertedHover: var(--blackAlpha10, #0000001a);
+    --neutralBackgroundSubtleInvertedPressed: var(--blackAlpha30, #0000004d);
+    --neutralBackgroundSubtleInvertedSelected: var(--blackAlpha20, #00000033);
+
+    /* Neutral Background Subtle Light Alpha */
+    --neutralBackgroundSubtleLightAlphaHover: var(--alphaGrey1480, #242424cc);
+    --neutralBackgroundSubtleLightAlphaPressed: var(--alphaGrey1450, #24242480);
+    --neutralBackgroundSubtleLightAlphaSelected: var(--blackAlpha0, #00000000);
+
+    /* Neutral Background Transparent */
+    --neutralBackgroundTransparentRest: var(--blackAlpha0, #00000000);
+    --neutralBackgroundTransparentHover: var(--blackAlpha0, #00000000);
+    --neutralBackgroundTransparentPressed: var(--blackAlpha0, #00000000);
+    --neutralBackgroundTransparentSelected: var(--blackAlpha0, #00000000);
+
+    /* Neutral Foreground 1 */
+    --neutralForeground1Rest: var(--neutralGreyWhite, #ffffff);
+    --neutralForeground1Hover: var(--neutralGreyWhite, #ffffff);
+    --neutralForeground1Pressed: var(--neutralGreyWhite, #ffffff);
+    --neutralForeground1Selected: var(--neutralGreyWhite, #ffffff);
+
+    /* Neutral Foreground 2 */
+    --neutralForeground2Rest: var(--neutralGrey84, #d6d6d6);
+    --neutralForeground2Hover: var(--neutralGreyWhite, #ffffff);
+    --neutralForeground2Pressed: var(--neutralGreyWhite, #ffffff);
+    --neutralForeground2Selected: var(--neutralGreyWhite, #ffffff);
+    --neutralForeground2BrandHover: var(--dotnetBlueShade10, #479ef5);
+    --neutralForeground2BrandPressed: var(--dotnetBlueTint10, #2c93f4);
+    --neutralForeground2BrandSelected: var(--dotnetBlueShade10, #0956cc);
+    --neutralForeground2LinkHover: var(--neutralGreyWhite, #ffffff);
+    --neutralForeground2LinkPressed: var(--neutralGreyWhite, #ffffff);
+    --neutralForeground2LinkRest: var(--neutralGrey84, #d6d6d6);
+    --neutralForeground2LinkSelected: var(--neutralGreyWhite, #ffffff);
+
+    /* Neutral Foreground 3 */
+    --neutralForeground3Rest: var(--neutralGrey68, #adadad);
+    --neutralForeground3Hover: var(--neutralGrey84, #d6d6d6);
+    --neutralForeground3Pressed: var(--neutralGrey84, #d6d6d6);
+    --neutralForeground3Selected: var(--neutralGrey84, #d6d6d6);
+    --neutralForeground3BrandHover: var(--dotnetBlueShade10, #0956cc);
+    --neutralForeground3BrandPressed: var(--brandCommBlue90, #2886de);
+    --neutralForeground3BrandSelected: var(--dotnetBlueShade10, #0956cc);
+
+    /* Neutral Foreground 4 */
+    --neutralForeground4Rest: var(--neutralGrey60, #999999);
+
+    /* Neutral Foreground Disabled*/
+    --neutralForegroundDisabledRest: var(--neutralGrey36, #5c5c5c);
+
+    /* Neutral Foreground Inverted 1 */
+    --neutralForegroundInverted1Rest: var(--neutralGrey14, #242424);
+    --neutralForegroundInverted1Hover: var(--neutralGrey14, #242424);
+    --neutralForegroundInverted1Pressed: var(--neutralGrey14, #242424);
+    --neutralForegroundInverted1Selected: var(--neutralGrey14, #242424);
+
+    /* Neutral Foreground Inverted 2 */
+    --neutralForegroundInverted2Rest: var(--neutralGrey14, #242424);
+
+    /* Neutrals Foreground Inverted Disabled */
+    --neutralForegroundInvertedDisabledRest: var(--whiteAlpha40, #ffffff66);
+
+    /* Neutral Foreground Inverted Link */
+    --neutralForegroundInvertedLinkRest: var(--neutralGreyWhite, #ffffff);
+    --neutralForegroundInvertedLinkHover: var(--neutralGreyWhite, #ffffff);
+    --neutralForegroundInvertedLinkPressed: var(--neutralGreyWhite, #ffffff);
+    --neutralForegroundInvertedLinkSelected: var(--neutralGreyWhite, #ffffff);
+
+    /* Neutral Foreground On Brand */
+    --neutralForegroundOnBrandRest: var(--neutralGreyWhite, #ffffff);
+
+    /* Neutral Foreground Static */
+    --neutralForegroundStaticRest: var(--neutralGrey14, #242424);
+    --neutralForegroundStaticInvertedRest: var(--neutralGreyWhite, #ffffff);
+
+    /* Neutral Stroke 1 */
+    --neutralStroke1Rest: var(--neutralGrey40, #666666);
+    --neutralStroke1Hover: var(--neutralGrey46, #757575);
+    --neutralStroke1Pressed: var(--neutralGrey42, #6b6b6b);
+    --neutralStroke1Selected: var(--neutralGrey44, #707070);
+    
+    /* Neutral Stroke 2 */
+    --neutralStroke2Rest: var(--neutralGrey32, #525252);
+
+    /* Neutral Stroke 3 */
+    --neutralStroke3Rest: var(--neutralGrey24, #3d3d3d);
+
+    /* Neutral Stroke Accessible */
+    --neutralStrokeAccessibleRest: var(--neutralGrey68, #adadad);
+    --neutralStrokeAccessibleHover: var(--neutralGrey74, #bdbdbd);
+    --neutralStrokeAccessiblePressed: var(--neutralGrey70, #b3b3b3);
+    --neutralStrokeAccessibleSelected: var(--dotnetBlueShade10, #0956cc);
+
+    /* Neutral Stroke Alpha 1 */
+    --neutralStrokeAlpha1Rest: var(--whiteAlpha10, #ffffff1a);
+
+    /* Neutral Stroke Alpha 2 */
+    --neutralStrokeAlpha2Rest: var(--whiteAlpha20, #ffffff33);
+
+    /* Neutral Stroke Disabled */
+    --neutralStrokeDisabledRest: var(--neutralGrey26, #424242);
+
+    /* Neutral Stroke Disabled Inverted */
+    --neutralStrokeDisabledInvertedRest: var(--whiteAlpha40, #ffffff66);
+
+    /* Neutral Stroke Focus */
+    --neutralStrokeFocus1Rest: var(--neutralGreyBlack, #000000);
+    --neutralStrokeFocus2Rest: var(--neutralGreyWhite, #ffffff);
+
+    /* Neutral Stroke Subtle */
+    --neutralStrokeSubtleRest: var(--neutralGrey4, #0a0a0a);
+
+    /* Neutral Stroke Transparent */
+    --neutralStrokeTransparentRest: var(--whiteAlpha0, #ffffff00);
+
+    /* Neutral Stroke Transparent Disabled */
+    --neutralStrokeTransparentDisabledRest: var(--whiteAlpha0, #ffffff00);
+
+    /* Neutral Stroke Transparent Interactive */
+    --neutralStrokeTransparentInteractiveRest: var(--whiteAlpha0, #ffffff00);
+
+    /* Neutral Stroke On Brand 2 */
+    --neutralStrokeOnBrand2Rest: var(--neutralGreyWhite, #ffffff);
+    --neutralStrokeOnBrand2Hover: var(--neutralGreyWhite, #ffffff);
+    --neutralStrokeOnBrand2Pressed: var(--neutralGreyWhite, #ffffff);
+    --neutralStrokeOnBrand2Selected: var(--neutralGreyWhite, #ffffff);
+
+    /* Shadow */
+    --shadowAmbient: #00000033;
+    --shadowAmbientDarker: #00000066;
+    --shadowAmbientLighter: #0000001f;
+    --shadowBrandAmbient: #00000040;
+    --shadowBrandKey: #0000004d;
+    --shadowKey: #00000047;
+    --shadowKeyDarker: #0000007a;
+    --shadowKeyLighter: #00000024;
+
+    /* Status colors */
+    --statusAvailableForeground3Rest: var(--lightGreenPrimary, #13a10e);
+    --statusAwayBackground3Rest: var(--marigoldPrimary, #eaa300);
+    --statusDangerBackground1Rest: var(--cranberryShade40, #3b0509);
+    --statusDangerBackground3Rest: var(--cranberryPrimary, #c50f1f);
+    --statusDangerBackground3Hover: #b10e1c;
+    --statusDangerBackground3Pressed: #960b18;
+    --statusDangerForeground1Rest: var(--cranberryTint40, #eeacb2);
+    --statusDangerForeground3Rest: var(--cranberryTint30, #dc626d);
+    --statusDangerStroke1Rest: var(--cranberryPrimary, #c50f1f);
+    --statusDangerStroke2Rest: var(--cranberryTint30, #dc626d);
+    --statusGenericAnchorBackground2Rest: var(--anchorShade30, #202427);
+    --statusGenericAnchorForeground2Rest: var(--anchorTint40, #bcc3c7);
+    --statusGenericAnchorStrokeActiveRest: var(--anchorTint30, #808a90);
+    --statusGenericBeigeBackground2Rest: var(--beigeShade30, #444241);
+    --statusGenericBeigeForeground2Rest: var(--beigeTint40, #d7d4d4);
+    --statusGenericBeigeStrokeActiveRest: var(--beigeTint30, #afabaa);
+    --statusGenericBlueBackground2Rest: var(--blueShade30, #004377);
+    --statusGenericBlueForeground2Rest: var(--blueTint40, #a9d3f2);
+    --statusGenericBlueStrokeActiveRest: var(--blueTint30, #5caae5);
+    --statusGenericBrassBackground2Rest: var(--brassShade30, #553e06);
+    --statusGenericBrassForeground2Rest: var(--brassTint40, #e0cea2);
+    --statusGenericBrassStrokeActiveRest: var(--brassTint30, #c1a256);
+    --statusGenericBrownBackground2Rest: var(--brownShade30, #50301a);
+    --statusGenericBrownForeground2Rest: var(--brownTint40, #ddc3b0);
+    --statusGenericBrownStrokeActiveRest: var(--brownTint30, #bb8f6f);
+    --statusGenericCornflowerBackground2Rest: var(--cornflowerShade30, #2c3c85);
+    --statusGenericCornflowerForeground2Rest: var(--cornflowerTint40, #c8d1fa);
+    --statusGenericCornflowerStrokeActiveRest: var(--cornflowerTint30, #93a4f4);
+    --statusGenericCranberryBackground2Rest: var(--cranberryShade30, #6e0811);
+    --statusGenericCranberryForeground2Rest: var(--cranberryTint40, #eeacb2);
+    --statusGenericCranberryStrokeActiveRest: var(--cranberryTint30, #dc626d);
+    --statusGenericDarkGreenBackground2Rest: var(--darkGreenShade30, #063b06);
+    --statusGenericDarkGreenForeground2Rest: var(--darkGreenTint40, #9ad29a);
+    --statusGenericDarkGreenStrokeActiveRest: var(--darkGreenTint30, #4da64d);
+    --statusGenericDarkRedBackground2Rest: var(--darkRedShade20, #590815);
+    --statusGenericDarkRedForeground2Rest: var(--darkRedTint40, #d69ca5);
+    --statusGenericDarkRedStrokeActiveRest: var(--darkRedTint20, #962f3f);
+    --statusGenericForestBackground2Rest: var(--forestShade30, #294903);
+    --statusGenericForestForeground2Rest: var(--forestTint40, #bdd99b);
+    --statusGenericForestStrokeActiveRest: var(--forestTint30, #85b44c);
+    --statusGenericGoldBackground2Rest: var(--goldShade30, #6c5700);
+    --statusGenericGoldForeground2Rest: var(--goldTint40, #ecdfa5);
+    --statusGenericGoldStrokeActiveRest: var(--goldTint30, #dac157);
+    --statusGenericGrapeBackground2Rest: var(--grapeShade30, #4c0d55);
+    --statusGenericGrapeForeground2Rest: var(--grapeTint40, #d9a7e0);
+    --statusGenericGrapeStrokeActiveRest: var(--grapeTint30, #b55fc1);
+    --statusGenericLavenderBackground2Rest: var(--lavenderShade30, #3f3682);
+    --statusGenericLavenderForeground2Rest: var(--lavenderTint40, #d2ccf8);
+    --statusGenericLavenderStrokeActiveRest: var(--lavenderTint30, #a79cf1);
+    --statusGenericLightTealBackground2Rest: var(--lightTealShade30, #00666d);
+    --statusGenericLightTealForeground2Rest: var(--lightTealTint40, #a6e9ed);
+    --statusGenericLightTealStrokeActiveRest: var(--lightTealTint30, #58d3db);
+    --statusGenericLilacBackground2Rest: var(--lilacShade30, #63276d);
+    --statusGenericLilacForeground2Rest: var(--lilacTint40, #e6bfed);
+    --statusGenericLilacStrokeActiveRest: var(--lilacTint30, #cf87da);
+    --statusGenericMagentaBackground2Rest: var(--magentaShade30, #6b0043);
+    --statusGenericMagentaForeground2Rest: var(--magentaTint40, #eca5d1);
+    --statusGenericMagentaStrokeActiveRest: var(--magentaTint30, #d957a8);
+    --statusGenericMarigoldBackground2Rest: var(--marigoldShade30, #835b00);
+    --statusGenericMarigoldForeground2Rest: var(--marigoldTint40, #f9e2ae);
+    --statusGenericMarigoldStrokeActiveRest: var(--marigoldTint30, #f2c661);
+    --statusGenericMinkBackground2Rest: var(--minkShade30, #343231);
+    --statusGenericMinkForeground2Rest: var(--minkTint40, #cecccb);
+    --statusGenericMinkStrokeActiveRest: var(--minkTint30, #9e9b99);
+    --statusGenericNavyBackground2Rest: var(--navyShade30, #001665);
+    --statusGenericNavyForeground2Rest: var(--navyTint40, #a3b2e8);
+    --statusGenericNavyStrokeActiveRest: var(--navyTint30, #546fd2);
+    --statusGenericPeachBackground2Rest: var(--peachShade30, #8f4e00);
+    --statusGenericPeachForeground2Rest: var(--peachTint40, #ffddb3);
+    --statusGenericPeachStrokeActiveRest: var(--peachTint30, #ffba66);
+    --statusGenericPinkBackground2Rest: var(--pinkShade30, #80215d);
+    --statusGenericPinkForeground2Rest: var(--pinkTint40, #f7c0e3);
+    --statusGenericPinkStrokeActiveRest: var(--pinkTint30, #ef85c8);
+    --statusGenericPlatinumBackground2Rest: var(--platinumShade30, #3b4447);
+    --statusGenericPlatinumForeground2Rest: var(--platinumTint40, #cdd6d8);
+    --statusGenericPlatinumStrokeActiveRest: var(--platinumTint30, #a0adb2);
+    --statusGenericPlumBackground2Rest: var(--plumShade20, #5a003b);
+    --statusGenericPlumForeground2Rest: var(--plumTint40, #d696c0);
+    --statusGenericPlumStrokeActiveRest: var(--magentaTint30, #d957a8);
+    --statusGenericPumpkinBackground2Rest: var(--pumpkinShade30, #712d09);
+    --statusGenericPumpkinForeground2Rest: var(--pumpkinTint40, #efc4ad);
+    --statusGenericPumpkinStrokeActiveRest: var(--pumpkinTint30, #df8e64);
+    --statusGenericPurpleBackground2Rest: var(--purpleShade30, #341a51);
+    --statusGenericPurpleForeground2Rest: var(--purpleTint40, #c6b1de);
+    --statusGenericPurpleStrokeActiveRest: var(--purpleTint30, #9470bd);
+    --statusGenericRedBackground2Rest: var(--RedShade30, #751d1f);
+    --statusGenericRedForeground2Rest: var(--cranberryTint40, #eeacb2);
+    --statusGenericRedStrokeActiveRest: var(--RedTint30, #e37d80);
+    --statusGenericRoyalBlueBackground2Rest: var(--RoyalBlueShade30, #002c4e);
+    --statusGenericRoyalBlueForeground2Rest: var(--RoyalBlueTint40, #9abfdc);
+    --statusGenericRoyalBlueStrokeActiveRest: var(--RoyalBlueTint30, #4a89ba);
+    --statusGenericSeafoamBackground2Rest: var(--SeafoamShade30, #00723b);
+    --statusGenericSeafoamForeground2Rest: var(--SeafoamTint40, #a8f0cd);
+    --statusGenericSeafoamStrokeActiveRest: var(--SeafoamTint30, #5ae0a0);
+    --statusGenericSteelBackground2Rest: var(--SteelShade30, #00333f);
+    --statusGenericSteelForeground2Rest: var(--SteelTint40, #94c8d4);
+    --statusGenericSteelStrokeActiveRest: var(--SteelTint30, #4496a9);
+    --statusGenericTealBackground2Rest: var(--TealShade30, #02494c);
+    --statusGenericTealForeground2Rest: var(--TealTint40, #9bd9db);
+    --statusGenericTealStrokeActiveRest: var(--TealTint30, #4cb4b7);
+    --statusOofForeground3Rest: var(--berryTint20, #d161c4);
+    --statusSevereBackground1Rest: var(--dark-orangeShade40, #411200);
+    --statusSevereBackground3Rest: var(--dark-orangePrimary, #da3b01);
+    --statusSevereForeground1Rest: var(--dark-orangeTint30, #e9835e);
+    --statusSevereForeground3Rest: var(--dark-orangeTint30, #e9835e);
+    --statusSevereStroke1Rest: var(--dark-orangePrimary, #da3b01);
+    --statusSuccessBackground1Rest: var(--greenShade40, #052505);
+    --statusSuccessBackground3Rest: var(--greenPrimary, #107c10);
+    --statusSuccessForeground1Rest: var(--greenTint30, #54b054);
+    --statusSuccessForeground3Rest: var(--greenTint40, #9fd89f);
+    --statusSuccessForegroundInvertedRest: var(--greenPrimary, #107c10);
+    --statusSuccessStroke1Rest: var(--greenPrimary, #107c10);
+    --statusSuccessStroke2Rest: var(--greenTint40, #9fd89f);
+    --statusWarningBackground1Rest: var(--orangeShade40, #4a1e04);
+    --statusWarningBackground2Rest: var(--orangeShade40, #8a3707);
+    --statusWarningBackground3Rest: var(--orangePrimary, #f7630c);
+    --statusWarningForeground1Rest: var(--orangeTint20, #f98845);
+    --statusWarningForeground2Rest: var(--orangeTint40, #fdcfb4);
+    --statusWarningStroke1Rest: var(--orangeShade10, #de590b);
+    --statusWarningStroke2Rest: var(--orangeShade10, #f98845);
+}

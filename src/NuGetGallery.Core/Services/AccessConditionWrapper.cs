@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.WindowsAzure.Storage;
-
 namespace NuGetGallery
 {
     public class AccessConditionWrapper : IAccessCondition
@@ -28,20 +26,20 @@ namespace NuGetGallery
         {
             return new AccessConditionWrapper(
                 ifNoneMatchETag: null,
-                ifMatchETag: AccessCondition.GenerateIfMatchCondition(etag).IfMatchETag);
+                ifMatchETag: etag);
         }
 
         public static IAccessCondition GenerateIfNoneMatchCondition(string etag)
         {
             return new AccessConditionWrapper(
-                ifNoneMatchETag: AccessCondition.GenerateIfNoneMatchCondition(etag).IfNoneMatchETag,
+                ifNoneMatchETag: etag,
                 ifMatchETag: null);
         }
 
         public static IAccessCondition GenerateIfNotExistsCondition()
         {
             return new AccessConditionWrapper(
-                ifNoneMatchETag: AccessCondition.GenerateIfNotExistsCondition().IfNoneMatchETag,
+                ifNoneMatchETag: "*",
                 ifMatchETag: null);
         }
     }

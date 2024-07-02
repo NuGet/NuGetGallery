@@ -36,7 +36,7 @@ namespace GalleryTools.Commands
 
             var unreserveOption = config.Option(
                 "-u | --unreserve",
-                $"Unreserve namespaces, instead of reserving them. Meant for a rollback of bulk reserving. Note that you must clear the progress file to reuse the same input file.",
+                "Unreserve namespaces, instead of reserving them. Meant for a rollback of bulk reserving. Note that you must clear the progress file to reuse the same input file.",
                 CommandOptionType.NoValue);
 
             config.OnExecute(() =>

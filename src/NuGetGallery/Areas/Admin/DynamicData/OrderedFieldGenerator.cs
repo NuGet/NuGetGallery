@@ -63,7 +63,7 @@ namespace NuGetGallery.Areas.Admin.DynamicData
             string[] order;
             if (!SortOrders.TryGetValue(table.Name, out order))
             {
-                order = new string[0];
+                order = Array.Empty<string>();
             }
             return Enumerable.Concat(
                 order.Select(s => columns.Single(c => String.Equals(c.Name, s))),

@@ -38,21 +38,21 @@
             <b>Select reason(s)</b>
         </div>
         <div class="form-group unbolded-label">
-            <label>
+            <label class="brand-checkbox">
                 <input name="isLegacy" type="checkbox" value="true" data-bind="checked: isLegacy" aria-label="Select Reason: This package is legacy and is no longer maintained."/>
-                This package is <b>legacy</b> and is no longer maintained
+                <span>This package is <b>legacy</b> and is no longer maintained</span>
             </label>
         </div>
         <div class="form-group unbolded-label">
-            <label>
+            <label class="brand-checkbox">
                 <input name="hasCriticalBugs" type="checkbox" value="true" data-bind="checked: hasCriticalBugs" aria-label="Select Reason: This package has critical bugs that make it unusable."/>
-                This package has <b>critical bugs</b> that make it unusable
+                <span>This package has <b>critical bugs</b> that make it unusable</span>
             </label>
         </div>
         <div class="form-group unbolded-label">
-            <label>
+            <label class="brand-checkbox">
                 <input name="isOther" type="checkbox" value="true" data-bind="checked: isOther" aria-label="Select Reason: Other."/>
-                <b>Other</b>
+                <span><b>Other</b></span>
             </label>
         </div>
     </div>
@@ -60,13 +60,13 @@
     <div data-bind="visible: hasCriticalBugs() || isLegacy() || isOther()">
         <div class="deprecation-section">
             <div class="row">
-                <div class="col-sm-8 form-group alternate-package-registration-container" data-bind="css: { 'has-error': chosenAlternatePackageIdError }">
+                <div class="col-sm-8 form-group alternate-package-registration-container" data-bind="css: { 'has-error-brand': chosenAlternatePackageIdError }">
                     <label for="alternatePackageId" class="deprecation-section-header">Alternate package</label>
-                    <input name="alternatePackageId" class="form-control full-line" type="text" aria-label="Alternate package ID" data-bind="textInput: chosenAlternatePackageId" />
+                    <input name="alternatePackageId" class="form-control full-line input-brand" type="text" aria-label="Alternate package ID" data-bind="textInput: chosenAlternatePackageId" />
                 </div>
                 <div class="col-sm-4 form-group alternate-package-container">
                     <label for="alternatePackageVersion" class="deprecation-section-header">Version</label>
-                    <select class="form-control full-line" name="alternatePackageVersion" aria-label="Alternate package version" data-bind="options: alternatePackageVersions, value: chosenAlternatePackageVersion, enable: hasAlternatePackageVersions" size="1"></select>
+                    <select class="form-control full-line select-brand" name="alternatePackageVersion" aria-label="Alternate package version" data-bind="options: alternatePackageVersions, value: chosenAlternatePackageVersion, enable: hasAlternatePackageVersions" size="1"></select>
                 </div>
             </div>
             <div data-bind="visible: chosenAlternatePackageIdError">
@@ -75,7 +75,7 @@
         </div>
         <div class="deprecation-section form-group">
             <label for="customMessage" class="deprecation-section-header">Provide custom message</label>
-            <textarea id="customMessage" name="customMessage" class="form-control full-line" data-bind="textInput: customMessage" rows="2"></textarea>
+            <textarea id="customMessage" name="customMessage" class="form-control full-line textarea-brand" data-bind="textInput: customMessage" rows="2"></textarea>
         </div>
         <div data-bind="visible: requiresCustomMessage()">
             @ViewHelpers.AlertDanger(@<text>You must add a custom message if <b>Other</b> is selected.</text>)
@@ -87,6 +87,6 @@
     </div>
 
     <div class="deprecation-section form-group">
-        <button class="btn btn-primary full-line" type="submit" aria-label="Save package deprecation information" data-bind="click: submit, disable: submitDisabled">Save</button>
+        <button class="btn btn-brand full-line" type="submit" aria-label="Save package deprecation information" data-bind="click: submit, disable: submitDisabled">Save</button>
     </div>
 </script>

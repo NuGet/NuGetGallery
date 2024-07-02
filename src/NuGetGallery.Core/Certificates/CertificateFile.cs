@@ -9,7 +9,7 @@ namespace NuGetGallery
 {
     public sealed class CertificateFile : IDisposable
     {
-        private static readonly byte[] EmptyBuffer = new byte[0];
+        private static readonly byte[] EmptyBuffer = Array.Empty<byte>();
 
         public string Sha1Thumbprint { get; }
         public string Sha256Thumbprint { get; }

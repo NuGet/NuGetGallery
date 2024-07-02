@@ -14,9 +14,9 @@
             </div>
             <h2>Reserve namespace</h2>
             <form data-bind="submit: prefixSearch">
-                <div class="form-horizontal">
-                    <input type="text" placeholder="Specific namespace" autocomplete="on" autofocus data-bind="value: prefixSearchQuery" />
-                    <input type="submit" value="Search" title="Search" />
+                <div class="row-checkbox-label">
+                    <input type="text" class="input-brand" placeholder="Specific namespace" autocomplete="on" autofocus data-bind="value: prefixSearchQuery" />
+                    <input type="submit" class="btn btn-brand" value="Search" title="Search" />
                 </div>
             </form>
             <br />
@@ -35,13 +35,15 @@
                                             <span data-bind="text: $data.prefix.Value" />
                                         </div>
                                         <div>
-                                            <label>
-                                                <input type="checkbox" data-bind="checked: $data.prefix.IsSharedNamespace, disable: $data.isExisting" />IsSharedNamespace
+                                            <label class="brand-checkbox">
+                                                <input type="checkbox" data-bind="checked: $data.prefix.IsSharedNamespace, disable: $data.isExisting" />
+                                                <span>IsSharedNamespace</span>
                                             </label>
                                         </div>
                                         <div>
-                                            <label>
-                                                <input type="checkbox" data-bind="checked: $data.prefix.IsPrefix, disable: $data.isExisting" value="IsPrefix" />IsPrefix
+                                            <label class="brand-checkbox">
+                                                <input type="checkbox" data-bind="checked: $data.prefix.IsPrefix, disable: $data.isExisting" value="IsPrefix" />
+                                                <span>IsPrefix</span>
                                             </label>
                                         </div>
                                         <div>
@@ -59,11 +61,11 @@
                                         </div>
                                         <!-- /ko -->
                                         <!-- ko if: $data.isExisting -->
-                                        <input style="margin-top: 5px" type="submit" value="Deallocate Namespace" title="Delete this namespace"
+                                        <input style="margin-top: 5px" class="btn btn-brand-danger" type="submit" value="Deallocate Namespace" title="Delete this namespace"
                                                data-bind="click: $parent.managePrefix.bind(this, $data.prefix, false, $data.parents)" />
                                         <!-- /ko -->
                                         <!-- ko ifnot: $data.isExisting -->
-                                        <input style="margin-top: 5px" type="submit" value="Reserve Namespace" title="Add this namespace"
+                                        <input style="margin-top: 5px" class="btn btn-brand" type="submit" value="Reserve Namespace" title="Add this namespace"
                                                data-bind="click: $parent.managePrefix.bind(this, $data.prefix, true, $data.parents)" />
                                         <!-- /ko -->
                                     </div>
@@ -73,14 +75,14 @@
                                     <span style="font-weight: bold">Owners:</span>
                                     <div style="margin-left: 20px">
                                         <div id="prefixOwners" data-bind="foreach: $data.owners">
-                                            <div style="margin: 5px">
+                                            <div style="margin: 5px" class="row-checkbox-label">
                                                 <a href="#" target="_blank" data-bind="text: $data, attr: { href: $root.generateUserUrl($data) }"></a>
-                                                <input style="float: right" type="button" value="Remove" title="Remove this owner" data-bind="click: $root.removeOwner.bind(this, $data, $parent.prefix)" />
+                                                <input style="float: right" type="button" class="btn btn-brand" value="Remove" title="Remove this owner" data-bind="click: $root.removeOwner.bind(this, $data, $parent.prefix)" />
                                             </div>
                                         </div>
-                                        <div style="margin: 5px">
-                                            <input type="text" placeholder="Enter username" autocomplete="off" data-bind="value: $parent.newOwner, valueUpdate: 'afterkeydown'" />
-                                            <input type="button" value="Add" title="Add new owner for this prefix" data-bind="click: $parent.addOwner.bind(this, $data.prefix), enable: $parent.newOwner().length > 0" />
+                                        <div class="row-checkbox-label" style="margin: 5px">
+                                            <input type="text" class="input-brand" placeholder="Enter username" autocomplete="off" data-bind="value: $parent.newOwner, valueUpdate: 'afterkeydown'" />
+                                            <input type="button" class="btn btn-brand" value="Add" title="Add new owner for this prefix" data-bind="click: $parent.addOwner.bind(this, $data.prefix), enable: $parent.newOwner().length > 0" />
                                         </div>
                                     </div>
                                     <!-- /ko -->
@@ -97,9 +99,9 @@
         <div class="col-xs-12">
             <h2>Find namespaces by prefix</h2>
             <form method="get" action="@Url.Action("FindNamespacesByPrefix")">
-                <div class="form-horizontal">
-                    <input type="text" placeholder="Namespace prefix" autocomplete="on" name="prefix" value="@Model.ReservedNamespacesQuery" />
-                    <input type="submit" value="Search" />
+                <div class="row-checkbox-label">
+                    <input type="text" class="input-brand" placeholder="Namespace prefix" autocomplete="on" name="prefix" value="@Model.ReservedNamespacesQuery" />
+                    <input type="submit" class="btn btn-brand" value="Search" />
                 </div>
             </form>
             <br />
@@ -146,9 +148,9 @@
         <div class="col-xs-12">
             <h2>Find package registrations by prefix</h2>
             <form method="get" action="@Url.Action("FindPackagesByPrefix")">
-                <div class="form-horizontal">
-                    <input type="text" placeholder="Package ID prefix" autocomplete="on" name="prefix" value="@Model.PackageRegistrationsQuery" />
-                    <input type="submit" value="Search" />
+                <div class="row-checkbox-label">
+                    <input type="text" class="input-brand" placeholder="Package ID prefix" autocomplete="on" name="prefix" value="@Model.PackageRegistrationsQuery" />
+                    <input type="submit" class="btn btn-brand" value="Search" />
                 </div>
             </form>
             <br />
@@ -178,12 +180,7 @@
                                 <td>
                                     @if (pr.IsVerified)
                                     {
-                                        <img class="img-responsive"
-                                             src="~/Content/gallery/img/reserved-indicator.svg"
-                                             alt="Reserved namespace icon"
-                                             width="24" height="24"
-                                             @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-256x256.png"))
-                                             title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
+                                        <i class="ms-Icon ms-Icon--SkypeCircleCheck reserved-indicator" title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" alt="Reserved namespace icon"></i>
                                     }
                                 </td>
                                 <td>@pr.DownloadCount.ToNuGetNumberString()</td>

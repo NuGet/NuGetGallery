@@ -54,7 +54,7 @@
         copyButton.popover({ trigger: 'manual' });
 
         copyButton.click(function () {
-            var text = $('#' + id + '-text').text().trim();
+            var text = $('#' + id + '-text .install-command-row').text().trim();
             window.nuget.copyTextToClipboard(text, copyButton);
 
             copyButton.popover('show');

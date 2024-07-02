@@ -117,7 +117,7 @@ namespace NuGetGallery
 
             MockReservedNamespaceService
                 .Setup(s => s.GetReservedNamespacesForId(It.IsAny<string>()))
-                .Returns(new ReservedNamespace[0]);
+                .Returns(Array.Empty<ReservedNamespace>());
 
             MockPackageUploadService
                 .Setup(x => x.ValidateBeforeGeneratePackageAsync(
@@ -1743,8 +1743,7 @@ namespace NuGetGallery
 
                 var result = await controller.DeletePackage("theId", "1.0.42");
 
-                Assert.IsType<HttpStatusCodeWithBodyResult>(result);
-                var statusCodeResult = (HttpStatusCodeWithBodyResult)result;
+                var statusCodeResult = Assert.IsType<HttpStatusCodeWithBodyResult>(result);
                 Assert.Equal(404, statusCodeResult.StatusCode);
                 Assert.Equal(String.Format(Strings.PackageWithIdAndVersionNotFound, "theId", "1.0.42"), statusCodeResult.StatusDescription);
                 controller.MockPackageUpdateService.Verify(x => x.MarkPackageUnlistedAsync(It.IsAny<Package>(), true, true), Times.Never());
@@ -2853,11 +2852,9 @@ namespace NuGetGallery
                 dynamic json = jsonResult?.Data;
                 Assert.NotNull(json);
 
-                Guid key;
-                Assert.True(Guid.TryParse(json.Key, out key));
+                Assert.True(Guid.TryParse(json.Key, out Guid _));
 
-                DateTime expires;
-                Assert.True(DateTime.TryParse(json.Expires, out expires));
+                Assert.True(DateTime.TryParse(json.Expires, out DateTime _));
 
                 // Assert - the invocations
                 controller.MockAuthenticationService.Verify(s => s.AddCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Once);

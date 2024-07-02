@@ -55,7 +55,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             else
             {
                 TempData["Message"] = $"{revalidatedCount} validations were enqueued for {validatingType} instances that are in the {PackageStatus.Validating} state. " +
-                    $"It may take some time for the new validations to appear as the validation subsystem reacts to the enqueued messages.";
+                    "It may take some time for the new validations to appear as the validation subsystem reacts to the enqueued messages.";
             }
 
             return RedirectToAction(nameof(Pending));

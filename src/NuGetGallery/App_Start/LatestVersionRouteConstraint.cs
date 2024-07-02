@@ -37,8 +37,7 @@ namespace NuGetGallery
                 || route.Url.Equals(LatestPackageRouteVerifier.SupportedRoutes.LatestUrlWithPreleaseAndVersionString, StringComparison.InvariantCultureIgnoreCase))
                 return true;
 
-            NuGetVersion ignored;
-            return NuGetVersion.TryParse(versionText, out ignored);
+            return NuGetVersion.TryParse(versionText, out _);
         }
     }
 }

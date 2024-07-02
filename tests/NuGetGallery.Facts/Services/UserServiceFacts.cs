@@ -763,7 +763,7 @@ namespace NuGetGallery
                 // Act & Assert
                 var e = await Assert.ThrowsAsync<EntityException>(async () =>
                 {
-                    await service.RejectMembershipRequestAsync(new Organization { MemberRequests = new MembershipRequest[0] }, memberName, "token");
+                    await service.RejectMembershipRequestAsync(new Organization { MemberRequests = Array.Empty<MembershipRequest>() }, memberName, "token");
                 });
 
                 Assert.Equal(string.Format(CultureInfo.CurrentCulture,
@@ -866,7 +866,7 @@ namespace NuGetGallery
                 // Act & Assert
                 var e = await Assert.ThrowsAsync<EntityException>(async () =>
                 {
-                    await service.CancelMembershipRequestAsync(new Organization { MemberRequests = new MembershipRequest[0] }, memberName);
+                    await service.CancelMembershipRequestAsync(new Organization { MemberRequests = Array.Empty<MembershipRequest>() }, memberName);
                 });
 
                 Assert.Equal(string.Format(CultureInfo.CurrentCulture,
@@ -1753,7 +1753,7 @@ namespace NuGetGallery
                 Assert.False(await InvokeTransformUserToOrganization(
                     3,
                     migrationRequest: null,
-                    admin: new User(AdminUsername) { Credentials = new Credential[0] }));
+                    admin: new User(AdminUsername) { Credentials = Array.Empty<Credential>() }));
             }
 
             [Fact]
@@ -1763,17 +1763,17 @@ namespace NuGetGallery
                     3,
                     new OrganizationMigrationRequest
                     {
-                        AdminUser = new User(AdminUsername) { Key = 1, Credentials = new Credential[0] },
+                        AdminUser = new User(AdminUsername) { Key = 1, Credentials = Array.Empty<Credential>() },
                         ConfirmationToken = Token,
                         RequestDate = DateTime.UtcNow
                     },
-                    admin: new User("OtherAdmin") { Key = 2, Credentials = new Credential[0] }));
+                    admin: new User("OtherAdmin") { Key = 2, Credentials = Array.Empty<Credential>() }));
             }
 
             [Fact]
             public async Task WhenTokenDoesNotMatch_Fails()
             {
-                var admin = new User(AdminUsername) { Credentials = new Credential[0] };
+                var admin = new User(AdminUsername) { Credentials = Array.Empty<Credential>() };
                 Assert.False(await InvokeTransformUserToOrganization(
                     3,
                     new OrganizationMigrationRequest
@@ -1789,7 +1789,7 @@ namespace NuGetGallery
             public async Task WhenAdminHasNoTenant_TransformsAccountWithoutPolicy()
             {
                 var tenantlessAdminUsername = "adminWithNoTenant";
-                Assert.True(await InvokeTransformUserToOrganization(3, new User(tenantlessAdminUsername) { Credentials = new Credential[0] }));
+                Assert.True(await InvokeTransformUserToOrganization(3, new User(tenantlessAdminUsername) { Credentials = Array.Empty<Credential>() }));
 
                 Assert.True(_service.Auditing.WroteRecord<UserAuditRecord>(ar =>
                     ar.Action == AuditedUserAction.TransformOrganization &&
@@ -1951,7 +1951,7 @@ namespace NuGetGallery
             public async Task WithLockedAdmin_ThrowsEntityException(bool confirmEmailAddresses)
             {
                 SetUpConfirmEmailAddressesConfig(confirmEmailAddresses);
-                var admin = new User(AdminName) { Credentials = new Credential[0], UserStatusKey = UserStatus.Locked };
+                var admin = new User(AdminName) { Credentials = Array.Empty<Credential>(), UserStatusKey = UserStatus.Locked };
 
                 _service.MockEntitiesContext
                     .Setup(x => x.Users)
@@ -2018,7 +2018,7 @@ namespace NuGetGallery
 
                 SetUpConfirmEmailAddressesConfig(confirmEmailAddresses);
 
-                var org = await InvokeAddOrganization(admin: new User(AdminName) { Credentials = new Credential[0] });
+                var org = await InvokeAddOrganization(admin: new User(AdminName) { Credentials = Array.Empty<Credential>() });
 
                 AssertNewOrganizationReturned(org, subscribedToPolicy: false, confirmEmailAddresses: confirmEmailAddresses);
             }

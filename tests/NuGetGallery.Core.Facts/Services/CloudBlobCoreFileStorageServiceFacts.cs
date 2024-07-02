@@ -4,12 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.Blob.Protocol;
 using Moq;
 using NuGetGallery.Diagnostics;
 using Xunit;
@@ -52,9 +48,9 @@ namespace NuGetGallery
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
-                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0)).Verifiable();
+                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<bool>())).Returns(Task.FromResult(0)).Verifiable();
                 var simpleCloudBlob = new Mock<ISimpleCloudBlob>();
-                simpleCloudBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>(), It.IsAny<AccessCondition>())).Returns(Task.FromResult(0));
+                simpleCloudBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>(), It.IsAny<IAccessCondition>())).Returns(Task.FromResult(0));
                 fakeBlobContainer.Setup(x => x.GetBlobReference("x.txt")).Returns(simpleCloudBlob.Object);
 
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
@@ -73,9 +69,9 @@ namespace NuGetGallery
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
                 
                 var simpleCloudBlob = new Mock<ISimpleCloudBlob>();
-                simpleCloudBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>(), It.IsAny<AccessCondition>())).Returns(Task.FromResult(0));
+                simpleCloudBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>(), It.IsAny<IAccessCondition>())).Returns(Task.FromResult(0));
 
-                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0)).Verifiable();
+                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<bool>())).Returns(Task.FromResult(0)).Verifiable();
                 fakeBlobContainer.Setup(x => x.GetBlobReference("x.txt")).Returns(simpleCloudBlob.Object);
 
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
@@ -111,7 +107,7 @@ namespace NuGetGallery
                                 {
                                     blobContainer = new Mock<ICloudBlobContainer>();
                                 }
-                                blobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
+                                blobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<bool>())).Returns(Task.FromResult(0));
                                 return blobContainer.Object;
                             });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
@@ -134,7 +130,7 @@ namespace NuGetGallery
                 fakeBlob.Setup(x => x.DeleteIfExistsAsync()).Returns(Task.FromResult(0)).Verifiable();
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
-                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
+                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<bool>())).Returns(Task.FromResult(0));
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
@@ -200,11 +196,11 @@ namespace NuGetGallery
                                     containerMock = new Mock<ICloudBlobContainer>();
                                 }
 
-                                containerMock.Setup(x => x.CreateIfNotExistAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
+                                containerMock.Setup(x => x.CreateIfNotExistAsync(It.IsAny<bool>())).Returns(Task.FromResult(0));
                                 return containerMock.Object;
                             });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
-                fakeBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>(), It.IsAny<AccessCondition>())).Returns(Task.FromResult(0)).Verifiable();
+                fakeBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>(), It.IsAny<IAccessCondition>())).Returns(Task.FromResult(0)).Verifiable();
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
                 await service.GetFileAsync(folderName, "theFileName");
@@ -234,12 +230,12 @@ namespace NuGetGallery
                                 {
                                     blobContainer = new Mock<ICloudBlobContainer>();
                                 }
-                                blobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
+                                blobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<bool>())).Returns(Task.FromResult(0));
                                 return blobContainer.Object;
                             });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
-                fakeBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>(), It.IsAny<AccessCondition>()))
-                    .Callback<Stream, AccessCondition>((x, _) => { x.WriteByte(42); })
+                fakeBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>(), It.IsAny<IAccessCondition>()))
+                    .Callback<Stream, IAccessCondition>((x, _) => { x.WriteByte(42); })
                     .Returns(Task.FromResult(0));
 
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
@@ -269,13 +265,13 @@ namespace NuGetGallery
                                 {
                                     blobContainer = new Mock<ICloudBlobContainer>();
                                 }
-                                blobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
+                                blobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<bool>())).Returns(Task.FromResult(0));
                                 return blobContainer.Object;
                             });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
 
-                fakeBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>(), It.IsAny<AccessCondition>())).Throws(
-                    new TestableStorageClientException { ErrorCode = BlobErrorCodeStrings.BlobNotFound });
+                fakeBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>(), It.IsAny<IAccessCondition>())).Throws(
+                    new CloudBlobNotFoundException(null));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
                 var stream = await service.GetFileAsync(folderName, "theFileName");
@@ -303,12 +299,12 @@ namespace NuGetGallery
                                 {
                                     blobContainer = new Mock<ICloudBlobContainer>();
                                 }
-                                blobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
+                                blobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<bool>())).Returns(Task.FromResult(0));
                                 return blobContainer.Object;
                             });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
-                fakeBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>(), It.IsAny<AccessCondition>()))
-                        .Callback<Stream, AccessCondition>((x, _) => { x.WriteByte(42); })
+                fakeBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>(), It.IsAny<IAccessCondition>()))
+                        .Callback<Stream, IAccessCondition>((x, _) => { x.WriteByte(42); })
                         .Returns(Task.FromResult(0));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
@@ -340,11 +336,11 @@ namespace NuGetGallery
                                 {
                                     blobContainer = new Mock<ICloudBlobContainer>();
                                 }
-                                blobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
+                                blobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<bool>())).Returns(Task.FromResult(0));
                                 return blobContainer.Object;
                             });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
-                fakeBlob.Setup(x => x.Properties).Returns(new BlobProperties());
+                fakeBlob.Setup(x => x.Properties).Returns(Mock.Of<ICloudBlobProperties>());
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
                 fakeBlob.Setup(x => x.DeleteIfExistsAsync()).Returns(Task.FromResult(0));
                 fakeBlob.Setup(x => x.UploadFromStreamAsync(It.IsAny<Stream>(), true)).Returns(Task.FromResult(0));
@@ -367,8 +363,8 @@ namespace NuGetGallery
                 fakeBlob.Setup(x => x.SetPropertiesAsync()).Returns(Task.FromResult(0)).Verifiable();
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
-                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
-                fakeBlob.Setup(x => x.Properties).Returns(new BlobProperties());
+                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<bool>())).Returns(Task.FromResult(0));
+                fakeBlob.Setup(x => x.Properties).Returns(Mock.Of<ICloudBlobProperties>());
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
@@ -385,14 +381,11 @@ namespace NuGetGallery
                 var fakeBlob = new Mock<ISimpleCloudBlob>();
                 fakeBlob
                     .Setup(x => x.UploadFromStreamAsync(It.IsAny<Stream>(), false))
-                    .Throws(new StorageException(
-                        new RequestResult { HttpStatusCode = (int)HttpStatusCode.Conflict },
-                        "Conflict!",
-                        new Exception("inner")));
+                    .Throws(new CloudBlobConflictException(new Exception("inner")));
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
-                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
-                fakeBlob.Setup(x => x.Properties).Returns(new BlobProperties());
+                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<bool>())).Returns(Task.FromResult(0));
+                fakeBlob.Setup(x => x.Properties).Returns(Mock.Of<ICloudBlobProperties>());
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
@@ -406,11 +399,11 @@ namespace NuGetGallery
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
-                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
+                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<bool>())).Returns(Task.FromResult(0));
                 var fakeBlob = new Mock<ISimpleCloudBlob>();
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
-                fakeBlob.Setup(x => x.Properties).Returns(new BlobProperties());
+                fakeBlob.Setup(x => x.Properties).Returns(Mock.Of<ICloudBlobProperties>());
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
                 fakeBlob.Setup(x => x.DeleteIfExistsAsync()).Returns(Task.FromResult(0));
                 fakeBlob.Setup(x => x.SetPropertiesAsync()).Returns(Task.FromResult(0));
@@ -443,11 +436,11 @@ namespace NuGetGallery
                                 {
                                     blobContainer = new Mock<ICloudBlobContainer>();
                                 }
-                                blobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
+                                blobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<bool>())).Returns(Task.FromResult(0));
                                 return blobContainer.Object;
                             });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
-                fakeBlob.Setup(x => x.Properties).Returns(new BlobProperties());
+                fakeBlob.Setup(x => x.Properties).Returns(Mock.Of<ICloudBlobProperties>());
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
                 fakeBlob.Setup(x => x.DeleteIfExistsAsync()).Returns(Task.FromResult(0));
                 fakeBlob.Setup(x => x.UploadFromStreamAsync(It.IsAny<Stream>(), true)).Returns(Task.FromResult(0));
@@ -473,11 +466,11 @@ namespace NuGetGallery
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
-                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
+                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<bool>())).Returns(Task.FromResult(0));
                 var fakeBlob = new Mock<ISimpleCloudBlob>();
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
-                fakeBlob.Setup(x => x.Properties).Returns(new BlobProperties());
+                fakeBlob.Setup(x => x.Properties).Returns(Mock.Of<ICloudBlobProperties>());
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
                 fakeBlob.Setup(x => x.DeleteIfExistsAsync()).Returns(Task.FromResult(0));
                 fakeBlob.Setup(x => x.SetPropertiesAsync()).Returns(Task.FromResult(0));
@@ -527,11 +520,11 @@ namespace NuGetGallery
                             {
                                 blobContainer = new Mock<ICloudBlobContainer>();
                             }
-                            blobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
+                            blobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<bool>())).Returns(Task.FromResult(0));
                             return blobContainer.Object;
                         });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
-                fakeBlob.Setup(x => x.Properties).Returns(new BlobProperties());
+                fakeBlob.Setup(x => x.Properties).Returns(Mock.Of<ICloudBlobProperties>());
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
                 fakeBlob.Setup(x => x.DeleteIfExistsAsync()).Returns(Task.FromResult(0));
                 fakeBlob.Setup(x => x.UploadFromStreamAsync(It.IsAny<Stream>(), true)).Returns(Task.FromResult(0));
@@ -555,7 +548,7 @@ namespace NuGetGallery
 
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
-                fakeBlob.Setup(x => x.Properties).Returns(new BlobProperties());
+                fakeBlob.Setup(x => x.Properties).Returns(Mock.Of<ICloudBlobProperties>());
 
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
@@ -564,7 +557,7 @@ namespace NuGetGallery
                 fakeBlob.Verify(
                     b => b.UploadFromStreamAsync(
                         It.IsAny<Stream>(),
-                        It.Is<AccessCondition>(
+                        It.Is<IAccessCondition>(
                             c => c.IfMatchETag == expectedIfMatchETag && c.IfNoneMatchETag == expectedIfNoneMatchETag)),
                     Times.Once);
             }
@@ -610,13 +603,10 @@ namespace NuGetGallery
 
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
-                fakeBlob.Setup(x => x.Properties).Returns(new BlobProperties());
+                fakeBlob.Setup(x => x.Properties).Returns(Mock.Of<ICloudBlobProperties>());
                 fakeBlob
-                    .Setup(x => x.UploadFromStreamAsync(It.IsAny<Stream>(), It.IsAny<AccessCondition>()))
-                    .Throws(new StorageException(
-                        new RequestResult { HttpStatusCode = (int)HttpStatusCode.Conflict },
-                        "Conflict!",
-                        new Exception("inner")));
+                    .Setup(x => x.UploadFromStreamAsync(It.IsAny<Stream>(), It.IsAny<IAccessCondition>()))
+                    .Throws(new CloudBlobConflictException(new Exception("inner")));
 
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
@@ -648,11 +638,11 @@ namespace NuGetGallery
                             {
                                 blobContainer = new Mock<ICloudBlobContainer>();
                             }
-                            blobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
+                            blobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<bool>())).Returns(Task.FromResult(0));
                             return blobContainer.Object;
                         });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
-                fakeBlob.Setup(x => x.Properties).Returns(new BlobProperties());
+                fakeBlob.Setup(x => x.Properties).Returns(Mock.Of<ICloudBlobProperties>());
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
                 fakeBlob.Setup(x => x.DeleteIfExistsAsync()).Returns(Task.FromResult(0));
                 fakeBlob.Setup(x => x.UploadFromStreamAsync(It.IsAny<Stream>(), true)).Returns(Task.FromResult(0));
@@ -731,7 +721,7 @@ namespace NuGetGallery
             }
         }
 
-        public class TheGetPriviledgedFileUriAsyncMethod
+        public class TheGetPrivilegedFileUriAsyncMethod
         {
             private const string folderName = "theFolderName";
             private const string fileName = "theFileName";
@@ -742,7 +732,7 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.GetPriviledgedFileUriAsync(
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.GetPrivilegedFileUriAsync(
                     null,
                     fileName,
                     FileUriPermissions.Read,
@@ -755,7 +745,7 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.GetPriviledgedFileUriAsync(
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.GetPrivilegedFileUriAsync(
                     folderName,
                     null,
                     FileUriPermissions.Read,
@@ -769,7 +759,7 @@ namespace NuGetGallery
                 var service = CreateService();
 
                 DateTimeOffset inThePast = DateTimeOffset.UtcNow.AddSeconds(-1);
-                var ex = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => service.GetPriviledgedFileUriAsync(
+                var ex = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => service.GetPrivilegedFileUriAsync(
                     folderName,
                     fileName,
                     FileUriPermissions.Read,
@@ -788,11 +778,11 @@ namespace NuGetGallery
                 var blobUri = setupResult.Item3;
 
                 fakeBlob
-                    .Setup(b => b.GetSharedAccessSignature(SharedAccessBlobPermissions.Read, It.IsAny<DateTimeOffset?>()))
-                    .Returns(signature);
+                    .Setup(b => b.GetSharedAccessSignature(FileUriPermissions.Read, It.IsAny<DateTimeOffset>()))
+                    .ReturnsAsync(signature);
                 var service = CreateService(fakeBlobClient);
 
-                var uri = await service.GetPriviledgedFileUriAsync(
+                var uri = await service.GetPrivilegedFileUriAsync(
                     containerName,
                     fileName,
                     FileUriPermissions.Read,
@@ -815,14 +805,14 @@ namespace NuGetGallery
 
                 fakeBlob
                     .Setup(b => b.GetSharedAccessSignature(
-                        SharedAccessBlobPermissions.Read | SharedAccessBlobPermissions.Delete,
+                        FileUriPermissions.Read | FileUriPermissions.Delete,
                         endOfAccess))
-                    .Returns(signature)
+                    .ReturnsAsync(signature)
                     .Verifiable();
 
                 var service = CreateService(fakeBlobClient);
 
-                var uri = await service.GetPriviledgedFileUriAsync(
+                var uri = await service.GetPrivilegedFileUriAsync(
                     folderName,
                     fileName,
                     FileUriPermissions.Read | FileUriPermissions.Delete,
@@ -831,11 +821,11 @@ namespace NuGetGallery
                 string expectedUri = new Uri(blobUri, signature).AbsoluteUri;
                 Assert.Equal(expectedUri, uri.AbsoluteUri);
                 fakeBlob.Verify(
-                    b => b.GetSharedAccessSignature(SharedAccessBlobPermissions.Read | SharedAccessBlobPermissions.Delete, endOfAccess),
+                    b => b.GetSharedAccessSignature(FileUriPermissions.Read | FileUriPermissions.Delete, endOfAccess),
                     Times.Once);
                 fakeBlob.Verify(
-                    b => b.GetSharedAccessSignature(It.IsAny<SharedAccessBlobPermissions>(),
-                    It.IsAny<DateTimeOffset?>()), Times.Once);
+                    b => b.GetSharedAccessSignature(It.IsAny<FileUriPermissions>(),
+                    It.IsAny<DateTimeOffset>()), Times.Once);
             }
 
             private static Tuple<Mock<ICloudBlobClient>, Mock<ISimpleCloudBlob>, Uri> Setup(string folderName, string fileName)
@@ -911,8 +901,8 @@ namespace NuGetGallery
                 var blobUri = setupResult.Item3;
 
                 fakeBlob
-                    .Setup(b => b.GetSharedAccessSignature(SharedAccessBlobPermissions.Read, It.IsAny<DateTimeOffset?>()))
-                    .Returns(signature);
+                    .Setup(b => b.GetSharedAccessSignature(FileUriPermissions.Read, It.IsAny<DateTimeOffset>()))
+                    .ReturnsAsync(signature);
                 var fakeFolderInformationProvider = new Mock<ICloudBlobContainerInformationProvider>();
                 fakeFolderInformationProvider
                     .Setup(fip => fip.IsPublicContainer(containerName))
@@ -966,8 +956,8 @@ namespace NuGetGallery
                 var blobUri = setupResult.Item3;
 
                 fakeBlob
-                    .Setup(b => b.GetSharedAccessSignature(SharedAccessBlobPermissions.Read, endOfAccess))
-                    .Returns(signature)
+                    .Setup(b => b.GetSharedAccessSignature(FileUriPermissions.Read, endOfAccess))
+                    .ReturnsAsync(signature)
                     .Verifiable();
 
                 var service = CreateService(fakeBlobClient);
@@ -976,8 +966,8 @@ namespace NuGetGallery
 
                 string expectedUri = new Uri(blobUri, signature).AbsoluteUri;
                 Assert.Equal(expectedUri, uri.AbsoluteUri);
-                fakeBlob.Verify(b => b.GetSharedAccessSignature(SharedAccessBlobPermissions.Read, endOfAccess), Times.Once);
-                fakeBlob.Verify(b => b.GetSharedAccessSignature(It.IsAny<SharedAccessBlobPermissions>(), It.IsAny<DateTimeOffset?>()), Times.Once);
+                fakeBlob.Verify(b => b.GetSharedAccessSignature(FileUriPermissions.Read, endOfAccess), Times.Once);
+                fakeBlob.Verify(b => b.GetSharedAccessSignature(It.IsAny<FileUriPermissions>(), It.IsAny<DateTimeOffset>()), Times.Once);
             }
 
             private static Tuple<Mock<ICloudBlobClient>, Mock<ISimpleCloudBlob>, Uri> Setup(string folderName, string fileName)
@@ -1006,15 +996,15 @@ namespace NuGetGallery
             private string _srcETag;
             private Uri _srcUri;
             private Uri _destUri;
-            private BlobProperties _srcProperties;
+            private Mock<ICloudBlobProperties> _srcProperties;
             private IDictionary<string, string> _srcMetadata;
             private string _destFolderName;
             private string _destFileName;
             private string _destETag;
-            private BlobProperties _destProperties;
+            private Mock<ICloudBlobProperties> _destProperties;
             private IDictionary<string, string> _destMetadata;
             private string _metadataSha512HashAlgorithmId;
-            private CopyState _destCopyState;
+            private Mock<ICloudBlobCopyState> _destCopyState;
             private Mock<ICloudBlobClient> _blobClient;
             private Mock<ICloudBlobContainer> _srcContainer;
             private Mock<ICloudBlobContainer> _destContainer;
@@ -1028,14 +1018,14 @@ namespace NuGetGallery
                 _srcFileName = "4b6f16cc-7acd-45eb-ac21-33f0d927ec14/nuget.versioning.4.5.0.nupkg";
                 _srcETag = "\"src-etag\"";
                 _srcUri = new Uri("https://srcexample/srcpackage.nupkg");
-                _srcProperties = new BlobProperties();
+                _srcProperties = new Mock<ICloudBlobProperties>();
                 _destFolderName = "packages";
                 _destFileName = "nuget.versioning.4.5.0.nupkg";
                 _destETag = "\"dest-etag\"";
                 _destUri = new Uri("https://destexample/destpackage.nupkg");
-                _destProperties = new BlobProperties();
-                _destCopyState = new CopyState();
-                SetDestCopyStatus(CopyStatus.Success);
+                _destProperties = new Mock<ICloudBlobProperties>();
+                _destCopyState = new Mock<ICloudBlobCopyState>();
+                SetDestCopyStatus(CloudBlobCopyStatus.Success);
                 _metadataSha512HashAlgorithmId = CoreConstants.Sha512HashAlgorithmId;
 
                 _srcMetadata = new Dictionary<string, string>();
@@ -1065,7 +1055,7 @@ namespace NuGetGallery
                     .Returns(() => _srcETag);
                 _srcBlobMock
                     .Setup(x => x.Properties)
-                    .Returns(() => _srcProperties);
+                    .Returns(() => _srcProperties.Object);
                 _srcBlobMock
                     .Setup(x => x.Metadata)
                     .Returns(() => _srcMetadata);
@@ -1077,10 +1067,10 @@ namespace NuGetGallery
                     .Returns(() => _destETag);
                 _destBlobMock
                     .Setup(x => x.Properties)
-                    .Returns(() => _destProperties);
+                    .Returns(() => _destProperties.Object);
                 _destBlobMock
                     .Setup(x => x.CopyState)
-                    .Returns(() => _destCopyState);
+                    .Returns(() => _destCopyState.Object);
                 _destBlobMock
                     .Setup(x => x.Metadata)
                     .Returns(() => _destMetadata);
@@ -1100,11 +1090,11 @@ namespace NuGetGallery
                     .Returns(_srcBlobMock.Object);
 
                 _destBlobMock
-                    .Setup(x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()))
+                    .Setup(x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<IAccessCondition>(), It.IsAny<IAccessCondition>()))
                     .Returns(Task.FromResult(0))
-                    .Callback<ISimpleCloudBlob, AccessCondition, AccessCondition>((_, __, ___) =>
+                    .Callback<ISimpleCloudBlob, IAccessCondition, IAccessCondition>((_, __, ___) =>
                     {
-                        SetDestCopyStatus(CopyStatus.Success);
+                        SetDestCopyStatus(CloudBlobCopyStatus.Success);
                     });
 
                 // Act
@@ -1116,10 +1106,10 @@ namespace NuGetGallery
 
                 // Assert
                 _destBlobMock.Verify(
-                    x => x.StartCopyAsync(_srcBlobMock.Object, It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()),
+                    x => x.StartCopyAsync(_srcBlobMock.Object, It.IsAny<IAccessCondition>(), It.IsAny<IAccessCondition>()),
                     Times.Once);
                 _destBlobMock.Verify(
-                    x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()),
+                    x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<IAccessCondition>(), It.IsAny<IAccessCondition>()),
                     Times.Once);
                 _blobClient.Verify(
                     x => x.GetBlobFromUri(_srcUri),
@@ -1130,14 +1120,14 @@ namespace NuGetGallery
             public async Task WillCopyTheFileIfDestinationDoesNotExist()
             {
                 // Arrange
-                AccessCondition srcAccessCondition = null;
-                AccessCondition destAccessCondition = null;
+                IAccessCondition srcAccessCondition = null;
+                IAccessCondition destAccessCondition = null;
                 ISimpleCloudBlob srcBlob = null;
 
                 _destBlobMock
-                    .Setup(x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()))
+                    .Setup(x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<IAccessCondition>(), It.IsAny<IAccessCondition>()))
                     .Returns(Task.FromResult(0))
-                    .Callback<ISimpleCloudBlob, AccessCondition, AccessCondition>((b, s, d) =>
+                    .Callback<ISimpleCloudBlob, IAccessCondition, IAccessCondition>((b, s, d) =>
                     {
                         srcBlob = b;
                         srcAccessCondition = s;
@@ -1154,7 +1144,7 @@ namespace NuGetGallery
 
                 // Assert
                 _destBlobMock.Verify(
-                    x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()),
+                    x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<IAccessCondition>(), It.IsAny<IAccessCondition>()),
                     Times.Once);
                 Assert.Equal(_srcFileName, srcBlob.Name);
                 Assert.Equal(_srcETag, srcAccessCondition.IfMatchETag);
@@ -1166,8 +1156,8 @@ namespace NuGetGallery
             {
                 // Arrange
                 _destBlobMock
-                    .Setup(x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()))
-                    .Throws(new StorageException(new RequestResult { HttpStatusCode = (int)HttpStatusCode.Conflict }, "Conflict!", inner: null));
+                    .Setup(x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<IAccessCondition>(), It.IsAny<IAccessCondition>()))
+                    .Throws(new CloudBlobConflictException(null));
 
                 // Act & Assert
                 await Assert.ThrowsAsync<FileAlreadyExistsException>(
@@ -1183,31 +1173,38 @@ namespace NuGetGallery
             public async Task WillCopyTheFileIfDestinationHasFailedCopy()
             {
                 // Arrange
-                AccessCondition srcAccessCondition = null;
-                AccessCondition destAccessCondition = null;
+                IAccessCondition srcAccessCondition = null;
+                IAccessCondition destAccessCondition = null;
                 ISimpleCloudBlob srcBlob = null;
 
-                SetDestCopyStatus(CopyStatus.Failed);
+                SetDestCopyStatus(CloudBlobCopyStatus.Failed);
 
                 _destBlobMock
-                    .Setup(x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()))
+                    .Setup(x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<IAccessCondition>(), It.IsAny<IAccessCondition>()))
                     .Returns(Task.FromResult(0))
-                    .Callback<ISimpleCloudBlob, AccessCondition, AccessCondition>((b, s, d) =>
+                    .Callback<ISimpleCloudBlob, IAccessCondition, IAccessCondition>((b, s, d) =>
                     {
                         srcBlob = b;
                         srcAccessCondition = s;
                         destAccessCondition = d;
-                        SetDestCopyStatus(CopyStatus.Pending);
+                        SetDestCopyStatus(CloudBlobCopyStatus.Pending);
                     });
 
                 _destBlobMock
                     .Setup(x => x.ExistsAsync())
                     .ReturnsAsync(true);
 
+                var numCalls = 0;
                 _destBlobMock
                     .Setup(x => x.FetchAttributesAsync())
                     .Returns(Task.FromResult(0))
-                    .Callback(() => SetDestCopyStatus(CopyStatus.Success));
+                    .Callback(() =>
+                    {
+                        if (++numCalls == 2)
+                        {
+                            SetDestCopyStatus(CloudBlobCopyStatus.Success);
+                        } 
+                    });
 
                 // Act
                 var srcETag = await _target.CopyFileAsync(
@@ -1219,7 +1216,7 @@ namespace NuGetGallery
 
                 // Assert
                 _destBlobMock.Verify(
-                    x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()),
+                    x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<IAccessCondition>(), It.IsAny<IAccessCondition>()),
                     Times.Once);
                 Assert.Equal(_srcETag, srcETag);
                 Assert.Equal(_srcFileName, srcBlob.Name);
@@ -1231,18 +1228,18 @@ namespace NuGetGallery
             public async Task WillDefaultToIfNotExists()
             {
                 // Arrange
-                AccessCondition srcAccessCondition = null;
-                AccessCondition destAccessCondition = null;
+                IAccessCondition srcAccessCondition = null;
+                IAccessCondition destAccessCondition = null;
                 ISimpleCloudBlob srcBlob = null;
                 _destBlobMock
-                    .Setup(x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()))
+                    .Setup(x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<IAccessCondition>(), It.IsAny<IAccessCondition>()))
                     .Returns(Task.FromResult(0))
-                    .Callback<ISimpleCloudBlob, AccessCondition, AccessCondition>((b, s, d) =>
+                    .Callback<ISimpleCloudBlob, IAccessCondition, IAccessCondition>((b, s, d) =>
                     {
                         srcBlob = b;
                         srcAccessCondition = s;
                         destAccessCondition = d;
-                        SetDestCopyStatus(CopyStatus.Success);
+                        SetDestCopyStatus(CloudBlobCopyStatus.Success);
                     });
 
                 // Act
@@ -1255,7 +1252,7 @@ namespace NuGetGallery
 
                 // Assert
                 _destBlobMock.Verify(
-                    x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()),
+                    x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<IAccessCondition>(), It.IsAny<IAccessCondition>()),
                     Times.Once);
                 Assert.Null(destAccessCondition.IfMatchETag);
                 Assert.Equal("*", destAccessCondition.IfNoneMatchETag);
@@ -1265,18 +1262,18 @@ namespace NuGetGallery
             public async Task UsesProvidedMatchETag()
             {
                 // Arrange
-                AccessCondition srcAccessCondition = null;
-                AccessCondition destAccessCondition = null;
+                IAccessCondition srcAccessCondition = null;
+                IAccessCondition destAccessCondition = null;
                 ISimpleCloudBlob srcBlob = null;
                 _destBlobMock
-                    .Setup(x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()))
+                    .Setup(x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<IAccessCondition>(), It.IsAny<IAccessCondition>()))
                     .Returns(Task.FromResult(0))
-                    .Callback<ISimpleCloudBlob, AccessCondition, AccessCondition>((b, s, d) =>
+                    .Callback<ISimpleCloudBlob, IAccessCondition, IAccessCondition>((b, s, d) =>
                     {
                         srcBlob = b;
                         srcAccessCondition = s;
                         destAccessCondition = d;
-                        SetDestCopyStatus(CopyStatus.Success);
+                        SetDestCopyStatus(CloudBlobCopyStatus.Success);
                     });
 
                 // Act
@@ -1289,7 +1286,7 @@ namespace NuGetGallery
 
                 // Assert
                 _destBlobMock.Verify(
-                    x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()),
+                    x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<IAccessCondition>(), It.IsAny<IAccessCondition>()),
                     Times.Once);
                 Assert.Equal("etag!", destAccessCondition.IfMatchETag);
                 Assert.Null(destAccessCondition.IfNoneMatchETag);
@@ -1302,7 +1299,7 @@ namespace NuGetGallery
                 SetBlobContentSha512(_srcMetadata, "mwgwUC0MwohHxgMmvQzO7A==");
                 SetBlobLength(_srcProperties, 42);
                 SetBlobContentSha512(_destMetadata, _srcMetadata[_metadataSha512HashAlgorithmId]);
-                SetBlobLength(_destProperties, _srcProperties.Length);
+                SetBlobLength(_destProperties, _srcProperties.Object.Length);
 
                 _destBlobMock
                     .Setup(x => x.ExistsAsync())
@@ -1318,7 +1315,7 @@ namespace NuGetGallery
 
                 // Assert
                 _destBlobMock.Verify(
-                    x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()),
+                    x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<IAccessCondition>(), It.IsAny<IAccessCondition>()),
                     Times.Never);
             }
 
@@ -1357,7 +1354,7 @@ namespace NuGetGallery
 
                 // Assert
                 _destBlobMock.Verify(
-                    x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()),
+                    x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<IAccessCondition>(), It.IsAny<IAccessCondition>()),
                     Times.Once);
             }
 
@@ -1366,15 +1363,15 @@ namespace NuGetGallery
             {
                 // Arrange
                 _destBlobMock
-                    .Setup(x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()))
+                    .Setup(x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<IAccessCondition>(), It.IsAny<IAccessCondition>()))
                     .Returns(Task.FromResult(0))
-                    .Callback<ISimpleCloudBlob, AccessCondition, AccessCondition>((_, __, ___) =>
+                    .Callback<ISimpleCloudBlob, IAccessCondition, IAccessCondition>((_, __, ___) =>
                     {
-                        SetDestCopyStatus(CopyStatus.Failed);
+                        SetDestCopyStatus(CloudBlobCopyStatus.Failed);
                     });
 
                 // Act & Assert
-                var ex = await Assert.ThrowsAsync<StorageException>(
+                var ex = await Assert.ThrowsAsync<CloudBlobStorageException>(
                     () => _target.CopyFileAsync(
                         _srcFolderName,
                         _srcFileName,
@@ -1384,19 +1381,14 @@ namespace NuGetGallery
                 Assert.Contains("The blob copy operation had copy status Failed", ex.Message);
             }
 
-            private void SetDestCopyStatus(CopyStatus copyStatus)
+            private void SetDestCopyStatus(CloudBlobCopyStatus copyStatus)
             {
-                // We have to use reflection because the setter is not public.
-                typeof(CopyState)
-                    .GetProperty(nameof(CopyState.Status))
-                    .SetValue(_destCopyState, copyStatus, null);
+                _destCopyState.SetupGet(x => x.Status).Returns(copyStatus);
             }
 
-            private void SetBlobLength(BlobProperties properties, long length)
+            private void SetBlobLength(Mock<ICloudBlobProperties> properties, long length)
             {
-                typeof(BlobProperties)
-                    .GetProperty(nameof(BlobProperties.Length))
-                    .SetValue(properties, length, null);
+                properties.SetupGet(x => x.Length).Returns(length);
             }
 
             private void SetBlobContentSha512(IDictionary<string, string> metadata, string contentSha512)
@@ -1422,7 +1414,7 @@ namespace NuGetGallery
 
                 _blobClient.Setup(x => x.GetContainerReference(It.IsAny<string>()))
                     .Returns(_blobContainer.Object);
-                _blobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<BlobContainerPermissions>()))
+                _blobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<bool>()))
                     .Returns(Task.FromResult(0));
                 _blobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>()))
                     .Returns(_blob.Object);
@@ -1433,8 +1425,8 @@ namespace NuGetGallery
             [Fact]
             public async Task WhenLazyStreamRead_ReturnsContent()
             {
-                _blob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>(), It.IsAny<AccessCondition>()))
-                    .Callback<Stream, AccessCondition>((stream, _) =>
+                _blob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>(), It.IsAny<IAccessCondition>()))
+                    .Callback<Stream, IAccessCondition>((stream, _) =>
                     {
                         using (var writer = new StreamWriter(stream, Encoding.UTF8, bufferSize: 4096, leaveOpen: true))
                         {
@@ -1488,7 +1480,7 @@ namespace NuGetGallery
             {
                 _blob.SetupGet(x => x.Metadata)
                     .Returns(new Dictionary<string, string>());
-                _blob.Setup(x => x.SetMetadataAsync(It.IsNotNull<AccessCondition>()))
+                _blob.Setup(x => x.SetMetadataAsync(It.IsNotNull<IAccessCondition>()))
                     .Returns(Task.FromResult(0));
 
                 await _service.SetMetadataAsync(
@@ -1524,7 +1516,7 @@ namespace NuGetGallery
 
                 _blobClient.Setup(x => x.GetContainerReference(It.IsAny<string>()))
                     .Returns(_blobContainer.Object);
-                _blobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<BlobContainerPermissions>()))
+                _blobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<bool>()))
                     .Returns(Task.FromResult(0));
                 _blobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>()))
                     .Returns(_blob.Object);
@@ -1535,8 +1527,8 @@ namespace NuGetGallery
             [Fact]
             public async Task WhenLazyStreamRead_ReturnsContent()
             {
-                _blob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>(), It.IsAny<AccessCondition>()))
-                    .Callback<Stream, AccessCondition>((stream, _) =>
+                _blob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>(), It.IsAny<IAccessCondition>()))
+                    .Callback<Stream, IAccessCondition>((stream, _) =>
                     {
                         using (var writer = new StreamWriter(stream, Encoding.UTF8, bufferSize: 4096, leaveOpen: true))
                         {
@@ -1568,7 +1560,7 @@ namespace NuGetGallery
             public async Task WhenReturnValueIsFalse_PropertyChangesAreNotPersisted()
             {
                 _blob.SetupGet(x => x.Properties)
-                    .Returns(new BlobProperties());
+                    .Returns(Mock.Of<ICloudBlobProperties>());
 
                 await _service.SetPropertiesAsync(
                     folderName: CoreConstants.Folders.PackagesFolderName,
@@ -1589,8 +1581,8 @@ namespace NuGetGallery
             public async Task WhenReturnValueIsTrue_PropertiesChangesArePersisted()
             {
                 _blob.SetupGet(x => x.Properties)
-                    .Returns(new BlobProperties());
-                _blob.Setup(x => x.SetPropertiesAsync(It.IsNotNull<AccessCondition>()))
+                    .Returns(Mock.Of<ICloudBlobProperties>());
+                _blob.Setup(x => x.SetPropertiesAsync(It.IsNotNull<IAccessCondition>()))
                     .Returns(Task.FromResult(0));
 
                 await _service.SetPropertiesAsync(
@@ -1626,7 +1618,7 @@ namespace NuGetGallery
 
                 _blobClient.Setup(x => x.GetContainerReference(It.IsAny<string>()))
                     .Returns(_blobContainer.Object);
-                _blobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<BlobContainerPermissions>()))
+                _blobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<bool>()))
                     .Returns(Task.FromResult(0));
                 _blobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>()))
                     .Returns(_blob.Object);
@@ -1652,7 +1644,7 @@ namespace NuGetGallery
             public async Task VerifyETagIsNullWhenBlobDoesNotExist()
             {
                 // Arrange
-                _blob.Setup(x => x.FetchAttributesAsync()).ThrowsAsync(new StorageException("Boo"));
+                _blob.Setup(x => x.FetchAttributesAsync()).ThrowsAsync(new CloudBlobStorageException("Boo"));
 
                 // Act 
                 var etagValue = await _service.GetETagOrNullAsync(folderName: CoreConstants.Folders.PackagesFolderName, fileName: "a");

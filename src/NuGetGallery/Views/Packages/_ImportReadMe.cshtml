@@ -29,7 +29,7 @@
     <div class="collapse in" id="readme-package-form">
 
         <div id="readme-errors" class="hidden">
-            <div class="alert alert-danger">
+            <div class="alert alert-brand-danger">
                 <ul class="list-unstyled ms-Icon-ul">
                     <li>
                         <i class="ms-Icon ms-Icon--ErrorBadge" aria-hidden="true"></i>
@@ -40,7 +40,7 @@
         </div>
 
         <div id="readme-warnings" class="hidden">
-            <div class="alert alert-warning" role="alert" aria-live="assertive">
+            <div class="alert alert-brand-warning" role="alert" aria-live="assertive">
                 <ul class="list-unstyled ms-Icon-ul">
                     <li>
                         <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
@@ -60,7 +60,7 @@
             <div class="tab-content">
                 @ReadMePanel(
                         @<div class="form-group editable">
-                            <textarea class="form-control" data-bind="value: Edit.ReadMe.SourceText" name="Edit.ReadMe.SourceText" id="ReadMeTextInput"
+                            <textarea class="form-control textarea-brand" data-bind="value: Edit.ReadMe.SourceText" name="Edit.ReadMe.SourceText" id="ReadMeTextInput"
                                       rows="10" placeholder="Add Markdown Documentation here..." aria-label="Enter custom documentation.md">
                         </textarea>
                         </div>,
@@ -68,7 +68,7 @@
 
                 @ReadMePanel(
                         @<div class="form-group editable">
-                            <input type="url" data-bind="value: Edit.ReadMe.SourceUrl" name="Edit.ReadMe.SourceUrl" class="form-control" id="ReadMeUrlInput"
+                            <input type="url" data-bind="value: Edit.ReadMe.SourceUrl" name="Edit.ReadMe.SourceUrl" class="form-control input-brand" id="ReadMeUrlInput"
                                    placeholder="https://raw.githubusercontent.com/*.md" aria-label="Enter documentation.md URL" />
                             <label id="ReadMeURLLabel" class="input-group-btn"></label>
                         </div>,
@@ -76,10 +76,10 @@
 
                 @ReadMePanel(
                         @<div class="input-group">
-                            <input type="text" id="ReadMeFileText" class="form-control" value="Browse for a Markdown Documentation file..."
+                            <input type="text" id="ReadMeFileText" class="form-control input-brand" value="Browse for a Markdown Documentation file..."
                                    aria-label="Upload documentation.md file" readonly />
                             <label for="ReadMeFileInput" id="ReadMeFileLabel" class="input-group-btn">
-                                <span id="browse-for-readme-button" class="btn btn-primary form-control" tabindex="0" aria-label="Browse for a Markdown Documentation file" role="button">
+                                <span id="browse-for-readme-button" class="btn btn-brand" tabindex="0" aria-label="Browse for a Markdown Documentation file" role="button">
                                     Browse&hellip;<input type="file" accept=".md" data-bind="value: Edit.ReadMe.SourceFile" name="Edit.ReadMe.SourceFile" aria-labelledby="ReadMeFileLabel" id="ReadMeFileInput" style="display:none;" />
                                 </span>
                             </label>
@@ -98,13 +98,13 @@
 
         <div class="text-center hidden" id="edit-markdown">
             <div class="row">
-                <input type="button" value="Edit Documentation" id="edit-markdown-button" class="btn btn-primary col-xs-10 col-xs-offset-1 col-lg-2 col-lg-offset-5" />
+                <input type="button" value="Edit Documentation" id="edit-markdown-button" class="btn btn-brand col-xs-10 col-xs-offset-1 col-lg-2 col-lg-offset-5" />
             </div>
         </div>
 
         <div class="text-center" id="preview-html">
             <div class="row">
-                <input type="button" value="Preview" id="preview-readme-button" class="btn btn-primary col-xs-10 col-xs-offset-1 col-lg-2 col-lg-offset-5" />
+                <input type="button" value="Preview" id="preview-readme-button" class="btn btn-brand col-xs-10 col-xs-offset-1 col-lg-2 col-lg-offset-5" />
             </div>
         </div>
     </div>

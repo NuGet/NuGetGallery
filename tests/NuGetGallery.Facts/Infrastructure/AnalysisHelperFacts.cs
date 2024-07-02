@@ -26,8 +26,8 @@ namespace NuGetGallery.Infrastructure
         public void UnderstandsEmptyQueries()
         {
             var query = DoAnalysis(new NuGetSearchTerm {Field = "Description", TermOrPhrase = ""});
-            Assert.IsType<BooleanQuery>(query);
-            Assert.Empty(((BooleanQuery)query).Clauses);
+            var booleanQuery = Assert.IsType<BooleanQuery>(query);
+            Assert.Empty(booleanQuery.Clauses);
         }
 
         private Query DoAnalysis(NuGetSearchTerm st)

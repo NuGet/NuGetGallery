@@ -21,7 +21,7 @@ namespace NuGetGallery
                     || GetEnvironmentVariable(ConnectionStringBName, required: false) == null)
                 {
                     return $"Both the {ConnectionStringAName} and {ConnectionStringBName} environment variables " +
-                        $"need to be defined to run Azure Blob Storage integration tests.";
+                        "need to be defined to run Azure Blob Storage integration tests.";
                 }
 
                 return null;

@@ -156,9 +156,7 @@ namespace NuGetGallery.Auditing
                 return true;
             }
 
-            IPAddress value;
-
-            return IPAddress.TryParse(ipAddress, out value);
+            return IPAddress.TryParse(ipAddress, out _);
         }
     }
 }

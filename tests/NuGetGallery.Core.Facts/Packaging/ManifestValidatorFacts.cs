@@ -485,7 +485,7 @@ namespace NuGetGallery.Packaging
         {
             var nuspecStream = CreateNuspecStream(NuSpecDependencySetContainsInvalidId);
             
-            Assert.Equal(new[] { $"Invalid package version for a dependency with id 'jQuery' in package 'packageA.1.0.1-alpha': ''" }, GetErrors(nuspecStream));
+            Assert.Equal(new[] {"Invalid package version for a dependency with id 'jQuery' in package 'packageA.1.0.1-alpha': ''"}, GetErrors(nuspecStream));
         }
         
         [Fact]

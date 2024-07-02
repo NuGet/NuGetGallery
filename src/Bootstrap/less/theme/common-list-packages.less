@@ -1,4 +1,7 @@
 .list-packages {
+  .package-default-icon {
+    content: var(--default-package-icon, url(../img/default-package-icon-256x256.png));
+  }
 
   .package {
     .break-word;
@@ -9,17 +12,17 @@
     .package-header {
       .package-title {
         font-size: 24px;
-        font-weight: 300;
-        line-height: 0.9;
+        font-weight: 600;
+        line-height: .9;
 
         display: inline-block;
-        color: @link-color;
+        color: var(--brandForeground1Rest);
         width: auto;
         margin: 0px;
 
         &:hover,
         &:focus {
-          color: @link-hover-color;
+          color: var(--brandForegroundLinkHover);;
           text-decoration: @link-hover-decoration;
         }
       
@@ -34,16 +37,18 @@
         margin-left: 3px;
         vertical-align: top;
         width: 20px;
+        color: var(--brandBackground1Rest);
       }
 
       .edit-button {
         vertical-align: text-bottom;
         margin-left: 10px;
+        display: inline-flex;
       }
 
       .package-by {
         margin-left: @padding-small-horizontal;
-        color: @text-color;
+        color: var(--neutralForeground1Rest);
 
         @media (max-width: @screen-xs-min) {
           margin-left: 0;
@@ -64,8 +69,12 @@
 
     .package-details {
       margin-top: 8px;
-      color: @text-color;
+      color: var(--neutralForeground1Rest);
       line-height: 20px;
+      
+      a {
+        text-decoration: underline;
+    }
     }
   }
 }
@@ -75,30 +84,28 @@
   margin-bottom: 0px;
 }
 
-@severe-warning-background-color: rgb(254, 217, 204);
-@severe-warning-icon-color: rgb(216, 59, 1);
-@warning-background-color: rgb(255, 244, 206);
-@package-warning-color: rgb(50, 49, 48);
-@badge-border-radius: 2px;
-
 .package-warning {
   padding: 1px 8px;
-  border-radius: @badge-border-radius;
+  border-radius: 4px;
   margin-right: 5px;
-  color: @package-warning-color;
+  color: var(--neutralForeground1Rest);
 }
 
 .package-warning--vulnerable {
   .package-warning;
-  background-color: @severe-warning-background-color;
-  border: 1px solid darken(@severe-warning-background-color, 15%);
+  background-color: var(--statusDangerBackground1Rest);
+  border: 1px solid var(--statusDangerStroke1Rest);
   i {
-    color: @severe-warning-icon-color;
+    color: var(--statusDangerForeground3Rest);
   }
 }
 
 .package-warning--deprecated {
   .package-warning;
-  background-color: @warning-background-color;
-  border: 1px solid darken(@warning-background-color, 35%);
+  color: var(--neutralForeground1Rest);
+  background-color: var(--statusWarningBackground1Rest);
+  border: 1px solid var(--statusWarningStroke1Rest);
+  i {
+    color: var(--statusWarningForeground1Rest);
+  }
 }

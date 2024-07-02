@@ -24,7 +24,7 @@
     {
         <div class="row">
             <div class="@ViewHelpers.GetColumnClasses(ViewBag) text-center">
-                <button type="button" class="btn btn-default btn-block provider-button"
+                <button type="button" class="btn btn-brand-secondary btn-block provider-button"
                    onclick="window.location.href = '@Url.Authenticate(provider.ProviderName, (string)ViewData[GalleryConstants.ReturnUrlViewDataKey])'">
                     @if (!string.IsNullOrEmpty(@provider.UI.IconImagePath))
                     {

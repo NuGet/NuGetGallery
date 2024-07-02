@@ -46,7 +46,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             return new EmailRecipients(
                 to: AccountToSendTo.EmailAllowed
                     ? new[] { AccountToSendTo.ToMailAddress() }
-                    : new MailAddress[0],
+                    : Array.Empty<MailAddress>(),
                 replyTo: new[] { AccountToReplyTo.ToMailAddress() });
         }
 

@@ -300,7 +300,7 @@ namespace NuGetGallery.Controllers
 
             // Assert
             AssertSemVer2PackagesFilteredFromResult(resultSet);
-            Assert.Equal(NonSemVer2Packages.Where(p => !p.IsPrerelease).Count(), resultSet.Count);
+            Assert.Equal(NonSemVer2Packages.Count(p => !p.IsPrerelease), resultSet.Count);
         }
 
         [Fact]

@@ -377,7 +377,7 @@ namespace NuGetGallery
                         new PackageValidation
                         {
                             ValidationStatus = ValidationStatus.Failed,
-                            PackageValidationIssues = new PackageValidationIssue[0],
+                            PackageValidationIssues = Array.Empty<PackageValidationIssue>(),
                         }
                     }
                 };

@@ -385,7 +385,7 @@ namespace NuGetGallery
                 Assert.Equal(unconfirmedEmailAddress, message.To[0].Address);
                 Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
                 Assert.Equal($"[{TestGalleryOwner.DisplayName}] Please verify your account", message.Subject);
-                Assert.Contains($"Thank you for {(isOrganization ? $"creating an organization on the" : $"registering with the")} {TestGalleryOwner.DisplayName}.", message.Body);
+                Assert.Contains($"Thank you for {(isOrganization ? "creating an organization on the" : "registering with the")} {TestGalleryOwner.DisplayName}.", message.Body);
                 Assert.Contains("http://example.com/confirmation-token-url", message.Body);
             }
         }
@@ -1310,8 +1310,8 @@ namespace NuGetGallery
 
                 var configurationService = GetConfigurationService();
                 var messageService = TestableMarkdownMessageService.Create(configurationService);
-                var packageUrl = $"https://packageUrl";
-                var supportUrl = $"https://supportUrl";
+                var packageUrl = "https://packageUrl";
+                var supportUrl = "https://supportUrl";
                 var announcementsUrl = "https://announcementsUrl";
                 var twitterUrl = "https://twitterUrl";
 
@@ -1345,7 +1345,7 @@ namespace NuGetGallery
                 }
                 else
                 {
-                    Assert.Contains($"You can reupload your package once you've fixed the issue with it.", message.Body);
+                    Assert.Contains("You can reupload your package once you've fixed the issue with it.", message.Body);
                 }
             }
 
@@ -1426,8 +1426,8 @@ namespace NuGetGallery
                 Assert.Contains($"[{TestGalleryOwner.DisplayName}] Package validation taking longer than expected - {packageRegistration.Id} {nugetVersion.ToNormalizedString()}", message.Subject);
                 Assert.Contains(
                     $"It is taking longer than expected for your package [{packageRegistration.Id} {nugetVersion.ToFullString()}]({packageUrl}) to get published." + Environment.NewLine + Environment.NewLine +
-                    $"We are looking into it and there is no action on you at this time. We’ll send you an email notification when your package has been published." + Environment.NewLine + Environment.NewLine +
-                    $"Thank you for your patience.", message.Body);
+                    "We are looking into it and there is no action on you at this time. We’ll send you an email notification when your package has been published." + Environment.NewLine + Environment.NewLine +
+                    "Thank you for your patience.", message.Body);
             }
 
             public static IEnumerable<object[]> EmailSettingsCombinations
@@ -1636,7 +1636,7 @@ namespace NuGetGallery
                 Assert.Equal($"[{TestGalleryOwner.DisplayName}] Organization transformation for account '{accountToTransform.Username}'", message.Subject);
                 Assert.Contains($"We have received a request to transform account '{accountToTransform.Username}' into an organization with user '{adminUser.Username}' as its admin.", message.Body);
                 Assert.Contains($"[{cancelUrl}]({cancelUrl})", message.Body);
-                Assert.Contains($"If you did not request this change, please contact support by responding to this email.", message.Body);
+                Assert.Contains("If you did not request this change, please contact support by responding to this email.", message.Body);
             }
 
             [Fact]
@@ -2170,8 +2170,8 @@ namespace NuGetGallery
                 Assert.Contains($"[{TestGalleryOwner.DisplayName}] Symbol package validation taking longer than expected - {packageRegistration.Id} {nugetVersion.ToNormalizedString()}", message.Subject);
                 Assert.Contains(
                     $"It is taking longer than expected for your symbol package [{packageRegistration.Id} {nugetVersion.ToFullString()}]({packageUrl}) to get published." + Environment.NewLine + Environment.NewLine +
-                    $"We are looking into it and there is no action on you at this time. We’ll send you an email notification when your symbol package has been published." + Environment.NewLine + Environment.NewLine +
-                    $"Thank you for your patience.", message.Body);
+                    "We are looking into it and there is no action on you at this time. We’ll send you an email notification when your symbol package has been published." + Environment.NewLine + Environment.NewLine +
+                    "Thank you for your patience.", message.Body);
             }
         }
 
@@ -2253,8 +2253,8 @@ namespace NuGetGallery
 
                 var configurationService = GetConfigurationService();
                 var messageService = TestableMarkdownMessageService.Create(configurationService);
-                var packageUrl = $"https://packageUrl";
-                var supportUrl = $"https://supportUrl";
+                var packageUrl = "https://packageUrl";
+                var supportUrl = "https://supportUrl";
                 var announcementsUrl = "https://announcementsUrl";
                 var twitterUrl = "https://twitterUrl";
 
@@ -2288,7 +2288,7 @@ namespace NuGetGallery
                 }
                 else
                 {
-                    Assert.Contains($"You can reupload your symbol package once you've fixed the issue with it.", message.Body);
+                    Assert.Contains("You can reupload your symbol package once you've fixed the issue with it.", message.Body);
                 }
             }
 

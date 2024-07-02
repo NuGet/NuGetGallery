@@ -22,7 +22,7 @@
         {
             <p class="transform-text">Since this is a team (DL-based) account, you must transform it to an organization on NuGet.org:</p>
             <div class="action-node">
-                <button type="button" class="btn btn-default btn-block action-button" onclick="window.location.href = '@Url.TransformAccount()'">
+                <button type="button" class="btn btn-brand-secondary btn-block action-button" onclick="window.location.href = '@Url.TransformAccount()'">
                     <span>Transform to an Organization</span>
                 </button>
             </div>
@@ -44,7 +44,7 @@
                 <b>Note:</b> No changes will be made to your account except for the authentication mechanism.
             </div>
             <div class="action-node">
-                <button type="button" class="btn btn-default btn-block action-button"  onclick="window.location.href = '@Url.AuthenticateExternal("/")'">
+                <button type="button" class="btn btn-brand-secondary btn-block action-button"  onclick="window.location.href = '@Url.AuthenticateExternal("/")'">
                     <img height="24" width="24" alt="" aria-hidden="true"
                          src="@Href("~/Content/gallery/img/microsoft-account.svg")"
                          @(!string.IsNullOrEmpty("~/Content/gallery/img/microsoft-account-24x24.png") ? (IHtmlString)ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/microsoft-account-24x24.png")) : new HtmlString(string.Empty)) />

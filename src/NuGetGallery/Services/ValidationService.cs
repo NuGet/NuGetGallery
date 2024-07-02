@@ -132,7 +132,7 @@ namespace NuGetGallery
 
         private IReadOnlyList<ValidationIssue> GetValidationIssues(int entityKey, PackageStatus status, ValidatingType validatingType)
         {
-            IReadOnlyList<ValidationIssue> issues = new ValidationIssue[0];
+            IReadOnlyList<ValidationIssue> issues = Array.Empty<ValidationIssue>();
 
             // Only query the database for validation issues if the package has failed validation.
             if (status == PackageStatus.FailedValidation)

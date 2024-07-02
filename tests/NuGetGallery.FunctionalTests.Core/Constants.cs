@@ -27,7 +27,6 @@ namespace NuGetGallery.FunctionalTests
         public const string RegisterNewUserConfirmationText = "Your account is now registered!";
         public const string UserAlreadyExistsText = "User already exists";
         public const string ReadOnlyModeRegisterNewUserText = "503 : Please try again later! (Read-only)";
-        public const string SearchTerm = "elmah";
         public const string CreateNewAccountText = "Create A New Account";
         public const string StatsPageDefaultText = "Statistics last updated";
         public const string ContactOwnersText = "Your message has been sent to the owners of";

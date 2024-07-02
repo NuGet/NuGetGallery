@@ -40,18 +40,18 @@
                     <div class="row form-flex">
                         <div class="form-group col-sm-5">
                             <label for="new-member-textbox">Enter username to add member</label>
-                            <input id="new-member-textbox" class="form-control" placeholder="Add existing NuGet.org user" data-bind="textInput: NewMemberUsername, submit: AddMember" aria-label="Enter username to add member" />
+                            <input id="new-member-textbox" class="form-control input-brand" placeholder="Add existing NuGet.org user" data-bind="textInput: NewMemberUsername, submit: AddMember" aria-label="Enter username to add member" />
                         </div>
                         <div class="form-group col-sm-3">
                             <label for="addMemberRole">Add member role</label>
-                            <select class="form-control" data-bind="value: AddMemberRole, options: RoleNames" aria-label="Role Filter" id="addMemberRole"></select>
+                            <select class="form-control select-brand" data-bind="value: AddMemberRole, options: RoleNames" aria-label="Role Filter" id="addMemberRole"></select>
                         </div>
                         <div class="col-sm-1 btn-row">
-                            <button class="btn btn-primary" type="submit" title="Add new member" aria-label="Add new member" data-bind="click: AddMember">Add</button>
+                            <button class="btn btn-brand" type="submit" title="Add new member" aria-label="Add new member" data-bind="click: AddMember">Add</button>
                         </div>
                     </div>
                 </form>
-                <div id="add-member-success-message" class="alert alert-success" role="alert"></div>
+                <div id="add-member-success-message" class="alert alert-brand-success" role="alert"></div>
                 <div data-bind="template: 'error-container'"></div>
             }
             <div class="table-container table-responsive">
@@ -83,7 +83,7 @@
                                         @if (Model.CanManageMemberships)
                                         {
 
-                                            <select class="form-control selectRole"
+                                            <select class="form-control selectRole select-brand"
                                                     data-bind="value: SelectedRole, options: OrganizationViewModel.RoleNames, event: { change: ToggleIsAdmin }, attr: { 'aria-label': 'Role for ' + Username }">
                                             </select>
                                         }
@@ -99,7 +99,7 @@
                                     <!-- ko if: IsCurrentUser || @(Model.CanManageMemberships ? "true" : "false") -->
                                     <div>
                                         <span>
-                                            <button class="btn-link" data-bind="click: DeleteMember, attr: { 'aria-label': 'Delete Member' }">
+                                            <button class="btn-brand-danger" data-bind="click: DeleteMember, attr: { 'aria-label': 'Delete Member' }">
                                                 <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
                                             </button>
                                         </span>

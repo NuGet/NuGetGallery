@@ -93,7 +93,7 @@ namespace NuGetGallery
 
             var builder = new StringBuilder();
 
-            builder.Append($"Signed with");
+            builder.Append("Signed with");
 
             if (signersCount == 1)
             {

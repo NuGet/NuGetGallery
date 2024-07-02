@@ -144,7 +144,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         {
             // Arrange.
             var namespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
-            var existingNamespace = namespaces.Where(rn => rn.Value.Equals(value, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+            var existingNamespace = namespaces.FirstOrDefault(rn => rn.Value.Equals(value, StringComparison.OrdinalIgnoreCase));
             var reservedNamespaceService = new TestableReservedNamespaceService(reservedNamespaces: namespaces);
             var packageRegistrations = new Mock<IEntityRepository<PackageRegistration>>();
             var controller = new ReservedNamespaceController(reservedNamespaceService, packageRegistrations.Object);
@@ -169,7 +169,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             // Arrange.
             var namespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
             var allUsers = ReservedNamespaceServiceTestData.GetTestUsers();
-            var existingNamespace = namespaces.Where(rn => rn.Value.Equals(value, StringComparison.OrdinalIgnoreCase)).FirstOrDefault() ?? new ReservedNamespace();
+            var existingNamespace = namespaces.FirstOrDefault(rn => rn.Value.Equals(value, StringComparison.OrdinalIgnoreCase)) ?? new ReservedNamespace();
             existingNamespace.Value = value;
             var reservedNamespaceService = new TestableReservedNamespaceService(reservedNamespaces: namespaces, users: allUsers);
             var packageRegistrations = new Mock<IEntityRepository<PackageRegistration>>();
@@ -190,7 +190,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             // Arrange.
             var namespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
             var allUsers = ReservedNamespaceServiceTestData.GetTestUsers();
-            var existingNamespace = namespaces.Where(rn => rn.Value.Equals(value, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+            var existingNamespace = namespaces.FirstOrDefault(rn => rn.Value.Equals(value, StringComparison.OrdinalIgnoreCase));
             var reservedNamespaceService = new TestableReservedNamespaceService(reservedNamespaces: namespaces, users: allUsers);
             var packageRegistrations = new Mock<IEntityRepository<PackageRegistration>>();
             var controller = new ReservedNamespaceController(reservedNamespaceService, packageRegistrations.Object);
@@ -216,7 +216,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             // Arrange.
             var namespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
             var allUsers = ReservedNamespaceServiceTestData.GetTestUsers();
-            var existingNamespace = namespaces.Where(rn => rn.Value.Equals(value, StringComparison.OrdinalIgnoreCase)).FirstOrDefault() ?? new ReservedNamespace();
+            var existingNamespace = namespaces.FirstOrDefault(rn => rn.Value.Equals(value, StringComparison.OrdinalIgnoreCase)) ?? new ReservedNamespace();
             existingNamespace.Value = value;
             var reservedNamespaceService = new TestableReservedNamespaceService(reservedNamespaces: namespaces, users: allUsers);
             var packageRegistrations = new Mock<IEntityRepository<PackageRegistration>>();
@@ -238,7 +238,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             var namespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
             var allUsers = ReservedNamespaceServiceTestData.GetTestUsers();
             var testUser = allUsers.First();
-            var existingNamespace = namespaces.Where(rn => rn.Value.Equals(value, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+            var existingNamespace = namespaces.FirstOrDefault(rn => rn.Value.Equals(value, StringComparison.OrdinalIgnoreCase));
             existingNamespace.Owners.Add(testUser);
             var reservedNamespaceService = new TestableReservedNamespaceService(reservedNamespaces: namespaces, users: allUsers);
             var packageRegistrations = new Mock<IEntityRepository<PackageRegistration>>();

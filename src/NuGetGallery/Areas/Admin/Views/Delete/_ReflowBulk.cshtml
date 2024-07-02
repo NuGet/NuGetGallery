@@ -15,11 +15,11 @@
     </p>
 
     <div>
-        @Html.TextAreaFor(m => m.BulkList, 10, 50, new { style = "width: 100%;" })
+        @Html.TextAreaFor(m => m.BulkList, 10, 50, new { style = "width: 100%;", @class = "textarea-brand" })
         @Html.ValidationMessageFor(m => m.BulkList)
     </div>
 
     <br />
 
-    <input type="submit" value="Reflow these hard-deleted packages" title="Reflow these hard-deleted packages" />
+    <input type="submit" class="btn-brand-secondary" value="Reflow these hard-deleted packages" title="Reflow these hard-deleted packages" />
 }

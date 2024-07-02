@@ -57,7 +57,7 @@ namespace NuGetGallery
                 validatingType,
                 entityKey: entityKey);
 
-            var activityName = $"Enqueuing asynchronous package validation: " +
+            var activityName = "Enqueuing asynchronous package validation: " +
                 $"{data.ProcessValidationSet.PackageId} {data.ProcessValidationSet.PackageVersion} " +
                 $"{data.ProcessValidationSet.ValidatingType} ({data.ProcessValidationSet.ValidationTrackingId})";
             using (_diagnosticsSource.Activity(activityName))

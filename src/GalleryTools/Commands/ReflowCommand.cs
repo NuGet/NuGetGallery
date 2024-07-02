@@ -114,7 +114,7 @@ namespace GalleryTools.Commands
                     }
                     else
                     {
-                        Console.WriteLine($" not found.");
+                        Console.WriteLine(" not found.");
                     }
                 }
                 catch (Exception e)

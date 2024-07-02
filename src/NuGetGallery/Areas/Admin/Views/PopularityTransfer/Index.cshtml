@@ -35,7 +35,7 @@
 
 <section role="main" class="container main-container page-admin-popularity-transfers">
     <div class="row col-md-12" style="display:none" data-bind="visible: successMessage">
-        <div id="popularityTransferSuccessMessage" class="alert alert-success" role="alert" data-bind="text: successMessage"></div>
+        <div id="popularityTransferSuccessMessage" class="alert alert-brand-success" role="alert" data-bind="text: successMessage"></div>
     </div>
 
     <div>
@@ -47,14 +47,14 @@
                 <i>List the Package IDs you want to transfer popularity <b>from</b> and <b>to</b>.</i>
                 <div class="form-group col-md-12">
                     <label for="packagesFromInput" class="control-label">From</label>
-                    <textarea class="form-control" rows="5" id="packagesFromInput" name="packagesFromInput" placeholder="Package IDs to transfer popularity FROM, one per line" data-bind="value: packagesFromInput"></textarea>
+                    <textarea class="form-control textarea-brand" rows="5" id="packagesFromInput" name="packagesFromInput" placeholder="Package IDs to transfer popularity FROM, one per line" data-bind="value: packagesFromInput"></textarea>
                 </div>
                 <div class="form-group col-md-12">
                     <label for="packagesToInput" class="control-label">To</label>
-                    <textarea class="form-control" rows="5" id="packagesToInput" name="packagesToInput" placeholder="Package IDs to transfer popularity TO, one per line" data-bind="value: packagesToInput"></textarea>
+                    <textarea class="form-control textarea-brand" rows="5" id="packagesToInput" name="packagesToInput" placeholder="Package IDs to transfer popularity TO, one per line" data-bind="value: packagesToInput"></textarea>
                 </div>
                 <div class="form-group col-md-12">
-                    <button type="submit" class="btn btn-block btn-primary" data-bind="click: validateInputs">Validate input</button>
+                    <button type="submit" class="btn btn-block btn-brand" data-bind="click: validateInputs">Validate input</button>
                 </div>
             </form>
         </div>
@@ -86,7 +86,7 @@
         @AddPopularityTransferItemTable("existingPackageRenamesTransitive", "existingRenamesTransitiveResult", "existing popularity transfers for the selected packages")
 
         <div class="form-group col-md-12">
-            <button type="submit" class="btn btn-block btn-primary" data-bind="click: submitInputs">Submit changes</button>
+            <button type="submit" class="btn btn-block btn-brand" data-bind="click: submitInputs">Submit changes</button>
         </div>
     </div>
 </section>

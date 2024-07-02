@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -35,7 +36,7 @@ namespace NuGetGallery.Areas.Admin
                     yield return new object[] { "NuGet.Versioning\n", new[] { "NuGet.Versioning" } };
                     yield return new object[] { "NuGet.Versioning\r\t\n  \t NuGet.Frameworks  ", new[] { "NuGet.Versioning", "NuGet.Frameworks" } };
                     yield return new object[] { "a  \t  b\n  c    d  ", new[] { "a b", "c d" } };
-                    yield return new object[] { "\r\n\n\n", new string[0] };
+                    yield return new object[] { "\r\n\n\n", Array.Empty<string>() };
                 }
             }
         }

@@ -68,10 +68,8 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a href="@Url.Home()">
-                        <img class="navbar-logo" width="94" height="29" alt="NuGet home"
-                             src="~/Content/gallery/img/logo-header.svg"
-                             @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/logo-header-94x29.png")) />
+                    <a href="@Url.Home()" class="home-link">
+                        <div class="navbar-logo nuget-logo-image" alt="NuGet home" role="img" aria-label="NuGet Home" @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/logo-header-94x29.png"))></div>
                     </a>
                 </div>
                 <div id="navbar" class="navbar-collapse collapse">

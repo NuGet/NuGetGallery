@@ -29,6 +29,26 @@
     }
 
     @Styles.Render("~/Content/gallery/css/site.min.css")
+    @Styles.Render("~/Content/gallery/css/bootstrap.min.css")
+
+    <script>
+        // Check the browser preferred color scheme
+        const prefersDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const defaultTheme = prefersDarkMode ? "dark" : "light";
+        const preferredTheme = localStorage.getItem("theme")
+
+        // Check if the localStorage item is set, if not set it to the system theme
+        if (!preferredTheme || !(preferredTheme === "dark" || preferredTheme === "light")) {
+            localStorage.setItem("theme", "system");
+        }
+
+        if (preferredTheme === "light" || preferredTheme === "dark") {
+            document.documentElement.setAttribute('data-theme', preferredTheme);
+        }
+        else {
+            document.documentElement.setAttribute('data-theme', defaultTheme);
+        }
+    </script>
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -43,7 +63,7 @@
     @ViewHelpers.ReleaseMeta()
     @ViewHelpers.InstrumentationScript(ViewBag)
 </head>
-<body>
+<body id=@Url.Current()>
     @Html.Partial("Gallery/Header")
     <div id="skippedToContent">
     @RenderBody()
