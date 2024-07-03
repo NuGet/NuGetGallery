@@ -1997,7 +1997,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 packageStream.Position = 0;
 
                 _packageStream = packageStream;
-                File.WriteAllBytes("after.zip", packageStream.ToArray());
+                //File.WriteAllBytes("after.zip", packageStream.ToArray());
 
             }
             catch
