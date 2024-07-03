@@ -6,14 +6,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Azure.Storage.Blobs.Models;
+using NuGetGallery;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public interface ICloudBlockBlob
     {
-        string ContentMD5 { get; set; }
+        string ContentMD5 { get; }
         string ETag { get; }
         long Length { get; }
         Uri Uri { get; }
@@ -22,6 +22,6 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         Task FetchAttributesAsync(CancellationToken cancellationToken);
         Task<IReadOnlyDictionary<string, string>> GetMetadataAsync(CancellationToken cancellationToken);
         Task<Stream> GetStreamAsync(CancellationToken cancellationToken);
-        Task SetPropertiesAsync(AccessCondition accessCondition, BlobRequestOptions options, OperationContext operationContext);
+        Task SetPropertiesAsync(IAccessCondition accessCondition, BlobRequestConditions blobRequestConditions, CloudBlobLocationMode? cloudBlobLocationMode);
     }
 }

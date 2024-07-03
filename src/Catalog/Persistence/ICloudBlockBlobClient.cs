@@ -7,6 +7,6 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public interface ICloudBlockBlobClient
     {
-        BlobClientOptions ClientOptions { get; set; }
+        BlobClientOptions DefaultClientOptions { get; set; }
     }
 }

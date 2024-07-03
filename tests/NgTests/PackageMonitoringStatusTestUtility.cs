@@ -1,13 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json.Linq;
 using NuGet.Packaging.Core;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Monitoring;
 using NuGet.Versioning;
+using NuGetGallery;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -243,18 +243,18 @@ namespace NgTests
             AssertFieldEqual(expected, actual, i => i.Exception, AssertException);
         }
 
-        public static void AssertAccessCondition(AccessCondition expected, AccessCondition actual)
+        public static void AssertAccessCondition(IAccessCondition expected, IAccessCondition actual)
         {
-            AssertFieldEqual(expected, actual, i => i.LeaseId);
-            AssertFieldEqual(expected, actual, i => i.IfModifiedSinceTime);
+            //AssertFieldEqual(expected, actual, i => i.LeaseId);
+            //AssertFieldEqual(expected, actual, i => i.IfModifiedSinceTime);
             AssertFieldEqual(expected, actual, i => i.IfNoneMatchETag);
             AssertFieldEqual(expected, actual, i => i.IfMatchETag);
-            AssertFieldEqual(expected, actual, i => i.IfAppendPositionEqual);
-            AssertFieldEqual(expected, actual, i => i.IfSequenceNumberEqual);
-            AssertFieldEqual(expected, actual, i => i.IfSequenceNumberLessThanOrEqual);
-            AssertFieldEqual(expected, actual, i => i.IfSequenceNumberLessThan);
-            AssertFieldEqual(expected, actual, i => i.IfMaxSizeLessThanOrEqual);
-            AssertFieldEqual(expected, actual, i => i.IfNotModifiedSinceTime);
+            //AssertFieldEqual(expected, actual, i => i.IfAppendPositionEqual);
+            //AssertFieldEqual(expected, actual, i => i.IfSequenceNumberEqual);
+            //AssertFieldEqual(expected, actual, i => i.IfSequenceNumberLessThanOrEqual);
+            //AssertFieldEqual(expected, actual, i => i.IfSequenceNumberLessThan);
+            //AssertFieldEqual(expected, actual, i => i.IfMaxSizeLessThanOrEqual);
+            //AssertFieldEqual(expected, actual, i => i.IfNotModifiedSinceTime);
         }
 
         public static void AssertAll<T>(IEnumerable<T> expecteds, IEnumerable<T> actuals, Action<T, T> assert)

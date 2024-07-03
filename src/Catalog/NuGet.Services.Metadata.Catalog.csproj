@@ -65,6 +65,7 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Storage.Blobs" />
+    <PackageReference Include="NuGetGallery.Core" />
     <PackageReference Include="NuGet.Services.Entities" />
     <PackageReference Include="NuGet.Services.Logging" />
     <PackageReference Include="NuGet.Services.Sql" />

@@ -81,7 +81,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         {
             string path = (_path == null) ? name : _path + name;
 
-            path = (name == null) ? (_path == null ? String.Empty : _path.Trim('/')) : path;
+            path = (name == null) ? (_path == null ? string.Empty : _path.Trim('/')) : path;
 
             Uri newBase = _differentBaseAddress;
 
@@ -90,7 +90,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 newBase = new Uri(_differentBaseAddress, name + "/");
             }
 
-            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
+            BlobContainerClient blobContainerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
 
             return new AzureStorage(
                 blobContainerClient,

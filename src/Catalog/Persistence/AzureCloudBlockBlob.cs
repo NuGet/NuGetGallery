@@ -1,71 +1,73 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using NuGetGallery;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public sealed class AzureCloudBlockBlob : ICloudBlockBlob
     {
-        private readonly CloudBlockBlob _blob;
+        private readonly BlobClient _blobClient;
+        private BlobProperties _properties;
 
         /// <summary>
         /// The Base64 encoded MD5 hash of the blob's content
         /// </summary>
         public string ContentMD5
         {
-            get => _blob.Properties.ContentMD5;
-            set => _blob.Properties.ContentMD5 = value;
+            get => _properties.ContentHash != null ? Convert.ToBase64String(_properties.ContentHash) : null;
+            //set => _properties.ContentHash = value != null ? Convert.FromBase64String(value) : null;
         }
 
-        public string ETag => _blob.Properties.ETag;
-        public long Length => _blob.Properties.Length;
-        public Uri Uri => _blob.Uri;
+        public string ETag => _properties.ETag.ToString();
+        public long Length => _properties.ContentLength;
+        public Uri Uri => _blobClient.Uri;
 
-        public AzureCloudBlockBlob(CloudBlockBlob blob)
+        public AzureCloudBlockBlob(BlobClient blobClient)
         {
-            _blob = blob ?? throw new ArgumentNullException(nameof(blob));
+            _blobClient = blobClient ?? throw new ArgumentNullException(nameof(blobClient));
         }
 
         public async Task<bool> ExistsAsync(CancellationToken cancellationToken)
         {
-            return await _blob.ExistsAsync();
+            return await _blobClient.ExistsAsync(cancellationToken);
         }
 
         public async Task FetchAttributesAsync(CancellationToken cancellationToken)
         {
-            await _blob.FetchAttributesAsync(
-                accessCondition: null,
-                options: null,
-                operationContext: null,
-                cancellationToken: cancellationToken);
+            _properties = await _blobClient.GetPropertiesAsync(cancellationToken: cancellationToken);
         }
 
         public async Task<IReadOnlyDictionary<string, string>> GetMetadataAsync(CancellationToken cancellationToken)
         {
-            return await Task.FromResult<IReadOnlyDictionary<string, string>>(
-                new ReadOnlyDictionary<string, string>(_blob.Metadata));
+            await FetchAttributesAsync(cancellationToken);
+            return new ReadOnlyDictionary<string, string>(_properties.Metadata);
         }
 
         public async Task<Stream> GetStreamAsync(CancellationToken cancellationToken)
         {
-            return await _blob.OpenReadAsync(
-                accessCondition: null,
-                options: null,
-                operationContext: null,
-                cancellationToken: cancellationToken);
+            // Should we use one of the wrappers here?
+            Stream response = await _blobClient.OpenReadAsync(new BlobOpenReadOptions(false), cancellationToken);
+            return response;
         }
 
-        public async Task SetPropertiesAsync(AccessCondition accessCondition, BlobRequestOptions options, OperationContext operationContext)
+        public async Task SetPropertiesAsync(IAccessCondition accessCondition, BlobRequestConditions blobRequestConditions, CloudBlobLocationMode? cloudBlobLocationMode)
         {
-            await _blob.SetPropertiesAsync(accessCondition, options, operationContext);
+            // ??? Not sure how accessCondition is used here and first parameter is null
+            await _blobClient.SetHttpHeadersAsync(null, blobRequestConditions);
+            await _blobClient.SetMetadataAsync(null, blobRequestConditions);
         }
     }
 }
+

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Storage.Blobs;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Services.Metadata.Catalog;
@@ -74,13 +75,12 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             // Log information about where state will be kept.
             _logger.LogInformation(
                 "Using storage URL: {ContainerUrl}/{StoragePath}",
-                CloudStorageAccount.Parse(_options.Value.StorageConnectionString)
-                    .CreateCloudBlobClient()
-                    .GetContainerReference(_options.Value.StorageContainer)
+                new BlobServiceClient(_options.Value.StorageConnectionString)
+                    .GetBlobContainerClient(_options.Value.StorageContainer)
                     .Uri
                     .AbsoluteUri,
                 _options.Value.NormalizeStoragePath());
-            _logger.LogInformation("Using cursor: {CursurUrl}", frontCursorUri.AbsoluteUri);
+            _logger.LogInformation("Using cursor: {CursorUrl}", frontCursorUri.AbsoluteUri);
             _logger.LogInformation("Using search service: {SearchServiceName}", _options.Value.SearchServiceName);
             _logger.LogInformation("Using search index: {IndexName}", _options.Value.SearchIndexName);
             _logger.LogInformation("Using hijack index: {IndexName}", _options.Value.HijackIndexName);

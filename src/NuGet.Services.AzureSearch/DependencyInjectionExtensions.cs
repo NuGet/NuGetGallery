@@ -138,9 +138,9 @@ namespace NuGet.Services.AzureSearch
                 {
                     var options = c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>();
                     BlobServiceClient blobServiceClient = c.ResolveKeyed<BlobServiceClient>(key);
-                    BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient(options.Value.StorageContainer);
                     return new AzureStorageFactory(
-                        containerClient,
+                        blobServiceClient,
+                        options.Value.StorageContainer,
                         maxExecutionTime: AzureStorage.DefaultMaxExecutionTime,
                         serverTimeout: AzureStorage.DefaultServerTimeout,
                         path: options.Value.NormalizeStoragePath(),

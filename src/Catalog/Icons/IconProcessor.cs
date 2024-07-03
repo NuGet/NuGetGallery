@@ -9,9 +9,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.WindowsAzure.Storage;
 using NuGet.Common;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using NuGetGallery;
 
 namespace NuGet.Services.Metadata.Catalog.Icons
 {
@@ -71,7 +71,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
             var iconUri = new Uri(destinationStorage.BaseAddress, destinationStoragePath);
             try
             {
-                await destinationStorage.DeleteAsync(iconUri, cancellationToken, new DeleteRequestOptionsWithAccessCondition(AccessCondition.GenerateIfExistsCondition()));
+                await destinationStorage.DeleteAsync(iconUri, cancellationToken, new DeleteRequestOptionsWithAccessCondition(AccessConditionWrapper.GenerateIfMatchCondition("*")));
             }
             catch
             {

@@ -8,8 +8,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using NuGetGallery;
 using Xunit;
 
 namespace NgTests.Infrastructure
@@ -81,7 +81,7 @@ namespace NgTests.Infrastructure
             if (content is StringStorageContentWithAccessCondition accessConditionContent)
             {
                 // Verify the access condition of this request.
-                var accessCondition = accessConditionContent.AccessCondition;
+                IAccessCondition accessCondition = accessConditionContent.AccessCondition;
                 AssertAccessCondition(resourceUri, accessCondition);
             }
 
@@ -167,21 +167,21 @@ namespace NgTests.Infrastructure
             }
         }
 
-        private void AssertAccessCondition(Uri resourceUri, AccessCondition accessCondition)
+        private void AssertAccessCondition(Uri resourceUri, IAccessCondition accessCondition)
         {
             Content.TryGetValue(resourceUri, out var existingContent);
-            if (IsAccessCondition(AccessCondition.GenerateEmptyCondition(), accessCondition))
+            if (IsAccessCondition(AccessConditionWrapper.GenerateEmptyCondition(), accessCondition))
             {
                 return;
             }
 
-            if (IsAccessCondition(AccessCondition.GenerateIfNotExistsCondition(), accessCondition))
+            if (IsAccessCondition(AccessConditionWrapper.GenerateIfNotExistsCondition(), accessCondition))
             {
                 Assert.Null(existingContent);
                 return;
             }
 
-            if (IsAccessCondition(AccessCondition.GenerateIfExistsCondition(), accessCondition))
+            if (IsAccessCondition(AccessConditionWrapper.GenerateIfMatchCondition("*"), accessCondition))
             {
                 Assert.NotNull(existingContent);
                 return;
@@ -190,7 +190,7 @@ namespace NgTests.Infrastructure
             if (existingContent is StringStorageContentWithETag eTagContent)
             {
                 var eTag = eTagContent.ETag;
-                if (IsAccessCondition(AccessCondition.GenerateIfMatchCondition(eTag), accessCondition))
+                if (IsAccessCondition(AccessConditionWrapper.GenerateIfMatchCondition(eTag), accessCondition))
                 {
                     return;
                 }
@@ -199,7 +199,7 @@ namespace NgTests.Infrastructure
             throw new InvalidOperationException("Could not validate access condition!");
         }
 
-        private static bool IsAccessCondition(AccessCondition expected, AccessCondition actual)
+        private static bool IsAccessCondition(IAccessCondition expected, IAccessCondition actual)
         {
             try
             {
