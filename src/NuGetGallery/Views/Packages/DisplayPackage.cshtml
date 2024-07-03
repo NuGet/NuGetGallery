@@ -1102,7 +1102,7 @@
                                 else
                                 {
                                     <a href="@Model.LicenseUrl"
-                                        data-track="outbound-license-url" title="Make sure you agree with the license" rel="nofollow">
+                                       data-track="outbound-license-url" title="Make sure you agree with the license" rel="nofollow">
                                         License Info
                                     </a>
                                 }
@@ -1134,8 +1134,8 @@
                         <li>
                             <i class="ms-Icon ms-Icon--FabricFolderSearch" aria-hidden="true" aria-label="@disclaimer" title="@disclaimer"></i>
                             <a href="@Model.NuGetPackageExplorerUrl" data-track="outbound-nugetpackageexplorer-url"
-                                aria-label="open in NuGet Package Explorer"
-                                title="Explore additional package info on NuGet Package Explorer" target="_blank" rel="nofollow noreferrer">
+                               aria-label="open in NuGet Package Explorer"
+                               title="Explore additional package info on NuGet Package Explorer" target="_blank" rel="nofollow noreferrer">
                                 Open in NuGet Package Explorer
                             </a>
                         </li>
@@ -1147,13 +1147,30 @@
 
                         <li>
                             <img class="icon"
-                                    aria-label="@disclaimer" title="@disclaimer"
-                                    src="@Url.Absolute("~/Content/gallery/img/fuget.svg")"
-                                    @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/fuget-32x32.png")) />
+                                 aria-label="@disclaimer" title="@disclaimer"
+                                 src="@Url.Absolute("~/Content/gallery/img/fuget.svg")"
+                                 @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/fuget-32x32.png")) />
                             <a href="@Model.FuGetUrl" data-track="outbound-fuget-url"
-                                aria-label="open in fuget.org explorer"
-                                title="Explore additional package info on fuget.org" target="_blank" rel="nofollow noreferrer">
+                               aria-label="open in fuget.org explorer"
+                               title="Explore additional package info on fuget.org" target="_blank" rel="nofollow noreferrer">
                                 Open in FuGet Package Explorer
+                            </a>
+                        </li>
+                    }
+
+                    @if (Model.CanDisplayDNDocsLink() && Model.ShowDetailsAndLinks)
+                    {
+                        var disclaimer = "dndocs.com is a 3rd party website, not controlled by Microsoft. This link is made available to you per the NuGet Terms of Use.";
+
+                        <li>
+                            <img class="icon"
+                                 aria-label="@disclaimer" title="@disclaimer"
+                                 src="@Url.Absolute("~/Content/gallery/img/dndocs.svg")"
+                                 @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/dndocs-32x32.png")) />
+                            <a href="@Model.DNDocsUrl" data-track="outbound-dndocs-url"
+                               aria-label="open in dndocs.com explorer"
+                               title="Explore API on dndocs.com" target="_blank" rel="nofollow noreferrer">
+                                Open in DNDocs API Explorer
                             </a>
                         </li>
                     }

@@ -295,6 +295,57 @@ namespace NuGetGallery.ViewModels
             Assert.False(model.CanDisplayFuGetLink());
         }
 
+        [Theory]
+        [InlineData("foo", "1.0.0", "https://dndocs.com/i/nuget/foo/1.0.0")]
+        [InlineData("foo", "1.1.0", "https://dndocs.com/i/nuget/foo/1.1.0")]
+        [InlineData("Foo.Bar", "1.1.0-bETa", "https://dndocs.com/i/nuget/Foo.Bar/1.1.0-bETa")]
+        public void ItInitializesDNDocsUrl(string packageId, string packageVersion, string expected)
+        {
+            var package = new Package
+            {
+                Version = packageVersion,
+                NormalizedVersion = packageVersion,
+                PackageRegistration = new PackageRegistration
+                {
+                    Id = packageId,
+                    Owners = Enumerable.Empty<User>().ToList(),
+                    Packages = Enumerable.Empty<Package>().ToList()
+                }
+            };
+
+            var model = CreateDisplayPackageViewModel(package, currentUser: null, packageKeyToDeprecation: null, readmeHtml: null);
+            Assert.Equal(expected, model.DNDocsUrl);
+        }
+
+
+        [Theory]
+        [InlineData(false, "https://dndocs.com/i/nuget/foo/1.0.0", true)]
+        [InlineData(true, "", true)]
+        [InlineData(true, null, true)]
+        [InlineData(true, "https://dndocs.com/i/nuget/foo/1.0.0", false)]
+        public void CannotDisplayDNDocsLinkWhenInvalid(bool isEnabled, string url, bool isAvailable)
+        {
+            var package = new Package
+            {
+                Version = "1.0.0",
+                NormalizedVersion = "1.0.0",
+                PackageRegistration = new PackageRegistration
+                {
+                    Id = "foo",
+                    Owners = Enumerable.Empty<User>().ToList(),
+                    Packages = Enumerable.Empty<Package>().ToList()
+                }
+            };
+
+            var model = CreateDisplayPackageViewModel(package, currentUser: null, packageKeyToDeprecation: null, readmeHtml: null);
+
+            model.IsDNDocsLinksEnabled = isEnabled;
+            model.DNDocsUrl = url;
+            model.Available = isAvailable;
+
+            Assert.False(model.CanDisplayDNDocsLink());
+        }
+
         [Fact]
         public void ItInitializesNuGetTrendsUrl()
         {

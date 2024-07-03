@@ -981,6 +981,7 @@ namespace NuGetGallery
             model.IsPackageDeprecationEnabled = isPackageDeprecationEnabled;
             model.IsPackageVulnerabilitiesEnabled = isPackageVulnerabilitiesEnabled;
             model.IsFuGetLinksEnabled = _featureFlagService.IsDisplayFuGetLinksEnabled();
+            model.IsDNDocsLinksEnabled = _featureFlagService.IsDisplayDNDocsLinksEnabled();
             model.IsNuGetPackageExplorerLinkEnabled = _featureFlagService.IsDisplayNuGetPackageExplorerLinkEnabled();
             model.IsNuGetTrendsLinksEnabled = _featureFlagService.IsDisplayNuGetTrendsLinksEnabled();
             model.IsPackageRenamesEnabled = _featureFlagService.IsPackageRenamesEnabled(currentUser);

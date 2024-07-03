@@ -78,6 +78,11 @@ namespace NuGetGallery
         bool IsDisplayFuGetLinksEnabled();
 
         /// <summary>
+        /// Whether or not a dndocs.com link is visible on a package's details page.
+        /// </summary>
+        bool IsDisplayDNDocsLinksEnabled();
+
+        /// <summary>
         /// Whether or not a nugettrends.com link is visible on a package's details page.
         /// </summary>
         bool IsDisplayNuGetTrendsLinksEnabled();

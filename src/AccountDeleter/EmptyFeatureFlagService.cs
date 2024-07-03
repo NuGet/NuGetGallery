@@ -71,6 +71,11 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
+        public bool IsDisplayDNDocsLinksEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsDisplayNuGetPackageExplorerLinkEnabled()
         {
             throw new NotImplementedException();

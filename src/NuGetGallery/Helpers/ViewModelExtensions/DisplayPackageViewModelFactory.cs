@@ -174,6 +174,12 @@ namespace NuGetGallery
                 viewModel.FuGetUrl = fugetReadyUrl;
             }
 
+            var dndocsUrl = $"https://dndocs.com/i/nuget/{package.Id}/{package.NormalizedVersion}";
+            if (PackageHelper.TryPrepareUrlForRendering(dndocsUrl, out string dndocsReadyUrl))
+            {
+                viewModel.DNDocsUrl = dndocsReadyUrl;
+            }
+
             var nugetPackageExplorerUrl = $"https://nuget.info/packages/{package.Id}/{package.NormalizedVersion}";
             if (PackageHelper.TryPrepareUrlForRendering(nugetPackageExplorerUrl, out string nugetPackageExplorerReadyUrl))
             {
