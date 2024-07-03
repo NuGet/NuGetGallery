@@ -18,9 +18,8 @@ pool:
 steps:
 - powershell: |-
     $body = @{
-      "templateParameters":
-      {
-        "NuGetGallerySubmoduleBranch": "$(Build.SourceBranchName)"
+      "templateParameters" = @{
+        "NuGetGallerySubmoduleBranch" = "$(Build.SourceBranchName)"
       }
     }
     $headers = @{ "Authorization" = "Bearer $env:ACCESS_TOKEN" };
