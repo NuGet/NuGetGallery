@@ -1818,7 +1818,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             Assert.Equal("The commitment-type-indication attribute contains an invalid combination of values.", typedIssue.ClientMessage);
         }
 
-        [AdminOnlyTheory(Skip = "https://github.com/orgs/NuGet/projects/21/views/1?filterQuery=backlog&pane=issue&itemId=69718292")]
+        [AdminOnlyTheory(Skip = "https://github.com/NuGet/Engineering/issues/5517")]
         [InlineData("MA0GCyqGSIb3DQEJEAYD")] // base64 of ASN.1 encoded "1.2.840.113549.1.9.16.6.3" OID.
         [InlineData(null)] // No commitment type.
         public async Task AllowsNonAuthorAndRepositoryCounterSignatures(string commitmentTypeOidBase64)
