@@ -1978,7 +1978,6 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         {
             try
             {
-                //File.WriteAllBytes("before.zip", packageStream.ToArray());
                 using (var zipFile = new ICSharpCode.SharpZipLib.Zip.ZipFile(packageStream))
                 {
                     zipFile.IsStreamOwner = false;
@@ -1997,8 +1996,6 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 packageStream.Position = 0;
 
                 _packageStream = packageStream;
-                //File.WriteAllBytes("after.zip", packageStream.ToArray());
-
             }
             catch
             {
