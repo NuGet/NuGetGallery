@@ -72,6 +72,20 @@ namespace NuGetGallery
             return new CloudBlobClientWrapper(storageConnectionString, tokenCredential, readAccessGeoRedundant, requestTimeout);
         }
 
+        public static CloudBlobClientWrapper UsingDefaultAzureCredential(
+            string storageConnectionString,
+            string clientId = null,
+            bool readAccessGeoRedundant = false,
+            TimeSpan? requestTimeout = null)
+        {
+            var options = new DefaultAzureCredentialOptions
+            {
+                ManagedIdentityClientId = clientId,
+            };
+            var tokenCredential = new DefaultAzureCredential();
+            return new CloudBlobClientWrapper(storageConnectionString, tokenCredential, readAccessGeoRedundant, requestTimeout);
+        }
+
         public ISimpleCloudBlob GetBlobFromUri(Uri uri)
         {
             // For Azure blobs, the query string is assumed to be the SAS token.

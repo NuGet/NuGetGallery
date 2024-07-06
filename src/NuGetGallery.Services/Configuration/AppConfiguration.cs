@@ -71,6 +71,10 @@ namespace NuGetGallery.Configuration
         /// </summary>
         public bool AzureStorageReadAccessGeoRedundant { get; set; }
 
+        public bool AzureStorageUseMsi { get; set; } = false;
+
+        public string AzureStorageMsiClientId { get; set; } = null;
+
         public TimeSpan FeatureFlagsRefreshInterval { get; set; }
 
         [DefaultValue(true)]

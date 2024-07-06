@@ -1432,7 +1432,35 @@ namespace NuGetGallery
             {
                 if (completedBindingKeys.Add(dependent.BindingKey))
                 {
-                    builder.RegisterInstance(new CloudBlobClientWrapper(dependent.AzureStorageConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
+                    CloudBlobClientWrapper blobClient;
+                    if (!configuration.Current.AzureStorageUseMsi)
+                    {
+                        blobClient = new CloudBlobClientWrapper(dependent.AzureStorageConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant);
+                    }
+                    else
+                    {
+                        if (string.IsNullOrWhiteSpace(configuration.Current.AzureStorageMsiClientId))
+                        {
+#if DEBUG
+                            blobClient = CloudBlobClientWrapper.UsingDefaultAzureCredential(
+                                dependent.AzureStorageConnectionString,
+                                readAccessGeoRedundant: configuration.Current.AzureStorageReadAccessGeoRedundant);
+#else
+                            blobClient = CloudBlobClientWrapper.UsingMsi(
+                                dependent.AzureStorageConnectionString,
+                                null,
+                                configuration.Current.AzureStorageReadAccessGeoRedundant);
+#endif
+                        }
+                        else
+                        {
+                            blobClient = CloudBlobClientWrapper.UsingMsi(
+                                dependent.AzureStorageConnectionString,
+                                configuration.Current.AzureStorageMsiClientId,
+                                configuration.Current.AzureStorageReadAccessGeoRedundant);
+                        }
+                    }
+                    builder.RegisterInstance(blobClient)
                         .AsSelf()
                         .As<ICloudBlobClient>()
                         .SingleInstance()
