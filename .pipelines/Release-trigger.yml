@@ -11,9 +11,19 @@ pr: none
 variables:
 - name: NugetMultifeedWarnLevel
   value: none
-  
+
 pool:
   vmImage: 'windows-latest'
 
 steps:
-- powershell: Write-Host "Dummy task"
+- powershell: |-
+    $body = @{
+      "templateParameters" = @{
+        "Branch" = "$(Build.SourceBranchName)"
+      }
+    }
+    $headers = @{ "Authorization" = "Bearer $env:ACCESS_TOKEN" };
+    $url = "$(System.CollectionUri)$(System.TeamProject)/_apis/pipelines/21269/runs?api-version=7.0"
+    Invoke-RestMethod -Uri $url -Method POST -Headers $headers -Body ($body | ConvertTo-Json) -ContentType "application/json"
+  env:
+    ACCESS_TOKEN: $(System.AccessToken)
