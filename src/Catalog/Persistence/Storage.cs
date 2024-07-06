@@ -8,8 +8,8 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
+using NuGetGallery;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
@@ -122,7 +122,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             {
                 await OnDeleteAsync(resourceUri, deleteRequestOptions, cancellationToken);
             }
-            catch (StorageException e)
+            catch (CloudBlobStorageException e)
             {
                 WebException webException = e.InnerException as WebException;
                 if (webException != null)

@@ -6,20 +6,20 @@ using NuGetGallery;
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     /// <summary>
-    /// Allows specifying an <see cref="AccessConditionWrapper"/> for use by <see cref="AzureStorage"/> in a <see cref="Storage.SaveAsync(System.Uri, StorageContent, System.Threading.CancellationToken)"/> operation.
+    /// Allows specifying an <see cref="AccessCondition"/> for use by <see cref="AzureStorage"/> in a <see cref="Storage.SaveAsync(System.Uri, StorageContent, System.Threading.CancellationToken)"/> operation.
     /// </summary>
-    public class StringStorageContentWithAccessConditionWrapper : StringStorageContent
+    public class StringStorageContentWithAccessCondition : StringStorageContent
     {
-        public StringStorageContentWithAccessConditionWrapper(
+        public StringStorageContentWithAccessCondition(
             string content, 
-            AccessConditionWrapper accessConditionWrapper, 
+            IAccessCondition accessCondition, 
             string contentType = "", 
             string cacheControl = "")
             : base(content, contentType, cacheControl)
         {
-            AccessConditionWrapper = accessConditionWrapper;
+            AccessCondition = accessCondition;
         }
 
-        public AccessConditionWrapper AccessConditionWrapper { get; }
+        public IAccessCondition AccessCondition { get; }
     }
 }

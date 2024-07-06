@@ -2,20 +2,21 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public interface ICloudBlobDirectory
     {
-        ICloudBlockBlobClient ServiceClient { get; }
-        CloudBlobContainer Container { get; }
+        BlobServiceClient ServiceClient { get; }
+        BlobContainerClient Container { get; }
         Uri Uri { get; }
 
-        CloudBlockBlob GetBlockBlobReference(string blobName);
-        Task<IEnumerable<IListBlobItem>> ListBlobsAsync(CancellationToken cancellationToken);
+        BlobClient GetBlobClient(string blobName);
+        Task<IEnumerable<BlobHierarchyItem>> ListBlobsAsync(CancellationToken cancellationToken);
     }
 }

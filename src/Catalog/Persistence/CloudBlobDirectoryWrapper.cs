@@ -5,31 +5,36 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using Azure.Storage.Blobs.Specialized;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public class CloudBlobDirectoryWrapper : ICloudBlobDirectory
     {
-        private readonly CloudBlobDirectory _blobDirectory;
+        private readonly BlobContainerClient _containerClient;
+        private readonly string _directoryPath;
 
-        public ICloudBlockBlobClient ServiceClient => new CloudBlockBlobClientWrapper(_blobDirectory.ServiceClient);
-        public CloudBlobContainer Container => _blobDirectory.Container;
-        public Uri Uri => _blobDirectory.Uri;
+        public BlobServiceClient ServiceClient => _containerClient.GetParentBlobServiceClient();
+        public BlobContainerClient Container => _containerClient;
+        public Uri Uri => new Uri(_containerClient.Uri, _directoryPath);
 
-        public CloudBlobDirectoryWrapper(CloudBlobDirectory blobDirectory)
+        public CloudBlobDirectoryWrapper(BlobServiceClient serviceClient, string containerName, string directoryPath)
         {
-            _blobDirectory = blobDirectory ?? throw new ArgumentNullException(nameof(blobDirectory));
+            _containerClient = serviceClient.GetBlobContainerClient(containerName) ?? throw new ArgumentNullException(nameof(containerName));
+            _directoryPath = directoryPath ?? throw new ArgumentNullException(nameof(directoryPath));
+            _directoryPath = directoryPath?.Trim('/') + '/';
         }
 
-        public CloudBlockBlob GetBlockBlobReference(string blobName)
+        public BlobClient GetBlobClient(string blobName)
         {
-            return _blobDirectory.GetBlockBlobReference(blobName);
+            return _containerClient.GetBlobClient(_directoryPath + blobName);
         }
 
-        public async Task<IEnumerable<IListBlobItem>> ListBlobsAsync(CancellationToken cancellationToken)
+        public async Task<IEnumerable<BlobHierarchyItem>> ListBlobsAsync(CancellationToken cancellationToken)
         {
-            return await _blobDirectory.ListBlobsAsync(cancellationToken);
+            return await _containerClient.ListBlobsAsync(_directoryPath, cancellationToken);
         }
     }
 }
