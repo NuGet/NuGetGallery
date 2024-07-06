@@ -4,32 +4,26 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 
 namespace NuGet.Services.Metadata.Catalog
 {
-    internal static class CloudBlobStorageExtensions
+    internal static class BlobStorageExtensions
     {
-        public static async Task<IEnumerable<IListBlobItem>> ListBlobsAsync(
-            this CloudBlobDirectory directory, CancellationToken cancellationToken)
+        public static async Task<IEnumerable<BlobHierarchyItem>> ListBlobsAsync(
+            this BlobContainerClient containerClient, string prefix, CancellationToken cancellationToken)
         {
-            var items = new List<IListBlobItem>();
-            BlobContinuationToken continuationToken = null;
-            do
-            {
-                var segment = await directory.ListBlobsSegmentedAsync(
-                    useFlatBlobListing: true, 
-                    blobListingDetails: BlobListingDetails.None,  
-                    maxResults: null, 
-                    currentToken:  continuationToken,
-                    options: null, 
-                    operationContext: null, 
-                    cancellationToken: cancellationToken);
+            var items = new List<BlobHierarchyItem>();
+            var resultSegment = containerClient.GetBlobsByHierarchyAsync(prefix: prefix).AsPages();
 
-                continuationToken = segment.ContinuationToken;
-                items.AddRange(segment.Results);
+            await foreach (Azure.Page<BlobHierarchyItem> blobPage in resultSegment.WithCancellation(cancellationToken))
+            {
+                foreach (BlobHierarchyItem blobItem in blobPage.Values)
+                {
+                    items.Add(blobItem);
+                }
             }
-            while (continuationToken != null && !cancellationToken.IsCancellationRequested);
 
             return items;
         }

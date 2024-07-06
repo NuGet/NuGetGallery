@@ -1,7 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.WindowsAzure.Storage;
+using Azure;
+using Azure.Storage.Blobs.Models;
+using NuGetGallery;
 using System;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
@@ -15,11 +17,25 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
     /// </summary>
     public class DeleteRequestOptionsWithAccessCondition : DeleteRequestOptions
     {
-        public DeleteRequestOptionsWithAccessCondition(AccessCondition accessCondition)
+        private readonly Lazy<BlobRequestConditions> _lazyBlobRequestConditions;
+
+        public DeleteRequestOptionsWithAccessCondition(IAccessCondition accessCondition)
         {
             AccessCondition = accessCondition ?? throw new ArgumentNullException(nameof(accessCondition));
+            _lazyBlobRequestConditions = new Lazy<BlobRequestConditions>(CreateBlobRequestConditions);
         }
 
-        public AccessCondition AccessCondition { get; }
+        public IAccessCondition AccessCondition { get; }
+
+        public BlobRequestConditions BlobRequestConditions => _lazyBlobRequestConditions.Value;
+
+        private BlobRequestConditions CreateBlobRequestConditions()
+        {
+            return new BlobRequestConditions
+            {
+                IfMatch = new ETag(AccessCondition.IfMatchETag),
+                IfNoneMatch = new ETag(AccessCondition.IfNoneMatchETag)
+            };
+        }
     }
 }
