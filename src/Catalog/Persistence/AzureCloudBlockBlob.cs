@@ -7,43 +7,55 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Azure.Storage.Blobs.Specialized;
 using NuGetGallery;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public sealed class AzureCloudBlockBlob : ICloudBlockBlob
     {
-        private readonly BlobClient _blobClient;
+        private readonly BlockBlobClient _blockBlobClient;
         private BlobProperties _properties;
 
         /// <summary>
         /// The Base64 encoded MD5 hash of the blob's content
         /// </summary>
-        public string ContentMD5
+        public async Task<string> GetContentMD5Async(CancellationToken cancellationToken)
         {
-            get => _properties.ContentHash != null ? Convert.ToBase64String(_properties.ContentHash) : null;
-            //set => _properties.ContentHash = value != null ? Convert.FromBase64String(value) : null;
+            await FetchAttributesAsync(cancellationToken);
+            return _properties.ContentHash != null ? Convert.ToBase64String(_properties.ContentHash) : null;
         }
 
-        public string ETag => _properties.ETag.ToString();
-        public long Length => _properties.ContentLength;
-        public Uri Uri => _blobClient.Uri;
-
-        public AzureCloudBlockBlob(BlobClient blobClient)
+        public async Task<string> GetETagAsync(CancellationToken cancellationToken)
         {
-            _blobClient = blobClient ?? throw new ArgumentNullException(nameof(blobClient));
+            await FetchAttributesAsync(cancellationToken);
+            return _properties.ETag.ToString();
+        }
+
+        public async Task<long> GetLengthAsync(CancellationToken cancellationToken)
+        {
+            await FetchAttributesAsync(cancellationToken);
+            return _properties.ContentLength;
+        }
+
+        public Uri Uri => _blockBlobClient.Uri;
+
+        public AzureCloudBlockBlob(BlockBlobClient blockBlobClient)
+        {
+            _blockBlobClient = blockBlobClient ?? throw new ArgumentNullException(nameof(blockBlobClient));
         }
 
         public async Task<bool> ExistsAsync(CancellationToken cancellationToken)
         {
-            return await _blobClient.ExistsAsync(cancellationToken);
+            return await _blockBlobClient.ExistsAsync(cancellationToken);
         }
 
         public async Task FetchAttributesAsync(CancellationToken cancellationToken)
         {
-            _properties = await _blobClient.GetPropertiesAsync(cancellationToken: cancellationToken);
+            _properties = await _blockBlobClient.GetPropertiesAsync(
+                conditions: null,
+                cancellationToken: cancellationToken);
         }
 
         public async Task<IReadOnlyDictionary<string, string>> GetMetadataAsync(CancellationToken cancellationToken)
@@ -54,17 +66,16 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         public async Task<Stream> GetStreamAsync(CancellationToken cancellationToken)
         {
-            // Should we use one of the wrappers here?
-            Stream response = await _blobClient.OpenReadAsync(new BlobOpenReadOptions(false), cancellationToken);
+            Stream response = await _blockBlobClient
+            .OpenReadAsync(
+                    new BlobOpenReadOptions(allowModifications: false), //a Azure.RequestFailedException will be thrown if the blob is modified, while it is being read from.
+                    cancellationToken: cancellationToken);
             return response;
         }
 
         public async Task SetPropertiesAsync(IAccessCondition accessCondition, BlobRequestConditions blobRequestConditions, CloudBlobLocationMode? cloudBlobLocationMode)
         {
-            // ??? Not sure how accessCondition is used here and first parameter is null
-            await _blobClient.SetHttpHeadersAsync(null, blobRequestConditions);
-            await _blobClient.SetMetadataAsync(null, blobRequestConditions);
+            throw new NotImplementedException();
         }
     }
 }
-

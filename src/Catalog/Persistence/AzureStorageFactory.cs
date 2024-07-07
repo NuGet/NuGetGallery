@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using Azure.Storage.Blobs;
 using NuGet.Protocol;
 
@@ -90,10 +93,9 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 newBase = new Uri(_differentBaseAddress, name + "/");
             }
 
-            BlobContainerClient blobContainerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
-
             return new AzureStorage(
-                blobContainerClient,
+                _blobServiceClient,
+                _containerName,
                 path,
                 newBase,
                 _maxExecutionTime,

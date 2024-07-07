@@ -12,8 +12,11 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public interface ICloudBlobDirectory
     {
+        BlobClientOptions ContainerOptions { get; }
         BlobServiceClient ServiceClient { get; }
         BlobContainerClient Container { get; }
+        string ContainerName { get; }
+        string DirectoryPrefix { get; }
         Uri Uri { get; }
 
         BlobClient GetBlobClient(string blobName);

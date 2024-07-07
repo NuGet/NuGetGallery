@@ -2,9 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
@@ -14,27 +14,43 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
     public class CloudBlobDirectoryWrapper : ICloudBlobDirectory
     {
         private readonly BlobContainerClient _containerClient;
-        private readonly string _directoryPath;
+        private readonly string _containerName;
+        private readonly string _directoryPrefix;
+        private BlobClientOptions _defaultClientOptions;
 
         public BlobServiceClient ServiceClient => _containerClient.GetParentBlobServiceClient();
         public BlobContainerClient Container => _containerClient;
-        public Uri Uri => new Uri(_containerClient.Uri, _directoryPath);
+        public Uri Uri => new Uri(_containerClient.Uri, _directoryPrefix);
+        public string ContainerName => _containerName;
+        public string DirectoryPrefix => _directoryPrefix;
+        public BlobClientOptions ContainerOptions => _defaultClientOptions;
 
-        public CloudBlobDirectoryWrapper(BlobServiceClient serviceClient, string containerName, string directoryPath)
+        public CloudBlobDirectoryWrapper(BlobServiceClient serviceClient, string containerName, string directoryPrefix, BlobClientOptions  blobClientOptions = null)
         {
+            _containerName = containerName ?? throw new ArgumentNullException(nameof(containerName));
+            _directoryPrefix = directoryPrefix ?? throw new ArgumentNullException(nameof(directoryPrefix));
+            _defaultClientOptions = new BlobClientOptions();
             _containerClient = serviceClient.GetBlobContainerClient(containerName) ?? throw new ArgumentNullException(nameof(containerName));
-            _directoryPath = directoryPath ?? throw new ArgumentNullException(nameof(directoryPath));
-            _directoryPath = directoryPath?.Trim('/') + '/';
+
+            if (blobClientOptions != null)
+            {
+                _defaultClientOptions = blobClientOptions;
+                // Extract necessary information
+                Uri serviceUri = _containerClient.Uri;
+                // Create a new BlobServiceClient instance with the new options, we couldn't change options for existing instance.
+                _containerClient = new BlobContainerClient(serviceUri, blobClientOptions);
+            }
         }
 
         public BlobClient GetBlobClient(string blobName)
         {
-            return _containerClient.GetBlobClient(_directoryPath + blobName);
+            return _containerClient.GetBlobClient(_directoryPrefix + blobName);
         }
 
+        // Assuming we'll use BlobHierarchyItem hierarchy items (with a virtual directory structure) over BlobItem(flat blobs)
         public async Task<IEnumerable<BlobHierarchyItem>> ListBlobsAsync(CancellationToken cancellationToken)
         {
-            return await _containerClient.ListBlobsAsync(_directoryPath, cancellationToken);
+            return await _containerClient.ListBlobsAsync(_directoryPrefix, cancellationToken);
         }
     }
 }

@@ -68,7 +68,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         {
             TraceMethod("SAVE", resourceUri);
 
-            string name = GetName(resourceUri);
+            string name = GetBlobName(resourceUri);
 
             string path = Path.Trim('\\') + '\\';
 
@@ -103,7 +103,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         protected override async Task<StorageContent> OnLoadAsync(Uri resourceUri, CancellationToken cancellationToken)
         {
-            string name = GetName(resourceUri);
+            string name = GetBlobName(resourceUri);
 
             string path = Path.Trim('\\') + '\\';
 
@@ -134,7 +134,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         protected override async Task OnDeleteAsync(Uri resourceUri, DeleteRequestOptions deleteRequestOptions, CancellationToken cancellationToken)
         {
-            string name = GetName(resourceUri);
+            string name = GetBlobName(resourceUri);
 
             string path = Path.Trim('\\') + '\\';
 

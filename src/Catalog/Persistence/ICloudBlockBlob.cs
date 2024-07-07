@@ -13,9 +13,9 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public interface ICloudBlockBlob
     {
-        string ContentMD5 { get; }
-        string ETag { get; }
-        long Length { get; }
+        Task<string> GetContentMD5Async(CancellationToken cancellationToken);
+        Task<string> GetETagAsync(CancellationToken cancellationToken);
+        Task<long> GetLengthAsync(CancellationToken cancellationToken);
         Uri Uri { get; }
 
         Task<bool> ExistsAsync(CancellationToken cancellationToken);

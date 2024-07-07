@@ -189,7 +189,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             return Task.FromResult(false);
         }
 
-        protected string GetName(Uri uri)
+        protected string GetBlobName(Uri uri)
         {
             var address = Uri.UnescapeDataString(BaseAddress.GetLeftPart(UriPartial.Path));
             if (!address.EndsWith("/"))
@@ -225,21 +225,21 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             if (Verbose)
             {
                 //The Uri depends on the storage implementation.
-                Uri storageUri = GetUri(GetName(resourceUri));
+                Uri storageUri = GetUri(GetBlobName(resourceUri));
                 Trace.WriteLine(String.Format("{0} {1}", method, storageUri));
             }
         }
 
         private string TraceException(string method, Uri resourceUri, Exception exception)
         {
-            string message = $"{method} EXCEPTION: {GetUri(GetName(resourceUri))} {exception.ToString()}";
+            string message = $"{method} EXCEPTION: {GetUri(GetBlobName(resourceUri))} {exception.ToString()}";
             Trace.WriteLine(message);
             return message;
         }
 
         private void TraceExecutionTime(string method, Uri resourceUri, long executionTimeInMilliseconds)
         {
-            string message = JsonConvert.SerializeObject(new { MethodName = method, StreamUri = GetUri(GetName(resourceUri)), ExecutionTimeInMilliseconds = executionTimeInMilliseconds });
+            string message = JsonConvert.SerializeObject(new { MethodName = method, StreamUri = GetUri(GetBlobName(resourceUri)), ExecutionTimeInMilliseconds = executionTimeInMilliseconds });
             Trace.WriteLine(message);
         }
     }
