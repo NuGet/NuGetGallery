@@ -149,6 +149,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="NuGet.Services.Storage" VersionOverride="2.121.0-ryuyu-newStorageSdk-9662298" />
     <PackageReference Include="Serilog.Sinks.File" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
