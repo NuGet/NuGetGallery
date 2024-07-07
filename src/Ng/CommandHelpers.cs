@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
+using Azure.Storage.Blobs;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
@@ -220,7 +221,7 @@ namespace Ng
                 var storageUseServerSideCopy = arguments.GetOrDefault<bool>(argumentNameMap[Arguments.StorageUseServerSideCopy]);
                 var storageInitializeContainer = arguments.GetOrDefault<bool>(argumentNameMap[Arguments.StorageInitializeContainer], defaultValue: true);
 
-                var account = GetCloudStorageAccount(storageAccountName, storageSuffix, arguments, argumentNameMap);
+                BlobServiceClient account = GetBlobServiceClient(storageAccountName, storageSuffix, arguments, argumentNameMap);
 
                 return new CatalogAzureStorageFactory(
                     account,
@@ -356,8 +357,8 @@ namespace Ng
             {
                 var storageAccountName = arguments.GetOrThrow<string>(Arguments.StorageAccountName);
                 var storageQueueName = arguments.GetOrDefault<string>(Arguments.StorageQueueName);
-                
-                var account = GetCloudStorageAccount(storageAccountName, endpointSuffix: null, arguments, ArgumentNames);
+
+                BlobServiceClient account = GetBlobServiceClient(storageAccountName, endpointSuffix: null, arguments, ArgumentNames);
                 return new StorageQueue<T>(new AzureStorageQueue(account, storageQueueName),
                     new JsonMessageSerializer<T>(JsonSerializerUtility.SerializerSettings), version);
             }
@@ -367,19 +368,24 @@ namespace Ng
             }
         }
 
-        private static CloudStorageAccount GetCloudStorageAccount(string storageAccountName, string endpointSuffix, IDictionary<string, string> arguments, IDictionary<string, string> argumentNameMap)
+        private static BlobServiceClient GetBlobServiceClient(string storageAccountName, string endpointSuffix, IDictionary<string, string> arguments, IDictionary<string, string> argumentNameMap)
         {
             var storageKeyValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageKeyValue]);
+
+            string connectionString;
 
             if (string.IsNullOrEmpty(storageKeyValue))
             {
                 var storageSasValue = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageSasValue]);
-                var credentialSas = new StorageCredentials(storageSasValue);
-                return new CloudStorageAccount(credentialSas, storageAccountName, endpointSuffix, useHttps: true);
+                connectionString = $"BlobEndpoint=https://{storageAccountName}.blob.core.windows.net/;SharedAccessSignature={storageSasValue}";
+            }
+            else
+            {
+                connectionString = $"DefaultEndpointsProtocol=https;AccountName={storageAccountName};AccountKey={storageKeyValue};EndpointSuffix={endpointSuffix}";
             }
 
-            var credentialKey = new StorageCredentials(storageAccountName, storageKeyValue);
-            return new CloudStorageAccount(credentialKey, endpointSuffix, useHttps: true);
+            return new BlobServiceClient(connectionString);
         }
+
     }
 }

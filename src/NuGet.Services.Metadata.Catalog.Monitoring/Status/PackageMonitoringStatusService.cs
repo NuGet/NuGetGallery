@@ -12,7 +12,7 @@ using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
-
+using NuGetGallery;
 using CatalogStorage = NuGet.Services.Metadata.Catalog.Persistence.Storage;
 
 namespace NuGet.Services.Metadata.Catalog.Monitoring
@@ -163,7 +163,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             await storage.SaveAsync(packageUri, storageContent, token);
         }
 
-        private async Task DeleteAsync(FeedPackageIdentity package, PackageState state, AccessCondition accessCondition, CancellationToken token)
+        private async Task DeleteAsync(FeedPackageIdentity package, PackageState state, IAccessCondition accessCondition, CancellationToken token)
         {
             var storage = GetStorage(state);
             if (!storage.Exists(GetPackageFileName(package)))
