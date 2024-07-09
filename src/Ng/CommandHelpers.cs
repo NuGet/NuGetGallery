@@ -359,7 +359,7 @@ namespace Ng
                 var storageAccountName = arguments.GetOrThrow<string>(Arguments.StorageAccountName);
                 var storageQueueName = arguments.GetOrDefault<string>(Arguments.StorageQueueName);
 
-                BlobServiceClient account = GetBlobServiceClient(storageAccountName, endpointSuffix: null, arguments, ArgumentNames);
+                QueueServiceClient account = GetQueueServiceClient(storageAccountName, endpointSuffix: null, arguments, ArgumentNames);
                 return new StorageQueue<T>(new AzureStorageQueue(account, storageQueueName),
                     new JsonMessageSerializer<T>(JsonSerializerUtility.SerializerSettings), version);
             }
@@ -404,7 +404,7 @@ namespace Ng
                 connectionString = $"DefaultEndpointsProtocol=https;AccountName={storageAccountName};AccountKey={storageKeyValue};EndpointSuffix={endpointSuffix}";
             }
 
-            return new BlobServiceClient(connectionString);
+            return new QueueServiceClient(connectionString);
         }
 
     }

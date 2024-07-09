@@ -58,7 +58,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         protected override async Task<StorageContent> OnLoadAsync(Uri resourceUri, CancellationToken cancellationToken)
         {
-            string name = GetName(resourceUri).TrimStart('/');
+            string name = GetBlobName(resourceUri).TrimStart('/');
 
             var blob = _blobContainer.GetBlockBlobClient(name);
             var properties = await blob.GetPropertiesAsync(cancellationToken: cancellationToken);
@@ -111,7 +111,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         protected override async Task OnSaveAsync(Uri resourceUri, StorageContent content, CancellationToken cancellationToken)
         {
-            string name = GetName(resourceUri);
+            string name = GetBlobName(resourceUri);
 
             var blob = _blobContainer.GetBlockBlobClient(name);
             var headers = new BlobHttpHeaders
