@@ -31,5 +31,14 @@ namespace NuGetGallery
             CopyStatus = null;
             CopyStatusDescription = null;
         }
+
+        public CloudBlobReadOnlyProperties(BlobDownloadDetails details)
+        {
+            LastModifiedUtc = details.LastModified.UtcDateTime;
+            Length = details.ContentLength;
+            IsSnapshot = false;
+            CopyStatus = details.CopyStatus;
+            CopyStatusDescription = details.CopyStatusDescription;
+        }
     }
 }

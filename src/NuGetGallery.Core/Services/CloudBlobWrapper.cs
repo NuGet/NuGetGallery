@@ -522,6 +522,7 @@ namespace NuGetGallery
             if (details != null)
             {
                 _lastSeenEtag = EtagToString(details.ETag);
+                BlobProperties = new CloudBlobReadOnlyProperties(details);
                 ReplaceHttpHeaders(details);
                 ReplaceMetadata(details.Metadata);
             }
