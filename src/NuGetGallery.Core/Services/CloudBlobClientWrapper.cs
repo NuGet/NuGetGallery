@@ -82,7 +82,7 @@ namespace NuGetGallery
             {
                 ManagedIdentityClientId = clientId,
             };
-            var tokenCredential = new DefaultAzureCredential();
+            var tokenCredential = new DefaultAzureCredential(options);
             return new CloudBlobClientWrapper(storageConnectionString, tokenCredential, readAccessGeoRedundant, requestTimeout);
         }
 
