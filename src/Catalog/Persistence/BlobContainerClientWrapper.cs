@@ -9,7 +9,7 @@ using Azure.Storage.Blobs.Specialized;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
-    public class BlobContainerClientWrapper : IBlobContainerClient
+    public class BlobContainerClientWrapper : IBlobContainerClientWrapper
     {
         private readonly BlobContainerClient _client;
 

@@ -24,7 +24,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         private readonly bool _compressContent;
         private readonly IThrottle _throttle;
         private readonly ICloudBlobDirectory _directory;  // ?? Do we need this?
-        private readonly IBlobContainerClient _blobContainer;
+        private readonly IBlobContainerClientWrapper _blobContainer;
         private readonly string _pathPrefix;
         private readonly bool _useServerSideCopy;
 
