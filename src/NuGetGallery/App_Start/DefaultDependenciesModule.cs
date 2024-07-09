@@ -1448,8 +1448,7 @@ namespace NuGetGallery
 #else
                             blobClient = CloudBlobClientWrapper.UsingMsi(
                                 dependent.AzureStorageConnectionString,
-                                null,
-                                configuration.Current.AzureStorageReadAccessGeoRedundant);
+                                readAccessGeoRedundant: configuration.Current.AzureStorageReadAccessGeoRedundant);
 #endif
                         }
                         else
