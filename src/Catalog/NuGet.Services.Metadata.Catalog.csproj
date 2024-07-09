@@ -64,6 +64,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Azure.Storage.Blobs" />
     <PackageReference Include="Microsoft.Azure.Storage.DataMovement" />
     <PackageReference Include="NuGet.Services.Entities" />
     <PackageReference Include="NuGet.Services.Logging" />
