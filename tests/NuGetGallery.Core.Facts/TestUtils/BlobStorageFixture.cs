@@ -76,7 +76,7 @@ namespace NuGetGallery
             foreach (var container in containers)
             {
                 var blobs = container.ListBlobs(
-                    prefix: TestRunId.ToString(),
+                    prefix: TestRunId,
                     useFlatBlobListing: true);
 
                 foreach (var blob in blobs.OfType<CloudBlockBlob>())
