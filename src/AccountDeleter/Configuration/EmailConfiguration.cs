@@ -13,13 +13,13 @@ namespace NuGetGallery.AccountDeleter
         public ServiceBusConfiguration ServiceBus { get; set; }
 
         /// <summary>
-        /// Gallery owner name and email looking like "Gallery Owner <admin@my.org>"
+        /// Gallery owner name and email looking like "Gallery Owner &gt;admin@my.org&lt;"
         /// </summary>
         public string GalleryOwner { get; set; }
 
         /// <summary>
         /// No-reply name and address to use in emails that should not be answered,
-        /// should be in form of "No Reply <noreply@my.org>"
+        /// should be in form of "No Reply &gt;noreply@my.org&lt;"
         /// </summary>
         public string GalleryNoReplyAddress { get; set; }
 

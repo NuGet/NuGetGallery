@@ -15,8 +15,6 @@ namespace NuGetGallery
         /// <summary>
         /// Format the number by client culture
         /// </summary>
-        /// <param name="self"></param>
-        /// <returns></returns>
         /// <remarks>Analogous name and signature as <see cref="DateTimeExtensions"/></remarks>
         public static string ToNuGetNumberString(this int self)
         {
@@ -26,8 +24,6 @@ namespace NuGetGallery
         /// <summary>
         /// Format the number by client culture
         /// </summary>
-        /// <param name="self"></param>
-        /// <returns></returns>
         /// <remarks>Analogous name and signature as <see cref="DateTimeExtensions"/></remarks>
         public static string ToNuGetNumberString(this long self)
         {
@@ -37,8 +33,6 @@ namespace NuGetGallery
         /// <summary>
         /// Format the number of bytes into a user-friendly display label.
         /// </summary>
-        /// <param name="bytes"></param>
-        /// <returns></returns>
         public static string ToUserFriendlyBytesLabel(this long bytes)
         {
             if (bytes < 0)

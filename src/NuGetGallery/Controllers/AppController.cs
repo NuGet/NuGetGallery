@@ -78,7 +78,6 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="statusCode">HTTP status code for response</param>
         /// <param name="obj">Object to Jsonify and return</param>
-        /// <returns></returns>
         protected internal JsonResult Json(HttpStatusCode statusCode, object obj, JsonRequestBehavior jsonRequestBehavior)
         {
             Response.StatusCode = (int)statusCode;

@@ -238,7 +238,7 @@ namespace NuGetGallery
 
         public Task<Uri> GetFileUriAsync(string folderName, string fileName)
         {
-            /// Not implemented for the same reason as <see cref="GetFileReadUriAsync(string, string, DateTimeOffset?)"/>.
+            // Not implemented for the same reason as <see cref="GetFileReadUriAsync(string, string, DateTimeOffset?)"/>.
             throw new NotImplementedException();
         }
 
@@ -256,7 +256,7 @@ namespace NuGetGallery
 
         public Task<Uri> GetPrivilegedFileUriAsync(string folderName, string fileName, FileUriPermissions permissions, DateTimeOffset endOfAccess)
         {
-            /// Not implemented for the same reason as <see cref="GetFileReadUriAsync(string, string, DateTimeOffset?)"/>.
+            // Not implemented for the same reason as <see cref="GetFileReadUriAsync(string, string, DateTimeOffset?)"/>.
             throw new NotImplementedException();
         }
 

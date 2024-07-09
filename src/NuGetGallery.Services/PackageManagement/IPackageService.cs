@@ -63,7 +63,6 @@ namespace NuGetGallery
         /// <param name="version">The package version if known; otherwise <c>null</c> to fallback to retrieve the latest version matching filter criteria.</param>
         /// <param name="semVerLevelKey">The SemVer-level key that determines the SemVer filter to be applied.</param>
         /// <param name="allowPrerelease"><c>True</c> indicating pre-release packages are allowed, otherwise <c>false</c>.</param>
-        /// <returns></returns>
         Package FindPackageByIdAndVersion(
             string id,
             string version,
