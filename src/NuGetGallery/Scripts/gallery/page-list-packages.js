@@ -212,16 +212,7 @@ $(function() {
     $(".reserved-indicator").each(window.nuget.setPopovers);
     $(".package-warning--vulnerable").each(window.nuget.setPopovers);
     $(".package-warning--deprecated").each(window.nuget.setPopovers);
-    //for tooltip hover and focus
-    $('.tooltip-target').each(function () {
-        $(this).on('mouseenter focusin', function () {
-            $(this).find('.tooltip-wrapper').addClass('show');
-        });
-        $(this).on('mouseleave focusout', function () {
-            $(this).find('.tooltip-wrapper').removeClass('show');
-        });
-    });
-
+    
     // for using arrow keys in Framwork filter mode checkbox tree 
     $('.tfmTab li input').each(function () {
         $(this).on('keydown', function (e) {

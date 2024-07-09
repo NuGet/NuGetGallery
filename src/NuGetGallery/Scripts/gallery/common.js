@@ -675,4 +675,14 @@
             $("#footer-privacy-policy-link").after(" - <a class='button' href = 'javascript: window.nuget.wcpSiteConsent.manageConsent()' > Manage Cookies</a >")
         }
     });
+    //for tooltip hover and focus
+    $('.tooltip-target').each(function () {
+        $(this).on('mouseenter focusin', function () {
+            $(this).find('.tooltip-wrapper').addClass('show');
+        });
+        $(this).on('mouseleave focusout', function () {
+            $(this).find('.tooltip-wrapper').removeClass('show');
+        });
+    });
+
 }());

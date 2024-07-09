@@ -966,13 +966,24 @@
                                             }
 
                                             @if (string.IsNullOrEmpty(packageVersion.PackageWarningIconTitle))
+
                                             {
-                                                <td class="package-icon-cell" aria-hidden="true"></td>
+                                                <td class="package-icon-cell" aria-hidden="true"></td>      
                                             }
                                             else
                                             {
-                                                <td tabindex="0" class="package-icon-cell package-warning-icon" aria-label="@packageVersion.PackageWarningIconTitle">
-                                                    <i tabindex="0" class="ms-Icon ms-Icon--Warning package-icon" title="@packageVersion.PackageWarningIconTitle"></i>
+                                                <td tabindex="0" class="package-icon-cell package-warning-icon">
+                                                    <a class="tooltip-target tooltip-icon--black-icon" href="javascript:void(0)" role="button"  aria-describedby="package-icon-@packageVersion.Version" >
+                                                        <i class="ms-Icon ms-Icon--Warning package-icon"></i>
+                                                        <span class="tooltip-block" role="tooltip" id="package-icon-@packageVersion.Version">
+                                                            <span class="tooltip-wrapper tooltip-with-icon popover right">
+                                                                <span class="arrow"></span>
+                                                                <span class="popover-content">
+                                                                    @packageVersion.PackageWarningIconTitle
+                                                                </span>
+                                                            </span>
+                                                        </span>
+                                                    </a>
                                                 </td>
                                             }
                                         </tr>

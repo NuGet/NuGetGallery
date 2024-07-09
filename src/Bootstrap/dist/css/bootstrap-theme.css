@@ -498,6 +498,42 @@ body[id="/"] {
   background-attachment: fixed;
   color: var(--neutralForeground1Rest);
 }
+/* For tooltip */
+.tooltip-target {
+  position: relative;
+  text-decoration: none;
+  color: var(--brandForegroundLinkRest);
+  cursor: pointer;
+}
+.tooltip-target:hover {
+  color: var(--brandForegroundLinkHover);
+}
+.tooltip-target.tooltip-icon--black-icon {
+  color: var(--neutralForeground1Rest);
+}
+.tooltip-wrapper.popover {
+  min-width: 276px;
+  position: absolute;
+  transform: translateY(-50%);
+  top: calc(50%);
+}
+.tooltip-wrapper.popover.tooltip-with-icon {
+  top: calc(50%);
+}
+.tooltip-block {
+  position: relative;
+  color: var(--neutralForeground1Rest);
+}
+.tooltip-block .popover-content {
+  display: block;
+}
+.tooltip-block .popover {
+  left: -9999px;
+  display: inline-block;
+}
+.tooltip-block .popover.show {
+  left: 0;
+}
 .modal-backdrop.in {
   opacity: 0.8 !important;
   position: fixed;
@@ -2149,9 +2185,6 @@ p.frameworktableinfo-text {
 .page-home .circuit-board .circuit-board-up.triangle:after {
   left: 45px;
 }
-.page-list-packages {
-  /* For tooltip */
-}
 .page-list-packages h1 {
   margin-bottom: 33px;
 }
@@ -2396,31 +2429,6 @@ p.frameworktableinfo-text {
   .page-list-packages .advanced-search-panel {
     display: none;
   }
-}
-.page-list-packages .tooltip-target {
-  position: relative;
-  text-decoration: none;
-  color: var(--brandForegroundLinkRest);
-  cursor: pointer;
-}
-.page-list-packages .tooltip-target:hover {
-  color: var(--brandForegroundLinkHover);
-}
-.page-list-packages .tooltip-wrapper.popover {
-  min-width: 276px;
-  position: absolute;
-  transform: translateY(-50%);
-  top: calc(50%);
-}
-.page-list-packages .tooltip-wrapper.popover.tooltip-with-icon {
-  top: calc(50%);
-}
-.page-list-packages .tooltip-block {
-  position: relative;
-  color: var(--neutralForeground1Rest);
-}
-.page-list-packages .tooltip-block .popover-content {
-  display: block;
 }
 .page-manage-deprecation .full-line {
   display: block;
