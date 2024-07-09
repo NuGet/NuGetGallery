@@ -74,7 +74,7 @@ namespace NuGetGallery
             foreach (var containerInfo in containers)
             {
                 var container = client.GetBlobContainerClient(containerInfo.Name);
-                var blobs = container.GetBlobs(prefix: TestRunId.ToString());
+                var blobs = container.GetBlobs(prefix: TestRunId);
 
                 foreach (var blobDetails in blobs)
                 {

@@ -117,7 +117,7 @@ namespace NuGetGallery.OData.Serializers
             // Assert
             Assert.Equal(expectedNormalizedLink, oDataEntry.ReadLink.ToString());
             Assert.Equal(expectedNormalizedLink, oDataEntry.EditLink.ToString());
-            Assert.Equal(expectedNormalizedLink, oDataEntry.Id.ToString());
+            Assert.Equal(expectedNormalizedLink, oDataEntry.Id);
         }
 
         [Fact]
