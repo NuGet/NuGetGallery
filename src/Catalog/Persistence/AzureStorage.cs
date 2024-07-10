@@ -479,7 +479,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         {
             string blobName = GetBlobName(blobUri);
             BlockBlobClient blockBlobClient = _blobContainer.ContainerClient.GetBlockBlobClient(blobName);
-            var blobExists = await blockBlobClient.ExistsAsync();
+            bool blobExists = await blockBlobClient.ExistsAsync();
 
             if (Verbose && !blobExists)
             {
@@ -491,8 +491,8 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         public async Task<bool> HasPropertiesAsync(Uri blobUri, string contentType, string cacheControl)
         {
-            var blobName = GetBlobName(blobUri);
-            var blobClient = _blobContainer.ContainerClient.GetBlobClient(blobName);
+            string blobName = GetBlobName(blobUri);
+            BlockBlobClient blobClient = _blobContainer.ContainerClient.GetBlockBlobClient(blobName);
 
             if (await blobClient.ExistsAsync())
             {

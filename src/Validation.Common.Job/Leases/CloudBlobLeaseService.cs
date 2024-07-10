@@ -9,6 +9,7 @@ using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Specialized;
 using Azure.Storage.Blobs.Models;
+using System.IO;
 
 namespace NuGet.Jobs.Validation.Leases
 {
@@ -35,30 +36,30 @@ namespace NuGet.Jobs.Validation.Leases
 
         public async Task<LeaseResult> TryAcquireAsync(string resourceName, TimeSpan leaseTime, CancellationToken cancellationToken)
         {
-            BlobClient blob = GetBlob(resourceName);
+            BlockBlobClient blobClient = GetBlockBlobClient(resourceName);
             try
             {
-                return await TryAcquireAsync(blob, leaseTime, cancellationToken);
+                return await TryAcquireAsync(blobClient, leaseTime, cancellationToken);
             }
             catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.NotFound)
             {
                 // The lease file does not exist. Try to create it and lease it.
-                return await TryCreateAndAcquireAsync(blob, leaseTime, cancellationToken);
+                return await TryCreateAndAcquireAsync(blobClient, leaseTime, cancellationToken);
             }
         }
 
-        private BlobClient GetBlob(string resourceName)
+        private BlockBlobClient GetBlockBlobClient(string resourceName)
         {
             BlobContainerClient containerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
-            return containerClient.GetBlobClient($"{_basePath}{resourceName}");
+            return containerClient.GetBlockBlobClient($"{_basePath}{resourceName}");
         }
 
         public async Task<bool> ReleaseAsync(string resourceName, string leaseId, CancellationToken cancellationToken)
         {
-            BlobClient blob = GetBlob(resourceName);
+            BlockBlobClient blobClient = GetBlockBlobClient(resourceName);
             try
             {
-                BlobLeaseClient leaseClient = blob.GetBlobLeaseClient(leaseId);
+                BlobLeaseClient leaseClient = blobClient.GetBlobLeaseClient(leaseId);
                 await leaseClient.ReleaseAsync(cancellationToken: cancellationToken);
                 return true;
             }
@@ -77,7 +78,7 @@ namespace NuGet.Jobs.Validation.Leases
                     "The lease Id must be provided for renewing the lease.");
             }
 
-            BlobClient blob = GetBlob(resourceName);
+            BlockBlobClient blob = GetBlockBlobClient(resourceName);
             BlobLeaseClient leaseClient = blob.GetBlobLeaseClient(leaseId);
 
             try
@@ -91,18 +92,22 @@ namespace NuGet.Jobs.Validation.Leases
             }
         }
 
-        private async Task<LeaseResult> TryCreateAndAcquireAsync(BlobClient blob, TimeSpan leaseTime, CancellationToken cancellationToken)
+        private async Task<LeaseResult> TryCreateAndAcquireAsync(BlockBlobClient blobClient, TimeSpan leaseTime, CancellationToken cancellationToken)
         {
             try
             {
                 // Use an empty blob for the lease blob. The contents are not important. Only the lease state (managed
                 // by Azure Blob Storage) is important.
-                await blob.UploadAsync(
-                    new BinaryData(Array.Empty<byte>()),
-                    overwrite: true,
-                    cancellationToken: cancellationToken);
+                using var emptyStream = new MemoryStream(Array.Empty<byte>());
+                await blobClient.UploadAsync(emptyStream, new BlobUploadOptions
+                {
+                    Conditions = new BlobRequestConditions
+                    {
+                        IfNoneMatch = new ETag("*") // This ensures the blob is only uploaded if it does not already exist
+                    }
+                }, cancellationToken);
 
-                return await TryAcquireAsync(blob, leaseTime, cancellationToken);
+                return await TryAcquireAsync(blobClient, leaseTime, cancellationToken);
             }
             catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.PreconditionFailed)
             {
@@ -111,7 +116,7 @@ namespace NuGet.Jobs.Validation.Leases
             }
         }
 
-        private async Task<LeaseResult> TryAcquireAsync(BlobClient blob, TimeSpan leaseTime, CancellationToken cancellationToken)
+        private async Task<LeaseResult> TryAcquireAsync(BlockBlobClient blobClient, TimeSpan leaseTime, CancellationToken cancellationToken)
         {
             if (leaseTime < MinLeaseTime || leaseTime > MaxLeaseTime)
             {
@@ -122,7 +127,7 @@ namespace NuGet.Jobs.Validation.Leases
 
             try
             {
-                BlobLeaseClient leaseClient = blob.GetBlobLeaseClient();
+                BlobLeaseClient leaseClient = blobClient.GetBlobLeaseClient();
                 Response<BlobLease> leaseResponse = await leaseClient.AcquireAsync(
                     duration: leaseTime,
                     cancellationToken: cancellationToken);

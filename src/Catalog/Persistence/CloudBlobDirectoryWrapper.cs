@@ -42,9 +42,9 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             }
         }
 
-        public BlobClient GetBlobClient(string blobName)
+        public BlockBlobClient GetBlobClient(string blobName)
         {
-            return _containerClient.GetBlobClient(_directoryPrefix + blobName);
+            return _containerClient.GetBlockBlobClient(_directoryPrefix + blobName);
         }
 
         // Assuming we'll use BlobHierarchyItem hierarchy items (with a virtual directory structure) over BlobItem(flat blobs)
