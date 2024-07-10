@@ -42,7 +42,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             _blobContainerClientWrapper = new BlobContainerClientWrapper(_containerClient);
         }
 
-        public BlockBlobClient GetBlobClient(string blobName)
+        public BlockBlobClient GetBlockBlobClient(string blobName)
         {
             return _containerClient.GetBlockBlobClient(_directoryPrefix + blobName);
         }

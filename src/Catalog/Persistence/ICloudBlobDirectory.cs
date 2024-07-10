@@ -20,7 +20,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         string DirectoryPrefix { get; }
         Uri Uri { get; }
 
-        BlockBlobClient GetBlobClient(string blobName);
+        BlockBlobClient GetBlockBlobClient(string blobName);
         Task<IEnumerable<BlobHierarchyItem>> ListBlobsAsync(CancellationToken cancellationToken);
     }
 }
