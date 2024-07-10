@@ -19,7 +19,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         Uri Uri { get; }
 
         Task<bool> ExistsAsync(CancellationToken cancellationToken);
-        Task FetchAttributesAsync(CancellationToken cancellationToken);
+        Task<BlobProperties> FetchAttributesAsync(CancellationToken cancellationToken);
         Task<IReadOnlyDictionary<string, string>> GetMetadataAsync(CancellationToken cancellationToken);
         Task<Stream> GetStreamAsync(CancellationToken cancellationToken);
         Task SetPropertiesAsync(IAccessCondition accessCondition, BlobRequestConditions blobRequestConditions, CloudBlobLocationMode? cloudBlobLocationMode);

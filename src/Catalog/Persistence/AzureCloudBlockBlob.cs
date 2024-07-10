@@ -16,27 +16,26 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
     public sealed class AzureCloudBlockBlob : ICloudBlockBlob
     {
         private readonly BlockBlobClient _blockBlobClient;
-        private BlobProperties _properties;
 
         /// <summary>
         /// The Base64 encoded MD5 hash of the blob's content
         /// </summary>
         public async Task<string> GetContentMD5Async(CancellationToken cancellationToken)
         {
-            await FetchAttributesAsync(cancellationToken);
-            return _properties.ContentHash != null ? Convert.ToBase64String(_properties.ContentHash) : null;
+            BlobProperties properties = await FetchAttributesAsync(cancellationToken);
+            return properties.ContentHash != null ? Convert.ToBase64String(properties.ContentHash) : null;
         }
 
         public async Task<string> GetETagAsync(CancellationToken cancellationToken)
         {
-            await FetchAttributesAsync(cancellationToken);
-            return _properties.ETag.ToString();
+            BlobProperties properties = await FetchAttributesAsync(cancellationToken);
+            return properties.ETag.ToString();
         }
 
         public async Task<long> GetLengthAsync(CancellationToken cancellationToken)
         {
-            await FetchAttributesAsync(cancellationToken);
-            return _properties.ContentLength;
+            BlobProperties properties = await FetchAttributesAsync(cancellationToken);
+            return properties.ContentLength;
         }
 
         public Uri Uri => _blockBlobClient.Uri;
@@ -51,17 +50,18 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             return await _blockBlobClient.ExistsAsync(cancellationToken);
         }
 
-        public async Task FetchAttributesAsync(CancellationToken cancellationToken)
+        public async Task<BlobProperties> FetchAttributesAsync(CancellationToken cancellationToken)
         {
-            _properties = await _blockBlobClient.GetPropertiesAsync(
+            BlobProperties properties = await _blockBlobClient.GetPropertiesAsync(
                 conditions: null,
                 cancellationToken: cancellationToken);
+            return properties;
         }
 
         public async Task<IReadOnlyDictionary<string, string>> GetMetadataAsync(CancellationToken cancellationToken)
         {
-            await FetchAttributesAsync(cancellationToken);
-            return new ReadOnlyDictionary<string, string>(_properties.Metadata);
+            BlobProperties properties = await FetchAttributesAsync(cancellationToken);
+            return new ReadOnlyDictionary<string, string>(properties.Metadata);
         }
 
         public async Task<Stream> GetStreamAsync(CancellationToken cancellationToken)
