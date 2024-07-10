@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Azure;
+using System;
 using Azure.Storage.Blobs.Models;
 using NuGetGallery;
-using System;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
@@ -31,11 +30,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         private BlobRequestConditions CreateBlobRequestConditions()
         {
-            return new BlobRequestConditions
-            {
-                IfMatch = new ETag(AccessCondition.IfMatchETag),
-                IfNoneMatch = new ETag(AccessCondition.IfNoneMatchETag)
-            };
+            return AccessCondition.ToBlobRequestConditions();
         }
     }
 }

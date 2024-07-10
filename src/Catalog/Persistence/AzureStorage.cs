@@ -15,6 +15,7 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using NuGet.Protocol;
+using NuGetGallery;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
@@ -127,8 +128,9 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             if (initializeContainer)
             {
-                _blobContainerClientWrapper.ContainerClient.CreateIfNotExists(PublicAccessType.Blob);
-                if (Verbose)
+                BlobContainerInfo blobContainerInfo = _blobContainerClientWrapper.ContainerClient.CreateIfNotExists(PublicAccessType.Blob);
+
+                if (blobContainerInfo != null && Verbose)
                 {
                     Trace.WriteLine($"Created '{_blobContainerClientWrapper.ContainerClient.Name}' public container");
                 }
@@ -245,7 +247,11 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             if (destinationProperties?.Count > 0)
             {
                 BlobHttpHeaders headers = new BlobHttpHeaders();
-                foreach (var property in destinationProperties)
+                
+                // The copy statement copied all properties from the source blob to the destination blob; however,
+                // there may be required properties on destination blob, all of which may have not already existed
+                // on the source blob at the time of copy.
+                foreach (KeyValuePair<string, string> property in destinationProperties)
                 {
                     switch (property.Key)
                     {
@@ -291,7 +297,10 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
                     destinationStream.Seek(0, SeekOrigin.Begin);
 
-                    await blockBlobClient.UploadAsync(destinationStream, headers, cancellationToken: cancellationToken);
+                    IAccessCondition accessCondition = (content as StringStorageContentWithAccessCondition)?.AccessCondition;
+                    BlobRequestConditions blobRequestConditions = accessCondition.ToBlobRequestConditions();
+
+                    await blockBlobClient.UploadAsync(destinationStream, headers, conditions: blobRequestConditions, cancellationToken: cancellationToken);
 
                     Trace.WriteLine($"Saved compressed blob {blockBlobClient.Uri} to container {_blobContainerClientWrapper.ContainerClient.Name}");
                 }
