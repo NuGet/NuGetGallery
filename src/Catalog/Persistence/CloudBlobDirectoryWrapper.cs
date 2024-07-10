@@ -14,14 +14,12 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
     public class CloudBlobDirectoryWrapper : ICloudBlobDirectory
     {
         private readonly BlobContainerClient _containerClient;
-        private readonly string _containerName;
         private readonly string _directoryPrefix;
         private readonly IBlobContainerClientWrapper _blobContainerClientWrapper;
         private readonly BlobClientOptions _defaultClientOptions;
 
         public BlobServiceClient ServiceClient => _containerClient.GetParentBlobServiceClient();
         public Uri Uri => new Uri(_containerClient.Uri, _directoryPrefix);
-        public string ContainerName => _containerName;
         public string DirectoryPrefix => _directoryPrefix;
         public BlobClientOptions ContainerOptions => _defaultClientOptions;
 
@@ -29,7 +27,6 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         public CloudBlobDirectoryWrapper(BlobServiceClient serviceClient, string containerName, string directoryPrefix, BlobClientOptions  blobClientOptions = null)
         {
-            _containerName = containerName ?? throw new ArgumentNullException(nameof(containerName));
             _directoryPrefix = directoryPrefix ?? throw new ArgumentNullException(nameof(directoryPrefix));
             _defaultClientOptions = new BlobClientOptions();
             _containerClient = serviceClient.GetBlobContainerClient(containerName) ?? throw new ArgumentNullException(nameof(containerName));
@@ -55,11 +52,6 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         public async Task<IEnumerable<BlobHierarchyItem>> ListBlobsAsync(CancellationToken cancellationToken)
         {
             return await _containerClient.ListBlobsAsync(_directoryPrefix, cancellationToken);
-        }
-
-        public bool HasOnlyOriginalSnapshot(string prefix)
-        {
-            throw new NotImplementedException();
         }
     }
 }

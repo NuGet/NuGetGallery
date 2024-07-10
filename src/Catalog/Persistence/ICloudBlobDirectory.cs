@@ -13,15 +13,14 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public interface ICloudBlobDirectory
     {
-        BlobClientOptions ContainerOptions { get; }
         BlobServiceClient ServiceClient { get; }
+        // ??? do we need it
+        BlobClientOptions ContainerOptions { get; }
         IBlobContainerClientWrapper ContainerClientWrapper { get; }
-        string ContainerName { get; }
         string DirectoryPrefix { get; }
         Uri Uri { get; }
 
         BlockBlobClient GetBlobClient(string blobName);
         Task<IEnumerable<BlobHierarchyItem>> ListBlobsAsync(CancellationToken cancellationToken);
-        bool HasOnlyOriginalSnapshot(string prefix);
     }
 }

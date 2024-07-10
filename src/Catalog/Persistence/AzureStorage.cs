@@ -154,7 +154,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 }
             };
 
-            _directory = new CloudBlobDirectoryWrapper(directory.ServiceClient, directory.ContainerName, directory.DirectoryPrefix, blobClientOptions);
+            _directory = new CloudBlobDirectoryWrapper(directory.ServiceClient, directory.ContainerClientWrapper.ContainerClient.Name, directory.DirectoryPrefix, blobClientOptions);
             _blobContainerClientWrapper = _directory.ContainerClientWrapper;
 
             if (initializeContainer)
