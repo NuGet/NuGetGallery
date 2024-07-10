@@ -7,10 +7,10 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
-using NuGetGallery;
 
 namespace NuGet.Services.Metadata.Catalog.Icons
 {
@@ -178,7 +178,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
                 {
                     packageStream = await packageBlobReference.GetStreamAsync(cancellationToken);
                 }
-                catch (CloudBlobNotFoundException ex)
+                catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.NotFound)
                 {
                     _logger.LogWarning("Package blob not found at {PackageUrl}: {Exception}. Will assume package was deleted and skip",
                         packageUri.AbsoluteUri,

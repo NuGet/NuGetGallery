@@ -318,6 +318,12 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             await TryTakeBlobSnapshotAsync(blockBlobClient);
         }
 
+        /// <summary>
+        /// Take one snapshot only if there is not any snapshot for the specific blob
+        /// This will prevent the blob to be deleted by a not intended delete action
+        /// </summary>
+        /// <param name="blob"></param>
+        /// <returns></returns>
         private async Task<bool> TryTakeBlobSnapshotAsync(BlockBlobClient blobBlockClient)
         {
             if (blobBlockClient == null)
@@ -347,6 +353,9 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         protected override async Task<StorageContent> OnLoadAsync(Uri resourceUri, CancellationToken cancellationToken)
         {
+            // the Azure SDK will treat a starting / as an absolute URL,
+            // while we may be working in a subdirectory of a storage container
+            // trim the starting slash to treat it as a relative path
             string blobName = GetName(resourceUri).TrimStart('/');
             BlockBlobClient blobClient = GetBlockBlobReference(blobName);
 
@@ -420,9 +429,10 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         public override async Task<bool> AreSynchronized(Uri firstResourceUri, Uri secondResourceUri)
         {
-            var sourceBlobClient = new BlockBlobClient(firstResourceUri);
-            var destinationBlobClient = GetBlockBlobReference(GetName(secondResourceUri));
+            BlockBlobClient sourceBlobClient = new BlockBlobClient(firstResourceUri);
+            BlockBlobClient destinationBlobClient = GetBlockBlobReference(GetName(secondResourceUri));
 
+            // For interacting with the source, we just use the same blob request options as the destination blob.
             return await AreSynchronized(new AzureCloudBlockBlob(sourceBlobClient), new AzureCloudBlockBlob(destinationBlobClient));
         }
 
