@@ -23,8 +23,8 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
     {
         private readonly bool _compressContent;
         private readonly IThrottle _throttle;
-        private readonly ICloudBlobDirectory _directory;  // ?? Do we need this?
-        private readonly IBlobContainerClientWrapper _blobContainer;
+        private readonly ICloudBlobDirectory _directory;
+        private readonly IBlobContainerClientWrapper _blobContainerClientWrapper;
         private readonly string _pathPrefix;
         private readonly bool _useServerSideCopy;
 
@@ -155,13 +155,14 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             };
 
             _directory = new CloudBlobDirectoryWrapper(directory.ServiceClient, directory.ContainerName, directory.DirectoryPrefix, blobClientOptions);
+            _blobContainerClientWrapper = _directory.ContainerClientWrapper;
 
             if (initializeContainer)
             {
-                _blobContainer.ContainerClient.CreateIfNotExists(PublicAccessType.Blob);
+                _blobContainerClientWrapper.ContainerClient.CreateIfNotExists(PublicAccessType.Blob);
                 if (Verbose)
                 {
-                    Trace.WriteLine($"Created '{_blobContainer.ContainerClient.Name}' public container");
+                    Trace.WriteLine($"Created '{_blobContainerClientWrapper.ContainerClient.Name}' public container");
                 }
             }
         }
@@ -178,7 +179,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             cancellationToken.ThrowIfCancellationRequested();
 
             string blobName = GetBlobName(resourceUri);
-            BlockBlobClient blockBlobClient = _blobContainer.GetBlockBlobClient(blobName);
+            BlockBlobClient blockBlobClient = _blobContainerClientWrapper.GetBlockBlobClient(blobName);
 
             BlobProperties properties = await blockBlobClient.GetPropertiesAsync(cancellationToken: cancellationToken);
             return new OptimisticConcurrencyControlToken(properties.ETag.ToString());
@@ -201,7 +202,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             Uri packageRegistrationUri = ResolveUri(fileName);
             string blobName = GetBlobName(packageRegistrationUri);
 
-            BlockBlobClient blockBlobClient = _blobContainer.GetBlockBlobClient(blobName);
+            BlockBlobClient blockBlobClient = _blobContainerClientWrapper.GetBlockBlobClient(blobName);
             return blockBlobClient.Exists();
         }
 
@@ -209,7 +210,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         {
             var blobs = new List<StorageListItem>();
 
-            BlobContainerClient blockContainerClient = _blobContainer.ContainerClient;
+            BlobContainerClient blockContainerClient = _blobContainerClientWrapper.ContainerClient;
             await foreach (var blobItem in blockContainerClient.GetBlobsAsync(prefix: _pathPrefix, cancellationToken: cancellationToken))
             {
                 var lastModified = blobItem.Properties.LastModified?.UtcDateTime;
@@ -222,7 +223,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         public override async Task<bool> UpdateCacheControlAsync(Uri resourceUri, string cacheControl, CancellationToken cancellationToken)
         {
             string blobName = GetBlobName(resourceUri);
-            BlockBlobClient blockBlobClient = _blobContainer.GetBlockBlobClient(blobName);
+            BlockBlobClient blockBlobClient = _blobContainerClientWrapper.GetBlockBlobClient(blobName);
 
             BlobProperties properties = await blockBlobClient.GetPropertiesAsync(cancellationToken: cancellationToken);
 
@@ -251,8 +252,8 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             string sourceName = GetBlobName(sourceUri);
             string destinationName = azureDestinationStorage.GetBlobName(destinationUri);
 
-            BlockBlobClient sourceBlockBlob = _blobContainer.GetBlockBlobClient(sourceName);
-            BlockBlobClient destinationBlockBlob = azureDestinationStorage._blobContainer.GetBlockBlobClient(destinationName);
+            BlockBlobClient sourceBlockBlob = _blobContainerClientWrapper.GetBlockBlobClient(sourceName);
+            BlockBlobClient destinationBlockBlob = azureDestinationStorage._blobContainerClientWrapper.GetBlockBlobClient(destinationName);
 
             Uri sourceUriWithSas = sourceBlockBlob.GenerateSasUri(BlobSasPermissions.Read, DateTimeOffset.UtcNow.AddHours(1));
 
@@ -284,7 +285,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         protected override async Task OnSaveAsync(Uri resourceUri, StorageContent content, CancellationToken cancellationToken)
         {
             string blobName = GetBlobName(resourceUri);
-            BlockBlobClient blockBlobClient = _blobContainer.GetBlockBlobClient(blobName);
+            BlockBlobClient blockBlobClient = _blobContainerClientWrapper.GetBlockBlobClient(blobName);
 
             var headers = new BlobHttpHeaders
             {
@@ -308,7 +309,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
                     await blockBlobClient.UploadAsync(destinationStream, headers, cancellationToken: cancellationToken);
 
-                    Trace.WriteLine($"Saved compressed blob {blockBlobClient.Uri} to container {_blobContainer.ContainerClient.Name}");
+                    Trace.WriteLine($"Saved compressed blob {blockBlobClient.Uri} to container {_blobContainerClientWrapper.ContainerClient.Name}");
                 }
             }
             else
@@ -317,7 +318,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 {
                     await blockBlobClient.UploadAsync(stream, headers, cancellationToken: cancellationToken);
 
-                    Trace.WriteLine($"Saved uncompressed blob {blockBlobClient.Uri} to container {_blobContainer.ContainerClient.Name}");
+                    Trace.WriteLine($"Saved uncompressed blob {blockBlobClient.Uri} to container {_blobContainerClientWrapper.ContainerClient.Name}");
                 }
             }
 
@@ -335,7 +336,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             try
             {
-                if (_blobContainer.HasOnlyOriginalSnapshot(blobBlockClient.Name))
+                if (_blobContainerClientWrapper.HasOnlyOriginalSnapshot(blobBlockClient.Name))
                 {
                     var response = await blobBlockClient.CreateSnapshotAsync();
                     stopwatch.Stop();
@@ -354,7 +355,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         protected override async Task<StorageContent> OnLoadAsync(Uri resourceUri, CancellationToken cancellationToken)
         {
             string blobName = GetBlobName(resourceUri).TrimStart('/');
-            BlockBlobClient blobClient = _blobContainer.GetBlockBlobClient(blobName);
+            BlockBlobClient blobClient = _blobContainerClientWrapper.GetBlockBlobClient(blobName);
 
             await _throttle.WaitAsync();
             try
@@ -408,13 +409,13 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         {
             string blobName = GetBlobName(resourceUri);
             BlobRequestConditions accessCondition = (deleteRequestOptions as DeleteRequestOptionsWithAccessCondition)?.BlobRequestConditions;
-            BlockBlobClient blobClient = _blobContainer.ContainerClient.GetBlockBlobClient(blobName);
+            BlockBlobClient blobClient = _blobContainerClientWrapper.GetBlockBlobClient(blobName);
             await blobClient.DeleteAsync(DeleteSnapshotsOption.IncludeSnapshots, accessCondition, cancellationToken);
         }
 
         public override Uri GetUri(string name)
         {
-            var baseUri = _blobContainer.ContainerClient.Uri.AbsoluteUri;
+            var baseUri = _blobContainerClientWrapper.ContainerClient.Uri.AbsoluteUri;
 
             if (baseUri.EndsWith("/"))
             {
@@ -427,7 +428,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         public override async Task<bool> AreSynchronized(Uri firstResourceUri, Uri secondResourceUri)
         {
             var sourceBlobClient = new BlockBlobClient(firstResourceUri);
-            var destinationBlobClient = _blobContainer.ContainerClient.GetBlockBlobClient(GetBlobName(secondResourceUri));
+            var destinationBlobClient = _blobContainerClientWrapper.GetBlockBlobClient(GetBlobName(secondResourceUri));
 
             return await AreSynchronized(new AzureCloudBlockBlob(sourceBlobClient), new AzureCloudBlockBlob(destinationBlobClient));
         }
@@ -478,7 +479,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         public async Task<ICloudBlockBlob> GetCloudBlockBlobReferenceAsync(Uri blobUri)
         {
             string blobName = GetBlobName(blobUri);
-            BlockBlobClient blockBlobClient = _blobContainer.ContainerClient.GetBlockBlobClient(blobName);
+            BlockBlobClient blockBlobClient = _blobContainerClientWrapper.GetBlockBlobClient(blobName);
             bool blobExists = await blockBlobClient.ExistsAsync();
 
             if (Verbose && !blobExists)
@@ -492,7 +493,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         public async Task<bool> HasPropertiesAsync(Uri blobUri, string contentType, string cacheControl)
         {
             string blobName = GetBlobName(blobUri);
-            BlockBlobClient blobClient = _blobContainer.ContainerClient.GetBlockBlobClient(blobName);
+            BlockBlobClient blobClient = _blobContainerClientWrapper.GetBlockBlobClient(blobName);
 
             if (await blobClient.ExistsAsync())
             {

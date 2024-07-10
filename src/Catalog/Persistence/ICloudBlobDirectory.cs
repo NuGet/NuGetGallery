@@ -15,12 +15,13 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
     {
         BlobClientOptions ContainerOptions { get; }
         BlobServiceClient ServiceClient { get; }
-        BlobContainerClient Container { get; }
+        IBlobContainerClientWrapper ContainerClientWrapper { get; }
         string ContainerName { get; }
         string DirectoryPrefix { get; }
         Uri Uri { get; }
 
         BlockBlobClient GetBlobClient(string blobName);
         Task<IEnumerable<BlobHierarchyItem>> ListBlobsAsync(CancellationToken cancellationToken);
+        bool HasOnlyOriginalSnapshot(string prefix);
     }
 }

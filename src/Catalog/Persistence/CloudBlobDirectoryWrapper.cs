@@ -16,14 +16,16 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         private readonly BlobContainerClient _containerClient;
         private readonly string _containerName;
         private readonly string _directoryPrefix;
-        private BlobClientOptions _defaultClientOptions;
+        private readonly IBlobContainerClientWrapper _blobContainerClientWrapper;
+        private readonly BlobClientOptions _defaultClientOptions;
 
         public BlobServiceClient ServiceClient => _containerClient.GetParentBlobServiceClient();
-        public BlobContainerClient Container => _containerClient;
         public Uri Uri => new Uri(_containerClient.Uri, _directoryPrefix);
         public string ContainerName => _containerName;
         public string DirectoryPrefix => _directoryPrefix;
         public BlobClientOptions ContainerOptions => _defaultClientOptions;
+
+        public IBlobContainerClientWrapper ContainerClientWrapper => _blobContainerClientWrapper;
 
         public CloudBlobDirectoryWrapper(BlobServiceClient serviceClient, string containerName, string directoryPrefix, BlobClientOptions  blobClientOptions = null)
         {
@@ -40,6 +42,8 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 // Create a new BlobServiceClient instance with the new options, we couldn't change options for existing instance.
                 _containerClient = new BlobContainerClient(serviceUri, blobClientOptions);
             }
+
+            _blobContainerClientWrapper = new BlobContainerClientWrapper(_containerClient);
         }
 
         public BlockBlobClient GetBlobClient(string blobName)
@@ -51,6 +55,11 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         public async Task<IEnumerable<BlobHierarchyItem>> ListBlobsAsync(CancellationToken cancellationToken)
         {
             return await _containerClient.ListBlobsAsync(_directoryPrefix, cancellationToken);
+        }
+
+        public bool HasOnlyOriginalSnapshot(string prefix)
+        {
+            throw new NotImplementedException();
         }
     }
 }
