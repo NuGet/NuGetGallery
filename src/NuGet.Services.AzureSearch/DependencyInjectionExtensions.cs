@@ -20,7 +20,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.Rest;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Protocol;
-using NuGet.Protocol.Catalog;
 using NuGet.Services.AzureSearch.Auxiliary2AzureSearch;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using NuGet.Services.AzureSearch.Catalog2AzureSearch;
