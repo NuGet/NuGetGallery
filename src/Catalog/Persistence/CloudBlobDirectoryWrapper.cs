@@ -22,7 +22,6 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         public Uri Uri => new Uri(_containerClient.Uri, _directoryPrefix);
         public string DirectoryPrefix => _directoryPrefix;
         public BlobClientOptions ContainerOptions => _defaultClientOptions;
-
         public IBlobContainerClientWrapper ContainerClientWrapper => _blobContainerClientWrapper;
 
         public CloudBlobDirectoryWrapper(BlobServiceClient serviceClient, string containerName, string directoryPrefix, BlobClientOptions  blobClientOptions = null)
