@@ -25,7 +25,6 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         private readonly IThrottle _throttle;
         private readonly ICloudBlobDirectory _directory;
         private readonly IBlobContainerClientWrapper _blobContainerClientWrapper;
-        private readonly string _pathPrefix;
         private readonly bool _useServerSideCopy;
 
         public const string Sha512HashAlgorithmId = "SHA512";
@@ -56,7 +55,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             Verbose = verbose;
         }
 
-    public AzureStorage(
+        public AzureStorage(
             Uri storageBaseUri,
             TimeSpan maxExecutionTime,
             TimeSpan serverTimeout,
@@ -211,7 +210,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             var blobs = new List<StorageListItem>();
 
             BlobContainerClient blockContainerClient = _blobContainerClientWrapper.ContainerClient;
-            await foreach (var blobItem in blockContainerClient.GetBlobsAsync(prefix: _pathPrefix, cancellationToken: cancellationToken))
+            await foreach (var blobItem in blockContainerClient.GetBlobsAsync(prefix: _directory.DirectoryPrefix, cancellationToken: cancellationToken))
             {
                 var lastModified = blobItem.Properties.LastModified?.UtcDateTime;
                 blobs.Add(new StorageListItem(new Uri(blockContainerClient.Uri, blobItem.Name), lastModified));
