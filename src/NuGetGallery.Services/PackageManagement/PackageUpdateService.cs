@@ -58,7 +58,7 @@ namespace NuGetGallery
                 throw new ArgumentException("All packages to change the listing status of must have the same ID.", nameof(packages));
             }
 
-            using (var strategy = new SuspendDbExecutionStrategy())
+            using (new SuspendDbExecutionStrategy())
             using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
             {
                 foreach (var package in packages)
@@ -215,7 +215,7 @@ WHERE [Key] IN ({0})";
             if (result != expectedResult)
             {
                 throw new InvalidOperationException(
-                    $"Updated an unexpected number of packages when performing a bulk update! " +
+                    "Updated an unexpected number of packages when performing a bulk update! " +
                     $"Updated {result} packages instead of {expectedResult}.");
             }
         }

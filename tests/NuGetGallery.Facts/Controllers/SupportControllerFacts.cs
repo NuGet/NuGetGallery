@@ -88,7 +88,7 @@ namespace NuGetGallery.Controllers
                 // Assert
                 Assert.NotNull(model);
                 Assert.Equal<int>(2, model.Issues.Count);
-                Assert.Equal<int>(2, model.Issues.Where(i => i.CreatedBy != null).Count());
+                Assert.Equal<int>(2, model.Issues.Count(i => i.CreatedBy != null));
             }
         }
 

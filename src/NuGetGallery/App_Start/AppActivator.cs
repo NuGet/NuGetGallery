@@ -13,7 +13,6 @@ using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
 using System.Web.UI;
-using Elmah;
 using Microsoft.Extensions.DependencyInjection;
 using NuGetGallery;
 using NuGetGallery.Configuration;
@@ -115,14 +114,15 @@ namespace NuGetGallery
 
             BundleTable.Bundles.Add(stylesBundle);
 
-            // Add scripts bundles
+            // Bootstrap is no longer bundled in site.min.css given that the package that does the minification
+            // cannot understand new CSS feature, instead we are using Grunt to create a bootstrap.min.css file
+            // for all bootstrap styles.
             var newStyleBundle = new StyleBundle("~/Content/gallery/css/site.min.css");
             newStyleBundle
-                .Include("~/Content/gallery/css/bootstrap.css")
-                .Include("~/Content/gallery/css/bootstrap-theme.css")
                 .Include("~/Content/gallery/css/fabric.css");
             BundleTable.Bundles.Add(newStyleBundle);
 
+            // Add scripts bundles
             var instrumentationBundle = new ScriptBundle("~/Scripts/gallery/instrumentation.min.js")
                 .Include("~/Scripts/gallery/instrumentation.js");
             BundleTable.Bundles.Add(instrumentationBundle);
@@ -295,7 +295,7 @@ namespace NuGetGallery
                 {
                     RestartSchedulerOnFailure = true
                 };
-                _jobManager.Fail(e => ErrorLog.GetDefault(null).Log(new Error(e)));
+                _jobManager.Fail(e => { Trace.TraceError($"{nameof(BackgroundJobsPostStart)} failure: {e.Message}"); });
                 _jobManager.Start();
             }
         }

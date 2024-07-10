@@ -373,7 +373,7 @@ namespace NuGetGallery
                 await _featureFlagService.RemoveUserAsync(userToBeDeleted);
                 await RemoveSupportRequests(userToBeDeleted);
 
-                using (var strategy = new SuspendDbExecutionStrategy())
+                using (new SuspendDbExecutionStrategy())
                 using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
                 {
                     await getTask();

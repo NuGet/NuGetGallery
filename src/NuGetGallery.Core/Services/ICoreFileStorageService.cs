@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace NuGetGallery
 {
@@ -54,7 +53,7 @@ namespace NuGetGallery
         /// <param name="permissions">The permissions to give to the privileged URI.</param>
         /// <param name="endOfAccess">The time when the access ends.</param>
         /// <returns>The URI with privileged access.</returns>
-        Task<Uri> GetPriviledgedFileUriAsync(
+        Task<Uri> GetPrivilegedFileUriAsync(
             string folderName,
             string fileName,
             FileUriPermissions permissions,
@@ -155,7 +154,7 @@ namespace NuGetGallery
         Task SetPropertiesAsync(
             string folderName,
             string fileName,
-            Func<Lazy<Task<Stream>>, BlobProperties, Task<bool>> updatePropertiesAsync);
+            Func<Lazy<Task<Stream>>, ICloudBlobProperties, Task<bool>> updatePropertiesAsync);
 
         /// <summary>
         /// Returns the etag value for the specified blob. If the blob does not exists it will return null.

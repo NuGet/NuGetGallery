@@ -362,7 +362,7 @@ namespace NuGetGallery
 
         private static bool IsDegenerateQuery(Query q)
         {
-            return q == null || (q is MatchAllDocsQuery) || ((q is BooleanQuery) && (q as BooleanQuery).Clauses.Count == 0);
+            return q == null || (q is MatchAllDocsQuery) || (q is BooleanQuery query && query.Clauses.Count == 0);
         }
 
         private static SortField GetSortField(SearchFilter searchFilter)

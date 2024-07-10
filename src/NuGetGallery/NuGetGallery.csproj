@@ -1368,9 +1368,8 @@
     <Content Include="Content\Images\icons\edit.png" />
     <Content Include="Content\Images\icons\expire.png" />
     <Content Include="Content\Images\icons\regenerate.png" />
-    <Content Include="Content\gallery\css\bootstrap-theme.css" />
-    <Content Include="Content\gallery\css\bootstrap.css" />
     <Content Include="Content\gallery\css\fabric.css" />
+    <Content Include="Content\gallery\css\bootstrap.min.css" />
     <Content Include="Content\gallery\img\api-key-256x256.png" />
     <Content Include="Content\gallery\img\api-key-expired-256x256.png" />
     <Content Include="Content\gallery\img\api-key-expired.svg" />
@@ -1381,15 +1380,20 @@
     <Content Include="Content\gallery\img\api-key.svg" />
     <Content Include="Content\gallery\img\blue-circle-225x225.png" />
     <Content Include="Content\gallery\img\blue-circle.svg" />
+    <Content Include="Content\gallery\img\book-open-icon.svg" />
     <Content Include="Content\gallery\img\circuit-board.svg" />
+    <Content Include="Content\gallery\img\circuit-board-dark-theme.svg" />
+    <Content Include="Content\gallery\img\circuit-board-light-theme.svg" />
     <Content Include="Content\gallery\img\default-package-icon-256x256.png" />
     <Content Include="Content\gallery\img\default-package-icon.svg" />
+    <Content Include="Content\gallery\img\default-package-icon-white.png" />
     <Content Include="Content\gallery\img\dotnet-foundation-42x42.png" />
     <Content Include="Content\gallery\img\dotnet-foundation.svg" />
     <Content Include="Content\gallery\img\facebook-24x24.png" />
     <Content Include="Content\gallery\img\facebook.svg" />
     <Content Include="Content\gallery\img\git-32x32.png" />
     <Content Include="Content\gallery\img\git.svg" />
+    <Content Include="Content\gallery\img\git-white.svg" />
     <Content Include="Content\gallery\img\fuget-32x32.png" />
     <Content Include="Content\gallery\img\fuget.svg" />
     <Content Include="Content\gallery\img\nuget-trends.svg" />
@@ -1404,6 +1408,8 @@
     <Content Include="Content\gallery\img\manage-organizations.svg" />
     <Content Include="Content\gallery\img\microsoft-account-24x24.png" />
     <Content Include="Content\gallery\img\microsoft-account.svg" />
+    <Content Include="Content\gallery\img\nuget-lockup-dark-fill.svg" />
+    <Content Include="Content\gallery\img\nuget-lockup-white-fill.svg" />
     <Content Include="Content\gallery\img\orange-circle-225x225.png" />
     <Content Include="Content\gallery\img\orange-circle.svg" />
     <Content Include="Content\gallery\img\purple-circle-225x225.png" />
@@ -1413,8 +1419,10 @@
     <Content Include="Content\gallery\img\reserved-indicator-256x256.png" />
     <Content Include="Content\gallery\img\reserved-indicator-25x25.png" />
     <Content Include="Content\gallery\img\reserved-indicator.svg" />
+    <Content Include="Content\gallery\img\rocket-icon.svg" />
     <Content Include="Content\gallery\img\rss-36x36.png" />
     <Content Include="Content\gallery\img\rss.svg" />
+    <Content Include="Content\gallery\img\search-icon.svg" />
     <Content Include="Content\gallery\img\twitter-24x24.png" />
     <Content Include="Content\gallery\img\twitter-36x36.png" />
     <Content Include="Content\gallery\img\twitter.svg" />
@@ -2346,6 +2354,9 @@
   <ItemGroup>
     <Content Include="Areas\Admin\Views\CorrectIsLatest\Index.cshtml" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Shared\_AccountChangeTheme.cshtml" />
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
@@ -2385,8 +2396,7 @@
   </ProjectExtensions>
   <PropertyGroup>
     <PreBuildEvent>
-      copy "$(ProjectDir)..\Bootstrap\dist\css\bootstrap.css" "$(ProjectDir)Content\gallery\css" &gt;NUL
-      copy "$(ProjectDir)..\Bootstrap\dist\css\bootstrap-theme.css" "$(ProjectDir)Content\gallery\css" &gt;NUL
+      copy "$(ProjectDir)..\Bootstrap\dist\css\bootstrap.min.css" "$(ProjectDir)Content\gallery\css" &gt;NUL
       copy "$(ProjectDir)..\Bootstrap\dist\js\bootstrap.js" "$(ProjectDir)Scripts\gallery" &gt;NUL
     </PreBuildEvent>
   </PropertyGroup>

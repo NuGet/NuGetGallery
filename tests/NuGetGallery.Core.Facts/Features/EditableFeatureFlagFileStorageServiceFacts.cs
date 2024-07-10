@@ -5,11 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.WindowsAzure.Storage;
 using Moq;
 using Newtonsoft.Json;
 using NuGet.Services.Entities;
@@ -621,7 +619,7 @@ namespace NuGetGallery.Features
             protected readonly Mock<ICoreFileStorageService> _storage;
             protected readonly Mock<IAuditingService> _auditing;
             protected readonly EditableFeatureFlagFileStorageService _target;
-            protected readonly StorageException _preconditionException;
+            protected readonly CloudBlobPreconditionFailedException _preconditionException;
 
             public FactsBase()
             {
@@ -632,13 +630,7 @@ namespace NuGetGallery.Features
                 _target = new EditableFeatureFlagFileStorageService(
                     _storage.Object, _auditing.Object, logger);
 
-                _preconditionException = new StorageException(
-                    new RequestResult
-                    {
-                        HttpStatusCode = (int)HttpStatusCode.PreconditionFailed
-                    },
-                    "Precondition failed",
-                    new Exception());
+                _preconditionException = new CloudBlobPreconditionFailedException(new Exception());
             }
 
             protected Stream BuildStream(string content)

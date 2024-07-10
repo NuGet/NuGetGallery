@@ -26,14 +26,13 @@
             <div>
                 <aside class="col-sm-3 col-sm-push-9">
                     <b>Logo</b>
-                    <img src="@Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")" 
-                         class="owner-image img-responsive" 
-                         height="332" 
-                         id="gravatar-image" 
-                         width="332" 
-                         alt="gravatar" 
-                         title="Organization logo" 
-                         aria-label="Organization logo">
+                    <img class="package-icon img-responsive owner-image package-default-icon"
+                         height="332"
+                         id="gravatar-image"
+                         width="332"
+                         alt="gravatar"
+                         title="Organization logo"
+                         aria-label="Organization logo" />
                     <p class="ms-font-s">
                         We use the organization's name and its verified email address to get its publicly visible Gravatar profile picture
                         (or a default image if it does not have a Gravatar profile picture). Please go to gravatar.com to change the profile picture for your organization.
@@ -47,24 +46,24 @@
 
                         <div class="form-group @Html.HasErrorFor(m => m.OrganizationName)" id="@organizationNameTextGroupId">
                             <span class="required">@Html.ShowLabelFor(m => m.OrganizationName)</span>
-                            @Html.ShowTextBoxFor(m => m.OrganizationName)
+                            @Html.ShowTextBoxFor(m => m.OrganizationName, customClass: "input-brand")
                             <span class="ms-font-s">This will be your organization account on <i id="@organizationNameTextId">@Url.User("{username}", relativeUrl: false)</i>.</span>
                             @Html.ShowValidationMessagesFor(m => m.OrganizationName)
                         </div>
 
                         <div class="form-group @Html.HasErrorFor(m => m.OrganizationEmailAddress)" id="@emailBoxGroupId">
                             <span class="required">@Html.ShowLabelFor(m => m.OrganizationEmailAddress)</span>
-                            @Html.ShowTextBoxFor(m => m.OrganizationEmailAddress)
+                            @Html.ShowTextBoxFor(m => m.OrganizationEmailAddress, customClass: "input-brand")
                             <span class="ms-font-s">Users can contact your organization at this email address.</span>
                             @Html.ShowValidationMessagesFor(m => m.OrganizationEmailAddress)
                         </div>
 
                         <div class="form-group row">
                             <div class="col-xs-6">
-                                <input type="submit" class="btn btn-primary form-control" value="Add" />
+                                <input type="submit" class="btn btn-brand form-control" value="Add" />
                             </div>
                             <div class="col-xs-6">
-                                <button type="button" onclick="window.location.href = '@Url.ManageMyOrganizations()'" class="btn btn-default form-control">Cancel</button>
+                                <button type="button" onclick="window.location.href = '@Url.ManageMyOrganizations()'" class="btn btn-brand-secondary form-control">Cancel</button>
                             </div>
                         </div>
                     }

@@ -148,8 +148,7 @@ namespace NuGetGallery.Areas.Admin.Services
         {
             var package = _packages
                 .GetAll()
-                .Where(x => x.Key == packageKey)
-                .FirstOrDefault();
+                .FirstOrDefault(x => x.Key == packageKey);
 
             if (package == null)
             {
@@ -167,8 +166,7 @@ namespace NuGetGallery.Areas.Admin.Services
         {
             var symbolPackage = _symbolPackages
                 .GetAll()
-                .Where(x => x.Key == symbolPackageKey)
-                .FirstOrDefault();
+                .FirstOrDefault(x => x.Key == symbolPackageKey);
 
             if (symbolPackage == null)
             {
@@ -189,8 +187,7 @@ namespace NuGetGallery.Areas.Admin.Services
                 var validationSet = _validationSets
                     .GetAll()
                     .Include(x => x.PackageValidations)
-                    .Where(x => x.ValidationTrackingId == guid)
-                    .FirstOrDefault();
+                    .FirstOrDefault(x => x.ValidationTrackingId == guid);
 
                 if (validationSet != null)
                 {
@@ -206,8 +203,7 @@ namespace NuGetGallery.Areas.Admin.Services
                 var validation = _validations
                     .GetAll()
                     .Include(x => x.PackageValidationSet)
-                    .Where(x => x.Key == guid)
-                    .FirstOrDefault();
+                    .FirstOrDefault(x => x.Key == guid);
 
                 if (validation != null)
                 {
@@ -223,8 +219,7 @@ namespace NuGetGallery.Areas.Admin.Services
                 var validationSet = _validationSets
                     .GetAll()
                     .Include(x => x.PackageValidations)
-                    .Where(x => x.Key == integer)
-                    .FirstOrDefault();
+                    .FirstOrDefault(x => x.Key == integer);
 
                 if (validationSet != null)
                 {

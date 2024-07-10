@@ -180,8 +180,8 @@ namespace NuGetGallery
                 var result = await controller.ChangeEmail(model);
 
                 // Assert
-                Assert.IsType<ViewResult>(result);
-                Assert.IsType<UserAccountViewModel>(((ViewResult)result).Model);
+                var viewResult = Assert.IsType<ViewResult>(result);
+                Assert.IsType<UserAccountViewModel>(viewResult.Model);
             }
         }
 
@@ -550,9 +550,7 @@ namespace NuGetGallery
                 var result = await controller.ResetPassword("user", "token", new PasswordResetViewModel(), forgot);
 
                 Assert.NotNull(result);
-                Assert.IsType<ViewResult>(result);
-
-                var viewResult = result as ViewResult;
+                var viewResult = Assert.IsType<ViewResult>(result);
                 Assert.Equal(forgot, viewResult.ViewBag.ForgotPassword);
             }
         }
@@ -648,9 +646,7 @@ namespace NuGetGallery
                 var result = controller.ApiKeys();
 
                 // Assert
-                Assert.IsType<ViewResult>(result);
-                var viewResult = result as ViewResult;
-
+                var viewResult = Assert.IsType<ViewResult>(result);
                 Assert.IsType<ApiKeyListViewModel>(viewResult.Model);
                 return viewResult.Model as ApiKeyListViewModel;
             }
@@ -1958,7 +1954,7 @@ namespace NuGetGallery
                         },
                         new object[]
                         {
-                            new Scope[0]{ },
+                            Array.Empty<Scope>(),
                             Strings.NonScopedApiKeyDescription
                         }
                     };

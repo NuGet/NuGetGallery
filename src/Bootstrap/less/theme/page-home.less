@@ -17,6 +17,24 @@
   .what-is-nuget {
     font-size: 1.15em;
     padding-bottom: 75px;
+
+    p {
+      font-size: 20px;
+      font-weight: 600;
+      line-height: 28px;
+    }
+
+    a h3 {
+      color: var(--brandForegroundLinkRest);
+      font-size: 24px;
+      font-weight: 600;
+      line-height: 32px;
+
+      &:hover {
+        color: var(--brandForegroundLinkHover);
+        text-decoration: underline;
+      }
+    }
   }
 
   .triangle:after {
@@ -25,7 +43,7 @@
     bottom: -7px;
     border-width: 7px 7px 0;
     border-style: solid;
-    border-color: #fff transparent;
+    border-color: var(--neutralBackground1Rest) transparent;
     display: block;
     width: 0;
   }
@@ -45,7 +63,7 @@
     height: 396px;
     position: relative;
     margin: 0 auto;
-    background-image: url('../img/circuit-board.svg');
+    background-image: var(--circuit-board-background-image);
     background-repeat: no-repeat;
     background-position: center bottom;
 
@@ -54,9 +72,9 @@
       height: 75px;
       padding-left: 25px;
       padding-right: 25px;
-      background-color: #fff;
-      color: @text-color;
-      box-shadow: 0 0 3px black;
+      background-color: var(--neutralBackground1Rest);
+      color: var(--neutralForeground1Rest);
+      box-shadow: 0 0 3px var(--neutralBackground1Rest);
 
       h3, h5 {
         margin: 9px 0 0 0;

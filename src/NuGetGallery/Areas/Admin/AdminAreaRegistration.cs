@@ -29,8 +29,6 @@ namespace NuGetGallery.Areas.Admin
                 DynamicDataManager.Register(context.Routes, "Admin/Database", galleryDbConnectionFactory);
             }
 
-            context.Routes.Ignore("Admin/Errors.axd/{*pathInfo}"); // ELMAH owns this root
-
             context.MapRoute(
                 "Admin_default",
                 "Admin/{controller}/{action}/{id}",

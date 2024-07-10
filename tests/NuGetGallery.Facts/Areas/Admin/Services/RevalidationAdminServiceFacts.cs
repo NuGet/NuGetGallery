@@ -35,7 +35,7 @@ namespace NuGetGallery.Areas.Admin.Services
             {
                 yield return new object[]
                 {
-                    /* revalidations: */ new PackageRevalidation[0],
+                    /* revalidations: */ Array.Empty<PackageRevalidation>(),
                     /* expectedStarted: */ 0,
                     /* expectedStartedInLastHour: */ 0,
                     /* expectedPending: */ 0,

@@ -496,7 +496,7 @@ namespace NuGetGallery
 
             try
             {
-                using (var uploadStream = uploadFile.InputStream)
+                using (uploadFile.InputStream)
                 {
                     certificate = await CertificateService.AddCertificateAsync(uploadFile);
                 }

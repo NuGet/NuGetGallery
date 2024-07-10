@@ -28,7 +28,6 @@ namespace NuGetGallery.AccountDeleter
         public string AzureStorage_Auditing_ConnectionString { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string AzureStorage_UserCertificates_ConnectionString { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string AzureStorage_Content_ConnectionString { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public string AzureStorage_Errors_ConnectionString { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string AzureStorage_Packages_ConnectionString { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string AzureStorage_FlatContainer_ConnectionString { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string AzureStorage_Statistics_ConnectionString { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
@@ -36,6 +35,8 @@ namespace NuGetGallery.AccountDeleter
         public string AzureStorage_Uploads_ConnectionString { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string AzureStorage_Revalidation_ConnectionString { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public bool AzureStorageReadAccessGeoRedundant { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool AzureStorageUseMsi { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string AzureStorageMsiClientId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public TimeSpan FeatureFlagsRefreshInterval { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public bool AdminPanelEnabled { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public bool AdminPanelDatabaseAccessEnabled { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }

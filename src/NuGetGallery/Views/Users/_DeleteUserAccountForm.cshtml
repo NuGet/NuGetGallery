@@ -10,17 +10,17 @@
         <div>
             <div class="form-group">
                 @Html.LabelFor(m => m.Signature)
-                @Html.EditorFor(m => m.Signature)
+                @Html.ShowTextBoxFor(m => m.Signature, customClass: "input-brand")
                 @Html.ValidationMessageFor(m => m.Signature)
             </div>
 
             @if (Model.HasPackagesThatWillBeOrphaned)
             {
                 <div class="form-group">
-                    @Html.EditorFor(m => m.ShouldUnlist)
-                    <label class="checkbox-inline">
-                        <b>Unlist the packages without any owner.</b>
-                    </label>
+                    <div class="row-checkbox-label">
+                        @Html.CheckBoxFor(m => m.ShouldUnlist, new { @class = "brand-checkbox" })
+                        <label><b>Unlist the packages without any owner.</b></label>
+                    </div>
                     <p>
                         One or more packages do not have co-owners. If you choose to proceed without fixing this issue, these packages will be orphaned and a warning message will be displayed under owners on the package page.
                     </p>
@@ -35,6 +35,6 @@
         @Html.HiddenFor(m => m.Signature)
         @Html.HiddenFor(m => m.ShouldUnlist)
         @Html.HiddenFor(m => m.AccountName)
-        <input id="btn-delete" type="submit" class="btn btn-danger form-control" value="I understand the consequences, delete this account" title="I understand the consequences, delete this account." />
+        <input id="btn-delete" type="submit" class="btn btn-brand-danger form-control" value="I understand the consequences, delete this account" title="I understand the consequences, delete this account." />
     }
 </div>

@@ -48,9 +48,6 @@ namespace NuGetGallery.Configuration
         [DisplayName("AzureStorage.Content.ConnectionString")]
         public string AzureStorage_Content_ConnectionString { get; set; }
 
-        [DisplayName("AzureStorage.Errors.ConnectionString")]
-        public string AzureStorage_Errors_ConnectionString { get; set; }
-
         [DisplayName("AzureStorage.Packages.ConnectionString")]
         public string AzureStorage_Packages_ConnectionString { get; set; }
 
@@ -73,6 +70,10 @@ namespace NuGetGallery.Configuration
         /// Gets a setting if Read Access Geo Redundant is enabled in azure storage
         /// </summary>
         public bool AzureStorageReadAccessGeoRedundant { get; set; }
+
+        public bool AzureStorageUseMsi { get; set; } = false;
+
+        public string AzureStorageMsiClientId { get; set; } = null;
 
         public TimeSpan FeatureFlagsRefreshInterval { get; set; }
 

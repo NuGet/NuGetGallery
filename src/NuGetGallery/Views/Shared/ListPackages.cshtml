@@ -15,29 +15,35 @@
 @helper AddRadioGroupOption(string ariaSectionLabel, string radioGroupName, string optionName, string optionValue, string optionCompareValue, bool isDefault = false)
 {
     <div style="display: flex;">
-        <label aria-label="@(ariaSectionLabel): @optionName">
+        <label aria-label="@(ariaSectionLabel): @optionName" class="brand-radio">
             <input type="radio" name="@radioGroupName" @(string.Equals(optionValue, optionCompareValue, StringComparison.OrdinalIgnoreCase) || (isDefault && optionCompareValue == null) ? "checked" : "") value="@optionValue">
-            @optionName
+            <span>@optionName</span>
         </label>
     </div>
 }
 
 @helper AddFrameworkGroupOption(string frameworkShortName, string frameworkDisplayName, List<string> tfms)
 {
-    <div class="frameworkgoup">
-        <input type="checkbox" id="@(frameworkShortName)" class="framework">
-        <label for="@(frameworkShortName)">@(frameworkDisplayName)</label>
-        <button type="button" class="collapsible" tab="@(frameworkShortName)" tabindex="0"
-                aria-label="shows and hides TFM filters for @(frameworkDisplayName)" aria-expanded="false" aria-controls="@(frameworkShortName)tab">
-            <i class="ms-Icon ms-Icon--ChevronDown" id="@(frameworkShortName)button"></i>
-        </button>
+    <div class="frameworkGroup">
+        <div class="frameworkGroupRow">
+            <button type="button" class="btn-brand-transparent collapsible" tab="@(frameworkShortName)" tabindex="0"
+                    aria-label="shows and hides TFM filters for @(frameworkDisplayName)" aria-expanded="false" aria-controls="@(frameworkShortName)tab">
+                <i class="ms-Icon ms-Icon--ChevronRight" id="@(frameworkShortName)button"></i>
+            </button>
+            <label class="brand-checkbox">
+                <input type="checkbox" id="@(frameworkShortName)" class="framework">
+                <span>@(frameworkDisplayName)</span>
+            </label>
+        </div>
         <div class="tfmTab" id="@(frameworkShortName)tab">
             <ul>
                 @foreach (var tfm in tfms)
                 {
                     <li>
-                        <input type="checkbox" id="@(tfm)" class="tfm" parent="@(frameworkShortName)">
-                        <label for="@(tfm)">@(tfm)</label>
+                        <label class="brand-checkbox">
+                            <input type="checkbox" id="@(tfm)" class="tfm" parent="@(frameworkShortName)">
+                            <span>@(tfm)</span>
+                        </label>
                     </li>
                 }
             </ul>
@@ -74,11 +80,9 @@
                 @if (Model.IsAdvancedSearchFlightEnabled)
                 {
                     <div class="toggle-advanced-search-panel">
-                        Advanced search filters
-                        <button class="advanced-search-toggle-button" aria-label="Toggles search filters on narrow screens" aria-expanded="false"
-                                aria-controls="advancedSearchToggleButton" tabindex="0" id="advancedSearchToggleButton" type="button">
-                            <i class="ms-Icon ms-Icon--ChevronDown" id="advancedSearchToggleChevron"></i>
-                        </button>
+                        <span>Advanced search filters</span>
+                        <button class ="advanced-search-toggle-button btn-brand-transparent" aria-label="Toggles search filters on narrow screens" aria-expanded="false" aria-controls="advancedSearchToggleButton" tabindex="0" id="advancedSearchToggleButton" type="button">
+                        <i class="ms-Icon ms-Icon--ChevronDown" id="advancedSearchToggleChevron" ></i></button>
                     </div>
                     <div class="row clearfix advanced-search-panel" id="advancedSearchPanel">
                         <input type="text" hidden id="frameworks" name="frameworks" value="@Model.Frameworks">
@@ -87,37 +91,45 @@
                         {
                             <div>
                                 <fieldset id="frameworkfilters">
-                                    <legend>
+                                    <legend style="display: flex; gap: 6px;">
                                         <a href="@(Model.FrameworksFilteringInformationLink)" class="frameworkfilters-info"
                                            data-content="@NuGetGallery.Strings.FrameworkFilters_Tooltip"
-                                           aria-label="@NuGetGallery.Strings.FrameworkFilters_Tooltip">
+                                           aria-label="@NuGetGallery.Strings.FrameworkFilters_Tooltip"
+                                           id="frameworksfiltersid">
                                             Frameworks
                                         </a>
-                                        <a class="tooltip-target" href="javascript:void(0)">
-                                            <i class="framework-filter-info-icon ms-Icon ms-Icon--Info"></i>
-                                            <span class="tooltip-block" role="tooltip">
+                                        <span class="tooltip-target" href="javascript:void(0)">
+                                            <span>
+                                                <i class="framework-filter-info-icon ms-Icon ms-Icon--Info"></i>
+                                            </span>
+                                            <span class="tooltip-block" role="tooltip" aria-labelledby="frameworksfiltersid">
                                                 <span class="tooltip-wrapper tooltip-with-icon popover right">
                                                     <span class="arrow"></span>
                                                     <span class="popover-content">
                                                         @NuGetGallery.Strings.FrameworkFilters_Tooltip
+                                                        <a href="@(Model.FrameworksFilteringInformationLink)">Click here to learn more.</a>
                                                     </span>
                                                 </span>
                                             </span>
-                                        </a>
+                                        </span>
                                     </legend>
                                     @if (Model.IsAdvancedFrameworkFilteringEnabled)
                                     {
                                         <div class="computed-frameworks-option">
-                                            <label for="computed-frameworks-checkbox" aria-label="Include computed compatible frameworks when filtering for packages.">Include compatible frameworks</label>
-                                            <input type="checkbox" id="computed-frameworks-checkbox" checked="@Model.IncludeComputedFrameworks">
+                                            <p>
+                                                Include compatible frameworks
+                                            </p>
+                                            <label for="computed-frameworks-checkbox" class="brand-checkbox" aria-label="Include computed compatible frameworks when filtering for packages.">
+                                                <input type="checkbox" id="computed-frameworks-checkbox" checked="@Model.IncludeComputedFrameworks">
+                                            </label>
                                             <input type="hidden" id="includeComputedFrameworks" name="includeComputedFrameworks" value="@Model.IncludeComputedFrameworks.ToString().ToLower()">
                                         </div>
                                         <div class="framework-filter-mode-option">
-                                            <p>
+                                            <p id="frameworkfiltermodeid">
                                                 Framework Filter Mode
-                                                <a class="tooltip-target" href="javascript:void(0)">
+                                                <span class="tooltip-target" href="javascript:void(0)">
                                                     <i class="frameworkfiltermode-info ms-Icon ms-Icon--Info"></i>
-                                                    <span class="tooltip-block" role="tooltip">
+                                                    <span class="tooltip-block" role="tooltip" aria-labelledby="frameworkfiltermodeid">
                                                         <span class="tooltip-wrapper tooltip-with-icon popover right">
                                                             <span class="arrow"></span>
                                                             <span class="popover-content">
@@ -125,7 +137,7 @@
                                                             </span>
                                                         </span>
                                                     </span>
-                                                </a>
+                                                </span>
                                             </p>
                                             <div class="toggle-switch-control">
                                                 <input type="radio" id="all-selector" name="frameworkFilterMode" value="all" tabindex="0" @(Model.FrameworkFilterMode == "any" ? "" : "checked") />
@@ -164,19 +176,22 @@
                             <fieldset>
                                 <legend>Options</legend>
                                 <div class="prerel-option">
-                                    <input id="prerel-checkbox" type="checkbox" checked="@Model.IncludePrerelease">
-                                    <label for="prerel-checkbox" aria-label="Options: Include prerelease">Include prerelease</label>
+                                    <label class="brand-checkbox" aria-label="Options: Include prerelease">
+                                        <input id="prerel-checkbox" type="checkbox" checked="@Model.IncludePrerelease">
+                                        <span>
+                                            Include prerelease
+                                         </span>
+                                    </label>
                                 </div>
                             </fieldset>
                         </div>
-                        <div class="row">
-                            <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
-                                <input class="btn btn-primary form-control" type="submit" value="Apply">
+                        <div class="row clearfix no-margin">
+                            <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 apply-btn">
+                                <input class="btn btn-brand form-control" type="submit" value="Apply">
                             </div>
                             <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 reset-btn">
-                                <input class="btn btn-link form-control" type="button" value="Reset" id="reset-advanced-search">
+                                <input class="btn form-control btn-brand-transparent" type="button" value="Reset" id="reset-advanced-search">
                             </div>
-
                         </div>
                         <input type="hidden" id="prerel" name="prerel" value="@Model.IncludePrerelease.ToString().ToLower()">
                     </div>
@@ -184,7 +199,7 @@
             </div>
             <div class="@(Model.IsAdvancedSearchFlightEnabled ? "col-md-9" : "col-md-12")" id="results-column">
                 <div class="row">
-                    <div class="col-md-9">
+                    <div class="col-md-8">
                         <h1 tabindex="0">
                             @if (String.IsNullOrWhiteSpace(Model.SearchTerm))
                             {
@@ -214,15 +229,13 @@
                     </div>
                     @if (Model.IsAdvancedSearchFlightEnabled)
                     {
-                        <div class="sortby col-md-3">
-                            <div class="row">
-                                <label for="sortby">Sort by</label>
-                                <select name="sortby" id="sortby" form="search-form" aria-label="sort package search results by">
+                        <div class="sortby col-md-4">
+                                <label for="sortby" class="">Sort by</label>
+                                <select name="sortby" id="sortby" form="search-form" aria-label="sort package search results by" class="form-control select-brand">
                                     <option value="relevance" aria-label="Sort By: Relevance" @(Model.SortBy == "relevance" ? "selected" : "")>Relevance</option>
                                     <option value="totalDownloads-desc" aria-label="Sort By: Downloads" @(Model.SortBy == "totalDownloads-desc" ? "selected" : "")>Downloads</option>
                                     <option value="created-desc" aria-label="Sort By: Recently updated" @(Model.SortBy == "created-desc" ? "selected" : "")>Recently updated</option>
                                 </select>
-                            </div>
                         </div>
                     }
                     else
