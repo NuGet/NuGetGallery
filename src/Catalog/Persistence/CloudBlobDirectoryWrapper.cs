@@ -27,18 +27,27 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         public CloudBlobDirectoryWrapper(BlobServiceClient serviceClient, string containerName, string directoryPrefix, BlobClientOptions  blobClientOptions = null)
         {
             _directoryPrefix = directoryPrefix ?? throw new ArgumentNullException(nameof(directoryPrefix));
-            _defaultClientOptions = new BlobClientOptions();
-            _containerClient = serviceClient.GetBlobContainerClient(containerName) ?? throw new ArgumentNullException(nameof(containerName));
 
-            if (blobClientOptions != null)
+            if (string.IsNullOrWhiteSpace(containerName))
             {
-                _defaultClientOptions = blobClientOptions;
-                // Extract necessary information
-                Uri serviceUri = _containerClient.Uri;
-                // Create a new BlobServiceClient instance with the new options, we couldn't change options for existing instance.
-                _containerClient = new BlobContainerClient(serviceUri, blobClientOptions);
+                throw new ArgumentNullException(nameof(containerName));
             }
 
+            _defaultClientOptions = blobClientOptions ?? new BlobClientOptions();
+
+            // Create the container client using the provided or default options
+            if (blobClientOptions != null)
+            {
+                // Extract necessary information
+                Uri serviceUri = serviceClient.Uri;
+                // Create a new BlobServiceClient instance with the new options
+                var newServiceClient = new BlobServiceClient(serviceUri, _defaultClientOptions);
+                _containerClient = newServiceClient.GetBlobContainerClient(containerName);
+            }
+            else
+            {
+                _containerClient = serviceClient.GetBlobContainerClient(containerName);
+            }
             _blobContainerClientWrapper = new BlobContainerClientWrapper(_containerClient);
         }
 

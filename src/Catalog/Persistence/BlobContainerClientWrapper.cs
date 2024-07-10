@@ -11,28 +11,28 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public class BlobContainerClientWrapper : IBlobContainerClientWrapper
     {
-        private readonly BlobContainerClient _client;
+        private readonly BlobContainerClient _containerClient;
 
-        public BlobContainerClientWrapper(BlobContainerClient client)
+        public BlobContainerClientWrapper(BlobContainerClient containerClient)
         {
-            _client = client ?? throw new ArgumentNullException(nameof(client));
+            _containerClient = containerClient ?? throw new ArgumentNullException(nameof(containerClient));
         }
 
-        public BlobContainerClient ContainerClient => _client;
+        public BlobContainerClient ContainerClient => _containerClient;
 
         public BlockBlobClient GetBlockBlobClient(string blobName)
         {
-            return _client.GetBlockBlobClient(blobName);
+            return _containerClient.GetBlockBlobClient(blobName);
         }
 
         public Uri GetUri()
         {
-            return _client.Uri;
+            return _containerClient.Uri;
         }
 
         public bool HasOnlyOriginalSnapshot(string prefix)
         {
-            var blobs = _client.GetBlobs(
+            var blobs = _containerClient.GetBlobs(
                     BlobTraits.None,
                     states: BlobStates.Snapshots,
                     prefix: prefix);
