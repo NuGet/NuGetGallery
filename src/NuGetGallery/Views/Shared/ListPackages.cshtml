@@ -94,24 +94,20 @@
                                     <legend style="display: flex; gap: 6px;">
                                         <a href="@(Model.FrameworksFilteringInformationLink)" class="frameworkfilters-info"
                                            data-content="@NuGetGallery.Strings.FrameworkFilters_Tooltip"
-                                           aria-label="@NuGetGallery.Strings.FrameworkFilters_Tooltip"
-                                           id="frameworksfiltersid">
+                                           aria-label="@NuGetGallery.Strings.FrameworkFilters_Tooltip">
                                             Frameworks
                                         </a>
-                                        <span class="tooltip-target" href="javascript:void(0)">
-                                            <span>
-                                                <i class="framework-filter-info-icon ms-Icon ms-Icon--Info"></i>
-                                            </span>
-                                            <span class="tooltip-block" role="tooltip" aria-labelledby="frameworksfiltersid">
+                                        <a class="tooltip-target" href="javascript:void(0)" role="button" aria-labelledby="frameworksfiltersid">
+                                            <i class="framework-filter-info-icon ms-Icon ms-Icon--Info"></i>
+                                            <span class="tooltip-block" role="tooltip" id="frameworksfiltersid">
                                                 <span class="tooltip-wrapper tooltip-with-icon popover right">
                                                     <span class="arrow"></span>
                                                     <span class="popover-content">
                                                         @NuGetGallery.Strings.FrameworkFilters_Tooltip
-                                                        <a href="@(Model.FrameworksFilteringInformationLink)">Click here to learn more.</a>
                                                     </span>
                                                 </span>
                                             </span>
-                                        </span>
+                                        </a>
                                     </legend>
                                     @if (Model.IsAdvancedFrameworkFilteringEnabled)
                                     {
@@ -125,11 +121,11 @@
                                             <input type="hidden" id="includeComputedFrameworks" name="includeComputedFrameworks" value="@Model.IncludeComputedFrameworks.ToString().ToLower()">
                                         </div>
                                         <div class="framework-filter-mode-option">
-                                            <p id="frameworkfiltermodeid">
+                                            <p>
                                                 Framework Filter Mode
-                                                <span class="tooltip-target" href="javascript:void(0)">
+                                                <a class="tooltip-target" href="javascript:void(0)" role="button" aria-labelledby="frameworkfiltermodeid">
                                                     <i class="frameworkfiltermode-info ms-Icon ms-Icon--Info"></i>
-                                                    <span class="tooltip-block" role="tooltip" aria-labelledby="frameworkfiltermodeid">
+                                                    <span class="tooltip-block" role="tooltip" id="frameworkfiltermodeid">
                                                         <span class="tooltip-wrapper tooltip-with-icon popover right">
                                                             <span class="arrow"></span>
                                                             <span class="popover-content">
@@ -137,7 +133,7 @@
                                                             </span>
                                                         </span>
                                                     </span>
-                                                </span>
+                                                </a>
                                             </p>
                                             <div class="toggle-switch-control">
                                                 <input type="radio" id="all-selector" name="frameworkFilterMode" value="all" tabindex="0" @(Model.FrameworkFilterMode == "any" ? "" : "checked") />
