@@ -162,6 +162,11 @@
     <text>onerror="this.src='@url'; this.onerror = null;"</text>
 }
 
+@helper PackageImageFallback()
+{
+    <text>onerror="this.className='package-icon img-responsive package-default-icon'; this.onerror = null;"</text>
+}
+
 @helper Option(string value, string label, string currentValue)
 {
     <option value="@value" @if (value == currentValue)
