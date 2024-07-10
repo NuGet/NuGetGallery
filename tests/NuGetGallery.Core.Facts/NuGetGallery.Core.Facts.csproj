@@ -108,7 +108,6 @@
     <Compile Include="Services\CoreReadmeFileServiceFacts.cs" />
     <Compile Include="Services\CoreLicenseFileServiceFacts.cs" />
     <Compile Include="Services\CoreSymbolPackageServiceFacts.cs" />
-    <Compile Include="Services\FileUriPermissionsFacts.cs" />
     <Compile Include="Services\FolderNamesDataAttribute.cs" />
     <Compile Include="Services\FolderNamesDataAttributeFacts.cs" />
     <Compile Include="Services\GalleryCloudBlobContainerInformationProviderFacts.cs" />

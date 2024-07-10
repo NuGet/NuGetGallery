@@ -237,9 +237,9 @@ namespace NuGetGallery
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<EntityRepository<AccountDelete>>()
-               .AsSelf()
-               .As<IEntityRepository<AccountDelete>>()
-               .InstancePerLifetimeScope();
+                .AsSelf()
+                .As<IEntityRepository<AccountDelete>>()
+                .InstancePerLifetimeScope();
 
             builder.RegisterType<EntityRepository<Credential>>()
                 .AsSelf()
@@ -1432,18 +1432,45 @@ namespace NuGetGallery
             {
                 if (completedBindingKeys.Add(dependent.BindingKey))
                 {
-                    builder.RegisterInstance(new CloudBlobClientWrapper(dependent.AzureStorageConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
-                       .AsSelf()
-                       .As<ICloudBlobClient>()
-                       .SingleInstance()
-                       .Keyed<ICloudBlobClient>(dependent.BindingKey);
+                    CloudBlobClientWrapper blobClient;
+                    if (!configuration.Current.AzureStorageUseMsi)
+                    {
+                        blobClient = new CloudBlobClientWrapper(dependent.AzureStorageConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant);
+                    }
+                    else
+                    {
+                        if (string.IsNullOrWhiteSpace(configuration.Current.AzureStorageMsiClientId))
+                        {
+#if DEBUG
+                            blobClient = CloudBlobClientWrapper.UsingDefaultAzureCredential(
+                                dependent.AzureStorageConnectionString,
+                                readAccessGeoRedundant: configuration.Current.AzureStorageReadAccessGeoRedundant);
+#else
+                            blobClient = CloudBlobClientWrapper.UsingMsi(
+                                dependent.AzureStorageConnectionString,
+                                readAccessGeoRedundant: configuration.Current.AzureStorageReadAccessGeoRedundant);
+#endif
+                        }
+                        else
+                        {
+                            blobClient = CloudBlobClientWrapper.UsingMsi(
+                                dependent.AzureStorageConnectionString,
+                                configuration.Current.AzureStorageMsiClientId,
+                                configuration.Current.AzureStorageReadAccessGeoRedundant);
+                        }
+                    }
+                    builder.RegisterInstance(blobClient)
+                        .AsSelf()
+                        .As<ICloudBlobClient>()
+                        .SingleInstance()
+                        .Keyed<ICloudBlobClient>(dependent.BindingKey);
 
                     // Do not register the service as ICloudStorageStatusDependency because
                     // the CloudAuditingService registers it and the gallery uses the same storage account for all the containers.
                     builder.RegisterType<CloudBlobFileStorageService>()
                         .WithParameter(new ResolvedParameter(
-                           (pi, ctx) => pi.ParameterType == typeof(ICloudBlobClient),
-                           (pi, ctx) => ctx.ResolveKeyed<ICloudBlobClient>(dependent.BindingKey)))
+                            (pi, ctx) => pi.ParameterType == typeof(ICloudBlobClient),
+                            (pi, ctx) => ctx.ResolveKeyed<ICloudBlobClient>(dependent.BindingKey)))
                         .AsSelf()
                         .As<IFileStorageService>()
                         .As<ICoreFileStorageService>()
