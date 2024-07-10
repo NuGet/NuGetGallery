@@ -57,18 +57,17 @@ namespace NuGet.Jobs.Catalog2Registration
                 .Register(c =>
                 {
                     var options = c.Resolve<IOptionsSnapshot<Catalog2RegistrationConfiguration>>();
-                    return CloudStorageAccount.Parse(options.Value.StorageConnectionString);
+                    return new BlobServiceClient(options.Value.StorageConnectionString);
                 })
-                .Keyed<CloudStorageAccount>(CursorBindingKey);
+                .Keyed<BlobServiceClient>(CursorBindingKey);
 
             containerBuilder
                 .Register<IStorageFactory>(c =>
                 {
                     var options = c.Resolve<IOptionsSnapshot<Catalog2RegistrationConfiguration>>();
-                    var blobServiceClient = c.ResolveKeyed<BlobServiceClient>(CursorBindingKey);
 
                     return new AzureStorageFactory(
-                        blobServiceClient,
+                        c.ResolveKeyed<BlobServiceClient>(CursorBindingKey),
                         options.Value.LegacyStorageContainer,
                         maxExecutionTime: AzureStorage.DefaultMaxExecutionTime,
                         serverTimeout: AzureStorage.DefaultServerTimeout,

@@ -79,10 +79,10 @@ namespace NuGet.Jobs.Validation.Leases
             }
 
             BlockBlobClient blob = GetBlockBlobClient(resourceName);
-            BlobLeaseClient leaseClient = blob.GetBlobLeaseClient(leaseId);
 
             try
             {
+                BlobLeaseClient leaseClient = blob.GetBlobLeaseClient(leaseId);
                 await leaseClient.RenewAsync(cancellationToken: cancellationToken);
                 return LeaseResult.Success(leaseId);
             }

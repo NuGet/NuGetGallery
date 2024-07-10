@@ -80,7 +80,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     .Uri
                     .AbsoluteUri,
                 _options.Value.NormalizeStoragePath());
-            _logger.LogInformation("Using cursor: {CursorUrl}", frontCursorUri.AbsoluteUri);
+            _logger.LogInformation("Using cursor: {CursurUrl}", frontCursorUri.AbsoluteUri);
             _logger.LogInformation("Using search service: {SearchServiceName}", _options.Value.SearchServiceName);
             _logger.LogInformation("Using search index: {IndexName}", _options.Value.SearchIndexName);
             _logger.LogInformation("Using hijack index: {IndexName}", _options.Value.HijackIndexName);
