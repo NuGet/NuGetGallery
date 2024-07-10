@@ -101,35 +101,6 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             return new CloudBlobDirectoryWrapper(blobServiceClient, containerName, pathInContainer);
         }
 
-        //private static BlobContainerClient GetBlobContainerClientUri(Uri storageBaseUri)
-        //{
-        //    if (storageBaseUri.AbsoluteUri.Contains('%'))
-        //    {
-        //        // Later in the code for the sake of simplicity wrong things are done with URL that 
-        //        // can explode when URL is specially crafted with certain URL-encoded characters.
-        //        // Since it is URL for our storage root where we know that we don't use anything
-        //        // that requires URL-encoding, we'll just throw here just in case, to keep code
-        //        // below simple.
-        //        throw new ArgumentException("Storage URL cannot contain URL-encoded characters");
-        //    }
-
-        //    var pathSegments = storageBaseUri.AbsolutePath.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-        //    if (pathSegments.Length < 1)
-        //    {
-        //        throw new ArgumentException("Storage URL must contain some path");
-        //    }
-
-        //    var containerName = pathSegments[0];
-        //    var serviceClient = new BlobServiceClient(storageBaseUri.GetLeftPart(UriPartial.Authority));
-        //    return serviceClient.GetBlobContainerClient(containerName);
-        //}
-
-        //private static string GetPathPrefix(Uri storageBaseUri)
-        //{
-        //    var pathSegments = storageBaseUri.AbsolutePath.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-        //    return string.Join("/", pathSegments.Skip(1));
-        //}
-
         public AzureStorage(
             ICloudBlobDirectory directory,
             Uri baseAddress,
@@ -145,11 +116,10 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             {
                 Retry =
                 {
-                    MaxRetries = 3,
                     Mode = Azure.Core.RetryMode.Exponential,
-                    Delay = serverTimeout,
-                    MaxDelay = maxExecutionTime,
-                    NetworkTimeout = serverTimeout
+                    Delay = new TimeSpan(serverTimeout.Ticks / 2), // Initial delay, similar to ExponentialRetry behavior
+                    MaxDelay = maxExecutionTime, // Maximum delay between retries
+                    NetworkTimeout = serverTimeout // Equivalent to ServerTimeout
                 }
             };
 
@@ -202,7 +172,17 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             string blobName = GetName(packageRegistrationUri);
 
             BlockBlobClient blockBlobClient = _blobContainerClientWrapper.GetBlockBlobClient(blobName);
-            return blockBlobClient.Exists();
+
+            if (blockBlobClient.Exists())
+            {
+                return true;
+            }
+
+            if (Verbose)
+            {
+                Trace.WriteLine(string.Format("The blob {0} does not exist.", packageRegistrationUri));
+            }
+            return false;
         }
 
         public override async Task<IEnumerable<StorageListItem>> ListAsync(CancellationToken cancellationToken)
