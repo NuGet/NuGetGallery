@@ -42,7 +42,7 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Core" Version="1.39.0" />
-    <PackageReference Include="Azure.Identity" Version="1.11.3" />
+    <PackageReference Include="Azure.Identity" Version="1.11.4" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.20.0" />
     <PackageReference Include="EntityFramework" Version="6.4.4" />
     <PackageReference Include="NuGet.Packaging">
