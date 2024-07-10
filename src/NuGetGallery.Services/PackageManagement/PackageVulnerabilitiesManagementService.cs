@@ -58,7 +58,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(vulnerability));
             }
 
-            using (var strategy = new SuspendDbExecutionStrategy())
+            using (new SuspendDbExecutionStrategy())
             using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
             {
                 var packagesToUpdate = UpdateVulnerabilityInternal(vulnerability, withdrawn);

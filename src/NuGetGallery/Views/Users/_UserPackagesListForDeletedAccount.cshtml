@@ -44,7 +44,7 @@
                             </td>
                             <td class="align-middle hidden-xs">
                                 <img class="package-icon img-responsive @(!PackageHelper.ShouldRenderUrl(package.IconUrl) ? "package-default-icon" : null)" aria-hidden="true" alt="Package Icon"
-                                     src="@(PackageHelper.ShouldRenderUrl(package.IconUrl) ? package.IconUrl : null)" />
+                                     src="@(PackageHelper.ShouldRenderUrl(package.IconUrl) ? package.IconUrl : null)" @ViewHelpers.PackageImageFallback()/>
                             </td>
                             <td class="align-middle package-id"><a href="@Url.Package(package.Id)">@Html.BreakWord(package.Id.Abbreviate(40))</a></td>
                             <td class="align-middle">

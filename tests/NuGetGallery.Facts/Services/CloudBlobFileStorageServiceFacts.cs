@@ -8,7 +8,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
-using Microsoft.WindowsAzure.Storage.Blob;
 using Moq;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;

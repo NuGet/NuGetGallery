@@ -91,6 +91,20 @@ namespace NuGetGallery.Configuration
         bool AzureStorageReadAccessGeoRedundant { get; set; }
 
         /// <summary>
+        /// Indicates whether Managed Service Identity should be used to access Azure Storage.
+        /// If false, the presumption is that connection strings contain the necessary credentials.
+        /// If true, single MSI is going to be used for all storage connections.
+        /// </summary>
+        bool AzureStorageUseMsi { get; set; }
+
+        /// <summary>
+        /// Client ID of the MSI to use for Azure storage access.
+        /// If empty or not specified, the default MSI will be used in Release builds
+        /// and <see cref="Azure.Identity.DefaultAzureCredential"/> in Debug builds.
+        /// </summary>
+        string AzureStorageMsiClientId { get; set; }
+
+        /// <summary>
         /// How frequently the feature flags should be refreshed.
         /// </summary>
         TimeSpan FeatureFlagsRefreshInterval { get; set; }
