@@ -72,10 +72,5 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                     cancellationToken: cancellationToken);
             return response;
         }
-
-        public async Task SetPropertiesAsync(IAccessCondition accessCondition, BlobRequestConditions blobRequestConditions, CloudBlobLocationMode? cloudBlobLocationMode)
-        {
-            throw new NotImplementedException();
-        }
     }
 }
