@@ -3,25 +3,18 @@
 
 using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Net.Http;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using Autofac;
-using Azure.Core.Serialization;
-using Azure.Search.Documents;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.PackageManagement.Search.Web;
-using NuGet.Jobs.Configuration;
 using NuGet.Services.AzureSearch;
 using NuGet.Services.AzureSearch.SearchService;
-using NuGet.Services.AzureSearch.Wrappers;
 using NuGet.Services.Logging;
 using NuGet.Services.SearchService.Controllers;
 

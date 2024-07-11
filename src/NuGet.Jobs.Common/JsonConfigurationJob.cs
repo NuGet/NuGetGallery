@@ -13,8 +13,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using NuGet.Jobs.Configuration;
 using NuGet.Services.Configuration;
 using NuGet.Services.FeatureFlags;
@@ -241,17 +239,6 @@ namespace NuGet.Jobs
 
             services.AddSingleton<IFeatureFlagCacheService, FeatureFlagCacheService>();
             services.AddSingleton<IFeatureFlagRefresher, FeatureFlagRefresher>();
-        }
-
-        private static BlobRequestOptions GetFeatureFlagBlobRequestOptions()
-        {
-            return new BlobRequestOptions
-            {
-                ServerTimeout = TimeSpan.FromMinutes(2),
-                MaximumExecutionTime = TimeSpan.FromMinutes(10),
-                LocationMode = LocationMode.PrimaryThenSecondary,
-                RetryPolicy = new ExponentialRetry(),
-            };
         }
 
         private void ConfigureLibraries(IServiceCollection services)
