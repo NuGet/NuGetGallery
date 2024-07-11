@@ -10,12 +10,12 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Core;
+using Azure.Storage.Blobs;
 using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
 using NuGet.Jobs.Validation;
@@ -387,8 +387,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 .Register(c =>
                 {
                     var config = c.Resolve<IOptionsSnapshot<LeaseConfiguration>>().Value;
-                    var storageAccount = CloudStorageAccount.Parse(config.ConnectionString);
-                    var blobClient = storageAccount.CreateCloudBlobClient();
+                    var blobClient = new BlobServiceClient(config.ConnectionString);
                     return new CloudBlobLeaseService(blobClient, config.ContainerName, config.StoragePath);
                 })
                 .As<ILeaseService>();
