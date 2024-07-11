@@ -128,6 +128,7 @@ namespace NuGet.Services.AzureSearch
                 .Register(c =>
                 {
                     var options = c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>();
+                    options.Value.StorageConnectionString = options.Value.StorageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
                     return new BlobServiceClient(options.Value.StorageConnectionString);
                 })
                 .Keyed<BlobServiceClient>(key);

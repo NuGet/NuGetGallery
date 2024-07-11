@@ -20,7 +20,10 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         public Storage(Uri baseAddress)
         {
-            string s = baseAddress.OriginalString.TrimEnd('/') + '/';
+            UriBuilder uriBuilder = new UriBuilder(baseAddress.AbsoluteUri);
+            // Remove the query string from the base address.
+            uriBuilder.Query = string.Empty;
+            string s = uriBuilder.Uri.OriginalString.TrimEnd('/') + '/';
             BaseAddress = new Uri(s);
         }
 
