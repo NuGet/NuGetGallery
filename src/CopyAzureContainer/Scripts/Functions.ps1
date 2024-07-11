@@ -9,7 +9,7 @@ Function Install-BackupV3Task
 
     #Action to run as
     $cmdexe = [system.environment]::getenvironmentvariable("ComSpec")
-    $STAction = New-ScheduledTaskAction -Execute $cmdexe -Argument "/c $PSScriptRoot\backupv3storage.cmd" -WorkingDirectory $PSScriptRoot
+    $STAction = New-ScheduledTaskAction -Execute $cmdexe -Argument "/c `"$PSScriptRoot\backupv3storage.cmd`"" -WorkingDirectory $PSScriptRoot
 
     #Configure when to stop the task and how long it can run for. In this example it does not stop on idle and uses the maximum possible duration by setting a timelimit of 0
     $STSettings = New-ScheduledTaskSettingsSet -DontStopOnIdleEnd -ExecutionTimeLimit ([TimeSpan]::Zero) -MultipleInstances IgnoreNew
@@ -36,7 +36,7 @@ Function Install-AzCopy
     {
         $bootstrap = "$env:TEMP\azcopy_"+[System.Guid]::NewGuid()
         $output = "$bootstrap\extracted"
-        $msi = "$bootstrap\MicrosoftAzureStorageTools.msi"
+        $zip = "$bootstrap\azcopy.zip"
 
         Write-Output "Downloading AzCopy."
         Write-Output "Bootstrap directory: '$bootstrap'"
@@ -48,21 +48,24 @@ Function Install-AzCopy
         [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 # DevSkim: ignore DS440001,DS440020
 
         $progressPreference = 'silentlyContinue'
-        Invoke-WebRequest -Uri "http://aka.ms/downloadazcopy" -OutFile $msi # DevSkim: ignore DS137138
+        Invoke-WebRequest -Uri "https://aka.ms/downloadazcopy-v10-windows" -OutFile $zip
         $progressPreference = 'Continue'
-        Unblock-File $msi
+        Unblock-File $zip
 
         Write-Host "Extracting AzCopy"
-        $proc = Start-Process msiexec -Argument "/a $msi /qb TARGETDIR=$output /quiet" -Wait -PassThru
+        Expand-Archive -Path $zip -DestinationPath $output -Force -ErrorAction Stop
 
-        if ($proc.ExitCode -eq 0)
+        $extractedExe = Get-ChildItem -Path $output -Recurse -Include azcopy.exe -ErrorAction Stop | Select-Object -First 1
+
+        if ($extractedExe)
         {
-            Copy-Item "$output\Microsoft SDKs\Azure\AzCopy\*" $toolsPath -Force
+            Copy-Item $extractedExe $toolsPath -Force
         }
         else
         {
             Write-Host "Install AzCopy failed!"
         }
+
         Remove-Item $bootstrap -Recurse -Force
     }
 }

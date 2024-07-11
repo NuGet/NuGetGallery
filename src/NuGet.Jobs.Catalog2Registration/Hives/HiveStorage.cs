@@ -6,14 +6,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using NuGet.Protocol;
 using NuGet.Protocol.Catalog;
@@ -130,7 +127,7 @@ namespace NuGet.Jobs.Catalog2Registration
             try
             {
                 T result;
-                using (var blobStream = await blob.OpenReadAsync(AccessCondition.GenerateEmptyCondition()))
+                using (var blobStream = await blob.OpenReadAsync(AccessConditionWrapper.GenerateEmptyCondition()))
                 {
                     Stream readStream;
                     if (blob.Properties.ContentEncoding == "gzip")
@@ -159,7 +156,7 @@ namespace NuGet.Jobs.Catalog2Registration
 
                 return result;
             }
-            catch (StorageException ex) when (ex.RequestInformation?.HttpStatusCode == (int)HttpStatusCode.NotFound)
+            catch (CloudBlobGenericNotFoundException)
             {
                 _logger.LogInformation(
                     "No blob in container {Container} at path {Path} exists.",
@@ -300,18 +297,18 @@ namespace NuGet.Jobs.Catalog2Registration
                 await _throttle.WaitAsync();
                 try
                 {
-                    await blob.UploadFromStreamAsync(memoryStream, AccessCondition.GenerateEmptyCondition());
+                    await blob.UploadFromStreamAsync(memoryStream, AccessConditionWrapper.GenerateEmptyCondition());
 
                     if (_options.Value.EnsureSingleSnapshot)
                     {
                         var segment = await container.ListBlobsSegmentedAsync(
                             path,
                             useFlatBlobListing: true,
-                            blobListingDetails: BlobListingDetails.Snapshots,
+                            blobListingDetails: ListingDetails.Snapshots,
                             maxResults: 2,
                             blobContinuationToken: null,
-                            options: null,
-                            operationContext: null,
+                            requestTimeout: null,
+                            cloudBlobLocationMode: null,
                             cancellationToken: CancellationToken.None);
 
                         if (segment.Results.Count == 1)

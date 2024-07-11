@@ -4,12 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using NuGetGallery;
 
@@ -53,7 +51,7 @@ namespace NuGet.Services.AzureSearch
             IAccessCondition accessCondition;
             try
             {
-                using (var stream = await blobReference.OpenReadAsync(AccessCondition.GenerateEmptyCondition()))
+                using (var stream = await blobReference.OpenReadAsync(AccessConditionWrapper.GenerateEmptyCondition()))
                 using (var streamReader = new StreamReader(stream))
                 using (var jsonTextReader = new JsonTextReader(streamReader))
                 {
@@ -62,7 +60,7 @@ namespace NuGet.Services.AzureSearch
 
                 accessCondition = AccessConditionWrapper.GenerateIfMatchCondition(blobReference.ETag);
             }
-            catch (StorageException ex) when (ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.NotFound)
+            catch (CloudBlobGenericNotFoundException)
             {
                 data = new VersionListData(new Dictionary<string, VersionPropertiesData>());
                 accessCondition = AccessConditionWrapper.GenerateIfNotExistsCondition();
@@ -89,12 +87,6 @@ namespace NuGet.Services.AzureSearch
 
                 _logger.LogInformation("Replacing the version list for package ID {PackageId}.", id);
 
-                var mappedAccessCondition = new AccessCondition
-                {
-                    IfNoneMatchETag = accessCondition.IfNoneMatchETag,
-                    IfMatchETag = accessCondition.IfMatchETag,
-                };
-
                 var blobReference = Container.GetBlobReference(GetFileName(id));
                 blobReference.Properties.ContentType = "application/json";
 
@@ -102,10 +94,10 @@ namespace NuGet.Services.AzureSearch
                 {
                     await blobReference.UploadFromStreamAsync(
                         stream,
-                        mappedAccessCondition);
+                        accessCondition);
                     return true;
                 }
-                catch (StorageException ex) when (ex.IsPreconditionFailedException())
+                catch (CloudBlobPreconditionFailedException ex)
                 {
                     _logger.LogWarning(ex, "Replacing the version list for {Id} failed due to access condition.", id);
                     return false;

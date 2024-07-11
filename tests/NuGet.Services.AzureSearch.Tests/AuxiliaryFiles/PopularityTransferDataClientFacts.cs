@@ -5,12 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
 using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -33,7 +30,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             {
                 var json = JsonConvert.SerializeObject(new Dictionary<string, string[]>());
                 CloudBlob
-                    .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
+                    .Setup(x => x.OpenReadAsync(It.IsAny<IAccessCondition>()))
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
 
                 var output = await Target.ReadLatestIndexedAsync(AccessCondition.Object, StringCache);
@@ -53,14 +50,8 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             public async Task AllowsNotModifiedBlob()
             {
                 CloudBlob
-                    .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
-                    .ThrowsAsync(new StorageException(
-                        new RequestResult
-                        {
-                            HttpStatusCode = (int)HttpStatusCode.NotModified,
-                        },
-                        message: "Not modified.",
-                        inner: null));
+                    .Setup(x => x.OpenReadAsync(It.IsAny<IAccessCondition>()))
+                    .ThrowsAsync(new CloudBlobNotModifiedException(null));
 
                 var output = await Target.ReadLatestIndexedAsync(AccessCondition.Object, StringCache);
 
@@ -73,19 +64,11 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             public async Task ThrowsIfBlobIsMissing()
             {
                 CloudBlob
-                    .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
-                    .ThrowsAsync(new StorageException(
-                        new RequestResult
-                        {
-                            HttpStatusCode = (int)HttpStatusCode.NotFound,
-                        },
-                        message: "Not found.",
-                        inner: null));
+                    .Setup(x => x.OpenReadAsync(It.IsAny<IAccessCondition>()))
+                    .ThrowsAsync(new CloudBlobNotFoundException(null));
 
-                var ex = await Assert.ThrowsAsync<StorageException>(
+                var ex = await Assert.ThrowsAsync<CloudBlobNotFoundException>(
                     () => Target.ReadLatestIndexedAsync(AccessCondition.Object, StringCache));
-
-                Assert.Equal((int)HttpStatusCode.NotFound, ex.RequestInformation.HttpStatusCode);
             }
 
             [Fact]
@@ -105,7 +88,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     }
                 });
                 CloudBlob
-                    .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
+                    .Setup(x => x.OpenReadAsync(It.IsAny<IAccessCondition>()))
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
 
                 var ex = await Assert.ThrowsAsync<InvalidOperationException>(
@@ -132,7 +115,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     },
                 });
                 CloudBlob
-                    .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
+                    .Setup(x => x.OpenReadAsync(It.IsAny<IAccessCondition>()))
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
 
                 var output = await Target.ReadLatestIndexedAsync(AccessCondition.Object, StringCache);
@@ -168,7 +151,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     },
                 });
                 CloudBlob
-                    .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
+                    .Setup(x => x.OpenReadAsync(It.IsAny<IAccessCondition>()))
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
 
                 var output = await Target.ReadLatestIndexedAsync(AccessCondition.Object, StringCache);
@@ -197,7 +180,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 }";
 
                 CloudBlob
-                    .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
+                    .Setup(x => x.OpenReadAsync(It.IsAny<IAccessCondition>()))
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
 
                 var output = await Target.ReadLatestIndexedAsync(AccessCondition.Object, StringCache);
@@ -225,7 +208,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 }";
 
                 CloudBlob
-                    .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
+                    .Setup(x => x.OpenReadAsync(It.IsAny<IAccessCondition>()))
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
 
                 var output = await Target.ReadLatestIndexedAsync(AccessCondition.Object, StringCache);
@@ -357,7 +340,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     .Setup(x => x.ETag)
                     .Returns(ETag);
                 CloudBlob
-                    .Setup(x => x.OpenWriteAsync(It.IsAny<AccessCondition>()))
+                    .Setup(x => x.OpenWriteAsync(It.IsAny<IAccessCondition>(), It.IsAny<string>()))
                     .ReturnsAsync(() => new RecordingStream(bytes =>
                     {
                         SavedBytes.Add(bytes);
@@ -365,7 +348,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     }));
                 CloudBlob
                     .Setup(x => x.Properties)
-                    .Returns(new CloudBlockBlob(new Uri("https://example/blob")).Properties);
+                    .Returns(Mock.Of<ICloudBlobProperties>());
 
                 TelemetryService
                     .Setup(x => x.TrackReplaceLatestIndexedPopularityTransfers(It.IsAny<int>()))

@@ -128,7 +128,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 if (webException != null)
                 {
                     HttpStatusCode statusCode = ((HttpWebResponse)webException.Response).StatusCode;
-                    if (statusCode != HttpStatusCode.NotFound) 
+                    if (statusCode != HttpStatusCode.NotFound)
                     {
                         throw;
                     }

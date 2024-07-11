@@ -5,11 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using NuGetGallery;
 
@@ -54,13 +52,13 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             IAccessCondition accessCondition;
             try
             {
-                using (var stream = await blobReference.OpenReadAsync(AccessCondition.GenerateEmptyCondition()))
+                using (var stream = await blobReference.OpenReadAsync(AccessConditionWrapper.GenerateEmptyCondition()))
                 {
                     accessCondition = AccessConditionWrapper.GenerateIfMatchCondition(blobReference.ETag);
                     ReadStream(stream, builder.Add);
                 }
             }
-            catch (StorageException ex) when (ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.NotFound)
+            catch (CloudBlobGenericNotFoundException)
             {
                 accessCondition = AccessConditionWrapper.GenerateIfNotExistsCondition();
                 _logger.LogInformation("The blob {BlobName} does not exist.", blobName);
@@ -91,11 +89,10 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
                 var blobReference = Container.GetBlobReference(blobName);
 
-                using (var stream = await blobReference.OpenWriteAsync(AccessCondition.GenerateIfNotExistsCondition()))
+                using (var stream = await blobReference.OpenWriteAsync(AccessConditionWrapper.GenerateIfNotExistsCondition(), "application/json"))
                 using (var streamWriter = new StreamWriter(stream))
                 using (var jsonTextWriter = new JsonTextWriter(streamWriter))
                 {
-                    blobReference.Properties.ContentType = "application/json";
                     Serializer.Serialize(jsonTextWriter, packageIds);
                 }
             }
@@ -110,19 +107,12 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 var blobName = GetLatestIndexedBlobName();
                 _logger.LogInformation("Replacing the latest indexed owners from {BlobName}.", blobName);
 
-                var mappedAccessCondition = new AccessCondition
-                {
-                    IfNoneMatchETag = accessCondition.IfNoneMatchETag,
-                    IfMatchETag = accessCondition.IfMatchETag,
-                };
-
                 var blobReference = Container.GetBlobReference(blobName);
 
-                using (var stream = await blobReference.OpenWriteAsync(mappedAccessCondition))
+                using (var stream = await blobReference.OpenWriteAsync(accessCondition, "application/json"))
                 using (var streamWriter = new StreamWriter(stream))
                 using (var jsonTextWriter = new JsonTextWriter(streamWriter))
                 {
-                    blobReference.Properties.ContentType = "application/json";
                     Serializer.Serialize(jsonTextWriter, newData);
                 }
             }

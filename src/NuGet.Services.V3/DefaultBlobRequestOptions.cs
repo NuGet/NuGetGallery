@@ -9,6 +9,9 @@ namespace NuGet.Services.V3
 {
     public static class DefaultBlobRequestOptions
     {
+        public static readonly TimeSpan ServerTimeout = TimeSpan.FromMinutes(2);
+        public static readonly TimeSpan MaximumExecutionTime = TimeSpan.FromMinutes(10);
+
         public static BlobRequestOptions Create()
         {
             return new BlobRequestOptions

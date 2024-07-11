@@ -8,7 +8,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.WindowsAzure.Storage;
 using Moq;
 using NuGet.Jobs.Validation;
 using NuGet.Services.Entities;
@@ -524,7 +523,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                         {
                             wasUpdated = updateMetadataAsync(lazyStream, metadata).Result;
                         })
-                    .ThrowsAsync(new StorageException("The remote server returned an error: (412) The condition specified using HTTP conditional header(s) is not met."));
+                    .ThrowsAsync(new CloudBlobStorageException("The remote server returned an error: (412) The condition specified using HTTP conditional header(s) is not met."));
 
                 _telemetryService.Setup(
                     x => x.TrackDurationToHashPackage(
@@ -536,7 +535,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                         "System.IO.MemoryStream"))
                     .Returns(Mock.Of<IDisposable>());
 
-                await Assert.ThrowsAsync<StorageException>(() => UpdateBlobMetadataAsync(_validationSet));
+                await Assert.ThrowsAsync<CloudBlobStorageException>(() => UpdateBlobMetadataAsync(_validationSet));
 
                 Assert.True(wasUpdated);
                 Assert.Single(metadata);

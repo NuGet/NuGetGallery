@@ -10,8 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
 using Moq;
 using Newtonsoft.Json;
 using NuGetGallery;
@@ -95,9 +93,9 @@ namespace NuGet.Jobs.GitHubIndexer.Tests
                 .Returns("\"some-etag\"");
             mockBlob
             .Setup(x => x.Properties)
-            .Returns(new CloudBlockBlob(new Uri("https://example/blob")).Properties);
+            .Returns(Mock.Of<ICloudBlobProperties>());
             mockBlob
-                .Setup(x => x.OpenWriteAsync(It.IsAny<AccessCondition>()))
+                .Setup(x => x.OpenWriteAsync(It.IsAny<IAccessCondition>(), It.IsAny<string>()))
                 .ReturnsAsync(() => new RecordingStream(bytes =>
                     {
                         onDisposeHandler?.Invoke(Encoding.UTF8.GetString(bytes));

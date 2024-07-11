@@ -55,7 +55,7 @@ namespace NuGet.Jobs.Validation.Storage
 
             if(string.IsNullOrEmpty(sasDefinition))
             {
-                return await _fileStorageService.GetPriviledgedFileUriAsync(
+                return await _fileStorageService.GetPrivilegedFileUriAsync(
                     CoreConstants.Folders.ValidationFolderName,
                     fileName,
                     FileUriPermissions.Read | FileUriPermissions.Delete,

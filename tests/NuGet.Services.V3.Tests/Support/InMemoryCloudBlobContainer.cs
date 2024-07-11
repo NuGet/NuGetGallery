@@ -5,8 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
 using NuGetGallery;
 
 namespace NuGet.Services
@@ -17,12 +15,12 @@ namespace NuGet.Services
 
         public SortedDictionary<string, InMemoryCloudBlob> Blobs { get; } = new SortedDictionary<string, InMemoryCloudBlob>();
 
-        public Task CreateAsync(BlobContainerPermissions permissions)
+        public Task CreateAsync(bool enablePublicAccess)
         {
             throw new NotImplementedException();
         }
 
-        public Task CreateIfNotExistAsync(BlobContainerPermissions permissions)
+        public Task CreateIfNotExistAsync(bool enablePublicAccess)
         {
             throw new NotImplementedException();
         }
@@ -32,7 +30,7 @@ namespace NuGet.Services
             throw new NotImplementedException();
         }
 
-        public Task<bool> ExistsAsync(BlobRequestOptions options = null, OperationContext operationContext = null)
+        public Task<bool> ExistsAsync(CloudBlobLocationMode? cloudBlobLocationMode)
         {
             throw new NotImplementedException();
         }
@@ -55,17 +53,17 @@ namespace NuGet.Services
         public Task<ISimpleBlobResultSegment> ListBlobsSegmentedAsync(
             string prefix,
             bool useFlatBlobListing,
-            BlobListingDetails blobListingDetails,
+            ListingDetails blobListingDetails,
             int? maxResults,
-            BlobContinuationToken blobContinuationToken,
-            BlobRequestOptions options,
-            OperationContext operationContext,
+            BlobListContinuationToken blobContinuationToken,
+            TimeSpan? requestTimeout,
+            CloudBlobLocationMode? cloudBlobLocationMode,
             CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public Task SetPermissionsAsync(BlobContainerPermissions permissions)
+        public Task SetPermissionsAsync()
         {
             throw new NotImplementedException();
         }

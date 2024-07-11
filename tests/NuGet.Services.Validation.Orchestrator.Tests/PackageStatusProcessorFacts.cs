@@ -4,12 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
 using Moq;
 using NuGet.Services.Entities;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
@@ -347,7 +345,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             {
                 ValidationSet.PackageETag = "\"some-etag\"";
                 Package.PackageStatusKey = PackageStatus.Available;
-                var expected = new StorageException(new RequestResult { HttpStatusCode = (int)HttpStatusCode.PreconditionFailed }, "Changed!", null);
+                var expected = new CloudBlobPreconditionFailedException(null);
 
                 PackageFileServiceMock
                     .Setup(x => x.DoesValidationSetPackageExistAsync(It.IsAny<PackageValidationSet>()))
@@ -356,7 +354,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     .Setup(x => x.CopyValidationSetPackageToPackageFileAsync(It.IsAny<PackageValidationSet>(), It.IsAny<IAccessCondition>()))
                     .Throws(expected);
 
-                var actual = await Assert.ThrowsAsync<StorageException>(
+                var actual = await Assert.ThrowsAsync<CloudBlobPreconditionFailedException>(
                     () => Target.SetStatusAsync(PackageValidatingEntity, ValidationSet, PackageStatus.Available));
 
                 Assert.Same(expected, actual);
@@ -593,7 +591,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     new PackageValidation { Type = "SomeProcessorA" },
                     new PackageValidation { Type = "SomeProcessorB" },
                 };
-                var expected = new StorageException("Validation set package not found!");
+                var expected = new CloudBlobStorageException("Validation set package not found!");
                 ValidatorProviderMock
                     .Setup(x => x.IsNuGetProcessor(It.Is<string>(n => n.Contains("Processor"))))
                     .Returns(true);
@@ -601,7 +599,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     .Setup(x => x.CopyValidationSetPackageToPackageFileAsync(ValidationSet, It.IsAny<IAccessCondition>()))
                     .Throws(expected);
 
-                var actual = await Assert.ThrowsAsync<StorageException>(
+                var actual = await Assert.ThrowsAsync<CloudBlobStorageException>(
                     () => Target.SetStatusAsync(PackageValidatingEntity, ValidationSet, PackageStatus.Available));
                 Assert.Same(expected, actual);
 
