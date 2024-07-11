@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Autofac;
 using Autofac.Core;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs;
 using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
