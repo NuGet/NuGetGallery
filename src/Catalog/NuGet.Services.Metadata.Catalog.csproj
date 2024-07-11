@@ -7,7 +7,11 @@
     <Description>Create, edit, or read the package metadata catalog.</Description>
     <PackageTags>nuget;services;search;catalog;metadata;collector</PackageTags>
   </PropertyGroup>
-
+  
+  <PropertyGroup>
+    <LangVersion>12.0</LangVersion>
+  </PropertyGroup>
+  
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
     <Compile Remove="AppendOnlyCatalogItem.cs" />
     <Compile Remove="AppendOnlyCatalogWriter.cs" />

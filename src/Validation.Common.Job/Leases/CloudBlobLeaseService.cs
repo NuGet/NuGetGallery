@@ -98,14 +98,16 @@ namespace NuGet.Jobs.Validation.Leases
             {
                 // Use an empty blob for the lease blob. The contents are not important. Only the lease state (managed
                 // by Azure Blob Storage) is important.
-                using var emptyStream = new MemoryStream(Array.Empty<byte>());
-                await blobClient.UploadAsync(emptyStream, new BlobUploadOptions
+                using (var emptyStream = new MemoryStream(Array.Empty<byte>()))
                 {
-                    Conditions = new BlobRequestConditions
+                    await blobClient.UploadAsync(emptyStream, new BlobUploadOptions
                     {
-                        IfNoneMatch = new ETag("*") // This ensures the blob is only uploaded if it does not already exist
-                    }
-                }, cancellationToken);
+                        Conditions = new BlobRequestConditions
+                        {
+                            IfNoneMatch = new ETag("*") // This ensures the blob is only uploaded if it does not already exist
+                        }
+                    }, cancellationToken);
+                }
 
                 return await TryAcquireAsync(blobClient, leaseTime, cancellationToken);
             }
