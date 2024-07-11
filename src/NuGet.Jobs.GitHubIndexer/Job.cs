@@ -44,6 +44,7 @@ namespace NuGet.Jobs.GitHubIndexer
             services.AddTransient<IRepoFetcher, RepoFetcher>();
             services.AddTransient<ICloudBlobClient>(provider => {
                 var config = provider.GetRequiredService<IOptionsSnapshot<GitHubIndexerConfiguration>>();
+                //return new CloudBlobClientWrapper.UsingMsi(config.Value.StorageConnectionString, config.Value.StorageReadAccessGeoRedundant);
                 return new CloudBlobClientWrapper(config.Value.StorageConnectionString, config.Value.StorageReadAccessGeoRedundant);
             });
 

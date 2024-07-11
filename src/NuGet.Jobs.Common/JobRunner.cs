@@ -85,7 +85,7 @@ namespace NuGet.Jobs
                     commandLineArgs);
 
                 // Setup logging
-                _applicationInsightsConfiguration = ConfigureApplicationInsights(job, jobArgsDictionary);
+               _applicationInsightsConfiguration = ConfigureApplicationInsights(job, jobArgsDictionary);
 
                 // Configure our logging again with Application Insights initialized.
                 loggerFactory = ConfigureLogging(job, _applicationInsightsConfiguration.TelemetryConfiguration);
@@ -279,9 +279,9 @@ namespace NuGet.Jobs
                     _logger.LogInformation("Job run took {RunDuration}", PrettyPrintTime(stopWatch.ElapsedMilliseconds));
 
                     _applicationInsightsConfiguration.DiagnosticsTelemetryModule?.SetHeartbeatProperty(
-                        HeartbeatProperty_JobLoopExitCode,
-                        exitCode.ToString(),
-                        isHealthy: exitCode == 0);
+                       HeartbeatProperty_JobLoopExitCode,
+                       exitCode.ToString(),
+                       isHealthy: exitCode == 0);
                 }
 
                 if (!runContinuously)
