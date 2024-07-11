@@ -387,7 +387,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 .Register(c =>
                 {
                     var config = c.Resolve<IOptionsSnapshot<LeaseConfiguration>>().Value;
-                    var blobClient = new BlobServiceClient(config.ConnectionString);
+                    var blobClient = new BlobServiceClient(config.ConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature="));
                     return new CloudBlobLeaseService(blobClient, config.ContainerName, config.StoragePath);
                 })
                 .As<ILeaseService>();
