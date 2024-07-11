@@ -11,8 +11,6 @@ using System.Security.Cryptography.X509Certificates;
 using Azure.Storage.Blobs;
 using Azure.Storage.Queues;
 using Microsoft.Extensions.Logging;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
 using NuGet.Protocol;
 using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
