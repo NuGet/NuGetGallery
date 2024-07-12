@@ -336,9 +336,9 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Azure.Storage.Blobs" />
     <PackageReference Include="dotNetRDF" />
     <PackageReference Include="NuGet.StrongName.json-ld.net" />
-    <PackageReference Include="Microsoft.WindowsAzure.ConfigurationManager" />
     <PackageReference Include="Moq" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio">
