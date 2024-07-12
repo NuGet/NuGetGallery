@@ -245,16 +245,8 @@ namespace NgTests
 
         public static void AssertAccessCondition(IAccessCondition expected, IAccessCondition actual)
         {
-            //AssertFieldEqual(expected, actual, i => i.LeaseId);
-            //AssertFieldEqual(expected, actual, i => i.IfModifiedSinceTime);
             AssertFieldEqual(expected, actual, i => i.IfNoneMatchETag);
             AssertFieldEqual(expected, actual, i => i.IfMatchETag);
-            //AssertFieldEqual(expected, actual, i => i.IfAppendPositionEqual);
-            //AssertFieldEqual(expected, actual, i => i.IfSequenceNumberEqual);
-            //AssertFieldEqual(expected, actual, i => i.IfSequenceNumberLessThanOrEqual);
-            //AssertFieldEqual(expected, actual, i => i.IfSequenceNumberLessThan);
-            //AssertFieldEqual(expected, actual, i => i.IfMaxSizeLessThanOrEqual);
-            //AssertFieldEqual(expected, actual, i => i.IfNotModifiedSinceTime);
         }
 
         public static void AssertAll<T>(IEnumerable<T> expecteds, IEnumerable<T> actuals, Action<T, T> assert)
