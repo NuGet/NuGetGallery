@@ -3,154 +3,152 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
+using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using Moq;
+using NuGet.Protocol;
+using NuGet.Services.Metadata.Catalog.Persistence;
 using Xunit;
 
 namespace CatalogTests.Persistence
 {
     public class AzureCloudBlockBlobTests
     {
-        private static readonly Uri _uri = new Uri("https://nuget.test/blob");
-
-        private readonly Mock<BlockBlobClient> _underlyingBlob;
-
-        public AzureCloudBlockBlobTests()
+        public class OnLoadAsync : FactBase
         {
-            _underlyingBlob = new Mock<BlockBlobClient>(MockBehavior.Strict, _uri);
+            [Fact]
+            public void Constructor_WhenBlobIsNull_Throws()
+            {
+                var exception = Assert.Throws<ArgumentNullException>(() => new AzureCloudBlockBlob(blockBlobClient: null));
+
+                Assert.Equal("blockBlobClient", exception.ParamName);
+            }
+
+            [Fact]
+            public async Task ExistsAsync_CallsUnderlyingMethod()
+            {
+                _blockBlobMock.Setup(x => x.ExistsAsync(It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(Response.FromValue(true, null));
+
+                var blob = new AzureCloudBlockBlob(_blockBlobMock.Object);
+
+                Assert.True(await blob.ExistsAsync(CancellationToken.None));
+
+                _blockBlobMock.Verify(bc => bc.ExistsAsync(It.IsAny<CancellationToken>()), Times.Once);
+            }
+
+            [Fact]
+            public async Task FetchAttributesAsync_CallsUnderlyingMethod()
+            {
+                _blockBlobMock
+                    .Setup(x => x.GetPropertiesAsync(null, It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(Response.FromValue(BlobsModelFactory.BlobProperties(), null));
+
+                var blob = new AzureCloudBlockBlob(_blockBlobMock.Object);
+
+                await blob.FetchAttributesAsync(CancellationToken.None);
+
+                _blockBlobMock.Verify(bc => bc.GetPropertiesAsync(null, It.IsAny<CancellationToken>()), Times.Once);
+            }
+
+            [Fact]
+            public async Task GetMetadataAsync_ReturnsReadOnlyDictionary()
+            {
+                var metadata = new Dictionary<string, string> { { "key", "value" } };
+                _blockBlobMock
+                    .Setup(x => x.GetPropertiesAsync(null, It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(Response.FromValue(BlobsModelFactory.BlobProperties(metadata: metadata), null));
+
+                var blob = new AzureCloudBlockBlob(_blockBlobMock.Object);
+
+                var actualMetadata = await blob.GetMetadataAsync(CancellationToken.None);
+
+                Assert.IsAssignableFrom<IReadOnlyDictionary<string, string>>(actualMetadata);
+
+                _blockBlobMock.Verify(bc => bc.GetPropertiesAsync(null, It.IsAny<CancellationToken>()), Times.Once);
+            }
+
+            [Fact]
+            public async Task GetStreamAsync_CallsUnderlyingMethod()
+            {
+                var expectedStream = new MemoryStream();
+
+                _blockBlobMock.Setup(x => x.OpenReadAsync(It.IsAny<BlobOpenReadOptions>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(Response.FromValue(expectedStream, null));
+
+                var blob = new AzureCloudBlockBlob(_blockBlobMock.Object);
+
+                var actualStream = await blob.GetStreamAsync(CancellationToken.None);
+
+                Assert.Same(expectedStream, actualStream);
+
+                _blockBlobMock.Verify(bc => bc.OpenReadAsync(It.IsAny<BlobOpenReadOptions>(), It.IsAny<CancellationToken>()), Times.Once);
+            }
+
+            [Fact]
+            public async Task GetETagAsync_CallsUnderlyingMethod()
+            {
+                var metadata = new Dictionary<string, string> { { "key", "value" } };
+                var blob = new AzureCloudBlockBlob(_blockBlobMock.Object);
+
+                var headers = new BlobHttpHeaders();
+                var conditions = new BlobRequestConditions();
+                var eTag = new ETag("etag_value"); // Provide a valid ETag value
+                var lastModified = DateTimeOffset.UtcNow; // Provide a valid DateTimeOffset value
+                var blobInfo = BlobsModelFactory.BlobInfo(eTag, lastModified); // Create an instance of BlobInfo with required parameters
+
+                _blockBlobMock
+                    .Setup(x => x.GetPropertiesAsync(null, It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(Response.FromValue(BlobsModelFactory.BlobProperties(metadata: metadata), null));
+
+                await blob.GetETagAsync(It.IsAny<CancellationToken>());
+
+                _blockBlobMock.Verify(bc => bc.GetPropertiesAsync(null, It.IsAny<CancellationToken>()), Times.Once);
+            }
         }
 
-        [Fact]
-        public void Constructor_WhenBlobIsNull_Throws()
+        public class FactBase
         {
-            var exception = Assert.Throws<ArgumentNullException>(() => new AzureBlockBlob(blob: null));
+            protected readonly AzureStorageBlobs _uncompressedStorage;
+            protected readonly Mock<IBlobContainerClientWrapper> _blobContainerMock;
+            protected readonly Mock<BlockBlobClient> _blockBlobMock = new Mock<BlockBlobClient>();
 
-            Assert.Equal("blob", exception.ParamName);
-        }
+            protected readonly Uri _baseAddress;
+            protected readonly string _fileName;
+            protected readonly Uri _blobUri;
 
-        [Fact]
-        public async Task ExistsAsync_CallsUnderlyingMethod()
-        {
-            _underlyingBlob.Setup(x => x.ExistsAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Response.FromValue(true, null));
+            protected readonly string _contentString;
+            protected readonly string _contentType;
+            protected readonly string _cacheControl;
+            protected readonly StringStorageContent _content;
 
-            var blob = new AzureBlockBlob(_underlyingBlob.Object);
+            public FactBase()
+            {
+                _baseAddress = new Uri("https://test");
+                _fileName = "test.json";
+                _blobUri = new Uri(_baseAddress, _fileName);
+                _contentType = "application/json";
+                _cacheControl = "no-store";
+                _contentString = JsonSerializer.Serialize(new { value = "1234" });
+                var contentBytes = Encoding.Default.GetBytes(_contentString);
+                _content = new StringStorageContent(_contentString, _contentType, _cacheControl);
 
-            Assert.True(await blob.ExistsAsync(CancellationToken.None));
+                _blockBlobMock.Setup(bb => bb.Uri).Returns(_blobUri);
+                var response = Response.FromValue(new BlobProperties(), Mock.Of<Response>());
+                _blockBlobMock.Setup(bb => bb.GetPropertiesAsync(It.IsAny<BlobRequestConditions>(), It.IsAny<CancellationToken>())).ReturnsAsync(response);
 
-            _underlyingBlob.VerifyAll();
-        }
+                _blobContainerMock = new Mock<IBlobContainerClientWrapper>();
+                _blobContainerMock.Setup(bc => bc.GetUri()).Returns(_baseAddress);
+                _blobContainerMock.Setup(bc => bc.GetBlockBlobClient(_fileName)).Returns(_blockBlobMock.Object);
 
-        [Fact]
-        public async Task FetchAttributesAsync_CallsUnderlyingMethod()
-        {
-            _underlyingBlob
-                .Setup(x => x.GetPropertiesAsync(null, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Response.FromValue(BlobsModelFactory.BlobProperties(), null));
-
-            var blob = new AzureBlockBlob(_underlyingBlob.Object);
-
-            await blob.FetchAttributesAsync(CancellationToken.None);
-
-            _underlyingBlob.VerifyAll();
-        }
-
-        [Fact]
-        public async Task GetMetadataAsync_ReturnsReadOnlyDictionary()
-        {
-            var metadata = new Dictionary<string, string> { { "key", "value" } };
-            _underlyingBlob
-                .Setup(x => x.GetPropertiesAsync(null, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Response.FromValue(BlobsModelFactory.BlobProperties(metadata: metadata), null));
-
-            var blob = new AzureBlockBlob(_underlyingBlob.Object);
-
-            var actualMetadata = await blob.GetMetadataAsync(CancellationToken.None);
-
-            Assert.IsAssignableFrom<IReadOnlyDictionary<string, string>>(actualMetadata);
-
-            _underlyingBlob.VerifyAll();
-        }
-
-        [Fact]
-        public async Task GetStreamAsync_CallsUnderlyingMethod()
-        {
-            var expectedStream = new MemoryStream();
-
-            _underlyingBlob.Setup(x => x.OpenReadAsync(It.IsAny<BlobOpenReadOptions>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Response.FromValue(expectedStream, null));
-
-            var blob = new AzureBlockBlob(_underlyingBlob.Object);
-
-            var actualStream = await blob.GetStreamAsync(CancellationToken.None);
-
-            Assert.Same(expectedStream, actualStream);
-
-            _underlyingBlob.VerifyAll();
-        }
-
-        [Fact]
-        public async Task SetPropertiesAsync_CallsUnderlyingMethod()
-        {
-            var blob = new AzureBlockBlob(_underlyingBlob.Object);
-
-            var headers = new BlobHttpHeaders();
-            var conditions = new BlobRequestConditions();
-            var eTag = new ETag("etag_value"); // Provide a valid ETag value
-            var lastModified = DateTimeOffset.UtcNow; // Provide a valid DateTimeOffset value
-            var blobInfo = BlobsModelFactory.BlobInfo(eTag, lastModified); // Create an instance of BlobInfo with required parameters
-
-            _underlyingBlob
-                .Setup(b => b.SetHttpHeadersAsync(headers, conditions, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Response.FromValue(blobInfo, null)); // Return the instance
-
-            await blob.SetPropertiesAsync(headers, conditions);
-
-            _underlyingBlob.VerifyAll();
-        }
-    }
-
-    public class AzureBlockBlob
-    {
-        private readonly BlockBlobClient _blob;
-
-        public AzureBlockBlob(BlockBlobClient blob)
-        {
-            _blob = blob ?? throw new ArgumentNullException(nameof(blob));
-        }
-
-        public async Task<bool> ExistsAsync(CancellationToken cancellationToken)
-        {
-            var response = await _blob.ExistsAsync(cancellationToken);
-            return response.Value;
-        }
-
-        public async Task FetchAttributesAsync(CancellationToken cancellationToken)
-        {
-            await _blob.GetPropertiesAsync(null, cancellationToken);
-        }
-
-        public async Task<IReadOnlyDictionary<string, string>> GetMetadataAsync(CancellationToken cancellationToken)
-        {
-            var properties = await _blob.GetPropertiesAsync(null, cancellationToken);
-            return new ReadOnlyDictionary<string, string>(properties.Value.Metadata);
-        }
-
-        public async Task<Stream> GetStreamAsync(CancellationToken cancellationToken)
-        {
-            var response = await _blob.OpenReadAsync(new BlobOpenReadOptions(false), cancellationToken);
-            return response; // Directly return the response as it is already a Stream
-        }
-
-        public async Task SetPropertiesAsync(BlobHttpHeaders headers, BlobRequestConditions conditions)
-        {
-            await _blob.SetHttpHeadersAsync(headers, conditions);
+                _uncompressedStorage = new AzureStorageBlobs(_blobContainerMock.Object, compressContent: false, throttle: NullThrottle.Instance);
+            }
         }
     }
 }
