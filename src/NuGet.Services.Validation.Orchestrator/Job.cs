@@ -180,13 +180,6 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<IBrokeredMessageSerializer<PackageValidationMessageData>, PackageValidationMessageDataSerializationAdapter>();
             services.AddTransient<ICriteriaEvaluator<Package>, PackageCriteriaEvaluator>();
             services.AddTransient<IProcessSignatureEnqueuer, ProcessSignatureEnqueuer>();
-            services.AddTransient<ICloudBlobClient>(c =>
-            {
-                var configurationAccessor = c.GetRequiredService<IOptionsSnapshot<ValidationConfiguration>>();
-                return new CloudBlobClientWrapper(
-                    configurationAccessor.Value.ValidationStorageConnectionString,
-                    readAccessGeoRedundant: false);
-            });
             services.AddTransient<ICloudBlobContainerInformationProvider, GalleryCloudBlobContainerInformationProvider>();
             services.AddTransient<ICoreFileStorageService, CloudBlobCoreFileStorageService>();
             services.AddTransient<IFileDownloader, FileDownloader>();
@@ -236,6 +229,10 @@ namespace NuGet.Services.Validation.Orchestrator
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
+            containerBuilder
+                .RegisterStorageAccount<ValidationConfiguration>(c => c.ValidationStorageConnectionString)
+                .As<ICloudBlobClient>();
+
             containerBuilder
                 .Register(c =>
                 {
@@ -452,13 +449,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private static void ConfigureFlatContainer(ContainerBuilder builder)
         {
             builder
-                .Register<CloudBlobClientWrapper>(c =>
-                {
-                    var configurationAccessor = c.Resolve<IOptionsSnapshot<FlatContainerConfiguration>>();
-                    return new CloudBlobClientWrapper(
-                        configurationAccessor.Value.ConnectionString,
-                        readAccessGeoRedundant: false);
-                })
+                .RegisterStorageAccount<FlatContainerConfiguration>(c => c.ConnectionString)
                 .Keyed<ICloudBlobClient>(FlatContainerBindingKey);
 
             builder
