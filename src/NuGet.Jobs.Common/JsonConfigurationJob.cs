@@ -197,13 +197,7 @@ namespace NuGet.Jobs
         public static void ConfigureFeatureFlagAutofacServices(ContainerBuilder containerBuilder)
         {
             containerBuilder
-                .Register(c =>
-                {
-                    var options = c.Resolve<IOptionsSnapshot<FeatureFlagConfiguration>>();
-                    return new CloudBlobClientWrapper(
-                        options.Value.ConnectionString,
-                        requestTimeout: TimeSpan.FromMinutes(2));
-                })
+                .RegisterStorageAccount<FeatureFlagConfiguration>(c => c.ConnectionString, requestTimeout: TimeSpan.FromMinutes(2))
                 .Keyed<ICloudBlobClient>(FeatureFlagBindingKey);
 
             containerBuilder
