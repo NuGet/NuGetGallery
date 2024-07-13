@@ -33,14 +33,12 @@ namespace Validation.Symbols
             {
                 var configurationAccessor = c.GetRequiredService<IOptionsSnapshot<SymbolsValidatorConfiguration>>();
                 var packageStorageService = new CloudBlobCoreFileStorageService(
-                    StorageAccountHelper.CreateCloudBlobClient(
-                        configurationAccessor.Value.PackageConnectionString),
+                    c.CreateCloudBlobClient(configurationAccessor.Value.PackageConnectionString),
                     c.GetRequiredService<IDiagnosticsService>(),
                     c.GetRequiredService<ICloudBlobContainerInformationProvider>());
 
                 var packageValidationStorageService = new CloudBlobCoreFileStorageService(
-                    StorageAccountHelper.CreateCloudBlobClient(
-                        configurationAccessor.Value.ValidationPackageConnectionString),
+                    c.CreateCloudBlobClient(configurationAccessor.Value.ValidationPackageConnectionString),
                     c.GetRequiredService<IDiagnosticsService>(),
                     c.GetRequiredService<ICloudBlobContainerInformationProvider>());
 
