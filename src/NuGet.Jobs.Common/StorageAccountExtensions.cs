@@ -13,8 +13,8 @@ namespace NuGet.Jobs
 {
     public static class StorageAccountHelper
     {
-        private const string StorageUseManagedIdentityProperyName = "Storage_UseManagedIdentity";
-        private const string StorageManagedIdentityClientIdProperyName = "Storage_ManagedIdentityClientId";
+        private const string StorageUseManagedIdentityPropertyName = "Storage_UseManagedIdentity";
+        private const string StorageManagedIdentityClientIdPropertyName = "Storage_ManagedIdentityClientId";
 
         public static IServiceCollection ConfigureStorageMsi(this IServiceCollection serviceCollection, IConfiguration configuration)
         {
@@ -27,8 +27,8 @@ namespace NuGet.Jobs
                 throw new ArgumentNullException(nameof(configuration));
             }
 
-            string useManagedIdentityStr = configuration[StorageUseManagedIdentityProperyName];
-            string managedIdentityClientId = configuration[StorageManagedIdentityClientIdProperyName];
+            string useManagedIdentityStr = configuration[StorageUseManagedIdentityPropertyName];
+            string managedIdentityClientId = configuration[StorageManagedIdentityClientIdPropertyName];
             bool useManagedIdentity = false;
             if (!string.IsNullOrWhiteSpace(useManagedIdentityStr))
             {
