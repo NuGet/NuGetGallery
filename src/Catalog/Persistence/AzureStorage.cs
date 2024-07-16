@@ -190,11 +190,11 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         {
             var blobs = new List<StorageListItem>();
 
-            BlobContainerClient blockContainerClient = _blobContainerClientWrapper.ContainerClient;
-            await foreach (var blobItem in blockContainerClient.GetBlobsAsync(prefix: _directory.DirectoryPrefix, cancellationToken: cancellationToken))
+            BlobContainerClient blobContainerClient = _blobContainerClientWrapper.ContainerClient;
+            await foreach (var blobItem in blobContainerClient.GetBlobsAsync(prefix: _directory.DirectoryPrefix, cancellationToken: cancellationToken))
             {
                 var lastModified = blobItem.Properties.LastModified?.UtcDateTime;
-                blobs.Add(new StorageListItem(new Uri(blockContainerClient.Uri, blobItem.Name), lastModified));
+                blobs.Add(new StorageListItem(new Uri(blobContainerClient.Uri, blobItem.Name), lastModified));
             }
 
             return blobs;
