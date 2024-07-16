@@ -3,8 +3,9 @@
 
 using Azure.Storage.Blobs.Models;
 using Azure;
+using NuGetGallery;
 
-namespace NuGetGallery
+namespace NuGet.Services.Metadata.Catalog.Extensions
 {
     public static class AccessConditionExtensions
     {
