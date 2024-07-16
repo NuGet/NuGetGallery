@@ -15,6 +15,7 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using NuGet.Protocol;
+using NuGet.Services.Metadata.Catalog.Extensions;
 using NuGetGallery;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence

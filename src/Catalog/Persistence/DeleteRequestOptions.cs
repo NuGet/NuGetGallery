@@ -3,6 +3,7 @@
 
 using System;
 using Azure.Storage.Blobs.Models;
+using NuGet.Services.Metadata.Catalog.Extensions;
 using NuGetGallery;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
