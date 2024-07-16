@@ -48,6 +48,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             {
                 _containerClient = serviceClient.GetBlobContainerClient(containerName);
             }
+            
             _blobContainerClientWrapper = new BlobContainerClientWrapper(_containerClient);
         }
 
