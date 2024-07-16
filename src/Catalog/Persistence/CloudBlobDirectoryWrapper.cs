@@ -59,7 +59,18 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         // Assuming we'll use BlobHierarchyItem hierarchy items (with a virtual directory structure) over BlobItem(flat blobs)
         public async Task<IEnumerable<BlobHierarchyItem>> ListBlobsAsync(CancellationToken cancellationToken)
         {
-            return await _containerClient.ListBlobsAsync(_directoryPrefix, cancellationToken);
+            var items = new List<BlobHierarchyItem>();
+            var resultSegment = _containerClient.GetBlobsByHierarchyAsync(prefix: _directoryPrefix).AsPages();
+
+            await foreach (Azure.Page<BlobHierarchyItem> blobPage in resultSegment.WithCancellation(cancellationToken))
+            {
+                foreach (BlobHierarchyItem blobItem in blobPage.Values)
+                {
+                    items.Add(blobItem);
+                }
+            }
+
+            return items;
         }
     }
 }
