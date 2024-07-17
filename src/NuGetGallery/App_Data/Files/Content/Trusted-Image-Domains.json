@@ -3,6 +3,7 @@
         "api.codacy.com",
         "app.codacy.com",
         "api.codeclimate.com",
+        "app.deepsource.com",
         "api.dependabot.com",
         "api.travis-ci.com",
         "api.reuse.software",
