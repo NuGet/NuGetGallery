@@ -117,10 +117,8 @@ namespace NuGet.Services.Metadata.Catalog
                 TelemetryConstants.PackageBlobReadSeconds,
                 GetProperties(packageId, packageNormalizedVersion, blob: null)))
             {
-                await blob.FetchAttributesAsync(cancellationToken);
-
                 string packageHash = null;
-                var etag = blob.ETag;
+                var etag = await blob.GetETagAsync(cancellationToken);
 
                 var metadata = await blob.GetMetadataAsync(cancellationToken);
 
@@ -154,9 +152,8 @@ namespace NuGet.Services.Metadata.Catalog
                         // which results in many GET requests.  To guard against the blob having changed since we
                         // obtained the package hash, we check the ETag one more time.  If this check fails, we'll
                         // fallback to using a single HTTP GET request.
-                        await blob.FetchAttributesAsync(cancellationToken);
 
-                        if (etag != blob.ETag)
+                        if (etag != await blob.GetETagAsync(cancellationToken))
                         {
                             item = null;
 

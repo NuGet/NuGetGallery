@@ -13,13 +13,14 @@ namespace NgTests
     {
         [Theory]
         [Description("The regular azure factory should not compress the content if.")]
-        [InlineData("http://localhost/reg", "testAccount", "DummyDUMMYpZxLeDumMyyN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAdummyw==", "testContainer", "testStoragePath", "azure")]
+        [InlineData("http://localhost/reg", "testAccount", "DummyDUMMYpZxLeDumMyyN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAdummyw==", "testContainer", "testStoragePath", "azure", "core.windows.net")]
         public void AzureFactory(string storageBaseAddress,
                                  string storageAccountName,
                                  string storageKeyValue,
                                  string storageContainer,
                                  string storagePath,
-                                 string storageType)
+                                 string storageType,
+                                 string storageSuffix)
         {
             Dictionary<string, string> arguments = new Dictionary<string, string>()
             {
@@ -28,7 +29,8 @@ namespace NgTests
                 { Arguments.StorageKeyValue, storageKeyValue },
                 { Arguments.StorageContainer, storageContainer },
                 { Arguments.StoragePath, storagePath },
-                { Arguments.StorageType, storageType}
+                { Arguments.StorageType, storageType},
+                { Arguments.StorageSuffix, storageSuffix} // Without BlobServiceClient couldn't create new instance. 
             };
 
             StorageFactory factory = CommandHelpers.CreateStorageFactory(arguments, true);

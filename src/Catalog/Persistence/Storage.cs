@@ -8,8 +8,8 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
+using NuGetGallery;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
@@ -20,7 +20,10 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         public Storage(Uri baseAddress)
         {
-            string s = baseAddress.OriginalString.TrimEnd('/') + '/';
+            UriBuilder uriBuilder = new UriBuilder(baseAddress.AbsoluteUri);
+            // Remove the query string from the base address.
+            uriBuilder.Query = string.Empty;
+            string s = uriBuilder.Uri.OriginalString.TrimEnd('/') + '/';
             BaseAddress = new Uri(s);
         }
 
@@ -122,7 +125,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             {
                 await OnDeleteAsync(resourceUri, deleteRequestOptions, cancellationToken);
             }
-            catch (StorageException e)
+            catch (CloudBlobStorageException e)
             {
                 WebException webException = e.InnerException as WebException;
                 if (webException != null)

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <Import Project="..\..\SdkProjects.props" />
 
@@ -7,7 +7,7 @@
     <Description>Create, edit, or read the package metadata catalog.</Description>
     <PackageTags>nuget;services;search;catalog;metadata;collector</PackageTags>
   </PropertyGroup>
-
+  
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
     <Compile Remove="AppendOnlyCatalogItem.cs" />
     <Compile Remove="AppendOnlyCatalogWriter.cs" />
@@ -65,17 +65,15 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Storage.Blobs" />
-    <PackageReference Include="Microsoft.Azure.Storage.DataMovement" />
+    <PackageReference Include="NuGetGallery.Core" />
     <PackageReference Include="NuGet.Services.Entities" />
     <PackageReference Include="NuGet.Services.Logging" />
     <PackageReference Include="NuGet.Services.Sql" />
-    <PackageReference Include="WindowsAzure.Storage" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <PackageReference Include="dotNetRDF" />
     <PackageReference Include="NuGet.StrongName.json-ld.net" />
-    <PackageReference Include="Microsoft.WindowsAzure.ConfigurationManager" />
   </ItemGroup>
 
   <ItemGroup>

@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.WindowsAzure.Storage;
 using Moq;
 using Newtonsoft.Json;
 using NgTests.Infrastructure;
@@ -16,6 +15,7 @@ using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Monitoring;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Versioning;
+using NuGetGallery;
 using Xunit;
 
 namespace NgTests
@@ -102,13 +102,13 @@ namespace NgTests
             {
                 if (previousState != state)
                 {
-                    status.ExistingState[state] = AccessCondition.GenerateIfNotExistsCondition();
+                    status.ExistingState[state] = AccessConditionWrapper.GenerateIfNotExistsCondition();
                     continue;
                 }
 
                 var content = new StringStorageContentWithETag("{}", etag);
                 await SaveToStorage(storageFactory, state, feedPackageIdentity, content);
-                status.ExistingState[state] = AccessCondition.GenerateIfMatchCondition(etag);
+                status.ExistingState[state] = AccessConditionWrapper.GenerateIfMatchCondition(etag);
             }
 
             // Act
@@ -422,7 +422,7 @@ namespace NgTests
             var json = JsonConvert.SerializeObject(status, JsonSerializerUtility.SerializerSettings);
             var content = new StringStorageContentWithAccessCondition(
                 json,
-                AccessCondition.GenerateEmptyCondition(),
+                AccessConditionWrapper.GenerateEmptyCondition(),
                 "application/json");
 
             return SaveToStorage(storageFactory, status.State, status.Package, content);

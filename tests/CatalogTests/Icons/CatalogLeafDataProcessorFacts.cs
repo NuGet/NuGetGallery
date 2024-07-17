@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Moq;
@@ -132,7 +133,10 @@ namespace CatalogTests.Icons
                 PackageStorageMock
                     .Setup(ps => ps.GetCloudBlockBlobReferenceAsync(packageUri))
                     .ReturnsAsync(cloudBlockBlobMock.Object);
-                var exception = new StorageException(new RequestResult { HttpStatusCode = 404 }, message: "Exception!!1", inner: null);
+                var exception = new RequestFailedException(
+                    status: 404,
+                    message: "Exception!!1",
+                    innerException: null);
                 cloudBlockBlobMock
                     .Setup(cbb => cbb.GetStreamAsync(It.IsAny<CancellationToken>()))
                     .ThrowsAsync(exception);

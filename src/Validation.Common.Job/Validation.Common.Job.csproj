@@ -24,6 +24,7 @@
   <ItemGroup>
     <PackageReference Include="Autofac" />
     <PackageReference Include="Autofac.Extensions.DependencyInjection" />
+    <PackageReference Include="Azure.Storage.Blobs" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
     <PackageReference Include="NuGet.Packaging" />

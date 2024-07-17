@@ -5,8 +5,11 @@ using System;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Azure;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Specialized;
+using Azure.Storage.Blobs.Models;
+using System.IO;
 
 namespace NuGet.Jobs.Validation.Leases
 {
@@ -20,50 +23,47 @@ namespace NuGet.Jobs.Validation.Leases
         private static readonly TimeSpan MinLeaseTime = TimeSpan.FromSeconds(15);
         private static readonly TimeSpan MaxLeaseTime = TimeSpan.FromSeconds(60);
 
-        private readonly CloudBlobClient _cloudBlobClient;
+        private readonly BlobServiceClient _blobServiceClient;
         private readonly string _containerName;
         private readonly string _basePath;
 
-        public CloudBlobLeaseService(CloudBlobClient cloudBlobClient, string containerName, string basePath)
+        public CloudBlobLeaseService(BlobServiceClient blobServiceClient, string containerName, string basePath)
         {
-            _cloudBlobClient = cloudBlobClient ?? throw new ArgumentNullException(nameof(cloudBlobClient));
+            _blobServiceClient = blobServiceClient ?? throw new ArgumentNullException(nameof(blobServiceClient));
             _containerName = containerName ?? throw new ArgumentNullException(nameof(containerName));
             _basePath = string.IsNullOrEmpty(basePath) ? string.Empty : basePath.TrimEnd('/') + '/';
         }
 
         public async Task<LeaseResult> TryAcquireAsync(string resourceName, TimeSpan leaseTime, CancellationToken cancellationToken)
         {
-            var blob = GetBlob(resourceName);
+            BlockBlobClient blobClient = GetBlockBlobClient(resourceName);
             try
             {
-                return await TryAcquireAsync(blob, leaseTime, cancellationToken);
+                return await TryAcquireAsync(blobClient, leaseTime, cancellationToken);
             }
-            catch (StorageException ex) when (ex.RequestInformation?.HttpStatusCode == (int)HttpStatusCode.NotFound)
+            catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.NotFound)
             {
                 // The lease file does not exist. Try to create it and lease it.
-                return await TryCreateAndAcquireAsync(blob, leaseTime, cancellationToken);
+                return await TryCreateAndAcquireAsync(blobClient, leaseTime, cancellationToken);
             }
         }
 
-        private CloudBlockBlob GetBlob(string resourceName)
+        private BlockBlobClient GetBlockBlobClient(string resourceName)
         {
-            var container = _cloudBlobClient.GetContainerReference(_containerName);
-            return container.GetBlockBlobReference($"{_basePath}{resourceName}");
+            BlobContainerClient containerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
+            return containerClient.GetBlockBlobClient($"{_basePath}{resourceName}");
         }
 
         public async Task<bool> ReleaseAsync(string resourceName, string leaseId, CancellationToken cancellationToken)
         {
-            var blob = GetBlob(resourceName);
+            BlockBlobClient blobClient = GetBlockBlobClient(resourceName);
             try
             {
-                await blob.ReleaseLeaseAsync(
-                    AccessCondition.GenerateLeaseCondition(leaseId),
-                    options: null,
-                    operationContext: null,
-                    cancellationToken);
+                BlobLeaseClient leaseClient = blobClient.GetBlobLeaseClient(leaseId);
+                await leaseClient.ReleaseAsync(cancellationToken: cancellationToken);
                 return true;
             }
-            catch (StorageException ex) when (ex.RequestInformation?.HttpStatusCode == (int)HttpStatusCode.Conflict)
+            catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.Conflict)
             {
                 return false;
             }
@@ -78,49 +78,47 @@ namespace NuGet.Jobs.Validation.Leases
                     "The lease Id must be provided for renewing the lease.");
             }
 
-            var blob = GetBlob(resourceName);
+            BlockBlobClient blob = GetBlockBlobClient(resourceName);
 
             try
             {
-                await blob.RenewLeaseAsync(
-                    AccessCondition.GenerateLeaseCondition(leaseId),
-                    options: null,
-                    operationContext: null,
-                    cancellationToken);
-
+                BlobLeaseClient leaseClient = blob.GetBlobLeaseClient(leaseId);
+                await leaseClient.RenewAsync(cancellationToken: cancellationToken);
                 return LeaseResult.Success(leaseId);
             }
-            catch (StorageException ex) when (ex.RequestInformation?.HttpStatusCode == (int)HttpStatusCode.Conflict)
+            catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.Conflict)
             {
                 return LeaseResult.Failure();
             }
         }
 
-        private async Task<LeaseResult> TryCreateAndAcquireAsync(CloudBlockBlob blob, TimeSpan leaseTime, CancellationToken cancellationToken)
+        private async Task<LeaseResult> TryCreateAndAcquireAsync(BlockBlobClient blobClient, TimeSpan leaseTime, CancellationToken cancellationToken)
         {
             try
             {
                 // Use an empty blob for the lease blob. The contents are not important. Only the lease state (managed
                 // by Azure Blob Storage) is important.
-                await blob.UploadFromByteArrayAsync(
-                    Array.Empty<byte>(),
-                    index: 0,
-                    count: 0,
-                    accessCondition: null,
-                    options: null,
-                    operationContext: null,
-                    cancellationToken: cancellationToken);
+                using (var emptyStream = new MemoryStream(Array.Empty<byte>()))
+                {
+                    await blobClient.UploadAsync(emptyStream, new BlobUploadOptions
+                    {
+                        Conditions = new BlobRequestConditions
+                        {
+                            IfNoneMatch = new ETag("*") // This ensures the blob is only uploaded if it does not already exist
+                        }
+                    }, cancellationToken);
+                }
 
-                return await TryAcquireAsync(blob, leaseTime, cancellationToken);
+                return await TryAcquireAsync(blobClient, leaseTime, cancellationToken);
             }
-            catch (StorageException ex) when (ex.RequestInformation?.HttpStatusCode == (int)HttpStatusCode.PreconditionFailed)
+            catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.PreconditionFailed)
             {
-                // The file has already created and leased by someone else.
+                // The file has already been created and leased by someone else.
                 return LeaseResult.Failure();
             }
         }
 
-        private async Task<LeaseResult> TryAcquireAsync(CloudBlockBlob blob, TimeSpan leaseTime, CancellationToken cancellationToken)
+        private async Task<LeaseResult> TryAcquireAsync(BlockBlobClient blobClient, TimeSpan leaseTime, CancellationToken cancellationToken)
         {
             if (leaseTime < MinLeaseTime || leaseTime > MaxLeaseTime)
             {
@@ -131,17 +129,14 @@ namespace NuGet.Jobs.Validation.Leases
 
             try
             {
-                var leaseId = await blob.AcquireLeaseAsync(
-                    leaseTime: leaseTime,
-                    proposedLeaseId: null,
-                    accessCondition: null,
-                    options: null,
-                    operationContext: null,
+                BlobLeaseClient leaseClient = blobClient.GetBlobLeaseClient();
+                Response<BlobLease> leaseResponse = await leaseClient.AcquireAsync(
+                    duration: leaseTime,
                     cancellationToken: cancellationToken);
 
-                return LeaseResult.Success(leaseId);
+                return LeaseResult.Success(leaseResponse.Value.LeaseId);
             }
-            catch (StorageException ex) when (ex.RequestInformation?.HttpStatusCode == (int)HttpStatusCode.Conflict)
+            catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.Conflict)
             {
                 // The lease has already been acquired by someone else.
                 return LeaseResult.Failure();

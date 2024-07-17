@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NgTests.Infrastructure;
@@ -198,11 +199,8 @@ namespace CatalogTests
                     test.Blob.Setup(x => x.ExistsAsync(It.IsAny<CancellationToken>()))
                         .ReturnsAsync(true);
 
-                    test.Blob.Setup(x => x.FetchAttributesAsync(It.IsAny<CancellationToken>()))
-                        .Returns(Task.FromResult(0));
-
-                    test.Blob.SetupGet(x => x.ETag)
-                        .Returns("0");
+                    test.Blob.Setup(x => x.GetETagAsync(It.IsAny<CancellationToken>()))
+                        .ReturnsAsync("0");
 
                     test.Blob.Setup(x => x.GetMetadataAsync(It.IsAny<CancellationToken>()))
                         .ReturnsAsync(new Dictionary<string, string>());
@@ -246,11 +244,8 @@ namespace CatalogTests
                     test.Blob.Setup(x => x.ExistsAsync(It.IsAny<CancellationToken>()))
                         .ReturnsAsync(true);
 
-                    test.Blob.Setup(x => x.FetchAttributesAsync(It.IsAny<CancellationToken>()))
-                        .Returns(Task.FromResult(0));
-
-                    test.Blob.SetupGet(x => x.ETag)
-                        .Returns("0");
+                    test.Blob.Setup(x => x.GetETagAsync(It.IsAny<CancellationToken>()))
+                        .ReturnsAsync("0");
 
                     test.Blob.Setup(x => x.GetMetadataAsync(It.IsAny<CancellationToken>()))
                         .ReturnsAsync(new Dictionary<string, string>()
@@ -261,11 +256,8 @@ namespace CatalogTests
                     test.Blob.Setup(x => x.GetStreamAsync(It.IsAny<CancellationToken>()))
                         .ReturnsAsync(TestHelper.GetStream(test.PackageFileName + ".testdata"));
 
-                    test.Blob.Setup(x => x.FetchAttributesAsync(It.IsAny<CancellationToken>()))
-                        .Returns(Task.FromResult(0));
-
-                    test.Blob.SetupGet(x => x.ETag)
-                        .Returns("0");
+                    test.Blob.Setup(x => x.GetETagAsync(It.IsAny<CancellationToken>()))
+                        .ReturnsAsync("0");
 
                     var item = await test.Creator.CreateAsync(
                         test.FeedPackageDetails,
@@ -293,12 +285,13 @@ namespace CatalogTests
                     test.Blob.Setup(x => x.ExistsAsync(It.IsAny<CancellationToken>()))
                         .ReturnsAsync(true);
 
-                    test.Blob.Setup(x => x.FetchAttributesAsync(It.IsAny<CancellationToken>()))
-                        .Returns(Task.FromResult(0));
+                    //test.Blob.Setup(x => x.FetchAttributesAsync(It.IsAny<CancellationToken>()))
+                    //    .ReturnsAsync(new BlobProperties());
 
-                    test.Blob.SetupSequence(x => x.ETag)
-                        .Returns("0")
-                        .Returns("1");
+                    test.Blob.SetupSequence(x => x.GetETagAsync(It.IsAny<CancellationToken>()))
+                        .ReturnsAsync("0")
+                        .ReturnsAsync("1");
+
 
                     test.Blob.Setup(x => x.GetMetadataAsync(It.IsAny<CancellationToken>()))
                         .ReturnsAsync(new Dictionary<string, string>()
@@ -308,9 +301,6 @@ namespace CatalogTests
 
                     test.Blob.Setup(x => x.GetStreamAsync(It.IsAny<CancellationToken>()))
                         .ReturnsAsync(TestHelper.GetStream(test.PackageFileName + ".testdata"));
-
-                    test.Blob.Setup(x => x.FetchAttributesAsync(It.IsAny<CancellationToken>()))
-                        .Returns(Task.FromResult(0));
 
                     test.Blob.SetupGet(x => x.Uri)
                         .Returns(test.ContentUri);

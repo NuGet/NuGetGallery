@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using Autofac;
+using Azure.Storage.Blobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -56,16 +57,17 @@ namespace NuGet.Jobs.Catalog2Registration
                 .Register(c =>
                 {
                     var options = c.Resolve<IOptionsSnapshot<Catalog2RegistrationConfiguration>>();
-                    return CloudStorageAccount.Parse(options.Value.StorageConnectionString);
+                    return new BlobServiceClient(options.Value.StorageConnectionString);
                 })
-                .Keyed<CloudStorageAccount>(CursorBindingKey);
+                .Keyed<BlobServiceClient>(CursorBindingKey);
 
             containerBuilder
                 .Register<IStorageFactory>(c =>
                 {
                     var options = c.Resolve<IOptionsSnapshot<Catalog2RegistrationConfiguration>>();
+
                     return new AzureStorageFactory(
-                        c.ResolveKeyed<CloudStorageAccount>(CursorBindingKey),
+                        c.ResolveKeyed<BlobServiceClient>(CursorBindingKey),
                         options.Value.LegacyStorageContainer,
                         maxExecutionTime: AzureStorage.DefaultMaxExecutionTime,
                         serverTimeout: AzureStorage.DefaultServerTimeout,

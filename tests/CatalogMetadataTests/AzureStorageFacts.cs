@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Moq;
 using Xunit;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using Azure.Storage.Blobs;
 
 namespace CatalogMetadataTests
 {
@@ -133,12 +134,30 @@ namespace CatalogMetadataTests
 
         public AzureStorageBaseFacts()
         {
+            // Mock the BlobServiceClient
+            var mockBlobServiceClient = new Mock<BlobServiceClient>(_baseAddress, null);
+            mockBlobServiceClient.Setup(x => x.Uri).Returns(_baseAddress);
+
+            // Mock the BlobContainerClient
+            string containerName = "azuresearch";
+            // The UseDevelopmentStorage=true part is a connection string setting used to configure Azure Storage SDK to connect to the Azure Storage Emulator instead of an actual Azure Storage account. 
+            var mockBlobContainerClient = new Mock<BlobContainerClient>(MockBehavior.Strict, "UseDevelopmentStorage=true", containerName);
+
+            // Setup the necessary methods and properties
+            mockBlobContainerClient.Setup(client => client.Uri).Returns(new Uri($"{_baseAddress}/{containerName}"));
+            mockBlobContainerClient.Setup(client => client.GetBlobClient(It.IsAny<string>()))
+                .Returns((string blobName) => new BlobClient(new Uri($"{_baseAddress}/{containerName}/{blobName}")));
+
+            mockBlobContainerClient.Setup(client => client.Name)
+                .Returns(containerName);
+
+            // Mock ICloudBlobDirectory
             var directory = new Mock<ICloudBlobDirectory>();
 
-            var client = new Mock<ICloudBlockBlobClient>();
-            client.SetupProperty(x => x.DefaultRequestOptions);
-
-            directory.Setup(x => x.ServiceClient).Returns(client.Object);
+            // Setup the ServiceClient to return the mocked BlobServiceClient
+            directory.Setup(x => x.ServiceClient).Returns(mockBlobServiceClient.Object);
+            directory.Setup(x => x.DirectoryPrefix).Returns("");
+            directory.Setup(x => x.ContainerClientWrapper).Returns(new BlobContainerClientWrapper(mockBlobContainerClient.Object));
 
             _storage = new AzureStorage(directory.Object,
                 _baseAddress,
