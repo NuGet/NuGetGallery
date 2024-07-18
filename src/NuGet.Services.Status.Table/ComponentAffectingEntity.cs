@@ -2,17 +2,21 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.WindowsAzure.Storage.Table;
+using Azure;
+using Azure.Data.Tables;
 
 namespace NuGet.Services.Status.Table
 {
     /// <summary>
     /// Base implementation of <see cref="IComponentAffectingEntity"/>.
     /// </summary>
-    public class ComponentAffectingEntity : TableEntity, IComponentAffectingEntity
+    public class ComponentAffectingEntity : ITableEntity, IComponentAffectingEntity
     {
+        private ITableEntity _tableEntity;
+
         public ComponentAffectingEntity()
         {
+            _tableEntity = new TableEntity();
         }
 
         public ComponentAffectingEntity(
@@ -22,12 +26,12 @@ namespace NuGet.Services.Status.Table
             DateTime startTime,
             ComponentStatus affectedComponentStatus = ComponentStatus.Up,
             DateTime? endTime = null)
-            : base(partitionKey, rowKey)
         {
             AffectedComponentPath = affectedComponentPath;
             AffectedComponentStatus = (int)affectedComponentStatus;
             StartTime = startTime;
             EndTime = endTime;
+            _tableEntity = new TableEntity(partitionKey, rowKey);
         }
 
         public string AffectedComponentPath { get; set; }
@@ -53,5 +57,10 @@ namespace NuGet.Services.Status.Table
             get { return EndTime == null; }
             set { }
         }
+
+        public string PartitionKey { get => _tableEntity.PartitionKey; set => _tableEntity.PartitionKey = value; }
+        public string RowKey { get => _tableEntity.RowKey; set => _tableEntity.RowKey = value; }
+        public DateTimeOffset? Timestamp { get => _tableEntity.Timestamp; set => _tableEntity.Timestamp = value; }
+        public ETag ETag { get => _tableEntity.ETag; set => _tableEntity.ETag = value; }
     }
 }

@@ -2,14 +2,17 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Azure.Storage;
+using Azure.Storage.Blobs;
+using Azure.Storage.DataMovement.Blobs;
 using Microsoft.Extensions.Logging;
-using Microsoft.WindowsAzure.Storage;
 
 namespace NuGet.Services.Storage
 {
     public class AzureStorageFactory : StorageFactory
     {
-        CloudStorageAccount _account;
+        BlobServiceClient _account;
+        BlobsStorageResourceProvider _storageResourceProvider;
         string _containerName;
         string _path;
         private Uri _differentBaseAddress = null;
@@ -18,7 +21,8 @@ namespace NuGet.Services.Storage
         private readonly bool _initializeContainer;
 
         public AzureStorageFactory(
-            CloudStorageAccount account,
+            BlobServiceClient account,
+            BlobsStorageResourceProvider blobsStorageResourceProvider,
             string containerName,
             ILogger<AzureStorage> azureStorageLogger,
             string path = null,
@@ -28,6 +32,7 @@ namespace NuGet.Services.Storage
             )
         {
             _account = account;
+            _storageResourceProvider = blobsStorageResourceProvider;
             _containerName = containerName;
             _path = null;
             _azureStorageLogger = azureStorageLogger;
@@ -43,7 +48,7 @@ namespace NuGet.Services.Storage
 
             if (baseAddress == null)
             {
-                Uri blobEndpoint = new UriBuilder(account.BlobEndpoint)
+                Uri blobEndpoint = new UriBuilder(account.Uri)
                 {
                     Scheme = "http", // Convert base address to http. 'https' can be used for communication but is not part of the names.
                     Port = 80
@@ -83,7 +88,7 @@ namespace NuGet.Services.Storage
                 newBase = new Uri(_differentBaseAddress, name + "/");
             }
 
-            return new AzureStorage(_account, _containerName, path, newBase, _useServerSideCopy, _initializeContainer, _azureStorageLogger) { Verbose = Verbose, CompressContent = CompressContent };
+            return new AzureStorage(_account, _storageResourceProvider, _containerName, path, newBase, _useServerSideCopy, _initializeContainer, _azureStorageLogger) { Verbose = Verbose, CompressContent = CompressContent };
         }
     }
 }

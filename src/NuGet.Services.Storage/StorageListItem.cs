@@ -10,11 +10,11 @@ namespace NuGet.Services.Storage
     {
         public Uri Uri { get; private set; }
 
-        public DateTime? LastModifiedUtc { get; private set; }
+        public DateTimeOffset? LastModifiedUtc { get; private set; }
 
         public IDictionary<string, string> Metadata { get; private set; }
 
-        public StorageListItem(Uri uri, DateTime? lastModifiedUtc, IDictionary<string, string> metadata = null)
+        public StorageListItem(Uri uri, DateTimeOffset? lastModifiedUtc, IDictionary<string, string> metadata = null)
         {
             Uri = uri;
             LastModifiedUtc = lastModifiedUtc;

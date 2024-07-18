@@ -8,21 +8,28 @@ using System.IO.Compression;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Storage;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using Azure.Storage.Blobs.Specialized;
+using Azure.Storage.DataMovement;
+using Azure.Storage.DataMovement.Blobs;
 using Microsoft.Extensions.Logging;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.DataMovement;
 
 namespace NuGet.Services.Storage
 {
     public class AzureStorage : Storage
     {
         private readonly ILogger<AzureStorage> _logger;
-        private readonly CloudBlobDirectory _directory;
+        private readonly BlobContainerClient _directory;
+        private readonly TransferManager _transferManager;
+        private readonly BlobsStorageResourceProvider _storageResourceProvider;
         private readonly bool _useServerSideCopy;
+        private readonly string _path;
 
         public AzureStorage(
-            CloudStorageAccount account,
+            BlobServiceClient account,
+            BlobsStorageResourceProvider blobsStorageResourceProvider,
             string containerName,
             string path,
             Uri baseAddress,
@@ -30,16 +37,19 @@ namespace NuGet.Services.Storage
             bool initializeContainer,
             ILogger<AzureStorage> logger)
             : this(
-                  account.CreateCloudBlobClient().GetContainerReference(containerName).GetDirectoryReference(path),
+                  account.GetBlobContainerClient(containerName),
+                  blobsStorageResourceProvider,
                   baseAddress,
                   useServerSideCopy,
                   initializeContainer,
                   logger)
         {
+            _path = path;
         }
 
         private AzureStorage(
-            CloudBlobDirectory directory,
+            BlobContainerClient directory,
+            BlobsStorageResourceProvider blobsStorageResourceProvider,
             Uri baseAddress,
             bool useServerSideCopy,
             bool initializeContainer,
@@ -49,14 +59,26 @@ namespace NuGet.Services.Storage
             _logger = logger;
             _directory = directory;
             _useServerSideCopy = useServerSideCopy;
+            var checkpointerOptions = new TransferCheckpointStoreOptions(Path.GetTempPath());
+            var transferManagerOptions = new TransferManagerOptions();
+            transferManagerOptions.CheckpointerOptions = checkpointerOptions;
+            _transferManager = new TransferManager(transferManagerOptions);
+            _storageResourceProvider = blobsStorageResourceProvider;
 
-            if (initializeContainer && _directory.Container.CreateIfNotExists())
+            if (initializeContainer)
             {
-                _directory.Container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
+                var storageActionResult = _directory.CreateIfNotExists(PublicAccessType.Blob);
 
                 if (Verbose)
                 {
-                    _logger.LogInformation("Created {ContainerName} publish container", _directory.Container.Name);
+                    if (storageActionResult != null)
+                    {
+                        _logger.LogInformation("Created {ContainerName} publish container", _directory.Name);
+                    }
+                    else
+                    {
+                        _logger.LogInformation("Container {ContainerName} already existed. Create was no-oped", _directory.Name);
+                    }
                 }
             }
 
@@ -69,7 +91,7 @@ namespace NuGet.Services.Storage
             set;
         }
 
-        static Uri GetDirectoryUri(CloudBlobDirectory directory)
+        static Uri GetDirectoryUri(BlobContainerClient directory)
         {
             Uri uri = new UriBuilder(directory.Uri)
             {
@@ -83,10 +105,10 @@ namespace NuGet.Services.Storage
         //Blob exists
         public override bool Exists(string fileName)
         {
-            var packageRegistrationUri = ResolveUri(fileName);
-            var blobName = GetName(packageRegistrationUri);
+            Uri packageRegistrationUri = ResolvePathedUri(fileName);
+            string blobName = GetName(packageRegistrationUri);
 
-            var blob = _directory.GetBlockBlobReference(blobName);
+            BlockBlobClient blob = _directory.GetBlockBlobClient(blobName);
 
             if (blob.Exists())
             {
@@ -101,10 +123,10 @@ namespace NuGet.Services.Storage
 
         public override async Task<bool> ExistsAsync(string fileName, CancellationToken cancellationToken)
         {
-            var packageRegistrationUri = ResolveUri(fileName);
-            var blobName = GetName(packageRegistrationUri);
+            Uri packageRegistrationUri = ResolvePathedUri(fileName);
+            string blobName = GetName(packageRegistrationUri);
 
-            var blob = _directory.GetBlockBlobReference(blobName);
+            BlockBlobClient blob = _directory.GetBlockBlobClient(blobName);
 
             if (await blob.ExistsAsync(cancellationToken))
             {
@@ -117,31 +139,60 @@ namespace NuGet.Services.Storage
             return false;
         }
 
-        public override async Task<IEnumerable<StorageListItem>> List(bool getMetadata, CancellationToken cancellationToken)
+        public override IEnumerable<StorageListItem> List(bool getMetadata)
         {
-            var files = await _directory.ListBlobsAsync(getMetadata, cancellationToken);
+            var blobTraits = new BlobTraits();
+            if (getMetadata)
+            {
+                blobTraits |= BlobTraits.Metadata;
+            }
 
-            return files.Select(GetStorageListItem).AsEnumerable();
+            foreach (BlobHierarchyItem blob in _directory.GetBlobsByHierarchy(traits: blobTraits, prefix: _path))
+            {
+                yield return GetStorageListItem(_directory.GetBlockBlobClient(blob.Blob.Name));
+            }
+        }
+
+        public override async Task<IEnumerable<StorageListItem>> ListAsync(bool getMetadata, CancellationToken cancellationToken)
+        {
+            var blobTraits = new BlobTraits();
+            if (getMetadata)
+            {
+                blobTraits |= BlobTraits.Metadata;
+            }
+
+            var blobList = new List<StorageListItem>();
+
+            await foreach (BlobHierarchyItem blob in _directory.GetBlobsByHierarchyAsync(traits: blobTraits, prefix: _path))
+            {
+                blobList.Add(await GetStorageListItemAsync(_directory.GetBlockBlobClient(blob.Blob.Name)));
+            }
+
+            return blobList;
         }
 
         public override async Task SetMetadataAsync(Uri resourceUri, IDictionary<string, string> metadata)
         {
-            var blob = GetBlockBlobReference(GetName(resourceUri));
-
-            foreach (var kvp in metadata)
-            {
-                blob.Metadata[kvp.Key] = kvp.Value;
-            }
-
-            await blob.SetMetadataAsync();
+            BlockBlobClient blob = GetBlobReference(GetName(resourceUri));
+            await blob.SetMetadataAsync(metadata);
         }
 
-        private StorageListItem GetStorageListItem(IListBlobItem listBlobItem)
+        private async Task<StorageListItem> GetStorageListItemAsync(BlockBlobClient listBlobItem)
         {
-            var cloudBlockBlob = (listBlobItem as CloudBlob);
-            var lastModified = cloudBlockBlob?.Properties.LastModified?.UtcDateTime;
+            var blobPropertiesResponse = await listBlobItem.GetPropertiesAsync();
+            var blobProperties = blobPropertiesResponse?.Value;
+            var lastModified = blobProperties?.LastModified;
 
-            return new StorageListItem(listBlobItem.Uri, lastModified, cloudBlockBlob?.Metadata);
+            return new StorageListItem(listBlobItem.Uri, lastModified, blobProperties?.Metadata);
+        }
+
+        private StorageListItem GetStorageListItem(BlockBlobClient listBlobItem)
+        {
+            var blobPropertiesResponse = listBlobItem.GetProperties();
+            var blobProperties = blobPropertiesResponse?.Value;
+            var lastModified = blobProperties?.LastModified;
+
+            return new StorageListItem(listBlobItem.Uri, lastModified, blobProperties?.Metadata);
         }
 
         protected override async Task OnCopyAsync(
@@ -158,47 +209,35 @@ namespace NuGet.Services.Storage
                 throw new NotImplementedException("Copying is only supported from Azure storage to Azure storage.");
             }
 
-            string sourceName = GetName(sourceUri);
-            string destinationName = azureDestinationStorage.GetName(destinationUri);
-
-            CloudBlockBlob sourceBlob = GetBlockBlobReference(sourceName);
-            CloudBlockBlob destinationBlob = azureDestinationStorage.GetBlockBlobReference(destinationName);
-
-            var context = new SingleTransferContext();
+            var destinationOptions = new AppendBlobStorageResourceOptions();
 
             if (destinationProperties?.Count > 0)
             {
-                context.SetAttributesCallbackAsync = new SetAttributesCallbackAsync((destination) =>
+                foreach (KeyValuePair<string,string> property in destinationProperties)
                 {
-                    var blob = (CloudBlockBlob)destination;
-
-                    // The copy statement copied all properties from the source blob to the destination blob; however,
-                    // there may be required properties on destination blob, all of which may have not already existed
-                    // on the source blob at the time of copy.
-                    foreach (var property in destinationProperties)
+                    switch (property.Key)
                     {
-                        switch (property.Key)
-                        {
-                            case StorageConstants.CacheControl:
-                                blob.Properties.CacheControl = property.Value;
-                                break;
+                        case StorageConstants.CacheControl:
+                            destinationOptions.HttpHeaders.CacheControl = property.Value;
+                            break;
 
-                            case StorageConstants.ContentType:
-                                blob.Properties.ContentType = property.Value;
-                                break;
+                        case StorageConstants.ContentType:
+                            destinationOptions.HttpHeaders.ContentType = property.Value;
+                            break;
 
-                            default:
-                                throw new NotImplementedException($"Storage property '{property.Value}' is not supported.");
-                        }
+                        default:
+                            throw new NotImplementedException($"Storage property '{property.Value}' is not supported.");
                     }
-
-                    return Task.CompletedTask;
-                });
+                }
             }
 
-            context.ShouldOverwriteCallbackAsync = new ShouldOverwriteCallbackAsync((source, destination) => Task.FromResult(true));
+            StorageResource sourceStorageResource = _storageResourceProvider.FromBlob(sourceUri.ToString());
+            StorageResource destinationStorageResource = _storageResourceProvider.FromBlob(destinationUri.ToString(), destinationOptions);
 
-            await TransferManager.CopyAsync(sourceBlob, destinationBlob, _useServerSideCopy, options: null, context: context);
+            var transferOptions = new DataTransferOptions();
+
+            DataTransfer transfer = await _transferManager.StartTransferAsync(sourceStorageResource, destinationStorageResource, transferOptions: transferOptions, cancellationToken: cancellationToken);
+            await transfer.WaitForCompletionAsync();
         }
 
         //  save
@@ -206,15 +245,20 @@ namespace NuGet.Services.Storage
         {
             string name = GetName(resourceUri);
 
-            CloudBlockBlob blob = _directory.GetBlockBlobReference(name);
-            blob.Properties.ContentType = content.ContentType;
-            blob.Properties.CacheControl = content.CacheControl;
+            BlockBlobClient blob = _directory.GetBlockBlobClient(name);
+            BlobHttpHeaders headers = new BlobHttpHeaders();
+            headers.ContentType = content.ContentType;
+            headers.CacheControl = content.CacheControl;
 
-            var accessCondition = overwrite ? null : AccessCondition.GenerateIfNotExistsCondition();
+            if (!overwrite && await blob.ExistsAsync())
+            {
+                _logger.LogWarning("Blob existed and overwrite was not specified. Blob Name: {BlobName}", blob.Name);
+                return;
+            }
 
             if (CompressContent)
             {
-                blob.Properties.ContentEncoding = "gzip";
+                headers.ContentEncoding = "gzip";
                 using (Stream stream = content.GetContentStream())
                 {
                     MemoryStream destinationStream = new MemoryStream();
@@ -226,16 +270,16 @@ namespace NuGet.Services.Storage
 
                     destinationStream.Seek(0, SeekOrigin.Begin);
 
-                    await blob.UploadFromStreamAsync(
+                    await blob.UploadAsync(
                         destinationStream,
-                        accessCondition,
                         options: null,
-                        operationContext: null,
                         cancellationToken: cancellationToken);
+
+                    await blob.SetHttpHeadersAsync(headers);
 
                     if (Verbose)
                     {
-                        _logger.LogInformation("Saved compressed blob {BlobUri} to container {ContainerName}", blob.Uri.ToString(), _directory.Container.Name);
+                        _logger.LogInformation("Saved compressed blob {BlobUri} to container {ContainerName}", blob.Uri.ToString(), _directory.Name);
                     }
                 }
             }
@@ -243,16 +287,15 @@ namespace NuGet.Services.Storage
             {
                 using (Stream stream = content.GetContentStream())
                 {
-                    await blob.UploadFromStreamAsync(
+                    await blob.SetHttpHeadersAsync(headers);
+                    await blob.UploadAsync(
                         stream,
-                        accessCondition,
                         options: null,
-                        operationContext: null,
                         cancellationToken: cancellationToken);
 
                     if (Verbose)
                     {
-                        _logger.LogInformation("Saved uncompressed blob {BlobUri} to container {ContainerName}", blob.Uri.ToString(), _directory.Container.Name);
+                        _logger.LogInformation("Saved uncompressed blob {BlobUri} to container {ContainerName}", blob.Uri.ToString(), _directory.Name);
                     }
                 }
             }
@@ -266,18 +309,20 @@ namespace NuGet.Services.Storage
             // trim the starting slash to treat it as a relative path
             string name = GetName(resourceUri).TrimStart('/');
 
-            CloudBlockBlob blob = _directory.GetBlockBlobReference(name);
+            BlockBlobClient blob = _directory.GetBlockBlobClient(name);
 
             if (blob.Exists())
             {
                 MemoryStream originalStream = new MemoryStream();
-                await blob.DownloadToStreamAsync(originalStream, cancellationToken);
+                await blob.DownloadToAsync(originalStream, cancellationToken);
 
                 originalStream.Position = 0;
+                var propertiesResponse = await blob.GetPropertiesAsync();
+                var properties = propertiesResponse.Value;
                 
                 MemoryStream content;
 
-                if (blob.Properties.ContentEncoding == "gzip")
+                if (properties.ContentEncoding == "gzip")
                 {
                     using (var uncompressedStream = new GZipStream(originalStream, CompressionMode.Decompress))
                     {
@@ -309,23 +354,25 @@ namespace NuGet.Services.Storage
         {
             string name = GetName(resourceUri);
 
-            CloudBlockBlob blob = _directory.GetBlockBlobReference(name);
+            BlockBlobClient blob = _directory.GetBlockBlobClient(name);
 
-            await blob.DeleteAsync(cancellationToken);
+            await blob.DeleteAsync(cancellationToken: cancellationToken);
         }
 
-        private CloudBlockBlob GetBlockBlobReference(string blobName)
+        private BlockBlobClient GetBlobReference(string blobName)
         {
-            var blob = _directory.GetBlockBlobReference(blobName);
+            var blob = _directory.GetBlockBlobClient(blobName);
 
-            ApplyBlobRequestOptions(blob);
+            // The BlobClient should inherit the properties of the containerClient
+            // This means that we no longer need to explicitly apply the default options like we used to.
 
             return blob;
         }
 
-        private void ApplyBlobRequestOptions(CloudBlockBlob blob)
+        // This method is a helper to insert the _path into the resolved Uri for the file so we get the correct full path.
+        private Uri ResolvePathedUri(string filename)
         {
-            blob.ServiceClient.DefaultRequestOptions = _directory.ServiceClient.DefaultRequestOptions;
+            return ResolveUri(Path.Combine(_path, filename));
         }
     }
 }

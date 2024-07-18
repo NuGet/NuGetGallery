@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Azure.Storage.Blobs;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -18,7 +19,7 @@ namespace NuGet.Services.Storage
         Task<string> LoadString(Uri resourceUri, CancellationToken cancellationToken);
         Uri BaseAddress { get; }
         Uri ResolveUri(string relativeUri);
-        Task<IEnumerable<StorageListItem>> List(bool getMetadata, CancellationToken cancellationToken);
+        IEnumerable<StorageListItem> List(bool getMetadata);
         Task CopyAsync(
             Uri sourceUri,
             IStorage destinationStorage,
