@@ -4,8 +4,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Azure.Storage.Blobs;
 using NuGet.Jobs.Validation.Leases;
 using Xunit;
 using Xunit.Abstractions;
@@ -20,8 +19,7 @@ namespace Validation.Common.Job.Tests.Leases
             Fixture = fixture ?? throw new ArgumentNullException(nameof(fixture));
             Output = output ?? throw new ArgumentNullException(nameof(output));
 
-            CloudStorageAccount = CloudStorageAccount.Parse(Fixture.ConnectionString);
-            CloudBlobClient = CloudStorageAccount.CreateCloudBlobClient();
+            CloudBlobClient = new BlobServiceClient(Fixture.ConnectionString);
             LeaseTime = TimeSpan.FromSeconds(60);
             Token = CancellationToken.None;
 
@@ -30,8 +28,7 @@ namespace Validation.Common.Job.Tests.Leases
 
         public BlobStorageFixture Fixture { get; }
         public ITestOutputHelper Output { get; }
-        public CloudStorageAccount CloudStorageAccount { get; }
-        public CloudBlobClient CloudBlobClient { get; }
+        public BlobServiceClient CloudBlobClient { get; }
         public TimeSpan LeaseTime { get; }
         public CancellationToken Token { get; }
         public CloudBlobLeaseService Target { get; }

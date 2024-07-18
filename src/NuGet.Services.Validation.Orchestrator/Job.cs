@@ -10,12 +10,12 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Core;
+using Azure.Storage.Blobs;
 using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
 using NuGet.Jobs.Validation;
@@ -180,13 +180,6 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<IBrokeredMessageSerializer<PackageValidationMessageData>, PackageValidationMessageDataSerializationAdapter>();
             services.AddTransient<ICriteriaEvaluator<Package>, PackageCriteriaEvaluator>();
             services.AddTransient<IProcessSignatureEnqueuer, ProcessSignatureEnqueuer>();
-            services.AddTransient<ICloudBlobClient>(c =>
-            {
-                var configurationAccessor = c.GetRequiredService<IOptionsSnapshot<ValidationConfiguration>>();
-                return new CloudBlobClientWrapper(
-                    configurationAccessor.Value.ValidationStorageConnectionString,
-                    readAccessGeoRedundant: false);
-            });
             services.AddTransient<ICloudBlobContainerInformationProvider, GalleryCloudBlobContainerInformationProvider>();
             services.AddTransient<ICoreFileStorageService, CloudBlobCoreFileStorageService>();
             services.AddTransient<IFileDownloader, FileDownloader>();
@@ -236,6 +229,10 @@ namespace NuGet.Services.Validation.Orchestrator
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
+            containerBuilder
+                .RegisterStorageAccount<ValidationConfiguration>(c => c.ValidationStorageConnectionString)
+                .As<ICloudBlobClient>();
+
             containerBuilder
                 .Register(c =>
                 {
@@ -387,8 +384,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 .Register(c =>
                 {
                     var config = c.Resolve<IOptionsSnapshot<LeaseConfiguration>>().Value;
-                    var storageAccount = CloudStorageAccount.Parse(config.ConnectionString);
-                    var blobClient = storageAccount.CreateCloudBlobClient();
+                    var blobClient = new BlobServiceClient(config.ConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature="));
                     return new CloudBlobLeaseService(blobClient, config.ContainerName, config.StoragePath);
                 })
                 .As<ILeaseService>();
@@ -453,13 +449,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private static void ConfigureFlatContainer(ContainerBuilder builder)
         {
             builder
-                .Register<CloudBlobClientWrapper>(c =>
-                {
-                    var configurationAccessor = c.Resolve<IOptionsSnapshot<FlatContainerConfiguration>>();
-                    return new CloudBlobClientWrapper(
-                        configurationAccessor.Value.ConnectionString,
-                        readAccessGeoRedundant: false);
-                })
+                .RegisterStorageAccount<FlatContainerConfiguration>(c => c.ConnectionString)
                 .Keyed<ICloudBlobClient>(FlatContainerBindingKey);
 
             builder
