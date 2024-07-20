@@ -25,7 +25,7 @@ function Initialize-EF6Exe() {
             $efDirectory = Join-Path $env:NUGET_PACKAGES "EntityFramework\$efVersion"
         }
         else {
-            $efDirectory = Join-Path $env:USERPROFILE ".nuget\packages\EntityFramework\$efVersion"
+            $efDirectory = Join-Path $env:USERPROFILE "packages\EntityFramework\$efVersion"
         }
     }
 
