@@ -13,10 +13,10 @@ function Initialize-EF6Exe() {
     }
 
     if (!$efDirectory) {
-        # Read the current version of EntityFramework from NuGetGallery.csproj so that we can find the tools.
-        $csprojPath = Join-Path $PSScriptRoot "..\src\NuGetGallery\NuGetGallery.csproj"
-        [xml]$csproj = Get-Content $csprojPath
-        $efPackageReference = Select-Xml -Xml $csproj -XPath "//*[local-name()='PackageReference']" `
+        # Read the current version of EntityFramework so that we can find the tools.
+        $cpmPath = Join-Path $PSScriptRoot "..\Directory.Packages.props"
+        [xml]$cpm = Get-Content $cpmPath
+        $efPackageReference = Select-Xml -Xml $cpm -XPath "//*[local-name()='PackageVersion']" `
             | Where-Object { $_.Node.Attributes["Include"].Value -eq "EntityFramework" }
         $efVersion = $efPackageReference.Node.Version
         Write-Host "Using EntityFramework version $efVersion."
@@ -25,7 +25,7 @@ function Initialize-EF6Exe() {
             $efDirectory = Join-Path $env:NUGET_PACKAGES "EntityFramework\$efVersion"
         }
         else {
-            $efDirectory = Join-Path $env:USERPROFILE "packages\EntityFramework\$efVersion"
+            $efDirectory = Join-Path $env:USERPROFILE ".nuget\packages\EntityFramework\$efVersion"
         }
     }
 
