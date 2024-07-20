@@ -17,11 +17,9 @@ variables:
   value: true
 - name: NugetSecurityAnalysisWarningLevel
   value: none
-- name: PackageVersion
-  value: $(SimplePackageVersion)$(PrereleaseVersion)
-- name: PrereleaseVersion
-  value: -$(NuGetGalleryBranch)-$(Build.BuildId)
-- name: SimplePackageVersion
+- name: GalleryPackageVersion
+  value: $(GalleryAssemblyVersion)-$(NuGetGalleryBranch)-$(Build.BuildId)
+- name: GalleryAssemblyVersion
   value: 4.4.5
 - name: nugetMultiFeedWarnLevel
   value: none
@@ -68,7 +66,7 @@ extends:
           displayName: Build
           inputs:
             scriptName: $(NuGetGalleryPath)\build.ps1
-            arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SimpleVersion $(SimplePackageVersion) -SemanticVersion $(PackageVersion) -Branch $(NuGetGalleryBranch) -CommitSHA $(Build.SourceVersion)
+            arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -GalleryAssemblyVersion $(GalleryAssemblyVersion) -GalleryPackageVersion $(GalleryPackageVersion) -Branch $(NuGetGalleryBranch) -CommitSHA $(Build.SourceVersion)
             workingFolder: $(NuGetGalleryPath)
         - task: PowerShell@1
           name: PowerShell_2
