@@ -75,7 +75,7 @@ try {
         -MigrationTargets $MigrationTargets
 }
 finally {
-    if ($ef6ExeDirectory -ne $null -and (Test-Path -Path $ef6ExeDirectory -PathType Container)) {
+    if ($null -ne $ef6ExeDirectory -and (Test-Path -Path $ef6ExeDirectory -PathType Container)) {
         Remove-Item -Path $ef6ExeDirectory -Recurse -Force
     }
 }
