@@ -1,11 +1,5 @@
 <Project>
   <PropertyGroup>
-    <NuGetClientPackageVersion>6.9.1</NuGetClientPackageVersion>
-    <ServerCommonPackageVersion>2.120.0</ServerCommonPackageVersion>
-    <NuGetJobsPackageVersion>4.3.0-agr-gal-stsdk-9768098</NuGetJobsPackageVersion>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <Authors>.NET Foundation</Authors>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/NuGet/NuGetGallery</PackageProjectUrl>
@@ -31,7 +25,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers">
-      <Version>8.0.0</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>

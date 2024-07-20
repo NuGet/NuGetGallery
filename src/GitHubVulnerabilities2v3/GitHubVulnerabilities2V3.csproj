@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <Import Project="..\..\sign.thirdparty.props" />
@@ -64,16 +64,11 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MicroBuild.Core">
-      <Version>0.3.0</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="NuGet.Jobs.Common">
-      <Version>$(NuGetJobsPackageVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="NuGet.Services.Cursor">
-      <Version>$(ServerCommonPackageVersion)</Version>
-    </PackageReference>
+    <PackageReference Include="NuGet.Jobs.Common" />
+    <PackageReference Include="NuGet.Services.Cursor" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Services.Entities\NuGet.Services.Entities.csproj">
