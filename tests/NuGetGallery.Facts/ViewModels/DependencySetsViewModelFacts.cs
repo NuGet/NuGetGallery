@@ -81,7 +81,7 @@ namespace NuGetGallery.ViewModels
                 var viewModel = new DependencySetsViewModel(dependencies);
 
                 // Assert
-                Assert.Equal(1, viewModel.DependencySets.Count);
+                Assert.Single(viewModel.DependencySets);
                 Assert.Equal(4, viewModel.DependencySets.First().Value.Count());
 
                 var dependencyViewModels = viewModel.DependencySets.First().Value.ToList();

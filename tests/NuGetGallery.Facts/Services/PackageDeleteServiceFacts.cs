@@ -961,7 +961,7 @@ namespace NuGetGallery
                 // ReSharper disable once ConditionIsAlwaysTrueOrFalse
                 await service.HardDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty, deleteEmptyPackageRegistration);
 
-                Assert.Equal(0, packageRegistration.Packages.Count);
+                Assert.Empty(packageRegistration.Packages);
                 Assert.DoesNotContain(package, packageRegistration.Packages);
                 packageRepository.Verify(x => x.DeleteOnCommit(package));
                 packageRepository.Verify(x => x.CommitChangesAsync());
@@ -992,7 +992,7 @@ namespace NuGetGallery
                 // ReSharper disable once ConditionIsAlwaysTrueOrFalse
                 await service.HardDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty, deleteEmptyPackageRegistration);
 
-                Assert.Equal(0, packageRegistration.Packages.Count);
+                Assert.Empty(packageRegistration.Packages);
                 Assert.DoesNotContain(package, packageRegistration.Packages);
                 packageRepository.Verify(x => x.DeleteOnCommit(package));
                 packageRepository.Verify(x => x.CommitChangesAsync());

@@ -48,16 +48,16 @@ namespace NuGetGallery.Login
 
         public static void AssertExample(LoginDiscontinuation actual)
         {
-            Assert.Equal(actual.ExceptionsForEmailAddresses.Count, 1);
-            Assert.True(actual.ExceptionsForEmailAddresses.Contains("exception@cannotUsePassword.com"));
-            Assert.Equal(actual.DiscontinuedForDomains.Count, 1);
-            Assert.True(actual.DiscontinuedForDomains.Contains("cannotUsePassword.com"));
-            Assert.Equal(actual.DiscontinuedForEmailAddresses.Count, 1);
-            Assert.True(actual.DiscontinuedForEmailAddresses.Contains("cannotUsePassword@canUsePassword.com"));
-            Assert.Equal(actual.ForceTransformationToOrganizationForEmailAddresses.Count, 1);
-            Assert.True(actual.ForceTransformationToOrganizationForEmailAddresses.Contains("organization@cannotUsePassword.com"));
-            Assert.Equal(actual.EnabledOrganizationAadTenants.Count, 1);
-            Assert.True(actual.EnabledOrganizationAadTenants.Contains(new OrganizationTenantPair("tenantOnly.com", "tenantID")));
+            Assert.Single(actual.ExceptionsForEmailAddresses);
+            Assert.Contains("exception@cannotUsePassword.com", actual.ExceptionsForEmailAddresses);
+            Assert.Single(actual.DiscontinuedForDomains);
+            Assert.Contains("cannotUsePassword.com", actual.DiscontinuedForDomains);
+            Assert.Single(actual.DiscontinuedForEmailAddresses);
+            Assert.Contains("cannotUsePassword@canUsePassword.com", actual.DiscontinuedForEmailAddresses);
+            Assert.Single(actual.ForceTransformationToOrganizationForEmailAddresses);
+            Assert.Contains("organization@cannotUsePassword.com", actual.ForceTransformationToOrganizationForEmailAddresses);
+            Assert.Single(actual.EnabledOrganizationAadTenants);
+            Assert.Contains(new OrganizationTenantPair("tenantOnly.com", "tenantID"), actual.EnabledOrganizationAadTenants);
         }
 
         public class GetAsync : FactsBase
@@ -285,8 +285,8 @@ namespace NuGetGallery.Login
 
                 var savedLoginDiscontinuation = JsonConvert.DeserializeObject<LoginDiscontinuation>(savedJson);
 
-                Assert.Equal(savedLoginDiscontinuation.ExceptionsForEmailAddresses.Count, 2);
-                Assert.True(savedLoginDiscontinuation.ExceptionsForEmailAddresses.Contains("example@password.com"));
+                Assert.Equal(2, savedLoginDiscontinuation.ExceptionsForEmailAddresses.Count);
+                Assert.Contains("example@password.com", savedLoginDiscontinuation.ExceptionsForEmailAddresses);
 
                 _storage.Verify(
                     s => s.SaveFileAsync(
@@ -331,7 +331,7 @@ namespace NuGetGallery.Login
 
                 var savedLoginDiscontinuation = JsonConvert.DeserializeObject<LoginDiscontinuation>(savedJson);
 
-                Assert.Equal(savedLoginDiscontinuation.ExceptionsForEmailAddresses.Count, 0);
+                Assert.Empty(savedLoginDiscontinuation.ExceptionsForEmailAddresses);
 
                 _storage.Verify(
                     s => s.SaveFileAsync(
@@ -388,8 +388,8 @@ namespace NuGetGallery.Login
 
                 var savedLoginDiscontinuation = JsonConvert.DeserializeObject<LoginDiscontinuation>(savedJson);
 
-                Assert.Equal(savedLoginDiscontinuation.ExceptionsForEmailAddresses.Count, 2);
-                Assert.True(savedLoginDiscontinuation.ExceptionsForEmailAddresses.Contains("example@password.com"));
+                Assert.Equal(2, savedLoginDiscontinuation.ExceptionsForEmailAddresses.Count);
+                Assert.Contains("example@password.com", savedLoginDiscontinuation.ExceptionsForEmailAddresses);
 
                 _storage.Verify(
                     s => s.SaveFileAsync(
@@ -453,7 +453,7 @@ namespace NuGetGallery.Login
                 var result = await _target.GetListOfExceptionEmailList();
 
                 Assert.NotNull(result);
-                Assert.True(result.Contains("exception@cannotUsePassword.com"));
+                Assert.Contains("exception@cannotUsePassword.com", result);
             }
         }
         public class FactsBase

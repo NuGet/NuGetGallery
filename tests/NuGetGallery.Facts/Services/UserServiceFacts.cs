@@ -2267,7 +2267,7 @@ namespace NuGetGallery
                 };
 
                 var result = service.GetSiteAdmins();
-                Assert.Equal(1, result.Count);
+                Assert.Single(result);
                 Assert.Equal(adminUser, result.Single());
             }
         }

@@ -62,7 +62,7 @@ namespace NuGetGallery.Filters
 
                 // Assert
                 Assert.Equal(200, owinContext.Response.StatusCode);
-                Assert.True(context.HttpContext.Response.Headers.AllKeys.Contains("X-NuGet-Warning"));
+                Assert.Contains("X-NuGet-Warning", context.HttpContext.Response.Headers.AllKeys);
                 Assert.Equal(expectedWarning, context.HttpContext.Response.Headers["X-NuGet-Warning"]);
             }
 

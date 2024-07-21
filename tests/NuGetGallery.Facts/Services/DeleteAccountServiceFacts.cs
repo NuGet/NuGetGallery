@@ -127,7 +127,7 @@ namespace NuGetGallery.Services
 
                 if (orphanPolicy == AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans && isPackageOrphaned)
                 {
-                    Assert.True(registration.Owners.Any(o => o.MatchesUser(testUser)));
+                    Assert.Contains(registration.Owners, o => o.MatchesUser(testUser));
                     Assert.NotEmpty(testUser.SecurityPolicies);
                     Assert.True(registration.Packages.Single().Listed);
                     Assert.NotNull(testUser.EmailAddress);
@@ -146,7 +146,7 @@ namespace NuGetGallery.Services
                 }
                 else
                 {
-                    Assert.False(registration.Owners.Any(o => o.MatchesUser(testUser)));
+                    Assert.DoesNotContain(registration.Owners, o => o.MatchesUser(testUser));
                     Assert.Empty(testUser.SecurityPolicies);
                     Assert.Equal(
                         orphanPolicy == AccountDeletionOrphanPackagePolicy.UnlistOrphans && isPackageOrphaned,
@@ -214,7 +214,7 @@ namespace NuGetGallery.Services
                 Assert.True(status.Success);
                 Assert.Null(testableService.User);
                 Assert.Single(testableService.AuditService.Records);
-                Assert.Equal(1, testableService.AuditService.Records.Count);
+                Assert.Single(testableService.AuditService.Records);
                 var deleteAccountAuditRecord = testableService.AuditService.Records[0] as DeleteAccountAuditRecord;
                 Assert.NotNull(deleteAccountAuditRecord);
                 Assert.Equal(testUser.Username, deleteAccountAuditRecord.AdminUsername);
@@ -268,7 +268,7 @@ namespace NuGetGallery.Services
                 {
                     Assert.False(status.Success);
                     Assert.Equal(organization.Confirmed, organization.EmailAddress != null);
-                    Assert.True(registration.Owners.Any(o => o.MatchesUser(organization)));
+                    Assert.Contains(registration.Owners, o => o.MatchesUser(organization));
                     Assert.NotEmpty(organization.SecurityPolicies);
                     Assert.NotNull(testableService.PackagePushedByUser.User);
                     Assert.NotNull(testableService.DeprecationDeprecatedByUser.DeprecatedByUser);
@@ -287,7 +287,7 @@ namespace NuGetGallery.Services
                     Assert.Equal(
                         orphanPolicy == AccountDeletionOrphanPackagePolicy.UnlistOrphans && isPackageOrphaned,
                         !registration.Packages.Single().Listed);
-                    Assert.False(registration.Owners.Any(o => o.MatchesUser(organization)));
+                    Assert.DoesNotContain(registration.Owners, o => o.MatchesUser(organization));
                     Assert.Empty(organization.SecurityPolicies);
                     Assert.Null(testableService.PackagePushedByUser.User);
                     Assert.Null(testableService.DeprecationDeprecatedByUser.DeprecatedByUser);
@@ -420,7 +420,7 @@ namespace NuGetGallery.Services
                 if (multipleOwners)
                 {
                     Assert.Contains<User>(newOwner, registration.Owners);
-                    Assert.Equal(1, registration.Owners.Count());
+                    Assert.Single(registration.Owners);
                 }
                 else
                 {

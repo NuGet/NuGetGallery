@@ -1006,7 +1006,7 @@ namespace NuGetGallery
                         .ExpectOkNegotiatedContentResult<PageResult<V2FeedPackage>>();
 
                     // Assert
-                    Assert.Equal(0, result.Count());
+                    Assert.Empty(result);
                     telemetryService.Verify(x => x.TrackODataCustomQuery(false), Times.Once);
                     telemetryService.Verify(x => x.TrackODataCustomQuery(It.IsAny<bool?>()), Times.Once);
                 }

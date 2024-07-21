@@ -22,7 +22,7 @@ Function Invoke-Tests {
     
     Trace-Log 'Running tests'
     
-    $xUnitExe = (Join-Path $PSScriptRoot "packages\xunit.runner.console\tools\xunit.console.exe")
+    $xUnitExe = (Join-Path $PSScriptRoot "packages\xunit.runner.console\tools\net472\xunit.console.exe")
     
     $GalleryTestAssemblies = `
         "tests\AccountDeleter.Facts\bin\$Configuration\net472\AccountDeleter.Facts.dll", `

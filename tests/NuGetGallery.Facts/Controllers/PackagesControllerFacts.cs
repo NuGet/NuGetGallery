@@ -1750,7 +1750,7 @@ namespace NuGetGallery
                 }
                 else
                 {
-                    Assert.Equal(null, model.PackageRenames);
+                    Assert.Null(model.PackageRenames);
                     renameService.Verify(x => x.GetPackageRenames(package.PackageRegistration), Times.Never);
                 }
             }
@@ -3464,7 +3464,7 @@ namespace NuGetGallery
 
                 // assert
                 Assert.Equal(2, model.Owners.Count());
-                Assert.Empty(model.Owners.Where(u => u == notAllowedUser));
+                Assert.DoesNotContain(model.Owners, u => u == notAllowedUser);
             }
 
             [Fact]

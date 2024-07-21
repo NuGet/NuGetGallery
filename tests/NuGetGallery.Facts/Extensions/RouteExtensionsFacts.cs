@@ -86,8 +86,8 @@ namespace NuGetGallery.Extensions
             var parameters = RouteExtensions.ObfuscatedReturnUrlMetadata.Select(m => m.ObfuscatedQueryParameter).ToList();
 
            // Act + Assert
-            Assert.True(parameters.Contains("returnUrl"));
-            Assert.True(parameters.Contains("ReturnUrl"));
+            Assert.Contains("returnUrl", parameters);
+            Assert.Contains("ReturnUrl", parameters);
         }
 
         [Theory]

@@ -152,7 +152,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.False(controller.ModelState.IsValid);
-                Assert.Equal(1, controller.ModelState.Keys.Count);
+                Assert.Single(controller.ModelState.Keys);
                 Assert.Equal("ChangeEmail.NewEmail", controller.ModelState.Keys.Single());
             }
 

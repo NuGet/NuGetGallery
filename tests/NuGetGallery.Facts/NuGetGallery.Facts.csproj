@@ -369,9 +369,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.Services" />
     <PackageReference Include="Moq" />
-    <PackageReference Include="xunit.abstractions" />
-    <PackageReference Include="xunit.assert" />
-    <PackageReference Include="xunit.core" />
+    <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio">
       <IncludeAssets>runtime; build; native; contentfiles</IncludeAssets>
       <ExcludeAssets>analyzers</ExcludeAssets>

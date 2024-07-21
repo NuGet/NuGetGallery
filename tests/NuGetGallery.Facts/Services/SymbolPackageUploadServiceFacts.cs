@@ -333,7 +333,6 @@ namespace NuGetGallery
                 var result = await service.CreateAndUploadSymbolsPackage(package, new MemoryStream());
 
                 // Assert
-                Assert.NotNull(result);
                 Assert.Equal(PackageCommitResult.Conflict, result);
                 symbolPackageFileService.Verify(x => x.SavePackageFileAsync(package, It.IsAny<Stream>(), It.IsAny<bool>()), Times.Once);
             }
@@ -386,7 +385,6 @@ namespace NuGetGallery
                 var result = await service.CreateAndUploadSymbolsPackage(package, new MemoryStream());
 
                 // Assert
-                Assert.NotNull(result);
                 Assert.Equal(PackageCommitResult.Success, result);
                 symbolPackageFileService.VerifyAll();
             }
@@ -466,7 +464,6 @@ namespace NuGetGallery
                 Assert.Equal(PackageStatus.Deleted, existingDeletedSymbolPackage.StatusKey);
                 symbolPackageFileService.Verify(x => x.SavePackageFileAsync(package, It.IsAny<Stream>(), true), Times.Once);
                 telemetryService.Verify(x => x.TrackSymbolPackagePushEvent(package.PackageRegistration.Id, package.NormalizedVersion), Times.Once);
-                Assert.NotNull(result);
                 Assert.Equal(PackageCommitResult.Success, result);
             }
         }

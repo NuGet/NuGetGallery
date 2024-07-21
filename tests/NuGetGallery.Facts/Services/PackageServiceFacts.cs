@@ -150,7 +150,7 @@ namespace NuGetGallery
             public void VerifyDoesNotThrowIfNoPackages()
             {
                 var result = InvokeMethod(new Package[]{}, "alpha", true);
-                Assert.Equal(null, result);
+                Assert.Null(result);
             }
         }
 
@@ -209,7 +209,7 @@ namespace NuGetGallery
 
                 await packageService.AddPackageOwnerAsync(packageRegistration, newOwner);
 
-                Assert.Equal(1, packageRegistration.RequiredSigners.Count);
+                Assert.Single(packageRegistration.RequiredSigners);
                 Assert.Contains(newOwner, packageRegistration.RequiredSigners);
 
                 packageRepository.VerifyAll();
@@ -254,7 +254,7 @@ namespace NuGetGallery
 
                 await packageService.AddPackageOwnerAsync(packageRegistration, newOwner);
 
-                Assert.Equal(1, packageRegistration.RequiredSigners.Count);
+                Assert.Single(packageRegistration.RequiredSigners);
                 Assert.Contains(newOwner, packageRegistration.RequiredSigners);
 
                 packageRepository.VerifyAll();
@@ -1248,7 +1248,7 @@ namespace NuGetGallery
             [InlineData("1.0.0")]
             public void ReturnsNullIfEmptyList(string version)
             {
-                Assert.Equal(null, InvokeMethod(Array.Empty<Package>(), version));
+                Assert.Null(InvokeMethod(Array.Empty<Package>(), version));
             }
 
             [Theory]
@@ -1262,7 +1262,7 @@ namespace NuGetGallery
                     CreateTestPackage("2.0.0")
                 };
 
-                Assert.Equal(null, InvokeMethod(packages, version));
+                Assert.Null(InvokeMethod(packages, version));
             }
 
             /// <remarks>
@@ -2643,7 +2643,7 @@ namespace NuGetGallery
 
                 var result = service.GetPackageDependents(id);
                 Assert.Equal(0, result.TotalPackageCount);
-                Assert.Equal(0, result.TopPackages.Count);
+                Assert.Empty(result.TopPackages);
             }
 
             [Fact]
@@ -2689,7 +2689,7 @@ namespace NuGetGallery
                 var result = service.GetPackageDependents(id);
 
                 Assert.Equal(0, result.TotalPackageCount);
-                Assert.Equal(0, result.TopPackages.Count);
+                Assert.Empty(result.TopPackages);
             }
 
             [Fact]
@@ -3155,7 +3155,7 @@ namespace NuGetGallery
 
                 foreach (var packageRegistration in packageRegistrations)
                 {
-                    Assert.Equal(1, packageRegistration.RequiredSigners.Count);
+                    Assert.Single(packageRegistration.RequiredSigners);
                     Assert.Equal(_user1, packageRegistration.RequiredSigners.Single());
                 }
 
@@ -3252,7 +3252,7 @@ namespace NuGetGallery
 
                 await service.SetRequiredSignerAsync(_packageRegistration, _user1);
 
-                Assert.Equal(1, _packageRegistration.RequiredSigners.Count);
+                Assert.Single(_packageRegistration.RequiredSigners);
                 Assert.Equal(_user1, _packageRegistration.RequiredSigners.Single());
 
                 packageRegistrationRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
@@ -3285,7 +3285,7 @@ namespace NuGetGallery
 
                 await service.SetRequiredSignerAsync(_packageRegistration, _user2);
 
-                Assert.Equal(1, _packageRegistration.RequiredSigners.Count);
+                Assert.Single(_packageRegistration.RequiredSigners);
                 Assert.Equal(_user2, _packageRegistration.RequiredSigners.Single());
 
                 packageRegistrationRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
@@ -3344,7 +3344,7 @@ namespace NuGetGallery
 
                 await service.SetRequiredSignerAsync(_packageRegistration, _user1);
 
-                Assert.Equal(1, _packageRegistration.RequiredSigners.Count);
+                Assert.Single(_packageRegistration.RequiredSigners);
                 Assert.Equal(_user1, _packageRegistration.RequiredSigners.Single());
 
                 packageRegistrationRepository.Verify(x => x.CommitChangesAsync(), Times.Never);

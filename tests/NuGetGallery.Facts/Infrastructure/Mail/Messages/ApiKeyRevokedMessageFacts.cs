@@ -46,7 +46,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 var message = CreateMessage(Fakes.ApiKeyCredentialTypeInfo);
                 var recipients = message.GetRecipients();
 
-                Assert.Equal(1, recipients.To.Count);
+                Assert.Single(recipients.To);
                 Assert.Contains(Fakes.RequestingUser.ToMailAddress(), recipients.To);
             }
 
