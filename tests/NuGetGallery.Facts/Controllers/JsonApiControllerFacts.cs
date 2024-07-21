@@ -57,7 +57,7 @@ namespace NuGetGallery.Controllers
                     var controller = GetController<JsonApiController>();
 
                     // Act & Assert
-                    await Assert.ThrowsAsync<ArgumentNullException>(() => request(controller, "package", username));
+                    await Assert.ThrowsAsync<ArgumentException>(() => request(controller, "package", username));
                 }
 
                 [Theory]
