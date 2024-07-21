@@ -71,7 +71,7 @@
     <PackageVersion Include="Microsoft.WindowsAzure.ConfigurationManager" Version="3.2.3" />
     <PackageVersion Include="Modernizr" Version="2.8.3" />
     <PackageVersion Include="Moment.js" Version="2.29.4" />
-    <PackageVersion Include="Moq" Version="4.8.2" />
+    <PackageVersion Include="Moq" Version="4.20.70" />
     <PackageVersion Include="MvcTreeView" Version="1.4.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="NuGet.Build.Tasks.Pack" Version="$(NuGetClientPackageVersion)" />

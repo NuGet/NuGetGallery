@@ -9,7 +9,7 @@ param (
     [string]$GalleryPackageVersion = '4.4.5-zlocal',
     [string]$Branch,
     [string]$CommitSHA,
-    [string]$BuildBranchCommit = '339563e2a0184260f1593b9bd5d2647239729faa', #DevSkim: ignore DS173237. Not a secret/token. It is a commit hash.
+    [string]$BuildBranchCommit = '5f2e842d25841ec1f11b8113151d11f38e550a55', #DevSkim: ignore DS173237. Not a secret/token. It is a commit hash.
     [string]$VerifyMicrosoftPackageVersion = $null
 )
 
