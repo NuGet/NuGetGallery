@@ -9,7 +9,7 @@
     <NuGetJobsPackageVersion>4.3.0-agr-gal-stsdk-9768098</NuGetJobsPackageVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Autofac.Extensions.DependencyInjection" Version="4.3.1" />
+    <PackageVersion Include="Autofac.Extensions.DependencyInjection" Version="4.4.0" />
     <PackageVersion Include="Autofac.Mvc5.Owin" Version="4.0.1" />
     <PackageVersion Include="Autofac.Mvc5" Version="4.0.2" />
     <PackageVersion Include="Autofac.Owin" Version="4.2.0" />
