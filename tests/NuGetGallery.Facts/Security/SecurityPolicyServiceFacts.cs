@@ -473,7 +473,7 @@ namespace NuGetGallery.Security
             var user = new User("testUser");
             var subscription = service.Subscriptions.First();
             await service.SubscribeAsync(user, subscription);
-            service.MockAuditingService.ResetCalls();
+            service.MockAuditingService.Invocations.Clear();
 
             // Act.
             await service.SubscribeAsync(user, subscription);
@@ -591,7 +591,7 @@ namespace NuGetGallery.Security
             var user = new User("testUser");
             var subscription = service.Subscriptions.First();
             await service.SubscribeAsync(user, subscription);
-            service.MockAuditingService.ResetCalls();
+            service.MockAuditingService.Invocations.Clear();
 
             // Act.
             await service.UnsubscribeAsync(user, subscription);

@@ -1712,7 +1712,7 @@ namespace NuGetGallery
 
                     // Assert
                     service.MockUserRepository.Verify(r => r.CommitChangesAsync(), Times.Once);
-                    service.MockUserRepository.ResetCalls();
+                    service.MockUserRepository.Invocations.Clear();
 
                     Assert.NotNull(account.OrganizationMigrationRequest);
                     Assert.Equal(account, account.OrganizationMigrationRequest.NewOrganization);
