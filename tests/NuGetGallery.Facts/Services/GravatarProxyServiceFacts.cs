@@ -17,7 +17,7 @@ using Xunit;
 
 namespace NuGetGallery
 {
-    public class GravatarProxyServiceFacts
+    public class GravatarProxyServiceFacts : IDisposable
     {
         private static readonly User User = new User
         {
@@ -379,6 +379,11 @@ namespace NuGetGallery
 
                 return Task.FromResult(handler(request));
             }
+        }
+
+        public void Dispose()
+        {
+            _messageHandler.Dispose();
         }
     }
 }
