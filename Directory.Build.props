@@ -1,5 +1,7 @@
 <Project>
   <PropertyGroup>
+    <LangVersion>9.0</LangVersion>
+
     <NuGetClientPackageVersion>6.9.1</NuGetClientPackageVersion>
     <ServerCommonPackageVersion>2.120.0</ServerCommonPackageVersion>
     <NuGetJobsPackageVersion>4.3.0-agr-gal-stsdk-9768098</NuGetJobsPackageVersion>

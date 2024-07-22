@@ -10,7 +10,7 @@
     <ProjectReference Include="..\..\src\NuGetGallery.Core\NuGetGallery.Core.csproj" />
     <ProjectReference Include="..\..\src\NuGetGallery.Services\NuGetGallery.Services.csproj" />
 
-    <PackageReference Include="Moq" Version="4.20.70" />
+    <PackageReference Include="Moq" Version="4.9.0" />
     <PackageReference Include="xunit" Version="2.9.0" />
   </ItemGroup>
 </Project>
