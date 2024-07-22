@@ -540,7 +540,7 @@ namespace NuGetGallery
                 fakeBlob.Setup(x => x.UploadFromStreamAsync(It.IsAny<Stream>(), true)).Returns(Task.FromResult(0));
                 fakeBlob.Setup(x => x.SetPropertiesAsync()).Returns(Task.FromResult(0));
 
-                var service = CreateService(fakeBlobClient: fakeBlobClient);
+                var service = CreateService(fakeBlobClient, infoProvider);
                 var accessCondition = AccessConditionWrapper.GenerateEmptyCondition();
 
                 await service.SaveFileAsync(folderName, "theFileName", new MemoryStream(), accessConditions: null);

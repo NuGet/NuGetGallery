@@ -8,6 +8,7 @@ using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Infrastructure.Annotations;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
 
@@ -97,14 +98,30 @@ namespace NuGetGallery
             return base.Set<T>();
         }
 
+        public override int SaveChanges()
+        {
+            ThrowIfReadOnly();
+            return base.SaveChanges();
+        }
+
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken)
+        {
+            ThrowIfReadOnly();
+            return base.SaveChangesAsync(cancellationToken);
+        }
+
         public override async Task<int> SaveChangesAsync()
+        {
+            ThrowIfReadOnly();
+            return await base.SaveChangesAsync();
+        }
+
+        private void ThrowIfReadOnly()
         {
             if (ReadOnly)
             {
                 throw new ReadOnlyModeException("Save changes unavailable: the gallery is currently in read only mode, with limited service. Please try again later.");
             }
-
-            return await base.SaveChangesAsync();
         }
 
         public void DeleteOnCommit<T>(T entity) where T : class

@@ -218,7 +218,7 @@ namespace NuGetGallery.Infrastructure.Search
             Assert.Equal(0, onCircuitBreakerHalfOpen);
             Assert.Equal(HttpStatusCode.ServiceUnavailable, r.StatusCode);
 
-            Task.Delay(TimeSpan.FromSeconds(_circuitBreakerShortDelaySeconds)).Wait();
+            await Task.Delay(TimeSpan.FromSeconds(_circuitBreakerShortDelaySeconds));
 
             // Request again with correct uri. The circuit breaker delay should be expired and will do the trial and pass 
             var r2 = await invalidHttpClient.GetAsync(validUri);
