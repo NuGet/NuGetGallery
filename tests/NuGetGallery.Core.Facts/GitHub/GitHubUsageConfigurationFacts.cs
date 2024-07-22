@@ -57,7 +57,7 @@ namespace NuGetGallery
                 var gh = GenConfig(expectedRepo);
                 var nupkgInformation = gh.GetPackageInformation("nupkg1");
 
-                Assert.Equal(1, nupkgInformation.Repos.Count);
+                Assert.Single(nupkgInformation.Repos);
                 Assert.Equal(1, nupkgInformation.TotalRepos);
                 Assert.Equal(expectedRepo, nupkgInformation.Repos.First());
             }
@@ -86,11 +86,11 @@ namespace NuGetGallery
                 var nupkgInformation1 = gh.GetPackageInformation("nupkg1");
                 var nupkgInformation2 = gh.GetPackageInformation("nupkg2");
 
-                Assert.Equal(1, nupkgInformation1.Repos.Count);
+                Assert.Single(nupkgInformation1.Repos);
                 Assert.Equal(1, nupkgInformation1.TotalRepos);
                 Assert.Equal(expectedRepo, nupkgInformation1.Repos.First());
 
-                Assert.Equal(1, nupkgInformation2.Repos.Count);
+                Assert.Single(nupkgInformation2.Repos);
                 Assert.Equal(1, nupkgInformation2.TotalRepos);
                 Assert.Equal(expectedRepo, nupkgInformation2.Repos.First());
             }
@@ -162,7 +162,7 @@ namespace NuGetGallery
                 var gh = GenConfig(expectedRepo);
                 var nupkgInformation = gh.GetPackageInformation("NuPkG1");
 
-                Assert.Equal(1, nupkgInformation.Repos.Count);
+                Assert.Single(nupkgInformation.Repos);
                 Assert.Equal(1, nupkgInformation.TotalRepos);
                 Assert.Equal(expectedRepo, nupkgInformation.Repos.First());
             }

@@ -40,24 +40,24 @@ namespace NuGetGallery.Controllers
 
                 [Theory]
                 [MemberData(nameof(ThrowsArgumentNullIfMissing_Data))]
-                public void ThrowsArgumentNullIfPackageIdMissing(InvokePackageOwnerModificationRequest request, string id)
+                public async Task ThrowsArgumentNullIfPackageIdMissing(InvokePackageOwnerModificationRequest request, string id)
                 {
                     // Arrange
                     var controller = GetController<JsonApiController>();
 
                     // Act & Assert
-                    Assert.ThrowsAsync<ArgumentException>(() => request(controller, id, "username"));
+                    await Assert.ThrowsAsync<ArgumentException>(() => request(controller, id, "username"));
                 }
 
                 [Theory]
                 [MemberData(nameof(ThrowsArgumentNullIfMissing_Data))]
-                public void ThrowsArgumentNullIfUsernameMissing(InvokePackageOwnerModificationRequest request, string username)
+                public async Task ThrowsArgumentNullIfUsernameMissing(InvokePackageOwnerModificationRequest request, string username)
                 {
                     // Arrange
                     var controller = GetController<JsonApiController>();
 
                     // Act & Assert
-                    Assert.ThrowsAsync<ArgumentException>(() => request(controller, "package", username));
+                    await Assert.ThrowsAsync<ArgumentException>(() => request(controller, "package", username));
                 }
 
                 [Theory]

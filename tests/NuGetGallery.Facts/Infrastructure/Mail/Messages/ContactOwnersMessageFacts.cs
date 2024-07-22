@@ -57,7 +57,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 var message = CreateMessage();
                 var recipients = message.GetRecipients();
 
-                Assert.Equal(1, recipients.To.Count);
+                Assert.Single(recipients.To);
                 Assert.Contains(Fakes.PackageOwnerWithEmailAllowed.ToMailAddress(), recipients.To);
                 Assert.DoesNotContain(Fakes.PackageOwnerWithEmailNotAllowed.ToMailAddress(), recipients.To);
             }
@@ -68,7 +68,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 var message = CreateMessage();
                 var recipients = message.GetRecipients();
 
-                Assert.Equal(1, recipients.ReplyTo.Count);
+                Assert.Single(recipients.ReplyTo);
                 Assert.Contains(Fakes.FromAddress, recipients.ReplyTo);
             }
 

@@ -60,7 +60,7 @@ namespace NuGetGallery.Telemetry
             }
             else
             {
-                Assert.Equal(1, itemTelemetry.Properties.Count);
+                Assert.Single(itemTelemetry.Properties);
             }
         }
 

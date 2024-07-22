@@ -23,11 +23,11 @@ namespace NuGetGallery
         public class TheDeleteUploadFileMethod
         {
             [Fact]
-            public void WillThrowIfTheUserKeyIsMissing()
+            public async Task WillThrowIfTheUserKeyIsMissing()
             {
                 var service = CreateService();
 
-                var ex = Assert.Throws<ArgumentException>(() => { service.DeleteUploadFileAsync(0); });
+                var ex = await Assert.ThrowsAsync<ArgumentException>(() => service.DeleteUploadFileAsync(0));
 
                 Assert.Equal("userKey", ex.ParamName);
             }
@@ -59,11 +59,11 @@ namespace NuGetGallery
         public class TheGetUploadFileMethod
         {
             [Fact]
-            public void WillThrowIfTheUserKeyIsMissing()
+            public async Task WillThrowIfTheUserKeyIsMissing()
             {
                 var service = CreateService();
 
-                var ex = Assert.Throws<ArgumentException>(() => { service.GetUploadFileAsync(0); });
+                var ex = await Assert.ThrowsAsync<ArgumentException>(() => service.GetUploadFileAsync(0));
 
                 Assert.Equal("userKey", ex.ParamName);
             }
@@ -110,21 +110,21 @@ namespace NuGetGallery
         public class TheSaveUploadFileMethod
         {
             [Fact]
-            public void WillThrowIfTheUserKeyIsMissing()
+            public async Task WillThrowIfTheUserKeyIsMissing()
             {
                 var service = CreateService();
 
-                var ex = Assert.Throws<ArgumentException>(() => { service.SaveUploadFileAsync(0, new MemoryStream()); });
+                var ex = await Assert.ThrowsAsync<ArgumentException>(() => service.SaveUploadFileAsync(0, new MemoryStream()));
 
                 Assert.Equal("userKey", ex.ParamName);
             }
 
             [Fact]
-            public void WillThrowIfTheUploadFileStreamIsNull()
+            public async Task WillThrowIfTheUploadFileStreamIsNull()
             {
                 var service = CreateService();
 
-                var ex = Assert.Throws<ArgumentNullException>(() => { service.SaveUploadFileAsync(1, null); });
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.SaveUploadFileAsync(1, null));
 
                 Assert.Equal("packageFileStream", ex.ParamName);
             }
