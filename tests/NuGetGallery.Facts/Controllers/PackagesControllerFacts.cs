@@ -7996,7 +7996,7 @@ namespace NuGetGallery
                 var fakeUploadFileService = new Mock<IUploadFileService>();
                 fakeUploadFileService
                     .SetupSequence(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key))
-                    .ReturnsAsync(null)
+                    .ReturnsAsync((Stream)null)
                     .ReturnsAsync(fakeSavedFileStream);
                 fakeUploadFileService
                     .Setup(x => x.SaveUploadFileAsync(TestUtility.FakeUser.Key, It.IsAny<Stream>()))

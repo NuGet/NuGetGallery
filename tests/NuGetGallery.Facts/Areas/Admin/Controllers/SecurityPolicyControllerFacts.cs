@@ -169,7 +169,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             var subscription = policyService.Mocks.UserPoliciesSubscription.Object;
 
             users.ForEach(async u => await policyService.SubscribeAsync(u, subscription));
-            policyService.MockEntitiesContext.ResetCalls();
+            policyService.MockEntitiesContext.Invocations.Clear();
 
             // Act.
             var model = new List<string>
@@ -200,7 +200,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             var subscription = policyService.Mocks.UserPoliciesSubscription.Object;
 
             users.ForEach(async u => await policyService.SubscribeAsync(u, subscription));
-            policyService.MockEntitiesContext.ResetCalls();
+            policyService.MockEntitiesContext.Invocations.Clear();
 
             // Act.
             // Simulates changes to the configurable state of all existing policy subscriptions
