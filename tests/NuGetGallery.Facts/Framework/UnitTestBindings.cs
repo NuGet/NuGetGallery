@@ -49,6 +49,7 @@ namespace NuGetGallery.Framework
             builder.Register(_ =>
             {
                 var mockContext = new Mock<HttpContextBase>();
+                mockContext.SetupProperty(c => c.Response.StatusCode);
                 mockContext.Setup(c => c.Request.Url).Returns(new Uri(TestUtility.GallerySiteRootHttps));
                 mockContext.Setup(c => c.Request.IsSecureConnection).Returns(true);
                 mockContext.Setup(c => c.Request.ApplicationPath).Returns("/");
