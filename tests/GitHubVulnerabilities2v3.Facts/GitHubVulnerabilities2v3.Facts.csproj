@@ -69,10 +69,10 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Moq">
-      <Version>4.8.2</Version>
+      <Version>4.20.70</Version>
     </PackageReference>
     <PackageReference Include="xunit">
-      <Version>2.5.0</Version>
+      <Version>2.9.0</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
