@@ -101,7 +101,8 @@ Invoke-BuildStep 'Removing .editorconfig file in NuGetGallery' { Remove-Editorco
 
 Invoke-BuildStep 'Building solution' { 
     $SolutionPath = Join-Path $PSScriptRoot "NuGetGallery.sln"
-    Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $SolutionPath -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=true" `
+    $MvcBuildViews = $Configuration -eq "release"
+    Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $SolutionPath -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=$MvcBuildViews" `
 } `
 -ev +BuildErrors
 
