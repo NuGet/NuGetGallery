@@ -27,18 +27,18 @@ namespace NuGetGallery
                     // Folder name, is public, content type
                     new object[] { CoreConstants.Folders.ContentFolderName, false, CoreConstants.JsonContentType, },
                     new object[] { CoreConstants.Folders.DownloadsFolderName, true, CoreConstants.OctetStreamContentType },
-                    new object[] { CoreConstants.Folders.PackageBackupsFolderName, true, CoreConstants.PackageContentType },
+                    new object[] { CoreConstants.Folders.PackageBackupsFolderName, false, CoreConstants.PackageContentType },
                     new object[] { CoreConstants.Folders.PackageReadMesFolderName, false, CoreConstants.TextContentType },
                     new object[] { CoreConstants.Folders.PackagesFolderName, true, CoreConstants.PackageContentType },
                     new object[] { CoreConstants.Folders.SymbolPackagesFolderName, true, CoreConstants.PackageContentType },
-                    new object[] { CoreConstants.Folders.SymbolPackageBackupsFolderName, true, CoreConstants.PackageContentType },
+                    new object[] { CoreConstants.Folders.SymbolPackageBackupsFolderName, false, CoreConstants.PackageContentType },
                     new object[] { CoreConstants.Folders.UploadsFolderName, false, CoreConstants.PackageContentType },
                     new object[] { CoreConstants.Folders.UserCertificatesFolderName, false, CoreConstants.CertificateContentType },
                     new object[] { CoreConstants.Folders.ValidationFolderName, false, CoreConstants.PackageContentType },
                     new object[] { CoreConstants.Folders.PackagesContentFolderName, false, CoreConstants.OctetStreamContentType },
                     new object[] { CoreConstants.Folders.RevalidationFolderName, false, CoreConstants.JsonContentType },
                     new object[] { CoreConstants.Folders.StatusFolderName, false, CoreConstants.JsonContentType },
-                    new object[] { CoreConstants.Folders.FlatContainerFolderName, false, CoreConstants.PackageContentType },
+                    new object[] { CoreConstants.Folders.FlatContainerFolderName, true, CoreConstants.PackageContentType },
                 };
 
             if (!IncludePermissions && !IncludeContentTypes)

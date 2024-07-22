@@ -13,7 +13,7 @@ namespace NuGetGallery.OData.Interceptors
     public class NormalizeVersionInterceptorFacts
     {
         [Theory]
-        [MemberData("NonBinaryExpressions")]
+        [MemberData(nameof(NonBinaryExpressions))]
         public void ItReturnsNonBinaryExpressions(Expression expr)
         {
             // Arrange
@@ -27,7 +27,7 @@ namespace NuGetGallery.OData.Interceptors
         }
 
         [Theory]
-        [MemberData("NonEqualityCheckExpressions")]
+        [MemberData(nameof(NonEqualityCheckExpressions))]
         public void ItReturnsNonEqualityCheckExpressions(Expression expr)
         {
             // Arrange
@@ -41,7 +41,7 @@ namespace NuGetGallery.OData.Interceptors
         }
 
         [Theory]
-        [MemberData("NonMatchingExpressions")]
+        [MemberData(nameof(NonMatchingExpressions))]
         public void ItReturnsNonMatchingExpressions(Expression expr)
         {
             // Arrange

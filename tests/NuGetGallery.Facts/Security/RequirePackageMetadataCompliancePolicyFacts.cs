@@ -14,7 +14,7 @@ namespace NuGetGallery.Security
 {
     public class RequirePackageMetadataCompliancePolicyFacts
     {
-        public static object[] NonCompliantPackageMemberData
+        public static IEnumerable<object[]> NonCompliantPackageMemberData
         {
             get
             {

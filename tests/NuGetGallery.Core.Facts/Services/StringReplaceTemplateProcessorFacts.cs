@@ -41,7 +41,7 @@ namespace NuGetGallery.Services
         {
             // Dictionary<TKey, TValue> does not support null keys, so we need some creativity to test it
             var placeholdersMock = new Mock<IReadOnlyDictionary<string, Func<object, string>>>();
-            IReadOnlyCollection<KeyValuePair<string, Func<object, string>>> mockCollection = new [] { Kvp<object>(null, _ => "") };
+            IReadOnlyCollection<KeyValuePair<string, Func<object, string>>> mockCollection = new [] { Kvp<object>(null, _ => placeholder) };
 
             placeholdersMock
                 .Setup(p => p.GetEnumerator())

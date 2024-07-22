@@ -228,7 +228,8 @@ namespace NuGetGallery.Authentication
                 }
             }
 
-            [Theory, MemberData("GivenUserNameWithMatchingOldPasswordCredential_ItMigratesHashToLatest_Input")]
+            [Theory]
+            [MemberData(nameof(GivenUserNameWithMatchingOldPasswordCredential_ItMigratesHashToLatest_Input))]
             public async Task GivenUserNameWithMatchingOldPasswordCredential_ItMigratesHashToLatest(
                 Func<Fakes, User> getUser)
             {
@@ -258,7 +259,8 @@ namespace NuGetGallery.Authentication
                 }
             }
 
-            [Theory, MemberData("GivenUserNameWithMatchingOldPasswordCredential_ItWritesAuditRecordsOfMigration_Input")]
+            [Theory]
+            [MemberData(nameof(GivenUserNameWithMatchingOldPasswordCredential_ItWritesAuditRecordsOfMigration_Input))]
             public async Task GivenUserNameWithMatchingOldPasswordCredential_ItWritesAuditRecordsOfMigration(
                 Func<Fakes, User> getUser)
             {
@@ -359,7 +361,7 @@ namespace NuGetGallery.Authentication
             }
 
             [Theory]
-            [MemberData("VerifyAccountLockoutTimeCalculation_Data")]
+            [MemberData(nameof(VerifyAccountLockoutTimeCalculation_Data))]
             public async Task VerifyAccountLockoutTimeCalculation(int failureCount, DateTime? lastFailedLoginTime, DateTime currentTime, int expectedLockoutMinutesLeft)
             {
                 // Arrange
@@ -1711,7 +1713,8 @@ namespace NuGetGallery.Authentication
                 }
             }
 
-            [Theory, MemberData("ResetsPasswordMigratesPasswordHash_Input")]
+            [Theory]
+            [MemberData(nameof(ResetsPasswordMigratesPasswordHash_Input))]
             public async Task ResetsPasswordMigratesPasswordHash(Func<string, Credential> oldCredentialBuilder)
             {
                 var oldCred = oldCredentialBuilder("thePassword");
