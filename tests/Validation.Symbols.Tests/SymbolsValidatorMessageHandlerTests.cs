@@ -20,10 +20,10 @@ namespace Validation.Symbols.Tests
         public class TheHandleAsyncMethod : FactBase
         {
             [Fact]
-            public void MessageNullCheck()
+            public async Task MessageNullCheck()
             {
                 // Act + Assert
-                Assert.ThrowsAsync<ArgumentNullException>(() => Target.HandleAsync(null));
+                await Assert.ThrowsAsync<ArgumentNullException>(() => Target.HandleAsync(null));
             }
 
             [Fact]
@@ -184,7 +184,7 @@ namespace Validation.Symbols.Tests
 
                 // Assert
                 Assert.True(result);
-                Assert.Equal(1, status.ValidatorIssues.Count);
+                Assert.Single(status.ValidatorIssues);
                 _validatorStateService.Verify(ss => ss.SaveStatusAsync(It.IsAny<ValidatorStatus>()), Times.Once);
             }
 

@@ -131,7 +131,7 @@ namespace CatalogTests
 
                     AssertCorrect(item, test.FeedPackageDetails);
 
-                    Assert.Equal(1, test.TelemetryService.TrackDurationCalls.Count);
+                    Assert.Single(test.TelemetryService.TrackDurationCalls);
 
                     var call = test.TelemetryService.TrackDurationCalls[0];
 
@@ -169,9 +169,9 @@ namespace CatalogTests
                         CancellationToken.None);
 
                     AssertCorrect(item, test.FeedPackageDetails);
-                    Assert.Equal(1, test.Handler.Requests.Count);
+                    Assert.Single(test.Handler.Requests );
 
-                    Assert.Equal(1, test.TelemetryService.TrackMetricCalls.Count);
+                    Assert.Single(test.TelemetryService.TrackMetricCalls);
 
                     var call = test.TelemetryService.TrackMetricCalls[0];
 
@@ -214,9 +214,9 @@ namespace CatalogTests
                         CancellationToken.None);
 
                     AssertCorrect(item, test.FeedPackageDetails);
-                    Assert.Equal(1, test.Handler.Requests.Count);
+                    Assert.Single(test.Handler.Requests);
 
-                    Assert.Equal(1, test.TelemetryService.TrackMetricCalls.Count);
+                    Assert.Single(test.TelemetryService.TrackMetricCalls);
 
                     var call = test.TelemetryService.TrackMetricCalls[0];
 

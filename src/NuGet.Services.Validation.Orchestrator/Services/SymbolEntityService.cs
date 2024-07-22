@@ -52,9 +52,9 @@ namespace NuGet.Services.Validation.Orchestrator
 
         public async Task UpdateStatusAsync(SymbolPackage entity, PackageStatus newStatus, bool commitChanges = true)
         {
-            if(entity == null)
+            if (entity == null)
             {
-                throw new ArgumentException(nameof(entity));
+                throw new ArgumentNullException(nameof(entity));
             }
 
             if (newStatus == entity.StatusKey)

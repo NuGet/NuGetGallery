@@ -219,7 +219,7 @@ namespace NuGet.Services.AzureSearch
                 Assert.Equal(4.0, result.TextWeights.Weights[IndexFields.TokenizedPackageId]);
 
                 // Verify boosting functions
-                Assert.Equal(1, result.Functions.Count);
+                Assert.Single(result.Functions);
                 var downloadsBoost = result
                     .Functions
                     .Where(f => f.FieldName == IndexFields.Search.DownloadScore)

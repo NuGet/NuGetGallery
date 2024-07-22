@@ -130,7 +130,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
 
             private static void FailOnError(Exception e, int lineNumber)
             {
-                Assert.False(true, "The error action should not be called.");
+                Assert.Fail("The error action should not be called.");
             }
         }
     }

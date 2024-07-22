@@ -111,10 +111,10 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
             }
 
             [Fact]
-            public void UpdateStatusAsyncMethodNullCheck()
+            public async Task UpdateStatusAsyncMethodNullCheck()
             {
                 // Act + Assert
-                Assert.ThrowsAsync< ArgumentNullException>(() => _target.UpdateStatusAsync(null, PackageStatus.Validating));
+                await Assert.ThrowsAsync<ArgumentNullException>(() => _target.UpdateStatusAsync(null, PackageStatus.Validating));
             }
 
             [Fact]

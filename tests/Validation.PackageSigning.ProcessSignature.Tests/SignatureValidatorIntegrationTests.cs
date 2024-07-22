@@ -596,7 +596,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 {
                     entryStream.Seek(0, SeekOrigin.End);
                     var extraBytes = Encoding.ASCII.GetBytes(Environment.NewLine);
-                    entryStream.Write(extraBytes, 0, extraBytes.Length);
+                    await entryStream.WriteAsync(extraBytes, 0, extraBytes.Length);
                 }
 
                 _packageStream = packageStream;

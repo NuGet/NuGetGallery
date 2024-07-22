@@ -40,16 +40,17 @@ namespace Validation.Symbols
 
         public async Task<bool> HandleAsync(SymbolsValidatorMessage message)
         {
+            if (message == null)
+            {
+                throw new ArgumentNullException(nameof(message));
+            }
+
             using (_logger.BeginScope("{ValidatorName}: Handling message for {PackageId} {PackageVersion} validation set {ValidationId}",
                     ValidatorName.SymbolsValidator,
                     message.PackageId,
                     message.PackageNormalizedVersion,
                     message.ValidationId))
             {
-                if (message == null)
-                {
-                    throw new ArgumentNullException(nameof(message));
-                }
                 var validation = await _validatorStateService.GetStatusAsync(message.ValidationId);
 
                 // A validation should be queued with ValidatorState == Incomplete.

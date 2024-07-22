@@ -21,7 +21,7 @@ namespace Validation.PackageSigning.Core.Tests.Support
     /// This test fixture trusts the root certificate of checked in signed packages. This handles adding and removing
     /// the root certificate from the local machine trusted roots. Any tests with this fixture require admin elevation.
     /// </summary>
-    public class CertificateIntegrationTestFixture : IDisposable
+    public class CertificateIntegrationTestFixture : IAsyncLifetime
     {
         private readonly AsyncLazy<SigningTestServer> _testServer;
         private readonly AsyncLazy<CertificateAuthority> _rootCertificateAuthority;
@@ -64,18 +64,23 @@ namespace Validation.PackageSigning.Core.Tests.Support
 
         public async Task<string> GetSigningCertificateThumbprintAsync() => await _signingCertificateThumbprint;
 
-        protected async Task<CertificateAuthority> GetRootCertificateAuthority() => await _rootCertificateAuthority;
-        protected async Task<CertificateAuthority> GetCertificateAuthority() => await _certificateAuthority;
+        protected async Task<CertificateAuthority> GetRootCertificateAuthorityAsync() => await _rootCertificateAuthority;
+        protected async Task<CertificateAuthority> GetCertificateAuthorityAsync() => await _certificateAuthority;
         protected DisposableList<IDisposable> GetResponders() => _responders;
 
-        public void Dispose()
+        public Task InitializeAsync()
+        {
+            return Task.CompletedTask;
+        }
+
+        public async Task DisposeAsync()
         {
             _trustedRoot?.Dispose();
             _responders.Dispose();
 
             if (_testServerStarted)
             {
-                _testServer.GetAwaiter().GetResult().Dispose();
+                (await _testServer).Dispose();
             }
         }
 
@@ -100,7 +105,7 @@ namespace Validation.PackageSigning.Core.Tests.Support
         private async Task<CertificateAuthority> CreateDefaultTrustedCertificateAuthorityAsync()
         {
             var testServer = await GetTestServerAsync();
-            var rootCa = await GetRootCertificateAuthority();
+            var rootCa = await GetRootCertificateAuthorityAsync();
             var intermediateCa = rootCa.CreateIntermediateCertificateAuthority();
 
             _responders.AddRange(testServer.RegisterResponders(intermediateCa));
@@ -111,7 +116,7 @@ namespace Validation.PackageSigning.Core.Tests.Support
         private async Task<TimestampService> CreateDefaultTrustedTimestampServiceAsync()
         {
             var testServer = await GetTestServerAsync();
-            var ca = await GetCertificateAuthority();
+            var ca = await GetCertificateAuthorityAsync();
             var timestampService = TimestampService.Create(ca);
 
             _responders.Add(testServer.RegisterResponder(timestampService));
@@ -127,7 +132,7 @@ namespace Validation.PackageSigning.Core.Tests.Support
 
         private async Task<X509Certificate2> CreateDefaultTrustedSigningCertificateAsync()
         {
-            var ca = await GetCertificateAuthority();
+            var ca = await GetCertificateAuthorityAsync();
             return CreateSigningCertificate(ca);
         }
 
@@ -175,7 +180,7 @@ namespace Validation.PackageSigning.Core.Tests.Support
 
         public async Task<RevokableCertificate> CreateRevokableSigningCertificateAsync()
         {
-            var ca = await GetCertificateAuthority();
+            var ca = await GetCertificateAuthorityAsync();
 
             void CustomizeAsSigningCertificate(X509V3CertificateGenerator generator)
             {
@@ -218,7 +223,7 @@ namespace Validation.PackageSigning.Core.Tests.Support
 
         public async Task<X509Certificate2> CreateExpiringSigningCertificateAsync()
         {
-            var ca = await GetCertificateAuthority();
+            var ca = await GetCertificateAuthorityAsync();
 
             void CustomizeExpiringSigningCertificate(X509V3CertificateGenerator generator)
             {
@@ -237,7 +242,7 @@ namespace Validation.PackageSigning.Core.Tests.Support
         public async Task<CustomTimestampService> CreateCustomTimestampServiceAsync(TimestampServiceOptions options)
         {
             var testServer = await GetTestServerAsync();
-            var rootCa = await GetRootCertificateAuthority();
+            var rootCa = await GetRootCertificateAuthorityAsync();
             var timestampService = TimestampService.Create(rootCa, options);
             var responders = testServer.RegisterDefaultResponders(timestampService);
 
@@ -263,7 +268,7 @@ namespace Validation.PackageSigning.Core.Tests.Support
         public async Task<RevokableTimestampService> CreateRevokableTimestampServiceAsync()
         {
             var testServer = await GetTestServerAsync();
-            var rootCa = await GetRootCertificateAuthority();
+            var rootCa = await GetRootCertificateAuthorityAsync();
             var timestampService = TimestampService.Create(rootCa);
             var responders = testServer.RegisterDefaultResponders(timestampService);
 
@@ -289,7 +294,7 @@ namespace Validation.PackageSigning.Core.Tests.Support
         public async Task<SigningCertificateWithUnavailableRevocation> CreateSigningCertificateWithUnavailableRevocationAsync()
         {
             var testServer = await GetTestServerAsync();
-            var rootCa = await GetRootCertificateAuthority();
+            var rootCa = await GetRootCertificateAuthorityAsync();
             var intermediateCa = rootCa.CreateIntermediateCertificateAuthority();
 
             var intermediateCaResponder = testServer.RegisterResponder(intermediateCa);

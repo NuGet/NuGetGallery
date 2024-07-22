@@ -854,7 +854,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     _cancellationToken);
 
                 Validate(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
-                Assert.Equal(1, result.Issues.Count);
+                Assert.Single(result.Issues);
                 var issue = Assert.IsType<NoDataValidationIssue>(result.Issues[0]);
                 Assert.Equal(ValidationIssueCode.PackageIsNotSigned, issue.IssueCode);
             }

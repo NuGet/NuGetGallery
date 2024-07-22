@@ -94,12 +94,12 @@ namespace NuGet.Jobs.Monitoring.PackageLag
             catch (JsonException je)
             {
                 _logger.LogError(je, "Error: Failed to deserialize response from diagnostic endpoint: {Error}", je.Message);
-                throw je;
+                throw;
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error: Failed to get diagnostic response due to unexpected error: {Error}", e.Message);
-                throw e;
+                throw;
             }
         }
 
@@ -142,12 +142,12 @@ namespace NuGet.Jobs.Monitoring.PackageLag
             catch (JsonException je)
             {
                 _logger.LogError(je, "Error: Failed to deserialize response from search endpoint: {Error}", je.Message);
-                throw je;
+                throw;
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error: Failed to get search result due to unexpected error: {Error}", e.Message);
-                throw e;
+                throw;
             }
 
             throw new NotImplementedException();
