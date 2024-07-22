@@ -19,12 +19,12 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             {
                 get
                 {
-                    yield return new object[] { null, Fakes.FromAddress, Fakes.Package, Fakes.PackageUrl, "message", Fakes.EmailSettingsUrl, It.IsAny<bool>() };
-                    yield return new object[] { Configuration, null, Fakes.Package, Fakes.PackageUrl, "message", Fakes.EmailSettingsUrl, It.IsAny<bool>() };
-                    yield return new object[] { Configuration, Fakes.FromAddress, null, Fakes.PackageUrl, "message", Fakes.EmailSettingsUrl, It.IsAny<bool>() };
-                    yield return new object[] { Configuration, Fakes.FromAddress, Fakes.Package, null, "message", Fakes.EmailSettingsUrl, It.IsAny<bool>() };
-                    yield return new object[] { Configuration, Fakes.FromAddress, Fakes.Package, Fakes.PackageUrl, null, Fakes.EmailSettingsUrl, It.IsAny<bool>() };
-                    yield return new object[] { Configuration, Fakes.FromAddress, Fakes.Package, Fakes.PackageUrl, "message", null, It.IsAny<bool>() };
+                    yield return new object[] { null, Fakes.FromAddress, Fakes.Package, Fakes.PackageUrl, "message", Fakes.EmailSettingsUrl };
+                    yield return new object[] { Configuration, null, Fakes.Package, Fakes.PackageUrl, "message", Fakes.EmailSettingsUrl };
+                    yield return new object[] { Configuration, Fakes.FromAddress, null, Fakes.PackageUrl, "message", Fakes.EmailSettingsUrl };
+                    yield return new object[] { Configuration, Fakes.FromAddress, Fakes.Package, null, "message", Fakes.EmailSettingsUrl };
+                    yield return new object[] { Configuration, Fakes.FromAddress, Fakes.Package, Fakes.PackageUrl, null, Fakes.EmailSettingsUrl };
+                    yield return new object[] { Configuration, Fakes.FromAddress, Fakes.Package, Fakes.PackageUrl, "message", null };
                 }
             }
 
@@ -36,8 +36,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 Package package,
                 string packageUrl,
                 string message,
-                string emailSettingsUrl,
-                bool copySender)
+                string emailSettingsUrl)
             {
                 Assert.Throws<ArgumentNullException>(() => new ContactOwnersMessage(
                     configuration,
