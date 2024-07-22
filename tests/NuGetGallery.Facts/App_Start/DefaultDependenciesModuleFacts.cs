@@ -114,8 +114,7 @@ namespace NuGetGallery.App_Start
 
                 // Assert
                 Assert.NotNull(aiConfiguration.TelemetryConfiguration.ApplicationIdProvider);
-                Assert.IsType(
-                    typeof(ApplicationInsightsApplicationIdProvider),
+                Assert.IsType<ApplicationInsightsApplicationIdProvider>(
                     aiConfiguration.TelemetryConfiguration.ApplicationIdProvider);
             }
 
@@ -128,8 +127,7 @@ namespace NuGetGallery.App_Start
                     out var _);
 
                 Assert.NotNull(aiConfiguration.TelemetryConfiguration.DefaultTelemetrySink);
-                Assert.IsType(
-                    typeof(ServerTelemetryChannel),
+                Assert.IsType<ServerTelemetryChannel>(
                     aiConfiguration.TelemetryConfiguration.DefaultTelemetrySink.TelemetryChannel);
 
                 // We can't use Assert.Collection here as Application Insights auto-registers

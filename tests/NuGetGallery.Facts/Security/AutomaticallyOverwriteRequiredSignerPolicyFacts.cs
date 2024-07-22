@@ -32,11 +32,11 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public void Evaluate_Throws()
+        public async Task Evaluate_Throws()
         {
             var policy = new AutomaticallyOverwriteRequiredSignerPolicy();
 
-            Assert.ThrowsAsync<NotImplementedException>(() => policy.EvaluateAsync(context: null));
+            await Assert.ThrowsAsync<NotImplementedException>(() => policy.EvaluateAsync(context: null));
         }
 
         [Fact]

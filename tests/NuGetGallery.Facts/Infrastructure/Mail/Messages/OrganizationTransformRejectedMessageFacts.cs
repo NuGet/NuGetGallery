@@ -57,7 +57,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
                 var recipients = message.GetRecipients();
 
-                Assert.Equal(1, recipients.To.Count);
+                Assert.Single(recipients.To);
                 Assert.Contains(accountToSendTo.ToMailAddress(), recipients.To);
             }
 
@@ -105,7 +105,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 var message = CreateMessage(isCanceledByAdmin: isCanceledByAdminUser);
                 var recipients = message.GetRecipients();
 
-                Assert.Equal(1, recipients.ReplyTo.Count);
+                Assert.Single(recipients.ReplyTo);
                 Assert.Contains(accountToReplyTo.ToMailAddress(), recipients.ReplyTo);
             }
         }

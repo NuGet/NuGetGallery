@@ -26,7 +26,7 @@ namespace NuGetGallery.Areas.Admin.Services
                 var actual = _target.Search(query);
 
                 // Assert
-                Assert.Equal(1, actual.Count);
+                Assert.Single(actual);
                 Assert.Same(_validationSet, actual[0]);
             }
         }

@@ -35,16 +35,16 @@ namespace NuGetGallery.Services
             _serviceScopeMock.Verify(x => x.Dispose(), Times.AtLeastOnce);
             // - ensure contants of cache are correct
             Assert.Equal(4, vulnerabilitiesFoo.Count);
-            Assert.Equal(1, vulnerabilitiesFoo[0].Count);
-            Assert.Equal(1, vulnerabilitiesFoo[1].Count);
+            Assert.Single(vulnerabilitiesFoo[0]);
+            Assert.Single(vulnerabilitiesFoo[1]);
             Assert.Equal(2, vulnerabilitiesFoo[2].Count);
             Assert.Equal(1234, vulnerabilitiesFoo[2][0].GitHubDatabaseKey);
             Assert.Equal(5678, vulnerabilitiesFoo[2][1].GitHubDatabaseKey);
-            Assert.Equal(1, vulnerabilitiesFoo[3].Count);
+            Assert.Single(vulnerabilitiesFoo[3]);
             Assert.Equal(2, vulnerabilitiesBar.Count);
-            Assert.Equal(1, vulnerabilitiesBar[5].Count);
+            Assert.Single(vulnerabilitiesBar[5]);
             Assert.Equal(9012, vulnerabilitiesBar[5][0].GitHubDatabaseKey);
-            Assert.Equal(1, vulnerabilitiesBar[6].Count);
+            Assert.Single(vulnerabilitiesBar[6]);
         }
 
         [Theory]

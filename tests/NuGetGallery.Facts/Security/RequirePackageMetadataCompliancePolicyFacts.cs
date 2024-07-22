@@ -14,7 +14,7 @@ namespace NuGetGallery.Security
 {
     public class RequirePackageMetadataCompliancePolicyFacts
     {
-        public static object[] NonCompliantPackageMemberData
+        public static IEnumerable<object[]> NonCompliantPackageMemberData
         {
             get
             {
@@ -34,14 +34,14 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public void Evaluate_ThrowsForNullArgument()
+        public async Task Evaluate_ThrowsForNullArgument()
         {
             // Arrange
             var policyHandler = new RequirePackageMetadataCompliancePolicy();
 
             // Act
             // Assert
-            Assert.ThrowsAsync<ArgumentNullException>(() => policyHandler.EvaluateAsync(null));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => policyHandler.EvaluateAsync(null));
         }
 
         [Fact]

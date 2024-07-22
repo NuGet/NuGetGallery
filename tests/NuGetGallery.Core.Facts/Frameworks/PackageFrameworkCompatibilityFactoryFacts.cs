@@ -142,11 +142,11 @@ namespace NuGetGallery.Frameworks
                 {
                     if (productName.Equals(row.Key))
                     {
-                        Assert.True(row.Value.Any(f => f.Framework == packgeFramework.FrameworkName));
+                        Assert.Contains(row.Value, f => f.Framework == packgeFramework.FrameworkName);
                     }
                     else
                     {
-                        Assert.False(row.Value.Any(f => f.Framework == packgeFramework.FrameworkName));
+                        Assert.DoesNotContain(row.Value, f => f.Framework == packgeFramework.FrameworkName);
                     }
                 }
             }

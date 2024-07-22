@@ -14,6 +14,12 @@ using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using Xunit;
 
+// Justification: this generic class will have implementations provided in child classes
+#pragma warning disable xUnit1032 // Test classes cannot be nested within a generic class
+
+// Justification: the member data is provided by child classes.
+#pragma warning disable xUnit1015 // MemberData must reference an existing member
+
 namespace NuGetGallery
 {
     public class AccountsControllerFacts<TAccountsController, TUser, TAccountViewModel>
@@ -152,7 +158,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.False(controller.ModelState.IsValid);
-                Assert.Equal(1, controller.ModelState.Keys.Count);
+                Assert.Single(controller.ModelState.Keys);
                 Assert.Equal("ChangeEmail.NewEmail", controller.ModelState.Keys.Single());
             }
 

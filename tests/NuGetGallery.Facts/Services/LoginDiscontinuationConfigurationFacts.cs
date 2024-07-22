@@ -347,8 +347,8 @@ namespace NuGetGallery.Services
                 var shouldTransformIntoOrganization = config.ShouldUserTransformIntoOrganization(null);
 
                 // Assert
-                Assert.Equal(false, isOnWhiteList);
-                Assert.Equal(false, shouldTransformIntoOrganization);
+                Assert.False(isOnWhiteList);
+                Assert.False(shouldTransformIntoOrganization);
                 
                 foreach (var orgEmail in new[] { null, _email })
                 {

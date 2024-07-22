@@ -35,7 +35,7 @@ namespace NuGetGallery
                 }).AsQueryable();
 
         [Fact]
-        public void WhenGettingCheckListFromMultipleThreadsItIsInitializedOnce()
+        public async Task WhenGettingCheckListFromMultipleThreadsItIsInitializedOnce()
         {
             // Arrange
             var mockPackageService = new Mock<IPackageService>();
@@ -58,7 +58,7 @@ namespace NuGetGallery
                     newService.GetTyposquattingCheckList(_packageIds.Count, TimeSpan.FromHours(24), mockPackageService.Object);
                 });
             }
-            Task.WaitAll(tasks);
+            await Task.WhenAll(tasks);
 
             // Assert
             mockPackageService.Verify(

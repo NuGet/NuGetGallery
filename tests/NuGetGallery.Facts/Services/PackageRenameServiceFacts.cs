@@ -69,13 +69,13 @@ namespace NuGetGallery.Services
 
                 // Act and Assert
                 var result2 = target.GetPackageRenames(packageRegistration2);
-                Assert.Equal(1, result2.Count);
+                Assert.Single(result2);
                 Assert.Equal(3, result2[0].ToPackageRegistrationKey);
                 Assert.Equal("PR3", result2[0].ToPackageRegistration.Id);
 
                 // Act and Assert
                 var result3 = target.GetPackageRenames(packageRegistration3);
-                Assert.Equal(0, result3.Count);
+                Assert.Empty(result3);
             }
         }
     }

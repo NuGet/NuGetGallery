@@ -1,11 +1,10 @@
-[CmdletBinding(DefaultParameterSetName='RegularBuild')]
+[CmdletBinding(DefaultParameterSetName = 'RegularBuild')]
 param (
     [ValidateSet("debug", "release")]
     [string]$Configuration = 'debug',
     [int]$BuildNumber
 )
 
-# For TeamCity - If any issue occurs, this script fail the build. - By default, TeamCity returns an exit code of 0 for all powershell scripts, even if they fail
 trap {
     Write-Host "BUILD FAILED: $_" -ForegroundColor Red
     Write-Host "ERROR DETAILS:" -ForegroundColor Red
@@ -16,7 +15,7 @@ trap {
 
 . "$PSScriptRoot\build\common.ps1"
 
-Function Run-Tests {
+Function Invoke-Tests {
     [CmdletBinding()]
     param()
     
@@ -24,20 +23,25 @@ Function Run-Tests {
     
     $xUnitExe = (Join-Path $PSScriptRoot "packages\xunit.runner.console\tools\xunit.console.exe")
     
-    $TestAssemblies = `
-        "tests\AccountDeleter.Facts\bin\$Configuration\AccountDeleter.Facts.dll", `
-        "tests\GitHubVulnerabilities2Db.Facts\bin\$Configuration\GitHubVulnerabilities2Db.Facts.dll", `
+    $GalleryTestAssemblies = `
+        "tests\AccountDeleter.Facts\bin\$Configuration\net472\AccountDeleter.Facts.dll", `
+        "tests\GitHubVulnerabilities2Db.Facts\bin\$Configuration\net472\GitHubVulnerabilities2Db.Facts.dll", `
         "tests\GitHubVulnerabilities2v3.Facts\bin\$Configuration\GitHubVulnerabilities2v3.Facts.dll", `
-        "tests\NuGet.Services.DatabaseMigration.Facts\bin\$Configuration\NuGet.Services.DatabaseMigration.Facts.dll", `
-        "tests\NuGet.Services.Entities.Tests\bin\$Configuration\NuGet.Services.Entities.Tests.dll", `
+        "tests\NuGet.Services.DatabaseMigration.Facts\bin\$Configuration\net472\NuGet.Services.DatabaseMigration.Facts.dll", `
+        "tests\NuGet.Services.Entities.Tests\bin\$Configuration\net472\NuGet.Services.Entities.Tests.dll", `
         "tests\NuGetGallery.Core.Facts\bin\$Configuration\NuGetGallery.Core.Facts.dll", `
         "tests\NuGetGallery.Facts\bin\$Configuration\NuGetGallery.Facts.dll", `
         "tests\VerifyMicrosoftPackage.Facts\bin\$Configuration\NuGet.VerifyMicrosoftPackage.Facts.dll"
     
     $TestCount = 0
-    
-    foreach ($Test in $TestAssemblies) {
-        & $xUnitExe (Join-Path $PSScriptRoot $Test) -xml "Results.$TestCount.xml"
+
+    $GalleryTestAssemblies | ForEach-Object {
+        $TestResultFile = Join-Path $PSScriptRoot "Results.$TestCount.xml"
+        & $xUnitExe (Join-Path $PSScriptRoot $_) -xml $TestResultFile
+        if (-not (Test-Path $TestResultFile)) {
+            Write-Error "The test run failed to produce a result file";
+            exit 1;
+        }
         $TestCount++
     }
 
@@ -56,7 +60,7 @@ Trace-Log "Build #$BuildNumber started at $startTime"
 
 $BuildErrors = @()
     
-Invoke-BuildStep 'Running tests' { Run-Tests } `
+Invoke-BuildStep 'Running tests' { Invoke-Tests } `
     -ev +BuildErrors
 
 Trace-Log ('-' * 60)
@@ -69,7 +73,7 @@ Trace-Log "Time elapsed $(Format-ElapsedTime ($endTime - $startTime))"
 Trace-Log ('=' * 60)
 
 if ($BuildErrors) {
-    $ErrorLines = $BuildErrors | %{ ">>> $($_.Exception.Message)" }
+    $ErrorLines = $BuildErrors | ForEach-Object { ">>> $($_.Exception.Message)" }
     Error-Log "Tests completed with $($BuildErrors.Count) error(s):`r`n$($ErrorLines -join "`r`n")" -Fatal
 }
 
