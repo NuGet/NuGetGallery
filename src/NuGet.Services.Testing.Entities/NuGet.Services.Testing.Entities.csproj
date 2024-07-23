@@ -1,12 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="..\..\SdkProjects.props" />
+
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <Description>Infrastructure to unit test Entity Framework entities.</Description>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Moq" Version="4.10.1" />
+    <PackageReference Include="Moq" />
   </ItemGroup>
 
   <ItemGroup>

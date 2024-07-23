@@ -209,11 +209,11 @@ namespace NuGet.Services.KeyVault.Tests
                 It.IsAny<FormattedLogValues>(),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<object, Exception, string>>()), Times.Exactly(2));
-            Assert.Equal(secretObject1.Value, firstSecretValue);
+            Assert.Equal(firstSecretValue, secretObject1.Value);
             Assert.Equal(secretObject1.Expiration, firstSecretExpiration);
-            Assert.Equal(secretObject2.Value, secondSecretValue);
+            Assert.Equal(secondSecretValue, secretObject2.Value);
             Assert.Equal(secretObject2.Expiration, secondSecretExpiration);
-            Assert.Equal(secretObject3.Value, secondSecretValue);
+            Assert.Equal(secondSecretValue, secretObject3.Value);
             Assert.Equal(secretObject3.Expiration, secondSecretExpiration);
         }
 

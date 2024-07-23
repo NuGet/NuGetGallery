@@ -31,7 +31,7 @@ namespace NuGet.Services.KeyVault.Tests
 
             // Assert
             mockSecretReader.Verify(x => x.GetSecretObjectAsync(It.IsAny<string>()), Times.Once);
-            Assert.Equal(secretObject.Value, secretValue);
+            Assert.Equal(secretValue, secretObject.Value);
             Assert.Equal(secretObject.Expiration, secretExpiration);
         }
     }

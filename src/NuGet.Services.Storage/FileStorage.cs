@@ -51,10 +51,10 @@ namespace NuGet.Services.Storage
             return files.AsEnumerable();
         }
 
-        public override async Task<IEnumerable<StorageListItem>> ListAsync(bool getMetadata, CancellationToken cancellationToken)
+        public override Task<IEnumerable<StorageListItem>> ListAsync(bool getMetadata, CancellationToken cancellationToken)
         {
             // For this storage, there is no difference between Async and sync versions.
-            return List(getMetadata);
+            return Task.FromResult<IEnumerable<StorageListItem>>(List(getMetadata));
         }
 
         public string Path

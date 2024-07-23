@@ -19,7 +19,7 @@ namespace NuGet.Services.Configuration.Tests
         };
 
         [Fact]
-        public async void HandlesConfigurationChanges()
+        public async Task HandlesConfigurationChanges()
         {
             // Arrange
             const string secretName = "hello i'm a secret";
@@ -55,7 +55,7 @@ namespace NuGet.Services.Configuration.Tests
 
         [Theory]
         [MemberData(nameof(ConfigurationTypes))]
-        public async void HandlesNullKey(Type type)
+        public async Task HandlesNullKey(Type type)
         {
             // Arrange
             var defaultOfType = GetDefault(type);
@@ -83,7 +83,7 @@ namespace NuGet.Services.Configuration.Tests
 
         [Theory]
         [MemberData(nameof(ConfigurationTypes))]
-        public async void HandlesEmptyKey(Type type)
+        public async Task HandlesEmptyKey(Type type)
         {
             // Arrange
             var defaultOfType = GetDefault(type);
@@ -111,7 +111,7 @@ namespace NuGet.Services.Configuration.Tests
 
         [Theory]
         [MemberData(nameof(ConfigurationTypes))]
-        public async void HandlesKeyNotFound(Type type)
+        public async Task HandlesKeyNotFound(Type type)
         {
             // Arrange
             var dummy = CreateDummyConfigProvider();
@@ -139,7 +139,7 @@ namespace NuGet.Services.Configuration.Tests
 
         [Theory]
         [MemberData(nameof(ConfigurationTypes))]
-        public async void HandlesNullArgument(Type type)
+        public async Task HandlesNullArgument(Type type)
         {
             // Arrange
             var defaultOfType = GetDefault(type);
@@ -172,7 +172,7 @@ namespace NuGet.Services.Configuration.Tests
 
         [Theory]
         [MemberData(nameof(ConfigurationTypes))]
-        public async void HandlesEmptyArgument(Type type)
+        public async Task HandlesEmptyArgument(Type type)
         {
             // Arrange
             var defaultOfType = GetDefault(type);
@@ -208,7 +208,7 @@ namespace NuGet.Services.Configuration.Tests
         }
 
         [Fact]
-        public async void ThrowsForUnsupportedConversion()
+        public async Task ThrowsForUnsupportedConversion()
         {
             // Arrange
             const string secretName = "hello i'm a secret";

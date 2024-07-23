@@ -19,12 +19,10 @@ variables:
   value: none
 - name: NugetSecurityAnalysisWarningLevel
   value: none
-- name: PackageVersion
-  value: $(SimplePackageVersion)$(PrereleaseVersion)
-- name: PrereleaseVersion
-  value: -$(ServerCommonBranch)-$(Build.BuildId)
-- name: SimplePackageVersion
-  value: 1.0.0
+- name: CommonPackageVersion
+  value: $(CommonAssemblyVersion)-$(ServerCommonBranch)-$(Build.BuildId)
+- name: CommonAssemblyVersion
+  value: 3.0.0
 - name: ServerCommonDirectory
   value: sc
 - name: ServerCommonPath
@@ -70,7 +68,7 @@ extends:
           displayName: Build
           inputs:
             scriptName: $(ServerCommonPath)\build.ps1
-            arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SimpleVersion $(SimplePackageVersion) -SemanticVersion $(PackageVersion) -Branch $(ServerCommonBranch) -CommitSHA $(Build.SourceVersion)
+            arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -CommonAssemblyVersion $(CommonAssemblyVersion) -CommonPackageVersion $(CommonPackageVersion) -Branch $(ServerCommonBranch) -CommitSHA $(Build.SourceVersion)
             workingFolder: $(ServerCommonPath)
         - task: PowerShell@1
           name: PowerShell_2

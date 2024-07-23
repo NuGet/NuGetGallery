@@ -47,7 +47,7 @@ namespace NuGet.Services.Messaging.Email.Tests
         public class TheSendMessageAsyncMethod
         {
             [Fact]
-            public void ThrowsArgumentNullExceptionForNullEmailBuilder()
+            public async Task ThrowsArgumentNullExceptionForNullEmailBuilder()
             {
                 var emailMessageEnqueuer = new Mock<IEmailMessageEnqueuer>().Object;
                 var messageService = new AsynchronousEmailMessageService(
@@ -55,7 +55,7 @@ namespace NuGet.Services.Messaging.Email.Tests
                     Mock.Of<ILogger<AsynchronousEmailMessageService>>(),
                     Mock.Of<IMessageServiceConfiguration>());
 
-                Assert.ThrowsAsync<ArgumentNullException>(() => messageService.SendMessageAsync(null, It.IsAny<bool>(), It.IsAny<bool>()));
+                await Assert.ThrowsAsync<ArgumentNullException>(() => messageService.SendMessageAsync(null, It.IsAny<bool>(), It.IsAny<bool>()));
             }
 
             [Fact]
@@ -82,7 +82,7 @@ namespace NuGet.Services.Messaging.Email.Tests
             }
 
             [Fact]
-            public void ThrowsArgumentExceptionWhenPlainTextAndHtmlBodyEmpty()
+            public async Task ThrowsArgumentExceptionWhenPlainTextAndHtmlBodyEmpty()
             {
                 var recipients = new EmailRecipients(
                     to: new[] { new MailAddress("to@gallery.org") });
@@ -114,7 +114,7 @@ namespace NuGet.Services.Messaging.Email.Tests
                     Mock.Of<ILogger<AsynchronousEmailMessageService>>(),
                     Mock.Of<IMessageServiceConfiguration>());
 
-                Assert.ThrowsAsync<ArgumentException>(() => messageService.SendMessageAsync(emailBuilder.Object, false, false));
+                await Assert.ThrowsAsync<ArgumentNullException>(() => messageService.SendMessageAsync(emailBuilder.Object, false, false));
 
                 emailBuilder.Verify();
                 emailMessageEnqueuerMock.Verify(
@@ -123,7 +123,7 @@ namespace NuGet.Services.Messaging.Email.Tests
             }
 
             [Fact]
-            public void ThrowsArgumentExceptionWhenSenderNull()
+            public async Task ThrowsArgumentExceptionWhenSenderNull()
             {
                 var recipients = new EmailRecipients(
                     to: new[] { new MailAddress("to@gallery.org") });
@@ -143,7 +143,7 @@ namespace NuGet.Services.Messaging.Email.Tests
                     Mock.Of<ILogger<AsynchronousEmailMessageService>>(),
                     Mock.Of<IMessageServiceConfiguration>());
 
-                Assert.ThrowsAsync<ArgumentException>(() => messageService.SendMessageAsync(emailBuilder.Object, false, false));
+                await Assert.ThrowsAsync<ArgumentException>(() => messageService.SendMessageAsync(emailBuilder.Object, false, false));
 
                 emailBuilder.Verify();
                 emailMessageEnqueuerMock.Verify(

@@ -1,4 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\..\SdkProjects.props" />
 
   <PropertyGroup>
     <TargetFrameworks>net472;netstandard2.0</TargetFrameworks>
@@ -6,9 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NuGet.Packaging">
-      <Version>6.9.1</Version>
-    </PackageReference>
+    <PackageReference Include="NuGet.Packaging" />
   </ItemGroup>
 
 </Project>

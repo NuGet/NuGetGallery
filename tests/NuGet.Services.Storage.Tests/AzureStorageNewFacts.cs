@@ -1,12 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
@@ -22,7 +18,6 @@ namespace NuGet.Services.Storage.Tests
 {
     public class AzureStorageNewFacts
     {
-        private AzureStorage storage;
         private Mock<BlockBlobClient> _blobClientMock = new Mock<BlockBlobClient>();
         private Mock<BlobServiceClient> _blobServiceClientMock = new Mock<BlobServiceClient>();
         private Mock<BlobContainerClient> _blobContainerClientMock = new Mock<BlobContainerClient>();

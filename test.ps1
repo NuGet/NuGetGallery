@@ -1,11 +1,10 @@
-[CmdletBinding(DefaultParameterSetName='RegularBuild')]
+[CmdletBinding(DefaultParameterSetName = 'RegularBuild')]
 param (
     [ValidateSet("debug", "release")]
     [string]$Configuration = 'debug',
     [int]$BuildNumber
 )
 
-# For TeamCity - If any issue occurs, this script fails the build. - By default, TeamCity returns an exit code of 0 for all powershell scripts, even if they fail
 trap {
     Write-Host "BUILD FAILED: $_" -ForegroundColor Red
     Write-Host "ERROR DETAILS:" -ForegroundColor Red
@@ -14,37 +13,43 @@ trap {
     exit 1
 }
 
-$CLIRoot=$PSScriptRoot
-$env:DOTNET_INSTALL_DIR=$CLIRoot
+$CLIRoot = $PSScriptRoot
+$env:DOTNET_INSTALL_DIR = $CLIRoot
 
 . "$PSScriptRoot\build\common.ps1"
 
-Function Run-Tests {
+Function Invoke-Tests {
     [CmdletBinding()]
     param()
 
     Trace-Log 'Running tests'
 
-    $xUnitExe = (Join-Path $PSScriptRoot "packages\xunit.runner.console\tools\xunit.console.exe")
+    $xUnitExe = (Join-Path $PSScriptRoot "packages\xunit.runner.console\tools\net472\xunit.console.exe")
 
-    $TestAssemblies = "tests\NuGet.Services.KeyVault.Tests\bin\$Configuration\net472\NuGet.Services.KeyVault.Tests.dll", `
-        "tests\NuGet.Services.Configuration.Tests\bin\$Configuration\net472\NuGet.Services.Configuration.Tests.dll", `
-        "tests\NuGet.Services.Logging.Tests\bin\$Configuration\net472\NuGet.Services.Logging.Tests.dll", `
-        "tests\NuGet.Services.Cursor.Tests\bin\$Configuration\net472\NuGet.Services.Cursor.Tests.dll", `
-        "tests\NuGet.Services.Owin.Tests\bin\$Configuration\net472\NuGet.Services.Owin.Tests.dll", `
-        "tests\NuGet.Services.Validation.Tests\bin\$Configuration\net472\NuGet.Services.Validation.Tests.dll", `
-        "tests\NuGet.Services.Contracts.Tests\bin\$Configuration\net472\NuGet.Services.Contracts.Tests.dll", `
-        "tests\NuGet.Services.Validation.Issues.Tests\bin\$Configuration\net472\NuGet.Services.Validation.Issues.Tests.dll", `
-        "tests\NuGet.Services.Sql.Tests\bin\$Configuration\net472\NuGet.Services.Sql.Tests.dll", `
-        "tests\NuGet.Services.Status.Tests\bin\$Configuration\net472\NuGet.Services.Status.Tests.dll", `
-        "tests\NuGet.Services.Messaging.Tests\bin\$Configuration\net472\NuGet.Services.Messaging.Tests.dll", `
-        "tests\NuGet.Services.Messaging.Email.Tests\bin\$Configuration\net472\NuGet.Services.Messaging.Email.Tests.dll", `
-        "tests\NuGet.Services.Licenses.Tests\bin\$Configuration\net472\NuGet.Services.Licenses.Tests.dll"
+    $CommonTestAssemblies =
+        "tests\NuGet.Services.Configuration.Tests\bin\$Configuration\net472\NuGet.Services.Configuration.Tests.dll",
+        "tests\NuGet.Services.Contracts.Tests\bin\$Configuration\net472\NuGet.Services.Contracts.Tests.dll",
+        "tests\NuGet.Services.Cursor.Tests\bin\$Configuration\net472\NuGet.Services.Cursor.Tests.dll",
+        "tests\NuGet.Services.KeyVault.Tests\bin\$Configuration\net472\NuGet.Services.KeyVault.Tests.dll",
+        "tests\NuGet.Services.Licenses.Tests\bin\$Configuration\net472\NuGet.Services.Licenses.Tests.dll",
+        "tests\NuGet.Services.Logging.Tests\bin\$Configuration\net472\NuGet.Services.Logging.Tests.dll",
+        "tests\NuGet.Services.Messaging.Email.Tests\bin\$Configuration\net472\NuGet.Services.Messaging.Email.Tests.dll",
+        "tests\NuGet.Services.Messaging.Tests\bin\$Configuration\net472\NuGet.Services.Messaging.Tests.dll",
+        "tests\NuGet.Services.Owin.Tests\bin\$Configuration\net472\NuGet.Services.Owin.Tests.dll",
+        "tests\NuGet.Services.Sql.Tests\bin\$Configuration\net472\NuGet.Services.Sql.Tests.dll",
+        "tests\NuGet.Services.Status.Tests\bin\$Configuration\net472\NuGet.Services.Status.Tests.dll",
+        "tests\NuGet.Services.Validation.Issues.Tests\bin\$Configuration\net472\NuGet.Services.Validation.Issues.Tests.dll",
+        "tests\NuGet.Services.Validation.Tests\bin\$Configuration\net472\NuGet.Services.Validation.Tests.dll"
 
     $TestCount = 0
 
-    foreach ($Test in $TestAssemblies) {
-        & $xUnitExe (Join-Path $PSScriptRoot $Test) -xml "Results.$TestCount.xml"
+    $CommonTestAssemblies | ForEach-Object {
+        $TestResultFile = Join-Path $PSScriptRoot "Results.$TestCount.xml"
+        & $xUnitExe (Join-Path $PSScriptRoot $_) -xml $TestResultFile
+        if (-not (Test-Path $TestResultFile)) {
+            Write-Error "The test run failed to produce a result file";
+            exit 1;
+        }
         $TestCount++
     }
 }
@@ -60,7 +65,7 @@ Trace-Log "Build #$BuildNumber started at $startTime"
 
 $TestErrors = @()
     
-Invoke-BuildStep 'Running tests' { Run-Tests } `
+Invoke-BuildStep 'Running tests' { Invoke-Tests } `
     -ev +TestErrors
 
 Trace-Log ('-' * 60)
@@ -73,7 +78,7 @@ Trace-Log "Time elapsed $(Format-ElapsedTime ($endTime - $startTime))"
 Trace-Log ('=' * 60)
 
 if ($TestErrors) {
-    $ErrorLines = $TestErrors | %{ ">>> $($_.Exception.Message)" }
+    $ErrorLines = $TestErrors | ForEach-Object { ">>> $($_.Exception.Message)" }
     Error-Log "Tests completed with $($TestErrors.Count) error(s):`r`n$($ErrorLines -join "`r`n")" -Fatal
 }
 

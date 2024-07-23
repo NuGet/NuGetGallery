@@ -15,7 +15,7 @@ namespace NuGet.Services.Cursor.Tests
     public class DurableCursorFacts
     {
         [Fact]
-        public async void SavesToStorage()
+        public async Task SavesToStorage()
         {
             var storageMock = CreateStorageMock();
             storageMock
@@ -29,7 +29,7 @@ namespace NuGet.Services.Cursor.Tests
         }
 
         [Fact]
-        public async void LoadsFromStorage()
+        public async Task LoadsFromStorage()
         {
             var storageMock = CreateStorageMock();
             storageMock
@@ -43,7 +43,7 @@ namespace NuGet.Services.Cursor.Tests
         }
 
         [Fact]
-        public async void UsesDefaultValue()
+        public async Task UsesDefaultValue()
         {
             var storageMock = CreateStorageMock();
             storageMock
@@ -58,7 +58,7 @@ namespace NuGet.Services.Cursor.Tests
         }
 
         [Fact]
-        public async void CanReadWhatItSaves()
+        public async Task CanReadWhatItSaves()
         {
             StorageContent savedContent = null;
 

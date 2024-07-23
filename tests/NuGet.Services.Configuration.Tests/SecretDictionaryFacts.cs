@@ -177,7 +177,7 @@ namespace NuGet.Services.Configuration.Tests
             secretDict.Add(Secret1.Key, Secret1.Value);
 
             // Assert
-            Assert.Equal(1, secretDict.Count);
+            Assert.Single(secretDict);
             Assert.True(secretDict.ContainsKey(Secret1.Key));
             Assert.True(secretDict.Contains(new KeyValuePair<string, string>(Secret1.Key, Secret1.InjectedValue)));
             Assert.False(secretDict.Contains(new KeyValuePair<string, string>(Secret1.Key, Secret1.Value)));
@@ -294,7 +294,7 @@ namespace NuGet.Services.Configuration.Tests
             // Assert
             Assert.True(result);
 
-            Assert.Equal(1, secretDict.Count);
+            Assert.Single(secretDict);
             Assert.False(secretDict.ContainsKey(Secret2.Key));
             Assert.False(secretDict.Contains(new KeyValuePair<string, string>(Secret2.Key, Secret2.InjectedValue)));
             Assert.False(secretDict.Contains(new KeyValuePair<string, string>(Secret2.Key, Secret2.Value)));
@@ -322,7 +322,7 @@ namespace NuGet.Services.Configuration.Tests
             // Assert
             Assert.True(result);
 
-            Assert.Equal(0, secretDict.Count);
+            Assert.Empty(secretDict);
             Assert.False(secretDict.ContainsKey(Secret1.Key));
             Assert.False(secretDict.Contains(new KeyValuePair<string, string>(Secret1.Key, Secret1.InjectedValue)));
 
