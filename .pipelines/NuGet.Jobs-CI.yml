@@ -19,12 +19,10 @@ variables:
   value: none
 - name: NugetSecurityAnalysisWarningLevel
   value: none
-- name: PackageVersion
-  value: $(SimplePackageVersion)$(PrereleaseVersion)
-- name: PrereleaseVersion
-  value: -$(NuGetJobsBranch)-$(Build.BuildId)
-- name: SimplePackageVersion
-  value: 4.0.0
+- name: JobsPackageVersion
+  value: $(JobsAssemblyVersion)-$(NuGetJobsBranch)-$(Build.BuildId)
+- name: JobsAssemblyVersion
+  value: 4.3.0
 - name: UsePrivateRepo
   value: false
 - name: PrivateRepoBranch
@@ -74,7 +72,7 @@ extends:
           displayName: Build
           inputs:
             scriptName: $(NuGetJobsPath)\build.ps1
-            arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SimpleVersion $(SimplePackageVersion) -SemanticVersion $(PackageVersion) -Branch $(NuGetJobsBranch) -CommitSHA $(Build.SourceVersion)
+            arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -JobsAssemblyVersion $(JobsAssemblyVersion) -JobsPackageVersion $(JobsPackageVersion) -Branch $(NuGetJobsBranch) -CommitSHA $(Build.SourceVersion)
             workingFolder: $(NuGetJobsPath)
         - task: PowerShell@1
           name: PowerShell_2

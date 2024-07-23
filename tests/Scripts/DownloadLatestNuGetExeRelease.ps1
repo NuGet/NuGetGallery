@@ -1,4 +1,17 @@
-$sourceNugetExe = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
-$targetNugetExe = ".\nuget.exe"
+[CmdletBinding()]
+param(
+    [string]$Directory = "."
+)
 
-Invoke-WebRequest $sourceNugetExe -OutFile $targetNugetExe
+$targetNugetExePath = "$Directory\nuget.exe"
+
+if (Test-Path $targetNugetExePath) {
+    Write-Host "nuget.exe found in $Directory"
+    return
+}
+
+Write-Host "nuget.exe not found in $Directory"
+
+$sourceNugetExeUrl = "https://dist.nuget.org/win-x86-commandline/v6.10.1/nuget.exe"
+Write-Host "Downloading nuget.exe from $sourceNugetExeUrl"
+Invoke-WebRequest $sourceNugetExeUrl -OutFile $targetNugetExePath

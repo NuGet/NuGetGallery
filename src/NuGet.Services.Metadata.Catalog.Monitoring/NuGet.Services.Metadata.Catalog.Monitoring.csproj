@@ -17,11 +17,7 @@
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup>
-    <Authors>.NET Foundation</Authors>
-    <PackageLicenseUrl>https://github.com/NuGet/NuGet.Services.Metadata/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/NuGet/NuGet.Services.Metadata</PackageProjectUrl>
     <Description>Monitor the package metadata catalog.</Description>
-    <Copyright>Copyright .NET Foundation</Copyright>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
