@@ -872,7 +872,7 @@ Function Set-VersionInfo {
     }
 
     # make sure the directory exists
-    $directory = Split-Path $_
+    $directory = Split-Path $Path
     New-Item -ItemType Directory -Force -Path $directory | Out-Null
         
     Trace-Log "Setting assembly info in ""$Path"""
