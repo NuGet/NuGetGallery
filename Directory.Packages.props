@@ -2,7 +2,7 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
-    <EnablePackageVersionOverride>false</EnablePackageVersionOverride>
+    <EnablePackageVersionOverride>true</EnablePackageVersionOverride>
 
     <NuGetClientPackageVersion>6.9.1</NuGetClientPackageVersion>
     <ServerCommonPackageVersion>2.120.0</ServerCommonPackageVersion>
