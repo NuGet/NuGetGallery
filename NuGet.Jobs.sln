@@ -11,11 +11,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Packages", "Packages", "{5D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Jobs.Common", "src\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj", "{4B4B1EFB-8F33-42E6-B79F-54E7F3293D31}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{05F997A5-CD3A-4C60-9CCB-D630542EDA48}"
-	ProjectSection(SolutionItems) = preProject
-		.nuget\NuGet.config = .nuget\NuGet.config
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{6A776396-02B1-475D-A104-26940ADB04AB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Unclassified", "Unclassified", "{FA5644B5-4F08-43F6-86B3-039374312A47}"
@@ -182,20 +177,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "V3", "V3", "{0A4A2A3F-8887-
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{64E5E223-C98F-4DFC-B09E-B86E65717FC7}"
 	ProjectSection(SolutionItems) = preProject
-		.editorconfig = .editorconfig
-		.gitattributes = .gitattributes
 		.gitignore = .gitignore
-		build.cmd = build.cmd
 		build.ps1 = build.ps1
-		buildandtest.ps1 = buildandtest.ps1
 		CODE_OF_CONDUCT.md = CODE_OF_CONDUCT.md
 		CONTRIBUTING.md = CONTRIBUTING.md
 		Directory.Build.props = Directory.Build.props
 		Directory.Packages.props = Directory.Packages.props
 		global.json = global.json
 		LICENSE.txt = LICENSE.txt
+		packages.config = packages.config
 		README.md = README.md
-		restoreNuGetExe.ps1 = restoreNuGetExe.ps1
 		SdkProjects.props = SdkProjects.props
 		SECURITY.md = SECURITY.md
 		sign.thirdparty.props = sign.thirdparty.props
