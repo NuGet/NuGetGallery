@@ -22,6 +22,16 @@ namespace NuGet.Jobs.Catalog2Registration
         public string ManagedIdentityClientId { get; set; }
 
         /// <summary>
+        /// Whether or not any storage contains a sas token.
+        /// </summary>
+        public bool HasSasToken { get; set; }
+
+        /// <summary>
+        /// Azure storage service uri. e.g. https://<storage>.blob.core.windows.net
+        /// </summary>
+        public string StorageServiceUrl { get; set; }
+
+        /// <summary>
         /// The connection string used to connect to an Azure Blob Storage account. The connection string specifies
         /// the account name, the endpoint suffix (e.g. Azure vs. Azure China), and authentication credential (e.g. storage
         /// key).

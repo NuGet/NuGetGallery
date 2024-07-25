@@ -508,7 +508,7 @@ namespace Ng.Jobs
             {
                 config.UseManagedIdentity = _arguments.GetOrDefault<bool>(Arguments.UseManagedIdentity);
                 config.ManagedIdentityClientId = _arguments.GetOrDefault<string>(Arguments.ClientId);
-
+                
                 config.LegacyBaseUrl = _arguments.GetOrDefault<string>(Arguments.StorageBaseAddress);
                 config.LegacyStorageContainer = _arguments.GetOrDefault<string>(Arguments.StorageContainer);
 
@@ -518,10 +518,21 @@ namespace Ng.Jobs
                 config.SemVer2BaseUrl = _arguments.GetOrDefault<string>(Arguments.SemVer2StorageBaseAddress);
                 config.SemVer2StorageContainer = _arguments.GetOrDefault<string>(Arguments.SemVer2StorageContainer);
 
-                if (config.UseManagedIdentity)
+                config.HasSasToken = new List<string>()
+                {
+                    _arguments.GetOrDefault<string>(Arguments.StorageSasValue),
+                    _arguments.GetOrDefault<string>(Arguments.CompressedStorageSasValue),
+                    _arguments.GetOrDefault<string>(Arguments.SemVer2StorageSasValue)
+                }
+                .All(t => !string.IsNullOrEmpty(t));
+
+                if (config.UseManagedIdentity && !config.HasSasToken)
                 {
                     var storageAccountName = _arguments.GetOrDefault<string>(Arguments.StorageAccountName);
-                    config.StorageConnectionString = $"BlobEndpoint=https://{storageAccountName}.blob.{_arguments.GetOrDefault(Arguments.StorageSuffix, "core.windows.net")}";
+                    var storageSuffix = _arguments.GetOrDefault(Arguments.StorageSuffix, "core.windows.net");
+
+                    config.StorageServiceUrl = $"https://{storageAccountName}.blob.{storageSuffix}";
+                    config.StorageConnectionString = $"BlobEndpoint={config.StorageServiceUrl}";
                 }
                 else
                 {

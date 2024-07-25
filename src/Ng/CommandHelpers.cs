@@ -392,7 +392,7 @@ namespace Ng
             var storageKeyValue = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageKeyValue]);
             var keyCredential = new StorageSharedKeyCredential(storageAccountName, storageKeyValue);
 
-            return new BlobServiceClient(blobServiceUri);
+            return new BlobServiceClient(new Uri(blobServiceUri), keyCredential);
         }
 
         private static QueueServiceClient GetQueueServiceClient(string storageAccountName, IDictionary<string, string> arguments, IDictionary<string, string> argumentNameMap)
