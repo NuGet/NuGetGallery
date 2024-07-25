@@ -10,7 +10,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
 using NuGet.Protocol;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.V3;
@@ -32,6 +31,12 @@ namespace NuGet.Jobs.Catalog2Registration
                 .Register<ICloudBlobClient>(c =>
                 {
                     var options = c.Resolve<IOptionsSnapshot<Catalog2RegistrationConfiguration>>();
+
+                    if (options.Value.UseManagedIdentity)
+                    {
+                        return CloudBlobClientWrapper.UsingMsi(options.Value.StorageConnectionString, options.Value.ManagedIdentityClientId);
+                    }
+
                     return new CloudBlobClientWrapper(
                         options.Value.StorageConnectionString,
                         requestTimeout: DefaultBlobRequestOptions.ServerTimeout);

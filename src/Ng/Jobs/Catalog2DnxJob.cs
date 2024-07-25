@@ -45,7 +45,7 @@ namespace Ng.Jobs
                    + $"-{Arguments.StoragePath} <path> "
                    + $"[-{Arguments.VaultName} <keyvault-name> "
                    + $"-{Arguments.UseManagedIdentity} true|false "
-                   + $"-{Arguments.ClientId} <keyvault-client-id> Should not be set if {Arguments.UseManagedIdentity} is true"
+                   + $"-{Arguments.ClientId} <managed-identity-client-id> Should not be set if {Arguments.UseManagedIdentity} is true"
                    + $"-{Arguments.CertificateThumbprint} <keyvault-certificate-thumbprint> Should not be set if {Arguments.UseManagedIdentity} is true"
                    + $"[-{Arguments.ValidateCertificate} true|false]]] "
                    + $"[-{Arguments.Verbose} true|false] "

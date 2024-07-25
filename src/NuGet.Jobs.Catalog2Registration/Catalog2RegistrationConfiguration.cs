@@ -12,6 +12,16 @@ namespace NuGet.Jobs.Catalog2Registration
         private static readonly int DefaultMaxConcurrentHivesPerId = Enum.GetValues(typeof(HiveType)).Length;
 
         /// <summary>
+        /// Whether or not managed identity will be used as credential.
+        /// </summary>
+        public bool UseManagedIdentity { get; set; }
+
+        /// <summary>
+        /// Specific manage identity client id.
+        /// </summary>
+        public string ManagedIdentityClientId { get; set; }
+
+        /// <summary>
         /// The connection string used to connect to an Azure Blob Storage account. The connection string specifies
         /// the account name, the endpoint suffix (e.g. Azure vs. Azure China), and authentication credential (e.g. storage
         /// key).

@@ -400,8 +400,10 @@ namespace Ng.Jobs
             {
                 AppendArgument(argument, sasTokenArgument);
             }
-
-            AppendArgument(argument, storageKeyArgument);
+            else if (!string.IsNullOrEmpty(_arguments.GetOrDefault<string>(storageKeyArgument)))
+            {
+                AppendArgument(argument, storageKeyArgument);
+            }
         }
 
         private async Task StrikeAsync()
@@ -504,32 +506,44 @@ namespace Ng.Jobs
 
             services.Configure<Catalog2RegistrationConfiguration>(config =>
             {
+                config.UseManagedIdentity = _arguments.GetOrDefault<bool>(Arguments.UseManagedIdentity);
+                config.ManagedIdentityClientId = _arguments.GetOrDefault<string>(Arguments.ClientId);
+
                 config.LegacyBaseUrl = _arguments.GetOrDefault<string>(Arguments.StorageBaseAddress);
                 config.LegacyStorageContainer = _arguments.GetOrDefault<string>(Arguments.StorageContainer);
-                config.StorageConnectionString = GetConnectionString(
-                    config.StorageConnectionString,
-                    Arguments.StorageAccountName,
-                    Arguments.StorageKeyValue,
-                    Arguments.StorageSasValue,
-                    Arguments.StorageSuffix);
 
                 config.GzippedBaseUrl = _arguments.GetOrDefault<string>(Arguments.CompressedStorageBaseAddress);
                 config.GzippedStorageContainer = _arguments.GetOrDefault<string>(Arguments.CompressedStorageContainer);
-                config.StorageConnectionString = GetConnectionString(
-                   config.StorageConnectionString,
-                   Arguments.CompressedStorageAccountName,
-                   Arguments.CompressedStorageKeyValue,
-                   Arguments.CompressedStorageSasValue,
-                   Arguments.StorageSuffix);
 
                 config.SemVer2BaseUrl = _arguments.GetOrDefault<string>(Arguments.SemVer2StorageBaseAddress);
                 config.SemVer2StorageContainer = _arguments.GetOrDefault<string>(Arguments.SemVer2StorageContainer);
-                config.StorageConnectionString = GetConnectionString(
-                   config.StorageConnectionString,
-                   Arguments.SemVer2StorageAccountName,
-                   Arguments.SemVer2StorageKeyValue,
-                   Arguments.SemVer2StorageSasValue,
-                   Arguments.StorageSuffix);
+
+                if (config.UseManagedIdentity)
+                {
+                    var storageAccountName = _arguments.GetOrDefault<string>(Arguments.StorageAccountName);
+                    config.StorageConnectionString = $"BlobEndpoint=https://{storageAccountName}.blob.{_arguments.GetOrDefault(Arguments.StorageSuffix, "core.windows.net")}";
+                }
+                else
+                {
+                    config.StorageConnectionString = GetConnectionString(
+                        config.StorageConnectionString,
+                        Arguments.StorageAccountName,
+                        Arguments.StorageKeyValue,
+                        Arguments.StorageSasValue,
+                        Arguments.StorageSuffix);
+                    config.StorageConnectionString = GetConnectionString(
+                       config.StorageConnectionString,
+                       Arguments.CompressedStorageAccountName,
+                       Arguments.CompressedStorageKeyValue,
+                       Arguments.CompressedStorageSasValue,
+                       Arguments.StorageSuffix);
+                    config.StorageConnectionString = GetConnectionString(
+                       config.StorageConnectionString,
+                       Arguments.SemVer2StorageAccountName,
+                       Arguments.SemVer2StorageKeyValue,
+                       Arguments.SemVer2StorageSasValue,
+                       Arguments.StorageSuffix);
+                }
 
                 config.GalleryBaseUrl = _arguments.GetOrThrow<string>(Arguments.GalleryBaseAddress);
                 var contentBaseAddress = _arguments.GetOrThrow<string>(Arguments.ContentBaseAddress);
