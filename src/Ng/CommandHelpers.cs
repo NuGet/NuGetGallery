@@ -216,7 +216,7 @@ namespace Ng
                 var storageAccountName = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageAccountName]);
                 var storageContainer = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageContainer]);
                 var storagePath = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StoragePath]);
-                var storageSuffix = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageSuffix]);
+                var storageSuffix = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageSuffix], "core.windows.net");
                 var storageOperationMaxExecutionTime = MaxExecutionTime(arguments.GetOrDefault<int>(argumentNameMap[Arguments.StorageOperationMaxExecutionTimeInSeconds]));
                 var storageServerTimeout = MaxExecutionTime(arguments.GetOrDefault<int>(argumentNameMap[Arguments.StorageServerTimeoutInSeconds]));
                 var storageUseServerSideCopy = arguments.GetOrDefault<bool>(argumentNameMap[Arguments.StorageUseServerSideCopy]);
@@ -359,7 +359,7 @@ namespace Ng
                 var storageAccountName = arguments.GetOrThrow<string>(Arguments.StorageAccountName);
                 var storageQueueName = arguments.GetOrDefault<string>(Arguments.StorageQueueName);
 
-                QueueServiceClient account = GetQueueServiceClient(storageAccountName, endpointSuffix: null, arguments, ArgumentNames);
+                QueueServiceClient account = GetQueueServiceClient(storageAccountName, arguments, ArgumentNames);
                 return new StorageQueue<T>(new AzureStorageQueue(account, storageQueueName),
                     new JsonMessageSerializer<T>(JsonSerializerUtility.SerializerSettings), version);
             }
@@ -374,7 +374,7 @@ namespace Ng
             var useManagedIdentity = arguments.GetOrDefault<bool>(argumentNameMap[Arguments.UseManagedIdentity]);
             var storageSasValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageSasValue]);
 
-            string blobServiceUri = $"BlobEndpoint=https://{storageAccountName}.blob.{endpointSuffix ?? "core.windows.net"}";
+            string blobServiceUri = $"https://{storageAccountName}.blob.{endpointSuffix}";
 
             if (useManagedIdentity)
             {
@@ -395,12 +395,12 @@ namespace Ng
             return new BlobServiceClient(blobServiceUri);
         }
 
-        private static QueueServiceClient GetQueueServiceClient(string storageAccountName, string endpointSuffix, IDictionary<string, string> arguments, IDictionary<string, string> argumentNameMap)
+        private static QueueServiceClient GetQueueServiceClient(string storageAccountName, IDictionary<string, string> arguments, IDictionary<string, string> argumentNameMap)
         {
             var useManagedIdentity = arguments.GetOrDefault<bool>(argumentNameMap[Arguments.UseManagedIdentity]);
             var storageSasValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageSasValue]);
 
-            string queueServiceUri = $"QueueEndpoint=https://{storageAccountName}.queue.{endpointSuffix ?? "core.windows.net"}";
+            string queueServiceUri = $"https://{storageAccountName}.queue.core.windows.net";
 
             if (useManagedIdentity)
             {
