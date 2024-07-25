@@ -376,7 +376,7 @@ namespace Ng
 
             string blobServiceUrl = $"https://{storageAccountName}.blob.{endpointSuffix}";
 
-            if (useManagedIdentity)
+            if (useManagedIdentity && string.IsNullOrEmpty(storageSasValue))
             {
                 var clientId = arguments.GetOrDefault<string>(argumentNameMap[Arguments.ClientId]);
                 var managedIdentityCredential = new ManagedIdentityCredential(clientId);
@@ -402,7 +402,7 @@ namespace Ng
 
             string queueServiceUrl = $"https://{storageAccountName}.queue.core.windows.net";
 
-            if (useManagedIdentity)
+            if (useManagedIdentity && string.IsNullOrEmpty(storageSasValue))
             {
                 var clientId = arguments.GetOrDefault<string>(argumentNameMap[Arguments.ClientId]);
                 var managedIdentityCredential = new ManagedIdentityCredential(clientId);
