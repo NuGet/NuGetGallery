@@ -374,25 +374,25 @@ namespace Ng
             var useManagedIdentity = arguments.GetOrDefault<bool>(argumentNameMap[Arguments.UseManagedIdentity]);
             var storageSasValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageSasValue]);
 
-            string blobServiceUri = $"https://{storageAccountName}.blob.{endpointSuffix}";
+            string blobServiceUrl = $"https://{storageAccountName}.blob.{endpointSuffix}";
 
             if (useManagedIdentity)
             {
                 var clientId = arguments.GetOrDefault<string>(argumentNameMap[Arguments.ClientId]);
                 var managedIdentityCredential = new ManagedIdentityCredential(clientId);
 
-                return new BlobServiceClient(new Uri(blobServiceUri), managedIdentityCredential);
+                return new BlobServiceClient(new Uri(blobServiceUrl), managedIdentityCredential);
             }
             else if (!string.IsNullOrEmpty(storageSasValue))
             {
                 var sasTokenCredential = new AzureSasCredential(storageSasValue);
-                return new BlobServiceClient(new Uri(blobServiceUri), sasTokenCredential);
+                return new BlobServiceClient(new Uri(blobServiceUrl), sasTokenCredential);
             }
 
             var storageKeyValue = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageKeyValue]);
             var keyCredential = new StorageSharedKeyCredential(storageAccountName, storageKeyValue);
 
-            return new BlobServiceClient(new Uri(blobServiceUri), keyCredential);
+            return new BlobServiceClient(new Uri(blobServiceUrl), keyCredential);
         }
 
         private static QueueServiceClient GetQueueServiceClient(string storageAccountName, IDictionary<string, string> arguments, IDictionary<string, string> argumentNameMap)
@@ -400,26 +400,26 @@ namespace Ng
             var useManagedIdentity = arguments.GetOrDefault<bool>(argumentNameMap[Arguments.UseManagedIdentity]);
             var storageSasValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageSasValue]);
 
-            string queueServiceUri = $"https://{storageAccountName}.queue.core.windows.net";
+            string queueServiceUrl = $"https://{storageAccountName}.queue.core.windows.net";
 
             if (useManagedIdentity)
             {
                 var clientId = arguments.GetOrDefault<string>(argumentNameMap[Arguments.ClientId]);
                 var managedIdentityCredential = new ManagedIdentityCredential(clientId);
 
-                return new QueueServiceClient(new Uri(queueServiceUri), managedIdentityCredential);
+                return new QueueServiceClient(new Uri(queueServiceUrl), managedIdentityCredential);
             }
             else if (!string.IsNullOrEmpty(storageSasValue))
             {
                 var sasTokenCredential = new AzureSasCredential(storageSasValue);
 
-                return new QueueServiceClient(new Uri(queueServiceUri), sasTokenCredential);
+                return new QueueServiceClient(new Uri(queueServiceUrl), sasTokenCredential);
             }
 
             var storageKeyValue = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageKeyValue]);
             var keyCredential = new StorageSharedKeyCredential(storageAccountName, storageKeyValue);
 
-            return new QueueServiceClient(new Uri(queueServiceUri), keyCredential);
+            return new QueueServiceClient(new Uri(queueServiceUrl), keyCredential);
         }
 
     }
