@@ -409,7 +409,8 @@ nuget.exe
 
 # Functional test results
 tests/functionaltests.*.xml
-tests/Scripts/TestResults[*].trx
+*.trx
+*.g.txt
 
 # The applicationhost.config is ignored, but already comitted on purpose
 # Reason: The localtest.me setting needs to be configured in the <sites>-section. 

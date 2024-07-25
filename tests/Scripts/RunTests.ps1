@@ -10,11 +10,10 @@ $rootName = $root.FullName
 $rootRootName = $root.parent.FullName
 
 # Required tools
-$nuget = "$rootName\nuget.exe"
 $BuiltInVsWhereExe = "${Env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
 $VsInstallationPath = & $BuiltInVsWhereExe -latest -prerelease -property installationPath
 $vsTest = Join-Path $VsInstallationPath "Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe"
-$xunit = "$rootRootName\packages\xunit.runner.console.2.3.1\tools\net452\xunit.console.exe"
+$xunit = "$rootRootName\packages\xunit.runner.console\tools\net472\xunit.console.exe"
 
 # Test results files
 $functionalTestsResults = "$rootName/functionaltests.$TestCategory.xml"

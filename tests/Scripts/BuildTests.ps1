@@ -14,8 +14,11 @@ $msBuild = Join-Path $VsInstallationPath "MSBuild\Current\Bin\msbuild"
 $nuget = "$rootName\nuget.exe"
 & "$rootName\Scripts\DownloadLatestNuGetExeRelease.ps1" $rootName
 
+Write-Host "Restoring solution tools"
+& $nuget install (Join-Path $PSScriptRoot "..\..\packages.config") -SolutionDirectory (Join-Path $PSScriptRoot "..\..") -NonInteractive -ExcludeVersion
+
 # Restore packages
-Write-Host "Restoring packages"
+Write-Host "Restoring solution"
 $fullSolutionPath = "$rootName\$SolutionPath"
 & $nuget "restore" $fullSolutionPath "-NonInteractive"
 if ($LastExitCode) {

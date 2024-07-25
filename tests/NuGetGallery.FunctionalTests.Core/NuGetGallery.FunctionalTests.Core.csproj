@@ -74,11 +74,10 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" />
     <PackageReference Include="Microsoft.Web.Xdt" />
     <PackageReference Include="NuGet.Core" />
-    <PackageReference Include="NuGet.Services.Configuration" />
+    <PackageReference Include="NuGet.Services.Configuration" VersionOverride="2.94.0" />
     <PackageReference Include="NuGet.Versioning" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio">
-      <Version>2.8.2</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
