@@ -1,6 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Moq;
+
+using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,9 +13,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
-using Moq;
-using NuGetGallery.Configuration;
-using NuGetGallery.Diagnostics;
+
 using Xunit;
 using Xunit.Sdk;
 
@@ -111,7 +114,7 @@ namespace NuGetGallery
                 var httpContext = GetContext();
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, folderName, "theFileName");
+                await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, folderName, "theFileName", "theVersion");
 
                 fakeBlobContainer.Verify(x => x.GetBlobReference("theFileName"));
             }
@@ -131,7 +134,7 @@ namespace NuGetGallery
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri(requestUri.Scheme + "://theUri"));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                var result = await service.CreateDownloadFileActionResultAsync(requestUri, CoreConstants.Folders.PackagesFolderName, "theFileName") as RedirectResult;
+                var result = await service.CreateDownloadFileActionResultAsync(requestUri, CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion") as RedirectResult;
 
                 Assert.NotNull(result);
                 Assert.Equal(scheme + "theuri/", result.Url);
@@ -152,9 +155,55 @@ namespace NuGetGallery
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri(blobUrl));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                var result = await service.CreateDownloadFileActionResultAsync(new Uri(requestUrl), CoreConstants.Folders.PackagesFolderName, "theFileName") as RedirectResult;
+                var result = await service.CreateDownloadFileActionResultAsync(new Uri(requestUrl), CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion") as RedirectResult;
                 var redirectUrl = new Uri(result.Url);
                 Assert.Equal(expectedPort, redirectUrl.Port);
+            }
+
+            [Theory]
+            [InlineData(HttpRequestUrlString, "https://theUri", "1.1.1", "1.1.1")]
+            [InlineData(HttpsRequestUrlString, "https://theUri", "01.01.01", "1.1.1")]
+            public async Task WillReturnARedirectResultWithTheNormalizedPackageVersion(string requestUrl, string blobUrl, string version, string expectedVersion)
+            {
+                var fakeBlobClient = new Mock<ICloudBlobClient>();
+                var fakeBlobContainer = new Mock<ICloudBlobContainer>();
+                var fakeBlob = new Mock<ISimpleCloudBlob>();
+                fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
+                fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
+                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<bool>())).Returns(Task.FromResult(0));
+                var requestUri = new Uri(requestUrl);
+                fakeBlob.Setup(x => x.Uri).Returns(new Uri(blobUrl));
+                var service = CreateService(fakeBlobClient: fakeBlobClient);
+
+                var result = await service.CreateDownloadFileActionResultAsync(requestUri, CoreConstants.Folders.PackagesFolderName, "theFileName", version) as RedirectResult;
+
+                Assert.NotNull(result);
+
+                var uri = new Uri(result.Url);
+                var qs = HttpUtility.ParseQueryString(uri.Query);
+                Assert.Equal(expectedVersion, qs["version"]);
+            }
+
+            [Theory]
+            [InlineData(HttpRequestUrlString, "https://theUri", null)]
+            [InlineData(HttpsRequestUrlString, "https://theUri", "")]
+            public async Task WillThrowIfVersionIsNullOrEmpty(string requestUrl, string blobUrl, string version)
+            {
+                var fakeBlobClient = new Mock<ICloudBlobClient>();
+                var fakeBlobContainer = new Mock<ICloudBlobContainer>();
+                var fakeBlob = new Mock<ISimpleCloudBlob>();
+                fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
+                fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
+                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<bool>())).Returns(Task.FromResult(0));
+                var requestUri = new Uri(requestUrl);
+                fakeBlob.Setup(x => x.Uri).Returns(new Uri(blobUrl));
+                var service = CreateService(fakeBlobClient: fakeBlobClient);
+
+                await Assert.ThrowsAsync<ArgumentException>(
+              () => service.CreateDownloadFileActionResultAsync(
+                  new Uri(HttpsRequestUrlString),
+                  CoreConstants.Folders.PackagesFolderName, "theFileName", version)
+              );
             }
 
             [Fact]
@@ -172,9 +221,9 @@ namespace NuGetGallery
                 var service = CreateService(fakeBlobClient: fakeBlobClient, redirectPolicy: fakePolicy);
 
                 var result = await service.CreateDownloadFileActionResultAsync(
-                    new Uri(HttpsRequestUrlString), 
-                    CoreConstants.Folders.PackagesFolderName, 
-                    "theFileName") as RedirectResult;
+                    new Uri(HttpsRequestUrlString),
+                    CoreConstants.Folders.PackagesFolderName,
+                    "theFileName", "theVersion") as RedirectResult;
                 fakePolicy.Verify();
             }
 
@@ -194,12 +243,12 @@ namespace NuGetGallery
 
                 await Assert.ThrowsAsync<InvalidOperationException>(
                     () => service.CreateDownloadFileActionResultAsync(
-                        new Uri(HttpsRequestUrlString), 
-                        CoreConstants.Folders.PackagesFolderName, "theFileName")
+                        new Uri(HttpsRequestUrlString),
+                        CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion")
                     );
             }
         }
-        
+
         private static HttpContextBase GetContext(string protocol = "http://")
         {
             var httpRequest = new Mock<HttpRequestBase>();

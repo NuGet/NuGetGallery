@@ -1,6 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Moq;
+
+using NuGetGallery.Configuration;
+using NuGetGallery.Utilities;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,9 +14,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using Moq;
-using NuGetGallery.Configuration;
-using NuGetGallery.Utilities;
+
 using Xunit;
 
 namespace NuGetGallery
@@ -61,7 +64,7 @@ namespace NuGetGallery
                     () => service.CreateDownloadFileActionResultAsync(
                         HttpRequestUrl,
                         folderName,
-                        "theFileName"));
+                        "theFileName", "theVersion"));
 
                 Assert.Equal("folderName", ex.ParamName);
             }
@@ -77,7 +80,7 @@ namespace NuGetGallery
                     () => service.CreateDownloadFileActionResultAsync(
                         HttpRequestUrl,
                         CoreConstants.Folders.PackagesFolderName,
-                        fileName));
+                        fileName, "theVersion"));
 
                 Assert.Equal("fileName", ex.ParamName);
             }
@@ -87,7 +90,7 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var result = await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, CoreConstants.Folders.PackagesFolderName, "theFileName") as FilePathResult;
+                var result = await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion") as FilePathResult;
 
                 Assert.NotNull(result);
                 Assert.Equal(
@@ -102,7 +105,7 @@ namespace NuGetGallery
                 fakeFileSystemService.Setup(x => x.FileExists(It.IsAny<string>())).Returns(false);
                 var service = CreateService(fileSystemService: fakeFileSystemService);
 
-                var result = await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, CoreConstants.Folders.PackagesFolderName, "theFileName") as HttpNotFoundResult;
+                var result = await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion") as HttpNotFoundResult;
 
                 Assert.NotNull(result);
             }
@@ -112,7 +115,7 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var result = await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, CoreConstants.Folders.PackagesFolderName, "theFileName") as FilePathResult;
+                var result = await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion") as FilePathResult;
 
                 Assert.NotNull(result);
                 Assert.Equal(CoreConstants.PackageContentType, result.ContentType);
@@ -123,7 +126,7 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var result = await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, CoreConstants.Folders.SymbolPackagesFolderName, "theFileName") as FilePathResult;
+                var result = await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, CoreConstants.Folders.SymbolPackagesFolderName, "theFileName", "theVersion") as FilePathResult;
 
                 Assert.NotNull(result);
                 Assert.Equal(CoreConstants.PackageContentType, result.ContentType);
@@ -134,7 +137,7 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var result = await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, CoreConstants.Folders.PackagesFolderName, "theFileName") as FilePathResult;
+                var result = await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion") as FilePathResult;
 
                 Assert.NotNull(result);
                 Assert.Equal(

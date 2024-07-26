@@ -1,14 +1,17 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Moq;
+
+using NuGet.Services.Entities;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using Moq;
-using NuGet.Services.Entities;
+
 using Xunit;
 
 namespace NuGetGallery
@@ -125,7 +128,7 @@ namespace NuGetGallery
             {
                 var fileStorageSvc = new Mock<IFileStorageService>();
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
-                fileStorageSvc.Setup(x => x.CreateDownloadFileActionResultAsync(new Uri("http://fake"), CoreConstants.Folders.PackagesFolderName, It.IsAny<string>()))
+                fileStorageSvc.Setup(x => x.CreateDownloadFileActionResultAsync(new Uri("http://fake"), CoreConstants.Folders.PackagesFolderName, It.IsAny<string>(), It.IsAny<string>()))
                     .CompletesWithNull()
                     .Verifiable();
 
@@ -139,7 +142,8 @@ namespace NuGetGallery
             {
                 var fileStorageSvc = new Mock<IFileStorageService>();
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
-                fileStorageSvc.Setup(x => x.CreateDownloadFileActionResultAsync(new Uri("http://fake"), It.IsAny<string>(), BuildFileName("theId", "theNormalizedVersion", CoreConstants.NuGetPackageFileExtension, CoreConstants.PackageFileSavePathTemplate)))
+                var normalizedVersion = "theNormalizedVersion";
+                fileStorageSvc.Setup(x => x.CreateDownloadFileActionResultAsync(new Uri("http://fake"), It.IsAny<string>(), BuildFileName("theId", normalizedVersion, CoreConstants.NuGetPackageFileExtension, CoreConstants.PackageFileSavePathTemplate), normalizedVersion))
                     .CompletesWithNull()
                     .Verifiable();
 
@@ -156,7 +160,7 @@ namespace NuGetGallery
                 var packageRegistraion = new PackageRegistration { Id = "theId" };
                 var package = new Package { PackageRegistration = packageRegistraion, NormalizedVersion = null, Version = "01.01.01" };
 
-                fileStorageSvc.Setup(x => x.CreateDownloadFileActionResultAsync(new Uri("http://fake"), It.IsAny<string>(), BuildFileName("theId", "1.1.1", CoreConstants.NuGetPackageFileExtension, CoreConstants.PackageFileSavePathTemplate)))
+                fileStorageSvc.Setup(x => x.CreateDownloadFileActionResultAsync(new Uri("http://fake"), It.IsAny<string>(), BuildFileName("theId", "1.1.1", CoreConstants.NuGetPackageFileExtension, CoreConstants.PackageFileSavePathTemplate), "1.1.1"))
                     .CompletesWithNull()
                     .Verifiable();
 
@@ -170,7 +174,7 @@ namespace NuGetGallery
             {
                 ActionResult fakeResult = new RedirectResult("http://aUrl");
                 var fileStorageSvc = new Mock<IFileStorageService>();
-                fileStorageSvc.Setup(x => x.CreateDownloadFileActionResultAsync(new Uri("http://fake"), It.IsAny<string>(), It.IsAny<string>()))
+                fileStorageSvc.Setup(x => x.CreateDownloadFileActionResultAsync(new Uri("http://fake"), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                     .CompletesWith(fakeResult);
 
                 var service = CreateService(fileStorageSvc: fileStorageSvc);

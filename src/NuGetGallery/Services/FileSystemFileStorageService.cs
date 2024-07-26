@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using NuGetGallery.Configuration;
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -8,7 +10,6 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Web.Hosting;
 using System.Web.Mvc;
-using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
@@ -23,7 +24,7 @@ namespace NuGetGallery
             _fileSystemService = fileSystemService;
         }
 
-        public Task<ActionResult> CreateDownloadFileActionResultAsync(Uri requestUrl, string folderName, string fileName)
+        public Task<ActionResult> CreateDownloadFileActionResultAsync(Uri requestUrl, string folderName, string fileName, string versionParameter)
         {
             if (string.IsNullOrWhiteSpace(folderName))
             {
@@ -270,7 +271,7 @@ namespace NuGetGallery
 
         public Task SetPropertiesAsync(
             string folderName,
-            string fileName, 
+            string fileName,
             Func<Lazy<Task<Stream>>, ICloudBlobProperties, Task<bool>> updatePropertiesAsync)
         {
             return Task.CompletedTask;
