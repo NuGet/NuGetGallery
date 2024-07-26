@@ -9,7 +9,6 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Hosting;
 using System.Web.Http;
 using System.Web.Mvc;
@@ -23,7 +22,6 @@ using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.Cookie;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
-using NuGetGallery.Infrastructure;
 using Owin;
 
 [assembly: OwinStartup(typeof(NuGetGallery.OwinStartup))]
