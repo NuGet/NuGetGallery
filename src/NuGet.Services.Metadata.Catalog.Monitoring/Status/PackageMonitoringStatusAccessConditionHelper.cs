@@ -3,7 +3,6 @@
 
 using System;
 using System.Linq;
-using Microsoft.WindowsAzure.Storage;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGetGallery;
 

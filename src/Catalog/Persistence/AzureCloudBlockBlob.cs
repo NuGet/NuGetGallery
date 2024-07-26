@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
-using NuGetGallery;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {

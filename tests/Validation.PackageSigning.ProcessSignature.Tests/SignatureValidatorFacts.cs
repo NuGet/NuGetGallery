@@ -10,7 +10,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Common;
-using NuGet.Jobs.Validation.PackageSigning;
 using NuGet.Jobs.Validation.PackageSigning.Configuration;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.ProcessSignature;

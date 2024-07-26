@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using NuGet.Versioning;
-using Stats.ImportAzureCdnStatistics;
 using Stats.LogInterpretation;
 using Xunit;
 

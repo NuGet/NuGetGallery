@@ -10,7 +10,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
 using NuGet.Protocol;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.V3;

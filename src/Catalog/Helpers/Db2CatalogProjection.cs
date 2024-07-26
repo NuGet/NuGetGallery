@@ -6,8 +6,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
-using System.Threading.Tasks;
-using NuGet.Protocol.Plugins;
 using NuGet.Services.Entities;
 
 namespace NuGet.Services.Metadata.Catalog.Helpers

@@ -10,7 +10,6 @@ using Moq;
 using NuGet.Jobs.Validation.ContentScan;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Validation;
-using NuGet.Services.Validation.Orchestrator;
 using Xunit;
 
 namespace Validation.ContentScan.Tests

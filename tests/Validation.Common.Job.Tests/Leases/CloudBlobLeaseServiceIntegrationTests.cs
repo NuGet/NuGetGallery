@@ -5,8 +5,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
 using NuGet.Jobs.Validation.Leases;
 using Xunit;
 using Xunit.Abstractions;

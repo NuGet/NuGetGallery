@@ -6,8 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Azure;
-using Azure.Storage.Queues.Models;
 using Microsoft.Extensions.Logging;
 using NuGet.Protocol.Core.Types;
 using NuGet.Services.Configuration;

@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using NuGet.Jobs.Extensions;
 using StatusAggregator.Collector;
 
 namespace StatusAggregator.Update
