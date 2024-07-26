@@ -158,8 +158,8 @@ Function Invoke-BuildStep {
         [switch]$SkipExecution
     )
     if (-not $SkipExecution) {
-        if ($env:TEAMCITY_VERSION) {
-            Write-Output "##teamcity[blockOpened name='$BuildStep']"
+        if ($env:TF_BUILD) {
+            Write-Output "##[group]$BuildStep"
         }
 
         Trace-Log "[BEGIN] $BuildStep"
@@ -185,8 +185,8 @@ Function Invoke-BuildStep {
                 }
             }
 
-            if ($env:TEAMCITY_VERSION) {
-                Write-Output "##teamcity[blockClosed name='$BuildStep']"
+            if ($env:TF_BUILD) {
+                Write-Output "##[endgroup]"
             }
         }
     }
@@ -416,6 +416,7 @@ Function Update-Submodule {
 
     Invoke-Git -Arguments $args
 }
+
 Function Install-NuGet {
     [CmdletBinding()]
     param()
@@ -435,7 +436,7 @@ Function Install-NuGet {
 
             Trace-Log 'Downloading nuget.exe'
             Invoke-WebRequest `
-                https://dist.nuget.org/win-x86-commandline/v6.2.1/nuget.exe `
+                https://dist.nuget.org/win-x86-commandline/v6.10.1/nuget.exe `
                 -UseBasicParsing `
                 -OutFile $NuGetExe
             
@@ -488,38 +489,6 @@ Function Configure-NuGetCredentials {
     if (-not $?) {
         Error-Log "Pack failed for @""$TargetFilePath"". Code: ${LASTEXITCODE}"
     }
-}
-
-Function Install-DotnetCLI {
-    [CmdletBinding()]
-    param()
-
-    Trace-Log 'Downloading Dotnet CLI'
-
-    New-Item -ItemType Directory -Force -Path $CLIRoot | Out-Null
-
-    $env:DOTNET_HOME=$CLIRoot
-    $env:DOTNET_INSTALL_DIR=$NuGetClientRoot
-
-    $installDotnet = Join-Path $CLIRoot "dotnet-install.ps1"
-
-    Invoke-WebRequest -UseBasicParsing 'https://raw.githubusercontent.com/dotnet/cli/release/3.1.4xx/scripts/obtain/dotnet-install.ps1' -OutFile $installDotnet
-
-    & $installDotnet -Channel 3.1 -i $CLIRoot -Version latest
-
-    if (-not (Test-Path $DotNetExe)) {
-        Error-Log "Unable to find dotnet.exe. The CLI install may have failed." -Fatal
-    }
-
-    # Delete a project template that is unused and is causing a Component Governance issue.
-    # See https://github.com/dotnet/aspnetcore/issues/20001
-    $templatesToRemove = Get-ChildItem (Join-Path $CLIRoot "sdk\**\Templates\microsoft.dotnet.web.projecttemplate*")
-    Trace-Log "Removing items: "
-    $templatesToRemove
-    $templatesToRemove | Remove-Item -Force -Recurse
-
-    # Display build info
-    & $DotNetExe --info
 }
 
 Function Get-BuildNumber() {
@@ -618,6 +587,30 @@ Function Restore-SolutionPackages {
     if (-not $?) {
         Error-Log "Restore failed @""$InstallLocation"". Code: ${LASTEXITCODE}"
     }
+}
+
+function Get-SolutionProjects($SolutionPath) {
+    $paths = dotnet sln $SolutionPath list | Where-Object { $_ -like "*.csproj" }
+    if (!$paths) {
+        throw "Failed to find .csproj files found in solution $SolutionPath."
+    }
+
+    $solutionDir = Split-Path (Resolve-Path $SolutionPath)
+
+    $projects = $paths | ForEach-Object {
+        $projectPath = Join-Path $solutionDir $_
+        $projectRelativeDir = Split-Path $_
+        $projectDir = Join-Path $solutionDir $projectRelativeDir
+        $isTestProject = $projectRelativeDir -like "test*";
+        return [PSCustomObject]@{
+            IsTest = $isTestProject;
+            Directory = $projectDir;
+            Path = $projectPath;
+            RelativePath = $_;
+        }
+    }
+
+    return $projects | Sort-Object -Property Path
 }
 
 Function Get-PackageVersion() {

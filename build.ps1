@@ -31,11 +31,10 @@ if (-not $BuildNumber) {
 Trace-Log "Build #$BuildNumber started at $startTime"
 
 $BuildErrors = @()
+$CommonSolution = Join-Path $PSScriptRoot "NuGet.Server.Common.sln"
+$CommonProjects = Get-SolutionProjects $CommonSolution
 
 Invoke-BuildStep 'Getting private build tools' { Install-PrivateBuildTools } `
-    -ev +BuildErrors
-
-Invoke-BuildStep 'Cleaning test results' { Clear-Tests } `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Installing NuGet.exe' { Install-NuGet } `
@@ -48,54 +47,34 @@ Invoke-BuildStep 'Clearing package cache' { Clear-PackageCache } `
 Invoke-BuildStep 'Clearing artifacts' { Clear-Artifacts } `
     -ev +BuildErrors
 
-Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' {
-        $CommonAssemblyInfo =
-            "src\NuGet.Services.Build\Properties\AssemblyInfo.g.cs",
-            "src\NuGet.Services.Configuration\Properties\AssemblyInfo.g.cs",
-            "src\NuGet.Services.Contracts\Properties\AssemblyInfo.g.cs",
-            "src\NuGet.Services.Cursor\Properties\AssemblyInfo.g.cs",
-            "src\NuGet.Services.FeatureFlags\Properties\AssemblyInfo.g.cs",
-            "src\NuGet.Services.Incidents\Properties\AssemblyInfo.g.cs",
-            "src\NuGet.Services.KeyVault\Properties\AssemblyInfo.g.cs",
-            "src\NuGet.Services.Licenses\Properties\AssemblyInfo.g.cs",
-            "src\NuGet.Services.Logging\Properties\AssemblyInfo.g.cs",
-            "src\NuGet.Services.Messaging.Email\Properties\AssemblyInfo.g.cs",
-            "src\NuGet.Services.Messaging\Properties\AssemblyInfo.g.cs",
-            "src\NuGet.Services.Owin\Properties\AssemblyInfo.g.cs",
-            "src\NuGet.Services.ServiceBus\Properties\AssemblyInfo.g.cs",
-            "src\NuGet.Services.Sql\Properties\AssemblyInfo.g.cs",
-            "src\NuGet.Services.Status.Table\Properties\AssemblyInfo.g.cs",
-            "src\NuGet.Services.Status\Properties\AssemblyInfo.g.cs",
-            "src\NuGet.Services.Storage\Properties\AssemblyInfo.g.cs",
-            "src\NuGet.Services.Testing.Entities\Properties\AssemblyInfo.g.cs",
-            "src\NuGet.Services.Validation.Issues\Properties\AssemblyInfo.g.cs",
-            "src\NuGet.Services.Validation\Properties\AssemblyInfo.g.cs"
-        $CommonAssemblyInfo | ForEach-Object {
-            Set-VersionInfo (Join-Path $PSScriptRoot $_) -AssemblyVersion $CommonAssemblyVersion -PackageVersion $CommonPackageVersion -Branch $Branch -Commit $CommitSHA 
+Invoke-BuildStep 'Setting common version metadata in AssemblyInfo.cs' {
+        $CommonProjects | Where-Object { !$_.IsTest } | ForEach-Object {
+            $Path = Join-Path $_.Directory "Properties\AssemblyInfo.g.cs"
+            Set-VersionInfo $Path -AssemblyVersion $CommonAssemblyVersion -PackageVersion $CommonPackageVersion -Branch $Branch -Commit $CommitSHA
         }
     } `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Restoring solution packages' { `
-    Install-SolutionPackages -path (Join-Path $PSScriptRoot "packages.config") -output (Join-Path $PSScriptRoot "packages") -excludeversion } `
+        $SolutionPath = Join-Path $PSScriptRoot "packages.config"
+        $PackagesDir = Join-Path $PSScriptRoot "packages"
+        Install-SolutionPackages -path $SolutionPath -output $PackagesDir -ExcludeVersion
+    } `
     -skip:$SkipRestore `
     -ev +BuildErrors
 
-Invoke-BuildStep 'Removing .editorconfig file in ServerCommon' { Remove-EditorconfigFile -Directory $PSScriptRoot } `
-    -ev +BuildErrors
-
-Invoke-BuildStep 'Building solution' { `
+Invoke-BuildStep 'Building common solution' { `
         $SolutionPath = Join-Path $PSScriptRoot "NuGet.Server.Common.sln"
         Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $SolutionPath -SkipRestore:$SkipRestore
     } `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Signing the binaries' {
-        Sign-Binaries -Configuration $Configuration -BuildNumber $BuildNumber `
+        Sign-Binaries -Configuration $Configuration -BuildNumber $BuildNumber
     } `
     -ev +BuildErrors
     
-Invoke-BuildStep 'Creating artifacts' { `
+Invoke-BuildStep 'Creating common artifacts' { `
         $CommonProjects =
             "src\NuGet.Services.Build\NuGet.Services.Build.csproj",
             "src\NuGet.Services.Configuration\NuGet.Services.Configuration.csproj",
@@ -124,7 +103,7 @@ Invoke-BuildStep 'Creating artifacts' { `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Signing the packages' {
-        Sign-Packages -Configuration $Configuration -BuildNumber $BuildNumber `
+        Sign-Packages -Configuration $Configuration -BuildNumber $BuildNumber
     } `
     -ev +BuildErrors
 

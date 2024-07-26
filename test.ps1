@@ -13,47 +13,8 @@ trap {
     exit 1
 }
 
-$CLIRoot = $PSScriptRoot
-$env:DOTNET_INSTALL_DIR = $CLIRoot
-
 . "$PSScriptRoot\build\common.ps1"
 
-Function Invoke-Tests {
-    [CmdletBinding()]
-    param()
-
-    Trace-Log 'Running tests'
-
-    $xUnitExe = (Join-Path $PSScriptRoot "packages\xunit.runner.console\tools\net472\xunit.console.exe")
-
-    $CommonTestAssemblies =
-        "tests\NuGet.Services.Configuration.Tests\bin\$Configuration\net472\NuGet.Services.Configuration.Tests.dll",
-        "tests\NuGet.Services.Contracts.Tests\bin\$Configuration\net472\NuGet.Services.Contracts.Tests.dll",
-        "tests\NuGet.Services.Cursor.Tests\bin\$Configuration\net472\NuGet.Services.Cursor.Tests.dll",
-        "tests\NuGet.Services.KeyVault.Tests\bin\$Configuration\net472\NuGet.Services.KeyVault.Tests.dll",
-        "tests\NuGet.Services.Licenses.Tests\bin\$Configuration\net472\NuGet.Services.Licenses.Tests.dll",
-        "tests\NuGet.Services.Logging.Tests\bin\$Configuration\net472\NuGet.Services.Logging.Tests.dll",
-        "tests\NuGet.Services.Messaging.Email.Tests\bin\$Configuration\net472\NuGet.Services.Messaging.Email.Tests.dll",
-        "tests\NuGet.Services.Messaging.Tests\bin\$Configuration\net472\NuGet.Services.Messaging.Tests.dll",
-        "tests\NuGet.Services.Owin.Tests\bin\$Configuration\net472\NuGet.Services.Owin.Tests.dll",
-        "tests\NuGet.Services.Sql.Tests\bin\$Configuration\net472\NuGet.Services.Sql.Tests.dll",
-        "tests\NuGet.Services.Status.Tests\bin\$Configuration\net472\NuGet.Services.Status.Tests.dll",
-        "tests\NuGet.Services.Validation.Issues.Tests\bin\$Configuration\net472\NuGet.Services.Validation.Issues.Tests.dll",
-        "tests\NuGet.Services.Validation.Tests\bin\$Configuration\net472\NuGet.Services.Validation.Tests.dll"
-
-    $TestCount = 0
-
-    $CommonTestAssemblies | ForEach-Object {
-        $TestResultFile = Join-Path $PSScriptRoot "Results.$TestCount.xml"
-        & $xUnitExe (Join-Path $PSScriptRoot $_) -xml $TestResultFile
-        if (-not (Test-Path $TestResultFile)) {
-            Write-Error "The test run failed to produce a result file";
-            exit 1;
-        }
-        $TestCount++
-    }
-}
-    
 Write-Host ("`r`n" * 3)
 Trace-Log ('=' * 60)
 
@@ -64,8 +25,28 @@ if (-not $BuildNumber) {
 Trace-Log "Build #$BuildNumber started at $startTime"
 
 $TestErrors = @()
+$CommonSolution = Join-Path $PSScriptRoot "NuGet.Server.Common.sln"
+$CommonProjects = Get-SolutionProjects $CommonSolution
     
-Invoke-BuildStep 'Running tests' { Invoke-Tests } `
+Invoke-BuildStep 'Cleaning test results' { Clear-Tests } `
+    -ev +BuildErrors
+
+Invoke-BuildStep 'Running tests' {
+        $CommonTestProjects = $CommonProjects | Where-Object { $_.IsTest }
+
+        $TestCount = 0
+        
+        $CommonTestProjects | ForEach-Object {
+            $TestResultFile = Join-Path $PSScriptRoot "Results.$TestCount.xml"
+            Trace-Log "Testing $($_.Path)"
+            dotnet test $_.Path --no-restore --no-build --configuration $Configuration "-l:trx;LogFileName=$TestResultFile"
+            if (-not (Test-Path $TestResultFile)) {
+                Write-Error "The test run failed to produce a result file";
+                exit 1;
+            }
+            $TestCount++
+        }
+    } `
     -ev +TestErrors
 
 Trace-Log ('-' * 60)

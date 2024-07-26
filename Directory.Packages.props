@@ -3,7 +3,6 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
     <EnablePackageVersionOverride>false</EnablePackageVersionOverride>
-
     <NuGetClientPackageVersion>6.9.1</NuGetClientPackageVersion>
   </PropertyGroup>
   <ItemGroup>
