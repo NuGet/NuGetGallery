@@ -2,16 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
-using System.Linq;
-using System.Runtime.Serialization;
 using System.Threading.Tasks;
-using System.Xml;
 using Azure.Messaging.ServiceBus;
-using Microsoft.Azure.Amqp.Framing;
 
 namespace NuGet.Services.ServiceBus
 {

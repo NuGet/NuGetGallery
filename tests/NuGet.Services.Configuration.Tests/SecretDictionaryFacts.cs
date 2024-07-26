@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.KeyVault;
 using Xunit;
-using System.Collections;
 
 namespace NuGet.Services.Configuration.Tests
 {

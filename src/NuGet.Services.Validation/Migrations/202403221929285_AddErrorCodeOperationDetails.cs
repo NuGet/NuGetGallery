@@ -1,8 +1,7 @@
 ﻿namespace NuGet.Services.Validation
 {
-    using System;
     using System.Data.Entity.Migrations;
-    
+
     public partial class AddErrorCodeOperationDetails : DbMigration
     {
         public override void Up()

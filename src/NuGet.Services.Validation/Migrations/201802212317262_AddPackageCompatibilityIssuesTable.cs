@@ -1,8 +1,7 @@
 namespace NuGet.Services.Validation
 {
-    using System;
     using System.Data.Entity.Migrations;
-    
+
     public partial class AddPackageCompatibilityIssuesTable : DbMigration
     {
         public override void Up()

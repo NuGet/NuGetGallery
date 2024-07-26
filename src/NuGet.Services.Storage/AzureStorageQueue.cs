@@ -4,7 +4,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Azure.Storage;
 using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
 

@@ -3,9 +3,6 @@
 
 using System;
 using System.Threading.Tasks;
-using Azure.Core;
-using Azure.Identity;
-using Azure.Security.KeyVault.Secrets;
 
 namespace NuGet.Services.KeyVault
 {

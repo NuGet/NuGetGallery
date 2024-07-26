@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Memory;
-using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
 
 namespace NuGet.Services.Configuration

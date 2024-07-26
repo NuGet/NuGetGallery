@@ -9,8 +9,6 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
-using Azure.Storage;
-using Azure.Storage.Blobs;
 using Microsoft.Extensions.Logging;
 
 namespace NuGet.Services.Storage

@@ -1,8 +1,7 @@
 namespace NuGet.Services.Validation
 {
-    using System;
     using System.Data.Entity.Migrations;
-    
+
     public partial class AddValidatingType : DbMigration
     {
         public override void Up()
