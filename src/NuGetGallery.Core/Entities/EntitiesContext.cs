@@ -7,7 +7,6 @@ using System.Data.Common;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Infrastructure.Annotations;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
