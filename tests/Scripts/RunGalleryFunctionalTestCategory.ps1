@@ -1,24 +1,22 @@
 [CmdletBinding()]
 param(
-    [string]$Config = "Release",
+    [string]$Configuration = "Release",
     [Parameter(Mandatory)][string]$TestCategory
 )
 
-# Move working directory one level up
-$root = (Get-Item $PSScriptRoot).parent
-$rootName = $root.FullName
-$rootRootName = $root.parent.FullName
+$parentDir = Resolve-Path (Join-Path $PSScriptRoot "..")
+$repoDir = Resolve-Path (Join-Path $parentDir "..")
 
 # Required tools
 $BuiltInVsWhereExe = "${Env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
 $VsInstallationPath = & $BuiltInVsWhereExe -latest -prerelease -property installationPath
 $vsTest = Join-Path $VsInstallationPath "Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe"
-$xunit = "$rootRootName\packages\xunit.runner.console\tools\net472\xunit.console.exe"
+$xunit = "$repoDir\packages\xunit.runner.console\tools\net472\xunit.console.exe"
 
 # Test results files
-$functionalTestsResults = "$rootName/functionaltests.$TestCategory.xml"
-$webUITestResults = "$rootName/NuGetGallery.$TestCategory.WebUITests.trx"
-$loadTestResults = "$rootName/NuGetGallery.$TestCategory.LoadTests.trx"
+$functionalTestsResults = "$parentDir/functionaltests.$TestCategory.xml"
+$webUITestResults = "$parentDir/NuGetGallery.$TestCategory.WebUITests.trx"
+$loadTestResults = "$parentDir/NuGetGallery.$TestCategory.LoadTests.trx"
 
 # Clean previous test results
 Remove-Item $functionalTestsResults -ErrorAction Ignore
@@ -29,26 +27,26 @@ Remove-Item $loadTestResults -ErrorAction Ignore
 $fullTestCategory = "$($testCategory)Tests"
 $exitCode = 0
 
-$functionalTestsDirectory = "$rootName\NuGetGallery.FunctionalTests\bin\$Config\net472"
+$functionalTestsDirectory = "$parentDir\NuGetGallery.FunctionalTests\bin\$Configuration\net472"
 & $xunit "$functionalTestsDirectory\NuGetGallery.FunctionalTests.dll" "-trait" "Category=$fullTestCategory" "-xml" $functionalTestsResults
-if ($LastExitCode) {
+if ($LASTEXITCODE -ne 0) {
     $exitCode = 1
 }
 
 # Run web UI tests
-$webTestsDirectory = "$rootName\NuGetGallery.WebUITests.$TestCategory\bin\$Config\net472"
+$webTestsDirectory = "$parentDir\NuGetGallery.WebUITests.$TestCategory\bin\$Configuration\net472"
 
 if (Test-Path $webTestsDirectory -PathType Container) { 
-    & $vsTest "$webTestsDirectory\NuGetGallery.WebUITests.$TestCategory.dll" "/Settings:$rootName\Local.testsettings" "/Logger:trx;LogFileName=$webUITestResults"
-    if ($LastExitCode) {
+    & $vsTest "$webTestsDirectory\NuGetGallery.WebUITests.$TestCategory.dll" "/Settings:$parentDir\Local.testsettings" "/Logger:trx;LogFileName=$webUITestResults"
+    if ($LASTEXITCODE -ne 0) {
         $exitCode = 1
     }
 }
 
 # Run load tests
-$loadTestsDirectory = "$rootName\NuGetGallery.LoadTests\bin\$Config\net472"
-& $vsTest "$loadTestsDirectory\NuGetGallery.LoadTests.dll" "/Settings:$rootName\Local.testsettings" "/TestCaseFilter:`"TestCategory=$fullTestCategory`"" "/Logger:trx;LogFileName=$loadTestResults"
-if ($LastExitCode) {
+$loadTestsDirectory = "$parentDir\NuGetGallery.LoadTests\bin\$Configuration\net472"
+& $vsTest "$loadTestsDirectory\NuGetGallery.LoadTests.dll" "/Settings:$parentDir\Local.testsettings" "/TestCaseFilter:`"TestCategory=$fullTestCategory`"" "/Logger:trx;LogFileName=$loadTestResults"
+if ($LASTEXITCODE -ne 0) {
     $exitCode = 1
 }
 
