@@ -1,36 +1,35 @@
 [CmdletBinding()]
 param(
-    [string]$Config = "Release",
-    [string]$SolutionPath = "NuGetGallery.FunctionalTests.sln"
+    [string]$Configuration = "Release"
 )
 
-# Move working directory one level up
-$rootName = (Get-Item $PSScriptRoot).parent.FullName
+$parentDir = Resolve-Path (Join-Path $PSScriptRoot "..")
+$repoDir = Resolve-Path (Join-Path $parentDir "..")
 
 # Required tools
 $BuiltInVsWhereExe = "${Env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
 $VsInstallationPath = & $BuiltInVsWhereExe -latest -prerelease -property installationPath
-$msBuild = Join-Path $VsInstallationPath "MSBuild\Current\Bin\msbuild"
-$nuget = "$rootName\nuget.exe"
-& "$rootName\Scripts\DownloadLatestNuGetExeRelease.ps1" $rootName
+$msbuild = Join-Path $VsInstallationPath "MSBuild\Current\Bin\msbuild"
+$nuget = Join-Path $parentDir "nuget.exe"
+& (Join-Path $PSScriptRoot "DownloadLatestNuGetExeRelease.ps1") $parentDir
 
 Write-Host "Restoring solution tools"
-& $nuget install (Join-Path $PSScriptRoot "..\..\packages.config") -SolutionDirectory (Join-Path $PSScriptRoot "..\..") -NonInteractive -ExcludeVersion
+& $nuget install (Join-Path $repoDir "packages.config") -SolutionDirectory $repoDir -NonInteractive -ExcludeVersion
 
 # Restore packages
 Write-Host "Restoring solution"
-$fullSolutionPath = "$rootName\$SolutionPath"
-& $nuget "restore" $fullSolutionPath "-NonInteractive"
-if ($LastExitCode) {
+$solutionPath = Join-Path $repoDir "NuGetGallery.FunctionalTests.sln"
+& $nuget restore $solutionPath -NonInteractive
+if ($LASTEXITCODE -ne 0) {
     throw "Failed to restore packages!"
 }
 
 # Build the solution
 Write-Host "Building solution"
-& $msBuild $fullSolutionPath "/p:Configuration=$Config" "/p:Platform=Any CPU" "/p:CodeAnalysis=true" "/m" "/v:M" "/fl" "/flp:LogFile=$rootName\msbuild.log;Verbosity=diagnostic" "/nr:false"
-if ($LastExitCode) {
+& $msbuild $solutionPath "/p:Configuration=$Configuration" "/p:Platform=Any CPU" "/p:CodeAnalysis=true" "/m" "/v:M" "/fl" "/nr:false"
+if ($LASTEXITCODE -ne 0) {
     throw "Failed to build solution!"
 }
 
-$functionalTestsDirectory = "$rootName\NuGetGallery.FunctionalTests\bin\$Config"
+$functionalTestsDirectory = Join-Path $parentDir "NuGetGallery.FunctionalTests\bin\net472\$Configuration"
 Copy-Item $nuget $functionalTestsDirectory
