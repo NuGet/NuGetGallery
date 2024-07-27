@@ -11,7 +11,7 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols Condition="'$(IncludeSymbols)' == ''">true</IncludeSymbols>
     <SymbolPackageFormat Condition="'$(SymbolPackageFormat)' == ''">snupkg</SymbolPackageFormat>
-    <LangVersion>9.0</LangVersion>
+    <LangVersion>latest</LangVersion>
 
     <!--
       Our builds generate a file containing the desired assembly version attributes.
