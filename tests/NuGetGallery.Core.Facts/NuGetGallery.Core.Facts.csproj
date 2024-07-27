@@ -1,162 +1,19 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\SdkProjects.props" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{8AC9E39E-366C-47E5-80AE-38E71CD31386}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <TargetFramework>net472</TargetFramework>
+    <IsPackable>false</IsPackable>
     <RootNamespace>NuGetGallery</RootNamespace>
-    <AssemblyName>NuGetGallery.Core.Facts</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <TargetFrameworkProfile />
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <Prefer32Bit>false</Prefer32Bit>
-    <CodeAnalysisRuleSet>ManagedMinimumRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Data.Services.Client" />
-    <Reference Include="System.ServiceModel" />
-    <Reference Include="System.Web" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Auditing\AggregateAuditingServiceTests.cs" />
-    <Compile Include="Auditing\AuditActorTests.cs" />
-    <Compile Include="Auditing\AuditedAuthenticatedOperationActionTests.cs" />
-    <Compile Include="Auditing\AuditedCertificateActionTests.cs" />
-    <Compile Include="Auditing\AuditedPackageActionTests.cs" />
-    <Compile Include="Auditing\AuditedPackageFacts.cs" />
-    <Compile Include="Auditing\AuditedPackageRegistrationActionTests.cs" />
-    <Compile Include="Auditing\AuditedUserActionTests.cs" />
-    <Compile Include="Auditing\AuditEntryTests.cs" />
-    <Compile Include="Auditing\AuditingServiceTests.cs" />
-    <Compile Include="Auditing\AuditRecordTests.cs" />
-    <Compile Include="Auditing\CertificateAuditRecordFacts.cs" />
-    <Compile Include="Auditing\CloudAuditingServiceTests.cs" />
-    <Compile Include="Auditing\CredentialAuditRecordTests.cs" />
-    <Compile Include="Auditing\EnumTests.cs" />
-    <Compile Include="Auditing\FailedAuthenticatedOperationAuditRecordTests.cs" />
-    <Compile Include="Auditing\ObfuscatorFacts.cs" />
-    <Compile Include="Auditing\ObfuscatorJsonConverterTests.cs" />
-    <Compile Include="Auditing\ReservedNamespaceAuditRecordTests.cs" />
-    <Compile Include="Auditing\UserSecurityPolicyAuditRecordFacts.cs" />
-    <Compile Include="Auditing\FileSystemAuditingServiceTests.cs" />
-    <Compile Include="Auditing\PackageAuditRecordTests.cs" />
-    <Compile Include="Auditing\PackageRegistrationAuditRecordTests.cs" />
-    <Compile Include="Auditing\ScopeAuditRecordTests.cs" />
-    <Compile Include="Auditing\UserAuditRecordTests.cs" />
-    <Compile Include="Certificates\CertificateFileFacts.cs" />
-    <Compile Include="Cookies\CookieComplianceServiceFacts.cs" />
-    <Compile Include="Cookies\CookieExpirationServiceFacts.cs" />
-    <Compile Include="Features\FeatureFlagClientExtensionsFacts.cs" />
-    <Compile Include="Features\EditableFeatureFlagFileStorageServiceFacts.cs" />
-    <Compile Include="Frameworks\NuGetFrameworkExtensionsFacts.cs" />
-    <Compile Include="Frameworks\PackageFrameworkCompatibilityFactoryFacts.cs" />
-    <Compile Include="Frameworks\FrameworkCompatibilityServiceFacts.cs" />
-    <Compile Include="Frameworks\SupportedFrameworksFacts.cs" />
-    <Compile Include="GitHub\GitHubUsageConfigurationFacts.cs" />
-    <Compile Include="Extensions\UserExtensionsCoreFacts.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\CredentialRevokedMessageFacts.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\MarkdownMessageBuilderFacts.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\PackageAddedMessageFacts.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\PackageValidationFailedMessageFacts.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\PackageValidationTakingTooLongMessageFacts.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\SymbolPackageAddedMessageFacts.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\SymbolPackageValidationFailedMessageFacts.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\SymbolPackageValidationTakingTooLongMessageFacts.cs" />
-    <Compile Include="Infrastructure\Mail\TestMessageServiceConfiguration.cs" />
-    <Compile Include="Login\EditableLoginConfigurationFileStorageServiceFacts.cs" />
-    <Compile Include="Packaging\ManifestValidatorFacts.cs" />
-    <Compile Include="Packaging\PackageIdValidatorTest.cs" />
-    <Compile Include="Packaging\PackageMetadataFacts.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SemVerLevelKeyFacts.cs" />
-    <Compile Include="Services\AccessConditionWrapperFacts.cs" />
-    <Compile Include="Services\CloudBlobWrapperFacts.cs" />
-    <Compile Include="Services\CoreReadmeFileServiceFacts.cs" />
-    <Compile Include="Services\CoreLicenseFileServiceFacts.cs" />
-    <Compile Include="Services\CoreSymbolPackageServiceFacts.cs" />
-    <Compile Include="Services\FolderNamesDataAttribute.cs" />
-    <Compile Include="Services\FolderNamesDataAttributeFacts.cs" />
-    <Compile Include="Services\GalleryCloudBlobContainerInformationProviderFacts.cs" />
-    <Compile Include="Services\RevalidationStateServiceFacts.cs" />
-    <Compile Include="Services\StringReplaceTemplateProcessorFacts.cs" />
-    <Compile Include="TestUtils\BlobStorageCollection.cs" />
-    <Compile Include="TestUtils\BlobStorageFact.cs" />
-    <Compile Include="TestUtils\BlobStorageFixture.cs" />
-    <Compile Include="Services\CloudBlobCoreFileStorageServiceFacts.cs" />
-    <Compile Include="Services\CloudBlobCoreFileStorageServiceIntegrationTests.cs" />
-    <Compile Include="Services\CorePackageFileServiceFacts.cs" />
-    <Compile Include="Services\CorePackageServiceFacts.cs" />
-    <Compile Include="TestUtils\UseInvariantCultureAttribute.cs" />
-    <Compile Include="TestUtils\CoreMockExtensions.cs" />
-    <Compile Include="TestUtils\PackageServiceUtility.cs" />
-    <Compile Include="TestUtils\TestPackage.cs" />
-    <Compile Include="TestUtils\TestPackageReader.cs" />
-    <Compile Include="Utilities\TestDirectory.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\NuGet.Services.Entities\NuGet.Services.Entities.csproj">
-      <Project>{6262f4fc-29be-4226-b676-db391c89d396}</Project>
-      <Name>NuGet.Services.Entities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\src\NuGetGallery.Core\NuGetGallery.Core.csproj">
-      <Project>{097b2cdd-9623-4c34-93c2-d373d51f5b4e}</Project>
-      <Name>NuGetGallery.Core</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+    <ProjectReference Include="..\..\src\NuGetGallery.Core\NuGetGallery.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Moq" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio">
-      <IncludeAssets>runtime; build; native; contentfiles</IncludeAssets>
-      <ExcludeAssets>analyzers</ExcludeAssets>
-      <PrivateAssets>all</PrivateAssets>
+	  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <SignPath>..\..\build</SignPath>
-    <SignPath Condition="'$(BUILD_SOURCESDIRECTORY)' != ''">$(BUILD_SOURCESDIRECTORY)\build</SignPath>
-    <SignPath Condition="'$(NuGetBuildPath)' != ''">$(NuGetBuildPath)</SignPath>
-  </PropertyGroup>
-  <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
 </Project>

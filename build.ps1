@@ -9,13 +9,12 @@ param (
     [string]$GalleryPackageVersion = '4.4.5-zlocal',
     [string]$Branch,
     [string]$CommitSHA,
-    [string]$BuildBranchCommit = '00a01b766623fb5b714238c4e814e906a242e88e', #DevSkim: ignore DS173237. Not a secret/token. It is a commit hash.
+    [string]$BuildBranchCommit = 'caca1e96b175172a623e67a3bd53d2f7a78f6c7e', #DevSkim: ignore DS173237. Not a secret/token. It is a commit hash.
     [string]$VerifyMicrosoftPackageVersion = $null
 )
 
 Set-StrictMode -Version 1.0
 
-# This script should fail the build if any issue occurs.
 trap {
     Write-Host "BUILD FAILED: $_" -ForegroundColor Red
     Write-Host "ERROR DETAILS:" -ForegroundColor Red
@@ -41,11 +40,10 @@ if (-not $BuildNumber) {
 Trace-Log "Build #$BuildNumber started at $startTime"
 
 $BuildErrors = @()
+$GallerySolution = Join-Path $PSScriptRoot "NuGetGallery.sln"
+$GalleryProjects = Get-SolutionProjects $GallerySolution
 
 Invoke-BuildStep 'Getting private build tools' { Install-PrivateBuildTools } `
-    -ev +BuildErrors
-
-Invoke-BuildStep 'Cleaning test results' { Clear-Tests } `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Installing NuGet.exe' { Install-NuGet } `
@@ -58,37 +56,25 @@ Invoke-BuildStep 'Clearing package cache' { Clear-PackageCache } `
 Invoke-BuildStep 'Clearing artifacts' { Clear-Artifacts } `
     -ev +BuildErrors
 
-Invoke-BuildStep 'Restoring solution packages' { `
-    Install-SolutionPackages -path (Join-Path $PSScriptRoot "packages.config") -output (Join-Path $PSScriptRoot "packages") -excludeversion } `
+Invoke-BuildStep 'Restoring solution packages' {
+        $SolutionPath = Join-Path $PSScriptRoot "packages.config"
+        $PackagesDir = Join-Path $PSScriptRoot "packages"
+        Install-SolutionPackages -path $SolutionPath -output $PackagesDir -ExcludeVersion
+    } `
     -skip:$SkipRestore `
     -ev +BuildErrors
 
-Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' {
-        $GalleryAssemblyInfo = 
-            "src\AccountDeleter\Properties\AssemblyInfo.g.cs",
-            "src\DatabaseMigrationTools\Properties\AssemblyInfo.g.cs",
-            "src\GalleryTools\Properties\AssemblyInfo.g.cs",
-            "src\GitHubVulnerabilities2Db\Properties\AssemblyInfo.g.cs",
-            "src\GitHubVulnerabilities2v3\Properties\AssemblyInfo.g.cs",
-            "src\NuGet.Services.DatabaseMigration\Properties\AssemblyInfo.g.cs",
-            "src\NuGet.Services.Entities\Properties\AssemblyInfo.g.cs",
-            "src\NuGetGallery.Core\Properties\AssemblyInfo.g.cs",
-            "src\NuGetGallery.Services\Properties\AssemblyInfo.g.cs",
-            "src\NuGetGallery\Properties\AssemblyInfo.g.cs",
-            "src\VerifyMicrosoftPackage\Properties\AssemblyInfo.g.cs"
-        $GalleryAssemblyInfo | ForEach-Object {
-            Set-VersionInfo (Join-Path $PSScriptRoot $_) -AssemblyVersion $GalleryAssemblyVersion -PackageVersion $GalleryPackageVersion -Branch $Branch -Commit $CommitSHA 
+Invoke-BuildStep 'Set gallery version metadata in AssemblyInfo.cs' {
+        $GalleryProjects | Where-Object { !$_.IsTest } | ForEach-Object {
+            $Path = Join-Path $_.Directory "Properties\AssemblyInfo.g.cs"
+            Set-VersionInfo $Path -AssemblyVersion $GalleryAssemblyVersion -PackageVersion $GalleryPackageVersion -Branch $Branch -Commit $CommitSHA
         }
     } `
     -ev +BuildErrors
 
-Invoke-BuildStep 'Removing .editorconfig file in NuGetGallery' { Remove-EditorconfigFile -Directory $PSScriptRoot } `
-    -ev +BuildErrors
-
 Invoke-BuildStep 'Building solution' { 
-        $SolutionPath = Join-Path $PSScriptRoot "NuGetGallery.sln"
         $MvcBuildViews = $Configuration -eq "Release"
-        Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $SolutionPath -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=$MvcBuildViews" `
+        Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $GallerySolution -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=$MvcBuildViews" `
     } `
     -ev +BuildErrors
 
