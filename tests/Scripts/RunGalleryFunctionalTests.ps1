@@ -7,7 +7,7 @@ $dividerSymbol = "~"
 $fullDivider = ($dividerSymbol * 20)
 $halfDivider = ($dividerSymbol * 10)
 
-& "$PSScriptRoot\BuildTests.ps1" | Out-Host
+& "$PSScriptRoot\BuildGalleryFunctionalTests.ps1" | Out-Host
 
 Write-Host $fullDivider
 
@@ -114,7 +114,7 @@ try {
                 )
 
                 Set-Location -Path $scriptRoot | Out-Host
-                $script = "$scriptRoot\RunTests.ps1"
+                $script = "$scriptRoot\RunGalleryFunctionalTestCategory.ps1"
                 Write-Host "Running $script with test category $testCategory"
                 & $script -TestCategory $testCategory | Out-Host
                 if ($LastExitCode) {
