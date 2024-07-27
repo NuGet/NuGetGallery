@@ -1,74 +1,15 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\SdkProjects.props" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{8496C7FE-8A93-4D2E-A9DC-5DE44017187C}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <TargetFramework>net472</TargetFramework>
     <RootNamespace>NuGetGallery.FunctionalTests</RootNamespace>
-    <AssemblyName>NuGetGallery.FunctionalTests.Core</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-    <TargetFrameworkProfile />
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+    <!-- Add Visual Studio assembly load path for the test framework assemblies. -->
+    <AssemblySearchPaths Condition="'$(VSINSTALLDIR)' != ''">$(AssemblySearchPaths);$(VSINSTALLDIR)Common7\IDE\PublicAssemblies</AssemblySearchPaths>
+    <AssemblySearchPaths Condition="'$(DevEnvDir)' != ''">$(AssemblySearchPaths);$(DevEnvDir)PublicAssemblies</AssemblySearchPaths>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.QualityTools.WebTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.VisualStudio.QualityTools.WebTestFramework" />
     <Reference Include="System.IO.Compression" />
-    <Reference Include="System.IO.Compression.FileSystem" />
-    <Reference Include="System.Net.Http" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="GalleryConfiguration.cs" />
-    <Compile Include="Helpers\AssertAndValidationHelper.cs" />
-    <Compile Include="Helpers\UploadHelper.cs" />
-    <Compile Include="XunitExtensions\CategoryAttribute.cs" />
-    <Compile Include="XunitExtensions\ClearMachineCacheFixture.cs" />
-    <Compile Include="Constants.cs" />
-    <Compile Include="EnvironmentSettings.cs" />
-    <Compile Include="XunitExtensions\ConsoleTestOutputHelper.cs" />
-    <Compile Include="XunitExtensions\DefaultSecurityPoliciesEnforcedDataAttribute.cs" />
-    <Compile Include="XunitExtensions\DefaultSecurityPoliciesEnforcedFactAttribute.cs" />
-    <Compile Include="XunitExtensions\DefaultSecurityPoliciesEnforcedTheoryAttribute.cs" />
-    <Compile Include="XunitExtensions\GalleryTestBase.cs" />
-    <Compile Include="XunitExtensions\GalleryTestCollection.cs" />
-    <Compile Include="XunitExtensions\GalleryTestFixture.cs" />
-    <Compile Include="Helpers\ClientSdkHelper.cs" />
-    <Compile Include="Helpers\CommandlineHelper.cs" />
-    <Compile Include="Helpers\HelperBase.cs" />
-    <Compile Include="Helpers\NuspecHelper.cs" />
-    <Compile Include="Helpers\ODataHelper.cs" />
-    <Compile Include="Helpers\PackageCreationHelper.cs" />
-    <Compile Include="XunitExtensions\TyposquattingTestFactAttribute.cs" />
-    <Compile Include="XunitExtensions\PriorityAttribute.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="XunitExtensions\CategoryDiscoverer.cs" />
-    <Compile Include="XunitExtensions\PackageLockFactAttribute.cs" />
-    <Compile Include="XunitExtensions\TestPriorityOrderer.cs" />
-    <Compile Include="Helpers\UrlHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" />
@@ -82,5 +23,4 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
