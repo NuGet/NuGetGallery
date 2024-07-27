@@ -9,7 +9,7 @@ $repoDir = Resolve-Path (Join-Path $parentDir "..")
 # Required tools
 $BuiltInVsWhereExe = "${Env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
 $VsInstallationPath = & $BuiltInVsWhereExe -latest -prerelease -property installationPath
-$env:VSINSTALLDIR = $VsInstallationPath.TrimEnd('\') + '\'
+$env:VSINSTALLDIR = $VsInstallationPath + '\'
 $msbuild = Join-Path $VsInstallationPath "MSBuild\Current\Bin\msbuild"
 $nuget = Join-Path $parentDir "nuget.exe"
 & (Join-Path $PSScriptRoot "DownloadLatestNuGetExeRelease.ps1") $parentDir
