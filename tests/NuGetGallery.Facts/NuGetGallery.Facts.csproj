@@ -1,4 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\SdkProjects.props" />
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <IsPackable>false</IsPackable>
