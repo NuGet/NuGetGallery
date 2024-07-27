@@ -9,7 +9,6 @@ $repoDir = Resolve-Path (Join-Path $parentDir "..")
 # Required tools
 $BuiltInVsWhereExe = "${Env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
 $VsInstallationPath = & $BuiltInVsWhereExe -latest -prerelease -property installationPath
-$env:VSINSTALLDIR = $VsInstallationPath + '\'
 $msbuild = Join-Path $VsInstallationPath "MSBuild\Current\Bin\msbuild"
 $nuget = Join-Path $parentDir "nuget.exe"
 & (Join-Path $PSScriptRoot "DownloadLatestNuGetExeRelease.ps1") $parentDir
@@ -27,7 +26,7 @@ if ($LASTEXITCODE -ne 0) {
 
 # Build the solution
 Write-Host "Building solution"
-& $msbuild $solutionPath "/p:Configuration=$Configuration" "/p:Platform=Any CPU" "/p:CodeAnalysis=true" "/m" "/v:M" "/fl" "/nr:false"
+& $msbuild $solutionPath "/p:Configuration=$Configuration" "/p:Platform=Any CPU" "/p:CodeAnalysis=true" "/m" "/v:M" "/fl" "/nr:false" "/p:VSINSTALLDIR=$($VsInstallationPath + '\')"
 if ($LASTEXITCODE -ne 0) {
     throw "Failed to build solution!"
 }
