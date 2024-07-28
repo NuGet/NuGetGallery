@@ -31,5 +31,5 @@ if ($LASTEXITCODE -ne 0) {
     throw "Failed to build solution!"
 }
 
-$functionalTestsDirectory = Join-Path $parentDir "NuGetGallery.FunctionalTests\bin\net472\$Configuration"
+$functionalTestsDirectory = Join-Path $parentDir "NuGetGallery.FunctionalTests\bin\$Configuration\net472"
 Copy-Item $nuget $functionalTestsDirectory
