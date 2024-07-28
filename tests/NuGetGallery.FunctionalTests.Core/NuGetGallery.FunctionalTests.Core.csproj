@@ -1,11 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\SdkProjects.props" />
+  <Import Project="..\VisualStudioSearchPath.props" />
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <RootNamespace>NuGetGallery.FunctionalTests</RootNamespace>
-    <!-- Add Visual Studio assembly load path for the test framework assemblies. -->
-    <AssemblySearchPaths Condition="'$(VSINSTALLDIR)' != ''">$(AssemblySearchPaths);$(VSINSTALLDIR)Common7\IDE\PublicAssemblies</AssemblySearchPaths>
-    <AssemblySearchPaths Condition="'$(DevEnvDir)' != ''">$(AssemblySearchPaths);$(DevEnvDir)PublicAssemblies</AssemblySearchPaths>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.QualityTools.WebTestFramework" />

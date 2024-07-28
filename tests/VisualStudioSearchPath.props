@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <!-- Add Visual Studio assembly load path for the test framework assemblies. -->
+    <AssemblySearchPaths Condition="'$(VSINSTALLDIR)' != ''">$(AssemblySearchPaths);$([MSBuild]::EnsureTrailingSlash('$(VSINSTALLDIR)'))Common7\IDE\PublicAssemblies</AssemblySearchPaths>
+    <AssemblySearchPaths Condition="'$(DevEnvDir)' != ''">$(AssemblySearchPaths);$([MSBuild]::EnsureTrailingSlash('$(DevEnvDir)'))PublicAssemblies</AssemblySearchPaths>
+  </PropertyGroup>
+</Project>
