@@ -26,7 +26,7 @@ if ($LASTEXITCODE -ne 0) {
 
 # Build the solution
 Write-Host "Building solution"
-& $msbuild $solutionPath "/p:Configuration=$Configuration" "/p:VSINSTALLDIR=$($VsInstallationPath + '\')" /bl
+& $msbuild $solutionPath "/p:Configuration=$Configuration" ('/p:VSINSTALLDIR="' + $VsInstallationPath + '"')
 if ($LASTEXITCODE -ne 0) {
     throw "Failed to build solution!"
 }
