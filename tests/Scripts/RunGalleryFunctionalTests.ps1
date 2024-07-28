@@ -121,7 +121,7 @@ try {
             $script = "$scriptRoot\RunGalleryFunctionalTestCategory.ps1"
             Write-Host "Running $script with test category $testCategory"
             & $script -TestCategory $testCategory | Out-Host
-            if ($LASTEXITCODE -ne 0) {
+            if ($LastExitCode) {
                 throw "$script with test category $testCategory failed!"
             }
         } -ArgumentList ($_, $PSScriptRoot)

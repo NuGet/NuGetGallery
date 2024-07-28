@@ -12,6 +12,6 @@
     <repository type="git" url="https://github.com/NuGet/NuGetGallery" />
   </metadata>
   <files>
-    <file src="bin\$configuration$\**\*" exclude="**\*.pdb" target="tools" />
+    <file src="bin\$configuration$\net472\**\*" exclude="**\*.pdb" target="tools" />
   </files>
 </package>
