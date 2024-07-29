@@ -14,7 +14,7 @@ trap {
 }
 
 . "$PSScriptRoot\build\common.ps1"
-    
+
 Write-Host ("`r`n" * 3)
 Trace-Log ('=' * 60)
 
@@ -37,7 +37,7 @@ Invoke-BuildStep 'Running gallery tests' {
         $TestCount = 0
         
         $GalleryTestProjects | ForEach-Object {
-            $TestResultFile = Join-Path $PSScriptRoot "Results.$TestCount.xml"
+            $TestResultFile = Join-Path $PSScriptRoot "Results.Gallery.$TestCount.xml"
             Trace-Log "Testing $($_.Path)"
             dotnet test $_.Path --no-restore --no-build --configuration $Configuration "-l:trx;LogFileName=$TestResultFile"
             if (-not (Test-Path $TestResultFile)) {

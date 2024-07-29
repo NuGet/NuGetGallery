@@ -4,7 +4,6 @@ param (
     [string]$Configuration = 'debug',
     [int]$BuildNumber,
     [switch]$SkipRestore,
-    [switch]$CleanCache,
     [string]$GalleryAssemblyVersion = '4.4.5',
     [string]$GalleryPackageVersion = '4.4.5-zlocal',
     [string]$Branch,
@@ -60,7 +59,7 @@ Invoke-BuildStep 'Restoring solution packages' {
     -skip:$SkipRestore `
     -ev +BuildErrors
 
-Invoke-BuildStep 'Set gallery version metadata in AssemblyInfo.cs' {
+Invoke-BuildStep 'Setting gallery version metadata in AssemblyInfo.cs' {
         $GalleryProjects | Where-Object { !$_.IsTest } | ForEach-Object {
             $Path = Join-Path $_.Directory "Properties\AssemblyInfo.g.cs"
             Set-VersionInfo $Path -AssemblyVersion $GalleryAssemblyVersion -PackageVersion $GalleryPackageVersion -Branch $Branch -Commit $CommitSHA
@@ -68,7 +67,7 @@ Invoke-BuildStep 'Set gallery version metadata in AssemblyInfo.cs' {
     } `
     -ev +BuildErrors
 
-Invoke-BuildStep 'Building solution' { 
+Invoke-BuildStep 'Building gallery solution' { 
         $MvcBuildViews = $Configuration -eq "Release"
         Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $GallerySolution -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=$MvcBuildViews" `
     } `
@@ -79,7 +78,7 @@ Invoke-BuildStep 'Signing the binaries' {
     } `
     -ev +BuildErrors
 
-Invoke-BuildStep 'Creating artifacts' { `
+Invoke-BuildStep 'Creating gallery artifacts' { `
         $GalleryProjects =
             "src\NuGet.Services.DatabaseMigration\NuGet.Services.DatabaseMigration.csproj",
             "src\NuGet.Services.Entities\NuGet.Services.Entities.csproj",
