@@ -1,16 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\SdkProjects.props" />
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System.Data.DataSetExtensions" />
-
     <ProjectReference Include="..\..\src\AccountDeleter\AccountDeleter.csproj" />
-    <ProjectReference Include="..\..\src\NuGet.Services.Entities\NuGet.Services.Entities.csproj" />
-    <ProjectReference Include="..\..\src\NuGetGallery.Core\NuGetGallery.Core.csproj" />
-    <ProjectReference Include="..\..\src\NuGetGallery.Services\NuGetGallery.Services.csproj" />
-
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Moq" />
     <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
 </Project>

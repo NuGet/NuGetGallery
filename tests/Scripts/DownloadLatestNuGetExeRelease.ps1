@@ -11,7 +11,7 @@ if (Test-Path $targetNugetExePath) {
 }
 
 $sourceNugetExeUrl = "https://dist.nuget.org/win-x86-commandline/v6.10.1/nuget.exe"
-Write-Host "Downloading nuget.exe from $sourceNugetExeUrl"
-$ProgressPreference = 'SilentlyContinue'
+Write-Host "Downloading nuget.exe from $sourceNugetExeUrl to $targetNugetExePath"
+$ProgressPreference = "SilentlyContinue"
 Invoke-WebRequest $sourceNugetExeUrl -OutFile $targetNugetExePath
-$ProgressPreference = 'Continue'
+$ProgressPreference = "Continue"

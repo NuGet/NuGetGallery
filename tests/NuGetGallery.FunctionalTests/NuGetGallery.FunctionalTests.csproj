@@ -1,95 +1,17 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\SdkProjects.props" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{073797B8-8D6C-4A82-9788-C38848D4CC59}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NuGetGallery.FunctionalTests</RootNamespace>
-    <AssemblyName>NuGetGallery.FunctionalTests</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-    <TargetFrameworkProfile />
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+    <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Net.Http" />
     <Reference Include="System.ServiceModel" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AtomFeed\AtomFeedTests.cs" />
-    <Compile Include="Commandline\NuGetCommandLineTests.cs" />
-    <Compile Include="Commandline\NuGetCoreTests.cs" />
-    <Compile Include="ErrorHandling\EndpointType.cs" />
-    <Compile Include="ErrorHandling\ErrorHandlingTests.cs" />
-    <Compile Include="ErrorHandling\Validator.cs" />
-    <Compile Include="ErrorHandling\SimulatedErrorRequest.cs" />
-    <Compile Include="ErrorHandling\SimulatedErrorType.cs" />
-    <Compile Include="ErrorHandling\TestResponse.cs" />
-    <Compile Include="PackageRetrieval\LatestTests.cs" />
-    <Compile Include="PackageRetrieval\PackageListTests.cs" />
-    <Compile Include="ProfileTests.cs" />
-    <Compile Include="ODataFeeds\CuratedFeedTest.cs" />
-    <Compile Include="ODataFeeds\SearchTest.cs" />
-    <Compile Include="ODataFeeds\V2FeedExtendedTests.cs" />
-    <Compile Include="PackageCreation\ApiPushTests.cs" />
-    <Compile Include="DistIntegrationTests.cs" />
-    <Compile Include="PackageCreation\SecurityPolicyTests.cs" />
-    <Compile Include="Security\HttpToHttpsRedirectTests.cs" />
-    <Compile Include="StaticAssets\StaticAssetsTests.cs" />
-    <Compile Include="Statistics\PackageStatisticsTests.cs" />
-    <Compile Include="ODataFeeds\V2FeedTests.cs" />
-    <Compile Include="TyposquattingCheck\TyposquattingCheckForUploadPackageTests.cs" />
-    <Compile Include="WebPages\FluentLinkChecker.cs" />
-    <Compile Include="WebPages\LinksTests.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ApiManagement\CachingTests.cs" />
-    <Compile Include="License\LicenseTests.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config">
-      <SubType>Designer</SubType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\NuGetGallery.FunctionalTests.Core\NuGetGallery.FunctionalTests.Core.csproj">
-      <Project>{8496c7fe-8a93-4d2e-a9dc-5de44017187c}</Project>
-      <Name>NuGetGallery.FunctionalTests.Core</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\NuGetGallery.FunctionalTests.Core\NuGetGallery.FunctionalTests.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FluentLinkChecker" />
     <PackageReference Include="NuGet.Packaging" />
-    <PackageReference Include="System.ValueTuple" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -109,5 +31,4 @@
       <EmbeddedResource Include="StaticAssets\Data.g.txt" />
     </ItemGroup>
   </Target>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -4,18 +4,16 @@ param (
     [string]$Configuration = 'debug',
     [int]$BuildNumber,
     [switch]$SkipRestore,
-    [switch]$CleanCache,
     [string]$GalleryAssemblyVersion = '4.4.5',
     [string]$GalleryPackageVersion = '4.4.5-zlocal',
     [string]$Branch,
     [string]$CommitSHA,
-    [string]$BuildBranchCommit = '00a01b766623fb5b714238c4e814e906a242e88e', #DevSkim: ignore DS173237. Not a secret/token. It is a commit hash.
+    [string]$BuildBranchCommit = '8ea7f23faa289682fd02284a14959ab2c67ad546', #DevSkim: ignore DS173237. Not a secret/token. It is a commit hash.
     [string]$VerifyMicrosoftPackageVersion = $null
 )
 
 Set-StrictMode -Version 1.0
 
-# This script should fail the build if any issue occurs.
 trap {
     Write-Host "BUILD FAILED: $_" -ForegroundColor Red
     Write-Host "ERROR DETAILS:" -ForegroundColor Red
@@ -41,63 +39,46 @@ if (-not $BuildNumber) {
 Trace-Log "Build #$BuildNumber started at $startTime"
 
 $BuildErrors = @()
+$GallerySolution = Join-Path $PSScriptRoot "NuGetGallery.sln"
+$GalleryProjects = Get-SolutionProjects $GallerySolution
 
 Invoke-BuildStep 'Getting private build tools' { Install-PrivateBuildTools } `
-    -ev +BuildErrors
-
-Invoke-BuildStep 'Cleaning test results' { Clear-Tests } `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Installing NuGet.exe' { Install-NuGet } `
     -ev +BuildErrors
 
-Invoke-BuildStep 'Clearing package cache' { Clear-PackageCache } `
-    -skip:(-not $CleanCache) `
-    -ev +BuildErrors
-
 Invoke-BuildStep 'Clearing artifacts' { Clear-Artifacts } `
     -ev +BuildErrors
 
-Invoke-BuildStep 'Restoring solution packages' { `
-    Install-SolutionPackages -path (Join-Path $PSScriptRoot "packages.config") -output (Join-Path $PSScriptRoot "packages") -excludeversion } `
+Invoke-BuildStep 'Restoring solution packages' {
+        $SolutionPath = Join-Path $PSScriptRoot "packages.config"
+        $PackagesDir = Join-Path $PSScriptRoot "packages"
+        Install-SolutionPackages -path $SolutionPath -output $PackagesDir -ExcludeVersion
+    } `
     -skip:$SkipRestore `
     -ev +BuildErrors
 
-Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' {
-        $GalleryAssemblyInfo = 
-            "src\AccountDeleter\Properties\AssemblyInfo.g.cs",
-            "src\DatabaseMigrationTools\Properties\AssemblyInfo.g.cs",
-            "src\GalleryTools\Properties\AssemblyInfo.g.cs",
-            "src\GitHubVulnerabilities2Db\Properties\AssemblyInfo.g.cs",
-            "src\GitHubVulnerabilities2v3\Properties\AssemblyInfo.g.cs",
-            "src\NuGet.Services.DatabaseMigration\Properties\AssemblyInfo.g.cs",
-            "src\NuGet.Services.Entities\Properties\AssemblyInfo.g.cs",
-            "src\NuGetGallery.Core\Properties\AssemblyInfo.g.cs",
-            "src\NuGetGallery.Services\Properties\AssemblyInfo.g.cs",
-            "src\NuGetGallery\Properties\AssemblyInfo.g.cs",
-            "src\VerifyMicrosoftPackage\Properties\AssemblyInfo.g.cs"
-        $GalleryAssemblyInfo | ForEach-Object {
-            Set-VersionInfo (Join-Path $PSScriptRoot $_) -AssemblyVersion $GalleryAssemblyVersion -PackageVersion $GalleryPackageVersion -Branch $Branch -Commit $CommitSHA 
+Invoke-BuildStep 'Setting gallery version metadata in AssemblyInfo.cs' {
+        $GalleryProjects | Where-Object { !$_.IsTest } | ForEach-Object {
+            $Path = Join-Path $_.Directory "Properties\AssemblyInfo.g.cs"
+            Set-VersionInfo $Path -AssemblyVersion $GalleryAssemblyVersion -PackageVersion $GalleryPackageVersion -Branch $Branch -Commit $CommitSHA
         }
     } `
     -ev +BuildErrors
 
-Invoke-BuildStep 'Removing .editorconfig file in NuGetGallery' { Remove-EditorconfigFile -Directory $PSScriptRoot } `
-    -ev +BuildErrors
-
-Invoke-BuildStep 'Building solution' { 
-        $SolutionPath = Join-Path $PSScriptRoot "NuGetGallery.sln"
+Invoke-BuildStep 'Building gallery solution' { 
         $MvcBuildViews = $Configuration -eq "Release"
-        Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $SolutionPath -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=$MvcBuildViews" `
+        Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $GallerySolution -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=$MvcBuildViews" `
     } `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Signing the binaries' {
-        Sign-Binaries -Configuration $Configuration -BuildNumber $BuildNumber `
+        Sign-Binaries -Configuration $Configuration -BuildNumber $BuildNumber
     } `
     -ev +BuildErrors
 
-Invoke-BuildStep 'Creating artifacts' { `
+Invoke-BuildStep 'Creating gallery artifacts' { `
         $GalleryProjects =
             "src\NuGet.Services.DatabaseMigration\NuGet.Services.DatabaseMigration.csproj",
             "src\NuGet.Services.Entities\NuGet.Services.Entities.csproj",
@@ -126,7 +107,7 @@ Invoke-BuildStep 'Creating artifacts' { `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Signing the packages' {
-        Sign-Packages -Configuration $Configuration -BuildNumber $BuildNumber `
+        Sign-Packages -Configuration $Configuration -BuildNumber $BuildNumber
     } `
     -ev +BuildErrors
 

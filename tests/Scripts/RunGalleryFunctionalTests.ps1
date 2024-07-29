@@ -7,7 +7,7 @@ $dividerSymbol = "~"
 $fullDivider = ($dividerSymbol * 20)
 $halfDivider = ($dividerSymbol * 10)
 
-& "$PSScriptRoot\BuildTests.ps1" | Out-Host
+& "$PSScriptRoot\BuildGalleryFunctionalTests.ps1" | Out-Host
 
 Write-Host $fullDivider
 
@@ -41,24 +41,25 @@ Function Wait-ForServiceStart($MaxWaitSeconds) {
     Write-Host "$(Get-Date -Format s) Waiting until service ($galleryUrl) responds with non-502"
     $start = Get-Date
     $maxWait = New-TimeSpan -Seconds $MaxWaitSeconds
-    do
-    {
+    do {
         if ($null -ne $response) {
             Start-Sleep -Seconds 5
         }
-        $response = try { Invoke-WebRequest -Uri $galleryUrl -Method Get -UseBasicParsing } catch [System.Net.WebException] {$_.Exception.Response}
+        $response = try { Invoke-WebRequest -Uri $galleryUrl -Method Get -UseBasicParsing } catch [System.Net.WebException] { $_.Exception.Response }
         if ($response.StatusCode -eq 502) {
             $elapsed = (Get-Date) - $start
             if ($elapsed -ge $maxWait) {
                 Write-Error "$(Get-Date -Format s) Service start timeout expired"
                 return $false
-            } else {
+            }
+            else {
                 Write-Host "$(Get-Date -Format s) Still waiting for the service to stop responding with 502 after $elapsed"
             }
-        } else {
+        }
+        else {
             Write-Host "$(Get-Date -Format s) Got a $($response.StatusCode) response";
         }
-    } while($response.StatusCode -eq 502)
+    } while ($response.StatusCode -eq 502)
 
     return $true;
 }
@@ -78,13 +79,16 @@ Function Output-Job {
     $jobState = $job.State
     if ($jobState -eq "Completed") {
         Write-Host "Test category $jobName succeeded!"
-    } else {
+    }
+    else {
         $failedTests.Add($jobName) | Out-Null
         if ($jobState -eq "Failed") {
             Write-Host "Test category $jobName failed!"
-        } elseif ($jobState -eq "Stopped") {
+        }
+        elseif ($jobState -eq "Stopped") {
             Write-Host "Test category $jobName was stopped!"
-        } else {
+        }
+        else {
             Write-Host "Test category $jobName had unexpected state of $jobState!"
         }
     }
@@ -102,28 +106,28 @@ Write-Host "Testing $($TestCategoriesArray -join ", ")"
 Write-Host $fullDivider
 try {
     $TestCategoriesArray `
-        | ForEach-Object {
-            # Kill existing job
-            $job = Get-Job -Name $_ -ErrorAction Ignore | Remove-Job -Force | Out-Host
+    | ForEach-Object {
+        # Kill existing job
+        $job = Get-Job -Name $_ -ErrorAction Ignore | Remove-Job -Force | Out-Host
 
-            # Start new job
-            Start-Job -Name $_ -ScriptBlock {
-                param(
-                    [string]$testCategory,
-                    [string]$scriptRoot
-                )
+        # Start new job
+        Start-Job -Name $_ -ScriptBlock {
+            param(
+                [string]$testCategory,
+                [string]$scriptRoot
+            )
 
-                Set-Location -Path $scriptRoot | Out-Host
-                $script = "$scriptRoot\RunTests.ps1"
-                Write-Host "Running $script with test category $testCategory"
-                & $script -TestCategory $testCategory | Out-Host
-                if ($LastExitCode) {
-                    throw "$script with test category $testCategory failed!"
-                }
-            } -ArgumentList ($_, $PSScriptRoot)
+            Set-Location -Path $scriptRoot | Out-Host
+            $script = "$scriptRoot\RunGalleryFunctionalTestCategory.ps1"
+            Write-Host "Running $script with test category $testCategory"
+            & $script -TestCategory $testCategory | Out-Host
+            if ($LASTEXITCODE -ne 0) {
+                throw "$script with test category $testCategory failed!"
+            }
+        } -ArgumentList ($_, $PSScriptRoot)
 
-            Write-Host "Started testing $_"
-        } | Out-Null
+        Write-Host "Started testing $_"
+    } | Out-Null
     
     Write-Host $fullDivider
 
@@ -139,15 +143,16 @@ try {
     Write-Host "All functional tests finished"
 
     $finished = $true
-} finally {
+}
+finally {
     if (!($finished)) {
         Write-Host $fullDivider
         Write-Host "Testing failed or was cancelled!"
         Get-Job -Name $TestCategoriesArray `
-            | ForEach-Object {
-                Stop-Job $_ | Out-Host
-                Output-Job $_ | Out-Host
-            } | Out-Host
+        | ForEach-Object {
+            Stop-Job $_ | Out-Host
+            Output-Job $_ | Out-Host
+        } | Out-Host
     }
 }
 
