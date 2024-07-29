@@ -4,7 +4,6 @@ param (
     [string]$Configuration = 'debug',
     [int]$BuildNumber,
     [switch]$SkipRestore,
-    [switch]$CleanCache,
     [string]$CommonAssemblyVersion = '3.0.0',
     [string]$CommonPackageVersion = '3.0.0-zlocal',
     [string]$Branch,
@@ -40,11 +39,15 @@ Invoke-BuildStep 'Getting private build tools' { Install-PrivateBuildTools } `
 Invoke-BuildStep 'Installing NuGet.exe' { Install-NuGet } `
     -ev +BuildErrors
 
-Invoke-BuildStep 'Clearing package cache' { Clear-PackageCache } `
-    -skip:(-not $CleanCache) `
+Invoke-BuildStep 'Clearing artifacts' { Clear-Artifacts } `
     -ev +BuildErrors
 
-Invoke-BuildStep 'Clearing artifacts' { Clear-Artifacts } `
+Invoke-BuildStep 'Restoring solution packages' {
+        $SolutionPath = Join-Path $PSScriptRoot "packages.config"
+        $PackagesDir = Join-Path $PSScriptRoot "packages"
+        Install-SolutionPackages -path $SolutionPath -output $PackagesDir -ExcludeVersion
+    } `
+    -skip:$SkipRestore `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Setting common version metadata in AssemblyInfo.cs' {
@@ -55,17 +58,8 @@ Invoke-BuildStep 'Setting common version metadata in AssemblyInfo.cs' {
     } `
     -ev +BuildErrors
 
-Invoke-BuildStep 'Restoring solution packages' { `
-        $SolutionPath = Join-Path $PSScriptRoot "packages.config"
-        $PackagesDir = Join-Path $PSScriptRoot "packages"
-        Install-SolutionPackages -path $SolutionPath -output $PackagesDir -ExcludeVersion
-    } `
-    -skip:$SkipRestore `
-    -ev +BuildErrors
-
-Invoke-BuildStep 'Building common solution' { `
-        $SolutionPath = Join-Path $PSScriptRoot "NuGet.Server.Common.sln"
-        Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $SolutionPath -SkipRestore:$SkipRestore
+Invoke-BuildStep 'Building common solution' {
+        Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $CommonSolution -SkipRestore:$SkipRestore
     } `
     -ev +BuildErrors
 
@@ -74,30 +68,10 @@ Invoke-BuildStep 'Signing the binaries' {
     } `
     -ev +BuildErrors
     
-Invoke-BuildStep 'Creating common artifacts' { `
-        $CommonProjects =
-            "src\NuGet.Services.Build\NuGet.Services.Build.csproj",
-            "src\NuGet.Services.Configuration\NuGet.Services.Configuration.csproj",
-            "src\NuGet.Services.Contracts\NuGet.Services.Contracts.csproj",
-            "src\NuGet.Services.Cursor\NuGet.Services.Cursor.csproj",
-            "src\NuGet.Services.FeatureFlags\NuGet.Services.FeatureFlags.csproj",
-            "src\NuGet.Services.Incidents\NuGet.Services.Incidents.csproj",
-            "src\NuGet.Services.KeyVault\NuGet.Services.KeyVault.csproj",
-            "src\NuGet.Services.Licenses\NuGet.Services.Licenses.csproj",
-            "src\NuGet.Services.Logging\NuGet.Services.Logging.csproj",
-            "src\NuGet.Services.Messaging.Email\NuGet.Services.Messaging.Email.csproj",
-            "src\NuGet.Services.Messaging\NuGet.Services.Messaging.csproj",
-            "src\NuGet.Services.Owin\NuGet.Services.Owin.csproj",
-            "src\NuGet.Services.ServiceBus\NuGet.Services.ServiceBus.csproj",
-            "src\NuGet.Services.Sql\NuGet.Services.Sql.csproj",
-            "src\NuGet.Services.Status.Table\NuGet.Services.Status.Table.csproj",
-            "src\NuGet.Services.Status\NuGet.Services.Status.csproj",
-            "src\NuGet.Services.Storage\NuGet.Services.Storage.csproj",
-            "src\NuGet.Services.Testing.Entities\NuGet.Services.Testing.Entities.csproj",
-            "src\NuGet.Services.Validation.Issues\NuGet.Services.Validation.Issues.csproj",
-            "src\NuGet.Services.Validation\NuGet.Services.Validation.csproj"
-        $CommonProjects | ForEach-Object {
-            New-ProjectPackage (Join-Path $PSScriptRoot $_) -Configuration $Configuration -BuildNumber $BuildNumber -Version $CommonPackageVersion
+Invoke-BuildStep 'Creating common artifacts' {
+        $CommonPackages = $CommonProjects | Where-Object { !$_.IsTest } | Where-Object { $_.RelativePath -notlike "tools*" } 
+        $CommonPackages | ForEach-Object {
+            New-ProjectPackage $_.Path -Configuration $Configuration -BuildNumber $BuildNumber -Version $CommonPackageVersion
         }
     } `
     -ev +BuildErrors

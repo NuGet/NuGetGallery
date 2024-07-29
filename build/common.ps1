@@ -500,16 +500,6 @@ Function Format-BuildNumber([int]$BuildNumber) {
     '{0:D4}' -f $BuildNumber
 }
 
-Function Clear-PackageCache {
-    [CmdletBinding()]
-    param()
-    Trace-Log 'Clearing package cache'
-
-    & $NuGetExe locals http-cache -clear -verbosity detailed
-    #& nuget locals global-packages -clear -verbosity detailed
-    & $NuGetExe locals temp -clear -verbosity detailed
-}
-
 Function Install-SolutionPackages {
     [CmdletBinding()]
     param(

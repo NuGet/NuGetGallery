@@ -27,17 +27,17 @@ Trace-Log "Build #$BuildNumber started at $startTime"
 $TestErrors = @()
 $CommonSolution = Join-Path $PSScriptRoot "NuGet.Server.Common.sln"
 $CommonProjects = Get-SolutionProjects $CommonSolution
-    
-Invoke-BuildStep 'Cleaning test results' { Clear-Tests } `
-    -ev +BuildErrors
 
-Invoke-BuildStep 'Running tests' {
+Invoke-BuildStep 'Cleaning test results' { Clear-Tests } `
+    -ev +TestErrors
+
+Invoke-BuildStep 'Running common tests' {
         $CommonTestProjects = $CommonProjects | Where-Object { $_.IsTest }
 
         $TestCount = 0
         
         $CommonTestProjects | ForEach-Object {
-            $TestResultFile = Join-Path $PSScriptRoot "Results.$TestCount.xml"
+            $TestResultFile = Join-Path $PSScriptRoot "Results.Common.$TestCount.xml"
             Trace-Log "Testing $($_.Path)"
             dotnet test $_.Path --no-restore --no-build --configuration $Configuration "-l:trx;LogFileName=$TestResultFile"
             if (-not (Test-Path $TestResultFile)) {
