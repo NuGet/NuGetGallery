@@ -3,6 +3,7 @@
   <Import Project="..\VisualStudioSearchPath.props" />
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
+    <IsPackable>false</IsPackable>
     <RootNamespace>NuGetGallery.FunctionalTests</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
