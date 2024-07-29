@@ -42,7 +42,7 @@ namespace NuGet.Services.KeyVault
         /// </summary>
         /// <param name="vaultName">The name of the keyvault</param>
         /// <param name="tenantId">AAD tenant ID where respective client app is registered.</param>
-        /// <param name="clientId">Keyvault client id</param>
+        /// <param name="clientId">Keyvault client id used for certificate authentication or managed identity client id.</param>
         /// <param name="certificate">Certificate required to access the keyvault</param>
         /// <param name="sendX5c">SendX5c property</param>
         public KeyVaultConfiguration(string vaultName, string tenantId, string clientId, X509Certificate2 certificate, bool sendX5c = false)

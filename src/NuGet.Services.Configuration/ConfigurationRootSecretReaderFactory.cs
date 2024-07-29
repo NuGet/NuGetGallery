@@ -33,10 +33,14 @@ namespace NuGet.Services.Configuration
             if (!string.IsNullOrEmpty(useManagedIdentity))
             {
                 _useManagedIdentity = bool.Parse(useManagedIdentity);
+                _clientId = string.IsNullOrEmpty(config[Constants.KeyVaultClientIdKey]) ? config[Constants.ManagedIdentityClientIdKey] : config[Constants.KeyVaultClientIdKey];
+            }
+            else
+            {
+                _clientId = config[Constants.KeyVaultClientIdKey];
             }
 
             _tenantId = config[Constants.KeyVaultTenantIdKey];
-            _clientId = config[Constants.KeyVaultClientIdKey];
             _certificateThumbprint = config[Constants.KeyVaultCertificateThumbprintKey];
             if (_useManagedIdentity && IsCertificateConfigurationProvided())
             {
@@ -45,7 +49,7 @@ namespace NuGet.Services.Configuration
 
             _storeName = config[Constants.KeyVaultStoreNameKey];
             _storeLocation = config[Constants.KeyVaultStoreLocationKey];
-            
+
             string validateCertificate = config[Constants.KeyVaultValidateCertificateKey];
             if (!string.IsNullOrEmpty(validateCertificate))
             {

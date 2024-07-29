@@ -7,6 +7,7 @@ namespace NuGet.Services.Configuration
     {
         public static string KeyVaultVaultNameKey = "KeyVault_VaultName";
         public static string KeyVaultUseManagedIdentity = "KeyVault_UseManagedIdentity";
+        public static string ManagedIdentityClientIdKey = "ManagedIdentityClientId";
         public static string KeyVaultTenantIdKey = "KeyVault_TenantId";
         public static string KeyVaultClientIdKey = "KeyVault_ClientId";
         public static string KeyVaultCertificateThumbprintKey = "KeyVault_CertificateThumbprint";
