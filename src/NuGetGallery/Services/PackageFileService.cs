@@ -28,19 +28,44 @@ namespace NuGetGallery
 
         public Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, Package package)
         {
+            if (requestUrl is null)
+            {
+                throw new ArgumentNullException(nameof(requestUrl));
+            }
+
+            if (package is null)
+            {
+                throw new ArgumentNullException(nameof(package));
+            }
+
             var fileName = FileNameHelper.BuildFileName(package, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetPackageFileExtension);
 
-            var packageVersion = NuGetVersionFormatter.GetNormalizedPackageVersion(package).ToLowerInvariant(); // will not return null bc BuildFileName will throw if values are null
+            var packageVersion = NuGetVersionFormatter.GetNormalizedPackageVersion(package);
 
             return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, CoreConstants.Folders.PackagesFolderName, fileName, packageVersion);
         }
 
         public Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, string id, string version)
         {
+            if (requestUrl is null)
+            {
+                throw new ArgumentNullException(nameof(requestUrl));
+            }
+
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(id));
+            }
+
+            if (string.IsNullOrWhiteSpace(version))
+            {
+                throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(version));
+            }
+
             var fileName = FileNameHelper.BuildFileName(id, version, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetPackageFileExtension);
 
             // version cannot be null here as BuildFileName will throw if it is
-            return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, CoreConstants.Folders.PackagesFolderName, fileName, NuGetVersionFormatter.Normalize(version).ToLowerInvariant());
+            return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, CoreConstants.Folders.PackagesFolderName, fileName, NuGetVersionFormatter.Normalize(version));
         }
 
         /// <summary>

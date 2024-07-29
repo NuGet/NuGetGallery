@@ -107,7 +107,7 @@ namespace NuGetGallery
         private static NameValueCollection ParseQueryString(Uri uri)
         {
             int queryIndex = uri.Query?.LastIndexOf("?") ?? -1;
-            if (queryIndex == -1) return new NameValueCollection();
+            if (queryIndex == -1) return HttpUtility.ParseQueryString(string.Empty);
 
             string query = uri.Query.Substring(queryIndex);
 

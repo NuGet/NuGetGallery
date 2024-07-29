@@ -137,7 +137,7 @@ namespace NuGetGallery
                 var result = await service.CreateDownloadFileActionResultAsync(requestUri, CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion") as RedirectResult;
 
                 Assert.NotNull(result);
-                Assert.Equal(scheme + "theuri/", result.Url);
+                Assert.Equal(scheme + "theuri/?packageVersion=theVersion", result.Url);
             }
 
             [Theory]
@@ -158,52 +158,6 @@ namespace NuGetGallery
                 var result = await service.CreateDownloadFileActionResultAsync(new Uri(requestUrl), CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion") as RedirectResult;
                 var redirectUrl = new Uri(result.Url);
                 Assert.Equal(expectedPort, redirectUrl.Port);
-            }
-
-            [Theory]
-            [InlineData(HttpRequestUrlString, "https://theUri", "1.1.1", "1.1.1")]
-            [InlineData(HttpsRequestUrlString, "https://theUri", "01.01.01", "1.1.1")]
-            public async Task WillReturnARedirectResultWithTheNormalizedPackageVersion(string requestUrl, string blobUrl, string version, string expectedVersion)
-            {
-                var fakeBlobClient = new Mock<ICloudBlobClient>();
-                var fakeBlobContainer = new Mock<ICloudBlobContainer>();
-                var fakeBlob = new Mock<ISimpleCloudBlob>();
-                fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
-                fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
-                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<bool>())).Returns(Task.FromResult(0));
-                var requestUri = new Uri(requestUrl);
-                fakeBlob.Setup(x => x.Uri).Returns(new Uri(blobUrl));
-                var service = CreateService(fakeBlobClient: fakeBlobClient);
-
-                var result = await service.CreateDownloadFileActionResultAsync(requestUri, CoreConstants.Folders.PackagesFolderName, "theFileName", version) as RedirectResult;
-
-                Assert.NotNull(result);
-
-                var uri = new Uri(result.Url);
-                var qs = HttpUtility.ParseQueryString(uri.Query);
-                Assert.Equal(expectedVersion, qs["version"]);
-            }
-
-            [Theory]
-            [InlineData(HttpRequestUrlString, "https://theUri", null)]
-            [InlineData(HttpsRequestUrlString, "https://theUri", "")]
-            public async Task WillThrowIfVersionIsNullOrEmpty(string requestUrl, string blobUrl, string version)
-            {
-                var fakeBlobClient = new Mock<ICloudBlobClient>();
-                var fakeBlobContainer = new Mock<ICloudBlobContainer>();
-                var fakeBlob = new Mock<ISimpleCloudBlob>();
-                fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
-                fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
-                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync(It.IsAny<bool>())).Returns(Task.FromResult(0));
-                var requestUri = new Uri(requestUrl);
-                fakeBlob.Setup(x => x.Uri).Returns(new Uri(blobUrl));
-                var service = CreateService(fakeBlobClient: fakeBlobClient);
-
-                await Assert.ThrowsAsync<ArgumentException>(
-              () => service.CreateDownloadFileActionResultAsync(
-                  new Uri(HttpsRequestUrlString),
-                  CoreConstants.Folders.PackagesFolderName, "theFileName", version)
-              );
             }
 
             [Fact]

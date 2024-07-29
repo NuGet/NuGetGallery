@@ -123,6 +123,32 @@ namespace NuGetGallery
                 Assert.Equal("package", ex.ParamName);
             }
 
+            [Theory]
+            [InlineData("")]
+            [InlineData(null)]
+            public void WillThrowIfPackageIsMissingVersionStringNullOrEmpty(string version)
+            {
+                var service = CreateService();
+
+                var ex = Assert.Throws<ArgumentException>(() => service.CreateDownloadPackageActionResultAsync(new Uri("http://fake"), "theId", version).Wait());
+
+                Assert.StartsWith("The package is missing required data.", ex.Message);
+                Assert.Equal("version", ex.ParamName);
+            }
+
+            [Theory]
+            [InlineData("")]
+            [InlineData(null)]
+            public void WillThrowIfPackageIsMissingIdStringNullOrEmpty(string theId)
+            {
+                var service = CreateService();
+
+                var ex = Assert.Throws<ArgumentException>(() => service.CreateDownloadPackageActionResultAsync(new Uri("http://fake"), theId, "theVersion").Wait());
+
+                Assert.StartsWith("The package is missing required data.", ex.Message);
+                Assert.Equal("id", ex.ParamName);
+            }
+
             [Fact]
             public async Task WillGetAResultFromTheFileStorageServiceUsingThePackagesFolder()
             {
