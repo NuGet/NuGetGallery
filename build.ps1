@@ -49,10 +49,6 @@ Invoke-BuildStep 'Getting private build tools' { Install-PrivateBuildTools } `
 Invoke-BuildStep 'Installing NuGet.exe' { Install-NuGet } `
     -ev +BuildErrors
 
-Invoke-BuildStep 'Clearing package cache' { Clear-PackageCache } `
-    -skip:(-not $CleanCache) `
-    -ev +BuildErrors
-
 Invoke-BuildStep 'Clearing artifacts' { Clear-Artifacts } `
     -ev +BuildErrors
 
@@ -79,7 +75,7 @@ Invoke-BuildStep 'Building solution' {
     -ev +BuildErrors
 
 Invoke-BuildStep 'Signing the binaries' {
-        Sign-Binaries -Configuration $Configuration -BuildNumber $BuildNumber `
+        Sign-Binaries -Configuration $Configuration -BuildNumber $BuildNumber
     } `
     -ev +BuildErrors
 
@@ -112,7 +108,7 @@ Invoke-BuildStep 'Creating artifacts' { `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Signing the packages' {
-        Sign-Packages -Configuration $Configuration -BuildNumber $BuildNumber `
+        Sign-Packages -Configuration $Configuration -BuildNumber $BuildNumber
     } `
     -ev +BuildErrors
 
