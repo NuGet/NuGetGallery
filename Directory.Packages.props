@@ -3,7 +3,6 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
     <EnablePackageVersionOverride>true</EnablePackageVersionOverride>
-
     <NuGetClientPackageVersion>6.9.1</NuGetClientPackageVersion>
     <ServerCommonPackageVersion>2.120.0</ServerCommonPackageVersion>
     <NuGetGalleryPackageVersion>4.4.5-main-9892284</NuGetGalleryPackageVersion>
@@ -38,7 +37,7 @@
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="2.2.0" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="2.2.0" />
     <PackageVersion Include="Microsoft.Extensions.Primitives" Version="2.2.0" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
     <PackageVersion Include="Microsoft.Rest.ClientRuntime" Version="2.3.24" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
     <PackageVersion Include="Microsoft.WindowsAzure.ConfigurationManager" Version="3.2.3" />

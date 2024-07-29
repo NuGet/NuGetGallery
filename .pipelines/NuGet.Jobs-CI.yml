@@ -81,10 +81,11 @@ extends:
             scriptName: $(NuGetJobsPath)\test.ps1
             arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId)
             workingFolder: $(NuGetJobsPath)
-        - task: PublishTestResults@1
+        - task: PublishTestResults@2
           name: PublishTestResults_3
           displayName: Publish Test Results Results.*.xml
           condition: succeededOrFailed()
           inputs:
-            testRunner: XUnit
+            testRunner: VSTest
             testResultsFiles: $(NuGetJobsPath)\Results.*.xml
+            failTaskOnFailedTests: true

@@ -1,118 +1,18 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="15.0">
-  <Import Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\SdkProjects.props" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{784F938D-4142-4C1C-B654-0978FEAD1731}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>StatusAggregator.Tests</RootNamespace>
-    <AssemblyName>StatusAggregator.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-    <TargetFrameworkProfile />
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+    <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
+    <ProjectReference Include="..\..\src\StatusAggregator\StatusAggregator.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Collector\CursorTests.cs" />
-    <Compile Include="Collector\EntityCollectorTests.cs" />
-    <Compile Include="Collector\IncidentEntityCollectorProcessorTests.cs" />
-    <Compile Include="Collector\ManualStatusChangeCollectorProcessorTests.cs" />
-    <Compile Include="Export\ComponentExporterTests.cs" />
-    <Compile Include="Export\EventExporterTests.cs" />
-    <Compile Include="Export\EventsExporterTests.cs" />
-    <Compile Include="Export\StatusExporterTests.cs" />
-    <Compile Include="Export\StatusSerializerTests.cs" />
-    <Compile Include="Factory\AggregationProviderTests.cs" />
-    <Compile Include="Factory\EventAffectedPathProviderTests.cs" />
-    <Compile Include="Factory\EventFactoryTests.cs" />
-    <Compile Include="Factory\AggregationStrategyTests.cs" />
-    <Compile Include="Factory\IncidentAffectedComponentPathProviderTests.cs" />
-    <Compile Include="Factory\IncidentFactoryTests.cs" />
-    <Compile Include="Factory\IncidentGroupFactoryTests.cs" />
-    <Compile Include="Factory\NuGetServiceComponentFactoryTests.cs" />
-    <Compile Include="JobTests.cs" />
-    <Compile Include="Manual\AddStatusEventManualChangeHandlerTests.cs" />
-    <Compile Include="Manual\AddStatusMessageManualChangeHandlerTests.cs" />
-    <Compile Include="Manual\DeleteStatusEventManualChangeHandlerTests.cs" />
-    <Compile Include="Manual\DeleteStatusMessageManualChangeHandlerTests.cs" />
-    <Compile Include="Manual\EditStatusEventManualChangeHandlerTests.cs" />
-    <Compile Include="Manual\EditStatusMessageManualChangeHandlerTests.cs" />
-    <Compile Include="Manual\ManualStatusChangeUtilityTests.cs" />
-    <Compile Include="Messages\IncidentGroupMessageFilterTests.cs" />
-    <Compile Include="Messages\MessageChangeEventIteratorTests.cs" />
-    <Compile Include="Messages\MessageChangeEventProcessorTests.cs" />
-    <Compile Include="Messages\MessageChangeEventProviderTests.cs" />
-    <Compile Include="Messages\MessageContentBuilderTests.cs" />
-    <Compile Include="Messages\MessageFactoryTests.cs" />
-    <Compile Include="Parse\AggregateIncidentParserTests.cs" />
-    <Compile Include="Parse\AIAvailabilityIncidentRegexParsingHandlerTests.cs" />
-    <Compile Include="Parse\EnvironmentPrefixIncidentRegexParsingHandlerTests.cs" />
-    <Compile Include="Parse\EnvironmentRegexParsingFilterTests.cs" />
-    <Compile Include="Parse\IncidentParsingHandlerTestUtility.cs" />
-    <Compile Include="Parse\IncidentRegexParserTests.cs" />
-    <Compile Include="Parse\OutdatedSearchServiceInstanceIncidentRegexParsingHandlerTests.cs" />
-    <Compile Include="Parse\PingdomIncidentRegexParsingHandlerTests.cs" />
-    <Compile Include="Parse\SeverityRegexParsingFilterTests.cs" />
-    <Compile Include="Parse\TrafficManagerEndpointStatusIncidentRegexParsingHandlerTests.cs" />
-    <Compile Include="Parse\ValidationDurationIncidentRegexParsingHandlerTests.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TestComponent.cs" />
-    <Compile Include="TestUtility\MockTableWrapperExtensions.cs" />
-    <Compile Include="Update\ActiveEventEntityUpdaterTests.cs" />
-    <Compile Include="Update\AggregationEntityUpdaterTests.cs" />
-    <Compile Include="Update\EventMessagingUpdaterTests.cs" />
-    <Compile Include="Update\IncidentUpdaterTests.cs" />
-    <Compile Include="Update\StatusUpdaterTests.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj">
-      <Project>{4B4B1EFB-8F33-42E6-B79F-54E7F3293D31}</Project>
-      <Name>NuGet.Jobs.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\src\StatusAggregator\StatusAggregator.csproj">
-      <Project>{d357fdb5-bf19-41a5-82b0-14c8cec2a5eb}</Project>
-      <Name>StatusAggregator</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Moq" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -10,8 +10,8 @@ if (Test-Path $targetNugetExePath) {
     return
 }
 
-Write-Host "nuget.exe not found in $Directory"
-
 $sourceNugetExeUrl = "https://dist.nuget.org/win-x86-commandline/v6.10.1/nuget.exe"
-Write-Host "Downloading nuget.exe from $sourceNugetExeUrl"
+Write-Host "Downloading nuget.exe from $sourceNugetExeUrl to $targetNugetExePath"
+$ProgressPreference = "SilentlyContinue"
 Invoke-WebRequest $sourceNugetExeUrl -OutFile $targetNugetExePath
+$ProgressPreference = "Continue"

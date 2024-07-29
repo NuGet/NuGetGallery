@@ -1,47 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="15.0">
-  <Import Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\SdkProjects.props" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{19780DCB-B307-4254-B10C-4335FC784DEA}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NuGet.Services.Revalidate.Tests</RootNamespace>
-    <AssemblyName>NuGet.Services.Revalidate.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <TargetFrameworkProfile />
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+    <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Moq" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio">
@@ -50,28 +13,8 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Extensions\IEnumerableExtensionsFacts.cs" />
-    <Compile Include="Initializer\InitializationManagerFacts.cs" />
-    <Compile Include="Initializer\PackageFinderFacts.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Services\HealthServiceFacts.cs" />
-    <Compile Include="Services\RevalidationJobStateServiceFacts.cs" />
-    <Compile Include="Services\PackageRevalidationStateServiceFacts.cs" />
-    <Compile Include="Services\RevalidationQueueFacts.cs" />
-    <Compile Include="Services\RevalidationServiceFacts.cs" />
-    <Compile Include="Services\RevalidationStarterFacts.cs" />
-    <Compile Include="Services\RevalidationThrottlerFacts.cs" />
-    <Compile Include="TestData\TestResources.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\NuGet.Services.Revalidate\NuGet.Services.Revalidate.csproj">
-      <Project>{1963909d-8be3-4cb8-b57e-ab6a8cb22fed}</Project>
-      <Name>NuGet.Services.Revalidate</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Validation.PackageSigning.Helpers\Tests.ContextHelpers.csproj">
-      <Project>{2c5be067-adfd-49e3-ba9f-13a74436e5db}</Project>
-      <Name>Tests.ContextHelpers</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\src\NuGet.Services.Revalidate\NuGet.Services.Revalidate.csproj" />
+    <ProjectReference Include="..\Validation.PackageSigning.Helpers\Tests.ContextHelpers.csproj" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="TestData\PackagePublishingDownStatus.json" />
@@ -79,5 +22,4 @@
     <EmbeddedResource Include="TestData\PackagePublishingMissingStatus.json" />
     <EmbeddedResource Include="TestData\PackagePublishingUpStatus.json" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
