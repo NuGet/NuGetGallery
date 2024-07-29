@@ -1,10 +1,6 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Moq;
-
-using NuGetGallery.Configuration;
-using NuGetGallery.Diagnostics;
 
 using System;
 using System.Collections.Generic;
@@ -14,6 +10,9 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 
+using Moq;
+using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
 using Xunit;
 using Xunit.Sdk;
 
