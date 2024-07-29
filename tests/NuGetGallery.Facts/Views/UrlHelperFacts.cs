@@ -90,7 +90,8 @@ namespace NuGetGallery.Views
             {
                 repoRoot = Path.GetDirectoryName(repoRoot);
             }
-            
+
+            Assert.NotNull(repoRoot);
             var pathToViewsFolder = Path.Combine(repoRoot, @"src\NuGetGallery\Views");
 
             return Directory.GetFiles(
