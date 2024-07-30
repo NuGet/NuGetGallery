@@ -58,6 +58,7 @@ extends:
       - ES365AIMigrationTooling
     stages:
       - stage: gallery
+        dependsOn: []
         jobs:
           - job: build_and_test
             displayName: NuGetGallery.sln - build and test
@@ -92,6 +93,7 @@ extends:
                   failTaskOnFailedTests: true
 
       - stage: jobs
+        dependsOn: []
         jobs:
           - job: build_and_test
             displayName: NuGet.Jobs.sln - build and test
