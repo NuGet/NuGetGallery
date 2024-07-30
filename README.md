@@ -1,4 +1,6 @@
-﻿[NuGet Gallery](https://www.nuget.org/) — Where packages are found 
+﻿more is coming
+
+[NuGet Gallery](https://www.nuget.org/) — Where packages are found 
 =======================================================================
 
 This project powers [nuget.org](https://www.nuget.org), the home for .NET's open-source ecosystem. For information about NuGet, visit the [Home repository](https://github.com/nuget/home).
