@@ -4,8 +4,10 @@ param (
     [string]$Configuration = 'debug',
     [int]$BuildNumber,
     [switch]$SkipRestore,
+    [switch]$SkipGallery,
     [string]$GalleryAssemblyVersion = '4.4.5',
     [string]$GalleryPackageVersion = '4.4.5-zlocal',
+    [switch]$SkipJobs,
     [string]$JobsAssemblyVersion = '4.3.0',
     [string]$JobsPackageVersion = '4.3.0-zlocal',
     [string]$Branch,
@@ -43,9 +45,15 @@ Trace-Log "Build #$BuildNumber started at $startTime"
 $BuildErrors = @()
 $GallerySolution = Join-Path $PSScriptRoot "NuGetGallery.sln"
 $GalleryProjects = Get-SolutionProjects $GallerySolution
+$SharedGalleryProjects =
+    "src\NuGet.Services.Entities\NuGet.Services.Entities.csproj",
+    "src\NuGetGallery.Core\NuGetGallery.Core.csproj"
 $JobsSolution = Join-Path $PSScriptRoot "NuGet.Jobs.sln"
 $JobsProjects = Get-SolutionProjects $JobsSolution
 $JobsFunctionalTestsSolution = Join-Path $PSScriptRoot "NuGet.Jobs.FunctionalTests.sln"
+$SharedJobsProjects =
+    "src\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj",
+    "src\Validation.Common.Job\Validation.Common.Job.csproj"
 
 Invoke-BuildStep 'Getting private build tools' { Install-PrivateBuildTools } `
     -ev +BuildErrors
@@ -65,7 +73,11 @@ Invoke-BuildStep 'Restoring solution packages' {
     -ev +BuildErrors
 
 Invoke-BuildStep 'Setting gallery version metadata in AssemblyInfo.cs' {
-        $GalleryProjects | Where-Object { !$_.IsTest } | ForEach-Object {
+        $GalleryAssemblyInfo = $GalleryProjects `
+            | Where-Object { !$_.IsTest } `
+            | Where-Object { $SharedJobsProjects -notcontains $_.RelativePath } `
+            | Where-Object { !$SkipGallery -or $SharedGalleryProjects -contains $_.RelativePath };
+        $GalleryAssemblyInfo | ForEach-Object {
             $Path = Join-Path $_.Directory "Properties\AssemblyInfo.g.cs"
             Set-VersionInfo $Path -AssemblyVersion $GalleryAssemblyVersion -PackageVersion $GalleryPackageVersion -Branch $Branch -Commit $CommitSHA
         }
@@ -73,7 +85,11 @@ Invoke-BuildStep 'Setting gallery version metadata in AssemblyInfo.cs' {
     -ev +BuildErrors
 
 Invoke-BuildStep 'Setting job version metadata in AssemblyInfo.cs' {
-        $JobsProjects | Where-Object { !$_.IsTest } | ForEach-Object {
+        $JobsAssemblyInfo = $JobsProjects `
+            | Where-Object { !$_.IsTest } `
+            | Where-Object { $SharedGalleryProjects -notcontains $_.RelativePath } `
+            | Where-Object { !$SkipJobs -or $SharedJobsProjects -contains $_.RelativePath };
+        $JobsAssemblyInfo | ForEach-Object {
             $Path = Join-Path $_.Directory "Properties\AssemblyInfo.g.cs"
             Set-VersionInfo $Path -AssemblyVersion $JobsAssemblyVersion -PackageVersion $JobsPackageVersion -Branch $Branch -Commit $CommitSHA
         }
@@ -84,16 +100,19 @@ Invoke-BuildStep 'Building gallery solution' {
         $MvcBuildViews = $Configuration -eq "Release"
         Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $GallerySolution -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=$MvcBuildViews" `
     } `
+    -skip:$SkipGallery `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Building jobs solution' { 
         Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $JobsSolution -SkipRestore:$SkipRestore
     } `
+    -skip:$SkipJobs `
     -ev +BuildErrors 
 
 Invoke-BuildStep 'Building jobs functional test solution' { 
         Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $JobsFunctionalTestsSolution -SkipRestore:$SkipRestore
     } `
+    -skip:$SkipJobs `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Signing the binaries' {
@@ -127,6 +146,7 @@ Invoke-BuildStep 'Creating gallery artifacts' { `
         if (!$VerifyMicrosoftPackageVersion) { $VerifyMicrosoftPackageVersion = $GalleryPackageVersion }
         New-Package (Join-Path $PSScriptRoot "src\VerifyMicrosoftPackage\VerifyMicrosoftPackage.nuspec") -Configuration $Configuration -BuildNumber $BuildNumber -Version $VerifyMicrosoftPackageVersion -Branch $Branch
     } `
+    -skip:$SkipGallery `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Creating jobs artifacts' {
@@ -188,6 +208,7 @@ Invoke-BuildStep 'Creating jobs artifacts' {
             New-Package (Join-Path $PSScriptRoot $_) -Configuration $Configuration -BuildNumber $BuildNumber -Version $JobsPackageVersion -Branch $Branch
         }
     } `
+    -skip:$SkipJobs `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Signing the packages' {

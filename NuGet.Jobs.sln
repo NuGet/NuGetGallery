@@ -1,4 +1,3 @@
-
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31214.320
@@ -13,165 +12,163 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Jobs.Common", "src\Nu
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{6A776396-02B1-475D-A104-26940ADB04AB}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Unclassified", "Unclassified", "{FA5644B5-4F08-43F6-86B3-039374312A47}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArchivePackages", "src\ArchivePackages\ArchivePackages.csproj", "{A08F0185-4DA3-4D5B-BF0C-B178596D5789}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArchivePackages", "src\ArchivePackages\ArchivePackages.csproj", "{A08F0185-4DA3-4D5B-BF0C-B178596D5789}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.Metadata.Catalog", "src\Catalog\NuGet.Services.Metadata.Catalog.csproj", "{E97F23B8-ECB0-4AFA-B00C-015C39395FEF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatalogTests", "tests\CatalogTests\CatalogTests.csproj", "{4D0B6BAB-5A33-4A7F-B007-93194FC2E2E3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CatalogTests", "tests\CatalogTests\CatalogTests.csproj", "{4D0B6BAB-5A33-4A7F-B007-93194FC2E2E3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ng", "src\Ng\Ng.csproj", "{5234D86F-2C0E-4181-AAB7-BBDA3253B4E1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ng", "src\Ng\Ng.csproj", "{5234D86F-2C0E-4181-AAB7-BBDA3253B4E1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NgTests", "tests\NgTests\NgTests.csproj", "{05C1C78A-9966-4922-9065-A099023E7366}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NgTests", "tests\NgTests\NgTests.csproj", "{05C1C78A-9966-4922-9065-A099023E7366}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Metadata.Catalog.Monitoring", "src\NuGet.Services.Metadata.Catalog.Monitoring\NuGet.Services.Metadata.Catalog.Monitoring.csproj", "{1745A383-D0BE-484B-81EB-27B20F6AC6C5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.Metadata.Catalog.Monitoring", "src\NuGet.Services.Metadata.Catalog.Monitoring\NuGet.Services.Metadata.Catalog.Monitoring.csproj", "{1745A383-D0BE-484B-81EB-27B20F6AC6C5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatalogMetadataTests", "tests\CatalogMetadataTests\CatalogMetadataTests.csproj", "{34AABA7F-1FF7-4F4B-B1DB-D07AD4505DA4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CatalogMetadataTests", "tests\CatalogMetadataTests\CatalogMetadataTests.csproj", "{34AABA7F-1FF7-4F4B-B1DB-D07AD4505DA4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.AzureSearch", "src\NuGet.Services.AzureSearch\NuGet.Services.AzureSearch.csproj", "{1A53FE3D-8041-4773-942F-D73AEF5B82B2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.AzureSearch.Tests", "tests\NuGet.Services.AzureSearch.Tests\NuGet.Services.AzureSearch.Tests.csproj", "{6A9C3802-A2A2-49CF-87BD-C1303533B846}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.AzureSearch.Tests", "tests\NuGet.Services.AzureSearch.Tests\NuGet.Services.AzureSearch.Tests.csproj", "{6A9C3802-A2A2-49CF-87BD-C1303533B846}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Jobs.Db2AzureSearch", "src\NuGet.Jobs.Db2AzureSearch\NuGet.Jobs.Db2AzureSearch.csproj", "{209B1B7F-1C5C-41EC-B6A6-E01FD9C86E26}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Jobs.Db2AzureSearch", "src\NuGet.Jobs.Db2AzureSearch\NuGet.Jobs.Db2AzureSearch.csproj", "{209B1B7F-1C5C-41EC-B6A6-E01FD9C86E26}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Jobs.Catalog2AzureSearch", "src\NuGet.Jobs.Catalog2AzureSearch\NuGet.Jobs.Catalog2AzureSearch.csproj", "{F591130F-181A-4C53-8025-4390F46BD51D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Jobs.Catalog2AzureSearch", "src\NuGet.Jobs.Catalog2AzureSearch\NuGet.Jobs.Catalog2AzureSearch.csproj", "{F591130F-181A-4C53-8025-4390F46BD51D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Protocol.Catalog", "src\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj", "{D44C2E89-2D98-44BD-8712-8CCBE4E67C9C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Protocol.Catalog.Tests", "tests\NuGet.Protocol.Catalog.Tests\NuGet.Protocol.Catalog.Tests.csproj", "{1F3BC053-796C-4A35-88F4-955A0F142197}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Protocol.Catalog.Tests", "tests\NuGet.Protocol.Catalog.Tests\NuGet.Protocol.Catalog.Tests.csproj", "{1F3BC053-796C-4A35-88F4-955A0F142197}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Jobs.Auxiliary2AzureSearch", "src\NuGet.Jobs.Auxiliary2AzureSearch\NuGet.Jobs.Auxiliary2AzureSearch.csproj", "{7E6903A4-DBE1-444E-A8E3-C1DBB58243E0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Jobs.Auxiliary2AzureSearch", "src\NuGet.Jobs.Auxiliary2AzureSearch\NuGet.Jobs.Auxiliary2AzureSearch.csproj", "{7E6903A4-DBE1-444E-A8E3-C1DBB58243E0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Jobs.Catalog2Registration", "src\NuGet.Jobs.Catalog2Registration\NuGet.Jobs.Catalog2Registration.csproj", "{5ABE8807-2209-4948-9FC5-1980A507C47A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Jobs.Catalog2Registration", "src\NuGet.Jobs.Catalog2Registration\NuGet.Jobs.Catalog2Registration.csproj", "{5ABE8807-2209-4948-9FC5-1980A507C47A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.V3", "src\NuGet.Services.V3\NuGet.Services.V3.csproj", "{C3F9A738-9759-4B2B-A50D-6507B28A659B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Jobs.Catalog2Registration.Tests", "tests\NuGet.Jobs.Catalog2Registration.Tests\NuGet.Jobs.Catalog2Registration.Tests.csproj", "{296703A3-67BA-4876-8C1D-ACE13DF901EF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Jobs.Catalog2Registration.Tests", "tests\NuGet.Jobs.Catalog2Registration.Tests\NuGet.Jobs.Catalog2Registration.Tests.csproj", "{296703A3-67BA-4876-8C1D-ACE13DF901EF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.V3.Tests", "tests\NuGet.Services.V3.Tests\NuGet.Services.V3.Tests.csproj", "{CCB4D5EF-AC84-449D-AC6E-0A0AD295483A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.V3.Tests", "tests\NuGet.Services.V3.Tests\NuGet.Services.V3.Tests.csproj", "{CCB4D5EF-AC84-449D-AC6E-0A0AD295483A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.CollectAzureCdnLogs", "src\Stats.CollectAzureCdnLogs\Stats.CollectAzureCdnLogs.csproj", "{664CA8BB-BCF5-432C-AF68-9F97D308E623}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stats.CollectAzureCdnLogs", "src\Stats.CollectAzureCdnLogs\Stats.CollectAzureCdnLogs.csproj", "{664CA8BB-BCF5-432C-AF68-9F97D308E623}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Stats.CollectAzureCdnLogs", "tests\Tests.Stats.CollectAzureCdnLogs\Tests.Stats.CollectAzureCdnLogs.csproj", "{578BCF9F-673B-4F18-8095-3B69A3D946DD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.Stats.CollectAzureCdnLogs", "tests\Tests.Stats.CollectAzureCdnLogs\Tests.Stats.CollectAzureCdnLogs.csproj", "{578BCF9F-673B-4F18-8095-3B69A3D946DD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.AzureCdnLogs.Common", "src\Stats.AzureCdnLogs.Common\Stats.AzureCdnLogs.Common.csproj", "{F72C31A7-424D-48C6-924C-EBFD4BE0918B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stats.AzureCdnLogs.Common", "src\Stats.AzureCdnLogs.Common\Stats.AzureCdnLogs.Common.csproj", "{F72C31A7-424D-48C6-924C-EBFD4BE0918B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.ImportAzureCdnStatistics", "src\Stats.ImportAzureCdnStatistics\Stats.ImportAzureCdnStatistics.csproj", "{5B0D3EC6-4326-47A7-AEE1-CC67D07D5C84}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stats.ImportAzureCdnStatistics", "src\Stats.ImportAzureCdnStatistics\Stats.ImportAzureCdnStatistics.csproj", "{5B0D3EC6-4326-47A7-AEE1-CC67D07D5C84}"
 EndProject
 Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "Stats.Warehouse", "src\Stats.Warehouse\Stats.Warehouse.sqlproj", "{21846E0D-0E79-4E43-9D92-E78854370994}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Stats.ImportAzureCdnStatistics", "tests\Tests.Stats.ImportAzureCdnStatistics\Tests.Stats.ImportAzureCdnStatistics.csproj", "{80073256-BF15-4E92-B63A-D6922493DA27}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.Stats.ImportAzureCdnStatistics", "tests\Tests.Stats.ImportAzureCdnStatistics\Tests.Stats.ImportAzureCdnStatistics.csproj", "{80073256-BF15-4E92-B63A-D6922493DA27}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Statistics", "Statistics", "{B9D03824-A9CA-43AC-86D6-8BB399B9A228}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.CreateAzureCdnWarehouseReports", "src\Stats.CreateAzureCdnWarehouseReports\Stats.CreateAzureCdnWarehouseReports.csproj", "{E9D937CE-7D3D-4B4A-8FD1-AF721F362948}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stats.CreateAzureCdnWarehouseReports", "src\Stats.CreateAzureCdnWarehouseReports\Stats.CreateAzureCdnWarehouseReports.csproj", "{E9D937CE-7D3D-4B4A-8FD1-AF721F362948}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.AggregateCdnDownloadsInGallery", "src\Stats.AggregateCdnDownloadsInGallery\Stats.AggregateCdnDownloadsInGallery.csproj", "{6E27275F-0A0B-BB64-4C28-8F3E894B8C9E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stats.AggregateCdnDownloadsInGallery", "src\Stats.AggregateCdnDownloadsInGallery\Stats.AggregateCdnDownloadsInGallery.csproj", "{6E27275F-0A0B-BB64-4C28-8F3E894B8C9E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.RefreshClientDimension", "src\Stats.RefreshClientDimension\Stats.RefreshClientDimension.csproj", "{B5C01B7A-933D-483E-AF07-6AA266B0EB49}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stats.RefreshClientDimension", "src\Stats.RefreshClientDimension\Stats.RefreshClientDimension.csproj", "{B5C01B7A-933D-483E-AF07-6AA266B0EB49}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.RollUpDownloadFacts", "src\Stats.RollUpDownloadFacts\Stats.RollUpDownloadFacts.csproj", "{3E0A20C8-C6D2-4762-955D-C7BF35C2C9A7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stats.RollUpDownloadFacts", "src\Stats.RollUpDownloadFacts\Stats.RollUpDownloadFacts.csproj", "{3E0A20C8-C6D2-4762-955D-C7BF35C2C9A7}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Validation", "Validation", "{678D7B14-F8BC-4193-99AF-2EE8AA390A02}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Gallery", "Gallery", "{88725659-D5F8-49F9-9B7E-D87C5B9917D7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gallery.CredentialExpiration", "src\Gallery.CredentialExpiration\Gallery.CredentialExpiration.csproj", "{FA8C7905-985F-4919-AAA9-4B9A252F4977}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Gallery.CredentialExpiration", "src\Gallery.CredentialExpiration\Gallery.CredentialExpiration.csproj", "{FA8C7905-985F-4919-AAA9-4B9A252F4977}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.SupportRequests.Notifications", "src\NuGet.SupportRequests.Notifications\NuGet.SupportRequests.Notifications.csproj", "{12719498-B87E-4E92-8C2B-30046393CF85}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.SupportRequests.Notifications", "src\NuGet.SupportRequests.Notifications\NuGet.SupportRequests.Notifications.csproj", "{12719498-B87E-4E92-8C2B-30046393CF85}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gallery.Maintenance", "src\Gallery.Maintenance\Gallery.Maintenance.csproj", "{EFF021CA-1BF4-4C09-BFB8-D314EAAD24D2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Gallery.Maintenance", "src\Gallery.Maintenance\Gallery.Maintenance.csproj", "{EFF021CA-1BF4-4C09-BFB8-D314EAAD24D2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CopyAzureContainer", "src\CopyAzureContainer\CopyAzureContainer.csproj", "{A07F7D0C-F269-43D5-A812-3ABC47090885}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CopyAzureContainer", "src\CopyAzureContainer\CopyAzureContainer.csproj", "{A07F7D0C-F269-43D5-A812-3ABC47090885}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetCDNRedirect", "src\NuGetCDNRedirect\NuGetCDNRedirect.csproj", "{BC9EA7CE-AD21-4D17-B581-F8ED8CBD7191}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Gallery.Maintenance", "tests\Tests.Gallery.Maintenance\Tests.Gallery.Maintenance.csproj", "{147A757D-864B-4C74-B8CF-14DFF9793605}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.Gallery.Maintenance", "tests\Tests.Gallery.Maintenance\Tests.Gallery.Maintenance.csproj", "{147A757D-864B-4C74-B8CF-14DFF9793605}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.CollectAzureChinaCDNLogs", "src\Stats.CollectAzureChinaCDNLogs\Stats.CollectAzureChinaCDNLogs.csproj", "{FC0CEF12-D501-46D1-B1BF-D4134BD8D478}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stats.CollectAzureChinaCDNLogs", "src\Stats.CollectAzureChinaCDNLogs\Stats.CollectAzureChinaCDNLogs.csproj", "{FC0CEF12-D501-46D1-B1BF-D4134BD8D478}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Stats.CollectAzureChinaCDNLogs", "tests\Tests.Stats.CollectAzureChinaCDNLogs\Tests.Stats.CollectAzureChinaCDNLogs.csproj", "{0C887292-C5AB-4107-946C-A53B18A38D22}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.Stats.CollectAzureChinaCDNLogs", "tests\Tests.Stats.CollectAzureChinaCDNLogs\Tests.Stats.CollectAzureChinaCDNLogs.csproj", "{0C887292-C5AB-4107-946C-A53B18A38D22}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Validation.Orchestrator", "src\NuGet.Services.Validation.Orchestrator\NuGet.Services.Validation.Orchestrator.csproj", "{E6D094FB-9068-4578-B176-116F97E7506B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.Validation.Orchestrator", "src\NuGet.Services.Validation.Orchestrator\NuGet.Services.Validation.Orchestrator.csproj", "{E6D094FB-9068-4578-B176-116F97E7506B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Validation.Orchestrator.Tests", "tests\NuGet.Services.Validation.Orchestrator.Tests\NuGet.Services.Validation.Orchestrator.Tests.csproj", "{A3B0B15D-22D9-4F1F-94C4-B24B28ECF632}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.Validation.Orchestrator.Tests", "tests\NuGet.Services.Validation.Orchestrator.Tests\NuGet.Services.Validation.Orchestrator.Tests.csproj", "{A3B0B15D-22D9-4F1F-94C4-B24B28ECF632}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.PackageSigning.Core", "src\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj", "{91C060DA-736F-4DA9-A57F-CB3AC0E6CB10}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validation.PackageSigning.Core", "src\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj", "{91C060DA-736F-4DA9-A57F-CB3AC0E6CB10}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.PackageSigning.ValidateCertificate", "src\Validation.PackageSigning.ValidateCertificate\Validation.PackageSigning.ValidateCertificate.csproj", "{A245E448-8AE0-452B-9338-8C0E0B637D72}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validation.PackageSigning.ValidateCertificate", "src\Validation.PackageSigning.ValidateCertificate\Validation.PackageSigning.ValidateCertificate.csproj", "{A245E448-8AE0-452B-9338-8C0E0B637D72}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.PackageSigning.ValidateCertificate.Tests", "tests\Validation.PackageSigning.ValidateCertificate.Tests\Validation.PackageSigning.ValidateCertificate.Tests.csproj", "{5ACE7756-F8D0-4D90-9957-872DE4A1381E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validation.PackageSigning.ValidateCertificate.Tests", "tests\Validation.PackageSigning.ValidateCertificate.Tests\Validation.PackageSigning.ValidateCertificate.Tests.csproj", "{5ACE7756-F8D0-4D90-9957-872DE4A1381E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.ContextHelpers", "tests\Validation.PackageSigning.Helpers\Tests.ContextHelpers.csproj", "{2C5BE067-ADFD-49E3-BA9F-13A74436E5DB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.ContextHelpers", "tests\Validation.PackageSigning.Helpers\Tests.ContextHelpers.csproj", "{2C5BE067-ADFD-49E3-BA9F-13A74436E5DB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.PackageSigning.Core.Tests", "tests\Validation.PackageSigning.Core.Tests\Validation.PackageSigning.Core.Tests.csproj", "{B4B7564A-965B-447B-927F-6749E2C08880}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validation.PackageSigning.Core.Tests", "tests\Validation.PackageSigning.Core.Tests\Validation.PackageSigning.Core.Tests.csproj", "{B4B7564A-965B-447B-927F-6749E2C08880}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validation.Common.Job", "src\Validation.Common.Job\Validation.Common.Job.csproj", "{FA87D075-A934-4443-8D0B-5DB32640B6D7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PackageHash", "src\PackageHash\PackageHash.csproj", "{40843020-6F0A-48F0-AC28-42FFE3A5C21E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PackageHash", "src\PackageHash\PackageHash.csproj", "{40843020-6F0A-48F0-AC28-42FFE3A5C21E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StatusAggregator", "src\StatusAggregator\StatusAggregator.csproj", "{D357FDB5-BF19-41A5-82B0-14C8CEC2A5EB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StatusAggregator", "src\StatusAggregator\StatusAggregator.csproj", "{D357FDB5-BF19-41A5-82B0-14C8CEC2A5EB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.Common.Job.Tests", "tests\Validation.Common.Job.Tests\Validation.Common.Job.Tests.csproj", "{430F63C7-20C2-4872-AC3E-DDE846E50AA4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validation.Common.Job.Tests", "tests\Validation.Common.Job.Tests\Validation.Common.Job.Tests.csproj", "{430F63C7-20C2-4872-AC3E-DDE846E50AA4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.PackageSigning.ProcessSignature", "src\Validation.PackageSigning.ProcessSignature\Validation.PackageSigning.ProcessSignature.csproj", "{DD043977-6BCD-475A-BEE2-8C34309EC622}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validation.PackageSigning.ProcessSignature", "src\Validation.PackageSigning.ProcessSignature\Validation.PackageSigning.ProcessSignature.csproj", "{DD043977-6BCD-475A-BEE2-8C34309EC622}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnapshotAzureBlob", "src\SnapshotAzureBlob\SnapshotAzureBlob.csproj", "{ED2D370C-D921-433A-A0B9-A601F936EDD3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SnapshotAzureBlob", "src\SnapshotAzureBlob\SnapshotAzureBlob.csproj", "{ED2D370C-D921-433A-A0B9-A601F936EDD3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.PackageSigning.ProcessSignature.Tests", "tests\Validation.PackageSigning.ProcessSignature.Tests\Validation.PackageSigning.ProcessSignature.Tests.csproj", "{26435822-8938-48C9-96FD-0DCCF8F7CE00}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validation.PackageSigning.ProcessSignature.Tests", "tests\Validation.PackageSigning.ProcessSignature.Tests\Validation.PackageSigning.ProcessSignature.Tests.csproj", "{26435822-8938-48C9-96FD-0DCCF8F7CE00}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.PackageSigning.RevalidateCertificate", "src\Validation.PackageSigning.RevalidateCertificate\Validation.PackageSigning.RevalidateCertificate.csproj", "{EA32E1E5-7E7D-44E6-B496-43E1FEDE9400}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validation.PackageSigning.RevalidateCertificate", "src\Validation.PackageSigning.RevalidateCertificate\Validation.PackageSigning.RevalidateCertificate.csproj", "{EA32E1E5-7E7D-44E6-B496-43E1FEDE9400}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.PackageSigning.RevalidateCertificate.Tests", "tests\Validation.PackageSigning.RevalidateCertificate.Tests\Validation.PackageSigning.RevalidateCertificate.Tests.csproj", "{64095857-E9E3-4D9C-8769-7E558CD757CB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validation.PackageSigning.RevalidateCertificate.Tests", "tests\Validation.PackageSigning.RevalidateCertificate.Tests\Validation.PackageSigning.RevalidateCertificate.Tests.csproj", "{64095857-E9E3-4D9C-8769-7E558CD757CB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.ScanAndSign.Core", "src\Validation.ScanAndSign.Core\Validation.ScanAndSign.Core.csproj", "{DFAC2769-4B67-4FBC-AD60-D93A39DD45AE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validation.ScanAndSign.Core", "src\Validation.ScanAndSign.Core\Validation.ScanAndSign.Core.csproj", "{DFAC2769-4B67-4FBC-AD60-D93A39DD45AE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Stats.AggregateCdnDownloadsInGallery", "tests\Tests.Stats.AggregateCdnDownloadsInGallery\Tests.Stats.AggregateCdnDownloadsInGallery.csproj", "{136411AF-B9FA-438D-B790-9FB78A5F7F54}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.Stats.AggregateCdnDownloadsInGallery", "tests\Tests.Stats.AggregateCdnDownloadsInGallery\Tests.Stats.AggregateCdnDownloadsInGallery.csproj", "{136411AF-B9FA-438D-B790-9FB78A5F7F54}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.PackageSigning.ScanAndSign.Tests", "tests\Validation.PackageSigning.ScanAndSign.Tests\Validation.PackageSigning.ScanAndSign.Tests.csproj", "{CAE45AC9-F11B-4215-9D1A-C98BC0F1F687}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validation.PackageSigning.ScanAndSign.Tests", "tests\Validation.PackageSigning.ScanAndSign.Tests\Validation.PackageSigning.ScanAndSign.Tests.csproj", "{CAE45AC9-F11B-4215-9D1A-C98BC0F1F687}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Monitoring", "Monitoring", "{814F9B31-4AF3-46CC-AD61-CEB40F47083A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Monitoring.PackageLag", "src\PackageLagMonitor\Monitoring.PackageLag.csproj", "{B5147169-E941-4CF8-9FCD-1C123ACD3149}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.CredentialExpiration", "tests\Tests.CredentialExpiration\Tests.CredentialExpiration.csproj", "{60152AB1-2EB4-4D44-B6D6-EEE24209A1F7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.CredentialExpiration", "tests\Tests.CredentialExpiration\Tests.CredentialExpiration.csproj", "{60152AB1-2EB4-4D44-B6D6-EEE24209A1F7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Revalidate", "src\NuGet.Services.Revalidate\NuGet.Services.Revalidate.csproj", "{1963909D-8BE3-4CB8-B57E-AB6A8CB22FED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.Revalidate", "src\NuGet.Services.Revalidate\NuGet.Services.Revalidate.csproj", "{1963909D-8BE3-4CB8-B57E-AB6A8CB22FED}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Revalidate.Tests", "tests\NuGet.Services.Revalidate.Tests\NuGet.Services.Revalidate.Tests.csproj", "{19780DCB-B307-4254-B10C-4335FC784DEA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.Revalidate.Tests", "tests\NuGet.Services.Revalidate.Tests\NuGet.Services.Revalidate.Tests.csproj", "{19780DCB-B307-4254-B10C-4335FC784DEA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StatusAggregator.Tests", "tests\StatusAggregator.Tests\StatusAggregator.Tests.csproj", "{784F938D-4142-4C1C-B654-0978FEAD1731}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StatusAggregator.Tests", "tests\StatusAggregator.Tests\StatusAggregator.Tests.csproj", "{784F938D-4142-4C1C-B654-0978FEAD1731}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.Symbols.Core", "src\Validation.Symbols.Core\Validation.Symbols.Core.csproj", "{17510A22-176F-4E96-A867-E79F1B54F54F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validation.Symbols.Core", "src\Validation.Symbols.Core\Validation.Symbols.Core.csproj", "{17510A22-176F-4E96-A867-E79F1B54F54F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.Symbols.Job", "src\Validation.Symbols\Validation.Symbols.Job.csproj", "{2DD07A73-8C88-4429-BB24-C2813586EF92}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validation.Symbols.Job", "src\Validation.Symbols\Validation.Symbols.Job.csproj", "{2DD07A73-8C88-4429-BB24-C2813586EF92}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.Symbols.Tests", "tests\Validation.Symbols.Tests\Validation.Symbols.Tests.csproj", "{640D29AB-4D1B-4FC7-AE67-AD12EE5AC503}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validation.Symbols.Tests", "tests\Validation.Symbols.Tests\Validation.Symbols.Tests.csproj", "{640D29AB-4D1B-4FC7-AE67-AD12EE5AC503}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.Symbols.Core.Tests", "tests\Validation.Symbols.Core.Tests\Validation.Symbols.Core.Tests.csproj", "{9ED642DF-4623-4EB2-8B72-52C6489BF9D6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validation.Symbols.Core.Tests", "tests\Validation.Symbols.Core.Tests\Validation.Symbols.Core.Tests.csproj", "{9ED642DF-4623-4EB2-8B72-52C6489BF9D6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Jobs.Common.Tests", "tests\NuGet.Jobs.Common.Tests\NuGet.Jobs.Common.Tests.csproj", "{CE96428B-8138-4914-9999-2B391797FFF8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Jobs.Common.Tests", "tests\NuGet.Jobs.Common.Tests\NuGet.Jobs.Common.Tests.csproj", "{CE96428B-8138-4914-9999-2B391797FFF8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.CDNLogsSanitizer", "src\Stats.CDNLogsSanitizer\Stats.CDNLogsSanitizer.csproj", "{CE99E1CC-D474-4A5D-A3D4-6F357CFE4E40}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stats.CDNLogsSanitizer", "src\Stats.CDNLogsSanitizer\Stats.CDNLogsSanitizer.csproj", "{CE99E1CC-D474-4A5D-A3D4-6F357CFE4E40}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Stats.AzureCdnLogs.Common", "tests\Tests.Stats.AzureCdnLogs.Common\Tests.Stats.AzureCdnLogs.Common.csproj", "{5D10A44A-87E0-48D4-AF84-9DE1BCFF0CD6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.Stats.AzureCdnLogs.Common", "tests\Tests.Stats.AzureCdnLogs.Common\Tests.Stats.AzureCdnLogs.Common.csproj", "{5D10A44A-87E0-48D4-AF84-9DE1BCFF0CD6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Stats.CDNLogsSanitizer", "tests\Tests.Stats.CDNLogsSanitizer\Tests.Stats.CDNLogsSanitizer.csproj", "{19EC1E99-89A8-445A-8C22-C1B0CD8CC777}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.Stats.CDNLogsSanitizer", "tests\Tests.Stats.CDNLogsSanitizer\Tests.Stats.CDNLogsSanitizer.csproj", "{19EC1E99-89A8-445A-8C22-C1B0CD8CC777}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monitoring.PackageLag.Tests", "tests\Monitoring.PackageLag.Tests\Monitoring.PackageLag.Tests.csproj", "{D3F1711A-25AC-4EC9-9971-4F838BCD2A07}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Monitoring.PackageLag.Tests", "tests\Monitoring.PackageLag.Tests\Monitoring.PackageLag.Tests.csproj", "{D3F1711A-25AC-4EC9-9971-4F838BCD2A07}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Jobs.GitHubIndexer", "src\NuGet.Jobs.GitHubIndexer\NuGet.Jobs.GitHubIndexer.csproj", "{42B1EB66-58F9-4D9A-8E23-FF12CBF5D643}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Jobs.GitHubIndexer", "src\NuGet.Jobs.GitHubIndexer\NuGet.Jobs.GitHubIndexer.csproj", "{42B1EB66-58F9-4D9A-8E23-FF12CBF5D643}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestUtil", "tests\TestUtil\TestUtil.csproj", "{C3F84BAD-ACFA-4AE3-8286-D12F5A5BBC62}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestUtil", "tests\TestUtil\TestUtil.csproj", "{C3F84BAD-ACFA-4AE3-8286-D12F5A5BBC62}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Jobs.GitHubIndexer.Tests", "tests\NuGet.Jobs.GitHubIndexer.Tests\NuGet.Jobs.GitHubIndexer.Tests.csproj", "{4A64FEB4-198C-445B-835F-A5B68EFBFDA7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Jobs.GitHubIndexer.Tests", "tests\NuGet.Jobs.GitHubIndexer.Tests\NuGet.Jobs.GitHubIndexer.Tests.csproj", "{4A64FEB4-198C-445B-835F-A5B68EFBFDA7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SplitLargeFiles", "src\SplitLargeFiles\SplitLargeFiles.csproj", "{AFB33A62-C437-4C32-A965-D6CC5EE50540}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SplitLargeFiles", "src\SplitLargeFiles\SplitLargeFiles.csproj", "{AFB33A62-C437-4C32-A965-D6CC5EE50540}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Ad-Hoc Tools", "Ad-Hoc Tools", "{523E282D-A2FE-49C2-A782-0EEC435E765E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SplitLargeFiles.Tests", "tests\SplitLargeFiles.Tests\SplitLargeFiles.Tests.csproj", "{DD70035C-1BAB-4EFF-B270-EF45F7473C22}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SplitLargeFiles.Tests", "tests\SplitLargeFiles.Tests\SplitLargeFiles.Tests.csproj", "{DD70035C-1BAB-4EFF-B270-EF45F7473C22}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "V3", "V3", "{0A4A2A3F-8887-431E-B1B3-E9DF9B155BA6}"
 EndProject
@@ -201,11 +198,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stats.LogInterpretation", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.PackageManagement.Search.Web", "src\Microsoft.PackageManagement.Search.Web\Microsoft.PackageManagement.Search.Web.csproj", "{D3C638C4-8924-47EE-B025-CE7FEBAADEF9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.ContentScan.Core", "src\Validation.ContentScan.Core\Validation.ContentScan.Core.csproj", "{912A81F7-F0D9-43EF-A589-9A341EB2D6B6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validation.ContentScan.Core", "src\Validation.ContentScan.Core\Validation.ContentScan.Core.csproj", "{912A81F7-F0D9-43EF-A589-9A341EB2D6B6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.ContentScan.Tests", "tests\Validation.ContentScan.Tests\Validation.ContentScan.Tests.csproj", "{7607EAC8-B4C5-40AA-BCEE-4CEA8D4F9BF2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validation.ContentScan.Tests", "tests\Validation.ContentScan.Tests\Validation.ContentScan.Tests.csproj", "{7607EAC8-B4C5-40AA-BCEE-4CEA8D4F9BF2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.PostProcessReports", "src\Stats.PostProcessReports\Stats.PostProcessReports.csproj", "{7E5387A5-DE19-4E43-888B-E8E1C687ECF5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stats.PostProcessReports", "src\Stats.PostProcessReports\Stats.PostProcessReports.csproj", "{7E5387A5-DE19-4E43-888B-E8E1C687ECF5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stats.PostProcessReports.Tests", "tests\Stats.PostProcessReports.Tests\Stats.PostProcessReports.Tests.csproj", "{711CD5DE-F139-4C0C-B75F-3E9C01EC5AB2}"
 EndProject
@@ -219,6 +216,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".pipelines", ".pipelines", 
 		.pipelines\NuGet.Jobs-CI.yml = .pipelines\NuGet.Jobs-CI.yml
 		.pipelines\Release-trigger.yml = .pipelines\Release-trigger.yml
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGetGallery.Core", "src\NuGetGallery.Core\NuGetGallery.Core.csproj", "{C4DCC376-106A-499B-9771-B8E0969006C8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.Entities", "src\NuGet.Services.Entities\NuGet.Services.Entities.csproj", "{47C19031-9C11-4471-AA5D-48ECCDEA3D10}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -560,6 +561,14 @@ Global
 		{711CD5DE-F139-4C0C-B75F-3E9C01EC5AB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{711CD5DE-F139-4C0C-B75F-3E9C01EC5AB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{711CD5DE-F139-4C0C-B75F-3E9C01EC5AB2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C4DCC376-106A-499B-9771-B8E0969006C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C4DCC376-106A-499B-9771-B8E0969006C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C4DCC376-106A-499B-9771-B8E0969006C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C4DCC376-106A-499B-9771-B8E0969006C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47C19031-9C11-4471-AA5D-48ECCDEA3D10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47C19031-9C11-4471-AA5D-48ECCDEA3D10}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47C19031-9C11-4471-AA5D-48ECCDEA3D10}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47C19031-9C11-4471-AA5D-48ECCDEA3D10}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -568,7 +577,7 @@ Global
 		{C86C6DEE-84E1-4E4E-8868-6755D7A8E0E4} = {0A4A2A3F-8887-431E-B1B3-E9DF9B155BA6}
 		{97E23323-BA7A-48F0-A578-858B82B6D8FB} = {0A4A2A3F-8887-431E-B1B3-E9DF9B155BA6}
 		{5DE01C58-D5F7-482F-8256-A8333064384C} = {0A4A2A3F-8887-431E-B1B3-E9DF9B155BA6}
-		{A08F0185-4DA3-4D5B-BF0C-B178596D5789} = {FA5644B5-4F08-43F6-86B3-039374312A47}
+		{A08F0185-4DA3-4D5B-BF0C-B178596D5789} = {C86C6DEE-84E1-4E4E-8868-6755D7A8E0E4}
 		{E97F23B8-ECB0-4AFA-B00C-015C39395FEF} = {5DE01C58-D5F7-482F-8256-A8333064384C}
 		{4D0B6BAB-5A33-4A7F-B007-93194FC2E2E3} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{5234D86F-2C0E-4181-AAB7-BBDA3253B4E1} = {C86C6DEE-84E1-4E4E-8868-6755D7A8E0E4}
@@ -597,9 +606,9 @@ Global
 		{B5C01B7A-933D-483E-AF07-6AA266B0EB49} = {B9D03824-A9CA-43AC-86D6-8BB399B9A228}
 		{3E0A20C8-C6D2-4762-955D-C7BF35C2C9A7} = {B9D03824-A9CA-43AC-86D6-8BB399B9A228}
 		{FA8C7905-985F-4919-AAA9-4B9A252F4977} = {88725659-D5F8-49F9-9B7E-D87C5B9917D7}
-		{12719498-B87E-4E92-8C2B-30046393CF85} = {FA5644B5-4F08-43F6-86B3-039374312A47}
+		{12719498-B87E-4E92-8C2B-30046393CF85} = {88725659-D5F8-49F9-9B7E-D87C5B9917D7}
 		{EFF021CA-1BF4-4C09-BFB8-D314EAAD24D2} = {88725659-D5F8-49F9-9B7E-D87C5B9917D7}
-		{A07F7D0C-F269-43D5-A812-3ABC47090885} = {FA5644B5-4F08-43F6-86B3-039374312A47}
+		{A07F7D0C-F269-43D5-A812-3ABC47090885} = {C86C6DEE-84E1-4E4E-8868-6755D7A8E0E4}
 		{BC9EA7CE-AD21-4D17-B581-F8ED8CBD7191} = {97E23323-BA7A-48F0-A578-858B82B6D8FB}
 		{147A757D-864B-4C74-B8CF-14DFF9793605} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{FC0CEF12-D501-46D1-B1BF-D4134BD8D478} = {B9D03824-A9CA-43AC-86D6-8BB399B9A228}
@@ -613,7 +622,7 @@ Global
 		{B4B7564A-965B-447B-927F-6749E2C08880} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{FA87D075-A934-4443-8D0B-5DB32640B6D7} = {678D7B14-F8BC-4193-99AF-2EE8AA390A02}
 		{40843020-6F0A-48F0-AC28-42FFE3A5C21E} = {523E282D-A2FE-49C2-A782-0EEC435E765E}
-		{D357FDB5-BF19-41A5-82B0-14C8CEC2A5EB} = {FA5644B5-4F08-43F6-86B3-039374312A47}
+		{D357FDB5-BF19-41A5-82B0-14C8CEC2A5EB} = {814F9B31-4AF3-46CC-AD61-CEB40F47083A}
 		{430F63C7-20C2-4872-AC3E-DDE846E50AA4} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{DD043977-6BCD-475A-BEE2-8C34309EC622} = {678D7B14-F8BC-4193-99AF-2EE8AA390A02}
 		{ED2D370C-D921-433A-A0B9-A601F936EDD3} = {523E282D-A2FE-49C2-A782-0EEC435E765E}
@@ -637,7 +646,7 @@ Global
 		{5D10A44A-87E0-48D4-AF84-9DE1BCFF0CD6} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{19EC1E99-89A8-445A-8C22-C1B0CD8CC777} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{D3F1711A-25AC-4EC9-9971-4F838BCD2A07} = {6A776396-02B1-475D-A104-26940ADB04AB}
-		{42B1EB66-58F9-4D9A-8E23-FF12CBF5D643} = {FA5644B5-4F08-43F6-86B3-039374312A47}
+		{42B1EB66-58F9-4D9A-8E23-FF12CBF5D643} = {88725659-D5F8-49F9-9B7E-D87C5B9917D7}
 		{C3F84BAD-ACFA-4AE3-8286-D12F5A5BBC62} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{4A64FEB4-198C-445B-835F-A5B68EFBFDA7} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{AFB33A62-C437-4C32-A965-D6CC5EE50540} = {523E282D-A2FE-49C2-A782-0EEC435E765E}
@@ -650,6 +659,8 @@ Global
 		{7607EAC8-B4C5-40AA-BCEE-4CEA8D4F9BF2} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{7E5387A5-DE19-4E43-888B-E8E1C687ECF5} = {B9D03824-A9CA-43AC-86D6-8BB399B9A228}
 		{711CD5DE-F139-4C0C-B75F-3E9C01EC5AB2} = {6A776396-02B1-475D-A104-26940ADB04AB}
+		{C4DCC376-106A-499B-9771-B8E0969006C8} = {88725659-D5F8-49F9-9B7E-D87C5B9917D7}
+		{47C19031-9C11-4471-AA5D-48ECCDEA3D10} = {88725659-D5F8-49F9-9B7E-D87C5B9917D7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {284A7AC3-FB43-4F1F-9C9C-2AF0E1F46C2B}

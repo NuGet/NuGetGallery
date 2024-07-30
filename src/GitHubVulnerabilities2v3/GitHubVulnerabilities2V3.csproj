@@ -12,10 +12,10 @@
     <None Include="Scripts\*" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="NuGet.Jobs.Common" />
     <PackageReference Include="NuGet.Services.Cursor" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj" />
     <ProjectReference Include="..\NuGet.Services.Github\NuGet.Services.GitHub.csproj" />
     <ProjectReference Include="..\NuGetGallery.Core\NuGetGallery.Core.csproj" />
   </ItemGroup>

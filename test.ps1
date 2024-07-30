@@ -2,7 +2,9 @@
 param (
     [ValidateSet("debug", "release")]
     [string]$Configuration = 'debug',
-    [int]$BuildNumber
+    [int]$BuildNumber,
+    [switch]$SkipGallery,
+    [switch]$SkipJobs
 )
 
 trap {
@@ -56,6 +58,7 @@ Invoke-BuildStep 'Running gallery tests' {
         Write-Host "Ensuring the EntityFramework version can be discovered."
         . (Join-Path $PSScriptRoot "tools\Update-Databases.ps1") -MigrationTargets @("FakeMigrationTarget")
     } `
+    -skip:$SkipGallery `
     -ev +TestErrors
 
 Invoke-BuildStep 'Running jobs tests' {
@@ -76,6 +79,7 @@ Invoke-BuildStep 'Running jobs tests' {
             $TestCount++
         }
     } `
+    -skip:$SkipJobs `
     -ev +TestErrors
 
 Trace-Log ('-' * 60)

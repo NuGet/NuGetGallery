@@ -19,6 +19,10 @@ variables:
   value: none
 - name: NugetSecurityAnalysisWarningLevel
   value: none
+- name: GalleryPackageVersion
+  value: $(GalleryAssemblyVersion)-$(NuGetJobsBranch)-$(Build.BuildId)
+- name: GalleryAssemblyVersion
+  value: 4.4.5
 - name: JobsPackageVersion
   value: $(JobsAssemblyVersion)-$(NuGetJobsBranch)-$(Build.BuildId)
 - name: JobsAssemblyVersion
@@ -72,14 +76,14 @@ extends:
           displayName: Build
           inputs:
             scriptName: $(NuGetJobsPath)\build.ps1
-            arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -JobsAssemblyVersion $(JobsAssemblyVersion) -JobsPackageVersion $(JobsPackageVersion) -Branch $(NuGetJobsBranch) -CommitSHA $(Build.SourceVersion)
+            arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipGallery -GalleryAssemblyVersion $(GalleryAssemblyVersion) -GalleryPackageVersion $(GalleryPackageVersion) -JobsAssemblyVersion $(JobsAssemblyVersion) -JobsPackageVersion $(JobsPackageVersion) -Branch $(NuGetJobsBranch) -CommitSHA $(Build.SourceVersion)
             workingFolder: $(NuGetJobsPath)
         - task: PowerShell@1
           name: PowerShell_2
           displayName: Run unit tests
           inputs:
             scriptName: $(NuGetJobsPath)\test.ps1
-            arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId)
+            arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipGallery
             workingFolder: $(NuGetJobsPath)
         - task: PublishTestResults@2
           name: PublishTestResults_3

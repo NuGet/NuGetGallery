@@ -21,12 +21,15 @@
     <PackageReference Include="NuGet.Services.Logging" />
     <PackageReference Include="NuGet.Services.Sql" />
     <PackageReference Include="NuGet.Services.FeatureFlags" />
-    <PackageReference Include="NuGetGallery.Core" />
     <PackageReference Include="System.Data.SqlClient" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <PackageReference Include="NuGet.Services.Messaging.Email" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NuGetGallery.Core\NuGetGallery.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
