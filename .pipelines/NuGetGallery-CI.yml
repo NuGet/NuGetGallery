@@ -3,46 +3,49 @@ name: NuGetGallery CI $(Build.BuildId)
 trigger:
   branches:
     include:
-    - '*'
+      - "*"
   batch: True
 
+parameters:
+  - name: BuildConfiguration
+    displayName: Build configuration
+    type: string
+    default: Release
+    values: ["Release", "Debug"]
+
 variables:
-- name: Assemblies
-  value: ''
-- name: BuildConfiguration
-  value: Release
-- name: BuildType
-  value: Unsigned
-- name: Codeql.Enabled
-  value: true
-- name: NugetSecurityAnalysisWarningLevel
-  value: none
-- name: GalleryPackageVersion
-  value: $(GalleryAssemblyVersion)-$(NuGetGalleryBranch)-$(Build.BuildId)
-- name: GalleryAssemblyVersion
-  value: 4.4.5
-- name: JobsPackageVersion
-  value: $(JobsAssemblyVersion)-$(GalleryPackageVersion)-$(Build.BuildId)
-- name: JobsAssemblyVersion
-  value: 4.3.0
-- name: nugetMultiFeedWarnLevel
-  value: none
-- name: NuGetGalleryDirectory
-  value: ng
-- name: NuGetGalleryPath
-  value: $(Agent.BuildDirectory)\$(NuGetGalleryDirectory)
-- name: NuGetGalleryBranch
-  value: $(Build.SourceBranchName)
+  - name: BuildConfiguration
+    value: ${{ parameters.BuildConfiguration }}
+  - name: Codeql.Enabled
+    value: true
+  - name: NugetSecurityAnalysisWarningLevel
+    value: none
+  - name: nugetMultiFeedWarnLevel
+    value: none
+  - name: GalleryPackageVersion
+    value: $(GalleryAssemblyVersion)-$(NuGetGalleryBranch)-$(Build.BuildId)
+  - name: GalleryAssemblyVersion
+    value: 4.4.5
+  - name: JobsPackageVersion
+    value: $(JobsAssemblyVersion)-$(NuGetGalleryBranch)-$(Build.BuildId)
+  - name: JobsAssemblyVersion
+    value: 4.3.0
+  - name: NuGetGalleryDirectory
+    value: ng
+  - name: NuGetGalleryPath
+    value: $(Agent.BuildDirectory)\$(NuGetGalleryDirectory)
+  - name: NuGetGalleryBranch
+    value: $(Build.SourceBranchName)
 
 resources:
   repositories:
-  - repository: self
-    type: git
-    ref: refs/heads/main
-  - repository: 1ESPipelineTemplates
-    type: git
-    name: 1ESPipelineTemplates/1ESPipelineTemplates
-    ref: refs/tags/release
+    - repository: self
+      type: git
+      ref: refs/heads/main
+    - repository: 1ESPipelineTemplates
+      type: git
+      name: 1ESPipelineTemplates/1ESPipelineTemplates
+      ref: refs/tags/release
 
 extends:
   template: v1/1ES.Unofficial.PipelineTemplate.yml@1ESPipelineTemplates
@@ -52,38 +55,74 @@ extends:
       image: NuGet-1ESPT-Win2022
       os: windows
     customBuildTags:
-    - ES365AIMigrationTooling
+      - ES365AIMigrationTooling
     stages:
-    - stage: stage
-      jobs:
-      - job: Phase_1
-        displayName: Phase 1
-        cancelTimeoutInMinutes: 1
-        steps:
-        - checkout: self
-          fetchDepth: 1
-          clean: true
-          fetchTags: false
-          path: $(NuGetGalleryDirectory)
-        - task: PowerShell@1
-          name: PowerShell_1
-          displayName: Build
-          inputs:
-            scriptName: $(NuGetGalleryPath)\build.ps1
-            arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipJobs -GalleryAssemblyVersion $(GalleryAssemblyVersion) -GalleryPackageVersion $(GalleryPackageVersion) -JobsAssemblyVersion $(JobsAssemblyVersion) -JobsPackageVersion $(JobsPackageVersion) -Branch $(NuGetGalleryBranch) -CommitSHA $(Build.SourceVersion)
-            workingFolder: $(NuGetGalleryPath)
-        - task: PowerShell@1
-          name: PowerShell_2
-          displayName: Run unit tests
-          inputs:
-            scriptName: $(NuGetGalleryPath)\test.ps1
-            arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipJobs
-            workingFolder: $(NuGetGalleryPath)
-        - task: PublishTestResults@2
-          name: PublishTestResults_3
-          displayName: Publish Test Results Results.*.xml
-          condition: succeededOrFailed()
-          inputs:
-            testRunner: VSTest
-            testResultsFiles: $(NuGetGalleryPath)\Results.*.xml
-            failTaskOnFailedTests: true
+      - stage: gallery
+        dependsOn: []
+        jobs:
+          - job: build_and_test
+            displayName: NuGetGallery.sln - build and test
+            cancelTimeoutInMinutes: 1
+            steps:
+              - checkout: self
+                fetchDepth: 1
+                clean: true
+                fetchTags: false
+                path: $(NuGetGalleryDirectory)
+              - task: PowerShell@1
+                name: build
+                displayName: Build
+                inputs:
+                  scriptName: $(NuGetGalleryPath)\build.ps1
+                  arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipJobs -GalleryAssemblyVersion $(GalleryAssemblyVersion) -GalleryPackageVersion $(GalleryPackageVersion) -JobsAssemblyVersion $(JobsAssemblyVersion) -JobsPackageVersion $(JobsPackageVersion) -Branch $(NuGetGalleryBranch) -CommitSHA $(Build.SourceVersion)
+                  workingFolder: $(NuGetGalleryPath)
+              - task: PowerShell@1
+                name: test
+                displayName: Run tests
+                inputs:
+                  scriptName: $(NuGetGalleryPath)\test.ps1
+                  arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipJobs
+                  workingFolder: $(NuGetGalleryPath)
+              - task: PublishTestResults@2
+                name: publish_test_results
+                displayName: Publish test results
+                condition: succeededOrFailed()
+                inputs:
+                  testRunner: VSTest
+                  testResultsFiles: $(NuGetGalleryPath)\Results.*.xml
+                  failTaskOnFailedTests: true
+
+      - stage: jobs
+        dependsOn: []
+        jobs:
+          - job: build_and_test
+            displayName: NuGet.Jobs.sln - build and test
+            cancelTimeoutInMinutes: 1
+            steps:
+              - checkout: self
+                fetchDepth: 1
+                clean: true
+                fetchTags: false
+                path: $(NuGetGalleryDirectory)
+              - task: PowerShell@1
+                name: build
+                displayName: Build
+                inputs:
+                  scriptName: $(NuGetGalleryPath)\build.ps1
+                  arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipGallery -GalleryAssemblyVersion $(GalleryAssemblyVersion) -GalleryPackageVersion $(GalleryPackageVersion) -JobsAssemblyVersion $(JobsAssemblyVersion) -JobsPackageVersion $(JobsPackageVersion) -Branch $(NuGetGalleryBranch) -CommitSHA $(Build.SourceVersion)
+                  workingFolder: $(NuGetGalleryPath)
+              - task: PowerShell@1
+                name: test
+                displayName: Run tests
+                inputs:
+                  scriptName: $(NuGetGalleryPath)\test.ps1
+                  arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipGallery
+                  workingFolder: $(NuGetGalleryPath)
+              - task: PublishTestResults@2
+                name: publish_test_results
+                displayName: Publish test results
+                condition: succeededOrFailed()
+                inputs:
+                  testRunner: VSTest
+                  testResultsFiles: $(NuGetGalleryPath)\Results.*.xml
+                  failTaskOnFailedTests: true
