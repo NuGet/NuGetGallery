@@ -21,6 +21,10 @@ variables:
   value: $(GalleryAssemblyVersion)-$(NuGetGalleryBranch)-$(Build.BuildId)
 - name: GalleryAssemblyVersion
   value: 4.4.5
+- name: JobsPackageVersion
+  value: $(JobsAssemblyVersion)-$(GalleryPackageVersion)-$(Build.BuildId)
+- name: JobsAssemblyVersion
+  value: 4.3.0
 - name: nugetMultiFeedWarnLevel
   value: none
 - name: NuGetGalleryDirectory
@@ -66,14 +70,14 @@ extends:
           displayName: Build
           inputs:
             scriptName: $(NuGetGalleryPath)\build.ps1
-            arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -GalleryAssemblyVersion $(GalleryAssemblyVersion) -GalleryPackageVersion $(GalleryPackageVersion) -Branch $(NuGetGalleryBranch) -CommitSHA $(Build.SourceVersion)
+            arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipJobs -GalleryAssemblyVersion $(GalleryAssemblyVersion) -GalleryPackageVersion $(GalleryPackageVersion) -JobsAssemblyVersion $(JobsAssemblyVersion) -JobsPackageVersion $(JobsPackageVersion) -Branch $(NuGetGalleryBranch) -CommitSHA $(Build.SourceVersion)
             workingFolder: $(NuGetGalleryPath)
         - task: PowerShell@1
           name: PowerShell_2
           displayName: Run unit tests
           inputs:
             scriptName: $(NuGetGalleryPath)\test.ps1
-            arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId)
+            arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipJobs
             workingFolder: $(NuGetGalleryPath)
         - task: PublishTestResults@2
           name: PublishTestResults_3

@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\SdkProjects.props" />
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Description>The job that revalidates previously updated packages</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="Scripts\nssm.exe" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Initialization\PreinstalledPackages.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Validation.Common.Job\Validation.Common.Job.csproj" />
+    <ProjectReference Include="..\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NuGet.Services.Status" />
+  </ItemGroup>
+</Project>

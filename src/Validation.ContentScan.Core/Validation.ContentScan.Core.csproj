@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\SdkProjects.props" />
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <RootNamespace>NuGet.Jobs.Validation.ContentScan</RootNamespace>
+    <AssemblyName>NuGet.Jobs.Validation.ContentScan.Core</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Description>Shared libraries for content scanning validations</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="NuGet.Services.ServiceBus" />
+  </ItemGroup>
+</Project>

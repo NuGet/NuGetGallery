@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\SdkProjects.props" />
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>NuGet.Jobs.Validation.PackageSigning</RootNamespace>
+    <AssemblyName>NuGet.Jobs.Validation.PackageSigning.ProcessSignature</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Description>Queue based signature verification job</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="Scripts\*" />
+    <None Include="Settings\*" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Services.Validation.Orchestrator\NuGet.Services.Validation.Orchestrator.csproj" />
+  </ItemGroup>
+</Project>

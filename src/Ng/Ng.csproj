@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\SdkProjects.props" />
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Update="Ng.Operations.nuspec">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Scripts\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Jobs.Catalog2Registration\NuGet.Jobs.Catalog2Registration.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Metadata.Catalog.Monitoring\NuGet.Services.Metadata.Catalog.Monitoring.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="lightning-template.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NuGet.Services.Storage" VersionOverride="2.121.0-ryuyu-newStorageSdk-9662298" />
+    <PackageReference Include="Serilog.Sinks.File" />
+  </ItemGroup>
+</Project>

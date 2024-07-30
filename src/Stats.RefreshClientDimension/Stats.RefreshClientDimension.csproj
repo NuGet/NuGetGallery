@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\SdkProjects.props" />
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\Stats.ImportAzureCdnStatistics\ClientDimensionTableType.cs">
+      <Link>ClientDimensionTableType.cs</Link>
+    </Compile>
+    <Compile Include="..\Stats.ImportAzureCdnStatistics\Dimensions\ClientDimension.cs">
+      <Link>ClientDimension.cs</Link>
+    </Compile>
+    <Compile Include="..\Stats.ImportAzureCdnStatistics\Dimensions\DimensionId.cs">
+      <Link>DimensionId.cs</Link>
+    </Compile>
+    <Compile Include="..\Stats.ImportAzureCdnStatistics\Dimensions\UserAgentFact.cs">
+      <Link>UserAgentFact.cs</Link>
+    </Compile>
+    <Compile Include="..\Stats.ImportAzureCdnStatistics\UserAgentFactTableType.cs">
+      <Link>UserAgentFactTableType.cs</Link>
+    </Compile>
+    <Compile Include="..\Stats.LogInterpretation\UserAgentParser.cs">
+      <Link>UserAgentParser.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\Stats.LogInterpretation\knownclients.yaml">
+      <Link>knownclients.yaml</Link>
+      <LogicalName>knownclients.yaml</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="UAParser" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\SdkProjects.props" />
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>NuGet.Tools.SplitLargeFiles</RootNamespace>
+    <AssemblyName>NuGet.Tools.SplitLargeFiles</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="ICSharpCode.SharpZipLib">
+      <HintPath>..\..\external\ICSharpCode.SharpZipLib.0.86.0\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="NuGet.Services.KeyVault" />
+    <PackageReference Include="SharpZipLib" />
+    <PackageReference Include="WindowsAzure.Storage" />
+  </ItemGroup>
+</Project>

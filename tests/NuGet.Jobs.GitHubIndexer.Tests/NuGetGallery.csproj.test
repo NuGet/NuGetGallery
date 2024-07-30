@@ -1,0 +1,2370 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>
+    </ProductVersion>
+    <SkipValidatePackageReferences>true</SkipValidatePackageReferences>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{1DACF781-5CD0-4123-8BAC-CD385D864BE5}</ProjectGuid>
+    <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NuGetGallery</RootNamespace>
+    <AssemblyName>NuGetGallery</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <UseIISExpress>true</UseIISExpress>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <OldToolsVersion>12.0</OldToolsVersion>
+    <TargetFrameworkProfile />
+    <IISExpressSSLPort>443</IISExpressSSLPort>
+    <IISExpressAnonymousAuthentication>enabled</IISExpressAnonymousAuthentication>
+    <IISExpressWindowsAuthentication>disabled</IISExpressWindowsAuthentication>
+    <IISExpressUseClassicPipelineMode>false</IISExpressUseClassicPipelineMode>
+    <CodeContractsAssemblyMode>0</CodeContractsAssemblyMode>
+    <MvcProjectUpgradeChecked>true</MvcProjectUpgradeChecked>
+    <UseGlobalApplicationHostFile />
+    <MvcBuildViews Condition=" '$(MvcBuildViews)' == '' ">false</MvcBuildViews>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+    <Use64BitIISExpress />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <UseVSHostingProcess>true</UseVSHostingProcess>
+    <CodeContractsEnableRuntimeChecking>False</CodeContractsEnableRuntimeChecking>
+    <CodeContractsRuntimeOnlyPublicSurface>False</CodeContractsRuntimeOnlyPublicSurface>
+    <CodeContractsRuntimeThrowOnFailure>True</CodeContractsRuntimeThrowOnFailure>
+    <CodeContractsRuntimeCallSiteRequires>False</CodeContractsRuntimeCallSiteRequires>
+    <CodeContractsRuntimeSkipQuantifiers>False</CodeContractsRuntimeSkipQuantifiers>
+    <CodeContractsRunCodeAnalysis>False</CodeContractsRunCodeAnalysis>
+    <CodeContractsNonNullObligations>False</CodeContractsNonNullObligations>
+    <CodeContractsBoundsObligations>False</CodeContractsBoundsObligations>
+    <CodeContractsArithmeticObligations>False</CodeContractsArithmeticObligations>
+    <CodeContractsEnumObligations>False</CodeContractsEnumObligations>
+    <CodeContractsRedundantAssumptions>False</CodeContractsRedundantAssumptions>
+    <CodeContractsInferRequires>False</CodeContractsInferRequires>
+    <CodeContractsInferEnsures>False</CodeContractsInferEnsures>
+    <CodeContractsInferObjectInvariants>False</CodeContractsInferObjectInvariants>
+    <CodeContractsSuggestAssumptions>False</CodeContractsSuggestAssumptions>
+    <CodeContractsSuggestRequires>True</CodeContractsSuggestRequires>
+    <CodeContractsSuggestEnsures>False</CodeContractsSuggestEnsures>
+    <CodeContractsSuggestObjectInvariants>False</CodeContractsSuggestObjectInvariants>
+    <CodeContractsRunInBackground>True</CodeContractsRunInBackground>
+    <CodeContractsShowSquigglies>True</CodeContractsShowSquigglies>
+    <CodeContractsUseBaseLine>False</CodeContractsUseBaseLine>
+    <CodeContractsEmitXMLDocs>False</CodeContractsEmitXMLDocs>
+    <CodeContractsCustomRewriterAssembly />
+    <CodeContractsCustomRewriterClass />
+    <CodeContractsLibPaths />
+    <CodeContractsExtraRewriteOptions />
+    <CodeContractsExtraAnalysisOptions />
+    <CodeContractsBaseLineFile />
+    <CodeContractsCacheAnalysisResults>True</CodeContractsCacheAnalysisResults>
+    <CodeContractsRuntimeCheckingLevel>Full</CodeContractsRuntimeCheckingLevel>
+    <CodeContractsReferenceAssembly>DoNotBuild</CodeContractsReferenceAssembly>
+    <CodeContractsAnalysisWarningLevel>0</CodeContractsAnalysisWarningLevel>
+    <PublishDatabases>false</PublishDatabases>
+    <IncludeIisSettings>false</IncludeIisSettings>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <PublishDatabases>false</PublishDatabases>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Build.Framework" />
+    <Reference Include="Microsoft.Build.Utilities.v4.0" />
+    <Reference Include="Microsoft.WindowsAzure.Diagnostics, Version=2.7.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files\Microsoft SDKs\Azure\.NET SDK\v2.7\bin\plugins\Diagnostics\Microsoft.WindowsAzure.Diagnostics.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.ServiceRuntime, Version=2.7.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files\Microsoft SDKs\Azure\.NET SDK\v2.7\ref\Microsoft.WindowsAzure.ServiceRuntime.dll</HintPath>
+    </Reference>
+    <Reference Include="MonAgentListener, Version=33.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.IdentityModel" />
+    <Reference Include="System.Net" />
+    <Reference Include="System.Net.Http.WebRequest" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.ServiceModel.Activation" />
+    <Reference Include="System.ServiceModel.Web" />
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Web.ApplicationServices" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Web.DynamicData" />
+    <Reference Include="System.Web.Entity" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Abstractions" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Web.Routing" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ActionName.cs" />
+    <Compile Include="App_Start\NuGetODataV2CuratedFeedConfig.cs" />
+    <Compile Include="App_Start\NuGetODataV2FeedConfig.cs" />
+    <Compile Include="App_Start\NuGetODataV1FeedConfig.cs" />
+    <Compile Include="App_Start\NuGetODataConfig.cs" />
+    <Compile Include="App_Start\StorageDependent.cs" />
+    <Compile Include="App_Start\SessionPersistence.cs" />
+    <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="App_Start\AutofacConfig.cs" />
+    <Compile Include="Areas\Admin\Controllers\DeleteAccountController.cs" />
+    <Compile Include="Areas\Admin\Controllers\DeleteController.cs" />
+    <Compile Include="Areas\Admin\Controllers\FeaturesController.cs" />
+    <Compile Include="Areas\Admin\Controllers\LockPackageController.cs" />
+    <Compile Include="Areas\Admin\Controllers\ReservedNamespaceController.cs" />
+    <Compile Include="Areas\Admin\Controllers\RevalidationController.cs" />
+    <Compile Include="Areas\Admin\Controllers\SecurityPolicyController.cs" />
+    <Compile Include="Areas\Admin\Controllers\SiteAdminsController.cs" />
+    <Compile Include="Areas\Admin\Controllers\SupportRequestController.cs" />
+    <Compile Include="Areas\Admin\Controllers\ValidationController.cs" />
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Url_Edit.ascx.cs">
+      <DependentUpon>Url_Edit.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Url_Edit.ascx.designer.cs">
+      <DependentUpon>Url_Edit.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\PageTemplates\ListDetails.aspx.cs">
+      <DependentUpon>ListDetails.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\PageTemplates\ListDetails.aspx.designer.cs">
+      <DependentUpon>ListDetails.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\Helpers.cs" />
+    <Compile Include="Areas\Admin\Migrations\201602111647053_SupportRequestDbModel.cs" />
+    <Compile Include="Areas\Admin\Migrations\201602111647053_SupportRequestDbModel.Designer.cs">
+      <DependentUpon>201602111647053_SupportRequestDbModel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\Migrations\201602191039005_PackageInfoIsOptional.cs" />
+    <Compile Include="Areas\Admin\Migrations\201602191039005_PackageInfoIsOptional.Designer.cs">
+      <DependentUpon>201602191039005_PackageInfoIsOptional.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\Migrations\201805221605033_DropPagerDutyColumn.cs" />
+    <Compile Include="Areas\Admin\Migrations\201805221605033_DropPagerDutyColumn.Designer.cs">
+      <DependentUpon>201805221605033_DropPagerDutyColumn.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\Models\DeletedStatus.cs" />
+    <Compile Include="Areas\Admin\Migrations\SupportRequestMigrationsConfiguration.cs" />
+    <Compile Include="Areas\Admin\Services\RevalidationAdminService.cs" />
+    <Compile Include="Areas\Admin\Services\ValidationAdminService.cs" />
+    <Compile Include="Areas\Admin\ViewModels\DeleteAccountAsAdminViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\FeatureFlagsFeatureViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\FeatureFlagsFlightViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\FeatureFlagsViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowBulkRequestConfirmation.cs" />
+    <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowBulkRequest.cs" />
+    <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowRequest.cs" />
+    <Compile Include="Areas\Admin\ViewModels\IFeatureFlagsViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\IModifyFeatureFlagsViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\LockPackageViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\ModifyFeatureFlagsFeatureViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\ModifyFeatureFlagsFlightViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\SiteAdminsViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\ValidatedPackageViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\RevalidationPageViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\ValidationPageViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\DeleteAccountSearchResult.cs" />
+    <Compile Include="Areas\Admin\Services\ValidationEntityRepository.cs" />
+    <Compile Include="Areas\Admin\ViewModels\DeleteSearchResult.cs" />
+    <Compile Include="Areas\Admin\ViewModels\HomeViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\UserViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\ReservedNamespaceResultModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\ReservedNamespaceViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\ReservedNamespaceSearchResult.cs" />
+    <Compile Include="Areas\Admin\ViewModels\UserSecurityPolicySubscriptions.cs" />
+    <Compile Include="Areas\Admin\ViewModels\UserSecurityPolicySearchResult.cs" />
+    <Compile Include="Areas\Admin\ViewModels\SecurityPolicyViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\SupportRequestAdminsViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\SupportRequestAdminViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\SupportRequestsViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\SupportRequestViewModel.cs" />
+    <Compile Include="Authentication\AuthDependenciesModule.cs" />
+    <Compile Include="Controllers\ExperimentsController.cs" />
+    <Compile Include="Controllers\ManageDeprecationJsonApiController.cs" />
+    <Compile Include="ExtensionMethods.cs" />
+    <Compile Include="Extensions\ImageExtensions.cs" />
+    <Compile Include="Helpers\ViewModelExtensions\DeleteAccountListPackageItemViewModelFactory.cs" />
+    <Compile Include="Helpers\ViewModelExtensions\DeletePackageViewModelFactory.cs" />
+    <Compile Include="Helpers\ViewModelExtensions\DisplayLicenseViewModelFactory.cs" />
+    <Compile Include="Helpers\ViewModelExtensions\DisplayPackageViewModelFactory.cs" />
+    <Compile Include="Helpers\ViewModelExtensions\ListPackageItemRequiredSignerViewModelFactory.cs" />
+    <Compile Include="Helpers\ViewModelExtensions\ListPackageItemViewModelFactory.cs" />
+    <Compile Include="Helpers\ViewModelExtensions\ManagePackageViewModelFactory.cs" />
+    <Compile Include="Helpers\ViewModelExtensions\PackageViewModelFactory.cs" />
+    <Compile Include="Infrastructure\ABTestEnrollment.cs" />
+    <Compile Include="Infrastructure\ABTestEnrollmentState.cs" />
+    <Compile Include="Infrastructure\ABTestEnrollmentFactory.cs" />
+    <Compile Include="Infrastructure\CookieBasedABTestService.cs" />
+    <Compile Include="Infrastructure\IABTestEnrollmentFactory.cs" />
+    <Compile Include="Infrastructure\IABTestService.cs" />
+    <Compile Include="Infrastructure\ILuceneDocumentFactory.cs" />
+    <Compile Include="Infrastructure\ArrayModelBinder.cs" />
+    <Compile Include="Infrastructure\ISearchServiceFactory.cs" />
+    <Compile Include="Infrastructure\LuceneDocumentFactory.cs" />
+    <Compile Include="Infrastructure\IHijackSearchServiceFactory.cs" />
+    <Compile Include="Infrastructure\Lucene\Correlation\CorrelatingHttpClientHandler.cs" />
+    <Compile Include="Infrastructure\Lucene\Correlation\WebApiCorrelationHandler.cs" />
+    <Compile Include="Infrastructure\Lucene\HttpClientBuilderExtensions.cs" />
+    <Compile Include="Infrastructure\Lucene\IIndexingJobFactory.cs" />
+    <Compile Include="Infrastructure\Lucene\ISearchClient.cs" />
+    <Compile Include="Infrastructure\Lucene\Models\SearchResults.cs" />
+    <Compile Include="Infrastructure\Lucene\Models\SortOrder.cs" />
+    <Compile Include="Infrastructure\Lucene\ServiceResponse.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\SearchSideBySideMessage.cs" />
+    <Compile Include="Infrastructure\HijackSearchServiceFactory.cs" />
+    <Compile Include="Infrastructure\UserDeletedErrorFilter.cs" />
+    <Compile Include="Infrastructure\SearchServiceFactory.cs" />
+    <Compile Include="Migrations\201903020136235_CvesCanBeEmpty.cs" />
+    <Compile Include="Migrations\201903020136235_CvesCanBeEmpty.Designer.cs">
+      <DependentUpon>201903020136235_CvesCanBeEmpty.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201904081230004_AddIndexToUserSecurityPolicy.cs" />
+    <Compile Include="Migrations\201904081230004_AddIndexToUserSecurityPolicy.Designer.cs">
+      <DependentUpon>201904081230004_AddIndexToUserSecurityPolicy.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201904252152567_DeletedByOptional.cs" />
+    <Compile Include="Migrations\201904252152567_DeletedByOptional.Designer.cs">
+      <DependentUpon>201904252152567_DeletedByOptional.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201904292139301_RemoveVulnerabilityDataFromPackageDeprecationModel.cs" />
+    <Compile Include="Migrations\201904292139301_RemoveVulnerabilityDataFromPackageDeprecationModel.Designer.cs">
+      <DependentUpon>201904292139301_RemoveVulnerabilityDataFromPackageDeprecationModel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201906262145129_EmbeddedIconFlag.cs" />
+    <Compile Include="Migrations\201906262145129_EmbeddedIconFlag.Designer.cs">
+      <DependentUpon>201906262145129_EmbeddedIconFlag.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Services\ConfigurationIconFileProvider.cs" />
+    <Compile Include="Services\IconUrlTemplateProcessor.cs" />
+    <Compile Include="Services\IIconUrlTemplateProcessor.cs" />
+    <Compile Include="Services\IIconUrlProvider.cs" />
+    <Compile Include="Migrations\201905071526573_DevelopmentDependencyMetadata.cs" />
+    <Compile Include="Migrations\201905071526573_DevelopmentDependencyMetadata.Designer.cs">
+      <DependentUpon>201905071526573_DevelopmentDependencyMetadata.cs</DependentUpon>
+    </Compile>
+    <Compile Include="RequestModels\DeprecatePackageRequest.cs" />
+    <Compile Include="Services\IPackageDeprecationManagementService.cs" />
+    <Compile Include="Services\IPackageDeprecationService.cs" />
+    <Compile Include="Queries\AutocompleteDatabasePackageIdsQuery.cs" />
+    <Compile Include="Queries\AutocompleteDatabasePackageVersionsQuery.cs" />
+    <Compile Include="Queries\AutocompleteDatabaseQuery.cs" />
+    <Compile Include="Queries\AutocompleteServicePackageIdsQuery.cs" />
+    <Compile Include="Queries\AutocompleteServicePackageVersionsQuery.cs" />
+    <Compile Include="Queries\AutocompleteServiceQuery.cs" />
+    <Compile Include="Queries\IAutocompletePackageVersionsQuery.cs" />
+    <Compile Include="Queries\IAutocompletePackageIdsQuery.cs" />
+    <Compile Include="Controllers\AccountsController.cs" />
+    <Compile Include="Controllers\NuGetContext.cs" />
+    <Compile Include="Controllers\OrganizationsController.cs" />
+    <Compile Include="Controllers\ODataV1FeedController.cs" />
+    <Compile Include="Controllers\ODataV2CuratedFeedController.cs" />
+    <Compile Include="Controllers\ODataV2FeedController.cs" />
+    <Compile Include="App_Start\OwinStartup.cs" />
+    <Compile Include="Areas\Admin\DynamicData\OrderedFieldGenerator.cs" />
+    <Compile Include="Areas\Admin\Controllers\LuceneController.cs" />
+    <Compile Include="Areas\Admin\Models\LuceneInfoModel.cs" />
+    <Compile Include="Configuration\SmtpUri.cs" />
+    <Compile Include="Controllers\AppController.cs" />
+    <Compile Include="Controllers\ErrorsController.cs" />
+    <Compile Include="Controllers\PagesController.cs" />
+    <Compile Include="Extensions\HttpExceptionExtensions.cs" />
+    <Compile Include="Extensions\OrganizationExtensions.cs" />
+    <Compile Include="Extensions\RouteExtensions.cs" />
+    <Compile Include="Extensions\SimulatedErrorTypeExtensions.cs" />
+    <Compile Include="Filters\ApiScopeRequiredAttribute.cs" />
+    <Compile Include="Filters\UIAuthorizeAttribute.cs" />
+    <Compile Include="Filters\ValidateRecaptchaResponseAttribute.cs" />
+    <Compile Include="GalleryConstants.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="Helpers\TruncatedStream.cs" />
+    <Compile Include="Helpers\GravatarHelper.cs" />
+    <Compile Include="Helpers\LicenseExpressionRedirectUrlHelper.cs" />
+    <Compile Include="Helpers\ObfuscationHelper.cs" />
+    <Compile Include="Helpers\StreamHelper.cs" />
+    <Compile Include="Helpers\TextHelper.cs" />
+    <Compile Include="Helpers\ZipArchiveHelpers.cs" />
+    <Compile Include="Helpers\RegexEx.cs" />
+    <Compile Include="Helpers\RouteUrlTemplate.cs" />
+    <Compile Include="Infrastructure\Lucene\HttpClientWrapper.cs" />
+    <Compile Include="Infrastructure\Lucene\IResilientSearchClient.cs" />
+    <Compile Include="Infrastructure\Lucene\IHttpClientWrapper.cs" />
+    <Compile Include="Infrastructure\Lucene\ResilientSearchHttpClient.cs" />
+    <Compile Include="Infrastructure\Lucene\SearchClientConfiguration.cs" />
+    <Compile Include="Infrastructure\Lucene\SearchClientPolicies.cs" />
+    <Compile Include="Infrastructure\Mail\ConfirmationEmailBuilder.cs" />
+    <Compile Include="Infrastructure\Mail\EmailMessageFooter.cs" />
+    <Compile Include="Infrastructure\Mail\GalleryEmailRecipientsUtility.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\AccountDeleteNoticeMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\ContactOwnersMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\ContactSupportMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\CredentialAddedMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\CredentialRemovedMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\EmailChangeConfirmationMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\EmailChangeNoticeToPreviousEmailAddressMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\NewAccountMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationMemberRemovedMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationMembershipRequestCanceledMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationMembershipRequestDeclinedMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationMembershipRequestInitiatedMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationMembershipRequestMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationMemberUpdatedMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformAcceptedMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformInitiatedMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformRejectedMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformRequestMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageAddedWithWarningsMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageDeletedNoticeMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageOwnerAddedMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageOwnerRemovedMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageOwnershipRequestCanceledMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageOwnershipRequestDeclinedMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageOwnershipRequestInitiatedMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageOwnershipRequestMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PasswordResetInstructionsMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\ReportAbuseMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\ReportMyPackageMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\ReportPackageMessageBase.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\SigninAssistanceMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Requests\ReportPackageRequest.cs" />
+    <Compile Include="Infrastructure\Lucene\GallerySearchClient.cs" />
+    <Compile Include="Infrastructure\SyndicationAtomActionResult.cs" />
+    <Compile Include="Migrations\201711082145351_AddAccountDelete.cs" />
+    <Compile Include="Migrations\201711082145351_AddAccountDelete.Designer.cs">
+      <DependentUpon>201711082145351_AddAccountDelete.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201711291842225_AddCertificate.cs" />
+    <Compile Include="Migrations\201711291842225_AddCertificate.Designer.cs">
+      <DependentUpon>201711291842225_AddCertificate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201712052213307_AddPackageIdLocking.cs" />
+    <Compile Include="Migrations\201712052213307_AddPackageIdLocking.Designer.cs">
+      <DependentUpon>201712052213307_AddPackageIdLocking.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201712211850074_MembershipRequests.cs" />
+    <Compile Include="Migrations\201712211850074_MembershipRequests.Designer.cs">
+      <DependentUpon>201712211850074_MembershipRequests.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201801101337052_RemovePackageEdits.cs" />
+    <Compile Include="Migrations\201801101337052_RemovePackageEdits.Designer.cs">
+      <DependentUpon>201801101337052_RemovePackageEdits.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201803202317063_AddEnableMultiFactorAuthentication.cs" />
+    <Compile Include="Migrations\201803202317063_AddEnableMultiFactorAuthentication.Designer.cs">
+      <DependentUpon>201803202317063_AddEnableMultiFactorAuthentication.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201804171613337_AddCertificateRegistration.cs" />
+    <Compile Include="Migrations\201804171613337_AddCertificateRegistration.Designer.cs">
+      <DependentUpon>201804171613337_AddCertificateRegistration.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201804241507196_RemoveUserCertificateIsActive.cs" />
+    <Compile Include="Migrations\201804241507196_RemoveUserCertificateIsActive.Designer.cs">
+      <DependentUpon>201804241507196_RemoveUserCertificateIsActive.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201805012001354_AddUserCertificatesIndex.cs" />
+    <Compile Include="Migrations\201805012001354_AddUserCertificatesIndex.Designer.cs">
+      <DependentUpon>201805012001354_AddUserCertificatesIndex.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201805091846502_MakeCertificatesSha1ThumbprintRequired.cs" />
+    <Compile Include="Migrations\201805091846502_MakeCertificatesSha1ThumbprintRequired.Designer.cs">
+      <DependentUpon>201805091846502_MakeCertificatesSha1ThumbprintRequired.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201807031816101_AccountDeleteSignatureNotRequired.cs" />
+    <Compile Include="Migrations\201807031816101_AccountDeleteSignatureNotRequired.Designer.cs">
+      <DependentUpon>201807031816101_AccountDeleteSignatureNotRequired.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201807181816293_SymbolPackages.cs" />
+    <Compile Include="Migrations\201807181816293_SymbolPackages.Designer.cs">
+      <DependentUpon>201807181816293_SymbolPackages.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201807261747084_AddCertificateDetails.cs" />
+    <Compile Include="Migrations\201807261747084_AddCertificateDetails.Designer.cs">
+      <DependentUpon>201807261747084_AddCertificateDetails.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201807302212501_AddShortCertificateNames.cs" />
+    <Compile Include="Migrations\201807302212501_AddShortCertificateNames.Designer.cs">
+      <DependentUpon>201807302212501_AddShortCertificateNames.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201808010014291_AddRepositoryType.cs" />
+    <Compile Include="Migrations\201808010014291_AddRepositoryType.Designer.cs">
+      <DependentUpon>201808010014291_AddRepositoryType.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201808032317064_FixSymbolCreatedColumnEFIssue.cs" />
+    <Compile Include="Migrations\201808032317064_FixSymbolCreatedColumnEFIssue.Designer.cs">
+      <DependentUpon>201808032317064_FixSymbolCreatedColumnEFIssue.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201808312302101_AddIsVerifiedDownloadCountIdIndexForPackageRegistrationsTable.cs" />
+    <Compile Include="Migrations\201808312302101_AddIsVerifiedDownloadCountIdIndexForPackageRegistrationsTable.Designer.cs">
+      <DependentUpon>201808312302101_AddIsVerifiedDownloadCountIdIndexForPackageRegistrationsTable.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201811011725146_LicenseChanges.cs" />
+    <Compile Include="Migrations\201811011725146_LicenseChanges.Designer.cs">
+      <DependentUpon>201811011725146_LicenseChanges.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201811291758016_RemoveCuratedFeedEntities.cs" />
+    <Compile Include="Migrations\201811291758016_RemoveCuratedFeedEntities.Designer.cs">
+      <DependentUpon>201811291758016_RemoveCuratedFeedEntities.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201901142143060_AddDeprecationEntities.cs" />
+    <Compile Include="Migrations\201901142143060_AddDeprecationEntities.Designer.cs">
+      <DependentUpon>201901142143060_AddDeprecationEntities.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201902061444243_AddVulnerabilityEntities.cs" />
+    <Compile Include="Migrations\201902061444243_AddVulnerabilityEntities.Designer.cs">
+      <DependentUpon>201902061444243_AddVulnerabilityEntities.cs</DependentUpon>
+    </Compile>
+    <Compile Include="RequestModels\DeleteAccountRequest.cs" />
+    <Compile Include="Migrations\201710301857232_Organizations.cs" />
+    <Compile Include="Migrations\201710301857232_Organizations.Designer.cs">
+      <DependentUpon>201710301857232_Organizations.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201711021733062_ApiKeyOwnerScope.cs" />
+    <Compile Include="Migrations\201711021733062_ApiKeyOwnerScope.Designer.cs">
+      <DependentUpon>201711021733062_ApiKeyOwnerScope.cs</DependentUpon>
+    </Compile>
+    <Compile Include="RequestModels\SimulatedErrorType.cs" />
+    <Compile Include="Services\AsynchronousPackageValidationInitiator.cs" />
+    <Compile Include="Infrastructure\Mail\BackgroundMarkdownMessageService.cs" />
+    <Compile Include="Services\GalleryContentFileMetadataService.cs" />
+    <Compile Include="Services\InvalidLicenseUrlValidationMessage.cs" />
+    <Compile Include="Services\InvalidUrlEncodingForLicenseUrlValidationMessage.cs" />
+    <Compile Include="Services\ISearchSideBySideService.cs" />
+    <Compile Include="Services\ISymbolPackageUploadService.cs" />
+    <Compile Include="Services\ISymbolPackageFileService.cs" />
+    <Compile Include="Services\ITyposquattingCheckListCacheService.cs" />
+    <Compile Include="Services\ITyposquattingService.cs" />
+    <Compile Include="Services\IValidationMessage.cs" />
+    <Compile Include="Services\JsonValidationMessage.cs" />
+    <Compile Include="Services\LicenseUrlDeprecationValidationMessage.cs" />
+    <Compile Include="Services\PackageDeleteService.cs" />
+    <Compile Include="Services\PackageDeprecationManagementService.cs" />
+    <Compile Include="Services\PackageDeprecationService.cs" />
+    <Compile Include="Services\PackageShouldNotBeSignedUserFixableValidationMessage.cs" />
+    <Compile Include="Services\PlainTextOnlyValidationMessage.cs" />
+    <Compile Include="Services\SearchSideBySideService.cs" />
+    <Compile Include="Services\SymbolPackageValidationResult.cs" />
+    <Compile Include="Services\FlatContainerContentFileMetadataService.cs" />
+    <Compile Include="Infrastructure\Mail\MarkdownMessageService.cs" />
+    <Compile Include="Services\SymbolPackageUploadService.cs" />
+    <Compile Include="Services\SymbolPackageFileService.cs" />
+    <Compile Include="Services\SymbolPackageService.cs" />
+    <Compile Include="Services\TyposquattingCheckListCacheService.cs" />
+    <Compile Include="Services\CertificateService.cs" />
+    <Compile Include="Services\CertificateValidator.cs" />
+    <Compile Include="Services\ICertificateService.cs" />
+    <Compile Include="Services\ICertificateValidator.cs" />
+    <Compile Include="Services\ImmediatePackageValidator.cs" />
+    <Compile Include="Services\ISymbolPackageService.cs" />
+    <Compile Include="Services\PackageCommitResult.cs" />
+    <Compile Include="Services\IPackageValidationInitiator.cs" />
+    <Compile Include="Infrastructure\HttpStatusCodeWithServerWarningResult.cs" />
+    <Compile Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.cs" />
+    <Compile Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.Designer.cs">
+      <DependentUpon>201704191802404_AddIndexPackageRegistrationKeySemVer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201704211454424_SecurityPolicies.cs" />
+    <Compile Include="Migrations\201704211454424_SecurityPolicies.Designer.cs">
+      <DependentUpon>201704211454424_SecurityPolicies.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201705032101231_SecurityPoliciesFix.cs" />
+    <Compile Include="Migrations\201705032101231_SecurityPoliciesFix.Designer.cs">
+      <DependentUpon>201705032101231_SecurityPoliciesFix.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201705031714183_AddIndexSemVerLevelKey.cs" />
+    <Compile Include="Migrations\201705031714183_AddIndexSemVerLevelKey.Designer.cs">
+      <DependentUpon>201705031714183_AddIndexSemVerLevelKey.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201705041614287_UserSecurityPolicies_SubscriptionColumn.cs" />
+    <Compile Include="Migrations\201705041614287_UserSecurityPolicies_SubscriptionColumn.Designer.cs">
+      <DependentUpon>201705041614287_UserSecurityPolicies_SubscriptionColumn.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201706061829243_AddSemVer2LatestVersionColumns.cs" />
+    <Compile Include="Migrations\201706061829243_AddSemVer2LatestVersionColumns.Designer.cs">
+      <DependentUpon>201706061829243_AddSemVer2LatestVersionColumns.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201706080632469_AddIndexIsLatestSemVer2.cs" />
+    <Compile Include="Migrations\201706080632469_AddIndexIsLatestSemVer2.Designer.cs">
+      <DependentUpon>201706080632469_AddIndexIsLatestSemVer2.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201706080930506_AddIndexSemVerLevelKeyPackageRegistrationKey.cs" />
+    <Compile Include="Migrations\201706080930506_AddIndexSemVerLevelKeyPackageRegistrationKey.Designer.cs">
+      <DependentUpon>201706080930506_AddIndexSemVerLevelKeyPackageRegistrationKey.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201706262349176_AddRepositoryURL_ReadMe.cs" />
+    <Compile Include="Migrations\201706262349176_AddRepositoryURL_ReadMe.Designer.cs">
+      <DependentUpon>201706262349176_AddRepositoryURL_ReadMe.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201708241907124_PrefixReservation.cs" />
+    <Compile Include="Migrations\201708241907124_PrefixReservation.Designer.cs">
+      <DependentUpon>201708241907124_PrefixReservation.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201709072246362_AddPackageLicenseReport2Sproc.cs" />
+    <Compile Include="Migrations\201709072246362_AddPackageLicenseReport2Sproc.Designer.cs">
+      <DependentUpon>201709072246362_AddPackageLicenseReport2Sproc.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201709111714021_AddPackageStatusKey.cs" />
+    <Compile Include="Migrations\201709111714021_AddPackageStatusKey.Designer.cs">
+      <DependentUpon>201709111714021_AddPackageStatusKey.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201709202249402_AddPackageOwnershipRequestsPage.cs" />
+    <Compile Include="Migrations\201709202249402_AddPackageOwnershipRequestsPage.Designer.cs">
+      <DependentUpon>201709202249402_AddPackageOwnershipRequestsPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="RequestModels\ReadMeRequest.cs" />
+    <Compile Include="OData\Serializers\FeedPackageAnnotationStrategy.cs" />
+    <Compile Include="OData\Serializers\IFeedPackageAnnotationStrategy.cs" />
+    <Compile Include="OData\Serializers\V1FeedPackageAnnotationStrategy.cs" />
+    <Compile Include="OData\Serializers\V2FeedPackageAnnotationStrategy.cs" />
+    <Compile Include="Services\IReadMeService.cs" />
+    <Compile Include="Services\IValidationService.cs" />
+    <Compile Include="Services\PackageUploadService.cs" />
+    <Compile Include="Services\IPackageUploadService.cs" />
+    <Compile Include="Services\PackageValidationResult.cs" />
+    <Compile Include="Services\PackageValidationResultType.cs" />
+    <Compile Include="Services\ReadMeService.cs" />
+    <Compile Include="Services\TyposquattingService.cs" />
+    <Compile Include="Services\TyposquattingDistanceCalculation.cs" />
+    <Compile Include="Services\TyposquattingStringNormalization.cs" />
+    <Compile Include="Services\UpdateDeprecationError.cs" />
+    <Compile Include="Services\ValidationService.cs" />
+    <Compile Include="Telemetry\ClientInformationTelemetryEnricher.cs" />
+    <Compile Include="Telemetry\ClientTelemetryPIIProcessor.cs" />
+    <Compile Include="Telemetry\DeploymentIdTelemetryEnricher.cs" />
+    <Compile Include="Telemetry\QuietExceptionLogger.cs" />
+    <Compile Include="Infrastructure\PasswordValidationAttribute.cs" />
+    <Compile Include="Migrations\201602181939424_RemovePackageStatistics.cs" />
+    <Compile Include="Migrations\201602181939424_RemovePackageStatistics.Designer.cs">
+      <DependentUpon>201602181939424_RemovePackageStatistics.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201603111230347_RemoveSqlDownloadStatsAggregation.cs" />
+    <Compile Include="Migrations\201603111230347_RemoveSqlDownloadStatsAggregation.Designer.cs">
+      <DependentUpon>201603111230347_RemoveSqlDownloadStatsAggregation.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201603151731262_AddIndexForPackageDeletes.cs" />
+    <Compile Include="Migrations\201603151731262_AddIndexForPackageDeletes.Designer.cs">
+      <DependentUpon>201603151731262_AddIndexForPackageDeletes.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201604061724388_NotifyPackagePushed.cs" />
+    <Compile Include="Migrations\201604061724388_NotifyPackagePushed.Designer.cs">
+      <DependentUpon>201604061724388_NotifyPackagePushed.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201605250728584_AddAdditionalIndexForPackageDeletes.cs" />
+    <Compile Include="Migrations\201605250728584_AddAdditionalIndexForPackageDeletes.Designer.cs">
+      <DependentUpon>201605250728584_AddAdditionalIndexForPackageDeletes.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201605250755294_AddIndexForUserEmailAddress.cs" />
+    <Compile Include="Migrations\201605250755294_AddIndexForUserEmailAddress.Designer.cs">
+      <DependentUpon>201605250755294_AddIndexForUserEmailAddress.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201605310704169_RemoveOldCredentialColumnsFromUsersTable.cs" />
+    <Compile Include="Migrations\201605310704169_RemoveOldCredentialColumnsFromUsersTable.Designer.cs">
+      <DependentUpon>201605310704169_RemoveOldCredentialColumnsFromUsersTable.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201606012049351_AddIndexForCredentialsUserKey.cs" />
+    <Compile Include="Migrations\201606012049351_AddIndexForCredentialsUserKey.Designer.cs">
+      <DependentUpon>201606012049351_AddIndexForCredentialsUserKey.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201606012058492_AddIndexForPackageLicenseReportsPackageKey.cs" />
+    <Compile Include="Migrations\201606012058492_AddIndexForPackageLicenseReportsPackageKey.Designer.cs">
+      <DependentUpon>201606012058492_AddIndexForPackageLicenseReportsPackageKey.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201606020741056_CredentialExpires.cs" />
+    <Compile Include="Migrations\201606020741056_CredentialExpires.Designer.cs">
+      <DependentUpon>201606020741056_CredentialExpires.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201607190813558_CredentialDoesNotExpire.cs" />
+    <Compile Include="Migrations\201607190813558_CredentialDoesNotExpire.Designer.cs">
+      <DependentUpon>201607190813558_CredentialDoesNotExpire.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201607190842411_CredentialLastUsed.cs" />
+    <Compile Include="Migrations\201607190842411_CredentialLastUsed.Designer.cs">
+      <DependentUpon>201607190842411_CredentialLastUsed.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201608251939567_AddPackageTypes.cs" />
+    <Compile Include="Migrations\201608251939567_AddPackageTypes.Designer.cs">
+      <DependentUpon>201608251939567_AddPackageTypes.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201609092252096_AddIndexCredentialExpires.cs" />
+    <Compile Include="Migrations\201609092252096_AddIndexCredentialExpires.Designer.cs">
+      <DependentUpon>201609092252096_AddIndexCredentialExpires.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201609092255576_AddIndexUsersEmail.cs" />
+    <Compile Include="Migrations\201609092255576_AddIndexUsersEmail.Designer.cs">
+      <DependentUpon>201609092255576_AddIndexUsersEmail.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201610042351343_AddUserFailedLogin.cs" />
+    <Compile Include="Migrations\201610042351343_AddUserFailedLogin.Designer.cs">
+      <DependentUpon>201610042351343_AddUserFailedLogin.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201609211206577_ApiKeyDescription.cs" />
+    <Compile Include="Migrations\201609211206577_ApiKeyDescription.Designer.cs">
+      <DependentUpon>201609211206577_ApiKeyDescription.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201609260823310_ScopedCredential.cs" />
+    <Compile Include="Migrations\201609260823310_ScopedCredential.Designer.cs">
+      <DependentUpon>201609260823310_ScopedCredential.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201609270831462_AddExpirationColumn.cs" />
+    <Compile Include="Migrations\201609270831462_AddExpirationColumn.Designer.cs">
+      <DependentUpon>201609270831462_AddExpirationColumn.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201701120413341_AddScopeCredentialKey.cs" />
+    <Compile Include="Migrations\201701120413341_AddScopeCredentialKey.Designer.cs">
+      <DependentUpon>201701120413341_AddScopeCredentialKey.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201611240011320_AddTriggerForPackagesLastEdited.cs" />
+    <Compile Include="Migrations\201611240011320_AddTriggerForPackagesLastEdited.Designer.cs">
+      <DependentUpon>201611240011320_AddTriggerForPackagesLastEdited.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201703221228170_AddSemVerLevelKeyColumn.cs" />
+    <Compile Include="Migrations\201703221228170_AddSemVerLevelKeyColumn.Designer.cs">
+      <DependentUpon>201703221228170_AddSemVerLevelKeyColumn.cs</DependentUpon>
+    </Compile>
+    <Compile Include="OData\Conventions\CompositeODataKeyHelper.cs" />
+    <Compile Include="OData\Conventions\EntitySetPropertyRoutingConvention.cs" />
+    <Compile Include="OData\ODataServiceVersionHeaderPropagatingBatchHandler.cs" />
+    <Compile Include="OData\QueryInterceptors\NormalizeVersionInterceptor.cs" />
+    <Compile Include="OData\QueryAllowed\ODataQueryFilter.cs" />
+    <Compile Include="OData\QueryAllowed\ODataQueryVerifier.cs" />
+    <Compile Include="OData\QueryAllowed\ODataQueryRequest.cs" />
+    <Compile Include="OData\QueryInterceptors\ODataRemoveSorter.cs" />
+    <Compile Include="OData\SearchService\SearchAdaptorResult.cs" />
+    <Compile Include="OData\SearchService\SearchHijacker.cs" />
+    <Compile Include="Extensions\NumberExtensions.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Extensions\HttpRequestExtensions.cs" />
+    <Compile Include="Helpers\HostMachine.cs" />
+    <Compile Include="Infrastructure\DependencyResolverServiceProviderAdapter.cs" />
+    <Compile Include="Infrastructure\Lucene\CloudDownloadCountServiceRefreshJob.cs" />
+    <Compile Include="UrlHelperExtensions.cs" />
+    <Compile Include="ViewModels\AddOrganizationViewModel.cs" />
+    <Compile Include="ViewModels\AddPackageOwnerViewModel.cs" />
+    <Compile Include="ViewModels\CompositeLicenseExpressionSegmentViewModel.cs" />
+    <Compile Include="ViewModels\DeleteOrganizationViewModel.cs" />
+    <Compile Include="ViewModels\DeleteUserViewModel.cs" />
+    <Compile Include="ViewModels\DisplayLicenseViewModel.cs" />
+    <Compile Include="ViewModels\ListCertificateItemViewModel.cs" />
+    <Compile Include="ViewModels\GalleryHomeViewModel.cs" />
+    <Compile Include="ViewModels\HandleOrganizationMembershipRequestModel.cs" />
+    <Compile Include="ViewModels\ListPackageItemRequiredSignerViewModel.cs" />
+    <Compile Include="ViewModels\ManagePackageViewModel.cs" />
+    <Compile Include="ViewModels\BasicUserViewModel.cs" />
+    <Compile Include="ViewModels\SearchSideBySideViewModel.cs" />
+    <Compile Include="ViewModels\SignerViewModel.cs" />
+    <Compile Include="WebRole.cs" />
+    <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
+    <Compile Include="Areas\Admin\Controllers\AdminControllerBase.cs" />
+    <Compile Include="Areas\Admin\Controllers\HomeController.cs" />
+    <Compile Include="Areas\Admin\DynamicData\Content\GridViewPager.ascx.cs">
+      <DependentUpon>GridViewPager.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\Content\GridViewPager.ascx.designer.cs">
+      <DependentUpon>GridViewPager.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\Default.aspx.cs">
+      <DependentUpon>Default.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\Default.aspx.designer.cs">
+      <DependentUpon>Default.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\DynamicDataManager.cs" />
+    <Compile Include="Areas\Admin\DynamicData\EntityTemplates\Default.ascx.cs">
+      <DependentUpon>Default.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\EntityTemplates\Default.ascx.designer.cs">
+      <DependentUpon>Default.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\EntityTemplates\Default_Edit.ascx.cs">
+      <DependentUpon>Default_Edit.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\EntityTemplates\Default_Edit.ascx.designer.cs">
+      <DependentUpon>Default_Edit.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\EntityTemplates\Default_Insert.ascx.cs">
+      <DependentUpon>Default_Insert.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\EntityTemplates\Default_Insert.ascx.designer.cs">
+      <DependentUpon>Default_Insert.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Boolean.ascx.cs">
+      <DependentUpon>Boolean.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Boolean.ascx.designer.cs">
+      <DependentUpon>Boolean.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Boolean_Edit.ascx.cs">
+      <DependentUpon>Boolean_Edit.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Boolean_Edit.ascx.designer.cs">
+      <DependentUpon>Boolean_Edit.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Children.ascx.cs">
+      <DependentUpon>Children.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Children.ascx.designer.cs">
+      <DependentUpon>Children.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Children_Insert.ascx.cs">
+      <DependentUpon>Children_Insert.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Children_Insert.ascx.designer.cs">
+      <DependentUpon>Children_Insert.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\DateTime.ascx.cs">
+      <DependentUpon>DateTime.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\DateTime.ascx.designer.cs">
+      <DependentUpon>DateTime.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\DateTime_Edit.ascx.cs">
+      <DependentUpon>DateTime_Edit.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\DateTime_Edit.ascx.designer.cs">
+      <DependentUpon>DateTime_Edit.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Decimal_Edit.ascx.cs">
+      <DependentUpon>Decimal_Edit.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Decimal_Edit.ascx.designer.cs">
+      <DependentUpon>Decimal_Edit.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\EmailAddress.ascx.cs">
+      <DependentUpon>EmailAddress.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\EmailAddress.ascx.designer.cs">
+      <DependentUpon>EmailAddress.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Enumeration.ascx.cs">
+      <DependentUpon>Enumeration.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Enumeration.ascx.designer.cs">
+      <DependentUpon>Enumeration.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Enumeration_Edit.ascx.cs">
+      <DependentUpon>Enumeration_Edit.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Enumeration_Edit.ascx.designer.cs">
+      <DependentUpon>Enumeration_Edit.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\ForeignKey.ascx.cs">
+      <DependentUpon>ForeignKey.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\ForeignKey.ascx.designer.cs">
+      <DependentUpon>ForeignKey.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\ForeignKey_Edit.ascx.cs">
+      <DependentUpon>ForeignKey_Edit.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\ForeignKey_Edit.ascx.designer.cs">
+      <DependentUpon>ForeignKey_Edit.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Integer_Edit.ascx.cs">
+      <DependentUpon>Integer_Edit.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Integer_Edit.ascx.designer.cs">
+      <DependentUpon>Integer_Edit.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\ManyToMany.ascx.cs">
+      <DependentUpon>ManyToMany.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\ManyToMany.ascx.designer.cs">
+      <DependentUpon>ManyToMany.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\ManyToMany_Edit.ascx.cs">
+      <DependentUpon>ManyToMany_Edit.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\ManyToMany_Edit.ascx.designer.cs">
+      <DependentUpon>ManyToMany_Edit.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\MultilineText_Edit.ascx.cs">
+      <DependentUpon>MultilineText_Edit.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\MultilineText_Edit.ascx.designer.cs">
+      <DependentUpon>MultilineText_Edit.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Text.ascx.cs">
+      <DependentUpon>Text.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Text.ascx.designer.cs">
+      <DependentUpon>Text.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Text_Edit.ascx.cs">
+      <DependentUpon>Text_Edit.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Text_Edit.ascx.designer.cs">
+      <DependentUpon>Text_Edit.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Url.ascx.cs">
+      <DependentUpon>Url.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Url.ascx.designer.cs">
+      <DependentUpon>Url.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\Filters\Boolean.ascx.cs">
+      <DependentUpon>Boolean.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\Filters\Boolean.ascx.designer.cs">
+      <DependentUpon>Boolean.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\Filters\Enumeration.ascx.cs">
+      <DependentUpon>Enumeration.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\Filters\Enumeration.ascx.designer.cs">
+      <DependentUpon>Enumeration.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\Filters\ForeignKey.ascx.cs">
+      <DependentUpon>ForeignKey.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\Filters\ForeignKey.ascx.designer.cs">
+      <DependentUpon>ForeignKey.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\PageTemplates\Details.aspx.cs">
+      <DependentUpon>Details.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\PageTemplates\Details.aspx.designer.cs">
+      <DependentUpon>Details.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\PageTemplates\Edit.aspx.cs">
+      <DependentUpon>Edit.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\PageTemplates\Edit.aspx.designer.cs">
+      <DependentUpon>Edit.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\PageTemplates\Insert.aspx.cs">
+      <DependentUpon>Insert.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\PageTemplates\Insert.aspx.designer.cs">
+      <DependentUpon>Insert.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\PageTemplates\List.aspx.cs">
+      <DependentUpon>List.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\PageTemplates\List.aspx.designer.cs">
+      <DependentUpon>List.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\Site.master.cs">
+      <DependentUpon>Site.master</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Areas\Admin\DynamicData\Site.master.designer.cs">
+      <DependentUpon>Site.master</DependentUpon>
+    </Compile>
+    <Compile Include="Controllers\StatisticsController.cs" />
+    <Compile Include="OData\QueryInterceptors\CountInterceptor.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="OData\QueryInterceptors\DisregardODataInterceptor.cs" />
+    <Compile Include="OData\SearchService\SearchAdaptor.cs" />
+    <Compile Include="OData\V1FeedPackage.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="OData\PackageExtensions.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="OData\V2FeedPackage.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Filters\ApiAuthorizeAttribute.cs" />
+    <Compile Include="Filters\CacheFilter.cs" />
+    <Compile Include="Filters\CompressFilter.cs" />
+    <Compile Include="Filters\RequiresAccountConfirmationAttribute.cs" />
+    <Compile Include="Helpers\AccordeonHelper.cs" />
+    <Compile Include="Helpers\EnumHelper.cs" />
+    <Compile Include="Helpers\FileHelper.cs" />
+    <Compile Include="Helpers\HtmlExtensions.cs" />
+    <Compile Include="Helpers\StringExtensions.cs" />
+    <Compile Include="Helpers\StatisticsHelper.cs" />
+    <Compile Include="Helpers\TreeView.cs" />
+    <Compile Include="ImageResult.cs" />
+    <Compile Include="Infrastructure\AntiForgeryErrorFilter.cs" />
+    <Compile Include="Infrastructure\ApplicationVersionHelper.cs" />
+    <Compile Include="Infrastructure\Lucene\ExternalSearchService.cs" />
+    <Compile Include="Infrastructure\MandatoryAttribute.cs" />
+    <Compile Include="Infrastructure\NotEqualAttribute.cs" />
+    <Compile Include="Infrastructure\ReadOnlyModeErrorFilter.cs" />
+    <Compile Include="Infrastructure\SafeRedirectResult.cs" />
+    <Compile Include="Infrastructure\StatisticsReport.cs" />
+    <Compile Include="Infrastructure\SubtextAttribute.cs" />
+    <Compile Include="Infrastructure\HintAttribute.cs" />
+    <Compile Include="Infrastructure\HttpHeaderValueProvider.cs" />
+    <Compile Include="Infrastructure\HttpHeaderValueProviderFactory.cs" />
+    <Compile Include="Infrastructure\HttpStatusCodeWithBodyResult.cs" />
+    <Compile Include="Infrastructure\Jobs\NuGetJobCoordinator.cs" />
+    <Compile Include="Infrastructure\Lucene\AnalysisHelper.cs" />
+    <Compile Include="Infrastructure\Lucene\LuceneCommon.cs" />
+    <Compile Include="Infrastructure\Lucene\LuceneIndexingJob.cs" />
+    <Compile Include="Infrastructure\Lucene\LuceneIndexingService.cs" />
+    <Compile Include="Infrastructure\Lucene\PerFieldAnalyzer.cs" />
+    <Compile Include="Infrastructure\Lucene\NuGetSearchTerm.cs" />
+    <Compile Include="Infrastructure\TracingHttpHandler.cs" />
+    <Compile Include="Infrastructure\UserSafeException.cs" />
+    <Compile Include="Migrations\201110060711357_Initial.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Migrations\201110060711357_Initial.Designer.cs">
+      <DependentUpon>201110060711357_Initial.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201110102157002_PrereleaseChanges.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Migrations\201110102157002_PrereleaseChanges.Designer.cs">
+      <DependentUpon>201110102157002_PrereleaseChanges.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201110180052097_GallerySettings.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Migrations\201110180052097_GallerySettings.Designer.cs">
+      <DependentUpon>201110180052097_GallerySettings.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201110230649210_PackageOwnerRequests.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Migrations\201110230649210_PackageOwnerRequests.Designer.cs">
+      <DependentUpon>201110230649210_PackageOwnerRequests.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201111022024584_PackageDependencyVersionSpec.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Migrations\201111022024584_PackageDependencyVersionSpec.Designer.cs">
+      <DependentUpon>201111022024584_PackageDependencyVersionSpec.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201111022051010_PackageReleaseNotes.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Migrations\201111022051010_PackageReleaseNotes.Designer.cs">
+      <DependentUpon>201111022051010_PackageReleaseNotes.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201111080239544_ListPackagesIndexes.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Migrations\201111080239544_ListPackagesIndexes.Designer.cs">
+      <DependentUpon>201111080239544_ListPackagesIndexes.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201111080816426_DisplayPackageIndexes.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Migrations\201111080816426_DisplayPackageIndexes.Designer.cs">
+      <DependentUpon>201111080816426_DisplayPackageIndexes.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201111081908453_MyPackagesIndexes.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Migrations\201111081908453_MyPackagesIndexes.Designer.cs">
+      <DependentUpon>201111081908453_MyPackagesIndexes.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201111150729167_AddSmtpPassword.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Migrations\201111150729167_AddSmtpPassword.Designer.cs">
+      <DependentUpon>201111150729167_AddSmtpPassword.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201111222338036_GalleryOwnerEmailSettings.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Migrations\201111222338036_GalleryOwnerEmailSettings.Designer.cs">
+      <DependentUpon>201111222338036_GalleryOwnerEmailSettings.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201201031925005_AddPasswordHash.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Migrations\201201031925005_AddPasswordHash.Designer.cs">
+      <DependentUpon>201201031925005_AddPasswordHash.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201203180016174_CuratedFeeds.cs" />
+    <Compile Include="Migrations\201203180016174_CuratedFeeds.Designer.cs">
+      <DependentUpon>201203180016174_CuratedFeeds.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201203180320147_ChangeCuratedFeedIdToName.cs" />
+    <Compile Include="Migrations\201203180320147_ChangeCuratedFeedIdToName.Designer.cs">
+      <DependentUpon>201203180320147_ChangeCuratedFeedIdToName.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201203182132476_CuratedPackages.cs" />
+    <Compile Include="Migrations\201203182132476_CuratedPackages.Designer.cs">
+      <DependentUpon>201203182132476_CuratedPackages.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201205172325056_FrameworkName.cs" />
+    <Compile Include="Migrations\201205172325056_FrameworkName.Designer.cs">
+      <DependentUpon>201205172325056_FrameworkName.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201206131919241_AddTargetFxToDependencies.cs" />
+    <Compile Include="Migrations\201206131919241_AddTargetFxToDependencies.Designer.cs">
+      <DependentUpon>201206131919241_AddTargetFxToDependencies.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201206250141447_ExecuteELMAHSql.cs" />
+    <Compile Include="Migrations\201206250141447_ExecuteELMAHSql.Designer.cs">
+      <DependentUpon>201206250141447_ExecuteELMAHSql.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201208171904586_Language.cs" />
+    <Compile Include="Migrations\201208171904586_Language.Designer.cs">
+      <DependentUpon>201208171904586_Language.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201208222206329_ColumnLengthOfPackageTable.cs" />
+    <Compile Include="Migrations\201208222206329_ColumnLengthOfPackageTable.Designer.cs">
+      <DependentUpon>201208222206329_ColumnLengthOfPackageTable.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201208222227425_PackageIndexes.cs" />
+    <Compile Include="Migrations\201208222227425_PackageIndexes.Designer.cs">
+      <DependentUpon>201208222227425_PackageIndexes.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201208230640333_PackageSortingIndexes.cs" />
+    <Compile Include="Migrations\201208230640333_PackageSortingIndexes.Designer.cs">
+      <DependentUpon>201208230640333_PackageSortingIndexes.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201208302051344_CreateAggregateStatisticsSP.cs" />
+    <Compile Include="Migrations\201208302051344_CreateAggregateStatisticsSP.Designer.cs">
+      <DependentUpon>201208302051344_CreateAggregateStatisticsSP.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201209181743161_AggregateStatsSp_ReduxLastUpdate.cs" />
+    <Compile Include="Migrations\201209181743161_AggregateStatsSp_ReduxLastUpdate.Designer.cs">
+      <DependentUpon>201209181743161_AggregateStatsSp_ReduxLastUpdate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201210312146585_GallerySettings_TotalDownloadCount.cs" />
+    <Compile Include="Migrations\201210312146585_GallerySettings_TotalDownloadCount.Designer.cs">
+      <DependentUpon>201210312146585_GallerySettings_TotalDownloadCount.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201210312150156_AggregateStatistics_TotalDownloadCount.cs" />
+    <Compile Include="Migrations\201210312150156_AggregateStatistics_TotalDownloadCount.Designer.cs">
+      <DependentUpon>201210312150156_AggregateStatistics_TotalDownloadCount.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201211271813001_AddNuGetOperation.cs" />
+    <Compile Include="Migrations\201211271813001_AddNuGetOperation.Designer.cs">
+      <DependentUpon>201211271813001_AddNuGetOperation.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201301180132053_RemoveWorkItems.cs" />
+    <Compile Include="Migrations\201301180132053_RemoveWorkItems.Designer.cs">
+      <DependentUpon>201301180132053_RemoveWorkItems.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201302072118537_MovingGallerySettingsToConfiguration.cs" />
+    <Compile Include="Migrations\201302072118537_MovingGallerySettingsToConfiguration.Designer.cs">
+      <DependentUpon>201302072118537_MovingGallerySettingsToConfiguration.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201302282115583_AddMinRequiredVerisonColumn.cs" />
+    <Compile Include="Migrations\201302282115583_AddMinRequiredVerisonColumn.Designer.cs">
+      <DependentUpon>201302282115583_AddMinRequiredVerisonColumn.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201304020006512_UserLookupOptimization.cs" />
+    <Compile Include="Migrations\201304020006512_UserLookupOptimization.Designer.cs">
+      <DependentUpon>201304020006512_UserLookupOptimization.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201304251927587_UserCreatedDate.cs" />
+    <Compile Include="Migrations\201304251927587_UserCreatedDate.Designer.cs">
+      <DependentUpon>201304251927587_UserCreatedDate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201304091828587_Contract_UniqueCuratedPackages.cs" />
+    <Compile Include="Migrations\201304091828587_Contract_UniqueCuratedPackages.Designer.cs">
+      <DependentUpon>201304091828587_Contract_UniqueCuratedPackages.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201306031734581_WidenStatisticsOperationColumn.cs" />
+    <Compile Include="Migrations\201306031734581_WidenStatisticsOperationColumn.Designer.cs">
+      <DependentUpon>201306031734581_WidenStatisticsOperationColumn.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201306031754328_SupportNewClientHeaders.cs" />
+    <Compile Include="Migrations\201306031754328_SupportNewClientHeaders.Designer.cs">
+      <DependentUpon>201306031754328_SupportNewClientHeaders.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201308051913351_EditableMetadata.cs" />
+    <Compile Include="Migrations\201308051913351_EditableMetadata.Designer.cs">
+      <DependentUpon>201308051913351_EditableMetadata.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201308292200027_PackageLastEditedTimestamp.cs" />
+    <Compile Include="Migrations\201308292200027_PackageLastEditedTimestamp.Designer.cs">
+      <DependentUpon>201308292200027_PackageLastEditedTimestamp.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201308302258388_AddPackageEditLastErrorColumn.cs" />
+    <Compile Include="Migrations\201308302258388_AddPackageEditLastErrorColumn.Designer.cs">
+      <DependentUpon>201308302258388_AddPackageEditLastErrorColumn.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201309092040124_LicenseReports.cs" />
+    <Compile Include="Migrations\201309092040124_LicenseReports.Designer.cs">
+      <DependentUpon>201309092040124_LicenseReports.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201309092041546_AddPackageLicenseReportSproc.cs" />
+    <Compile Include="Migrations\201309092041546_AddPackageLicenseReportSproc.Designer.cs">
+      <DependentUpon>201309092041546_AddPackageLicenseReportSproc.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201309101922464_NormalizedVersionColumn.cs" />
+    <Compile Include="Migrations\201309101922464_NormalizedVersionColumn.Designer.cs">
+      <DependentUpon>201309101922464_NormalizedVersionColumn.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201309172217450_CredentialsTable.cs" />
+    <Compile Include="Migrations\201309172217450_CredentialsTable.Designer.cs">
+      <DependentUpon>201309172217450_CredentialsTable.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201310281909048_PackageStatistics.cs" />
+    <Compile Include="Migrations\201310281909048_PackageStatistics.Designer.cs">
+      <DependentUpon>201310281909048_PackageStatistics.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201310301757446_RemoveOldCredentialColumns.cs" />
+    <Compile Include="Migrations\201310301757446_RemoveOldCredentialColumns.Designer.cs">
+      <DependentUpon>201310301757446_RemoveOldCredentialColumns.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201310301947399_AddCredentialDescriptionColumn.cs" />
+    <Compile Include="Migrations\201310301947399_AddCredentialDescriptionColumn.Designer.cs">
+      <DependentUpon>201310301947399_AddCredentialDescriptionColumn.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201311261928187_NullifyOldColumns.cs" />
+    <Compile Include="Migrations\201311261928187_NullifyOldColumns.Designer.cs">
+      <DependentUpon>201311261928187_NullifyOldColumns.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201505261416326_UniquePackageRegistration.cs" />
+    <Compile Include="Migrations\201505261416326_UniquePackageRegistration.Designer.cs">
+      <DependentUpon>201505261416326_UniquePackageRegistration.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201507171324501_AdditionalIndexesForPerformance.cs" />
+    <Compile Include="Migrations\201507171324501_AdditionalIndexesForPerformance.Designer.cs">
+      <DependentUpon>201507171324501_AdditionalIndexesForPerformance.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201508031046581_IndexPackagesLastUpdatedWithIsListed.cs" />
+    <Compile Include="Migrations\201508031046581_IndexPackagesLastUpdatedWithIsListed.Designer.cs">
+      <DependentUpon>201508031046581_IndexPackagesLastUpdatedWithIsListed.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201510010732458_EntityFramework6.cs" />
+    <Compile Include="Migrations\201510010732458_EntityFramework6.Designer.cs">
+      <DependentUpon>201510010732458_EntityFramework6.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201510011319560_PackageDelete.cs" />
+    <Compile Include="Migrations\201510011319560_PackageDelete.Designer.cs">
+      <DependentUpon>201510011319560_PackageDelete.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201511050008198_PackagesCreatedDateDefaultValue.cs" />
+    <Compile Include="Migrations\201511050008198_PackagesCreatedDateDefaultValue.Designer.cs">
+      <DependentUpon>201511050008198_PackagesCreatedDateDefaultValue.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\MigrationsConfiguration.cs" />
+    <Compile Include="Migrations\SqlResourceMigration.cs" />
+    <Compile Include="OData\Conventions\ActionCountRoutingConvention.cs" />
+    <Compile Include="OData\Conventions\ControllerAliasingODataRoutingConvention.cs" />
+    <Compile Include="OData\Conventions\CompositeKeyRoutingConvention.cs" />
+    <Compile Include="OData\Conventions\EntitySetCountRoutingConvention.cs" />
+    <Compile Include="OData\Conventions\MethodNameActionRoutingConvention.cs" />
+    <Compile Include="OData\NuGetODataController.cs" />
+    <Compile Include="OData\Routing\CountODataPathHandler.cs" />
+    <Compile Include="OData\Routing\CountPathSegment.cs" />
+    <Compile Include="OData\Serializers\NuGetEntityTypeSerializer.cs" />
+    <Compile Include="OData\Serializers\CustomSerializerProvider.cs" />
+    <Compile Include="Infrastructure\Lucene\NuGetQueryParser.cs" />
+    <Compile Include="RequestModels\DeletePackagesRequest.cs" />
+    <Compile Include="RequestModels\EditPackageVersionRequest.cs" />
+    <Compile Include="RequestModels\VerifyPackageRequest.cs" />
+    <Compile Include="Services\ReflowPackageService.cs" />
+    <Compile Include="ViewModels\ManageOrganizationsItemViewModel.cs" />
+    <Compile Include="ViewModels\ManageOrganizationsViewModel.cs" />
+    <Compile Include="ViewModels\ChangeEmailViewModel.cs" />
+    <Compile Include="ViewModels\ChangeNotificationsViewModel.cs" />
+    <Compile Include="ViewModels\ChangePasswordViewModel.cs" />
+    <Compile Include="ViewModels\ListPackageOwnerViewModel.cs" />
+    <Compile Include="ViewModels\OrganizationAccountViewModel.cs" />
+    <Compile Include="ViewModels\OrganizationMemberViewModel.cs" />
+    <Compile Include="ViewModels\DeleteAccountViewModel.cs" />
+    <Compile Include="ViewModels\ApiKeyOwnerViewModel.cs" />
+    <Compile Include="ViewModels\PackageOwnersResultViewModel.cs" />
+    <Compile Include="ViewModels\ApiKeyListViewModel.cs" />
+    <Compile Include="ViewModels\ApiKeyViewModel.cs" />
+    <Compile Include="ViewModels\OwnerRequestsListItemViewModel.cs" />
+    <Compile Include="ViewModels\PackageStatusSummary.cs" />
+    <Compile Include="ViewModels\ReportViewModel.cs" />
+    <Compile Include="ViewModels\ReservedNamespaceListViewModel.cs" />
+    <Compile Include="ViewModels\ReservedNamespaceListItemViewModel.cs" />
+    <Compile Include="ViewModels\OwnerRequestsListViewModel.cs" />
+    <Compile Include="ViewModels\OwnerRequestsViewModel.cs" />
+    <Compile Include="ViewModels\PackageHeadingModel.cs" />
+    <Compile Include="ViewModels\PackageManagerViewModel.cs" />
+    <Compile Include="ViewModels\ReportMyPackageViewModel.cs" />
+    <Compile Include="ViewModels\PackageListSearchViewModel.cs" />
+    <Compile Include="ViewModels\ThirdPartyPackageManagerViewModel.cs" />
+    <Compile Include="ViewModels\TransformAccountFailedViewModel.cs" />
+    <Compile Include="ViewModels\TransformAccountViewModel.cs" />
+    <Compile Include="ViewModels\UserAccountViewModel.cs" />
+    <Compile Include="WebApi\PlainTextResult.cs" />
+    <Compile Include="WebApi\QueryResult.cs" />
+    <Compile Include="WebApi\QueryResultDefaults.cs" />
+    <Compile Include="WebApi\QueryResultExtensions.cs" />
+    <Content Include="ApplicationInsights.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\Url_Edit.ascx" />
+    <Content Include="Areas\Admin\DynamicData\PageTemplates\ListDetails.aspx" />
+    <Content Include="Content\admin\SupportRequestStyles.css" />
+    <Content Include="Content\fabric.css" />
+    <Content Include="Content\gallery\img\logo-og-600x600.png" />
+    <Content Include="Content\gallery\img\rss-24x24.png" />
+    <Content Include="Content\Images\icons\apiKey.png" />
+    <Content Include="Content\Images\icons\apiKeyExpired.png" />
+    <Content Include="Content\Images\icons\apiKeyLegacy.png" />
+    <Content Include="Content\Images\icons\apiKeyNew.png" />
+    <Content Include="Content\Images\icons\copy.png" />
+    <Content Include="Content\Images\icons\delete.png" />
+    <Content Include="Content\Images\icons\edit.png" />
+    <Content Include="Content\Images\icons\expire.png" />
+    <Content Include="Content\Images\icons\regenerate.png" />
+    <Content Include="Content\gallery\css\bootstrap-theme.css" />
+    <Content Include="Content\gallery\css\bootstrap.css" />
+    <Content Include="Content\gallery\css\fabric.css" />
+    <Content Include="Content\gallery\img\api-key-256x256.png" />
+    <Content Include="Content\gallery\img\api-key-expired-256x256.png" />
+    <Content Include="Content\gallery\img\api-key-expired.svg" />
+    <Content Include="Content\gallery\img\api-key-legacy-256x256.png" />
+    <Content Include="Content\gallery\img\api-key-legacy.svg" />
+    <Content Include="Content\gallery\img\api-key-new-256x256.png" />
+    <Content Include="Content\gallery\img\api-key-new.svg" />
+    <Content Include="Content\gallery\img\api-key.svg" />
+    <Content Include="Content\gallery\img\blue-circle-225x225.png" />
+    <Content Include="Content\gallery\img\blue-circle.svg" />
+    <Content Include="Content\gallery\img\circuit-board.svg" />
+    <Content Include="Content\gallery\img\default-package-icon-256x256.png" />
+    <Content Include="Content\gallery\img\default-package-icon.svg" />
+    <Content Include="Content\gallery\img\dotnet-foundation-42x42.png" />
+    <Content Include="Content\gallery\img\dotnet-foundation.svg" />
+    <Content Include="Content\gallery\img\facebook-24x24.png" />
+    <Content Include="Content\gallery\img\facebook.svg" />
+    <Content Include="Content\gallery\img\git-32x32.png" />
+    <Content Include="Content\gallery\img\git.svg" />
+    <Content Include="Content\gallery\img\github-32x32.png" />
+    <Content Include="Content\gallery\img\github.svg" />
+    <Content Include="Content\gallery\img\logo-footer-184x57.png" />
+    <Content Include="Content\gallery\img\logo-footer.svg" />
+    <Content Include="Content\gallery\img\logo-header-94x29.png" />
+    <Content Include="Content\gallery\img\logo-header.svg" />
+    <Content Include="Content\gallery\img\manage-organizations-260x150.png" />
+    <Content Include="Content\gallery\img\manage-organizations.svg" />
+    <Content Include="Content\gallery\img\microsoft-account-24x24.png" />
+    <Content Include="Content\gallery\img\microsoft-account.svg" />
+    <Content Include="Content\gallery\img\orange-circle-225x225.png" />
+    <Content Include="Content\gallery\img\orange-circle.svg" />
+    <Content Include="Content\gallery\img\purple-circle-225x225.png" />
+    <Content Include="Content\gallery\img\purple-circle.svg" />
+    <Content Include="Content\gallery\img\reserved-indicator-20x20.png" />
+    <Content Include="Content\gallery\img\reserved-indicator-256x256.png" />
+    <Content Include="Content\gallery\img\reserved-indicator-25x25.png" />
+    <Content Include="Content\gallery\img\reserved-indicator.svg" />
+    <Content Include="Content\gallery\img\rss-36x36.png" />
+    <Content Include="Content\gallery\img\rss.svg" />
+    <Content Include="Content\gallery\img\twitter-24x24.png" />
+    <Content Include="Content\gallery\img\twitter-36x36.png" />
+    <Content Include="Content\gallery\img\twitter.svg" />
+    <Content Include="Content\themes\base\images\animated-overlay.gif" />
+    <Content Include="Content\themes\base\images\ui-bg_flat_0_aaaaaa_40x100.png" />
+    <Content Include="Content\themes\base\images\ui-bg_flat_75_ffffff_40x100.png" />
+    <Content Include="Content\themes\base\images\ui-bg_glass_55_fbf9ee_1x400.png" />
+    <Content Include="Content\themes\base\images\ui-bg_glass_65_ffffff_1x400.png" />
+    <Content Include="Content\themes\base\images\ui-bg_glass_75_dadada_1x400.png" />
+    <Content Include="Content\themes\base\images\ui-bg_glass_75_e6e6e6_1x400.png" />
+    <Content Include="Content\themes\base\images\ui-bg_glass_95_fef1ec_1x400.png" />
+    <Content Include="Content\themes\base\images\ui-bg_highlight-soft_75_cccccc_1x100.png" />
+    <Content Include="Content\themes\base\images\ui-icons_222222_256x240.png" />
+    <Content Include="Content\themes\base\images\ui-icons_2e83ff_256x240.png" />
+    <Content Include="Content\themes\base\images\ui-icons_454545_256x240.png" />
+    <Content Include="Content\themes\base\images\ui-icons_888888_256x240.png" />
+    <Content Include="Content\themes\base\images\ui-icons_cd0a0a_256x240.png" />
+    <Content Include="Content\themes\base\jquery-ui.css" />
+    <Content Include="Content\themes\base\jquery.ui.accordion.css" />
+    <Content Include="Content\themes\base\jquery.ui.all.css" />
+    <Content Include="Content\themes\base\jquery.ui.autocomplete.css" />
+    <Content Include="Content\themes\base\jquery.ui.base.css" />
+    <Content Include="Content\themes\base\jquery.ui.button.css" />
+    <Content Include="Content\themes\base\jquery.ui.core.css" />
+    <Content Include="Content\themes\base\jquery.ui.datepicker.css" />
+    <Content Include="Content\themes\base\jquery.ui.dialog.css" />
+    <Content Include="Content\themes\base\jquery.ui.menu.css" />
+    <Content Include="Content\themes\base\jquery.ui.progressbar.css" />
+    <Content Include="Content\themes\base\jquery.ui.resizable.css" />
+    <Content Include="Content\themes\base\jquery.ui.selectable.css" />
+    <Content Include="Content\themes\base\jquery.ui.slider.css" />
+    <Content Include="Content\themes\base\jquery.ui.spinner.css" />
+    <Content Include="Content\themes\base\jquery.ui.tabs.css" />
+    <Content Include="Content\themes\base\jquery.ui.theme.css" />
+    <Content Include="Content\themes\base\jquery.ui.tooltip.css" />
+    <Content Include="Content\themes\base\minified\images\animated-overlay.gif" />
+    <Content Include="Content\themes\base\minified\images\ui-bg_flat_0_aaaaaa_40x100.png" />
+    <Content Include="Content\themes\base\minified\images\ui-bg_flat_75_ffffff_40x100.png" />
+    <Content Include="Content\themes\base\minified\images\ui-bg_glass_55_fbf9ee_1x400.png" />
+    <Content Include="Content\themes\base\minified\images\ui-bg_glass_65_ffffff_1x400.png" />
+    <Content Include="Content\themes\base\minified\images\ui-bg_glass_75_dadada_1x400.png" />
+    <Content Include="Content\themes\base\minified\images\ui-bg_glass_75_e6e6e6_1x400.png" />
+    <Content Include="Content\themes\base\minified\images\ui-bg_glass_95_fef1ec_1x400.png" />
+    <Content Include="Content\themes\base\minified\images\ui-bg_highlight-soft_75_cccccc_1x100.png" />
+    <Content Include="Content\themes\base\minified\images\ui-icons_222222_256x240.png" />
+    <Content Include="Content\themes\base\minified\images\ui-icons_2e83ff_256x240.png" />
+    <Content Include="Content\themes\base\minified\images\ui-icons_454545_256x240.png" />
+    <Content Include="Content\themes\base\minified\images\ui-icons_888888_256x240.png" />
+    <Content Include="Content\themes\base\minified\images\ui-icons_cd0a0a_256x240.png" />
+    <Content Include="Content\themes\base\minified\jquery-ui.min.css" />
+    <Content Include="Content\themes\base\minified\jquery.ui.accordion.min.css" />
+    <Content Include="Content\themes\base\minified\jquery.ui.autocomplete.min.css" />
+    <Content Include="Content\themes\base\minified\jquery.ui.button.min.css" />
+    <Content Include="Content\themes\base\minified\jquery.ui.core.min.css" />
+    <Content Include="Content\themes\base\minified\jquery.ui.datepicker.min.css" />
+    <Content Include="Content\themes\base\minified\jquery.ui.dialog.min.css" />
+    <Content Include="Content\themes\base\minified\jquery.ui.menu.min.css" />
+    <Content Include="Content\themes\base\minified\jquery.ui.progressbar.min.css" />
+    <Content Include="Content\themes\base\minified\jquery.ui.resizable.min.css" />
+    <Content Include="Content\themes\base\minified\jquery.ui.selectable.min.css" />
+    <Content Include="Content\themes\base\minified\jquery.ui.slider.min.css" />
+    <Content Include="Content\themes\base\minified\jquery.ui.spinner.min.css" />
+    <Content Include="Content\themes\base\minified\jquery.ui.tabs.min.css" />
+    <Content Include="Content\themes\base\minified\jquery.ui.theme.min.css" />
+    <Content Include="Content\themes\base\minified\jquery.ui.tooltip.min.css" />
+    <Content Include="Content\themes\custom\images\animated-overlay.gif" />
+    <Content Include="Content\themes\custom\images\ui-bg_flat_0_aaaaaa_40x100.png" />
+    <Content Include="Content\themes\custom\images\ui-bg_flat_75_ffffff_40x100.png" />
+    <Content Include="Content\themes\custom\images\ui-bg_glass_55_fbf9ee_1x400.png" />
+    <Content Include="Content\themes\custom\images\ui-bg_glass_65_ffffff_1x400.png" />
+    <Content Include="Content\themes\custom\images\ui-bg_glass_75_dadada_1x400.png" />
+    <Content Include="Content\themes\custom\images\ui-bg_glass_75_e6e6e6_1x400.png" />
+    <Content Include="Content\themes\custom\images\ui-bg_glass_95_fef1ec_1x400.png" />
+    <Content Include="Content\themes\custom\images\ui-bg_highlight-soft_75_cccccc_1x100.png" />
+    <Content Include="Content\themes\custom\images\ui-icons_222222_256x240.png" />
+    <Content Include="Content\themes\custom\images\ui-icons_2e83ff_256x240.png" />
+    <Content Include="Content\themes\custom\images\ui-icons_454545_256x240.png" />
+    <Content Include="Content\themes\custom\images\ui-icons_888888_256x240.png" />
+    <Content Include="Content\themes\custom\images\ui-icons_cd0a0a_256x240.png" />
+    <Content Include="D3 LICENSE.txt" />
+    <EmbeddedResource Include="Areas\Admin\Migrations\201805221605033_DropPagerDutyColumn.resx">
+      <DependentUpon>201805221605033_DropPagerDutyColumn.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Infrastructure\AddPackageLicenseReport2.Up.sql" />
+    <EmbeddedResource Include="Infrastructure\AddPackageLicenseReport2.Down.sql" />
+    <Content Include="Areas\Admin\DynamicData\Content\Images\web.config">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="Areas\Admin\Views\Delete\Index.cshtml" />
+    <Content Include="Content\Logos\dnf.png" />
+    <Compile Include="Services\AppActivatorException.cs" />
+    <Compile Include="Services\CloudDownloadCountService.cs" />
+    <Compile Include="Services\ConfirmOwnershipResult.cs" />
+    <Compile Include="Services\DownloadCountObjectMaterializedInterceptor.cs" />
+    <Compile Include="Services\IDownloadCountService.cs" />
+    <Compile Include="Services\IPackageDeleteService.cs" />
+    <Compile Include="Services\IRawSearchService.cs" />
+    <Compile Include="Services\IStatusService.cs" />
+    <Compile Include="Services\JsonStatisticsService.cs" />
+    <Compile Include="Services\CloudReportService.cs" />
+    <Compile Include="Services\IReportService.cs" />
+    <Compile Include="Services\IStatisticsService.cs" />
+    <Compile Include="Services\FileSystemFileStorageService.cs" />
+    <Compile Include="Services\IAggregateStatsService.cs" />
+    <Compile Include="Services\ISearchService.cs" />
+    <Compile Include="Services\IUploadFileService.cs" />
+    <Compile Include="Services\LocalFileReference.cs" />
+    <Compile Include="Services\NullReportService.cs" />
+    <Compile Include="Services\NullStatisticsService.cs" />
+    <Compile Include="Services\PackageFileService.cs" />
+    <Compile Include="Services\PackageSearchResults.cs" />
+    <Compile Include="Services\JsonAggregateStatsService.cs" />
+    <Compile Include="Services\SearchResults.cs" />
+    <Compile Include="Services\SqlAggregateStatsService.cs" />
+    <Compile Include="Services\SearchFilter.cs" />
+    <Compile Include="Services\StatisticsReportName.cs" />
+    <Compile Include="Services\StatisticsReportNotFoundException.cs" />
+    <Compile Include="Services\StatisticsReportResult.cs" />
+    <Compile Include="Services\StatusService.cs" />
+    <Compile Include="Services\UploadFileService.cs" />
+    <Compile Include="ViewModels\AggregateStats.cs" />
+    <Compile Include="ViewModels\ContactSupportViewModel.cs" />
+    <Compile Include="ViewModels\DeletePackageViewModel.cs" />
+    <Compile Include="ViewModels\LogOnViewModel.cs" />
+    <Compile Include="ViewModels\StatisticsWeeklyUsageItem.cs" />
+    <Compile Include="ViewModels\StatisticsNuGetUsageItem.cs" />
+    <Compile Include="ViewModels\StatisticsFact.cs" />
+    <Compile Include="ViewModels\StatisticsPivot.cs" />
+    <Compile Include="ViewModels\StatisticsDimension.cs" />
+    <Compile Include="ViewModels\StatisticsPackagesReport.cs" />
+    <Compile Include="ViewModels\DependencySetsViewModel.cs" />
+    <Compile Include="ViewModels\AccountViewModel.cs" />
+    <Compile Include="ViewModels\ConfirmationViewModel.cs" />
+    <Compile Include="ViewModels\PackageOwnerConfirmationModel.cs" />
+    <Compile Include="ViewModels\StatisticsPackagesItemViewModel.cs" />
+    <Compile Include="ViewModels\StatisticsPackagesViewModel.cs" />
+    <Compile Include="App_Start\AppActivator.cs" />
+    <Compile Include="Controllers\ApiController.cs" />
+    <Compile Include="Controllers\JsonApiController.cs" />
+    <Compile Include="Controllers\PackagesController.cs" />
+    <Compile Include="Controllers\AuthenticationController.cs" />
+    <Compile Include="Controllers\UsersController.cs" />
+    <Compile Include="Infrastructure\CookieTempDataProvider.cs" />
+    <Compile Include="Services\SearchExtensionMethods.cs" />
+    <Compile Include="ViewModels\ContactOwnersViewModel.cs" />
+    <Compile Include="ViewModels\PasswordResetViewModel.cs" />
+    <Compile Include="ViewModels\IPackageVersionModel.cs" />
+    <Compile Include="ViewModels\IPageableEnumerable.cs" />
+    <Compile Include="App_Start\Routes.cs" />
+    <Compile Include="Services\FileSystemService.cs" />
+    <Compile Include="Services\IFileSystemService.cs" />
+    <Compile Include="App_Start\DefaultDependenciesModule.cs" />
+    <Compile Include="Services\FormsAuthenticationService.cs" />
+    <Compile Include="Services\IFormsAuthenticationService.cs" />
+    <Compile Include="Services\IPackageFileService.cs" />
+    <Compile Include="RequestModels\DisplayPackageRequest.cs" />
+    <Compile Include="Strings.Designer.cs">
+      <DependentUpon>Strings.resx</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\AssemblyInfo.*.cs" />
+    <Compile Include="RequestModels\SubmitPackageRequest.cs" />
+    <Compile Include="RouteName.cs" />
+    <Compile Include="App_Start\VersionRouteConstraint.cs" />
+    <Compile Include="ViewModels\DisplayPackageViewModel.cs" />
+    <Compile Include="ViewModels\IPreviousNextPager.cs" />
+    <Compile Include="ViewModels\ManagePackagesViewModel.cs" />
+    <Compile Include="ViewModels\ListPackageItemViewModel.cs" />
+    <Compile Include="ViewModels\PackageListViewModel.cs" />
+    <Compile Include="ViewModels\PackageViewModel.cs" />
+    <Compile Include="ViewModels\PasswordResetRequestViewModel.cs" />
+    <Compile Include="ViewModels\PreviousNextPagerViewModel.cs" />
+    <Compile Include="ViewModels\ReportAbuseViewModel.cs" />
+    <Compile Include="ViewModels\TrivialPackageVersionModel.cs" />
+    <Compile Include="ViewModels\UserProfileModel.cs" />
+    <Content Include="Branding\Views\_ViewStart.cshtml" />
+    <Content Include="App_Data\Files\Content\Privacy-Policy.md" />
+    <Content Include="App_Data\Files\Content\ReadOnly.md" />
+    <Content Include="App_Data\Files\Content\Team.json" />
+    <Content Include="App_Data\Files\Content\Terms-Of-Use.md" />
+    <Content Include="Branding\Views\web.config" />
+    <Compile Include="Views\NuGetViewBase.cs" />
+    <Content Include="Scripts\d3\d3.js" />
+    <Content Include="Scripts\d3\d3.min.js" />
+    <Content Include="Areas\Admin\Views\SupportRequest\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\SupportRequest\Admins.cshtml" />
+    <EmbeddedResource Include="Migrations\201703221228170_AddSemVerLevelKeyColumn.resx">
+      <DependentUpon>201703221228170_AddSemVerLevelKeyColumn.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.resx">
+      <DependentUpon>201704191802404_AddIndexPackageRegistrationKeySemVer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201704211454424_SecurityPolicies.resx">
+      <DependentUpon>201704211454424_SecurityPolicies.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201705032101231_SecurityPoliciesFix.resx">
+      <DependentUpon>201705032101231_SecurityPoliciesFix.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201705031714183_AddIndexSemVerLevelKey.resx">
+      <DependentUpon>201705031714183_AddIndexSemVerLevelKey.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201705041614287_UserSecurityPolicies_SubscriptionColumn.resx">
+      <DependentUpon>201705041614287_UserSecurityPolicies_SubscriptionColumn.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201706061829243_AddSemVer2LatestVersionColumns.resx">
+      <DependentUpon>201706061829243_AddSemVer2LatestVersionColumns.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201706080632469_AddIndexIsLatestSemVer2.resx">
+      <DependentUpon>201706080632469_AddIndexIsLatestSemVer2.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201706080930506_AddIndexSemVerLevelKeyPackageRegistrationKey.resx">
+      <DependentUpon>201706080930506_AddIndexSemVerLevelKeyPackageRegistrationKey.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201706262349176_AddRepositoryURL_ReadMe.resx">
+      <DependentUpon>201706262349176_AddRepositoryURL_ReadMe.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201708241907124_PrefixReservation.resx">
+      <DependentUpon>201708241907124_PrefixReservation.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201709072246362_AddPackageLicenseReport2Sproc.resx">
+      <DependentUpon>201709072246362_AddPackageLicenseReport2Sproc.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201709111714021_AddPackageStatusKey.resx">
+      <DependentUpon>201709111714021_AddPackageStatusKey.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201709202249402_AddPackageOwnershipRequestsPage.resx">
+      <DependentUpon>201709202249402_AddPackageOwnershipRequestsPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201710301857232_Organizations.resx">
+      <DependentUpon>201710301857232_Organizations.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201711021733062_ApiKeyOwnerScope.resx">
+      <DependentUpon>201711021733062_ApiKeyOwnerScope.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201711082145351_AddAccountDelete.resx">
+      <DependentUpon>201711082145351_AddAccountDelete.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201711291842225_AddCertificate.resx">
+      <DependentUpon>201711291842225_AddCertificate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201712052213307_AddPackageIdLocking.resx">
+      <DependentUpon>201712052213307_AddPackageIdLocking.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201712211850074_MembershipRequests.resx">
+      <DependentUpon>201712211850074_MembershipRequests.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201801101337052_RemovePackageEdits.resx">
+      <DependentUpon>201801101337052_RemovePackageEdits.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201803202317063_AddEnableMultiFactorAuthentication.resx">
+      <DependentUpon>201803202317063_AddEnableMultiFactorAuthentication.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201804171613337_AddCertificateRegistration.resx">
+      <DependentUpon>201804171613337_AddCertificateRegistration.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201804241507196_RemoveUserCertificateIsActive.resx">
+      <DependentUpon>201804241507196_RemoveUserCertificateIsActive.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201805012001354_AddUserCertificatesIndex.resx">
+      <DependentUpon>201805012001354_AddUserCertificatesIndex.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201805091846502_MakeCertificatesSha1ThumbprintRequired.resx">
+      <DependentUpon>201805091846502_MakeCertificatesSha1ThumbprintRequired.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807031816101_AccountDeleteSignatureNotRequired.resx">
+      <DependentUpon>201807031816101_AccountDeleteSignatureNotRequired.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807181816293_SymbolPackages.resx">
+      <DependentUpon>201807181816293_SymbolPackages.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807261747084_AddCertificateDetails.resx">
+      <DependentUpon>201807261747084_AddCertificateDetails.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807302212501_AddShortCertificateNames.resx">
+      <DependentUpon>201807302212501_AddShortCertificateNames.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201808010014291_AddRepositoryType.resx">
+      <DependentUpon>201808010014291_AddRepositoryType.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201808032317064_FixSymbolCreatedColumnEFIssue.resx">
+      <DependentUpon>201808032317064_FixSymbolCreatedColumnEFIssue.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201808312302101_AddIsVerifiedDownloadCountIdIndexForPackageRegistrationsTable.resx">
+      <DependentUpon>201808312302101_AddIsVerifiedDownloadCountIdIndexForPackageRegistrationsTable.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201811011725146_LicenseChanges.resx">
+      <DependentUpon>201811011725146_LicenseChanges.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201811291758016_RemoveCuratedFeedEntities.resx">
+      <DependentUpon>201811291758016_RemoveCuratedFeedEntities.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201901142143060_AddDeprecationEntities.resx">
+      <DependentUpon>201901142143060_AddDeprecationEntities.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201902061444243_AddVulnerabilityEntities.resx">
+      <DependentUpon>201902061444243_AddVulnerabilityEntities.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201903020136235_CvesCanBeEmpty.resx">
+      <DependentUpon>201903020136235_CvesCanBeEmpty.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201904081230004_AddIndexToUserSecurityPolicy.resx">
+      <DependentUpon>201904081230004_AddIndexToUserSecurityPolicy.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201904252152567_DeletedByOptional.resx">
+      <DependentUpon>201904252152567_DeletedByOptional.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201904292139301_RemoveVulnerabilityDataFromPackageDeprecationModel.resx">
+      <DependentUpon>201904292139301_RemoveVulnerabilityDataFromPackageDeprecationModel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201905071526573_DevelopmentDependencyMetadata.resx">
+      <DependentUpon>201905071526573_DevelopmentDependencyMetadata.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201906262145129_EmbeddedIconFlag.resx">
+      <DependentUpon>201906262145129_EmbeddedIconFlag.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
+    <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
+    <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
+    <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2packages.json" />
+    <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2search.json" />
+    <Content Include="Areas\Admin\Views\SecurityPolicy\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\ReservedNamespace\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\DeleteAccount\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\Validation\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\DeleteAccount\DeleteAccountStatus.cshtml" />
+    <Content Include="Areas\Admin\Views\Delete\Reflow.cshtml" />
+    <Content Include="Areas\Admin\Views\Delete\_ReflowBulk.cshtml" />
+    <Content Include="Areas\Admin\Views\Delete\_ReflowBulkConfirm.cshtml" />
+    <Content Include="Areas\Admin\Views\LockPackage\Index.cshtml" />
+    <Content Include="App_Data\Files\Content\Login-Discontinuation-Configuration.json" />
+    <Content Include="Areas\Admin\Views\DeleteAccount\_DeleteUserAccountForm.cshtml" />
+    <Content Include="App_Data\Files\Content\Certificates-Configuration.json" />
+    <Content Include="Scripts\d3\README.md" />
+    <Content Include="Scripts\d3\LICENSE" />
+    <Content Include="Scripts\d3\CHANGES.md" />
+    <Content Include="Scripts\d3\API.md" />
+    <Content Include="NuGetGallery.dll.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Areas\Admin\Views\Revalidation\Index.cshtml" />
+    <Content Include="App_Data\Files\Content\Symbols-Configuration.json" />
+    <Content Include="Scripts\gallery\page-support-requests.js" />
+    <Content Include="Scripts\gallery\jquery-ui-1.10.3.js" />
+    <Content Include="Scripts\gallery\knockout-projections.js" />
+    <Content Include="Views\Shared\SiteMenu.cshtml">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="Views\Shared\Title.cshtml" />
+    <Content Include="Views\Pages\Home.cshtml" />
+    <Content Include="Views\Pages\Privacy.cshtml" />
+    <Content Include="Views\Pages\Terms.cshtml" />
+    <Content Include="Views\Pages\About.cshtml" />
+    <Content Include="Views\Users\ApiKeys.cshtml" />
+    <Content Include="Views\Shared\Gallery\Layout.cshtml" />
+    <Content Include="Views\Shared\Gallery\Footer.cshtml" />
+    <Content Include="Views\Shared\Gallery\Header.cshtml" />
+    <Content Include="Views\Authentication\SignIn.cshtml" />
+    <Content Include="Views\Pages\_PagesView.cshtml" />
+    <Content Include="Views\Shared\_SearchBar.cshtml" />
+    <Content Include="Views\Pages\Downloads.cshtml" />
+    <Content Include="Views\Authentication\LinkExternal.cshtml" />
+    <Content Include="Views\Authentication\_SignIn.cshtml" />
+    <Content Include="Views\Authentication\_Register.cshtml" />
+    <Content Include="Views\Shared\_PackageHeading.cshtml" />
+    <Content Include="Views\Packages\_ImportReadMe.cshtml" />
+    <Content Include="Views\Packages\_EditForm.cshtml" />
+    <Content Include="Areas\Admin\Views\DeleteAccount\DeleteUserAccount.cshtml" />
+    <Content Include="Views\Users\_UserPackagesListForDeletedAccount.cshtml" />
+    <Content Include="Views\Users\DeleteAccount.cshtml" />
+    <Content Include="Views\Authentication\SignInNuGetAccount.cshtml" />
+    <Content Include="Views\Packages\_VerifyForm.cshtml" />
+    <Content Include="Views\Packages\_VerifyMetadata.cshtml" />
+    <Content Include="Views\Users\Organizations.cshtml" />
+    <Content Include="Views\Users\TransformToOrganizationFailed.cshtml" />
+    <Content Include="Views\Users\TransformToOrganization.cshtml" />
+    <Content Include="Views\Packages\_ValidationIssue.cshtml" />
+    <Content Include="Views\Organizations\ManageOrganization.cshtml" />
+    <Content Include="Views\Shared\_ConfirmationResendForm.cshtml" />
+    <Content Include="Views\Shared\_AccountProfilePicture.cshtml" />
+    <Content Include="Views\Shared\_AccountChangeEmail.cshtml" />
+    <Content Include="Views\Shared\_AccountChangeNotifications.cshtml" />
+    <Content Include="Views\Users\_UserAccountChangePassword.cshtml" />
+    <Content Include="Views\Users\_UserAccountChangeExternalCredential.cshtml" />
+    <Content Include="Views\Shared\_AccountConfirmationNotices.cshtml" />
+    <Content Include="Views\Users\_UserAccountLinkExternalCredential.cshtml" />
+    <Content Include="Views\Pages\_TransformOrLink.cshtml" />
+    <Content Include="Views\Organizations\_OrganizationAccountManageMembers.cshtml" />
+    <Content Include="Views\Shared\_AutocompleteTemplate.cshtml" />
+    <Content Include="Views\Authentication\_SigninAssistance.cshtml" />
+    <Content Include="Views\Organizations\Add.cshtml" />
+    <Content Include="Views\Organizations\HandleOrganizationMembershipRequest.cshtml" />
+    <Content Include="Views\Users\_UserOrganizationsListForDeletedAccount.cshtml" />
+    <Content Include="Views\Organizations\DeleteAccount.cshtml" />
+    <Content Include="Views\Users\_DeleteUserAccountForm.cshtml" />
+    <Content Include="Views\Organizations\_OrganizationMembersListForDeletedAccount.cshtml" />
+    <Content Include="Views\Shared\_AccountCertificates.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="App_Offline-Planned.htm" />
+    <Content Include="App_Offline-Unplanned.htm" />
+    <Content Include="Areas\Admin\DynamicData\Content\GridViewPager.ascx" />
+    <Content Include="Areas\Admin\DynamicData\Content\Images\Back.gif" />
+    <Content Include="Areas\Admin\DynamicData\Content\Images\header_back.gif" />
+    <Content Include="Areas\Admin\DynamicData\Content\Images\PgFirst.gif" />
+    <Content Include="Areas\Admin\DynamicData\Content\Images\PgLast.gif" />
+    <Content Include="Areas\Admin\DynamicData\Content\Images\PgNext.gif" />
+    <Content Include="Areas\Admin\DynamicData\Content\Images\PgPrev.gif" />
+    <Content Include="Areas\Admin\DynamicData\Content\Images\plus.gif" />
+    <Content Include="Areas\Admin\DynamicData\Default.aspx" />
+    <Content Include="Areas\Admin\DynamicData\EntityTemplates\Default.ascx" />
+    <Content Include="Areas\Admin\DynamicData\EntityTemplates\Default_Edit.ascx" />
+    <Content Include="Areas\Admin\DynamicData\EntityTemplates\Default_Insert.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\Boolean.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\Boolean_Edit.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\Children.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\Children_Insert.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\DateTime.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\DateTime_Edit.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\Decimal_Edit.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\EmailAddress.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\Enumeration.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\Enumeration_Edit.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\ForeignKey.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\ForeignKey_Edit.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\Integer_Edit.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\ManyToMany.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\ManyToMany_Edit.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\MultilineText_Edit.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\Text.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\Text_Edit.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\Url.ascx" />
+    <Content Include="Areas\Admin\DynamicData\Filters\Boolean.ascx" />
+    <Content Include="Areas\Admin\DynamicData\Filters\Enumeration.ascx" />
+    <Content Include="Areas\Admin\DynamicData\Filters\ForeignKey.ascx" />
+    <Content Include="Areas\Admin\DynamicData\PageTemplates\Details.aspx" />
+    <Content Include="Areas\Admin\DynamicData\PageTemplates\Edit.aspx" />
+    <Content Include="Areas\Admin\DynamicData\PageTemplates\Insert.aspx" />
+    <Content Include="Areas\Admin\DynamicData\PageTemplates\List.aspx" />
+    <Content Include="Areas\Admin\DynamicData\Site.css" />
+    <Content Include="Content\Images\errorPage.png" />
+    <Content Include="Content\Images\icons\nuget_32_mono_b.png" />
+    <Content Include="Content\Images\icons\nuget_32_mono_w.png" />
+    <Content Include="Content\Images\YourPackage.png" />
+    <Content Include="Content\Layout.css" />
+    <Content Include="Content\PageStylings.css" />
+    <Content Include="Content\Site.css" />
+    <Content Include="Content\Images\headerbackground.png" />
+    <Content Include="Content\Logos\hero.png">
+      <BrowseToURL>hero.png</BrowseToURL>
+    </Content>
+    <Content Include="Content\Images\inputBackground.png" />
+    <Content Include="Content\Logos\nugetlogo.png" />
+    <Content Include="Content\Logos\nugetLogoFooter.png" />
+    <Content Include="Content\Images\packageDefaultIcon-50x50.png" />
+    <Content Include="Content\Images\packageDefaultIcon.png" />
+    <Content Include="Content\Images\required.png" />
+    <Content Include="Content\Images\searchButton.png" />
+    <Content Include="Content\SyntaxHighlighter\shCore.css" />
+    <Content Include="Content\SyntaxHighlighter\shCoreDefault.css" />
+    <Content Include="Content\SyntaxHighlighter\shCoreDjango.css" />
+    <Content Include="Content\SyntaxHighlighter\shCoreEclipse.css" />
+    <Content Include="Content\SyntaxHighlighter\shCoreEmacs.css" />
+    <Content Include="Content\SyntaxHighlighter\shCoreFadeToGrey.css" />
+    <Content Include="Content\SyntaxHighlighter\shCoreMDUltra.css" />
+    <Content Include="Content\SyntaxHighlighter\shCoreMidnight.css" />
+    <Content Include="Content\SyntaxHighlighter\shCoreRDark.css" />
+    <Content Include="Content\SyntaxHighlighter\shThemeDefault.css" />
+    <Content Include="Content\SyntaxHighlighter\shThemeDjango.css" />
+    <Content Include="Content\SyntaxHighlighter\shThemeEclipse.css" />
+    <Content Include="Content\SyntaxHighlighter\shThemeEmacs.css" />
+    <Content Include="Content\SyntaxHighlighter\shThemeFadeToGrey.css" />
+    <Content Include="Content\SyntaxHighlighter\shThemeMDUltra.css" />
+    <Content Include="Content\SyntaxHighlighter\shThemeMidnight.css" />
+    <Content Include="Content\SyntaxHighlighter\shThemeRDark.css" />
+    <Content Include="Content\themes\custom\jquery-ui-1.10.3.custom.css" />
+    <Content Include="Content\themes\custom\jquery-ui-1.10.3.custom.min.css" />
+    <Content Include="Public\favicon.ico" />
+    <Content Include="Public\opensearch.xml" />
+    <EmbeddedResource Include="Areas\Admin\Migrations\201602111647053_SupportRequestDbModel.resx">
+      <DependentUpon>201602111647053_SupportRequestDbModel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Areas\Admin\Migrations\201602191039005_PackageInfoIsOptional.resx">
+      <DependentUpon>201602191039005_PackageInfoIsOptional.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Infrastructure\Elmah.SqlServer.sql" />
+    <EmbeddedResource Include="Infrastructure\AddPackageLicenseReport.sql" />
+    <Content Include="Public\robots.txt" />
+    <Content Include="App_Data\Files\Content\Typosquatting-Configuration.json" />
+    <Content Include="App_Data\Files\Content\flags.json" />
+    <Content Include="Areas\Admin\Views\DeleteAccount\DeleteOrganizationAccount.cshtml" />
+    <Content Include="Areas\Admin\Views\Features\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\Features\_EditFeature.cshtml" />
+    <Content Include="Areas\Admin\Views\Features\_AddFeature.cshtml" />
+    <Content Include="Areas\Admin\Views\Features\_AddFlight.cshtml" />
+    <Content Include="Areas\Admin\Views\Features\_EditFlight.cshtml" />
+    <Content Include="App_Data\Files\Content\AB-Test-Configuration.json" />
+    <Content Include="Areas\Admin\Views\SiteAdmins\Index.cshtml" />
+    <None Include="Properties\PublishProfiles\nuget-staging-frontend.pubxml" />
+    <Content Include="Scripts\gallery\async-file-upload.js" />
+    <Content Include="Scripts\gallery\autocomplete.js" />
+    <Content Include="Scripts\gallery\bootstrap.js" />
+    <Content Include="Scripts\gallery\certificates.js" />
+    <Content Include="Scripts\gallery\clamp.js" />
+    <Content Include="Scripts\gallery\common-multi-select-dropdown.js" />
+    <Content Include="Scripts\gallery\common.js" />
+    <Content Include="Scripts\gallery\jquery-3.4.1.js" />
+    <Content Include="Scripts\gallery\jquery-ui-1.10.3.js" />
+    <Content Include="Scripts\gallery\jquery.validate-1.16.0.js" />
+    <Content Include="Scripts\gallery\jquery.validate.unobtrusive-3.2.6.js" />
+    <Content Include="Scripts\gallery\knockout-3.4.2.js" />
+    <Content Include="Scripts\gallery\knockout-projections.js" />
+    <Content Include="Scripts\gallery\md5.js" />
+    <Content Include="Scripts\gallery\moment-2.18.1.js" />
+    <Content Include="Scripts\gallery\page-about.js" />
+    <Content Include="Scripts\gallery\page-account.js" />
+    <Content Include="Scripts\gallery\page-add-organization.js" />
+    <Content Include="Scripts\gallery\page-api-keys.js" />
+    <Content Include="Scripts\gallery\page-delete-package.js" />
+    <Content Include="Scripts\gallery\page-display-package.js" />
+    <Content Include="Scripts\gallery\page-edit-readme.js" />
+    <Content Include="Scripts\gallery\page-home.js" />
+    <Content Include="Scripts\gallery\page-manage-deprecation.js" />
+    <Content Include="Scripts\gallery\page-manage-organization.js" />
+    <Content Include="Scripts\gallery\page-manage-owners.js" />
+    <Content Include="Scripts\gallery\page-manage-packages.js" />
+    <Content Include="Scripts\gallery\page-signin.js" />
+    <Content Include="Scripts\gallery\page-support-requests.js" />
+    <Content Include="Scripts\gallery\stats-dimensions.js" />
+    <Content Include="Scripts\gallery\stats-perpackagestatsgraphs.js" />
+    <Content Include="Web.config">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="Web.Debug.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </Content>
+    <Content Include="Web.Release.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </Content>
+    <Content Include="Views\web.config" />
+    <Content Include="Views\_ViewStart.cshtml" />
+    <Content Include="Views\Errors\InternalError.cshtml" />
+    <Content Include="Views\Shared\Confirm.cshtml" />
+    <Content Include="Views\Users\Thanks.cshtml" />
+    <Content Include="Views\Users\Profiles.cshtml" />
+    <Content Include="Views\Authentication\Register.cshtml" />
+    <Content Include="Views\Packages\ContactOwners.cshtml" />
+    <Content Include="Views\Packages\DisplayPackage.cshtml" />
+    <Content Include="Views\Shared\ListPackages.cshtml" />
+    <Content Include="Views\Packages\ReportAbuse.cshtml" />
+    <Content Include="Views\Packages\UploadPackage.cshtml" />
+    <Content Include="Views\Shared\_ListPackage.cshtml" />
+    <Content Include="Views\Users\Packages.cshtml" />
+    <Content Include="App_Code\ViewHelpers.cshtml" />
+    <Content Include="Views\Users\PasswordChanged.cshtml" />
+    <Content Include="Views\Users\ForgotPassword.cshtml" />
+    <Content Include="Views\Users\PasswordSent.cshtml" />
+    <Content Include="Views\Users\ResetPassword.cshtml" />
+    <Content Include="Views\Users\Account.cshtml" />
+    <Content Include="Views\Packages\ConfirmOwner.cshtml" />
+    <Content Include="Views\Errors\NotFound.cshtml" />
+    <Content Include="Views\Packages\_ManageListing.cshtml" />
+    <Content Include="Views\Packages\_ManageDocumentation.cshtml" />
+    <Content Include="Views\Packages\_ManageOwners.cshtml" />
+    <Content Include="api\Web.config" />
+    <Compile Include="Infrastructure\Lucene\LuceneSearchService.cs" />
+    <Content Include="Views\Shared\ConfirmationRequired.cshtml" />
+    <Content Include="Views\Pages\Contact.cshtml" />
+    <Content Include="Views\Shared\_DeletePackage.cshtml" />
+    <Content Include="Views\Packages\DeleteSymbols.cshtml" />
+    <Content Include="Views\Packages\Manage.cshtml" />
+    <Content Include="Views\Packages\License.cshtml" />
+    <Content Include="Views\Packages\_ManageDeprecation.cshtml" />
+    <Content Include="Views\Shared\_MultiSelectDropdown.cshtml" />
+    <Content Include="Views\Packages\_DisplayPackageDeprecation.cshtml" />
+    <Content Include="Views\Experiments\SearchSideBySide.cshtml" />
+    <Content Include="Views\Api\HealthProbeApi.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations\201304251927587_UserCreatedDate.resx">
+      <DependentUpon>201304251927587_UserCreatedDate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201306031734581_WidenStatisticsOperationColumn.resx">
+      <DependentUpon>201306031734581_WidenStatisticsOperationColumn.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201306031754328_SupportNewClientHeaders.resx">
+      <DependentUpon>201306031754328_SupportNewClientHeaders.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201308051913351_EditableMetadata.resx">
+      <DependentUpon>201308051913351_EditableMetadata.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201308292200027_PackageLastEditedTimestamp.resx">
+      <DependentUpon>201308292200027_PackageLastEditedTimestamp.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201308302258388_AddPackageEditLastErrorColumn.resx">
+      <DependentUpon>201308302258388_AddPackageEditLastErrorColumn.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201309092040124_LicenseReports.resx">
+      <DependentUpon>201309092040124_LicenseReports.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201309092041546_AddPackageLicenseReportSproc.resx">
+      <DependentUpon>201309092041546_AddPackageLicenseReportSproc.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201309101922464_NormalizedVersionColumn.resx">
+      <DependentUpon>201309101922464_NormalizedVersionColumn.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201309172217450_CredentialsTable.resx">
+      <DependentUpon>201309172217450_CredentialsTable.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201310281909048_PackageStatistics.resx">
+      <DependentUpon>201310281909048_PackageStatistics.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201310301757446_RemoveOldCredentialColumns.resx">
+      <DependentUpon>201310301757446_RemoveOldCredentialColumns.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201310301947399_AddCredentialDescriptionColumn.resx">
+      <DependentUpon>201310301947399_AddCredentialDescriptionColumn.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201311261928187_NullifyOldColumns.resx">
+      <DependentUpon>201311261928187_NullifyOldColumns.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201505261416326_UniquePackageRegistration.resx">
+      <DependentUpon>201505261416326_UniquePackageRegistration.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201507171324501_AdditionalIndexesForPerformance.resx">
+      <DependentUpon>201507171324501_AdditionalIndexesForPerformance.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201508031046581_IndexPackagesLastUpdatedWithIsListed.resx">
+      <DependentUpon>201508031046581_IndexPackagesLastUpdatedWithIsListed.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201510010732458_EntityFramework6.resx">
+      <DependentUpon>201510010732458_EntityFramework6.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201510011319560_PackageDelete.resx">
+      <DependentUpon>201510011319560_PackageDelete.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201511050008198_PackagesCreatedDateDefaultValue.resx">
+      <DependentUpon>201511050008198_PackagesCreatedDateDefaultValue.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201602181939424_RemovePackageStatistics.resx">
+      <DependentUpon>201602181939424_RemovePackageStatistics.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201603111230347_RemoveSqlDownloadStatsAggregation.resx">
+      <DependentUpon>201603111230347_RemoveSqlDownloadStatsAggregation.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201603151731262_AddIndexForPackageDeletes.resx">
+      <DependentUpon>201603151731262_AddIndexForPackageDeletes.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201604061724388_NotifyPackagePushed.resx">
+      <DependentUpon>201604061724388_NotifyPackagePushed.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201605250728584_AddAdditionalIndexForPackageDeletes.resx">
+      <DependentUpon>201605250728584_AddAdditionalIndexForPackageDeletes.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201605250755294_AddIndexForUserEmailAddress.resx">
+      <DependentUpon>201605250755294_AddIndexForUserEmailAddress.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201605310704169_RemoveOldCredentialColumnsFromUsersTable.resx">
+      <DependentUpon>201605310704169_RemoveOldCredentialColumnsFromUsersTable.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201606012049351_AddIndexForCredentialsUserKey.resx">
+      <DependentUpon>201606012049351_AddIndexForCredentialsUserKey.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201606012058492_AddIndexForPackageLicenseReportsPackageKey.resx">
+      <DependentUpon>201606012058492_AddIndexForPackageLicenseReportsPackageKey.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201606020741056_CredentialExpires.resx">
+      <DependentUpon>201606020741056_CredentialExpires.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201607190813558_CredentialDoesNotExpire.resx">
+      <DependentUpon>201607190813558_CredentialDoesNotExpire.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201607190842411_CredentialLastUsed.resx">
+      <DependentUpon>201607190842411_CredentialLastUsed.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201608251939567_AddPackageTypes.resx">
+      <DependentUpon>201608251939567_AddPackageTypes.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201609092252096_AddIndexCredentialExpires.resx">
+      <DependentUpon>201609092252096_AddIndexCredentialExpires.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201609092255576_AddIndexUsersEmail.resx">
+      <DependentUpon>201609092255576_AddIndexUsersEmail.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201610042351343_AddUserFailedLogin.resx">
+      <DependentUpon>201610042351343_AddUserFailedLogin.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201609211206577_ApiKeyDescription.resx">
+      <DependentUpon>201609211206577_ApiKeyDescription.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201609260823310_ScopedCredential.resx">
+      <DependentUpon>201609260823310_ScopedCredential.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201609270831462_AddExpirationColumn.resx">
+      <DependentUpon>201609270831462_AddExpirationColumn.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201701120413341_AddScopeCredentialKey.resx">
+      <DependentUpon>201701120413341_AddScopeCredentialKey.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201611240011320_AddTriggerForPackagesLastEdited.resx">
+      <DependentUpon>201611240011320_AddTriggerForPackagesLastEdited.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Strings.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Errors\ReadOnlyMode.cshtml" />
+    <Content Include="Areas\Admin\DynamicData\Site.master" />
+    <Content Include="Areas\Admin\DynamicData\web.config">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="Areas\Admin\Views\Home\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\Web.config" />
+    <Content Include="Areas\Admin\Views\_ViewStart.cshtml" />
+    <Content Include="Areas\Admin\Views\Lucene\Index.cshtml">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="Views\Errors\BadRequest.cshtml" />
+    <Content Include="Views\Packages\_PackageDependencies.cshtml" />
+    <Content Include="Views\Statistics\Index.cshtml" />
+    <Content Include="Views\Statistics\Packages.cshtml" />
+    <Content Include="Views\Statistics\PackageVersions.cshtml" />
+    <Content Include="Views\Statistics\PackageDownloadsByVersion.cshtml" />
+    <Content Include="Views\Packages\ReportMyPackage.cshtml" />
+    <Content Include="Views\Statistics\PackageDownloadsDetail.cshtml" />
+    <Content Include="Views\Statistics\_PivotTable.cshtml" />
+    <Content Include="Views\Statistics\_LastUpdated.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Areas\Admin\DynamicData\CustomPages\" />
+    <Folder Include="Areas\Admin\Views\Shared\" />
+    <Folder Include="Authentication\Providers\" />
+    <Folder Include="Infrastructure\Authentication\" />
+    <Folder Include="Security\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Services.Entities\NuGet.Services.Entities.csproj">
+      <Project>{6262f4fc-29be-4226-b676-db391c89d396}</Project>
+      <Name>NuGet.Services.Entities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGetGallery.Core\NuGetGallery.Core.csproj">
+      <Project>{097b2cdd-9623-4c34-93c2-d373d51f5b4e}</Project>
+      <Name>NuGetGallery.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGetGallery.Services\NuGetGallery.Services.csproj">
+      <Project>{c7d5e850-33fa-4ec5-8d7f-b1c8dd5d48f9}</Project>
+      <Name>NuGetGallery.Services</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Autofac.Extensions.DependencyInjection">
+      <Version>4.3.1</Version>
+    </PackageReference>
+    <PackageReference Include="Markdig.Signed">
+      <Version>0.15.4</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection">
+      <Version>2.2.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Http">
+      <Version>2.2.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Http.Polly">
+      <Version>2.2.0</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Services.Licenses">
+      <Version>2.54.0</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.StrongName.AnglicanGeek.MarkdownMailer">
+      <Version>1.2.0</Version>
+    </PackageReference>
+    <PackageReference Include="Autofac">
+      <Version>4.6.2</Version>
+    </PackageReference>
+    <PackageReference Include="Autofac.Mvc5">
+      <Version>4.0.2</Version>
+    </PackageReference>
+    <PackageReference Include="Autofac.Mvc5.Owin">
+      <Version>4.0.1</Version>
+    </PackageReference>
+    <PackageReference Include="Autofac.Owin">
+      <Version>4.2.0</Version>
+    </PackageReference>
+    <PackageReference Include="Autofac.WebApi2">
+      <Version>4.1.0</Version>
+    </PackageReference>
+    <PackageReference Include="CommonMark.NET">
+      <Version>0.15.1</Version>
+    </PackageReference>
+    <PackageReference Include="d3">
+      <Version>5.4.0</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.StrongName.DynamicData.EFCodeFirstProvider">
+      <Version>0.3.0</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.StrongName.elmah.corelibrary">
+      <Version>1.2.2</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.StrongName.elmah.sqlserver">
+      <Version>1.2.2</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.StrongName.elmah">
+      <Version>1.2.2</Version>
+    </PackageReference>
+    <PackageReference Include="EntityFramework">
+      <Version>6.1.3</Version>
+    </PackageReference>
+    <PackageReference Include="Knockout.Mapping">
+      <Version>2.4.0</Version>
+    </PackageReference>
+    <PackageReference Include="knockoutjs">
+      <Version>2.2.1</Version>
+    </PackageReference>
+    <PackageReference Include="Lucene.Net">
+      <Version>3.0.3</Version>
+    </PackageReference>
+    <PackageReference Include="Lucene.Net.Contrib">
+      <Version>3.0.3</Version>
+    </PackageReference>
+    <PackageReference Include="MicroBuild.Core">
+      <Version>0.3.0</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.ApplicationInsights">
+      <Version>2.3.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.ApplicationInsights.Agent.Intercept">
+      <Version>2.0.7</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.ApplicationInsights.DependencyCollector">
+      <Version>2.3.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.ApplicationInsights.PerfCounterCollector">
+      <Version>2.3.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.ApplicationInsights.TraceListener">
+      <Version>2.2.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.ApplicationInsights.Web">
+      <Version>2.3.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.ApplicationInsights.WindowsServer">
+      <Version>2.3.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel">
+      <Version>2.3.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNet.DynamicData.EFProvider">
+      <Version>6.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNet.Identity.Core">
+      <Version>1.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNet.Mvc">
+      <Version>5.2.3</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNet.Razor">
+      <Version>3.2.3</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNet.Web.Optimization">
+      <Version>1.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNet.WebApi.Client">
+      <Version>5.2.3</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNet.WebApi.Core">
+      <Version>5.2.3</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNet.WebApi.MessageHandlers.Compression.StrongName">
+      <Version>1.3.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNet.WebApi.OData">
+      <Version>5.5.1</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNet.WebApi.WebHost">
+      <Version>5.2.3</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNet.WebHelpers">
+      <Version>3.2.3</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNet.WebPages">
+      <Version>3.2.3</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNet.WebPages.Data">
+      <Version>3.2.3</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNet.WebPages.WebData">
+      <Version>3.2.3</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.Cryptography.Internal">
+      <Version>1.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation">
+      <Version>1.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Azure.KeyVault">
+      <Version>1.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Azure.KeyVault.Core">
+      <Version>1.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Bcl.Compression">
+      <Version>3.9.85</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Data.Services">
+      <Version>5.8.4</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Logging">
+      <Version>2.2.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions">
+      <Version>2.2.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory">
+      <Version>3.19.4</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Net.Http">
+      <Version>2.2.29</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Owin">
+      <Version>3.0.1</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Owin.Host.SystemWeb">
+      <Version>3.0.1</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Owin.Security">
+      <Version>3.0.1</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Owin.Security.Cookies">
+      <Version>3.0.1</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Owin.Security.MicrosoftAccount">
+      <Version>3.0.1</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Owin.Security.OpenIdConnect">
+      <Version>3.0.1</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Web.Infrastructure">
+      <Version>1.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Web.Xdt">
+      <Version>2.1.2</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.WindowsAzure.ConfigurationManager">
+      <Version>3.1.0</Version>
+    </PackageReference>
+    <PackageReference Include="Modernizr">
+      <Version>2.8.3</Version>
+    </PackageReference>
+    <PackageReference Include="Moment.js">
+      <Version>2.24.0</Version>
+    </PackageReference>
+    <PackageReference Include="MvcTreeView">
+      <Version>1.4.0</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Configuration">
+      <Version>5.0.0-preview1.5665</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Protocol">
+      <Version>5.0.0-preview1.5665</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Services.KeyVault">
+      <Version>2.54.0</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Services.Owin">
+      <Version>2.54.0</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Services.Sql">
+      <Version>2.54.0</Version>
+    </PackageReference>
+    <PackageReference Include="Owin">
+      <Version>1.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.StrongName.QueryInterceptor">
+      <Version>0.1.4237.2400</Version>
+    </PackageReference>
+    <PackageReference Include="RouteMagic">
+      <Version>1.1.3</Version>
+    </PackageReference>
+    <PackageReference Include="SharpZipLib">
+      <Version>1.1.0</Version>
+    </PackageReference>
+    <PackageReference Include="Strathweb.CacheOutput.WebApi2.StrongName">
+      <Version>0.9.0</Version>
+    </PackageReference>
+    <PackageReference Include="System.Diagnostics.Debug">
+      <Version>4.3.0</Version>
+    </PackageReference>
+    <PackageReference Include="System.Diagnostics.DiagnosticSource">
+      <Version>4.3.0</Version>
+    </PackageReference>
+    <PackageReference Include="System.Linq.Expressions">
+      <Version>4.3.0</Version>
+    </PackageReference>
+    <PackageReference Include="System.Net.Http">
+      <Version>4.3.4</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.StrongName.WebActivator">
+      <Version>1.4.4</Version>
+    </PackageReference>
+    <PackageReference Include="WebActivatorEx">
+      <Version>2.0.6</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.StrongName.WebBackgrounder.EntityFramework">
+      <Version>0.1.0</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.StrongName.WebBackgrounder">
+      <Version>0.2.0</Version>
+    </PackageReference>
+    <PackageReference Include="WindowsAzure.Caching">
+      <Version>1.7.0</Version>
+    </PackageReference>
+    <PackageReference Include="WindowsAzure.ServiceBus">
+      <Version>4.1.3</Version>
+    </PackageReference>
+    <PackageReference Include="WindowsAzure.Storage">
+      <Version>9.3.3</Version>
+    </PackageReference>
+  </ItemGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <SignPath>..\..\build</SignPath>
+    <SignPath Condition="'$(BUILD_SOURCESDIRECTORY)' != ''">$(BUILD_SOURCESDIRECTORY)\build</SignPath>
+    <SignPath Condition="'$(NuGetBuildPath)' != ''">$(NuGetBuildPath)</SignPath>
+    <SignType Condition="'$(SignType)' == ''">none</SignType>
+  </PropertyGroup>
+  <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
+  <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
+  <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
+  <Target Name="MvcBuildViews" AfterTargets="AfterBuild" Condition="'$(MvcBuildViews)'=='true'">
+    <AspNetCompiler VirtualPath="temp" PhysicalPath="$(WebProjectOutputDir)" />
+  </Target>
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
+        <WebProjectProperties>
+          <UseIIS>False</UseIIS>
+          <AutoAssignPort>True</AutoAssignPort>
+          <DevelopmentServerPort>80</DevelopmentServerPort>
+          <DevelopmentServerVPath>/</DevelopmentServerVPath>
+          <IISUrl>https://localhost</IISUrl>
+          <NTLMAuthentication>False</NTLMAuthentication>
+          <UseCustomServer>False</UseCustomServer>
+          <CustomServerUrl>
+          </CustomServerUrl>
+          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+        </WebProjectProperties>
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <PropertyGroup>
+    <PreBuildEvent>
+      copy "$(ProjectDir)..\Bootstrap\dist\css\bootstrap.css" "$(ProjectDir)Content\gallery\css" &gt;NUL
+      copy "$(ProjectDir)..\Bootstrap\dist\css\bootstrap-theme.css" "$(ProjectDir)Content\gallery\css" &gt;NUL
+      copy "$(ProjectDir)..\Bootstrap\dist\js\bootstrap.js" "$(ProjectDir)Scripts\gallery" &gt;NUL
+    </PreBuildEvent>
+  </PropertyGroup>
+</Project>

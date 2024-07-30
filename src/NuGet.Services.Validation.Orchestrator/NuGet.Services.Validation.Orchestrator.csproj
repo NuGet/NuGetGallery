@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\SdkProjects.props" />
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Description>Validation.Orchestrator organizes the progress of async package validation.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System.Configuration" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Validation.Common.Job\Validation.Common.Job.csproj" />
+    <ProjectReference Include="..\Validation.ContentScan.Core\Validation.ContentScan.Core.csproj" />
+    <ProjectReference Include="..\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj" />
+    <ProjectReference Include="..\Validation.ScanAndSign.Core\Validation.ScanAndSign.Core.csproj" />
+    <ProjectReference Include="..\Validation.Symbols.Core\Validation.Symbols.Core.csproj" />
+  </ItemGroup>
+</Project>
