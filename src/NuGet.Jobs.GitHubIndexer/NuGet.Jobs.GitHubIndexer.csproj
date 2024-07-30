@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\SdkProjects.props" />
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Description>The job used to index popular GitHub repos</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\NuGet.Jobs.Common\Extensions\TaskExtensions.cs">
+      <Link>GitRepoSearchers\GitHub\TaskExtensions.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="LibGit2Sharp" />
+    <PackageReference Include="NuGet.StrongName.Octokit" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj" />
+  </ItemGroup>
+</Project>

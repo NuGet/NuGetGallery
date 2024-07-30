@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\SdkProjects.props" />
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Validation.Symbols</RootNamespace>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Description>Validation Symbol job</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Update="Validation.Symbols.Job.nuspec">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Services.Validation.Orchestrator\NuGet.Services.Validation.Orchestrator.csproj" />
+    <ProjectReference Include="..\Validation.Symbols.Core\Validation.Symbols.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Reflection.Metadata" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Scripts\nssm.exe" />
+  </ItemGroup>
+</Project>

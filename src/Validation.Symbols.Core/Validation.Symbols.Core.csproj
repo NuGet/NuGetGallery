@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\SdkProjects.props" />
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <RootNamespace>NuGet.Jobs.Validation.Symbols.Core</RootNamespace>
+    <AssemblyName>NuGet.Jobs.Validation.Symbols.Core</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Description>Shared libraries for package signing validation</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Validation.Common.Job\Validation.Common.Job.csproj" />
+  </ItemGroup>
+</Project>

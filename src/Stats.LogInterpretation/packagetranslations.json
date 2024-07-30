@@ -1,0 +1,112 @@
+﻿{
+  "translations": [
+    {
+      "incorrectpackageid": "canducci.mongodb.repository4",
+      "incorrectpackageversionpattern": "0.(.*)",
+      "correctedpackageid": "canducci.mongodb.repository4.0",
+      "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "canducci.mongodb.repository4",
+      "incorrectpackageversionpattern": "5.(.*)",
+      "correctedpackageid": "canducci.mongodb.repository4.5",
+      "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "bzip2.mingw4.7",
+      "incorrectpackageversionpattern": "2.(.*)",
+      "correctedpackageid": "bzip2.mingw4.7.2",
+      "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "featureswitch.structuremap.2",
+      "incorrectpackageversionpattern": "6.(.*)",
+      "correctedpackageid": "featureswitch.structuremap.2.6",
+      "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "genericmapper.framework.4",
+      "incorrectpackageversionpattern": "0.(.*)",
+      "correctedpackageid": "genericmapper.framework.4.0",
+      "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "fakexrmeasy",
+      "incorrectpackageversionpattern": "9.(.*)",
+      "correctedpackageid": "fakexrmeasy.9",
+      "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "fakexrmeasy",
+      "incorrectpackageversionpattern": "2013.(.*)",
+      "correctedpackageid": "fakexrmeasy.2013",
+      "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "fakexrmeasy",
+      "incorrectpackageversionpattern": "2015.(.*)",
+      "correctedpackageid": "fakexrmeasy.2015",
+      "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "fakexrmeasy",
+      "incorrectpackageversionpattern": "2016.(.*)",
+      "correctedpackageid": "fakexrmeasy.2016",
+      "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "fakexrmeasy",
+      "incorrectpackageversionpattern": "2017.(.*)",
+      "correctedpackageid": "fakexrmeasy.2017",
+      "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "fakexrmeasy",
+      "incorrectpackageversionpattern": "365.(.*)",
+      "correctedpackageid": "fakexrmeasy.365",
+      "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "trackableentities.ef",
+      "incorrectpackageversionpattern": "5.(.*)",
+      "correctedpackageid": "trackableentities.ef.5",
+      "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "trackableentities.ef",
+      "incorrectpackageversionpattern": "6.(.*)",
+      "correctedpackageid": "trackableentities.ef.6",
+      "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "trackableentities.ef",
+      "incorrectpackageversionpattern": "7.(.*)",
+      "correctedpackageid": "trackableentities.ef.7",
+      "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "xrmlibrary.entityhelpers",
+      "incorrectpackageversionpattern": "2015.(.*)",
+      "correctedpackageid": "xrmlibrary.entityhelpers.2015",
+      "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "xrmlibrary.entityhelpers",
+      "incorrectpackageversionpattern": "2016.(.*)",
+      "correctedpackageid": "xrmlibrary.entityhelpers.2016",
+      "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "xrmlibrary.extensionmethods",
+      "incorrectpackageversionpattern": "2016.(.*)",
+      "correctedpackageid": "xrmlibrary.extensionmethods.2016",
+      "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "Microsoft.VisualStudio.Shell.15",
+      "incorrectpackageversionpattern": "0.(.*)",
+      "correctedpackageid": "Microsoft.VisualStudio.Shell.15.0",
+      "correctedpackageversionpattern": "$1"
+    }
+  ]
+}

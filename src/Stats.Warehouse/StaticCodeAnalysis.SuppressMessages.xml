@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<StaticCodeAnalysis version="2" xmlns="urn:Microsoft.Data.Tools.Schema.StaticCodeAnalysis">
+  <SuppressedFile FilePath="Programmability\Stored Procedures\dbo.DownloadReportLast6Weeks.sql">
+    <SuppressedRule Category="Microsoft.Rules.Data" RuleId="SR0007" />
+  </SuppressedFile>
+  <SuppressedFile FilePath="Programmability\Stored Procedures\dbo.RollUpDownloadFacts.sql">
+    <SuppressedRule Category="Microsoft.Rules.Data" RuleId="SR0014" />
+    <SuppressedRule Category="Microsoft.Rules.Data" RuleId="SR0007" />
+  </SuppressedFile>
+  <SuppressedFile FilePath="Programmability\Stored Procedures\dbo.CheckLogFileHasPackageStatistics.sql">
+    <SuppressedRule Category="Microsoft.Rules.Data" RuleId="SR0007" />
+  </SuppressedFile>
+  <SuppressedFile FilePath="Programmability\Stored Procedures\dbo.CheckLogFileHasToolStatistics.sql">
+    <SuppressedRule Category="Microsoft.Rules.Data" RuleId="SR0007" />
+  </SuppressedFile>
+</StaticCodeAnalysis>

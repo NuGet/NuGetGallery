@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\..\SdkProjects.props" />
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>NuGet.Stats.LogInterpretation</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="packagetranslations.json">
+      <LogicalName>packagetranslations.json</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="knownclients.yaml">
+      <LogicalName>knownclients.yaml</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="NuGet.Versioning" />
+    <PackageReference Include="UAParser" />
+  </ItemGroup>
+</Project>

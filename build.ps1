@@ -6,6 +6,8 @@ param (
     [switch]$SkipRestore,
     [string]$GalleryAssemblyVersion = '4.4.5',
     [string]$GalleryPackageVersion = '4.4.5-zlocal',
+    [string]$JobsAssemblyVersion = '4.3.0',
+    [string]$JobsPackageVersion = '4.3.0-zlocal',
     [string]$Branch,
     [string]$CommitSHA,
     [string]$BuildBranchCommit = '8ea7f23faa289682fd02284a14959ab2c67ad546', #DevSkim: ignore DS173237. Not a secret/token. It is a commit hash.
@@ -41,6 +43,9 @@ Trace-Log "Build #$BuildNumber started at $startTime"
 $BuildErrors = @()
 $GallerySolution = Join-Path $PSScriptRoot "NuGetGallery.sln"
 $GalleryProjects = Get-SolutionProjects $GallerySolution
+$JobsSolution = Join-Path $PSScriptRoot "NuGet.Jobs.sln"
+$JobsProjects = Get-SolutionProjects $JobsSolution
+$JobsFunctionalTestsSolution = Join-Path $PSScriptRoot "NuGet.Jobs.FunctionalTests.sln"
 
 Invoke-BuildStep 'Getting private build tools' { Install-PrivateBuildTools } `
     -ev +BuildErrors
@@ -67,9 +72,27 @@ Invoke-BuildStep 'Setting gallery version metadata in AssemblyInfo.cs' {
     } `
     -ev +BuildErrors
 
+Invoke-BuildStep 'Setting job version metadata in AssemblyInfo.cs' {
+        $JobsProjects | Where-Object { !$_.IsTest } | ForEach-Object {
+            $Path = Join-Path $_.Directory "Properties\AssemblyInfo.g.cs"
+            Set-VersionInfo $Path -AssemblyVersion $JobsAssemblyVersion -PackageVersion $JobsPackageVersion -Branch $Branch -Commit $CommitSHA
+        }
+    } `
+    -ev +BuildErrors
+
 Invoke-BuildStep 'Building gallery solution' { 
         $MvcBuildViews = $Configuration -eq "Release"
         Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $GallerySolution -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=$MvcBuildViews" `
+    } `
+    -ev +BuildErrors
+
+Invoke-BuildStep 'Building jobs solution' { 
+        Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $JobsSolution -SkipRestore:$SkipRestore
+    } `
+    -ev +BuildErrors 
+
+Invoke-BuildStep 'Building jobs functional test solution' { 
+        Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $JobsFunctionalTestsSolution -SkipRestore:$SkipRestore
     } `
     -ev +BuildErrors
 
@@ -103,6 +126,67 @@ Invoke-BuildStep 'Creating gallery artifacts' { `
 
         if (!$VerifyMicrosoftPackageVersion) { $VerifyMicrosoftPackageVersion = $GalleryPackageVersion }
         New-Package (Join-Path $PSScriptRoot "src\VerifyMicrosoftPackage\VerifyMicrosoftPackage.nuspec") -Configuration $Configuration -BuildNumber $BuildNumber -Version $VerifyMicrosoftPackageVersion -Branch $Branch
+    } `
+    -ev +BuildErrors
+
+Invoke-BuildStep 'Creating jobs artifacts' {
+        $JobsProjects =
+            "src\Catalog\NuGet.Services.Metadata.Catalog.csproj",
+            "src\Microsoft.PackageManagement.Search.Web\Microsoft.PackageManagement.Search.Web.csproj",
+            "src\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj",
+            "src\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj",
+            "src\NuGet.Services.AzureSearch\NuGet.Services.AzureSearch.csproj",
+            "src\NuGet.Services.Metadata.Catalog.Monitoring\NuGet.Services.Metadata.Catalog.Monitoring.csproj",
+            "src\NuGet.Services.V3\NuGet.Services.V3.csproj",
+            "src\Stats.LogInterpretation\Stats.LogInterpretation.csproj",
+            "src\Validation.Common.Job\Validation.Common.Job.csproj",
+            "src\Validation.ContentScan.Core\Validation.ContentScan.Core.csproj",
+            "src\Validation.ScanAndSign.Core\Validation.ScanAndSign.Core.csproj",
+            "src\Validation.Symbols.Core\Validation.Symbols.Core.csproj"
+        $JobsProjects | ForEach-Object {
+            New-ProjectPackage (Join-Path $PSScriptRoot $_) -Configuration $Configuration -BuildNumber $BuildNumber -Version $JobsPackageVersion -Branch $Branch -Symbols
+        }
+
+        $JobsNuspecProjects =
+            "src\ArchivePackages\ArchivePackages.nuspec",
+            "src\CopyAzureContainer\CopyAzureContainer.nuspec",
+            "src\Gallery.CredentialExpiration\Gallery.CredentialExpiration.nuspec",
+            "src\Gallery.Maintenance\Gallery.Maintenance.nuspec",
+            "src\Ng\Catalog2Dnx.nuspec",
+            "src\Ng\Catalog2icon.nuspec",
+            "src\Ng\Catalog2Monitoring.nuspec",
+            "src\Ng\Db2Catalog.nuspec",
+            "src\Ng\Db2Monitoring.nuspec",
+            "src\Ng\Monitoring2Monitoring.nuspec",
+            "src\Ng\MonitoringProcessor.nuspec",
+            "src\Ng\Ng.Operations.nuspec",
+            "src\NuGet.Jobs.Auxiliary2AzureSearch\NuGet.Jobs.Auxiliary2AzureSearch.nuspec",
+            "src\NuGet.Jobs.Catalog2AzureSearch\NuGet.Jobs.Catalog2AzureSearch.nuspec",
+            "src\NuGet.Jobs.Catalog2Registration\NuGet.Jobs.Catalog2Registration.nuspec",
+            "src\NuGet.Jobs.Db2AzureSearch\NuGet.Jobs.Db2AzureSearch.nuspec",
+            "src\NuGet.Jobs.GitHubIndexer\NuGet.Jobs.GitHubIndexer.nuspec",
+            "src\NuGet.Services.Revalidate\NuGet.Services.Revalidate.nuspec",
+            "src\NuGet.Services.Validation.Orchestrator\Validation.Orchestrator.nuspec",
+            "src\NuGet.Services.Validation.Orchestrator\Validation.SymbolsOrchestrator.nuspec",
+            "src\NuGet.SupportRequests.Notifications\NuGet.SupportRequests.Notifications.nuspec",
+            "src\PackageLagMonitor\Monitoring.PackageLag.nuspec",
+            "src\SplitLargeFiles\SplitLargeFiles.nuspec",
+            "src\Stats.AggregateCdnDownloadsInGallery\Stats.AggregateCdnDownloadsInGallery.nuspec",
+            "src\Stats.CDNLogsSanitizer\Stats.CDNLogsSanitizer.nuspec",
+            "src\Stats.CollectAzureCdnLogs\Stats.CollectAzureCdnLogs.nuspec",
+            "src\Stats.CollectAzureChinaCDNLogs\Stats.CollectAzureChinaCDNLogs.nuspec",
+            "src\Stats.CreateAzureCdnWarehouseReports\Stats.CreateAzureCdnWarehouseReports.nuspec",
+            "src\Stats.ImportAzureCdnStatistics\Stats.ImportAzureCdnStatistics.nuspec",
+            "src\Stats.PostProcessReports\Stats.PostProcessReports.nuspec",
+            "src\Stats.RollUpDownloadFacts\Stats.RollUpDownloadFacts.nuspec",
+            "src\StatusAggregator\StatusAggregator.nuspec",
+            "src\Validation.PackageSigning.ProcessSignature\Validation.PackageSigning.ProcessSignature.nuspec",
+            "src\Validation.PackageSigning.RevalidateCertificate\Validation.PackageSigning.RevalidateCertificate.nuspec",
+            "src\Validation.PackageSigning.ValidateCertificate\Validation.PackageSigning.ValidateCertificate.nuspec",
+            "src\Validation.Symbols\Validation.Symbols.Job.nuspec"
+        $JobsNuspecProjects | ForEach-Object {
+            New-Package (Join-Path $PSScriptRoot $_) -Configuration $Configuration -BuildNumber $BuildNumber -Version $JobsPackageVersion -Branch $Branch
+        }
     } `
     -ev +BuildErrors
 

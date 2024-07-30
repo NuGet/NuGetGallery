@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\..\SdkProjects.props" />
+
+  <PropertyGroup>
+    <TargetFrameworks>net472;netstandard2.1</TargetFrameworks>
+    <Description>Push NuGetGallery DB packages or catalog leaves to Azure Search.</Description>
+    <PackageTags>nuget azure search catalog leaf details incremental collector</PackageTags>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Azure.Identity" />
+    <PackageReference Include="Azure.Search.Documents" />
+    <PackageReference Include="Microsoft.Azure.Kusto.Data" />
+    <PackageReference Include="Microsoft.Rest.ClientRuntime" />
+    <PackageReference Include="System.Text.Encodings.Web" />
+    <PackageReference Include="System.Text.Json" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Services.V3\NuGet.Services.V3.csproj" />
+  </ItemGroup>
+
+</Project>

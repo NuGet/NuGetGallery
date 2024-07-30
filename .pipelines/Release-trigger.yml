@@ -16,6 +16,8 @@ parameters:
     paramName: NuGetGallerySubmoduleBranch
   - id: 21280
     paramName: NuGetGalleryBranch
+  - id: 21128
+    paramName: Branch
 
 variables:
 - name: NugetMultifeedWarnLevel

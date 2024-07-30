@@ -27,12 +27,18 @@ Trace-Log "Build #$BuildNumber started at $startTime"
 $TestErrors = @()
 $GallerySolution = Join-Path $PSScriptRoot "NuGetGallery.sln"
 $GalleryProjects = Get-SolutionProjects $GallerySolution
+$JobsSolution = Join-Path $PSScriptRoot "NuGet.Jobs.sln"
+$JobsProjects = Get-SolutionProjects $JobsSolution
+$ExcludeTestProjects =
+    "tests\Validation.PackageSigning.Helpers\Tests.ContextHelpers.csproj"
 
 Invoke-BuildStep 'Cleaning test results' { Clear-Tests } `
     -ev +TestErrors
 
 Invoke-BuildStep 'Running gallery tests' {
-        $GalleryTestProjects = $GalleryProjects | Where-Object { $_.IsTest }
+        $GalleryTestProjects = $GalleryProjects `
+            | Where-Object { $_.IsTest } `
+            | Where-Object { $ExcludeTestProjects -notcontains $_.RelativePath }
 
         $TestCount = 0
         
@@ -49,6 +55,26 @@ Invoke-BuildStep 'Running gallery tests' {
 
         Write-Host "Ensuring the EntityFramework version can be discovered."
         . (Join-Path $PSScriptRoot "tools\Update-Databases.ps1") -MigrationTargets @("FakeMigrationTarget")
+    } `
+    -ev +TestErrors
+
+Invoke-BuildStep 'Running jobs tests' {
+        $JobsTestProjects = $JobsProjects `
+            | Where-Object { $_.IsTest } `
+            | Where-Object { $ExcludeTestProjects -notcontains $_.RelativePath }
+
+        $TestCount = 0
+        
+        $JobsTestProjects | ForEach-Object {
+            $TestResultFile = Join-Path $PSScriptRoot "Results.Jobs.$TestCount.xml"
+            Trace-Log "Testing $($_.Path)"
+            dotnet test $_.Path --no-restore --no-build --configuration $Configuration "-l:trx;LogFileName=$TestResultFile"
+            if (-not (Test-Path $TestResultFile)) {
+                Write-Error "The test run failed to produce a result file";
+                exit 1;
+            }
+            $TestCount++
+        }
     } `
     -ev +TestErrors
 

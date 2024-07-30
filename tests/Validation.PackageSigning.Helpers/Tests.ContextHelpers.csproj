@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\SdkProjects.props" />
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <RootNamespace>Validation.PackageSigning.Helpers</RootNamespace>
+    <AssemblyName>Validation.PackageSigning.Helpers</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="NuGet.Services.Testing.Entities" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj" />
+  </ItemGroup>
+</Project>

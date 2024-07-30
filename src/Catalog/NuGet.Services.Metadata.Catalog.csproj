@@ -1,0 +1,83 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\..\SdkProjects.props" />
+
+  <PropertyGroup>
+    <TargetFrameworks>net472;netstandard2.1</TargetFrameworks>
+    <Description>Create, edit, or read the package metadata catalog.</Description>
+    <PackageTags>nuget;services;search;catalog;metadata;collector</PackageTags>
+  </PropertyGroup>
+  
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+    <Compile Remove="AppendOnlyCatalogItem.cs" />
+    <Compile Remove="AppendOnlyCatalogWriter.cs" />
+    <Compile Remove="CatalogItem.cs" />
+    <Compile Remove="CatalogItemSummary.cs" />
+    <Compile Remove="CatalogWriterBase.cs" />
+    <Compile Remove="DeleteCatalogItem.cs" />
+    <Compile Remove="Helpers\CatalogWriterHelper.cs" />
+    <Compile Remove="IPackageCatalogItemCreator.cs" />
+    <Compile Remove="JsonLdIntegration\JsonLdReader.cs" />
+    <Compile Remove="JsonLdIntegration\JsonLdWriter.cs" />
+    <Compile Remove="PackageCatalog.cs" />
+    <Compile Remove="PackageCatalogItem.cs" />
+    <Compile Remove="PackageCatalogItemCreator.cs" />
+    <Compile Remove="Persistence\AzureStorage.cs" />
+    <Compile Remove="Persistence\AzureStorageFactory.cs" />
+    <Compile Remove="ReadOnlyGraph.cs" />
+    <Compile Remove="SavePagesResult.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Strings.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Strings.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Strings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="context\Catalog.json" />
+    <None Remove="context\Container.json" />
+    <None Remove="context\PackageDetails.json" />
+    <None Remove="xslt\normalizeNuspecNamespace.xslt" />
+    <None Remove="xslt\nuspec.xslt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\NuGet.Jobs.Common\Extensions\TaskExtensions.cs" Link="TaskExtensions.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="context\Catalog.json" />
+    <EmbeddedResource Include="context\Container.json" />
+    <EmbeddedResource Include="context\PackageDetails.json" />
+    <EmbeddedResource Include="xslt\normalizeNuspecNamespace.xslt" />
+    <EmbeddedResource Include="xslt\nuspec.xslt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Storage.Blobs" />
+    <PackageReference Include="NuGetGallery.Core" />
+    <PackageReference Include="NuGet.Services.Entities" />
+    <PackageReference Include="NuGet.Services.Logging" />
+    <PackageReference Include="NuGet.Services.Sql" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <PackageReference Include="dotNetRDF" />
+    <PackageReference Include="NuGet.StrongName.json-ld.net" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj" />
+  </ItemGroup>
+
+</Project>

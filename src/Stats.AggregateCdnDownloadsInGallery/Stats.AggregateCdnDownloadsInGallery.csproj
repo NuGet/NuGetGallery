@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\SdkProjects.props" />
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="Scripts\*" />
+    <None Include="Settings\*" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Catalog\NuGet.Services.Metadata.Catalog.csproj" />
+    <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj" />
+    <ProjectReference Include="..\NuGet.Services.AzureSearch\NuGet.Services.AzureSearch.csproj" />
+  </ItemGroup>
+</Project>
