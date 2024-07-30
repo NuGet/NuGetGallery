@@ -78,7 +78,7 @@ extends:
                   workingFolder: $(NuGetGalleryPath)
               - task: PowerShell@1
                 name: test
-                displayName: Run gallery tests
+                displayName: Run tests
                 inputs:
                   scriptName: $(NuGetGalleryPath)\test.ps1
                   arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipJobs
@@ -113,7 +113,7 @@ extends:
                   workingFolder: $(NuGetGalleryPath)
               - task: PowerShell@1
                 name: test
-                displayName: Run gallery tests
+                displayName: Run tests
                 inputs:
                   scriptName: $(NuGetGalleryPath)\test.ps1
                   arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipGallery
