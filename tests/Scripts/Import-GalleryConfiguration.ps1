@@ -77,7 +77,7 @@ $configObject = New-Object PSObject
         $file = "$PSScriptRoot\temp-$filename"
         Write-Host "Downloading temporary configuration file $filename"
         $requestUri = "https://$Instance.visualstudio.com/DefaultCollection/$Project/_apis/git/repositories/$Repository/items?api-version=1.0&versionDescriptor.version=$Branch&scopePath=GalleryFunctionalConfig\$filename"
-        $response = Invoke-WebRequest -UseBasicParsing -Uri $requestUri -Headers $headers -OutFile $file
+        Invoke-WebRequest -UseBasicParsing -Uri $requestUri -Headers $headers -OutFile $file | Out-Null
         $configData = Get-Content -Path $file | ConvertFrom-Json
         Remove-Item -Path $file
         # Merge the current file with the last files

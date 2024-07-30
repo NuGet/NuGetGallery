@@ -123,7 +123,7 @@ namespace NuGetGallery
             string username = addOwnerData.Username;
             string message = addOwnerData.Message;
 
-            if (Regex.IsMatch(username, GalleryConstants.EmailValidationRegex, RegexOptions.None, GalleryConstants.EmailValidationRegexTimeout))
+            if (username is not null && Regex.IsMatch(username, GalleryConstants.EmailValidationRegex, RegexOptions.None, GalleryConstants.EmailValidationRegexTimeout))
             {
                 return Json(new { success = false, message = Strings.AddOwner_NameIsEmail }, JsonRequestBehavior.AllowGet);
             }

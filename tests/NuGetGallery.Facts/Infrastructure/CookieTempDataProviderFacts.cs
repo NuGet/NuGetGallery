@@ -70,7 +70,7 @@ namespace NuGetGallery.Infrastructure
 
                 var tempData = provider.LoadTempData(controllerContext);
 
-                Assert.Equal(0, tempData.Count);
+                Assert.Empty(tempData);
             }
 
             [Fact]
@@ -87,7 +87,7 @@ namespace NuGetGallery.Infrastructure
 
                 var tempData = provider.LoadTempData(controllerContext);
 
-                Assert.Equal(0, tempData.Count);
+                Assert.Empty(tempData);
             }
         }
 

@@ -45,7 +45,7 @@ namespace NuGetGallery
                 _enqueuer.Verify(
                     x => x.SendMessageAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()),
                     Times.Once);
-                Assert.Equal(1, _data.Count);
+                Assert.Single(_data);
                 Assert.NotNull(_data[0]);
                 Assert.Equal(package.PackageRegistration.Id, _data[0].ProcessValidationSet.PackageId);
                 Assert.Equal(package.Version, _data[0].ProcessValidationSet.PackageVersion);
@@ -67,7 +67,7 @@ namespace NuGetGallery
                 _enqueuer.Verify(
                     x => x.SendMessageAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()),
                     Times.Once);
-                Assert.Equal(1, _data.Count);
+                Assert.Single(_data);
                 Assert.NotNull(_data[0]);
                 Assert.Equal(package.PackageRegistration.Id, _data[0].ProcessValidationSet.PackageId);
                 Assert.Equal(package.Version, _data[0].ProcessValidationSet.PackageVersion);
@@ -170,7 +170,7 @@ namespace NuGetGallery
                 _enqueuer.Verify(
                     x => x.SendMessageAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()),
                     Times.Once);
-                Assert.Equal(1, _data.Count);
+                Assert.Single(_data);
                 Assert.NotNull(_data[0]);
                 Assert.Equal(symbolPackage.Package.PackageRegistration.Id, _data[0].ProcessValidationSet.PackageId);
                 Assert.Equal(symbolPackage.Package.Version, _data[0].ProcessValidationSet.PackageVersion);
@@ -192,7 +192,7 @@ namespace NuGetGallery
                 _enqueuer.Verify(
                     x => x.SendMessageAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()),
                     Times.Once);
-                Assert.Equal(1, _data.Count);
+                Assert.Single(_data);
                 Assert.NotNull(_data[0]);
                 Assert.Equal(symbolPackage.Package.PackageRegistration.Id, _data[0].ProcessValidationSet.PackageId);
                 Assert.Equal(symbolPackage.Package.Version, _data[0].ProcessValidationSet.PackageVersion);

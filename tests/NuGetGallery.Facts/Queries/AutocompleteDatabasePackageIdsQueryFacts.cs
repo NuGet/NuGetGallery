@@ -93,7 +93,7 @@ namespace NuGetGallery.Queries
             {
                 var queryResult = await _packageIdsQuery.Execute("inexistent-partial-package-id", null, null);
 
-                Assert.Equal(0, queryResult.Count());
+                Assert.Empty(queryResult);
             }
 
             [Fact]

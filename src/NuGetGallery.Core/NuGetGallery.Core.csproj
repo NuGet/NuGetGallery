@@ -41,34 +41,20 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Core" Version="1.39.0" />
-    <PackageReference Include="Azure.Identity" Version="1.11.4" />
-    <PackageReference Include="Azure.Storage.Blobs" Version="12.20.0" />
-    <PackageReference Include="EntityFramework" Version="6.4.4" />
-    <PackageReference Include="NuGet.Packaging">
-      <Version>$(NuGetClientPackageVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="NuGet.Services.FeatureFlags">
-      <Version>$(ServerCommonPackageVersion)</Version>
-    </PackageReference>
+    <PackageReference Include="Azure.Core" />
+    <PackageReference Include="Azure.Identity" />
+    <PackageReference Include="Azure.Storage.Blobs" />
+    <PackageReference Include="EntityFramework" />
+    <PackageReference Include="NuGet.Packaging" />
+    <PackageReference Include="NuGet.Services.FeatureFlags" />
   </ItemGroup>
   
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
-    <PackageReference Include="NuGet.Services.Messaging.Email">
-      <Version>$(ServerCommonPackageVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="NuGet.Services.Validation">
-      <Version>$(ServerCommonPackageVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="NuGet.Services.Validation.Issues">
-      <Version>$(ServerCommonPackageVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Data.Services.Client">
-      <Version>5.8.4</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.WindowsAzure.ConfigurationManager">
-      <Version>3.2.3</Version>
-    </PackageReference>
+    <PackageReference Include="NuGet.Services.Messaging.Email" />
+    <PackageReference Include="NuGet.Services.Validation" />
+    <PackageReference Include="NuGet.Services.Validation.Issues" />
+    <PackageReference Include="Microsoft.Data.Services.Client" />
+    <PackageReference Include="Microsoft.WindowsAzure.ConfigurationManager" />
   </ItemGroup>
   
   <ItemGroup>

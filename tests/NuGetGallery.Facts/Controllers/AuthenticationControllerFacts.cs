@@ -458,11 +458,12 @@ namespace NuGetGallery.Controllers
                 Assert.Equal(Strings.NuGetAccountPasswordLoginUnsupported, controller.ModelState[SignInViewName].Errors[0].ErrorMessage);
             }
 
+            [Fact]
             public async Task WhenAttemptingToLinkExternalToExistingAccountWithNoExternalAccounts_AllowsLinkingAndRemovesPassword()
             {
                 // Arrange
                 var passwordCredential = new Credential(CredentialTypes.Password.Prefix, "thePassword");
-                var user = new User("theUsername") { EmailAddress = "confirmed@example.com", Credentials = new[] { passwordCredential } };
+                var user = new User("theUsername") { EmailAddress = "confirmed@example.com", Credentials = new[] { passwordCredential }.ToList() };
 
                 var authUser = new AuthenticatedUser(
                     user,
@@ -472,12 +473,22 @@ namespace NuGetGallery.Controllers
                     new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.Success, authUser);
 
                 GetMock<AuthenticationService>()
+                    .Setup(x => x.AddCredential(It.IsAny<User>(), It.IsAny<Credential>()))
+                    .Returns(Task.CompletedTask);
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>(), It.IsAny<bool>()))
+                    .Returns(Task.CompletedTask);
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.CreateSessionAsync(It.IsAny<IOwinContext>(), It.IsAny<AuthenticatedUser>(), It.IsAny<bool>()))
+                    .Returns(Task.CompletedTask);
+                GetMock<AuthenticationService>()
                     .Setup(x => x.Authenticate("confirmed@example.com", "thePassword"))
                     .CompletesWith(authResult);
 
+                var externalCredential = new Credential { Type = CredentialTypes.External.AzureActiveDirectoryAccount };
                 GetMock<AuthenticationService>()
                     .Setup(x => x.ReadExternalLoginCredential(It.IsAny<OwinContext>()))
-                    .Returns(Task.FromResult(new AuthenticateExternalLoginResult { ExternalIdentity = new ClaimsIdentity() }));
+                    .Returns(Task.FromResult(new AuthenticateExternalLoginResult { ExternalIdentity = new ClaimsIdentity(), Credential = externalCredential }));
 
                 var controller = GetController<AuthenticationController>();
 
@@ -494,7 +505,7 @@ namespace NuGetGallery.Controllers
                     .Verify(x => x.AddCredential(It.IsAny<User>(), It.IsAny<Credential>()));
 
                 GetMock<AuthenticationService>()
-                    .Verify(x => x.CreateSessionAsync(controller.OwinContext, authUser, false));
+                    .Verify(x => x.CreateSessionAsync(controller.OwinContext, It.Is<AuthenticatedUser>(u => u.User == user), false));
 
                 GetMock<AuthenticationService>()
                     .Verify(x => x.RemoveCredential(user, passwordCredential, true));
@@ -503,6 +514,7 @@ namespace NuGetGallery.Controllers
                     .Verify(x => x.SendMessageAsync(It.IsAny<CredentialAddedMessage>(), false, false));
             }
 
+            [Fact]
             public async Task WhenAttemptingToLinkExternalToAccountWithExistingExternals_RejectsLinking()
             {
                 // Arrange
@@ -534,11 +546,12 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 GetMock<AuthenticationService>().Verify(a => a.CreateSessionAsync(controller.OwinContext, authUser, false), Times.Never());
-                ResultAssert.IsView(result, viewName: SignInViewNuGetName);
+                ResultAssert.IsView(result, viewName: LinkExternalViewName);
                 Assert.False(controller.ModelState.IsValid);
-                Assert.Equal(Strings.AccountIsLinkedToAnotherExternalAccount, controller.ModelState[SignInViewName].Errors[0].ErrorMessage);
+                Assert.Equal(string.Format(Strings.AccountIsLinkedToAnotherExternalAccount, user.EmailAddress), controller.ModelState[SignInViewName].Errors[0].ErrorMessage);
             }
 
+            [Fact]
             public async Task WhenAttemptingToLinkExternalToAdminUserWithExistingExternals_AllowsLinking()
             {
                 // Arrange
@@ -548,7 +561,7 @@ namespace NuGetGallery.Controllers
                     Credentials = new[]
                     {
                         new Credential { Type = CredentialTypes.External.Prefix + "Foo" }
-                    },
+                    }.ToList(),
                     Roles = new[]
                     {
                         new Role { Name = CoreConstants.AdminRoleName }
@@ -565,6 +578,13 @@ namespace NuGetGallery.Controllers
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Authenticate("confirmed@example.com", "thePassword"))
                     .CompletesWith(authResult);
+
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.AddCredential(It.IsAny<User>(), It.IsAny<Credential>()))
+                    .Returns(Task.CompletedTask);
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.CreateSessionAsync(It.IsAny<IOwinContext>(), It.IsAny<AuthenticatedUser>(), It.IsAny<bool>()))
+                    .Returns(Task.CompletedTask);
 
                 var externalCredential = new Credential { Type = "externalcred" };
 
@@ -604,7 +624,7 @@ namespace NuGetGallery.Controllers
                     .Verify(x => x.AddCredential(authUser.User, externalCredential));
 
                 GetMock<AuthenticationService>()
-                    .Verify(x => x.CreateSessionAsync(controller.OwinContext, authUser, false));
+                    .Verify(x => x.CreateSessionAsync(controller.OwinContext, It.Is<AuthenticatedUser>(u => u.User == user), false));
 
                 messageService
                     .Verify(svc => svc.SendMessageAsync(

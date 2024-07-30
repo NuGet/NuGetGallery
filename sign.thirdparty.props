@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project>
   <ItemGroup>
     <ThirdPartyBinaries Include="AnglicanGeek.MarkdownMailer.dll" />
     <ThirdPartyBinaries Include="Antlr3.Runtime.dll" />
@@ -29,6 +28,7 @@
     <ThirdPartyBinaries Include="Lucene.Net.dll" />
     <ThirdPartyBinaries Include="Markdig.Signed.dll" />
     <ThirdPartyBinaries Include="MarkdownSharp.dll" />
+    <ThirdPartyBinaries Include="MessagePack.dll" />
     <ThirdPartyBinaries Include="Microsoft.ApplicationServer.Caching.Client.dll" />
     <ThirdPartyBinaries Include="Microsoft.ApplicationServer.Caching.Core.dll" />
     <ThirdPartyBinaries Include="Microsoft.AspNet.WebApi.MessageHandlers.Compression.dll" />

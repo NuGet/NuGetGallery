@@ -43,7 +43,7 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [MemberData("IsHijackableReturnsFalseIfFilterContainsSubstringOf_Input")]
+            [MemberData(nameof(IsHijackableReturnsFalseIfFilterContainsSubstringOf_Input))]
             public void IsHijackableReturnsFalseIfFilterContainsSubstringOf(string uri)
             {
                 // Arrange

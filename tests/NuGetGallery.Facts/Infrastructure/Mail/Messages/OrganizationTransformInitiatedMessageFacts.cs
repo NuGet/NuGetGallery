@@ -48,7 +48,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 var message = CreateMessage();
                 var recipients = message.GetRecipients();
 
-                Assert.Equal(1, recipients.To.Count);
+                Assert.Single(recipients.To);
                 Assert.Contains(Fakes.RequestingUser.ToMailAddress(), recipients.To);
             }
 
@@ -85,7 +85,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 var message = CreateMessage();
                 var recipients = message.GetRecipients();
 
-                Assert.Equal(1, recipients.ReplyTo.Count);
+                Assert.Single(recipients.ReplyTo);
                 Assert.Contains(Fakes.OrganizationAdmin.ToMailAddress(), recipients.ReplyTo);
             }
         }

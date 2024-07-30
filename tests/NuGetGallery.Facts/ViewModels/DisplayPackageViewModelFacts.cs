@@ -1207,7 +1207,7 @@ namespace NuGetGallery.ViewModels
             }
             else
             {
-                Assert.Equal(null, model.RenamedMessage);
+                Assert.Null(model.RenamedMessage);
             }
         }
 
@@ -1242,8 +1242,8 @@ namespace NuGetGallery.ViewModels
             }
 
             // Assert
-            Assert.Equal(null, model.PackageRenames);
-            Assert.Equal(null, model.RenamedMessage);
+            Assert.Null(model.PackageRenames);
+            Assert.Null(model.RenamedMessage);
         }
 
         private static DisplayPackageViewModel CreateDisplayPackageViewModel(

@@ -1229,7 +1229,7 @@ namespace NuGetGallery
                 Assert.Empty(result.Warnings);
             }
 
-            public static IEnumerable<string[]> LocalIconFilePaths =>
+            public static IEnumerable<object[]> LocalIconFilePaths =>
                 new[]
                 {
                     new [] { Environment.GetEnvironmentVariable("TEMP") + "\\testimage.png" },

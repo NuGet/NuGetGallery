@@ -635,7 +635,7 @@ namespace NuGetGallery
             public Task RemovingNamespaceOwnerRemovesPackageVerified()
             {
                 var existingOwner1 = new User { Key = 100, Username = "microsoft" };
-                return RemovingNamespaceOwnerRemovesPackageVerified(existingOwner1, existingOwner1);
+                return InternalRemovingNamespaceOwnerRemovesPackageVerified(existingOwner1, existingOwner1);
             }
 
             [Fact]
@@ -647,10 +647,10 @@ namespace NuGetGallery
                 existingOrganizationOwner1.Members.Add(existingMembership);
                 existingOrganizationOwner1Admin.Organizations.Add(existingMembership);
 
-                return RemovingNamespaceOwnerRemovesPackageVerified(existingOrganizationOwner1, existingOrganizationOwner1Admin);
+                return InternalRemovingNamespaceOwnerRemovesPackageVerified(existingOrganizationOwner1, existingOrganizationOwner1Admin);
             }
 
-            private async Task RemovingNamespaceOwnerRemovesPackageVerified(User owner, User requestingUser)
+            private async Task InternalRemovingNamespaceOwnerRemovesPackageVerified(User owner, User requestingUser)
             {
                 var existingNamespace = new ReservedNamespace("microsoft.aspnet.", isSharedNamespace: false, isPrefix: true);
                 var package = new PackageRegistration { Key = 2, Id = "Microsoft.Aspnet.Package1", IsVerified = true, Owners = new List<User> { owner } };

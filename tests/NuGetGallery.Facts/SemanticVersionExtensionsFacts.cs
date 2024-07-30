@@ -45,7 +45,7 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [MemberData("Data")]
+            [MemberData(nameof(Data))]
             public void NormalizesStringOutputForDisplayAndUniqueness(NuGetVersion version, string expected)
             {
                 Assert.Equal(expected, version.ToNormalizedString(), StringComparer.Ordinal);

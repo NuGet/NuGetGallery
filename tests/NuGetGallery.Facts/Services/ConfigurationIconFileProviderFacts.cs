@@ -21,6 +21,7 @@ namespace NuGetGallery
             Assert.Equal("featureFlagService", ex.ParamName);
         }
 
+        [Fact]
         public void ConstructorThrowsWhenIconUrlTemplateProcessorIsNull()
         {
             var ex = Assert.Throws<ArgumentNullException>(

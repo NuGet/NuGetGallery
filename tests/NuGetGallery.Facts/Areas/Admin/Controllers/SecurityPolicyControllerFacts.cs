@@ -114,15 +114,15 @@ namespace NuGetGallery.Areas.Admin.Controllers
             Assert.NotNull(users);
             Assert.Equal(3, users.Count());
 
-            Assert.Equal(1, users[0].Subscriptions.Count);
+            Assert.Single(users[0].Subscriptions);
             Assert.True(users[0].Subscriptions.ContainsKey(subscriptionName));
             Assert.False(users[0].Subscriptions[subscriptionName]);
 
-            Assert.Equal(1, users[1].Subscriptions.Count);
+            Assert.Single(users[1].Subscriptions);
             Assert.True(users[1].Subscriptions.ContainsKey(subscriptionName));
             Assert.True(users[1].Subscriptions[subscriptionName]);
 
-            Assert.Equal(1, users[2].Subscriptions.Count);
+            Assert.Single(users[2].Subscriptions);
             Assert.True(users[2].Subscriptions.ContainsKey(subscriptionName));
             Assert.False(users[2].Subscriptions[subscriptionName]);
         }
@@ -169,7 +169,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             var subscription = policyService.Mocks.UserPoliciesSubscription.Object;
 
             users.ForEach(async u => await policyService.SubscribeAsync(u, subscription));
-            policyService.MockEntitiesContext.ResetCalls();
+            policyService.MockEntitiesContext.Invocations.Clear();
 
             // Act.
             var model = new List<string>
@@ -200,7 +200,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             var subscription = policyService.Mocks.UserPoliciesSubscription.Object;
 
             users.ForEach(async u => await policyService.SubscribeAsync(u, subscription));
-            policyService.MockEntitiesContext.ResetCalls();
+            policyService.MockEntitiesContext.Invocations.Clear();
 
             // Act.
             // Simulates changes to the configurable state of all existing policy subscriptions

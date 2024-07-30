@@ -124,7 +124,7 @@ This should help prevent unwanted file commits.
     create one and assign it to yourself!
 
         git checkout dev
-        git checkout -b anurse-123
+        git checkout -b billg-123
     
 3.  __Do your work.__
     Now, do your work using the following highly accurate and efficient algorithm :)
@@ -142,7 +142,7 @@ This should help prevent unwanted file commits.
     5. if (moreWorkToDo) go to #3.1 else go to #4.
 
 4.  __Start a code review.__
-    Start a code review by pushing your branch up to GitHub (```git push origin anurse-123```) and
+    Start a code review by pushing your branch up to GitHub (```git push origin billg-123```) and
     creating a Pull Request from your branch to ***dev***. Wait for at least someone on the team to respond with: ":shipit:" (that's called the
     "Ship-It Squirrel" and you can put it in your own comments by typing ```:shipit:```).
 
@@ -153,7 +153,7 @@ This should help prevent unwanted file commits.
 
         git checkout dev
         git pull origin dev
-        git merge anurse-123
+        git merge billg-123
         ... resolve conflicts ...
         git push origin dev
     

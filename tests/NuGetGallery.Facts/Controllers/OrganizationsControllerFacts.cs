@@ -2507,10 +2507,8 @@ namespace NuGetGallery
 
         public class TheDeleteOrganizationAccountAction : TestContainer
         {
-            [Theory]
-            [InlineData(false)]
-            [InlineData(true)]
-            public void DeleteHappyAccount(bool withPendingIssues)
+            [Fact]
+            public void DeleteHappyAccount()
             {
                 // Arrange
                 var controller = GetController<OrganizationsController>();

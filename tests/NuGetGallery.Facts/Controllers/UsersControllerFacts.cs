@@ -392,7 +392,7 @@ namespace NuGetGallery
                 catch (Exception e)
                 {
                     // Assert
-                    Assert.True(false, $"No exception should be thrown for result type {resultType}: {e}");
+                    Assert.Fail($"No exception should be thrown for result type {resultType}: {e}");
                 }
             }
 
@@ -1359,7 +1359,7 @@ namespace NuGetGallery
                 User currentUser,
                 Package package)
             {
-                Assert.Equal(package.PackageStatusKey, PackageStatus.Available);
+                Assert.Equal(PackageStatus.Available, package.PackageStatusKey);
                 Assert.Equal(package.PackageRegistration.Id, packageModel.Id);
                 Assert.Equal(package.Version, packageModel.Version);
                 Assert.Equal(package.PackageRegistration.DownloadCount, packageModel.DownloadCount);
@@ -1723,7 +1723,7 @@ namespace NuGetGallery
                 // Assert
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
                 Assert.Equal(Strings.CannotRemoveOnlyLoginCredential, controller.TempData["Message"]);
-                Assert.Equal(1, user.Credentials.Count);
+                Assert.Single(user.Credentials);
             }
 
             [Fact]
@@ -1742,7 +1742,7 @@ namespace NuGetGallery
                 // Assert
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
                 Assert.Equal(Strings.CredentialNotFound, controller.TempData["Message"]);
-                Assert.Equal(1, user.Credentials.Count);
+                Assert.Single(user.Credentials);
             }
 
             [Fact]
@@ -1806,7 +1806,7 @@ namespace NuGetGallery
                 // Assert
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
                 Assert.Equal(Strings.CannotRemoveOnlyLoginCredential, controller.TempData["Message"]);
-                Assert.Equal(1, user.Credentials.Count);
+                Assert.Single(user.Credentials);
             }
 
             [Fact]
@@ -1828,7 +1828,7 @@ namespace NuGetGallery
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
                 Assert.Equal(Strings.CredentialNotFound, controller.TempData["Message"]);
 
-                Assert.Equal(1, user.Credentials.Count);
+                Assert.Single(user.Credentials);
             }
 
             [Theory]
@@ -1854,7 +1854,7 @@ namespace NuGetGallery
                 Assert.IsType<JsonResult>(result);
                 Assert.Equal(Strings.CredentialNotFound, (string)((JsonResult)result).Data);
 
-                Assert.Equal(1, user.Credentials.Count);
+                Assert.Single(user.Credentials);
             }
 
             [Fact]
@@ -2038,7 +2038,7 @@ namespace NuGetGallery
                 Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
                 Assert.Equal(Strings.CredentialNotFound, (string)result.Data);
 
-                Assert.Equal(1, user.Credentials.Count);
+                Assert.Single(user.Credentials);
                 Assert.True(user.Credentials.Contains(cred));
             }
 
@@ -2065,7 +2065,7 @@ namespace NuGetGallery
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
                 Assert.Equal(ServicesStrings.UserAccountIsLocked, (string)result.Data);
 
-                Assert.Equal(1, user.Credentials.Count);
+                Assert.Single(user.Credentials);
                 Assert.True(user.Credentials.Contains(cred));
             }
 

@@ -48,7 +48,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 var message = CreateMessage(user);
                 var recipients = message.GetRecipients();
 
-                Assert.Equal(1, recipients.To.Count);
+                Assert.Single(recipients.To);
                 Assert.Contains(expectedMailAddress, recipients.To);
             }
 

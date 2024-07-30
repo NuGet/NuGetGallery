@@ -47,7 +47,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 Assert.Equal((int)HttpStatusCode.OK, apiKeysController.Response.StatusCode);
                 var apiKeyRevokeViewModels = Assert.IsType<List<ApiKeyRevokeViewModel>>(jsonResult.Data);
 
-                Assert.Equal(1, apiKeyRevokeViewModels.Count);
+                Assert.Single(apiKeyRevokeViewModels);
                 var apiKeyRevokeViewModel = Assert.IsType<ApiKeyRevokeViewModel>(apiKeyRevokeViewModels[0]);
                 Assert.Null(apiKeyRevokeViewModel.ApiKeyViewModel);
                 Assert.Null(apiKeyRevokeViewModel.RevocationSource);
@@ -90,7 +90,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 Assert.Equal((int)HttpStatusCode.OK, apiKeysController.Response.StatusCode);
                 var apiKeyRevokeViewModels = Assert.IsType<List<ApiKeyRevokeViewModel>>(jsonResult.Data);
 
-                Assert.Equal(1, apiKeyRevokeViewModels.Count);
+                Assert.Single(apiKeyRevokeViewModels);
                 var apiKeyRevokeViewModel = Assert.IsType<ApiKeyRevokeViewModel>(apiKeyRevokeViewModels[0]);
 
                 Assert.Equal(apiKeyType, apiKeyRevokeViewModel.ApiKeyViewModel.Type);
@@ -135,7 +135,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 Assert.Equal((int)HttpStatusCode.OK, apiKeysController.Response.StatusCode);
                 var apiKeyRevokeViewModels = Assert.IsType<List<ApiKeyRevokeViewModel>>(jsonResult.Data);
 
-                Assert.Equal(1, apiKeyRevokeViewModels.Count);
+                Assert.Single(apiKeyRevokeViewModels);
                 var apiKeyRevokeViewModel = Assert.IsType<ApiKeyRevokeViewModel>(apiKeyRevokeViewModels[0]);
 
                 Assert.Equal(apiKeyType, apiKeyRevokeViewModel.ApiKeyViewModel.Type);

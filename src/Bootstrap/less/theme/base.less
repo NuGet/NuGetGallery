@@ -634,3 +634,46 @@ body[id="/"] {
   background-attachment: fixed;
   color: var(--neutralForeground1Rest);
 }
+/* For tooltip */
+.tooltip-target {
+  position: relative;
+  text-decoration: none;
+  color: var(--brandForegroundLinkRest);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--brandForegroundLinkHover);
+  }
+
+  &.tooltip-icon--black-icon {
+    color: var(--neutralForeground1Rest);
+  }
+}
+
+.tooltip-wrapper.popover {
+  min-width: 276px;
+  position: absolute;
+  transform: translateY(-50%);
+  top: calc(50%);
+}
+
+.tooltip-wrapper.popover.tooltip-with-icon {
+  top: calc(50%);
+}
+
+.tooltip-block {
+  position: relative;
+  color: var(--neutralForeground1Rest);
+
+  .popover-content {
+    display: block;
+  }
+
+  .popover {
+    left: -9999px;
+    display: inline-block;
+  }
+  .popover.show {
+    left: 0;
+  }
+}

@@ -191,7 +191,7 @@ namespace NuGetGallery
                     && d.VersionSpec == "[1.0.0, )"
                     && d.TargetFramework == "net451");
 
-                Assert.Equal(0, result.SupportedFrameworks.Count);
+                Assert.Empty(result.SupportedFrameworks);
             }
 
             [Fact]

@@ -1712,7 +1712,7 @@ namespace NuGetGallery
 
                     // Assert
                     service.MockUserRepository.Verify(r => r.CommitChangesAsync(), Times.Once);
-                    service.MockUserRepository.ResetCalls();
+                    service.MockUserRepository.Invocations.Clear();
 
                     Assert.NotNull(account.OrganizationMigrationRequest);
                     Assert.Equal(account, account.OrganizationMigrationRequest.NewOrganization);
@@ -2267,7 +2267,7 @@ namespace NuGetGallery
                 };
 
                 var result = service.GetSiteAdmins();
-                Assert.Equal(1, result.Count);
+                Assert.Single(result);
                 Assert.Equal(adminUser, result.Single());
             }
         }

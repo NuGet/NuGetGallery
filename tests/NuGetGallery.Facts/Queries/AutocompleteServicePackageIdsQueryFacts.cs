@@ -19,7 +19,7 @@ using Xunit;
 
 namespace NuGetGallery
 {
-    public class AutocompleteServicePackageIdsQueryFacts
+    public class AutocompleteServicePackageIdsQueryFacts : IDisposable
     {
         private TestHandler _testHandler;
 
@@ -134,6 +134,11 @@ namespace NuGetGallery
                         "application/json"),
                 });
             }
+        }
+
+        public void Dispose()
+        {
+            _testHandler.Dispose();
         }
     }
 }

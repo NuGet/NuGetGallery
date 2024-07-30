@@ -92,7 +92,7 @@ namespace NuGetGallery.Security
 
             // Assert
             Assert.NotNull(handlers);
-            Assert.Equal(1, handlers.Count);
+            Assert.Single(handlers);
             Assert.Equal(typeof(RequirePackageMetadataCompliancePolicy), handlers[0].GetType());
         }
 
@@ -355,25 +355,25 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public void SubscribeAsync_ThrowsArgumentNullIfUserIsNull()
+        public async Task SubscribeAsync_ThrowsArgumentNullIfUserIsNull()
         {
-            Assert.ThrowsAsync<ArgumentNullException>(() =>
+            await Assert.ThrowsAsync<ArgumentNullException>(() =>
                 new TestSecurityPolicyService().SubscribeAsync(null, new Mock<IUserSecurityPolicySubscription>().Object));
         }
 
         [Fact]
-        public void SubscribeAsync_ThrowsArgumentNullIfSubscriptionIsNull()
+        public async Task SubscribeAsync_ThrowsArgumentNullIfSubscriptionIsNull()
         {
-            Assert.ThrowsAsync<ArgumentNullException>(() =>
+            await Assert.ThrowsAsync<ArgumentNullException>(() =>
                 new TestSecurityPolicyService().SubscribeAsync(new User(), (IUserSecurityPolicySubscription)null));
         }
 
         [Theory]
         [InlineData("")]
         [InlineData(null)]
-        public void SubscribeAsync_ThrowsArgumentNullIfSubscriptionNameIsMissing(string subscriptionName)
+        public async Task SubscribeAsync_ThrowsArgumentNullIfSubscriptionNameIsMissing(string subscriptionName)
         {
-            Assert.ThrowsAsync<ArgumentNullException>(() =>
+            await Assert.ThrowsAsync<ArgumentException>(() =>
                 new TestSecurityPolicyService().SubscribeAsync(new User(), subscriptionName));
         }
 
@@ -473,7 +473,7 @@ namespace NuGetGallery.Security
             var user = new User("testUser");
             var subscription = service.Subscriptions.First();
             await service.SubscribeAsync(user, subscription);
-            service.MockAuditingService.ResetCalls();
+            service.MockAuditingService.Invocations.Clear();
 
             // Act.
             await service.SubscribeAsync(user, subscription);
@@ -483,25 +483,25 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public void UnsubscribeAsync_ThrowsArgumentNullIfUserIsNull()
+        public async Task UnsubscribeAsync_ThrowsArgumentNullIfUserIsNull()
         {
-            Assert.ThrowsAsync<ArgumentNullException>(() =>
+            await Assert.ThrowsAsync<ArgumentNullException>(() =>
                 new TestSecurityPolicyService().UnsubscribeAsync(null, new Mock<IUserSecurityPolicySubscription>().Object));
         }
 
         [Fact]
-        public void UnsubscribeAsync_ThrowsArgumentNullIfSubscriptionIsNull()
+        public async Task UnsubscribeAsync_ThrowsArgumentNullIfSubscriptionIsNull()
         {
-            Assert.ThrowsAsync<ArgumentNullException>(() =>
+            await Assert.ThrowsAsync<ArgumentNullException>(() =>
                 new TestSecurityPolicyService().UnsubscribeAsync(new User(), (IUserSecurityPolicySubscription)null));
         }
 
         [Theory]
         [InlineData("")]
         [InlineData(null)]
-        public void UnsubscribeAsync_ThrowsArgumentNullIfSubscriptionNameIsMissing(string subscriptionName)
+        public async Task UnsubscribeAsync_ThrowsArgumentNullIfSubscriptionNameIsMissing(string subscriptionName)
         {
-            Assert.ThrowsAsync<ArgumentNullException>(() =>
+            await Assert.ThrowsAsync<ArgumentException>(() =>
                 new TestSecurityPolicyService().UnsubscribeAsync(new User(), subscriptionName));
         }
 
@@ -522,7 +522,7 @@ namespace NuGetGallery.Security
             await service.UnsubscribeAsync(user, service.Subscriptions.First());
 
             // Act & Assert.
-            Assert.Equal(0, user.SecurityPolicies.Count);
+            Assert.Empty(user.SecurityPolicies);
 
             service.Mocks.UserPoliciesSubscription.Verify(s => s.OnUnsubscribeAsync(It.IsAny<UserSecurityPolicySubscriptionContext>()), Times.Once);
             service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Once);
@@ -591,7 +591,7 @@ namespace NuGetGallery.Security
             var user = new User("testUser");
             var subscription = service.Subscriptions.First();
             await service.SubscribeAsync(user, subscription);
-            service.MockAuditingService.ResetCalls();
+            service.MockAuditingService.Invocations.Clear();
 
             // Act.
             await service.UnsubscribeAsync(user, subscription);

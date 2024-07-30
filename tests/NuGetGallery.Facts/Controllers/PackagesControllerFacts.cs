@@ -312,6 +312,7 @@ namespace NuGetGallery
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());
 
             httpContext = httpContext ?? new Mock<HttpContextBase>();
+            httpContext.SetupProperty(c => c.Response.StatusCode);
             httpContext.Setup(c => c.Cache).Returns(new Cache());
             TestUtility.SetupHttpContextMockForUrlGeneration(httpContext, controller.Object);
 
@@ -1750,7 +1751,7 @@ namespace NuGetGallery
                 }
                 else
                 {
-                    Assert.Equal(null, model.PackageRenames);
+                    Assert.Null(model.PackageRenames);
                     renameService.Verify(x => x.GetPackageRenames(package.PackageRegistration), Times.Never);
                 }
             }
@@ -3216,7 +3217,7 @@ namespace NuGetGallery
                         GetConfigurationService(),
                         userService: userService,
                         packageService: packageService);
-                    controller.SetCurrentUser(owner);
+                    controller.SetCurrentUser(currentUser);
 
                     // Act
                     var result = controller.CancelPendingOwnershipRequest(packageId, userAName, userBName);
@@ -3464,7 +3465,7 @@ namespace NuGetGallery
 
                 // assert
                 Assert.Equal(2, model.Owners.Count());
-                Assert.Empty(model.Owners.Where(u => u == notAllowedUser));
+                Assert.DoesNotContain(model.Owners, u => u == notAllowedUser);
             }
 
             [Fact]
@@ -5983,7 +5984,7 @@ namespace NuGetGallery
             private Mock<ISupportRequestService> _supportRequestService;
             private PackagesController _controller;
 
-            public void SetupTest(User currentUser, User owner)
+            private void SetupTest(User currentUser, User owner)
             {
                 if (owner == null)
                 {
@@ -7141,7 +7142,6 @@ namespace NuGetGallery
                 {
                     yield return MemberDataHelper.AsData(TestUtility.FakeUser, TestUtility.FakeOrganization);
                     yield return MemberDataHelper.AsData(TestUtility.FakeAdminUser, TestUtility.FakeUser);
-                    yield return MemberDataHelper.AsData(TestUtility.FakeOrganizationCollaborator, TestUtility.FakeOrganization);
                 }
             }
 
@@ -7166,7 +7166,7 @@ namespace NuGetGallery
                 var fakeReservedNamespaceService = new Mock<IReservedNamespaceService>();
                 fakeReservedNamespaceService
                     .Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
-                    .Returns(new[] { new ReservedNamespace { Owners = new[] { new User { Key = 123123123 } } } });
+                    .Returns(new[] { new ReservedNamespace { Owners = new[] { reservedNamespaceOwner } } });
 
                 var fakeTelemetryService = new Mock<ITelemetryService>();
 
@@ -7193,9 +7193,19 @@ namespace NuGetGallery
                     Times.Once);
             }
 
+            public static IEnumerable<object[]> WillShowTheViewWithErrorsWhenThePackageIdMatchesUnownedNamespace_Data
+            {
+                get
+                {
+                    yield return MemberDataHelper.AsData(TestUtility.FakeUser);
+                    yield return MemberDataHelper.AsData(TestUtility.FakeAdminUser);
+                    yield return MemberDataHelper.AsData(TestUtility.FakeOrganizationCollaborator);
+                }
+            }
+
             [Theory]
-            [MemberData(nameof(WillShowTheViewWithErrorsWhenThePackageIdIsBlockedByReservedNamespace_Data))]
-            public async Task WillShowTheViewWithErrorsWhenThePackageIdMatchesUnownedNamespace(User currentUser, User reservedNamespaceOwner)
+            [MemberData(nameof(WillShowTheViewWithErrorsWhenThePackageIdMatchesUnownedNamespace_Data))]
+            public async Task WillShowTheViewWithErrorsWhenThePackageIdMatchesUnownedNamespace(User currentUser)
             {
                 var fakeUploadedFile = new Mock<HttpPostedFileBase>();
                 fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
@@ -7408,7 +7418,7 @@ namespace NuGetGallery
                 fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
                 var fakePackageService = new Mock<IPackageService>();
                 fakePackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(
-                    new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "1.0.0+metadata" });
+                    new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "1.0.0+metadata", PackageStatusKey = status });
                 var fakePackageDeleteService = new Mock<IPackageDeleteService>();
                 var fakeTelemetryService = new Mock<ITelemetryService>();
                 var controller = CreateController(
@@ -7996,7 +8006,7 @@ namespace NuGetGallery
                 var fakeUploadFileService = new Mock<IUploadFileService>();
                 fakeUploadFileService
                     .SetupSequence(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key))
-                    .ReturnsAsync(null)
+                    .ReturnsAsync((Stream)null)
                     .ReturnsAsync(fakeSavedFileStream);
                 fakeUploadFileService
                     .Setup(x => x.SaveUploadFileAsync(TestUtility.FakeUser.Key, It.IsAny<Stream>()))
@@ -10053,7 +10063,7 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData(PackageStatus.Deleted)]
-            [InlineData(921)]
+            [InlineData((PackageStatus)921)]
             public async Task ReturnsBadRequestForInvalidSymbolPackageStatus(PackageStatus status)
             {
                 // Arrange and Act

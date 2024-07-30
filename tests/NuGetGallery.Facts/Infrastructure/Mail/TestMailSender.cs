@@ -7,7 +7,6 @@ using AnglicanGeek.MarkdownMailer;
 
 namespace NuGetGallery
 {
-    // Normally I don't like hand-written mocks, but this actually seems appropriate - anurse
     public class TestMailSender : IMailSender
     {
         public IList<MailMessage> Sent { get; private set; }

@@ -2866,7 +2866,7 @@ namespace NuGetGallery
                 var user = controller.GetCurrentUser();
                 var tempKey = user.Credentials.Last();
 
-                Assert.Equal(1, tempKey.Scopes.Count);
+                Assert.Single(tempKey.Scopes);
                 return tempKey.Scopes.First();
             }
         }
