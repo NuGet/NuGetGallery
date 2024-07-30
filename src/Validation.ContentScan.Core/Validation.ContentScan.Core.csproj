@@ -1,75 +1,14 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="15.0">
-  <Import Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
-  <Import Project="..\..\sign.thirdparty.props" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\SdkProjects.props" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{912A81F7-F0D9-43EF-A589-9A341EB2D6B6}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <TargetFramework>net472</TargetFramework>
     <RootNamespace>NuGet.Jobs.Validation.ContentScan</RootNamespace>
     <AssemblyName>NuGet.Jobs.Validation.ContentScan.Core</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup>
-    <Authors>.NET Foundation</Authors>
-    <IncludeSymbols Condition="'$(IncludeSymbols)' == ''">true</IncludeSymbols>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+    <Description>Shared libraries for content scanning validations</Description>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ContentScanStatusMessage.cs" />
-    <Compile Include="ContentScanOperationType.cs" />
-    <Compile Include="ContentScanData.cs" />
-    <Compile Include="IContentScanEnqueuer.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ContentScanEnqueuer.cs" />
-    <Compile Include="ContentScanEnqueuerConfiguration.cs" />
-    <Compile Include="StartContentScanData.cs" />
-    <Compile Include="ContentScanMessageSerializer.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="NuGet.Build.Tasks.Pack">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
     <PackageReference Include="NuGet.Services.ServiceBus" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <SignPath>..\..\build</SignPath>
-    <SignPath Condition="'$(BUILD_SOURCESDIRECTORY)' != ''">$(BUILD_SOURCESDIRECTORY)\build</SignPath>
-    <SignPath Condition="'$(NuGetBuildPath)' != ''">$(NuGetBuildPath)</SignPath>
-    <SignType Condition="'$(SignType)' == ''">none</SignType>
-  </PropertyGroup>
-  <Import Condition="Exists('$(SignPath)\sign.targets')" Project="$(SignPath)\sign.targets" />
-  <Import Condition="Exists('$(SignPath)\sign.microbuild.targets')" Project="$(SignPath)\sign.microbuild.targets" />
 </Project>

@@ -10,6 +10,6 @@
     <copyright>Copyright .NET Foundation</copyright>
   </metadata>
   <files>
-    <file src="bin\$configuration$\*.*" target="Ng"/>
+    <file src="bin\$configuration$\net472\*.*" target="Ng"/>
   </files>
 </package>

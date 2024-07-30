@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31214.320
@@ -133,7 +133,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.PackageSigning.S
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Monitoring", "Monitoring", "{814F9B31-4AF3-46CC-AD61-CEB40F47083A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monitoring.PackageLag", "src\PackageLagMonitor\Monitoring.PackageLag.csproj", "{B5147169-E941-4CF8-9FCD-1C123ACD3149}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Monitoring.PackageLag", "src\PackageLagMonitor\Monitoring.PackageLag.csproj", "{B5147169-E941-4CF8-9FCD-1C123ACD3149}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.CredentialExpiration", "tests\Tests.CredentialExpiration\Tests.CredentialExpiration.csproj", "{60152AB1-2EB4-4D44-B6D6-EEE24209A1F7}"
 EndProject

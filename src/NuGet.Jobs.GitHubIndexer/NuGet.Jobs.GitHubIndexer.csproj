@@ -1,111 +1,23 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="15.0">
-  <Import Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
-  <Import Project="..\..\sign.thirdparty.props" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\SdkProjects.props" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{42B1EB66-58F9-4D9A-8E23-FF12CBF5D643}</ProjectGuid>
+    <TargetFramework>net472</TargetFramework>
     <OutputType>Exe</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NuGet.Jobs.GitHubIndexer</RootNamespace>
-    <AssemblyName>NuGet.Jobs.GitHubIndexer</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <TargetFrameworkProfile />
-    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
+  <PropertyGroup>
+    <Description>The job used to index popular GitHub repos</Description>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
   <ItemGroup>
     <Compile Include="..\NuGet.Jobs.Common\Extensions\TaskExtensions.cs">
       <Link>GitRepoSearchers\GitHub\TaskExtensions.cs</Link>
     </Compile>
-    <Compile Include="CheckedOutFile.cs" />
-    <Compile Include="ConfigFileParser.cs" />
-    <Compile Include="FetchedRepo.cs" />
-    <Compile Include="GitFileInfo.cs" />
-    <Compile Include="GitHubIndexerConfiguration.cs" />
-    <Compile Include="GitRepoSearchers\GitHub\GitHubSearchWrapper.cs" />
-    <Compile Include="GitRepoSearchers\GitHub\GitHubSearchApiResponse.cs" />
-    <Compile Include="GitRepoSearchers\GitHub\GitHubSearcher.cs" />
-    <Compile Include="GitRepoSearchers\GitHub\IGitHubSearchWrapper.cs" />
-    <Compile Include="Filters.cs" />
-    <Compile Include="GitRepoSearchers\IGitRepoSearcher.cs" />
-    <Compile Include="GitRepoSearchers\WritableRepositoryInformation.cs" />
-    <Compile Include="ICheckedOutFile.cs" />
-    <Compile Include="IConfigFileParser.cs" />
-    <Compile Include="IFetchedRepo.cs" />
-    <Compile Include="IRepoFetcher.cs" />
-    <Compile Include="IRepositoriesCache.cs" />
-    <Compile Include="ITelemetryService.cs" />
-    <Compile Include="Job.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\AssemblyInfo.*.cs" />
-    <Compile Include="RepoFetcher.cs" />
-    <Compile Include="ReposIndexer.cs" />
-    <Compile Include="DiskRepositoriesCache.cs" />
-    <Compile Include="RepoUtils.cs" />
-    <Compile Include="TelemetryService.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
-    <None Include="NuGet.Jobs.GitHubIndexer.nuspec" />
-    <None Include="Scripts\Functions.ps1" />
-    <None Include="Scripts\PostDeploy.ps1" />
-    <None Include="Scripts\PreDeploy.ps1" />
-    <None Include="Scripts\nssm.exe" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="LibGit2Sharp" />
-    <PackageReference Include="MicroBuild.Core">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
     <PackageReference Include="NuGet.StrongName.Octokit" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj">
-      <Project>{4b4b1efb-8f33-42e6-b79f-54e7f3293d31}</Project>
-      <Name>NuGet.Jobs.Common</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <SignPath>..\..\build</SignPath>
-    <SignPath Condition="'$(BUILD_SOURCESDIRECTORY)' != ''">$(BUILD_SOURCESDIRECTORY)\build</SignPath>
-    <SignPath Condition="'$(NuGetBuildPath)' != ''">$(NuGetBuildPath)</SignPath>
-    <SignType Condition="'$(SignType)' == ''">none</SignType>
-  </PropertyGroup>
-  <Import Condition="Exists('$(SignPath)\sign.targets')" Project="$(SignPath)\sign.targets" />
-  <Import Condition="Exists('$(SignPath)\sign.microbuild.targets')" Project="$(SignPath)\sign.microbuild.targets" />
-  <Import Condition="'$(NuGetBuildExtensions)' != '' And Exists('$(NuGetBuildExtensions)')" Project="$(NuGetBuildExtensions)" />
 </Project>

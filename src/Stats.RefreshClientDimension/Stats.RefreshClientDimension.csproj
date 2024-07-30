@@ -1,44 +1,9 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="15.0">
-  <Import Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
-  <Import Project="..\..\sign.thirdparty.props" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\SdkProjects.props" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B5C01B7A-933D-483E-AF07-6AA266B0EB49}</ProjectGuid>
+    <TargetFramework>net472</TargetFramework>
     <OutputType>Exe</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Stats.RefreshClientDimension</RootNamespace>
-    <AssemblyName>Stats.RefreshClientDimension</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <TargetFrameworkProfile />
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="Microsoft.CSharp" />
-  </ItemGroup>
   <ItemGroup>
     <Compile Include="..\Stats.ImportAzureCdnStatistics\ClientDimensionTableType.cs">
       <Link>ClientDimensionTableType.cs</Link>
@@ -58,35 +23,17 @@
     <Compile Include="..\Stats.LogInterpretation\UserAgentParser.cs">
       <Link>UserAgentParser.cs</Link>
     </Compile>
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RefreshClientDimensionJob.cs" />
-    <Compile Include="UserAgentToClientDimensionLink.cs" />
-    <Compile Include="Warehouse.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="..\Stats.LogInterpretation\knownclients.yaml">
       <Link>knownclients.yaml</Link>
       <LogicalName>knownclients.yaml</LogicalName>
     </EmbeddedResource>
-    <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj">
-      <Project>{4B4B1EFB-8F33-42E6-B79F-54E7F3293D31}</Project>
-      <Name>NuGet.Jobs.Common</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="UAParser" />
   </ItemGroup>
-  <PropertyGroup>
-    <SignPath>..\..\build</SignPath>
-    <SignPath Condition="'$(BUILD_SOURCESDIRECTORY)' != ''">$(BUILD_SOURCESDIRECTORY)\build</SignPath>
-    <SignPath Condition="'$(NuGetBuildPath)' != ''">$(NuGetBuildPath)</SignPath>
-    <SignType Condition="'$(SignType)' == ''">none</SignType>
-  </PropertyGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Condition="Exists('$(SignPath)\sign.targets')" Project="$(SignPath)\sign.targets" />
-  <Import Condition="Exists('$(SignPath)\sign.microbuild.targets')" Project="$(SignPath)\sign.microbuild.targets" />
 </Project>
