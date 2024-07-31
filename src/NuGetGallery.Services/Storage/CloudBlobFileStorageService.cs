@@ -1,8 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-
-using NuGetGallery.Configuration;
-using NuGetGallery.Diagnostics;
 
 using System;
 using System.Collections.Specialized;
@@ -10,6 +7,8 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery
 {
@@ -86,7 +85,7 @@ namespace NuGetGallery
                 ? blobUri
                 : requestUrl;
 
-            var queryValues = ParseQueryString(queryStringUri);
+            NameValueCollection queryValues = ParseQueryString(queryStringUri);
             queryValues.Add(CoreConstants.PackageVersionParameterName, versionParameter);
 
             var urlBuilder = new UriBuilder(scheme, host, port)
@@ -110,7 +109,7 @@ namespace NuGetGallery
 
             string query = uri.Query.Substring(1);
 
-            var nvcol = HttpUtility.ParseQueryString(query);
+            NameValueCollection nvcol = HttpUtility.ParseQueryString(query);
             return nvcol;
         }
     }
