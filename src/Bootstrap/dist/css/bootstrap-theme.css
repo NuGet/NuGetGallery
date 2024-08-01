@@ -871,20 +871,20 @@ body[id="/"] {
 }
 .readme-common .table {
   width: max-content;
-  border: 1px solid #ddd;
+  border: 1px solid var(--neutralStroke2Rest);
   overflow: auto;
   display: block;
   word-break: normal;
 }
 .readme-common .table th,
 .readme-common .table td {
-  border: 1px solid #ddd;
+  border: 1px solid var(--neutralStroke2Rest);
 }
 .readme-common tr:nth-child(even) {
-  background-color: #f2f2f2;
+  background-color: var(--neutralBackground3Rest);
 }
 .readme-common tr:nth-child(even) a {
-  color: #2d6da4;
+  color: var(--brandForegroundLinkRest);
 }
 .readme-common img.img-fluid {
   max-width: 100%;
@@ -1474,7 +1474,7 @@ p.frameworktableinfo-text {
   margin-bottom: 0;
 }
 .page-package-details tr {
-  border-bottom: 1px solid lightgray;
+  border-bottom: 1px solid var(--neutralStroke2Rest);
 }
 .page-package-details .package-header {
   margin-bottom: 35px;
