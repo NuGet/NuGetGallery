@@ -47,6 +47,7 @@
     <PackageReference Include="EntityFramework" />
     <PackageReference Include="NuGet.Packaging" />
     <PackageReference Include="NuGet.Services.FeatureFlags" />
+    <PackageReference Include="System.Formats.Asn1" />
   </ItemGroup>
   
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
