@@ -47,10 +47,6 @@ extends:
       name: NuGet-1ES-Hosted-Pool
       image: NuGet-1ESPT-Win2022
       os: windows
-    sdl:
-      armory:
-        enabled: false
-        targetFiles: f|**\*.json;-|.gdn\**;-|**\TestData\*.nupkg
     customBuildTags:
       - ES365AIMigrationTooling
     stages:
