@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -16,7 +16,11 @@ namespace NuGet.Jobs
         private const string StorageUseManagedIdentityPropertyName = "Storage_UseManagedIdentity";
         private const string StorageManagedIdentityClientIdPropertyName = "Storage_ManagedIdentityClientId";
 
-        public static IServiceCollection ConfigureStorageMsi(this IServiceCollection serviceCollection, IConfiguration configuration)
+        public static IServiceCollection ConfigureStorageMsi(
+            this IServiceCollection serviceCollection,
+            IConfiguration configuration,
+            string useManageIdentityPropertyName = null,
+            string managedIdentityClientIdPropertyName = null)
         {
             if (serviceCollection == null)
             {
@@ -27,8 +31,11 @@ namespace NuGet.Jobs
                 throw new ArgumentNullException(nameof(configuration));
             }
 
-            string useManagedIdentityStr = configuration[StorageUseManagedIdentityPropertyName];
-            string managedIdentityClientId = configuration[StorageManagedIdentityClientIdPropertyName];
+            useManageIdentityPropertyName ??= StorageUseManagedIdentityPropertyName;
+            managedIdentityClientIdPropertyName ??= StorageManagedIdentityClientIdPropertyName;
+
+            string useManagedIdentityStr = configuration[useManageIdentityPropertyName];
+            string managedIdentityClientId = configuration[managedIdentityClientIdPropertyName];
             bool useManagedIdentity = false;
             if (!string.IsNullOrWhiteSpace(useManagedIdentityStr))
             {
