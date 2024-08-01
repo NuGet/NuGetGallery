@@ -91,20 +91,20 @@ csharp_style_var_when_type_is_apparent = true:silent
 csharp_style_var_elsewhere = false:silent
 
 ; Helpful errors
-dotnet_diagnostic.CA2017.severity = error
-dotnet_diagnostic.CS0105.severity = error
-dotnet_diagnostic.IDE0005.severity = error
-dotnet_diagnostic.CA1304.severity = error
-dotnet_diagnostic.CA1305.severity = error
-dotnet_diagnostic.CA1307.severity = error
-dotnet_diagnostic.CA1309.severity = error
-dotnet_diagnostic.CA1310.severity = error
-dotnet_diagnostic.CA1311.severity = error
+dotnet_diagnostic.CA2017.severity = suggestion
+dotnet_diagnostic.CS0105.severity = suggestion
+dotnet_diagnostic.IDE0005.severity = suggestion
+dotnet_diagnostic.CA1304.severity = suggestion
+dotnet_diagnostic.CA1305.severity = suggestion
+dotnet_diagnostic.CA1307.severity = suggestion
+dotnet_diagnostic.CA1309.severity = suggestion
+dotnet_diagnostic.CA1310.severity = suggestion
+dotnet_diagnostic.CA1311.severity = suggestion
 
 ; Prefer method-like constructs to have a block body
-csharp_style_expression_bodied_methods = when_on_single_line:suggestion
-csharp_style_expression_bodied_constructors = when_on_single_line:suggestion
-csharp_style_expression_bodied_operators = when_on_single_line:silent
+csharp_style_expression_bodied_methods = false:silent
+csharp_style_expression_bodied_constructors = false:silent
+csharp_style_expression_bodied_operators = false:silent
 
 ; Prefer property-like constructs to have an expression-body
 csharp_style_expression_bodied_properties = true:silent
