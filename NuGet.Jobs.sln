@@ -221,6 +221,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGetGallery.Core", "src\Nu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.Entities", "src\NuGet.Services.Entities\NuGet.Services.Entities.csproj", "{47C19031-9C11-4471-AA5D-48ECCDEA3D10}"
 EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "StatsLogParser", "src\StatsLogParser\StatsLogParser.pyproj", "{6DEFB0FC-4057-4F1B-81B4-6DF4F75A1233}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -569,6 +571,8 @@ Global
 		{47C19031-9C11-4471-AA5D-48ECCDEA3D10}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{47C19031-9C11-4471-AA5D-48ECCDEA3D10}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{47C19031-9C11-4471-AA5D-48ECCDEA3D10}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6DEFB0FC-4057-4F1B-81B4-6DF4F75A1233}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6DEFB0FC-4057-4F1B-81B4-6DF4F75A1233}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -661,6 +665,7 @@ Global
 		{711CD5DE-F139-4C0C-B75F-3E9C01EC5AB2} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{C4DCC376-106A-499B-9771-B8E0969006C8} = {88725659-D5F8-49F9-9B7E-D87C5B9917D7}
 		{47C19031-9C11-4471-AA5D-48ECCDEA3D10} = {88725659-D5F8-49F9-9B7E-D87C5B9917D7}
+		{6DEFB0FC-4057-4F1B-81B4-6DF4F75A1233} = {B9D03824-A9CA-43AC-86D6-8BB399B9A228}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {284A7AC3-FB43-4F1F-9C9C-2AF0E1F46C2B}
