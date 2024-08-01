@@ -247,18 +247,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             // Set destination properties if provided
             if (destinationProperties?.Count > 0)
             {
-                // Use the existing properties of the destination blob to ensure that all properties are copied
-                // Source: https://learn.microsoft.com/en-us/azure/storage/blobs/storage-blob-properties-metadata#set-and-retrieve-properties
-                BlobProperties properties = await destinationBlockBlob.GetPropertiesAsync();
-                var headers = new BlobHttpHeaders
-                {
-                    CacheControl = properties.CacheControl,
-                    ContentType = properties.ContentType,
-                    ContentDisposition = properties.ContentDisposition,
-                    ContentEncoding = properties.ContentEncoding,
-                    ContentLanguage = properties.ContentLanguage,
-                    ContentHash = properties.ContentHash,
-                };
+                BlobHttpHeaders headers = await GetExistingHttpHeadersAsync(destinationBlockBlob);
 
                 // The copy statement copied all properties from the source blob to the destination blob; however,
                 // there may be required properties on destination blob, all of which may have not already existed
@@ -284,16 +273,28 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             }
         }
 
+        private static async Task<BlobHttpHeaders> GetExistingHttpHeadersAsync(BlockBlobClient blob)
+        {
+            // Source: https://learn.microsoft.com/en-us/azure/storage/blobs/storage-blob-properties-metadata#set-and-retrieve-properties
+            BlobProperties properties = await blob.GetPropertiesAsync();
+
+            return new BlobHttpHeaders
+            {
+                CacheControl = properties.CacheControl,
+                ContentType = properties.ContentType,
+                ContentDisposition = properties.ContentDisposition,
+                ContentEncoding = properties.ContentEncoding,
+                ContentLanguage = properties.ContentLanguage,
+                ContentHash = properties.ContentHash,
+            };
+        }
+
         protected override async Task OnSaveAsync(Uri resourceUri, StorageContent content, CancellationToken cancellationToken)
         {
             string blobName = GetName(resourceUri);
             BlockBlobClient blockBlobClient = GetBlockBlobReference(blobName);
 
-            var headers = new BlobHttpHeaders
-            {
-                ContentType = content.ContentType,
-                CacheControl = content.CacheControl
-            };
+            BlobHttpHeaders headers = await GetExistingHttpHeadersAsync(blockBlobClient);
 
             if (_compressContent)
             {
