@@ -6,16 +6,9 @@ trigger:
       - "*"
   batch: True
 
-parameters:
-  - name: BuildConfiguration
-    displayName: Build configuration
-    type: string
-    default: Release
-    values: ["Release", "Debug"]
-
 variables:
   - name: BuildConfiguration
-    value: ${{ parameters.BuildConfiguration }}
+    value: Release
   - name: Codeql.Enabled
     value: true
   - name: NugetSecurityAnalysisWarningLevel
