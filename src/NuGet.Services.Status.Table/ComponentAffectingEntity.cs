@@ -12,11 +12,8 @@ namespace NuGet.Services.Status.Table
     /// </summary>
     public class ComponentAffectingEntity : ITableEntity, IComponentAffectingEntity
     {
-        private ITableEntity _tableEntity;
-
         public ComponentAffectingEntity()
         {
-            _tableEntity = new TableEntity();
         }
 
         public ComponentAffectingEntity(
@@ -31,7 +28,8 @@ namespace NuGet.Services.Status.Table
             AffectedComponentStatus = (int)affectedComponentStatus;
             StartTime = startTime;
             EndTime = endTime;
-            _tableEntity = new TableEntity(partitionKey, rowKey);
+            PartitionKey = partitionKey;
+            RowKey = rowKey;
         }
 
         public string AffectedComponentPath { get; set; }
@@ -58,9 +56,9 @@ namespace NuGet.Services.Status.Table
             set { }
         }
 
-        public string PartitionKey { get => _tableEntity.PartitionKey; set => _tableEntity.PartitionKey = value; }
-        public string RowKey { get => _tableEntity.RowKey; set => _tableEntity.RowKey = value; }
-        public DateTimeOffset? Timestamp { get => _tableEntity.Timestamp; set => _tableEntity.Timestamp = value; }
-        public ETag ETag { get => _tableEntity.ETag; set => _tableEntity.ETag = value; }
+        public string PartitionKey { get; set; }
+        public string RowKey { get; set; }
+        public DateTimeOffset? Timestamp { get; set; }
+        public ETag ETag { get; set; }
     }
 }

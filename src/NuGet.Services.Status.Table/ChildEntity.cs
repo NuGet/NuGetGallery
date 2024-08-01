@@ -1,9 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using Azure;
 using Azure.Data.Tables;
-using System;
 
 namespace NuGet.Services.Status.Table
 {
@@ -13,13 +13,17 @@ namespace NuGet.Services.Status.Table
     public class ChildEntity<TParent> : ITableEntity, IChildEntity<TParent>
         where TParent : ITableEntity
     {
-        public ChildEntity() { }
+        public ChildEntity()
+        {
+        }
 
         public ChildEntity(
             string partitionKey,
             string rowKey,
             string parentRowKey)
         {
+            PartitionKey = partitionKey;
+            RowKey = rowKey;
             ParentRowKey = parentRowKey;
         }
 
@@ -47,6 +51,6 @@ namespace NuGet.Services.Status.Table
         {
             get { return !string.IsNullOrEmpty(ParentRowKey); }
             set { }
-        }   
+        }
     }
 }
