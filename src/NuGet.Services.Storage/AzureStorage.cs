@@ -10,8 +10,6 @@ using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
-using Azure.Storage.DataMovement;
-using Azure.Storage.DataMovement.Blobs;
 using Microsoft.Extensions.Logging;
 
 namespace NuGet.Services.Storage
@@ -20,25 +18,18 @@ namespace NuGet.Services.Storage
     {
         private readonly ILogger<AzureStorage> _logger;
         private readonly BlobContainerClient _directory;
-        private readonly TransferManager _transferManager;
-        private readonly BlobsStorageResourceProvider _storageResourceProvider;
-        private readonly bool _useServerSideCopy;
         private readonly string _path;
 
         public AzureStorage(
             BlobServiceClient account,
-            BlobsStorageResourceProvider blobsStorageResourceProvider,
             string containerName,
             string path,
             Uri baseAddress,
-            bool useServerSideCopy,
             bool initializeContainer,
             ILogger<AzureStorage> logger)
             : this(
                   account.GetBlobContainerClient(containerName),
-                  blobsStorageResourceProvider,
                   baseAddress,
-                  useServerSideCopy,
                   initializeContainer,
                   logger)
         {
@@ -47,21 +38,13 @@ namespace NuGet.Services.Storage
 
         private AzureStorage(
             BlobContainerClient directory,
-            BlobsStorageResourceProvider blobsStorageResourceProvider,
             Uri baseAddress,
-            bool useServerSideCopy,
             bool initializeContainer,
             ILogger<AzureStorage> logger)
             : base(baseAddress ?? GetDirectoryUri(directory), logger)
         {
             _logger = logger;
             _directory = directory;
-            _useServerSideCopy = useServerSideCopy;
-            var checkpointerOptions = new TransferCheckpointStoreOptions(Path.GetTempPath());
-            var transferManagerOptions = new TransferManagerOptions();
-            transferManagerOptions.CheckpointerOptions = checkpointerOptions;
-            _transferManager = new TransferManager(transferManagerOptions);
-            _storageResourceProvider = blobsStorageResourceProvider;
 
             if (initializeContainer)
             {
@@ -207,35 +190,45 @@ namespace NuGet.Services.Storage
                 throw new NotImplementedException("Copying is only supported from Azure storage to Azure storage.");
             }
 
-            var destinationOptions = new AppendBlobStorageResourceOptions();
+            string sourceName = GetName(sourceUri);
+            string destinationName = azureDestinationStorage.GetName(destinationUri);
 
+            BlockBlobClient sourceBlockBlob = _directory.GetBlockBlobClient(sourceName);
+            BlockBlobClient destinationBlockBlob = azureDestinationStorage._directory.GetBlockBlobClient(destinationName);
+
+            // Start the copy operation
+            CopyFromUriOperation copyOperation = await destinationBlockBlob.StartCopyFromUriAsync(sourceBlockBlob.Uri, cancellationToken: cancellationToken);
+
+            // Wait for the copy operation to complete
+            await copyOperation.WaitForCompletionAsync(cancellationToken);
+
+            // Set destination properties if provided
             if (destinationProperties?.Count > 0)
             {
-                foreach (KeyValuePair<string,string> property in destinationProperties)
+                BlobHttpHeaders headers = new BlobHttpHeaders();
+
+                // The copy statement copied all properties from the source blob to the destination blob; however,
+                // there may be required properties on destination blob, all of which may have not already existed
+                // on the source blob at the time of copy.
+                foreach (KeyValuePair<string, string> property in destinationProperties)
                 {
                     switch (property.Key)
                     {
                         case StorageConstants.CacheControl:
-                            destinationOptions.HttpHeaders.CacheControl = property.Value;
+                            headers.CacheControl = property.Value;
                             break;
 
                         case StorageConstants.ContentType:
-                            destinationOptions.HttpHeaders.ContentType = property.Value;
+                            headers.ContentType = property.Value;
                             break;
 
                         default:
-                            throw new NotImplementedException($"Storage property '{property.Value}' is not supported.");
+                            throw new NotImplementedException($"Storage property '{property.Key}' is not supported.");
                     }
                 }
+
+                await destinationBlockBlob.SetHttpHeadersAsync(headers, cancellationToken: cancellationToken);
             }
-
-            StorageResource sourceStorageResource = _storageResourceProvider.FromBlob(sourceUri.ToString());
-            StorageResource destinationStorageResource = _storageResourceProvider.FromBlob(destinationUri.ToString(), destinationOptions);
-
-            var transferOptions = new DataTransferOptions();
-
-            DataTransfer transfer = await _transferManager.StartTransferAsync(sourceStorageResource, destinationStorageResource, transferOptions: transferOptions, cancellationToken: cancellationToken);
-            await transfer.WaitForCompletionAsync();
         }
 
         //  save

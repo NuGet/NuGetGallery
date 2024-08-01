@@ -19,6 +19,7 @@ namespace NuGet.Services.Storage
         Uri BaseAddress { get; }
         Uri ResolveUri(string relativeUri);
         IEnumerable<StorageListItem> List(bool getMetadata);
+        Task<IEnumerable<StorageListItem>> ListAsync(bool getMetadata, CancellationToken cancellationToken);
         Task CopyAsync(
             Uri sourceUri,
             IStorage destinationStorage,

@@ -3,7 +3,6 @@
 
 using System;
 using Azure.Storage.Blobs;
-using Azure.Storage.DataMovement.Blobs;
 using Microsoft.Extensions.Logging;
 
 namespace NuGet.Services.Storage
@@ -11,31 +10,33 @@ namespace NuGet.Services.Storage
     public class AzureStorageFactory : StorageFactory
     {
         BlobServiceClient _account;
-        BlobsStorageResourceProvider _storageResourceProvider;
         string _containerName;
         string _path;
         private Uri _differentBaseAddress = null;
         private readonly ILogger<AzureStorage> _azureStorageLogger;
-        private readonly bool _useServerSideCopy;
         private readonly bool _initializeContainer;
+
+        public static string PrepareConnectionString(string connectionString)
+        {
+            // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
+            connectionString = connectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+
+            return connectionString;
+        }
 
         public AzureStorageFactory(
             BlobServiceClient account,
-            BlobsStorageResourceProvider blobsStorageResourceProvider,
             string containerName,
             ILogger<AzureStorage> azureStorageLogger,
             string path = null,
             Uri baseAddress = null,
-            bool useServerSideCopy = true,
             bool initializeContainer = true
             )
         {
             _account = account;
-            _storageResourceProvider = blobsStorageResourceProvider;
             _containerName = containerName;
             _path = null;
             _azureStorageLogger = azureStorageLogger;
-            _useServerSideCopy = useServerSideCopy;
             _initializeContainer = initializeContainer;
 
             if (path != null)
@@ -87,7 +88,7 @@ namespace NuGet.Services.Storage
                 newBase = new Uri(_differentBaseAddress, name + "/");
             }
 
-            return new AzureStorage(_account, _storageResourceProvider, _containerName, path, newBase, _useServerSideCopy, _initializeContainer, _azureStorageLogger) { Verbose = Verbose, CompressContent = CompressContent };
+            return new AzureStorage(_account, _containerName, path, newBase, _initializeContainer, _azureStorageLogger) { Verbose = Verbose, CompressContent = CompressContent };
         }
     }
 }
