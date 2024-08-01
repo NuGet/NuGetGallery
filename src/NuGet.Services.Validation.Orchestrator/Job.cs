@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -387,7 +387,11 @@ namespace NuGet.Services.Validation.Orchestrator
                 .Register(c =>
                 {
                     LeaseConfiguration config = c.Resolve<IOptionsSnapshot<LeaseConfiguration>>().Value;
-                    BlobServiceClient blobServiceClient = new BlobServiceClient(config.ConnectionString);
+
+                    // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
+                    var connectionString = config.ConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+
+                    BlobServiceClient blobServiceClient = new BlobServiceClient(connectionString);
                     return new CloudBlobLeaseService(blobServiceClient, config.ContainerName, config.StoragePath);
                 })
                 .As<ILeaseService>();
