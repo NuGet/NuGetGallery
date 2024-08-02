@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage.Table;
+using Azure.Data.Tables;
 using StatusAggregator.Parse;
 
 namespace StatusAggregator.Factory
@@ -11,7 +11,7 @@ namespace StatusAggregator.Factory
     /// Creates a <typeparamref name="TEntity"/> given a <see cref="ParsedIncident"/>.
     /// </summary>
     public interface IComponentAffectingEntityFactory<TEntity>
-        where TEntity : TableEntity
+        where TEntity : ITableEntity
     {
         Task<TEntity> CreateAsync(ParsedIncident input);
     }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -56,7 +56,11 @@ namespace NuGet.Jobs.Catalog2Registration
                 .Register(c =>
                 {
                     var options = c.Resolve<IOptionsSnapshot<Catalog2RegistrationConfiguration>>();
-                    return new BlobServiceClient(options.Value.StorageConnectionString);
+
+                    // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
+                    var connectionString = options.Value.StorageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+
+                    return new BlobServiceClient(connectionString);
                 })
                 .Keyed<BlobServiceClient>(CursorBindingKey);
 

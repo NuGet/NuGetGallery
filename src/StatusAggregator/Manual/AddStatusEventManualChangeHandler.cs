@@ -22,13 +22,13 @@ namespace StatusAggregator.Manual
 
         public async Task Handle(AddStatusEventManualChangeEntity entity)
         {
-            var time = entity.Timestamp.UtcDateTime;
+            var time = entity.Timestamp.Value.UtcDateTime;
 
             var eventEntity = new EventEntity(
                 entity.EventAffectedComponentPath,
                 time,
                 affectedComponentStatus: (ComponentStatus)entity.EventAffectedComponentStatus,
-                endTime: entity.EventIsActive ? (DateTime?)null : time);
+                endTime: entity.EventIsActive ? null : time);
 
             var messageEntity = new MessageEntity(
                 eventEntity,

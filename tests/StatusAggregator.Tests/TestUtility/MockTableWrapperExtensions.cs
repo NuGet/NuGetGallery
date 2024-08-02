@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Linq;
-using Microsoft.WindowsAzure.Storage.Table;
+using Azure.Data.Tables;
 using Moq;
 using StatusAggregator.Table;
 
@@ -13,7 +13,7 @@ namespace StatusAggregator.Tests.TestUtility
         public static void SetupQuery<T>(
             this Mock<ITableWrapper> mock,
             params T[] results)
-            where T : ITableEntity, new()
+            where T : class, ITableEntity, new()
         {
             mock
                 .Setup(x => x.CreateQuery<T>())

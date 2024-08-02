@@ -67,14 +67,14 @@ namespace StatusAggregator.Tests.Collector
                     .Returns(Task.CompletedTask)
                     .Callback<ITableWrapper, ManualStatusChangeEntity>((table, entity) =>
                     {
-                        var nextTimestamp = entity.Timestamp;
+                        var nextTimestamp = entity.Timestamp.Value;
                         Assert.True(nextTimestamp > lastTimestamp);
                         lastTimestamp = nextTimestamp;
                     });
 
                 var result = await Processor.FetchSince(Cursor);
 
-                Assert.Equal(secondChange.Timestamp.UtcDateTime, result);
+                Assert.Equal(secondChange.Timestamp.Value.UtcDateTime, result);
 
                 Handler
                     .Verify(
@@ -109,7 +109,7 @@ namespace StatusAggregator.Tests.Collector
 
                 var result = await Processor.FetchSince(Cursor);
 
-                Assert.Equal(change.Timestamp.UtcDateTime, result);
+                Assert.Equal(change.Timestamp.Value.UtcDateTime, result);
 
                 Handler.Verify();
             }

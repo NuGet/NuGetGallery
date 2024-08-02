@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -376,6 +376,12 @@ namespace Ng
             if (string.IsNullOrEmpty(storageKeyValue))
             {
                 var storageSasValue = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageSasValue]);
+                if (storageSasValue.StartsWith("?"))
+                {
+                    // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
+                    storageSasValue = storageSasValue.Substring(1);
+                }
+
                 connectionString = $"BlobEndpoint=https://{storageAccountName}.blob.core.windows.net/;SharedAccessSignature={storageSasValue}";
             }
             else

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -7,11 +7,12 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Core;
+using Azure.Data.Tables;
+using Azure.Storage.Blobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Jobs;
@@ -126,24 +127,29 @@ namespace StatusAggregator
                 var name = statusStorageConnectionBuilder.Name;
                 
                 containerBuilder
-                    .Register(ctx => GetCloudStorageAccount(ctx, statusStorageConnectionBuilder))
-                    .As<CloudStorageAccount>()
-                    .Named<CloudStorageAccount>(name);
+                    .Register(ctx => GetTableServiceClient(ctx, statusStorageConnectionBuilder))
+                    .As<TableServiceClient>()
+                    .Named<TableServiceClient>(name);
 
                 containerBuilder
                     .Register(ctx =>
                     {
-                        var storageAccount = ctx.ResolveNamed<CloudStorageAccount>(name);
-                        return GetTableWrapper(ctx, storageAccount);
+                        var tableServiceClient = ctx.ResolveNamed<TableServiceClient>(name);
+                        return GetTableWrapper(ctx, tableServiceClient);
                     })
                     .As<ITableWrapper>()
                     .Named<ITableWrapper>(name);
 
                 containerBuilder
+                    .Register(ctx => GetBlobServiceClient(ctx, statusStorageConnectionBuilder))
+                    .As<BlobServiceClient>()
+                    .Named<BlobServiceClient>(name);
+
+                containerBuilder
                     .Register(ctx =>
                     {
-                        var storageAccount = ctx.ResolveNamed<CloudStorageAccount>(name);
-                        return GetCloudBlobContainer(ctx, storageAccount);
+                        var blobServiceClient = ctx.ResolveNamed<BlobServiceClient>(name);
+                        return GetContainerWrapper(ctx, blobServiceClient);
                     })
                     .As<IContainerWrapper>()
                     .Named<IContainerWrapper>(name);
@@ -159,23 +165,38 @@ namespace StatusAggregator
             }
         }
 
-        private static CloudStorageAccount GetCloudStorageAccount(IComponentContext ctx, StatusStorageConnectionBuilder statusStorageConnectionBuilder)
+        private static string GetConnectionString(IComponentContext ctx, StatusStorageConnectionBuilder statusStorageConnectionBuilder)
         {
             var configuration = ctx.Resolve<StatusAggregatorConfiguration>();
-            return CloudStorageAccount.Parse(statusStorageConnectionBuilder.GetConnectionString(configuration));
+            var connectionString = statusStorageConnectionBuilder.GetConnectionString(configuration);
+
+            // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
+            connectionString = connectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+            return connectionString;
         }
 
-        private static ITableWrapper GetTableWrapper(IComponentContext ctx, CloudStorageAccount storageAccount)
+        private static TableServiceClient GetTableServiceClient(IComponentContext ctx, StatusStorageConnectionBuilder statusStorageConnectionBuilder)
         {
-            var configuration = ctx.Resolve<StatusAggregatorConfiguration>();
-            return new TableWrapper(storageAccount, configuration.TableName);
+            string connectionString = GetConnectionString(ctx, statusStorageConnectionBuilder);
+            return new TableServiceClient(connectionString);
         }
 
-        private static IContainerWrapper GetCloudBlobContainer(IComponentContext ctx, CloudStorageAccount storageAccount)
+        private static ITableWrapper GetTableWrapper(IComponentContext ctx, TableServiceClient tableServiceClient)
         {
-            var blobClient = storageAccount.CreateCloudBlobClient();
             var configuration = ctx.Resolve<StatusAggregatorConfiguration>();
-            var container = blobClient.GetContainerReference(configuration.ContainerName);
+            return new TableWrapper(tableServiceClient, configuration.TableName);
+        }
+
+        private static BlobServiceClient GetBlobServiceClient(IComponentContext ctx, StatusStorageConnectionBuilder statusStorageConnectionBuilder)
+        {
+            string connectionString = GetConnectionString(ctx, statusStorageConnectionBuilder);
+            return new BlobServiceClient(connectionString);
+        }
+
+        private static IContainerWrapper GetContainerWrapper(IComponentContext ctx, BlobServiceClient blobServiceClient)
+        {
+            var configuration = ctx.Resolve<StatusAggregatorConfiguration>();
+            var container = blobServiceClient.GetBlobContainerClient(configuration.ContainerName);
             return new ContainerWrapper(container);
         }
 

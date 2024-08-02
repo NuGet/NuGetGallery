@@ -31,16 +31,12 @@ $GallerySolution = Join-Path $PSScriptRoot "NuGetGallery.sln"
 $GalleryProjects = Get-SolutionProjects $GallerySolution
 $JobsSolution = Join-Path $PSScriptRoot "NuGet.Jobs.sln"
 $JobsProjects = Get-SolutionProjects $JobsSolution
-$ExcludeTestProjects =
-    "tests\Validation.PackageSigning.Helpers\Tests.ContextHelpers.csproj"
 
 Invoke-BuildStep 'Cleaning test results' { Clear-Tests } `
     -ev +TestErrors
 
 Invoke-BuildStep 'Running gallery tests' {
-        $GalleryTestProjects = $GalleryProjects `
-            | Where-Object { $_.IsTest } `
-            | Where-Object { $ExcludeTestProjects -notcontains $_.RelativePath }
+        $GalleryTestProjects = $GalleryProjects | Where-Object { $_.IsTest }
 
         $TestCount = 0
         
@@ -62,9 +58,7 @@ Invoke-BuildStep 'Running gallery tests' {
     -ev +TestErrors
 
 Invoke-BuildStep 'Running jobs tests' {
-        $JobsTestProjects = $JobsProjects `
-            | Where-Object { $_.IsTest } `
-            | Where-Object { $ExcludeTestProjects -notcontains $_.RelativePath }
+        $JobsTestProjects = $JobsProjects | Where-Object { $_.IsTest } 
 
         $TestCount = 0
         
