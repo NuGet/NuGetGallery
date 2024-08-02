@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\..\SdkProjects.props" />
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <Description>Infrastructure to unit test Entity Framework entities.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Moq" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Services.Validation\NuGet.Services.Validation.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -4,6 +4,8 @@ param (
     [string]$Configuration = 'debug',
     [int]$BuildNumber,
     [switch]$SkipRestore,
+    [string]$CommonAssemblyVersion = '3.0.0',
+    [string]$CommonPackageVersion = '3.0.0-zlocal',
     [switch]$SkipGallery,
     [string]$GalleryAssemblyVersion = '4.4.5',
     [string]$GalleryPackageVersion = '4.4.5-zlocal',
@@ -26,12 +28,7 @@ trap {
     exit 1
 }
 
-if (-not (Test-Path "$PSScriptRoot/build")) {
-    New-Item -Path "$PSScriptRoot/build" -ItemType "directory"
-}
-
-Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/NuGet/ServerCommon/$BuildBranchCommit/build/init.ps1" -OutFile "$PSScriptRoot/build/init.ps1"
-. "$PSScriptRoot/build/init.ps1" -BuildBranchCommit $BuildBranchCommit
+. "$PSScriptRoot\build\common.ps1"
 
 Write-Host ("`r`n" * 3)
 Trace-Log ('=' * 60)
@@ -43,6 +40,8 @@ if (-not $BuildNumber) {
 Trace-Log "Build #$BuildNumber started at $startTime"
 
 $BuildErrors = @()
+$CommonSolution = Join-Path $PSScriptRoot "NuGet.Server.Common.sln"
+$CommonProjects = Get-SolutionProjects $CommonSolution
 $GallerySolution = Join-Path $PSScriptRoot "NuGetGallery.sln"
 $GalleryProjects = Get-SolutionProjects $GallerySolution
 $SharedGalleryProjects =
@@ -72,6 +71,14 @@ Invoke-BuildStep 'Restoring solution packages' {
     -skip:$SkipRestore `
     -ev +BuildErrors
 
+Invoke-BuildStep 'Setting common version metadata in AssemblyInfo.cs' {
+        $CommonProjects | Where-Object { !$_.IsTest } | ForEach-Object {
+            $Path = Join-Path $_.Directory "Properties\AssemblyInfo.g.cs"
+            Set-VersionInfo $Path -AssemblyVersion $CommonAssemblyVersion -PackageVersion $CommonPackageVersion -Branch $Branch -Commit $CommitSHA
+        }
+    } `
+    -ev +BuildErrors
+
 Invoke-BuildStep 'Setting gallery version metadata in AssemblyInfo.cs' {
         $GalleryAssemblyInfo = $GalleryProjects `
             | Where-Object { !$_.IsTest } `
@@ -96,6 +103,11 @@ Invoke-BuildStep 'Setting job version metadata in AssemblyInfo.cs' {
     } `
     -ev +BuildErrors
 
+Invoke-BuildStep 'Building common solution' {
+        Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $CommonSolution -SkipRestore:$SkipRestore
+    } `
+    -ev +BuildErrors
+
 Invoke-BuildStep 'Building gallery solution' { 
         $MvcBuildViews = $Configuration -eq "Release"
         Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $GallerySolution -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=$MvcBuildViews" `
@@ -117,6 +129,14 @@ Invoke-BuildStep 'Building jobs functional test solution' {
 
 Invoke-BuildStep 'Signing the binaries' {
         Sign-Binaries -Configuration $Configuration -BuildNumber $BuildNumber
+    } `
+    -ev +BuildErrors
+
+Invoke-BuildStep 'Creating common artifacts' {
+        $CommonPackages = $CommonProjects | Where-Object { !$_.IsTest } | Where-Object { $_.RelativePath -notlike "tools*" } 
+        $CommonPackages | ForEach-Object {
+            New-ProjectPackage $_.Path -Configuration $Configuration -BuildNumber $BuildNumber -Version $CommonPackageVersion
+        }
     } `
     -ev +BuildErrors
 

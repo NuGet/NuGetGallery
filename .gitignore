@@ -405,10 +405,6 @@ nuget.exe
 Results.*.xml
 AssemblyInfo.*.cs
 
-# common build tools
-build/
-tools/
-
 # Functional test results
 tests/functionaltests.*.xml
 *.trx

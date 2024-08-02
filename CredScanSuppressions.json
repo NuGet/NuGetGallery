@@ -12,6 +12,10 @@
         {
             "file": "tests/NuGetGallery.Facts/Framework/Fakes.cs",
             "_justification": "Test file containing fake credentials"
+        },
+        {
+            "file": "tests/NuGet.Services.KeyVault.Tests/KeyVaultReaderFormatterFacts.cs",
+            "_justification": "Test file containing fake credentials"
         }
     ]
 }
