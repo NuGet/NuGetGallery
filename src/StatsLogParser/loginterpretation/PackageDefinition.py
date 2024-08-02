@@ -1,5 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
+from packaging.version import Version, InvalidVersion
 import urllib.parse
 
 @dataclass(init=False)
@@ -60,5 +61,38 @@ class PackageDefinition:
                     resolution_options.append(
                         PackageDefinition(parsed_id, version_param)
                     )
+            else:
+                # Look for it in the file name but this can be ambiguous if the package id ends in a number
+                next_dot_index = file_name.find('.')
+
+                while next_dot_index != -1:
+                    package_part = file_name[:next_dot_index]
+                    version_part = file_name[next_dot_index + 1:]
+
+                    if PackageDefinition.is_valid_version(version_part):
+                        resolution_options.append(PackageDefinition(package_part, version_part))
+
+                    next_dot_index = file_name.find('.', next_dot_index + 1)
 
         return resolution_options
+
+    @staticmethod
+    def is_valid_version(version_string):
+        """Check if it's a valid version that support 3 or 4 part versioning with optional pre-release tag"""
+        try:
+            # Check if it's a valid three-part or four-part version with optional pre-release tag
+            Version(version_string)
+            return True
+        except InvalidVersion:
+            # Check if it's a valid four-part version with optional pre-release tag
+            parts = version_string.split('.')
+            if len(parts) == 4:
+                main_version = '.'.join(parts[:3])
+                pre_release = parts[3]
+                try:
+                    Version(main_version)
+                    if pre_release.isdigit() or '-' in pre_release:
+                        return True
+                except InvalidVersion:
+                    pass
+        return False
