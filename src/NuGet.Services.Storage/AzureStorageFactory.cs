@@ -11,6 +11,7 @@ namespace NuGet.Services.Storage
     {
         BlobServiceClient _account;
         string _containerName;
+        private readonly bool _enablePublicAccess;
         string _path;
         private Uri _differentBaseAddress = null;
         private readonly ILogger<AzureStorage> _azureStorageLogger;
@@ -27,14 +28,15 @@ namespace NuGet.Services.Storage
         public AzureStorageFactory(
             BlobServiceClient account,
             string containerName,
+            bool enablePublicAccess,
             ILogger<AzureStorage> azureStorageLogger,
             string path = null,
             Uri baseAddress = null,
-            bool initializeContainer = true
-            )
+            bool initializeContainer = true)
         {
             _account = account;
             _containerName = containerName;
+            _enablePublicAccess = enablePublicAccess;
             _path = null;
             _azureStorageLogger = azureStorageLogger;
             _initializeContainer = initializeContainer;
@@ -88,7 +90,18 @@ namespace NuGet.Services.Storage
                 newBase = new Uri(_differentBaseAddress, name + "/");
             }
 
-            return new AzureStorage(_account, _containerName, path, newBase, _initializeContainer, _azureStorageLogger) { Verbose = Verbose, CompressContent = CompressContent };
+            return new AzureStorage(
+                _account,
+                _containerName,
+                path,
+                newBase,
+                _initializeContainer,
+                _enablePublicAccess,
+                _azureStorageLogger)
+            {
+                Verbose = Verbose,
+                CompressContent = CompressContent,
+            };
         }
     }
 }

@@ -5,8 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
@@ -26,11 +28,13 @@ namespace NuGet.Services.Storage
             string path,
             Uri baseAddress,
             bool initializeContainer,
+            bool enablePublicAccess,
             ILogger<AzureStorage> logger)
             : this(
                   account.GetBlobContainerClient(containerName),
                   baseAddress,
                   initializeContainer,
+                  enablePublicAccess,
                   logger)
         {
             _path = path;
@@ -40,6 +44,7 @@ namespace NuGet.Services.Storage
             BlobContainerClient directory,
             Uri baseAddress,
             bool initializeContainer,
+            bool enablePublicAccess,
             ILogger<AzureStorage> logger)
             : base(baseAddress ?? GetDirectoryUri(directory), logger)
         {
@@ -48,17 +53,55 @@ namespace NuGet.Services.Storage
 
             if (initializeContainer)
             {
-                var storageActionResult = _directory.CreateIfNotExists(PublicAccessType.Blob);
+                var publicAccessType = enablePublicAccess ? PublicAccessType.Blob : PublicAccessType.None;
 
-                if (Verbose)
+                BlobContainerProperties properties;
+                try
                 {
-                    if (storageActionResult != null)
+                    properties = _directory.GetProperties();
+                }
+                catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.NotFound)
+                {
+                    properties = null;
+                }
+
+                if (properties is not null)
+                {
+                    if (properties.PublicAccess != publicAccessType)
                     {
-                        _logger.LogInformation("Created {ContainerName} publish container", _directory.Name);
+                        _directory.SetAccessPolicy(publicAccessType);
+
+                        if (Verbose)
+                        {
+                            _logger.LogInformation(
+                                "Container {ContainerName} already existed with public access type {OriginalPublicAccessType}. Updated to {NewPublicAccessType}.",
+                                _directory.Name,
+                                properties.PublicAccess,
+                                publicAccessType);
+                        }
                     }
                     else
                     {
-                        _logger.LogInformation("Container {ContainerName} already existed. Create was no-oped", _directory.Name);
+                        if (Verbose)
+                        {
+                            _logger.LogInformation(
+                                "Container {ContainerName} already existed with public access type {PublicAccessType}. Create was no-oped.",
+                                _directory.Name,
+                                publicAccessType);
+                        }
+                    }
+                }
+                else
+                {
+                    // create if not exists instead of just create, to handle multiple threads
+                    _directory.CreateIfNotExists(publicAccessType);
+
+                    if (Verbose)
+                    {
+                        _logger.LogInformation(
+                            "Created {ContainerName} container with public access type {PublicAccessType}.",
+                            _directory.Name,
+                            publicAccessType);
                     }
                 }
             }
