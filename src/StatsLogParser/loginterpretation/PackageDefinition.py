@@ -1,26 +1,34 @@
+from __future__ import annotations
+from dataclasses import dataclass
 import urllib.parse
 
-
+@dataclass(init=False)
 class PackageDefinition:
+    """dataclass to represent a package definition"""
 
     NUGET_EXTENSION = ".nupkg"
     VERSION_QUERY_PARAMETER = "packageVersion"
+    package_id: str
+    package_version: str
 
-    def __init__(self, package_id=None, package_version=None):
+    def __init__(self, package_id: str = None, package_version: str = None) -> None:
         self.package_id = package_id.strip() if package_id else None
         self.package_version = package_version.strip() if package_version else None
 
     @staticmethod
-    def from_request_url(request_url):
-        if not request_url or not request_url.lower().endswith(
-            PackageDefinition.NUGET_EXTENSION
-        ):
+    def from_request_url(request_url) -> list[PackageDefinition]:
+        """Static method to create a PackageDefinition from a request url"""
+
+        if not request_url:
             return None
 
         resolution_options = []
 
         parsed = urllib.parse.urlparse(request_url)
-        url_segments = [segment for segment in parsed.path.split("/") if segment]
+        if(not parsed.path.lower().endswith(PackageDefinition.NUGET_EXTENSION)):
+            return None
+
+        url_segments = [segment for segment in urllib.parse.unquote(parsed.path).split("/") if segment]
 
         file_name = url_segments[-1]
         file_name = file_name[: -len(PackageDefinition.NUGET_EXTENSION)]
@@ -40,13 +48,13 @@ class PackageDefinition:
 
         # Look for it in the query string
         if not resolution_options:
-            version_param = urllib.parse.parse_qs(parsed.query)[
-                PackageDefinition.VERSION_QUERY_PARAMETER
-            ]
-            if version_param:
+            query_params = urllib.parse.parse_qs(parsed.query)
+            version_param_list = query_params.get(PackageDefinition.VERSION_QUERY_PARAMETER, None)
+            if version_param_list is not None:
+                version_param = version_param_list[0]
                 # remove it from the file name and use that as the package id
 
-                parsed_id = file_name[: -len(version_param)]
+                parsed_id = file_name[: -(len(version_param) + 1)]
                 # sanity check to make sure the version param matches what's in the file name
                 if file_name.lower() == f"{parsed_id}.{version_param}".lower():
                     resolution_options.append(
