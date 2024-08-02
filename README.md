@@ -33,6 +33,26 @@ Let's focus on running the gallery web app locally, first.
 
 Refer to [our documentation](./docs/) for information on how to develop the frontend, use AAD, and more.
 
+### Shared libraries
+
+There are a set of shared libraries used across the NuGet server repositories, including:
+
+* NuGet.Services.Configuration
+* NuGet.Services.KeyVault
+* NuGet.Services.Logging
+* NuGet.Services.Owin
+* NuGet.Services.Cursor
+* NuGet.Services.Storage
+
+To edit them, follow these steps:
+
+1. Build with `.\build.ps1`
+2. Open `.\NuGet.Server.Common.sln` using Visual Studio
+3. Create the validation database:
+   - Open Package Manager Console, set `NuGet.Services.Validation` as default project, then run `Update-Database`.
+
+Note that many of these shared projects are also referenced by the other solution (e.g. in `NuGetGallery.sln`) files in the root of the repository, to simplify modification.
+
 ### Background jobs
 
 This repository also contains nuget.org's implementation of the [NuGet V3 API](https://docs.microsoft.com/en-us/nuget/api/overview)
