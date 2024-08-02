@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -13,6 +13,7 @@ using GitHubVulnerabilities2v3.Extensions;
 using GitHubVulnerabilities2v3.Telemetry;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs;
 using NuGet.Services.Cursor;
@@ -122,10 +123,13 @@ namespace GitHubVulnerabilities2v3
                 .As<BlobServiceClient>();
 
             containerBuilder
-                .RegisterType<AzureStorageFactory>()
-                .WithParameter(
-                    (parameter, ctx) => parameter.Name == "containerName",
-                    (parameter, ctx) => ctx.Resolve<GitHubVulnerabilities2v3Configuration>().V3VulnerabilityContainerName)
+                .Register(ctx =>
+                {
+                    return new AzureStorageFactory(
+                        ctx.Resolve<BlobServiceClient>(),
+                        ctx.Resolve<GitHubVulnerabilities2v3Configuration>().V3VulnerabilityContainerName,
+                        ctx.Resolve<ILogger<AzureStorage>>());
+                })
                 .As<StorageFactory>()
                 .As<IStorageFactory>();
 
