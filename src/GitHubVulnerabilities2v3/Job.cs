@@ -128,6 +128,7 @@ namespace GitHubVulnerabilities2v3
                     return new AzureStorageFactory(
                         ctx.Resolve<BlobServiceClient>(),
                         ctx.Resolve<GitHubVulnerabilities2v3Configuration>().V3VulnerabilityContainerName,
+                        enablePublicAccess: true,
                         ctx.Resolve<ILogger<AzureStorage>>());
                 })
                 .As<StorageFactory>()

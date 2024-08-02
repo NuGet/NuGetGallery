@@ -52,7 +52,11 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 var config = p.GetRequiredService<IOptionsSnapshot<CertificateStoreConfiguration>>().Value;
                 var targetStorageAccount = new BlobServiceClient(AzureStorageFactory.PrepareConnectionString(config.DataStorageAccount));
 
-                var storageFactory = new AzureStorageFactory(targetStorageAccount, config.ContainerName, LoggerFactory.CreateLogger<AzureStorage>());
+                var storageFactory = new AzureStorageFactory(
+                    targetStorageAccount,
+                    config.ContainerName,
+                    enablePublicAccess: false,
+                    LoggerFactory.CreateLogger<AzureStorage>());
                 var storage = storageFactory.Create();
 
                 return new CertificateStore(storage, LoggerFactory.CreateLogger<CertificateStore>());

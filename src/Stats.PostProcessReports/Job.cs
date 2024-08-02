@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
@@ -50,6 +50,7 @@ namespace Stats.PostProcessReports
                     var factory = new AzureStorageFactory(
                         c.Resolve<BlobServiceClient>(),
                         cfg.SourceContainerName,
+                        enablePublicAccess: false,
                         c.Resolve<ILogger<AzureStorage>>(),
                         cfg.SourcePath + cfg.DetailedReportDirectoryName,
                         initializeContainer: false);
@@ -66,6 +67,7 @@ namespace Stats.PostProcessReports
                     var factory = new AzureStorageFactory(
                         c.Resolve<BlobServiceClient>(),
                         cfg.WorkContainerName,
+                        enablePublicAccess: false,
                         c.Resolve<ILogger<AzureStorage>>(),
                         cfg.WorkPath,
                         initializeContainer: false);
@@ -82,6 +84,7 @@ namespace Stats.PostProcessReports
                     var factory = new AzureStorageFactory(
                         c.Resolve<BlobServiceClient>(),
                         cfg.DestinationContainerName,
+                        enablePublicAccess: true,
                         c.Resolve<ILogger<AzureStorage>>(),
                         cfg.DestinationPath,
                         initializeContainer: false);
