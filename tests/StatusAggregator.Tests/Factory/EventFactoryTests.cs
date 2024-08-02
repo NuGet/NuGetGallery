@@ -3,8 +3,8 @@
 
 using System;
 using System.Threading.Tasks;
+using Azure.Data.Tables;
 using Microsoft.Extensions.Logging;
-using Microsoft.WindowsAzure.Storage.Table;
 using Moq;
 using NuGet.Services.Incidents;
 using NuGet.Services.Status;

@@ -4,7 +4,7 @@
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
     <EnablePackageVersionOverride>true</EnablePackageVersionOverride>
     <NuGetClientPackageVersion>6.9.1</NuGetClientPackageVersion>
-    <ServerCommonPackageVersion>2.120.0</ServerCommonPackageVersion>
+    <ServerCommonPackageVersion>2.122.0</ServerCommonPackageVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Autofac.Extensions.DependencyInjection" Version="4.4.0" />

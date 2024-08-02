@@ -214,14 +214,14 @@ namespace Stats.PostProcessReports
 
         private async Task<List<StorageListItem>> EnumerateSourceBlobsAsync()
         {
-            var blobs = await _sourceStorage.List(getMetadata: true, cancellationToken: CancellationToken.None);
+            var blobs = await _sourceStorage.ListAsync(getMetadata: true, cancellationToken: CancellationToken.None);
 
             return blobs.ToList();
         }
 
         private async Task<List<StorageListItem>> EnumerateWorkStorageBlobsAsync()
         {
-            var blobs = await _workStorage.List(getMetadata: true, cancellationToken: CancellationToken.None);
+            var blobs = await _workStorage.ListAsync(getMetadata: true, cancellationToken: CancellationToken.None);
 
             return blobs.ToList();
         }

@@ -33,13 +33,13 @@ namespace Stats.PostProcessReports.Tests
         public async Task DoesntStartIfNoSuccessFile()
         {
             _sourceStorageMock
-                .Setup(ss => ss.List(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((IEnumerable<StorageListItem>)new List<StorageListItem>());
+                .Setup(ss => ss.ListAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<StorageListItem>());
 
             await _target.CopyReportsAsync();
 
             _sourceStorageMock
-                .Verify(ss => ss.List(It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Once);
+                .Verify(ss => ss.ListAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Once);
             _sourceStorageMock.VerifyNoOtherCalls();
             _workStorageMock.VerifyNoOtherCalls();
             _destinationStorageMock.VerifyNoOtherCalls();
@@ -186,8 +186,8 @@ namespace Stats.PostProcessReports.Tests
                 { "FilesCreated", "123" }
             };
             _workStorageMock
-                .Setup(ss => ss.List(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(() => (IEnumerable<StorageListItem>)new List<StorageListItem>(_workFiles.Select(f => Blob(
+                .Setup(ss => ss.ListAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(() => new List<StorageListItem>(_workFiles.Select(f => Blob(
                     _workStorageMock,
                     f,
                     f == file1 ? file1Metadata : null))));
@@ -278,7 +278,7 @@ namespace Stats.PostProcessReports.Tests
                 .Returns(new Uri(baseUrl));
             mock
                 .Setup(s => s.Load(It.IsAny<Uri>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((StorageContent)new StringStorageContent(""));
+                .ReturnsAsync(new StringStorageContent(""));
             mock
                 .Setup(s => s.ExistsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((string filename, CancellationToken _) =>
@@ -286,8 +286,8 @@ namespace Stats.PostProcessReports.Tests
                     return files().Contains(filename);
                 });
             mock
-                .Setup(s => s.List(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(() => (IEnumerable<StorageListItem>)new List<StorageListItem>(files().Select(f => Blob(mock, f))));
+                .Setup(s => s.ListAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(() => new List<StorageListItem>(files().Select(f => Blob(mock, f))));
             mock
                 .Setup(s => s.ResolveUri(It.IsAny<string>()))
                 .Returns((string f) => Blob(mock, f).Uri);

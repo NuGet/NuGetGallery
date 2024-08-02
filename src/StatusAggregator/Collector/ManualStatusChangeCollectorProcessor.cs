@@ -59,7 +59,7 @@ namespace StatusAggregator.Collector
                 await _handler.Handle(_table, manualChange);
             }
 
-            return manualChanges.Any() ? manualChanges.Max(c => c.Timestamp.UtcDateTime) : (DateTime?)null;
+            return manualChanges.Any() ? manualChanges.Max(c => c.Timestamp.Value.UtcDateTime) : null;
         }
     }
 }

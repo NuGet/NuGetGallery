@@ -21,7 +21,7 @@ namespace StatusAggregator.Manual
 
         public async Task Handle(AddStatusMessageManualChangeEntity entity)
         {
-            var time = entity.Timestamp.UtcDateTime;
+            var time = entity.Timestamp.Value.UtcDateTime;
 
             var eventRowKey = EventEntity.GetRowKey(entity.EventAffectedComponentPath, entity.EventStartTime);
             var eventEntity = await _table.RetrieveAsync<EventEntity>(eventRowKey);

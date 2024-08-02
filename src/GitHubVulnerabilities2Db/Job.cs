@@ -6,13 +6,13 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
+using Azure.Storage.Blobs;
 using GitHubVulnerabilities2Db.Configuration;
 using GitHubVulnerabilities2Db.Fakes;
 using GitHubVulnerabilities2Db.Gallery;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
 using NuGet.Services.Cursor;
@@ -164,9 +164,10 @@ namespace GitHubVulnerabilities2Db
                 .Register(ctx =>
                 {
                     var config = ctx.Resolve<GitHubVulnerabilities2DbConfiguration>();
-                    return CloudStorageAccount.Parse(config.StorageConnectionString);
+                    var connectionString = AzureStorageFactory.PrepareConnectionString(config.StorageConnectionString);
+                    return new BlobServiceClient(connectionString);
                 })
-                .As<CloudStorageAccount>();
+                .As<BlobServiceClient>();
 
             containerBuilder
                 .RegisterType<AzureStorageFactory>()
