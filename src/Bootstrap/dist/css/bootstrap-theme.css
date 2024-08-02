@@ -1866,6 +1866,9 @@ p.frameworktableinfo-text {
   margin: 0;
   width: 100%;
 }
+.page-package-details .install-tabs .tab-content .tab-pane .alert a {
+  font-weight: 600;
+}
 .page-package-details .body-tabs .nav-tabs > li {
   padding-right: 2px;
 }
@@ -1930,6 +1933,9 @@ p.frameworktableinfo-text {
 }
 .page-package-details .body-tab-content {
   padding-top: 30px;
+}
+.page-package-details .body-tab-content a {
+  font-weight: 600;
 }
 .page-package-details .body-tab-content #readme-tab h1:first-child,
 .page-package-details .body-tab-content #usedby-tab h1:first-child,
