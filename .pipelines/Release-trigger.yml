@@ -15,10 +15,10 @@ parameters:
   - id: 21120 # gallery web app
     paramName: NuGetGallerySubmoduleBranch
   - id: 21280 # gallery packages
-    paramName: NuGetGalleryBranch
+    paramName: Branch
   - id: 21128 # jobs
     paramName: Branch
-  - id: 21269 # common packages
+  - id: 21269 # common
     paramName: Branch
 
 variables:
