@@ -9,6 +9,6 @@
     <Description>Shared libraries for content scanning validations</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="NuGet.Services.ServiceBus" />
+    <ProjectReference Include="..\NuGet.Services.ServiceBus\NuGet.Services.ServiceBus.csproj" />
   </ItemGroup>
 </Project>

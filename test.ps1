@@ -3,6 +3,7 @@ param (
     [ValidateSet("debug", "release")]
     [string]$Configuration = 'debug',
     [int]$BuildNumber,
+    [switch]$SkipCommon,
     [switch]$SkipGallery,
     [switch]$SkipJobs
 )
@@ -27,12 +28,33 @@ if (-not $BuildNumber) {
 Trace-Log "Build #$BuildNumber started at $startTime"
 
 $TestErrors = @()
+$CommonSolution = Join-Path $PSScriptRoot "NuGet.Server.Common.sln"
+$CommonProjects = Get-SolutionProjects $CommonSolution
 $GallerySolution = Join-Path $PSScriptRoot "NuGetGallery.sln"
 $GalleryProjects = Get-SolutionProjects $GallerySolution
 $JobsSolution = Join-Path $PSScriptRoot "NuGet.Jobs.sln"
 $JobsProjects = Get-SolutionProjects $JobsSolution
 
 Invoke-BuildStep 'Cleaning test results' { Clear-Tests } `
+    -ev +TestErrors
+
+Invoke-BuildStep 'Running common tests' {
+        $CommonTestProjects = $CommonProjects | Where-Object { $_.IsTest }
+
+        $TestCount = 0
+        
+        $CommonTestProjects | ForEach-Object {
+            $TestResultFile = Join-Path $PSScriptRoot "Results.Common.$TestCount.xml"
+            Trace-Log "Testing $($_.Path)"
+            dotnet test $_.Path --no-restore --no-build --configuration $Configuration "-l:trx;LogFileName=$TestResultFile"
+            if (-not (Test-Path $TestResultFile)) {
+                Write-Error "The test run failed to produce a result file";
+                exit 1;
+            }
+            $TestCount++
+        }
+    } `
+    -skip:$SkipCommon `
     -ev +TestErrors
 
 Invoke-BuildStep 'Running gallery tests' {

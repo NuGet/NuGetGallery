@@ -9,10 +9,10 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="EntityFramework" />
-    <PackageReference Include="NuGet.Services.Validation" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Services.DatabaseMigration\NuGet.Services.DatabaseMigration.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Validation\NuGet.Services.Validation.csproj" />
     <ProjectReference Include="..\NuGetGallery\NuGetGallery.csproj" />
   </ItemGroup>
 </Project>

@@ -1,7 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
-  <Import Project="..\..\sign.thirdparty.props" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -2121,9 +2120,61 @@
     <Folder Include="Security\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\NuGet.Services.Configuration\NuGet.Services.Configuration.csproj">
+      <Project>{f2e4c9f8-d0e1-4ab4-887d-0af2e668981e}</Project>
+      <Name>NuGet.Services.Configuration</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.Contracts\NuGet.Services.Contracts.csproj">
+      <Project>{b3b7be66-86c2-4ab9-8315-021a22b104ae}</Project>
+      <Name>NuGet.Services.Contracts</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NuGet.Services.Entities\NuGet.Services.Entities.csproj">
       <Project>{6262f4fc-29be-4226-b676-db391c89d396}</Project>
       <Name>NuGet.Services.Entities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.FeatureFlags\NuGet.Services.FeatureFlags.csproj">
+      <Project>{228091e8-e1c3-4ffc-bd49-453a84da2c38}</Project>
+      <Name>NuGet.Services.FeatureFlags</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.KeyVault\NuGet.Services.KeyVault.csproj">
+      <Project>{5dfc03f8-3b75-4896-bc7f-0745f7070066}</Project>
+      <Name>NuGet.Services.KeyVault</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.Licenses\NuGet.Services.Licenses.csproj">
+      <Project>{0db9da01-265d-47f7-b717-f52917042833}</Project>
+      <Name>NuGet.Services.Licenses</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.Logging\NuGet.Services.Logging.csproj">
+      <Project>{9f174d90-353d-4365-9dfb-a95986d4a6ba}</Project>
+      <Name>NuGet.Services.Logging</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.Messaging.Email\NuGet.Services.Messaging.Email.csproj">
+      <Project>{178f8947-f521-4d0d-871b-ccd26393dbc7}</Project>
+      <Name>NuGet.Services.Messaging.Email</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.Messaging\NuGet.Services.Messaging.csproj">
+      <Project>{259af5a7-3928-4942-a1c7-850d845f5d4a}</Project>
+      <Name>NuGet.Services.Messaging</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.Owin\NuGet.Services.Owin.csproj">
+      <Project>{56d69b64-c806-42fa-9aea-baa8d3ce97b4}</Project>
+      <Name>NuGet.Services.Owin</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.ServiceBus\NuGet.Services.ServiceBus.csproj">
+      <Project>{8e69eee6-2bdc-48e5-a4ab-32f44ebb2422}</Project>
+      <Name>NuGet.Services.ServiceBus</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.Sql\NuGet.Services.Sql.csproj">
+      <Project>{692cdff5-6301-41bd-b06f-89deee43e23e}</Project>
+      <Name>NuGet.Services.Sql</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.Validation.Issues\NuGet.Services.Validation.Issues.csproj">
+      <Project>{31c526dc-c8bd-4863-b66f-2fb1c4e440d0}</Project>
+      <Name>NuGet.Services.Validation.Issues</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.Validation\NuGet.Services.Validation.csproj">
+      <Project>{14307f06-bdcc-4026-a7f9-09cd032d4b7b}</Project>
+      <Name>NuGet.Services.Validation</Name>
     </ProjectReference>
     <ProjectReference Include="..\NuGetGallery.Core\NuGetGallery.Core.csproj">
       <Project>{097b2cdd-9623-4c34-93c2-d373d51f5b4e}</Project>
@@ -2183,9 +2234,6 @@
     <PackageReference Include="Modernizr" />
     <PackageReference Include="Moment.js" />
     <PackageReference Include="MvcTreeView" />
-    <PackageReference Include="NuGet.Services.Licenses" />
-    <PackageReference Include="NuGet.Services.Owin" />
-    <PackageReference Include="NuGet.Services.Sql" />
     <PackageReference Include="Owin" />
     <PackageReference Include="NuGet.StrongName.QueryInterceptor" />
     <PackageReference Include="RouteMagic" />
@@ -2239,14 +2287,17 @@
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
   </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- NuGet signing block: start -->
   <PropertyGroup>
     <SignPath>..\..\build</SignPath>
     <SignPath Condition="'$(BUILD_SOURCESDIRECTORY)' != ''">$(BUILD_SOURCESDIRECTORY)\build</SignPath>
     <SignPath Condition="'$(NuGetBuildPath)' != ''">$(NuGetBuildPath)</SignPath>
     <SignType Condition="'$(SignType)' == ''">none</SignType>
   </PropertyGroup>
+  <Import Project="..\..\sign.thirdparty.props" />
   <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
   <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
+  <!-- NuGet signing block: end -->
   <Import Project="$(NuGetBuildExtensions)" Condition="'$(NuGetBuildExtensions)' != '' And Exists('$(NuGetBuildExtensions)')" />
   <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\SdkProjects.props" />
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Jobs.Catalog2Registration\NuGet.Jobs.Catalog2Registration.csproj" />
     <ProjectReference Include="..\NuGet.Services.Metadata.Catalog.Monitoring\NuGet.Services.Metadata.Catalog.Monitoring.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Storage\NuGet.Services.Storage.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="lightning-template.txt">
@@ -20,7 +21,6 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="NuGet.Services.Storage" />
     <PackageReference Include="Serilog.Sinks.File" />
   </ItemGroup>
 </Project>
