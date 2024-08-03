@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\SdkProjects.props" />
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
@@ -6,7 +6,6 @@
     <AssemblyName>Validation.PackageSigning.Helpers</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="NuGet.Services.Testing.Entities" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -14,6 +13,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\NuGet.Services.Testing.Entities\NuGet.Services.Testing.Entities.csproj" />
     <ProjectReference Include="..\..\src\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj" />
   </ItemGroup>
 </Project>

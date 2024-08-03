@@ -5,7 +5,6 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
-    <PackageReference Include="NuGet.Services.Configuration" />
     <PackageReference Include="NuGet.Versioning" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio">
@@ -15,6 +14,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\BasicSearchTests.FunctionalTests.Core\BasicSearchTests.FunctionalTests.Core.csproj" />
+    <ProjectReference Include="..\..\src\NuGet.Services.Configuration\NuGet.Services.Configuration.csproj" />
   </ItemGroup>
   <ItemGroup>
     <ExternalConfig Include="ExternalConfig/*.*"></ExternalConfig>

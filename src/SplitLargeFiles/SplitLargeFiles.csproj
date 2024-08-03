@@ -13,8 +13,10 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" />
-    <PackageReference Include="NuGet.Services.KeyVault" />
     <PackageReference Include="SharpZipLib" />
     <PackageReference Include="WindowsAzure.Storage" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Services.KeyVault\NuGet.Services.KeyVault.csproj" />
   </ItemGroup>
 </Project>

@@ -14,10 +14,11 @@
     <EmbeddedResource Include="Initialization\PreinstalledPackages.json" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\NuGet.Services.Status\NuGet.Services.Status.csproj" />
     <ProjectReference Include="..\Validation.Common.Job\Validation.Common.Job.csproj" />
     <ProjectReference Include="..\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="NuGet.Services.Status" />
+    <Reference Include="System.Web" />
   </ItemGroup>
 </Project>

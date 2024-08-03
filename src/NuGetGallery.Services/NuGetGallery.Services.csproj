@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <Import Project="..\..\SdkProjects.props" />
 
@@ -68,10 +68,13 @@
     <PackageReference Include="Microsoft.Owin.Security.MicrosoftAccount" />
     <PackageReference Include="Microsoft.Owin.Security.OpenIdConnect" />
     <PackageReference Include="NuGet.Protocol" />
-    <PackageReference Include="NuGet.Services.Configuration" />
-    <PackageReference Include="NuGet.Services.Logging" />
     <PackageReference Include="NuGet.StrongName.WebBackgrounder" />
     <PackageReference Include="System.Runtime" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <ProjectReference Include="..\NuGet.Services.Configuration\NuGet.Services.Configuration.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Logging\NuGet.Services.Logging.csproj" />
   </ItemGroup>
   
   <ItemGroup>

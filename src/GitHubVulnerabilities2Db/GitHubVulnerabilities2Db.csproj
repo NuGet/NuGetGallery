@@ -14,10 +14,8 @@
     <None Include="Scripts\*" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="NuGet.Services.Cursor" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Cursor\NuGet.Services.Cursor.csproj" />
     <ProjectReference Include="..\NuGet.Services.Github\NuGet.Services.GitHub.csproj" />
     <ProjectReference Include="..\NuGetGallery.Services\NuGetGallery.Services.csproj" />
   </ItemGroup>

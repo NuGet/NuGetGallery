@@ -9,8 +9,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="NuGet.Services.Storage" />
+    <ProjectReference Include="..\NuGet.Services.Storage\NuGet.Services.Storage.csproj" />
   </ItemGroup>
 </Project>
