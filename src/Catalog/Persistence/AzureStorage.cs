@@ -129,9 +129,9 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             if (initializeContainer)
             {
-                BlobContainerInfo blobContainerInfo = _blobContainerClientWrapper.ContainerClient.CreateIfNotExists(PublicAccessType.Blob);
+                var blobContainerInfoResponse = _blobContainerClientWrapper.ContainerClient.CreateIfNotExists(PublicAccessType.Blob);
 
-                if (blobContainerInfo != null && Verbose)
+                if (blobContainerInfoResponse?.Value != null && Verbose)
                 {
                     Trace.WriteLine($"Created '{_blobContainerClientWrapper.ContainerClient.Name}' public container");
                 }
@@ -192,10 +192,10 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             var blobs = new List<StorageListItem>();
 
             BlobContainerClient blobContainerClient = _blobContainerClientWrapper.ContainerClient;
-            await foreach (var blobItem in blobContainerClient.GetBlobsAsync(prefix: _directory.DirectoryPrefix, cancellationToken: cancellationToken))
+            await foreach (var blobItem in blobContainerClient.GetBlobsByHierarchyAsync(prefix: _directory.DirectoryPrefix, cancellationToken: cancellationToken))
             {
-                var lastModified = blobItem.Properties.LastModified?.UtcDateTime;
-                blobs.Add(new StorageListItem(new Uri(blobContainerClient.Uri, blobItem.Name), lastModified));
+                var lastModified = blobItem.Blob.Properties.LastModified?.UtcDateTime;
+                blobs.Add(new StorageListItem(blobContainerClient.GetBlobClient(blobItem.Blob.Name).Uri, lastModified));
             }
 
             return blobs;
@@ -314,7 +314,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
                     await blockBlobClient.UploadAsync(destinationStream, headers, conditions: blobRequestConditions, cancellationToken: cancellationToken);
 
-                    Trace.WriteLine($"Saved compressed blob {blockBlobClient.Uri} to container {_blobContainerClientWrapper.ContainerClient.Name}");
+                    Trace.WriteLine($"Saved compressed blob {RemoveQueryString(blockBlobClient.Uri)} to container {_blobContainerClientWrapper.ContainerClient.Name}");
                 }
             }
             else
@@ -323,7 +323,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 {
                     await blockBlobClient.UploadAsync(stream, headers, cancellationToken: cancellationToken);
 
-                    Trace.WriteLine($"Saved uncompressed blob {blockBlobClient.Uri} to container {_blobContainerClientWrapper.ContainerClient.Name}");
+                    Trace.WriteLine($"Saved uncompressed blob {RemoveQueryString(blockBlobClient.Uri)} to container {_blobContainerClientWrapper.ContainerClient.Name}");
                 }
             }
 
@@ -351,14 +351,14 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 {
                     var response = await blobBlockClient.CreateSnapshotAsync();
                     stopwatch.Stop();
-                    Trace.WriteLine($"SnapshotCreated:milliseconds={stopwatch.ElapsedMilliseconds}:{blobBlockClient.Uri.ToString()}:{response?.Value.Snapshot}");
+                    Trace.WriteLine($"SnapshotCreated:milliseconds={stopwatch.ElapsedMilliseconds}:{RemoveQueryString(blobBlockClient.Uri)}:{response?.Value.Snapshot}");
                 }
                 return true;
             }
             catch (RequestFailedException e)
             {
                 stopwatch.Stop();
-                Trace.WriteLine($"EXCEPTION:milliseconds={stopwatch.ElapsedMilliseconds}:CreateSnapshot: Failed to take the snapshot for blob {blobBlockClient.Uri.ToString()}. Exception{e.ToString()}");
+                Trace.WriteLine($"EXCEPTION:milliseconds={stopwatch.ElapsedMilliseconds}:CreateSnapshot: Failed to take the snapshot for blob {RemoveQueryString(blobBlockClient.Uri)}. Exception{e.ToString()}");
                 return false;
             }
         }
@@ -429,7 +429,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         public override Uri GetUri(string name)
         {
-            var baseUri = _directory.Uri.AbsoluteUri;
+            var baseUri = RemoveQueryString(_directory.Uri);
 
             if (baseUri.EndsWith("/"))
             {
