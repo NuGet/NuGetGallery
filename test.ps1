@@ -3,6 +3,7 @@ param (
     [ValidateSet("debug", "release")]
     [string]$Configuration = 'debug',
     [int]$BuildNumber,
+    [switch]$SkipCommon,
     [switch]$SkipGallery,
     [switch]$SkipJobs
 )
@@ -53,6 +54,7 @@ Invoke-BuildStep 'Running common tests' {
             $TestCount++
         }
     } `
+    -skip:$SkipCommon `
     -ev +TestErrors
 
 Invoke-BuildStep 'Running gallery tests' {

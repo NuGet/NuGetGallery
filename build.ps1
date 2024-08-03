@@ -4,6 +4,8 @@ param (
     [string]$Configuration = 'debug',
     [int]$BuildNumber,
     [switch]$SkipRestore,
+    [switch]$SkipArtifacts,
+    [switch]$SkipCommon,
     [string]$CommonAssemblyVersion = '3.0.0',
     [string]$CommonPackageVersion = '3.0.0-zlocal',
     [switch]$SkipGallery,
@@ -42,6 +44,7 @@ Trace-Log "Build #$BuildNumber started at $startTime"
 $BuildErrors = @()
 $CommonSolution = Join-Path $PSScriptRoot "NuGet.Server.Common.sln"
 $CommonProjects = Get-SolutionProjects $CommonSolution
+$SharedCommonProjects = $CommonProjects | Where-Object { $_.IsSrc } | ForEach-Object { $_.RelativePath }
 $GallerySolution = Join-Path $PSScriptRoot "NuGetGallery.sln"
 $GalleryProjects = Get-SolutionProjects $GallerySolution
 $SharedGalleryProjects =
@@ -72,7 +75,12 @@ Invoke-BuildStep 'Restoring solution packages' {
     -ev +BuildErrors
 
 Invoke-BuildStep 'Setting common version metadata in AssemblyInfo.cs' {
-        $CommonProjects | Where-Object { !$_.IsTest } | ForEach-Object {
+        $CommonAssemblyInfo = $CommonProjects `
+            | Where-Object { !$_.IsTest } `
+            | Where-Object { !$SkipCommon -or $SharedCommonProjects -contains $_.RelativePath } `
+            | Where-Object { $SharedGalleryProjects -notcontains $_.RelativePath } `
+            | Where-Object { $SharedJobsProjects -notcontains $_.RelativePath };
+        $CommonAssemblyInfo | ForEach-Object {
             $Path = Join-Path $_.Directory "Properties\AssemblyInfo.g.cs"
             Set-VersionInfo $Path -AssemblyVersion $CommonAssemblyVersion -PackageVersion $CommonPackageVersion -Branch $Branch -Commit $CommitSHA
         }
@@ -82,8 +90,9 @@ Invoke-BuildStep 'Setting common version metadata in AssemblyInfo.cs' {
 Invoke-BuildStep 'Setting gallery version metadata in AssemblyInfo.cs' {
         $GalleryAssemblyInfo = $GalleryProjects `
             | Where-Object { !$_.IsTest } `
-            | Where-Object { $SharedJobsProjects -notcontains $_.RelativePath } `
-            | Where-Object { !$SkipGallery -or $SharedGalleryProjects -contains $_.RelativePath };
+            | Where-Object { $SharedCommonProjects -notcontains $_.RelativePath } `
+            | Where-Object { !$SkipGallery -or $SharedGalleryProjects -contains $_.RelativePath } `
+            | Where-Object { $SharedJobsProjects -notcontains $_.RelativePath };
         $GalleryAssemblyInfo | ForEach-Object {
             $Path = Join-Path $_.Directory "Properties\AssemblyInfo.g.cs"
             Set-VersionInfo $Path -AssemblyVersion $GalleryAssemblyVersion -PackageVersion $GalleryPackageVersion -Branch $Branch -Commit $CommitSHA
@@ -94,6 +103,7 @@ Invoke-BuildStep 'Setting gallery version metadata in AssemblyInfo.cs' {
 Invoke-BuildStep 'Setting job version metadata in AssemblyInfo.cs' {
         $JobsAssemblyInfo = $JobsProjects `
             | Where-Object { !$_.IsTest } `
+            | Where-Object { $SharedCommonProjects -notcontains $_.RelativePath } `
             | Where-Object { $SharedGalleryProjects -notcontains $_.RelativePath } `
             | Where-Object { !$SkipJobs -or $SharedJobsProjects -contains $_.RelativePath };
         $JobsAssemblyInfo | ForEach-Object {
@@ -106,6 +116,7 @@ Invoke-BuildStep 'Setting job version metadata in AssemblyInfo.cs' {
 Invoke-BuildStep 'Building common solution' {
         Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $CommonSolution -SkipRestore:$SkipRestore
     } `
+    -skip:$SkipCommon `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Building gallery solution' { 
@@ -130,14 +141,16 @@ Invoke-BuildStep 'Building jobs functional test solution' {
 Invoke-BuildStep 'Signing the binaries' {
         Sign-Binaries -Configuration $Configuration -BuildNumber $BuildNumber
     } `
+    -skip:$SkipArtifacts `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Creating common artifacts' {
-        $CommonPackages = $CommonProjects | Where-Object { !$_.IsTest } | Where-Object { $_.RelativePath -notlike "tools*" } 
+        $CommonPackages = $CommonProjects | Where-Object { $_.IsSrc }
         $CommonPackages | ForEach-Object {
             New-ProjectPackage $_.Path -Configuration $Configuration -BuildNumber $BuildNumber -Version $CommonPackageVersion
         }
     } `
+    -skip:($SkipCommon -or $SkipArtifacts) `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Creating gallery artifacts' { `
@@ -166,7 +179,7 @@ Invoke-BuildStep 'Creating gallery artifacts' { `
         if (!$VerifyMicrosoftPackageVersion) { $VerifyMicrosoftPackageVersion = $GalleryPackageVersion }
         New-Package (Join-Path $PSScriptRoot "src\VerifyMicrosoftPackage\VerifyMicrosoftPackage.nuspec") -Configuration $Configuration -BuildNumber $BuildNumber -Version $VerifyMicrosoftPackageVersion -Branch $Branch
     } `
-    -skip:$SkipGallery `
+    -skip:($SkipGallery -or $SkipArtifacts) `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Creating jobs artifacts' {
@@ -228,12 +241,13 @@ Invoke-BuildStep 'Creating jobs artifacts' {
             New-Package (Join-Path $PSScriptRoot $_) -Configuration $Configuration -BuildNumber $BuildNumber -Version $JobsPackageVersion -Branch $Branch
         }
     } `
-    -skip:$SkipJobs `
+    -skip:($SkipJobs -or $SkipArtifacts) `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Signing the packages' {
         Sign-Packages -Configuration $Configuration -BuildNumber $BuildNumber
     } `
+    -skip:$SkipArtifacts `
     -ev +BuildErrors
 
 Trace-Log ('-' * 60)

@@ -591,9 +591,10 @@ function Get-SolutionProjects($SolutionPath) {
         $projectPath = Join-Path $solutionDir $_
         $projectRelativeDir = Split-Path $_
         $projectDir = Join-Path $solutionDir $projectRelativeDir
-        $isTestProject = $projectRelativeDir -like "test*";
         return [PSCustomObject]@{
-            IsTest = $isTestProject;
+            IsSrc = $projectRelativeDir -like "src*";
+            IsTest = $projectRelativeDir -like "test*";
+            IsTool = $projectRelativeDir -like "tool*";
             Directory = $projectDir;
             Path = $projectPath;
             RelativePath = $_;

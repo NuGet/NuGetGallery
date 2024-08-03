@@ -13,6 +13,7 @@
     </PackageReference>
   </ItemGroup>
 
+  <!-- NuGet signing block: start -->
   <PropertyGroup>
     <SignPath>build</SignPath>
     <SignPath Condition="'$(BUILD_SOURCESDIRECTORY)' != ''">$(BUILD_SOURCESDIRECTORY)\build</SignPath>
@@ -22,4 +23,5 @@
   <Import Project="sign.thirdparty.props" />
   <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
   <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
+  <!-- NuGet signing block: end -->
 </Project>
