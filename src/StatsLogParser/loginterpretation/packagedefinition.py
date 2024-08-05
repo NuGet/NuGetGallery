@@ -1,5 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
+from typing import Optional
 from loginterpretation.nugetversion import NuGetVersion
 import urllib.parse
 
@@ -9,6 +10,10 @@ class PackageDefinition:
 
     NUGET_EXTENSION = ".nupkg"
     VERSION_QUERY_PARAMETER = "packageVersion"
+    NUGET_EXE_PACKAGE_ID = "tool/nuget.exe"
+    NUGET_EXE_LATEST_VERSION_SEGMENT = "latest"
+    NUGET_EXE_URL_ENDING = "/nuget.exe"
+
     package_id: str
     package_version: str
 
@@ -80,3 +85,32 @@ class PackageDefinition:
         return resolution_options
 
 
+
+    @staticmethod
+    def from_nuget_exe_url(request_url) -> Optional[PackageDefinition]:
+        if not request_url or not request_url.lower().endswith(PackageDefinition.NUGET_EXE_URL_ENDING):
+            return None
+
+        # path example: /artifacts/win-x86-commandline/v5.9.1/nuget.exe
+
+        request_url = urllib.parse.unquote(request_url)
+        url_segments = [segment for segment in request_url.split('/') if segment]
+
+        if len(url_segments) < 4:
+            # proper nuget.exe URL paths have at least 4 segments
+            return None
+
+        suspected_version_segment = url_segments[-2].lower()
+
+        if suspected_version_segment == PackageDefinition.NUGET_EXE_LATEST_VERSION_SEGMENT:
+            return PackageDefinition(PackageDefinition.NUGET_EXE_PACKAGE_ID, PackageDefinition.NUGET_EXE_LATEST_VERSION_SEGMENT)
+
+        if not suspected_version_segment.startswith("v"):
+            return None
+
+        version_string = suspected_version_segment[1:]
+        nuget_version = NuGetVersion.try_parse(version_string)
+        if nuget_version:
+            return PackageDefinition(PackageDefinition.NUGET_EXE_PACKAGE_ID, nuget_version.to_normalized_string())
+
+        return None
