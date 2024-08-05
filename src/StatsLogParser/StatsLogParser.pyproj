@@ -26,9 +26,11 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="loginterpretation\PackageDefinition.py">
+    <Compile Include="loginterpretation\nugetversion.py" />
+    <Compile Include="loginterpretation\packagedefinition.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="loginterpretation\semanticversion.py" />
     <Compile Include="loginterpretation\__init__.py">
       <SubType>Code</SubType>
     </Compile>

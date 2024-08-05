@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from packaging.version import Version, InvalidVersion
+from loginterpretation.nugetversion import NuGetVersion
 import urllib.parse
 
 @dataclass(init=False)
@@ -51,11 +51,13 @@ class PackageDefinition:
         if not resolution_options:
             query_params = urllib.parse.parse_qs(parsed.query)
             version_param_list = query_params.get(PackageDefinition.VERSION_QUERY_PARAMETER, None)
+
             if version_param_list is not None:
                 version_param = version_param_list[0]
-                # remove it from the file name and use that as the package id
 
+                # remove it from the file name and use that as the package id
                 parsed_id = file_name[: -(len(version_param) + 1)]
+
                 # sanity check to make sure the version param matches what's in the file name
                 if file_name.lower() == f"{parsed_id}.{version_param}".lower():
                     resolution_options.append(
@@ -69,30 +71,12 @@ class PackageDefinition:
                     package_part = file_name[:next_dot_index]
                     version_part = file_name[next_dot_index + 1:]
 
-                    if PackageDefinition.is_valid_version(version_part):
+                    nuget_version = NuGetVersion.try_parse(version_part)
+                    if nuget_version and nuget_version.to_normalized_string().lower() == version_part.lower():
                         resolution_options.append(PackageDefinition(package_part, version_part))
 
                     next_dot_index = file_name.find('.', next_dot_index + 1)
 
         return resolution_options
 
-    @staticmethod
-    def is_valid_version(version_string):
-        """Check if it's a valid version that support 3 or 4 part versioning with optional pre-release tag"""
-        try:
-            # Check if it's a valid three-part or four-part version with optional pre-release tag
-            Version(version_string)
-            return True
-        except InvalidVersion:
-            # Check if it's a valid four-part version with optional pre-release tag
-            parts = version_string.split('.')
-            if len(parts) == 4:
-                main_version = '.'.join(parts[:3])
-                pre_release = parts[3]
-                try:
-                    Version(main_version)
-                    if pre_release.isdigit() or '-' in pre_release:
-                        return True
-                except InvalidVersion:
-                    pass
-        return False
+
