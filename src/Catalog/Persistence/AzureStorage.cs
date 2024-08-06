@@ -465,22 +465,22 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                     var destinationBlobHasSha512Hash = destinationBlobMetadata.TryGetValue(Sha512HashAlgorithmId, out var destinationBlobSha512Hash);
                     if (!sourceBlobHasSha512Hash)
                     {
-                        Trace.TraceWarning($"The source blob ({sourceBlockBlob.Uri}) doesn't have the SHA512 hash.");
+                        Trace.TraceWarning($"The source blob ({RemoveQueryString(sourceBlockBlob.Uri)}) doesn't have the SHA512 hash.");
                     }
                     if (!destinationBlobHasSha512Hash)
                     {
-                        Trace.TraceWarning($"The destination blob ({destinationBlockBlob.Uri}) doesn't have the SHA512 hash.");
+                        Trace.TraceWarning($"The destination blob ({RemoveQueryString(destinationBlockBlob.Uri)}) doesn't have the SHA512 hash.");
                     }
                     if (sourceBlobHasSha512Hash && destinationBlobHasSha512Hash)
                     {
                         if (sourceBlobSha512Hash == destinationBlobSha512Hash)
                         {
-                            Trace.WriteLine($"The source blob ({sourceBlockBlob.Uri}) and destination blob ({destinationBlockBlob.Uri}) have the same SHA512 hash and are synchronized.");
+                            Trace.WriteLine($"The source blob ({RemoveQueryString(sourceBlockBlob.Uri)}) and destination blob ({RemoveQueryString(destinationBlockBlob.Uri)}) have the same SHA512 hash and are synchronized.");
                             return true;
                         }
 
                         // The SHA512 hash between the source and destination blob should be always same.
-                        Trace.TraceWarning($"The source blob ({sourceBlockBlob.Uri}) and destination blob ({destinationBlockBlob.Uri}) have the different SHA512 hash and are not synchronized. " +
+                        Trace.TraceWarning($"The source blob ({RemoveQueryString(sourceBlockBlob.Uri)}) and destination blob ({RemoveQueryString(destinationBlockBlob.Uri)}) have the different SHA512 hash and are not synchronized. " +
                             $"The source blob hash is {sourceBlobSha512Hash} while the destination blob hash is {destinationBlobSha512Hash}");
                     }
 
@@ -524,7 +524,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         private BlockBlobClient GetBlockBlobReference(string blobName)
         {
             IBlobContainerClientWrapper containerClient = _directory.ContainerClientWrapper;
-            BlockBlobClient blobClient = containerClient.GetBlockBlobClient(blobName);
+            BlockBlobClient blobClient = containerClient.GetBlockBlobClient(_directory.DirectoryPrefix + "/" + blobName);
 
             // ApplyBlobRequestOptions(blobClient) is not needed as the options should be set at the client level
             // when creating the BlobServiceClient or BlobContainerClient.
