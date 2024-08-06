@@ -1,0 +1,18 @@
+<Solution>
+  <Properties Name="Visual Studio">
+    <Property Name="OpenWith" Value="Visual Studio Version 17" />
+  </Properties>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+  </Folder>
+  <Folder Name="/Legacy Projects/">
+    <Project Path="src\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj" Type="C#" />
+    <Project Path="src\Stats.AzureCdnLogs.Common\Stats.AzureCdnLogs.Common.csproj" Type="C#" />
+    <Project Path="src\Stats.ImportAzureCdnStatistics\Stats.ImportAzureCdnStatistics.csproj" Type="C#" />
+    <Project Path="src\Stats.LogInterpretation\Stats.LogInterpretation.csproj" Type="C#" />
+    <Project Path="tests\Tests.Stats.ImportAzureCdnStatistics\Tests.Stats.ImportAzureCdnStatistics.csproj" Type="C#" />
+  </Folder>
+  <Project Path="src\StatsLogParser\StatsLogParser.pyproj" Type="888888a0-9f3d-457c-b088-3a5042f75d52">
+    <Build Project="false" />
+  </Project>
+</Solution>

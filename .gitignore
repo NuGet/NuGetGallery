@@ -382,7 +382,7 @@ FodyWeavers.xsd
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-*.code-workspace
+!.vscode/*.code-snippets
 
 # Local History for Visual Studio Code
 .history/
@@ -396,6 +396,10 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# macOS
+.DS_Store
+
 
 #######################
 # Repository specific #
@@ -411,7 +415,7 @@ tests/functionaltests.*.xml
 *.g.txt
 
 # The applicationhost.config is ignored, but already comitted on purpose
-# Reason: The localtest.me setting needs to be configured in the <sites>-section. 
+# Reason: The localtest.me setting needs to be configured in the <sites>-section.
 # See ReadMe.md for more information
 .vs/config/applicationhost.config
 
@@ -427,3 +431,5 @@ src/NuGetGallery/App_Data/Files/*
 !src/NuGetGallery/App_Data/Files/Content/
 !src/NuGetGallery/Views/Packages/
 !src/NuGetGallery/Branding/Views/Packages/
+
+
