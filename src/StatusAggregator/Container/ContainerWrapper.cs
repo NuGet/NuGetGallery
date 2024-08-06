@@ -2,15 +2,15 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Azure.Storage.Blobs;
 
 namespace StatusAggregator.Container
 {
     public class ContainerWrapper : IContainerWrapper
     {
-        private readonly CloudBlobContainer _container;
+        private readonly BlobContainerClient _container;
 
-        public ContainerWrapper(CloudBlobContainer container)
+        public ContainerWrapper(BlobContainerClient container)
         {
             _container = container;
         }
@@ -22,8 +22,8 @@ namespace StatusAggregator.Container
 
         public Task SaveBlobAsync(string name, string contents)
         {
-            var blob = _container.GetBlockBlobReference(name);
-            return blob.UploadTextAsync(contents);
+            var blob = _container.GetBlobClient(name);
+            return blob.UploadAsync(contents);
         }
     }
 }

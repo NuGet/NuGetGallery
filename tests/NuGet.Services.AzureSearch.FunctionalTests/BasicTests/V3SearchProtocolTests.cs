@@ -373,7 +373,7 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
             var results = await V3SearchAsync(new V3SearchBuilder { Query = "packageId:" + Constants.TestPackageId });
 
             Assert.NotNull(results);
-            Assert.Equal(1, results.Data.Count);
+            Assert.Single(results.Data);
             Assert.Equal(Constants.TestPackageId, results.Data.First().Id, StringComparer.OrdinalIgnoreCase);
         }
 

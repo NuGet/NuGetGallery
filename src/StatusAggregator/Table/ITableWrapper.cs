@@ -3,7 +3,7 @@
 
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage.Table;
+using Azure.Data.Tables;
 
 namespace StatusAggregator.Table
 {
@@ -26,6 +26,6 @@ namespace StatusAggregator.Table
 
         Task DeleteAsync(ITableEntity tableEntity);
 
-        IQueryable<T> CreateQuery<T>() where T : ITableEntity, new();
+        IQueryable<T> CreateQuery<T>() where T : class, ITableEntity, new();
     }
 }

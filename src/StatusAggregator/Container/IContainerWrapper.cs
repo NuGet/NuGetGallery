@@ -2,12 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace StatusAggregator.Container
 {
     /// <summary>
-    /// Simple wrapper for <see cref="CloudBlobContainer"/> that exists for unit-testing.
+    /// Simple wrapper for <see cref="Azure.Storage.Blobs.BlobContainerClient"/> that exists for unit-testing.
     /// </summary>
     public interface IContainerWrapper
     {

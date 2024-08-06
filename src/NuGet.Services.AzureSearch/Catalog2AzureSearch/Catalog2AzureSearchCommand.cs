@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -72,10 +72,13 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             var frontCursorUri = frontCursorStorage.ResolveUri(CursorRelativeUri);
             var frontCursor = new DurableCursor(frontCursorUri, frontCursorStorage, DateTime.MinValue);
 
+            // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
+            var connectionString = _options.Value.StorageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+
             // Log information about where state will be kept.
             _logger.LogInformation(
                 "Using storage URL: {ContainerUrl}/{StoragePath}",
-                new BlobServiceClient(_options.Value.StorageConnectionString)
+                new BlobServiceClient(connectionString)
                     .GetBlobContainerClient(_options.Value.StorageContainer)
                     .Uri
                     .AbsoluteUri,

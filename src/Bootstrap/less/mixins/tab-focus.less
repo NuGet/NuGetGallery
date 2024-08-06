@@ -1,0 +1,18 @@
+// WebKit-style focus
+
+.tab-focus() {
+  // WebKit-specific. Other browsers will keep their default outline style.
+  // (Initially tried to also force default via `outline: initial`,
+  // but that seems to erroneously remove the outline in Firefox altogether.)
+  outline: 4px solid -webkit-focus-ring-color;
+  outline: 2px solid var(--neutralStrokeFocus2Rest);
+  border-radius: 4px;
+  outline-offset: -2px;
+}
+
+.forced-colors-tab-focus() {
+  // Specific to high-contrast mode, and other forced-color schemes
+  // To override color changes in high-contrast mode, use "forced-color-adjust: none;"
+  outline: 3px solid -webkit-focus-ring-color;
+  outline-offset: 2px;
+}

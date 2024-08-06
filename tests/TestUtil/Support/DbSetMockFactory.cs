@@ -3,7 +3,6 @@
 
 using System.Data.Entity;
 using Moq;
-using Tests.ContextHelpers;
 
 namespace Validation.PackageSigning.Core.Tests.Support
 {

@@ -1,0 +1,112 @@
+﻿@using NuGetGallery.ViewModels
+@model ContactSupportViewModel
+@{
+    ViewBag.Title = "Contact";
+    ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
+}
+
+<section role="main" class="container main-container page-contact">
+    <div class="row">
+        <div class="col-xs-12 text-center">
+            <h1>Contact</h1>
+            <span class="page-subheading ms-fontSize-l">Need help with NuGet? Let us know!</span>
+        </div>
+    </div>
+    <div class="row">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+            <h2 class="ms-fontSize-xl ms-fontWeight-semibold">Having problems using a specific package on nuget.org?</h2>
+            <p>
+                Please note that nuget.org does not offer any assistance for individual package issues. If you're having trouble installing or using a specific package, try contacting the owner of that package first.
+                You can reach them using the "Contact Owners" link on the package details page.
+            </p>
+
+            <h2 class="ms-fontSize-xl ms-fontWeight-semibold">Found a bug in NuGet or the website nuget.org?</h2>
+            <p>
+                If you're having trouble with the <strong>nuget.org website</strong>,
+                file a bug on the NuGet Gallery <a href="https://github.com/NuGet/NuGetGallery/issues">Issue Tracker</a>.
+                If you're having trouble with the <strong>NuGet client tools</strong> (the Visual Studio extension, NuGet.exe command line tool, .NET CLI restore etc.),
+                file a bug on the NuGet Client <a href="https://github.com/NuGet/Home/issues">Issue Tracker</a>.
+            </p>
+
+            <h2 class="ms-fontSize-xl ms-fontWeight-semibold">Is a package violating a license or otherwise abusive?</h2>
+            <p>
+                If you feel that a package is violating the license of software you own or is violating our terms of service,
+                use the "Report" link on the package details page to report it directly to us.
+            </p>
+
+            <h2 class="ms-fontSize-xl ms-fontWeight-semibold">Have trouble logging in to nuget.org with MSA/Microsoft Entra ID logins?</h2>
+            <p>
+                Check out our @(ViewHelpers.GetExternalUrlAnchorTag("nuget.org account management", GalleryConstants.FAQLinks.NuGetAccountManagement)) FAQ page for solutions.
+            </p>
+
+            <h2 class="ms-fontSize-xl ms-fontWeight-semibold">Want to change your nuget.org username?</h2>
+            <p>
+                No need to contact support. Check out the steps for @(ViewHelpers.GetExternalUrlAnchorTag("changing nuget.org username", GalleryConstants.FAQLinks.NuGetChangeUsername)) on the FAQ page for resolution steps.
+
+            </p>
+
+            <h2 class="ms-fontSize-xl ms-fontWeight-semibold">Want to delete your nuget.org account?</h2>
+            <p>
+                No need to contact support. Check out the steps for @(ViewHelpers.GetExternalUrlAnchorTag("deleting nuget.org account", GalleryConstants.FAQLinks.NuGetDeleteAccount)) on the FAQ page for resolution steps.
+            </p>
+
+            <h2 class="ms-fontSize-xl ms-fontWeight-semibold">Having issues working with nuget.org?</h2>
+            <p>
+                Before reaching out to NuGet support, check out the @(ViewHelpers.GetExternalUrlAnchorTag("FAQ", GalleryConstants.FAQLinks.NuGetFAQ)).
+            </p>
+
+            @if (!User.Identity.IsAuthenticated)
+            {
+                <h2 class="ms-fontSize-xl ms-fontWeight-semibold sign-in-link">The above doesn't help? @Html.ActionLink("Sign in", "LogOn", new { controller = "Authentication", ReturnUrl = "/policies/Contact" }) to contact Support.</h2>
+                <p>
+                    Need help with your nuget.org account? Please feel free to <span id="emailUs"></span>.
+                </p>
+            }
+            else
+            {
+                <h2 class="ms-fontSize-xl ms-fontWeight-semibold">The above doesn't help? Get in touch with us using the form below</h2>
+                <p>
+                    A member of our Support team will be in touch with you soon.
+                </p>
+
+                using (Html.BeginForm("Contact", "Pages"))
+                {
+                    <fieldset class="form">
+                        @Html.AntiForgeryToken()
+                        <div class="form-group @Html.HasErrorFor(m => m.SubjectLine)">
+                            @Html.ShowLabelFor(m => m.SubjectLine)
+                            @Html.ShowTextBoxFor(m => m.SubjectLine, customClass: "input-brand")
+                            @Html.ShowValidationMessagesFor(m => m.SubjectLine)
+                        </div>
+                        <div class="form-group @Html.HasErrorFor(m => m.Message)">
+                            @Html.ShowLabelFor(m => m.Message)
+                            @Html.ShowTextAreaFor(m => m.Message, 10, 50, customClass: "textarea-brand")
+                            @Html.ShowValidationMessagesFor(m => m.Message)
+                        </div>
+                        <div class="form-group row-checkbox-label @Html.HasErrorFor(m => m.CopySender)">
+                            @Html.ShowCheckboxFor(m => m.CopySender, customClass: "brand-checkbox")
+                            @Html.ShowLabelFor(m => m.CopySender)
+                            @Html.ShowValidationMessagesFor(m => m.CopySender)
+                        </div>
+                        <div class="form-group">
+                            <input id="Submit" type="submit" class="btn btn-brand form-control" value="Contact" title="Contact Support" />
+                        </div>
+                    </fieldset>
+                }
+            }
+        </div>
+    </div>
+</section>
+
+@section BottomScripts {
+    <script type="text/javascript">
+        $(function () {
+            var part1 = "support";
+            var part2 = "nuget.org";
+            var part3 = "email us";
+            var link = $("<a>").attr("href", "mailto:" + part1 + "@@" + part2 + "?subject=[NuGetGallery] Need help with my account").text(part3);
+            $("#emailUs").append(link);
+        });
+    </script>
+    @ViewHelpers.RecaptchaScripts(Config.Current.ReCaptchaPublicKey, "Submit")
+}

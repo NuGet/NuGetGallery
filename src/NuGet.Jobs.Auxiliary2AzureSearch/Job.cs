@@ -5,7 +5,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NuGet.Services.AzureSearch;
 using NuGet.Services.AzureSearch.Auxiliary2AzureSearch;
-using NuGet.Services.AzureSearch.AuxiliaryFiles;
 
 namespace NuGet.Jobs
 {

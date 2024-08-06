@@ -135,7 +135,7 @@ namespace Stats.CDNLogsSanitizer
             catch (StorageException exception)
             {
                 _logger.LogCritical(LogEvents.FailedToProcessStream, exception, "ProcessStream: An exception while processing the stream.");
-                throw exception;
+                throw;
             }
         }
     }

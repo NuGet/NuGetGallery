@@ -1,0 +1,130 @@
+﻿@model NuGetGallery.DeletePackagesRequest
+
+@{
+    ViewBag.Title = "Delete packages";
+}
+
+<section role="main" class="container main-container">
+    <h2>Delete packages</h2>
+
+    <p>
+        If you would like to reflow a hard-deleted package, go to <a href="@Url.Action(actionName: "Reflow", controllerName: "Delete")">this page</a> instead.
+    </p>
+
+    <form>
+        <textarea placeholder="Search for packages to delete (e.g. jQuery 1.8.0)" autocomplete="off" autofocus style="width: 100%;" rows="5" class="textarea-brand" data-bind="value: searchQuery"></textarea><br />
+        <input type="button" class="btn-brand-secondary" value="Search" data-bind="click: search" />
+    </form>
+
+    @using (Html.BeginForm("Delete", "Packages", new { area = "" }, FormMethod.Post, new { id = "delete-form" }))
+    {
+        <table class="table" id="searchResults" style="display: none" data-bind="visible: searchResults().length > 0" aria-label="Search results">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" class="brand-checkbox" data-bind="click: toggleSelectAll, checked: selectAllState" /></th>
+                    <th>Package</th>
+                    <th>Version</th>
+                    <th>Downloads</th>
+                    <th>Created</th>
+                    <th>Listed?</th>
+                    <th>Status</th>
+                    <th>Owners</th>
+                </tr>
+            </thead>
+            <tbody data-bind="foreach: searchResults">
+                <tr>
+                    <td><input type="checkbox" class="brand-checkbox" name="Packages[]" data-bind="checked: Selected, value: $parent.generateValue($data)" /></td>
+                    <td><a href="#" data-bind="text: PackageId, attr: { href: $parent.generatePackageUrl($data) }"></a></td>
+                    <td><span data-bind="text: PackageVersionNormalized"></span></td>
+                    <td><span data-bind="text: DownloadCount"></span></td>
+                    <td><span data-bind="text: Created"></span></td>
+                    <td><span data-bind="text: Listed"></span></td>
+                    <td><span data-bind="text: PackageStatus"></span></td>
+                    <td data-bind="foreach: Owners">
+                        <a data-bind="text: Username, attr: { href: ProfileUrl }" />
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div style="display: none" data-bind="visible: searchResults().length === 0 && doneSearching()">
+            <p>No packages found.</p>
+        </div>
+
+        <div class="danger-zone" style="display: none;" data-bind="visible: arePackagesSelected">
+            @Html.Partial("_DeletePackage")
+        </div>
+    }
+</section>
+
+@section BottomScripts {
+    <script>
+        $(document).ready(function() {
+            var viewModel = function () {
+                var $self = this;
+
+                this.searchQuery = ko.observable('');
+                $self.doneSearching = ko.observable(false);
+
+                this.search = function () {
+                    $self.doneSearching = ko.observable(false);
+                    $.ajax({
+                            url: '@Url.Action("Search", "Delete", new {area = "Admin"})?query=' + encodeURIComponent($self.searchQuery()),
+                            cache: false,
+                            dataType: 'json',
+                            success: function(data) {
+                                $self.selectAllState(false);
+                                $self.searchResults.removeAll();
+                                for (var i = 0; i < data.length; i++) {
+                                    data[i].Selected = ko.observable(false);
+                                }
+                                $self.searchResults(data);
+                            }
+                        })
+                        .fail(function(jqXhr, textStatus, errorThrown) {
+                            alert("Error: " + errorThrown);
+                        })
+                        .always(function () {
+                            $self.doneSearching(true);
+                        });
+                };
+
+                this.selectAllState = ko.observable(false);
+
+                this.toggleSelectAll = function(e) {
+                    $self.selectAllState(!$self.selectAllState());
+                    return true;
+                };
+
+                this.generateValue = function(package) {
+                    return package.PackageId + '|' + package.PackageVersionNormalized;
+                };
+
+                this.generatePackageUrl = function(package) {
+                    return '/packages/' + package.PackageId + '/' + package.PackageVersionNormalized;
+                };
+
+                this.searchResults = ko.observableArray([]);
+
+                this.arePackagesSelected = ko.computed(function() {
+                    for (var i = 0; i < $self.searchResults().length; i++) {
+                        if ($self.searchResults()[i].Selected()) {
+                            return true;
+                        }
+                    }
+                    return false;
+                });
+
+                this.selectAllState.subscribe(function() {
+                    var state = $self.selectAllState();
+
+                    ko.utils.arrayForEach($self.searchResults(), function(result) {
+                        result.Selected(state);
+                    });
+                });
+            };
+
+            ko.applyBindings(new viewModel(), $('.main-container').get(0));
+        });
+    </script>
+    @Scripts.Render("~/Scripts/gallery/page-delete-package.min.js")
+}

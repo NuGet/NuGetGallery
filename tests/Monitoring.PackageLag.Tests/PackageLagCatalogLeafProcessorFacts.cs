@@ -125,18 +125,11 @@ namespace NuGet.Monitoring.PackageLag.Tests
                 .Setup(ts => ts.TrackPackageCreationLag(It.IsAny<DateTimeOffset>(), It.IsAny<Instance>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan>()))
                 .Throws(new Exception("Unexpected Logging"));
 
-            try
-            {
-                var success = await _target.ProcessPackageDetailsAsync(listPackageLeaf);
-                Assert.True(await _target.WaitForProcessing());
-                _searchServiceClient.Verify(ssc => ssc.GetResultForPackageIdVersion(It.Is<Instance>(i => i.DiagUrl.Contains("801")), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
-                _searchServiceClient.Verify(ssc => ssc.GetResultForPackageIdVersion(It.Is<Instance>(i => i.DiagUrl.Contains("802")), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
-                _searchServiceClient.Verify(ssc => ssc.GetIndexLastReloadTimeAsync(It.IsAny<Instance>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
-            }
-            catch (Exception e)
-            {
-                throw e;
-            }
+            var success = await _target.ProcessPackageDetailsAsync(listPackageLeaf);
+            Assert.True(await _target.WaitForProcessing());
+            _searchServiceClient.Verify(ssc => ssc.GetResultForPackageIdVersion(It.Is<Instance>(i => i.DiagUrl.Contains("801")), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+            _searchServiceClient.Verify(ssc => ssc.GetResultForPackageIdVersion(It.Is<Instance>(i => i.DiagUrl.Contains("802")), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+            _searchServiceClient.Verify(ssc => ssc.GetIndexLastReloadTimeAsync(It.IsAny<Instance>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
         [Fact]
@@ -176,20 +169,13 @@ namespace NuGet.Monitoring.PackageLag.Tests
                 .Setup(ts => ts.TrackV3Lag(It.IsAny<DateTimeOffset>(), It.IsAny<Instance>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan>()))
                 .Verifiable();
 
-            try
-            {
-                var success = await _target.ProcessPackageDetailsAsync(listPackageLeaf);
-                Assert.True(await _target.WaitForProcessing());
-                _searchServiceClient.Verify(ssc => ssc.GetResultForPackageIdVersion(It.Is<Instance>(i => i.DiagUrl.Contains("801")), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
-                _searchServiceClient.Verify(ssc => ssc.GetResultForPackageIdVersion(It.Is<Instance>(i => i.DiagUrl.Contains("802")), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
-                _searchServiceClient.Verify(ssc => ssc.GetIndexLastReloadTimeAsync(It.IsAny<Instance>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+            var success = await _target.ProcessPackageDetailsAsync(listPackageLeaf);
+            Assert.True(await _target.WaitForProcessing());
+            _searchServiceClient.Verify(ssc => ssc.GetResultForPackageIdVersion(It.Is<Instance>(i => i.DiagUrl.Contains("801")), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+            _searchServiceClient.Verify(ssc => ssc.GetResultForPackageIdVersion(It.Is<Instance>(i => i.DiagUrl.Contains("802")), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+            _searchServiceClient.Verify(ssc => ssc.GetIndexLastReloadTimeAsync(It.IsAny<Instance>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
 
-                _telemetryService.Verify();
-            }
-            catch (Exception e)
-            {
-                throw e;
-            }
+            _telemetryService.Verify();
         }
 
         [Fact]
@@ -232,21 +218,14 @@ namespace NuGet.Monitoring.PackageLag.Tests
                 .Setup(ts => ts.TrackV3Lag(It.IsAny<DateTimeOffset>(), It.IsAny<Instance>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan>()))
                 .Verifiable();
 
-            try
-            {
-                var lag = await _target.ProcessPackageLagDetailsAsync(listPackageLeaf, listPackageLeaf.Created, listPackageLeaf.LastEdited, expectListed: true, isDelete: false);
-                Assert.True(await _target.WaitForProcessing());
-                Assert.Equal(expectedLag, lag);
-                _searchServiceClient.Verify(ssc => ssc.GetResultForPackageIdVersion(It.Is<Instance>(i => i.DiagUrl.Contains("801")), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
-                _searchServiceClient.Verify(ssc => ssc.GetResultForPackageIdVersion(It.Is<Instance>(i => i.DiagUrl.Contains("802")), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
-                _searchServiceClient.Verify(ssc => ssc.GetIndexLastReloadTimeAsync(It.IsAny<Instance>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+            var lag = await _target.ProcessPackageLagDetailsAsync(listPackageLeaf, listPackageLeaf.Created, listPackageLeaf.LastEdited, expectListed: true, isDelete: false);
+            Assert.True(await _target.WaitForProcessing());
+            Assert.Equal(expectedLag, lag);
+            _searchServiceClient.Verify(ssc => ssc.GetResultForPackageIdVersion(It.Is<Instance>(i => i.DiagUrl.Contains("801")), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+            _searchServiceClient.Verify(ssc => ssc.GetResultForPackageIdVersion(It.Is<Instance>(i => i.DiagUrl.Contains("802")), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+            _searchServiceClient.Verify(ssc => ssc.GetIndexLastReloadTimeAsync(It.IsAny<Instance>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
 
-                _telemetryService.Verify();
-            }
-            catch (Exception e)
-            {
-                throw e;
-            }
+            _telemetryService.Verify();
         }
 
         [Fact]
@@ -289,20 +268,13 @@ namespace NuGet.Monitoring.PackageLag.Tests
                 .Setup(ts => ts.TrackV3Lag(It.IsAny<DateTimeOffset>(), It.IsAny<Instance>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan>()))
                 .Verifiable();
 
-            try
-            {
-                var lag = await _target.ProcessPackageLagDetailsAsync(listPackageLeaf, listPackageLeaf.Created, listPackageLeaf.LastEdited, expectListed: true, isDelete: false);
-                Assert.Equal(expectedLag, lag);
-                _searchServiceClient.Verify(ssc => ssc.GetResultForPackageIdVersion(It.Is<Instance>(i => i.DiagUrl.Contains("801")), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
-                _searchServiceClient.Verify(ssc => ssc.GetResultForPackageIdVersion(It.Is<Instance>(i => i.DiagUrl.Contains("802")), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
-                _searchServiceClient.Verify(ssc => ssc.GetIndexLastReloadTimeAsync(It.IsAny<Instance>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+            var lag = await _target.ProcessPackageLagDetailsAsync(listPackageLeaf, listPackageLeaf.Created, listPackageLeaf.LastEdited, expectListed: true, isDelete: false);
+            Assert.Equal(expectedLag, lag);
+            _searchServiceClient.Verify(ssc => ssc.GetResultForPackageIdVersion(It.Is<Instance>(i => i.DiagUrl.Contains("801")), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+            _searchServiceClient.Verify(ssc => ssc.GetResultForPackageIdVersion(It.Is<Instance>(i => i.DiagUrl.Contains("802")), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+            _searchServiceClient.Verify(ssc => ssc.GetIndexLastReloadTimeAsync(It.IsAny<Instance>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
 
-                _telemetryService.Verify();
-            }
-            catch (Exception e)
-            {
-                throw e;
-            }
+            _telemetryService.Verify();
         }
 
         [Fact]
@@ -346,19 +318,12 @@ namespace NuGet.Monitoring.PackageLag.Tests
 
             _target.RetryLimit = 2;
 
-            try
-            {
-                var lag = await _target.ProcessPackageLagDetailsAsync(listPackageLeaf, listPackageLeaf.Created, listPackageLeaf.LastEdited, expectListed: true, isDelete: false);
-                Assert.Null(lag);
-                _searchServiceClient.Verify(ssc => ssc.GetResultForPackageIdVersion(It.Is<Instance>(i => i.DiagUrl.Contains("801")), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(_target.RetryLimit));
-                _searchServiceClient.Verify(ssc => ssc.GetResultForPackageIdVersion(It.Is<Instance>(i => i.DiagUrl.Contains("802")), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(_target.RetryLimit));
+            var lag = await _target.ProcessPackageLagDetailsAsync(listPackageLeaf, listPackageLeaf.Created, listPackageLeaf.LastEdited, expectListed: true, isDelete: false);
+            Assert.Null(lag);
+            _searchServiceClient.Verify(ssc => ssc.GetResultForPackageIdVersion(It.Is<Instance>(i => i.DiagUrl.Contains("801")), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(_target.RetryLimit));
+            _searchServiceClient.Verify(ssc => ssc.GetResultForPackageIdVersion(It.Is<Instance>(i => i.DiagUrl.Contains("802")), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(_target.RetryLimit));
 
-                _telemetryService.Verify();
-            }
-            catch (Exception e)
-            {
-                throw e;
-            }
+            _telemetryService.Verify();
         }
 
         [Fact]
@@ -391,15 +356,8 @@ namespace NuGet.Monitoring.PackageLag.Tests
                 .Setup(ts => ts.TrackV3Lag(It.IsAny<DateTimeOffset>(), It.IsAny<Instance>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan>()))
                 .Throws(new Exception("Unexpected Logging"));
 
-            try
-            {
-                var lag = await _target.ProcessPackageLagDetailsAsync(listPackageLeaf, listPackageLeaf.Created, listPackageLeaf.LastEdited, expectListed: true, isDelete: false);
-                Assert.Null(lag);
-            }
-            catch (Exception e)
-            {
-                throw e;
-            }
+            var lag = await _target.ProcessPackageLagDetailsAsync(listPackageLeaf, listPackageLeaf.Created, listPackageLeaf.LastEdited, expectListed: true, isDelete: false);
+            Assert.Null(lag);
         }
 
         [Fact]
@@ -436,16 +394,8 @@ namespace NuGet.Monitoring.PackageLag.Tests
 
             _target.RetryLimit = 2;
 
-            try
-            {
-                var lag = await _target.ProcessPackageLagDetailsAsync(listPackageLeaf, listPackageLeaf.Created, listPackageLeaf.LastEdited, expectListed: true, isDelete: false);
-                Assert.Null(lag);
-            }
-            catch (Exception e)
-            {
-                throw e;
-            }
-
+            var lag = await _target.ProcessPackageLagDetailsAsync(listPackageLeaf, listPackageLeaf.Created, listPackageLeaf.LastEdited, expectListed: true, isDelete: false);
+            Assert.Null(lag);
         }
     }
 }

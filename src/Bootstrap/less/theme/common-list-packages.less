@@ -1,0 +1,111 @@
+.list-packages {
+  .package-default-icon {
+    content: var(--default-package-icon, url(../img/default-package-icon-256x256.png));
+  }
+
+  .package {
+    .break-word;
+    padding-top: (@padding-large-vertical * 1.5);
+    padding-bottom: (@padding-large-vertical * 1.5);
+    font-size: 15px;
+
+    .package-header {
+      .package-title {
+        font-size: 24px;
+        font-weight: 600;
+        line-height: .9;
+
+        display: inline-block;
+        color: var(--brandForeground1Rest);
+        width: auto;
+        margin: 0px;
+
+        &:hover,
+        &:focus {
+          color: var(--brandForegroundLinkHover);;
+          text-decoration: @link-hover-decoration;
+        }
+      
+        &:focus {
+          outline: 2px solid;
+          outline-offset: 4px;
+        }
+      }
+
+      .reserved-indicator {
+        margin-top: 3px;
+        margin-left: 3px;
+        vertical-align: top;
+        width: 20px;
+        color: var(--brandBackground1Rest);
+      }
+
+      .edit-button {
+        vertical-align: text-bottom;
+        margin-left: 10px;
+        display: inline-flex;
+      }
+
+      .package-by {
+        margin-left: @padding-small-horizontal;
+        color: var(--neutralForeground1Rest);
+
+        @media (max-width: @screen-xs-min) {
+          margin-left: 0;
+          display: block;
+        }
+      }
+    }
+
+    .package-title {
+      font-size: 16px;
+      margin-top: 2px;
+    }
+
+    .manage-package {
+      margin-top: 8px;
+      margin-bottom: 0;
+    }
+
+    .package-details {
+      margin-top: 8px;
+      color: var(--neutralForeground1Rest);
+      line-height: 20px;
+      
+      a {
+        text-decoration: underline;
+    }
+    }
+  }
+}
+
+.pager {
+  margin-top: 75px;
+  margin-bottom: 0px;
+}
+
+.package-warning {
+  padding: 1px 8px;
+  border-radius: 4px;
+  margin-right: 5px;
+  color: var(--neutralForeground1Rest);
+}
+
+.package-warning--vulnerable {
+  .package-warning;
+  background-color: var(--statusDangerBackground1Rest);
+  border: 1px solid var(--statusDangerStroke1Rest);
+  i {
+    color: var(--statusDangerForeground3Rest);
+  }
+}
+
+.package-warning--deprecated {
+  .package-warning;
+  color: var(--neutralForeground1Rest);
+  background-color: var(--statusWarningBackground1Rest);
+  border: 1px solid var(--statusWarningStroke1Rest);
+  i {
+    color: var(--statusWarningForeground1Rest);
+  }
+}

@@ -95,7 +95,7 @@ namespace NuGet.Services.Validation.PackageSigning
 
                 // Assert
                 Assert.Equal(ValidationStatus.Succeeded, actual.Status);
-                Assert.Equal(0, actual.Issues.Count);
+                Assert.Empty(actual.Issues);
             }
 
             [Fact]
@@ -158,7 +158,7 @@ namespace NuGet.Services.Validation.PackageSigning
 
                 // Assert
                 Assert.Equal(ValidationStatus.Failed, actual.Status);
-                Assert.Equal(1, actual.Issues.Count);
+                Assert.Single(actual.Issues);
                 Assert.Equal(issueCode, actual.Issues.Single().IssueCode);
             }
 
@@ -362,7 +362,7 @@ namespace NuGet.Services.Validation.PackageSigning
 
                 // Assert
                 Assert.Equal(ValidationStatus.Succeeded, actual.Status);
-                Assert.Equal(0, actual.Issues.Count);
+                Assert.Empty(actual.Issues);
             }
 
             [Fact]
@@ -430,7 +430,7 @@ namespace NuGet.Services.Validation.PackageSigning
 
                 // Assert
                 Assert.Equal(ValidationStatus.Succeeded, actual.Status);
-                Assert.Equal(0, actual.Issues.Count);
+                Assert.Empty(actual.Issues);
                 Assert.Null(actual.NupkgUrl);
             }
 
@@ -457,7 +457,7 @@ namespace NuGet.Services.Validation.PackageSigning
 
                 // Assert
                 Assert.Equal(ValidationStatus.Succeeded, actual.Status);
-                Assert.Equal(0, actual.Issues.Count);
+                Assert.Empty(actual.Issues);
                 Assert.Null(actual.NupkgUrl);
             }
 

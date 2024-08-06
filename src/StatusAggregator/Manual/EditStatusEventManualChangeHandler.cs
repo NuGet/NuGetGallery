@@ -29,7 +29,7 @@ namespace StatusAggregator.Manual
             }
 
             eventEntity.AffectedComponentStatus = entity.EventAffectedComponentStatus;
-            ManualStatusChangeUtility.UpdateEventIsActive(eventEntity, entity.EventIsActive, entity.Timestamp.UtcDateTime);
+            ManualStatusChangeUtility.UpdateEventIsActive(eventEntity, entity.EventIsActive, entity.Timestamp.Value.UtcDateTime);
 
             await _table.ReplaceAsync(eventEntity);
         }

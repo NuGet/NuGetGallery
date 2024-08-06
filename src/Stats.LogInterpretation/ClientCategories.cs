@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Stats.LogInterpretation
+﻿namespace Stats.LogInterpretation
 {
     /// <summary>
     /// Built from the SQL functions here: https://github.com/NuGet/NuGet.Jobs/tree/main/src/Stats.Warehouse/Programmability/Functions

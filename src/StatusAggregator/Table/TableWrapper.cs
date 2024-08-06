@@ -4,8 +4,8 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Table;
+using Azure;
+using Azure.Data.Tables;
 
 namespace StatusAggregator.Table
 {
@@ -18,16 +18,14 @@ namespace StatusAggregator.Table
         public const string ETagWildcard = "*";
 
         public TableWrapper(
-            CloudStorageAccount storageAccount, 
+            TableServiceClient tableServiceClient, 
             string tableName)
         {
 
-            var tableClient = storageAccount?.CreateCloudTableClient() 
-                ?? throw new ArgumentNullException(nameof(storageAccount));
-            _table = tableClient.GetTableReference(tableName);
+            _table = tableServiceClient?.GetTableClient(tableName) ?? throw new ArgumentNullException(nameof(tableServiceClient));
         }
 
-        private readonly CloudTable _table;
+        private readonly TableClient _table;
 
         public Task CreateIfNotExistsAsync()
         {
@@ -37,49 +35,43 @@ namespace StatusAggregator.Table
         public async Task<T> RetrieveAsync<T>(string rowKey) 
             where T : class, ITableEntity
         {
-            var operation = TableOperation.Retrieve<T>(TablePartitionKeys.Get<T>(), rowKey);
-            return (await _table.ExecuteAsync(operation)).Result as T;
+            return (await _table.GetEntityAsync<T>(TablePartitionKeys.Get<T>(), rowKey)) as T;
         }
 
         public Task InsertAsync(ITableEntity tableEntity)
         {
-            return ExecuteOperationAsync(TableOperation.Insert(tableEntity));
+            return _table.AddEntityAsync(tableEntity);
         }
 
         public Task InsertOrReplaceAsync(ITableEntity tableEntity)
         {
-            return ExecuteOperationAsync(TableOperation.InsertOrReplace(tableEntity));
+            return _table.UpsertEntityAsync(tableEntity, TableUpdateMode.Replace);
         }
 
         public Task ReplaceAsync(ITableEntity tableEntity)
         {
-            return ExecuteOperationAsync(TableOperation.Replace(tableEntity));
+            return _table.UpsertEntityAsync(tableEntity, TableUpdateMode.Replace);
         }
 
         public Task DeleteAsync(string partitionKey, string rowKey)
         {
-            return DeleteAsync(partitionKey, rowKey, ETagWildcard);
+            return _table.DeleteEntityAsync(partitionKey, rowKey);
         }
 
         public Task DeleteAsync(string partitionKey, string rowKey, string eTag)
         {
-            return DeleteAsync(new TableEntity(partitionKey, rowKey) { ETag = eTag });
+            return _table.DeleteEntityAsync(partitionKey, rowKey, new ETag(eTag));
         }
 
         public Task DeleteAsync(ITableEntity tableEntity)
         {
-            return ExecuteOperationAsync(TableOperation.Delete(tableEntity));
+            return _table.DeleteEntityAsync(tableEntity.PartitionKey, tableEntity.RowKey, tableEntity.ETag);
         }
 
-        private Task ExecuteOperationAsync(TableOperation operation)
-        {
-            return _table.ExecuteAsync(operation);
-        }
-
-        public IQueryable<T> CreateQuery<T>() where T : ITableEntity, new()
+        public IQueryable<T> CreateQuery<T>() where T : class, ITableEntity, new()
         {
             return _table
-                .CreateQuery<T>()
+                .Query<T>()
                 .AsQueryable()
                 .Where(e => e.PartitionKey == TablePartitionKeys.Get<T>());
         }

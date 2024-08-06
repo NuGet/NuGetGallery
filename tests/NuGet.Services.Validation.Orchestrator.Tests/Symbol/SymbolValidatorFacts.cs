@@ -88,7 +88,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
 
                 // Assert
                 Assert.Equal(ValidationStatus.Failed, actual.Status);
-                Assert.Equal(1, actual.Issues.Count);
+                Assert.Single(actual.Issues);
             }
 
             public static IEnumerable<object[]> PossibleValidationStatuses => possibleValidationStatuses.Select(s => new object[] { s });
@@ -227,7 +227,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
 
                 // Assert
                 Assert.Equal(ValidationStatus.Failed, actual.Status);
-                Assert.Equal(1, actual.Issues.Count);
+                Assert.Single(actual.Issues);
             }
 
             public static IEnumerable<object[]> StartedValidationStatuses => startedValidationStatuses.Select(s => new object[] { s });

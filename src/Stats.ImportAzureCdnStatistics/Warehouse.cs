@@ -413,7 +413,7 @@ namespace Stats.ImportAzureCdnStatistics
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogError("Failed to retrieve already aggregated log files", exception);
+                    _logger.LogError(exception, "Failed to retrieve already aggregated log files");
 
                     _applicationInsightsHelper.TrackException(exception);
 

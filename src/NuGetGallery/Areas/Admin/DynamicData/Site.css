@@ -1,0 +1,202 @@
+﻿/*	Global classes	*/
+.DDMainHeader {
+    border-bottom: 1px dotted #bbbbbb;
+    color: #888;
+    font: small-caps bold 1.6em Trebuchet MS, Arial, sans-serif;
+    padding-bottom: 12px;
+}
+
+.DDSubHeader {
+    color: #888;
+    font: 1.2em Trebuchet MS, Arial, sans-serif;
+    margin-bottom: 10px;
+}
+
+.DD {
+    color: #666;
+    font: .75em Tahoma, Arial, sans-serif;
+    padding: 0px 8px;
+}
+
+.DDLightHeader {
+    background-color: #F7F7FF;
+    font-weight: bold;
+}
+
+.DDTextBox, .DDDropDown {
+    background-color: #FEFEFE;
+    border: solid 1px #dcdcdc;
+    color: #666;
+    font: .95em Tahoma, Arial, Sans-Serif;
+}
+
+.DDDropDown { padding: 2px; }
+
+.DDFilter {
+    color: #666;
+    font: .95em Tahoma, Arial, Sans-serif;
+}
+
+.DDControl {
+    color: #666;
+    font: .95em Tahoma, Arial, Sans-Serif;
+    padding: 0px;
+}
+
+.DDFloatLeft { float: left; }
+
+.DDFloatRight { float: right; }
+
+.DDFooter { background-color: #dbddff; }
+
+.DDSelected { background-color: #fdffb8; }
+
+div.DDNoItem {
+    color: Red;
+    font-family: Trebuchet MS, Arial, sans-serif;
+}
+
+.DDValidator {
+    color: Red;
+    font-family: Trebuchet MS, Arial, sans-serif;
+}
+
+
+/*	Navigation	*/
+
+div.DDNavigation {
+    font: .75em Tahoma, Arial, Sans-Serif;
+    margin-bottom: -10px;
+    padding: 0px 5px;
+    position: relative;
+    top: -28px;
+}
+
+div.DDNavigation img {
+    background-color: #fff;
+    border: none;
+    margin-top: 0em;
+    padding: 0px 8px;
+    position: relative;
+}
+
+div.DDNavigation a {
+    background-color: #fff;
+    color: #839ce7;
+    left: .25em;
+    padding-right: 8px;
+    text-decoration: none;
+    top: -.2em;
+}
+
+div.DDNavigation a:hover {
+    color: #000099;
+    text-decoration: underline !important;
+}
+
+
+/*	Details VIEW/EDIT	*/
+
+table.DDDetailsTable {
+    background-color: #FCFDFE;
+    border: 1px solid #dbddff;
+    border-bottom-width: 3px;
+    color: #666;
+}
+
+table.DDDetailsTable a {
+    color: #718ABE;
+    padding-right: 6px;
+    text-decoration: none;
+}
+
+table.DDDetailsTable a:hover {
+    color: #000099;
+    text-decoration: underline !important;
+}
+
+table.DDDetailsTable .td {
+    border: 1px solid #dbddff;
+    border-bottom-style: dotted;
+    font-family: Tahoma, Arial, Sans-Serif;
+    font-size: .7em;
+    padding: 3px 6px;
+}
+
+
+/*	DDGridView/DDListView	*/
+
+table.DDGridView, table.DDListView {
+    border: solid 1px #dbddff;
+    color: #666;
+    font: .7em Tahoma, Arial, Sans-Serif;
+    width: 100%;
+}
+
+table.DDGridView .th, table.DDGridView .td, table.DDListView .th, table.DDListView .td { white-space: nowrap; }
+
+table.DDGridView .th, table.DDListView .th {
+    background: url(DynamicData/Content/Images/header_back.gif) repeat-x;
+    border: solid 1px #dbddff;
+    font-size: 1em;
+    line-height: 1.3em;
+    text-align: left;
+}
+
+table.DDGridView .th a, table.DDListView .th a {
+    color: #666;
+    text-decoration: none;
+}
+
+table.DDGridView .td, table.DDListView .td {
+    border: dotted 1px #dbddff;
+    border-left-width: 0px;
+    border-right-width: 0px;
+    padding: 6px;
+}
+
+table.DDGridView .td a, table.DDListView .td a {
+    color: #718ABE;
+    margin-right: 6px;
+    text-decoration: none;
+}
+
+table.DDGridView .DDSelected a, table.DDListView .DDSelected a {
+    color: #718ABE;
+    margin-right: 6px;
+    text-decoration: none;
+}
+
+table.DDGridView .DDSelected a:hover, table.DDListView .DDSelected a:hover {
+    color: #000099;
+    text-decoration: underline;
+}
+
+table.DDGridView .td a:hover, table.DDListView .td a:hover {
+    color: #000099;
+    text-decoration: underline;
+}
+
+/*	DataPager	*/
+
+div.DDPager { padding: 0px 6px; }
+
+
+/* Bottom hyperlink design*/
+
+div.DDBottomHyperLink { font: .75em Tahoma, Arial, Sans-Serif; }
+
+div.DDBottomHyperLink a {
+    color: #839ce7;
+    text-decoration: none;
+}
+
+div.DDBottomHyperLink a:hover {
+    color: #000099;
+    text-decoration: underline !important;
+}
+
+div.DDBottomHyperLink img {
+    border: none;
+    padding-right: 5px;
+}

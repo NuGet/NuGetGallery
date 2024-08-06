@@ -1,0 +1,38 @@
+﻿@model IEnumerable<OrganizationMemberViewModel>
+
+<div class="row user-package-list align-left">
+    <div class="col-md-12 align-left ">
+        <div class="panel-collapse collapse in" id="packages-Packages" aria-expanded="true">
+            <div class="list-packages" role="list">
+                <table class="table align-left" aria-label="Organization Members">
+                    <thead>
+                        <tr class="manage-package-headings">
+                            <th class="hidden-xs"></th>
+                            <th>Username</th>
+                            <th>Membership</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var member in Model)
+                        {
+                            <tr class="manage-package-listing">
+                                <td class="align-middle hidden-xs">
+                                    @GravatarHelper.Image(
+                                        Url,
+                                        member.EmailAddress,
+                                        member.Username,
+                                        size: 32,
+                                        responsive: false)
+                                </td>
+                                <td class="align-middle package-id">
+                                    <a href="@Url.User(member.Username)">@member.Username.Abbreviate(35)</a>
+                                </td>
+                                <td class="align-middle text-nowrap">@(member.IsAdmin ? "Administrator" : "Collaborator")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

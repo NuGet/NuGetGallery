@@ -1,0 +1,225 @@
+﻿@model ReportAbuseViewModel
+@{
+    ViewBag.Title = "Report Package " + Model.PackageId + " " + Model.PackageVersion;
+    ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
+    string returnUrl = ViewData.ContainsKey(GalleryConstants.ReturnUrlViewDataKey) ? (string)ViewData[GalleryConstants.ReturnUrlViewDataKey] : Request.RawUrl;
+    ViewBag.BlockSearchEngineIndexing = true;
+}
+
+<section role="main" class="container main-container page-report-abuse">
+    <div class="row report-form">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+            @Html.Partial(
+                "_PackageHeading",
+                new PackageHeadingModel(
+                    Model.PackageId,
+                    Model.PackageVersion,
+                    "Report package"))
+
+            @if (!Model.ShowReportAbuseForm)
+            {
+                @ViewHelpers.AlertWarning(isAlertRole: true, htmlContent:
+                    @<text>
+                        This package has been locked and unlisted as it violates our <a href="https://www.nuget.org/policies/Terms" title="Terms of use">Terms of use</a>. Please contact support@nuget.org for further assistance.
+                    </text>
+                )
+                
+            }
+            else
+            {
+                <h2><strong>If this package has a bug/failed to install</strong></h2>
+                @ViewHelpers.AlertWarning(isAlertRole: true, htmlContent:
+                    @<text>
+                        Please do not report using the form below - that is reserved for abusive packages, such as those containing malicious code or spam.
+                        <br />
+                        <br />
+                        If "@Model.PackageId" simply doesn't work, or if you need help getting the package installed, please
+                        <a href="@Url.ContactOwners(Model)" title="contact the owners">contact the owners instead.</a>
+                    </text>
+                )
+
+                <h2><strong>To report a security vulnerability or copyright/trademark infringement</strong></h2>
+                @ViewHelpers.AlertWarning(isAlertRole: true, htmlContent:
+                    @<text>
+                        Please report security vulnerabilities through the <a href="https://msrc.microsoft.com/create-report" title="report a security vulnerability">official security vulnerabilities portal</a>.
+                        Please report copyright/trademark infringements through the <a href="https://msrc.microsoft.com/report/infringement" title="Notice of Copyright or Trademark Infringment">official copyright/trademark infringement portal</a>.
+                        <br />
+                        <br />
+                        If this is not a Microsoft-owned package, consider also <a href="@Url.ContactOwners(Model)" title="contact the owners">contacting the owners</a>.
+                    </text>
+                )
+
+                <h2><strong>To report abuse, use this form</strong></h2>
+                if (!Model.ConfirmedUser)
+                {
+                    @ViewHelpers.AlertWarning(isAlertRole: true, htmlContent:
+                        @<text>
+                            If this is your package, please <a href="@Url.LogOn(returnUrl)">sign in</a> to contact support.
+                        </text>
+                    )
+                }
+                <p tabindex="0">
+                    <text>
+                        Please provide a detailed abuse report with evidence to support your claim! We cannot delete packages without evidence that they exhibit malicious behavior.
+                    </text>
+                </p>
+
+                using (Html.BeginForm())
+                {
+                    @Html.AntiForgeryToken()
+
+                    <div id="form-field-reason" class="form-group @Html.HasErrorFor(m => m.Reason)">
+                        @Html.ShowLabelFor(m => m.Reason)
+                        <p tabindex="0">Please select the reason for contacting support about this package. This package contains:</p>
+                        @Html.ShowEnumDropDownListFor(m => m.Reason, Model.ReasonChoices, "<Choose a Reason>", customClass: "select-brand")
+                        @Html.ShowValidationMessagesFor(m => m.Reason)
+                    </div>
+
+                    <div class="reason-error-has-a-bug" tabindex="0">
+                        <p>
+                            Unfortunately we cannot provide support for bugs in NuGet packages. Please <a href="@Url.ContactOwners(Model)" title="contact the owners">contact the owners</a> for assistance.
+                        </p>
+                    </div>
+                    <div class="reason-error-security-vulnerability" tabindex="0">
+                        <p>
+                            Please report security vulnerabilities through the <a href="https://msrc.microsoft.com/create-report" title="report a security vulnerability">official portal</a>.
+                            If this is not a Microsoft-owned package, consider also <a href="@Url.ContactOwners(Model)" title="contact the owners">contacting the owners</a>.
+                        </p>
+                    </div>
+                    <div class="reason-error-copyright-infringement" tabindex="0">
+                        <p>
+                            Please report copyright/trademark infringements through the <a href="https://msrc.microsoft.com/report/infringement" title="Notice of Copyright or Trademark Infringment">official portal</a>.
+                            If this is not a Microsoft-owned package, consider also <a href="@Url.ContactOwners(Model)" title="contact the owners">contacting the owners</a>.
+                        </p>
+                    </div>
+                    <div class="reason-error-revenge-porn" tabindex="0">
+                        <p>
+                            Please report this safety violation through the <a href="https://www.microsoft.com/concern/revengeporn" title="revenge porn portal">official portal</a>.
+                        </p>
+                    </div>
+                    <div id="report-abuse-form">
+                        <div class="form-group @Html.HasErrorFor(m => m.Email)">
+                            @Html.ShowLabelFor(m => m.Email)
+                            @Html.ShowTextBoxFor(m => m.Email, customClass: "input-brand")
+                            @Html.ShowValidationMessagesFor(m => m.Email)
+                        </div>
+                        <div class="form-group already-contacted-owner row-checkbox-label @Html.HasErrorFor(m => m.AlreadyContactedOwner)">
+                            @Html.ShowCheckboxFor(m => m.AlreadyContactedOwner, "brand-checkbox")
+                            @Html.ShowLabelFor(m => m.AlreadyContactedOwner)
+                            @Html.ShowValidationMessagesFor(m => m.AlreadyContactedOwner)
+                        </div>
+                        <div class="form-group @Html.HasErrorFor(m => m.Message)">
+                            @Html.ShowLabelFor(m => m.Message)
+                            <p tabindex="0">
+                                Please provide a detailed description of the problem.
+                            <p>
+                            <div class="online-safety-extras" tabindex="0">
+                                <p>
+                                    Please also describe where in the package the problem was found. Be sure to include:
+                                    <ul>
+                                        <li>Whether the problem is in graphics, video, readme, scripts, libraries, nuspec, other metadata, other file(s)</li>
+                                        <li>The exact names of the offending file(s)</li>
+                                    </ul>
+                                </p>
+                            </div>
+                            <div class="imminent-harm" tabindex="0">
+                                <p>
+                                    Note: please ensure when reporting this type of abuse that you've considered whether the following are present:
+                                    <ul>
+                                        <li>A targeted person or group (including self)</li>
+                                        <li>An identified actor--i.e. person intending to commit the offense</li>
+                                        <li>Details of the threat</li>
+                                        <li>Time and/or place where the act will be carried out</li>
+                                    </ul>
+                                </p>
+                            </div>
+                            @Html.ShowTextAreaFor(m => m.Message, 10, 50, customClass: "textarea-brand")
+                            @Html.ShowValidationMessagesFor(m => m.Message)
+                        </div>
+                        <div class="form-group row-checkbox-label @Html.HasErrorFor(m => m.CopySender)">
+                            @Html.ShowCheckboxFor(m => m.CopySender, customClass: "brand-checkbox")
+                            @Html.ShowLabelFor(m => m.CopySender)
+                            @Html.ShowValidationMessagesFor(m => m.CopySender)
+                        </div>
+                        <div class="form-group">
+                            <input id="Submit" type="submit" class="btn btn-brand form-control" value="Report" />
+                        </div>
+                    </div>
+                }
+
+            }
+        </div>
+    </div>
+</section>
+
+@section BottomScripts {
+    @ViewHelpers.RecaptchaScripts(Config.Current.ReCaptchaPublicKey, "Submit")
+    <script>
+        function reasonSelected() {
+            var $form = $('#Reason').parents('form');
+            var val = $('#Reason').val();
+            if (val) {
+                $form.validate().element($('#Reason'));
+            }
+
+            // For error conditions, hide the other form fields and show error messages
+            if (val === 'HasABugOrFailedToInstall'
+                || val === 'ContainsSecurityVulnerability'
+                || val === 'ViolatesALicenseIOwn'
+                || val === 'RevengePorn') {
+                $('#report-abuse-form').hide();
+            } else {
+                $('#report-abuse-form').show();
+            }
+
+            if (val === 'HasABugOrFailedToInstall') {
+                $form.find('.reason-error-has-a-bug').show();
+            } else {
+                $form.find('.reason-error-has-a-bug').hide();
+            }
+
+            if (val === 'ContainsSecurityVulnerability') {
+                $form.find('.reason-error-security-vulnerability').show();
+            } else {
+                $form.find('.reason-error-security-vulnerability').hide();
+            }
+
+            if (val === 'ViolatesALicenseIOwn') {
+                $form.find('.reason-error-copyright-infringement').show();
+            } else {
+                $form.find('.reason-error-copyright-infringement').hide();
+            }
+
+            if (val === 'RevengePorn') {
+                $form.find('.reason-error-revenge-porn').show();
+            } else {
+                $form.find('.reason-error-revenge-porn').hide();
+            }
+
+            // We don't suggest the customer contact the owner in the case of safety violations
+            if (val === 'ChildSexualExploitationOrAbuse'
+                || val === 'TerrorismOrViolentExtremism'
+                || val === 'HateSpeech'
+                || val === 'ImminentHarm'
+                || val === 'RevengePorn'
+                || val === 'OtherNudityOrPornography') {
+                $form.find('.already-contacted-owner').hide();
+                $form.find('.online-safety-extras').show();
+            } else {
+                $form.find('.already-contacted-owner').show();
+                $form.find('.online-safety-extras').hide();
+            }
+
+            if (val === 'ImminentHarm') {
+                $form.find('.imminent-harm').show();
+            } else {
+                $form.find('.imminent-harm').hide();
+            }
+        }
+
+        $(function () {
+            $('#Reason').change(reasonSelected);
+            reasonSelected(); // Run once in case it starts with the bad selection
+        });
+    </script>
+}

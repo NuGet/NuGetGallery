@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Linq;
-using Microsoft.WindowsAzure.Storage.Table;
+using Azure.Data.Tables;
 using NuGet.Services.Status.Table;
 
 namespace StatusAggregator.Table
@@ -18,7 +18,7 @@ namespace StatusAggregator.Table
         }
 
         public static IQueryable<TChild> GetChildEntities<TChild, TParent>(this ITableWrapper table, TParent entity)
-            where TChild : ITableEntity, IChildEntity<TParent>, new()
+            where TChild : class, ITableEntity, IChildEntity<TParent>, new()
             where TParent : ITableEntity
         {
             return table

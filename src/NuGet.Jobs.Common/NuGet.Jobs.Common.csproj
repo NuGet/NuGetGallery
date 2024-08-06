@@ -17,16 +17,19 @@
     <PackageReference Include="Dapper.StrongName" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
-    <PackageReference Include="NuGet.Services.Configuration" />
-    <PackageReference Include="NuGet.Services.Logging" />
-    <PackageReference Include="NuGet.Services.Sql" />
-    <PackageReference Include="NuGet.Services.FeatureFlags" />
-    <PackageReference Include="NuGetGallery.Core" />
     <PackageReference Include="System.Data.SqlClient" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
-    <PackageReference Include="NuGet.Services.Messaging.Email" />
+    <ProjectReference Include="..\NuGet.Services.Messaging.Email\NuGet.Services.Messaging.Email.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Services.Configuration\NuGet.Services.Configuration.csproj" />
+    <ProjectReference Include="..\NuGet.Services.FeatureFlags\NuGet.Services.FeatureFlags.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Logging\NuGet.Services.Logging.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Sql\NuGet.Services.Sql.csproj" />
+    <ProjectReference Include="..\NuGetGallery.Core\NuGetGallery.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

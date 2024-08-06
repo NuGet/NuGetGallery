@@ -1,0 +1,58 @@
+﻿@model AccountViewModel
+@{
+    var account = Model.User;
+
+    if (Model.IsOrganization)
+    {
+        ViewBag.ConfirmationLink = Url.OrganizationConfirmationRequired(account.Username);
+        ViewBag.UnconfirmedEmailMessage = "A new organization email address was recently registered: ";
+        ViewBag.ConfirmNowLinkText = "confirm your organization account";
+        ViewBag.ShowConfirmationLink = (Model as OrganizationAccountViewModel).CanManage;
+        ViewBag.NonConfirmationText = "Your organization needs to be confirmed before you can upload any packages to it.";
+    }
+    else
+    {
+        ViewBag.ConfirmationLink = Url.ConfirmationRequired();
+        ViewBag.UnconfirmedEmailMessage = "You recently registered a new email address: ";
+        ViewBag.ConfirmNowLinkText = "confirm your account";
+        ViewBag.ShowConfirmationLink = true;
+        ViewBag.NonConfirmationText = "Your account needs to be confirmed before you can upload any packages.";
+    }
+}
+
+@if (Model.HasUnconfirmedEmailAddress && Model.HasConfirmedEmailAddress)
+{
+    @ViewHelpers.AlertInfo(@<text>
+        @ViewBag.UnconfirmedEmailMessage <strong>@account.UnconfirmedEmailAddress</strong><br />
+
+        @if (Model.HasConfirmedEmailAddress)
+        {
+            var linkText = "new email address is verified.";
+            <text>
+                We will continue sending notification emails to the old verified email address (@account.EmailAddress)
+                until the @(ViewBag.ShowConfirmationLink ? Html.Raw("<a href=\"" + ViewBag.ConfirmationLink + "\">" + linkText + "</a>") : linkText)
+            </text>
+        }
+        else
+        {
+            var linkText = "email address has been verified.";
+            <text>
+                We will only send notification emails after the @(ViewBag.ShowConfirmationLink ? Html.Raw("<a href=\"" + ViewBag.ConfirmationLink + "\">" + linkText + "</a>") : linkText)<br />
+            </text>
+        }
+    </text>)
+}
+
+@if (!account.Confirmed)
+{
+    if (ViewBag.ShowConfirmationLink)
+    {
+        @ViewHelpers.AlertInfo(
+            @<text>Uploading packages requires that you <a href="@ViewBag.ConfirmationLink">@ViewBag.ConfirmNowLinkText</a>. Why not get that out of the way now?</text>)
+    }
+    else
+    {
+        @ViewHelpers.AlertInfo(
+            @<text>@ViewBag.NonConfirmationText</text>)
+    }
+}

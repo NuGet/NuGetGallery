@@ -1,0 +1,29 @@
+﻿@model LogOnViewModel
+@{
+    ViewBag.Title = "Sign In";
+    ViewBag.Tab = "Sign in";
+    ViewBag.SmPageColumns = GalleryConstants.ColumnsAuthenticationSm;
+    ViewBag.MdPageColumns = GalleryConstants.ColumnsAuthenticationMd;
+    ViewBag.BlockSearchEngineIndexing = true;
+}
+
+<section role="main" class="container main-container page-sign-in">
+    @if (this.Config.Current.DeprecateNuGetPasswordLogins)
+    {
+        <div class="deprecate-alert text-center">
+            @ViewHelpers.AlertPasswordDeprecation()
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-xs-12 text-center">
+            <h1>Sign in</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+            @Html.Partial("_SignIn", Model)
+        </div>
+    </div>
+</section>

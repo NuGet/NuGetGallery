@@ -1,0 +1,612 @@
+﻿/* This CSS file is a mixed bag of 'one-off' styles that help make some page or other look the way it does, 
+   but shouldn't affect the overall site appearance */
+
+/* Account/Actions */
+
+#actions h1 {
+    font-size: 2em;
+}
+
+#actions ul {
+    margin: 0;
+    padding: 0;
+}
+
+#actions li {
+    list-style: none;
+}
+
+    #actions li h2 {
+        font-size: 1.5em;
+    }
+
+    #actions li#uploadPackage h2 {
+        background: url("Images/uploadPackage.png") no-repeat 0 50%;
+        font-size: 1.7em;
+        padding-left: 20px;
+    }
+
+    #actions li#changePassword h2 {
+        background: url("Images/changePassword.png") no-repeat 0 50%;
+        padding-left: 20px;
+    }
+
+    #actions li#managePackages h2 {
+        background: url("Images/managePackages.png") no-repeat 0 50%;
+        padding-left: 20px;
+    }
+
+    #actions li#editProfile h2 {
+        background: url("Images/editProfile.png") no-repeat 0 50%;
+        padding-left: 20px;
+    }
+
+/* Account/API Key */
+
+#apiKeyExpired {
+    color: red;
+    font-weight: 600;
+}
+
+.apiKey {
+    background-color: #202020;
+    border: 2px solid #c0c0c0;
+    color: #c0c0c0;
+    display: inline-block;
+    font: 1.2em 'andale mono', 'lucida console', monospace;
+    line-height: 1.5em;
+    overflow: auto;
+    padding: 15px;
+}
+
+.packagecheckbox {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Api keys container */
+#apikeyscontainer {
+    background-color: white;
+    padding-top: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-bottom: 10px;
+}
+
+    #apikeyscontainer hr {
+        margin-bottom: 0px;
+    }
+
+/* new api key form*/
+#newapikey-1-content {
+    padding: 5px;
+}
+
+#addapikeypopup {
+    margin-left: -220px;
+}
+
+#addapikeypopup, .editapikeypopup {
+    width: 360px;
+    border-radius: 6px;
+    margin-top: 10px;
+}
+
+#addkeyselectpackages, #addkeypackageGlobPattern {
+    margin-top: 5px;
+    margin-bottom: 15px;
+}
+
+#addkeyselectscopes {
+    margin-top: 5px;
+    margin-bottom: 25px;
+}
+
+.nopackageslist {
+    padding-left: 10px;
+    padding-top: 5px;
+    display: block;
+}
+
+/* Edit api key */
+.editapikeypopup {
+    margin-left: -275px;
+}
+
+.popup .editapikeypopup::after {
+    left: 150px;
+}
+
+.popup .editapikeypopup::before {
+    left: 149px;
+}
+
+.details-table tr.editpackagetr + td {
+    border-top: none;
+    padding-left: 10px;
+}
+
+.details-table tr.editpackagetr td {
+    border-top: none;
+}
+
+.editpackagetd table td {
+    padding-left: 0px;
+    padding-top: 0px;
+}
+
+#editkeypackageGlobPattern {
+    margin-top: 5px;
+    margin-bottom: 8px;
+}
+
+
+
+#newapikey-1-actions {
+    margin-top: 0px;
+}
+
+#selectablePackagesList {
+    max-height: 300px;
+    min-height: 100px;
+    width: 500px
+}
+
+.scrollable-div.editpackagelist {
+    max-height: 300px;
+    min-height: 100px;
+    width: 450px;
+}
+
+/* Details table */
+.details-table .shortlist {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    display: inline-block;
+    vertical-align: bottom;
+    max-width: 570px;
+}
+
+.details-table .packageslist+b {
+    display: inline-block;
+}
+
+.details-table .shortlist+a {
+  display: inline-block;
+}
+
+
+/* Package Page (Display Package) */
+
+.package-page h3 {
+    font-size: 1.75em;
+    margin: 20px 0 6px 0px;
+    margin-bottom: 6px;
+    margin-top: 25px;
+}
+
+/* Package Page Heading (DisplayPackage) */
+
+.package-page-heading {
+    border-bottom: solid 1px #ccc;
+    margin: 0 0 20px 0;
+    padding-bottom: 10px;
+}
+
+.package-page-heading h1,
+.package-page-heading h2 {
+    margin: 0;
+    padding: 0;
+    display: inline;
+}
+
+.package-page-heading h2 {
+    padding-left: 7px;
+}
+
+/* NuGet Badge (Display Package) */
+
+.nuget-badge code {
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    background-color: #202020;
+    border: 4px solid #c0c0c0;
+    border-radius: 5px;
+    box-shadow: 2px 2px 3px #6e6e6e;
+    color: #e2e2e2;
+    display: block;
+    font: 1.5em 'andale mono', 'lucida console', monospace;
+    line-height: 1.5em;
+    overflow: auto;
+    padding: 15px;
+}
+
+    .nuget-badge code::before {
+        content: "PM> ";
+    }
+
+/* Messages on package page (Display Package) */
+
+.pending-edit-message,
+.failed-edit-message,
+.prerelease-message,
+.not-latest-message {
+    -moz-border-radius: 5px 5px 5px 5px;
+    -webkit-border-radius: 5px 5px 5px 5px;
+    border: 1px solid;
+    border-radius: 5px 5px 5px 5px;
+    font-size: 1.5em;
+    margin: -0px 5px 20px 5px;
+    padding: 5px;
+    text-align: center;
+}
+
+.prerelease-message {
+    background-color: #fff7c4;
+    border-color: #ff9600;
+    color: #ff9600;
+}
+
+.pending-edit-message,
+.not-latest-message {
+    background-color: #eff7fa;
+    border-color: #52a4ca;
+    color: #52a4ca;
+}
+
+/* Package DependencySets (Display Package) */
+
+#dependencySets {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+#dependencySets > li > h4 {
+    border-bottom: solid 1px #333;
+    display: inline;
+    margin: 2px 0;
+}
+
+ul.dependencySet {
+    list-style: none;
+    margin: 5px 0 10px 0;
+    padding: 0;
+}
+
+    ul.dependencySet li {
+        font-size: 1.25em;
+        padding-right: 6px;
+    }
+
+/* Package Verify Upload Page */
+
+button.edit-button,
+button.undo-button {
+    box-shadow: none;
+    color: #5a92c2;
+    cursor: pointer;
+    border: none;
+    background: none;
+}
+
+/* Package Edit Page */
+
+.edit-root {
+    display: inline-block;
+    -ms-word-wrap: break-word;
+    word-wrap: break-word;
+    font-size: 1.3em;
+}
+
+.edit-tree, .edit-tree-selected {
+    position: relative;
+    left: 1em;
+}
+
+.edit-root-selected, .edit-tree-selected {
+    font-weight: bold;
+    margin: 5px 0;
+}
+
+/* On Page Search */
+
+#pageSearchBox {
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    background-color: #fff;
+    border: 1px solid #333;
+    border-radius: 4px;
+    height: 32px;
+    margin-top: 7px;
+    padding-left: 5px;
+    padding-right: 4px;
+    vertical-align: top;
+    width: 300px;
+}
+
+    #pageSearchBox #searchBoxInput {
+        width: 265px;
+    }
+
+/* Featured (Home Page) */
+
+.featured {
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    background-color: rgb(246, 246, 246);
+    border: solid 1px #dedede;
+    border-radius: 3px;
+    margin: 10px auto;
+    padding: 20px 10px 0 10px;
+}
+
+    .featured div {
+        float: left;
+        margin-right: 5px;
+        width: 410px;
+    }
+
+        .featured div h1 {
+            font-size: 1.85em;
+            margin-top: 0;
+            padding-top: 0;
+        }
+
+        .featured div p {
+            font-size: 1.5em;
+            line-height: 1.4em;
+        }
+
+            .featured div p.sub {
+                font-size: 1.4em;
+                line-height: 1.3em;
+            }
+
+        .featured div a.install {
+            -moz-border-radius: 4px;
+            -webkit-border-radius: 4px;
+            background-color: #4585aa;
+            background-image: -ms-linear-gradient(top, #4585aa 0%, #376783 100%);
+            background-image: -o-linear-gradient(top, #4585aa 0%, #376783 100%);
+            background-image: -webkit-linear-gradient(top, #4585aa 0%, #376783 100%);
+            background-image: linear-gradient(top, #4585aa 0%, #376783 100%);
+            border: solid 1px #376783;
+            border-radius: 4px;
+            box-shadow: inset 0px 0px 1px rgba(255, 255, 255, 1), 1px 1px 1px rgba(0, 0, 0, 0.3);
+            color: #fff;
+            display: block;
+            font-size: 2em;
+            line-height: 2em;
+            margin-top: 30px;
+            text-align: center;
+            width: 95%;
+        }
+
+            .featured div a.install:hover {
+                background-color: #376783;
+                background-image: -ms-linear-gradient(top, #64a3c8 0%, #1d4760 100%);
+                background-image: -o-linear-gradient(top, #64a3c8 0%, #1d4760 100%);
+                background-image: -webkit-linear-gradient(top, #64a3c8 0%, #1d4760 100%);
+                background-image: linear-gradient(top, #64a3c8 0%, #1d4760 100%);
+                border-color: #4585aa;
+                text-decoration: none;
+            }
+            
+        .featured div div.downloads {
+            margin-top: 5px;
+            text-align: center;
+            width: 95%;
+        }
+
+        .featured img {
+            margin-bottom: 15px;
+        }
+
+/* Aggregate Stats (Home Page) */
+
+.aggstats {
+    background: #555;
+    display: none;
+}
+
+    .aggstats .stat {
+        color: #bbb;
+        display: inline-block;
+        font-weight: bold;
+        margin: 0;
+        padding: 0.5em 0;
+        text-align: center;
+        width: 33%;
+        *zoom: 1;
+    }
+
+    .aggstats .num {
+        color: #f9f9f9;
+        display: block;
+        font-family: monospace;
+        font-size: 3em;
+        line-height: 0.9em;
+    }
+
+        .aggstats .num > span {
+            position: relative;
+        }
+
+/* Aggregate Stats Error (Home Page) */
+
+.aggstatserr {
+    background: #e8fc14;
+    display: none;
+}
+
+    .aggstatserr .err {
+        color: #622020;
+        display: inline-block;
+        font-weight: bold;
+        margin: 0;
+        padding: 0.5em 0;
+        text-align: center;
+        width: 33%;
+        *zoom: 1;
+    }
+
+/* async upload (Package Upload) */
+form .async-upload-panel {
+    display: none;
+    margin-top: 40px;
+    margin-bottom: 20px;
+}
+
+form .async-upload-progress-initial {
+    width: 300px;
+    height: 15px;
+    background-color: yellow;
+}
+
+form .async-upload-progress-advance {
+    width: 0;
+    height: 15px;
+    display: block;
+    background-color: green;
+}
+
+/* Package Owners (on package page?) */
+
+.owners {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.owner:hover {
+    text-decoration: none;
+}
+
+.owner-image {
+    margin-right: 5px;
+}
+
+/* Report Abuse*/
+
+#form-field-reason {
+    margin-bottom: 20px;
+}
+
+#report-abuse-message, #contact-support-message {
+    top: 4.6em;
+}
+
+/* Account Page */
+#account-accordion {
+    clear: both;
+}
+
+#account-apikeysample {
+    background-color: #202020;
+    border: 2px solid #c0c0c0;
+    color: #c0c0c0;
+    display: block;
+    font: 1.2em 'andale mono', 'lucida console', monospace;
+    line-height: 1.5em;
+    margin: 15px 0 0;
+    overflow: auto;
+    padding: 15px;
+}
+
+/* Sign-In / Register */
+#logon-separator {
+    text-align: center;
+    font-size: 2em;
+    clear: both;
+}
+
+#logon-external-info {
+    float: left;
+    width: 50%;
+}
+
+#signIn {
+    display: inline-block;
+    vertical-align: top;
+    width: 45%;
+    height: 100%;
+    margin-left: 5%;
+}
+
+    #signIn.signIn-solo {
+        margin: 0;
+        width: 100%;
+    }
+
+#signIn-solo-form {
+    width: 45%;
+}
+
+#signIn-lostpassword {
+    margin-top: 1em;
+}
+
+.externalaccount-form {
+    width: 45%;
+}
+
+#register {
+    /* Register form, as a "side-car", i.e. sharing space with the sign-in form */
+    height: 100%;
+    display: inline-block;
+    vertical-align: top;
+    width: 45%;
+    margin-right: 3%;
+}
+
+#register-form {
+    margin-bottom: 1em;
+}
+
+#register-policies {
+    background-color: #eff7fa;
+    border: solid 1px;
+    color: #52a4ca;
+    font-size: 1.3em;
+    padding: 10px;
+}
+
+#signin-providermessage {
+    margin-top: 1em;
+}
+
+ul#signin-providerlist {
+    padding: 0;
+    margin-top: 1em;
+    margin-left: 55%;
+}
+
+li.signin-authprovider {
+    font-size: 14pt;
+    list-style-type: none;
+    padding-bottom: 5px;
+    display: inline-block;
+}
+
+.btn.signin-external-link {
+    padding-right: 1.5em;
+}
+
+#signin-link {
+    text-align: left;
+}
+
+.signin-authprovider-icon {
+    font-size: 22pt;
+    margin: 0;
+    margin-left: 5px;
+    margin-right: 8px;
+}
+
+/* Package details */
+.versionTableRow.deleted {
+    color: #BBB;
+    text-decoration: line-through;
+}

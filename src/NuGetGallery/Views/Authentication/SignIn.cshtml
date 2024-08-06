@@ -1,0 +1,87 @@
+﻿@model LogOnViewModel
+@{
+    ViewBag.Title = "Sign In";
+    ViewBag.Tab = "Sign in";
+    ViewBag.SmPageColumns = GalleryConstants.ColumnsAuthenticationSm;
+    ViewBag.MdPageColumns = GalleryConstants.ColumnsAuthenticationMd;
+
+    var returnUrl = (string)ViewData[GalleryConstants.ReturnUrlViewDataKey];
+    var returnUrlMessage = (string)ViewData[GalleryConstants.ReturnUrlMessageViewDataKey];
+}
+
+<section role="main" class="container main-container page-sign-in">
+    @if (!string.IsNullOrEmpty(returnUrlMessage))
+    {
+        <div class="row">
+            <div class="col-xs-12 text-center">
+                @ViewHelpers.AlertInfo(@<text>@returnUrlMessage</text>)
+            </div>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-xs-12 text-center">
+            <h1>Sign in</h1>
+        </div>
+    </div>
+    @if (Model.Providers.Any())
+    {
+        foreach (var provider in Model.Providers)
+        {
+            <div class="row">
+                <div class="@ViewHelpers.GetColumnClasses(ViewBag) text-center">
+                    <button type="button" class="btn btn-brand-secondary btn-block provider-button"
+                       onclick="window.location.href = '@Url.Authenticate(provider.ProviderName, returnUrl)'">
+                        @if (!string.IsNullOrEmpty(@provider.UI.IconImagePath))
+                        {
+                            <img height="24" width="24" alt="" aria-hidden="true"
+                                 src="@Href(provider.UI.IconImagePath)"
+                                 @(!string.IsNullOrEmpty(provider.UI.IconImageFallbackPath) ? (IHtmlString)ViewHelpers.ImageFallback(Url.Absolute(provider.UI.IconImageFallbackPath)) : new HtmlString(string.Empty)) />
+                        }
+                        @provider.UI.SignInMessage
+                    </button>
+                </div>
+            </div>
+            <br/>
+        }
+
+        <div class="row text-center create-provider-account">
+            <span>
+                <a href="#" id="signin-assistance">Need assistance signing in?</a>
+            </span>
+        </div>
+
+        if (Model.IsNuGetAccountPasswordLoginEnabled)
+        {
+            <div class="row nuget-signin">
+                <div class="@ViewHelpers.GetColumnClasses(ViewBag) text-center">
+                    <p class="text-center">
+                        <a href="@Url.LogOnNuGetAccount(returnUrl)">Sign in using NuGet.org account</a>
+                    </p>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="row">
+            <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+                @Html.Partial("_SignIn", Model)
+            </div>
+        </div>
+    }
+</section>
+
+
+<div style="display: none" id="signinAssistanceModal" class="modal fade modal-container" data-backdrop="static">
+    @Html.Partial("_SigninAssistance")
+</div>
+
+@section bottomScripts {
+    <script type="text/javascript">
+        var signinAssistanceUrl = "@Url.SigninAssistance()"
+        var strings_InvalidUsername = "@Html.Raw(Strings.SigninAssistance_InvalidUser)";
+    </script>
+    @ViewHelpers.SectionsScript(this)
+    @Scripts.Render("~/Scripts/gallery/page-signin.min.js")
+}

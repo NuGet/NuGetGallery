@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\SdkProjects.props" />
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>NuGetGallery.AccountDeleter</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGetGallery.Services\NuGetGallery.Services.csproj" />
+    <ProjectReference Include="..\Validation.Common.Job\Validation.Common.Job.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Scripts\nssm.exe" />
+  </ItemGroup>
+</Project>

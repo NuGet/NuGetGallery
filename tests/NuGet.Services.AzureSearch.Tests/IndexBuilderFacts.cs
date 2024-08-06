@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -50,7 +50,10 @@ namespace NuGet.Services.AzureSearch
                 sw.Stop();
 
                 _cloudBlobContainer.Verify(x => x.CreateAsync(true), Times.Exactly(2));
-                Assert.InRange(sw.Elapsed, _retryDuration, TimeSpan.MaxValue);
+
+                // allow for some variance in the retry duration
+                // 15ms due to Windows clock: https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task.delay
+                Assert.InRange(sw.Elapsed, _retryDuration - TimeSpan.FromMilliseconds(16), TimeSpan.MaxValue);
             }
 
             [Fact]
@@ -140,7 +143,7 @@ namespace NuGet.Services.AzureSearch
                     StorageContainer = "container-name",
                 };
                 _logger = output.GetLogger<BlobContainerBuilder>();
-                _retryDuration = TimeSpan.FromMilliseconds(10);
+                _retryDuration = TimeSpan.FromMilliseconds(100);
 
                 _options
                     .Setup(x => x.Value)
@@ -160,7 +163,7 @@ namespace NuGet.Services.AzureSearch
             {
                 _cloudBlobContainer
                     .SetupSequence(x => x.CreateAsync(It.IsAny<bool>()))
-                    .Throws(new CloudBlobConflictException(null))
+                    .ThrowsAsync(new CloudBlobConflictException(null))
                     .Returns(Task.CompletedTask);
             }
 
@@ -219,7 +222,7 @@ namespace NuGet.Services.AzureSearch
                 Assert.Equal(4.0, result.TextWeights.Weights[IndexFields.TokenizedPackageId]);
 
                 // Verify boosting functions
-                Assert.Equal(1, result.Functions.Count);
+                Assert.Single(result.Functions);
                 var downloadsBoost = result
                     .Functions
                     .Where(f => f.FieldName == IndexFields.Search.DownloadScore)

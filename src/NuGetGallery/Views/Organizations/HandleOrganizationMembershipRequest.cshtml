@@ -1,0 +1,74 @@
+﻿@model HandleOrganizationMembershipRequestModel
+@{
+    ViewBag.Title = "Manage Organization";
+}
+
+<section role="main" class="container main-container page-manage-owners">
+    <div class="col-xs-12">
+        <h1 class="text-center">
+            @if (Model.Confirm)
+            {
+                if (Model.Successful)
+                {
+                    @:Membership Confirmed
+                }
+                else
+                {
+                    @:Membership Confirmation Failed
+                }
+            }
+            else
+            {
+                if (Model.Successful)
+                {
+                    @:Membership Declined
+                }
+                else
+                {
+                    @:Membership Declination Failed
+                }
+            }
+        </h1>
+    </div>
+    <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+        @if (Model.Confirm)
+        {
+            if (Model.Successful)
+            {
+                // This should never happen because a successful request should be redirected to the Manage Organization page directly instead of this page.
+                <p class="text-center">
+                    You are now a member of the
+                    '<strong><a href="@Url.User(@Model.OrganizationName)" title="The @Model.OrganizationName organization">@Model.OrganizationName</a></strong>' organization!
+                </p>
+            }
+            else
+            {
+                <p class="text-center">
+                    We were not able to add you as a member of the @(Model.OrganizationName).
+                </p>
+                <p class="text-center">
+                    @Model.FailureReason
+                </p>
+            }
+        }
+        else
+        {
+            if (Model.Successful)
+            {
+                <p class="text-center">
+                    You have successfully declined your membership request for the
+                    '<strong><a href="@Url.User(@Model.OrganizationName)" title="The @Model.OrganizationName organization">@Model.OrganizationName</a></strong>' organization!
+                </p>
+            }
+            else
+            {
+                <p class="text-center">
+                    We were not able to decline your membership request for the @(Model.OrganizationName).
+                </p>
+                <p class="text-center">
+                    @Model.FailureReason
+                </p>
+            }
+        }
+    </div>
+</section>

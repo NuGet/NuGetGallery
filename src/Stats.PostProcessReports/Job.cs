@@ -1,14 +1,14 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Core;
+using Azure.Storage.Blobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs;
 using NuGet.Services.Storage;
 
@@ -39,7 +39,7 @@ namespace Stats.PostProcessReports
                 .Register(c =>
                 {
                     var cfg = c.Resolve<IOptionsSnapshot<PostProcessReportsConfiguration>>().Value;
-                    return CloudStorageAccount.Parse(cfg.StorageAccount);
+                    return new BlobServiceClient(AzureStorageFactory.PrepareConnectionString(cfg.StorageAccount));
                 })
                 .AsSelf();
 
@@ -48,11 +48,11 @@ namespace Stats.PostProcessReports
                 {
                     var cfg = c.Resolve<IOptionsSnapshot<PostProcessReportsConfiguration>>().Value;
                     var factory = new AzureStorageFactory(
-                        c.Resolve<CloudStorageAccount>(),
+                        c.Resolve<BlobServiceClient>(),
                         cfg.SourceContainerName,
+                        enablePublicAccess: false,
                         c.Resolve<ILogger<AzureStorage>>(),
                         cfg.SourcePath + cfg.DetailedReportDirectoryName,
-                        useServerSideCopy: true,
                         initializeContainer: false);
                     var storage = factory.Create();
                     storage.Verbose = false;
@@ -65,11 +65,11 @@ namespace Stats.PostProcessReports
                 {
                     var cfg = c.Resolve<IOptionsSnapshot<PostProcessReportsConfiguration>>().Value;
                     var factory = new AzureStorageFactory(
-                        c.Resolve<CloudStorageAccount>(),
+                        c.Resolve<BlobServiceClient>(),
                         cfg.WorkContainerName,
+                        enablePublicAccess: false,
                         c.Resolve<ILogger<AzureStorage>>(),
                         cfg.WorkPath,
-                        useServerSideCopy: true,
                         initializeContainer: false);
                     var storage = factory.Create();
                     storage.Verbose = false;
@@ -82,11 +82,11 @@ namespace Stats.PostProcessReports
                 {
                     var cfg = c.Resolve<IOptionsSnapshot<PostProcessReportsConfiguration>>().Value;
                     var factory = new AzureStorageFactory(
-                        c.Resolve<CloudStorageAccount>(),
+                        c.Resolve<BlobServiceClient>(),
                         cfg.DestinationContainerName,
+                        enablePublicAccess: true,
                         c.Resolve<ILogger<AzureStorage>>(),
                         cfg.DestinationPath,
-                        useServerSideCopy: true,
                         initializeContainer: false);
                     var storage = factory.Create();
                     storage.Verbose = false;

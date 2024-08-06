@@ -149,7 +149,7 @@ namespace Validation.Symbols.Tests
 
                 // Assert 
                 Assert.Equal(NuGetValidationResponse.Failed.Status, result.Status);
-                Assert.Equal(1, result.Issues.Count);
+                Assert.Single(result.Issues);
             }
 
             [Fact]
@@ -197,7 +197,7 @@ namespace Validation.Symbols.Tests
 
                 // Assert 
                 Assert.Equal(NuGetValidationResponse.Failed.Status, result.Status);
-                Assert.Equal(1, result.Issues.Count);
+                Assert.Single(result.Issues);
             }
 
             [Fact]
@@ -223,7 +223,7 @@ namespace Validation.Symbols.Tests
 
                 // Assert 
                 Assert.Equal(NuGetValidationResponse.Failed.Status, result.Status);
-                Assert.Equal(1, result.Issues.Count);
+                Assert.Single(result.Issues);
             }
 
             private Stream CreateZipSlipStream()

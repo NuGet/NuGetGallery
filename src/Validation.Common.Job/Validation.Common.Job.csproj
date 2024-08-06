@@ -29,11 +29,12 @@
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
     <PackageReference Include="NuGet.Packaging" />
     <PackageReference Include="WindowsAzure.Storage" />
+    <PackageReference Include="System.Formats.Asn1" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
-    <PackageReference Include="NuGet.Services.ServiceBus" />
-    <PackageReference Include="NuGet.Services.Storage" />
+    <ProjectReference Include="..\NuGet.Services.ServiceBus\NuGet.Services.ServiceBus.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Storage\NuGet.Services.Storage.csproj" />
   </ItemGroup>
 
   <ItemGroup>

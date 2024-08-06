@@ -1,0 +1,56 @@
+.page-account-settings {
+  @section-margin-top: 40px;
+
+  h1 {
+    margin-bottom: 0;
+  }
+
+  h2 {
+    margin-bottom: 10px;
+    margin-top: 0;
+  }
+
+  .form-section-title {
+    margin-top: @section-margin-top;
+
+    @media (min-width: @screen-sm-min) {
+      float: left;
+      text-align: right;
+    }
+  }
+
+  .form-section-data {
+    @media (min-width: @screen-sm-min) {
+      margin-top: @section-margin-top;
+      line-height: 3;
+      float: right;
+      text-align: right;
+    }
+  }
+
+  .panel {
+    margin-top: 5px;
+  }
+
+  .form-group + .form-group {
+    .btn {
+      margin-top: 20px;
+    }
+  }
+
+  .login-account-row {
+    padding-top: 10px;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .certificates-form {
+    display: inline-block;
+    width: 100%;
+  }
+
+  .expired-certificate {
+    color: var(--statusDangerForeground1Rest);
+    font-weight: bold;
+  }
+}

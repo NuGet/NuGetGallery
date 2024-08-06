@@ -1,0 +1,84 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\..\SdkProjects.props" />
+
+  <PropertyGroup>
+    <TargetFrameworks>net472;netstandard2.1</TargetFrameworks>
+    <Description>Services library for NuGet Gallery Frontend and Backend</Description>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+    <Compile Remove="AccountManagement\*.cs" />
+    <Compile Remove="Authentication\**\*.cs" />
+    <Compile Remove="Configuration\**\*.cs" />
+    <Compile Remove="Diagnostics\*.cs" />
+    <Compile Remove="Extensions\*.cs" />
+    <Compile Remove="Helpers\*.cs" />
+    <Compile Remove="Mail\**\*.cs" />
+    <Compile Remove="PackageManagement\*.cs" />
+    <Compile Remove="Permissions\*.cs" />
+    <Compile Remove="Properties\*.cs" />
+    <Compile Remove="Providers\*.cs" />
+    <Compile Remove="Security\*.cs" />
+    <Compile Remove="Storage\*.cs" />
+    <Compile Remove="SupportRequest\ISupportRequestService.cs" />
+    <Compile Remove="SupportRequest\SupportRequestService.cs" />
+    <Compile Remove="Telemetry\ITelemetryService.cs" />
+    <Compile Remove="Telemetry\Obfuscator.cs" />
+    <Compile Remove="Telemetry\QuietLog.cs" />
+    <Compile Remove="Telemetry\TelemetryService.cs" />
+    <Compile Remove="Telemetry\UserPackageDeleteEvent.cs" />
+    <Compile Remove="Telemetry\UserPackageDeleteOutcome.cs" />
+    <Compile Remove="UserManagement\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Web.Extensions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NuGetGallery.Core\NuGetGallery.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ApplicationInsights" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <PackageReference Include="Microsoft.AspNet.Mvc" />
+    <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" />
+    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" />
+    <PackageReference Include="Microsoft.Owin" />
+    <PackageReference Include="Microsoft.Owin.Host.SystemWeb" />
+    <PackageReference Include="Microsoft.Owin.Security" />
+    <PackageReference Include="Microsoft.Owin.Security.Cookies" />
+    <PackageReference Include="Microsoft.Owin.Security.MicrosoftAccount" />
+    <PackageReference Include="Microsoft.Owin.Security.OpenIdConnect" />
+    <PackageReference Include="NuGet.Protocol" />
+    <PackageReference Include="NuGet.StrongName.WebBackgrounder" />
+    <PackageReference Include="System.Runtime" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <ProjectReference Include="..\NuGet.Services.Configuration\NuGet.Services.Configuration.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Logging\NuGet.Services.Logging.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Update="ServicesStrings.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ServicesStrings.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="ServicesStrings.resx" StronglyTypedNamespace="NuGetGallery" StronglyTypedLanguage="C#">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>ServicesStrings.Designer.cs</LastGenOutput>
+      <CustomToolNamespace>NuGetGallery</CustomToolNamespace>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

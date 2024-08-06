@@ -66,7 +66,7 @@ namespace NuGet.Services.AzureSearch.Wrappers
                 var ex = await Assert.ThrowsAsync<NullReferenceException>(
                     () => Target.IndexAsync(new IndexDocumentsBatch<object>()));
 
-                Assert.Equal(1, SearchClient.Invocations.Count);
+                Assert.Single(SearchClient.Invocations);
             }
         }
 

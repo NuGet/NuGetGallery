@@ -27,7 +27,7 @@ namespace CatalogMetadataTests
         [InlineData(true, false, null, true, true, "SHA512Value1", false)]
         [InlineData(true, true, "SHA512Value1", true, false, null, false)]
         [InlineData(true, false, null, true, false, null, false)]
-        public async void ValidateAreSynchronizedmethod(bool sourceBlobExists,
+        public async Task ValidateAreSynchronizedmethod(bool sourceBlobExists,
             bool hasSourceBlobSHA512Value,
             string sourceBlobSHA512Value,
             bool destinationBlobExists,
@@ -102,7 +102,7 @@ namespace CatalogMetadataTests
         [InlineData(true, false)]
         [InlineData(false, true)]
         [InlineData(false, false)]
-        public async void ValidateAreSynchronizedmethodWithNullMetadata(bool isSourceBlobMetadataExisted, bool isDestinationBlobMetadataExists)
+        public async Task ValidateAreSynchronizedmethodWithNullMetadata(bool isSourceBlobMetadataExisted, bool isDestinationBlobMetadataExists)
         {
             // Arrange
             var sourceBlob = GetMockedBlockBlobWithNullMetadata(isSourceBlobMetadataExisted);

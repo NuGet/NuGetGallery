@@ -1,12 +1,12 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Autofac;
+using Azure.Storage.Blobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.PackageSigning.Configuration;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
@@ -31,9 +31,13 @@ namespace Validation.PackageSigning.ValidateCertificate
             services.AddTransient<ICertificateStore>(p =>
             {
                 var config = p.GetRequiredService<IOptionsSnapshot<CertificateStoreConfiguration>>().Value;
-                var targetStorageAccount = CloudStorageAccount.Parse(config.DataStorageAccount);
+                var targetStorageAccount = new BlobServiceClient(AzureStorageFactory.PrepareConnectionString(config.DataStorageAccount));
 
-                var storageFactory = new AzureStorageFactory(targetStorageAccount, config.ContainerName, LoggerFactory.CreateLogger<AzureStorage>());
+                var storageFactory = new AzureStorageFactory(
+                    targetStorageAccount,
+                    config.ContainerName,
+                    enablePublicAccess: false,
+                    LoggerFactory.CreateLogger<AzureStorage>());
                 var storage = storageFactory.Create();
 
                 return new CertificateStore(storage, LoggerFactory.CreateLogger<CertificateStore>());

@@ -1,0 +1,260 @@
+﻿@model HomeViewModel
+@{
+    ViewBag.Title = "Site Administration";
+    ViewBag.Tab = "Admin";
+}
+
+<section role="main" class="container main-container page-admin-index">
+    <h1>Site Administration</h1>
+    <div class="container">
+        <ul class="list-unstyled row">
+            @if (Model.ShowDatabaseAdmin)
+            {
+                <li class="col-sm-6 col-xs-12">
+                    <h2>
+                        <a href="~/Admin/Database">
+                            <i class="ms-Icon ms-Icon--Database"></i>
+                            <span>Database administration</span>
+                        </a>
+                    </h2>
+                    <p class="text-muted">
+                        Get direct access to the database to manipulate Users, Packages, etc. USE WITH CAUTION.
+                    </p>
+                </li>
+            }
+            <li class="col-sm-6 col-xs-12">
+                <h2>
+                    <a href="@Url.Action(actionName: "Index", controllerName: "ChangeUsername")">
+                        <i class="ms-Icon ms-Icon--EditContact"></i>
+                        <span>Change username</span>
+                    </a>
+                </h2>
+                <p class="text-muted">
+                    Verify and change account username.
+                </p>
+            </li>
+            <li class="col-sm-6 col-xs-12">
+                <h2>
+                    <a href="@Url.Action(actionName: "Index", controllerName: "LockPackage")">
+                        <i class="ms-Icon ms-Icon--Lock"></i>
+                        <span>Lock packages</span>
+                    </a>
+                </h2>
+                <p class="text-muted">
+                    Lock and unlock packages.
+                </p>
+            </li>
+            <li class="col-sm-6 col-xs-12">
+                <h2>
+                    <a href="@Url.Action(actionName: "Index", controllerName: "LockUser")">
+                        <i class="ms-Icon ms-Icon--BlockContact"></i>
+                        <span>Lock users</span>
+                    </a>
+                </h2>
+                <p class="text-muted">
+                    Prevent users from performing some actions.
+                </p>
+            </li>
+            <li class="col-sm-6 col-xs-12">
+                <h2>
+                    <a href="@Url.Action(actionName: "Index", controllerName: "Delete")">
+                        <i class="ms-Icon ms-Icon--Delete"></i>
+                        <span>Delete packages</span>
+                    </a>
+                </h2>
+                <p class="text-muted">
+                    Soft delete or hard packages.
+                </p>
+            </li>
+            <li class="col-sm-6 col-xs-12">
+                <h2>
+                    <a href="@Url.Action(actionName: "Index", controllerName: "UpdateListed")">
+                        <i class="ms-Icon ms-Icon--Hide"></i>
+                        <span>Unlist/relist packages</span>
+                    </a>
+                </h2>
+                <p class="text-muted">
+                    Unlist or relist many packages at once.
+                </p>
+            </li>
+            <li class="col-sm-6 col-xs-12">
+                <h2>
+                    <a href="@Url.Action(actionName: "Index", controllerName: "PackageOwnership")">
+                        <i class="ms-Icon ms-Icon--AddFriend"></i>
+                        <span>Change package ownership</span>
+                    </a>
+                </h2>
+                <p class="text-muted">
+                    Change the ownership of package registrations in bulk.
+                </p>
+            </li>
+            @if (Model.ShowLuceneAdmin)
+            {
+                <li class="col-sm-6 col-xs-12">
+                    <h2>
+                        <a href="@Url.Action(actionName: "Index", controllerName: "Lucene")">
+                            <i class="ms-Icon ms-Icon--DocumentSearch"></i>
+                            <span>Lucene maintenance</span>
+                        </a>
+                    </h2>
+                    <p class="text-muted">
+                        Maintain the Lucene full-text search index.
+                    </p>
+                </li>
+            }
+            <li class="col-sm-6 col-xs-12">
+                <h2>
+                    <a href="@Url.Action(actionName: "Index", controllerName: "SupportRequest")">
+                        <i class="ms-Icon ms-Icon--ActivityFeed"></i>
+                        <span>Support requests</span>
+                    </a>
+                </h2>
+                <p class="text-muted">
+                    Assign and handle support requests.
+                </p>
+            </li>
+            <li class="col-sm-6 col-xs-12">
+                <h2>
+                    @ViewHelpers.PostLink(
+                        this,
+                        formId: "clear-content-cache-form",
+                        actionName: "ClearContentCache",
+                        controllerName: "Home",
+                        role: string.Empty,
+                        area: "Admin",
+                        htmlContent: @<text>
+                                <i class="ms-Icon ms-Icon--Refresh"></i>
+                                <span>Clear content cache</span>
+                        </text>)
+                </h2>
+                <p class="text-muted">
+                    Clear the static content cache.
+                </p>
+            </li>
+            <li class="col-sm-6 col-xs-12">
+                <h2>
+                    <a href="@Url.Action(actionName: "Index", controllerName: "SecurityPolicy")">
+                        <i class="ms-Icon ms-Icon--SecurityGroup"></i>
+                        <span>Security policies</span>
+                    </a>
+                </h2>
+                <p class="text-muted">
+                    Manage user security policies.
+                </p>
+            </li>
+            <li class="col-sm-6 col-xs-12">
+                <h2>
+                    <a href="@Url.Action(actionName: "Index", controllerName: "ReservedNamespace")">
+                        <i class="ms-Icon ms-Icon--Shield"></i>
+                        <span>Reserve namespaces</span>
+                    </a>
+                </h2>
+                <p class="text-muted">
+                    Manage namespace (ID prefix) reservations.
+                </p>
+            </li>
+            @if (Model.ShowValidation)
+            {
+                <li class="col-sm-6 col-xs-12">
+                    <h2>
+                        <a href="@Url.Action(actionName: "Index", controllerName: "Validation")">
+                            <i class="ms-Icon ms-Icon--CheckboxComposite"></i>
+                            <span>Validation</span>
+                        </a>
+                    </h2>
+                    <p class="text-muted">
+                        Inspect package or symbol validations.
+                    </p>
+                </li>
+                <li class="col-sm-6 col-xs-12">
+                    <h2>
+                        <a href="@Url.Action(actionName: "Index", controllerName: "Revalidation")">
+                            <i class="ms-Icon ms-Icon--Redo"></i>
+                            <span>Revalidation job</span>
+                        </a>
+                    </h2>
+                    <p class="text-muted">
+                        Inspect the revalidation job.
+                    </p>
+                </li>
+            }
+            <li class="col-sm-6 col-xs-12">
+                <h2>
+                    <a href="@Url.Action(actionName: "Index", controllerName: "DeleteAccount")">
+                        <i class="ms-Icon ms-Icon--Delete"></i>
+                        <span>Delete Account</span>
+                    </a>
+                </h2>
+                <p class="text-muted">
+                    Delete user accounts or organizations.
+                </p>
+            </li>
+            <li class="col-sm-6 col-xs-12">
+                <h2>
+                    <a href="@Url.Action(actionName: "Index", controllerName: "Features" )">
+                        <i class="ms-Icon ms-Icon--Flag"></i>
+                        <span>Feature flags</span>
+                    </a>
+                </h2>
+                <p class="text-muted">
+                    Manage which feature flags or flights are enabled.
+                </p>
+            </li>
+            <li class="col-sm-6 col-xs-12">
+                <h2>
+                    <a href="@Url.Action(actionName: "Index", controllerName: "SiteAdmins")">
+                        <i class="ms-Icon ms-Icon--Admin"></i>
+                        <span>Site admins</span>
+                    </a>
+                </h2>
+                <p class="text-muted">
+                    Add or remove site admins.
+                </p>
+            </li>
+            <li class="col-sm-6 col-xs-12">
+                <h2>
+                    <a href="@Url.Action(actionName: "Index", controllerName: "ApiKeys")">
+                        <i class="ms-Icon ms-Icon--Permissions"></i>
+                        <span>API keys</span>
+                    </a>
+                </h2>
+                <p class="text-muted">
+                    Verify and revoke API keys.
+                </p>
+            </li>
+            <li class="col-sm-6 col-xs-12">
+                <h2>
+                    <a href="@Url.Action(actionName: "Index", controllerName: "PasswordAuthentication")">
+                        <i class="ms-Icon ms-Icon--TemporaryUser"></i>
+                        <span>Password Authentications</span>
+                    </a>
+                </h2>
+                <p class="text-muted">
+                    Add or remove a user for Password Authentications.
+                </p>
+            </li>
+            <li class="col-sm-6 col-xs-12">
+                <h2>
+                    <a href="@Url.Action(actionName: "Index", controllerName: "PopularityTransfer")">
+                        <i class="ms-Icon ms-Icon--Flow"></i>
+                        <span>Popularity Transfers</span>
+                    </a>
+                </h2>
+                <p class="text-muted">
+                    Transfer popularity from one package to another.
+                </p>
+            </li>
+            <li class="col-sm-6 col-xs-12">
+                <h2>
+                    <a href="@Url.Action(actionName: "Index", controllerName: "CorrectIsLatest")">
+                        <i class="ms-Icon ms-Icon--UpdateRestore"></i>
+                        <span>Correct IsLatest</span>
+                    </a>
+                </h2>
+                <p class="text-muted">
+                    Correct IsLatest state from packages.
+                </p>
+            </li>
+        </ul>
+    </div>
+</section>

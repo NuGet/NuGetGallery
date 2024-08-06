@@ -65,10 +65,6 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Storage.Blobs" />
-    <PackageReference Include="NuGetGallery.Core" />
-    <PackageReference Include="NuGet.Services.Entities" />
-    <PackageReference Include="NuGet.Services.Logging" />
-    <PackageReference Include="NuGet.Services.Sql" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
@@ -78,6 +74,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Logging\NuGet.Services.Logging.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Sql\NuGet.Services.Sql.csproj" />
+    <ProjectReference Include="..\NuGetGallery.Core\NuGetGallery.Core.csproj" />
   </ItemGroup>
 
 </Project>

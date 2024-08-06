@@ -145,11 +145,11 @@ namespace CatalogTests.Helpers
 
                 // Assert
                 Assert.Equal(firstCreatedPackage.CreatedDate, orderedByCreatedDate.First().Key);
-                Assert.Equal(1, orderedByCreatedDate.First().Value.Count);
+                Assert.Single(orderedByCreatedDate.First().Value);
                 Assert.Contains(firstCreatedPackage, orderedByCreatedDate.First().Value);
 
                 Assert.Equal(firstEditedPackage.LastEditedDate, orderedByLastEditedDate.First().Key);
-                Assert.Equal(1, orderedByLastEditedDate.First().Value.Count);
+                Assert.Single(orderedByLastEditedDate.First().Value);
                 Assert.Contains(firstEditedPackage, orderedByLastEditedDate.First().Value);
             }
 

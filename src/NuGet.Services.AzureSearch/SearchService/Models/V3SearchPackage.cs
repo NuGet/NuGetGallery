@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using NuGet.Services.AzureSearch;
 
 namespace NuGet.Services.AzureSearch.SearchService
 {

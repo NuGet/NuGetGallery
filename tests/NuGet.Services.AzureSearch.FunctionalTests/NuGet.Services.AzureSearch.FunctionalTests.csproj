@@ -1,80 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="15.0">
-  <Import Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\SdkProjects.props" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{EAD54C54-E29E-43D5-AE7F-1C194B4EE948}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NuGet.Services.AzureSearch.FunctionalTests</RootNamespace>
-    <AssemblyName>NuGet.Services.AzureSearch.FunctionalTests</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+    <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.Web" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-    <Reference Include="WindowsBase" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Analysis\DescriptionCustomAnalyzerFunctionalTests.cs" />
-    <Compile Include="Analysis\ExactMatchCustomAnalyzerFunctionalTests.cs" />
-    <Compile Include="Analysis\PackageIdCustomAnalyzer.cs" />
-    <Compile Include="Analysis\TagsCustomAnalyzerFunctionalTests.cs" />
-    <Compile Include="BasicTests\AutocompleteProtocolTests.cs" />
-    <Compile Include="BasicTests\V3SearchProtocolTests.cs" />
-    <Compile Include="BasicTests\V2SearchProtocolTests.cs" />
-    <Compile Include="BasicTests\SearchAvailabilityTests.cs" />
-    <Compile Include="Relevancy\AutocompleteRelevancyFunctionalTests.cs" />
-    <Compile Include="Support\TestUtilities.cs" />
-    <Compile Include="Support\RelevancyTheoryAttribute.cs" />
-    <Compile Include="Support\RelevancyFactAttribute.cs" />
-    <Compile Include="Support\AzureSearchIndexFunctionalTestBase.cs" />
-    <Compile Include="Support\NuGetSearchFunctionalTestBase.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Support\AnalysisFactAttribute.cs" />
-    <Compile Include="Support\AnalysisTheoryAttribute.cs" />
-    <Compile Include="Support\CommonFixture.cs" />
-    <Compile Include="Support\TokenizationData.cs" />
-    <Compile Include="Support\AzureSearchConfiguration.cs" />
-    <Compile Include="Relevancy\V3RelevancyFunctionalTests.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" />
-    <PackageReference Include="NuGet.Services.Configuration" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="NuGet.Versioning" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio">
@@ -83,16 +13,12 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\BasicSearchTests.FunctionalTests.Core\BasicSearchTests.FunctionalTests.Core.csproj">
-      <Project>{eea7b6c1-0358-4e67-9d2a-e30b8ff9ff3d}</Project>
-      <Name>BasicSearchTests.FunctionalTests.Core</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\BasicSearchTests.FunctionalTests.Core\BasicSearchTests.FunctionalTests.Core.csproj" />
+    <ProjectReference Include="..\..\src\NuGet.Services.Configuration\NuGet.Services.Configuration.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ExternalConfig Include="ExternalConfig/*.*">
-    </ExternalConfig>
+    <ExternalConfig Include="ExternalConfig/*.*"></ExternalConfig>
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="AfterBuild">
     <Copy DestinationFolder="$(TargetDir)Config" SourceFiles="@(ExternalConfig)" />
   </Target>
