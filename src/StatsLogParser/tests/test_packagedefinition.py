@@ -1,6 +1,4 @@
 import pytest
-from unittest import mock
-import builtins
 
 from loginterpretation.packagedefinition import PackageDefinition
 

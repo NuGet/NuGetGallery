@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
-from loginterpretation.nugetversion import NuGetVersion
+from .nugetversion import NuGetVersion
 import urllib.parse
 
 @dataclass(init=False)

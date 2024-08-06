@@ -1,8 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
-from loginterpretation.semanticversion import SemanticVersion
-
+from .semanticversion import SemanticVersion, Version
 
 @dataclass
 class NuGetVersion(SemanticVersion):
@@ -24,7 +23,7 @@ class NuGetVersion(SemanticVersion):
             return None
 
     @staticmethod
-    def parse_version(version_string: str) -> Tuple[int, int, int, int]:
+    def parse_version(version_string: str) -> Version:
         parts = version_string.split(".")
         if len(parts) == 3:
             return int(parts[0]), int(parts[1]), int(parts[2]), 0
@@ -52,5 +51,5 @@ class NuGetVersion(SemanticVersion):
         return NuGetVersion.is_valid(s, allow_leading_zeros)
 
     @staticmethod
-    def normalize_version_value(version: Tuple[int, int, int, int]) -> Tuple[int, int, int, int]:
+    def normalize_version_value(version: Version) -> Version:
         return version

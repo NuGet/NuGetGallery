@@ -1,7 +1,10 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
+from collections import namedtuple
 from typing import List, Optional, Tuple
 from functools import total_ordering
+
+Version = namedtuple("Version", ["major", "minor", "patch", "revision"])
 
 @dataclass
 @total_ordering
@@ -12,7 +15,7 @@ class SemanticVersion:
     revision: int
     release_labels: Optional[List[str]] = field(default_factory=list)
     metadata: Optional[str] = None
-    version: Optional[Tuple[int, int, int, int]] = field(init=False)
+    version: Optional[Version] = field(init=False)
 
     def __post_init__(self):
         self.version = (self.major, self.minor, self.patch, self.revision)
