@@ -129,7 +129,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             if (initializeContainer)
             {
-                var blobContainerInfoResponse = _blobContainerClientWrapper.ContainerClient.CreateIfNotExists(PublicAccessType.Blob);
+                Response<BlobContainerInfo> blobContainerInfoResponse = _blobContainerClientWrapper.ContainerClient.CreateIfNotExists(PublicAccessType.Blob);
 
                 if (blobContainerInfoResponse?.Value != null && Verbose)
                 {
