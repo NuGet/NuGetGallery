@@ -6,6 +6,8 @@ from loginterpretation.packagedefinition import PackageDefinition
     ("nuget.core", "1.7.0.1540", "http://localhost/packages/nuget.core.1.7.0.1540.nupkg"),
     ("nuget.core", "1.7.0.1540", "http://localhost/packages/nuget.core.1.7.0.1540.nupkg?packageVersion=1.7.0.1540"),
     ("nuget.core", "1.0.1-beta1", "http://localhost/packages/nuget.core.1.0.1-beta1.nupkg"),
+    ("nuget.core", "1.0.1-beta1-build1234", "http://localhost/packages/nuget.core.1.0.1-beta1-build1234.nupkg"),
+    ("nuget.core", "1.0.1-beta1-build1234", "http://localhost/packages/nuget.core.1.0.1-beta1-build1234.nupkg?packageVersion=1.0.1-beta1-build1234"),
     ("nuget.core", "1.0.1-beta1.1", "http://localhost/packages/nuget.core.1.0.1-beta1.1.nupkg?packageVersion=1.0.1-beta1.1"),
     ("nuget.core", "1.7.0.1540", "http://localhost/packages/nuget.core.1.7.0.1540.nupkg"),
     ("nuget.core", "1.7.0.1540", "http://localhost/packages/nuget.core.1.7.0.1540.nupkg?packageVersion=1.7.0.1540"),
