@@ -137,7 +137,7 @@ namespace NuGet.Services.AzureSearch
                     StorageContainer = "container-name",
                 };
                 _logger = output.GetLogger<BlobContainerBuilder>();
-                _retryDuration = TimeSpan.FromMilliseconds(100);
+                _retryDuration = TimeSpan.FromMilliseconds(10);
 
                 _options
                     .Setup(x => x.Value)
