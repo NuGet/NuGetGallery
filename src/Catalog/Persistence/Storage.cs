@@ -235,7 +235,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         public static string RemoveQueryString(Uri storageUri)
         {
-            return new UriBuilder(storageUri) { Query = string.Empty }.Uri.AbsoluteUri;
+            return storageUri.GetLeftPart(UriPartial.Path);
         }
 
         private string TraceException(string method, Uri resourceUri, Exception exception)
