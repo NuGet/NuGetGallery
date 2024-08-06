@@ -397,6 +397,9 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 
+# macOS
+.DS_Store
+
 #######################
 # Repository specific #
 #######################
@@ -591,4 +594,4 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-.DS_Store
+
