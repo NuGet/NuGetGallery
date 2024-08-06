@@ -27,10 +27,26 @@ from loginterpretation.packagedefinition import PackageDefinition
     ("xunit.1", "2.4.1", "http://localhost/packages/xunit.1.2.4.1.nupkg?packageVersion=2.4.1"),
     ("5.0.0.0", "5.0.0", "http://localhost/packages/5.0.0.0.5.0.0.nupkg"),
     ("5.0.0.0", "5.0.0", "http://localhost/packages/5.0.0.0.5.0.0.nupkg?packageVersion=5.0.0"),
-    ("xunit.1", "2.4.1", "https://api.nuget.org/v3-flatcontainer/xunit.1/2.4.1/xunit.1.2.4.1.nupkg")])
+    ("xunit.1", "2.4.1", "https://api.nuget.org/v3-flatcontainer/xunit.1/2.4.1/xunit.1.2.4.1.nupkg"),
+    ("1", "2.3.4", "http://localhost/packages/1.2.3.4.nupkg"),
+    ("1", "2.3.4.5", "http://localhost/packages/1.2.3.4.5.nupkg"),
+    ("1.2", "3.4.5.6", "http://localhost/packages/1.2.3.4.5.6.nupkg"),
+    ("1.2.3", "4.5.6", "http://localhost/packages/1.2.3.4.5.6.nupkg?packageVersion=4.5.6"),
+    ("1.2", "3.4.5.6", "http://localhost/packages/1.2.3.4.5.6.nupkg?packageVersion=3.4.5.6")
+    ])
 def test_from_request_url(expected_package_id, expected_package_version, request_url):
     found =  PackageDefinition.from_request_url(request_url)
     assert found and found[0] == PackageDefinition(expected_package_id, expected_package_version)
+
+@pytest.mark.parametrize("request_url", [
+    "http://localhost/packages/1.nupkg",
+    "http://localhost/packages/1.2.nupkg",
+    "http://localhost/packages/1.2.3.exe"
+    ])
+def test_from_request_url_returns_none_when_invalid_url(request_url):
+    found = PackageDefinition.from_nuget_exe_url(request_url)
+    assert not found
+
 
 @pytest.mark.parametrize("expected_version,request_url", [
     ("5.9.1", "https://localhost/artifacts/win-x86-commandline/v5.9.1/nuget.exe"),
