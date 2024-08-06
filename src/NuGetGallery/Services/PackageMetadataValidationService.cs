@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -122,6 +123,13 @@ namespace NuGetGallery
                 }
             }
 
+            result = CheckNuspecNormalized(nuGetPackage);
+
+            if (result != null)
+            {
+                return result;
+            }
+
             result = await CheckForUnsignedPushAfterAuthorSignedAsync(
                 nuGetPackage,
                 warnings);
@@ -160,6 +168,24 @@ namespace NuGetGallery
 
             return PackageValidationResult.AcceptedWithWarnings(warnings);
         }
+
+        private PackageValidationResult CheckNuspecNormalized(PackageArchiveReader nuGetPackage)
+        {
+            try
+            {
+                var nuspecReader = GetNuspecReader(nuGetPackage);
+                var nuspec = nuspecReader.Xml.ToStringSafe();
+
+                nuspec.IsNormalized(NormalizationForm.FormC);
+            }
+            catch (Exception)
+            {
+                return PackageValidationResult.Invalid(Strings.UploadPackage_NuspecContainsInvalidUnicodeCharacters);
+            }
+
+            return null;
+        }
+
 
         private async Task<PackageValidationResult> CheckLicenseMetadataAsync(PackageArchiveReader nuGetPackage, List<IValidationMessage> warnings, User user)
         {

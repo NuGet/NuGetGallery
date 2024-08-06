@@ -361,6 +361,47 @@ namespace NuGetGallery
                 Assert.Empty(result.Warnings);
             }
 
+            [Fact]
+            public async Task WithNonNormalizedNuspec_ReturnsInvalidPackage()
+            {
+
+                // Arrange
+                var package = TestDataResourceUtility.GetResourceBytes("PackageWithInvalidUnicodeCharacters.nupkg");
+                var fakeFileStream = new MemoryStream(package);
+                var reader = new PackageArchiveReader(fakeFileStream);
+
+                // Act
+                var result = await _target.ValidateMetadataBeforeUploadAsync(
+                    reader,
+                    PackageMetadata.FromNuspecReader(reader.GetNuspecReader(), strict: true),
+                    _currentUser);
+
+                // Assert
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Equal("The package nuspec file contains invalid unicode characters.", result.Message.PlainTextMessage);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Fact]
+            public async Task WithNormalizedNuspec_ReturnsAcceptedPackage()
+            {
+                // Arrange
+                var package = TestDataResourceUtility.GetResourceBytes("PackageWithInvalidUnicodeCharacters.nupkg");
+                var fakeFileStream = new MemoryStream(package);
+                var reader = new PackageArchiveReader(fakeFileStream);
+
+                // Act
+                var result = await _target.ValidateMetadataBeforeUploadAsync(
+                    reader,
+                    PackageMetadata.FromNuspecReader(reader.GetNuspecReader(), strict: true),
+                    _currentUser);
+
+                // Assert
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Equal("The package nuspec file contains invalid unicode characters.", result.Message.PlainTextMessage);
+                Assert.Empty(result.Warnings);
+            }
+
             [Theory]
             [InlineData("duplicatedFile.txt", "duplicatedFile.txt")]
             [InlineData("./temp/duplicatedFile.txt", "./temp/duplicatedFile.txt")]
@@ -2136,6 +2177,7 @@ namespace NuGetGallery
                 string readmeFilename = null,
                 string readmeFileContents = null,
                 byte[] readmeFileBinaryContents = null,
+                string releaseNotes = null,
                 IReadOnlyList<string> entryNames = null)
             {
                 var packageStream = GeneratePackageStream(
@@ -2155,6 +2197,7 @@ namespace NuGetGallery
                     readmeFilename: readmeFilename,
                     readmeFileContents: readmeFileContents,
                     readmeFileBinaryContents: readmeFileBinaryContents,
+                    releaseNotes: releaseNotes,
                     entryNames: entryNames);
 
                 return PackageServiceUtility.CreateNuGetPackage(packageStream);
@@ -2177,6 +2220,7 @@ namespace NuGetGallery
                 string readmeFilename = null,
                 string readmeFileContents = null,
                 byte[] readmeFileBinaryContents = null,
+                string releaseNotes = null,
                 IReadOnlyList<string> entryNames = null)
             {
                 return PackageServiceUtility.CreateNuGetPackageStream(
@@ -2195,6 +2239,7 @@ namespace NuGetGallery
                     iconFileBinaryContents: iconFileBinaryContents,
                     readmeFilename: readmeFilename,
                     readmeFileContents: GetBinaryLicenseOrReadmeFileContents(readmeFileBinaryContents, readmeFileContents),
+                    releaseNotes: releaseNotes,
                     entryNames: entryNames);
             }
 

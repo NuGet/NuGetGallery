@@ -86,7 +86,7 @@ namespace NuGetGallery
                         </metadata>
                     </package>");
 
-            using (var streamWriter = new StreamWriter(stream, new UTF8Encoding(false, true), 1024, leaveStreamOpen))
+            using (var streamWriter = new StreamWriter(stream, Encoding.UTF32, 1024, leaveStreamOpen))
             {
                 streamWriter.WriteLine(isSymbolPackage ? symbolNuspec : fullNuspec);
             }

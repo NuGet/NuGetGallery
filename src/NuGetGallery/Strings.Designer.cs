@@ -1128,7 +1128,7 @@ namespace NuGetGallery {
                 return ResourceManager.GetString("FrameworkFilters_Tooltip", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The API key &apos;{0}&apos; is invalid..
         /// </summary>
@@ -2972,6 +2972,15 @@ namespace NuGetGallery {
         public static string UploadPackage_NotAcceptingPackagesWithLicense {
             get {
                 return ResourceManager.GetString("UploadPackage_NotAcceptingPackagesWithLicense", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package nuspec file contains invalid unicode characters..
+        /// </summary>
+        public static string UploadPackage_NuspecContainsInvalidUnicodeCharacters {
+            get {
+                return ResourceManager.GetString("UploadPackage_NuspecContainsInvalidUnicodeCharacters", resourceCulture);
             }
         }
         

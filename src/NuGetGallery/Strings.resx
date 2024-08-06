@@ -1281,4 +1281,7 @@ The {1} Team</value>
   <data name="FrameworkFilters_Tooltip" xml:space="preserve">
     <value>Filters packages based on the target frameworks they are compatible with. Click here to learn more.</value>
   </data>
+  <data name="UploadPackage_NuspecContainsInvalidUnicodeCharacters" xml:space="preserve">
+    <value>The package nuspec file contains invalid unicode characters.</value>
+  </data>
 </root>
