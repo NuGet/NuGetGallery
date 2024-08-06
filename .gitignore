@@ -400,42 +400,6 @@ FodyWeavers.xsd
 # macOS
 .DS_Store
 
-#######################
-# Repository specific #
-#######################
-.nuget/
-nuget.exe
-Results.*.xml
-AssemblyInfo.*.cs
-
-# common build tools
-build/
-tools/
-
-# Functional test results
-tests/functionaltests.*.xml
-*.trx
-*.g.txt
-
-# The applicationhost.config is ignored, but already comitted on purpose
-# Reason: The localtest.me setting needs to be configured in the <sites>-section.
-# See ReadMe.md for more information
-.vs/config/applicationhost.config
-
-# Files are created at build time
-src/NuGetGallery/Content/gallery/css/bootstrap-theme.css
-src/NuGetGallery/Content/gallery/css/bootstrap.css
-src/NuGetGallery/Scripts/gallery/bootstrap.js
-
-# NuGetGallery Specific Ignores
-src/NuGetGallery/App_Data/*
-!src/NuGetGallery/App_Data/Files/
-src/NuGetGallery/App_Data/Files/*
-!src/NuGetGallery/App_Data/Files/Content/
-!src/NuGetGallery/Views/Packages/
-!src/NuGetGallery/Branding/Views/Packages/
-
-
 ##### Python ignores from https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore
 
 # Byte-compiled / optimized / DLL files
@@ -593,5 +557,42 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+
+
+#######################
+# Repository specific #
+#######################
+.nuget/
+nuget.exe
+Results.*.xml
+AssemblyInfo.*.cs
+
+# common build tools
+build/
+tools/
+
+# Functional test results
+tests/functionaltests.*.xml
+*.trx
+*.g.txt
+
+# The applicationhost.config is ignored, but already comitted on purpose
+# Reason: The localtest.me setting needs to be configured in the <sites>-section.
+# See ReadMe.md for more information
+.vs/config/applicationhost.config
+
+# Files are created at build time
+src/NuGetGallery/Content/gallery/css/bootstrap-theme.css
+src/NuGetGallery/Content/gallery/css/bootstrap.css
+src/NuGetGallery/Scripts/gallery/bootstrap.js
+
+# NuGetGallery Specific Ignores
+src/NuGetGallery/App_Data/*
+!src/NuGetGallery/App_Data/Files/
+src/NuGetGallery/App_Data/Files/*
+!src/NuGetGallery/App_Data/Files/Content/
+!src/NuGetGallery/Views/Packages/
+!src/NuGetGallery/Branding/Views/Packages/
 
 
