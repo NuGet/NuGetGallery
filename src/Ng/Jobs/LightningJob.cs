@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -508,7 +508,7 @@ namespace Ng.Jobs
             {
                 config.UseManagedIdentity = _arguments.GetOrDefault<bool>(Arguments.UseManagedIdentity);
                 config.ManagedIdentityClientId = _arguments.GetOrDefault<string>(Arguments.ClientId);
-                
+
                 config.LegacyBaseUrl = _arguments.GetOrDefault<string>(Arguments.StorageBaseAddress);
                 config.LegacyStorageContainer = _arguments.GetOrDefault<string>(Arguments.StorageContainer);
 
@@ -593,7 +593,13 @@ namespace Ng.Jobs
             }
             else
             {
-                builder.AppendFormat("SharedAccessSignature={0};", _arguments.GetOrThrow<string>(accountSasArgument));
+                var sasToken = _arguments.GetOrThrow<string>(accountSasArgument);
+                // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
+                if (sasToken.StartsWith("?"))
+                {
+                    sasToken = sasToken.Substring(1);
+                }
+                builder.AppendFormat("SharedAccessSignature={0};", sasToken);
             }
 
             builder.AppendFormat("EndpointSuffix={0}", _arguments.GetOrDefault(endpointSuffixArgument, "core.windows.net"));
