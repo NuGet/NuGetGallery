@@ -1,7 +1,0 @@
-{
-  "files.exclude": {
-    "src/StatsLogParser": true
-  },
-  "python.testing.pytestEnabled": false,
-  "python.testing.unittestEnabled": false
-}
