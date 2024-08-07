@@ -1,7 +1,8 @@
-import pytest
 import sys
 sys.path.append('..') # This is to add the parent directory to the path so that the module can be imported
 from loginterpretation.useragentparser import UserAgentParser, UserAgent
+import pytest
+
 
 @pytest.mark.parametrize("user_agent,expected_client,expected_major,expected_minor,expected_patch", [
     ("NuGet Command Line/1.2.3 (Microsoft Windows NT 6.2.9200.0)", "NuGet Command Line", "1", "2", "3"),

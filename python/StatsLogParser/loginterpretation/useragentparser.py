@@ -12,8 +12,8 @@ UserAgent = namedtuple('UserAgent', ['family', 'major', 'minor', 'patch'])
 class UserAgentParser:
     """UserAgentParser class to parse user agent string."""
     DEFAULT_PARSER_DATA = USER_AGENT_PARSERS
-    KNOWN_CLIENTS_DATA: list[user_agent_parser.UserAgentParser]
-    KNOWN_CLIENTS_IN_CHINA_DATA: list[user_agent_parser.UserAgentParser]
+    KNOWN_CLIENTS_DATA: list[user_agent_parser.UserAgentParser] = []
+    KNOWN_CLIENTS_IN_CHINA_DATA: list[user_agent_parser.UserAgentParser] = []
 
     @classmethod
     def __static_init__(cls):
@@ -34,7 +34,7 @@ class UserAgentParser:
     @staticmethod
     def _add_support_for_china_cdn(yaml_content):
         patched_yaml = re.sub(
-            r"(?:[:]\s'\()+([\w-.\s]+)(?:\))+",
+            r"(?:[:]\s'\()+([\w\-.\s]+)(?:\))+",
             UserAgentParser._replace_whitespace_with_plus_sign,
             yaml_content,
             flags=re.DOTALL
@@ -47,13 +47,32 @@ class UserAgentParser:
 
     @staticmethod
     def _read_known_clients_yaml() -> str:
-        yaml_file = pkg_resources.resource_string(__name__, 'knownclients.yaml')
+        file_name = pkg_resources.resource_filename(__name__, 'knownclients.yaml')
+        with open(file_name, 'r', encoding='utf-8-sig') as file:
+            yaml_file = file.read()
+
         return yaml_file
 
     @staticmethod
     def _create_parser_data_from_yaml(yaml_content) -> list[user_agent_parser.UserAgentParser]:
         data = yaml.safe_load(yaml_content)
-        return [user_agent_parser.UserAgentParser(family, regex) for family, regex in data["user_agent_parsers"]]
+
+        parsers: list[user_agent_parser.UserAgentParser] = []
+
+        for parser in data["user_agent_parsers"]:
+            regex = parser["regex"]
+
+            family_replacement = parser.get("family_replacement")
+            v1_replacement = parser.get("v1_replacement")
+            v2_replacement = parser.get("v2_replacement")
+
+            parsers.append(
+                user_agent_parser.UserAgentParser(
+                    regex, family_replacement, v1_replacement, v2_replacement
+                )
+            )
+
+        return parsers
 
     _MAX_CACHE_SIZE = 200
     _PARSE_CACHE: dict[str, UserAgent] = {}
