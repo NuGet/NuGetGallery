@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -231,6 +231,11 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 Uri storageUri = GetUri(GetName(resourceUri));
                 Trace.WriteLine(String.Format("{0} {1}", method, storageUri));
             }
+        }
+
+        public static string RemoveQueryString(Uri storageUri)
+        {
+            return storageUri.GetLeftPart(UriPartial.Path);
         }
 
         private string TraceException(string method, Uri resourceUri, Exception exception)

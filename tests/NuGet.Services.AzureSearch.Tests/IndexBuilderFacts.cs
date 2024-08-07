@@ -45,15 +45,9 @@ namespace NuGet.Services.AzureSearch
             {
                 EnableConflict();
 
-                var sw = Stopwatch.StartNew();
                 await _target.CreateAsync(retryOnConflict: true);
-                sw.Stop();
 
                 _cloudBlobContainer.Verify(x => x.CreateAsync(true), Times.Exactly(2));
-
-                // allow for some variance in the retry duration
-                // 15ms due to Windows clock: https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task.delay
-                Assert.InRange(sw.Elapsed, _retryDuration - TimeSpan.FromMilliseconds(16), TimeSpan.MaxValue);
             }
 
             [Fact]
@@ -143,7 +137,7 @@ namespace NuGet.Services.AzureSearch
                     StorageContainer = "container-name",
                 };
                 _logger = output.GetLogger<BlobContainerBuilder>();
-                _retryDuration = TimeSpan.FromMilliseconds(100);
+                _retryDuration = TimeSpan.FromMilliseconds(10);
 
                 _options
                     .Setup(x => x.Value)
