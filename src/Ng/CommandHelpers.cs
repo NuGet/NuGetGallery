@@ -214,11 +214,11 @@ namespace Ng
                 var storageAccountName = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageAccountName]);
                 var storageContainer = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageContainer]);
                 var storagePath = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StoragePath]);
-                var storageSuffix = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageSuffix]);
+                var storageSuffix = arguments.GetOrDefault(argumentNameMap[Arguments.StorageSuffix], "core.windows.net");
                 var storageOperationMaxExecutionTime = MaxExecutionTime(arguments.GetOrDefault<int>(argumentNameMap[Arguments.StorageOperationMaxExecutionTimeInSeconds]));
                 var storageServerTimeout = MaxExecutionTime(arguments.GetOrDefault<int>(argumentNameMap[Arguments.StorageServerTimeoutInSeconds]));
                 var storageUseServerSideCopy = arguments.GetOrDefault<bool>(argumentNameMap[Arguments.StorageUseServerSideCopy]);
-                var storageInitializeContainer = arguments.GetOrDefault<bool>(argumentNameMap[Arguments.StorageInitializeContainer], defaultValue: true);
+                var storageInitializeContainer = arguments.GetOrDefault(argumentNameMap[Arguments.StorageInitializeContainer], defaultValue: true);
 
                 BlobServiceClient account = GetBlobServiceClient(storageAccountName, storageSuffix, arguments, argumentNameMap);
 
@@ -382,7 +382,7 @@ namespace Ng
                     storageSasValue = storageSasValue.Substring(1);
                 }
 
-                connectionString = $"BlobEndpoint=https://{storageAccountName}.blob.core.windows.net/;SharedAccessSignature={storageSasValue}";
+                connectionString = $"BlobEndpoint=https://{storageAccountName}.blob.{endpointSuffix}/;SharedAccessSignature={storageSasValue}";
             }
             else
             {
@@ -401,7 +401,7 @@ namespace Ng
             if (string.IsNullOrEmpty(storageKeyValue))
             {
                 var storageSasValue = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageSasValue]);
-                connectionString = $"BlobEndpoint=https://{storageAccountName}.blob.core.windows.net/;SharedAccessSignature={storageSasValue}";
+                connectionString = $"BlobEndpoint=https://{storageAccountName}.blob.{endpointSuffix}/;SharedAccessSignature={storageSasValue}";
             }
             else
             {
