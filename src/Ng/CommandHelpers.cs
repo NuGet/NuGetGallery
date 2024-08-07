@@ -8,6 +8,9 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
+using Azure;
+using Azure.Identity;
+using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Queues;
 using Microsoft.Extensions.Logging;
@@ -111,7 +114,7 @@ namespace Ng
                     keyVaultConfig = new KeyVaultConfiguration(
                         vaultName,
                         tenantId,
-                        clientId, 
+                        clientId,
                         keyVaultCertificate,
                         sendX5c);
                 }
@@ -190,7 +193,6 @@ namespace Ng
             if (!string.IsNullOrEmpty(storageBaseAddressStr))
             {
                 storageBaseAddressStr = storageBaseAddressStr.TrimEnd('/') + "/";
-
                 storageBaseAddress = new Uri(storageBaseAddressStr);
             }
 
@@ -214,7 +216,7 @@ namespace Ng
                 var storageAccountName = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageAccountName]);
                 var storageContainer = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageContainer]);
                 var storagePath = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StoragePath]);
-                var storageSuffix = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageSuffix]);
+                var storageSuffix = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageSuffix], "core.windows.net");
                 var storageOperationMaxExecutionTime = MaxExecutionTime(arguments.GetOrDefault<int>(argumentNameMap[Arguments.StorageOperationMaxExecutionTimeInSeconds]));
                 var storageServerTimeout = MaxExecutionTime(arguments.GetOrDefault<int>(argumentNameMap[Arguments.StorageServerTimeoutInSeconds]));
                 var storageUseServerSideCopy = arguments.GetOrDefault<bool>(argumentNameMap[Arguments.StorageUseServerSideCopy]);
@@ -357,7 +359,7 @@ namespace Ng
                 var storageAccountName = arguments.GetOrThrow<string>(Arguments.StorageAccountName);
                 var storageQueueName = arguments.GetOrDefault<string>(Arguments.StorageQueueName);
 
-                QueueServiceClient account = GetQueueServiceClient(storageAccountName, endpointSuffix: null, arguments, ArgumentNames);
+                QueueServiceClient account = GetQueueServiceClient(storageAccountName, arguments, ArgumentNames);
                 return new StorageQueue<T>(new AzureStorageQueue(account, storageQueueName),
                     new JsonMessageSerializer<T>(JsonSerializerUtility.SerializerSettings), version);
             }
@@ -369,46 +371,55 @@ namespace Ng
 
         private static BlobServiceClient GetBlobServiceClient(string storageAccountName, string endpointSuffix, IDictionary<string, string> arguments, IDictionary<string, string> argumentNameMap)
         {
-            var storageKeyValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageKeyValue]);
+            var useManagedIdentity = arguments.GetOrDefault<bool>(argumentNameMap[Arguments.UseManagedIdentity]);
+            var storageSasValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageSasValue]);
 
-            string connectionString;
+            string blobServiceUrl = $"https://{storageAccountName}.blob.{endpointSuffix}";
 
-            if (string.IsNullOrEmpty(storageKeyValue))
+            if (useManagedIdentity && string.IsNullOrEmpty(storageSasValue))
             {
-                var storageSasValue = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageSasValue]);
-                if (storageSasValue.StartsWith("?"))
-                {
-                    // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
-                    storageSasValue = storageSasValue.Substring(1);
-                }
+                var clientId = arguments.GetOrDefault<string>(argumentNameMap[Arguments.ClientId]);
+                var managedIdentityCredential = new ManagedIdentityCredential(clientId);
 
-                connectionString = $"BlobEndpoint=https://{storageAccountName}.blob.core.windows.net/;SharedAccessSignature={storageSasValue}";
+                return new BlobServiceClient(new Uri(blobServiceUrl), managedIdentityCredential);
             }
-            else
+            else if (!string.IsNullOrEmpty(storageSasValue))
             {
-                connectionString = $"DefaultEndpointsProtocol=https;AccountName={storageAccountName};AccountKey={storageKeyValue};EndpointSuffix={endpointSuffix}";
+                var sasTokenCredential = new AzureSasCredential(storageSasValue);
+                return new BlobServiceClient(new Uri(blobServiceUrl), sasTokenCredential);
             }
 
-            return new BlobServiceClient(connectionString);
+            var storageKeyValue = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageKeyValue]);
+            var keyCredential = new StorageSharedKeyCredential(storageAccountName, storageKeyValue);
+
+            return new BlobServiceClient(new Uri(blobServiceUrl), keyCredential);
         }
 
-        private static QueueServiceClient GetQueueServiceClient(string storageAccountName, string endpointSuffix, IDictionary<string, string> arguments, IDictionary<string, string> argumentNameMap)
+        private static QueueServiceClient GetQueueServiceClient(string storageAccountName, IDictionary<string, string> arguments, IDictionary<string, string> argumentNameMap)
         {
-            var storageKeyValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageKeyValue]);
+            var useManagedIdentity = arguments.GetOrDefault<bool>(argumentNameMap[Arguments.UseManagedIdentity]);
+            var storageSasValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageSasValue]);
 
-            string connectionString;
+            string queueServiceUrl = $"https://{storageAccountName}.queue.core.windows.net";
 
-            if (string.IsNullOrEmpty(storageKeyValue))
+            if (useManagedIdentity && string.IsNullOrEmpty(storageSasValue))
             {
-                var storageSasValue = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageSasValue]);
-                connectionString = $"BlobEndpoint=https://{storageAccountName}.blob.core.windows.net/;SharedAccessSignature={storageSasValue}";
+                var clientId = arguments.GetOrDefault<string>(argumentNameMap[Arguments.ClientId]);
+                var managedIdentityCredential = new ManagedIdentityCredential(clientId);
+
+                return new QueueServiceClient(new Uri(queueServiceUrl), managedIdentityCredential);
             }
-            else
+            else if (!string.IsNullOrEmpty(storageSasValue))
             {
-                connectionString = $"DefaultEndpointsProtocol=https;AccountName={storageAccountName};AccountKey={storageKeyValue};EndpointSuffix={endpointSuffix}";
+                var sasTokenCredential = new AzureSasCredential(storageSasValue);
+
+                return new QueueServiceClient(new Uri(queueServiceUrl), sasTokenCredential);
             }
 
-            return new QueueServiceClient(connectionString);
+            var storageKeyValue = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageKeyValue]);
+            var keyCredential = new StorageSharedKeyCredential(storageAccountName, storageKeyValue);
+
+            return new QueueServiceClient(new Uri(queueServiceUrl), keyCredential);
         }
 
     }

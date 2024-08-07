@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using Autofac;
+using Azure.Identity;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,6 +32,12 @@ namespace NuGet.Jobs.Catalog2Registration
                 .Register<ICloudBlobClient>(c =>
                 {
                     var options = c.Resolve<IOptionsSnapshot<Catalog2RegistrationConfiguration>>();
+
+                    if (options.Value.UseManagedIdentity && !options.Value.HasSasToken)
+                    {
+                        return CloudBlobClientWrapper.UsingMsi(options.Value.StorageConnectionString, options.Value.ManagedIdentityClientId);
+                    }
+
                     return new CloudBlobClientWrapper(
                         options.Value.StorageConnectionString,
                         requestTimeout: DefaultBlobRequestOptions.ServerTimeout);
@@ -57,10 +64,14 @@ namespace NuGet.Jobs.Catalog2Registration
                 {
                     var options = c.Resolve<IOptionsSnapshot<Catalog2RegistrationConfiguration>>();
 
-                    // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
-                    var connectionString = options.Value.StorageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+                    if (options.Value.UseManagedIdentity && !options.Value.HasSasToken)
+                    {
+                        var credential = new ManagedIdentityCredential(options.Value.ManagedIdentityClientId);
 
-                    return new BlobServiceClient(connectionString);
+                        return new BlobServiceClient(new Uri(options.Value.StorageServiceUrl), credential);
+                    }
+
+                    return new BlobServiceClient(options.Value.StorageConnectionString);
                 })
                 .Keyed<BlobServiceClient>(CursorBindingKey);
 
