@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
@@ -11,33 +11,52 @@ namespace NgTests
 {
     public class StorageFactoryTests
     {
-        [Theory]
-        [Description("The regular azure factory should not compress the content if.")]
-        [InlineData("http://localhost/reg", "testAccount", "DummyDUMMYpZxLeDumMyyN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAdummyw==", "testContainer", "testStoragePath", "azure", "core.windows.net")]
-        public void AzureFactory(string storageBaseAddress,
-                                 string storageAccountName,
-                                 string storageKeyValue,
-                                 string storageContainer,
-                                 string storagePath,
-                                 string storageType,
-                                 string storageSuffix)
+        private const string DummyKey = "DummyDUMMYpZxLeDumMyyN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAdummyw==";
+
+        [Fact]
+        public void AzureFactory_DefaultsToAzurePublicWithNoCompression()
         {
+            // Arrange
             Dictionary<string, string> arguments = new Dictionary<string, string>()
             {
-                { Arguments.StorageBaseAddress, storageBaseAddress },
-                { Arguments.StorageAccountName, storageAccountName },
-                { Arguments.StorageKeyValue, storageKeyValue },
-                { Arguments.StorageContainer, storageContainer },
-                { Arguments.StoragePath, storagePath },
-                { Arguments.StorageType, storageType},
-                { Arguments.StorageSuffix, storageSuffix} // Without BlobServiceClient couldn't create new instance. 
+                { Arguments.StorageBaseAddress, "http://localhost/reg" },
+                { Arguments.StorageAccountName, "testAccount" },
+                { Arguments.StorageKeyValue, DummyKey },
+                { Arguments.StorageContainer, "testContainer" },
+                { Arguments.StoragePath, "testStoragePath" },
+                { Arguments.StorageType, "azure" },
             };
 
+            // Act
             StorageFactory factory = CommandHelpers.CreateStorageFactory(arguments, true);
-            AzureStorageFactory azureFactory = factory as AzureStorageFactory;
+
             // Assert
-            Assert.True(azureFactory != null, "The CreateCompressedStorageFactory should return an AzureStorageFactory type.");
+            var azureFactory = Assert.IsType<AzureStorageFactory>(factory);
             Assert.False(azureFactory.CompressContent, "The azure storage factory should not compress the content.");
+            Assert.Equal("https://testaccount.blob.core.windows.net/testContainer/testStoragePath/", azureFactory.DestinationAddress.AbsoluteUri);
+        }
+
+        [Fact]
+        public void AzureFactory_AllowsCustomStorageSuffix()
+        {
+            // Arrange
+            Dictionary<string, string> arguments = new Dictionary<string, string>()
+            {
+                { Arguments.StorageBaseAddress, "http://localhost/reg" },
+                { Arguments.StorageAccountName, "testAccount" },
+                { Arguments.StorageKeyValue, DummyKey },
+                { Arguments.StorageContainer, "testContainer" },
+                { Arguments.StoragePath, "testStoragePath" },
+                { Arguments.StorageType, "azure" },
+                { Arguments.StorageSuffix, "core.chinacloudapi.cn" },
+            };
+
+            // Act
+            StorageFactory factory = CommandHelpers.CreateStorageFactory(arguments, true);
+
+            // Assert
+            var azureFactory = Assert.IsType<AzureStorageFactory>(factory);
+            Assert.Equal("https://testaccount.blob.core.chinacloudapi.cn/testContainer/testStoragePath/", azureFactory.DestinationAddress.AbsoluteUri);
         }
     }
 }
