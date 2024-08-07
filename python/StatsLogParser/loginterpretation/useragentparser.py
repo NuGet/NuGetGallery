@@ -1,20 +1,14 @@
 from __future__ import annotations
-from typing import Optional
-import pkg_resources
-import re
 from collections import namedtuple
+from typing import Optional
+import re
+import pkg_resources
 from ua_parser import user_agent_parser
 from ua_parser._regexes import USER_AGENT_PARSERS
 import yaml
 
 UserAgent = namedtuple('UserAgent', ['family', 'major', 'minor', 'patch'])
 
-def initializestatic(cls):
-    """Decorator to initialize static variables of a class."""
-    cls.__static_init__()
-    return cls
-
-@initializestatic
 class UserAgentParser:
     """UserAgentParser class to parse user agent string."""
     DEFAULT_PARSER_DATA = USER_AGENT_PARSERS
@@ -59,7 +53,7 @@ class UserAgentParser:
     @staticmethod
     def _create_parser_data_from_yaml(yaml_content) -> list[user_agent_parser.UserAgentParser]:
         data = yaml.safe_load(yaml_content)
-        return [user_agent_parser.UserAgentParser(family, regex, v1_replacement, v2_replacement) for family, regex, v1_replacement, v2_replacement in data["user_agent_parsers"]]
+        return [user_agent_parser.UserAgentParser(family, regex) for family, regex in data["user_agent_parsers"]]
 
     _MAX_CACHE_SIZE = 200
     _PARSE_CACHE: dict[str, UserAgent] = {}
@@ -98,10 +92,12 @@ class UserAgentParser:
 
     @staticmethod
     def _parse_user_agent_with_parsers(user_agent_string: str, parsers: list[user_agent_parser.UserAgentParser]) -> UserAgent:
-        for uaParser in parsers:
-            family, v1, v2, v3 = uaParser.Parse(user_agent_string)
+        for ua_parser in parsers:
+            family, v1, v2, v3 = ua_parser.Parse(user_agent_string)
             if family:
                 break
 
         family = family or "Other"
         return UserAgent(family, v1 or None, v2 or None, v3 or None)
+
+UserAgentParser.__static_init__()
