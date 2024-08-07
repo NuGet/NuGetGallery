@@ -7,4 +7,5 @@ iniconfig==2.0.0
 packaging==24.1
 pluggy==1.5.0
 pytest==8.3.2
+pyyaml==6.0.1
 tomli==2.0.1
