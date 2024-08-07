@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -8,13 +8,13 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
     public sealed class SearchEndpointConfiguration
     {
-        public SearchEndpointConfiguration(IReadOnlyList<Uri> cursorUris, Uri baseUri)
+        public SearchEndpointConfiguration(IReadOnlyList<SearchCursorConfiguration> cursors, Uri baseUri)
         {
-            CursorUris = cursorUris;
+            Cursors = cursors;
             BaseUri = baseUri;
         }
 
-        public IReadOnlyList<Uri> CursorUris { get; }
+        public IReadOnlyList<SearchCursorConfiguration> Cursors { get; }
         public Uri BaseUri { get; }
     }
 }
