@@ -1,80 +1,105 @@
-import pkgutil
+from __future__ import annotations
+from typing import Optional
+import pkg_resources
 import re
+from collections import namedtuple
 from ua_parser import user_agent_parser
-import logging
+from ua_parser._regexes import USER_AGENT_PARSERS
+import yaml
+
+UserAgent = namedtuple('UserAgent', ['family', 'major', 'minor', 'patch'])
+
 
 class UserAgentParser:
-    def __init__(self):
-        self._default_parser = user_agent_parser.Parse
-        self._known_clients_parser = self._load_known_clients_parser()
-        self._known_clients_in_china_parser = self._load_known_clients_in_china_parser()
 
-    def _load_known_clients_parser(self):
-        yaml_content = self._read_known_clients_yaml()
-        return self._create_parser_from_yaml(yaml_content)
+    DEFAULT_PARSER_DATA = USER_AGENT_PARSERS
+    KNOWN_CLIENTS_DATA: list[user_agent_parser.UserAgentParser]
+    KNOWN_CLIENTS_IN_CHINA_DATA: list[user_agent_parser.UserAgentParser]
 
+    @classmethod
+    def _initialize_class(cls):
+        cls.KNOWN_CLIENTS_DATA = cls._load_known_clients_parser()
+        cls.KNOWN_CLIENTS_IN_CHINA_DATA = cls._load_known_clients_in_china_parser()
+
+    @staticmethod
+    def _load_known_clients_parser():
+        yaml_content = UserAgentParser._read_known_clients_yaml()
+        return UserAgentParser._create_parser_from_yaml(yaml_content)
+
+    @staticmethod
     def _load_known_clients_in_china_parser(self):
-        yaml_content = self._read_known_clients_yaml()
-        patched_yaml = self._add_support_for_china_cdn(yaml_content)
-        return self._create_parser_from_yaml(patched_yaml)
+        yaml_content = UserAgentParser._read_known_clients_yaml()
+        patched_yaml = UserAgentParser._add_support_for_china_cdn(yaml_content)
+        return UserAgentParser._create_parser_from_yaml(patched_yaml)
 
-    def _add_support_for_china_cdn(self, yaml_content):
+    @staticmethod
+    def _add_support_for_china_cdn(yaml_content):
         patched_yaml = re.sub(
             r"(?:[:]\s'\()+([\w-.\s]+)(?:\))+",
-            self._replace_whitespace_with_plus_sign,
+            UserAgentParser._replace_whitespace_with_plus_sign,
             yaml_content,
             flags=re.DOTALL
         )
         return patched_yaml
 
-    def _replace_whitespace_with_plus_sign(self, match):
+    @staticmethod
+    def _replace_whitespace_with_plus_sign(match):
         return ": '(" + match.group(1).replace(" ", r"\+") + ")"
 
-    def _read_known_clients_yaml(self) -> str:
-        try:
-            #data = pkgutil. (__name__, 'knownclients.yaml')
-            return ""
-        except Exception as e:
-            logging.error(f"Failed to read known clients YAML: {str(e)}")
-            return ""
+    @staticmethod
+    def _read_known_clients_yaml() -> str:
+        yaml_file = pkg_resources.resource_string(__name__, 'knownclients.yaml')
+        return yaml_file
 
-    def _create_parser_from_yaml(self, yaml_content):
-        return user_agent_parser.Parse
+    @staticmethod
+    def _create_parser_data_from_yaml(yaml_content) -> list[user_agent_parser.UserAgentParser]:
+        data = yaml.safe_load(yaml_content)
+        return [user_agent_parser.UserAgentParser(family, regex, v1_replacement, v2_replacement) for family, regex, v1_replacement, v2_replacement in data["user_agent_parsers"]]
 
-    def parse_user_agent(self, user_agent):
-        parsed_result = self._parse_with_known_clients_parser(user_agent, self._known_clients_parser)
-        if parsed_result['user_agent']['family'].lower() == 'other':
-            parsed_result = self._parse_with_known_clients_parser(user_agent, self._known_clients_in_china_parser)
-        if parsed_result['user_agent']['family'].lower() == 'other':
-            parsed_result = self._default_parser(user_agent)
-        return parsed_result
+    _MAX_CACHE_SIZE = 200
+    _PARSE_CACHE: dict[str, UserAgent] = {}
 
-    def parse_os(self, user_agent):
-        parsed_result = self._parse_with_parser(user_agent, self._known_clients_parser, user_agent_parser.ParseOS)
-        if parsed_result['os']['family'].lower() == 'other':
-            parsed_result = self._parse_with_parser(user_agent, self._known_clients_in_china_parser, user_agent_parser.ParseOS)
-        if parsed_result['os']['family'].lower() == 'other':
-            parsed_result = user_agent_parser.ParseOS(user_agent)
-        return parsed_result
+    @staticmethod
+    def _lookup(ua: str) -> Optional[UserAgent]:
 
-    def parse_device(self, user_agent):
-        parsed_result = self._parse_with_parser(user_agent, self._known_clients_parser, user_agent_parser.ParseDevice)
-        if parsed_result['device']['family'].lower() == 'other':
-            parsed_result = self._parse_with_parser(user_agent, self._known_clients_in_china_parser, user_agent_parser.ParseDevice)
-        if parsed_result['device']['family'].lower() == 'other':
-            parsed_result = user_agent_parser.ParseDevice(user_agent)
-        return parsed_result
+        entry = UserAgentParser._PARSE_CACHE.get(ua)
+        if entry is not None:
+            return entry
 
-    def _parse_with_known_clients_parser(self, user_agent, parser):
-        try:
-            return parser(user_agent)
-        except Exception as e:
-            logging.error(f"Failed to parse with known clients parser: {str(e)}")
-            return {'user_agent': {'family': 'other'}}
+        if len(UserAgentParser._PARSE_CACHE) >= UserAgentParser._MAX_CACHE_SIZE:
+            UserAgentParser._PARSE_CACHE.clear()
 
-    def _parse_with_parser(self, user_agent, parser, parse_function):
-        try:
-            return parse_function(user_agent)
-        except Exception as e:
-            logging.error(f"Failed to parse with parser: {str(e)}")
-            return {'os': {'family': 'other'}, 'device': {'family': 'other'}}
+        return None
+
+    @staticmethod
+    def parse(user_agent_string):
+        """Parse using known clients parser, then known clients in China parser, then default parser.
+        """
+        entry = UserAgentParser._lookup(user_agent_string)
+
+        if entry is not None:
+            return entry
+
+        # Try known clients parser
+        entry = UserAgentParser._parse_user_agent_with_parsers(user_agent_string, UserAgentParser.KNOWN_CLIENTS_DATA)
+
+        if entry.family.lower() == 'other': # Try China parser
+            entry = UserAgentParser._parse_user_agent_with_parsers(user_agent_string, UserAgentParser.KNOWN_CLIENTS_IN_CHINA_DATA)
+
+        if entry.family.lower() == 'other': # Try default parser
+            entry = UserAgentParser._parse_user_agent_with_parsers(user_agent_string, UserAgentParser.DEFAULT_PARSER_DATA)
+
+        UserAgentParser._PARSE_CACHE[user_agent_string] = entry
+        return entry
+
+    @staticmethod
+    def _parse_user_agent_with_parsers(user_agent_string: str, parsers: list[user_agent_parser.UserAgentParser]) -> UserAgent:
+            for uaParser in parsers:
+                family, v1, v2, v3 = uaParser.Parse(user_agent_string)
+                if family:
+                    break
+
+            family = family or "Other"
+            return UserAgent(family, v1 or None, v2 or None, v3 or None)
+
+    _initialize_class()
