@@ -31,6 +31,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="loginterpretation\semanticversion.py" />
+    <Compile Include="loginterpretation\useragentparser.py" />
     <Compile Include="loginterpretation\__init__.py">
       <SubType>Code</SubType>
     </Compile>
@@ -51,6 +52,7 @@
     </Interpreter>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="loginterpretation\knownclients.yaml" />
     <Content Include="requirements.txt" />
   </ItemGroup>
   <ItemGroup>
