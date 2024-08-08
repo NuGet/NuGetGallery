@@ -53,9 +53,6 @@ namespace NuGetGallery
             }
         }
 
-        internal static IDictionary<string, int> GetQueueStats()
-        {
-            return _queues.ToDictionary(p => p.Key, p => p.Value.Count);
-        }
+        internal static IDictionary<string, int> GetQueueStats() => _queues.ToDictionary(p => p.Key, p => p.Value.Count);
     }
 }

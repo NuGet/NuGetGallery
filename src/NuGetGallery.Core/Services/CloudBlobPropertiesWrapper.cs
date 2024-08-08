@@ -6,14 +6,9 @@ using Azure.Storage.Blobs.Models;
 
 namespace NuGetGallery
 {
-    internal class CloudBlobPropertiesWrapper : ICloudBlobProperties
+    internal class CloudBlobPropertiesWrapper(CloudBlobWrapper cloudBlobWrapper) : ICloudBlobProperties
     {
-        private readonly CloudBlobWrapper _blob;
-
-        public CloudBlobPropertiesWrapper(CloudBlobWrapper cloudBlobWrapper)
-        {
-            _blob = cloudBlobWrapper ?? throw new ArgumentNullException(nameof(cloudBlobWrapper));
-        }
+        private readonly CloudBlobWrapper _blob = cloudBlobWrapper ?? throw new ArgumentNullException(nameof(cloudBlobWrapper));
 
         public DateTimeOffset? LastModified => _blob.BlobProperties.LastModifiedUtc;
 

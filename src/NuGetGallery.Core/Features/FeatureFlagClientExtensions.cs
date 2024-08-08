@@ -22,18 +22,11 @@ namespace NuGetGallery.Features
             return client.IsEnabled(flight, flightUser, defaultValue);
         }
 
-        private class FlightUser : IFlightUser
+        private class FlightUser(User user) : IFlightUser
         {
-            public FlightUser(User user)
-            {
-                Username = user.Username;
-                EmailAddress = user.EmailAddress;
-                IsSiteAdmin = user.IsAdministrator;
-            }
-
-            public string Username { get; }
-            public string EmailAddress { get; }
-            public bool IsSiteAdmin { get; }
+            public string Username { get; } = user.Username;
+            public string EmailAddress { get; } = user.EmailAddress;
+            public bool IsSiteAdmin { get; } = user.IsAdministrator;
         }
     }
 }

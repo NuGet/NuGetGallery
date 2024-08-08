@@ -8,14 +8,9 @@ using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
-    public class ReadOnlyEntitiesContext : IReadOnlyEntitiesContext
+    public class ReadOnlyEntitiesContext(DbConnection connection) : IReadOnlyEntitiesContext
     {
-        private readonly EntitiesContext _entitiesContext; 
-        
-        public ReadOnlyEntitiesContext(DbConnection connection)
-        { 
-            _entitiesContext = new EntitiesContext(connection, readOnly: true);
-        }
+        private readonly EntitiesContext _entitiesContext = new EntitiesContext(connection, readOnly: true);
 
         public DbSet<Package> Packages
         {
@@ -31,20 +26,11 @@ namespace NuGetGallery
 
         public string QueryHint => _entitiesContext.QueryHint;
 
-        DbSet<T> IReadOnlyEntitiesContext.Set<T>()
-        {
-            return _entitiesContext.Set<T>();
-        }
+        DbSet<T> IReadOnlyEntitiesContext.Set<T>() => _entitiesContext.Set<T>();
 
-        public void SetCommandTimeout(int? seconds)
-        {
-            _entitiesContext.SetCommandTimeout(seconds);
-        }
+        public void SetCommandTimeout(int? seconds) => _entitiesContext.SetCommandTimeout(seconds);
 
-        public void Dispose()
-        {
-            _entitiesContext.Dispose();
-        }
+        public void Dispose() => _entitiesContext.Dispose();
 
         public IDisposable WithQueryHint(string queryHint) => _entitiesContext.WithQueryHint(queryHint);
     }

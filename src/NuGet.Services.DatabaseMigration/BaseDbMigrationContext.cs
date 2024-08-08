@@ -23,9 +23,6 @@ namespace NuGet.Services.DatabaseMigration
             }
         }
 
-        public void Dispose()
-        {
-            SqlConnection?.Dispose();
-        }
+        public void Dispose() => SqlConnection?.Dispose();
     }
 }

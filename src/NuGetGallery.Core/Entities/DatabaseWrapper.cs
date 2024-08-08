@@ -9,24 +9,15 @@ using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
-    public class DatabaseWrapper : IDatabase
+    public class DatabaseWrapper(Database database) : IDatabase
     {
-        private Database _database;
+        private Database _database = database ?? throw new ArgumentNullException(nameof(database));
 
-        public DatabaseWrapper(Database database)
-        {
-            _database = database ?? throw new ArgumentNullException(nameof(database));
-        }
-        
-        public Task<int> ExecuteSqlCommandAsync(string sql, params object[] parameters)
-        {
-            return _database.ExecuteSqlCommandAsync(sql, parameters);
-        }
+        public Task<int> ExecuteSqlCommandAsync(string sql, params object[] parameters) => 
+            _database.ExecuteSqlCommandAsync(sql, parameters);
 
-        public IDbContextTransaction BeginTransaction()
-        {
-            return new DbContextTransactionWrapper(_database.BeginTransaction());
-        }
+        public IDbContextTransaction BeginTransaction() =>
+            new DbContextTransactionWrapper(_database.BeginTransaction());
 
         /// <summary>
         /// Execute an embedded resource SQL script.

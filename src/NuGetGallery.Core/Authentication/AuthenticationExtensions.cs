@@ -10,17 +10,13 @@ namespace NuGetGallery.Authentication
 {
     public static class AuthenticationExtensions
     {
-        public static string GetClaimOrDefault(this ClaimsIdentity self, string claimType)
-        {
-            return self.Claims.GetClaimOrDefault(claimType);
-        }
+        public static string GetClaimOrDefault(this ClaimsIdentity self, string claimType) =>
+            self.Claims.GetClaimOrDefault(claimType);
 
-        public static string GetClaimOrDefault(this IEnumerable<Claim> self, string claimType)
-        {
-            return self
+        public static string GetClaimOrDefault(this IEnumerable<Claim> self, string claimType) => 
+            self
                 .Where(c => string.Equals(c.Type, claimType, StringComparison.OrdinalIgnoreCase))
                 .Select(c => c.Value)
                 .FirstOrDefault();
-        }
     }
 }

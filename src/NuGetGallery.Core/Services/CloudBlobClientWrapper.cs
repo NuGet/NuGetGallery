@@ -194,10 +194,8 @@ namespace NuGetGallery
             return uriBuilder.Uri;
         }
 
-        private BlobServiceClient CreateBlobServiceClient()
-        {
-            return CreateBlobServiceClient(CreateBlobOptions(_readAccessGeoRedundant));
-        }
+        private BlobServiceClient CreateBlobServiceClient() => 
+            CreateBlobServiceClient(CreateBlobOptions(_readAccessGeoRedundant));
 
         private BlobClientOptions CreateBlobOptions(bool readAccessGeoRedundant, TimeSpan? requestTimeout = null)
         {

@@ -87,10 +87,7 @@ namespace NuGetGallery.Auditing
         }
 
         public UserAuditRecord(User user, AuditedUserAction action, string affectedEmailAddress)
-            : this(user, action)
-        {
-            AffectedEmailAddress = affectedEmailAddress;
-        }
+            : this(user, action) => AffectedEmailAddress = affectedEmailAddress;
 
         public UserAuditRecord(User user, AuditedUserAction action, User affectedMember, bool affectedMemberIsAdmin)
             : this(user, action)
@@ -115,9 +112,6 @@ namespace NuGetGallery.Auditing
             AffectedPolicies = affectedPolicies.Select(p => new AuditedUserSecurityPolicy(p)).ToArray();
         }
 
-        public override string GetPath()
-        {
-            return Username.ToLowerInvariant();
-        }
+        public override string GetPath() => Username.ToLowerInvariant();
     }
 }

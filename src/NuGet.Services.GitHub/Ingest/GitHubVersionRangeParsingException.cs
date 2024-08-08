@@ -8,14 +8,8 @@ namespace NuGet.Services.GitHub.Ingest
     /// <summary>
     /// An exception thrown by <see cref="GitHubVersionRangeParser"/> when the string provided to <see cref="GitHubVersionRangeParser.ToNuGetVersionRange(string)"/> is malformed.
     /// </summary>
-    public class GitHubVersionRangeParsingException : ArgumentException
+    public class GitHubVersionRangeParsingException(string invalidVersionRange, string message) : ArgumentException(message)
     {
-        public GitHubVersionRangeParsingException(string invalidVersionRange, string message)
-            : base(message)
-        {
-            InvalidVersionRange = invalidVersionRange;
-        }
-
-        public string InvalidVersionRange { get; set; }
+        public string InvalidVersionRange { get; set; } = invalidVersionRange;
     }
 }

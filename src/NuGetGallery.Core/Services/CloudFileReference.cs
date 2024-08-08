@@ -16,19 +16,10 @@ namespace NuGetGallery
             _stream = stream;
         }
 
-        public Stream OpenRead()
-        {
-            return _stream;
-        }
+        public Stream OpenRead() => _stream;
 
-        public static CloudFileReference NotModified(string contentId)
-        {
-            return new CloudFileReference(null, contentId);
-        }
+        public static CloudFileReference NotModified(string contentId) => new CloudFileReference(null, contentId);
 
-        public static CloudFileReference Modified(Stream data, string contentId)
-        {
-            return new CloudFileReference(data, contentId);
-        }
+        public static CloudFileReference Modified(Stream data, string contentId) => new CloudFileReference(data, contentId);
     }
 }

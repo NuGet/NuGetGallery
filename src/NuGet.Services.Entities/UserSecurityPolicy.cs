@@ -64,22 +64,17 @@ namespace NuGet.Services.Entities
         /// <summary>
         /// Determine if two policies are equal.
         /// </summary>
-        public bool Equals(UserSecurityPolicy other)
-        {
-            return Name.Equals(other.Name, StringComparison.OrdinalIgnoreCase) &&
+        public bool Equals(UserSecurityPolicy other) =>
+            Name.Equals(other.Name, StringComparison.OrdinalIgnoreCase) &&
                 Subscription.Equals(other.Subscription, StringComparison.OrdinalIgnoreCase) &&
                 (
                     (string.IsNullOrEmpty(Value) && string.IsNullOrEmpty(other.Value)) ||
                     (Value.Equals(other.Value, StringComparison.OrdinalIgnoreCase))
                 );
-        }
 
         private static readonly Func<object, long, long> _hash = (i, hash) => ((hash << 5) + hash) ^ (i?.GetHashCode() ?? 0);
         private const long _seed = 0x1505L;
 
-        public override int GetHashCode()
-        {
-            return _hash(Value, _hash(Subscription, _hash(Name, _seed))).GetHashCode();
-        }
+        public override int GetHashCode() => _hash(Value, _hash(Subscription, _hash(Name, _seed))).GetHashCode();
     }
 }

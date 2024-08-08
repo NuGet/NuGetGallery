@@ -35,9 +35,6 @@ namespace NuGetGallery.Auditing
             }
         }
 
-        public override string GetPath()
-        {
-            return Path; // store in <auditpath>/failedauthenticatedoperation/all
-        }
+        public override string GetPath() => Path; // store in <auditpath>/failedauthenticatedoperation/all
     }
 }

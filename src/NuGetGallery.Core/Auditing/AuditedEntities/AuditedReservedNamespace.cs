@@ -11,14 +11,12 @@ namespace NuGetGallery.Auditing.AuditedEntities
         public bool IsPrefix { get; private set; }
         public bool IsSharedNamespace { get; private set; }
 
-        public static AuditedReservedNamespace CreateFrom(ReservedNamespace reservedNamespace)
-        {
-            return new AuditedReservedNamespace
+        public static AuditedReservedNamespace CreateFrom(ReservedNamespace reservedNamespace) =>
+            new AuditedReservedNamespace
             {
                 Value = reservedNamespace.Value,
                 IsSharedNamespace = reservedNamespace.IsSharedNamespace,
                 IsPrefix = reservedNamespace.IsPrefix,
             };
-        }
     }
 }

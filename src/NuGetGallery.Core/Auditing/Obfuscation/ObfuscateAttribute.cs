@@ -6,13 +6,8 @@ using System;
 namespace NuGetGallery.Auditing.Obfuscation
 {
 
-    public class ObfuscateAttribute : Attribute
+    public class ObfuscateAttribute(ObfuscationType obfuscationType) : Attribute
     {
-        public ObfuscationType ObfuscationType { get; } 
-
-        public ObfuscateAttribute(ObfuscationType obfuscationType)
-        {
-            ObfuscationType = obfuscationType;
-        }
+        public ObfuscationType ObfuscationType { get; } = obfuscationType;
     }
 }

@@ -11,21 +11,15 @@ using NuGet.Versioning;
 
 namespace NuGetGallery
 {
-    public class CorePackageFileService : ICorePackageFileService
+    public class CorePackageFileService(
+        ICoreFileStorageService fileStorageService,
+        IFileMetadataService metadata) : ICorePackageFileService
     {
-        private readonly ICoreFileStorageService _fileStorageService;
-        private readonly IFileMetadataService _metadata;
+        private readonly ICoreFileStorageService _fileStorageService = fileStorageService ?? throw new ArgumentNullException(nameof(fileStorageService));
+        private readonly IFileMetadataService _metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
 
-        public CorePackageFileService(ICoreFileStorageService fileStorageService, IFileMetadataService metadata)
-        {
-            _fileStorageService = fileStorageService ?? throw new ArgumentNullException(nameof(fileStorageService));
-            _metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
-        }
-
-        public Task SavePackageFileAsync(Package package, Stream packageFile)
-        {
-            return SavePackageFileAsync(package, packageFile, overwrite: false);
-        }
+        public Task SavePackageFileAsync(Package package, Stream packageFile) =>
+            SavePackageFileAsync(package, packageFile, overwrite: false);
 
         public Task SavePackageFileAsync(Package package, Stream packageFile, bool overwrite)
         {

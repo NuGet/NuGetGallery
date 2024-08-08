@@ -51,9 +51,8 @@ namespace NuGetGallery.Auditing.AuditedEntities
         public bool HasReadMe { get; private set; }
         public int PackageStatusKey { get; private set; }
 
-        public static AuditedPackage CreateFrom(Package package)
-        {
-            return new AuditedPackage
+        public static AuditedPackage CreateFrom(Package package) =>
+            new AuditedPackage
             {
                 PackageRegistrationKey = package.PackageRegistrationKey,
                 Copyright = package.Copyright,
@@ -96,6 +95,5 @@ namespace NuGetGallery.Auditing.AuditedEntities
                 HasReadMe = package.HasReadMe,
                 PackageStatusKey = (int)package.PackageStatusKey,
             };
-        }
     }
 }

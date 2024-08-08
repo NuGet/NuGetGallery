@@ -35,26 +35,18 @@ namespace NuGetGallery
             public const string AzureActiveDirectoryAccount = Prefix + "AzureActiveDirectory";
         }
 
-        public static bool IsPassword(this Credential c)
-        {
-            return c?.Type?.StartsWith(Password.Prefix, StringComparison.OrdinalIgnoreCase) ?? false;
-        }
+        public static bool IsPassword(this Credential c) => 
+            c?.Type?.StartsWith(Password.Prefix, StringComparison.OrdinalIgnoreCase) ?? false;
 
-        public static bool IsExternal(this Credential c)
-        {
-            return c?.Type?.StartsWith(External.Prefix, StringComparison.OrdinalIgnoreCase) ?? false;
-        }
+        public static bool IsExternal(this Credential c) => 
+            c?.Type?.StartsWith(External.Prefix, StringComparison.OrdinalIgnoreCase) ?? false;
 
-        public static bool IsApiKey(this Credential c)
-        {
-            return c?.Type?.StartsWith(ApiKey.Prefix, StringComparison.OrdinalIgnoreCase) ?? false;
-        }
+        public static bool IsApiKey(this Credential c) => 
+            c?.Type?.StartsWith(ApiKey.Prefix, StringComparison.OrdinalIgnoreCase) ?? false;
 
-        public static bool IsType(this Credential c, string type)
-        {
-            return c?.Type?.Equals(type, StringComparison.OrdinalIgnoreCase) ?? false;
-        }
-      
+        public static bool IsType(this Credential c, string type) =>
+            c?.Type?.Equals(type, StringComparison.OrdinalIgnoreCase) ?? false;
+
         internal static IReadOnlyList<string> SupportedCredentialTypes = new List<string>
         {
             Password.Sha1,
@@ -72,10 +64,8 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="credential"></param>
         /// <returns></returns>
-        public static bool IsSupportedCredential(this Credential credential)
-        {
-            return credential.IsViewSupportedCredential() || IsPackageVerificationApiKey(credential.Type);
-        }
+        public static bool IsSupportedCredential(this Credential credential) =>
+            credential.IsViewSupportedCredential() || IsPackageVerificationApiKey(credential.Type);
 
         /// <summary>
         /// Determines whether a credential is supported from the user interface. For forward compatibility,
@@ -83,51 +73,32 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="credential"></param>
         /// <returns></returns>
-        public static bool IsViewSupportedCredential(this Credential credential)
-        {
-            return
-                SupportedCredentialTypes.Any(credType => credential.IsType(credType)) ||
+        public static bool IsViewSupportedCredential(this Credential credential) =>
+            SupportedCredentialTypes.Any(credType => credential.IsType(credType)) ||
                 credential.IsExternal();
-        }
 
-        public static bool IsScopedApiKey(this Credential credential)
-        {
-            return IsApiKey(credential.Type) && credential.Scopes != null && credential.Scopes.Any();
-        }
+        public static bool IsScopedApiKey(this Credential credential) =>
+            IsApiKey(credential.Type) && credential.Scopes != null && credential.Scopes.Any();
 
-        public static bool IsPassword(string type)
-        {
-            return type?.StartsWith(Password.Prefix, StringComparison.OrdinalIgnoreCase) ?? false;
-        }
+        public static bool IsPassword(string type) => 
+            type?.StartsWith(Password.Prefix, StringComparison.OrdinalIgnoreCase) ?? false;
 
-        public static bool IsApiKey(string type)
-        {
-            return type?.StartsWith(ApiKey.Prefix, StringComparison.OrdinalIgnoreCase) ?? false;
-        }
+        public static bool IsApiKey(string type) =>
+            type?.StartsWith(ApiKey.Prefix, StringComparison.OrdinalIgnoreCase) ?? false;
 
-        public static bool IsMicrosoftAccount(string type)
-        {
-            return type?.Equals(External.MicrosoftAccount, StringComparison.OrdinalIgnoreCase) ?? false;
-        }
+        public static bool IsMicrosoftAccount(string type) =>
+            type?.Equals(External.MicrosoftAccount, StringComparison.OrdinalIgnoreCase) ?? false;
 
-        public static bool IsAzureActiveDirectoryAccount(string type)
-        {
-            return type?.Equals(External.AzureActiveDirectoryAccount, StringComparison.OrdinalIgnoreCase) ?? false;
-        }
+        public static bool IsAzureActiveDirectoryAccount(string type) =>
+            type?.Equals(External.AzureActiveDirectoryAccount, StringComparison.OrdinalIgnoreCase) ?? false;
 
-        public static bool IsPackageVerificationApiKey(string type)
-        {
-            return type?.Equals(ApiKey.VerifyV1, StringComparison.OrdinalIgnoreCase) ?? false;
-        }
+        public static bool IsPackageVerificationApiKey(string type) => 
+            type?.Equals(ApiKey.VerifyV1, StringComparison.OrdinalIgnoreCase) ?? false;
 
-        public static Credential GetAzureActiveDirectoryCredential(this ICollection<Credential> credentials)
-        {
-            return credentials.SingleOrDefault(c => IsAzureActiveDirectoryAccount(c.Type));
-        }
+        public static Credential GetAzureActiveDirectoryCredential(this ICollection<Credential> credentials) =>
+            credentials.SingleOrDefault(c => IsAzureActiveDirectoryAccount(c.Type));
 
-        public static Credential GetMicrosoftAccountCredential(this ICollection<Credential> credentials)
-        {
-            return credentials.FirstOrDefault(c => IsMicrosoftAccount(c.Type));
-        }
+        public static Credential GetMicrosoftAccountCredential(this ICollection<Credential> credentials) =>
+            credentials.FirstOrDefault(c => IsMicrosoftAccount(c.Type));
     }
 }

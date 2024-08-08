@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+﻿l// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -15,10 +15,7 @@ namespace NuGet.Services.Entities
         /// Represents a credential used by NuGet Gallery. Can be an API key credential,
         /// username/password or external credential like Microsoft Account or Microsoft Entra ID.
         /// </summary>
-        public Credential()
-        {
-            Scopes = new List<Scope>();
-        }
+        public Credential() => Scopes = new List<Scope>();
 
 
         /// <summary>

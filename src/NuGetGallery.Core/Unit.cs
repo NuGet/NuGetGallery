@@ -10,24 +10,12 @@ namespace System
 
         private Unit() { }
 
-        public bool Equals(Unit other)
-        {
-            return ReferenceEquals(this, other);
-        }
+        public bool Equals(Unit other) => ReferenceEquals(this, other);
 
-        public override bool Equals(object obj)
-        {
-            return ReferenceEquals(this, obj);
-        }
+        public override bool Equals(object obj) => ReferenceEquals(this, obj);
 
-        public override string ToString()
-        {
-            return "<unit>";
-        }
+        public override string ToString() => "<unit>";
 
-        public override int GetHashCode()
-        {
-            return 0; // There can only be one!
-        }
+        public override int GetHashCode() => 0; // There can only be one!
     }
 }

@@ -40,9 +40,6 @@ namespace NuGetGallery.Auditing
         }
 
         private readonly string _path;
-        public override string GetPath()
-        {
-            return _path;
-        }
+        public override string GetPath() => _path;
     }
 }

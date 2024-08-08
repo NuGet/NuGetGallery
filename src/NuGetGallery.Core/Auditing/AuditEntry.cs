@@ -6,15 +6,9 @@ namespace NuGetGallery.Auditing
     /// <summary>
     /// Represents the actual data stored in an audit entry, an AuditRecord/AuditEnvironment pair
     /// </summary>
-    public class AuditEntry
+    public class AuditEntry(AuditRecord record, AuditActor actor)
     {
-        public AuditRecord Record { get; set; }
-        public AuditActor Actor { get; set; }
-
-        public AuditEntry(AuditRecord record, AuditActor actor)
-        {
-            Record = record;
-            Actor = actor;
-        }
+        public AuditRecord Record { get; set; } = record;
+        public AuditActor Actor { get; set; } = actor;
     }
 }

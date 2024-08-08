@@ -6,23 +6,12 @@ using System.Data.Entity;
 
 namespace NuGetGallery
 {
-    public class DbContextTransactionWrapper : IDbContextTransaction
+    public class DbContextTransactionWrapper(DbContextTransaction transaction) : IDbContextTransaction
     {
-        private readonly DbContextTransaction _transaction;
+        private readonly DbContextTransaction _transaction = transaction ?? throw new ArgumentNullException(nameof(transaction));
 
-        public DbContextTransactionWrapper(DbContextTransaction transaction)
-        {
-            _transaction = transaction ?? throw new ArgumentNullException(nameof(transaction));
-        }
+        public void Commit() => _transaction.Commit();
 
-        public void Commit()
-        {
-            _transaction.Commit();
-        }
-
-        public void Dispose()
-        {
-            _transaction.Dispose();
-        }
+        public void Dispose() => _transaction.Dispose();
     }
 }

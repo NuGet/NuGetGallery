@@ -11,24 +11,16 @@ using NuGet.Services.Cursor;
 
 namespace NuGet.Services.GitHub.Collector
 {
-    public class AdvisoryCollector : IAdvisoryCollector
+    public class AdvisoryCollector(
+        ReadWriteCursor<DateTimeOffset> cursor,
+        IAdvisoryQueryService queryService,
+        IAdvisoryIngestor ingestor,
+        ILogger<AdvisoryCollector> logger) : IAdvisoryCollector
     {
-        private readonly ReadWriteCursor<DateTimeOffset> _cursor;
-        private readonly IAdvisoryQueryService _queryService;
-        private readonly IAdvisoryIngestor _ingestor;
-        private readonly ILogger<AdvisoryCollector> _logger;
-
-        public AdvisoryCollector(
-            ReadWriteCursor<DateTimeOffset> cursor,
-            IAdvisoryQueryService queryService,
-            IAdvisoryIngestor ingestor,
-            ILogger<AdvisoryCollector> logger)
-        {
-            _cursor = cursor ?? throw new ArgumentNullException(nameof(cursor));
-            _queryService = queryService ?? throw new ArgumentNullException(nameof(queryService));
-            _ingestor = ingestor ?? throw new ArgumentNullException(nameof(ingestor));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
+        private readonly ReadWriteCursor<DateTimeOffset> _cursor = cursor ?? throw new ArgumentNullException(nameof(cursor));
+        private readonly IAdvisoryQueryService _queryService = queryService ?? throw new ArgumentNullException(nameof(queryService));
+        private readonly IAdvisoryIngestor _ingestor = ingestor ?? throw new ArgumentNullException(nameof(ingestor));
+        private readonly ILogger<AdvisoryCollector> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         public async Task<bool> ProcessAsync(CancellationToken token, bool updateCursor = true)
         {

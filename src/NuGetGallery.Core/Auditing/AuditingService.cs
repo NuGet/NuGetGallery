@@ -69,10 +69,7 @@ namespace NuGetGallery.Auditing
         /// <summary>
         /// The Auditing services can use it to stop the saving of the record before rendering.
         /// </summary>
-        public virtual bool RecordWillBePersisted(AuditRecord auditRecord)
-        {
-            return true;
-        }
+        public virtual bool RecordWillBePersisted(AuditRecord auditRecord) => true;
 
         /// <summary>
         /// Performs the actual saving of audit data to an audit store
@@ -85,10 +82,7 @@ namespace NuGetGallery.Auditing
         /// <returns>A <see cref="Task"/> that represents the asynchronous save operation.</returns> 
         protected abstract Task SaveAuditRecordAsync(string auditData, string resourceType, string filePath, string action, DateTime timestamp);
 
-        protected virtual Task<AuditActor> GetActorAsync()
-        {
-            return AuditActor.GetCurrentMachineActorAsync();
-        }
+        protected virtual Task<AuditActor> GetActorAsync() => AuditActor.GetCurrentMachineActorAsync();
 
         protected static JsonSerializerSettings GetJsonSerializerSettings()
         {
@@ -110,10 +104,8 @@ namespace NuGetGallery.Auditing
 
         private class NullAuditingService : AuditingService
         {
-            protected override Task SaveAuditRecordAsync(string auditData, string resourceType, string filePath, string action, DateTime timestamp)
-            {
-                return Task.FromResult(0);
-            }
+            protected override Task SaveAuditRecordAsync(string auditData, string resourceType, string filePath, string action, DateTime timestamp) => 
+                Task.FromResult(0);
         }
     }
 }

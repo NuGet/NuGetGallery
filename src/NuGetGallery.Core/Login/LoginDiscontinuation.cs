@@ -8,30 +8,20 @@ using NuGet.Services.Entities;
 
 namespace NuGetGallery.Login
 {
-    public class LoginDiscontinuation
+    public class LoginDiscontinuation(
+        ICollection<string> discontinuedForEmailAddresses,
+        ICollection<string> discontinuedForDomains,
+        ICollection<string> exceptionsForEmailAddresses,
+        ICollection<string> forceTransformationToOrganizationForEmailAddresses,
+        ICollection<OrganizationTenantPair> enabledOrganizationAadTenants,
+        bool isPasswordDiscontinuedForAll)
     {
-        public bool IsPasswordDiscontinuedForAll { get; }
-        public HashSet<string> DiscontinuedForEmailAddresses { get; set; }
-        public HashSet<string> DiscontinuedForDomains { get; }
-        public HashSet<string> ExceptionsForEmailAddresses { get; set; }
-        public HashSet<string> ForceTransformationToOrganizationForEmailAddresses { get; }
-        public HashSet<OrganizationTenantPair> EnabledOrganizationAadTenants { get; }
-        
-        public LoginDiscontinuation(
-            ICollection<string> discontinuedForEmailAddresses,
-            ICollection<string> discontinuedForDomains,
-            ICollection<string> exceptionsForEmailAddresses,
-            ICollection<string> forceTransformationToOrganizationForEmailAddresses,
-            ICollection<OrganizationTenantPair> enabledOrganizationAadTenants,
-            bool isPasswordDiscontinuedForAll)
-        {
-            DiscontinuedForEmailAddresses = new HashSet<string>(discontinuedForEmailAddresses, StringComparer.OrdinalIgnoreCase);
-            DiscontinuedForDomains = new HashSet<string>(discontinuedForDomains, StringComparer.OrdinalIgnoreCase);
-            ExceptionsForEmailAddresses = new HashSet<string>(exceptionsForEmailAddresses, StringComparer.OrdinalIgnoreCase);
-            ForceTransformationToOrganizationForEmailAddresses = new HashSet<string>(forceTransformationToOrganizationForEmailAddresses, StringComparer.OrdinalIgnoreCase);
-            EnabledOrganizationAadTenants = new HashSet<OrganizationTenantPair>(enabledOrganizationAadTenants);
-            IsPasswordDiscontinuedForAll = isPasswordDiscontinuedForAll;
-        }
+        public bool IsPasswordDiscontinuedForAll { get; } = isPasswordDiscontinuedForAll;
+        public HashSet<string> DiscontinuedForEmailAddresses { get; set; } = new HashSet<string>(discontinuedForEmailAddresses, StringComparer.OrdinalIgnoreCase);
+        public HashSet<string> DiscontinuedForDomains { get; } = new HashSet<string>(discontinuedForDomains, StringComparer.OrdinalIgnoreCase);
+        public HashSet<string> ExceptionsForEmailAddresses { get; set; } = new HashSet<string>(exceptionsForEmailAddresses, StringComparer.OrdinalIgnoreCase);
+        public HashSet<string> ForceTransformationToOrganizationForEmailAddresses { get; } = new HashSet<string>(forceTransformationToOrganizationForEmailAddresses, StringComparer.OrdinalIgnoreCase);
+        public HashSet<OrganizationTenantPair> EnabledOrganizationAadTenants { get; } = new HashSet<OrganizationTenantPair>(enabledOrganizationAadTenants);
 
         public bool IsUserInAllowList(User user)
         {
@@ -72,10 +62,7 @@ namespace NuGetGallery.Login
             return EnabledOrganizationAadTenants.Contains(new OrganizationTenantPair(new System.Net.Mail.MailAddress(emailAddress).Host, tenantId));
         }
 
-        public bool IsPasswordLoginDiscontinuedForAll()
-        {
-            return IsPasswordDiscontinuedForAll;
-        }
+        public bool IsPasswordLoginDiscontinuedForAll() => IsPasswordDiscontinuedForAll;
 
         public bool IsEmailInExceptionsList(string emailAddress)
         {
@@ -88,47 +75,36 @@ namespace NuGetGallery.Login
         }
 
         public bool AddEmailToExceptionsList(string emailAddress)
-        { 
+        {
             if (string.IsNullOrEmpty(emailAddress))
-            { 
+            {
                 return false;
             }
             return ExceptionsForEmailAddresses.Add(emailAddress);
         }
-        
+
         public bool RemoveEmailFromExceptionsList(string emailAddress)
-        { 
+        {
             if (string.IsNullOrEmpty(emailAddress))
-            { 
+            {
                 return false;
             }
             return ExceptionsForEmailAddresses.Remove(emailAddress);
         }
     }
 
-    public class OrganizationTenantPair : IEquatable<OrganizationTenantPair>
+    [method: JsonConstructor]
+    public class OrganizationTenantPair(string emailDomain, string tenantId) : IEquatable<OrganizationTenantPair>
     {
-        public string EmailDomain { get; }
-        public string TenantId { get; }
+        public string EmailDomain { get; } = emailDomain ?? throw new ArgumentNullException(nameof(emailDomain));
+        public string TenantId { get; } = tenantId ?? throw new ArgumentNullException(nameof(tenantId));
 
-        [JsonConstructor]
-        public OrganizationTenantPair(string emailDomain, string tenantId)
-        {
-            EmailDomain = emailDomain ?? throw new ArgumentNullException(nameof(emailDomain));
-            TenantId = tenantId ?? throw new ArgumentNullException(nameof(tenantId));
-        }
+        public override bool Equals(object obj) => Equals(obj as OrganizationTenantPair);
 
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as OrganizationTenantPair);
-        }
-
-        public bool Equals(OrganizationTenantPair other)
-        {
-            return other != null &&
+        public bool Equals(OrganizationTenantPair other) =>
+            other != null &&
                 string.Equals(EmailDomain, other.EmailDomain, StringComparison.OrdinalIgnoreCase) &&
                 string.Equals(TenantId, other.TenantId, StringComparison.OrdinalIgnoreCase);
-        }
 
         /// <remarks>
         /// Autogenerated by "Quick Actions and Refactoring" -> "Generate Equals and GetHashCode".

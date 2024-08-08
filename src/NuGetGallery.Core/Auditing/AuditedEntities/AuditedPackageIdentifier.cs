@@ -3,15 +3,9 @@
 
 namespace NuGetGallery.Auditing.AuditedEntities
 {
-    public class AuditedPackageIdentifier
+    public class AuditedPackageIdentifier(string id, string version)
     {
-        public string Id { get; }
-        public string Version { get; }
-
-        public AuditedPackageIdentifier(string id, string version)
-        {
-            Id = id;
-            Version = version;
-        }
+        public string Id { get; } = id;
+        public string Version { get; } = version;
     }
 }

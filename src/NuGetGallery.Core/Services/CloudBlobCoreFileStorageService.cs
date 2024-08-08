@@ -14,7 +14,10 @@ using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace NuGetGallery
 {
-    public class CloudBlobCoreFileStorageService : ICoreFileStorageService
+    public class CloudBlobCoreFileStorageService(
+        ICloudBlobClient client,
+        IDiagnosticsService diagnosticsService,
+        ICloudBlobContainerInformationProvider cloudBlobFolderInformationProvider) : ICoreFileStorageService
     {
         /// <summary>
         /// This is the maximum duration for <see cref="CopyFileAsync(ISimpleCloudBlob, string, string, IAccessCondition)"/> to poll,
@@ -25,20 +28,10 @@ namespace NuGetGallery
         private static readonly TimeSpan MaxCopyDuration = TimeSpan.FromMinutes(10);
         private static readonly TimeSpan CopyPollFrequency = TimeSpan.FromMilliseconds(500);
 
-        protected readonly ICloudBlobClient _client;
-        protected readonly IDiagnosticsSource _trace;
-        protected readonly ICloudBlobContainerInformationProvider _cloudBlobFolderInformationProvider;
+        protected readonly ICloudBlobClient _client = client ?? throw new ArgumentNullException(nameof(client));
+        protected readonly IDiagnosticsSource _trace = diagnosticsService?.SafeGetSource(nameof(CloudBlobCoreFileStorageService)) ?? throw new ArgumentNullException(nameof(diagnosticsService));
+        protected readonly ICloudBlobContainerInformationProvider _cloudBlobFolderInformationProvider = cloudBlobFolderInformationProvider ?? throw new ArgumentNullException(nameof(cloudBlobFolderInformationProvider));
         protected readonly ConcurrentDictionary<string, ICloudBlobContainer> _containers = new ConcurrentDictionary<string, ICloudBlobContainer>();
-
-        public CloudBlobCoreFileStorageService(
-            ICloudBlobClient client,
-            IDiagnosticsService diagnosticsService,
-            ICloudBlobContainerInformationProvider cloudBlobFolderInformationProvider)
-        {
-            _client = client ?? throw new ArgumentNullException(nameof(client));
-            _trace = diagnosticsService?.SafeGetSource(nameof(CloudBlobCoreFileStorageService)) ?? throw new ArgumentNullException(nameof(diagnosticsService));
-            _cloudBlobFolderInformationProvider = cloudBlobFolderInformationProvider ?? throw new ArgumentNullException(nameof(cloudBlobFolderInformationProvider));
-        }
 
         public async Task DeleteFileAsync(string folderName, string fileName)
         {

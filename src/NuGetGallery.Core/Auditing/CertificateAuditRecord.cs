@@ -26,9 +26,6 @@ namespace NuGetGallery.Auditing
             Thumbprint = thumbprint.ToLowerInvariant();
         }
 
-        public override string GetPath()
-        {
-            return Thumbprint;
-        }
+        public override string GetPath() => Thumbprint;
     }
 }

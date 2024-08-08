@@ -3,17 +3,10 @@
 
 namespace NuGetGallery.Authentication
 {
-    public class CredentialTypeInfo
+    public class CredentialTypeInfo(string type, bool isApiKey, string description)
     {
-        public CredentialTypeInfo(string type, bool isApiKey, string description)
-        {
-            Type = type;
-            IsApiKey = isApiKey;
-            Description = description;
-        }
-
-        public string Type { get; }
-        public bool IsApiKey { get; }
-        public string Description { get; }
+        public string Type { get; } = type;
+        public bool IsApiKey { get; } = isApiKey;
+        public string Description { get; } = description;
     }
 }

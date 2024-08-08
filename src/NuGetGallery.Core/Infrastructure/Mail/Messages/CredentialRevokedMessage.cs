@@ -9,39 +9,27 @@ using NuGet.Services.Messaging.Email;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
-    public class CredentialRevokedMessage : MarkdownEmailBuilder
+    public class CredentialRevokedMessage(
+        IMessageServiceConfiguration configuration,
+        Credential credential,
+        string leakedUrl,
+        string revocationSource,
+        string manageApiKeyUrl,
+        string contactUrl) : MarkdownEmailBuilder
     {
-        private readonly IMessageServiceConfiguration _configuration;
-        private readonly Credential _credential;
-        private readonly string _leakedUrl;
-        private readonly string _revocationSource;
-        private readonly string _manageApiKeyUrl;
-        private readonly string _contactUrl;
-
-        public CredentialRevokedMessage(
-            IMessageServiceConfiguration configuration,
-            Credential credential,
-            string leakedUrl,
-            string revocationSource,
-            string manageApiKeyUrl,
-            string contactUrl)
-        {
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _credential = credential ?? throw new ArgumentNullException(nameof(credential));
-            _leakedUrl = leakedUrl ?? throw new ArgumentNullException(nameof(leakedUrl));
-            _revocationSource = revocationSource ?? throw new ArgumentNullException(nameof(revocationSource));
-            _manageApiKeyUrl = manageApiKeyUrl ?? throw new ArgumentNullException(nameof(manageApiKeyUrl));
-            _contactUrl = contactUrl ?? throw new ArgumentNullException(nameof(contactUrl));
-        }
+        private readonly IMessageServiceConfiguration _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        private readonly Credential _credential = credential ?? throw new ArgumentNullException(nameof(credential));
+        private readonly string _leakedUrl = leakedUrl ?? throw new ArgumentNullException(nameof(leakedUrl));
+        private readonly string _revocationSource = revocationSource ?? throw new ArgumentNullException(nameof(revocationSource));
+        private readonly string _manageApiKeyUrl = manageApiKeyUrl ?? throw new ArgumentNullException(nameof(manageApiKeyUrl));
+        private readonly string _contactUrl = contactUrl ?? throw new ArgumentNullException(nameof(contactUrl));
 
         public override MailAddress Sender => _configuration.GalleryOwner;
 
-        public override IEmailRecipients GetRecipients()
-        {
-            return new EmailRecipients(
+        public override IEmailRecipients GetRecipients() =>
+            new EmailRecipients(
                 to: new[] { _credential.User.ToMailAddress() },
                 cc: new[] { Sender });
-        }
 
         public override string GetSubject()
             => $"[{_configuration.GalleryOwner.DisplayName}] API key " +

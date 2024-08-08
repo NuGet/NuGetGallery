@@ -8,17 +8,10 @@ namespace NuGetGallery.Auditing.AuditedEntities
     /// <summary>
     /// Auditing details for UserSecurityPolicy entity.
     /// </summary>
-    public class AuditedUserSecurityPolicy
+    public class AuditedUserSecurityPolicy(UserSecurityPolicy policy)
     {
-        public string Name { get; }
-        public string Subscription { get; }
-        public string Value { get; }
-
-        public AuditedUserSecurityPolicy(UserSecurityPolicy policy)
-        {
-            Name = policy.Name;
-            Subscription = policy.Subscription;
-            Value = policy.Value;
-        }
+        public string Name { get; } = policy.Name;
+        public string Subscription { get; } = policy.Subscription;
+        public string Value { get; } = policy.Value;
     }
 }

@@ -36,26 +36,18 @@ namespace NuGetGallery
         private const string CertificatesThumbprintIndex = "IX_Certificates_Thumbprint";
         private const string UserSecurityPolicyUserKeyNameSubscriptionIndex = "IX_UserSecurityPolicy_UserKeyNameSubscription";
 
-        static EntitiesContext()
-        {
+        static EntitiesContext() =>
             // Don't run migrations, ever!
             Database.SetInitializer<EntitiesContext>(null);
-        }
 
         /// <summary>
         /// The NuGet Gallery code should usually use this constructor, in order to respect read only mode.
         /// </summary>
         public EntitiesContext(string connectionString, bool readOnly)
-            : base(connectionString)
-        {
-            ReadOnly = readOnly;
-        }
+            : base(connectionString) => ReadOnly = readOnly;
 
         public EntitiesContext(DbConnection connection, bool readOnly)
-            : base(connection, contextOwnsConnection: true)
-        {
-           ReadOnly = readOnly;
-        }
+            : base(connection, contextOwnsConnection: true) => ReadOnly = readOnly;
 
         public IDisposable WithQueryHint(string queryHint)
         {
@@ -92,10 +84,7 @@ namespace NuGetGallery
 
         public bool HasChanges => ChangeTracker.HasChanges();
 
-        DbSet<T> IReadOnlyEntitiesContext.Set<T>()
-        {
-            return base.Set<T>();
-        }
+        DbSet<T> IReadOnlyEntitiesContext.Set<T>() => base.Set<T>();
 
         public override int SaveChanges()
         {
@@ -123,20 +112,11 @@ namespace NuGetGallery
             }
         }
 
-        public void DeleteOnCommit<T>(T entity) where T : class
-        {
-            Set<T>().Remove(entity);
-        }
+        public void DeleteOnCommit<T>(T entity) where T : class => Set<T>().Remove(entity);
 
-        public void SetCommandTimeout(int? seconds)
-        {
-            ObjectContext.CommandTimeout = seconds;
-        }
+        public void SetCommandTimeout(int? seconds) => ObjectContext.CommandTimeout = seconds;
 
-        public IDatabase GetDatabase()
-        {
-            return new DatabaseWrapper(Database);
-        }
+        public IDatabase GetDatabase() => new DatabaseWrapper(Database);
 
 #pragma warning disable 618 // TODO: remove Package.Authors completely once production services definitely no longer need it
         protected override void OnModelCreating(DbModelBuilder modelBuilder)

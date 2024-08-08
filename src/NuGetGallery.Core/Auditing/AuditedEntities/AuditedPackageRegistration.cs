@@ -12,15 +12,13 @@ namespace NuGetGallery.Auditing.AuditedEntities
         public int Key { get; private set; }
         public bool IsVerified { get; private set; }
 
-        public static AuditedPackageRegistration CreateFrom(PackageRegistration packageRegistration)
-        {
-            return new AuditedPackageRegistration
+        public static AuditedPackageRegistration CreateFrom(PackageRegistration packageRegistration) =>
+            new AuditedPackageRegistration
             {
                 Id = packageRegistration.Id,
                 DownloadCount = packageRegistration.DownloadCount,
                 Key = packageRegistration.Key,
                 IsVerified = packageRegistration.IsVerified
             };
-        }
     }
 }

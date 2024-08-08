@@ -11,10 +11,7 @@ namespace NuGet.Services.Entities
     /// </summary>
     public class VulnerablePackageVersionRange : IEntity
     {
-        public VulnerablePackageVersionRange()
-        {
-            Packages = new HashSet<Package>();
-        }
+        public VulnerablePackageVersionRange() => Packages = new HashSet<Package>();
 
         public int Key { get; set; }
 

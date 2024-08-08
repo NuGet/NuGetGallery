@@ -31,10 +31,7 @@ namespace NuGet.Services.Entities
 
         public int Key { get; set; }
 
-        public bool Equals(PackageFramework framework)
-        {
-            return framework != null && FrameworkName == framework.FrameworkName;
-        }
+        public bool Equals(PackageFramework framework) => framework != null && FrameworkName == framework.FrameworkName;
 
         public override bool Equals(object obj)
         {
@@ -42,9 +39,6 @@ namespace NuGet.Services.Entities
             return Equals(other);
         }
 
-        public override int GetHashCode()
-        {
-            return FrameworkName.GetHashCode();
-        }
+        public override int GetHashCode() => FrameworkName.GetHashCode();
     }
 }

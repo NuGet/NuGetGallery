@@ -10,20 +10,14 @@ namespace NuGetGallery.Frameworks
         /// Each Framework Filter Group represents one of the four Framework generations
         /// represented in the Search Filters.
         /// </summary>
-        public class FrameworkFilterGroup
+        public class FrameworkFilterGroup(
+            string shortName,
+            string displayName,
+            List<string> tfms)
         {
-            public FrameworkFilterGroup(
-                string shortName,
-                string displayName,
-                List<string> tfms) {
-                ShortName = shortName;
-                DisplayName = displayName;
-                Tfms = tfms;
-            }
-
-            public string ShortName { get; set; }
-            public string DisplayName { get; set; }
-            public List<string> Tfms { get; set; }
+            public string ShortName { get; set; } = shortName;
+            public string DisplayName { get; set; } = displayName;
+            public List<string> Tfms { get; set; } = tfms;
         }
 
         public static readonly Dictionary<string, FrameworkFilterGroup> FrameworkFilters = new Dictionary<string, FrameworkFilterGroup>()

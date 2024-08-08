@@ -9,21 +9,14 @@ using NuGet.Services.Messaging.Email;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
-    public class PackageValidationTakingTooLongMessage : MarkdownEmailBuilder
+    public class PackageValidationTakingTooLongMessage(
+        IMessageServiceConfiguration configuration,
+        Package package,
+        string packageUrl) : MarkdownEmailBuilder
     {
-        private readonly IMessageServiceConfiguration _configuration;
-        private readonly Package _package;
-        private readonly string _packageUrl;
-
-        public PackageValidationTakingTooLongMessage(
-            IMessageServiceConfiguration configuration,
-            Package package,
-            string packageUrl)
-        {
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _package = package ?? throw new ArgumentNullException(nameof(package));
-            _packageUrl = packageUrl ?? throw new ArgumentNullException(nameof(packageUrl));
-        }
+        private readonly IMessageServiceConfiguration _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        private readonly Package _package = package ?? throw new ArgumentNullException(nameof(package));
+        private readonly string _packageUrl = packageUrl ?? throw new ArgumentNullException(nameof(packageUrl));
 
         public override MailAddress Sender => _configuration.GalleryNoReplyAddress;
 

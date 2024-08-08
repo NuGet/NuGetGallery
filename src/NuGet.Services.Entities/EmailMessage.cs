@@ -3,25 +3,19 @@
 
 namespace NuGet.Services.Entities
 {
-    public class EmailMessage
-        : IEntity
+    public class EmailMessage(string subject, string body)
+                : IEntity
     {
         public EmailMessage()
             : this(null, null)
         {
         }
 
-        public EmailMessage(string subject, string body)
-        {
-            Body = body;
-            Subject = subject;
-        }
-
-        public string Body { get; set; }
+        public string Body { get; set; } = body;
         public User FromUser { get; set; }
         public int? FromUserKey { get; set; }
         public bool Sent { get; set; }
-        public string Subject { get; set; }
+        public string Subject { get; set; } = subject;
         public User ToUser { get; set; }
         public int ToUserKey { get; set; }
         public int Key { get; set; }

@@ -11,21 +11,14 @@ using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {
-    public class CorePackageService : ICorePackageService
+    public class CorePackageService(
+        IEntityRepository<Package> packageRepository,
+        IEntityRepository<PackageRegistration> packageRegistrationRepository,
+        IEntityRepository<Certificate> certificateRepository) : ICorePackageService
     {
-        protected readonly IEntityRepository<Certificate> _certificateRepository;
-        protected readonly IEntityRepository<Package> _packageRepository;
-        protected readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
-
-        public CorePackageService(
-            IEntityRepository<Package> packageRepository,
-            IEntityRepository<PackageRegistration> packageRegistrationRepository,
-            IEntityRepository<Certificate> certificateRepository)
-        {
-            _packageRepository = packageRepository ?? throw new ArgumentNullException(nameof(packageRepository));
-            _packageRegistrationRepository = packageRegistrationRepository ?? throw new ArgumentNullException(nameof(packageRegistrationRepository));
-            _certificateRepository = certificateRepository ?? throw new ArgumentNullException(nameof(certificateRepository));
-        }
+        protected readonly IEntityRepository<Certificate> _certificateRepository = certificateRepository ?? throw new ArgumentNullException(nameof(certificateRepository));
+        protected readonly IEntityRepository<Package> _packageRepository = packageRepository ?? throw new ArgumentNullException(nameof(packageRepository));
+        protected readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository = packageRegistrationRepository ?? throw new ArgumentNullException(nameof(packageRegistrationRepository));
 
         public virtual async Task UpdatePackageStreamMetadataAsync(
             Package package,

@@ -148,10 +148,7 @@ namespace NuGetGallery
                 _blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots));
         }
 
-        public Task DownloadToStreamAsync(Stream target)
-        {
-            return DownloadToStreamAsync(target, accessCondition: null);
-        }
+        public Task DownloadToStreamAsync(Stream target) => DownloadToStreamAsync(target, accessCondition: null);
 
         public async Task DownloadToStreamAsync(Stream target, IAccessCondition accessCondition)
         {
@@ -176,39 +173,31 @@ namespace NuGetGallery
             }
         }
 
-        public async Task<bool> ExistsAsync()
-        {
-            return await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
-                _blob.ExistsAsync());
-        }
-
-        public async Task SnapshotAsync(CancellationToken token)
-        {
+        public async Task<bool> ExistsAsync() => 
             await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
-                _blob.CreateSnapshotAsync(cancellationToken: token));
-        }
+                                                              _blob.ExistsAsync());
 
-        public async Task SetPropertiesAsync()
-        {
+        public async Task SnapshotAsync(CancellationToken token) => 
+            await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
+                                                               _blob.CreateSnapshotAsync(cancellationToken: token));
+
+        public async Task SetPropertiesAsync() => 
             UpdateEtag(await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
-                _blob.SetHttpHeadersAsync(BlobHeaders)));
-        }
+                                                               _blob.SetHttpHeadersAsync(BlobHeaders)));
 
-        public async Task SetPropertiesAsync(IAccessCondition accessCondition)
-        {
+        public async Task SetPropertiesAsync(IAccessCondition accessCondition)=>
             UpdateEtag(await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blob.SetHttpHeadersAsync(
                     BlobHeaders,
                     CloudWrapperHelpers.GetSdkAccessCondition(accessCondition))));
-        }
+        
 
-        public async Task SetMetadataAsync(IAccessCondition accessCondition)
-        {
+        public async Task SetMetadataAsync(IAccessCondition accessCondition)=>
             UpdateEtag(await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blob.SetMetadataAsync(
                     Metadata,
                     CloudWrapperHelpers.GetSdkAccessCondition(accessCondition))));
-        }
+        
 
         public async Task UploadFromStreamAsync(Stream source, bool overwrite)
         {

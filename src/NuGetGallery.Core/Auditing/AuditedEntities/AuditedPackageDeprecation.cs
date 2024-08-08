@@ -19,9 +19,8 @@ namespace NuGetGallery.Auditing.AuditedEntities
         public DateTime DeprecatedOn { get; private set; }
         public string CustomMessage { get; private set; }
 
-        public static AuditedPackageDeprecation CreateFrom(PackageDeprecation packageDeprecation)
-        {
-            return new AuditedPackageDeprecation
+        public static AuditedPackageDeprecation CreateFrom(PackageDeprecation packageDeprecation) =>
+            new AuditedPackageDeprecation
             {
                 Key = packageDeprecation.Key,
                 PackageKey = packageDeprecation.PackageKey,
@@ -32,6 +31,5 @@ namespace NuGetGallery.Auditing.AuditedEntities
                 DeprecatedOn = packageDeprecation.DeprecatedOn,
                 CustomMessage = packageDeprecation.CustomMessage
             };
-        }
     }
 }

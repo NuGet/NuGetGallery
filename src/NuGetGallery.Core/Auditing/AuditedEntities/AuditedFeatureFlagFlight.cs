@@ -15,16 +15,13 @@ namespace NuGetGallery.Auditing.AuditedEntities
         public string[] Accounts { get; private set; }
         public string[] Domains { get; private set; }
 
-        public static AuditedFeatureFlagFlight[] CreateFrom(FeatureFlags flags)
-        {
-            return flags.Flights?
+        public static AuditedFeatureFlagFlight[] CreateFrom(FeatureFlags flags) =>
+            flags.Flights?
                 .Select(f => CreateFrom(f.Key, f.Value))
                 .ToArray() ?? Array.Empty<AuditedFeatureFlagFlight>();
-        }
 
-        public static AuditedFeatureFlagFlight CreateFrom(string name, Flight flight)
-        {
-            return new AuditedFeatureFlagFlight
+        public static AuditedFeatureFlagFlight CreateFrom(string name, Flight flight) =>
+            new AuditedFeatureFlagFlight
             {
                 Name = name,
                 All = flight.All,
@@ -32,6 +29,5 @@ namespace NuGetGallery.Auditing.AuditedEntities
                 Accounts = flight.Accounts?.ToArray() ?? Array.Empty<string>(),
                 Domains = flight.Domains?.ToArray() ?? Array.Empty<string>()
             };
-        }
     }
 }

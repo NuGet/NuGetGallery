@@ -15,32 +15,24 @@ namespace NuGetGallery
 
         public string IfMatchETag { get; }
 
-        public static IAccessCondition GenerateEmptyCondition()
-        {
-            return new AccessConditionWrapper(
+        public static IAccessCondition GenerateEmptyCondition() =>
+            new AccessConditionWrapper(
                 ifNoneMatchETag: null,
                 ifMatchETag: null);
-        }
 
-        public static IAccessCondition GenerateIfMatchCondition(string etag)
-        {
-            return new AccessConditionWrapper(
+        public static IAccessCondition GenerateIfMatchCondition(string etag) =>
+            new AccessConditionWrapper(
                 ifNoneMatchETag: null,
                 ifMatchETag: etag);
-        }
 
-        public static IAccessCondition GenerateIfNoneMatchCondition(string etag)
-        {
-            return new AccessConditionWrapper(
+        public static IAccessCondition GenerateIfNoneMatchCondition(string etag) =>
+            new AccessConditionWrapper(
                 ifNoneMatchETag: etag,
                 ifMatchETag: null);
-        }
 
-        public static IAccessCondition GenerateIfNotExistsCondition()
-        {
-            return new AccessConditionWrapper(
+        public static IAccessCondition GenerateIfNotExistsCondition() =>
+            new AccessConditionWrapper(
                 ifNoneMatchETag: "*",
                 ifMatchETag: null);
-        }
     }
 }

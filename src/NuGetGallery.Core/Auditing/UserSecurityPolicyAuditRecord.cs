@@ -43,9 +43,6 @@ namespace NuGetGallery.Auditing
             ErrorMessage = errorMessage;
         }
 
-        public override string GetPath()
-        {
-            return Username.ToLowerInvariant();
-        }
+        public override string GetPath() => Username.ToLowerInvariant();
     }
 }

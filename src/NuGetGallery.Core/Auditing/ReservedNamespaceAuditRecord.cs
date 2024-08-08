@@ -52,10 +52,7 @@ namespace NuGetGallery.Auditing
             }
         }
 
-        public override string GetPath()
-        {
-            return Value.ToLowerInvariant();
-        }
+        public override string GetPath() => Value.ToLowerInvariant();
 
         private static AuditedPackageRegistrationAction GetPackageRegistrationAction(AuditedReservedNamespaceAction action)
         {

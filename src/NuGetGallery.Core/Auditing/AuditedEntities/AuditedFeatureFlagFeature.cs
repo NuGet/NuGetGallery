@@ -12,20 +12,16 @@ namespace NuGetGallery.Auditing.AuditedEntities
         public string Name { get; private set; }
         public FeatureStatus Status { get; private set; }
 
-        public static AuditedFeatureFlagFeature[] CreateFrom(FeatureFlags flags)
-        {
-            return flags.Features?
+        public static AuditedFeatureFlagFeature[] CreateFrom(FeatureFlags flags) =>
+            flags.Features?
                 .Select(f => CreateFrom(f.Key, f.Value))
                 .ToArray() ?? Array.Empty<AuditedFeatureFlagFeature>();
-        }
 
-        public static AuditedFeatureFlagFeature CreateFrom(string name, FeatureStatus status)
-        {
-            return new AuditedFeatureFlagFeature
+        public static AuditedFeatureFlagFeature CreateFrom(string name, FeatureStatus status) =>
+            new AuditedFeatureFlagFeature
             {
                 Name = name,
                 Status = status
             };
-        }
     }
 }

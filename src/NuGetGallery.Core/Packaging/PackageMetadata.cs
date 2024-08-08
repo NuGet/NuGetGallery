@@ -150,25 +150,13 @@ namespace NuGetGallery.Packaging
         /// </summary>
         public string ReadmeFile { get; private set; }
 
-        public string GetValueFromMetadata(string key)
-        {
-            return GetValue(key, (string)null);
-        }
+        public string GetValueFromMetadata(string key) => GetValue(key, (string)null);
 
-        public IReadOnlyCollection<PackageDependencyGroup> GetDependencyGroups()
-        {
-            return _dependencyGroups;
-        }
+        public IReadOnlyCollection<PackageDependencyGroup> GetDependencyGroups() => _dependencyGroups;
 
-        public IReadOnlyCollection<FrameworkSpecificGroup> GetFrameworkReferenceGroups()
-        {
-            return _frameworkReferenceGroups;
-        }
+        public IReadOnlyCollection<FrameworkSpecificGroup> GetFrameworkReferenceGroups() => _frameworkReferenceGroups;
 
-        public IReadOnlyCollection<NuGet.Packaging.Core.PackageType> GetPackageTypes()
-        {
-            return _packageTypes;
-        }
+        public IReadOnlyCollection<NuGet.Packaging.Core.PackageType> GetPackageTypes() => _packageTypes;
 
         private string GetValue(string key, string alternateValue)
         {

@@ -11,24 +11,17 @@ namespace NuGetGallery.Auditing.Obfuscation
     /// <summary>
     /// Implements a <see cref="JsonConverter"/> to be used for obfuscation.
     /// </summary>
-    public class ObfuscatorJsonConverter : JsonConverter
+    /// <remarks>
+    /// The instance that will be serialized.
+    /// </remarks>
+    /// <param name="instance"></param>
+    public class ObfuscatorJsonConverter(object instance) : JsonConverter
     {
-        private object Instance { get; }
+        private object Instance { get; } = instance ?? throw new ArgumentNullException(nameof(instance));
 
-        /// <summary>
-        /// The instance that will be serialized.
-        /// </summary>
-        /// <param name="instance"></param>
-        public ObfuscatorJsonConverter(object instance)
-        {
-            Instance = instance ?? throw new ArgumentNullException(nameof(instance));
-        }
-
-        public override bool CanConvert(Type objectType)
-        {
-            return objectType == typeof(string) ||
+        public override bool CanConvert(Type objectType) =>
+            objectType == typeof(string) ||
                    objectType == typeof(int?);
-        }
 
         /// <summary>
         /// Gets the <see cref="PropertyInfo"/> from a full property path.
@@ -73,7 +66,7 @@ namespace NuGetGallery.Auditing.Obfuscation
         /// <returns>The obfuscated value.</returns>
         private string Obfuscate(object value, ObfuscationType obfuscationType)
         {
-            switch(obfuscationType)
+            switch (obfuscationType)
             {
                 case ObfuscationType.Authors:
                     return string.Empty;

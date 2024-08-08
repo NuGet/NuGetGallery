@@ -13,22 +13,17 @@ namespace NuGetGallery.Auditing
     /// <summary>
     /// Writes audit records to a specific container in the Cloud Storage Account provided
     /// </summary>
-    public class CloudAuditingService : AuditingService, ICloudStorageStatusDependency
+    public class CloudAuditingService(Func<ICloudBlobContainer> auditContainerFactory,
+        Func<Task<AuditActor>> getOnBehalfOf) : AuditingService, ICloudStorageStatusDependency
     {
         public static readonly string DefaultContainerName = "auditing";
 
-        private Func<ICloudBlobContainer> _auditContainerFactory;
-        private Func<Task<AuditActor>> _getOnBehalfOf;
+        private Func<ICloudBlobContainer> _auditContainerFactory = auditContainerFactory;
+        private Func<Task<AuditActor>> _getOnBehalfOf = getOnBehalfOf;
 
         public CloudAuditingService(Func<ICloudBlobClient> cloudBlobClientFactory, Func<Task<AuditActor>> getOnBehalfOf)
             : this(() => GetContainer(cloudBlobClientFactory), getOnBehalfOf)
         {
-        }
-
-        public CloudAuditingService(Func<ICloudBlobContainer> auditContainerFactory, Func<Task<AuditActor>> getOnBehalfOf)
-        {
-            _auditContainerFactory = auditContainerFactory;
-            _getOnBehalfOf = getOnBehalfOf;
         }
 
         protected override async Task<AuditActor> GetActorAsync()
@@ -95,10 +90,8 @@ namespace NuGetGallery.Auditing
             }
         }
 
-        public Task<bool> IsAvailableAsync(CloudBlobLocationMode? locationMode)
-        {
-            return _auditContainerFactory().ExistsAsync(locationMode);
-        }
+        public Task<bool> IsAvailableAsync(CloudBlobLocationMode? locationMode) =>
+            _auditContainerFactory().ExistsAsync(locationMode);
 
         public override string RenderAuditEntry(AuditEntry entry)
         {

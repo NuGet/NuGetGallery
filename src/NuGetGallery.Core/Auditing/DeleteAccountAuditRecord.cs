@@ -3,7 +3,7 @@
 
 namespace NuGetGallery.Auditing
 {
-    public class DeleteAccountAuditRecord : AuditRecord<AuditedDeleteAccountAction>
+    public class DeleteAccountAuditRecord(string username, DeleteAccountAuditRecord.ActionStatus status, AuditedDeleteAccountAction action, string adminUsername) : AuditRecord<AuditedDeleteAccountAction>(action)
     {
         public enum ActionStatus
         {
@@ -11,27 +11,16 @@ namespace NuGetGallery.Auditing
             Failure
         }
 
-        public string Username;
+        public string Username = username;
 
-        public string AdminUsername;
+        public string AdminUsername = adminUsername;
 
-        public ActionStatus Status;
+        public ActionStatus Status = status;
 
         public DeleteAccountAuditRecord(string username, ActionStatus status, AuditedDeleteAccountAction action)
             : this(username, status, action, adminUsername: string.Empty)
         {}
 
-        public DeleteAccountAuditRecord(string username, ActionStatus status, AuditedDeleteAccountAction action, string adminUsername)
-            : base(action)
-        {
-            Username = username;
-            AdminUsername = adminUsername;
-            Status = status;
-        }
-
-        public override string GetPath()
-        {
-            return Username.ToLowerInvariant();
-        }
+        public override string GetPath() => Username.ToLowerInvariant();
     }
 }

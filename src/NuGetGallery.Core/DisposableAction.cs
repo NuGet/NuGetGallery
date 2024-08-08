@@ -7,16 +7,11 @@ using System.Linq;
 
 namespace NuGetGallery
 {
-    public sealed class DisposableAction : IDisposable
+    public sealed class DisposableAction(Action action) : IDisposable
     {
         public static readonly DisposableAction NoOp = new DisposableAction(() => { });
 
-        private readonly Action _action;
-
-        public DisposableAction(Action action)
-        {
-            _action = action;
-        }
+        private readonly Action _action = action;
 
         public static IDisposable All(params IDisposable[] tokens)
         {
@@ -43,14 +38,8 @@ namespace NuGetGallery
             });
         }
 
-        public static IDisposable All(IEnumerable<IDisposable> tokens)
-        {
-            return All(tokens.ToArray());
-        }
+        public static IDisposable All(IEnumerable<IDisposable> tokens) => All(tokens.ToArray());
 
-        public void Dispose()
-        {
-            _action();
-        }
+        public void Dispose() => _action();
     }
 }

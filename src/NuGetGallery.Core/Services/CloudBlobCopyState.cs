@@ -5,14 +5,10 @@ using System;
 
 namespace NuGetGallery
 {
-    internal class CloudBlobCopyState : ICloudBlobCopyState
+    internal class CloudBlobCopyState(CloudBlobWrapper blob) : ICloudBlobCopyState
     {
-        private readonly CloudBlobWrapper _blob;
+        private readonly CloudBlobWrapper _blob = blob ?? throw new ArgumentNullException(nameof(blob));
 
-        public CloudBlobCopyState(CloudBlobWrapper blob)
-        {
-            _blob = blob ?? throw new ArgumentNullException(nameof(blob));
-        }
         public CloudBlobCopyStatus Status => CloudWrapperHelpers.GetBlobCopyStatus(_blob.BlobProperties?.CopyStatus);
 
         public string StatusDescription => _blob.BlobProperties?.CopyStatusDescription;

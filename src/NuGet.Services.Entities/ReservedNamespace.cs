@@ -6,32 +6,23 @@ using System.ComponentModel.DataAnnotations;
 
 namespace NuGet.Services.Entities
 {
-    public class ReservedNamespace : IEntity
+    public class ReservedNamespace(string value, bool isSharedNamespace, bool isPrefix) : IEntity
     {
         public ReservedNamespace() 
             : this(value: null, isSharedNamespace: false, isPrefix: false)
         {
         }
 
-        public ReservedNamespace(string value, bool isSharedNamespace, bool isPrefix)
-        {
-            Value = value;
-            IsSharedNamespace = isSharedNamespace;
-            IsPrefix = isPrefix;
-            PackageRegistrations = new HashSet<PackageRegistration>();
-            Owners = new HashSet<User>();
-        }
-
         [StringLength(Constants.MaxPackageIdLength)]
         [Required]
-        public string Value { get; set; }
+        public string Value { get; set; } = value;
 
-        public bool IsSharedNamespace { get; set; }
+        public bool IsSharedNamespace { get; set; } = isSharedNamespace;
 
-        public bool IsPrefix { get; set; }
+        public bool IsPrefix { get; set; } = isPrefix;
 
-        public virtual ICollection<PackageRegistration> PackageRegistrations { get; set; }
-        public virtual ICollection<User> Owners { get; set; }
+        public virtual ICollection<PackageRegistration> PackageRegistrations { get; set; } = new HashSet<PackageRegistration>();
+        public virtual ICollection<User> Owners { get; set; } = new HashSet<User>();
 
         [Key]
         public int Key { get; set; }

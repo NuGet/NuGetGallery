@@ -10,10 +10,7 @@ namespace NuGet.Services.Entities
     public class PackageDelete
         : IEntity
     {
-        public PackageDelete()
-        {
-            Packages = new HashSet<Package>();
-        }
+        public PackageDelete() => Packages = new HashSet<Package>();
 
         public int Key { get; set; }
 

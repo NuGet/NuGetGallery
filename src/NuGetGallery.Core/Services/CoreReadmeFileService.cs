@@ -10,18 +10,12 @@ using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {
-    public class CoreReadmeFileService : ICoreReadmeFileService
+    public class CoreReadmeFileService(ICoreFileStorageService fileStorageService, IContentFileMetadataService metadata) : ICoreReadmeFileService
     {
         private const string ReadmeFileName = "readme";
 
-        private readonly ICoreFileStorageService _fileStorageService;
-        private readonly IContentFileMetadataService _metadata;
-
-        public CoreReadmeFileService(ICoreFileStorageService fileStorageService, IContentFileMetadataService metadata)
-        {
-            _fileStorageService = fileStorageService ?? throw new ArgumentNullException(nameof(fileStorageService));
-            _metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
-        }
+        private readonly ICoreFileStorageService _fileStorageService = fileStorageService ?? throw new ArgumentNullException(nameof(fileStorageService));
+        private readonly IContentFileMetadataService _metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
 
         /// <summary>
         /// Saves the package readme.md file to storage. This method should throw if the package

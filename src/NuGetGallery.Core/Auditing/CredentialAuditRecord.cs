@@ -66,9 +66,6 @@ namespace NuGetGallery.Auditing
         }
 
         public CredentialAuditRecord(Credential credential, bool removedOrRevoked, string revocationSource)
-                : this(credential, removedOrRevoked)
-        {
-            RevocationSource = revocationSource;
-        }
+                : this(credential, removedOrRevoked) => RevocationSource = revocationSource;
     }
 }

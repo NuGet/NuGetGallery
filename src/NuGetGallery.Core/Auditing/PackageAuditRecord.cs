@@ -7,34 +7,22 @@ using System.Linq;
 
 namespace NuGetGallery.Auditing
 {
-    public class PackageAuditRecord : AuditRecord<AuditedPackageAction>
+    public class PackageAuditRecord(
+        string id, string version, string hash,
+        AuditedPackage packageRecord,
+        AuditedPackageRegistration registrationRecord,
+        AuditedPackageDeprecation deprecationRecord,
+        AuditedPackageAction action, string reason) : AuditRecord<AuditedPackageAction>(action)
     {
-        public string Id { get; }
-        public string Version { get; }
-        public string Hash { get; }
+        public string Id { get; } = id;
+        public string Version { get; } = version;
+        public string Hash { get; } = hash;
 
-        public AuditedPackage PackageRecord { get; }
-        public AuditedPackageRegistration RegistrationRecord { get; }
-        public AuditedPackageDeprecation DeprecationRecord { get; }
+        public AuditedPackage PackageRecord { get; } = packageRecord;
+        public AuditedPackageRegistration RegistrationRecord { get; } = registrationRecord;
+        public AuditedPackageDeprecation DeprecationRecord { get; } = deprecationRecord;
 
-        public string Reason { get; }
-
-        public PackageAuditRecord(
-            string id, string version, string hash,
-            AuditedPackage packageRecord,
-            AuditedPackageRegistration registrationRecord,
-            AuditedPackageDeprecation deprecationRecord,
-            AuditedPackageAction action, string reason)
-            : base(action)
-        {
-            Id = id;
-            Version = version;
-            Hash = hash;
-            PackageRecord = packageRecord;
-            RegistrationRecord = registrationRecord;
-            DeprecationRecord = deprecationRecord;
-            Reason = reason;
-        }
+        public string Reason { get; } = reason;
 
         public PackageAuditRecord(string id, string version, AuditedPackageAction action, string reason)
             : this(id,
@@ -81,10 +69,8 @@ namespace NuGetGallery.Auditing
                 .SingleOrDefault();
         }
 
-        public override string GetPath()
-        {
-            return $"{Id}/{NuGetVersionFormatter.Normalize(Version)}"
+        public override string GetPath() =>
+            $"{Id}/{NuGetVersionFormatter.Normalize(Version)}"
                 .ToLowerInvariant();
-        }
     }
 }

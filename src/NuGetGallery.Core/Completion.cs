@@ -10,18 +10,10 @@ namespace NuGetGallery.Backend.Monitoring
         Task Complete(T result);
     }
 
-    public class Completion<T> : ICompletion<T>
+    public class Completion<T>(Func<T, Task> action) : ICompletion<T>
     {
-        private Func<T, Task> _action;
+        private Func<T, Task> _action = action;
 
-        public Completion(Func<T, Task> action)
-        {
-            _action = action;
-        }
-
-        public Task Complete(T result)
-        {
-            return _action(result);
-        }
+        public Task Complete(T result) => _action(result);
     }
 }

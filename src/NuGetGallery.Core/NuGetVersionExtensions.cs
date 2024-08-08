@@ -51,15 +51,11 @@ namespace NuGetGallery
             @"^(?<Version>\d+(\s*\.\s*\d+){0,3})(?<Release>-[a-z][0-9a-z-]*)?$",
             SemanticVersionRegexFlags);
 
-        public static string ToNormalizedStringSafe(this NuGetVersion self)
-        {
-            return self != null ? self.ToNormalizedString() : string.Empty;
-        }
+        public static string ToNormalizedStringSafe(this NuGetVersion self) =>
+            self != null ? self.ToNormalizedString() : string.Empty;
 
-        public static string ToFullStringSafe(this NuGetVersion self)
-        {
-            return self != null ? self.ToFullString() : string.Empty;
-        }
+        public static string ToFullStringSafe(this NuGetVersion self) =>
+            self != null ? self.ToFullString() : string.Empty;
 
         public static bool IsValidVersionForLegacyClients(this NuGetVersion self)
         {

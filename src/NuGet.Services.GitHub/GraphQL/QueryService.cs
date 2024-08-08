@@ -13,23 +13,17 @@ using Newtonsoft.Json.Linq;
 
 namespace NuGet.Services.GitHub.GraphQL
 {
-    public class QueryService : IQueryService
+    public class QueryService(
+        GraphQLQueryConfiguration configuration,
+        HttpClient client) : IQueryService
     {
         /// <remarks>
         /// GitHub requires that every request includes a UserAgent.
         /// </remarks>
         public const string UserAgent = "NuGet.Services.GitHub";
 
-        private readonly GraphQLQueryConfiguration _configuration;
-        private readonly HttpClient _client;
-
-        public QueryService(
-            GraphQLQueryConfiguration configuration,
-            HttpClient client)
-        {
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _client = client ?? throw new ArgumentNullException(nameof(client));
-        }
+        private readonly GraphQLQueryConfiguration _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        private readonly HttpClient _client = client ?? throw new ArgumentNullException(nameof(client));
 
         public async Task<QueryResponse> QueryAsync(string query, CancellationToken token)
         {

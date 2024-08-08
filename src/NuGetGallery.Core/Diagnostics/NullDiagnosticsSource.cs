@@ -27,14 +27,8 @@ namespace NuGetGallery.Diagnostics
             // No-op!
         }
 
-        bool ILogger.IsEnabled(LogLevel logLevel)
-        {
-            return false;
-        }
+        bool ILogger.IsEnabled(LogLevel logLevel) => false;
 
-        IDisposable ILogger.BeginScope<TState>(TState state)
-        {
-            return null;
-        }
+        IDisposable ILogger.BeginScope<TState>(TState state) => null;
     }
 }

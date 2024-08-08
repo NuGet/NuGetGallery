@@ -12,17 +12,12 @@ using NuGetGallery.Shared;
 
 namespace NuGetGallery.Login
 {
-    public class EditableLoginConfigurationFileStorageService : LoginDiscontinuationFileStorageService, IEditableLoginConfigurationFileStorageService
+    public class EditableLoginConfigurationFileStorageService(
+        ICoreFileStorageService storage,
+        ILogger<EditableLoginConfigurationFileStorageService> logger) : LoginDiscontinuationFileStorageService(storage), IEditableLoginConfigurationFileStorageService
     {
         private const int MaxAttempts = 3;
-        private readonly ILogger<EditableLoginConfigurationFileStorageService> _logger;
-
-        public EditableLoginConfigurationFileStorageService(
-            ICoreFileStorageService storage,
-            ILogger<EditableLoginConfigurationFileStorageService> logger) : base(storage)
-        {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
+        private readonly ILogger<EditableLoginConfigurationFileStorageService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         public async Task<LoginDiscontinuationReference> GetReferenceAsync()
         {

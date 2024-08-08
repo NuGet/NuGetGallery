@@ -15,38 +15,34 @@ using NuGetGallery.Auditing.Obfuscation;
 
 namespace NuGetGallery.Auditing
 {
-    public class AuditActor
+    public class AuditActor(
+        string machineName,
+        string machineIP,
+        string userName,
+        string authenticationType,
+        string credentialKey,
+        DateTime timeStampUtc,
+        AuditActor onBehalfOf)
     {
         private static string _localIpAddress;
         private static DateTime _localIpAddressExpiration;
         private const int _localIpAddressExpirationInMinutes = 10;
 
-        public string MachineName { get; set; }
+        public string MachineName { get; set; } = machineName;
 
         [Obfuscate(ObfuscationType.IP)]
-        public string MachineIP { get; set; }
+        public string MachineIP { get; set; } = machineIP;
 
         [Obfuscate(ObfuscationType.UserName)]
-        public string UserName { get; set; }
-        public string AuthenticationType { get; set; }
-        public string CredentialKey { get; set; }
-        public DateTime TimestampUtc { get; set; }
+        public string UserName { get; set; } = userName;
+        public string AuthenticationType { get; set; } = authenticationType;
+        public string CredentialKey { get; set; } = credentialKey;
+        public DateTime TimestampUtc { get; set; } = timeStampUtc;
 
-        public AuditActor OnBehalfOf { get; set; }
+        public AuditActor OnBehalfOf { get; set; } = onBehalfOf;
 
         public AuditActor(string machineName, string machineIP, string userName, string authenticationType, string credentialKey, DateTime timeStampUtc)
             : this(machineName, machineIP, userName, authenticationType, credentialKey, timeStampUtc, null) { }
-
-        public AuditActor(string machineName, string machineIP, string userName, string authenticationType, string credentialKey, DateTime timeStampUtc, AuditActor onBehalfOf)
-        {
-            MachineName = machineName;
-            MachineIP = machineIP;
-            UserName = userName;
-            AuthenticationType = authenticationType;
-            TimestampUtc = timeStampUtc;
-            OnBehalfOf = onBehalfOf;
-            CredentialKey = credentialKey;
-        }
 
         public static Task<AuditActor> GetAspNetOnBehalfOfAsync()
         {
@@ -99,10 +95,7 @@ namespace NuGetGallery.Auditing
                 DateTime.UtcNow));
         }
 
-        public static Task<AuditActor> GetCurrentMachineActorAsync()
-        {
-            return GetCurrentMachineActorAsync(null);
-        }
+        public static Task<AuditActor> GetCurrentMachineActorAsync() => GetCurrentMachineActorAsync(null);
 
         public static async Task<AuditActor> GetCurrentMachineActorAsync(AuditActor onBehalfOf)
         {
@@ -143,9 +136,7 @@ namespace NuGetGallery.Auditing
             return _localIpAddress;
         }
 
-        private static string TryGetAddress(IEnumerable<IPAddress> addrs, AddressFamily family)
-        {
-            return addrs.Where(a => a.AddressFamily == family).Select(a => a.ToString()).FirstOrDefault();
-        }
+        private static string TryGetAddress(IEnumerable<IPAddress> addrs, AddressFamily family) =>
+            addrs.Where(a => a.AddressFamily == family).Select(a => a.ToString()).FirstOrDefault();
     }
 }

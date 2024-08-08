@@ -31,10 +31,7 @@ namespace NuGetGallery.Features
         }
 
         public FeatureFlagFileStorageService(
-            ICoreFileStorageService storage)
-        {
-            _storage = storage ?? throw new ArgumentNullException(nameof(storage));
-        }
+            ICoreFileStorageService storage) => _storage = storage ?? throw new ArgumentNullException(nameof(storage));
 
         public async Task<FeatureFlags> GetAsync()
         {

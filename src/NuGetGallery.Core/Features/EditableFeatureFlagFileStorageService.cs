@@ -14,21 +14,15 @@ using NuGetGallery.Shared;
 
 namespace NuGetGallery.Features
 {
-    public class EditableFeatureFlagFileStorageService : FeatureFlagFileStorageService, IEditableFeatureFlagStorageService
+    public class EditableFeatureFlagFileStorageService(
+        ICoreFileStorageService storage,
+        IAuditingService auditing,
+        ILogger<EditableFeatureFlagFileStorageService> logger) : FeatureFlagFileStorageService(storage), IEditableFeatureFlagStorageService
     {
         private const int MaxRemoveUserAttempts = 3;
 
-        private readonly IAuditingService _auditing;
-        private readonly ILogger<EditableFeatureFlagFileStorageService> _logger;
-
-        public EditableFeatureFlagFileStorageService(
-            ICoreFileStorageService storage,
-            IAuditingService auditing,
-            ILogger<EditableFeatureFlagFileStorageService> logger) : base(storage)
-        {
-            _auditing = auditing ?? throw new ArgumentNullException(nameof(auditing));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
+        private readonly IAuditingService _auditing = auditing ?? throw new ArgumentNullException(nameof(auditing));
+        private readonly ILogger<EditableFeatureFlagFileStorageService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         public async Task<FeatureFlagReference> GetReferenceAsync()
         {

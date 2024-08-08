@@ -10,14 +10,8 @@ namespace NuGetGallery
     /// </summary>
     public class SuspendDbExecutionStrategy : IDisposable
     {
-        public SuspendDbExecutionStrategy()
-        {
-            EntitiesConfiguration.SuspendExecutionStrategy = true;
-        }
+        public SuspendDbExecutionStrategy() => EntitiesConfiguration.SuspendExecutionStrategy = true;
 
-        public void Dispose()
-        {
-            EntitiesConfiguration.SuspendExecutionStrategy = false;
-        }
+        public void Dispose() => EntitiesConfiguration.SuspendExecutionStrategy = false;
     }
 }

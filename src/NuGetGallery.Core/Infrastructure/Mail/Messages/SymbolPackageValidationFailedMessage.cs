@@ -11,33 +11,22 @@ using NuGet.Services.Validation;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
-    public class SymbolPackageValidationFailedMessage : MarkdownEmailBuilder
+    public class SymbolPackageValidationFailedMessage(
+        IMessageServiceConfiguration configuration,
+        SymbolPackage symbolPackage,
+        PackageValidationSet validationSet,
+        string packageUrl,
+        string packageSupportUrl,
+        string announcementsUrl,
+        string twitterUrl) : MarkdownEmailBuilder
     {
-        private readonly IMessageServiceConfiguration _configuration;
-        private readonly SymbolPackage _symbolPackage;
-        private readonly PackageValidationSet _validationSet;
-        private readonly string _packageUrl;
-        private readonly string _packageSupportUrl;
-        private readonly string _announcementsUrl;
-        private readonly string _twitterUrl;
-
-        public SymbolPackageValidationFailedMessage(
-            IMessageServiceConfiguration configuration,
-            SymbolPackage symbolPackage,
-            PackageValidationSet validationSet,
-            string packageUrl,
-            string packageSupportUrl,
-            string announcementsUrl,
-            string twitterUrl)
-        {
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _symbolPackage = symbolPackage ?? throw new ArgumentNullException(nameof(symbolPackage));
-            _validationSet = validationSet ?? throw new ArgumentNullException(nameof(validationSet));
-            _packageUrl = packageUrl ?? throw new ArgumentNullException(nameof(packageUrl));
-            _packageSupportUrl = packageSupportUrl ?? throw new ArgumentNullException(nameof(packageSupportUrl));
-            _announcementsUrl = announcementsUrl ?? throw new ArgumentNullException(nameof(announcementsUrl));
-            _twitterUrl = twitterUrl ?? throw new ArgumentNullException(nameof(twitterUrl));
-        }
+        private readonly IMessageServiceConfiguration _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        private readonly SymbolPackage _symbolPackage = symbolPackage ?? throw new ArgumentNullException(nameof(symbolPackage));
+        private readonly PackageValidationSet _validationSet = validationSet ?? throw new ArgumentNullException(nameof(validationSet));
+        private readonly string _packageUrl = packageUrl ?? throw new ArgumentNullException(nameof(packageUrl));
+        private readonly string _packageSupportUrl = packageSupportUrl ?? throw new ArgumentNullException(nameof(packageSupportUrl));
+        private readonly string _announcementsUrl = announcementsUrl ?? throw new ArgumentNullException(nameof(announcementsUrl));
+        private readonly string _twitterUrl = twitterUrl ?? throw new ArgumentNullException(nameof(twitterUrl));
 
         public override MailAddress Sender => _configuration.GalleryNoReplyAddress;
 

@@ -151,14 +151,8 @@ namespace NuGetGallery
             return IsUnknownPredicate();
         }
 
-        public static Expression<Func<Package, bool>> IsSemVer2Predicate()
-        {
-            return _isSemVer2.Value;
-        }
+        public static Expression<Func<Package, bool>> IsSemVer2Predicate() => _isSemVer2.Value;
 
-        public static Expression<Func<Package, bool>> IsUnknownPredicate()
-        {
-            return _isUnknown.Value;
-        }
+        public static Expression<Func<Package, bool>> IsUnknownPredicate() => _isUnknown.Value;
     }
 }

@@ -12,10 +12,7 @@ namespace NuGetGallery.Auditing
         public abstract string GetPath();
         public abstract string GetAction();
 
-        public virtual string GetResourceType()
-        {
-            return _resourceType ?? (_resourceType = InferResourceType());
-        }
+        public virtual string GetResourceType() => _resourceType ?? (_resourceType = InferResourceType());
 
         private string InferResourceType()
         {
@@ -28,20 +25,12 @@ namespace NuGetGallery.Auditing
         }
     }
 
-    public abstract class AuditRecord<T>
+    public abstract class AuditRecord<T>(T action)
         : AuditRecord
         where T : struct
     {
-        protected AuditRecord(T action)
-        {
-            Action = action;
-        }
+        public T Action { get; set; } = action;
 
-        public T Action { get; set; }
-
-        public override string GetAction()
-        {
-            return Action.ToString().ToLowerInvariant();
-        }
+        public override string GetAction() => Action.ToString().ToLowerInvariant();
     }
 }

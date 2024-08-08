@@ -10,9 +10,9 @@ using Newtonsoft.Json.Converters;
 
 namespace NuGetGallery.Login
 {
-    public class LoginDiscontinuationFileStorageService: ILoginDiscontinuationFileStorageService
+    public class LoginDiscontinuationFileStorageService(ICoreFileStorageService storage) : ILoginDiscontinuationFileStorageService
     {
-        protected readonly ICoreFileStorageService _storage;
+        protected readonly ICoreFileStorageService _storage = storage ?? throw new ArgumentNullException(nameof(storage));
         protected static readonly JsonSerializer _serializer;
 
         static LoginDiscontinuationFileStorageService()
@@ -26,11 +26,6 @@ namespace NuGetGallery.Login
                     new StringEnumConverter()
                 }
             });
-        }
-
-        public LoginDiscontinuationFileStorageService(ICoreFileStorageService storage)
-        {
-            _storage = storage ?? throw new ArgumentNullException(nameof(storage));
         }
 
         public async Task<LoginDiscontinuation> GetAsync()

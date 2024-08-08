@@ -58,9 +58,6 @@ namespace NuGet.Services.Entities
         /// </summary>
         public ICollection<UserCertificate> UserCertificates { get; set; }
 
-        public Certificate()
-        {
-            UserCertificates = new List<UserCertificate>();
-        }
+        public Certificate() => UserCertificates = new List<UserCertificate>();
     }
 }

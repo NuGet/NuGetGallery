@@ -5,10 +5,7 @@ namespace NuGetGallery
 {
     public class BlobListContinuationToken
     {
-        internal BlobListContinuationToken(string continuationToken)
-        {
-            ContinuationToken = continuationToken;
-        }
+        internal BlobListContinuationToken(string continuationToken) => ContinuationToken = continuationToken;
 
         internal string ContinuationToken { get; }
     }

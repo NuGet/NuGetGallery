@@ -11,21 +11,14 @@ using Microsoft.Extensions.Logging;
 
 namespace NuGet.Services.GitHub.Collector
 {
-    public class AdvisoryQueryService : IAdvisoryQueryService
+    public class AdvisoryQueryService(
+        IQueryService queryService,
+        IAdvisoryQueryBuilder queryBuilder,
+        ILogger<AdvisoryQueryService> logger) : IAdvisoryQueryService
     {
-        private readonly IQueryService _queryService;
-        private readonly IAdvisoryQueryBuilder _queryBuilder;
-        private readonly ILogger<AdvisoryQueryService> _logger;
-
-        public AdvisoryQueryService(
-            IQueryService queryService,
-            IAdvisoryQueryBuilder queryBuilder,
-            ILogger<AdvisoryQueryService> logger)
-        {
-            _queryService = queryService ?? throw new ArgumentNullException(nameof(queryService));
-            _queryBuilder = queryBuilder ?? throw new ArgumentNullException(nameof(queryBuilder));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
+        private readonly IQueryService _queryService = queryService ?? throw new ArgumentNullException(nameof(queryService));
+        private readonly IAdvisoryQueryBuilder _queryBuilder = queryBuilder ?? throw new ArgumentNullException(nameof(queryBuilder));
+        private readonly ILogger<AdvisoryQueryService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         public async Task<IReadOnlyList<SecurityAdvisory>> GetAdvisoriesSinceAsync(DateTimeOffset lastUpdated, CancellationToken token)
         {
@@ -83,30 +76,21 @@ namespace NuGet.Services.GitHub.Collector
 
         private class VulnerabilityForSameAdvisoryComparer : IEqualityComparer<SecurityVulnerability>, IEqualityComparer<Edge<SecurityVulnerability>>
         {
-            public bool Equals(SecurityVulnerability x, SecurityVulnerability y)
-            {
-                return x?.Package?.Name == y?.Package?.Name
+            public bool Equals(SecurityVulnerability x, SecurityVulnerability y) =>
+                x?.Package?.Name == y?.Package?.Name
                     && x?.VulnerableVersionRange == y?.VulnerableVersionRange;
-            }
 
-            public bool Equals(Edge<SecurityVulnerability> x, Edge<SecurityVulnerability> y)
-            {
-                return Equals(x?.Node, y?.Node);
-            }
+            public bool Equals(Edge<SecurityVulnerability> x, Edge<SecurityVulnerability> y) =>
+                Equals(x?.Node, y?.Node);
 
-            public int GetHashCode(SecurityVulnerability obj)
-            {
-                return Tuple
+            public int GetHashCode(SecurityVulnerability obj) => 
+                Tuple
                     .Create(
                         obj?.Package?.Name,
                         obj?.VulnerableVersionRange)
                     .GetHashCode();
-            }
 
-            public int GetHashCode(Edge<SecurityVulnerability> obj)
-            {
-                return GetHashCode(obj?.Node);
-            }
+            public int GetHashCode(Edge<SecurityVulnerability> obj) => GetHashCode(obj?.Node);
         }
     }
 }

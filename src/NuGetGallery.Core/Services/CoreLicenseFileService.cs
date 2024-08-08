@@ -10,18 +10,14 @@ using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {
-    public class CoreLicenseFileService : ICoreLicenseFileService
+    public class CoreLicenseFileService(
+        ICoreFileStorageService fileStorageService,
+        IContentFileMetadataService metadata) : ICoreLicenseFileService
     {
         private const string LicenseFileName = "license";
 
-        private readonly ICoreFileStorageService _fileStorageService;
-        private readonly IContentFileMetadataService _metadata;
-
-        public CoreLicenseFileService(ICoreFileStorageService fileStorageService, IContentFileMetadataService metadata)
-        {
-            _fileStorageService = fileStorageService ?? throw new ArgumentNullException(nameof(fileStorageService));
-            _metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
-        }
+        private readonly ICoreFileStorageService _fileStorageService = fileStorageService ?? throw new ArgumentNullException(nameof(fileStorageService));
+        private readonly IContentFileMetadataService _metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
 
         public Task SaveLicenseFileAsync(Package package, Stream licenseFile)
         {

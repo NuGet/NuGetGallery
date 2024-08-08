@@ -10,9 +10,7 @@ namespace NuGetGallery
     /// </summary>
     public static class PackageArchiveReaderExtensions
     {
-        public static NuspecReader GetNuspecReader(this PackageArchiveReader packageArchiveReader)
-        {
-            return new NuspecReader(packageArchiveReader.GetNuspec());
-        }
+        public static NuspecReader GetNuspecReader(this PackageArchiveReader packageArchiveReader) => 
+            new NuspecReader(packageArchiveReader.GetNuspec());
     }
 }

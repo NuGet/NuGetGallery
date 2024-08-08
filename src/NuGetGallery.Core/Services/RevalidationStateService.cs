@@ -8,23 +8,14 @@ using Newtonsoft.Json;
 
 namespace NuGetGallery
 {
-    public class RevalidationStateService : IRevalidationStateService
+    public class RevalidationStateService(ICoreFileStorageService storage) : IRevalidationStateService
     {
         private const string StateFileName = "state.json";
 
-        private readonly ICoreFileStorageService _storage;
-        private readonly JsonSerializer _serializer;
+        private readonly ICoreFileStorageService _storage = storage ?? throw new ArgumentNullException(nameof(storage));
+        private readonly JsonSerializer _serializer = new JsonSerializer();
 
-        public RevalidationStateService(ICoreFileStorageService storage)
-        {
-            _storage = storage ?? throw new ArgumentNullException(nameof(storage));
-            _serializer = new JsonSerializer();
-        }
-
-        public async Task<RevalidationState> GetStateAsync()
-        {
-            return (await GetInternalStateAsync()).State;
-        }
+        public async Task<RevalidationState> GetStateAsync() => (await GetInternalStateAsync()).State;
 
         public async Task UpdateStateAsync(Action<RevalidationState> updateAction)
         {
@@ -101,16 +92,10 @@ namespace NuGetGallery
             }
         }
 
-        private class InternalState
+        private class InternalState(IFileReference fileReference, RevalidationState state)
         {
-            public InternalState(IFileReference fileReference, RevalidationState state)
-            {
-                FileReference = fileReference ?? throw new ArgumentNullException(nameof(fileReference));
-                State = state ?? throw new ArgumentNullException(nameof(state));
-            }
-
-            public IFileReference FileReference { get; }
-            public RevalidationState State { get; }
+            public IFileReference FileReference { get; } = fileReference ?? throw new ArgumentNullException(nameof(fileReference));
+            public RevalidationState State { get; } = state ?? throw new ArgumentNullException(nameof(state));
         }
     }
 }

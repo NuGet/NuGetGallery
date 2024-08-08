@@ -17,20 +17,15 @@ using NuGet.Jobs;
 
 namespace NuGet.Services.DatabaseMigration
 {
-    public class Job : JsonConfigurationJob
+    public class Job(IMigrationContextFactory migrationContextFactory) : JsonConfigurationJob
     {
         private string _migrationTargetDatabase;
-        private IMigrationContextFactory _migrationContextFactory;
+        private IMigrationContextFactory _migrationContextFactory = migrationContextFactory;
 
         private const string MigrationTargetDatabaseArgument = "MigrationTargetDatabase";
         // There is a Gallery migration file which doens't exist in the local migration folder;
         // Need to skip this migration file for the validation check.
         private const string SkipGalleryDatabaseMigrationFile = "201304262247205_CuratedPackagesUniqueIndex";
-
-        public Job(IMigrationContextFactory migrationContextFactory)
-        {
-            _migrationContextFactory = migrationContextFactory;
-        }
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {

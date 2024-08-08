@@ -19,10 +19,8 @@ namespace NuGetGallery
         /// <param name="pattern">The regular expression pattern to match.</param>
         /// <param name="options">A bitwise combiantion of the enumeration values that modify the expression.</param>
         /// <returns>A regular expression instance that can be used to match inputs.</returns>
-        public static Regex CreateWithTimeout(string pattern, RegexOptions options)
-        {
-            return new Regex(pattern, options, Timeout);
-        }
+        public static Regex CreateWithTimeout(string pattern, RegexOptions options) =>
+            new Regex(pattern, options, Timeout);
 
         /// <summary>
         /// In a specific input string, replaces all substrings that match a specified regular expression.
@@ -38,10 +36,7 @@ namespace NuGetGallery
             string input,
             string pattern,
             string replacement,
-            RegexOptions options)
-        {
-            return Regex.Replace(input, pattern, replacement, options, Timeout);
-        }
+            RegexOptions options) => Regex.Replace(input, pattern, replacement, options, Timeout);
 
         /// <summary>
         /// In a specific input string, replaces all substrings that match a specified regular expression.

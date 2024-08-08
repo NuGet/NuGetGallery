@@ -8,18 +8,12 @@ using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
-    public class CoreSymbolPackageService : ICoreSymbolPackageService
+    public class CoreSymbolPackageService(
+        IEntityRepository<SymbolPackage> symbolPackageRepository,
+        ICorePackageService corePackageService) : ICoreSymbolPackageService
     {
-        protected readonly IEntityRepository<SymbolPackage> _symbolPackageRepository;
-        protected readonly ICorePackageService _corePackageService;
-
-        public CoreSymbolPackageService(
-            IEntityRepository<SymbolPackage> symbolPackageRepository,
-            ICorePackageService corePackageService)
-        {
-            _symbolPackageRepository = symbolPackageRepository ?? throw new ArgumentNullException(nameof(symbolPackageRepository));
-            _corePackageService = corePackageService ?? throw new ArgumentNullException(nameof(corePackageService));
-        }
+        protected readonly IEntityRepository<SymbolPackage> _symbolPackageRepository = symbolPackageRepository ?? throw new ArgumentNullException(nameof(symbolPackageRepository));
+        protected readonly ICorePackageService _corePackageService = corePackageService ?? throw new ArgumentNullException(nameof(corePackageService));
 
         public IEnumerable<SymbolPackage> FindSymbolPackagesByIdAndVersion(string id, string version)
         {

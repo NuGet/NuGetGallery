@@ -54,15 +54,9 @@ namespace NuGet.Services.Entities
 
         public string Version => Package?.Version;
 
-        public bool Equals(SymbolPackage other)
-        {
-            return other.Key == Key;
-        }
+        public bool Equals(SymbolPackage other) => other.Key == Key;
 
-        public override int GetHashCode()
-        {
-            return Key.GetHashCode();
-        }
+        public override int GetHashCode() => Key.GetHashCode();
 
         public override bool Equals(object obj)
         {

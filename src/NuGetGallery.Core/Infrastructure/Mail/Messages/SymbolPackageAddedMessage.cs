@@ -11,32 +11,21 @@ using NuGet.Services.Messaging.Email;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
-    public class SymbolPackageAddedMessage : MarkdownEmailBuilder
+    public class SymbolPackageAddedMessage(
+        IMessageServiceConfiguration configuration,
+        SymbolPackage package,
+        string packageUrl,
+        string packageSupportUrl,
+        string emailSettingsUrl,
+        IEnumerable<string> warningMessages) : MarkdownEmailBuilder
     {
-        private readonly IMessageServiceConfiguration _configuration;
-        private readonly SymbolPackage _symbolPackage;
-        private readonly string _packageUrl;
-        private readonly string _packageSupportUrl;
-        private readonly string _emailSettingsUrl;
-        private readonly IEnumerable<string> _warningMessages;
-        private readonly bool _hasWarnings;
-
-        public SymbolPackageAddedMessage(
-            IMessageServiceConfiguration configuration,
-            SymbolPackage package,
-            string packageUrl,
-            string packageSupportUrl,
-            string emailSettingsUrl,
-            IEnumerable<string> warningMessages)
-        {
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _symbolPackage = package ?? throw new ArgumentNullException(nameof(package));
-            _packageUrl = packageUrl ?? throw new ArgumentNullException(nameof(packageUrl));
-            _packageSupportUrl = packageSupportUrl ?? throw new ArgumentNullException(nameof(packageSupportUrl));
-            _emailSettingsUrl = emailSettingsUrl ?? throw new ArgumentNullException(nameof(emailSettingsUrl));
-            _warningMessages = warningMessages;
-            _hasWarnings = warningMessages != null && warningMessages.Any();
-        }
+        private readonly IMessageServiceConfiguration _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        private readonly SymbolPackage _symbolPackage = package ?? throw new ArgumentNullException(nameof(package));
+        private readonly string _packageUrl = packageUrl ?? throw new ArgumentNullException(nameof(packageUrl));
+        private readonly string _packageSupportUrl = packageSupportUrl ?? throw new ArgumentNullException(nameof(packageSupportUrl));
+        private readonly string _emailSettingsUrl = emailSettingsUrl ?? throw new ArgumentNullException(nameof(emailSettingsUrl));
+        private readonly IEnumerable<string> _warningMessages = warningMessages;
+        private readonly bool _hasWarnings = warningMessages != null && warningMessages.Any();
 
         public override MailAddress Sender => _configuration.GalleryNoReplyAddress;
 
@@ -58,20 +47,11 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             }
         }
 
-        protected override string GetMarkdownBody()
-        {
-            return GetBodyInternal(EmailFormat.Markdown);
-        }
+        protected override string GetMarkdownBody() => GetBodyInternal(EmailFormat.Markdown);
 
-        protected override string GetPlainTextBody()
-        {
-            return GetBodyInternal(EmailFormat.PlainText);
-        }
+        protected override string GetPlainTextBody() => GetBodyInternal(EmailFormat.PlainText);
 
-        protected override string GetHtmlBody()
-        {
-            return GetBodyInternal(EmailFormat.Html);
-        }
+        protected override string GetHtmlBody() => GetBodyInternal(EmailFormat.Html);
 
         private string GetBodyInternal(EmailFormat format)
         {

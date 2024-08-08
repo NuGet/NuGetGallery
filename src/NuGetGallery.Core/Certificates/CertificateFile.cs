@@ -22,10 +22,7 @@ namespace NuGetGallery
             Sha256Thumbprint = sha256Thumbprint;
         }
 
-        public void Dispose()
-        {
-            Stream.Dispose();
-        }
+        public void Dispose() => Stream.Dispose();
 
         public static CertificateFile Create(Stream stream)
         {
@@ -90,9 +87,6 @@ namespace NuGetGallery
             return GetHexString(hashAlgorithm.Hash);
         }
 
-        private static string GetHexString(byte[] bytes)
-        {
-            return BitConverter.ToString(bytes).Replace("-", "").ToLowerInvariant();
-        }
+        private static string GetHexString(byte[] bytes) => BitConverter.ToString(bytes).Replace("-", "").ToLowerInvariant();
     }
 }

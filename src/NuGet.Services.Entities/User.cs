@@ -99,10 +99,7 @@ namespace NuGet.Services.Entities
         [DefaultValue(true)]
         public bool NotifyPackagePushed { get; set; }
 
-        public bool Confirmed
-        {
-            get { return !String.IsNullOrEmpty(EmailAddress); }
-        }
+        public bool Confirmed => !String.IsNullOrEmpty(EmailAddress);
 
         [StringLength(32)]
         public string EmailConfirmationToken { get; set; }
@@ -124,13 +121,7 @@ namespace NuGet.Services.Entities
 
         public bool IsLocked => UserStatusKey == UserStatus.Locked;
 
-        public string LastSavedEmailAddress
-        {
-            get
-            {
-                return UnconfirmedEmailAddress ?? EmailAddress;
-            }
-        }
+        public string LastSavedEmailAddress => UnconfirmedEmailAddress ?? EmailAddress;
 
         public virtual ICollection<Credential> Credentials { get; set; }
 
@@ -179,15 +170,9 @@ namespace NuGet.Services.Entities
             EmailConfirmationToken = generateToken();
         }
 
-        public bool IsInRole(string roleName)
-        {
-            return Roles.Any(r => r.Is(roleName));
-        }
+        public bool IsInRole(string roleName) => Roles.Any(r => r.Is(roleName));
 
-        public bool Equals(User other)
-        {
-            return other.Key == Key;
-        }
+        public bool Equals(User other) => other.Key == Key;
 
         public override bool Equals(object obj)
         {
@@ -203,10 +188,7 @@ namespace NuGet.Services.Entities
             return Equals(user);
         }
 
-        public override int GetHashCode()
-        {
-            return Key.GetHashCode();
-        }
+        public override int GetHashCode() => Key.GetHashCode();
 
         public static bool operator ==(User user1, User user2)
         {

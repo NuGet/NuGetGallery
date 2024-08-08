@@ -5,19 +5,11 @@ using System.Linq;
 
 namespace NuGetGallery
 {
-    public class ReadOnlyEntityRepository<T> : IReadOnlyEntityRepository<T>
+    public class ReadOnlyEntityRepository<T>(IReadOnlyEntitiesContext readOnlyEntitiesContext) : IReadOnlyEntityRepository<T>
         where T : class, new()
     {
-        private readonly IReadOnlyEntitiesContext _readOnlyEntitiesContext;
+        private readonly IReadOnlyEntitiesContext _readOnlyEntitiesContext = readOnlyEntitiesContext;
 
-        public ReadOnlyEntityRepository(IReadOnlyEntitiesContext readOnlyEntitiesContext)
-        {
-            _readOnlyEntitiesContext = readOnlyEntitiesContext;
-        }
-
-        public IQueryable<T> GetAll()
-        {
-            return _readOnlyEntitiesContext.Set<T>();
-        }
+        public IQueryable<T> GetAll() => _readOnlyEntitiesContext.Set<T>();
     }
 }

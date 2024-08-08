@@ -12,16 +12,10 @@ using Azure.Storage.Blobs.Specialized;
 
 namespace NuGetGallery
 {
-    public class CloudBlobContainerWrapper : ICloudBlobContainer
+    public class CloudBlobContainerWrapper(BlobContainerClient blobContainer, CloudBlobClientWrapper account) : ICloudBlobContainer
     {
-        private readonly CloudBlobClientWrapper _account;
-        private readonly BlobContainerClient _blobContainer;
-
-        public CloudBlobContainerWrapper(BlobContainerClient blobContainer, CloudBlobClientWrapper account)
-        {
-            _blobContainer = blobContainer ?? throw new ArgumentNullException(nameof(blobContainer));
-            _account = account ?? throw new ArgumentNullException(nameof(account));
-        }
+        private readonly CloudBlobClientWrapper _account = account ?? throw new ArgumentNullException(nameof(account));
+        private readonly BlobContainerClient _blobContainer = blobContainer ?? throw new ArgumentNullException(nameof(blobContainer));
 
         public async Task<ISimpleBlobResultSegment> ListBlobsSegmentedAsync(
             string prefix,
@@ -68,7 +62,7 @@ namespace NuGetGallery
 
             return new BlobResultSegmentWrapper(new List<ISimpleCloudBlob>(), null);
         }
-        
+
         public async Task CreateIfNotExistAsync(bool enablePublicAccess)
         {
             var accessType = enablePublicAccess ? PublicAccessType.Blob : PublicAccessType.None;
@@ -77,15 +71,11 @@ namespace NuGetGallery
                 _blobContainer.CreateIfNotExistsAsync(accessType));
         }
 
-        public ISimpleCloudBlob GetBlobReference(string blobAddressUri)
-        {
-            return new CloudBlobWrapper(_blobContainer.GetBlockBlobClient(blobAddressUri), this);
-        }
+        public ISimpleCloudBlob GetBlobReference(string blobAddressUri) =>
+            new CloudBlobWrapper(_blobContainer.GetBlockBlobClient(blobAddressUri), this);
 
-        private ISimpleCloudBlob GetBlobReference(BlobItem item)
-        {
-            return new CloudBlobWrapper(_blobContainer.GetBlockBlobClient(item.Name), item, this);
-        }
+        private ISimpleCloudBlob GetBlobReference(BlobItem item) =>
+            new CloudBlobWrapper(_blobContainer.GetBlockBlobClient(item.Name), item, this);
 
         public async Task<bool> ExistsAsync(CloudBlobLocationMode? cloudBlobLocationMode)
         {
@@ -98,11 +88,10 @@ namespace NuGetGallery
                 containerClient.ExistsAsync())).Value;
         }
 
-        public async Task<bool> DeleteIfExistsAsync()
-        {
-            return await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
+        public async Task<bool> DeleteIfExistsAsync() =>
+             await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
                 _blobContainer.DeleteIfExistsAsync());
-        }
+
 
         public async Task CreateAsync(bool enablePublicAccess)
         {

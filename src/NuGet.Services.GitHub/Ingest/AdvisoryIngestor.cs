@@ -11,21 +11,14 @@ using NuGet.Services.Entities;
 
 namespace NuGet.Services.GitHub.Ingest
 {
-    public class AdvisoryIngestor : IAdvisoryIngestor
+    public class AdvisoryIngestor(
+        IGitHubVersionRangeParser gitHubVersionRangeParser,
+        IVulnerabilityWriter vulnerabilityWriter,
+        ILogger<AdvisoryIngestor> logger) : IAdvisoryIngestor
     {
-        private readonly IGitHubVersionRangeParser _gitHubVersionRangeParser;
-        private readonly IVulnerabilityWriter _vulnerabilityWriter;
-        private readonly ILogger<AdvisoryIngestor> _logger;
-
-        public AdvisoryIngestor(
-            IGitHubVersionRangeParser gitHubVersionRangeParser,
-            IVulnerabilityWriter vulnerabilityWriter,
-            ILogger<AdvisoryIngestor> logger)
-        {
-            _gitHubVersionRangeParser = gitHubVersionRangeParser ?? throw new ArgumentNullException(nameof(gitHubVersionRangeParser));
-            _vulnerabilityWriter = vulnerabilityWriter ?? throw new ArgumentNullException(nameof(vulnerabilityWriter));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
+        private readonly IGitHubVersionRangeParser _gitHubVersionRangeParser = gitHubVersionRangeParser ?? throw new ArgumentNullException(nameof(gitHubVersionRangeParser));
+        private readonly IVulnerabilityWriter _vulnerabilityWriter = vulnerabilityWriter ?? throw new ArgumentNullException(nameof(vulnerabilityWriter));
+        private readonly ILogger<AdvisoryIngestor> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         public async Task IngestAsync(IReadOnlyList<SecurityAdvisory> advisories)
         {
@@ -60,15 +53,13 @@ namespace NuGet.Services.GitHub.Ingest
             return Tuple.Create(vulnerability, advisory.WithdrawnAt != null);
         }
 
-        private VulnerablePackageVersionRange FromVulnerability(PackageVulnerability vulnerability, SecurityVulnerability securityVulnerability)
-        {
-            return new VulnerablePackageVersionRange
+        private VulnerablePackageVersionRange FromVulnerability(PackageVulnerability vulnerability, SecurityVulnerability securityVulnerability) =>
+            new VulnerablePackageVersionRange
             {
                 Vulnerability = vulnerability,
                 PackageId = securityVulnerability.Package.Name,
                 PackageVersionRange = _gitHubVersionRangeParser.ToNuGetVersionRange(securityVulnerability.VulnerableVersionRange).ToNormalizedString(),
                 FirstPatchedPackageVersion = securityVulnerability.FirstPatchedVersion?.Identifier
             };
-        }
     }
 }
