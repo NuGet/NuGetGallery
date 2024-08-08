@@ -54,7 +54,7 @@ namespace NgTests
         {
             return new SearchEndpoint(
                 instanceName,
-                [new SearchCursorConfiguration(new Uri(cursorUri), blobClient: null)],
+                [new SearchCursorConfiguration(new Uri(cursorUri), blobClient: null, SearchCursorCredentialType.Anonymous)],
                 new Uri(baseUri),
                 () => null);
         }

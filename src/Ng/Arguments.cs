@@ -106,12 +106,6 @@ namespace Ng
         public const string SearchCursorSasValuePrefix = "searchCursorSasValue-";
 
         /// <summary>
-        /// The argument prefix for the cursor storage managed identity client ID is token of a <see cref="SearchEndpoint"/> cursor.
-        /// This is used in conjunction with the <see cref="SearchBaseUriPrefix"/> argument with same suffix for authentication with blob storage.
-        /// </summary>
-        public const string SearchCursorStorageClientIdPrefix = "searchCursorStorageClientId-";
-
-        /// <summary>
         /// The argument prefix for the base URL of a <see cref="SearchEndpoint"/>. There should be the same number of
         /// <see cref="SearchBaseUriPrefix"/> parameters passed as <see cref="SearchCursorUriPrefix"/> with the same
         /// set of suffixes.

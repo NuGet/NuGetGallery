@@ -16,6 +16,24 @@ namespace NgTests
         public class TheGetEndpointConfigurationMethod
         {
             [Fact]
+            public void ExtractsFlatContainerAndRegistrationCursorUrl()
+            {
+                // Arrange
+                Dictionary<string, string> arguments = new Dictionary<string, string>()
+                {
+                    { Arguments.FlatContainerCursorUri, "https://example/v3/flatcontainer/cursor.json" },
+                    { Arguments.RegistrationCursorUri, "https://example/v3/registration/cursor.json" },
+                };
+
+                // Act
+                EndpointConfiguration config = CommandHelpers.GetEndpointConfiguration(arguments);
+
+                // Assert
+                Assert.Equal("https://example/v3/flatcontainer/cursor.json", config.FlatContainerCursorUri.AbsoluteUri);
+                Assert.Equal("https://example/v3/registration/cursor.json", config.RegistrationCursorUri.AbsoluteUri);
+            }
+
+            [Fact]
             public void MatchesSearchSettingsBySuffix()
             {
                 // Arrange
@@ -28,7 +46,6 @@ namespace NgTests
                     { Arguments.SearchCursorSasValuePrefix + "a", "SIG" },
                     { Arguments.SearchBaseUriPrefix + "b", "https://example-search-b/" },
                     { Arguments.SearchCursorUriPrefix + "b-main", "https://example/v3/search-b-main/cursor.json" },
-                    { Arguments.SearchCursorStorageClientIdPrefix + "b-main", "my-msi" },
                     { Arguments.SearchCursorUriPrefix + "b-preview", "https://example/v3/search-b-preview/cursor.json" },
                 };
 
@@ -43,6 +60,7 @@ namespace NgTests
 
                 Assert.Equal("https://example/v3/search-a/cursor.json", configA.Cursors[0].CursorUri.AbsoluteUri);
                 Assert.NotNull(configA.Cursors[0].BlobClient);
+                Assert.Equal(SearchCursorCredentialType.AzureSasCredential, configA.Cursors[0].CredentialType);
 
                 Assert.Contains("b", config.InstanceNameToSearchConfiguration.Keys);
                 var configB = config.InstanceNameToSearchConfiguration["b"];
@@ -50,12 +68,78 @@ namespace NgTests
                 Assert.Equal(2, configB.Cursors.Count);
 
                 Assert.Equal("https://example/v3/search-b-main/cursor.json", configB.Cursors[0].CursorUri.AbsoluteUri);
-                Assert.NotNull(configB.Cursors[0].BlobClient);
+                Assert.Null(configB.Cursors[0].BlobClient);
+                Assert.Equal(SearchCursorCredentialType.Anonymous, configB.Cursors[0].CredentialType);
 
                 Assert.Equal("https://example/v3/search-b-preview/cursor.json", configB.Cursors[1].CursorUri.AbsoluteUri);
                 Assert.Null(configB.Cursors[1].BlobClient);
+                Assert.Equal(SearchCursorCredentialType.Anonymous, configB.Cursors[1].CredentialType);
 
                 Assert.Equal(2, config.InstanceNameToSearchConfiguration.Count);
+
+                Assert.Equal("https://example/v3/flatcontainer/cursor.json", config.FlatContainerCursorUri.AbsoluteUri);
+                Assert.Equal("https://example/v3/registration/cursor.json", config.RegistrationCursorUri.AbsoluteUri);
+            }
+
+            [Fact]
+            public void CanUseDefaultAzureCredentialForSearchCursor()
+            {
+                // Arrange
+                Dictionary<string, string> arguments = new Dictionary<string, string>()
+                {
+                    { Arguments.FlatContainerCursorUri, "https://example/v3/flatcontainer/cursor.json" },
+                    { Arguments.RegistrationCursorUri, "https://example/v3/registration/cursor.json" },
+                    { Arguments.SearchBaseUriPrefix + "a", "https://example-search-a/" },
+                    { Arguments.SearchCursorUriPrefix + "a", "https://example/v3/search-a/cursor.json" },
+                    { Arguments.UseManagedIdentity, "true" },
+                };
+
+                // Act
+                EndpointConfiguration config = CommandHelpers.GetEndpointConfiguration(arguments);
+
+                // Assert
+                Assert.Contains("a", config.InstanceNameToSearchConfiguration.Keys);
+                var configA = config.InstanceNameToSearchConfiguration["a"];
+                Assert.Equal("https://example-search-a/", configA.BaseUri.AbsoluteUri);
+                Assert.Single(configA.Cursors);
+
+                Assert.Equal("https://example/v3/search-a/cursor.json", configA.Cursors[0].CursorUri.AbsoluteUri);
+                Assert.NotNull(configA.Cursors[0].BlobClient);
+                Assert.Equal(SearchCursorCredentialType.DefaultAzureCredential, configA.Cursors[0].CredentialType);
+
+                Assert.Equal("https://example/v3/flatcontainer/cursor.json", config.FlatContainerCursorUri.AbsoluteUri);
+                Assert.Equal("https://example/v3/registration/cursor.json", config.RegistrationCursorUri.AbsoluteUri);
+            }
+
+            [Fact]
+            public void CanUseManagedIdentityCredentialForSearchCursor()
+            {
+                // Arrange
+                Dictionary<string, string> arguments = new Dictionary<string, string>()
+                {
+                    { Arguments.FlatContainerCursorUri, "https://example/v3/flatcontainer/cursor.json" },
+                    { Arguments.RegistrationCursorUri, "https://example/v3/registration/cursor.json" },
+                    { Arguments.SearchBaseUriPrefix + "a", "https://example-search-a/" },
+                    { Arguments.SearchCursorUriPrefix + "a", "https://example/v3/search-a/cursor.json" },
+                    { Arguments.UseManagedIdentity, "true" },
+                    { Arguments.ClientId, "my-msi" },
+                };
+
+                // Act
+                EndpointConfiguration config = CommandHelpers.GetEndpointConfiguration(arguments);
+
+                // Assert
+                Assert.Contains("a", config.InstanceNameToSearchConfiguration.Keys);
+                var configA = config.InstanceNameToSearchConfiguration["a"];
+                Assert.Equal("https://example-search-a/", configA.BaseUri.AbsoluteUri);
+                Assert.Single(configA.Cursors);
+
+                Assert.Equal("https://example/v3/search-a/cursor.json", configA.Cursors[0].CursorUri.AbsoluteUri);
+                Assert.NotNull(configA.Cursors[0].BlobClient);
+                Assert.Equal(SearchCursorCredentialType.ManagedIdentityCredential, configA.Cursors[0].CredentialType);
+
+                Assert.Equal("https://example/v3/flatcontainer/cursor.json", config.FlatContainerCursorUri.AbsoluteUri);
+                Assert.Equal("https://example/v3/registration/cursor.json", config.RegistrationCursorUri.AbsoluteUri);
             }
         }
 

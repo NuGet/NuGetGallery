@@ -9,6 +9,7 @@ using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
 using Azure;
+using Azure.Core;
 using Azure.Identity;
 using Azure.Storage.Blobs;
 using Azure.Storage.Queues;
@@ -284,13 +285,15 @@ namespace Ng
 
         public static EndpointConfiguration GetEndpointConfiguration(IDictionary<string, string> arguments)
         {
+            var useManagedIdentity = arguments.GetOrDefault<bool>(Arguments.UseManagedIdentity);
+            var clientId = arguments.GetOrDefault<string>(Arguments.ClientId);
+
             var registrationCursorUri = arguments.GetOrThrow<Uri>(Arguments.RegistrationCursorUri);
             var flatContainerCursorUri = arguments.GetOrThrow<Uri>(Arguments.FlatContainerCursorUri);
 
             var instanceNameToSearchBaseUri = GetSuffixToValue<Uri>(arguments, Arguments.SearchBaseUriPrefix);
             var instanceNameToSearchCursorUri = GetSuffixToValue<Uri>(arguments, Arguments.SearchCursorUriPrefix);
             var instanceNameToSearchCursorSasValue = GetSuffixToValue<string>(arguments, Arguments.SearchCursorSasValuePrefix);
-            var instanceNameToSearchCursorStorageClientId = GetSuffixToValue<string>(arguments, Arguments.SearchCursorStorageClientIdPrefix);
             var instanceNameToSearchConfig = new Dictionary<string, SearchEndpointConfiguration>();
 
             foreach (var pair in instanceNameToSearchBaseUri)
@@ -317,14 +320,24 @@ namespace Ng
                 foreach (var suffix in matchingCursors)
                 {
                     var cursorUri = instanceNameToSearchCursorUri[suffix];
+                    SearchCursorCredentialType credentialType;
 
                     BlobClient blobClient = null;
-                    if (instanceNameToSearchCursorStorageClientId.TryGetValue(suffix, out var clientId))
+                    if (useManagedIdentity)
                     {
-                        blobClient = new BlobClient(cursorUri, new DefaultAzureCredential(new DefaultAzureCredentialOptions
+                        TokenCredential credential;
+                        if (string.IsNullOrEmpty(clientId))
                         {
-                            ManagedIdentityClientId = clientId,
-                        }));
+                            credential = new DefaultAzureCredential();
+                            credentialType = SearchCursorCredentialType.DefaultAzureCredential;
+                        }
+                        else
+                        {
+                            credential = new ManagedIdentityCredential(clientId);
+                            credentialType = SearchCursorCredentialType.ManagedIdentityCredential;
+                        }
+
+                        blobClient = new BlobClient(cursorUri, credential);
                     }
                     else if (instanceNameToSearchCursorSasValue.TryGetValue(suffix, out var sas))
                     {
@@ -335,9 +348,14 @@ namespace Ng
                         }
 
                         blobClient = new BlobClient(cursorUri, new AzureSasCredential(sas));
+                        credentialType = SearchCursorCredentialType.AzureSasCredential;
+                    }
+                    else
+                    {
+                        credentialType = SearchCursorCredentialType.Anonymous;
                     }
 
-                    cursors.Add(new SearchCursorConfiguration(cursorUri, blobClient));
+                    cursors.Add(new SearchCursorConfiguration(cursorUri, blobClient, credentialType));
                 }
 
                 instanceNameToSearchConfig[instanceName] = new SearchEndpointConfiguration(cursors, pair.Value);
