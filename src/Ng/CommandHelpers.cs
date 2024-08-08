@@ -285,7 +285,6 @@ namespace Ng
 
         public static EndpointConfiguration GetEndpointConfiguration(IDictionary<string, string> arguments)
         {
-            var useManagedIdentity = arguments.GetOrDefault<bool>(Arguments.UseManagedIdentity);
             var clientId = arguments.GetOrDefault<string>(Arguments.ClientId);
 
             var registrationCursorUri = arguments.GetOrThrow<Uri>(Arguments.RegistrationCursorUri);
@@ -294,6 +293,7 @@ namespace Ng
             var instanceNameToSearchBaseUri = GetSuffixToValue<Uri>(arguments, Arguments.SearchBaseUriPrefix);
             var instanceNameToSearchCursorUri = GetSuffixToValue<Uri>(arguments, Arguments.SearchCursorUriPrefix);
             var instanceNameToSearchCursorSasValue = GetSuffixToValue<string>(arguments, Arguments.SearchCursorSasValuePrefix);
+            var instanceNameToSearchCursorUseManagedIdentity = GetSuffixToValue<bool>(arguments, Arguments.SearchCursorUseManagedIdentityPrefix);
             var instanceNameToSearchConfig = new Dictionary<string, SearchEndpointConfiguration>();
 
             foreach (var pair in instanceNameToSearchBaseUri)
@@ -323,7 +323,8 @@ namespace Ng
                     SearchCursorCredentialType credentialType;
 
                     BlobClient blobClient = null;
-                    if (useManagedIdentity)
+                    if (instanceNameToSearchCursorUseManagedIdentity.TryGetValue(suffix, out var useManagedIdentity)
+                        && useManagedIdentity)
                     {
                         TokenCredential credential;
                         if (string.IsNullOrEmpty(clientId))

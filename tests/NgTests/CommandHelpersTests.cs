@@ -91,7 +91,7 @@ namespace NgTests
                     { Arguments.RegistrationCursorUri, "https://example/v3/registration/cursor.json" },
                     { Arguments.SearchBaseUriPrefix + "a", "https://example-search-a/" },
                     { Arguments.SearchCursorUriPrefix + "a", "https://example/v3/search-a/cursor.json" },
-                    { Arguments.UseManagedIdentity, "true" },
+                    { Arguments.SearchCursorUseManagedIdentityPrefix + "a", "true" },
                 };
 
                 // Act
@@ -118,7 +118,7 @@ namespace NgTests
                     { Arguments.RegistrationCursorUri, "https://example/v3/registration/cursor.json" },
                     { Arguments.SearchBaseUriPrefix + "a", "https://example-search-a/" },
                     { Arguments.SearchCursorUriPrefix + "a", "https://example/v3/search-a/cursor.json" },
-                    { Arguments.UseManagedIdentity, "true" },
+                    { Arguments.SearchCursorUseManagedIdentityPrefix + "a", "true" },
                     { Arguments.ClientId, "my-msi" },
                 };
 
@@ -147,7 +147,7 @@ namespace NgTests
                     { Arguments.SearchBaseUriPrefix + "a", "https://example-search-a/" },
                     { Arguments.SearchCursorUriPrefix + "a", "https://example/v3/search-a/cursor.json" },
                     { Arguments.SearchCursorSasValuePrefix + "a", "SIG" },
-                    { Arguments.UseManagedIdentity, "true" },
+                    { Arguments.SearchCursorUseManagedIdentityPrefix + "a", "true" },
                 };
 
                 // Act

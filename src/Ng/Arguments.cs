@@ -106,6 +106,13 @@ namespace Ng
         public const string SearchCursorSasValuePrefix = "searchCursorSasValue-";
 
         /// <summary>
+        /// The argument prefix to enable using a token credential for a <see cref="SearchEndpoint"/> cursor.
+        /// This is used in conjunction with the <see cref="SearchBaseUriPrefix"/> argument with same suffix for authentication with blob storage.
+        /// If <see cref="ClientId"/> is specified, a managed identity credential will be used. Otherwise, a default Azure credential will be used.
+        /// </summary>
+        public const string SearchCursorUseManagedIdentityPrefix = "searchCursorUseManagedIdentity-";
+
+        /// <summary>
         /// The argument prefix for the base URL of a <see cref="SearchEndpoint"/>. There should be the same number of
         /// <see cref="SearchBaseUriPrefix"/> parameters passed as <see cref="SearchCursorUriPrefix"/> with the same
         /// set of suffixes.
