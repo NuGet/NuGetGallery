@@ -2,7 +2,7 @@
 name = "loginterpretation"
 version = "0.1.0"
 description = "Helper functions for parsing CDN logs to generate statistics"
-authors = ["Claire Novotny <cnov@microsoft.com>"]
+authors = ["NuGet Server Team Engineering <nugetservereng@microsoft.com>"]
 readme = "README.md"
 license = "Apache-2.0"
 
