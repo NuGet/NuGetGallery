@@ -4,6 +4,7 @@
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
+    <PackageVersion Condition="'$(PackageVersion)' == ''">$(CommonPackageVersion)</PackageVersion>
     <Description>Logic shared between the front-end and back-end concerning asynchronous validation</Description>
 
     <!--

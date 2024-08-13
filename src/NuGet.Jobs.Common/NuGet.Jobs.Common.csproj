@@ -4,6 +4,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>net472;netstandard2.1</TargetFrameworks>
+    <PackageVersion Condition="'$(PackageVersion)' == ''">$(JobsPackageVersion)</PackageVersion>
     <RootNamespace>NuGet.Jobs</RootNamespace>
     <Description>Common infrastructure for running the NuGetGallery back-end jobs.</Description>
   </PropertyGroup>
