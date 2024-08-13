@@ -454,15 +454,21 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             {
                 if (await sourceBlockBlob.ExistsAsync(CancellationToken.None))
                 {
-                    var sourceBlobMetadata = await sourceBlockBlob.GetMetadataAsync(CancellationToken.None);
-                    var destinationBlobMetadata = await destinationBlockBlob.GetMetadataAsync(CancellationToken.None);
-                    if (sourceBlobMetadata == null || destinationBlobMetadata == null)
+                    BlobProperties sourceBlobAttributes = await sourceBlockBlob.FetchAttributesAsync(CancellationToken.None);
+                    BlobProperties destinationBlobAttributes = await destinationBlockBlob.FetchAttributesAsync(CancellationToken.None);
+                    if (sourceBlobAttributes?.Metadata == null || destinationBlobAttributes?.Metadata == null)
                     {
                         return false;
                     }
 
-                    var sourceBlobHasSha512Hash = sourceBlobMetadata.TryGetValue(Sha512HashAlgorithmId, out var sourceBlobSha512Hash);
-                    var destinationBlobHasSha512Hash = destinationBlobMetadata.TryGetValue(Sha512HashAlgorithmId, out var destinationBlobSha512Hash);
+                    if (sourceBlobAttributes.ContentLength !=  destinationBlobAttributes.ContentLength)
+                    {
+                        Trace.WriteLine($"The source blob ({RemoveQueryString(sourceBlockBlob.Uri)}) and destination blob ({RemoveQueryString(destinationBlockBlob.Uri)}) have different sizes.");
+                        return false;
+                    }
+
+                    var sourceBlobHasSha512Hash = sourceBlobAttributes.Metadata.TryGetValue(Sha512HashAlgorithmId, out var sourceBlobSha512Hash);
+                    var destinationBlobHasSha512Hash = destinationBlobAttributes.Metadata.TryGetValue(Sha512HashAlgorithmId, out var destinationBlobSha512Hash);
                     if (!sourceBlobHasSha512Hash)
                     {
                         Trace.TraceWarning($"The source blob ({RemoveQueryString(sourceBlockBlob.Uri)}) doesn't have the SHA512 hash.");
