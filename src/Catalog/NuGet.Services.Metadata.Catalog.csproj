@@ -1,9 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <Import Project="..\..\SdkProjects.props" />
 
   <PropertyGroup>
     <TargetFrameworks>net472;netstandard2.1</TargetFrameworks>
+    <PackageVersion Condition="'$(PackageVersion)' == ''">$(JobsPackageVersion)</PackageVersion>
     <Description>Create, edit, or read the package metadata catalog.</Description>
     <PackageTags>nuget;services;search;catalog;metadata;collector</PackageTags>
   </PropertyGroup>

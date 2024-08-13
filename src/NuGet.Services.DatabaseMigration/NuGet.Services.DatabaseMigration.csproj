@@ -1,7 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\SdkProjects.props" />
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
+    <PackageVersion Condition="'$(PackageVersion)' == ''">$(GalleryPackageVersion)</PackageVersion>
   </PropertyGroup>
   <PropertyGroup>
     <Description>Core support library for NuGet database migration</Description>

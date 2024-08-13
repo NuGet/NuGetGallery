@@ -762,7 +762,8 @@ Function New-ProjectPackage {
         [string]$Branch,
         [switch]$IncludeReferencedProjects,
         [switch]$Sign,
-        [switch]$BinLog
+        [switch]$BinLog,
+        [string[]]$Options
     )
     Trace-Log "Creating package from @""$TargetFilePath"""
     
@@ -789,6 +790,8 @@ Function New-ProjectPackage {
     }
     elseif ($ReleaseLabel) {
         $PackageVersion = Get-PackageVersion $ReleaseLabel $BuildNumber
+    } else {
+        $PackageVersion = $null
     }
     
     if ($PackageVersion) {
@@ -809,6 +812,10 @@ Function New-ProjectPackage {
     
     if ($BinLog) {
         $opts += "/bl"
+    }
+
+    if ($Options) {
+        $opts += $Options
     }
 
     if (-not (Test-Path $Artifacts)) {

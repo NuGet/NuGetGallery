@@ -4,6 +4,7 @@
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
+    <PackageVersion Condition="'$(PackageVersion)' == ''">$(CommonPackageVersion)</PackageVersion>
     <Description>Shared component to assist NuGet build scripts.</Description>
 
     <!--

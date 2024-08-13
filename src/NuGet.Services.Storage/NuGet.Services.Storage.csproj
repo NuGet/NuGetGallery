@@ -4,6 +4,7 @@
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
+    <PackageVersion Condition="'$(PackageVersion)' == ''">$(CommonPackageVersion)</PackageVersion>
     <Description>Shared server-side storage component for NuGet services</Description>
   </PropertyGroup>
 
