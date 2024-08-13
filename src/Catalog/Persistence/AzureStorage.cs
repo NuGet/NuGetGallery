@@ -456,7 +456,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 {
                     var sourceBlobAttributes = await sourceBlockBlob.FetchAttributesAsync(CancellationToken.None);
                     var destinationBlobAttributes = await destinationBlockBlob.FetchAttributesAsync(CancellationToken.None);
-                    if (sourceBlobAttributes == null || destinationBlobAttributes == null)
+                    if (sourceBlobAttributes?.Metadata == null || destinationBlobAttributes?.Metadata == null)
                     {
                         return false;
                     }
