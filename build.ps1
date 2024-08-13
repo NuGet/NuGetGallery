@@ -144,10 +144,12 @@ Invoke-BuildStep 'Signing the binaries' {
     -skip:$SkipArtifacts `
     -ev +BuildErrors
 
+$packageVersions = "/p:CommonPackageVersion=$CommonPackageVersion;GalleryPackageVersion=$GalleryPackageVersion;JobsPackageVersion=$JobsPackageVersion"
+
 Invoke-BuildStep 'Creating common artifacts' {
         $CommonPackages = $CommonProjects | Where-Object { $_.IsSrc }
         $CommonPackages | ForEach-Object {
-            New-ProjectPackage $_.Path -Configuration $Configuration -BuildNumber $BuildNumber -Version $CommonPackageVersion
+            New-ProjectPackage $_.Path -Configuration $Configuration -Symbols -Options $packageVersions
         }
     } `
     -skip:($SkipCommon -or $SkipArtifacts) `
@@ -160,7 +162,7 @@ Invoke-BuildStep 'Creating gallery artifacts' { `
             "src\NuGetGallery.Core\NuGetGallery.Core.csproj",
             "src\NuGetGallery.Services\NuGetGallery.Services.csproj"
         $GalleryProjects | ForEach-Object {
-            New-ProjectPackage (Join-Path $PSScriptRoot $_) -Configuration $Configuration -BuildNumber $BuildNumber -Version $GalleryPackageVersion -Branch $Branch -Symbols
+            New-ProjectPackage (Join-Path $PSScriptRoot $_) -Configuration $Configuration -Symbols -Options $packageVersions
         }
         
         $GalleryNuspecProjects =
@@ -197,7 +199,7 @@ Invoke-BuildStep 'Creating jobs artifacts' {
             "src\Validation.ScanAndSign.Core\Validation.ScanAndSign.Core.csproj",
             "src\Validation.Symbols.Core\Validation.Symbols.Core.csproj"
         $JobsProjects | ForEach-Object {
-            New-ProjectPackage (Join-Path $PSScriptRoot $_) -Configuration $Configuration -BuildNumber $BuildNumber -Version $JobsPackageVersion -Branch $Branch -Symbols
+            New-ProjectPackage (Join-Path $PSScriptRoot $_) -Configuration $Configuration -Symbols -Options $packageVersions
         }
 
         $JobsNuspecProjects =
