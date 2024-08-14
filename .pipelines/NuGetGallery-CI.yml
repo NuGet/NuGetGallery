@@ -18,15 +18,15 @@ variables:
   - name: CommonPackageVersion
     value: $(CommonAssemblyVersion)-$(NuGetGalleryBranch)-$(Build.BuildId)
   - name: CommonAssemblyVersion
-    value: 3.0.0
+    value: 5.0.0
   - name: GalleryPackageVersion
     value: $(GalleryAssemblyVersion)-$(NuGetGalleryBranch)-$(Build.BuildId)
   - name: GalleryAssemblyVersion
-    value: 4.4.5
+    value: 5.0.0
   - name: JobsPackageVersion
     value: $(JobsAssemblyVersion)-$(NuGetGalleryBranch)-$(Build.BuildId)
   - name: JobsAssemblyVersion
-    value: 4.3.0
+    value: 5.0.0
   - name: NuGetGalleryDirectory
     value: ng
   - name: NuGetGalleryPath

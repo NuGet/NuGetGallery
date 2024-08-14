@@ -6,17 +6,16 @@ param (
     [switch]$SkipRestore,
     [switch]$SkipArtifacts,
     [switch]$SkipCommon,
-    [string]$CommonAssemblyVersion = '3.0.0',
-    [string]$CommonPackageVersion = '3.0.0-zlocal',
+    [string]$CommonAssemblyVersion = '5.0.0',
+    [string]$CommonPackageVersion = '5.0.0-zlocal',
     [switch]$SkipGallery,
-    [string]$GalleryAssemblyVersion = '4.4.5',
-    [string]$GalleryPackageVersion = '4.4.5-zlocal',
+    [string]$GalleryAssemblyVersion = '5.0.0',
+    [string]$GalleryPackageVersion = '5.0.0-zlocal',
     [switch]$SkipJobs,
-    [string]$JobsAssemblyVersion = '4.3.0',
-    [string]$JobsPackageVersion = '4.3.0-zlocal',
+    [string]$JobsAssemblyVersion = '5.0.0',
+    [string]$JobsPackageVersion = '5.0.0-zlocal',
     [string]$Branch,
     [string]$CommitSHA,
-    [string]$BuildBranchCommit = '8ea7f23faa289682fd02284a14959ab2c67ad546', #DevSkim: ignore DS173237. Not a secret/token. It is a commit hash.
     [string]$VerifyMicrosoftPackageVersion = $null
 )
 
@@ -42,20 +41,86 @@ if (-not $BuildNumber) {
 Trace-Log "Build #$BuildNumber started at $startTime"
 
 $BuildErrors = @()
+
 $CommonSolution = Join-Path $PSScriptRoot "NuGet.Server.Common.sln"
 $CommonProjects = Get-SolutionProjects $CommonSolution
-$SharedCommonProjects = $CommonProjects | Where-Object { $_.IsSrc } | ForEach-Object { $_.RelativePath }
 $GallerySolution = Join-Path $PSScriptRoot "NuGetGallery.sln"
 $GalleryProjects = Get-SolutionProjects $GallerySolution
-$SharedGalleryProjects =
-    "src\NuGet.Services.Entities\NuGet.Services.Entities.csproj",
-    "src\NuGetGallery.Core\NuGetGallery.Core.csproj"
+$GalleryFunctionalTestsSolution = Join-Path $PSScriptRoot "NuGetGallery.FunctionalTests.sln"
+$GalleryFunctionalTestsProjects = Get-SolutionProjects $GalleryFunctionalTestsSolution
 $JobsSolution = Join-Path $PSScriptRoot "NuGet.Jobs.sln"
 $JobsProjects = Get-SolutionProjects $JobsSolution
 $JobsFunctionalTestsSolution = Join-Path $PSScriptRoot "NuGet.Jobs.FunctionalTests.sln"
-$SharedJobsProjects =
-    "src\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj",
-    "src\Validation.Common.Job\Validation.Common.Job.csproj"
+$JobsFunctionalTestsProjects = Get-SolutionProjects $JobsFunctionalTestsSolution
+
+$SharedCommonProjects = New-Object System.Collections.ArrayList
+$SharedGalleryProjects = New-Object System.Collections.ArrayList
+$SharedJobsProjects = New-Object System.Collections.ArrayList
+
+Invoke-BuildStep 'Analyzing project files' {
+        # Projects are shared between the solutions. Find all projects shared between the solutions
+        $solutions =
+            $CommonProjects,
+            $GalleryProjects,
+            $GalleryFunctionalTestsProjects,
+            $JobsProjects,
+            $JobsFunctionalTestsProjects
+        $all = @()
+        $shared = @()
+        foreach ($solutionProjects in $solutions) {
+            if ($all.Count -gt 0) {
+                $shared += $solutionProjects | Where-Object { ($all | ForEach-Object { $_.RelativePath }) -contains $_.RelativePath }
+            }
+            $all += $solutionProjects
+        }
+        $all = $all | Sort-Object -Property RelativePath | Get-Unique -AsString
+        Trace-Log "Total projects: $($all.Count)"
+        $shared = $shared | Sort-Object -Property RelativePath | Get-Unique -AsString
+        Trace-Log "Total shared projects: $($shared.Count)"
+
+        # Split them into gallery, jobs, and common sets based on version property in the .csproj
+        # Use of MSBuild variable 'GalleryPackageVersion' marks a gallery package
+        # Use of MSBuild variable 'JobsPackageVersion' marks a jobs package
+        # All others are common packages
+        $unversionedCount = 0
+        foreach ($SharedProject in $shared) {
+            $versionLine = Get-Content $SharedProject.Path | Where-Object { $_ -like '*<PackageVersion*>*' }
+            if ($versionLine -like '*GalleryPackageVersion*') {
+                $SharedGalleryProjects.Add($SharedProject.RelativePath) | Out-Null
+            } elseif ($versionLine -like '*JobsPackageVersion*') {
+                $SharedJobsProjects.Add($SharedProject.RelativePath) | Out-Null
+            } elseif ($versionLine -like '*CommonPackageVersion*') {
+                $SharedCommonProjects.Add($SharedProject.RelativePath) | Out-Null
+            } else {
+                Trace-Log "Shared project without a <PackageVersion> set: $($SharedProject.RelativePath)"
+                $unversionedCount++
+            }
+        }
+
+        if ($unversionedCount -gt 0) {
+            throw "$($unversionedCount) shared projects have no <PackageVersion> set based on GalleryPackageVersion, JobsPackageVersion, or CommonPackageVersion."
+        }
+
+        Trace-Log "Total shared common projects: $($SharedCommonProjects.Count)"
+        Trace-Log "Total shared gallery projects: $($SharedGalleryProjects.Count)"
+        Trace-Log "Total shared jobs projects: $($SharedJobsProjects.Count)"
+
+        # Validate that only src projects are shared. No need to shared tests since they would run multiple times.
+        $sharedNonSrc = $shared | Where-Object { !$_.IsSrc }
+        if ($sharedNonSrc.Count -gt 0) {
+            $sharedNonSrc | ForEach-Object { Trace-Log "Shared project not in src directory: $($_.RelativePath)" }
+            throw "$($sharedNonSrc.Count) projects are shared between solutions but are non in the src directory. Only src projects should be shared."
+        }
+
+        # Validate all .csproj files are in a solution
+        $allCsproj = Get-ChildItem (Join-Path $PSScriptRoot "*.csproj") -Recurse
+        $missingCsproj = $allCsproj | Where-Object { ($all | ForEach-Object { $_.Path }) -notcontains $_ }
+        if ($missingCsproj.Count -gt 0) {
+            $missingCsproj | ForEach-Object { Trace-Log "Project not in any solution file: $_" }
+            throw "$($missingCsproj.Count) projects are not in any solution file."
+        }
+    } `
+    -ev +BuildErrors
 
 Invoke-BuildStep 'Getting private build tools' { Install-PrivateBuildTools } `
     -ev +BuildErrors
@@ -74,6 +139,15 @@ Invoke-BuildStep 'Restoring solution packages' {
     -skip:$SkipRestore `
     -ev +BuildErrors
 
+$WrittenAssemblyInfo = New-Object System.Collections.ArrayList
+function Confirm-NoDuplicateAssemblyInfo($Path) {
+    if ($WrittenAssemblyInfo -contains $Path) {
+        throw "Duplicate AssemblyInfo.g.cs: $Path"
+    } else {
+        $WrittenAssemblyInfo.Add($Path) | Out-Null
+    }
+}
+
 Invoke-BuildStep 'Setting common version metadata in AssemblyInfo.cs' {
         $CommonAssemblyInfo = $CommonProjects `
             | Where-Object { !$_.IsTest } `
@@ -83,6 +157,7 @@ Invoke-BuildStep 'Setting common version metadata in AssemblyInfo.cs' {
         $CommonAssemblyInfo | ForEach-Object {
             $Path = Join-Path $_.Directory "Properties\AssemblyInfo.g.cs"
             Set-VersionInfo $Path -AssemblyVersion $CommonAssemblyVersion -PackageVersion $CommonPackageVersion -Branch $Branch -Commit $CommitSHA
+            Confirm-NoDuplicateAssemblyInfo $Path
         }
     } `
     -ev +BuildErrors
@@ -96,6 +171,7 @@ Invoke-BuildStep 'Setting gallery version metadata in AssemblyInfo.cs' {
         $GalleryAssemblyInfo | ForEach-Object {
             $Path = Join-Path $_.Directory "Properties\AssemblyInfo.g.cs"
             Set-VersionInfo $Path -AssemblyVersion $GalleryAssemblyVersion -PackageVersion $GalleryPackageVersion -Branch $Branch -Commit $CommitSHA
+            Confirm-NoDuplicateAssemblyInfo $Path
         }
     } `
     -ev +BuildErrors
@@ -109,6 +185,7 @@ Invoke-BuildStep 'Setting job version metadata in AssemblyInfo.cs' {
         $JobsAssemblyInfo | ForEach-Object {
             $Path = Join-Path $_.Directory "Properties\AssemblyInfo.g.cs"
             Set-VersionInfo $Path -AssemblyVersion $JobsAssemblyVersion -PackageVersion $JobsPackageVersion -Branch $Branch -Commit $CommitSHA
+            Confirm-NoDuplicateAssemblyInfo $Path
         }
     } `
     -ev +BuildErrors
@@ -144,32 +221,22 @@ Invoke-BuildStep 'Signing the binaries' {
     -skip:$SkipArtifacts `
     -ev +BuildErrors
 
-$packageVersions = "/p:CommonPackageVersion=$CommonPackageVersion;GalleryPackageVersion=$GalleryPackageVersion;JobsPackageVersion=$JobsPackageVersion"
-
-Invoke-BuildStep 'Creating common artifacts' {
-        $CommonPackages = $CommonProjects | Where-Object { $_.IsSrc }
+Invoke-BuildStep 'Creating dependency packages from all solutions' {
+        $packageVersions = "/p:CommonPackageVersion=$CommonPackageVersion;GalleryPackageVersion=$GalleryPackageVersion;JobsPackageVersion=$JobsPackageVersion"
+    
+        $CommonPackages = $CommonProjects | Where-Object { $_.IsSrc } | ForEach-Object { $_.RelativePath }
         $CommonPackages | ForEach-Object {
-            New-ProjectPackage $_.Path -Configuration $Configuration -Symbols -Options $packageVersions
+            New-ProjectPackage (Join-Path $PSScriptRoot $_) -Configuration $Configuration -Symbols -Options $packageVersions
         }
     } `
     -skip:($SkipCommon -or $SkipArtifacts) `
     -ev +BuildErrors
 
-Invoke-BuildStep 'Creating gallery artifacts' { `
-        $GalleryProjects =
-            "src\NuGet.Services.DatabaseMigration\NuGet.Services.DatabaseMigration.csproj",
-            "src\NuGet.Services.Entities\NuGet.Services.Entities.csproj",
-            "src\NuGetGallery.Core\NuGetGallery.Core.csproj",
-            "src\NuGetGallery.Services\NuGetGallery.Services.csproj"
-        $GalleryProjects | ForEach-Object {
-            New-ProjectPackage (Join-Path $PSScriptRoot $_) -Configuration $Configuration -Symbols -Options $packageVersions
-        }
-        
+Invoke-BuildStep 'Creating job packages from gallery solution' { `
         $GalleryNuspecProjects =
             "src\DatabaseMigrationTools\DatabaseMigration.Gallery.nuspec",
             "src\DatabaseMigrationTools\DatabaseMigration.SupportRequest.nuspec",
             "src\DatabaseMigrationTools\DatabaseMigration.Validation.nuspec",
-            "src\AccountDeleter\Gallery.AccountDeleter.nuspec",
             "src\GitHubVulnerabilities2Db\GitHubVulnerabilities2Db.nuspec",
             "src\GitHubVulnerabilities2v3\GitHubVulnerabilities2v3.nuspec",
             "src\GalleryTools\Gallery.GalleryTools.nuspec",
@@ -184,24 +251,7 @@ Invoke-BuildStep 'Creating gallery artifacts' { `
     -skip:($SkipGallery -or $SkipArtifacts) `
     -ev +BuildErrors
 
-Invoke-BuildStep 'Creating jobs artifacts' {
-        $JobsProjects =
-            "src\Catalog\NuGet.Services.Metadata.Catalog.csproj",
-            "src\Microsoft.PackageManagement.Search.Web\Microsoft.PackageManagement.Search.Web.csproj",
-            "src\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj",
-            "src\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj",
-            "src\NuGet.Services.AzureSearch\NuGet.Services.AzureSearch.csproj",
-            "src\NuGet.Services.Metadata.Catalog.Monitoring\NuGet.Services.Metadata.Catalog.Monitoring.csproj",
-            "src\NuGet.Services.V3\NuGet.Services.V3.csproj",
-            "src\Stats.LogInterpretation\Stats.LogInterpretation.csproj",
-            "src\Validation.Common.Job\Validation.Common.Job.csproj",
-            "src\Validation.ContentScan.Core\Validation.ContentScan.Core.csproj",
-            "src\Validation.ScanAndSign.Core\Validation.ScanAndSign.Core.csproj",
-            "src\Validation.Symbols.Core\Validation.Symbols.Core.csproj"
-        $JobsProjects | ForEach-Object {
-            New-ProjectPackage (Join-Path $PSScriptRoot $_) -Configuration $Configuration -Symbols -Options $packageVersions
-        }
-
+Invoke-BuildStep 'Creating job packages from jobs solution' {
         $JobsNuspecProjects =
             "src\ArchivePackages\ArchivePackages.nuspec",
             "src\CopyAzureContainer\CopyAzureContainer.nuspec",
