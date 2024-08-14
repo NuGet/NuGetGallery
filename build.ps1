@@ -43,13 +43,13 @@ Trace-Log "Build #$BuildNumber started at $startTime"
 $BuildErrors = @()
 
 . (Join-Path $PSScriptRoot "build.shared.ps1") `
-    -SkipCommon $SkipCommon `
+    -SkipCommon:$SkipCommon `
     -CommonAssemblyVersion $CommonAssemblyVersion `
     -CommonPackageVersion $CommonPackageVersion `
-    -SkipGallery $SkipGallery `
+    -SkipGallery:$SkipGallery `
     -GalleryAssemblyVersion $GalleryAssemblyVersion `
     -GalleryPackageVersion $GalleryPackageVersion `
-    -SkipJobs $SkipJobs `
+    -SkipJobs:$SkipJobs `
     -JobsAssemblyVersion $JobsAssemblyVersion `
     -JobsPackageVersion $JobsPackageVersion
 
