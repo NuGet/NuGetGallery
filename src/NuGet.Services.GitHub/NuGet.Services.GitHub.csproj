@@ -1,6 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
-  <Import Project="..\..\SdkProjects.props" />
   
   <PropertyGroup>
     <TargetFrameworks>net472</TargetFrameworks>
