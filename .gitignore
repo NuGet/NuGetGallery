@@ -414,6 +414,9 @@ tests/functionaltests.*.xml
 *.trx
 *.g.txt
 
+# launch settings for running jobs locally
+**/Properties/launchSettings.json
+
 # The applicationhost.config is ignored, but already comitted on purpose
 # Reason: The localtest.me setting needs to be configured in the <sites>-section.
 # See ReadMe.md for more information
