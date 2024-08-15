@@ -3,6 +3,7 @@
   These properties are only meant for projects using the newer SDK-based project style. Properties that are meant for
   all projects (both legacy .csproj and SDK-based .csproj) should be put in Directory.Build.props.
   -->
+
   <ItemGroup>
     <PackageReference Include="MicroBuild.Core">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
@@ -24,4 +25,12 @@
   <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
   <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
   <!-- NuGet signing block: end -->
+
+  <!-- Enable custom build tools for jobs and web apps. -->
+  <PropertyGroup>
+    <UseNuGetBuildExtensions Condition="'$(UseNuGetBuildExtensions)' == '' And '$(UsingMicrosoftNETSdkWeb)' == 'true'">true</UseNuGetBuildExtensions>
+    <UseNuGetBuildExtensions Condition="'$(UseNuGetBuildExtensions)' == '' And '$(UsingMicrosoftNETSdk)' == 'true' And '$(OutputType)' == 'Exe'">true</UseNuGetBuildExtensions>
+  </PropertyGroup>
+  <Import Condition="'$(UseNuGetBuildExtensions)' == 'true' And '$(NuGetBuildExtensions)' != '' And Exists('$(NuGetBuildExtensions)')" Project="$(NuGetBuildExtensions)" />
+
 </Project>

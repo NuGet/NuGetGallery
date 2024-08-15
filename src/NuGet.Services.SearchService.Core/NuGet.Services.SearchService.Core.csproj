@@ -11,6 +11,4 @@
     <ProjectReference Include="..\Microsoft.PackageManagement.Search.Web\Microsoft.PackageManagement.Search.Web.csproj" />
   </ItemGroup>
 
-  <Import Project="$(NuGetBuildExtensions)" Condition="'$(NuGetBuildExtensions)' != '' And Exists('$(NuGetBuildExtensions)')" />
-
 </Project>
