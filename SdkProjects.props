@@ -26,11 +26,13 @@
   <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
   <!-- NuGet signing block: end -->
 
-  <!-- Enable custom build tools for jobs and web apps. -->
   <PropertyGroup>
+    <!-- Enabled for SDK-based web projects. -->
     <UseNuGetBuildExtensions Condition="'$(UseNuGetBuildExtensions)' == '' And '$(UsingMicrosoftNETSdkWeb)' == 'true'">true</UseNuGetBuildExtensions>
+    <!-- Enabled for EXE (console app) projects, which are jobs. -->
     <UseNuGetBuildExtensions Condition="'$(UseNuGetBuildExtensions)' == '' And '$(UsingMicrosoftNETSdk)' == 'true' And '$(OutputType)' == 'Exe'">true</UseNuGetBuildExtensions>
+    <!-- Other projects can opt in by setting the UseNuGetBuildExtensions property to true. -->
   </PropertyGroup>
-  <Import Condition="'$(UseNuGetBuildExtensions)' == 'true' And '$(NuGetBuildExtensions)' != '' And Exists('$(NuGetBuildExtensions)')" Project="$(NuGetBuildExtensions)" />
+  <Import Project="$(NuGetBuildExtensions)" Condition="'$(UseNuGetBuildExtensions)' == 'true' And '$(NuGetBuildExtensions)' != '' And Exists('$(NuGetBuildExtensions)')" />
 
 </Project>

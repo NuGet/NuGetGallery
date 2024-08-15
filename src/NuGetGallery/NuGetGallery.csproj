@@ -2298,7 +2298,7 @@
   <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
   <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
   <!-- NuGet signing block: end -->
-  <Import Condition="'$(NuGetBuildExtensions)' != '' And Exists('$(NuGetBuildExtensions)')" Project="$(NuGetBuildExtensions)" />
+  <Import Project="$(NuGetBuildExtensions)" Condition="'$(NuGetBuildExtensions)' != '' And Exists('$(NuGetBuildExtensions)')" />
   <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
   <Target Name="MvcBuildViews" AfterTargets="AfterBuild" Condition="'$(MvcBuildViews)'=='true'">
