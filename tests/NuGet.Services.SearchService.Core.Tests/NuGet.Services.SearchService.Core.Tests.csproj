@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\SdkProjects.props" />
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>NuGet.Services.SearchService</RootNamespace>
