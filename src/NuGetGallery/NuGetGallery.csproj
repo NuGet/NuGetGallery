@@ -2205,10 +2205,6 @@
     <PackageReference Include="EntityFramework" />
     <PackageReference Include="Lucene.Net" />
     <PackageReference Include="Lucene.Net.Contrib" />
-    <PackageReference Include="MicroBuild.Core">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
     <PackageReference Include="Microsoft.ApplicationInsights.TraceListener" />
     <PackageReference Include="Microsoft.ApplicationInsights.Web" />
     <PackageReference Include="Microsoft.AspNet.DynamicData.EFProvider" />
