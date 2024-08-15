@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "loginterpretation"
-version = "0.1.0"
+version = "0.2.0"
 description = "Helper functions for parsing CDN logs to generate statistics"
 authors = ["NuGet Server Team Engineering <nugetservereng@microsoft.com>"]
 readme = "README.md"
