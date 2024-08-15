@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="WindowsAzure.Storage" />
     <ProjectReference Include="..\Catalog\NuGet.Services.Metadata.Catalog.csproj" />
     <ProjectReference Include="..\Validation.Common.Job\Validation.Common.Job.csproj" />
   </ItemGroup>
