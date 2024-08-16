@@ -207,13 +207,13 @@ namespace Stats.AggregateCdnDownloadsInGallery
                     }
                     if (newDownloadCount < currentDownloadCount)
                     {
-                        Logger.LogCritical(LogEvents.DownloadCountDecreaseDetected, "{PackageId} {CurrentDownloadCount} {NewDownloadCount}", packageRegistrationGroup.Key, currentDownloadCount, newDownloadCount);
+                        Logger.LogWarning(LogEvents.DownloadCountDecreaseDetected, "Decrease detected: {PackageId} {CurrentDownloadCount} -> {NewDownloadCount}", packageRegistrationGroup.Key, currentDownloadCount, newDownloadCount);
                     }
                 }
                 else
                 {
                     // This is not expected to happen as it should be one id per group. 
-                    Logger.LogCritical(LogEvents.IncorrectIdsInGroupBatch, "{GroupKey} {Ids}", packageRegistrationGroup.Key, string.Join(",", packageRegistrationGroup.Select(g => g.PackageId).Distinct()));
+                    Logger.LogCritical(LogEvents.IncorrectIdsInGroupBatch, "Incorrect IDs in group: {GroupKey} {Ids}", packageRegistrationGroup.Key, string.Join(",", packageRegistrationGroup.Select(g => g.PackageId).Distinct()));
                 }
             }
 
