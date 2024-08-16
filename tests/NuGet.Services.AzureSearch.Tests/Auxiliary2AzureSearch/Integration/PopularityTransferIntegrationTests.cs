@@ -44,6 +44,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
             _featureFlags = new Mock<IFeatureFlagService>();
             _telemetry = new Mock<IAzureSearchTelemetryService>();
             var mockBlockClient = new Mock<BlobClient>();
+            mockBlockClient.Setup(x => x.Uri).Returns(new Uri("https://example/downloads.v1.json"));
             mockBlockClient
                 .Setup(x => x.DownloadStreamingAsync(It.IsAny<BlobDownloadOptions>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => Response.FromValue(
