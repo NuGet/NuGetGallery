@@ -40,6 +40,7 @@ namespace NuGet.Services.Metadata.Catalog
             await Retry.IncrementalAsync(
                 async () =>
                 {
+                    _logger.LogInformation("Attempting to download {Url}", _blobClient.Uri.GetLeftPart(UriPartial.Path));
                     using (BlobDownloadStreamingResult result = await _blobClient.DownloadStreamingAsync())
                     using (var textReader = new StreamReader(result.Content))
                     using (var jsonReader = new JsonTextReader(textReader))
