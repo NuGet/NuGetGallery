@@ -1,13 +1,16 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure;
 using Azure.Search.Documents.Models;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
@@ -40,21 +43,13 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
         {
             _featureFlags = new Mock<IFeatureFlagService>();
             _telemetry = new Mock<IAzureSearchTelemetryService>();
-            var downloadsV1JsonHttpClientHandler = new Mock<TestHttpMessageHandler>()
-            {
-                CallBase = true,
-            };
-            downloadsV1JsonHttpClientHandler
-                .Setup(x => x.OnSendAsync(
-                    It.IsAny<HttpRequestMessage>(),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(() => new HttpResponseMessage(HttpStatusCode.OK)
-                {
-                    Content = new StringContent(_downloadsV1Json),
-                });
-            _downloadsV1JsonClient = new DownloadsV1JsonClient(
-                new HttpClient(downloadsV1JsonHttpClientHandler.Object),
-                output.GetLogger<DownloadsV1JsonClient>());
+            var mockBlockClient = new Mock<BlobClient>();
+            mockBlockClient
+                .Setup(x => x.DownloadStreamingAsync(It.IsAny<BlobDownloadOptions>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(() => Response.FromValue(
+                    BlobsModelFactory.BlobDownloadStreamingResult(new MemoryStream(Encoding.UTF8.GetBytes(_downloadsV1Json))),
+                    Mock.Of<Response>()));
+            _downloadsV1JsonClient = new DownloadsV1JsonClient(mockBlockClient.Object, output.GetLogger<DownloadsV1JsonClient>());
 
             _config = new Auxiliary2AzureSearchConfiguration
             {

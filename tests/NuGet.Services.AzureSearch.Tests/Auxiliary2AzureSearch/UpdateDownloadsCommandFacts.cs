@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -42,7 +42,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 BatchPusher.Verify(x => x.TryFinishAsync(), Times.Never);
                 BatchPusher.Verify(x => x.TryPushFullBatchesAsync(), Times.Never);
                 DownloadsV1JsonClient.Verify(
-                    x => x.ReadAsync(Config.DownloadsV1JsonUrl),
+                    x => x.ReadAsync(),
                     Times.Once);
                 DownloadDataClient.Verify(
                     x => x.ReplaceLatestIndexedAsync(It.IsAny<DownloadData>(), It.IsAny<IAccessCondition>()),
@@ -502,7 +502,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                     .Setup(x => x.ReadLatestIndexedAsync(It.IsAny<IAccessCondition>(), It.IsAny<StringCache>()))
                     .ReturnsAsync(() => OldDownloadResult);
                 NewDownloadData = new DownloadData();
-                DownloadsV1JsonClient.Setup(x => x.ReadAsync(It.IsAny<string>())).ReturnsAsync(() => NewDownloadData);
+                DownloadsV1JsonClient.Setup(x => x.ReadAsync()).ReturnsAsync(() => NewDownloadData);
 
                 Changes = new SortedDictionary<string, long>();
                 DownloadSetComparer

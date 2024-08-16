@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -8,7 +8,6 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Autofac;
 using Microsoft.Extensions.Configuration;
@@ -17,7 +16,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
-using NuGet.Services.FeatureFlags;
 using NuGet.Services.Metadata.Catalog;
 using IPackageIdGroup = System.Linq.IGrouping<string, Stats.AggregateCdnDownloadsInGallery.DownloadCountData>;
 
@@ -26,12 +24,11 @@ namespace Stats.AggregateCdnDownloadsInGallery
     public class AggregateCdnDownloadsJob : JsonConfigurationJob
     {
         private const string DownloadsV1JsonConfigurationSectionName = "DownloadsV1Json";
-        private const string AlternateStatisticsSourceFeatureFlagName = "NuGetGallery.AlternateStatisticsSource";
 
-        private const int _defaultCommandTimeoutSeconds = 1800; // 30 minutes
-        private const string _tempTableName = "#AggregateCdnDownloadsInGallery";
+        private const int DefaultCommandTimeoutSeconds = 1800; // 30 minutes
+        private const string TempTableName = "#AggregateCdnDownloadsInGallery";
 
-        private const string _createTempTable = @"
+        private const string CreateTempTable = @"
             IF OBJECT_ID('tempdb.dbo.#AggregateCdnDownloadsInGallery', 'U') IS NOT NULL
                 DROP TABLE #AggregateCdnDownloadsInGallery
 
@@ -42,7 +39,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
                 [DownloadCount]             BIGINT          NOT NULL,
             )";
 
-        private const string _updateFromTempTable = @"
+        private const string UpdateFromTempTable = @"
             -- Update Packages table
             UPDATE P SET P.[DownloadCount] = Stats.[DownloadCount]
             FROM [dbo].[Packages] AS P
@@ -61,8 +58,6 @@ namespace Stats.AggregateCdnDownloadsInGallery
             -- No more need for temp table
             DROP TABLE #AggregateCdnDownloadsInGallery";
 
-        private const string _storedProcedureName = "[dbo].[SelectTotalDownloadCountsPerPackageVersion]";
-
         private AggregateCdnDownloadsConfiguration _configuration;
         private int _commandTimeoutSeconds;
         private IDownloadsV1JsonClient _downloadsV1JsonClient;
@@ -72,7 +67,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
             base.Init(serviceContainer, jobArgsDictionary);
 
             _configuration = _serviceProvider.GetRequiredService<IOptionsSnapshot<AggregateCdnDownloadsConfiguration>>().Value;
-            _commandTimeoutSeconds = _configuration.CommandTimeoutSeconds ?? _defaultCommandTimeoutSeconds;
+            _commandTimeoutSeconds = _configuration.CommandTimeoutSeconds ?? DefaultCommandTimeoutSeconds;
             _downloadsV1JsonClient = _serviceProvider.GetRequiredService<IDownloadsV1JsonClient>();
         }
 
@@ -83,28 +78,11 @@ namespace Stats.AggregateCdnDownloadsInGallery
 
             try
             {
-                IReadOnlyCollection<DownloadCountData> downloadData = null;
-                var jsonConfigurationAccessor = _serviceProvider.GetService<IOptionsSnapshot<DownloadsV1JsonConfiguration>>();
-                if (jsonConfigurationAccessor == null || jsonConfigurationAccessor.Value == null)
+                var downloadData = new List<DownloadCountData>();
+                await _downloadsV1JsonClient.ReadAsync((id, version, downloads) =>
                 {
-                    downloadData = await GetDownloadDataFromStatsDbAsync();
-                }
-                else
-                {
-                    var ff = _serviceProvider.GetRequiredService<IFeatureFlagClient>();
-                    string url = jsonConfigurationAccessor.Value.SqlPipelineUrl;
-                    if (ff.IsEnabled(AlternateStatisticsSourceFeatureFlagName, defaultValue: false))
-                    {
-                        url = jsonConfigurationAccessor.Value.SynapsePipelineUrl;
-                    }
-
-                    var result = new List<DownloadCountData>();
-                    await _downloadsV1JsonClient.ReadAsync(url, (id, version, downloads) =>
-                    {
-                        result.Add(new DownloadCountData { PackageId = id, PackageVersion = version, TotalDownloadCount = downloads });
-                    });
-                    downloadData = result;
-                }
+                    downloadData.Add(new DownloadCountData { PackageId = id, PackageVersion = version, TotalDownloadCount = downloads });
+                });
 
                 if (!downloadData.Any())
                 {
@@ -160,40 +138,6 @@ namespace Stats.AggregateCdnDownloadsInGallery
             }
         }
 
-        private async Task<IReadOnlyList<DownloadCountData>> GetDownloadDataFromStatsDbAsync()
-        {
-            // Gather download counts data from statistics warehouse
-            IReadOnlyList<DownloadCountData> downloadData;
-            Logger.LogInformation("Using batch size {BatchSize} and batch sleep seconds {BatchSleepSeconds}.",
-                _configuration.BatchSize,
-                _configuration.BatchSleepSeconds);
-
-            var stopwatch = Stopwatch.StartNew();
-
-            using (var connection = await OpenSqlConnectionAsync<StatisticsDbConfiguration>())
-            using (var transaction = connection.BeginTransaction(IsolationLevel.Snapshot))
-            {
-                Logger.LogInformation("Gathering Download Counts from {DataSource}/{InitialCatalog}...", connection.DataSource, connection.Database);
-
-                downloadData = (
-                    await connection.QueryWithRetryAsync<DownloadCountData>(
-                        _storedProcedureName,
-                        transaction: transaction,
-                        commandType: CommandType.StoredProcedure,
-                        commandTimeout: TimeSpan.FromSeconds(_commandTimeoutSeconds),
-                        maxRetries: 3))
-                    .ToList();
-            }
-
-            stopwatch.Stop();
-            Logger.LogInformation(
-                "Gathered {RecordCount} rows of data (took {DurationSeconds} seconds).",
-                downloadData.Count,
-                stopwatch.Elapsed.TotalSeconds);
-
-            return downloadData;
-        }
-
         private async Task<int> ProcessBatchAsync(List<IPackageIdGroup> batch, SqlConnection destinationDatabase, IDictionary<string, PackageRegistrationData> packageRegistrationLookup)
         {
             // Create a temporary table
@@ -201,7 +145,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
 
             using (var cmd = destinationDatabase.CreateCommand())
             {
-                cmd.CommandText = _createTempTable;
+                cmd.CommandText = CreateTempTable;
                 cmd.CommandType = CommandType.Text;
 
                 await cmd.ExecuteNonQueryAsync();
@@ -209,13 +153,13 @@ namespace Stats.AggregateCdnDownloadsInGallery
 
             // Load temporary table
             var aggregateCdnDownloadsInGalleryTable = new DataTable();
-            var command = new SqlCommand("SELECT * FROM " + _tempTableName, destinationDatabase);
+            var command = new SqlCommand("SELECT * FROM " + TempTableName, destinationDatabase);
             command.CommandType = CommandType.Text;
             command.CommandTimeout = _commandTimeoutSeconds;
             var reader = await command.ExecuteReaderAsync();
             aggregateCdnDownloadsInGalleryTable.Load(reader);
             aggregateCdnDownloadsInGalleryTable.Rows.Clear();
-            aggregateCdnDownloadsInGalleryTable.TableName = $"dbo.{_tempTableName}";
+            aggregateCdnDownloadsInGalleryTable.TableName = $"dbo.{TempTableName}";
             Logger.LogInformation("Created temporary table.");
 
             // Populate temporary table in memory
@@ -292,7 +236,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
             using (SqlBulkCopy bulkcopy = new SqlBulkCopy(destinationDatabase))
             {
                 bulkcopy.BulkCopyTimeout = (int)TimeSpan.FromMinutes(30).TotalSeconds;
-                bulkcopy.DestinationTableName = _tempTableName;
+                bulkcopy.DestinationTableName = TempTableName;
                 bulkcopy.WriteToServer(aggregateCdnDownloadsInGalleryTable);
                 bulkcopy.Close();
             }
@@ -308,7 +252,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
 
             using (var cmd = destinationDatabase.CreateCommand())
             {
-                cmd.CommandText = _updateFromTempTable;
+                cmd.CommandText = UpdateFromTempTable;
                 cmd.CommandType = CommandType.Text;
                 cmd.CommandTimeout = _commandTimeoutSeconds;
 
@@ -423,8 +367,11 @@ namespace Stats.AggregateCdnDownloadsInGallery
             ConfigureInitializationSection<AggregateCdnDownloadsConfiguration>(services, configurationRoot);
             services.Configure<DownloadsV1JsonConfiguration>(configurationRoot.GetSection(DownloadsV1JsonConfigurationSectionName));
             ConfigureFeatureFlagServices(services, configurationRoot);
-            services.AddSingleton(_ => new HttpClient());
-            services.AddTransient<IDownloadsV1JsonClient, DownloadsV1JsonClient>();
+            services.AddDownloadsV1JsonClient(provider =>
+            {
+                var jsonConfigurationAccessor = provider.GetRequiredService<IOptionsSnapshot<DownloadsV1JsonConfiguration>>();
+                return jsonConfigurationAccessor.Value.SynapsePipelineUrl;
+            });
         }
     }
 }
