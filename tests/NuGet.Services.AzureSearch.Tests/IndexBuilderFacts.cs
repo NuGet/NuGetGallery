@@ -34,7 +34,7 @@ namespace NuGet.Services.AzureSearch
                 await _target.CreateAsync(retryOnConflict);
 
                 VerifyGetContainer();
-                _cloudBlobContainer.Verify(x => x.CreateAsync(true), Times.Once);
+                _cloudBlobContainer.Verify(x => x.CreateAsync(false), Times.Once);
                 _cloudBlobContainer.Verify(x => x.CreateIfNotExistAsync(It.IsAny<bool>()), Times.Never);
                 _cloudBlobContainer.Verify(x => x.DeleteIfExistsAsync(), Times.Never);
             }
@@ -46,7 +46,7 @@ namespace NuGet.Services.AzureSearch
 
                 await _target.CreateAsync(retryOnConflict: true);
 
-                _cloudBlobContainer.Verify(x => x.CreateAsync(true), Times.Exactly(2));
+                _cloudBlobContainer.Verify(x => x.CreateAsync(false), Times.Exactly(2));
             }
 
             [Fact]
@@ -72,7 +72,7 @@ namespace NuGet.Services.AzureSearch
                 await _target.CreateIfNotExistsAsync();
 
                 VerifyGetContainer();
-                _cloudBlobContainer.Verify(x => x.CreateAsync(true), Times.Once);
+                _cloudBlobContainer.Verify(x => x.CreateAsync(false), Times.Once);
                 _cloudBlobContainer.Verify(x => x.CreateIfNotExistAsync(It.IsAny<bool>()), Times.Never);
                 _cloudBlobContainer.Verify(x => x.DeleteIfExistsAsync(), Times.Never);
             }
