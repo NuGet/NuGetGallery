@@ -1,0 +1,110 @@
+﻿{
+  "@id": "http://example/data/2017.01.04.08.15.00/testpackage.semver2.1.0.0-alpha.1.json",
+  "@type": [
+    "PackageDetails",
+    "catalog:Permalink"
+  ],
+  "authors": "TestPackage.SemVer2",
+  "catalog:commitId": "4aee0ef4-a039-4460-bd5f-98f944e33289",
+  "catalog:commitTimeStamp": "2017-01-04T08:15:00Z",
+  "created": "2017-01-01T08:15:00Z",
+  "description": "Package Description",
+  "id": "TestPackage.SemVer2",
+  "isPrerelease": true,
+  "lastEdited": "2017-01-02T08:15:00Z",
+  "listed": true,
+  "packageHash": "JMWmWRMlkaAniUmfyFgfNfIQh+EMy1SBzKNbTQ+3xHd+nq2NOCNsVBNcHIKuscAVbE44720YzcL6snUf2RBgXw==",
+  "packageHashAlgorithm": "SHA512",
+  "packageSize": 3419,
+  "published": "2017-01-03T08:15:00Z",
+  "requireLicenseAcceptance": false,
+  "verbatimVersion": "1.0.0-alpha.1+githash",
+  "version": "1.0.0-alpha.1+githash",
+  "dependencyGroups": [
+    {
+      "@id": "http://example/data/2017.01.04.08.15.00/testpackage.semver2.1.0.0-alpha.1.json#dependencygroup/.netstandard1.4",
+      "@type": "PackageDependencyGroup",
+      "dependencies": [
+        {
+          "@id": "http://example/data/2017.01.04.08.15.00/testpackage.semver2.1.0.0-alpha.1.json#dependencygroup/.netstandard1.4/netstandard.library",
+          "@type": "PackageDependency",
+          "id": "NETStandard.Library",
+          "range": "[1.6.1, )"
+        },
+        {
+          "@id": "http://example/data/2017.01.04.08.15.00/testpackage.semver2.1.0.0-alpha.1.json#dependencygroup/.netstandard1.4/fakepackage.semver2",
+          "@type": "PackageDependency",
+          "id": "FakePackage.SemVer2",
+          "range": "[1.6.1-beta.2, )"
+        }
+      ],
+      "targetFramework": ".NETStandard1.4"
+    }
+  ],
+  "packageEntries": [
+    {
+      "@id": "http://example/data/2017.01.04.08.15.00/testpackage.semver2.1.0.0-alpha.1.json#TestPackage.SemVer2.nuspec",
+      "@type": "PackageEntry",
+      "compressedLength": 358,
+      "fullName": "TestPackage.SemVer2.nuspec",
+      "length": 736,
+      "name": "TestPackage.SemVer2.nuspec"
+    },
+    {
+      "@id": "http://example/data/2017.01.04.08.15.00/testpackage.semver2.1.0.0-alpha.1.json#lib/netstandard1.4/TestPackage.SemVer2.dll",
+      "@type": "PackageEntry",
+      "compressedLength": 1409,
+      "fullName": "lib/netstandard1.4/TestPackage.SemVer2.dll",
+      "length": 4096,
+      "name": "TestPackage.SemVer2.dll"
+    }
+  ],
+  "@context": {
+    "@vocab": "http://schema.nuget.org/schema#",
+    "catalog": "http://schema.nuget.org/catalog#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dependencies": {
+      "@id": "dependency",
+      "@container": "@set"
+    },
+    "dependencyGroups": {
+      "@id": "dependencyGroup",
+      "@container": "@set"
+    },
+    "packageEntries": {
+      "@id": "packageEntry",
+      "@container": "@set"
+    },
+    "packageTypes": {
+      "@id": "packageType",
+      "@container": "@set"
+    },
+    "supportedFrameworks": {
+      "@id": "supportedFramework",
+      "@container": "@set"
+    },
+    "tags": {
+      "@id": "tag",
+      "@container": "@set"
+    },
+    "vulnerabilities": {
+      "@id": "vulnerability",
+      "@container": "@set"
+    },
+    "published": {
+      "@type": "xsd:dateTime"
+    },
+    "created": {
+      "@type": "xsd:dateTime"
+    },
+    "lastEdited": {
+      "@type": "xsd:dateTime"
+    },
+    "catalog:commitTimeStamp": {
+      "@type": "xsd:dateTime"
+    },
+    "reasons": {
+      "@container": "@set"
+    }
+  }
+}

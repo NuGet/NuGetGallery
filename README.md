@@ -1,7 +1,7 @@
 ﻿[NuGet Gallery](https://www.nuget.org/) — Where packages are found 
 =======================================================================
 
-This  project powers [nuget.org](https://www.nuget.org), the home for .NET's open-source ecosystem. For information about NuGet, visit the [Home repository](https://github.com/nuget/home).
+This project powers [nuget.org](https://www.nuget.org), the home for .NET's open-source ecosystem. For information about NuGet, visit the [Home repository](https://github.com/nuget/home).
 
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
@@ -18,7 +18,11 @@ Visual Studio 2019 may work but Visual Studio 2022 is recommended.
 
 The "Azure development" workload installs SQL Server Express LocalDB which is the database configured for local development.
 
-Now run the NuGet Gallery:
+### Run the gallery website locally
+
+This repository contains both the gallery web app (what runs www.nuget.org) as well as background jobs and shared libraries.
+
+Let's focus on running the gallery web app locally, first.
 
 1. Clone the repository with `git clone https://github.com/NuGet/NuGetGallery.git`
 2. Navigate to `.\NuGetGallery`
@@ -29,10 +33,49 @@ Now run the NuGet Gallery:
 
 Refer to [our documentation](./docs/) for information on how to develop the frontend, use AAD, and more.
 
+### Shared libraries
+
+There are a set of shared libraries used across the NuGet server repositories, including:
+
+* NuGet.Services.Configuration
+* NuGet.Services.KeyVault
+* NuGet.Services.Logging
+* NuGet.Services.Owin
+* NuGet.Services.Cursor
+* NuGet.Services.Storage
+
+To edit them, follow these steps:
+
+1. Build with `.\build.ps1`
+2. Open `.\NuGet.Server.Common.sln` using Visual Studio
+3. Create the validation database:
+   - Open Package Manager Console, set `NuGet.Services.Validation` as default project, then run `Update-Database`.
+
+Note that many of these shared projects are also referenced by the other solution (e.g. in `NuGetGallery.sln`) files in the root of the repository, to simplify modification.
+
+### Background jobs
+
+This repository also contains nuget.org's implementation of the [NuGet V3 API](https://docs.microsoft.com/en-us/nuget/api/overview)
+as well as many other back-end jobs for the operation of nuget.org.
+
+1. Open `.\NuGet.Jobs.sln` using Visual Studio
+2. Each job would be an exe with 2 main classes `Program` and `Job`
+3. `Program.Main` should simply do the following and nothing more
+
+    ```
+    var job = new Job();
+    JobRunner.Run(job, args).Wait();
+    ```
+    
+4. Job class must inherit `JsonConfigurationJob`. This job based provides some dependency injection setup and has you set configuration in a JSON file.
+
+Most jobs can be run locally with a `-Configuration {path_to_json}` command line argument. Not all follow this pattern.
+Check the implementation in `Program.cs` or the `README.md` next to the `.csproj` project file for job-specific information.
+
 ## Deploy
 ### Deploy to Azure
 
-You will find instructions on how to deploy the Gallery to Azure [here](https://github.com/NuGet/NuGetGallery/blob/master/docs/Deploying/README.md).
+You will find instructions on how to deploy the Gallery to Azure [here](docs/Deploying/README.md).
 
 ### Deploy locally
 After you succeed in running the NuGet Gallery, you can create a publish profile to deploy locally (such as your local Windows computer). 
@@ -143,8 +186,7 @@ This should help prevent unwanted file commits.
 
 4.  __Start a code review.__
     Start a code review by pushing your branch up to GitHub (```git push origin billg-123```) and
-    creating a Pull Request from your branch to ***dev***. Wait for at least someone on the team to respond with: ":shipit:" (that's called the
-    "Ship-It Squirrel" and you can put it in your own comments by typing ```:shipit:```).
+    creating a Pull Request from your branch to ***dev***. Wait for at least someone on the team to approve the PR.
 
 5.  __Merge your changes in to dev.__
     Click the bright green "Merge" button on your pull request! Don't forget to delete the branch afterwards to keep our repo clean.
@@ -157,6 +199,5 @@ This should help prevent unwanted file commits.
         ... resolve conflicts ...
         git push origin dev
     
-6.  __Be ready to guide your change through QA, Staging and Prod__
-    Your change will make its way through the QA, Staging and finally Prod branches as it's deployed to the various environments. Be prepared to fix additional bugs!
-
+6.  __Be ready to guide your change through our deployed environments.__
+    Your change will make its way through the DEV (dev.nugettest.org), INT (int.nugettest.org) and finally PROD (www.nuget.org). Be prepared to fix additional bugs!

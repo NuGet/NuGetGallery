@@ -9,7 +9,7 @@ namespace NuGetGallery
 {
     public interface IFileStorageService : ICoreFileStorageService
     {
-        Task<ActionResult> CreateDownloadFileActionResultAsync(Uri requestUrl, string folderName, string fileName);
+        Task<ActionResult> CreateDownloadFileActionResultAsync(Uri requestUrl, string folderName, string fileName, string versionParameter);
 
         Task<bool> IsAvailableAsync();
     }

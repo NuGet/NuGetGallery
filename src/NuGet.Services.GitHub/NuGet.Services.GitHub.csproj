@@ -1,16 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
-  <Import Project="..\..\SdkProjects.props" />
   
   <PropertyGroup>
     <TargetFrameworks>net472</TargetFrameworks>
     <Description>Support Library for interacting with GitHub from Gallery projects</Description>
   </PropertyGroup>
-  
   <ItemGroup>
-    <PackageReference Include="NuGet.Services.Cursor" />
-  </ItemGroup>
-  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Services.Cursor\NuGet.Services.Cursor.csproj" />
     <ProjectReference Include="..\NuGetGallery.Services\NuGetGallery.Services.csproj" />
   </ItemGroup>
 </Project>

@@ -1,0 +1,146 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AntlrIndexJson" xml:space="preserve">
+    <value>{"@id":"https://api.nuget.org/container1/antlr/index.json","@type":["catalog:CatalogRoot","PackageRegistration","catalog:Permalink"],"commitId":"682b9969-ac84-45ca-860d-08bc3d9fa0f1","commitTimeStamp":"2016-02-26T08:28:24.6757212Z","count":1,"items":[{"@id":"https://api.nuget.org/container1/antlr/index.json#page/3.1.1/3.1.3.42154","@type":"catalog:CatalogPage","commitId":"682b9969-ac84-45ca-860d-08bc3d9fa0f1","commitTimeStamp":"2016-02-26T08:28:24.6757212Z","count":2,"items":[{"@id":"https://api.nuget.org/container1/antlr/3.1.1.json","@type":"Package","commitId":"682b9969-ac84-45ca-860d-08bc3d9fa0f1","commitTimeStamp":"2016-02-26T08:28:24.6757212Z","catalogEntry":{"@id":"https://api.nuget.org/v3/catalog0-v2v3/data/2016.01.05.09.32.40/antlr.3.1.1.json","@type":"PackageDetails","authors":"Terence Parr","description":"ANother Tool for Language Recognition, is a language tool that provides a framework for constructing recognizers, interpreters, compilers, and translators from grammatical descriptions containing actions in a variety of target languages.","iconUrl":"","id":"Antlr","language":"en-US","licenseUrl":"","listed":true,"minClientVersion":"","packageContent":"https://api.nuget.org/packages/antlr.3.1.1.nupkg","projectUrl":"","published":"2011-01-07T08:49:52.917+01:00","requireLicenseAcceptance":false,"summary":"ANother Tool for Language Recognition, is a language tool that provides a framework for constructing recognizers, interpreters, compilers, and translators from grammatical descriptions containing actions in a variety of target languages.","tags":[""],"title":"","version":"3.1.1"},"packageContent":"https://api.nuget.org/packages/antlr.3.1.1.nupkg","registration":"https://api.nuget.org/container1/antlr/index.json"},{"@id":"https://api.nuget.org/container1/antlr/3.1.3.42154.json","@type":"Package","commitId":"682b9969-ac84-45ca-860d-08bc3d9fa0f1","commitTimeStamp":"2016-02-26T08:28:24.6757212Z","catalogEntry":{"@id":"https://api.nuget.org/v3/catalog0-v2v3/data/2016.01.05.09.32.40/antlr.3.1.3.42154.json","@type":"PackageDetails","authors":"Terence Parr","description":"ANother Tool for Language Recognition, is a language tool that provides a framework for constructing recognizers, interpreters, compilers, and translators from grammatical descriptions containing actions in a variety of target languages.","iconUrl":"","id":"Antlr","language":"en-US","licenseUrl":"","listed":true,"minClientVersion":"","packageContent":"https://api.nuget.org/packages/antlr.3.1.3.42154.nupkg","projectUrl":"","published":"2011-01-07T08:49:54.527+01:00","requireLicenseAcceptance":false,"summary":"ANother Tool for Language Recognition, is a language tool that provides a framework for constructing recognizers, interpreters, compilers, and translators from grammatical descriptions containing actions in a variety of target languages.","tags":[""],"title":"","version":"3.1.3.42154"},"packageContent":"https://api.nuget.org/packages/antlr.3.1.3.42154.nupkg","registration":"https://api.nuget.org/container1/antlr/index.json"}],"parent":"https://api.nuget.org/container1/antlr/index.json","lower":"3.1.1","upper":"3.1.3.42154"}],"@context":{"@vocab":"http://schema.nuget.org/schema#","catalog":"http://schema.nuget.org/catalog#","xsd":"http://www.w3.org/2001/XMLSchema#","items":{"@id":"catalog:item","@container":"@set"},"commitTimeStamp":{"@id":"catalog:commitTimeStamp","@type":"xsd:dateTime"},"commitId":{"@id":"catalog:commitId"},"count":{"@id":"catalog:count"},"parent":{"@id":"catalog:parent","@type":"@id"},"tags":{"@container":"@set","@id":"tag"},"packageTargetFrameworks":{"@container":"@set","@id":"packageTargetFramework"},"dependencyGroups":{"@container":"@set","@id":"dependencyGroup"},"dependencies":{"@container":"@set","@id":"dependency"},"packageContent":{"@type":"@id"},"published":{"@type":"xsd:dateTime"},"registration":{"@type":"@id"}}}</value>
+  </data>
+  <data name="AntlrVersion1" xml:space="preserve">
+    <value>{"@id":"https://api.nuget.org/container1/antlr/3.1.1.json","@type":["Package","http://schema.nuget.org/catalog#Permalink"],"catalogEntry":"https://api.nuget.org/v3/catalog0-v2v3/data/2016.01.05.09.32.40/antlr.3.1.1.json","listed":true,"packageContent":"https://api.nuget.org/packages/antlr.3.1.1.nupkg","published":"2011-01-07T08:49:52.917+01:00","registration":"https://api.nuget.org/container1/antlr/index.json","@context":{"@vocab":"http://schema.nuget.org/schema#","xsd":"http://www.w3.org/2001/XMLSchema#","catalogEntry":{"@type":"@id"},"registration":{"@type":"@id"},"packageContent":{"@type":"@id"},"published":{"@type":"xsd:dateTime"}}}</value>
+  </data>
+  <data name="AntlrVersion2" xml:space="preserve">
+    <value>{"@id":"https://api.nuget.org/container1/antlr/3.1.3.42154.json","@type":["Package","http://schema.nuget.org/catalog#Permalink"],"catalogEntry":"https://api.nuget.org/v3/catalog0-v2v3/data/2016.01.05.09.32.40/antlr.3.1.3.42154.json","listed":true,"packageContent":"https://api.nuget.org/packages/antlr.3.1.3.42154.nupkg","published":"2011-01-07T08:49:54.527+01:00","registration":"https://api.nuget.org/container1/antlr/index.json","@context":{"@vocab":"http://schema.nuget.org/schema#","xsd":"http://www.w3.org/2001/XMLSchema#","catalogEntry":{"@type":"@id"},"registration":{"@type":"@id"},"packageContent":{"@type":"@id"},"published":{"@type":"xsd:dateTime"}}}</value>
+  </data>
+  <data name="AutomapperIndexJson" xml:space="preserve">
+    <value>{"@id":"https://api.nuget.org/container1/automapper/index.json","@type":["catalog:CatalogRoot","PackageRegistration","catalog:Permalink"],"commitId":"e1746e1d-fdc7-4aab-bee5-09fb677026fc","commitTimeStamp":"2016-02-26T08:28:33.5999394Z","count":1,"items":[{"@id":"https://api.nuget.org/container1/automapper/index.json#page/1.1.0.118/1.1.0.118","@type":"catalog:CatalogPage","commitId":"e1746e1d-fdc7-4aab-bee5-09fb677026fc","commitTimeStamp":"2016-02-26T08:28:33.5999394Z","count":1,"items":[{"@id":"https://api.nuget.org/container1/automapper/1.1.0.118.json","@type":"Package","commitId":"e1746e1d-fdc7-4aab-bee5-09fb677026fc","commitTimeStamp":"2016-02-26T08:28:33.5999394Z","catalogEntry":{"@id":"https://api.nuget.org/v3/catalog0-v2v3/data/2016.01.05.09.32.46/automapper.1.1.0.118.json","@type":"PackageDetails","authors":"Headspring,Jimmy Bogard","description":"A convention-based object-object mapper. AutoMapper uses a fluent configuration API to define an object-object mapping strategy. AutoMapper uses a convention-based matching algorithm to match up source to destination values. Currently, AutoMapper is geared towards model projection scenarios to flatten complex object models to DTOs and other simple objects, whose design is better suited for serialization, communication, messaging, or simply an anti-corruption layer between the domain and application layer.","iconUrl":"","id":"AutoMapper","language":"en-US","licenseUrl":"","listed":true,"minClientVersion":"","packageContent":"https://api.nuget.org/packages/automapper.1.1.0.118.nupkg","projectUrl":"","published":"2011-09-07T22:48:17.403+02:00","requireLicenseAcceptance":false,"summary":"A convention-based object-object mapper. AutoMapper uses a fluent configuration API to define an object-object mapping strategy. AutoMapper uses a convention-based matching algorithm to match up source to destination values. Currently, AutoMapper is geared towards model projection scenarios to flatten complex object models to DTOs and other simple objects, whose design is better suited for serialization, communication, messaging, or simply an anti-corruption layer between the domain and application layer.","tags":[""],"title":"","version":"1.1.0.118"},"packageContent":"https://api.nuget.org/packages/automapper.1.1.0.118.nupkg","registration":"https://api.nuget.org/container1/automapper/index.json"}],"parent":"https://api.nuget.org/container1/automapper/index.json","lower":"1.1.0.118","upper":"1.1.0.118"}],"@context":{"@vocab":"http://schema.nuget.org/schema#","catalog":"http://schema.nuget.org/catalog#","xsd":"http://www.w3.org/2001/XMLSchema#","items":{"@id":"catalog:item","@container":"@set"},"commitTimeStamp":{"@id":"catalog:commitTimeStamp","@type":"xsd:dateTime"},"commitId":{"@id":"catalog:commitId"},"count":{"@id":"catalog:count"},"parent":{"@id":"catalog:parent","@type":"@id"},"tags":{"@container":"@set","@id":"tag"},"packageTargetFrameworks":{"@container":"@set","@id":"packageTargetFramework"},"dependencyGroups":{"@container":"@set","@id":"dependencyGroup"},"dependencies":{"@container":"@set","@id":"dependency"},"packageContent":{"@type":"@id"},"published":{"@type":"xsd:dateTime"},"registration":{"@type":"@id"}}}</value>
+  </data>
+  <data name="AutomapperVersion1" xml:space="preserve">
+    <value>{"@id":"https://api.nuget.org/container1/automapper/1.1.0.118.json","@type":["Package","http://schema.nuget.org/catalog#Permalink"],"catalogEntry":"https://api.nuget.org/v3/catalog0-v2v3/data/2016.01.05.09.32.46/automapper.1.1.0.118.json","listed":true,"packageContent":"https://api.nuget.org/packages/automapper.1.1.0.118.nupkg","published":"2011-09-07T22:48:17.403+02:00","registration":"https://api.nuget.org/container1/automapper/index.json","@context":{"@vocab":"http://schema.nuget.org/schema#","xsd":"http://www.w3.org/2001/XMLSchema#","catalogEntry":{"@type":"@id"},"registration":{"@type":"@id"},"packageContent":{"@type":"@id"},"published":{"@type":"xsd:dateTime"}}}</value>
+  </data>
+  <data name="BusinessFrameworkIndexJson" xml:space="preserve">
+    <value>{"@id":"https://api.nuget.org/container1/businessframework/index.json","@type":["catalog:CatalogRoot","PackageRegistration","catalog:Permalink"],"commitId":"2df1945a-8dd4-4b44-8330-527f4204f370","commitTimeStamp":"2016-02-26T09:22:09.4438705Z","count":1,"items":[{"@id":"https://api.nuget.org/container1/businessframework/index.json#page/0.2.0/0.2.0","@type":"catalog:CatalogPage","commitId":"2df1945a-8dd4-4b44-8330-527f4204f370","commitTimeStamp":"2016-02-26T09:22:09.4438705Z","count":1,"items":[{"@id":"https://api.nuget.org/container1/businessframework/0.2.0.json","@type":"Package","commitId":"2df1945a-8dd4-4b44-8330-527f4204f370","commitTimeStamp":"2016-02-26T09:22:09.4438705Z","catalogEntry":{"@id":"https://api.nuget.org/v3/catalog0-v2v3/data/2016.01.05.09.32.46/businessframework.0.2.0.json","@type":"PackageDetails","authors":"Michael Mac","dependencyGroups":[{"@id":"https://api.nuget.org/v3/catalog0-v2v3/data/2016.01.05.09.32.46/businessframework.0.2.0.json#dependencygroup","@type":"PackageDependencyGroup","dependencies":[{"@id":"https://api.nuget.org/v3/catalog0-v2v3/data/2016.01.05.09.32.46/businessframework.0.2.0.json#dependencygroup/antlr","@type":"PackageDependency","id":"Antlr","range":"[3.1.1, )","registration":"https://api.nuget.org/container1/antlr/index.json"}]}],"description":"BusinessFrameowrk is a library which helps build business application. It provides rules, validation, textual lanugage - Formula, dynamic properties, etc.","iconUrl":"","id":"BusinessFramework","language":"en-US","licenseUrl":"","listed":true,"minClientVersion":"","packageContent":"https://api.nuget.org/packages/businessframework.0.2.0.nupkg","projectUrl":"","published":"2011-01-07T08:50:40.807+01:00","requireLicenseAcceptance":false,"summary":"","tags":[""],"title":"","version":"0.2.0"},"packageContent":"https://api.nuget.org/packages/businessframework.0.2.0.nupkg","registration":"https://api.nuget.org/container1/businessframework/index.json"}],"parent":"https://api.nuget.org/container1/businessframework/index.json","lower":"0.2.0","upper":"0.2.0"}],"@context":{"@vocab":"http://schema.nuget.org/schema#","catalog":"http://schema.nuget.org/catalog#","xsd":"http://www.w3.org/2001/XMLSchema#","items":{"@id":"catalog:item","@container":"@set"},"commitTimeStamp":{"@id":"catalog:commitTimeStamp","@type":"xsd:dateTime"},"commitId":{"@id":"catalog:commitId"},"count":{"@id":"catalog:count"},"parent":{"@id":"catalog:parent","@type":"@id"},"tags":{"@container":"@set","@id":"tag"},"packageTargetFrameworks":{"@container":"@set","@id":"packageTargetFramework"},"dependencyGroups":{"@container":"@set","@id":"dependencyGroup"},"dependencies":{"@container":"@set","@id":"dependency"},"packageContent":{"@type":"@id"},"published":{"@type":"xsd:dateTime"},"registration":{"@type":"@id"}}}</value>
+  </data>
+  <data name="BusinessFrameworkVersion1" xml:space="preserve">
+    <value>{"@id":"https://api.nuget.org/container1/businessframework/0.2.0.json","@type":["Package","http://schema.nuget.org/catalog#Permalink"],"catalogEntry":"https://api.nuget.org/v3/catalog0-v2v3/data/2016.01.05.09.32.46/businessframework.0.2.0.json","listed":true,"packageContent":"https://api.nuget.org/packages/businessframework.0.2.0.nupkg","published":"2011-01-07T08:50:40.807+01:00","registration":"https://api.nuget.org/container1/businessframework/index.json","@context":{"@vocab":"http://schema.nuget.org/schema#","xsd":"http://www.w3.org/2001/XMLSchema#","catalogEntry":{"@type":"@id"},"registration":{"@type":"@id"},"packageContent":{"@type":"@id"},"published":{"@type":"xsd:dateTime"}}}</value>
+  </data>
+  <data name="CursorJson" xml:space="preserve">
+    <value>{
+  "value": "2016-01-05T09:32:51.9339612"
+}</value>
+  </data>
+</root>

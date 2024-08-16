@@ -1,0 +1,8 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition="Exists($(NUGET_SNK_PATH))">
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile Condition=" '$(AssemblyOriginatorKeyFile)' == '' ">$(NUGET_SNK_PATH)</AssemblyOriginatorKeyFile>
+    <DelaySign>true</DelaySign>
+    <DefineConstants>$(DefineConstants);SIGNED_BUILD</DefineConstants>
+  </PropertyGroup>
+</Project>

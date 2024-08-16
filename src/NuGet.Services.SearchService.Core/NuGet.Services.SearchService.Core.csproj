@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>NuGet.Services.SearchService</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.PackageManagement.Search.Web\Microsoft.PackageManagement.Search.Web.csproj" />
+  </ItemGroup>
+
+</Project>

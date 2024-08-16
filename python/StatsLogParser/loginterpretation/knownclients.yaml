@@ -1,0 +1,222 @@
+﻿user_agent_parsers:
+  # NuGet MSBuild Task
+  - regex: '(NuGet MSBuild Task)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet MSBuild Task'
+
+  - regex: '(NuGet .NET Core MSBuild Task)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet .NET Core MSBuild Task'
+
+  - regex: '(NuGet Desktop MSBuild Task)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet Desktop MSBuild Task'
+
+  # NuGet Client V3
+  - regex: '(NuGet Client V3)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet Client V3'
+
+  # NuGet VS PowerShell Console (NuGet 2.8+)
+  - regex: '(NuGet VS PowerShell Console)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet VS PowerShell Console'
+
+  # NuGet VS Packages Dialog - Solution (NuGet 2.8+)
+  - regex: '(NuGet VS Packages Dialog - Solution)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet VS Packages Dialog - Solution'
+
+  # NuGet VS Packages Dialog (NuGet 2.8+)
+  - regex: '(NuGet VS Packages Dialog)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet VS Packages Dialog - Solution'
+
+  # NuGet Add Package Dialog (pre-NuGet 2.8)
+  - regex: '(NuGet Add Package Dialog)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet Add Package Dialog'
+
+  # NuGet Package Manager Console (pre-NuGet 2.8)
+  - regex: '(NuGet Package Manager Console)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet Package Manager Console'
+
+  # NuGet Visual Studio Extension (pre-NuGet 2.8)
+  - regex: '(NuGet Visual Studio Extension)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet Visual Studio Extension'
+
+  # Package-Installer (pre-NuGet 2.8)
+  - regex: '(Package-Installer)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'Package-Installer'
+
+  # NuGet Command Line
+  - regex: '(NuGet Command Line)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet Command Line'
+
+  # NuGet xplat CLI
+  - regex: '(NuGet xplat)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet Cross-Platform Command Line'
+
+  # NuGet Core
+  - regex: '(NuGet Core)/?(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet'
+
+  # WebMatrix includes its own core version number as part of the client name, before the slash
+  - regex: '(WebMatrix) (\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'WebMatrix'
+
+  # NuGet Package Explorer (npe.codeplex.com)
+  - regex: '(NuGet Package Explorer Metro)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet Package Explorer Metro'
+  - regex: '(NuGet Package Explorer)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet Package Explorer'
+
+  # JetBrains TeamCity - uses a space to separate the client from the version instead of slash
+  - regex: '(JetBrains TeamCity) (\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'JetBrains TeamCity'
+
+  # JetBrains ReSharper Platform for VS10
+  - regex: '(ReSharperPlatformVs10)/?(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'JetBrains ReSharper Platform VS2010'
+
+  # JetBrains ReSharper Platform for VS11
+  - regex: '(ReSharperPlatformVs11)/?(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'JetBrains ReSharper Platform VS2012'
+
+  # JetBrains ReSharper Platform for VS12
+  - regex: '(ReSharperPlatformVs12)/?(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'JetBrains ReSharper Platform VS2013'
+
+  # JetBrains ReSharper Platform for VS14
+  - regex: '(ReSharperPlatformVs14)/?(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'JetBrains ReSharper Platform VS2015'
+
+  # JetBrains ReSharper
+  - regex: '(ReSharper)/(\d+)?\.?(\d+)?\.?(\d+)?'
+    family_replacement: 'JetBrains ReSharper'
+
+  # JetBrains dotPeek
+  - regex: '(dotPeek)/(\d+)\.(\d+)\.(\d+)\.?(\d+)?\)'
+    family_replacement: 'JetBrains dotPeek'
+
+  # JetBrains ReSharper Extension Manager
+  - regex: '(ReSharper Extension Manager)/(\d+)?\.?(\d+)?\.?(\d+)?'
+    family_replacement: 'JetBrains ReSharper Extension Manager'
+
+  # Sonatype Nexus (www.sonatype.com)
+  - regex: '(Nexus)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'Sonatype Nexus'
+
+  # JFrog Artifactory (www.jfrog.com)
+  - regex: '(Artifactory)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'JFrog Artifactory'
+
+  # MyGet (www.myget.org)
+  - regex: '(MyGet)/?(\d+)?\.?(\d+)?\.?(\d+)?'
+    family_replacement: 'MyGet'
+
+  # ProGet (www.inedo.com)
+  - regex: '(ProGet)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'Inedo ProGet'
+
+  # Paket (http://fsprojects.github.io/Paket)
+  - regex: '(Paket)/?(\d+)?\.?(\d+)?\.?(\d+)?'
+    family_replacement: 'Paket'
+
+  # Xamarin Studio (www.xamarin.com)
+  - regex: '(Xamarin Studio)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'Xamarin Studio'
+
+  # MonoDevelop
+  - regex: '(MonoDevelop)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'MonoDevelop'
+
+  # MonoDevelop-Unity
+  - regex: '(MonoDevelop-Unity)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'MonoDevelop'
+
+  # SharpDevelop
+  - regex: '(SharpDevelop)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'SharpDevelop'
+
+  # DNX
+  - regex: '(Microsoft_.NET_Development_Utility)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'DNX Utility'
+  - regex: '(NuGet Shim)/?(\d+)?\.?(\d+)?\.?(\d+)?'
+    family_replacement: 'NuGet Shim'
+
+  # PowerShell
+  - regex: '(WindowsPowerShell)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'Windows PowerShell'
+
+  # PowerShell Core
+  - regex: 'Mozilla.*(PowerShell)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'PowerShell Core'
+
+  # Fiddler
+  - regex: '(Fiddler)/?(\d+)?\.?(\d+)?\.?(\d+)?'
+    family_replacement: 'Fiddler'
+
+  # curl
+  - regex: '(curl)/?(\d+)?\.?(\d+)?\.?(\d+)?'
+    family_replacement: 'curl'
+
+  # Java
+  - regex: '(Java)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'Java'
+
+  # NuGet Test Client - to be used when making test-calls to nuget.org endpoints
+  - regex: '(NuGet Test Client)/?(\d+)?\.?(\d+)?\.?(\d+)?'
+    family_replacement: 'NuGet Test Client'
+
+  # Cake NuGet Client
+  - regex: '(Cake NuGet Client)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'Cake NuGet Client'
+
+  # Cake
+  - regex: '(Cake)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'Cake'
+
+  # NuGet Client V3
+  - regex: '(NuGet VS VSIX)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet VS VSIX'
+
+  # Xamarin Updater
+  - regex: '(Xamarin Updater).*?\(Version: (\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'Xamarin Updater'
+
+  # vsts-task-installer
+  - regex: '(vsts-task-installer)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'vsts-task-installer'
+
+  # Checkmarx 1
+  - regex: '(Checkmarx-NugetSourceCodePriorityCollector)'
+    family_replacement: 'Checkmarx NugetSourceCodePriorityCollector'
+
+  # Checkmarx 2
+  - regex: '(Checkmarx-NugetShaCollector)'
+    family_replacement: 'Checkmarx NugetShaCollector'
+
+  # Checkmarx 3
+  - regex: '(Checkmarx-NugetDllShaCollector)'
+    family_replacement: 'Checkmarx NugetDllShaCollector'
+
+  # Checkmarx 4
+  - regex: '(Checkmarx-SourceCodeDownloader)'
+    family_replacement: 'Checkmarx SourceCodeDownloader'
+
+  # Azure artifacts
+  - regex: '(AzureArtifacts)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'Azure artifacts'
+
+  # Bazel
+  - regex: '(Bazel)/.*?(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'Bazel'
+
+  # Visual Studio
+  - regex: '(Visual Studio)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'Visual Studio'
+
+  # NuGetMirror
+  - regex: '(NuGetMirror)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGetMirror'
+
+  # BaGet
+  - regex: '(BaGet)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'BaGet'
+
+  # NuGet - Keep this one at the bottom of this file as a catch-all resolver
+  - regex: '(NuGet)/?(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet'

@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Validation.Orchestrator</id>
+    <version>$version$</version>
+    <title>Validation.Orchestrator</title>
+    <authors>.NET Foundation</authors>
+    <owners>.NET Foundation</owners>
+    <description>Validation.Orchestrator</description>
+    <copyright>Copyright .NET Foundation</copyright>
+  </metadata>
+  <files>
+    <file src="bin\$configuration$\net472\*.*" target="bin"/>
+
+    <file src="Scripts\Functions.ps1" />
+    <file src="Scripts\PreDeploy.ps1" />
+    <file src="Scripts\PostDeploy.ps1" />
+    <file src="Scripts\nssm.exe" />
+  </files>
+</package>

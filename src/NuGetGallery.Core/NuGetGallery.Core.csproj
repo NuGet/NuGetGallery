@@ -1,9 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <Import Project="..\..\SdkProjects.props" />
-
   <PropertyGroup>
     <TargetFrameworks>net472;netstandard2.1</TargetFrameworks>
+    <PackageVersion Condition="'$(PackageVersion)' == ''">$(GalleryPackageVersion)</PackageVersion>
     <RootNamespace>NuGetGallery</RootNamespace>
     <Description>Core support library for NuGet Gallery Frontend and Backend</Description>
   </PropertyGroup>
@@ -46,19 +45,27 @@
     <PackageReference Include="Azure.Storage.Blobs" />
     <PackageReference Include="EntityFramework" />
     <PackageReference Include="NuGet.Packaging" />
-    <PackageReference Include="NuGet.Services.FeatureFlags" />
+    <PackageReference Include="System.Formats.Asn1" />
   </ItemGroup>
   
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
-    <PackageReference Include="NuGet.Services.Messaging.Email" />
-    <PackageReference Include="NuGet.Services.Validation" />
-    <PackageReference Include="NuGet.Services.Validation.Issues" />
     <PackageReference Include="Microsoft.Data.Services.Client" />
     <PackageReference Include="Microsoft.WindowsAzure.ConfigurationManager" />
   </ItemGroup>
   
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <ProjectReference Include="..\NuGet.Services.Messaging.Email\NuGet.Services.Messaging.Email.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Validation.Issues\NuGet.Services.Validation.Issues.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Validation\NuGet.Services.Validation.csproj" />
+  </ItemGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Services.Entities\NuGet.Services.Entities.csproj" />
+    <ProjectReference Include="..\NuGet.Services.FeatureFlags\NuGet.Services.FeatureFlags.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <Reference Include="System.Web" />
   </ItemGroup>
   
   <ItemGroup>

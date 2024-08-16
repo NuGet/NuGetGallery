@@ -1,5 +1,6 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +9,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+
 using Moq;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
@@ -111,7 +113,7 @@ namespace NuGetGallery
                 var httpContext = GetContext();
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, folderName, "theFileName");
+                await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, folderName, "theFileName", "theVersion");
 
                 fakeBlobContainer.Verify(x => x.GetBlobReference("theFileName"));
             }
@@ -131,10 +133,10 @@ namespace NuGetGallery
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri(requestUri.Scheme + "://theUri"));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                var result = await service.CreateDownloadFileActionResultAsync(requestUri, CoreConstants.Folders.PackagesFolderName, "theFileName") as RedirectResult;
+                var result = await service.CreateDownloadFileActionResultAsync(requestUri, CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion") as RedirectResult;
 
                 Assert.NotNull(result);
-                Assert.Equal(scheme + "theuri/", result.Url);
+                Assert.Equal(scheme + "theuri/?packageVersion=theVersion", result.Url);
             }
 
             [Theory]
@@ -152,7 +154,7 @@ namespace NuGetGallery
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri(blobUrl));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                var result = await service.CreateDownloadFileActionResultAsync(new Uri(requestUrl), CoreConstants.Folders.PackagesFolderName, "theFileName") as RedirectResult;
+                var result = await service.CreateDownloadFileActionResultAsync(new Uri(requestUrl), CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion") as RedirectResult;
                 var redirectUrl = new Uri(result.Url);
                 Assert.Equal(expectedPort, redirectUrl.Port);
             }
@@ -172,9 +174,9 @@ namespace NuGetGallery
                 var service = CreateService(fakeBlobClient: fakeBlobClient, redirectPolicy: fakePolicy);
 
                 var result = await service.CreateDownloadFileActionResultAsync(
-                    new Uri(HttpsRequestUrlString), 
-                    CoreConstants.Folders.PackagesFolderName, 
-                    "theFileName") as RedirectResult;
+                    new Uri(HttpsRequestUrlString),
+                    CoreConstants.Folders.PackagesFolderName,
+                    "theFileName", "theVersion") as RedirectResult;
                 fakePolicy.Verify();
             }
 
@@ -194,12 +196,12 @@ namespace NuGetGallery
 
                 await Assert.ThrowsAsync<InvalidOperationException>(
                     () => service.CreateDownloadFileActionResultAsync(
-                        new Uri(HttpsRequestUrlString), 
-                        CoreConstants.Folders.PackagesFolderName, "theFileName")
+                        new Uri(HttpsRequestUrlString),
+                        CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion")
                     );
             }
         }
-        
+
         private static HttpContextBase GetContext(string protocol = "http://")
         {
             var httpRequest = new Mock<HttpRequestBase>();

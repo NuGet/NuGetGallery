@@ -4,11 +4,18 @@ param (
     [string]$Configuration = 'debug',
     [int]$BuildNumber,
     [switch]$SkipRestore,
-    [string]$GalleryAssemblyVersion = '4.4.5',
-    [string]$GalleryPackageVersion = '4.4.5-zlocal',
+    [switch]$SkipArtifacts,
+    [switch]$SkipCommon,
+    [string]$CommonAssemblyVersion = '5.0.0',
+    [string]$CommonPackageVersion = '5.0.0-zlocal',
+    [switch]$SkipGallery,
+    [string]$GalleryAssemblyVersion = '5.0.0',
+    [string]$GalleryPackageVersion = '5.0.0-zlocal',
+    [switch]$SkipJobs,
+    [string]$JobsAssemblyVersion = '5.0.0',
+    [string]$JobsPackageVersion = '5.0.0-zlocal',
     [string]$Branch,
     [string]$CommitSHA,
-    [string]$BuildBranchCommit = '8ea7f23faa289682fd02284a14959ab2c67ad546', #DevSkim: ignore DS173237. Not a secret/token. It is a commit hash.
     [string]$VerifyMicrosoftPackageVersion = $null
 )
 
@@ -22,12 +29,7 @@ trap {
     exit 1
 }
 
-if (-not (Test-Path "$PSScriptRoot/build")) {
-    New-Item -Path "$PSScriptRoot/build" -ItemType "directory"
-}
-
-Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/NuGet/ServerCommon/$BuildBranchCommit/build/init.ps1" -OutFile "$PSScriptRoot/build/init.ps1"
-. "$PSScriptRoot/build/init.ps1" -BuildBranchCommit $BuildBranchCommit
+. "$PSScriptRoot\build\common.ps1"
 
 Write-Host ("`r`n" * 3)
 Trace-Log ('=' * 60)
@@ -39,17 +41,17 @@ if (-not $BuildNumber) {
 Trace-Log "Build #$BuildNumber started at $startTime"
 
 $BuildErrors = @()
-$GallerySolution = Join-Path $PSScriptRoot "NuGetGallery.sln"
-$GalleryProjects = Get-SolutionProjects $GallerySolution
 
-Invoke-BuildStep 'Getting private build tools' { Install-PrivateBuildTools } `
-    -ev +BuildErrors
-
-Invoke-BuildStep 'Installing NuGet.exe' { Install-NuGet } `
-    -ev +BuildErrors
-
-Invoke-BuildStep 'Clearing artifacts' { Clear-Artifacts } `
-    -ev +BuildErrors
+. (Join-Path $PSScriptRoot "build.shared.ps1") `
+    -SkipCommon:$SkipCommon `
+    -CommonAssemblyVersion $CommonAssemblyVersion `
+    -CommonPackageVersion $CommonPackageVersion `
+    -SkipGallery:$SkipGallery `
+    -GalleryAssemblyVersion $GalleryAssemblyVersion `
+    -GalleryPackageVersion $GalleryPackageVersion `
+    -SkipJobs:$SkipJobs `
+    -JobsAssemblyVersion $JobsAssemblyVersion `
+    -JobsPackageVersion $JobsPackageVersion
 
 Invoke-BuildStep 'Restoring solution packages' {
         $SolutionPath = Join-Path $PSScriptRoot "packages.config"
@@ -59,40 +61,53 @@ Invoke-BuildStep 'Restoring solution packages' {
     -skip:$SkipRestore `
     -ev +BuildErrors
 
-Invoke-BuildStep 'Setting gallery version metadata in AssemblyInfo.cs' {
-        $GalleryProjects | Where-Object { !$_.IsTest } | ForEach-Object {
-            $Path = Join-Path $_.Directory "Properties\AssemblyInfo.g.cs"
-            Set-VersionInfo $Path -AssemblyVersion $GalleryAssemblyVersion -PackageVersion $GalleryPackageVersion -Branch $Branch -Commit $CommitSHA
-        }
+Invoke-BuildStep 'Building common solution' {
+        Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $CommonSolution -SkipRestore:$SkipRestore
     } `
+    -skip:$SkipCommon `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Building gallery solution' { 
         $MvcBuildViews = $Configuration -eq "Release"
         Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $GallerySolution -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=$MvcBuildViews" `
     } `
+    -skip:$SkipGallery `
+    -ev +BuildErrors
+
+Invoke-BuildStep 'Building jobs solution' { 
+        Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $JobsSolution -SkipRestore:$SkipRestore
+    } `
+    -skip:$SkipJobs `
+    -ev +BuildErrors 
+
+Invoke-BuildStep 'Building jobs functional test solution' { 
+        Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $JobsFunctionalTestsSolution -SkipRestore:$SkipRestore
+    } `
+    -skip:$SkipJobs `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Signing the binaries' {
         Sign-Binaries -Configuration $Configuration -BuildNumber $BuildNumber
     } `
+    -skip:$SkipArtifacts `
     -ev +BuildErrors
 
-Invoke-BuildStep 'Creating gallery artifacts' { `
-        $GalleryProjects =
-            "src\NuGet.Services.DatabaseMigration\NuGet.Services.DatabaseMigration.csproj",
-            "src\NuGet.Services.Entities\NuGet.Services.Entities.csproj",
-            "src\NuGetGallery.Core\NuGetGallery.Core.csproj",
-            "src\NuGetGallery.Services\NuGetGallery.Services.csproj"
-        $GalleryProjects | ForEach-Object {
-            New-ProjectPackage (Join-Path $PSScriptRoot $_) -Configuration $Configuration -BuildNumber $BuildNumber -Version $GalleryPackageVersion -Branch $Branch -Symbols
+Invoke-BuildStep 'Creating dependency packages from all solutions' {
+        $packageVersions = "/p:CommonPackageVersion=$CommonPackageVersion;GalleryPackageVersion=$GalleryPackageVersion;JobsPackageVersion=$JobsPackageVersion"
+    
+        $CommonPackages = $CommonProjects | Where-Object { $_.IsSrc } | ForEach-Object { $_.RelativePath }
+        $CommonPackages | ForEach-Object {
+            New-ProjectPackage (Join-Path $PSScriptRoot $_) -Configuration $Configuration -Symbols -Options $packageVersions
         }
-        
+    } `
+    -skip:($SkipCommon -or $SkipArtifacts) `
+    -ev +BuildErrors
+
+Invoke-BuildStep 'Creating job packages from gallery solution' { `
         $GalleryNuspecProjects =
             "src\DatabaseMigrationTools\DatabaseMigration.Gallery.nuspec",
             "src\DatabaseMigrationTools\DatabaseMigration.SupportRequest.nuspec",
             "src\DatabaseMigrationTools\DatabaseMigration.Validation.nuspec",
-            "src\AccountDeleter\Gallery.AccountDeleter.nuspec",
             "src\GitHubVulnerabilities2Db\GitHubVulnerabilities2Db.nuspec",
             "src\GitHubVulnerabilities2v3\GitHubVulnerabilities2v3.nuspec",
             "src\GalleryTools\Gallery.GalleryTools.nuspec",
@@ -104,11 +119,58 @@ Invoke-BuildStep 'Creating gallery artifacts' { `
         if (!$VerifyMicrosoftPackageVersion) { $VerifyMicrosoftPackageVersion = $GalleryPackageVersion }
         New-Package (Join-Path $PSScriptRoot "src\VerifyMicrosoftPackage\VerifyMicrosoftPackage.nuspec") -Configuration $Configuration -BuildNumber $BuildNumber -Version $VerifyMicrosoftPackageVersion -Branch $Branch
     } `
+    -skip:($SkipGallery -or $SkipArtifacts) `
+    -ev +BuildErrors
+
+Invoke-BuildStep 'Creating job packages from jobs solution' {
+        $JobsNuspecProjects =
+            "src\ArchivePackages\ArchivePackages.nuspec",
+            "src\CopyAzureContainer\CopyAzureContainer.nuspec",
+            "src\Gallery.CredentialExpiration\Gallery.CredentialExpiration.nuspec",
+            "src\Gallery.Maintenance\Gallery.Maintenance.nuspec",
+            "src\Ng\Catalog2Dnx.nuspec",
+            "src\Ng\Catalog2icon.nuspec",
+            "src\Ng\Catalog2Monitoring.nuspec",
+            "src\Ng\Db2Catalog.nuspec",
+            "src\Ng\Db2Monitoring.nuspec",
+            "src\Ng\Monitoring2Monitoring.nuspec",
+            "src\Ng\MonitoringProcessor.nuspec",
+            "src\Ng\Ng.Operations.nuspec",
+            "src\NuGet.Jobs.Auxiliary2AzureSearch\NuGet.Jobs.Auxiliary2AzureSearch.nuspec",
+            "src\NuGet.Jobs.Catalog2AzureSearch\NuGet.Jobs.Catalog2AzureSearch.nuspec",
+            "src\NuGet.Jobs.Catalog2Registration\NuGet.Jobs.Catalog2Registration.nuspec",
+            "src\NuGet.Jobs.Db2AzureSearch\NuGet.Jobs.Db2AzureSearch.nuspec",
+            "src\NuGet.Jobs.GitHubIndexer\NuGet.Jobs.GitHubIndexer.nuspec",
+            "src\NuGet.Services.Revalidate\NuGet.Services.Revalidate.nuspec",
+            "src\NuGet.Services.Validation.Orchestrator\Validation.Orchestrator.nuspec",
+            "src\NuGet.Services.Validation.Orchestrator\Validation.SymbolsOrchestrator.nuspec",
+            "src\NuGet.SupportRequests.Notifications\NuGet.SupportRequests.Notifications.nuspec",
+            "src\PackageLagMonitor\Monitoring.PackageLag.nuspec",
+            "src\SplitLargeFiles\SplitLargeFiles.nuspec",
+            "src\Stats.AggregateCdnDownloadsInGallery\Stats.AggregateCdnDownloadsInGallery.nuspec",
+            "src\Stats.CDNLogsSanitizer\Stats.CDNLogsSanitizer.nuspec",
+            "src\Stats.CollectAzureCdnLogs\Stats.CollectAzureCdnLogs.nuspec",
+            "src\Stats.CollectAzureChinaCDNLogs\Stats.CollectAzureChinaCDNLogs.nuspec",
+            "src\Stats.CreateAzureCdnWarehouseReports\Stats.CreateAzureCdnWarehouseReports.nuspec",
+            "src\Stats.ImportAzureCdnStatistics\Stats.ImportAzureCdnStatistics.nuspec",
+            "src\Stats.PostProcessReports\Stats.PostProcessReports.nuspec",
+            "src\Stats.RollUpDownloadFacts\Stats.RollUpDownloadFacts.nuspec",
+            "src\StatusAggregator\StatusAggregator.nuspec",
+            "src\Validation.PackageSigning.ProcessSignature\Validation.PackageSigning.ProcessSignature.nuspec",
+            "src\Validation.PackageSigning.RevalidateCertificate\Validation.PackageSigning.RevalidateCertificate.nuspec",
+            "src\Validation.PackageSigning.ValidateCertificate\Validation.PackageSigning.ValidateCertificate.nuspec",
+            "src\Validation.Symbols\Validation.Symbols.Job.nuspec"
+        $JobsNuspecProjects | ForEach-Object {
+            New-Package (Join-Path $PSScriptRoot $_) -Configuration $Configuration -BuildNumber $BuildNumber -Version $JobsPackageVersion -Branch $Branch
+        }
+    } `
+    -skip:($SkipJobs -or $SkipArtifacts) `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Signing the packages' {
         Sign-Packages -Configuration $Configuration -BuildNumber $BuildNumber
     } `
+    -skip:$SkipArtifacts `
     -ev +BuildErrors
 
 Trace-Log ('-' * 60)

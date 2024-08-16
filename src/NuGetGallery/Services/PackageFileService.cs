@@ -1,12 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using NuGet.Services.Entities;
+
 using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
@@ -27,14 +28,44 @@ namespace NuGetGallery
 
         public Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, Package package)
         {
+            if (requestUrl is null)
+            {
+                throw new ArgumentNullException(nameof(requestUrl));
+            }
+
+            if (package is null)
+            {
+                throw new ArgumentNullException(nameof(package));
+            }
+
             var fileName = FileNameHelper.BuildFileName(package, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetPackageFileExtension);
-            return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, CoreConstants.Folders.PackagesFolderName, fileName);
+
+            var packageVersion = NuGetVersionFormatter.GetNormalizedPackageVersion(package);
+
+            return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, CoreConstants.Folders.PackagesFolderName, fileName, packageVersion);
         }
 
         public Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, string id, string version)
         {
+            if (requestUrl is null)
+            {
+                throw new ArgumentNullException(nameof(requestUrl));
+            }
+
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(id));
+            }
+
+            if (string.IsNullOrWhiteSpace(version))
+            {
+                throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(version));
+            }
+
             var fileName = FileNameHelper.BuildFileName(id, version, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetPackageFileExtension);
-            return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, CoreConstants.Folders.PackagesFolderName, fileName);
+
+            // version cannot be null here as BuildFileName will throw if it is
+            return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, CoreConstants.Folders.PackagesFolderName, fileName, NuGetVersionFormatter.Normalize(version));
         }
 
         /// <summary>
@@ -47,7 +78,7 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException(nameof(package));
             }
-            
+
             var fileName = FileNameHelper.BuildFileName(package, ReadMeFilePathTemplateActive, ServicesConstants.MarkdownFileExtension);
 
             return _fileStorageService.DeleteFileAsync(CoreConstants.Folders.PackageReadMesFolderName, fileName);
@@ -83,7 +114,7 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException(nameof(package));
             }
-            
+
             var fileName = FileNameHelper.BuildFileName(package, ReadMeFilePathTemplateActive, ServicesConstants.MarkdownFileExtension);
 
             using (var readMeMdStream = await _fileStorageService.GetFileAsync(CoreConstants.Folders.PackageReadMesFolderName, fileName))

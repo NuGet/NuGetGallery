@@ -27,6 +27,8 @@ namespace NuGetGallery
 
         public const string DefaultCacheControl = "max-age=120";
 
+        public const string PackageVersionParameterName = "packageVersion";
+
         public static class Folders
         {
             public const string UserCertificatesFolderName = "user-certificates";
