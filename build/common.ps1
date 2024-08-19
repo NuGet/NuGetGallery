@@ -158,10 +158,10 @@ Function Invoke-BuildStep {
         [switch]$SkipExecution
     )
     if (-not $SkipExecution) {
-        Trace-Log "[BEGIN] $BuildStep"
         if ($env:TF_BUILD) {
             Write-Output "##[group]$BuildStep"
         }
+        Trace-Log "[BEGIN] $BuildStep"
         $sw = [Diagnostics.Stopwatch]::StartNew()
         $completed = $false
 
