@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
@@ -28,9 +28,14 @@ namespace NuGetGallery.AccountDeleter
         public Dictionary<string, string> TemplateReplacements { get; set; }
 
         /// <summary>
-        /// Storage container connection string where gallery content can be found
+        /// Azure storage account for gallery content
         /// </summary>
-        public string GalleryStorageConnectionString { get; set; }
+        public string StorageAccountName { get; set; }
+
+        /// <summary>
+        /// User assigned clientId to be used as storage credential.
+        /// </summary>
+        public string UserAssignedClientId { get; set; }
 
         /// <summary>
         /// This method get the configuration for a source.

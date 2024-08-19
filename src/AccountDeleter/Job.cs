@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -165,7 +165,9 @@ namespace NuGetGallery.AccountDeleter
                     var options = sp.GetRequiredService<IOptionsSnapshot<AccountDeleteConfiguration>>();
                     var optionsSnapshot = options.Value;
 
-                    return new CloudBlobClientWrapper(optionsSnapshot.GalleryStorageConnectionString, readAccessGeoRedundant: true);
+                    return CloudBlobClientWrapper.UsingMsi(
+                        $"BlobEndpoint=https://{optionsSnapshot.StorageAccountName}.blob.core.windows.net",
+                        optionsSnapshot.UserAssignedClientId);
                 });
 
                 services.AddScoped<ITelemetryService, TelemetryService>();
