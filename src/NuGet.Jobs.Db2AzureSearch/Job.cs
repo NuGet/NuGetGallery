@@ -1,8 +1,9 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using NuGet.Services.AzureSearch;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using NuGet.Services.AzureSearch.Db2AzureSearch;
@@ -26,6 +27,11 @@ namespace NuGet.Jobs
                 configurationRoot.GetSection(DevelopmentConfigurationSectionName));
             services.Configure<Db2AzureSearchDevelopmentConfiguration>(
                 configurationRoot.GetSection(DevelopmentConfigurationSectionName));
+            services.AddDownloadsV1JsonClient(provider =>
+            {
+                var jsonConfigurationAccessor = provider.GetRequiredService<IOptionsSnapshot<Db2AzureSearchConfiguration>>();
+                return jsonConfigurationAccessor.Value.DownloadsV1JsonUrl;
+            });
         }
     }
 }
