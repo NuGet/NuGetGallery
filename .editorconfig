@@ -17,6 +17,11 @@ insert_final_newline = true
 [*.{cs}]
 indent_size = 4
 
+; Razor files
+[*.{cshtml}]
+; Needed to avoid incorrect charset detection in the Razor compiler
+charset = utf-8-bom
+
 ; All XML-based file formats
 [*.{config,csproj,nuspec,props,resx,ruleset,targets,vsct,vsixmanifest,xaml,xml,vsmanproj,swixproj}]
 indent_size = 2
