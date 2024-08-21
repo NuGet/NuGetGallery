@@ -10,7 +10,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Core;
-using Azure.Core;
 using Azure.Identity;
 using Azure.Storage.Blobs;
 using Microsoft.ApplicationInsights;
@@ -621,27 +620,29 @@ namespace NuGet.Services.Validation.Orchestrator
             {
                 if (string.IsNullOrWhiteSpace(msiConfiguration.ManagedIdentityClientId))
                 {
-                    // Using MSI with DefaultAzureCredential (local debugging)
+                    // 1. Using MSI with DefaultAzureCredential (local debugging)
                     var defaultAzureCredentialOptions = new DefaultAzureCredentialOptions
                     {
-                        ManagedIdentityClientId = msiConfiguration.ManagedIdentityClientId,
+                        ManagedIdentityClientId = null,
                     };
-                    var tokenCredential = new DefaultAzureCredential(defaultAzureCredentialOptions);
 
-                    return new BlobServiceClient(new Uri(storageConnectionString), tokenCredential, blobClientOptions);
+                    return new BlobServiceClient(
+                        ConnectionStringExtensions.GetBlobEndpointFromConnectionString(storageConnectionString),
+                        new DefaultAzureCredential(defaultAzureCredentialOptions),
+                        blobClientOptions);
                 }
                 else
                 {
-                    // Using MSI with ClientId
-                    var tokenCredential = new ManagedIdentityCredential(msiConfiguration.ManagedIdentityClientId);
-
-                    return new BlobServiceClient(new Uri(storageConnectionString), tokenCredential, blobClientOptions);
+                    // 2. Using MSI with ClientId
+                    return new BlobServiceClient(
+                        ConnectionStringExtensions.GetBlobEndpointFromConnectionString(storageConnectionString),
+                        new ManagedIdentityCredential(msiConfiguration.ManagedIdentityClientId),
+                        blobClientOptions);
                 }
             }
             else
             {
-                // Using SAS token
-
+                // 3. Using SAS token
                 // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
                 var connectionString = storageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
 
