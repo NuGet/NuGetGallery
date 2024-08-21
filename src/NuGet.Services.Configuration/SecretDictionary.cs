@@ -1,11 +1,10 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved. 
+// Copyright (c) .NET Foundation. All rights reserved. 
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information. 
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using NuGet.Services.KeyVault;
 
 namespace NuGet.Services.Configuration
@@ -122,14 +121,9 @@ namespace NuGet.Services.Configuration
         {
             if (!_notInjectedKeys.Contains(key))
             {
-                return Inject(value).Result;
+                return _secretInjector.Inject(value);
             }
             return value;
-        }
-
-        private Task<string> Inject(string value)
-        {
-            return _secretInjector.InjectAsync(value);
         }
     }
 }

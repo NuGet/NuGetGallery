@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
@@ -58,16 +58,29 @@ namespace NuGet.Services.KeyVault.Tests
             var mockKeyVault = new Mock<ISecretReader>();
             mockKeyVault.Setup(x => x.GetSecretAsync(It.IsAny<string>(), It.IsAny<ILogger>()))
                 .Returns((string s, ILogger logger) => Task.FromResult(s.ToUpper()));
+            mockKeyVault.Setup(x => x.GetSecret(It.IsAny<string>(), It.IsAny<ILogger>()))
+                .Returns((string s, ILogger logger) => s.ToUpper());
 
             _secretInjector = new SecretInjector(mockKeyVault.Object);
         }
 
         [Theory]
         [MemberData(nameof(_testFormatParameters))]
-        public async Task TestFormat(string input, string expectedOutput)
+        public async Task TestFormatAsync(string input, string expectedOutput)
         {
             // Act
             string formattedString = await _secretInjector.InjectAsync(input);
+
+            // Assert
+            formattedString.Should().BeEquivalentTo(expectedOutput);
+        }
+
+        [Theory]
+        [MemberData(nameof(_testFormatParameters))]
+        public void TestFormat(string input, string expectedOutput)
+        {
+            // Act
+            string formattedString = _secretInjector.Inject(input);
 
             // Assert
             formattedString.Should().BeEquivalentTo(expectedOutput);

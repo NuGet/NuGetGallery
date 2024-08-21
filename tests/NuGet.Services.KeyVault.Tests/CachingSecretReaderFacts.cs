@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -13,7 +13,7 @@ namespace NuGet.Services.KeyVault.Tests
     public class CachingSecretReaderFacts
     {
         [Fact]
-        public async Task WhenGetSecretIsCalledCacheIsUsed()
+        public async Task WhenGetSecretAsyncIsCalledCacheIsUsed()
         {
             // Arrange
             const string secretName = "secretname";
@@ -34,6 +34,35 @@ namespace NuGet.Services.KeyVault.Tests
 
             // Assert
             mockSecretReader.Verify(x => x.GetSecretObjectAsync(It.IsAny<string>()), Times.Once);
+            mockLogger.Verify(x => x.Log(It.IsAny<LogLevel>(),
+                It.IsAny<EventId>(),
+                It.IsAny<FormattedLogValues>(),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<object, Exception, string>>()), Times.Once);
+        }
+
+        [Fact]
+        public void WhenGetSecretIsCalledCacheIsUsed()
+        {
+            // Arrange
+            const string secretName = "secretname";
+            const string secretValue = "testValue";
+            KeyVaultSecret secret = new KeyVaultSecret(secretName, secretValue, null);
+
+            var mockSecretReader = new Mock<ISecretReader>();
+            mockSecretReader
+                .Setup(x => x.GetSecretObject(It.IsAny<string>()))
+                .Returns(secret);
+            var mockLogger = new Mock<ILogger>();
+
+            var cachingSecretReader = new CachingSecretReader(mockSecretReader.Object, int.MaxValue);
+
+            // Act
+            var value1 = cachingSecretReader.GetSecret("secretname", mockLogger.Object);
+            var value2 = cachingSecretReader.GetSecret("secretname", mockLogger.Object);
+
+            // Assert
+            mockSecretReader.Verify(x => x.GetSecretObject(It.IsAny<string>()), Times.Once);
             mockLogger.Verify(x => x.Log(It.IsAny<LogLevel>(),
                 It.IsAny<EventId>(),
                 It.IsAny<FormattedLogValues>(),

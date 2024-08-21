@@ -1,10 +1,11 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 namespace NuGet.Services.KeyVault
 {
@@ -23,6 +24,11 @@ namespace NuGet.Services.KeyVault
             _underlyingFactory = underlyingFactory ?? throw new ArgumentNullException(nameof(underlyingFactory));
             _cache = new ConcurrentDictionary<string, ISecret>();
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
+        }
+
+        public void Refresh()
+        {
+            GetRefreshableSecretReader().Refresh();
         }
 
         public async Task RefreshAsync(CancellationToken token)
