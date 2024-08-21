@@ -23,6 +23,9 @@ namespace Validation.PackageSigning.ValidateCertificate
     {
         private const string CertificateStoreConfigurationSectionName = "CertificateStore";
 
+        private const string StorageUseManagedIdentityPropertyName = "Storage_UseManagedIdentity";
+        private const string StorageManagedIdentityClientIdPropertyName = "Storage_ManagedIdentityClientId";
+
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             services.Configure<CertificateStoreConfiguration>(configurationRoot.GetSection(CertificateStoreConfigurationSectionName));
@@ -33,13 +36,13 @@ namespace Validation.PackageSigning.ValidateCertificate
 
             services.AddTransient<ICertificateStore>(p =>
             {
-                var useStorageManagedIdentity = bool.Parse(configurationRoot["Storage_UseManagedIdentity"]);
+                var useStorageManagedIdentity = bool.Parse(configurationRoot[StorageUseManagedIdentityPropertyName]);
                 var config = p.GetRequiredService<IOptionsSnapshot<CertificateStoreConfiguration>>().Value;
 
                 BlobServiceClient targetStorageAccount;
                 if (useStorageManagedIdentity)
                 {
-                    var managedIdentityClientId = configurationRoot["Storage_ManagedIdentityClientId"];
+                    var managedIdentityClientId = configurationRoot[StorageManagedIdentityClientIdPropertyName];
                     var storageAccountUri = GetStorageUri(config.DataStorageAccount);
                     var managedIdentity = new ManagedIdentityCredential(managedIdentityClientId);
                     targetStorageAccount = new BlobServiceClient(storageAccountUri, managedIdentity);
@@ -76,7 +79,7 @@ namespace Validation.PackageSigning.ValidateCertificate
             // BlobEndpoint=https://{storageAccount}.blob.core.windows.net"
             // This method will extract the Uri to use with BlobServiceClient
 
-            var serviceUrl = connectionString.Split('-')[1];
+            var serviceUrl = connectionString.Split('=')[1];
             return new Uri(serviceUrl);
         }
     }
