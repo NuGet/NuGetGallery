@@ -1,7 +1,9 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using Autofac;
+using Azure.Identity;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -49,8 +51,21 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
 
             services.AddTransient<ICertificateStore>(p =>
             {
+                var storageMsiConfiguration = p.GetRequiredService<StorageMsiConfiguration>();
                 var config = p.GetRequiredService<IOptionsSnapshot<CertificateStoreConfiguration>>().Value;
-                var targetStorageAccount = new BlobServiceClient(AzureStorageFactory.PrepareConnectionString(config.DataStorageAccount));
+
+                BlobServiceClient targetStorageAccount;
+                if (storageMsiConfiguration.UseManagedIdentity)
+                {
+                    var managedIdentityClientId = storageMsiConfiguration.ManagedIdentityClientId;
+                    var storageAccountUri = GetStorageUri(config.DataStorageAccount);
+                    var managedIdentity = new ManagedIdentityCredential(managedIdentityClientId);
+                    targetStorageAccount = new BlobServiceClient(storageAccountUri, managedIdentity);
+                }
+                else
+                {
+                    targetStorageAccount = new BlobServiceClient(AzureStorageFactory.PrepareConnectionString(config.DataStorageAccount));
+                }
 
                 var storageFactory = new AzureStorageFactory(
                     targetStorageAccount,
@@ -86,6 +101,16 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                     (pi, ctx) => pi.ParameterType == typeof(string),
                     (pi, ctx) => ValidatorName.PackageSignatureProcessor)
                 .As<IValidatorStateService>();
+        }
+
+        private Uri GetStorageUri(string connectionString)
+        {
+            // we assume that if managed Identities are being used, the connection string should be of the form:
+            // BlobEndpoint=https://{storageAccount}.blob.core.windows.net"
+            // This method will extract the Uri to use with BlobServiceClient
+
+            var serviceUrl = connectionString.Split('=')[1];
+            return new Uri(serviceUrl);
         }
     }
 }
