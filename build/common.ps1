@@ -161,7 +161,6 @@ Function Invoke-BuildStep {
         if ($env:TF_BUILD) {
             Write-Output "##[group]$BuildStep"
         }
-
         Trace-Log "[BEGIN] $BuildStep"
         $sw = [Diagnostics.Stopwatch]::StartNew()
         $completed = $false
@@ -173,6 +172,9 @@ Function Invoke-BuildStep {
         finally {
             $sw.Stop()
             Reset-Colors
+            if ($env:TF_BUILD) {
+                Write-Output "##[endgroup]"
+            }
             if ($completed) {
                 Trace-Log "[DONE +$(Format-ElapsedTime $sw.Elapsed)] $BuildStep"
             }
@@ -184,14 +186,10 @@ Function Invoke-BuildStep {
                     Error-Log "[FAILED +$(Format-ElapsedTime $sw.Elapsed)] $BuildStep"
                 }
             }
-
-            if ($env:TF_BUILD) {
-                Write-Output "##[endgroup]"
-            }
         }
     }
     else {
-        Warning-Log "[SKIP] $BuildStep"
+        Trace-Log "[SKIP] $BuildStep"
     }
 }
 

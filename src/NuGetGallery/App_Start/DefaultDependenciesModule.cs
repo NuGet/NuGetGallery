@@ -721,18 +721,30 @@ namespace NuGetGallery
         private static void RegisterStatisticsServices(ContainerBuilder builder, IGalleryConfigurationService configuration)
         {
             // when running on Windows Azure, download counts come from the downloads.v1.json blob
-            builder.Register(c => new SimpleBlobStorageConfiguration(configuration.Current.AzureStorage_Statistics_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
+            builder.Register(c => new SimpleBlobStorageConfiguration(
+                    configuration.Current.AzureStorage_Statistics_ConnectionString,
+                    configuration.Current.AzureStorageReadAccessGeoRedundant,
+                    configuration.Current.AzureStorageUseMsi,
+                    configuration.Current.AzureStorageMsiClientId))
                 .SingleInstance()
                 .Keyed<IBlobStorageConfiguration>(BindingKeys.PrimaryStatisticsKey);
 
-            builder.Register(c => new SimpleBlobStorageConfiguration(configuration.Current.AzureStorage_Statistics_ConnectionString_Alternate, configuration.Current.AzureStorageReadAccessGeoRedundant))
+            builder.Register(c => new SimpleBlobStorageConfiguration(
+                    configuration.Current.AzureStorage_Statistics_ConnectionString_Alternate,
+                    configuration.Current.AzureStorageReadAccessGeoRedundant,
+                    configuration.Current.AzureStorageUseMsi,
+                    configuration.Current.AzureStorageMsiClientId))
                 .SingleInstance()
                 .Keyed<IBlobStorageConfiguration>(BindingKeys.AlternateStatisticsKey);
 
             builder.Register(c =>
                 {
                     var blobConfiguration = c.ResolveKeyed<IBlobStorageConfiguration>(BindingKeys.PrimaryStatisticsKey);
-                    return new CloudBlobClientWrapper(blobConfiguration.ConnectionString, blobConfiguration.ReadAccessGeoRedundant);
+                    return CreateCloudBlobClientWrapper(
+                        blobConfiguration.ConnectionString,
+                        blobConfiguration.UseMsi,
+                        blobConfiguration.MsiClientId,
+                        blobConfiguration.ReadAccessGeoRedundant);
                 })
                 .SingleInstance()
                 .Keyed<ICloudBlobClient>(BindingKeys.PrimaryStatisticsKey);
@@ -740,7 +752,11 @@ namespace NuGetGallery
             builder.Register(c =>
                 {
                     var blobConfiguration = c.ResolveKeyed<IBlobStorageConfiguration>(BindingKeys.AlternateStatisticsKey);
-                    return new CloudBlobClientWrapper(blobConfiguration.ConnectionString, blobConfiguration.ReadAccessGeoRedundant);
+                    return CreateCloudBlobClientWrapper(
+                        blobConfiguration.ConnectionString,
+                        blobConfiguration.UseMsi,
+                        blobConfiguration.MsiClientId,
+                        blobConfiguration.ReadAccessGeoRedundant);
                 })
                 .SingleInstance()
                 .Keyed<ICloudBlobClient>(BindingKeys.AlternateStatisticsKey);
@@ -1432,33 +1448,11 @@ namespace NuGetGallery
             {
                 if (completedBindingKeys.Add(dependent.BindingKey))
                 {
-                    CloudBlobClientWrapper blobClient;
-                    if (!configuration.Current.AzureStorageUseMsi)
-                    {
-                        blobClient = new CloudBlobClientWrapper(dependent.AzureStorageConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant);
-                    }
-                    else
-                    {
-                        if (string.IsNullOrWhiteSpace(configuration.Current.AzureStorageMsiClientId))
-                        {
-#if DEBUG
-                            blobClient = CloudBlobClientWrapper.UsingDefaultAzureCredential(
-                                dependent.AzureStorageConnectionString,
-                                readAccessGeoRedundant: configuration.Current.AzureStorageReadAccessGeoRedundant);
-#else
-                            blobClient = CloudBlobClientWrapper.UsingMsi(
-                                dependent.AzureStorageConnectionString,
-                                readAccessGeoRedundant: configuration.Current.AzureStorageReadAccessGeoRedundant);
-#endif
-                        }
-                        else
-                        {
-                            blobClient = CloudBlobClientWrapper.UsingMsi(
-                                dependent.AzureStorageConnectionString,
-                                configuration.Current.AzureStorageMsiClientId,
-                                configuration.Current.AzureStorageReadAccessGeoRedundant);
-                        }
-                    }
+                    CloudBlobClientWrapper blobClient = CreateCloudBlobClientWrapper(
+                        dependent.AzureStorageConnectionString,
+                        configuration.Current.AzureStorageUseMsi,
+                        configuration.Current.AzureStorageMsiClientId,
+                        configuration.Current.AzureStorageReadAccessGeoRedundant);
                     builder.RegisterInstance(blobClient)
                         .AsSelf()
                         .As<ICloudBlobClient>()
@@ -1502,6 +1496,40 @@ namespace NuGetGallery
                 .SingleInstance();
         }
 
+        private static CloudBlobClientWrapper CreateCloudBlobClientWrapper(
+            string connectionString,
+            bool useMsi,
+            string msiClientId,
+            bool useStorageReadAccessGeoRedundant)
+        {
+            if (!useMsi)
+            {
+                return new CloudBlobClientWrapper(connectionString, useStorageReadAccessGeoRedundant);
+            }
+            else
+            {
+                if (string.IsNullOrWhiteSpace(msiClientId))
+                {
+#if DEBUG
+                    return CloudBlobClientWrapper.UsingDefaultAzureCredential(
+                        connectionString,
+                        readAccessGeoRedundant: useStorageReadAccessGeoRedundant);
+#else
+                    return CloudBlobClientWrapper.UsingMsi(
+                        connectionString,
+                        readAccessGeoRedundant: useStorageReadAccessGeoRedundant);
+#endif
+                }
+                else
+                {
+                    return CloudBlobClientWrapper.UsingMsi(
+                        connectionString,
+                        msiClientId,
+                        useStorageReadAccessGeoRedundant);
+                }
+            }
+        }
+
         private static IAuditingService CombineAuditingServices(IEnumerable<IAuditingService> services)
         {
             if (!services.Any())
@@ -1540,7 +1568,11 @@ namespace NuGetGallery
                 builder.Register(c =>
                     {
                         var configuration = c.Resolve<IAppConfiguration>();
-                        return new CloudBlobClientWrapper(configuration.AzureStorage_Auditing_ConnectionString, configuration.AzureStorageReadAccessGeoRedundant);
+                        return CreateCloudBlobClientWrapper(
+                            configuration.AzureStorage_Auditing_ConnectionString,
+                            configuration.AzureStorageUseMsi,
+                            configuration.AzureStorageMsiClientId,
+                            configuration.AzureStorageReadAccessGeoRedundant);
                     })
                     .SingleInstance()
                     .Keyed<ICloudBlobClient>(BindingKeys.AuditKey);

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -117,7 +117,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
 
             // The "new" data in this case is from the statistics pipeline.
             _logger.LogInformation("Fetching new download count data by URL.");
-            var newData = await _downloadsV1JsonClient.ReadAsync(_options.Value.DownloadsV1JsonUrl);
+            var newData = await _downloadsV1JsonClient.ReadAsync();
 
             _logger.LogInformation("Removing invalid IDs and versions from the old downloads data.");
             CleanDownloadData(oldResult.Data);

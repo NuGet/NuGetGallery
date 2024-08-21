@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -73,7 +73,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 _downloadsV1JsonClient = new Mock<IDownloadsV1JsonClient>();
                 _downloads = new DownloadData();
                 _downloadsV1JsonClient
-                    .Setup(x => x.ReadAsync(It.IsAny<string>()))
+                    .Setup(x => x.ReadAsync())
                     .ReturnsAsync(() => _downloads);
 
                 _popularityTransfers = new PopularityTransferData();
