@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
@@ -8,6 +8,16 @@ namespace NuGet.Services.KeyVault
 {
     public class EmptySecretReader : ICachingSecretReader
     {
+        public string GetSecret(string secretName)
+        {
+            return GetSecret(secretName, logger: null);
+        }
+
+        public string GetSecret(string secretName, ILogger logger)
+        {
+            return secretName;
+        }
+
         public Task<string> GetSecretAsync(string secretName) => GetSecretAsync(secretName, logger: null);
 
         public Task<string> GetSecretAsync(string secretName, ILogger logger)
@@ -15,11 +25,21 @@ namespace NuGet.Services.KeyVault
             return Task.FromResult(secretName);
         }
 
+        public ISecret GetSecretObject(string secretName)
+        {
+            return GetSecretObject(secretName, logger: null);
+        }
+
+        public ISecret GetSecretObject(string secretName, ILogger logger)
+        {
+            return new KeyVaultSecret(secretName, secretName, null);
+        }
+
         public Task<ISecret> GetSecretObjectAsync(string secretName) => GetSecretObjectAsync(secretName, logger: null);
 
         public Task<ISecret> GetSecretObjectAsync(string secretName, ILogger logger)
         {
-            return Task.FromResult((ISecret)new KeyVaultSecret(secretName, secretName, null));
+            return Task.FromResult(GetSecretObject(secretName, logger));
         }
 
         public bool TryGetCachedSecret(string secretName, out string secretValue) => TryGetCachedSecret(secretName, logger: null, out secretValue);
