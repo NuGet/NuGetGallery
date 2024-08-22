@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -28,7 +28,6 @@ namespace Stats.CreateAzureCdnWarehouseReports
             : base(
                   logger,
                   targets,
-                  openStatisticsSqlConnectionAsync: null,
                   openGallerySqlConnectionAsync: openGallerySqlConnectionAsync,
                   commandTimeoutSeconds: commandTimeoutSeconds)
         {
@@ -39,7 +38,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
             // gather package numbers from gallery database
             GalleryTotalsData totalsData;
 
-            using (var connection = await OpenGallerySqlConnectionAsync())
+            using (var connection = await _openGallerySqlConnectionAsync())
             using (var transaction = connection.BeginTransaction(IsolationLevel.Snapshot))
             {
                 _logger.LogInformation("Gathering Gallery Totals from {GalleryDataSource}/{GalleryInitialCatalog}...",
@@ -57,16 +56,16 @@ namespace Stats.CreateAzureCdnWarehouseReports
 
             var reportText = JsonConvert.SerializeObject(totalsData);
 
-            foreach (var storageContainerTarget in Targets)
+            foreach (var storageContainerTarget in _targets)
             {
                 try
                 {
                     var targetBlobContainer = await GetBlobContainer(storageContainerTarget);
                     var blob = targetBlobContainer.GetBlockBlobReference(ReportNames.GalleryTotals + ReportNames.Extension);
-                    _logger.LogInformation("Writing report to {ReportUri}", blob.Uri.AbsoluteUri);
+                    _logger.LogInformation("Writing report to {ReportUri}", blob.Uri.GetLeftPart(UriPartial.Path));
                     blob.Properties.ContentType = "application/json";
                     await blob.UploadTextAsync(reportText);
-                    _logger.LogInformation("Wrote report to {ReportUri}", blob.Uri.AbsoluteUri);
+                    _logger.LogInformation("Wrote report to {ReportUri}", blob.Uri.GetLeftPart(UriPartial.Path));
                 }
                 catch (Exception ex)
                 {
