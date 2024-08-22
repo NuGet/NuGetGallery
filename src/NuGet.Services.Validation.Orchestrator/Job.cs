@@ -10,7 +10,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Core;
-using Azure.Identity;
 using Azure.Storage.Blobs;
 using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Configuration;
@@ -181,6 +180,13 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<IBrokeredMessageSerializer<PackageValidationMessageData>, PackageValidationMessageDataSerializationAdapter>();
             services.AddTransient<ICriteriaEvaluator<Package>, PackageCriteriaEvaluator>();
             services.AddTransient<IProcessSignatureEnqueuer, ProcessSignatureEnqueuer>();
+            services.AddTransient<ICloudBlobClient>(c =>
+            {
+                var configurationAccessor = c.GetRequiredService<IOptionsSnapshot<ValidationConfiguration>>();
+                return new CloudBlobClientWrapper(
+                    configurationAccessor.Value.ValidationStorageConnectionString,
+                    readAccessGeoRedundant: false);
+            });
             services.AddTransient<ICloudBlobContainerInformationProvider, GalleryCloudBlobContainerInformationProvider>();
             services.AddTransient<ICoreFileStorageService, CloudBlobCoreFileStorageService>();
             services.AddTransient<IFileDownloader, FileDownloader>();
@@ -230,10 +236,6 @@ namespace NuGet.Services.Validation.Orchestrator
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
-            containerBuilder
-                .RegisterStorageAccount<ValidationConfiguration>(c => c.ValidationStorageConnectionString)
-                .As<ICloudBlobClient>();
-
             containerBuilder
                 .Register(c =>
                 {
@@ -385,9 +387,11 @@ namespace NuGet.Services.Validation.Orchestrator
                 .Register(c =>
                 {
                     LeaseConfiguration config = c.Resolve<IOptionsSnapshot<LeaseConfiguration>>().Value;
-                    StorageMsiConfiguration storageMsiConfiguration = c.Resolve<IOptionsSnapshot<StorageMsiConfiguration>>().Value;
 
-                    BlobServiceClient blobServiceClient = CreateBlobServiceClient(storageMsiConfiguration, config.ConnectionString);
+                    // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
+                    var connectionString = config.ConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+
+                    BlobServiceClient blobServiceClient = new BlobServiceClient(connectionString);
                     return new CloudBlobLeaseService(blobServiceClient, config.ContainerName, config.StoragePath);
                 })
                 .As<ILeaseService>();
@@ -452,7 +456,13 @@ namespace NuGet.Services.Validation.Orchestrator
         private static void ConfigureFlatContainer(ContainerBuilder builder)
         {
             builder
-                .RegisterStorageAccount<FlatContainerConfiguration>(c => c.ConnectionString)
+                .Register<CloudBlobClientWrapper>(c =>
+                {
+                    var configurationAccessor = c.Resolve<IOptionsSnapshot<FlatContainerConfiguration>>();
+                    return new CloudBlobClientWrapper(
+                        configurationAccessor.Value.ConnectionString,
+                        readAccessGeoRedundant: false);
+                })
                 .Keyed<ICloudBlobClient>(FlatContainerBindingKey);
 
             builder
@@ -603,51 +613,6 @@ namespace NuGet.Services.Validation.Orchestrator
         private T GetRequiredService<T>()
         {
             return _serviceProvider.GetRequiredService<T>();
-        }
-
-        private static BlobServiceClient CreateBlobServiceClient(
-            StorageMsiConfiguration msiConfiguration,
-            string storageConnectionString,
-            TimeSpan? requestTimeout = null)
-        {
-            BlobClientOptions blobClientOptions = new BlobClientOptions();
-            if (requestTimeout.HasValue)
-            {
-                blobClientOptions.Retry.NetworkTimeout = requestTimeout.Value;
-            }
-
-            if (msiConfiguration.UseManagedIdentity)
-            {
-                if (string.IsNullOrWhiteSpace(msiConfiguration.ManagedIdentityClientId))
-                {
-                    // 1. Using MSI with DefaultAzureCredential (local debugging)
-                    var defaultAzureCredentialOptions = new DefaultAzureCredentialOptions
-                    {
-                        ManagedIdentityClientId = null,
-                    };
-
-                    return new BlobServiceClient(
-                        ConnectionStringExtensions.GetBlobEndpointFromConnectionString(storageConnectionString),
-                        new DefaultAzureCredential(defaultAzureCredentialOptions),
-                        blobClientOptions);
-                }
-                else
-                {
-                    // 2. Using MSI with ClientId
-                    return new BlobServiceClient(
-                        ConnectionStringExtensions.GetBlobEndpointFromConnectionString(storageConnectionString),
-                        new ManagedIdentityCredential(msiConfiguration.ManagedIdentityClientId),
-                        blobClientOptions);
-                }
-            }
-            else
-            {
-                // 3. Using SAS token
-                // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
-                var connectionString = storageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
-
-                return new BlobServiceClient(connectionString, blobClientOptions);
-            }
         }
     }
 }
