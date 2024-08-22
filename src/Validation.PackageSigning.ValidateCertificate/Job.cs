@@ -24,6 +24,10 @@ namespace Validation.PackageSigning.ValidateCertificate
     {
         private const string CertificateStoreConfigurationSectionName = "CertificateStore";
 
+        private const string StorageUseManagedIdentityPropertyName = "Storage_UseManagedIdentity";
+        private const string StorageManagedIdentityClientIdPropertyName = "Storage_ManagedIdentityClientId";
+        private const string FallbackManagedIdentityClientIdPropertyName = "ManagedIdentityClientId";
+
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             services.Configure<CertificateStoreConfiguration>(configurationRoot.GetSection(CertificateStoreConfigurationSectionName));
@@ -35,13 +39,16 @@ namespace Validation.PackageSigning.ValidateCertificate
 
             services.AddTransient<ICertificateStore>(p =>
             {
-                var storageMsiConfiguration = p.GetRequiredService<StorageMsiConfiguration>();
+                var useStorageManagedIdentity = bool.Parse(configurationRoot[StorageUseManagedIdentityPropertyName]);
                 var config = p.GetRequiredService<IOptionsSnapshot<CertificateStoreConfiguration>>().Value;
 
                 BlobServiceClient targetStorageAccount;
-                if (storageMsiConfiguration.UseManagedIdentity)
+                if (useStorageManagedIdentity)
                 {
-                    var managedIdentityClientId = storageMsiConfiguration.ManagedIdentityClientId;
+                    var managedIdentityClientId =
+                        string.IsNullOrEmpty(configurationRoot[StorageManagedIdentityClientIdPropertyName]) ?
+                        configurationRoot[FallbackManagedIdentityClientIdPropertyName] :
+                        configurationRoot[StorageManagedIdentityClientIdPropertyName];
                     var storageAccountUri = GetStorageUri(config.DataStorageAccount);
                     var managedIdentity = new ManagedIdentityCredential(managedIdentityClientId);
                     targetStorageAccount = new BlobServiceClient(storageAccountUri, managedIdentity);
