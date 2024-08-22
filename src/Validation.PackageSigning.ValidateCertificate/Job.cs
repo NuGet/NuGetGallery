@@ -24,12 +24,10 @@ namespace Validation.PackageSigning.ValidateCertificate
     {
         private const string CertificateStoreConfigurationSectionName = "CertificateStore";
 
-        private const string StorageUseManagedIdentityPropertyName = "Storage_UseManagedIdentity";
-        private const string StorageManagedIdentityClientIdPropertyName = "Storage_ManagedIdentityClientId";
-
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             services.Configure<CertificateStoreConfiguration>(configurationRoot.GetSection(CertificateStoreConfigurationSectionName));
+            services.ConfigureStorageMsi(configurationRoot);
             SetupDefaultSubscriptionProcessorConfiguration(services, configurationRoot);
 
             services.AddTransient<IBrokeredMessageSerializer<CertificateValidationMessage>, CertificateValidationMessageSerializer>();
