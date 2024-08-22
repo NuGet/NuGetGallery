@@ -29,12 +29,15 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
         private const string ProcessSignatureConfigurationSectionName = "ProcessSignature";
         private const string SasDefinitionConfigurationSectionName = "SasDefinitions";
 
+        private const string StorageUseManagedIdentityPropertyName = "Storage_UseManagedIdentity";
+        private const string StorageManagedIdentityClientIdPropertyName = "Storage_ManagedIdentityClientId";
+        private const string FallbackManagedIdentityClientIdPropertyName = "ManagedIdentityClientId";
+
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             services.Configure<CertificateStoreConfiguration>(configurationRoot.GetSection(CertificateStoreConfigurationSectionName));
             services.Configure<ProcessSignatureConfiguration>(configurationRoot.GetSection(ProcessSignatureConfigurationSectionName));
             services.Configure<SasDefinitionConfiguration>(configurationRoot.GetSection(SasDefinitionConfigurationSectionName));
-            services.ConfigureStorageMsi(configurationRoot);
             SetupDefaultSubscriptionProcessorConfiguration(services, configurationRoot);
 
             services.AddTransient<ISubscriptionProcessor<SignatureValidationMessage>, SubscriptionProcessor<SignatureValidationMessage>>();
@@ -52,13 +55,16 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
 
             services.AddTransient<ICertificateStore>(p =>
             {
-                var storageMsiConfiguration = p.GetRequiredService<StorageMsiConfiguration>();
+                var useStorageManagedIdentity = bool.Parse(configurationRoot[StorageUseManagedIdentityPropertyName]);
                 var config = p.GetRequiredService<IOptionsSnapshot<CertificateStoreConfiguration>>().Value;
 
                 BlobServiceClient targetStorageAccount;
-                if (storageMsiConfiguration.UseManagedIdentity)
+                if (useStorageManagedIdentity)
                 {
-                    var managedIdentityClientId = storageMsiConfiguration.ManagedIdentityClientId;
+                    var managedIdentityClientId =
+                        string.IsNullOrEmpty(configurationRoot[StorageManagedIdentityClientIdPropertyName]) ?
+                        configurationRoot[FallbackManagedIdentityClientIdPropertyName] :
+                        configurationRoot[StorageManagedIdentityClientIdPropertyName];
                     var storageAccountUri = GetStorageUri(config.DataStorageAccount);
                     var managedIdentity = new ManagedIdentityCredential(managedIdentityClientId);
                     targetStorageAccount = new BlobServiceClient(storageAccountUri, managedIdentity);
