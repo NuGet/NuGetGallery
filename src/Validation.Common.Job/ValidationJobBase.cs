@@ -50,6 +50,13 @@ namespace NuGet.Jobs.Validation
             services.AddTransient<IFileDownloader, FileDownloader>();
             services.AddTransient<IServiceBusMessageSerializer, ServiceBusMessageSerializer>();
 
+            services.AddTransient<ICloudBlobClient>(c =>
+            {
+                var configurationAccessor = c.GetRequiredService<IOptionsSnapshot<ValidationStorageConfiguration>>();
+                return new CloudBlobClientWrapper(
+                    configurationAccessor.Value.ConnectionString,
+                    readAccessGeoRedundant: false);
+            });
             services.AddTransient<ICoreFileStorageService, CloudBlobCoreFileStorageService>();
             services.AddTransient<ISharedAccessSignatureService, SharedAccessSignatureService>();
 
@@ -89,10 +96,6 @@ namespace NuGet.Jobs.Validation
             base.ConfigureDefaultAutofacServices(containerBuilder, configurationRoot);
 
             ConfigureFeatureFlagAutofacServices(containerBuilder);
-
-            containerBuilder
-                .RegisterStorageAccount<ValidationStorageConfiguration>(c => c.ConnectionString)
-                .As<ICloudBlobClient>();
 
             containerBuilder
                 .Register(c =>
