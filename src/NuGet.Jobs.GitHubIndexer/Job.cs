@@ -42,16 +42,15 @@ namespace NuGet.Jobs.GitHubIndexer
             services.AddTransient<IRepositoriesCache, DiskRepositoriesCache>();
             services.AddTransient<IConfigFileParser, ConfigFileParser>();
             services.AddTransient<IRepoFetcher, RepoFetcher>();
-            services.AddTransient<ICloudBlobClient>(provider => {
-                var config = provider.GetRequiredService<IOptionsSnapshot<GitHubIndexerConfiguration>>();
-                return new CloudBlobClientWrapper(config.Value.StorageConnectionString, config.Value.StorageReadAccessGeoRedundant);
-            });
 
             services.Configure<GitHubIndexerConfiguration>(configurationRoot.GetSection(GitHubIndexerConfigurationSectionName));
         }
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
+            containerBuilder
+                .RegisterStorageAccount<GitHubIndexerConfiguration>(c => c.StorageConnectionString, c => c.StorageReadAccessGeoRedundant)
+                .As<ICloudBlobClient>();
         }
     }
 }
