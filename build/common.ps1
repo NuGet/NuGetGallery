@@ -212,7 +212,7 @@ Function Sign-Binaries {
     $projectsToSignProperty = $ProjectsToSign -join ';'
 
     $ProjectPath = Join-Path $PSScriptRoot "sign-binaries.proj"
-    Build-Solution $Configuration $BuildNumber -MSBuildVersion "$MSBuildVersion" $ProjectPath -MSBuildProperties "/p:ProjectsToSign=`"$projectsToSignProperty`"" -BinLog:$BinLog
+    Build-Solution $Configuration $BuildNumber -MSBuildVersion "$MSBuildVersion" $ProjectPath -MSBuildProperties "/p:ProjectsToSign=$projectsToSignProperty" -BinLog:$BinLog
 }
 
 Function Sign-Packages {
