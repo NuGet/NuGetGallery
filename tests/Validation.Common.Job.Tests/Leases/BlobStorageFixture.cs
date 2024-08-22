@@ -1,9 +1,8 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Azure.Storage.Blobs;
 
 namespace Validation.Common.Job.Tests.Leases
 {
@@ -30,7 +29,7 @@ namespace Validation.Common.Job.Tests.Leases
             TestRunId = Guid.NewGuid().ToString();
             ConnectionString = GetEnvironmentVariable(ConnectionStringName, required: true);
 
-            GetContainerReference().CreateIfNotExists();
+            GetBlobContainerClient().CreateIfNotExists();
         }
 
         public string TestRunId { get; }
@@ -38,15 +37,13 @@ namespace Validation.Common.Job.Tests.Leases
 
         public void Dispose()
         {
-            GetContainerReference().DeleteIfExists();
+            GetBlobContainerClient().DeleteIfExists();
         }
 
-        private CloudBlobContainer GetContainerReference()
+        private BlobContainerClient GetBlobContainerClient()
         {
-            var account = CloudStorageAccount.Parse(ConnectionString);
-            var blobClient = account.CreateCloudBlobClient();
-            var container = blobClient.GetContainerReference(TestRunId);
-            return container;
+            var blobServiceClient = new BlobServiceClient(ConnectionString);
+            return blobServiceClient.GetBlobContainerClient(TestRunId);
         }
 
         private static string GetEnvironmentVariable(string name, bool required)

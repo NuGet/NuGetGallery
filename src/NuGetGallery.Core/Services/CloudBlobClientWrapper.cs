@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -177,12 +177,7 @@ namespace NuGetGallery
 
         private Uri GetPrimaryServiceUri()
         {
-            var tempClient = new BlobServiceClient(_storageConnectionString);
-            // if _storageConnectionString has SAS token, Uri will contain SAS signature, we need to strip it
-            var uriBuilder = new UriBuilder(tempClient.Uri);
-            uriBuilder.Query = "";
-            uriBuilder.Fragment = "";
-            return uriBuilder.Uri;
+            return ConnectionStringExtensions.GetBlobEndpointFromConnectionString(_storageConnectionString);
         }
 
         private Uri GetSecondaryServiceUri()
