@@ -608,7 +608,7 @@ namespace NuGet.Services.Validation.Orchestrator
         }
 
         private static BlobServiceClient CreateBlobServiceClient(
-            StorageMsiConfiguration msiConfiguration,
+            StorageMsiConfiguration storageMsiConfiguration,
             string storageConnectionString,
             TimeSpan? requestTimeout = null)
         {
@@ -618,13 +618,15 @@ namespace NuGet.Services.Validation.Orchestrator
                 blobClientOptions.Retry.NetworkTimeout = requestTimeout.Value;
             }
 
-            if (msiConfiguration.UseManagedIdentity)
+            if (storageMsiConfiguration.UseManagedIdentity)
             {
-                if (string.IsNullOrWhiteSpace(msiConfiguration.ManagedIdentityClientId))
+                Uri blobEndpointUri = new Uri(ConnectionStringExtensions.GetBlobEndpointFromConnectionString(storageConnectionString));
+
+                if (string.IsNullOrWhiteSpace(storageMsiConfiguration.ManagedIdentityClientId))
                 {
                     // 1. Using MSI with DefaultAzureCredential (local debugging)
                     return new BlobServiceClient(
-                        ConnectionStringExtensions.GetBlobEndpointFromConnectionString(storageConnectionString),
+                        blobEndpointUri,
                         new DefaultAzureCredential(),
                         blobClientOptions);
                 }
@@ -632,8 +634,8 @@ namespace NuGet.Services.Validation.Orchestrator
                 {
                     // 2. Using MSI with ClientId
                     return new BlobServiceClient(
-                        ConnectionStringExtensions.GetBlobEndpointFromConnectionString(storageConnectionString),
-                        new ManagedIdentityCredential(msiConfiguration.ManagedIdentityClientId),
+                        blobEndpointUri,
+                        new ManagedIdentityCredential(storageMsiConfiguration.ManagedIdentityClientId),
                         blobClientOptions);
                 }
             }

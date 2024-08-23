@@ -8,11 +8,11 @@ namespace NuGetGallery
 {
     public static class ConnectionStringExtensions
     {
-        public static Uri GetBlobEndpointFromConnectionString(string connectionString)
+        public static string GetBlobEndpointFromConnectionString(string connectionString)
         {
             var tempClient = new BlobServiceClient(connectionString);
             // if _storageConnectionString has SAS token, Uri will contain SAS signature, we need to strip it
-            return new Uri(tempClient.Uri.GetLeftPart(UriPartial.Path));
+            return tempClient.Uri.GetLeftPart(UriPartial.Path);
         }
     }
 }

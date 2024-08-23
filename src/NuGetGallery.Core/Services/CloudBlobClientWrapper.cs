@@ -177,7 +177,7 @@ namespace NuGetGallery
 
         private Uri GetPrimaryServiceUri()
         {
-            return ConnectionStringExtensions.GetBlobEndpointFromConnectionString(_storageConnectionString);
+            return new Uri(ConnectionStringExtensions.GetBlobEndpointFromConnectionString(_storageConnectionString));
         }
 
         private Uri GetSecondaryServiceUri()
