@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -371,8 +371,21 @@ namespace NuGetGallery
                 throw new ArgumentOutOfRangeException(nameof(endOfAccess), $"{nameof(endOfAccess)} is in the past");
             }
 
-            var blob = await GetBlobForUriAsync(folderName, fileName);
+            ISimpleCloudBlob blob = await GetBlobForUriAsync(folderName, fileName);
             string sas = await blob.GetSharedAccessSignature(permissions, endOfAccess);
+
+            return new Uri(blob.Uri, sas);
+        }
+
+        public async Task<Uri> GetPrivilegedFileUriWithDelegationSasAsync(string folderName, string fileName, FileUriPermissions permissions, DateTimeOffset endOfAccess)
+        {
+            if (endOfAccess < DateTimeOffset.UtcNow)
+            {
+                throw new ArgumentOutOfRangeException(nameof(endOfAccess), $"{nameof(endOfAccess)} is in the past");
+            }
+
+            ISimpleCloudBlob blob = await GetBlobForUriAsync(folderName, fileName);
+            string sas = await blob.GetDelegationSasAsync(permissions, endOfAccess);
 
             return new Uri(blob.Uri, sas);
         }
