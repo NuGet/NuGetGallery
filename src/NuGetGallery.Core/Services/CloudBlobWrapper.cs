@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -327,34 +327,34 @@ namespace NuGetGallery
 
         public async Task<string> GetSharedAccessSignature(FileUriPermissions permissions, DateTimeOffset endOfAccess)
         {
-            var sasBuilder = new BlobSasBuilder
-            {
-                BlobContainerName = _blob.BlobContainerName,
-                BlobName = _blob.Name,
-                Resource = "b",
-                StartsOn = DateTimeOffset.UtcNow.AddMinutes(-5),
-                ExpiresOn = endOfAccess,
-            };
-            sasBuilder.SetPermissions(CloudWrapperHelpers.GetSdkSharedAccessPermissions(permissions));
+            BlobSasBuilder sasBuilder = CreateSasBuilderWithPermission(permissions, endOfAccess);
 
             if (_blob.CanGenerateSasUri)
             {
                 // regular SAS
                 return _blob.GenerateSasUri(sasBuilder).Query;
             }
-            else if (_container?.Account?.UsingTokenCredential == true && _container?.Account?.Client != null)
+            else if (IsUsingDelegationSas())
             {
-                // user delegation SAS
-                var userDelegationKey = (await _container.Account.Client.GetUserDelegationKeyAsync(sasBuilder.StartsOn, sasBuilder.ExpiresOn)).Value;
-                var blobUriBuilder = new BlobUriBuilder(_blob.Uri)
-                {
-                    Sas = sasBuilder.ToSasQueryParameters(userDelegationKey, _blob.AccountName),
-                };
-                return blobUriBuilder.ToUri().Query;
+                return await GenerateDelegationSasAsync(sasBuilder);
             }
             else
             {
                 throw new InvalidOperationException("Unsupported blob authentication");
+            }
+        }
+
+        public async Task<string> GetDelegationSasAsync(FileUriPermissions permissions, DateTimeOffset endOfAccess)
+        {
+            BlobSasBuilder sasBuilder = CreateSasBuilderWithPermission(permissions, endOfAccess);
+
+            if (IsUsingDelegationSas())
+            {
+                return await GenerateDelegationSasAsync(sasBuilder);
+            }
+            else
+            {
+                throw new InvalidOperationException("Unsupported blob authentication, managed identity required for this method.");
             }
         }
 
@@ -531,5 +531,36 @@ namespace NuGetGallery
         // workaround for https://github.com/Azure/azure-sdk-for-net/issues/29942 
         private static string EtagToString(ETag etag)
             => etag.ToString("H");
+
+        private BlobSasBuilder CreateSasBuilderWithPermission(FileUriPermissions permissions, DateTimeOffset endOfAccess)
+        {
+            var sasBuilder = new BlobSasBuilder
+            {
+                BlobContainerName = _blob.BlobContainerName,
+                BlobName = _blob.Name,
+                Resource = "b",
+                StartsOn = DateTimeOffset.UtcNow.AddMinutes(-5),
+                ExpiresOn = endOfAccess,
+            };
+            sasBuilder.SetPermissions(CloudWrapperHelpers.GetSdkSharedAccessPermissions(permissions));
+
+            return sasBuilder;
+        }
+
+        private bool IsUsingDelegationSas()
+        {
+            return _container?.Account?.UsingTokenCredential == true && _container?.Account?.Client != null;
+        }
+
+        private async Task<string> GenerateDelegationSasAsync(BlobSasBuilder sasBuilder)
+        {
+            // user delegation SAS
+            var userDelegationKey = (await _container.Account.Client.GetUserDelegationKeyAsync(sasBuilder.StartsOn, sasBuilder.ExpiresOn)).Value;
+            var blobUriBuilder = new BlobUriBuilder(_blob.Uri)
+            {
+                Sas = sasBuilder.ToSasQueryParameters(userDelegationKey, _blob.AccountName),
+            };
+            return blobUriBuilder.ToUri().Query;
+        }
     }
 }

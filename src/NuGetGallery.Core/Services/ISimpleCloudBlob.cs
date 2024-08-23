@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -51,6 +51,20 @@ namespace NuGetGallery
         /// </param>
         /// <returns>Shared access signature in form of URI query portion.</returns>
         Task<string> GetSharedAccessSignature(FileUriPermissions permissions, DateTimeOffset endOfAccess);
+
+        /// <summary>
+        /// Generates a new delegation sas token that if appended to the blob URI
+        /// would allow actions matching the provided <paramref name="permissions"/> without having access to the
+        /// access keys of the storage account.
+        /// </summary>
+        /// <param name="permissions">The permissions to include in the SAS token.</param>
+        /// <param name="endOfAccess">
+        /// "End of access" timestamp. After the specified timestamp,
+        /// the returned signature becomes invalid if implementation supports it.
+        /// Null for no time limit.
+        /// </param>
+        /// <returns>Shared access signature in form of URI query portion.</returns>
+        Task<string> GetDelegationSasAsync(FileUriPermissions permissions, DateTimeOffset endOfAccess);
 
         /// <summary>
         /// Opens the seekable read stream to the file in blob storage.
