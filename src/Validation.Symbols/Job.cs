@@ -5,6 +5,7 @@ using Autofac;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using NuGet.Jobs;
 using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.Storage;
 using NuGet.Jobs.Validation.Symbols.Core;
@@ -32,16 +33,12 @@ namespace Validation.Symbols
             {
                 var configurationAccessor = c.GetRequiredService<IOptionsSnapshot<SymbolsValidatorConfiguration>>();
                 var packageStorageService = new CloudBlobCoreFileStorageService(
-                    new CloudBlobClientWrapper(
-                        configurationAccessor.Value.PackageConnectionString,
-                        readAccessGeoRedundant: false),
+                    c.CreateCloudBlobClient(configurationAccessor.Value.PackageConnectionString),
                     c.GetRequiredService<IDiagnosticsService>(),
                     c.GetRequiredService<ICloudBlobContainerInformationProvider>());
 
                 var packageValidationStorageService = new CloudBlobCoreFileStorageService(
-                    new CloudBlobClientWrapper(
-                        configurationAccessor.Value.ValidationPackageConnectionString,
-                        readAccessGeoRedundant: false),
+                    c.CreateCloudBlobClient(configurationAccessor.Value.ValidationPackageConnectionString),
                     c.GetRequiredService<IDiagnosticsService>(),
                     c.GetRequiredService<ICloudBlobContainerInformationProvider>());
 
