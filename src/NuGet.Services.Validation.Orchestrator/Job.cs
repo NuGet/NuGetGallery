@@ -106,6 +106,8 @@ namespace NuGet.Services.Validation.Orchestrator
 
             try
             {
+                _serviceProvider.ValidateMessageHandlerInitialization<PackageValidationMessageData>();
+
                 var runner = GetRequiredService<OrchestrationRunner>();
                 await runner.RunOrchestrationAsync();
             }
