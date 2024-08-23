@@ -4,14 +4,12 @@
 using System;
 using System.Collections.Concurrent;
 using System.IO;
-using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Specialized;
 using Moq;
 using NuGetGallery.Diagnostics;
 using Xunit;
@@ -37,8 +35,8 @@ namespace NuGetGallery
         private readonly string _prefixB;
         private readonly CloudBlobClientWrapper _clientA;
         private readonly CloudBlobClientWrapper _clientB;
-        private readonly CloudBlobClient _blobClientA;
-        private readonly CloudBlobClient _blobClientB;
+        private readonly BlobServiceClient _blobClientA;
+        private readonly BlobServiceClient _blobClientB;
         private readonly CloudBlobCoreFileStorageService _targetA;
         private readonly CloudBlobCoreFileStorageService _targetB;
 
@@ -53,13 +51,31 @@ namespace NuGetGallery
             _clientA = new CloudBlobClientWrapper(_fixture.ConnectionStringA, readAccessGeoRedundant: false);
             _clientB = new CloudBlobClientWrapper(_fixture.ConnectionStringB, readAccessGeoRedundant: false);
 
-            _blobClientA = CloudStorageAccount.Parse(_fixture.ConnectionStringA).CreateCloudBlobClient();
-            _blobClientB = CloudStorageAccount.Parse(_fixture.ConnectionStringB).CreateCloudBlobClient();
+            _blobClientA = new BlobServiceClient(_fixture.ConnectionStringA);
+            _blobClientB = new BlobServiceClient(_fixture.ConnectionStringB);
 
-            var folderInformationProvider = new GalleryCloudBlobContainerInformationProvider();
+            var folderInformationProvider = new TestContainerInformationProvider();
 
             _targetA = new CloudBlobCoreFileStorageService(_clientA, Mock.Of<IDiagnosticsService>(), folderInformationProvider);
             _targetB = new CloudBlobCoreFileStorageService(_clientB, Mock.Of<IDiagnosticsService>(), folderInformationProvider);
+        }
+
+        private class TestContainerInformationProvider : ICloudBlobContainerInformationProvider
+        {
+            public string GetCacheControl(string containerName)
+            {
+                return CoreConstants.DefaultCacheControl;
+            }
+
+            public string GetContentType(string containerName)
+            {
+                return CoreConstants.OctetStreamContentType;
+            }
+
+            public bool IsPublicContainer(string containerName)
+            {
+                return false;
+            }
         }
 
         [BlobStorageFact]
@@ -80,20 +96,20 @@ namespace NuGetGallery
             var segmentA = await container.ListBlobsSegmentedAsync(
                 _prefixA,
                 useFlatBlobListing: true,
-                blobListingDetails: BlobListingDetails.None,
+                blobListingDetails: ListingDetails.None,
                 maxResults: 2,
                 blobContinuationToken: null,
-                options: null,
-                operationContext: null,
+                requestTimeout: null,
+                cloudBlobLocationMode: null,
                 cancellationToken: CancellationToken.None);
             var segmentB = await container.ListBlobsSegmentedAsync(
                 _prefixA,
                 useFlatBlobListing: true,
-                blobListingDetails: BlobListingDetails.None,
+                blobListingDetails: ListingDetails.None,
                 maxResults: 2,
                 blobContinuationToken: segmentA.ContinuationToken,
-                options: null,
-                operationContext: null,
+                requestTimeout: null,
+                cloudBlobLocationMode: null,
                 cancellationToken: CancellationToken.None);
 
             // Assert
@@ -121,20 +137,20 @@ namespace NuGetGallery
             var segmentA = await container.ListBlobsSegmentedAsync(
                 _prefixA,
                 useFlatBlobListing: true,
-                blobListingDetails: BlobListingDetails.Snapshots,
+                blobListingDetails: ListingDetails.Snapshots,
                 maxResults: 2,
                 blobContinuationToken: null,
-                options: null,
-                operationContext: null,
+                requestTimeout: null,
+                cloudBlobLocationMode: null,
                 cancellationToken: CancellationToken.None);
             var segmentB = await container.ListBlobsSegmentedAsync(
                 _prefixA,
                 useFlatBlobListing: true,
-                blobListingDetails: BlobListingDetails.Snapshots,
+                blobListingDetails: ListingDetails.Snapshots,
                 maxResults: 2,
                 blobContinuationToken: segmentA.ContinuationToken,
-                options: null,
-                operationContext: null,
+                requestTimeout: null,
+                cloudBlobLocationMode: null,
                 cancellationToken: CancellationToken.None);
 
             // Assert
@@ -145,33 +161,6 @@ namespace NuGetGallery
             Assert.False(segmentA.Results[1].IsSnapshot);
             Assert.Equal(blobBName, Assert.Single(segmentB.Results).Name);
             Assert.False(segmentB.Results[0].IsSnapshot);
-        }
-
-        [BlobStorageFact]
-        public async Task AllowsDefaultRequestOptionsToBeSet()
-        {
-            // Arrange
-            var folderName = CoreConstants.Folders.ValidationFolderName;
-            var fileName = _prefixA;
-            await _targetA.SaveFileAsync(
-                folderName,
-                fileName,
-                new MemoryStream(new byte[1024 * 1024]),
-                overwrite: false);
-            var client = new CloudBlobClientWrapper(
-                _fixture.ConnectionStringA,
-                new BlobRequestOptions
-                {
-                    MaximumExecutionTime = TimeSpan.FromMilliseconds(1),
-                });
-            var container = client.GetContainerReference(folderName);
-            var file = container.GetBlobReference(fileName);
-            var destination = new MemoryStream();
-
-            // Act & Assert
-            // This should throw due to timeout.
-            var ex = await Assert.ThrowsAsync<StorageException>(() => file.DownloadToStreamAsync(destination));
-            Assert.Contains("timeout", ex.Message);
         }
 
         [BlobStorageFact]
@@ -210,7 +199,6 @@ namespace NuGetGallery
 
                 Assert.NotNull(file.ETag);
                 Assert.NotEmpty(file.ETag);
-                Assert.Equal(expectedContentMD5, file.Properties.ContentMD5);
             }
         }
 
@@ -265,52 +253,14 @@ namespace NuGetGallery
             var file = container.GetBlobReference(fileName);
 
             // Act & Assert
-            var ex = await Assert.ThrowsAsync<StorageException>(
+            var ex = await Assert.ThrowsAsync<CloudBlobConflictException>(
                 async () =>
                 {
-                    using (var stream = await file.OpenWriteAsync(AccessCondition.GenerateIfNotExistsCondition()))
+                    using (var stream = await file.OpenWriteAsync(AccessConditionWrapper.GenerateIfNotExistsCondition()))
                     {
-                        await stream.WriteAsync(new byte[0], 0, 0);
+                        await stream.WriteAsync(Array.Empty<byte>(), 0, 0);
                     }
                 });
-            Assert.Equal(HttpStatusCode.Conflict, (HttpStatusCode)ex.RequestInformation.HttpStatusCode);
-        }
-
-        [BlobStorageFact]
-        public async Task OpenWriteAsyncRejectsETagMismatchFoundAfterUploadStarts()
-        {
-            // Arrange
-            var folderName = CoreConstants.Folders.ValidationFolderName;
-            var fileName = _prefixA;
-            var expectedContent = "Hello, world.";
-
-            var container = _clientA.GetContainerReference(folderName);
-            var file = container.GetBlobReference(fileName);
-            var writeCount = 0;
-
-            // Act & Assert
-            var ex = await Assert.ThrowsAsync<StorageException>(
-                async () =>
-                {
-                    using (var stream = await file.OpenWriteAsync(AccessCondition.GenerateIfNotExistsCondition()))
-                    {
-                        stream.Write(new byte[1], 0, 1);
-                        await stream.FlushAsync();
-                        writeCount++;
-
-                        await _targetA.SaveFileAsync(
-                            folderName,
-                            fileName,
-                            new MemoryStream(Encoding.ASCII.GetBytes(expectedContent)),
-                            overwrite: false);
-
-                        stream.Write(new byte[1], 0, 1);
-                        await stream.FlushAsync();
-                        writeCount++;
-                    }
-                });
-            Assert.Equal(HttpStatusCode.Conflict, (HttpStatusCode)ex.RequestInformation.HttpStatusCode);
-            Assert.Equal(2, writeCount);
         }
 
         [BlobStorageFact]
@@ -329,6 +279,7 @@ namespace NuGetGallery
 
             var container = _clientA.GetContainerReference(folderName);
             var file = container.GetBlobReference(fileName);
+            await file.FetchAttributesAsync();
 
             // Act
             using (var stream = await file.OpenReadAsync(accessCondition: null))
@@ -355,9 +306,8 @@ namespace NuGetGallery
 
             // Act & Assert
             Assert.False(exists);
-            var ex = await Assert.ThrowsAsync<StorageException>(
+            var ex = await Assert.ThrowsAsync<CloudBlobNotFoundException>(
                 () => file.OpenReadAsync(accessCondition: null));
-            Assert.Equal(HttpStatusCode.NotFound, (HttpStatusCode)ex.RequestInformation.HttpStatusCode);
         }
 
         [BlobStorageFact]
@@ -378,9 +328,8 @@ namespace NuGetGallery
             await file.FetchAttributesAsync();
 
             // Act & Assert
-            var ex = await Assert.ThrowsAsync<StorageException>(
-                () => file.OpenReadAsync(accessCondition: AccessCondition.GenerateIfMatchCondition("WON'T MATCH")));
-            Assert.Equal(HttpStatusCode.PreconditionFailed, (HttpStatusCode)ex.RequestInformation.HttpStatusCode);
+            var ex = await Assert.ThrowsAsync<CloudBlobPreconditionFailedException>(
+                () => file.OpenReadAsync(accessCondition: AccessConditionWrapper.GenerateIfMatchCondition("WON'T MATCH")));
         }
 
         [BlobStorageFact]
@@ -401,9 +350,8 @@ namespace NuGetGallery
             await file.FetchAttributesAsync();
 
             // Act & Assert
-            var ex = await Assert.ThrowsAsync<StorageException>(
-                () => file.OpenReadAsync(accessCondition: AccessCondition.GenerateIfNoneMatchCondition(file.ETag)));
-            Assert.Equal(HttpStatusCode.NotModified, (HttpStatusCode)ex.RequestInformation.HttpStatusCode);
+            var ex = await Assert.ThrowsAsync<CloudBlobNotModifiedException>(
+                () => file.OpenReadAsync(accessCondition: AccessConditionWrapper.GenerateIfNoneMatchCondition(file.ETag)));
         }
 
         [BlobStorageFact]
@@ -422,9 +370,10 @@ namespace NuGetGallery
 
             var container = _clientA.GetContainerReference(folderName);
             var file = container.GetBlobReference(fileName);
+            await file.FetchAttributesAsync();
 
             // Act
-            using (var stream = await file.OpenReadAsync(accessCondition: AccessCondition.GenerateIfNoneMatchCondition("WON'T MATCH")))
+            using (var stream = await file.OpenReadAsync(accessCondition: AccessConditionWrapper.GenerateIfNoneMatchCondition("WON'T MATCH")))
             using (var streamReader = new StreamReader(stream))
             {
                 var actualContent = await streamReader.ReadToEndAsync();
@@ -442,7 +391,7 @@ namespace NuGetGallery
             // Arrange
             var folderName = CoreConstants.Folders.ValidationFolderName;
             var fileName = _prefixA;
-            await _targetA.SaveFileAsync(folderName, fileName, new MemoryStream(new byte[0]));
+            await _targetA.SaveFileAsync(folderName, fileName, new MemoryStream(Array.Empty<byte>()));
             var initialReference = await _targetA.GetFileReferenceAsync(folderName, fileName);
             initialReference.OpenRead().Dispose();
 
@@ -481,14 +430,14 @@ namespace NuGetGallery
 
             Func<Task> update = async () =>
             {
-                var container = _blobClientA.GetContainerReference(folderName);
+                var container = _blobClientA.GetBlobContainerClient(folderName);
                 for (var i = 1; i <= iterations && !cts.IsCancellationRequested; i++)
                 {
-                    var blob = container.GetBlockBlobReference(fileName);
+                    var blob = container.GetBlockBlobClient(fileName);
                     var content = i.ToString();
-                    await blob.UploadTextAsync(content);
-                    contentToETag[content] = blob.Properties.ETag;
-                    _output.WriteLine($"Content '{content}' should have etag '{blob.Properties.ETag}'.");
+                    var result = await blob.UploadAsync(new MemoryStream(Encoding.UTF8.GetBytes(content)));
+                    contentToETag[content] = result.Value.ETag.ToString("H");
+                    _output.WriteLine($"Content '{content}' should have etag '{result.Value.ETag.ToString()}'.");
                 }
             };
 
@@ -542,22 +491,20 @@ namespace NuGetGallery
                 new MemoryStream(Encoding.ASCII.GetBytes(expectedContent)),
                 overwrite: false);
 
-            var deleteUri = await _targetA.GetPriviledgedFileUriAsync(
+            var deleteUri = await _targetA.GetPrivilegedFileUriAsync(
                 folderName,
                 fileName,
                 FileUriPermissions.Read | FileUriPermissions.Delete,
                 DateTimeOffset.UtcNow.AddHours(1));
 
             // Act
-            var sasToken = new StorageCredentials(deleteUri.Query);
-            var deleteUriBuilder = new UriBuilder(deleteUri) { Query = null };
-            var blob = new CloudBlockBlob(deleteUriBuilder.Uri, sasToken);
+            var blob = new BlockBlobClient(deleteUri);
 
-            var actualContent = await blob.DownloadTextAsync();
+            var actualContent = await blob.DownloadContentAsync();
             await blob.DeleteAsync();
 
             // Assert
-            Assert.Equal(expectedContent, actualContent);
+            Assert.Equal(expectedContent, actualContent.Value.Content.ToString());
             var exists = await _targetA.FileExistsAsync(folderName, fileName);
             Assert.False(exists, "The file should no longer exist.");
         }
@@ -694,9 +641,9 @@ namespace NuGetGallery
             Assert.NotEqual(originalDestETag, finalDestETag);
         }
 
-        private static CloudBlockBlob GetBlob(CloudBlobClient blobClient, string folderName, string fileName)
+        private static BlockBlobClient GetBlob(BlobServiceClient blobClient, string folderName, string fileName)
         {
-            return blobClient.GetContainerReference(folderName).GetBlockBlobReference(fileName);
+            return blobClient.GetBlobContainerClient(folderName).GetBlockBlobClient(fileName);
         }
 
         private static async Task CopyFileWorksAsync(

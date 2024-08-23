@@ -59,7 +59,7 @@ namespace NuGetGallery
 
                 reservedNamespaceService
                     .Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
-                    .Returns(new ReservedNamespace[0]);
+                    .Returns(Array.Empty<ReservedNamespace>());
             }
 
             if (vulnerabilityService == null)
@@ -615,7 +615,7 @@ namespace NuGetGallery
                 await Assert.ThrowsAsync<Exception>(() => _target.CommitPackageAsync(_package, _packageFile));
 
                 _licenseFileService.Verify(
-                    lfs => lfs.DeleteLicenseFileAsync(_package.Id, _package.NormalizedVersion.ToString()),
+                    lfs => lfs.DeleteLicenseFileAsync(_package.Id, _package.NormalizedVersion),
                     expectedLicenseDelete ? Times.Once() : Times.Never());
             }
 
@@ -720,11 +720,11 @@ namespace NuGetGallery
                 await Assert.ThrowsAsync<Exception>(() => _target.CommitPackageAsync(_package, _packageFile));
 
                 _licenseFileService.Verify(
-                    lfs => lfs.DeleteLicenseFileAsync(_package.Id, _package.NormalizedVersion.ToString()),
+                    lfs => lfs.DeleteLicenseFileAsync(_package.Id, _package.NormalizedVersion),
                     expectedFileDelete ? Times.Once() : Times.Never());
 
                 _readmeFileService.Verify(
-                    lfs => lfs.DeleteReadmeFileAsync(_package.Id, _package.NormalizedVersion.ToString()),
+                    lfs => lfs.DeleteReadmeFileAsync(_package.Id, _package.NormalizedVersion),
                     expectedFileDelete ? Times.Once() : Times.Never());
             }
         }

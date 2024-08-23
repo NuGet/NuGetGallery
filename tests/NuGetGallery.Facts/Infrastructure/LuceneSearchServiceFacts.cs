@@ -262,7 +262,7 @@ namespace NuGetGallery.Infrastructure
 
             var results = IndexAndSearch(packages, "Id:Red Death", semVerLevel);
 
-            Assert.Equal(1, results.Count);
+            Assert.Single(results);
             Assert.Equal("Red Death", results[0].Title);
         }
 

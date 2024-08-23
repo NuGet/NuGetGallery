@@ -2,9 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 
 namespace NuGetGallery
 {
@@ -21,7 +20,7 @@ namespace NuGetGallery
                     || GetEnvironmentVariable(ConnectionStringBName, required: false) == null)
                 {
                     return $"Both the {ConnectionStringAName} and {ConnectionStringBName} environment variables " +
-                        $"need to be defined to run Azure Blob Storage integration tests.";
+                        "need to be defined to run Azure Blob Storage integration tests.";
                 }
 
                 return null;
@@ -70,18 +69,17 @@ namespace NuGetGallery
 
         private void DeleteTestBlobs(string connectionString)
         {
-            var account = CloudStorageAccount.Parse(connectionString);
-            var blobClient = account.CreateCloudBlobClient();
-            var containers = blobClient.ListContainers();
-            foreach (var container in containers)
+            var client = new BlobServiceClient(connectionString);
+            var containers = client.GetBlobContainers();
+            foreach (var containerInfo in containers)
             {
-                var blobs = container.ListBlobs(
-                    prefix: TestRunId.ToString(),
-                    useFlatBlobListing: true);
+                var container = client.GetBlobContainerClient(containerInfo.Name);
+                var blobs = container.GetBlobs(prefix: TestRunId);
 
-                foreach (var blob in blobs.OfType<CloudBlockBlob>())
+                foreach (var blobDetails in blobs)
                 {
-                    blob.DeleteIfExists(DeleteSnapshotsOption.IncludeSnapshots);
+                    var blob = container.GetBlobClient(blobDetails.Name);
+                    blob.DeleteIfExists(snapshotsOption: DeleteSnapshotsOption.IncludeSnapshots);
                 }
             }
         }

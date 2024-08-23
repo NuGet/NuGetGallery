@@ -19,7 +19,7 @@ using Newtonsoft.Json;
 
 namespace NuGetGallery
 {
-    public class AutocompleteServicePackageVersionsQueryFacts
+    public class AutocompleteServicePackageVersionsQueryFacts : IDisposable
     {
         private TestHandler _testHandler;
 
@@ -118,6 +118,11 @@ namespace NuGetGallery
                         "application/json"),
                 });
             }
+        }
+
+        public void Dispose()
+        {
+            _testHandler.Dispose();
         }
     }
 }

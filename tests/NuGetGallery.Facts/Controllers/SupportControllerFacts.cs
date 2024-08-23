@@ -22,7 +22,7 @@ namespace NuGetGallery.Controllers
         public class TheIndexMethod : TestContainer
         {
             [Fact]
-            public void DeletedSupportIssuesAreFiltered()
+            public async Task DeletedSupportIssuesAreFiltered()
             {
                 // Arrange
                 var admin = new User()
@@ -82,13 +82,13 @@ namespace NuGetGallery.Controllers
                 var controller = CreateController(supportRequestService.Object, userService.Object, admin);
 
                 // Act
-                var viewResult = (ViewResult)controller.Index().Result;
+                var viewResult = (ViewResult)await controller.Index();
                 var model = viewResult.Model as SupportRequestsViewModel;
 
                 // Assert
                 Assert.NotNull(model);
                 Assert.Equal<int>(2, model.Issues.Count);
-                Assert.Equal<int>(2, model.Issues.Where(i => i.CreatedBy != null).Count());
+                Assert.Equal<int>(2, model.Issues.Count(i => i.CreatedBy != null));
             }
         }
 

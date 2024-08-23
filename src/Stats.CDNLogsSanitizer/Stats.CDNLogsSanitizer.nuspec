@@ -1,0 +1,15 @@
+﻿<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Stats.CDNLogsSanitizer</id>
+    <version>$version$</version>
+    <title>CopyAzureContainer</title>
+    <authors>.NET Foundation</authors>
+    <owners>.NET Foundation</owners>
+    <description>Stats.CDNLogsSanitizer</description>
+    <copyright>Copyright .NET Foundation</copyright>
+  </metadata>
+  <files>
+    <file src="bin\$configuration$\net472\*.*" target="bin"/>
+  </files>
+</package>

@@ -134,7 +134,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             [Theory]
             [InlineData("")]
             [InlineData(null)]
-            public async void WhenInvalidOldUsernameReturnsBadRequestStatusCode(string oldUsername)
+            public async Task WhenInvalidOldUsernameReturnsBadRequestStatusCode(string oldUsername)
             {
                 var result = await ChangeUsernameController.ChangeUsername(oldUsername, AvailableUsername) as JsonResult;
 
@@ -145,7 +145,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             [Theory]
             [InlineData("")]
             [InlineData(null)]
-            public async void WhenInvalidNewUsernameReturnsBadRequestStatusCode(string newUsername)
+            public async Task WhenInvalidNewUsernameReturnsBadRequestStatusCode(string newUsername)
             {
                 var result = await ChangeUsernameController.ChangeUsername("accountUsername", newUsername) as JsonResult;
 
@@ -154,7 +154,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
 
             [Fact]
-            public async void WhenAccountNotFoundReturnsNotFoundStatusCode()
+            public async Task WhenAccountNotFoundReturnsNotFoundStatusCode()
             {
                 var result = await ChangeUsernameController.ChangeUsername("NotFoundAccount", AvailableUsername) as JsonResult;
 
@@ -167,7 +167,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             [Theory]
             [InlineData("_aaa_")]
             [InlineData("testOrganization")]
-            public async void WhenNewUsernameValidationsFailedReturnsBadRequestStatusCode(string newUsername)
+            public async Task WhenNewUsernameValidationsFailedReturnsBadRequestStatusCode(string newUsername)
             {
                 var result = await ChangeUsernameController.ChangeUsername(IndividualAccount.Username, newUsername) as JsonResult;
 
@@ -176,7 +176,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
 
             [Fact]
-            public async void WhenValidAccountSaveAuditRecord()
+            public async Task WhenValidAccountSaveAuditRecord()
             {
                 UserAuditRecord auditRecord = null;
                 GetMock<IAuditingService>()
@@ -191,7 +191,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
 
             [Fact]
-            public async void WhenValidAccountAndNewUsernameReturnsOkStatusCode()
+            public async Task WhenValidAccountAndNewUsernameReturnsOkStatusCode()
             {
                 User newAccount = null;
                 GetMock<IEntityRepository<User>>()

@@ -41,7 +41,7 @@
 
 @helper Alert(Func<MvcHtmlString, HelperResult> htmlContent, string subclass, string icon, bool isAlertRole = false)
 {
-    <div class="icon-text alert alert-@subclass" @if (isAlertRole) { <text> role="alert" aria-live="assertive" </text> }>
+    <div class="icon-text alert alert-brand-@subclass" @if (isAlertRole) { <text> role="alert" aria-live="assertive" </text> }>
         <i class="ms-Icon ms-Icon--@icon" aria-hidden="true"></i>
         @htmlContent(MvcHtmlString.Empty)
     </div>
@@ -160,6 +160,11 @@
 @helper ImageFallback(string url)
 {
     <text>onerror="this.src='@url'; this.onerror = null;"</text>
+}
+
+@helper PackageImageFallback()
+{
+    <text>onerror="this.className='package-icon img-responsive package-default-icon'; this.onerror = null;"</text>
 }
 
 @helper Option(string value, string label, string currentValue)
@@ -415,7 +420,7 @@ string dataKey = "___AccordionCounter_" + groupName;
 int lastId = (int)(HttpContext.Current.Items[dataKey] ?? 0);
 int id = lastId + 1;
 HttpContext.Current.Items[dataKey] = id;
-string name = groupName + "-" + id.ToString();
+string name = groupName + "-" + id;
 string actionsId = name + "-actions"; 
 
 var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);

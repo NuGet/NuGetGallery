@@ -14,18 +14,22 @@
     display: inline-block;
     padding: 5px 14px;
     font-size: 20px;
-    color: @gray-light;
+    color: var(--neutralForeground2Rest);
 
     > a,
     > span {
-      color: @link-color;
+      color: var(--neutralForeground2Rest);
+
+      &:hover {
+        color: var(--neutralForeground2Hover);
+      }
     }
   }
 
   .next {
     border-left-style: solid;
     border-left-width: 1px;
-    border-left-color: @brand-primary;
+    border-left-color: var(--neutralStrokeAccessibleRest);
   }
 
   .previous {
@@ -39,9 +43,9 @@
     > a:hover,
     > a:focus,
     > span {
-      color: @pager-disabled-color;
+      color: var(--neutralForegroundDisabledRest);
       cursor: @cursor-disabled;
-      background-color: @pager-bg;
+      background-color: transparent;
     }
   }
 }

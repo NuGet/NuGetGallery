@@ -300,7 +300,7 @@ namespace NuGetGallery.Controllers
 
             // Assert
             AssertSemVer2PackagesFilteredFromResult(resultSet);
-            Assert.Equal(NonSemVer2Packages.Where(p => !p.IsPrerelease).Count(), resultSet.Count);
+            Assert.Equal(NonSemVer2Packages.Count(p => !p.IsPrerelease), resultSet.Count);
         }
 
         [Fact]
@@ -609,7 +609,7 @@ namespace NuGetGallery.Controllers
             foreach (var feedPackage in resultSet)
             {
                 // Assert none of the items in the result set are SemVer v.2.0.0 packages (checking on original version is enough in this case)
-                Assert.Empty(SemVer2Packages.Where(p => string.Equals(p.Version, feedPackage.Version)));
+                Assert.DoesNotContain(SemVer2Packages, p => string.Equals(p.Version, feedPackage.Version));
 
                 // Assert each of the items in the result set is a non-SemVer v2.0.0 package
                 Assert.Single(NonSemVer2Packages.Where(p =>

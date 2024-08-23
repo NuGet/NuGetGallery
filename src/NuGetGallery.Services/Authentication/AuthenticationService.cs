@@ -584,7 +584,6 @@ namespace NuGetGallery.Authentication
         {
             var hasPassword = user.Credentials.Any(
                 c => c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase));
-            Credential _;
             if (hasPassword && !ValidatePasswordCredential(user.Credentials, oldPassword, out _))
             {
                 // Invalid old password!
@@ -661,6 +660,12 @@ namespace NuGetGallery.Authentication
                 }
             }
 
+            var isDeprecateApiEnabled = _featureFlagService != null && credential
+                .Scopes
+                .Select(s => s.Owner ?? credential.User)
+                .Where(u => u != null)
+                .Any(_featureFlagService.IsManageDeprecationApiEnabled);
+
             var credentialViewModel = new CredentialViewModel
             {
                 Key = credential.Key,
@@ -675,7 +680,7 @@ namespace NuGetGallery.Authentication
                 Scopes = credential.Scopes.Select(s => new ScopeViewModel(
                         s.Owner?.Username ?? credential.User.Username,
                         s.Subject,
-                        NuGetScopes.Describe(s.AllowedAction)))
+                        NuGetScopes.Describe(s.AllowedAction, isDeprecateApiEnabled)))
                     .ToList(),
                 ExpirationDuration = credential.ExpirationTicks != null ? new TimeSpan?(new TimeSpan(credential.ExpirationTicks.Value)) : null,
                 RevocationSource = credential.RevocationSourceKey != null ? Enum.GetName(typeof(CredentialRevocationSource), credential.RevocationSourceKey) : null,
@@ -709,7 +714,7 @@ namespace NuGetGallery.Authentication
 
         public virtual async Task EditCredentialScopes(User user, Credential cred, ICollection<Scope> newScopes)
         {
-            foreach (var oldScope in cred.Scopes.ToArray())
+            foreach (var oldScope in cred.Scopes)
             {
                 Entities.Scopes.Remove(oldScope);
             }

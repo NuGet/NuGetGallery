@@ -1,18 +1,6 @@
-﻿using System.Reflection;
-using System.Runtime.InteropServices;
-using Xunit;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-[assembly: AssemblyTitle("NuGetGallery.FunctionalTests.Core")]
-[assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("NuGetGallery.FunctionalTests.Core")]
-[assembly: AssemblyCopyright("Copyright © .NET Foundation 2015")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
-[assembly: ComVisible(false)]
-[assembly: Guid("1d7326d6-d25b-4d1e-8e1b-765e6f246bd8")]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+using Xunit;
 
 [assembly: CollectionBehavior(DisableTestParallelization = true)]

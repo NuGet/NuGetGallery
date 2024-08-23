@@ -56,6 +56,7 @@
                     <div class="form-field">
                         <label for="editAssignedTo">Assigned to</label>
                         <select id="editAssignedTo"
+                                class="select-brand"
                                 name="editAssignedTo"
                                 data-bind="options: assignedToChoices,
                                     value: editAssignedToId,
@@ -66,6 +67,7 @@
                     <div class="form-field">
                         <label for="editIssueStatus">Issue status</label>
                         <select id="editIssueStatus"
+                                class="select-brand"
                                 name="editIssueStatus"
                                 data-bind="options: issueStatusChoices,
                                     value: editIssueStatusId,
@@ -76,7 +78,6 @@
                     <div class="form-field">
                         <label for="editIssueComment">Add comment</label>
                         <textarea id="editIssueComment" name="editIssueComment" data-bind="value: editIssueComment" rows="10"
-                                  placeholder="Add a comment. If resolving a DMCA request add offender account names (in single quotes, comma-delimited), offending package id, and resolution (no action, withdrawn, upheld). Example: accounts:'foo1','foo2' id:BarPkg resolution: upheld"
                                   autocomplete="off" autofocus></textarea>
                     </div>
                 </fieldset>
@@ -91,6 +92,7 @@
                     <div class="form-field">
 
                         <select id="assignedToFilter"
+                                class="select-brand"
                                 name="assignedToFilter"
                                 data-bind="options: assignedToChoices,
                                     value: assignedToFilter,
@@ -99,6 +101,7 @@
                                     optionsCaption: '[Assigned To]'"></select>
 
                         <select id="issueStatusIdFilter"
+                                class="select-brand"
                                 name="issueStatusIdFilter"
                                 data-bind="options: issueStatusChoices,
                                     value: issueStatusIdFilter,
@@ -109,6 +112,7 @@
 
                         <select id="reasonFilter"
                                 name="reasonFilter"
+                                class="select-brand"
                                 data-bind="options: reasonChoices,
                                     value: reasonFilter,
                                     optionsText: 'Text',
@@ -117,7 +121,7 @@
 
                         <br />
 
-                        <input type="submit" value="Filter" data-bind="click: applyFilter" />
+                        <input type="submit" class="btn-brand" value="Filter" data-bind="click: applyFilter" />
                     </div>
                 </fieldset>
             </form>

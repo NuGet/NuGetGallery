@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Mail;
-using Moq;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
 using Xunit;
@@ -19,12 +18,12 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             {
                 get
                 {
-                    yield return new object[] { null, Fakes.FromAddress, Fakes.Package, Fakes.PackageUrl, "message", Fakes.EmailSettingsUrl, It.IsAny<bool>() };
-                    yield return new object[] { Configuration, null, Fakes.Package, Fakes.PackageUrl, "message", Fakes.EmailSettingsUrl, It.IsAny<bool>() };
-                    yield return new object[] { Configuration, Fakes.FromAddress, null, Fakes.PackageUrl, "message", Fakes.EmailSettingsUrl, It.IsAny<bool>() };
-                    yield return new object[] { Configuration, Fakes.FromAddress, Fakes.Package, null, "message", Fakes.EmailSettingsUrl, It.IsAny<bool>() };
-                    yield return new object[] { Configuration, Fakes.FromAddress, Fakes.Package, Fakes.PackageUrl, null, Fakes.EmailSettingsUrl, It.IsAny<bool>() };
-                    yield return new object[] { Configuration, Fakes.FromAddress, Fakes.Package, Fakes.PackageUrl, "message", null, It.IsAny<bool>() };
+                    yield return new object[] { null, Fakes.FromAddress, Fakes.Package, Fakes.PackageUrl, "message", Fakes.EmailSettingsUrl };
+                    yield return new object[] { Configuration, null, Fakes.Package, Fakes.PackageUrl, "message", Fakes.EmailSettingsUrl };
+                    yield return new object[] { Configuration, Fakes.FromAddress, null, Fakes.PackageUrl, "message", Fakes.EmailSettingsUrl };
+                    yield return new object[] { Configuration, Fakes.FromAddress, Fakes.Package, null, "message", Fakes.EmailSettingsUrl };
+                    yield return new object[] { Configuration, Fakes.FromAddress, Fakes.Package, Fakes.PackageUrl, null, Fakes.EmailSettingsUrl };
+                    yield return new object[] { Configuration, Fakes.FromAddress, Fakes.Package, Fakes.PackageUrl, "message", null };
                 }
             }
 
@@ -36,8 +35,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 Package package,
                 string packageUrl,
                 string message,
-                string emailSettingsUrl,
-                bool copySender)
+                string emailSettingsUrl)
             {
                 Assert.Throws<ArgumentNullException>(() => new ContactOwnersMessage(
                     configuration,
@@ -57,7 +55,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 var message = CreateMessage();
                 var recipients = message.GetRecipients();
 
-                Assert.Equal(1, recipients.To.Count);
+                Assert.Single(recipients.To);
                 Assert.Contains(Fakes.PackageOwnerWithEmailAllowed.ToMailAddress(), recipients.To);
                 Assert.DoesNotContain(Fakes.PackageOwnerWithEmailNotAllowed.ToMailAddress(), recipients.To);
             }
@@ -68,7 +66,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 var message = CreateMessage();
                 var recipients = message.GetRecipients();
 
-                Assert.Equal(1, recipients.ReplyTo.Count);
+                Assert.Single(recipients.ReplyTo);
                 Assert.Contains(Fakes.FromAddress, recipients.ReplyTo);
             }
 

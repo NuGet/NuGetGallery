@@ -80,7 +80,7 @@
                             </span>)
                 <!-- /ko -->
                 <!-- ko if: $data.IsDisplayUploadWarningV2Enabled -->
-                <div class="icon-text alert alert-warning">
+                <div class="icon-text alert alert-brand-warning">
                     <span>
                         We found the following issue(s) with the package. We recommend that you fix these issues and re-upload the package:
                         <ul data-bind="foreach: $data.Warnings" style="list-style-type: none">
@@ -129,7 +129,7 @@
             <div class="verify-package-field form-group editable">
                 <label for="Owner" class="verify-package-field-heading" data-bind="text: $data.IsNewId ? 'Owner' : 'Owners'"></label>
                 <!-- ko if: $data.PossibleOwners.length > 1 && $data.IsNewId -->
-                <select id="Owner" aria-required="true" class="form-control" data-val="true" data-val-required="You must select an owner for your package!" name="Owner" data-bind="foreach: $data.PossibleOwners">
+                <select id="Owner" aria-required="true" class="form-control select-brand" data-val="true" data-val-required="You must select an owner for your package!" name="Owner" data-bind="foreach: $data.PossibleOwners">
                     <option data-bind="value: $data, text: $data"></option>
                 </select>
                 <!-- /ko -->
@@ -287,11 +287,11 @@
             <!-- ko if: typeof($data.Listed) === 'boolean' -->
             <div class="verify-package-field form-group editable">
                 <label class="verify-package-field-heading">Package Visibility</label>
-                <div class="checkbox">
-                    <label>
+                <div class="row-checkbox-label">
+                    <label class="brand-checkbox">
                         <input data-bind="attr: { 'checked' : $data.Listed ? $data.Listed : null }"
                                type="checkbox" name="Listed" id="Listed" value="true" />
-                        List package in search results
+                        <span>List package in search results</span>
                     </label>
                 </div>
             </div>

@@ -1,12 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
+using NuGetGallery.Auditing;
 using NuGetGallery.Framework;
 using Xunit;
 
@@ -23,7 +25,7 @@ namespace NuGetGallery
                 var id = "Crested.Gecko";
                 GetMock<IPackageService>()
                     .Setup(x => x.FindPackagesById(id, PackageDeprecationFieldsToInclude.None))
-                    .Returns(new Package[0]);
+                    .Returns(Array.Empty<Package>());
 
                 var controller = GetService<PackageDeprecationManagementService>();
 
@@ -134,7 +136,7 @@ namespace NuGetGallery
             }
 
             public static IEnumerable<object[]> ReturnsBadRequestIfNoVersions_Data =
-                MemberDataHelper.AsDataSet(null, new string[0]);
+                MemberDataHelper.AsDataSet(null, Array.Empty<string>());
 
             [Theory]
             [MemberData(nameof(ReturnsBadRequestIfNoVersions_Data))]
@@ -184,8 +186,7 @@ namespace NuGetGallery
                 get
                 {
                     var packageWithNullRegistration = new Package();
-                    return MemberDataHelper.AsDataSet(
-                        new Package[0],
+                    return MemberDataHelper.AsDataSet(Array.Empty<Package>(),
                         new[] { packageWithNullRegistration });
                 }
             }
@@ -923,7 +924,9 @@ namespace NuGetGallery
                         alternatePackageRegistration,
                         alternatePackage,
                         customMessage,
-                        currentUser))
+                        currentUser,
+                        ListedVerb.Unchanged,
+                        PackageDeprecatedVia.Web))
                     .Completes()
                     .Verifiable();
 
@@ -968,6 +971,7 @@ namespace NuGetGallery
                     currentUser,
                     id,
                     versions,
+                    PackageDeprecatedVia.Web,
                     isLegacy,
                     hasCriticalBugs,
                     isOther,

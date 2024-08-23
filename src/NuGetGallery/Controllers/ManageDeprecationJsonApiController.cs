@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using NuGetGallery.Auditing;
 using NuGetGallery.Filters;
 using NuGetGallery.RequestModels;
 
@@ -37,10 +38,13 @@ namespace NuGetGallery
         public virtual async Task<JsonResult> Deprecate(
             DeprecatePackageRequest request)
         {
+            var isDeprecated = request.IsLegacy || request.HasCriticalBugs || request.IsOther;
+
             var error = await _deprecationManagementService.UpdateDeprecation(
                 GetCurrentUser(),
                 request.Id,
                 request.Versions.ToList(),
+                isDeprecated ? PackageDeprecatedVia.Web : PackageUndeprecatedVia.Web,
                 request.IsLegacy,
                 request.HasCriticalBugs,
                 request.IsOther,
@@ -54,11 +58,10 @@ namespace NuGetGallery
             }
 
             var packagePluralString = request.Versions.Count() > 1 ? "packages have" : "package has";
-            var deprecatedString = request.IsLegacy || request.HasCriticalBugs || request.IsOther
-                ? "deprecated" : "undeprecated";
+            var deprecatedString = isDeprecated ? "deprecated" : "undeprecated";
             TempData["Message"] = 
                 $"Your {packagePluralString} been {deprecatedString}. " +
-                $"It may take several hours for this change to propagate through our system.";
+                "It may take several hours for this change to propagate through our system.";
 
             return Json(HttpStatusCode.OK);
         }

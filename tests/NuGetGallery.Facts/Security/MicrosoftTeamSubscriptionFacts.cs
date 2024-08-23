@@ -19,7 +19,7 @@ namespace NuGetGallery.Security
             var policy = subscription.Policies.FirstOrDefault(p => p.Name.Equals(RequirePackageMetadataCompliancePolicy.PolicyName));
 
             // Act & Assert.
-            Assert.Equal(1, subscription.Policies.Count());
+            Assert.Single(subscription.Policies);
             Assert.NotNull(policy);
             Assert.Equal(
                 "{\"u\":\"Microsoft\"," +

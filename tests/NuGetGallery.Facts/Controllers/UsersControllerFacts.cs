@@ -180,8 +180,8 @@ namespace NuGetGallery
                 var result = await controller.ChangeEmail(model);
 
                 // Assert
-                Assert.IsType<ViewResult>(result);
-                Assert.IsType<UserAccountViewModel>(((ViewResult)result).Model);
+                var viewResult = Assert.IsType<ViewResult>(result);
+                Assert.IsType<UserAccountViewModel>(viewResult.Model);
             }
         }
 
@@ -392,7 +392,7 @@ namespace NuGetGallery
                 catch (Exception e)
                 {
                     // Assert
-                    Assert.True(false, $"No exception should be thrown for result type {resultType}: {e}");
+                    Assert.Fail($"No exception should be thrown for result type {resultType}: {e}");
                 }
             }
 
@@ -550,9 +550,7 @@ namespace NuGetGallery
                 var result = await controller.ResetPassword("user", "token", new PasswordResetViewModel(), forgot);
 
                 Assert.NotNull(result);
-                Assert.IsType<ViewResult>(result);
-
-                var viewResult = result as ViewResult;
+                var viewResult = Assert.IsType<ViewResult>(result);
                 Assert.Equal(forgot, viewResult.ViewBag.ForgotPassword);
             }
         }
@@ -648,9 +646,7 @@ namespace NuGetGallery
                 var result = controller.ApiKeys();
 
                 // Assert
-                Assert.IsType<ViewResult>(result);
-                var viewResult = result as ViewResult;
-
+                var viewResult = Assert.IsType<ViewResult>(result);
                 Assert.IsType<ApiKeyListViewModel>(viewResult.Model);
                 return viewResult.Model as ApiKeyListViewModel;
             }
@@ -1363,7 +1359,7 @@ namespace NuGetGallery
                 User currentUser,
                 Package package)
             {
-                Assert.Equal(package.PackageStatusKey, PackageStatus.Available);
+                Assert.Equal(PackageStatus.Available, package.PackageStatusKey);
                 Assert.Equal(package.PackageRegistration.Id, packageModel.Id);
                 Assert.Equal(package.Version, packageModel.Version);
                 Assert.Equal(package.PackageRegistration.DownloadCount, packageModel.DownloadCount);
@@ -1727,7 +1723,7 @@ namespace NuGetGallery
                 // Assert
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
                 Assert.Equal(Strings.CannotRemoveOnlyLoginCredential, controller.TempData["Message"]);
-                Assert.Equal(1, user.Credentials.Count);
+                Assert.Single(user.Credentials);
             }
 
             [Fact]
@@ -1746,7 +1742,7 @@ namespace NuGetGallery
                 // Assert
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
                 Assert.Equal(Strings.CredentialNotFound, controller.TempData["Message"]);
-                Assert.Equal(1, user.Credentials.Count);
+                Assert.Single(user.Credentials);
             }
 
             [Fact]
@@ -1810,7 +1806,7 @@ namespace NuGetGallery
                 // Assert
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
                 Assert.Equal(Strings.CannotRemoveOnlyLoginCredential, controller.TempData["Message"]);
-                Assert.Equal(1, user.Credentials.Count);
+                Assert.Single(user.Credentials);
             }
 
             [Fact]
@@ -1832,7 +1828,7 @@ namespace NuGetGallery
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
                 Assert.Equal(Strings.CredentialNotFound, controller.TempData["Message"]);
 
-                Assert.Equal(1, user.Credentials.Count);
+                Assert.Single(user.Credentials);
             }
 
             [Theory]
@@ -1858,7 +1854,7 @@ namespace NuGetGallery
                 Assert.IsType<JsonResult>(result);
                 Assert.Equal(Strings.CredentialNotFound, (string)((JsonResult)result).Data);
 
-                Assert.Equal(1, user.Credentials.Count);
+                Assert.Single(user.Credentials);
             }
 
             [Fact]
@@ -1958,7 +1954,7 @@ namespace NuGetGallery
                         },
                         new object[]
                         {
-                            new Scope[0]{ },
+                            Array.Empty<Scope>(),
                             Strings.NonScopedApiKeyDescription
                         }
                     };
@@ -2042,7 +2038,7 @@ namespace NuGetGallery
                 Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
                 Assert.Equal(Strings.CredentialNotFound, (string)result.Data);
 
-                Assert.Equal(1, user.Credentials.Count);
+                Assert.Single(user.Credentials);
                 Assert.True(user.Credentials.Contains(cred));
             }
 
@@ -2069,7 +2065,7 @@ namespace NuGetGallery
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
                 Assert.Equal(ServicesStrings.UserAccountIsLocked, (string)result.Data);
 
-                Assert.Equal(1, user.Credentials.Count);
+                Assert.Single(user.Credentials);
                 Assert.True(user.Credentials.Contains(cred));
             }
 
@@ -2402,7 +2398,7 @@ namespace NuGetGallery
                             new [] { "abc", "def" },
                             new []
                             {
-                               new Scope("abc", NuGetScopes.PackageUnlist),
+                                new Scope("abc", NuGetScopes.PackageUnlist),
                                 new Scope("abc", NuGetScopes.PackagePush),
                                 new Scope("def", NuGetScopes.PackageUnlist),
                                 new Scope("def", NuGetScopes.PackagePush)
@@ -2477,7 +2473,7 @@ namespace NuGetGallery
 
                 foreach (var expectedScope in expectedScopes)
                 {
-                    var expectedAction = NuGetScopes.Describe(expectedScope.AllowedAction);
+                    var expectedAction = NuGetScopes.Describe(expectedScope.AllowedAction, isDeprecateApiEnabled: false);
                     var actualScope = viewModel.Scopes.First(x => x == expectedAction);
                     Assert.NotNull(actualScope);
                 }

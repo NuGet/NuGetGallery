@@ -1,0 +1,156 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Name>Stats.Warehouse</Name>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectVersion>4.1</ProjectVersion>
+    <ProjectGuid>{21846e0d-0e79-4e43-9d92-e78854370994}</ProjectGuid>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider</DSP>
+    <OutputType>Database</OutputType>
+    <RootPath>
+    </RootPath>
+    <RootNamespace>Stats.Warehouse</RootNamespace>
+    <AssemblyName>Stats.Warehouse</AssemblyName>
+    <ModelCollation>1033, CI</ModelCollation>
+    <DefaultFileStructure>BySchemaAndSchemaType</DefaultFileStructure>
+    <DeployToDatabase>True</DeployToDatabase>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetLanguage>CS</TargetLanguage>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <SqlServerVerification>False</SqlServerVerification>
+    <IncludeCompositeObjects>True</IncludeCompositeObjects>
+    <TargetDatabaseSet>True</TargetDatabaseSet>
+    <IncludeSchemaNameInFileName>True</IncludeSchemaNameInFileName>
+    <AllowSnapshotIsolation>True</AllowSnapshotIsolation>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <RunSqlCodeAnalysis>True</RunSqlCodeAnalysis>
+    <TreatTSqlWarningsAsErrors>True</TreatTSqlWarningsAsErrors>
+    <SqlCodeAnalysisRules>+!Microsoft.Rules.Data.SR0001;+!Microsoft.Rules.Data.SR0004;+!Microsoft.Rules.Data.SR0005;+!Microsoft.Rules.Data.SR0006;+!Microsoft.Rules.Data.SR0007;+!Microsoft.Rules.Data.SR0008;+!Microsoft.Rules.Data.SR0009;+!Microsoft.Rules.Data.SR0010;+!Microsoft.Rules.Data.SR0011;+!Microsoft.Rules.Data.SR0012;+!Microsoft.Rules.Data.SR0013;+!Microsoft.Rules.Data.SR0014;+!Microsoft.Rules.Data.SR0015;+!Microsoft.Rules.Data.SR0016</SqlCodeAnalysisRules>
+  </PropertyGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
+    <!-- Default to the v11.0 targets path if the targets file for the current VS version is not found -->
+    <SSDTExists Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets')">True</SSDTExists>
+    <VisualStudioVersion Condition="'$(SSDTExists)' == ''">11.0</VisualStudioVersion>
+  </PropertyGroup>
+  <Import Condition="'$(SQLDBExtensionsRefPath)' != ''" Project="$(SQLDBExtensionsRefPath)\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <Import Condition="'$(SQLDBExtensionsRefPath)' == ''" Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <ItemGroup>
+    <Folder Include="Properties" />
+    <Folder Include="Programmability" />
+    <Folder Include="Programmability\Stored Procedures" />
+    <Folder Include="Tables" />
+    <Folder Include="Programmability\Functions" />
+    <Folder Include="Programmability\Types" />
+    <Folder Include="Views" />
+  </ItemGroup>
+  <ItemGroup>
+    <Build Include="Programmability\Stored Procedures\dbo.GenerateFixedDimensions.sql" />
+    <Build Include="Tables\dbo.Dimension_Date.sql" />
+    <Build Include="Tables\dbo.Dimension_Operation.sql" />
+    <Build Include="Tables\dbo.Dimension_Time.sql" />
+    <Build Include="Tables\dbo.Dimension_Package.sql" />
+    <Build Include="Tables\dbo.Dimension_Client.sql" />
+    <Build Include="Tables\dbo.Dimension_Platform.sql" />
+    <Build Include="Tables\dbo.Fact_Download.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.EnsureOperationDimensionsExist.sql" />
+    <Build Include="Programmability\Functions\dbo.ParseCsvString.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.EnsurePlatformDimensionsExist.sql" />
+    <Build Include="Programmability\Types\dbo.PlatformDimensionTableType.sql" />
+    <Build Include="Programmability\Types\dbo.ClientDimensionTableType.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.EnsureClientDimensionsExist.sql" />
+    <Build Include="Programmability\Types\dbo.PackageDimensionTableType.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.EnsurePackageDimensionsExist.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.SelectTotalDownloadCountsPerPackageVersion.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.DownloadReportNuGetClientVersion.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.DownloadReportLast6Months.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.DownloadReportRecentPopularity.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.DownloadReportRecentPopularityDetail.sql" />
+    <Build Include="Programmability\Functions\dbo.GetClientCategory.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.DownloadReportRecentPopularityDetailByPackage.sql" />
+    <Build Include="Tables\dbo.Cursors.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.GetDirtyPackageIds.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.DownloadReportListInactive.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.UpdateDirtyPackageIdCursor.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.SelectTotalDownloadCounts.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.GetUnknownUserAgents.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.PatchClientDimensionForUserAgent.sql" />
+    <Build Include="Programmability\Functions\dbo.IsNuGetClient.sql" />
+    <Build Include="Programmability\Functions\dbo.IsScriptClient.sql" />
+    <Build Include="Programmability\Functions\dbo.IsCrawler.sql" />
+    <Build Include="Programmability\Functions\dbo.IsMobileClient.sql" />
+    <Build Include="Programmability\Functions\dbo.IsBrowser.sql" />
+    <Build Include="Programmability\Functions\dbo.IsUnknownClient.sql" />
+    <Build Include="Tables\dbo.Fact_Dist_Download.sql" />
+    <Build Include="Programmability\Types\dbo.ToolDimensionTableType.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.EnsureToolDimensionsExist.sql" />
+    <Build Include="Tables\dbo.Dimension_Tool.sql" />
+    <Build Include="Tables\dbo.Fact_UserAgent.sql" />
+    <Build Include="Tables\dbo.Fact_LogFileName.sql" />
+    <Build Include="Programmability\Types\UserAgentFactTableType.sql" />
+    <Build Include="Programmability\Types\LogFileNameFactTableType.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.EnsureUserAgentFactsExist.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.EnsureLogFileNameFactsExist.sql" />
+    <Build Include="Tables\dbo.Fact_IpAddress.sql" />
+    <Build Include="Programmability\Types\IpAddressFactTableType.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.EnsureIpAddressFactsExist.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.SelectTotalDownloadCountsPerToolVersion.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.GetLinkedUserAgents.sql" />
+    <Build Include="Views\dbo.View_Dist_ReleaseDate.sql" />
+    <Build Include="Tables\dbo.Dimension_PackageSet.sql" />
+    <Build Include="Tables\dbo.Fact_Package_PackageSet.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.RollUpDownloadFacts.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.DownloadReportLast6Weeks.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.CleanupPlatformDimension.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.CleanupFactIpAddress.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.CleanupFactUserAgent.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.StoreLogFileAggregates.sql" />
+    <Build Include="Programmability\Types\dbo.LogFileAggregatesPackageDownloadsByDateTableType.sql" />
+    <Build Include="Tables\dbo.Agg_PackageDownloads_LogFile.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.SelectAlreadyAggregatedLogFiles.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.GetTotalPackageDownloadsByDate.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.CheckLogFileHasPackageStatistics.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.CheckLogFileHasToolStatistics.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.DownloadReportRecentCommunityPopularity.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.DownloadReportRecentCommunityPopularityDetail.sql" />
+    <Build Include="Views\dbo.View_Fixed_Week_Dimension_Date.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="StaticCodeAnalysis.SuppressMessages.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <RefactorLog Include="Stats.Warehouse.refactorlog" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\AssemblyInfo.*.cs" />
+  </ItemGroup>
+</Project>

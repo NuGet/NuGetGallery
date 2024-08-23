@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using Moq;
 using Xunit;
 using NuGet.Services.Entities;
-using NuGetGallery.TestUtils;
 using NuGetGallery.Services;
 
 namespace NuGetGallery
@@ -118,7 +117,7 @@ namespace NuGetGallery
 
             // Assert
             Assert.False(typosquattingCheckResult);
-            Assert.Equal(0, typosquattingCheckCollisionIds.Count);
+            Assert.Empty(typosquattingCheckCollisionIds);
         }
 
         [Fact]
@@ -136,7 +135,7 @@ namespace NuGetGallery
 
             // Assert
             Assert.False(typosquattingCheckResult);
-            Assert.Equal(0, typosquattingCheckCollisionIds.Count);
+            Assert.Empty(typosquattingCheckCollisionIds);
         }
 
         [Fact]
@@ -157,7 +156,7 @@ namespace NuGetGallery
 
             // Assert
             Assert.False(typosquattingCheckResult);
-            Assert.Equal(0, typosquattingCheckCollisionIds.Count);
+            Assert.Empty(typosquattingCheckCollisionIds);
         }
 
         [Fact]
@@ -206,7 +205,7 @@ namespace NuGetGallery
 
             // Assert
             Assert.False(typosquattingCheckResult);
-            Assert.Equal(0, typosquattingCheckCollisionIds.Count);
+            Assert.Empty(typosquattingCheckCollisionIds);
         }
 
         [Fact]
@@ -230,7 +229,7 @@ namespace NuGetGallery
 
             // Assert
             Assert.False(typosquattingCheckResult);
-            Assert.Equal(0, typosquattingCheckCollisionIds.Count);
+            Assert.Empty(typosquattingCheckCollisionIds);
         }
 
         [Theory]
@@ -256,7 +255,7 @@ namespace NuGetGallery
 
             // Assert
             Assert.False(typosquattingCheckResult);
-            Assert.Equal(0, typosquattingCheckCollisionIds.Count);
+            Assert.Empty(typosquattingCheckCollisionIds);
 
             mockFeatureFlagService
                 .Verify(f => f.IsTyposquattingEnabled(), Times.Once);
@@ -282,7 +281,7 @@ namespace NuGetGallery
 
             // Assert
             Assert.False(typosquattingCheckResult);
-            Assert.Equal(0, typosquattingCheckCollisionIds.Count);
+            Assert.Empty(typosquattingCheckCollisionIds);
         }
 
         [Fact]
@@ -307,7 +306,7 @@ namespace NuGetGallery
 
             // Assert
             Assert.False(typosquattingCheckResult);
-            Assert.Equal(1, typosquattingCheckCollisionIds.Count);
+            Assert.Single(typosquattingCheckCollisionIds);
             Assert.Equal("microsoft_netframework_v1", typosquattingCheckCollisionIds[0]);
 
             featureFlagService

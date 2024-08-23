@@ -12,7 +12,7 @@ namespace NuGetGallery.Helpers
         {
             if (s == null)
             {
-                return new string[0];
+                return Array.Empty<string>();
             }
 
             return s.Split(separator, stringSplitOptions);

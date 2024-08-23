@@ -4,7 +4,6 @@
 using System;
 using System.Linq;
 using NuGet.Services.Entities;
-using NuGetGallery;
 using NuGetGallery.Frameworks;
 using NuGetGallery.Helpers;
 
@@ -71,7 +70,7 @@ namespace NuGetGallery
             viewModel.CanDeprecate = CanPerformAction(currentUser, package, ActionsRequiringPermissions.DeprecatePackage);
             viewModel.CanDisplayTfmBadges = _featureFlagService.IsDisplayTfmBadgesEnabled(currentUser);
 
-            PackageFrameworkCompatibility packageFrameworkCompatibility = _frameworkCompatibilityFactory.Create(package.SupportedFrameworks, package.Id, package.Version.ToString(), includeComputedBadges);
+            PackageFrameworkCompatibility packageFrameworkCompatibility = _frameworkCompatibilityFactory.Create(package.SupportedFrameworks, package.Id, package.Version, includeComputedBadges);
             viewModel.FrameworkBadges = viewModel.CanDisplayTfmBadges ? packageFrameworkCompatibility?.Badges : new PackageFrameworkCompatibilityBadges();
 
             viewModel.SetShortDescriptionFrom(viewModel.Description);

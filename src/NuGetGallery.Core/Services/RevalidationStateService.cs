@@ -4,7 +4,6 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 
 namespace NuGetGallery
@@ -72,7 +71,7 @@ namespace NuGetGallery
 
                 return state;
             }
-            catch (StorageException e) when (e.IsPreconditionFailedException())
+            catch (CloudBlobPreconditionFailedException e)
             {
                 throw new InvalidOperationException("Failed to update the state blob since the access condition failed", e);
             }

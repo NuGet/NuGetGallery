@@ -43,7 +43,7 @@ namespace NuGetGallery.Services
             user.Roles.Add(new Role { Name = Constants.AdminRoleName });
 
             var pkg = new Package();
-            pkg.PackageRegistration = new PackageRegistration { Owners = new User[0] };
+            pkg.PackageRegistration = new PackageRegistration { Owners = Array.Empty<User>() };
 
             var action = actionProvider();
             var result = action.CheckPermissionsOnBehalfOfAnyAccount(user, pkg);

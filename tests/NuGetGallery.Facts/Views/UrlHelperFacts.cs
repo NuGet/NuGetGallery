@@ -85,10 +85,14 @@ namespace NuGetGallery.Views
 
         private static IReadOnlyCollection<string> GetRazorFiles()
         {
-            // $(SolutionDir)\tests\NuGetGallery.Facts\bin\Debug
-            var pathToViewsFolder = Path.Combine(
-                Directory.GetCurrentDirectory(),
-                @"..\..\..\..\src\NuGetGallery\Views");
+            var repoRoot = Directory.GetCurrentDirectory();
+            while (repoRoot is not null && !Directory.GetFiles(repoRoot).Any(x => Path.GetFileName(x) == "NuGetGallery.sln"))
+            {
+                repoRoot = Path.GetDirectoryName(repoRoot);
+            }
+
+            Assert.NotNull(repoRoot);
+            var pathToViewsFolder = Path.Combine(repoRoot, @"src\NuGetGallery\Views");
 
             return Directory.GetFiles(
                 pathToViewsFolder,

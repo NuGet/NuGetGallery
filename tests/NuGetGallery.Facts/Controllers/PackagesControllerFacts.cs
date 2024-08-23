@@ -148,7 +148,7 @@ namespace NuGetGallery
                 reservedNamespaceService = new Mock<IReservedNamespaceService>();
                 IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces = new List<ReservedNamespace>();
                 reservedNamespaceService.Setup(s => s.GetReservedNamespacesForId(It.IsAny<string>()))
-                    .Returns(new ReservedNamespace[0]);
+                    .Returns(Array.Empty<ReservedNamespace>());
             }
 
             if (packageUploadService == null)
@@ -312,6 +312,7 @@ namespace NuGetGallery
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());
 
             httpContext = httpContext ?? new Mock<HttpContextBase>();
+            httpContext.SetupProperty(c => c.Response.StatusCode);
             httpContext.Setup(c => c.Cache).Returns(new Cache());
             TestUtility.SetupHttpContextMockForUrlGeneration(httpContext, controller.Object);
 
@@ -472,7 +473,7 @@ namespace NuGetGallery
             public async Task IsIndexCheckOnlyHappensForRecentlyChangedPackages(DateTime created, DateTime? lastEdited, int searchTimes)
             {
                 // Arrange
-                var id = "Test" + Guid.NewGuid().ToString();
+                var id = "Test" + Guid.NewGuid();
                 var packageService = new Mock<IPackageService>();
                 var diagnosticsService = new Mock<IDiagnosticsService>();
                 var searchClient = new Mock<ISearchClient>();
@@ -554,7 +555,7 @@ namespace NuGetGallery
                     packageService: packageService);
 
                 var version = "1.1.1";
-                var packages = new Package[0];
+                var packages = Array.Empty<Package>();
                 packageService.Setup(p => p.FindPackagesById("Foo", PackageDeprecationFieldsToInclude.Deprecation))
                     .Returns(packages);
 
@@ -1750,7 +1751,7 @@ namespace NuGetGallery
                 }
                 else
                 {
-                    Assert.Equal(null, model.PackageRenames);
+                    Assert.Null(model.PackageRenames);
                     renameService.Verify(x => x.GetPackageRenames(package.PackageRegistration), Times.Never);
                 }
             }
@@ -2666,19 +2667,19 @@ namespace NuGetGallery
 
                 Assert.Equal("https://localhost/packages/Foo/2.0.0-beta", syndicationFeedItems[0].Id);
                 Assert.Equal("Foo 2.0.0-beta", syndicationFeedItems[0].Title.Text);
-                Assert.Equal("Most recent version: Test Package", (syndicationFeedItems[0].Content as System.ServiceModel.Syndication.TextSyndicationContent).Text);
+                Assert.Equal("Most recent version: Test Package", ((System.ServiceModel.Syndication.TextSyndicationContent) syndicationFeedItems[0].Content).Text);
                 Assert.Equal(dateTimeYesterDay, syndicationFeedItems[0].PublishDate);
                 Assert.Equal(dateTimeYesterDay, syndicationFeedItems[0].LastUpdatedTime);
 
                 Assert.Equal("https://localhost/packages/Foo/1.1.0", syndicationFeedItems[1].Id);
                 Assert.Equal("Foo 1.1.0", syndicationFeedItems[1].Title.Text);
-                Assert.Equal("Fix for older version: Test Package", (syndicationFeedItems[1].Content as System.ServiceModel.Syndication.TextSyndicationContent).Text);
+                Assert.Equal("Fix for older version: Test Package", ((System.ServiceModel.Syndication.TextSyndicationContent) syndicationFeedItems[1].Content).Text);
                 Assert.Equal(dateTimeNow, syndicationFeedItems[1].PublishDate);
                 Assert.Equal(dateTimeNow, syndicationFeedItems[1].LastUpdatedTime);
 
                 Assert.Equal("https://localhost/packages/Foo/1.0.0", syndicationFeedItems[2].Id);
                 Assert.Equal("Foo 1.0.0", syndicationFeedItems[2].Title.Text);
-                Assert.Equal("Test Package", (syndicationFeedItems[2].Content as System.ServiceModel.Syndication.TextSyndicationContent).Text);
+                Assert.Equal("Test Package", ((System.ServiceModel.Syndication.TextSyndicationContent) syndicationFeedItems[2].Content).Text);
                 Assert.Equal(dateTimeTwoDaysAgo, syndicationFeedItems[2].PublishDate);
                 Assert.Equal(dateTimeTwoDaysAgo, syndicationFeedItems[2].LastUpdatedTime);
             }
@@ -3216,7 +3217,7 @@ namespace NuGetGallery
                         GetConfigurationService(),
                         userService: userService,
                         packageService: packageService);
-                    controller.SetCurrentUser(owner);
+                    controller.SetCurrentUser(currentUser);
 
                     // Act
                     var result = controller.CancelPendingOwnershipRequest(packageId, userAName, userBName);
@@ -3352,7 +3353,7 @@ namespace NuGetGallery
                     packageService: packageService);
 
                 // act
-                var model = (controller.ContactOwners(packageId, packageVersion) as ViewResult).Model as ContactOwnersViewModel;
+                var model = (ContactOwnersViewModel) ((ViewResult) controller.ContactOwners(packageId, packageVersion)).Model;
 
                 // assert
                 Assert.Equal(packageId, model.PackageId);
@@ -3390,7 +3391,7 @@ namespace NuGetGallery
                     packageService: packageService);
 
                 // act
-                var model = (controller.ContactOwners(packageId, packageVersion) as ViewResult).Model as ContactOwnersViewModel;
+                var model = (ContactOwnersViewModel)((ViewResult)controller.ContactOwners(packageId, packageVersion)).Model;
 
                 // assert
                 Assert.Empty(model.Owners);
@@ -3421,7 +3422,7 @@ namespace NuGetGallery
                     packageService: packageService);
 
                 // act
-                var model = (controller.ContactOwners(packageId, packageVersion) as ViewResult).Model as ContactOwnersViewModel;
+                var model = (ContactOwnersViewModel) ((ViewResult) controller.ContactOwners(packageId, packageVersion)).Model;
 
                 // assert
                 Assert.Empty(model.Owners);
@@ -3460,11 +3461,11 @@ namespace NuGetGallery
                     packageService: packageService);
 
                 // act
-                var model = (controller.ContactOwners(packageId, packageVersion) as ViewResult).Model as ContactOwnersViewModel;
+                var model = (ContactOwnersViewModel) ((ViewResult) controller.ContactOwners(packageId, packageVersion)).Model;
 
                 // assert
                 Assert.Equal(2, model.Owners.Count());
-                Assert.Empty(model.Owners.Where(u => u == notAllowedUser));
+                Assert.DoesNotContain(model.Owners, u => u == notAllowedUser);
             }
 
             [Fact]
@@ -3483,7 +3484,7 @@ namespace NuGetGallery
                     s => s.SendMessageAsync(It.IsAny<ContactOwnersMessage>(), It.IsAny<bool>(), false))
                     .Callback<IEmailBuilder, bool, bool>((msg, copySender, discloseSenderAddress) =>
                     {
-                        var contactOwnersMessage = msg as ContactOwnersMessage;
+                        var contactOwnersMessage = (ContactOwnersMessage) msg;
                         sentPackageUrl = contactOwnersMessage.PackageUrl;
                         sentMessage = contactOwnersMessage.HtmlEncodedMessage;
                     })
@@ -3644,8 +3645,7 @@ namespace NuGetGallery
 
                 packageService.Verify();
 
-                Assert.IsType<HttpStatusCodeResult>(result);
-                var httpStatusCodeResult = result as HttpStatusCodeResult;
+                var httpStatusCodeResult = Assert.IsType<HttpStatusCodeResult>(result);
                 Assert.Equal((int)HttpStatusCode.Forbidden, httpStatusCodeResult.StatusCode);
             }
 
@@ -3699,8 +3699,8 @@ namespace NuGetGallery
 
                 packageService.Verify();
 
-                Assert.IsType<ViewResult>(result);
-                var model = ((ViewResult)result).Model as ManagePackageViewModel;
+                var viewResult = Assert.IsType<ViewResult>(result);
+                var model = viewResult.Model as ManagePackageViewModel;
                 Assert.NotNull(model);
                 Assert.False(model.IsLocked);
 
@@ -3902,7 +3902,7 @@ namespace NuGetGallery
             protected override Mock<IPackageService> SetupPackageService(bool isPackageMissing = false)
             {
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
-                var packages = isPackageMissing ? new Package[0] : new[] { Package };
+                var packages = isPackageMissing ? Array.Empty<Package>() : new[] { Package };
                 packageService
                     .Setup(p => p.FindPackagesById(PackageRegistration.Id, PackageDeprecationFieldsToInclude.DeprecationAndRelationships))
                     .Returns(packages)
@@ -4019,7 +4019,7 @@ namespace NuGetGallery
                 var packageService = new Mock<IPackageService>();
                 packageService
                     .Setup(x => x.FindPackagesById(_packageRegistration.Id, PackageDeprecationFieldsToInclude.None))
-                    .Returns(new Package[0]);
+                    .Returns(Array.Empty<Package>());
 
                 packageService
                     .Setup(p => p.FilterExactPackage(It.IsAny<IReadOnlyCollection<Package>>(), It.IsAny<string>()))
@@ -4059,8 +4059,7 @@ namespace NuGetGallery
             {
                 var result = GetDeleteSymbolsResult(currentUser, owner, out var controller);
 
-                Assert.IsType<HttpStatusCodeResult>(result);
-                var httpStatusCodeResult = result as HttpStatusCodeResult;
+                var httpStatusCodeResult = Assert.IsType<HttpStatusCodeResult>(result);
                 Assert.Equal((int)HttpStatusCode.Forbidden, httpStatusCodeResult.StatusCode);
             }
 
@@ -4100,8 +4099,8 @@ namespace NuGetGallery
             {
                 var result = GetDeleteSymbolsResult(currentUser, owner, out var controller);
 
-                Assert.IsType<ViewResult>(result);
-                var model = ((ViewResult)result).Model as DeletePackageViewModel;
+                var viewResult = Assert.IsType<ViewResult>(result);
+                var model = viewResult.Model as DeletePackageViewModel;
                 Assert.NotNull(model);
                 Assert.False(model.IsLocked);
 
@@ -4322,8 +4321,7 @@ namespace NuGetGallery
                 var result = await controller.DeleteSymbolsPackage("Foo", "1.0");
 
                 // Assert
-                Assert.IsType<HttpStatusCodeResult>(result);
-                var httpStatusCodeResult = result as HttpStatusCodeResult;
+                var httpStatusCodeResult = Assert.IsType<HttpStatusCodeResult>(result);
                 Assert.Equal((int)HttpStatusCode.Forbidden, httpStatusCodeResult.StatusCode);
             }
 
@@ -4384,8 +4382,7 @@ namespace NuGetGallery
                 var result = await controller.DeleteSymbolsPackage("Foo", "1.0");
 
                 // Assert
-                Assert.IsType<HttpStatusCodeResult>(result);
-                var httpStatusCodeResult = result as HttpStatusCodeResult;
+                var httpStatusCodeResult = Assert.IsType<HttpStatusCodeResult>(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, httpStatusCodeResult.StatusCode);
             }
 
@@ -4430,8 +4427,8 @@ namespace NuGetGallery
                 var result = await controller.DeleteSymbolsPackage("Foo", "1.0");
 
                 // Assert
-                Assert.IsType<RedirectResult>(result);
-                Assert.Equal($"/packages/{package.Id}/{package.NormalizedVersion}", ((RedirectResult)result).Url);
+                var redirectResult = Assert.IsType<RedirectResult>(result);
+                Assert.Equal($"/packages/{package.Id}/{package.NormalizedVersion}", redirectResult.Url);
                 Assert.True(auditingService.WroteRecord<PackageAuditRecord>(ar =>
                     ar.Action == AuditedPackageAction.SymbolsDelete
                     && ar.Id == package.PackageRegistration.Id
@@ -4596,8 +4593,7 @@ namespace NuGetGallery
                 var result = await controller.UpdateListed("Foo", "1.0", false);
 
                 // Assert
-                Assert.IsType<HttpStatusCodeResult>(result);
-                var httpStatusCodeResult = result as HttpStatusCodeResult;
+                var httpStatusCodeResult = Assert.IsType<HttpStatusCodeResult>(result);
                 Assert.Equal((int)HttpStatusCode.Forbidden, httpStatusCodeResult.StatusCode);
             }
 
@@ -4875,8 +4871,7 @@ namespace NuGetGallery
                 var result = await controller.UpdateListed("Foo", "1.0", false);
 
                 // Assert
-                Assert.IsType<HttpStatusCodeResult>(result);
-                var httpStatusCodeResult = result as HttpStatusCodeResult;
+                var httpStatusCodeResult = Assert.IsType<HttpStatusCodeResult>(result);
                 Assert.Equal((int)HttpStatusCode.Forbidden, httpStatusCodeResult.StatusCode);
             }
 
@@ -5052,9 +5047,9 @@ namespace NuGetGallery
                     searchService: searchService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
-                var result = (await controller.ListPackages(new PackageListSearchViewModel() { Q = " test " })) as ViewResult;
+                var result = (ViewResult) (await controller.ListPackages(new PackageListSearchViewModel() { Q = " test " }));
 
-                var model = result.Model as PackageListViewModel;
+                var model = (PackageListViewModel) result.Model;
                 Assert.Equal("test", model.SearchTerm);
             }
 
@@ -5069,9 +5064,9 @@ namespace NuGetGallery
                     searchService: searchService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
-                var result = (await controller.ListPackages(new PackageListSearchViewModel { Q = "test" })) as ViewResult;
+                var result = (ViewResult) (await controller.ListPackages(new PackageListSearchViewModel { Q = "test" }));
 
-                var model = result.Model as PackageListViewModel;
+                var model = (PackageListViewModel) result.Model;
                 Assert.True(model.IncludePrerelease);
                 Assert.Equal(0, model.PageIndex);
             }
@@ -5089,9 +5084,9 @@ namespace NuGetGallery
                     searchService: searchService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
-                var result = (await controller.ListPackages(new PackageListSearchViewModel { Q = "test", Prerel = prerel })) as ViewResult;
+                var result = (ViewResult) (await controller.ListPackages(new PackageListSearchViewModel { Q = "test", Prerel = prerel }));
 
-                var model = result.Model as PackageListViewModel;
+                var model = (PackageListViewModel) result.Model;
                 Assert.Equal(prerel, model.IncludePrerelease);
                 searchService.Verify(x => x.Search(It.Is<SearchFilter>(f => f.IncludePrerelease == prerel)));
             }
@@ -5698,11 +5693,9 @@ namespace NuGetGallery
             {
                 var result = GetReportAbuseResult(currentUser, owner);
 
-                Assert.IsType<ViewResult>(result);
-                var viewResult = result as ViewResult;
+                var viewResult = Assert.IsType<ViewResult>(result);
 
-                Assert.IsType<ReportAbuseViewModel>(viewResult.Model);
-                var model = viewResult.Model as ReportAbuseViewModel;
+                var model = Assert.IsType<ReportAbuseViewModel>(viewResult.Model);
 
                 Assert.Equal(PackageId, model.PackageId);
                 Assert.Equal(PackageVersion, model.PackageVersion);
@@ -5725,11 +5718,9 @@ namespace NuGetGallery
                 };
 
                 var result = GetReportAbuseResult(currentUser, package);
-                Assert.IsType<ViewResult>(result);
-                var viewResult = result as ViewResult;
+                var viewResult = Assert.IsType<ViewResult>(result);
 
-                Assert.IsType<ReportAbuseViewModel>(viewResult.Model);
-                var model = viewResult.Model as ReportAbuseViewModel;
+                var model = Assert.IsType<ReportAbuseViewModel>(viewResult.Model);
 
                 Assert.Equal(PackageId, model.PackageId);
                 Assert.Equal(PackageVersion, model.PackageVersion);
@@ -5742,8 +5733,7 @@ namespace NuGetGallery
             {
                 var result = GetReportAbuseResult(currentUser, owner);
 
-                Assert.IsType<RedirectToRouteResult>(result);
-                var redirectResult = result as RedirectToRouteResult;
+                var redirectResult = Assert.IsType<RedirectToRouteResult>(result);
                 Assert.Equal("ReportMyPackage", redirectResult.RouteValues["Action"]);
             }
 
@@ -5821,11 +5811,9 @@ namespace NuGetGallery
                 var result = GetReportAbuseResult(null, package, featureFlagService);
 
                 // Assert
-                Assert.IsType<ViewResult>(result);
-                var viewResult = result as ViewResult;
+                var viewResult = Assert.IsType<ViewResult>(result);
 
-                Assert.IsType<ReportAbuseViewModel>(viewResult.Model);
-                var model = viewResult.Model as ReportAbuseViewModel;
+                var model = Assert.IsType<ReportAbuseViewModel>(viewResult.Model);
 
                 Assert.Equal(expectingSafetyCategories, model.ReasonChoices.Contains(ReportPackageReason.ChildSexualExploitationOrAbuse));
                 Assert.Equal(expectingSafetyCategories, model.ReasonChoices.Contains(ReportPackageReason.TerrorismOrViolentExtremism));
@@ -5996,7 +5984,7 @@ namespace NuGetGallery
             private Mock<ISupportRequestService> _supportRequestService;
             private PackagesController _controller;
 
-            public void SetupTest(User currentUser, User owner)
+            private void SetupTest(User currentUser, User owner)
             {
                 if (owner == null)
                 {
@@ -6135,8 +6123,8 @@ namespace NuGetGallery
                 SetupTest(currentUser, owner);
                 var result = await actAsync();
 
-                Assert.IsType<RedirectToRouteResult>(result);
-                Assert.Equal("ReportAbuse", ((RedirectToRouteResult)result).RouteValues["Action"]);
+                var redirectToRouteResult = Assert.IsType<RedirectToRouteResult>(result);
+                Assert.Equal("ReportAbuse", redirectToRouteResult.RouteValues["Action"]);
             }
 
             [Theory]
@@ -6189,7 +6177,7 @@ namespace NuGetGallery
                 ReportPackageRequest reportRequest = null;
                 _messageService
                     .Setup(s => s.SendMessageAsync(It.IsAny<ReportMyPackageMessage>(), false, false))
-                    .Callback<IEmailBuilder, bool, bool>((msg, copySender, discloseSenderAddress) => reportRequest = (msg as ReportMyPackageMessage).Request)
+                    .Callback<IEmailBuilder, bool, bool>((msg, copySender, discloseSenderAddress) => reportRequest = ((ReportMyPackageMessage) msg).Request)
                     .Returns(Task.CompletedTask);
 
                 // Act
@@ -6644,7 +6632,7 @@ namespace NuGetGallery
                         userService: fakeUserService);
                     controller.SetCurrentUser(currentUser);
 
-                    var result = (await controller.UploadPackage() as ViewResult).Model as SubmitPackageRequest;
+                    var result = ((ViewResult) await controller.UploadPackage()).Model as SubmitPackageRequest;
 
                     Assert.NotNull(result);
                     Assert.True(result.IsUploadInProgress);
@@ -6697,7 +6685,7 @@ namespace NuGetGallery
                         reservedNamespaceService: fakeReservedNamespaceService);
                     controller.SetCurrentUser(currentUser);
 
-                    var result = (await controller.UploadPackage() as ViewResult).Model as SubmitPackageRequest;
+                    var result = ((ViewResult) await controller.UploadPackage()).Model as SubmitPackageRequest;
 
                     Assert.NotNull(result);
                     Assert.True(result.IsUploadInProgress);
@@ -6752,7 +6740,7 @@ namespace NuGetGallery
                     packageService: fakePackageService);
                 controller.SetCurrentUser(currentUser);
 
-                var result = (await controller.UploadPackage() as ViewResult).Model as SubmitPackageRequest;
+                var result = ((ViewResult) await controller.UploadPackage()).Model as SubmitPackageRequest;
 
                 Assert.NotNull(result);
                 Assert.True(result.IsUploadInProgress);
@@ -6770,7 +6758,7 @@ namespace NuGetGallery
                     uploadFileService: fakeUploadFileService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
-                var result = (await controller.UploadPackage() as ViewResult).Model as SubmitPackageRequest;
+                var result = ((ViewResult) await controller.UploadPackage()).Model as SubmitPackageRequest;
 
                 Assert.NotNull(result);
                 Assert.False(result.IsSymbolsUploadEnabled);
@@ -6787,7 +6775,7 @@ namespace NuGetGallery
                 var user = new User { UserStatusKey = UserStatus.Locked };
                 controller.SetCurrentUser(user);
 
-                var result = (await controller.UploadPackage() as ViewResult).Model as SubmitPackageRequest;
+                var result = ((ViewResult) await controller.UploadPackage()).Model as SubmitPackageRequest;
 
                 Assert.NotNull(result);
                 Assert.True(result.IsUserLocked);
@@ -6820,7 +6808,7 @@ namespace NuGetGallery
                     packageUploadService: fakePackageUploadService);
                 controller.SetCurrentUser(currentUser);
 
-                var result = (await controller.UploadPackage() as ViewResult).Model as SubmitPackageRequest;
+                var result = ((ViewResult) await controller.UploadPackage()).Model as SubmitPackageRequest;
 
                 Assert.NotNull(result);
                 Assert.Null(result.InProgressUpload);
@@ -6854,7 +6842,7 @@ namespace NuGetGallery
                     packageUploadService: fakePackageUploadService);
                 controller.SetCurrentUser(currentUser);
 
-                var result = (await controller.UploadPackage() as ViewResult).Model as SubmitPackageRequest;
+                var result = ((ViewResult) await controller.UploadPackage()).Model as SubmitPackageRequest;
 
                 Assert.NotNull(result);
                 Assert.NotNull(result.InProgressUpload);
@@ -6891,7 +6879,7 @@ namespace NuGetGallery
                     symbolPackageUploadService: fakeSymbolPackageUploadService);
                 controller.SetCurrentUser(currentUser);
 
-                var result = (await controller.UploadPackage() as ViewResult).Model as SubmitPackageRequest;
+                var result = ((ViewResult) await controller.UploadPackage()).Model as SubmitPackageRequest;
 
                 Assert.NotNull(result);
                 Assert.Null(result.InProgressUpload);
@@ -6941,7 +6929,7 @@ namespace NuGetGallery
                 var result = await controller.UploadPackage(null) as JsonResult;
 
                 Assert.NotNull(result);
-                Assert.Equal(Strings.UploadFileIsRequired, (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                Assert.Equal(Strings.UploadFileIsRequired, ((JsonValidationMessage[]) result.Data)[0].PlainTextMessage);
             }
 
             [Fact]
@@ -6955,7 +6943,7 @@ namespace NuGetGallery
                 var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
 
                 Assert.NotNull(result);
-                Assert.Equal(Strings.UploadFileMustBeNuGetPackage, (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                Assert.Equal(Strings.UploadFileMustBeNuGetPackage, ((JsonValidationMessage[]) result.Data)[0].PlainTextMessage);
             }
 
             [Fact]
@@ -6975,7 +6963,7 @@ namespace NuGetGallery
                 var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
 
                 Assert.NotNull(result);
-                Assert.Equal(Strings.FailedToReadUploadFile, (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                Assert.Equal(Strings.FailedToReadUploadFile, ((JsonValidationMessage[]) result.Data)[0].PlainTextMessage);
             }
 
             private const string EnsureValidExceptionMessage = "naughty package";
@@ -7005,7 +6993,7 @@ namespace NuGetGallery
                 Assert.NotNull(result);
                 Assert.Equal(
                     expectExceptionMessageInResponse ? EnsureValidExceptionMessage : Strings.FailedToReadUploadFile,
-                    (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                    ((JsonValidationMessage[]) result.Data)[0].PlainTextMessage);
             }
 
             [Fact]
@@ -7026,7 +7014,7 @@ namespace NuGetGallery
                 var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
                 
                 Assert.NotNull(result);
-                Assert.Equal("Central Directory corrupt.", (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                Assert.Equal("Central Directory corrupt.", ((JsonValidationMessage[]) result.Data)[0].PlainTextMessage);
             }
 
             [Theory]
@@ -7053,16 +7041,16 @@ namespace NuGetGallery
 
                 if (zipPath.Contains("Forward"))
                 {
-                    Assert.Equal(String.Format(Strings.PackageEntryWithDoubleForwardSlash, "malformedfile.txt"), (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                    Assert.Equal(String.Format(Strings.PackageEntryWithDoubleForwardSlash, "malformedfile.txt"), ((JsonValidationMessage[]) result.Data)[0].PlainTextMessage);
                 }
                 else if (zipPath.Contains("Backward"))
                 {
-                    Assert.Equal(String.Format(Strings.PackageEntryWithDoubleBackSlash, "malformedfile.txt"), (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                    Assert.Equal(String.Format(Strings.PackageEntryWithDoubleBackSlash, "malformedfile.txt"), ((JsonValidationMessage[]) result.Data)[0].PlainTextMessage);
                 }
                 else
                 {
                     string longFileName = "a".PadRight(270, 'a') + ".txt";
-                    Assert.Equal(String.Format(Strings.PackageEntryWithDoubleForwardSlash, longFileName), (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                    Assert.Equal(String.Format(Strings.PackageEntryWithDoubleForwardSlash, longFileName), ((JsonValidationMessage[]) result.Data)[0].PlainTextMessage);
                     string normalizedZipEntry = ZipArchiveHelpers.NormalizeForwardSlashesInPath(longFileName);
                     Assert.Equal(260, normalizedZipEntry.Length);
                 }
@@ -7091,7 +7079,7 @@ namespace NuGetGallery
                 var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
 
                 Assert.NotNull(result);
-                Assert.Equal($"The package manifest contains an invalid ID: '{packageId}'", (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                Assert.Equal($"The package manifest contains an invalid ID: '{packageId}'", ((JsonValidationMessage[]) result.Data)[0].PlainTextMessage);
             }
 
             [Theory]
@@ -7114,7 +7102,7 @@ namespace NuGetGallery
                 var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
 
                 Assert.NotNull(result);
-                Assert.StartsWith($"An error occurred while parsing EntityName.", (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                Assert.StartsWith("An error occurred while parsing EntityName.", ((JsonValidationMessage[]) result.Data)[0].PlainTextMessage);
             }
 
             public static IEnumerable<object[]> WillShowTheViewWithErrorsWhenThePackageIdIsAlreadyBeingUsed_Data
@@ -7145,7 +7133,7 @@ namespace NuGetGallery
                 var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
 
                 Assert.NotNull(result);
-                Assert.Equal(String.Format(Strings.PackageIdNotAvailable, "theId"), (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                Assert.Equal(String.Format(Strings.PackageIdNotAvailable, "theId"), ((JsonValidationMessage[]) result.Data)[0].PlainTextMessage);
             }
 
             public static IEnumerable<object[]> WillShowTheViewWithErrorsWhenThePackageIdIsBlockedByReservedNamespace_Data
@@ -7154,7 +7142,6 @@ namespace NuGetGallery
                 {
                     yield return MemberDataHelper.AsData(TestUtility.FakeUser, TestUtility.FakeOrganization);
                     yield return MemberDataHelper.AsData(TestUtility.FakeAdminUser, TestUtility.FakeUser);
-                    yield return MemberDataHelper.AsData(TestUtility.FakeOrganizationCollaborator, TestUtility.FakeOrganization);
                 }
             }
 
@@ -7179,7 +7166,7 @@ namespace NuGetGallery
                 var fakeReservedNamespaceService = new Mock<IReservedNamespaceService>();
                 fakeReservedNamespaceService
                     .Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
-                    .Returns(new[] { new ReservedNamespace { Owners = new[] { new User { Key = 123123123 } } } });
+                    .Returns(new[] { new ReservedNamespace { Owners = new[] { reservedNamespaceOwner } } });
 
                 var fakeTelemetryService = new Mock<ITelemetryService>();
 
@@ -7195,8 +7182,8 @@ namespace NuGetGallery
                 var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
 
                 Assert.NotNull(result);
-                Assert.Equal(Strings.UploadPackage_IdNamespaceConflictHtml, (result.Data as JsonValidationMessage[])[0].RawHtmlMessage);
-                Assert.Null((result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                Assert.Equal(Strings.UploadPackage_IdNamespaceConflictHtml, ((JsonValidationMessage[]) result.Data)[0].RawHtmlMessage);
+                Assert.Null(((JsonValidationMessage[]) result.Data)[0].PlainTextMessage);
                 fakeTelemetryService.Verify(
                     x => x.TrackPackagePushNamespaceConflictEvent(
                         It.IsAny<string>(),
@@ -7206,9 +7193,19 @@ namespace NuGetGallery
                     Times.Once);
             }
 
+            public static IEnumerable<object[]> WillShowTheViewWithErrorsWhenThePackageIdMatchesUnownedNamespace_Data
+            {
+                get
+                {
+                    yield return MemberDataHelper.AsData(TestUtility.FakeUser);
+                    yield return MemberDataHelper.AsData(TestUtility.FakeAdminUser);
+                    yield return MemberDataHelper.AsData(TestUtility.FakeOrganizationCollaborator);
+                }
+            }
+
             [Theory]
-            [MemberData(nameof(WillShowTheViewWithErrorsWhenThePackageIdIsBlockedByReservedNamespace_Data))]
-            public async Task WillShowTheViewWithErrorsWhenThePackageIdMatchesUnownedNamespace(User currentUser, User reservedNamespaceOwner)
+            [MemberData(nameof(WillShowTheViewWithErrorsWhenThePackageIdMatchesUnownedNamespace_Data))]
+            public async Task WillShowTheViewWithErrorsWhenThePackageIdMatchesUnownedNamespace(User currentUser)
             {
                 var fakeUploadedFile = new Mock<HttpPostedFileBase>();
                 fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
@@ -7243,8 +7240,8 @@ namespace NuGetGallery
                 var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
 
                 Assert.NotNull(result);
-                Assert.Null((result.Data as JsonValidationMessage[])[0].PlainTextMessage);
-                Assert.Equal(Strings.UploadPackage_OwnerlessIdNamespaceConflictHtml, (result.Data as JsonValidationMessage[])[0].RawHtmlMessage);
+                Assert.Null(((JsonValidationMessage[]) result.Data)[0].PlainTextMessage);
+                Assert.Equal(Strings.UploadPackage_OwnerlessIdNamespaceConflictHtml, ((JsonValidationMessage[]) result.Data)[0].RawHtmlMessage);
                 fakeTelemetryService.Verify(
                     x => x.TrackPackagePushOwnerlessNamespaceConflictEvent(
                         It.IsAny<string>(),
@@ -7304,7 +7301,7 @@ namespace NuGetGallery
                 fakeUploadFileService.Verify(x => x.SaveUploadFileAsync(currentUser.Key, fakeUploadedFileStream));
                 fakeUploadedFileStream.Dispose();
 
-                var model = result.Data as VerifyPackageRequest;
+                var model = (VerifyPackageRequest) result.Data;
                 Assert.Equal(reservedNamespaceOwner.Username, model.PossibleOwners.Single());
             }
 
@@ -7360,7 +7357,7 @@ namespace NuGetGallery
                 fakeUploadFileService.Verify(x => x.SaveUploadFileAsync(currentUser.Key, fakeUploadedFileStream));
                 fakeUploadedFileStream.Dispose();
 
-                var model = result.Data as VerifyPackageRequest;
+                var model = (VerifyPackageRequest) result.Data;
                 Assert.Equal(existingPackageOwner.Username, model.PossibleOwners.Single());
             }
 
@@ -7394,7 +7391,7 @@ namespace NuGetGallery
                 Assert.NotNull(result);
                 Assert.Equal(
                     String.Format(Strings.PackageExistsAndCannotBeModified, "theId", "1.0.0"),
-                    (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                    ((JsonValidationMessage[]) result.Data)[0].PlainTextMessage);
                 fakePackageDeleteService.Verify(
                     x => x.HardDeletePackagesAsync(
                         It.IsAny<IEnumerable<Package>>(),
@@ -7421,7 +7418,7 @@ namespace NuGetGallery
                 fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
                 var fakePackageService = new Mock<IPackageService>();
                 fakePackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(
-                    new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "1.0.0+metadata" });
+                    new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "1.0.0+metadata", PackageStatusKey = status });
                 var fakePackageDeleteService = new Mock<IPackageDeleteService>();
                 var fakeTelemetryService = new Mock<ITelemetryService>();
                 var controller = CreateController(
@@ -7436,7 +7433,7 @@ namespace NuGetGallery
                 Assert.NotNull(result);
                 Assert.Equal(
                     String.Format(Strings.PackageVersionDiffersOnlyByMetadataAndCannotBeModified, "theId", "1.0.0+metadata"),
-                    (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                    ((JsonValidationMessage[]) result.Data)[0].PlainTextMessage);
                 fakePackageDeleteService.Verify(
                     x => x.HardDeletePackagesAsync(
                         It.IsAny<IEnumerable<Package>>(),
@@ -7608,7 +7605,7 @@ namespace NuGetGallery
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
-                Assert.Equal(expectedMessage, (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                Assert.Equal(expectedMessage, ((JsonValidationMessage[]) result.Data)[0].PlainTextMessage);
             }
 
             [Fact]
@@ -7745,7 +7742,7 @@ namespace NuGetGallery
                 var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
 
                 Assert.NotNull(result);
-                Assert.Equal(Strings.FailedToReadUploadFile, (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                Assert.Equal(Strings.FailedToReadUploadFile, ((JsonValidationMessage[]) result.Data)[0].PlainTextMessage);
             }
 
             [Fact]
@@ -7816,7 +7813,7 @@ namespace NuGetGallery
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
-                Assert.Equal(string.Format(Strings.PackageIsLocked, packageId), (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                Assert.Equal(string.Format(Strings.PackageIsLocked, packageId), ((JsonValidationMessage[]) result.Data)[0].PlainTextMessage);
             }
 
             [Fact]
@@ -7853,7 +7850,7 @@ namespace NuGetGallery
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
-                Assert.Equal(message, (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                Assert.Equal(message, ((JsonValidationMessage[]) result.Data)[0].PlainTextMessage);
             }
 
             public static IEnumerable<object[]> SymbolValidationResultTypes => Enum
@@ -8009,7 +8006,7 @@ namespace NuGetGallery
                 var fakeUploadFileService = new Mock<IUploadFileService>();
                 fakeUploadFileService
                     .SetupSequence(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key))
-                    .ReturnsAsync(null)
+                    .ReturnsAsync((Stream)null)
                     .ReturnsAsync(fakeSavedFileStream);
                 fakeUploadFileService
                     .Setup(x => x.SaveUploadFileAsync(TestUtility.FakeUser.Key, It.IsAny<Stream>()))
@@ -8511,7 +8508,7 @@ namespace NuGetGallery
 
                     var jsonResult = Assert.IsType<JsonResult>(result);
                     Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
-                    var message = (jsonResult.Data as JsonValidationMessage[])[0];
+                    var message = ((JsonValidationMessage[]) jsonResult.Data)[0];
                     Assert.Equal(expectedMessage, message.PlainTextMessage);
                 }
             }
@@ -8636,7 +8633,7 @@ namespace NuGetGallery
             {
                 var jsonResult = Assert.IsType<JsonResult>(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
-                var message = (jsonResult.Data as JsonValidationMessage[])[0];
+                var message = ((JsonValidationMessage[]) jsonResult.Data)[0];
 
                 if (!expectedResult.Message.HasRawHtmlRepresentation)
                 {
@@ -8704,7 +8701,7 @@ namespace NuGetGallery
                         var jsonResult = Assert.IsType<JsonResult>(result);
                         if (expectedMessage != null)
                         {
-                            var message = (jsonResult.Data as JsonValidationMessage[])[0];
+                            var message = ((JsonValidationMessage[]) jsonResult.Data)[0];
                             Assert.Equal(expectedMessage, message.PlainTextMessage);
                         }
                     }
@@ -9232,7 +9229,7 @@ namespace NuGetGallery
 
                     // Assert
                     Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
-                    Assert.Equal(ServicesStrings.UserAccountIsLocked, (response.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                    Assert.Equal(ServicesStrings.UserAccountIsLocked, ((JsonValidationMessage[]) response.Data)[0].PlainTextMessage);
                 }
             }
 
@@ -9272,7 +9269,7 @@ namespace NuGetGallery
                     Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
                     Assert.Equal(
                         string.Format(CultureInfo.CurrentCulture, ServicesStrings.SpecificAccountIsLocked, owner.Username),
-                        (response.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                        ((JsonValidationMessage[]) response.Data)[0].PlainTextMessage);
                 }
             }
 
@@ -9534,7 +9531,7 @@ namespace NuGetGallery
                     var result = await controller.VerifyPackage(new VerifyPackageRequest() { Owner = TestUtility.FakeUser.Username });
 
                     Assert.NotNull(result);
-                    Assert.Equal(message, (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                    Assert.Equal(message, ((JsonValidationMessage[]) result.Data)[0].PlainTextMessage);
                 }
             }
 
@@ -9571,7 +9568,7 @@ namespace NuGetGallery
                     var result = await controller.VerifyPackage(new VerifyPackageRequest() { Owner = TestUtility.FakeUser.Username });
 
                     Assert.NotNull(result);
-                    Assert.Equal(Strings.VerifyPackage_UnexpectedError, (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                    Assert.Equal(Strings.VerifyPackage_UnexpectedError, ((JsonValidationMessage[]) result.Data)[0].PlainTextMessage);
                     telemetryService
                         .Verify(x => x.TrackSymbolPackagePushFailureEvent(PackageId, PackageVersion), Times.Once);
                 }
@@ -9627,7 +9624,7 @@ namespace NuGetGallery
 
         public class TheUploadProgressAction : TestContainer
         {
-            private static readonly string FakeUploadName = "upload-" + TestUtility.FakeUserName + Guid.Empty.ToString();
+            private static readonly string FakeUploadName = "upload-" + TestUtility.FakeUserName + Guid.Empty;
 
             [Fact]
             public void WillReturnHttpNotFoundForUnknownUser()
@@ -9730,8 +9727,7 @@ namespace NuGetGallery
                 var result = await controller.SetLicenseReportVisibility("Foo", "1.0", visible: visible, urlFactory: (pkg, relativeUrl) => @"~\Bar.cshtml");
 
                 // Assert
-                Assert.IsType<HttpStatusCodeResult>(result);
-                var httpStatusCodeResult = result as HttpStatusCodeResult;
+                var httpStatusCodeResult = Assert.IsType<HttpStatusCodeResult>(result);
                 Assert.Equal((int)HttpStatusCode.Forbidden, httpStatusCodeResult.StatusCode);
             }
 
@@ -9808,8 +9804,8 @@ namespace NuGetGallery
                 // Assert
                 packageService.Verify();
                 indexingService.Verify(i => i.UpdatePackage(package));
-                Assert.IsType<RedirectResult>(result);
-                Assert.Equal(@"~\Bar.cshtml", ((RedirectResult)result).Url);
+                var redirectResult = Assert.IsType<RedirectResult>(result);
+                Assert.Equal(@"~\Bar.cshtml", redirectResult.Url);
             }
         }
 
@@ -10067,7 +10063,7 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData(PackageStatus.Deleted)]
-            [InlineData(921)]
+            [InlineData((PackageStatus)921)]
             public async Task ReturnsBadRequestForInvalidSymbolPackageStatus(PackageStatus status)
             {
                 // Arrange and Act

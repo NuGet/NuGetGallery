@@ -982,6 +982,7 @@ namespace NuGetGallery
             model.IsPackageVulnerabilitiesEnabled = isPackageVulnerabilitiesEnabled;
             model.IsFuGetLinksEnabled = _featureFlagService.IsDisplayFuGetLinksEnabled();
             model.IsNuGetPackageExplorerLinkEnabled = _featureFlagService.IsDisplayNuGetPackageExplorerLinkEnabled();
+            model.IsNuGetTrendsLinksEnabled = _featureFlagService.IsDisplayNuGetTrendsLinksEnabled();
             model.IsPackageRenamesEnabled = _featureFlagService.IsPackageRenamesEnabled(currentUser);
             model.IsPackageDependentsEnabled = _featureFlagService.IsPackageDependentsEnabled(currentUser);
             model.IsRecentPackagesNoIndexEnabled = _featureFlagService.IsRecentPackagesNoIndexEnabled();
@@ -1239,15 +1240,15 @@ namespace NuGetGallery
                     /// In this way, we could read very large stream from blob storage with max size restriction.
                     /// </remarks>
                     using (var licenseFileStream = await _coreLicenseFileService.DownloadLicenseFileAsync(package))
-                    using (var licenseFileTrucatedStream = await licenseFileStream.GetTruncatedStreamWithMaxSizeAsync(MaxAllowedLicenseLengthForDisplaying))
+                    using (var licenseFileTruncatedStream = await licenseFileStream.GetTruncatedStreamWithMaxSizeAsync(MaxAllowedLicenseLengthForDisplaying))
                     {
-                        if (licenseFileTrucatedStream.IsTruncated)
+                        if (licenseFileTruncatedStream.IsTruncated)
                         {
                             throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "The license file exceeds the max limit of {0} to display in Gallery", MaxAllowedLicenseLengthForDisplaying));
                         }
                         else
                         {
-                            licenseFileContents = Encoding.UTF8.GetString(licenseFileTrucatedStream.Stream.GetBuffer(), 0, (int)licenseFileTrucatedStream.Stream.Length);
+                            licenseFileContents = Encoding.UTF8.GetString(licenseFileTruncatedStream.Stream.GetBuffer(), 0, (int)licenseFileTruncatedStream.Stream.Length);
                         }
                     }
                 }

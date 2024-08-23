@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Text;
 using System.Net;
 
 namespace NuGetGallery.Auditing
@@ -21,7 +20,6 @@ namespace NuGetGallery.Auditing
             IPAddress address;
             if (IPAddress.TryParse(IP, out address))
             {
-                StringBuilder obfuscatedIpAddress = new StringBuilder();
                 var bytes = address.GetAddressBytes();
                 //If the length 4 is IPV4 if the length is 16 IPV6 
                 var length = bytes.Length;

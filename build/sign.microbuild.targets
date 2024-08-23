@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--
+  "MicroBuild_NuPkgSigningEnabled" configures whether or not .nupkg files built will be signed.
+  We always sign .nupkg files as batch using "sign.proj" instead of part of the project build process.
+  -->
+  <PropertyGroup>
+    <MicroBuild_NuPkgSigningEnabled>false</MicroBuild_NuPkgSigningEnabled>
+    <BatchSign Condition="'$(BatchSign)' == ''">true</BatchSign>
+    <RepositoryRootDirectory Condition="'$(RepositoryRootDirectory)' == ''">$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'build.ps1'))\</RepositoryRootDirectory>
+
+    <!--
+    By default, only run EnumerateFilesToSign if we are not batch signing. This property is explicitly set to true when
+    the batch signing project is running. The purpose of this logic is to skip enumerating files to sign when the
+    solution is building. This work only needs to happen when the batch signing is occurring. In other words, we should
+    only enumerate files to sign when:
+
+      1. Batch signing is disabled. Each project submits its out sign job are part of its build process.
+      2. Batch signing is enabled but we are building the "sign-binaries.proj" project and that project is call into
+         individual projects to disovery their files to sign.
+    -->
+    <SkipEnumerateFilesToSign Condition="'$(SkipEnumerateFilesToSign)' == ''">$(BatchSign)</SkipEnumerateFilesToSign>
+  </PropertyGroup>
+
+  <!--
+  When we are not building a web app package, sign any time after build.
+  -->
+  <PropertyGroup Condition="'$(WebPublishMethod)' != 'Package'">
+    <EnumerateFilesToSignAfterTargets>AfterBuild</EnumerateFilesToSignAfterTargets>
+  </PropertyGroup>
+
+  <!--
+  When we are building a web app package, sign after collecting all of the DLLs into one folder but before the package
+  is created.
+  -->
+  <PropertyGroup Condition="'$(WebPublishMethod)' == 'Package'">
+    <EnumerateFilesToSignAfterTargets>PipelineCopyAllFilesToOneFolderForMsdeploy</EnumerateFilesToSignAfterTargets>
+    <PackageUsingManifestDependsOn>CopySignedFiles</PackageUsingManifestDependsOn>
+  </PropertyGroup>
+
+  <!--
+  "EnumerateFilesToSign" is a custom target that runs after build and signs the output assembly of the project. This
+  target only runs if the "SignAssembly" is true (which enables delayed signing) and if "SignType" is not "none". This
+  latter condition is to allow builds to disable signing explicitly, which is an optimization for Cloud Service builds.
+  Cloud Service builds do a solution build then a "Publish" on the .ccproj. Only that "Publish" step needs to sign
+  things.
+  -->
+  <ItemGroup Condition="'$(BatchSign)' == 'false'">
+    <SignFilesDependsOn Include="DedupeFilesToSign" />
+  </ItemGroup>
+  <Target
+    Name="EnumerateFilesToSign"
+    AfterTargets="$(EnumerateFilesToSignAfterTargets)"
+    Condition="'$(SignAssembly)' == 'true' AND '$(SignType)' != 'none' AND '$(SkipEnumerateFilesToSign)' != 'true'"
+    Returns="@(UnfilteredFilesToSign)">
+
+    <ItemGroup>
+      <!--
+      Add fully qualified paths for the output and intermediate assemblies.
+      -->
+      <_ManagedOutputToSign Include="$(ProjectDir)%(IntermediateAssembly.Identity)" KeepDuplicates="false" />
+      <_ManagedOutputToSign Include="$(TargetPath)" KeepDuplicates="false" />
+      <!--
+      If we are batch signing, find all copies of the target file name in the repository. This handles the cases when
+      there is a project reference pointing to the current project and there is a copy of this output assembly in the
+      bin directory of another project. That assembly also needs to be signed.
+      -->
+      <_ManagedOutputToSign Include="$(RepositoryRootDirectory)**\$(TargetFileName)" Condition="'$(BatchSign)' == 'true' AND '$(TargetFileName)' != ''" />
+      <_ManagedOutputToSign Remove="$(RunCommand)" Condition="'$(RunCommand)' != ''" />
+      <UnfilteredFilesToSign
+        Include="$([System.IO.Path]::GetFullPath('%(_ManagedOutputToSign.Identity)'))"
+        Condition="Exists('%(_ManagedOutputToSign.Identity)')"
+        KeepDuplicates="false">
+        <Authenticode>Microsoft400</Authenticode>
+        <StrongName>MsSharedLib72</StrongName>
+      </UnfilteredFilesToSign>
+
+      <!--
+      Add fully qualified paths for PowerShell scripts. By convention, add common scripts that we use for jobs.
+      -->
+      <PowerShellScriptsToSign Include="Scripts\Functions.ps1"/>
+      <PowerShellScriptsToSign Include="Scripts\PostDeploy.ps1"/>
+      <PowerShellScriptsToSign Include="Scripts\PreDeploy.ps1"/>
+      <UnfilteredFilesToSign
+        Include="$([System.IO.Path]::GetFullPath('$(ProjectDir)%(PowerShellScriptsToSign.Identity)'))"
+        Condition="Exists('$(ProjectDir)%(PowerShellScriptsToSign.Identity)')"
+        KeepDuplicates="false">
+        <Authenticode>Microsoft400</Authenticode>
+      </UnfilteredFilesToSign>
+
+      <!--
+      .NET Core entry points (like web projects) can have an native .exe produced along with the managed .dll. Sign that
+      by default as well.
+      -->
+      <_UnmanagedOutputToSign Include="$(RunCommand)" KeepDuplicates="false" Condition="'$(BatchSign)' == 'true' AND '$(RunCommand)' != ''" />
+      <_UnmanagedOutputToSign Include="$(RepositoryRootDirectory)**\apphost.exe" Condition="'$(BatchSign)' == 'true'" />
+      <UnfilteredFilesToSign
+        Include="$([System.IO.Path]::GetFullPath('%(_UnmanagedOutputToSign.Identity)'))"
+        Condition="Exists('%(_UnmanagedOutputToSign.Identity)')"
+        KeepDuplicates="false">
+        <Authenticode>Microsoft400</Authenticode>
+      </UnfilteredFilesToSign>
+
+      <!--
+      Add fully qualified paths for checked in binaries. By convention, add common binaries that we use for jobs.
+      -->
+      <ExecutablesToSign Include="Scripts\nssm.exe"/>
+      <UnfilteredFilesToSign
+        Include="$([System.IO.Path]::GetFullPath('$(ProjectDir)%(ExecutablesToSign.Identity)'))"
+        Condition="Exists('$(ProjectDir)%(ExecutablesToSign.Identity)')"
+        KeepDuplicates="false">
+        <Authenticode>3PartySHA2</Authenticode>
+      </UnfilteredFilesToSign>
+
+      <!--
+      Add fully qualified paths for third-party binaries.
+      -->
+      <UnfilteredFilesToSign
+        Include="$([System.IO.Path]::GetFullPath('$(TargetDir)%(ThirdPartyBinaries.Identity)'))"
+        Condition="@(ThirdPartyBinaries->Count()) &gt; 0 AND Exists('$(TargetDir)%(ThirdPartyBinaries.Identity)')"
+        KeepDuplicates="false">
+        <Authenticode>3PartySHA2</Authenticode>
+      </UnfilteredFilesToSign>
+    </ItemGroup>
+
+    <!--
+    When we are building a web app package, sign the third party assemblies and output assembly from the single folder
+    used for packaging.
+    -->
+    <ItemGroup Condition="'$(WebPublishMethod)' == 'Package'">
+      <UnfilteredFilesToSign
+        Include="$(WPPAllFilesInSingleFolder)\bin\%(ThirdPartyBinaries.Identity)"
+        Condition="Exists('$(WPPAllFilesInSingleFolder)\bin\%(ThirdPartyBinaries.Identity)')">
+        <Authenticode>3PartySHA2</Authenticode>
+      </UnfilteredFilesToSign>
+      <UnfilteredFilesToSign
+        Include="$(WPPAllFilesInSingleFolder)\bin\$(TargetFileName)"
+        Condition="Exists('$(WPPAllFilesInSingleFolder)\bin\$(TargetFileName)')">
+        <Authenticode>Microsoft400</Authenticode>
+        <StrongName>MsSharedLib72</StrongName>
+      </UnfilteredFilesToSign>
+    </ItemGroup>
+  </Target>
+
+  <Target
+    Name="DedupeFilesToSign"
+    DependsOnTargets="EnumerateFilesToSign">
+    <FindDuplicateFiles Files="@(UnfilteredFilesToSign)">
+      <Output
+        TaskParameter="UniqueFiles"
+        ItemName="FilesToSign" />
+      <Output
+        TaskParameter="DuplicateFiles"
+        ItemName="DuplicateFilesToSign" />
+    </FindDuplicateFiles>
+    <Message Text="Count of files to sign: @(FilesToSign->Count())" Importance="High" />
+    <Message Text="Files to sign:%0A@(FilesToSign, '%0A')" Importance="High" />
+  </Target>  
+
+  <Target Name="CopySignedFiles"
+    AfterTargets="SignFiles"
+    DependsOnTargets="SignFiles">
+    <Copy
+      SourceFiles="@(DuplicateFilesToSign->'%(DuplicateOf)')"
+      DestinationFiles="@(DuplicateFilesToSign)" />
+  </Target>
+
+  <Import Project="FindDuplicateFiles.targets" />
+</Project>

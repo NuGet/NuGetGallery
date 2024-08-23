@@ -106,7 +106,7 @@ namespace NuGetGallery
                 Assert.Null(result.Message);
                 Assert.Equal(
                     $"The previous package version '{previous.NormalizedVersion}' is author signed but the uploaded " +
-                    $"package is unsigned. To avoid this warning, sign the package before uploading.",
+                    "package is unsigned. To avoid this warning, sign the package before uploading.",
                     Assert.Single(result.Warnings).PlainTextMessage);
                 _packageService.Verify(
                     x => x.FindPackageRegistrationById(It.IsAny<string>()),
@@ -1270,7 +1270,7 @@ namespace NuGetGallery
                 Assert.Empty(result.Warnings);
             }
 
-            public static IEnumerable<string[]> LocalIconFilePaths =>
+            public static IEnumerable<object[]> LocalIconFilePaths =>
                 new[]
                 {
                     new [] { Environment.GetEnvironmentVariable("TEMP") + "\\testimage.png" },

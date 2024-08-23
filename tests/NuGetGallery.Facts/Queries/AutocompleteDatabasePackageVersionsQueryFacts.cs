@@ -27,9 +27,9 @@ namespace NuGetGallery.Queries
             [Theory]
             [InlineData("")]
             [InlineData(null)]
-            public void InvalidIdThrowsArgumentNullException(string id)
+            public async Task InvalidIdThrowsArgumentNullException(string id)
             {
-                Assert.ThrowsAsync<ArgumentNullException>(() => _packageVersionsQuery.Execute(id, null, null));
+                await Assert.ThrowsAsync<ArgumentNullException>(() => _packageVersionsQuery.Execute(id, null, null));
             }
 
             [Fact]
@@ -51,7 +51,7 @@ namespace NuGetGallery.Queries
             {
                 var queryResult = await _packageVersionsQuery.Execute("inexistent-package-id", null, null);
 
-                Assert.Equal(0, queryResult.Count());
+                Assert.Empty(queryResult);
             }
 
             [Fact]

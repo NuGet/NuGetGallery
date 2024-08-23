@@ -30,7 +30,7 @@ namespace NuGetGallery.Views.Packages
             var template = GetTemplate();
 
             // Assert
-            Assert.Contains("case ValidationIssueCode." + issue.IssueCode.ToString(), template);
+            Assert.Contains("case ValidationIssueCode." + issue.IssueCode, template);
         }
 
         [Theory]

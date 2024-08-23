@@ -1010,7 +1010,8 @@ namespace NuGetGallery
             bool isOther = false, 
             string alternatePackageId = null, 
             string alternatePackageVersion = null, 
-            string message = null)
+            string message = null,
+            ListedVerb listedVerb = ListedVerb.Unchanged)
         {
             var registration = PackageService.FindPackageRegistrationById(id);
             if (registration == null)
@@ -1035,12 +1036,14 @@ namespace NuGetGallery
                 apiScopeEvaluationResult.Owner,
                 id,
                 versions.ToList(),
+                isLegacy || hasCriticalBugs || isOther ? PackageDeprecatedVia.Api : PackageUndeprecatedVia.Api,
                 isLegacy,
                 hasCriticalBugs,
                 isOther,
                 alternatePackageId,
                 alternatePackageVersion,
-                message);
+                message,
+                listedVerb);
 
             if (error != null)
             {

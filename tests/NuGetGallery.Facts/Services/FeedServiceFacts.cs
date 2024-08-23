@@ -785,7 +785,7 @@ namespace NuGetGallery
                         configuration.Object,
                         searchService.Object,
                         telemetryService.Object);
-                    v2Service.RawUrl = $"https://localhost:8081/api/v2/Packages(Id=\'Foo\', Version=\'1.0.0\')";
+                    v2Service.RawUrl = "https://localhost:8081/api/v2/Packages(Id='Foo', Version='1.0.0')";
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, v2Service.RawUrl);
                     var options = new ODataQueryOptions<V2FeedPackage>(
                         new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)),
@@ -1006,7 +1006,7 @@ namespace NuGetGallery
                         .ExpectOkNegotiatedContentResult<PageResult<V2FeedPackage>>();
 
                     // Assert
-                    Assert.Equal(0, result.Count());
+                    Assert.Empty(result);
                     telemetryService.Verify(x => x.TrackODataCustomQuery(false), Times.Once);
                     telemetryService.Verify(x => x.TrackODataCustomQuery(It.IsAny<bool?>()), Times.Once);
                 }

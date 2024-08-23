@@ -228,7 +228,8 @@ namespace NuGetGallery.Authentication
                 }
             }
 
-            [Theory, MemberData("GivenUserNameWithMatchingOldPasswordCredential_ItMigratesHashToLatest_Input")]
+            [Theory]
+            [MemberData(nameof(GivenUserNameWithMatchingOldPasswordCredential_ItMigratesHashToLatest_Input))]
             public async Task GivenUserNameWithMatchingOldPasswordCredential_ItMigratesHashToLatest(
                 Func<Fakes, User> getUser)
             {
@@ -258,7 +259,8 @@ namespace NuGetGallery.Authentication
                 }
             }
 
-            [Theory, MemberData("GivenUserNameWithMatchingOldPasswordCredential_ItWritesAuditRecordsOfMigration_Input")]
+            [Theory]
+            [MemberData(nameof(GivenUserNameWithMatchingOldPasswordCredential_ItWritesAuditRecordsOfMigration_Input))]
             public async Task GivenUserNameWithMatchingOldPasswordCredential_ItWritesAuditRecordsOfMigration(
                 Func<Fakes, User> getUser)
             {
@@ -359,7 +361,7 @@ namespace NuGetGallery.Authentication
             }
 
             [Theory]
-            [MemberData("VerifyAccountLockoutTimeCalculation_Data")]
+            [MemberData(nameof(VerifyAccountLockoutTimeCalculation_Data))]
             public async Task VerifyAccountLockoutTimeCalculation(int failureCount, DateTime? lastFailedLoginTime, DateTime currentTime, int expectedLockoutMinutesLeft)
             {
                 // Arrange
@@ -1282,7 +1284,7 @@ namespace NuGetGallery.Authentication
                 // Assert
                 Assert.True(auth.Entities.Users.Contains(authUser.User));
                 Assert.True(authUser.User.Confirmed);
-                Assert.True(string.Equals(authUser.User.EmailAddress, "theEmailAddress"));
+                Assert.Equal("theEmailAddress", authUser.User.EmailAddress);
                 auth.Entities.VerifyCommitChanges();
             }
 
@@ -1307,7 +1309,7 @@ namespace NuGetGallery.Authentication
                 // Assert
                 Assert.True(auth.Entities.Users.Contains(authUser.User));
                 auth.Entities.VerifyCommitChanges();
-                Assert.True(string.Equals(authUser.User.UnconfirmedEmailAddress, "theEmailAddress"));
+                Assert.Equal("theEmailAddress", authUser.User.UnconfirmedEmailAddress);
                 Assert.NotNull(authUser.User.EmailConfirmationToken);
                 Assert.False(authUser.User.Confirmed);
             }
@@ -1711,7 +1713,8 @@ namespace NuGetGallery.Authentication
                 }
             }
 
-            [Theory, MemberData("ResetsPasswordMigratesPasswordHash_Input")]
+            [Theory]
+            [MemberData(nameof(ResetsPasswordMigratesPasswordHash_Input))]
             public async Task ResetsPasswordMigratesPasswordHash(Func<string, Credential> oldCredentialBuilder)
             {
                 var oldCred = oldCredentialBuilder("thePassword");
@@ -2209,9 +2212,9 @@ namespace NuGetGallery.Authentication
                 Assert.Null(description.RevocationSource);
 
                 Assert.True(description.Scopes.Count == 2);
-                Assert.Equal(NuGetScopes.Describe(NuGetScopes.PackagePushVersion), description.Scopes[0].AllowedAction);
+                Assert.Equal(NuGetScopes.Describe(NuGetScopes.PackagePushVersion, isDeprecateApiEnabled: false), description.Scopes[0].AllowedAction);
                 Assert.Equal("123", description.Scopes[0].Subject);
-                Assert.Equal(NuGetScopes.Describe(NuGetScopes.PackageUnlist), description.Scopes[1].AllowedAction);
+                Assert.Equal(NuGetScopes.Describe(NuGetScopes.PackageUnlist, isDeprecateApiEnabled: false), description.Scopes[1].AllowedAction);
                 Assert.Equal("123", description.Scopes[1].Subject);
                 Assert.Equal(cred.ExpirationTicks.Value, description.ExpirationDuration.Value.Ticks);
             }

@@ -34,7 +34,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             return new EmailRecipients(
                 to: PendingUser.EmailAllowed
                     ? new[] { PendingUser.ToMailAddress() }
-                    : new MailAddress[0],
+                    : Array.Empty<MailAddress>(),
                 replyTo: new[] { Organization.ToMailAddress() });
         }
 

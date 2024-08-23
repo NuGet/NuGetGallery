@@ -1,11 +1,13 @@
-[CmdletBinding(DefaultParameterSetName='RegularBuild')]
+[CmdletBinding(DefaultParameterSetName = 'RegularBuild')]
 param (
     [ValidateSet("debug", "release")]
     [string]$Configuration = 'debug',
-    [int]$BuildNumber
+    [int]$BuildNumber,
+    [switch]$SkipCommon,
+    [switch]$SkipGallery,
+    [switch]$SkipJobs
 )
 
-# For TeamCity - If any issue occurs, this script fail the build. - By default, TeamCity returns an exit code of 0 for all powershell scripts, even if they fail
 trap {
     Write-Host "BUILD FAILED: $_" -ForegroundColor Red
     Write-Host "ERROR DETAILS:" -ForegroundColor Red
@@ -16,35 +18,6 @@ trap {
 
 . "$PSScriptRoot\build\common.ps1"
 
-Function Run-Tests {
-    [CmdletBinding()]
-    param()
-    
-    Trace-Log 'Running tests'
-    
-    $xUnitExe = (Join-Path $PSScriptRoot "packages\xunit.runner.console\tools\xunit.console.exe")
-    
-    $TestAssemblies = `
-        "tests\AccountDeleter.Facts\bin\$Configuration\AccountDeleter.Facts.dll", `
-        "tests\GitHubVulnerabilities2Db.Facts\bin\$Configuration\GitHubVulnerabilities2Db.Facts.dll", `
-        "tests\GitHubVulnerabilities2v3.Facts\bin\$Configuration\GitHubVulnerabilities2v3.Facts.dll", `
-        "tests\NuGet.Services.DatabaseMigration.Facts\bin\$Configuration\NuGet.Services.DatabaseMigration.Facts.dll", `
-        "tests\NuGet.Services.Entities.Tests\bin\$Configuration\NuGet.Services.Entities.Tests.dll", `
-        "tests\NuGetGallery.Core.Facts\bin\$Configuration\NuGetGallery.Core.Facts.dll", `
-        "tests\NuGetGallery.Facts\bin\$Configuration\NuGetGallery.Facts.dll", `
-        "tests\VerifyMicrosoftPackage.Facts\bin\$Configuration\NuGet.VerifyMicrosoftPackage.Facts.dll"
-    
-    $TestCount = 0
-    
-    foreach ($Test in $TestAssemblies) {
-        & $xUnitExe (Join-Path $PSScriptRoot $Test) -xml "Results.$TestCount.xml"
-        $TestCount++
-    }
-
-    Write-Host "Ensuring the EntityFramework version can be discovered."
-    . (Join-Path $PSScriptRoot "tools\Update-Databases.ps1") -MigrationTargets @("FakeMigrationTarget")
-}
-    
 Write-Host ("`r`n" * 3)
 Trace-Log ('=' * 60)
 
@@ -54,10 +27,76 @@ if (-not $BuildNumber) {
 }
 Trace-Log "Build #$BuildNumber started at $startTime"
 
-$BuildErrors = @()
-    
-Invoke-BuildStep 'Running tests' { Run-Tests } `
-    -ev +BuildErrors
+$TestErrors = @()
+$CommonSolution = Join-Path $PSScriptRoot "NuGet.Server.Common.sln"
+$CommonProjects = Get-SolutionProjects $CommonSolution
+$GallerySolution = Join-Path $PSScriptRoot "NuGetGallery.sln"
+$GalleryProjects = Get-SolutionProjects $GallerySolution
+$JobsSolution = Join-Path $PSScriptRoot "NuGet.Jobs.sln"
+$JobsProjects = Get-SolutionProjects $JobsSolution
+
+Invoke-BuildStep 'Cleaning test results' { Clear-Tests } `
+    -ev +TestErrors
+
+Invoke-BuildStep 'Running common tests' {
+        $CommonTestProjects = $CommonProjects | Where-Object { $_.IsTest }
+
+        $TestCount = 0
+        
+        $CommonTestProjects | ForEach-Object {
+            $TestResultFile = Join-Path $PSScriptRoot "Results.Common.$TestCount.xml"
+            Trace-Log "Testing $($_.Path)"
+            dotnet test $_.Path --no-restore --no-build --configuration $Configuration "-l:trx;LogFileName=$TestResultFile"
+            if (-not (Test-Path $TestResultFile)) {
+                Write-Error "The test run failed to produce a result file";
+                exit 1;
+            }
+            $TestCount++
+        }
+    } `
+    -skip:$SkipCommon `
+    -ev +TestErrors
+
+Invoke-BuildStep 'Running gallery tests' {
+        $GalleryTestProjects = $GalleryProjects | Where-Object { $_.IsTest }
+
+        $TestCount = 0
+        
+        $GalleryTestProjects | ForEach-Object {
+            $TestResultFile = Join-Path $PSScriptRoot "Results.Gallery.$TestCount.xml"
+            Trace-Log "Testing $($_.Path)"
+            dotnet test $_.Path --no-restore --no-build --configuration $Configuration "-l:trx;LogFileName=$TestResultFile"
+            if (-not (Test-Path $TestResultFile)) {
+                Write-Error "The test run failed to produce a result file";
+                exit 1;
+            }
+            $TestCount++
+        }
+
+        Write-Host "Ensuring the EntityFramework version can be discovered."
+        . (Join-Path $PSScriptRoot "tools\Update-Databases.ps1") -MigrationTargets @("FakeMigrationTarget")
+    } `
+    -skip:$SkipGallery `
+    -ev +TestErrors
+
+Invoke-BuildStep 'Running jobs tests' {
+        $JobsTestProjects = $JobsProjects | Where-Object { $_.IsTest } 
+
+        $TestCount = 0
+        
+        $JobsTestProjects | ForEach-Object {
+            $TestResultFile = Join-Path $PSScriptRoot "Results.Jobs.$TestCount.xml"
+            Trace-Log "Testing $($_.Path)"
+            dotnet test $_.Path --no-restore --no-build --configuration $Configuration "-l:trx;LogFileName=$TestResultFile"
+            if (-not (Test-Path $TestResultFile)) {
+                Write-Error "The test run failed to produce a result file";
+                exit 1;
+            }
+            $TestCount++
+        }
+    } `
+    -skip:$SkipJobs `
+    -ev +TestErrors
 
 Trace-Log ('-' * 60)
 
@@ -68,9 +107,9 @@ Trace-Log "Time elapsed $(Format-ElapsedTime ($endTime - $startTime))"
 
 Trace-Log ('=' * 60)
 
-if ($BuildErrors) {
-    $ErrorLines = $BuildErrors | %{ ">>> $($_.Exception.Message)" }
-    Error-Log "Tests completed with $($BuildErrors.Count) error(s):`r`n$($ErrorLines -join "`r`n")" -Fatal
+if ($TestErrors) {
+    $ErrorLines = $TestErrors | ForEach-Object { ">>> $($_.Exception.Message)" }
+    Error-Log "Tests completed with $($TestErrors.Count) error(s):`r`n$($ErrorLines -join "`r`n")" -Fatal
 }
 
 Write-Host ("`r`n" * 3)

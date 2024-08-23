@@ -75,13 +75,13 @@ namespace NuGetGallery
                 ContentItem cachedItem = null;
                 if (ContentCache.TryGetValue(name, out cachedItem) && DateTime.UtcNow < cachedItem.ExpiryUtc)
                 {
-                    Trace.Verbose("Cache Valid. Expires at: " + cachedItem.ExpiryUtc.ToString());
+                    Trace.Verbose("Cache Valid. Expires at: " + cachedItem.ExpiryUtc);
                     return cachedItem.Content;
                 }
                 Trace.Verbose("Cache Expired.");
 
                 // Get the file from the content service
-                var filenames = extensions.Select(extension => name + extension).ToArray();
+                var filenames = extensions.Select(extension => name + extension);
 
                 foreach (var filename in filenames)
                 {

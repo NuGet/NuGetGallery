@@ -43,7 +43,6 @@ namespace NuGetGallery.Services
             [Theory]
             [InlineData(null)]
             [InlineData(" ")]
-            [InlineData(null)]
             public async Task ThrowsWhenNoReadmeFileSpecified(string readmeFileName)
             {
                 var service = CreateService();

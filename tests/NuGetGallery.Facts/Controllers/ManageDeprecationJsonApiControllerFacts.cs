@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using Moq;
 using Newtonsoft.Json.Linq;
+using NuGetGallery.Auditing;
 using NuGetGallery.Framework;
 using NuGetGallery.RequestModels;
 using Xunit;
@@ -76,12 +77,14 @@ namespace NuGetGallery.Controllers
                         currentUser,
                         id,
                         versions,
+                        isLegacy || hasCriticalBugs || isOther ? PackageDeprecatedVia.Web : PackageUndeprecatedVia.Web,
                         isLegacy,
                         hasCriticalBugs,
                         isOther,
                         alternateId,
                         alternateVersion,
-                        customMessage))
+                        customMessage,
+                        ListedVerb.Unchanged))
                     .ReturnsAsync(success ? null : new UpdateDeprecationError(errorStatus, errorMessage))
                     .Verifiable();
 

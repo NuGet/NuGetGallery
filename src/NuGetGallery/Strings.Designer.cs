@@ -1121,7 +1121,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Filters packages based on the target frameworks they are compatible with. Click here to learn more..
+        ///   Looks up a localized string similar to Filters packages based on the target frameworks they are compatible with..
         /// </summary>
         public static string FrameworkFilters_Tooltip {
             get {
@@ -1954,60 +1954,6 @@ namespace NuGetGallery {
         public static string ReservedNamespace_UserNotFound {
             get {
                 return ResourceManager.GetString("ReservedNamespace_UserNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to All.
-        /// </summary>
-        public static string ScopeDescription_All {
-            get {
-                return ResourceManager.GetString("ScopeDescription_All", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Push new packages and package versions.
-        /// </summary>
-        public static string ScopeDescription_PushPackage {
-            get {
-                return ResourceManager.GetString("ScopeDescription_PushPackage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Push only new package versions.
-        /// </summary>
-        public static string ScopeDescription_PushPackageVersion {
-            get {
-                return ResourceManager.GetString("ScopeDescription_PushPackageVersion", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unknown.
-        /// </summary>
-        public static string ScopeDescription_Unknown {
-            get {
-                return ResourceManager.GetString("ScopeDescription_Unknown", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unlist package.
-        /// </summary>
-        public static string ScopeDescription_UnlistPackage {
-            get {
-                return ResourceManager.GetString("ScopeDescription_UnlistPackage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Verify package ownership.
-        /// </summary>
-        public static string ScopeDescription_VerifyPackage {
-            get {
-                return ResourceManager.GetString("ScopeDescription_VerifyPackage", resourceCulture);
             }
         }
         

@@ -100,10 +100,10 @@ namespace NuGetGallery.Services
                 Assert.Equal<int>(2, supportRequestContext.Issues.Count());
                 Assert.True(supportRequestContext.Issues.Any(issue => string.Equals(issue.CreatedBy, $"{userName}_second")));
                 Assert.False(supportRequestContext.Issues.Any(issue => string.Equals(issue.IssueTitle, "Joe's OldIssue")));
-                var deleteRequestIssue = supportRequestContext.Issues.Where(issue => issue.Key == 1).FirstOrDefault();
+                var deleteRequestIssue = supportRequestContext.Issues.FirstOrDefault(issue => issue.Key == 1);
                 Assert.NotNull(deleteRequestIssue);
-                Assert.Equal(deleteRequestIssue.CreatedBy, "_deletedaccount");
-                Assert.Equal(deleteRequestIssue.IssueStatusId, IssueStatusKeys.Resolved);
+                Assert.Equal("_deletedaccount", deleteRequestIssue.CreatedBy);
+                Assert.Equal(IssueStatusKeys.Resolved, deleteRequestIssue.IssueStatusId);
                 Assert.Null(deleteRequestIssue.HistoryEntries.ElementAt(0).EditedBy);
             }
 

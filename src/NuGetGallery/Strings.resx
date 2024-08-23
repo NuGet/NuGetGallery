@@ -349,21 +349,6 @@
   <data name="UserAccountLocked" xml:space="preserve">
     <value>Your account was locked after too many unsuccessful sign-in attempts. Please try again in {0}.</value>
   </data>
-  <data name="ScopeDescription_All" xml:space="preserve">
-    <value>All</value>
-  </data>
-  <data name="ScopeDescription_PushPackage" xml:space="preserve">
-    <value>Push new packages and package versions</value>
-  </data>
-  <data name="ScopeDescription_PushPackageVersion" xml:space="preserve">
-    <value>Push only new package versions</value>
-  </data>
-  <data name="ScopeDescription_UnlistPackage" xml:space="preserve">
-    <value>Unlist package</value>
-  </data>
-  <data name="ScopeDescription_Unknown" xml:space="preserve">
-    <value>Unknown</value>
-  </data>
   <data name="ApiKeyDescriptionRequired" xml:space="preserve">
     <value>Can't generate an API key without a description.</value>
   </data>
@@ -384,9 +369,6 @@
   </data>
   <data name="NonScopedApiKeyDescription" xml:space="preserve">
     <value>Full access API key</value>
-  </data>
-  <data name="ScopeDescription_VerifyPackage" xml:space="preserve">
-    <value>Verify package ownership</value>
   </data>
   <data name="WarningApiDeprecated" xml:space="preserve">
     <value>API '{0}' is deprecated and may be removed in a future version.</value>
@@ -1279,7 +1261,7 @@ The {1} Team</value>
     <value>This package is compatible with all versions of {0}.</value>
   </data>
   <data name="FrameworkFilters_Tooltip" xml:space="preserve">
-    <value>Filters packages based on the target frameworks they are compatible with. Click here to learn more.</value>
+    <value>Filters packages based on the target frameworks they are compatible with.</value>
   </data>
   <data name="UploadPackage_NuspecContainsInvalidUnicodeCharacters" xml:space="preserve">
     <value>The package nuspec file contains invalid unicode characters.</value>

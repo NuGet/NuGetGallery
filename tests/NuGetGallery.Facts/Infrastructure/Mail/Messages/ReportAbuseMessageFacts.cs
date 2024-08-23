@@ -45,7 +45,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 var message = CreateMessage();
                 var recipients = message.GetRecipients();
 
-                Assert.Equal(1, recipients.To.Count);
+                Assert.Single(recipients.To);
                 Assert.Contains(Configuration.GalleryOwner, recipients.To);
             }
 
@@ -64,7 +64,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 var message = CreateMessage(copySender: true);
                 var recipients = message.GetRecipients();
 
-                Assert.Equal(1, recipients.CC.Count);
+                Assert.Single(recipients.CC);
                 Assert.Contains(Fakes.FromAddress, recipients.CC);
             }
 
@@ -83,7 +83,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 var message = CreateMessage();
                 var recipients = message.GetRecipients();
 
-                Assert.Equal(1, recipients.ReplyTo.Count);
+                Assert.Single(recipients.ReplyTo);
                 Assert.Contains(Fakes.FromAddress, recipients.ReplyTo);
             }
         }

@@ -3,13 +3,10 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using Moq;
-using Xunit;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
+using Xunit;
 
 namespace NuGetGallery.Services
 {
@@ -153,15 +150,15 @@ namespace NuGetGallery.Services
                     }
                 }
 
-                private static void AssertConfigLocationMode(IAppConfiguration config, BlobRequestOptions options)
+                private static void AssertConfigLocationMode(IAppConfiguration config, CloudBlobLocationMode? locationMode)
                 {
                     if (config.ReadOnlyMode)
                     {
-                        Assert.Equal(LocationMode.SecondaryOnly, options.LocationMode);
+                        Assert.Equal(CloudBlobLocationMode.SecondaryOnly, locationMode.Value);
                     }
                     else
                     {
-                        Assert.Equal(LocationMode.PrimaryOnly, options.LocationMode);
+                        Assert.Equal(CloudBlobLocationMode.PrimaryOnly, locationMode.Value);
                     }
                 }
 
@@ -173,10 +170,10 @@ namespace NuGetGallery.Services
                         _config = config;
                     }
 
-                    public async Task<bool> IsAvailableAsync(BlobRequestOptions options, OperationContext operationContext)
+                    public Task<bool> IsAvailableAsync(CloudBlobLocationMode? locationMode)
                     {
-                        AssertConfigLocationMode(_config, options);
-                        return await Task.FromResult(true);
+                        AssertConfigLocationMode(_config, locationMode);
+                        return Task.FromResult(true);
                     }
                 }
 
@@ -189,10 +186,10 @@ namespace NuGetGallery.Services
                         _config = config;
                     }
 
-                    public async Task<bool> IsAvailableAsync(BlobRequestOptions options, OperationContext operationContext)
+                    public Task<bool> IsAvailableAsync(CloudBlobLocationMode? locationMode)
                     {
-                        AssertConfigLocationMode(_config, options);
-                        return await Task.FromResult(false);
+                        AssertConfigLocationMode(_config, locationMode);
+                        return Task.FromResult(false);
                     }
                 }
 
@@ -205,9 +202,9 @@ namespace NuGetGallery.Services
                         _config = config;
                     }
 
-                    public async Task<bool> IsAvailableAsync(BlobRequestOptions options, OperationContext operationContext)
+                    public async Task<bool> IsAvailableAsync(CloudBlobLocationMode? locationMode)
                     {
-                        AssertConfigLocationMode(_config, options);
+                        AssertConfigLocationMode(_config, locationMode);
                         // Just to go async.
                         await Task.Yield();
                         throw new Exception("Boo"); 

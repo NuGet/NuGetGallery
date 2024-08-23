@@ -71,3 +71,69 @@
 .alert-danger {
   .alert-variant(@alert-danger-bg; @alert-danger-border; @alert-danger-text);
 }
+
+
+.alert-brand-a {
+  a {
+    color: var(--brandForegroundLinkRest);
+    text-decoration: underline;
+    
+    &:hover,
+    &:focus {
+      color: var(--brandForegroundLinkHover);
+    }
+  }
+}
+
+.alert-brand-info {
+  .alert-brand-a();
+
+  i {
+    color: var(--neutralForeground3Rest);
+  }
+  
+  background-color: var(--neutralBackground3Rest);
+  border: 2px solid var(--neutralStroke1Rest);
+  border-radius: 4px;
+}
+
+.alert-brand-warning {
+  .alert-brand-a();
+
+  i {
+    color: var(--statusWarningForeground1Rest);
+  }
+  
+  background-color: var(--statusWarningBackground1Rest);
+  border: 2px solid var(--statusWarningStroke1Rest);
+  border-radius: 4px;
+}
+
+.alert-brand-success {
+  .alert-brand-a();
+
+  i {
+    color: var(--statusSuccessForeground1Rest);
+  }
+
+  background-color: var(--statusSuccessBackground1Rest);
+  border: 2px solid var(--statusSuccessStroke1Rest);
+  border-radius: 4px;
+}
+
+.alert-brand-danger{
+  i {
+    color: var(--statusDangerForeground1Rest);
+  }
+  a {
+    color: var(--brandForegroundLinkRest);
+
+    &:hover,
+    &:focus {
+      color: var(--brandForegroundLinkHover);
+    }
+  }
+  background-color: var(--statusDangerBackground1Rest);
+  border: 2px solid var(--statusDangerStroke1Rest);
+  border-radius: 4px;
+}

@@ -206,7 +206,6 @@
 
 @helper CommandPanel(PackageManagerViewModel packageManager, bool active)
 {
-    var thirdPartyPackageManager = packageManager as ThirdPartyPackageManagerViewModel;
     <div role="tabpanel" class="tab-pane @(active ? "active" : string.Empty)" id="@packageManager.Id">
         <div class="install-script-row">
             @{
@@ -214,14 +213,16 @@
                 var cs = packageManager.InstallPackageCommands.Select((c, i) => i < lastIndex ? c + Environment.NewLine : c);
             }
             @* Writing out the install command must be on a single line to avoid undesired whitespace in the <pre> tag. *@
-            <pre class="install-script" id="@packageManager.Id-text">@foreach (var c in cs) {<span class="install-command-row">@c</span>}</pre>
-            <div class="copy-button">
-                <button id="@packageManager.Id-button" class="btn btn-default btn-warning" type="button"
-                        data-toggle="popover" data-placement="bottom" data-content="Copied."
-                        aria-label="@packageManager.CopyLabel" role="button">
-                    <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
-                </button>
-            </div>
+            <pre class="install-script" id="@packageManager.Id-text">@foreach (var c in cs) {<span class="install-command-row">@c</span>}
+                <div class="copy-button">
+                    <button id="@packageManager.Id-button" class="btn btn-brand-icon" type="button" 
+                    data-toggle="popover" data-placement="bottom" data-content="Copied."
+                    aria-label="@packageManager.CopyLabel" role="button">
+                        <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
+                        <span>Copy</span>
+                    </button>
+                </div>
+            </pre>
         </div>
 
         @switch (packageManager.AlertLevel)
@@ -267,9 +268,8 @@
                     <div class="package-title">
                         <h1>
                             <span class="pull-left">
-                                <img class="package-icon img-responsive" aria-hidden="true" alt=""
-                                     src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) && Model.ShowDetailsAndLinks ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
-                                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
+                                <img class="package-icon img-responsive @(PackageHelper.ShouldRenderUrl(Model.IconUrl) && Model.ShowDetailsAndLinks ? null : "package-default-icon")" aria-hidden="true" alt=""
+                                     src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) && Model.ShowDetailsAndLinks ? Model.IconUrl : null)" @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
                             </span>
                             <span class="title">
                                 @Html.BreakWord(Model.Id)
@@ -282,11 +282,8 @@
                         @if (Model.IsVerified.HasValue && Model.IsVerified.Value)
                         {
                             <span class="prefix-reserve-title">
-                                <img class="reserved-indicator"
-                                     src="~/Content/gallery/img/reserved-indicator.svg"
-                                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-25x25.png"))
-                                     data-content="@Strings.ReservedNamespace_ReservedIndicatorTooltip" tabindex="0"
-                                     alt="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
+                                <i class="ms-Icon ms-Icon--SkypeCircleCheck reserved-indicator" data-content="@Strings.ReservedNamespace_ReservedIndicatorTooltip" tabindex="0"
+                                   alt="@Strings.ReservedNamespace_ReservedIndicatorTooltip"></i>
                                 <a href="https://docs.microsoft.com/nuget/nuget-org/id-prefix-reservation" class="prefix-reserve-label">
                                     Prefix Reserved
                                 </a>
@@ -802,29 +799,26 @@
                                     <table class="table borderless" aria-label="Packages that depend on @Model.Id">
                                         <thead>
                                             <tr>
-                                                <th class="used-by-adjust-table-head" scope="col" role="columnheader" tabindex="0">Package</th>
-                                                <th class="used-by-adjust-table-head" scope="col" role="columnheader" tabindex="0">Downloads</th>
+                                                <th class="used-by-adjust-table-head" scope="col" role="columnheader">Package</th>
+                                                <th class="used-by-adjust-table-head" scope="col" role="columnheader">Downloads</th>
                                             </tr>
                                         </thead>
                                         <tbody class="no-border">
                                             @foreach (var item in Model.PackageDependents.TopPackages)
                                             {
                                                 <tr>
-                                                    <td class="used-by-desc-column" tabindex="0">
+                                                    <td class="used-by-desc-column">
                                                         <a class="text-left ngp-link" href="@Url.Package(item.Id)">
                                                             @(item.Id)
                                                         </a>
                                                         @if (item.IsVerified)
                                                         {
-                                                            <img class="reserved-indicator"
-                                                                 src="~/Content/gallery/img/reserved-indicator.svg"
-                                                                 @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-14x14.png"))
-                                                                 alt="@Strings.ReservedNamespace_ReservedIndicatorTooltip"
-                                                                 title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
+                                                            <i class="ms-Icon ms-Icon--SkypeCircleCheck reserved-indicator" title="@Strings.ReservedNamespace_ReservedIndicatorTooltip"
+                                                               alt="@Strings.ReservedNamespace_ReservedIndicatorTooltip"></i>
                                                         }
                                                         <p class="used-by-desc">@item.Description</p>
                                                     </td>
-                                                    <td tabindex="0">
+                                                    <td>
                                                         <i class="ms-Icon ms-Icon--Download used-by-download-icon" aria-hidden="true"></i> <label class="used-by-count">@(item.DownloadCount.ToKiloFormat())</label>
                                                     </td>
                                                 </tr>
@@ -856,15 +850,15 @@
                                     <table class="table borderless" aria-label="GitHub repositories that depend on @Model.Id">
                                         <thead>
                                             <tr>
-                                                <th class="used-by-adjust-table-head" scope="col" role="columnheader" tabindex="0">Repository</th>
-                                                <th class="used-by-adjust-table-head" scope="col" role="columnheader" tabindex="0">Stars</th>
+                                                <th class="used-by-adjust-table-head" scope="col" role="columnheader">Repository</th>
+                                                <th class="used-by-adjust-table-head" scope="col" role="columnheader">Stars</th>
                                             </tr>
                                         </thead>
                                         <tbody class="no-border">
                                             @foreach (var item in Model.GitHubDependenciesInformation.Repos.Select((elem, i) => new { Value = elem, Idx = i }))
                                             {
                                                 <tr>
-                                                    <td class="used-by-desc-column" tabindex="0">
+                                                    <td class="used-by-desc-column">
                                                         <a data-index-number="@item.Idx" class="text-left gh-link" href="@item.Value.Url" target="_blank">
                                                             @(item.Value.Id)
                                                         </a>
@@ -872,7 +866,7 @@
                                                             <span>@(item.Value.Description)</span>
                                                         </div>
                                                     </td>
-                                                    <td tabindex="0">
+                                                    <td>
                                                         <i class="ms-Icon ms-Icon--FavoriteStarFill gh-star" aria-hidden="true"></i> <label class="used-by-count">@(item.Value.Stars.ToKiloFormat())</label>
                                                     </td>
                                                 </tr>
@@ -899,12 +893,12 @@
                         <table aria-label="Version History of @Model.Id" class="table borderless">
                             <thead>
                                 <tr>
-                                    <th scope="col" role="columnheader" tabindex="0">Version</th>
-                                    <th scope="col" role="columnheader" tabindex="0">Downloads</th>
-                                    <th scope="col" role="columnheader" tabindex="0">Last updated</th>
+                                    <th scope="col" role="columnheader">Version</th>
+                                    <th scope="col" role="columnheader">Downloads</th>
+                                    <th scope="col" role="columnheader">Last updated</th>
                                     @if (Model.CanDisplayPrivateMetadata)
                                     {
-                                        <th scope="col" role="columnheader" tabindex="0">Status</th>
+                                        <th scope="col" role="columnheader">Status</th>
                                     }
                                     @if (Model.IsCertificatesUIEnabled)
                                     {
@@ -922,16 +916,16 @@
                                     if ((packageVersion.Available && packageVersion.Listed && Model.ShowDetailsAndLinks)
                                         || (!packageVersion.Deleted && Model.CanDisplayPrivateMetadata))
                                     {
-                                        <tr class="@(packageVersion.IsCurrent(Model) ? "bg-info" : null)">
-                                            <td tabindex="0">
+                                        <tr class="@(packageVersion.IsCurrent(Model) ? "bg-brand-info" : null)">
+                                            <td>
                                                 <a href="@Url.Package(packageVersion)" title="@packageVersion.Version">
                                                     @packageVersion.Version.Abbreviate(30)
                                                 </a>
                                             </td>
-                                            <td tabindex="0">
+                                            <td>
                                                 @packageVersion.DownloadCount.ToNuGetNumberString()
                                             </td>
-                                            <td tabindex="0">
+                                            <td>
                                                 <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetShortDateString()</span>
                                                 @if (packageVersion.PushedBy != null)
                                                 {
@@ -944,7 +938,7 @@
                                             {
                                                 var packageStatusSummary = packageVersion.PackageStatusSummary;
 
-                                                <td tabindex="0">
+                                                <td>
                                                     @if (packageStatusSummary == PackageStatusSummary.Listed ||
                                                             packageStatusSummary == PackageStatusSummary.Unlisted)
                                                     {
@@ -965,7 +959,7 @@
                                                 }
                                                 else
                                                 {
-                                                    <td tabindex="0" class="package-icon-cell">
+                                                    <td class="package-icon-cell">
                                                         <i class="ms-Icon ms-Icon--Ribbon package-icon" title="@packageVersion.SignatureInformation"></i>
                                                     </td>
                                                 }
@@ -977,8 +971,18 @@
                                             }
                                             else
                                             {
-                                                <td tabindex="0" class="package-icon-cell package-warning-icon" aria-label="@packageVersion.PackageWarningIconTitle">
-                                                    <i class="ms-Icon ms-Icon--Warning package-icon" title="@packageVersion.PackageWarningIconTitle"></i>
+                                                <td class="package-icon-cell package-warning-icon">
+                                                    <a class="tooltip-target tooltip-icon--black-icon" href="javascript:void(0)" role="button"  aria-describedby="package-icon-@packageVersion.Version" >
+                                                        <i class="ms-Icon ms-Icon--Warning package-icon"></i>
+                                                        <span class="tooltip-block" role="tooltip" id="package-icon-@packageVersion.Version">
+                                                            <span class="tooltip-wrapper tooltip-with-icon popover right">
+                                                                <span class="arrow"></span>
+                                                                <span class="popover-content">
+                                                                    @packageVersion.PackageWarningIconTitle
+                                                                </span>
+                                                            </span>
+                                                        </span>
+                                                    </a>
                                                 </td>
                                             }
                                         </tr>
@@ -986,16 +990,16 @@
                                     else if (packageVersion.Deleted && packageVersion.CanDisplayPrivateMetadata)
                                     {
                                         <tr class="deleted">
-                                            <td tabindex="0" class="version">
+                                            <td class="version">
                                                 @packageVersion.Version
                                             </td>
-                                            <td tabindex="0">
+                                            <td>
                                                 @packageVersion.DownloadCount
                                             </td>
-                                            <td tabindex="0">
+                                            <td>
                                                 <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetShortDateString()</span>
                                             </td>
-                                            <td tabindex="0">
+                                            <td>
                                                 Deleted
                                             </td>
                                             <td colspan="2"></td>
@@ -1071,9 +1075,7 @@
                             {
                                 case DisplayPackageViewModel.RepositoryKind.GitHub:
                                 case DisplayPackageViewModel.RepositoryKind.Git:
-                                    <img class="icon" aria-hidden="true" alt="Git logo"
-                                            src="@Url.Absolute("~/Content/gallery/img/git.svg")"
-                                            @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/git-32x32.png")) />
+                                    <div class="git-image-icon icon" aria-hidden="true" role="img" alt="Git logo"></div>
                                     break;
                                 default:
                                     <i class="ms-Icon ms-Icon--Code" aria-hidden="true"></i>
@@ -1162,6 +1164,23 @@
                                 aria-label="open in fuget.org explorer"
                                 title="Explore additional package info on fuget.org" target="_blank" rel="nofollow noreferrer">
                                 Open in FuGet Package Explorer
+                            </a>
+                        </li>
+                    }
+
+                    @if (Model.CanDisplayNuGetTrendsLink() && Model.ShowDetailsAndLinks)
+                    {
+                        var disclaimer = "nugettrends.com is a 3rd party website, not controlled by Microsoft. This link is made available to you per the NuGet Terms of Use.";
+
+                        <li>
+                            <img class="icon nuget-trends-icon"
+                                 aria-label="@disclaimer" title="@disclaimer"
+                                 src="@Url.Absolute("~/Content/gallery/img/nuget-trends.svg")"
+                                 @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/nuget-trends-32x32.png")) />
+                            <a href="@Model.NuGetTrendsUrl" data-track="outbound-nuget-trends-url"
+                               aria-label="open in nugetrends.com"
+                               title="Explore download trends on nugettrends.com" target="_blank" rel="nofollow noreferrer">
+                                Open in NuGet Trends
                             </a>
                         </li>
                     }

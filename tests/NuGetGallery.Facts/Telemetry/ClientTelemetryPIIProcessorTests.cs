@@ -240,7 +240,7 @@ namespace NuGetGallery.Telemetry
             var piiRoutes = _currentRoutes.Where((r) =>
             {
                 Route webRoute = r as Route;
-                return webRoute != null ? IsPIIUrl(webRoute.Url.ToString()) : false;
+                return webRoute != null ? IsPIIUrl(webRoute.Url) : false;
             }).Select((r) =>
             {
                 var dd = ((Route)r).Defaults;
@@ -255,7 +255,7 @@ namespace NuGetGallery.Telemetry
             var piiRoutes = _currentRoutes.Where((r) =>
             {
                 Route webRoute = r as Route;
-                return webRoute != null ? IsPIIUrl(webRoute.Url.ToString()) : false;
+                return webRoute != null ? IsPIIUrl(webRoute.Url) : false;
             }).Select((r) => ((Route)r).Url).Distinct().ToList();
 
             return piiRoutes;
@@ -304,7 +304,7 @@ namespace NuGetGallery.Telemetry
                 yield return new string[] { "profiles/{accountName}/avatar", $"https://localhost/profiles/{user}/avatar", "https://localhost/profiles/ObfuscatedUserName/avatar" };
             }
 
-            yield return new string[] { "account/transform/cancel/{token}", $"https://localhost/account/transform/cancel/sometoken", "https://localhost/account/transform/cancel/ObfuscatedToken" };
+            yield return new string[] { "account/transform/cancel/{token}", "https://localhost/account/transform/cancel/sometoken", "https://localhost/account/transform/cancel/ObfuscatedToken" };
         }
 
         public static List<string> GenerateUserNames()

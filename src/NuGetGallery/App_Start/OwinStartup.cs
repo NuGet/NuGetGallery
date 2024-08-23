@@ -9,11 +9,9 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Hosting;
 using System.Web.Http;
 using System.Web.Mvc;
-using Elmah;
 using Microsoft.Owin;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
@@ -24,7 +22,6 @@ using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.Cookie;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
-using NuGetGallery.Infrastructure;
 using Owin;
 
 [assembly: OwinStartup(typeof(NuGetGallery.OwinStartup))]
@@ -54,10 +51,6 @@ namespace NuGetGallery
             // Register IoC
             app.UseAutofacInjection(GlobalConfiguration.Configuration);
             var dependencyResolver = DependencyResolver.Current;
-
-            // Register Elmah
-            var elmahServiceCenter = new DependencyResolverServiceProviderAdapter(dependencyResolver);
-            ServiceCenter.Current = _ => elmahServiceCenter;
 
             // Get config
             var config = dependencyResolver.GetService<IGalleryConfigurationService>();
@@ -178,24 +171,6 @@ namespace NuGetGallery
                 catch (Exception)
                 {
                     // this is a tragic moment... swallow Exception to prevent crashing IIS
-                }
-
-                // Send to ELMAH
-                try
-                {
-                    HttpContext current = HttpContext.Current;
-                    if (current != null)
-                    {
-                        var errorSignal = ErrorSignal.FromContext(current);
-                        if (errorSignal != null)
-                        {
-                            errorSignal.Raise(exArgs.Exception, current);
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-                    // more tragedy... swallow Exception to prevent crashing IIS
                 }
 
                 exArgs.SetObserved();

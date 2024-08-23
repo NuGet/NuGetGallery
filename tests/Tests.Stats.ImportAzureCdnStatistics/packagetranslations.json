@@ -1,0 +1,22 @@
+﻿{
+  "translations": [
+    {
+      "incorrectpackageid": "package4",
+      "incorrectpackageversionpattern": "0.(.*)",
+      "correctedpackageid": "package4.0",
+      "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "package4",
+      "incorrectpackageversionpattern": "5.(.*)",
+      "correctedpackageid": "package4.5",
+      "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "Microsoft.VisualStudio.Shell.15",
+      "incorrectpackageversionpattern": "0.(.*)",
+      "correctedpackageid": "Microsoft.VisualStudio.Shell.15.0",
+      "correctedpackageversionpattern": "$1"
+    }
+  ]
+}

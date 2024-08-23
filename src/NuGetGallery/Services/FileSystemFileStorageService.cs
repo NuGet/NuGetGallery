@@ -1,5 +1,7 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using NuGetGallery.Configuration;
 
 using System;
 using System.Collections.Generic;
@@ -8,8 +10,6 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Web.Hosting;
 using System.Web.Mvc;
-using Microsoft.WindowsAzure.Storage.Blob;
-using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
@@ -24,7 +24,7 @@ namespace NuGetGallery
             _fileSystemService = fileSystemService;
         }
 
-        public Task<ActionResult> CreateDownloadFileActionResultAsync(Uri requestUrl, string folderName, string fileName)
+        public Task<ActionResult> CreateDownloadFileActionResultAsync(Uri requestUrl, string folderName, string fileName, string versionParameter)
         {
             if (string.IsNullOrWhiteSpace(folderName))
             {
@@ -255,7 +255,7 @@ namespace NuGetGallery
             throw new NotImplementedException();
         }
 
-        public Task<Uri> GetPriviledgedFileUriAsync(string folderName, string fileName, FileUriPermissions permissions, DateTimeOffset endOfAccess)
+        public Task<Uri> GetPrivilegedFileUriAsync(string folderName, string fileName, FileUriPermissions permissions, DateTimeOffset endOfAccess)
         {
             /// Not implemented for the same reason as <see cref="GetFileReadUriAsync(string, string, DateTimeOffset?)"/>.
             throw new NotImplementedException();
@@ -271,8 +271,8 @@ namespace NuGetGallery
 
         public Task SetPropertiesAsync(
             string folderName,
-            string fileName, 
-            Func<Lazy<Task<Stream>>, BlobProperties, Task<bool>> updatePropertiesAsync)
+            string fileName,
+            Func<Lazy<Task<Stream>>, ICloudBlobProperties, Task<bool>> updatePropertiesAsync)
         {
             return Task.CompletedTask;
         }
@@ -308,9 +308,6 @@ namespace NuGetGallery
                 case CoreConstants.Folders.PackagesFolderName:
                 case CoreConstants.Folders.SymbolPackagesFolderName:
                     return CoreConstants.PackageContentType;
-
-                case CoreConstants.Folders.DownloadsFolderName:
-                    return CoreConstants.OctetStreamContentType;
 
                 default:
                     throw new InvalidOperationException(

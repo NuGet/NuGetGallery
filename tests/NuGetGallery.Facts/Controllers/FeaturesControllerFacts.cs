@@ -17,6 +17,9 @@ using NuGetGallery.Framework;
 using NuGetGallery.Shared;
 using Xunit;
 
+// Justification: the member data is provided by child classes.
+#pragma warning disable xUnit1015 // MemberData must reference an existing member
+
 namespace NuGetGallery.Controllers
 {
     public class FeaturesControllerFacts
@@ -72,6 +75,20 @@ namespace NuGetGallery.Controllers
                 new[] { ValidDisabledModel, ValidEnabledModel };
 
             public static IEnumerable<object[]> ValidModelsWithLastUpdated_Data
+            {
+                get
+                {
+                    foreach (var hasLastUpdated in new[] { false, true })
+                    {
+                        foreach (var model in ValidModels)
+                        {
+                            yield return MemberDataHelper.AsData(hasLastUpdated, model);
+                        }
+                    }
+                }
+            }
+
+            public static IEnumerable<object[]> ValidModelsWithLastUpdatedAndFlags_Data
             {
                 get
                 {
@@ -154,6 +171,20 @@ namespace NuGetGallery.Controllers
                     {
                         foreach (var model in ValidModels)
                         {
+                            yield return MemberDataHelper.AsData(hasLastUpdated, model);
+                        }
+                    }
+                }
+            }
+
+            public static IEnumerable<object[]> ValidModelsWithLastUpdatedAndFlags_Data
+            {
+                get
+                {
+                    foreach (var hasLastUpdated in new[] { false, true })
+                    {
+                        foreach (var model in ValidModels)
+                        {
                             yield return MemberDataHelper.AsData(hasLastUpdated, model, GetValidFlags(model));
                         }
                     }
@@ -218,6 +249,20 @@ namespace NuGetGallery.Controllers
                 new[] { ValidDeleteFeature1Model, ValidDeleteFeature2Model };
 
             public static IEnumerable<object[]> ValidModelsWithLastUpdated_Data
+            {
+                get
+                {
+                    foreach (var hasLastUpdated in new[] { false, true })
+                    {
+                        foreach (var model in ValidModels)
+                        {
+                            yield return MemberDataHelper.AsData(hasLastUpdated, model);
+                        }
+                    }
+                }
+            }
+
+            public static IEnumerable<object[]> ValidModelsWithLastUpdatedAndFlags_Data
             {
                 get
                 {
@@ -317,6 +362,20 @@ namespace NuGetGallery.Controllers
                     {
                         foreach (var model in ValidModels)
                         {
+                            yield return MemberDataHelper.AsData(hasLastUpdated, model);
+                        }
+                    }
+                }
+            }
+
+            public static IEnumerable<object[]> ValidModelsWithLastUpdatedAndFlags_Data
+            {
+                get
+                {
+                    foreach (var hasLastUpdated in new[] { false, true })
+                    {
+                        foreach (var model in ValidModels)
+                        {
                             yield return MemberDataHelper.AsData(hasLastUpdated, model, GetValidFlags(model));
                         }
                     }
@@ -326,13 +385,12 @@ namespace NuGetGallery.Controllers
             public static IEnumerable<object[]> ReturnsViewWithFailureForExisting_Data =>
                 MemberDataHelper
                     .Combine(
-                        MemberDataHelper.BooleanDataSet(),
-                        MemberDataHelper.EnumDataSet<FeatureStatus>())
+                        MemberDataHelper.BooleanDataSet())
                     .ToList();
 
             [Theory]
             [MemberData(nameof(ReturnsViewWithFailureForExisting_Data))]
-            public Task ReturnsViewWithFailureForExisting(bool hasLastUpdated, FeatureStatus status)
+            public Task ReturnsViewWithFailureForExisting(bool hasLastUpdated)
             {
                 var model = new ModifyFeatureFlagsFlightViewModel
                 {
@@ -403,6 +461,20 @@ namespace NuGetGallery.Controllers
                     {
                         foreach (var model in ValidModels)
                         {
+                            yield return MemberDataHelper.AsData(hasLastUpdated, model);
+                        }
+                    }
+                }
+            }
+
+            public static IEnumerable<object[]> ValidModelsWithLastUpdatedAndFlags_Data
+            {
+                get
+                {
+                    foreach (var hasLastUpdated in new[] { false, true })
+                    {
+                        foreach (var model in ValidModels)
+                        {
                             yield return MemberDataHelper.AsData(hasLastUpdated, model, GetValidFlags(model));
                         }
                     }
@@ -411,12 +483,11 @@ namespace NuGetGallery.Controllers
 
             public static IEnumerable<object[]> ReturnsViewWithFailureForExisting_Data =>
                 MemberDataHelper.Combine(
-                    MemberDataHelper.BooleanDataSet(),
-                    MemberDataHelper.EnumDataSet<FeatureStatus>());
+                    MemberDataHelper.BooleanDataSet());
 
             [Theory]
             [MemberData(nameof(ReturnsViewWithFailureForExisting_Data))]
-            public Task ReturnsViewWithFailureForMissing(bool hasLastUpdated, FeatureStatus status)
+            public Task ReturnsViewWithFailureForMissing(bool hasLastUpdated)
             {
                 var model = new ModifyFeatureFlagsFlightViewModel
                 {
@@ -477,6 +548,20 @@ namespace NuGetGallery.Controllers
                     {
                         foreach (var model in ValidModels)
                         {
+                            yield return MemberDataHelper.AsData(hasLastUpdated, model);
+                        }
+                    }
+                }
+            }
+
+            public static IEnumerable<object[]> ValidModelsWithLastUpdatedAndFlags_Data
+            {
+                get
+                {
+                    foreach (var hasLastUpdated in new[] { false, true })
+                    {
+                        foreach (var model in ValidModels)
+                        {
                             yield return MemberDataHelper.AsData(hasLastUpdated, model, GetValidFlags(model));
                         }
                     }
@@ -485,12 +570,11 @@ namespace NuGetGallery.Controllers
 
             public static IEnumerable<object[]> ReturnsViewWithFailureForExisting_Data =>
                 MemberDataHelper.Combine(
-                    MemberDataHelper.BooleanDataSet(),
-                    MemberDataHelper.EnumDataSet<FeatureStatus>());
+                    MemberDataHelper.BooleanDataSet());
 
             [Theory]
             [MemberData(nameof(ReturnsViewWithFailureForExisting_Data))]
-            public Task ReturnsViewWithFailureForMissing(bool hasLastUpdated, FeatureStatus status)
+            public Task ReturnsViewWithFailureForMissing(bool hasLastUpdated)
             {
                 var model = new ModifyFeatureFlagsFlightViewModel
                 {
@@ -555,7 +639,7 @@ namespace NuGetGallery.Controllers
             protected abstract Task<ActionResult> InvokeAsync(FeaturesController controller, IModifyFeatureFlagsViewModel model);
 
             [Theory]
-            [MemberData("ValidModelsWithLastUpdated_Data")]
+            [MemberData("ValidModelsWithLastUpdatedAndFlags_Data")]
             public async Task ReturnsViewWithChange(
                 bool hasLastUpdated,
                 IModifyFeatureFlagsViewModel model,
@@ -597,10 +681,9 @@ namespace NuGetGallery.Controllers
             [MemberData("ValidModelsWithLastUpdated_Data")]
             public Task ReturnsViewWithSaveErrorConflict(
                 bool hasLastUpdated,
-                IModifyFeatureFlagsViewModel validModel,
-                FeatureFlags flags)
+                IModifyFeatureFlagsViewModel validModel)
             {
-                return ReturnsViewWithSaveErrorConflict(
+                return InternalReturnsViewWithSaveErrorConflict(
                     hasLastUpdated,
                     validModel,
                     ContentSaveResult.Conflict,
@@ -611,17 +694,16 @@ namespace NuGetGallery.Controllers
             [MemberData("ValidModelsWithLastUpdated_Data")]
             public Task ReturnsViewWithSaveErrorUnknown(
                 bool hasLastUpdated,
-                IModifyFeatureFlagsViewModel validModel,
-                FeatureFlags flags)
+                IModifyFeatureFlagsViewModel validModel)
             {
-                return ReturnsViewWithSaveErrorConflict(
+                return InternalReturnsViewWithSaveErrorConflict(
                     hasLastUpdated,
                     validModel,
                     (ContentSaveResult)99,
                     "Unknown save result '99'.");
             }
 
-            private async Task ReturnsViewWithSaveErrorConflict(
+            private async Task InternalReturnsViewWithSaveErrorConflict(
                 bool hasLastUpdated,
                 IModifyFeatureFlagsViewModel validModel,
                 ContentSaveResult saveResult,
@@ -650,8 +732,7 @@ namespace NuGetGallery.Controllers
             [MemberData("ValidModelsWithLastUpdated_Data")]
             public Task ReturnsViewWithModelErrors(
                 bool hasLastUpdated,
-                IModifyFeatureFlagsViewModel model,
-                FeatureFlags flags) // I have kept this parameter to reduce the need to make another data function without it.
+                IModifyFeatureFlagsViewModel model)
             {
                 var modelState = GetController<FeaturesController>().ModelState;
                 modelState.AddModelError("key1", "error1");
@@ -667,8 +748,7 @@ namespace NuGetGallery.Controllers
             [MemberData("ValidModelsWithLastUpdated_Data")]
             public Task ReturnsViewWithModelErrorWithNoMessage(
                 bool hasLastUpdated,
-                IModifyFeatureFlagsViewModel model,
-                FeatureFlags flags) // I have kept this parameter to reduce the need to make another data function without it.
+                IModifyFeatureFlagsViewModel model)
             {
                 var modelState = GetController<FeaturesController>().ModelState;
                 modelState.AddModelError("key", string.Empty);

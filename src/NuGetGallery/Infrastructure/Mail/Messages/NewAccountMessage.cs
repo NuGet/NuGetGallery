@@ -26,7 +26,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
         protected override string GetMarkdownBody()
         {
-            return $@"Thank you for {(IsOrganization ? $"creating an organization on the" : $"registering with the")} {Configuration.GalleryOwner.DisplayName}.
+            return $@"Thank you for {(IsOrganization ? "creating an organization on the" : "registering with the")} {Configuration.GalleryOwner.DisplayName}.
 We can't wait to see what packages you'll upload.
 
 So we can be sure to contact you, please verify your email address using the following link:
