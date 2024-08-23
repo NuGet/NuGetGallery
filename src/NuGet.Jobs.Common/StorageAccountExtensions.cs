@@ -7,20 +7,18 @@ using Autofac.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using NuGet.Services.Configuration;
 using NuGetGallery;
 
 namespace NuGet.Jobs
 {
     public static class StorageAccountHelper
     {
-        private const string StorageUseManagedIdentityPropertyName = "Storage_UseManagedIdentity";
-        private const string StorageManagedIdentityClientIdPropertyName = "Storage_ManagedIdentityClientId";
-
         public static IServiceCollection ConfigureStorageMsi(
             this IServiceCollection serviceCollection,
             IConfiguration configuration,
-            string useManageIdentityPropertyName = null,
-            string managedIdentityClientIdPropertyName = null)
+            string storageUseManagedIdentityPropertyName = null,
+            string storageManagedIdentityClientIdPropertyName = null)
         {
             if (serviceCollection == null)
             {
@@ -31,12 +29,16 @@ namespace NuGet.Jobs
                 throw new ArgumentNullException(nameof(configuration));
             }
 
-            useManageIdentityPropertyName ??= StorageUseManagedIdentityPropertyName;
-            managedIdentityClientIdPropertyName ??= StorageManagedIdentityClientIdPropertyName;
+            storageUseManagedIdentityPropertyName ??= Constants.StorageUseManagedIdentityPropertyName;
+            storageManagedIdentityClientIdPropertyName ??= Constants.StorageManagedIdentityClientIdPropertyName;
 
-            string useManagedIdentityStr = configuration[useManageIdentityPropertyName];
-            string managedIdentityClientId = configuration[managedIdentityClientIdPropertyName];
+            string useManagedIdentityStr = configuration[storageUseManagedIdentityPropertyName];
             bool useManagedIdentity = false;
+
+            string managedIdentityClientId = string.IsNullOrWhiteSpace(configuration[storageManagedIdentityClientIdPropertyName])
+                                                ? configuration[Constants.ManagedIdentityClientIdKey]
+                                                : configuration[storageManagedIdentityClientIdPropertyName];
+
             if (!string.IsNullOrWhiteSpace(useManagedIdentityStr))
             {
                 useManagedIdentity = bool.Parse(useManagedIdentityStr);
