@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+    <Compile Remove="ServiceProviderExtensions.cs" />
     <Compile Remove="Storage\IValidatorStateService.cs" />
     <Compile Remove="Storage\ValidatorStateService.cs" />
     <Compile Remove="Storage\ValidatorStatusExtensions.cs" />
