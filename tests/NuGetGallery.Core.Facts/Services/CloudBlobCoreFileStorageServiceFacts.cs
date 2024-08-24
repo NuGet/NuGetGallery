@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -837,6 +837,43 @@ namespace NuGetGallery
                 fakeBlob.Verify(
                     b => b.GetSharedAccessSignature(It.IsAny<FileUriPermissions>(),
                     It.IsAny<DateTimeOffset>()), Times.Once);
+            }
+
+            [Fact]
+            public async Task GetDelegationSasAsync_ShouldReturnValidSasToken()
+            {
+                // Arrange
+                var mockSasTokenService = new Mock<ISimpleCloudBlob>();
+                var permissions = FileUriPermissions.Read;
+                var endOfAccess = DateTimeOffset.UtcNow.AddHours(1);
+                var expectedSasToken = "mocked_sas_token";
+
+                mockSasTokenService
+                    .Setup(service => service.GetDelegationSasAsync(permissions, endOfAccess))
+                    .ReturnsAsync(expectedSasToken);
+
+                // Act
+                string sasToken = await mockSasTokenService.Object.GetDelegationSasAsync(permissions, endOfAccess);
+
+                // Assert
+                Assert.Equal(expectedSasToken, sasToken);
+            }
+
+            [Fact]
+            public async Task GetDelegationSasAsync_ShouldThrowExceptionForInvalidInputs()
+            {
+                // Arrange
+                var mockSasTokenService = new Mock<ISimpleCloudBlob>();
+                var permissions = FileUriPermissions.Read;
+                var endOfAccess = DateTimeOffset.UtcNow.AddHours(-1); // Invalid duration, already expired
+
+                mockSasTokenService
+                    .Setup(service => service.GetDelegationSasAsync(permissions, endOfAccess))
+                    .ThrowsAsync(new InvalidOperationException("Invalid access duration"));
+
+                // Act & Assert
+                await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                    mockSasTokenService.Object.GetDelegationSasAsync(permissions, endOfAccess));
             }
 
             private static Tuple<Mock<ICloudBlobClient>, Mock<ISimpleCloudBlob>, Uri> Setup(string folderName, string fileName)
