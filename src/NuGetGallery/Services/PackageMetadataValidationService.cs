@@ -173,8 +173,8 @@ namespace NuGetGallery
         {
             try
             {
-                var nuspecReader = GetNuspecReader(nuGetPackage);
-                var nuspec = nuspecReader.Xml.ToStringSafe();
+                UserContentEnabledNuspecReader nuspecReader = GetNuspecReader(nuGetPackage);
+                string nuspec = nuspecReader.Xml.ToStringSafe();
 
                 nuspec.IsNormalized(NormalizationForm.FormC);
             }
@@ -185,7 +185,6 @@ namespace NuGetGallery
 
             return null;
         }
-
 
         private async Task<PackageValidationResult> CheckLicenseMetadataAsync(PackageArchiveReader nuGetPackage, List<IValidationMessage> warnings, User user)
         {
