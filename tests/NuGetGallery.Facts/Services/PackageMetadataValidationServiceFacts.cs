@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -364,9 +364,8 @@ namespace NuGetGallery
             [Fact]
             public async Task WithNonNormalizedNuspec_ReturnsInvalidPackage()
             {
-
                 // Arrange
-                var package = TestDataResourceUtility.GetResourceBytes("PackageWithInvalidUnicodeCharacters.nupkg");
+                var package = TestDataResourceUtility.GetResourceBytes("PackageWithInvalidUnicodeCharacters.1.0.0.nupkg");
                 var fakeFileStream = new MemoryStream(package);
                 var reader = new PackageArchiveReader(fakeFileStream);
 
@@ -386,7 +385,7 @@ namespace NuGetGallery
             public async Task WithNormalizedNuspec_ReturnsAcceptedPackage()
             {
                 // Arrange
-                var package = TestDataResourceUtility.GetResourceBytes("PackageWithInvalidUnicodeCharacters.nupkg");
+                var package = TestDataResourceUtility.GetResourceBytes("PackageWithValidUnicodeCharacters.1.0.0.nupkg");
                 var fakeFileStream = new MemoryStream(package);
                 var reader = new PackageArchiveReader(fakeFileStream);
 
@@ -397,8 +396,7 @@ namespace NuGetGallery
                     _currentUser);
 
                 // Assert
-                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                Assert.Equal("The package nuspec file contains invalid unicode characters.", result.Message.PlainTextMessage);
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                 Assert.Empty(result.Warnings);
             }
 

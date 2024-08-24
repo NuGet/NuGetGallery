@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -100,7 +100,7 @@ namespace NuGetGallery
         {
             var warnings = new List<IValidationMessage>();
 
-            var result = await CheckPackageEntryCountAsync(nuGetPackage, warnings);
+            PackageValidationResult result = await CheckPackageEntryCountAsync(nuGetPackage, warnings);
 
             if (result != null)
             {
@@ -113,7 +113,7 @@ namespace NuGetGallery
             {
                 return result;
             }
-
+            
             var nuspecFileEntry = nuGetPackage.GetEntry(nuGetPackage.GetNuspecFile());
             using (var nuspecFileStream = await nuGetPackage.GetNuspecAsync(CancellationToken.None))
             {
