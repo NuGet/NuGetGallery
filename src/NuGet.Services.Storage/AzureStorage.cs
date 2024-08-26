@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -418,6 +418,16 @@ namespace NuGet.Services.Storage
         private Uri ResolvePathedUri(string filename)
         {
             return ResolveUri(Path.Combine(_path, filename));
+        }
+
+        public static Uri GetPrimaryServiceUri(string storageConnectionString)
+        {
+            var tempClient = new BlobServiceClient(storageConnectionString);
+            // if _storageConnectionString has SAS token, Uri will contain SAS signature, we need to strip it 
+            var uriBuilder = new UriBuilder(tempClient.Uri);
+            uriBuilder.Query = "";
+            uriBuilder.Fragment = "";
+            return uriBuilder.Uri;
         }
     }
 }

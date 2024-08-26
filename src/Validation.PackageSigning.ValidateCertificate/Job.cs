@@ -14,6 +14,7 @@ using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.PackageSigning.Configuration;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
+using NuGet.Services.Configuration;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Storage;
 
@@ -22,10 +23,6 @@ namespace Validation.PackageSigning.ValidateCertificate
     public class Job : SubscriptionProcessorJob<CertificateValidationMessage>
     {
         private const string CertificateStoreConfigurationSectionName = "CertificateStore";
-
-        private const string StorageUseManagedIdentityPropertyName = "Storage_UseManagedIdentity";
-        private const string StorageManagedIdentityClientIdPropertyName = "Storage_ManagedIdentityClientId";
-        private const string FallbackManagedIdentityClientIdPropertyName = "ManagedIdentityClientId";
 
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
@@ -37,17 +34,17 @@ namespace Validation.PackageSigning.ValidateCertificate
 
             services.AddTransient<ICertificateStore>(p =>
             {
-                var useStorageManagedIdentity = bool.Parse(configurationRoot[StorageUseManagedIdentityPropertyName]);
+                var useStorageManagedIdentity = bool.Parse(configurationRoot[Constants.StorageUseManagedIdentityPropertyName]);
                 var config = p.GetRequiredService<IOptionsSnapshot<CertificateStoreConfiguration>>().Value;
 
                 BlobServiceClient targetStorageAccount;
                 if (useStorageManagedIdentity)
                 {
                     var managedIdentityClientId =
-                        string.IsNullOrEmpty(configurationRoot[StorageManagedIdentityClientIdPropertyName]) ?
-                        configurationRoot[FallbackManagedIdentityClientIdPropertyName] :
-                        configurationRoot[StorageManagedIdentityClientIdPropertyName];
-                    var storageAccountUri = GetStorageUri(config.DataStorageAccount);
+                        string.IsNullOrEmpty(configurationRoot[Constants.StorageManagedIdentityClientIdPropertyName]) ?
+                        configurationRoot[Constants.ManagedIdentityClientIdKey] :
+                        configurationRoot[Constants.StorageManagedIdentityClientIdPropertyName];
+                    var storageAccountUri = AzureStorage.GetPrimaryServiceUri(config.DataStorageAccount);
                     var managedIdentity = new ManagedIdentityCredential(managedIdentityClientId);
                     targetStorageAccount = new BlobServiceClient(storageAccountUri, managedIdentity);
                 }
@@ -75,16 +72,6 @@ namespace Validation.PackageSigning.ValidateCertificate
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
             ConfigureDefaultSubscriptionProcessor(containerBuilder);
-        }
-
-        private Uri GetStorageUri(string connectionString)
-        {
-            // we assume that if managed Identities are being used, the connection string should be of the form:
-            // BlobEndpoint=https://{storageAccount}.blob.core.windows.net"
-            // This method will extract the Uri to use with BlobServiceClient
-
-            var serviceUrl = connectionString.Split('=')[1];
-            return new Uri(serviceUrl);
         }
     }
 }

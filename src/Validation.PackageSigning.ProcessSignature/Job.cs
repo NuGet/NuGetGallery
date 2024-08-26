@@ -15,6 +15,7 @@ using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Jobs.Validation.PackageSigning.Telemetry;
 using NuGet.Jobs.Validation.Storage;
+using NuGet.Services.Configuration;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Storage;
 using NuGet.Services.Validation.PackageSigning.ProcessSignature;
@@ -28,10 +29,6 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
         private const string CertificateStoreConfigurationSectionName = "CertificateStore";
         private const string ProcessSignatureConfigurationSectionName = "ProcessSignature";
         private const string SasDefinitionConfigurationSectionName = "SasDefinitions";
-
-        private const string StorageUseManagedIdentityPropertyName = "Storage_UseManagedIdentity";
-        private const string StorageManagedIdentityClientIdPropertyName = "Storage_ManagedIdentityClientId";
-        private const string FallbackManagedIdentityClientIdPropertyName = "ManagedIdentityClientId";
 
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
@@ -55,17 +52,17 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
 
             services.AddTransient<ICertificateStore>(p =>
             {
-                var useStorageManagedIdentity = bool.Parse(configurationRoot[StorageUseManagedIdentityPropertyName]);
+                var useStorageManagedIdentity = bool.Parse(configurationRoot[Constants.StorageUseManagedIdentityPropertyName]);
                 var config = p.GetRequiredService<IOptionsSnapshot<CertificateStoreConfiguration>>().Value;
 
                 BlobServiceClient targetStorageAccount;
                 if (useStorageManagedIdentity)
                 {
                     var managedIdentityClientId =
-                        string.IsNullOrEmpty(configurationRoot[StorageManagedIdentityClientIdPropertyName]) ?
-                        configurationRoot[FallbackManagedIdentityClientIdPropertyName] :
-                        configurationRoot[StorageManagedIdentityClientIdPropertyName];
-                    var storageAccountUri = GetStorageUri(config.DataStorageAccount);
+                        string.IsNullOrEmpty(configurationRoot[Constants.StorageManagedIdentityClientIdPropertyName]) ?
+                        configurationRoot[Constants.ManagedIdentityClientIdKey] :
+                        configurationRoot[Constants.StorageManagedIdentityClientIdPropertyName];
+                    var storageAccountUri = AzureStorage.GetPrimaryServiceUri(config.DataStorageAccount);
                     var managedIdentity = new ManagedIdentityCredential(managedIdentityClientId);
                     targetStorageAccount = new BlobServiceClient(storageAccountUri, managedIdentity);
                 }
@@ -108,16 +105,6 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                     (pi, ctx) => pi.ParameterType == typeof(string),
                     (pi, ctx) => ValidatorName.PackageSignatureProcessor)
                 .As<IValidatorStateService>();
-        }
-
-        private Uri GetStorageUri(string connectionString)
-        {
-            // we assume that if managed Identities are being used, the connection string should be of the form:
-            // BlobEndpoint=https://{storageAccount}.blob.core.windows.net"
-            // This method will extract the Uri to use with BlobServiceClient
-
-            var serviceUrl = connectionString.Split('=')[1];
-            return new Uri(serviceUrl);
         }
     }
 }
