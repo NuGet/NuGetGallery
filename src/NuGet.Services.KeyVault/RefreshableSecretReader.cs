@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved. 
+// Copyright (c) .NET Foundation. All rights reserved. 
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information. 
 
 using System;
@@ -32,6 +32,14 @@ namespace NuGet.Services.KeyVault
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
         }
 
+        public void Refresh()
+        {
+            foreach (var secretName in _cache.Keys)
+            {
+                UncachedGetSecretObject(secretName);
+            }
+        }
+
         public async Task RefreshAsync(CancellationToken token)
         {
             foreach (var secretName in _cache.Keys)
@@ -45,19 +53,39 @@ namespace NuGet.Services.KeyVault
             }
         }
 
+        public string GetSecret(string secretName)
+        {
+            return GetSecret(secretName, logger: null);
+        }
+
+        public string GetSecret(string secretName, ILogger logger)
+        {
+            return GetSecretObject(secretName, logger).Value;
+        }
+
         public Task<string> GetSecretAsync(string secretName)
         {
             return GetSecretAsync(secretName, logger: null);
         }
 
-        public Task<string> GetSecretAsync(string secretName, ILogger logger)
+        public async Task<string> GetSecretAsync(string secretName, ILogger logger)
+        {
+            return (await GetSecretObjectAsync(secretName, logger)).Value;
+        }
+
+        public ISecret GetSecretObject(string secretName)
+        {
+            return GetSecretObject(secretName, logger: null);
+        }
+
+        public ISecret GetSecretObject(string secretName, ILogger logger)
         {
             if (TryGetCachedSecretObject(secretName, out var secret))
             {
-                return Task.FromResult(secret.Value);
+                return secret;
             }
 
-            return UncachedGetSecretAsync(secretName);
+            return UncachedGetSecretObject(secretName);
         }
 
         public Task<ISecret> GetSecretObjectAsync(string secretName)
@@ -108,10 +136,11 @@ namespace NuGet.Services.KeyVault
         public bool TryGetCachedSecretObject(string secretName, out ISecret secretObject)
             => TryGetCachedSecretObject(secretName, logger: null, secretObject: out secretObject);
 
-        private async Task<string> UncachedGetSecretAsync(string secretName)
+        private ISecret UncachedGetSecretObject(string secretName)
         {
-            var secretObject = await UncachedGetSecretObjectAsync(secretName);
-            return secretObject.Value;
+            var secretObject = _secretReader.GetSecretObject(secretName);
+            _cache.AddOrUpdate(secretName, secretObject, (_, __) => secretObject);
+            return secretObject;
         }
 
         private async Task<ISecret> UncachedGetSecretObjectAsync(string secretName)

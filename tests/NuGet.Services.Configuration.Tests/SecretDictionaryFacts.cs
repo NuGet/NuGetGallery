@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Moq;
@@ -18,7 +18,7 @@ namespace NuGet.Services.Configuration.Tests
         {
             // Arrange
             var mockSecretInjector = new Mock<ISecretInjector>();
-            mockSecretInjector.Setup(x => x.InjectAsync(It.IsAny<string>())).Returns(Task.FromResult(Secret1.InjectedValue));
+            mockSecretInjector.Setup(x => x.Inject(It.IsAny<string>())).Returns(Secret1.InjectedValue);
 
             var unprocessedDictionary = new Dictionary<string, string>()
             {
@@ -32,19 +32,19 @@ namespace NuGet.Services.Configuration.Tests
             var value2 = secretDict[Secret1.Key];
 
             // Assert
-            mockSecretInjector.Verify(x => x.InjectAsync(It.IsAny<string>()), Times.Exactly(2));
+            mockSecretInjector.Verify(x => x.Inject(It.IsAny<string>()), Times.Exactly(2));
             Assert.Equal(Secret1.InjectedValue, value1);
             Assert.Equal(value1, value2);
 
             // Arrange 2
-            mockSecretInjector.Setup(x => x.InjectAsync(It.IsAny<string>())).Returns(Task.FromResult(Secret2.InjectedValue));
+            mockSecretInjector.Setup(x => x.Inject(It.IsAny<string>())).Returns(Secret2.InjectedValue);
 
             // Act 2
             var value3 = secretDict[Secret1.Key];
             var value4 = secretDict[Secret1.Key];
 
             // Assert 2
-            mockSecretInjector.Verify(x => x.InjectAsync(It.IsAny<string>()), Times.Exactly(4));
+            mockSecretInjector.Verify(x => x.Inject(It.IsAny<string>()), Times.Exactly(4));
             Assert.Equal(Secret2.InjectedValue, value3);
             Assert.Equal(value3, value4);
         }
@@ -349,7 +349,7 @@ namespace NuGet.Services.Configuration.Tests
             var notInjectedKeys = new HashSet<string> { key };
 
             var mockSecretInjector = new Mock<ISecretInjector>();
-            mockSecretInjector.Setup(x => x.InjectAsync(It.IsAny<string>()));
+            mockSecretInjector.Setup(x => x.Inject(It.IsAny<string>()));
 
             var secretDict = CreatSecretDictionaryWithNotInjectedKeys(mockSecretInjector.Object,
                 unprocessedDictionary,
@@ -381,7 +381,7 @@ namespace NuGet.Services.Configuration.Tests
             // Act and Assert 6
             Assert.True(secretDict.Remove(key));
 
-            mockSecretInjector.Verify(x => x.InjectAsync(It.IsAny<string>()), Times.Never);
+            mockSecretInjector.Verify(x => x.Inject(It.IsAny<string>()), Times.Never);
         }
 
         /// <summary>
@@ -429,7 +429,7 @@ namespace NuGet.Services.Configuration.Tests
         private static Mock<ISecretInjector> CreateMappedSecretInjectorMock(IDictionary<string, string> keyToValue)
         {
             var mockSecretInjector = new Mock<ISecretInjector>();
-            mockSecretInjector.Setup(x => x.InjectAsync(It.IsAny<string>())).Returns<string>(key => Task.FromResult(keyToValue[key]));
+            mockSecretInjector.Setup(x => x.Inject(It.IsAny<string>())).Returns<string>(key => keyToValue[key]);
             return mockSecretInjector;
         }
         

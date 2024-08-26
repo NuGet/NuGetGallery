@@ -33,7 +33,6 @@ namespace NuGetGallery
         {
             public const string UserCertificatesFolderName = "user-certificates";
             public const string ContentFolderName = "content";
-            public const string DownloadsFolderName = "downloads";
             public const string PackageBackupsFolderName = "package-backups";
             public const string PackageReadMesFolderName = "readmes";
             public const string PackagesFolderName = "packages";
@@ -41,7 +40,6 @@ namespace NuGetGallery
             public const string UploadsFolderName = "uploads";
             public const string ValidationFolderName = "validation";
             public const string RevalidationFolderName = "revalidation";
-            public const string StatusFolderName = "status";
             public const string SymbolPackagesFolderName = "symbol-packages";
             public const string SymbolPackageBackupsFolderName = "symbol-package-backups";
             public const string FlatContainerFolderName = "v3-flatcontainer";

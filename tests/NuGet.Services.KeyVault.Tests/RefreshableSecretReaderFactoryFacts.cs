@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved. 
+// Copyright (c) .NET Foundation. All rights reserved. 
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information. 
 
 using System;
@@ -14,7 +14,7 @@ namespace NuGet.Services.KeyVault.Tests
         public class CreateSecretReader : Facts
         {
             [Fact]
-            public async Task CreatesWrapper()
+            public async Task CreatesWrapperAsync()
             {
                 var actual = Target.CreateSecretReader();
 
@@ -22,6 +22,17 @@ namespace NuGet.Services.KeyVault.Tests
                 Assert.IsType<RefreshableSecretReader>(actual);
                 Assert.Same(secret, Secret.Object);
                 UnderlyingReader.Verify(x => x.GetSecretObjectAsync(SecretName), Times.Once);
+            }
+
+            [Fact]
+            public void CreatesWrapper()
+            {
+                var actual = Target.CreateSecretReader();
+
+                var secret = actual.GetSecretObject(SecretName);
+                Assert.IsType<RefreshableSecretReader>(actual);
+                Assert.Same(secret, Secret.Object);
+                UnderlyingReader.Verify(x => x.GetSecretObject(SecretName), Times.Once);
             }
         }
 
@@ -41,7 +52,7 @@ namespace NuGet.Services.KeyVault.Tests
         public class RefreshAsync : Facts
         {
             [Fact]
-            public async Task RefreshesSecrets()
+            public async Task RefreshesSecretsAsync()
             {
                 var reader = Target.CreateSecretReader();
                 await reader.GetSecretAsync(SecretName);
@@ -51,17 +62,38 @@ namespace NuGet.Services.KeyVault.Tests
 
                 UnderlyingReader.Verify(x => x.GetSecretObjectAsync(SecretName), Times.Once);
             }
+
+            [Fact]
+            public void RefreshesSecrets()
+            {
+                var reader = Target.CreateSecretReader();
+                reader.GetSecret(SecretName);
+                UnderlyingReader.Invocations.Clear();
+
+                Target.Refresh();
+
+                UnderlyingReader.Verify(x => x.GetSecretObject(SecretName), Times.Once);
+            }
         }
 
         public class Settings : Facts
         {
             [Fact]
-            public async Task AffectCreatedReaders()
+            public async Task AffectCreatedReadersAsync()
             {
                 var actual = Target.CreateSecretReader();
                 Settings.BlockUncachedReads = true;
 
                 await Assert.ThrowsAsync<InvalidOperationException>(() => actual.GetSecretAsync(SecretName));
+            }
+
+            [Fact]
+            public void AffectCreatedReaders()
+            {
+                var actual = Target.CreateSecretReader();
+                Settings.BlockUncachedReads = true;
+
+                Assert.Throws<InvalidOperationException>(() => actual.GetSecret(SecretName));
             }
         }
 
@@ -83,6 +115,9 @@ namespace NuGet.Services.KeyVault.Tests
                 UnderlyingFactory
                     .Setup(x => x.CreateSecretInjector(It.IsAny<ISecretReader>()))
                     .Returns(() => SecretInjector.Object);
+                UnderlyingReader
+                    .Setup(x => x.GetSecretObject(It.IsAny<string>()))
+                    .Returns(() => Secret.Object);
                 UnderlyingReader
                     .Setup(x => x.GetSecretObjectAsync(It.IsAny<string>()))
                     .ReturnsAsync(() => Secret.Object);
