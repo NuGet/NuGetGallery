@@ -424,10 +424,7 @@ namespace NuGet.Services.Storage
         {
             var tempClient = new BlobServiceClient(storageConnectionString);
             // if _storageConnectionString has SAS token, Uri will contain SAS signature, we need to strip it 
-            var uriBuilder = new UriBuilder(tempClient.Uri);
-            uriBuilder.Query = "";
-            uriBuilder.Fragment = "";
-            return uriBuilder.Uri;
+            return new Uri(tempClient.Uri.GetLeftPart(UriPartial.Path));
         }
     }
 }
