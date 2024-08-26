@@ -420,6 +420,11 @@ namespace NuGet.Services.Storage
             return ResolveUri(Path.Combine(_path, filename));
         }
 
+        /// <summary>
+        /// Gets the blob service's primary endpoint from the storage connection string. Strips the SAS token if present.
+        /// </summary>
+        /// <param name="storageConnectionString"></param>
+        /// <returns></returns>
         public static Uri GetPrimaryServiceUri(string storageConnectionString)
         {
             var tempClient = new BlobServiceClient(storageConnectionString);

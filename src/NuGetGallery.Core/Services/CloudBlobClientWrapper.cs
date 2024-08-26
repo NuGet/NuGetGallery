@@ -177,7 +177,12 @@ namespace NuGetGallery
 
         private Uri GetPrimaryServiceUri()
         {
-            return new Uri(ConnectionStringExtensions.GetBlobEndpointFromConnectionString(_storageConnectionString));
+            var tempClient = new BlobServiceClient(_storageConnectionString);
+            // if _storageConnectionString has SAS token, Uri will contain SAS signature, we need to strip it
+            var uriBuilder = new UriBuilder(tempClient.Uri);
+            uriBuilder.Query = "";
+            uriBuilder.Fragment = "";
+            return uriBuilder.Uri;
         }
 
         private Uri GetSecondaryServiceUri()

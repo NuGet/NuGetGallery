@@ -30,6 +30,7 @@ using NuGet.Services.Logging;
 using NuGet.Services.Messaging;
 using NuGet.Services.Messaging.Email;
 using NuGet.Services.ServiceBus;
+using NuGet.Services.Storage;
 using NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGet.Services.Validation.PackageSigning.ProcessSignature;
@@ -620,7 +621,7 @@ namespace NuGet.Services.Validation.Orchestrator
 
             if (storageMsiConfiguration.UseManagedIdentity)
             {
-                Uri blobEndpointUri = new Uri(ConnectionStringExtensions.GetBlobEndpointFromConnectionString(storageConnectionString));
+                Uri blobEndpointUri = AzureStorage.GetPrimaryServiceUri(storageConnectionString);
 
                 if (string.IsNullOrWhiteSpace(storageMsiConfiguration.ManagedIdentityClientId))
                 {
