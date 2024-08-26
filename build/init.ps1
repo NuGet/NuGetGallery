@@ -76,11 +76,13 @@ Function Get-BuildTools {
         $FileDirectory = Join-Path $NuGetClientRoot $Path
         $FilesToMove = Get-ChildItem -Path $FolderUri -File
         foreach ($File in $FilesToMove) {
-            if (-not (Test-Path (Join-Path $FileDirectory $File))) {
-                $File | Move-Item -Destination $FileDirectory
+            $DestinationFile = Join-Path $FileDirectory $File.Name
+            
+            if (-not (Test-Path $DestinationFile)) {
+                Move-Item -Path $File.FullName -Destination $FileDirectory
             }
             else {
-                Write-Host "File '$File' already exists, skipping" -ForegroundColor Blue
+                Write-Host "File '$($File.Name)' already exists, skipping" -ForegroundColor Blue
             }
         }
 

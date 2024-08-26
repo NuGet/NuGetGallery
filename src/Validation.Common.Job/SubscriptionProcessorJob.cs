@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -33,7 +33,7 @@ namespace NuGet.Jobs.Validation
 
                 if (processor == null)
                 {
-                    throw new Exception($"DI container was not set up to produce instances of ISubscriptionProcessor<{typeof(T).Name}>. " +
+                    throw new InvalidOperationException($"DI container was not set up to produce instances of ISubscriptionProcessor<{typeof(T).Name}>. " +
                         $"Call SubcriptionProcessorJob<T>.{nameof(ConfigureDefaultSubscriptionProcessor)}() or set it up your way.");
                 }
 
@@ -41,9 +41,11 @@ namespace NuGet.Jobs.Validation
 
                 if (configuration == null || configuration.Value == null)
                 {
-                    throw new Exception($"Failed to get the SubscriptionProcessorJob configuration. Call " +
+                    throw new InvalidOperationException($"Failed to get the SubscriptionProcessorJob configuration. Call " +
                         $"SubcriptionProcessorJob<T>.{nameof(SetupDefaultSubscriptionProcessorConfiguration)}() or set it up your way.");
                 }
+
+                _serviceProvider.ValidateMessageHandlerInitialization<T>();
 
                 await processor.StartAsync(configuration.Value.MaxConcurrentCalls);
 

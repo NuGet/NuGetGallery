@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -11,7 +11,6 @@ namespace NuGetGallery
     {
         private static readonly HashSet<string> KnownPublicFolders = new HashSet<string> {
             CoreConstants.Folders.PackagesFolderName,
-            CoreConstants.Folders.DownloadsFolderName,
             CoreConstants.Folders.SymbolPackagesFolderName,
             CoreConstants.Folders.FlatContainerFolderName,
         };
@@ -23,7 +22,6 @@ namespace NuGetGallery
             CoreConstants.Folders.ValidationFolderName,
             CoreConstants.Folders.UserCertificatesFolderName,
             CoreConstants.Folders.RevalidationFolderName,
-            CoreConstants.Folders.StatusFolderName,
             CoreConstants.Folders.PackagesContentFolderName,
             CoreConstants.Folders.PackageBackupsFolderName,
             CoreConstants.Folders.SymbolPackageBackupsFolderName,
@@ -41,11 +39,9 @@ namespace NuGetGallery
                 case CoreConstants.Folders.PackageBackupsFolderName:
                 case CoreConstants.Folders.UploadsFolderName:
                 case CoreConstants.Folders.SymbolPackageBackupsFolderName:
-                case CoreConstants.Folders.DownloadsFolderName:
                 case CoreConstants.Folders.PackageReadMesFolderName:
                 case CoreConstants.Folders.ContentFolderName:
                 case CoreConstants.Folders.RevalidationFolderName:
-                case CoreConstants.Folders.StatusFolderName:
                 case CoreConstants.Folders.UserCertificatesFolderName:
                 case CoreConstants.Folders.PackagesContentFolderName:
                 case CoreConstants.Folders.FlatContainerFolderName:
@@ -70,15 +66,11 @@ namespace NuGetGallery
                 case CoreConstants.Folders.FlatContainerFolderName:
                     return CoreConstants.PackageContentType;
 
-                case CoreConstants.Folders.DownloadsFolderName:
-                    return CoreConstants.OctetStreamContentType;
-
                 case CoreConstants.Folders.PackageReadMesFolderName:
                     return CoreConstants.TextContentType;
 
                 case CoreConstants.Folders.ContentFolderName:
                 case CoreConstants.Folders.RevalidationFolderName:
-                case CoreConstants.Folders.StatusFolderName:
                     return CoreConstants.JsonContentType;
 
                 case CoreConstants.Folders.UserCertificatesFolderName:
