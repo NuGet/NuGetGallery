@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="NuGet.Packaging" />
+    <PackageReference Include="System.Formats.Asn1" />
   </ItemGroup>
 
 </Project>
