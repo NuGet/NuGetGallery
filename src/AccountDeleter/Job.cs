@@ -27,6 +27,7 @@ using NuGetGallery.Diagnostics;
 using NuGetGallery.Features;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Security;
+using ConfigConstants = NuGet.Services.Configuration.Constants;
 
 namespace NuGetGallery.AccountDeleter
 {
@@ -104,6 +105,13 @@ namespace NuGetGallery.AccountDeleter
             services.AddScoped<ITelemetryClient, TelemetryClientWrapper>(
                 sp => TelemetryClientWrapper.UseTelemetryConfiguration(ApplicationInsightsConfiguration.TelemetryConfiguration));
 
+            services.ConfigureStorageMsi(configurationRoot);
+            services.AddScoped<ICloudBlobClient>(serviceProvider =>
+            {
+                var options = serviceProvider.GetRequiredService<IOptionsSnapshot<AccountDeleteConfiguration>>();
+                return serviceProvider.CreateCloudBlobClient(options.Value.GalleryStorageConnectionString);
+            });
+
             ConfigureGalleryServices(services);
         }
 
@@ -158,16 +166,6 @@ namespace NuGetGallery.AccountDeleter
                     var connection = connectionFactory.CreateAsync().GetAwaiter().GetResult();
 
                     return new SupportRequestDbContext(connection);
-                });
-
-                services.AddScoped<ICloudBlobClient>(sp =>
-                {
-                    var options = sp.GetRequiredService<IOptionsSnapshot<AccountDeleteConfiguration>>();
-                    var optionsSnapshot = options.Value;
-
-                    return CloudBlobClientWrapper.UsingMsi(
-                        $"BlobEndpoint=https://{optionsSnapshot.StorageAccountName}.blob.core.windows.net",
-                        optionsSnapshot.UserAssignedClientId);
                 });
 
                 services.AddScoped<ITelemetryService, TelemetryService>();

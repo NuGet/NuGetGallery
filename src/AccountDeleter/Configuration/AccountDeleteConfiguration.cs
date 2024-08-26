@@ -27,15 +27,11 @@ namespace NuGetGallery.AccountDeleter
         /// </summary>
         public Dictionary<string, string> TemplateReplacements { get; set; }
 
-        /// <summary>
-        /// Azure storage account for gallery content
-        /// </summary>
-        public string StorageAccountName { get; set; }
 
         /// <summary>
-        /// User assigned clientId to be used as storage credential.
+        /// Storage container connection string where gallery content can be found
         /// </summary>
-        public string UserAssignedClientId { get; set; }
+        public string GalleryStorageConnectionString { get; set; }
 
         /// <summary>
         /// This method get the configuration for a source.
