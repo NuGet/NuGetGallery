@@ -385,14 +385,15 @@ namespace NuGetGallery
             public async Task WithValidUnicodeCharactersInNuspec_ReturnsAcceptedPackage()
             {
                 // Arrange
-                var package = TestDataResourceUtility.GetResourceBytes("PackageWithValidUnicodeCharacters.1.0.0.nupkg");
-                var fakeFileStream = new MemoryStream(package);
-                var reader = new PackageArchiveReader(fakeFileStream);
+                var package = GeneratePackageWithUserContent(
+                    licenseUrl: GetLicenseExpressionDeprecationUrl("MIT"),
+                    licenseExpression: "MIT",
+                    releaseNotes: "Release notes");
 
                 // Act
                 PackageValidationResult result = await _target.ValidateMetadataBeforeUploadAsync(
-                    reader,
-                    PackageMetadata.FromNuspecReader(reader.GetNuspecReader(), strict: true),
+                    package.Object,
+                    GetPackageMetadata(package),
                     _currentUser);
 
                 // Assert
