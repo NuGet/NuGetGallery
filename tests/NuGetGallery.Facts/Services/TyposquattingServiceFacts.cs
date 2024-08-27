@@ -321,6 +321,83 @@ namespace NuGetGallery
         }
 
         [Fact]
+        public void CheckIsTyposquattingBlockDifferentOwnersUploadBlocked()
+        {
+            // Arrange
+            var uploadedPackageId = "Microsoft_NetFramework_v1";
+            string conflictingPackageId = "microsoft_netframework_v1";
+            User conflictingPackageOwner = PackageRegistrationsList
+                .Single(pr => pr.Id == conflictingPackageId)
+                .Owners
+                .First();
+
+            // Make sure they have different owners.
+            Assert.NotEqual(_uploadedPackageOwner.Key, conflictingPackageOwner.Key);
+
+            var featureFlagService = new Mock<IFeatureFlagService>();
+            featureFlagService
+                .Setup(f => f.IsTyposquattingEnabled())
+                .Returns(true);
+            featureFlagService
+                .Setup(f => f.IsTyposquattingEnabled(_uploadedPackageOwner))
+                .Returns(true);
+
+            var newService = CreateService(featureFlagService: featureFlagService);
+
+            // Act
+
+            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
+
+            // Assert
+            Assert.True(typosquattingCheckResult);
+            Assert.Single(typosquattingCheckCollisionIds);
+            Assert.Equal(conflictingPackageId, typosquattingCheckCollisionIds[0]);
+
+            featureFlagService
+                .Verify(f => f.IsTyposquattingEnabled(), Times.Once);
+            featureFlagService
+                .Verify(f => f.IsTyposquattingEnabled(_uploadedPackageOwner), Times.Once);
+        }
+
+        [Fact]
+        public void CheckIsTyposquattingBlockSameOwnerUploadNotBlocked()
+        {
+            // Arrange
+            var uploadedPackageId = "Microsoft_NetFramework_v1";
+            string conflictingPackageId = "microsoft_netframework_v1";
+
+            var featureFlagService = new Mock<IFeatureFlagService>();
+
+            // Use same owner for both packages.
+            User samePackageOwner =  PackageRegistrationsList
+                .Single(pr => pr.Id == conflictingPackageId)
+                .Owners
+                .First();
+
+            featureFlagService
+                .Setup(f => f.IsTyposquattingEnabled())
+                .Returns(true);
+            featureFlagService
+                .Setup(f => f.IsTyposquattingEnabled(samePackageOwner))
+                .Returns(true);
+
+            var newService = CreateService(featureFlagService: featureFlagService);
+
+            // Act
+
+            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, samePackageOwner, out List<string> typosquattingCheckCollisionIds);
+
+            // Assert
+            Assert.False(typosquattingCheckResult);
+            Assert.Empty(typosquattingCheckCollisionIds);
+
+            featureFlagService
+                .Verify(f => f.IsTyposquattingEnabled(), Times.Once);
+            featureFlagService
+                .Verify(f => f.IsTyposquattingEnabled(samePackageOwner), Times.Once);
+        }
+
+        [Fact]
         public void CheckTelemetryServiceLogOriginalUploadedPackageId()
         {
             // Arrange
