@@ -1,10 +1,11 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -99,7 +100,7 @@ namespace NuGetGallery
         {
             var warnings = new List<IValidationMessage>();
 
-            var result = await CheckPackageEntryCountAsync(nuGetPackage, warnings);
+            PackageValidationResult result = await CheckPackageEntryCountAsync(nuGetPackage, warnings);
 
             if (result != null)
             {
@@ -112,7 +113,7 @@ namespace NuGetGallery
             {
                 return result;
             }
-
+            
             var nuspecFileEntry = nuGetPackage.GetEntry(nuGetPackage.GetNuspecFile());
             using (var nuspecFileStream = await nuGetPackage.GetNuspecAsync(CancellationToken.None))
             {
@@ -120,6 +121,13 @@ namespace NuGetGallery
                 {
                     return PackageValidationResult.Invalid(Strings.UploadPackage_CorruptNupkg);
                 }
+            }
+
+            result = CheckNuspecNormalized(nuGetPackage, warnings);
+
+            if (result != null)
+            {
+                return result;
             }
 
             result = await CheckForUnsignedPushAfterAuthorSignedAsync(
@@ -159,6 +167,26 @@ namespace NuGetGallery
             }
 
             return PackageValidationResult.AcceptedWithWarnings(warnings);
+        }
+
+        private PackageValidationResult CheckNuspecNormalized(PackageArchiveReader nuGetPackage, List<IValidationMessage> warnings)
+        {
+            try
+            {
+                UserContentEnabledNuspecReader nuspecReader = GetNuspecReader(nuGetPackage);
+                string nuspec = nuspecReader.Xml.ToStringSafe();
+
+                if (!nuspec.IsNormalized(NormalizationForm.FormC))
+                {
+                    warnings.Add(new PlainTextOnlyValidationMessage(Strings.UploadPackage_NuspecIsNotNormalized));
+                }
+            }
+            catch (Exception)
+            {
+                return PackageValidationResult.Invalid(Strings.UploadPackage_NuspecContainsInvalidUnicodeCharacters);
+            }
+
+            return null;
         }
 
         private async Task<PackageValidationResult> CheckLicenseMetadataAsync(PackageArchiveReader nuGetPackage, List<IValidationMessage> warnings, User user)
