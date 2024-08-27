@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -24,7 +24,7 @@ namespace NuGetGallery
             "System.Spatial"
         };
 
-        private static IQueryable<PackageRegistration> PacakgeRegistrationsList = Enumerable.Range(0, _packageIds.Count()).Select(i =>
+        private static IQueryable<PackageRegistration> PackageRegistrationsList = Enumerable.Range(0, _packageIds.Count()).Select(i =>
                 new PackageRegistration()
                 {
                     Id = _packageIds[i],
@@ -48,7 +48,7 @@ namespace NuGetGallery
                 packageService = new Mock<IPackageService>();
                 packageService
                     .Setup(x => x.GetAllPackageRegistrations())
-                    .Returns(PacakgeRegistrationsList);
+                    .Returns(PackageRegistrationsList);
             }
 
             if (contentObjectService == null)
@@ -88,10 +88,15 @@ namespace NuGetGallery
 
             if (typosquattingCheckListCacheService == null)
             {
+                List<(string, string)> tupleList = PackageRegistrationsList
+                    .ToList()
+                    .Select(pr => (pr.Id, pr.Id))
+                    .ToList();
+
                 typosquattingCheckListCacheService = new Mock<ITyposquattingCheckListCacheService>();
                 typosquattingCheckListCacheService
                     .Setup(x => x.GetTyposquattingCheckList(It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<IPackageService>()))
-                    .Returns(PacakgeRegistrationsList.Select(pr => pr.Id).ToList());
+                    .Returns(tupleList);
             }
 
             return new TyposquattingService(
@@ -220,7 +225,7 @@ namespace NuGetGallery
             var mockTyposquattingCheckListCacheService = new Mock<ITyposquattingCheckListCacheService>();
             mockTyposquattingCheckListCacheService
                 .Setup(x => x.GetTyposquattingCheckList(It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<IPackageService>()))
-                .Returns(new List<string>());
+                .Returns(new List<(string, string)>());
 
             var newService = CreateService(packageService: mockPackageService, typosquattingCheckListCacheService: mockTyposquattingCheckListCacheService);
 
