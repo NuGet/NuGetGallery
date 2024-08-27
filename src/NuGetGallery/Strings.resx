@@ -1266,4 +1266,7 @@ The {1} Team</value>
   <data name="UploadPackage_NuspecContainsInvalidUnicodeCharacters" xml:space="preserve">
     <value>The package nuspec file contains invalid unicode characters.</value>
   </data>
+  <data name="UploadPackage_NuspecIsNotNormalized" xml:space="preserve">
+    <value>The package nuspec file is not compliant with the normalization form C (NFC).</value>
+  </data>
 </root>

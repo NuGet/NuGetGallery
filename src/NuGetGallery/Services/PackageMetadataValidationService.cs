@@ -123,7 +123,7 @@ namespace NuGetGallery
                 }
             }
 
-            result = CheckNuspecNormalized(nuGetPackage);
+            result = CheckNuspecNormalized(nuGetPackage, warnings);
 
             if (result != null)
             {
@@ -169,14 +169,17 @@ namespace NuGetGallery
             return PackageValidationResult.AcceptedWithWarnings(warnings);
         }
 
-        private PackageValidationResult CheckNuspecNormalized(PackageArchiveReader nuGetPackage)
+        private PackageValidationResult CheckNuspecNormalized(PackageArchiveReader nuGetPackage, List<IValidationMessage> warnings)
         {
             try
             {
                 UserContentEnabledNuspecReader nuspecReader = GetNuspecReader(nuGetPackage);
                 string nuspec = nuspecReader.Xml.ToStringSafe();
 
-                nuspec.IsNormalized(NormalizationForm.FormC);
+                if (!nuspec.IsNormalized(NormalizationForm.FormC))
+                {
+                    warnings.Add(new PlainTextOnlyValidationMessage(Strings.UploadPackage_NuspecIsNotNormalized));
+                }
             }
             catch (Exception)
             {

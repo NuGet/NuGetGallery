@@ -362,7 +362,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WithNonNormalizedNuspec_ReturnsInvalidPackage()
+            public async Task WithInvalidUnicodeCharactersInNuspec_ReturnsInvalidPackage()
             {
                 // Arrange
                 var package = TestDataResourceUtility.GetResourceBytes("PackageWithInvalidUnicodeCharacters.1.0.0.nupkg");
@@ -370,7 +370,7 @@ namespace NuGetGallery
                 var reader = new PackageArchiveReader(fakeFileStream);
 
                 // Act
-                var result = await _target.ValidateMetadataBeforeUploadAsync(
+                PackageValidationResult result = await _target.ValidateMetadataBeforeUploadAsync(
                     reader,
                     PackageMetadata.FromNuspecReader(reader.GetNuspecReader(), strict: true),
                     _currentUser);
@@ -382,7 +382,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WithNormalizedNuspec_ReturnsAcceptedPackage()
+            public async Task WithValidUnicodeCharactersInNuspec_ReturnsAcceptedPackage()
             {
                 // Arrange
                 var package = TestDataResourceUtility.GetResourceBytes("PackageWithValidUnicodeCharacters.1.0.0.nupkg");
@@ -390,7 +390,7 @@ namespace NuGetGallery
                 var reader = new PackageArchiveReader(fakeFileStream);
 
                 // Act
-                var result = await _target.ValidateMetadataBeforeUploadAsync(
+                PackageValidationResult result = await _target.ValidateMetadataBeforeUploadAsync(
                     reader,
                     PackageMetadata.FromNuspecReader(reader.GetNuspecReader(), strict: true),
                     _currentUser);
@@ -398,6 +398,24 @@ namespace NuGetGallery
                 // Assert
                 Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                 Assert.Empty(result.Warnings);
+            }
+
+            [Fact]
+            public async Task WithNonNormalizeNuspec_ReturnsAcceptedPackageWithWarnings()
+            {
+                // Arrange
+                var package = GeneratePackageWithUserContent(releaseNotes: "Non normalized character: e\u0301");
+
+                // Act
+                PackageValidationResult result = await _target.ValidateMetadataBeforeUploadAsync(
+                    package.Object,
+                    GetPackageMetadata(package),
+                    _currentUser);
+
+                // Assert
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.NotEmpty(result.Warnings);
+                Assert.Equal("The package nuspec file is not compliant with the normalization form C (NFC).", result.Warnings[0].PlainTextMessage);
             }
 
             [Theory]
@@ -487,10 +505,10 @@ namespace NuGetGallery
             public async Task HandlesMissingLicenseAccordingToSettingsWhenDisplayUploadWarningV2Enabled(bool allowLicenselessPackages, bool expectedSuccess)
             {
                 _nuGetPackage = GeneratePackageWithUserContent(
-                    licenseUrl: null, 
-                    licenseExpression: null, 
-                    licenseFilename: null, 
-                    readmeFilename:"readme.md",
+                    licenseUrl: null,
+                    licenseExpression: null,
+                    licenseFilename: null,
+                    readmeFilename: "readme.md",
                     readmeFileContents: "read me");
 
                 _config
