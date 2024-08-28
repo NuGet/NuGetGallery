@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -44,6 +44,8 @@ namespace NuGetGallery
                 .Returns(PacakgeRegistrationsList);
 
             var mockTyposquattingServiceHelper = new Mock<ITyposquattingServiceHelper>();
+            mockTyposquattingServiceHelper.Setup(helper => helper.NormalizeString(It.IsAny<string>()))
+                .Returns((string str) => str.ToLower());
 
             var newService = new TyposquattingCheckListCacheService(mockTyposquattingServiceHelper.Object);
 
@@ -76,6 +78,8 @@ namespace NuGetGallery
                 .Returns(PacakgeRegistrationsList);
 
             var mockTyposquattingServiceHelper = new Mock<ITyposquattingServiceHelper>();
+            mockTyposquattingServiceHelper.Setup(helper => helper.NormalizeString(It.IsAny<string>()))
+                  .Returns((string str) => str.ToLower());
             var newService = new TyposquattingCheckListCacheService(mockTyposquattingServiceHelper.Object);
 
             // Act
@@ -99,6 +103,8 @@ namespace NuGetGallery
                 .Returns(PacakgeRegistrationsList);
 
             var mockTyposquattingServiceHelper = new Mock<ITyposquattingServiceHelper>();
+            mockTyposquattingServiceHelper.Setup(helper => helper.NormalizeString(It.IsAny<string>()))
+                .Returns((string str) => str.ToLower());
             var newService = new TyposquattingCheckListCacheService(mockTyposquattingServiceHelper.Object);
 
             // Act
