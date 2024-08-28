@@ -88,7 +88,7 @@ namespace NuGetGallery
 
             if (typosquattingCheckListCacheService == null)
             {
-                List<NormalizedPackageIdInfo> tupleList = PackageRegistrationsList
+                List<NormalizedPackageIdInfo> normalizedPackageIdInfos = PackageRegistrationsList
                     .ToList()
                     .Select(pr => new NormalizedPackageIdInfo(pr.Id, pr.Id))
                     .ToList();
@@ -96,7 +96,7 @@ namespace NuGetGallery
                 typosquattingCheckListCacheService = new Mock<ITyposquattingCheckListCacheService>();
                 typosquattingCheckListCacheService
                     .Setup(x => x.GetTyposquattingCheckList(It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<IPackageService>()))
-                    .Returns(tupleList);
+                    .Returns(normalizedPackageIdInfos);
             }
 
             return new TyposquattingService(
