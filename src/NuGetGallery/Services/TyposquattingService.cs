@@ -62,7 +62,7 @@ namespace NuGetGallery
             var checklistRetrievalStopwatch = Stopwatch.StartNew();
 
             // It must be normalized during initial list creation
-            IReadOnlyCollection<(string originalId, string normalizedId)> normalizedPackageIdsCheckList = _typosquattingCheckListCacheService.GetTyposquattingCheckList(checkListConfiguredLength, checkListExpireTimeInHours, _packageService);
+            IReadOnlyCollection<NormalizedPackageIdInfo> normalizedPackageIdsCheckList = _typosquattingCheckListCacheService.GetTyposquattingCheckList(checkListConfiguredLength, checkListExpireTimeInHours, _packageService);
             checklistRetrievalStopwatch.Stop();
 
             _telemetryService.TrackMetricForTyposquattingChecklistRetrievalTime(uploadedPackageId, checklistRetrievalStopwatch.Elapsed);
@@ -71,9 +71,9 @@ namespace NuGetGallery
             var collisionIds = new ConcurrentBag<string>();
             Parallel.ForEach(normalizedPackageIdsCheckList, (normalizedPackageIdPair, loopState) =>
             {
-                if (_typosquattingServiceHelper.IsDistanceLessThanOrEqualToThresholdWithNormalizedPackageId(uploadedPackageId, normalizedPackageIdPair.normalizedId))
+                if (_typosquattingServiceHelper.IsDistanceLessThanOrEqualToThresholdWithNormalizedPackageId(uploadedPackageId, normalizedPackageIdPair.NormalizedId))
                 {
-                    collisionIds.Add(normalizedPackageIdPair.originalId);
+                    collisionIds.Add(normalizedPackageIdPair.OriginalId);
                 }
             });
             algorithmProcessingStopwatch.Stop();

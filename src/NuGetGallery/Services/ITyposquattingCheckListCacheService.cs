@@ -17,6 +17,6 @@ namespace NuGetGallery
         /// <param name="checkListLength">The length of the checklist for typosquatting</param>
         /// <param name="checkListExpireTime">The expire time for checklist caching</param>
         /// <param name="packageService">The package service for checklist retrieval from database</param>
-        IReadOnlyCollection<(string originalId, string normalizedId)> GetTyposquattingCheckList(int checkListLength, TimeSpan checkListExpireTime, IPackageService packageService);
+        IReadOnlyCollection<NormalizedPackageIdInfo> GetTyposquattingCheckList(int checkListLength, TimeSpan checkListExpireTime, IPackageService packageService);
     }
 }
