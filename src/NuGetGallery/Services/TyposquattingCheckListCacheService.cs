@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -12,7 +12,7 @@ namespace NuGetGallery
         private readonly object Locker = new object();
         private readonly ITyposquattingServiceHelper _typosquattingServiceHelper;
 
-        private List<string> Cache;
+        private List<NormalizedPackageIdInfo> Cache;
         private DateTime LastRefreshTime;
 
         private int TyposquattingCheckListConfiguredLength;
@@ -24,7 +24,7 @@ namespace NuGetGallery
             _typosquattingServiceHelper = typosquattingServiceHelper;
         }
 
-        public IReadOnlyCollection<string> GetTyposquattingCheckList(int checkListConfiguredLength, TimeSpan checkListExpireTime, IPackageService packageService)
+        public IReadOnlyCollection<NormalizedPackageIdInfo> GetTyposquattingCheckList(int checkListConfiguredLength, TimeSpan checkListExpireTime, IPackageService packageService)
         {
             if (packageService == null)
             {
@@ -54,7 +54,7 @@ namespace NuGetGallery
                             .ToList();
 
                         Cache = cachedPackages
-                            .Select(pr => _typosquattingServiceHelper.NormalizeString(pr))
+                            .Select(pr => new NormalizedPackageIdInfo(originalId: pr, normalizedId: _typosquattingServiceHelper.NormalizeString(pr)))
                             .ToList();
 
                         LastRefreshTime = DateTime.UtcNow;
