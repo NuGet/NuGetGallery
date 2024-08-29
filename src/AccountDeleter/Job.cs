@@ -105,11 +105,11 @@ namespace NuGetGallery.AccountDeleter
             services.AddScoped<ITelemetryClient, TelemetryClientWrapper>(
                 sp => TelemetryClientWrapper.UseTelemetryConfiguration(ApplicationInsightsConfiguration.TelemetryConfiguration));
 
-            services.ConfigureStorageMsi(configurationRoot);
             services.AddScoped<ICloudBlobClient>(serviceProvider =>
             {
                 var options = serviceProvider.GetRequiredService<IOptionsSnapshot<AccountDeleteConfiguration>>();
-                return serviceProvider.CreateCloudBlobClient(options.Value.GalleryStorageConnectionString);
+                return CloudBlobClientWrapper.UsingMsi(options.Value.GalleryStorageConnectionString,
+                    configurationRoot[ConfigConstants.StorageManagedIdentityClientIdPropertyName]);
             });
 
             ConfigureGalleryServices(services);
