@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using Autofac;
 using Autofac.Core;
 using Microsoft.Extensions.Configuration;
@@ -107,6 +106,11 @@ namespace NuGetGallery.AccountDeleter
                 sp => TelemetryClientWrapper.UseTelemetryConfiguration(ApplicationInsightsConfiguration.TelemetryConfiguration));
 
             services.ConfigureStorageMsi(configurationRoot);
+            services.AddScoped<ICloudBlobClient>(serviceProvider =>
+            {
+                var options = serviceProvider.GetRequiredService<IOptionsSnapshot<AccountDeleteConfiguration>>();
+                return serviceProvider.CreateCloudBlobClient(options.Value.GalleryStorageConnectionString);
+            });
 
             ConfigureGalleryServices(services);
         }
@@ -238,16 +242,6 @@ namespace NuGetGallery.AccountDeleter
                 .AsSelf()
                 .As<IEntityRepository<PackageOwnerRequest>>()
                 .InstancePerLifetimeScope();
-
-            var config = configurationRoot.GetSection(AccountDeleteConfigurationSectionName).Get<AccountDeleteConfiguration>();
-            containerBuilder.RegisterBuildCallback(container => // this is called post-build
-            {
-                var serviceProvider = new Autofac.Extensions.DependencyInjection.AutofacServiceProvider(container);
-                var options = serviceProvider.GetRequiredService<IOptionsSnapshot<AccountDeleteConfiguration>>();
-                var nestedBuilder = new ContainerBuilder();
-                nestedBuilder.RegisterInstance<ICloudBlobClient>(serviceProvider.CreateCloudBlobClient(options.Value.GalleryStorageConnectionString));
-                nestedBuilder.Update(container);
-            });
         }
 
         private void RegisterAuditingServices(IServiceCollection services)
