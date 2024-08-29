@@ -68,7 +68,7 @@ namespace NuGetGallery
         /// <param name="fileName">The file name.</param>
         /// <param name="permissions">The permissions to give to the privileged URI.</param>
         /// <param name="endOfAccess">The time when the access ends.</param>
-        /// <returns>The URI with privileged access.</returns>
+        /// <returns>The URI with privileged delegation SAS access.</returns>
         Task<Uri> GetPrivilegedFileUriWithDelegationSasAsync(
             string folderName,
             string fileName,

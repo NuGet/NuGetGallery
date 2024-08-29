@@ -63,7 +63,7 @@ namespace NuGetGallery
         /// the returned signature becomes invalid if implementation supports it.
         /// Null for no time limit.
         /// </param>
-        /// <returns>Shared access signature in form of URI query portion.</returns>
+        /// <returns>Delegation SAS in form of URI query portion.</returns>
         Task<string> GetDelegationSasAsync(FileUriPermissions permissions, DateTimeOffset endOfAccess);
 
         /// <summary>

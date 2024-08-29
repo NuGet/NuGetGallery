@@ -554,9 +554,8 @@ namespace NuGetGallery
 
         private async Task<string> GenerateDelegationSasAsync(BlobSasBuilder sasBuilder)
         {
-            // user delegation SAS
-            var userDelegationKey = (await _container.Account.Client.GetUserDelegationKeyAsync(sasBuilder.StartsOn, sasBuilder.ExpiresOn)).Value;
-            var blobUriBuilder = new BlobUriBuilder(_blob.Uri)
+            UserDelegationKey userDelegationKey = (await _container.Account.Client.GetUserDelegationKeyAsync(sasBuilder.StartsOn, sasBuilder.ExpiresOn)).Value;
+            BlobUriBuilder blobUriBuilder = new BlobUriBuilder(_blob.Uri)
             {
                 Sas = sasBuilder.ToSasQueryParameters(userDelegationKey, _blob.AccountName),
             };

@@ -377,7 +377,11 @@ namespace NuGetGallery
             return new Uri(blob.Uri, sas);
         }
 
-        public async Task<Uri> GetPrivilegedFileUriWithDelegationSasAsync(string folderName, string fileName, FileUriPermissions permissions, DateTimeOffset endOfAccess)
+        public async Task<Uri> GetPrivilegedFileUriWithDelegationSasAsync(
+            string folderName,
+            string fileName,
+            FileUriPermissions permissions,
+            DateTimeOffset endOfAccess)
         {
             if (endOfAccess < DateTimeOffset.UtcNow)
             {

@@ -118,7 +118,7 @@ namespace NuGet.Jobs
                 throw new ArgumentException($"{nameof(storageConnectionString)} cannot be null or empty.", nameof(storageConnectionString));
             }
 
-            var msiConfiguration = serviceProvider.GetRequiredService<IOptions<StorageMsiConfiguration>>().Value;
+            StorageMsiConfiguration msiConfiguration = serviceProvider.GetRequiredService<IOptions<StorageMsiConfiguration>>().Value;
             return CreateTableServiceClientClient(
                 msiConfiguration,
                 storageConnectionString);
@@ -140,9 +140,9 @@ namespace NuGet.Jobs
 
             return builder.Register(c =>
             {
-                var options = c.Resolve<IOptionsSnapshot<TConfiguration>>();
+                IOptionsSnapshot<TConfiguration> options = c.Resolve<IOptionsSnapshot<TConfiguration>>();
                 string storageConnectionString = getConnectionString(options.Value);
-                var msiConfiguration = c.Resolve<IOptions<StorageMsiConfiguration>>().Value;
+                StorageMsiConfiguration msiConfiguration = c.Resolve<IOptions<StorageMsiConfiguration>>().Value;
                 return CreateTableServiceClientClient(
                     msiConfiguration,
                     storageConnectionString);
