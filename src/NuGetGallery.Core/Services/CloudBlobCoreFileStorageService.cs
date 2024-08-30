@@ -10,6 +10,7 @@ using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 using NuGetGallery.Diagnostics;
+using NuGetGallery.Extensions;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace NuGetGallery
@@ -374,7 +375,7 @@ namespace NuGetGallery
             ISimpleCloudBlob blob = await GetBlobForUriAsync(folderName, fileName);
             string sas = await blob.GetSharedAccessSignature(permissions, endOfAccess);
 
-            return new Uri(blob.Uri, sas);
+            return blob.Uri.BlobStorageAppendSas(sas);
         }
 
         public async Task<Uri> GetPrivilegedFileUriWithDelegationSasAsync(
@@ -391,7 +392,7 @@ namespace NuGetGallery
             ISimpleCloudBlob blob = await GetBlobForUriAsync(folderName, fileName);
             string sas = await blob.GetDelegationSasAsync(permissions, endOfAccess);
 
-            return new Uri(blob.Uri, sas);
+            return blob.Uri.BlobStorageAppendSas(sas);
         }
 
         public async Task<Uri> GetFileReadUriAsync(string folderName, string fileName, DateTimeOffset? endOfAccess)
@@ -415,7 +416,7 @@ namespace NuGetGallery
 
             string sas = await blob.GetSharedAccessSignature(FileUriPermissions.Read, endOfAccess.Value);
 
-            return new Uri(blob.Uri, sas);
+            return blob.Uri.BlobStorageAppendSas(sas);
         }
 
         /// <summary>
