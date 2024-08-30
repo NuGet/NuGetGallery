@@ -10,7 +10,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Core;
-using Azure.Identity;
 using Azure.Storage.Blobs;
 using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Configuration;
@@ -30,7 +29,6 @@ using NuGet.Services.Logging;
 using NuGet.Services.Messaging;
 using NuGet.Services.Messaging.Email;
 using NuGet.Services.ServiceBus;
-using NuGet.Services.Storage;
 using NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGet.Services.Validation.PackageSigning.ProcessSignature;
@@ -390,7 +388,7 @@ namespace NuGet.Services.Validation.Orchestrator
                     LeaseConfiguration config = c.Resolve<IOptionsSnapshot<LeaseConfiguration>>().Value;
                     StorageMsiConfiguration storageMsiConfiguration = c.Resolve<IOptionsSnapshot<StorageMsiConfiguration>>().Value;
 
-                    BlobServiceClient blobServiceClient = CreateBlobServiceClient(storageMsiConfiguration, config.ConnectionString);
+                    BlobServiceClient blobServiceClient = StorageAccountHelper.CreateBlobServiceClient(storageMsiConfiguration, config.ConnectionString);
                     return new CloudBlobLeaseService(blobServiceClient, config.ContainerName, config.StoragePath);
                 })
                 .As<ILeaseService>();
@@ -606,48 +604,6 @@ namespace NuGet.Services.Validation.Orchestrator
         private T GetRequiredService<T>()
         {
             return _serviceProvider.GetRequiredService<T>();
-        }
-
-        private static BlobServiceClient CreateBlobServiceClient(
-            StorageMsiConfiguration storageMsiConfiguration,
-            string storageConnectionString,
-            TimeSpan? requestTimeout = null)
-        {
-            BlobClientOptions blobClientOptions = new BlobClientOptions();
-            if (requestTimeout.HasValue)
-            {
-                blobClientOptions.Retry.NetworkTimeout = requestTimeout.Value;
-            }
-
-            if (storageMsiConfiguration.UseManagedIdentity)
-            {
-                Uri blobEndpointUri = AzureStorage.GetPrimaryServiceUri(storageConnectionString);
-
-                if (string.IsNullOrWhiteSpace(storageMsiConfiguration.ManagedIdentityClientId))
-                {
-                    // 1. Using MSI with DefaultAzureCredential (local debugging)
-                    return new BlobServiceClient(
-                        blobEndpointUri,
-                        new DefaultAzureCredential(),
-                        blobClientOptions);
-                }
-                else
-                {
-                    // 2. Using MSI with ClientId
-                    return new BlobServiceClient(
-                        blobEndpointUri,
-                        new ManagedIdentityCredential(storageMsiConfiguration.ManagedIdentityClientId),
-                        blobClientOptions);
-                }
-            }
-            else
-            {
-                // 3. Using SAS token
-                // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
-                var connectionString = storageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
-
-                return new BlobServiceClient(connectionString, blobClientOptions);
-            }
         }
     }
 }
