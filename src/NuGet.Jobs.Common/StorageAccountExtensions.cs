@@ -222,6 +222,7 @@ namespace NuGet.Jobs
 
                 return new BlobServiceClient(connectionString, blobClientOptions);
             }
+        }
 
         private static TableServiceClient CreateTableServiceClientClient(
             StorageMsiConfiguration msiConfiguration,
