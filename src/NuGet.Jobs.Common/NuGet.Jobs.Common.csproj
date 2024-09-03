@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="Autofac.Extensions.DependencyInjection" />
+    <PackageReference Include="Azure.Data.Tables" />
     <PackageReference Include="Dapper.StrongName" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />

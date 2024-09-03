@@ -4,6 +4,7 @@
 using System;
 using Autofac;
 using Autofac.Builder;
+using Azure.Data.Tables;
 using Azure.Identity;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Configuration;
@@ -106,6 +107,50 @@ namespace NuGet.Jobs
             });
         }
 
+        public static TableServiceClient CreateTableServiceClient(
+            this IServiceProvider serviceProvider,
+            string storageConnectionString)
+        {
+            if (serviceProvider == null)
+            {
+                throw new ArgumentNullException(nameof(serviceProvider));
+            }
+            if (string.IsNullOrWhiteSpace(storageConnectionString))
+            {
+                throw new ArgumentException($"{nameof(storageConnectionString)} cannot be null or empty.", nameof(storageConnectionString));
+            }
+
+            StorageMsiConfiguration msiConfiguration = serviceProvider.GetRequiredService<IOptions<StorageMsiConfiguration>>().Value;
+            return CreateTableServiceClientClient(
+                msiConfiguration,
+                storageConnectionString);
+        }
+
+        public static IRegistrationBuilder<TableServiceClient, SimpleActivatorData, SingleRegistrationStyle> RegisterTableServiceClient<TConfiguration>(
+            this ContainerBuilder builder,
+            Func<TConfiguration, string> getConnectionString)
+            where TConfiguration : class, new()
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+            if (getConnectionString == null)
+            {
+                throw new ArgumentNullException(nameof(getConnectionString));
+            }
+
+            return builder.Register(c =>
+            {
+                IOptionsSnapshot<TConfiguration> options = c.Resolve<IOptionsSnapshot<TConfiguration>>();
+                string storageConnectionString = getConnectionString(options.Value);
+                StorageMsiConfiguration msiConfiguration = c.Resolve<IOptions<StorageMsiConfiguration>>().Value;
+                return CreateTableServiceClientClient(
+                    msiConfiguration,
+                    storageConnectionString);
+            });
+        }
+
         private static CloudBlobClientWrapper CreateCloudBlobClient(
             StorageMsiConfiguration msiConfiguration,
             string storageConnectionString,
@@ -177,6 +222,28 @@ namespace NuGet.Jobs
 
                 return new BlobServiceClient(connectionString, blobClientOptions);
             }
+
+        private static TableServiceClient CreateTableServiceClientClient(
+            StorageMsiConfiguration msiConfiguration,
+            string tableStorageConnectionString)
+        {
+            if (msiConfiguration.UseManagedIdentity)
+            {
+                if (string.IsNullOrWhiteSpace(msiConfiguration.ManagedIdentityClientId))
+                {
+                    return new TableServiceClient(new Uri(tableStorageConnectionString),
+                        new DefaultAzureCredential());
+                }
+                else
+                {
+                    return new TableServiceClient(new Uri(tableStorageConnectionString),
+                        new ManagedIdentityCredential(msiConfiguration.ManagedIdentityClientId));
+                }
+            }
+
+            // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
+            tableStorageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+            return new TableServiceClient(tableStorageConnectionString);
         }
     }
 }

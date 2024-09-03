@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -60,20 +60,20 @@ namespace NuGetGallery
 
             var totalTimeStopwatch = Stopwatch.StartNew();
             var checklistRetrievalStopwatch = Stopwatch.StartNew();
-            
+
             // It must be normalized during initial list creation
-            var normalizedPackageIdsCheckList = _typosquattingCheckListCacheService.GetTyposquattingCheckList(checkListConfiguredLength, checkListExpireTimeInHours, _packageService);
+            IReadOnlyCollection<NormalizedPackageIdInfo> normalizedPackageIdsCheckList = _typosquattingCheckListCacheService.GetTyposquattingCheckList(checkListConfiguredLength, checkListExpireTimeInHours, _packageService);
             checklistRetrievalStopwatch.Stop();
 
             _telemetryService.TrackMetricForTyposquattingChecklistRetrievalTime(uploadedPackageId, checklistRetrievalStopwatch.Elapsed);
 
             var algorithmProcessingStopwatch = Stopwatch.StartNew();
             var collisionIds = new ConcurrentBag<string>();
-            Parallel.ForEach(normalizedPackageIdsCheckList, (normalizedPackageId, loopState) =>
+            Parallel.ForEach(normalizedPackageIdsCheckList, (normalizedPackageIdPair, loopState) =>
             {
-                if (_typosquattingServiceHelper.IsDistanceLessThanOrEqualToThresholdWithNormalizedPackageId(uploadedPackageId, normalizedPackageId))
+                if (_typosquattingServiceHelper.IsDistanceLessThanOrEqualToThresholdWithNormalizedPackageId(uploadedPackageId, normalizedPackageIdPair.NormalizedId))
                 {
-                    collisionIds.Add(normalizedPackageId);
+                    collisionIds.Add(normalizedPackageIdPair.OriginalId);
                 }
             });
             algorithmProcessingStopwatch.Stop();
