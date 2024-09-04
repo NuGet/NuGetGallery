@@ -6,10 +6,12 @@ using Autofac;
 using Autofac.Builder;
 using Azure.Data.Tables;
 using Azure.Identity;
+using Azure.Storage.Blobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using NuGet.Services.Configuration;
+using NuGet.Services.Storage;
 using NuGetGallery;
 
 namespace NuGet.Jobs
@@ -178,6 +180,48 @@ namespace NuGet.Jobs
                 storageConnectionString,
                 readAccessGeoRedundant,
                 requestTimeout);
+        }
+
+        public static BlobServiceClient CreateBlobServiceClient(
+            StorageMsiConfiguration storageMsiConfiguration,
+            string storageConnectionString,
+            TimeSpan? requestTimeout = null)
+        {
+            BlobClientOptions blobClientOptions = new BlobClientOptions();
+            if (requestTimeout.HasValue)
+            {
+                blobClientOptions.Retry.NetworkTimeout = requestTimeout.Value;
+            }
+
+            if (storageMsiConfiguration.UseManagedIdentity)
+            {
+                Uri blobEndpointUri = AzureStorage.GetPrimaryServiceUri(storageConnectionString);
+
+                if (string.IsNullOrWhiteSpace(storageMsiConfiguration.ManagedIdentityClientId))
+                {
+                    // 1. Using MSI with DefaultAzureCredential (local debugging)
+                    return new BlobServiceClient(
+                        blobEndpointUri,
+                        new DefaultAzureCredential(),
+                        blobClientOptions);
+                }
+                else
+                {
+                    // 2. Using MSI with ClientId
+                    return new BlobServiceClient(
+                        blobEndpointUri,
+                        new ManagedIdentityCredential(storageMsiConfiguration.ManagedIdentityClientId),
+                        blobClientOptions);
+                }
+            }
+            else
+            {
+                // 3. Using SAS token
+                // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
+                var connectionString = storageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+
+                return new BlobServiceClient(connectionString, blobClientOptions);
+            }
         }
 
         private static TableServiceClient CreateTableServiceClientClient(
