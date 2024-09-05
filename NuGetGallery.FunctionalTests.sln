@@ -26,6 +26,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{73CF1C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Configuration", "src\NuGet.Services.Configuration\NuGet.Services.Configuration.csproj", "{316D65E1-DD85-4923-B877-177726FE5F3D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.KeyVault", "src\NuGet.Services.KeyVault\NuGet.Services.KeyVault.csproj", "{36C27BF3-6E33-468B-9C25-828DC578B27F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -64,12 +66,17 @@ Global
 		{316D65E1-DD85-4923-B877-177726FE5F3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{316D65E1-DD85-4923-B877-177726FE5F3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{316D65E1-DD85-4923-B877-177726FE5F3D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{36C27BF3-6E33-468B-9C25-828DC578B27F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36C27BF3-6E33-468B-9C25-828DC578B27F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36C27BF3-6E33-468B-9C25-828DC578B27F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36C27BF3-6E33-468B-9C25-828DC578B27F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{316D65E1-DD85-4923-B877-177726FE5F3D} = {73CF1C3C-5731-4167-8B75-4A2BF01081DD}
+		{36C27BF3-6E33-468B-9C25-828DC578B27F} = {73CF1C3C-5731-4167-8B75-4A2BF01081DD}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7A4EF1D3-E31D-4FE0-A407-79B054848111}
