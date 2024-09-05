@@ -32,7 +32,7 @@
     <PackageVersion Include="LibGit2Sharp" Version="0.26.0" />
     <PackageVersion Include="Lucene.Net.Contrib" Version="3.0.3" />
     <PackageVersion Include="Lucene.Net" Version="3.0.3" />
-    <PackageVersion Include="Markdig.Signed" Version="0.30.2" />
+    <PackageVersion Include="Markdig.Signed" Version="0.37.0" />
     <PackageVersion Include="MicroBuild.Core" Version="0.3.0" />
     <PackageVersion Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
     <PackageVersion Include="Microsoft.ApplicationInsights.TraceListener" Version="2.21.0" />
