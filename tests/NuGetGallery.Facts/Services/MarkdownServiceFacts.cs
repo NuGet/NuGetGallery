@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -108,12 +108,23 @@ namespace NuGetGallery
             [InlineData("![](http://www.otherurl.net/fake.jpg)", "<p><img src=\"https://www.otherurl.net/fake.jpg\" alt=\"\"></p>", true, false)]
             [InlineData("![](http://www.otherurl.net/fake.jpg)", "<p><img src=\"https://www.otherurl.net/fake.jpg\" class=\"img-fluid\" alt=\"alternate text is missing from this package README image\"></p>", true, true)]
             [InlineData("## License\n\tLicensed under the Apache License, Version 2.0 (the \"License\");", "<h3 id=\"license\">License</h3>\n<pre><code>Licensed under the Apache License, Version 2.0 (the \"License\");\n</code></pre>", false, true)]
+            [InlineData(
+                """
+                > [!NOTE]
+                > This is a note
+                """,
+                """
+                <div class="markdown-alert markdown-alert-note alert alert-primary" role="alert">
+                <p class="mb-0">This is a note</p>
+                </div>
+                """,
+                false, true)]
             public void ConvertsMarkdownToHtml(string originalMd, string expectedHtml, bool imageRewriteExpected, bool isMarkdigMdRenderingEnabled)
             {
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(isMarkdigMdRenderingEnabled);
                 _featureFlagService.Setup(x => x.IsImageAllowlistEnabled()).Returns(false);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
-                Assert.Equal(expectedHtml, readMeResult.Content);
+                Assert.Equal(expectedHtml.Replace("\r\n", "\n"), readMeResult.Content.Replace("\r\n", "\n"));
                 Assert.Equal(imageRewriteExpected, readMeResult.ImagesRewritten);
             }
 
@@ -186,7 +197,7 @@ namespace NuGetGallery
             {
                 var originalMd = "This is a test with a :) and a :angry: smiley";
 
-                var expectedHtml = "<p>This is a test with a 😃 and a 😠 smiley</p>";
+                var expectedHtml = "<p>This is a test with a ð and a ð  smiley</p>";
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
