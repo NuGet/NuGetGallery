@@ -1374,20 +1374,20 @@ ul.accordion {
         }
 
         ul.accordion li.accordion-item .accordion-expand-link {
-            background: none!important;
+            background: none !important;
             border: none;
-            padding: 0!important;
+            padding: 0 !important;
             cursor: pointer;
             margin-top: 0.25em;
             margin-left: 3px;
             color: #0071bc;
             box-shadow: none;
-            font-size:0.85em;
+            font-size: 0.85em;
         }
 
-        ul.accordion li.accordion-item .accordion-expand-link:hover {
-            text-decoration: underline;
-        }
+            ul.accordion li.accordion-item .accordion-expand-link:hover {
+                text-decoration: underline;
+            }
 
         ul.accordion li.accordion-item.accordion-item-disabled {
             background-color: white;
@@ -1726,3 +1726,35 @@ img.contributors-contributor-avatar {
     font-size: 1.1em;
     padding: 5px 15px 5px 15px;
 }
+
+/* Alert Blocks */
+.markdown-alert {
+    /* from blockquote */
+    margin: 0.923em;
+    color: #666;
+    border-left: .25em solid;
+}
+
+    .markdown-alert > :first-child {
+        margin-top: 0
+    }
+
+    .markdown-alert > :last-child {
+        margin-bottom: 0
+    }
+
+    .markdown-alert .markdown-alert-title {
+        display: flex;
+        font-weight: bold;
+        align-items: center;
+        line-height: 1
+    }
+
+    /* This is the color used by the underline in tabs   */
+    .markdown-alert.markdown-alert-note {
+        border-left-color: var(--brandStrokeCompoundRest)
+    }
+
+        .markdown-alert.markdown-alert-note .markdown-alert-title {
+            color: var(--brandStrokeCompoundRest)
+        }
