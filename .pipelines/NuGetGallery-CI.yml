@@ -143,6 +143,10 @@ extends:
                 inputs:
                   versionSpec: '3.10'
               - script: |
+                  python -m pip install --user pipx
+                  pipx ensurepath
+                displayName: 'Install tools'
+              - script: |
                   pipx install poetry
                   poetry install
                   poetry build
