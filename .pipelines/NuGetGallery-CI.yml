@@ -126,6 +126,29 @@ extends:
                   testResultsFiles: $(NuGetGalleryPath)\Results.*.xml
                   failTaskOnFailedTests: true
 
+      - stage: statslogparser
+        displayName: StatsLogPasrser
+        dependsOn: []
+        jobs:
+          - job: build_and_test
+            displayName: statslogparser build and test
+            cancelTimeoutInMinutes: 1
+            steps:
+              - checkout: self
+                fetchDepth: 1
+                clean: true
+                fetchTags: false
+                path: $(NuGetGalleryDirectory)
+              - task: UsePythonVersion@0
+                inputs:
+                  versionSpec: '3.10'
+              - script: |
+                  pipx install poetry
+                  poetry install
+                  poetry build
+                  poetry run pytest tests/ --cov loginterpretation --cov-report html
+                workingDirectory: $(NuGetGalleryPath)\python\StatsLogParser
+
       - stage: jobs
         displayName: NuGet.Jobs.sln
         dependsOn: []
