@@ -13,6 +13,8 @@ ua-parser = "^0.18.0"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.3.2"
+pytest-cov = "^5.0.0"
+pytest-azurepipelines = "^1.0.5"
 
 [build-system]
 requires = ["poetry-core"]
