@@ -154,6 +154,8 @@ extends:
                   poetry build
                   poetry run pytest tests/ --cov loginterpretation --cov-report html
                 workingDirectory: $(NuGetGalleryPath)\python\StatsLogParser
+              - publish: $(NuGetGalleryPath)\python\StatsLogParser\dist
+                artifact: StatsLogParser
 
       - stage: jobs
         displayName: NuGet.Jobs.sln
