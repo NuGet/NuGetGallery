@@ -133,6 +133,8 @@ extends:
           - job: build_and_test
             displayName: statslogparser build and test
             cancelTimeoutInMinutes: 1
+            variables:
+              PIPX_HOME: $(Agent.ToolsDirectory)\pipx
             steps:
               - checkout: self
                 fetchDepth: 1
