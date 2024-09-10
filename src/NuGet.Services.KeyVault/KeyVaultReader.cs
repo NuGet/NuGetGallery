@@ -13,7 +13,7 @@ namespace NuGet.Services.KeyVault
 {
     /// <summary>
     /// Reads secretes from KeyVault.
-    /// Authentication with KeyVault is done using either a managed identity or a certificate in location:LocalMachine store name:My 
+    /// Authentication with KeyVault is done using either a managed identity or a certificate in location:LocalMachine store name:My
     /// </summary>
     public class KeyVaultReader : ISecretReader
     {
@@ -99,7 +99,19 @@ namespace NuGet.Services.KeyVault
             }
             else
             {
-                credential = new ClientCertificateCredential(_configuration.TenantId, _configuration.ClientId, _configuration.Certificate);
+                if (_configuration.SendX5c)
+                {
+                    var clientCredentialOptions = new ClientCertificateCredentialOptions
+                    {
+                        SendCertificateChain = true
+                    };
+
+                    credential = new ClientCertificateCredential(_configuration.TenantId, _configuration.ClientId, _configuration.Certificate, clientCredentialOptions);
+                }
+                else
+                {
+                    credential = new ClientCertificateCredential(_configuration.TenantId, _configuration.ClientId, _configuration.Certificate);
+                }
             }
             return new SecretClient(GetKeyVaultUri(_configuration), credential);
         }
