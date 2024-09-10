@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Configuration;
 using NuGet.Services.Configuration;
 
@@ -84,6 +85,7 @@ namespace NuGetGallery.FunctionalTests
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoOptimization)]
         private static void EnsureRedirectedAssembliesLoaded()
         {
             // The following comment is an observation-based speculation and can be at various degrees of wrong.
@@ -98,7 +100,7 @@ namespace NuGetGallery.FunctionalTests
             // to be accessed first.
             // Full type names are used to not litter the using section on top of the file.
             // The list of assemblies is taken from compiler-generated binding redirects for the test DLLs.
-
+#pragma warning disable CS0168
             Newtonsoft.Json.JsonConverter jc; // Newtonsoft.Json
             System.Diagnostics.DiagnosticSource ds; // System.Diagnostics.DiagnosticSource
             Azure.Core.TokenCredential tc; // Azure.Core
@@ -110,6 +112,7 @@ namespace NuGetGallery.FunctionalTests
             System.Text.Json.JsonDocument jd; // System.Text.Json
             System.Threading.Tasks.ValueTask t; // System.Threading.Tasks.Extensions
             System.ValueTuple<object, object> vt; // System.ValueTuple, maybe
+#pragma warning restore CS0168
         }
 
         /// <summary>
