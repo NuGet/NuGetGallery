@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -42,8 +42,13 @@ namespace NuGetGallery
 
         private CloudBlobClientWrapper(string storageConnectionString)
         {
-            // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
-            _storageConnectionString = storageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+            _storageConnectionString = null;
+            if (storageConnectionString is not null)
+            {
+                // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
+                _storageConnectionString = storageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+            }
+
             _primaryServiceUri = new Lazy<Uri>(GetPrimaryServiceUri);
             _secondaryServiceUri = new Lazy<Uri>(GetSecondaryServiceUri);
             _blobClient = new Lazy<BlobServiceClient>(CreateBlobServiceClient);
