@@ -19,11 +19,17 @@ namespace NuGet.Services.KeyVault
     {
         private readonly KeyVaultConfiguration _configuration;
         private readonly Lazy<SecretClient> _keyVaultClient;
-
-        // This is used to determine if the client is using SendX5c for unit testing purposes
-        internal bool isUsingSendX5c;
-
         protected SecretClient KeyVaultClient => _keyVaultClient.Value;
+        internal bool _testMode;
+        internal bool _isUsingSendx5c;
+
+        internal KeyVaultReader(SecretClient secretClient, KeyVaultConfiguration configuration, bool testMode = false)
+        {
+            _configuration = configuration;
+            _keyVaultClient = new Lazy<SecretClient>(() => secretClient);
+            _testMode = testMode;
+            InitializeClient();
+        }
 
         public KeyVaultReader(KeyVaultConfiguration configuration)
         {
@@ -88,7 +94,6 @@ namespace NuGet.Services.KeyVault
         private SecretClient InitializeClient()
         {
             TokenCredential credential = null;
-            isUsingSendX5c = false;
 
             if (_configuration.UseManagedIdentity)
             {
@@ -101,23 +106,25 @@ namespace NuGet.Services.KeyVault
                     credential = new ManagedIdentityCredential(_configuration.ClientId);
                 }
             }
+            else if (_configuration.SendX5c)
+            {
+                var clientCredentialOptions = new ClientCertificateCredentialOptions
+                {
+                    SendCertificateChain = true
+                };
+
+                credential = new ClientCertificateCredential(_configuration.TenantId, _configuration.ClientId, _configuration.Certificate, clientCredentialOptions);
+
+                // If we are in unit testing mode, we dont actually create a SecretClient
+                if (_testMode)
+                {
+                    _isUsingSendx5c = true;
+                    return _keyVaultClient.Value;
+                }
+            }
             else
             {
-                if (_configuration.SendX5c)
-                {
-                    var clientCredentialOptions = new ClientCertificateCredentialOptions
-                    {
-                        SendCertificateChain = true
-                    };
-
-                    credential = new ClientCertificateCredential(_configuration.TenantId, _configuration.ClientId, _configuration.Certificate, clientCredentialOptions);
-                    isUsingSendX5c = true;
-                }
-                else
-                {
-                    credential = new ClientCertificateCredential(_configuration.TenantId, _configuration.ClientId, _configuration.Certificate);
-
-                }
+                credential = new ClientCertificateCredential(_configuration.TenantId, _configuration.ClientId, _configuration.Certificate);
             }
 
             return new SecretClient(GetKeyVaultUri(_configuration), credential);
