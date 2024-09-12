@@ -386,11 +386,9 @@ namespace NuGet.Services.Validation.Orchestrator
                 .Register(c =>
                 {
                     LeaseConfiguration config = c.Resolve<IOptionsSnapshot<LeaseConfiguration>>().Value;
+                    StorageMsiConfiguration storageMsiConfiguration = c.Resolve<IOptionsSnapshot<StorageMsiConfiguration>>().Value;
 
-                    // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
-                    var connectionString = config.ConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
-
-                    BlobServiceClient blobServiceClient = new BlobServiceClient(connectionString);
+                    BlobServiceClient blobServiceClient = StorageAccountHelper.CreateBlobServiceClient(storageMsiConfiguration, config.ConnectionString);
                     return new CloudBlobLeaseService(blobServiceClient, config.ContainerName, config.StoragePath);
                 })
                 .As<ILeaseService>();

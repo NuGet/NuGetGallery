@@ -352,6 +352,7 @@
     <Compile Include="RequestModels\UpdateListedRequest.cs" />
     <Compile Include="Services\ListedVerb.cs" />
     <Compile Include="Services\MissingLicenseValidationMessageV2.cs" />
+    <Compile Include="Services\NormalizedPackageIdInfo.cs" />
     <Compile Include="Services\NullTyposquattingService.cs" />
     <Compile Include="Services\UploadPackageMissingReadme.cs" />
     <Compile Include="Services\MissingLicenseValidationMessage.cs" />

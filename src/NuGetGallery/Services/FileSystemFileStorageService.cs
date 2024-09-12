@@ -261,6 +261,11 @@ namespace NuGetGallery
             throw new NotImplementedException();
         }
 
+        public Task<Uri> GetPrivilegedFileUriWithDelegationSasAsync(string folderName, string fileName, FileUriPermissions permissions, DateTimeOffset endOfAccess)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task SetMetadataAsync(
             string folderName,
             string fileName,
