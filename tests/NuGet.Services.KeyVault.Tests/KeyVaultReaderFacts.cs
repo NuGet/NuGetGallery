@@ -2,14 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
-using Azure.Security.KeyVault.Secrets
 using Moq;
 using Xunit;
 
 namespace NuGet.Services.KeyVault.Tests
 {
-    public class SecretReaderFacts
+    public class KeyVaultReaderFacts
     {
         [Fact]
         public void GetSecretObjectWithSendX5c()
