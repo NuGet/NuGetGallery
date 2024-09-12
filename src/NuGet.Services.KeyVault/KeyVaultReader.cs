@@ -20,6 +20,9 @@ namespace NuGet.Services.KeyVault
         private readonly KeyVaultConfiguration _configuration;
         private readonly Lazy<SecretClient> _keyVaultClient;
 
+        // This is used to determine if the client is using SendX5c for unit testing purposes
+        internal bool isUsingSendX5c;
+
         protected SecretClient KeyVaultClient => _keyVaultClient.Value;
 
         public KeyVaultReader(KeyVaultConfiguration configuration)
@@ -85,6 +88,7 @@ namespace NuGet.Services.KeyVault
         private SecretClient InitializeClient()
         {
             TokenCredential credential = null;
+            isUsingSendX5c = false;
 
             if (_configuration.UseManagedIdentity)
             {
@@ -107,12 +111,15 @@ namespace NuGet.Services.KeyVault
                     };
 
                     credential = new ClientCertificateCredential(_configuration.TenantId, _configuration.ClientId, _configuration.Certificate, clientCredentialOptions);
+                    isUsingSendX5c = true;
                 }
                 else
                 {
                     credential = new ClientCertificateCredential(_configuration.TenantId, _configuration.ClientId, _configuration.Certificate);
+
                 }
             }
+
             return new SecretClient(GetKeyVaultUri(_configuration), credential);
         }
 
