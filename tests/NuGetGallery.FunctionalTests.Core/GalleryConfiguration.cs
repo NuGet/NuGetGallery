@@ -37,7 +37,7 @@ namespace NuGetGallery.FunctionalTests
                 // This test suite hits the gallery which requires TLS 1.2 (at least in some environments).
                 ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
 
-                // This method is a workaround for binding redirect issues. Please check the implementation for more information.
+                // The calls below are a workaround for binding redirect issues. Please check the implementation for more information.
                 EnsureRedirectedAssembliesLoaded();
                 RedirectAssembly("Newtonsoft.Json");
                 RedirectAssembly("Azure.Core");
@@ -50,6 +50,7 @@ namespace NuGetGallery.FunctionalTests
                 RedirectAssembly("System.Text.Json");
                 RedirectAssembly("System.Threading.Tasks.Extensions");
                 RedirectAssembly("System.ValueTuple");
+                RedirectAssembly("Microsoft.Web.XmlTransform");
 
                 // Load the configuration without injection. This allows us to read KeyVault configuration.
                 var uninjectedBuilder = new ConfigurationBuilder()
@@ -100,6 +101,7 @@ namespace NuGetGallery.FunctionalTests
             // to be accessed first.
             // Full type names are used to not litter the using section on top of the file.
             // The list of assemblies is taken from compiler-generated binding redirects for the test DLLs.
+            // MethodImpl attribute for the method is specified so that code below is not optimized away.
 #pragma warning disable CS0168
             Newtonsoft.Json.JsonConverter jc; // Newtonsoft.Json
             System.Diagnostics.DiagnosticSource ds; // System.Diagnostics.DiagnosticSource
@@ -112,6 +114,7 @@ namespace NuGetGallery.FunctionalTests
             System.Text.Json.JsonDocument jd; // System.Text.Json
             System.Threading.Tasks.ValueTask t; // System.Threading.Tasks.Extensions
             System.ValueTuple<object, object> vt; // System.ValueTuple, maybe
+            Microsoft.Web.XmlTransform.AttributeTransform at; // Microsoft.Web.XmlTransform
 #pragma warning restore CS0168
         }
 

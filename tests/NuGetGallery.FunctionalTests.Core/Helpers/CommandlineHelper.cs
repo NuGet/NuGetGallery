@@ -1,10 +1,11 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Xunit.Abstractions;
 
@@ -17,7 +18,8 @@ namespace NuGetGallery.FunctionalTests
         : HelperBase
     {
         internal static string AnalyzeCommandString = "analyze";
-        internal static string SpecCommandString = "spec -force";
+        internal static string SpecCommandString = "spec";
+        internal static string ForceCommandString = "-force";
         internal static string PackCommandString = "pack";
         internal static string UpdateCommandString = "update";
         internal static string InstallCommandString = "install";
@@ -30,9 +32,10 @@ namespace NuGetGallery.FunctionalTests
         internal static string SelfSwitch = "-self";
         internal static string NonInteractiveSwitchString = "-noninteractive";
         internal static string ExcludeVersionSwitchString = "-ExcludeVersion";
-        internal static string NugetExePath = @"NuGet.exe";
         internal static string SampleDependency = "SampleDependency";
         internal static string SampleDependencyVersion = "1.0";
+
+        internal static Lazy<string> NuGetExePath = new Lazy<string>(() => FindNuGetExe());
 
         public CommandlineHelper(ITestOutputHelper testOutputHelper)
             : base(testOutputHelper)
@@ -133,7 +136,7 @@ namespace NuGetGallery.FunctionalTests
         {
             var arguments = new List<string>
             {
-                SpecCommandString, packageName
+                SpecCommandString, ForceCommandString, packageName
             };
             return await InvokeNugetProcess(arguments, packageDir);
         }
@@ -161,6 +164,30 @@ namespace NuGetGallery.FunctionalTests
 
         }
 
+        private static string FindNuGetExe()
+        {
+            var relativeNuGetExePathsToTry = new[]
+            {
+                @"NuGet.exe",
+                @"tests\NuGet.exe"
+            };
+
+            var directory = new DirectoryInfo(Environment.CurrentDirectory);
+            do
+            {
+                foreach (var nuGetExeRelativePathCandidate in relativeNuGetExePathsToTry)
+                {
+                    var nuGetExeFullPath = Path.Combine(directory.FullName, nuGetExeRelativePathCandidate);
+                    if (File.Exists(nuGetExeFullPath))
+                    {
+                        return nuGetExeFullPath;
+                    }
+                }
+                directory = directory.Parent;
+            } while (directory != null);
+            throw new InvalidOperationException($"Unable to find nuget.exe in any parent directory starting from {Environment.CurrentDirectory}");
+        }
+
         /// <summary>
         /// Invokes nuget.exe with the appropriate parameters.
         /// </summary>
@@ -171,11 +198,11 @@ namespace NuGetGallery.FunctionalTests
         public async Task<ProcessResult> InvokeNugetProcess(List<string> arguments, string workingDir = null, int timeout = 360)
         {
             var nugetProcess = new Process();
-            var pathToNugetExe = Path.Combine(Environment.CurrentDirectory, NugetExePath);
+            var pathToNugetExe = NuGetExePath.Value;
 
             arguments.Add(NonInteractiveSwitchString);
 
-            var argumentsString = string.Join(" ", arguments);
+            var argumentsString = string.Join(" ", arguments.Select(arg => $"\"{arg}\""));
 
             WriteLine("The NuGet.exe command to be executed is: " + pathToNugetExe + " " + argumentsString);
 
@@ -209,6 +236,11 @@ namespace NuGetGallery.FunctionalTests
             }
 
             nugetProcess.WaitForExit(timeout * 1000);
+            if (!nugetProcess.HasExited)
+            {
+                nugetProcess.Kill();
+                throw new InvalidOperationException($"nuget.exe failed to finish in {timeout} seconds");
+            }
 
             var processResult = new ProcessResult(nugetProcess.ExitCode, standardError);
             return processResult;
