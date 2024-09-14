@@ -37,7 +37,7 @@ if ($LASTEXITCODE -ne 0) {
 $webTestsDirectory = "$parentDir\NuGetGallery.WebUITests.$TestCategory\bin\$Configuration\net472"
 
 if (Test-Path $webTestsDirectory -PathType Container) { 
-    & $vsTest "$webTestsDirectory\NuGetGallery.WebUITests.$TestCategory.dll" "/Settings:$parentDir\Local.testsettings" "/Logger:trx;LogFileName=$webUITestResults"
+    & $vsTest "$webTestsDirectory\NuGetGallery.WebUITests.$TestCategory.dll" "/Logger:trx;LogFileName=$webUITestResults"
     if ($LASTEXITCODE -ne 0) {
         $exitCode = 1
     }
@@ -45,7 +45,7 @@ if (Test-Path $webTestsDirectory -PathType Container) {
 
 # Run load tests
 $loadTestsDirectory = "$parentDir\NuGetGallery.LoadTests\bin\$Configuration\net472"
-& $vsTest "$loadTestsDirectory\NuGetGallery.LoadTests.dll" "/Settings:$parentDir\Local.testsettings" "/TestCaseFilter:`"TestCategory=$fullTestCategory`"" "/Logger:trx;LogFileName=$loadTestResults"
+& $vsTest "$loadTestsDirectory\NuGetGallery.LoadTests.dll" "/TestCaseFilter:`"TestCategory=$fullTestCategory`"" "/Logger:trx;LogFileName=$loadTestResults"
 if ($LASTEXITCODE -ne 0) {
     $exitCode = 1
 }
