@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
@@ -13,9 +13,6 @@
     <EmbeddedResource Include="TestData\PackageDownloads.log" />
     <EmbeddedResource Include="TestData\ToolDownloads.log" />
     <EmbeddedResource Include="TestData\PackageAndToolDownloads.log" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Stats.ImportAzureCdnStatistics\Stats.ImportAzureCdnStatistics.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
