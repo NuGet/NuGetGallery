@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -14,28 +14,24 @@ namespace Stats.CreateAzureCdnWarehouseReports
 {
     public abstract class ReportBase
     {
-        protected ILogger _logger;
+        protected readonly ILogger _logger;
 
-        protected readonly IReadOnlyCollection<StorageContainerTarget> Targets;
+        protected readonly IReadOnlyCollection<StorageContainerTarget> _targets;
 
-        protected readonly Func<Task<SqlConnection>> OpenStatisticsSqlConnectionAsync;
+        protected readonly Func<Task<SqlConnection>> _openGallerySqlConnectionAsync;
 
-        protected Func<Task<SqlConnection>> OpenGallerySqlConnectionAsync;
-
-        protected readonly TimeSpan CommandTimeoutSeconds;
+        protected readonly TimeSpan _commandTimeoutSeconds;
 
         protected ReportBase(
             ILogger<ReportBase> logger,
             IEnumerable<StorageContainerTarget> targets,
-            Func<Task<SqlConnection>> openStatisticsSqlConnectionAsync,
             Func<Task<SqlConnection>> openGallerySqlConnectionAsync,
             int commandTimeoutSeconds)
         {
             _logger = logger;
-            Targets = targets.ToList().AsReadOnly();
-            OpenStatisticsSqlConnectionAsync = openStatisticsSqlConnectionAsync;
-            OpenGallerySqlConnectionAsync = openGallerySqlConnectionAsync;
-            CommandTimeoutSeconds = TimeSpan.FromSeconds(commandTimeoutSeconds);
+            _targets = targets.ToList().AsReadOnly();
+            _openGallerySqlConnectionAsync = openGallerySqlConnectionAsync;
+            _commandTimeoutSeconds = TimeSpan.FromSeconds(commandTimeoutSeconds);
         }
 
         protected async Task<CloudBlobContainer> GetBlobContainer(StorageContainerTarget target)

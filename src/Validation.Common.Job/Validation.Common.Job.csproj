@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+    <Compile Remove="ServiceProviderExtensions.cs" />
     <Compile Remove="Storage\IValidatorStateService.cs" />
     <Compile Remove="Storage\ValidatorStateService.cs" />
     <Compile Remove="Storage\ValidatorStatusExtensions.cs" />
@@ -27,7 +28,6 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
     <PackageReference Include="NuGet.Packaging" />
-    <PackageReference Include="WindowsAzure.Storage" />
     <PackageReference Include="System.Formats.Asn1" />
   </ItemGroup>
 

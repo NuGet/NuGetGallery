@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using Azure.Storage.Sas;
 using Moq;
 using NuGetGallery.Diagnostics;
 using Xunit;
@@ -738,43 +739,61 @@ namespace NuGetGallery
             private const string fileName = "theFileName";
             private const string signature = "?secret=42";
 
-            [Fact]
-            public async Task WillThrowIfFolderIsNull()
-            {
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task WillThrowIfFolderIsNull(bool isDelegationSas)
+            {                
+                // Arrange
                 var service = CreateService();
+                var permissions = FileUriPermissions.Read;
+                var endOfAccess = DateTimeOffset.UtcNow.AddHours(3);
 
-                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.GetPrivilegedFileUriAsync(
-                    null,
-                    fileName,
-                    FileUriPermissions.Read,
-                    DateTimeOffset.UtcNow.AddHours(3)));
+                Func<Task> methodToTest = isDelegationSas
+                    ? () => service.GetPrivilegedFileUriWithDelegationSasAsync(folderName: null, fileName, permissions, endOfAccess)
+                    : () => service.GetPrivilegedFileUriAsync(folderName:null, fileName, permissions, endOfAccess);
+
+                // Act & Assert
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(methodToTest);
                 Assert.Equal("folderName", ex.ParamName);
             }
 
-            [Fact]
-            public async Task WillThrowIfFilenameIsNull()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task WillThrowIfFilenameIsNull(bool isDelegationSas)
             {
+                // Arrange
                 var service = CreateService();
+                var permissions = FileUriPermissions.Read;
+                var endOfAccess = DateTimeOffset.UtcNow.AddHours(3);
 
-                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.GetPrivilegedFileUriAsync(
-                    folderName,
-                    null,
-                    FileUriPermissions.Read,
-                    DateTimeOffset.UtcNow.AddHours(3)));
+                // Define the method to test based on the flag
+                Func<Task> methodToTest = isDelegationSas
+                    ? () => service.GetPrivilegedFileUriWithDelegationSasAsync(folderName, fileName:null, permissions, endOfAccess)
+                    : () => service.GetPrivilegedFileUriAsync(folderName, fileName:null, permissions, endOfAccess);
+
+                // Act & Assert
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(methodToTest);
                 Assert.Equal("fileName", ex.ParamName);
             }
 
-            [Fact]
-            public async Task WillThrowIfEndOfAccessIsInThePast()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task WillThrowIfEndOfAccessIsInThePast(bool isDelegationSas)
             {
+                // Arrange
                 var service = CreateService();
-
                 DateTimeOffset inThePast = DateTimeOffset.UtcNow.AddSeconds(-1);
-                var ex = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => service.GetPrivilegedFileUriAsync(
-                    folderName,
-                    fileName,
-                    FileUriPermissions.Read,
-                    inThePast));
+
+                // Define the method to test based on the flag
+                Func<Task> methodToTest = isDelegationSas
+                    ? () => service.GetPrivilegedFileUriWithDelegationSasAsync(folderName, fileName, FileUriPermissions.Read, inThePast)
+                    : () => service.GetPrivilegedFileUriAsync(folderName, fileName, FileUriPermissions.Read, inThePast);
+
+                // Act & Assert
+                var ex = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(methodToTest);
                 Assert.Equal("endOfAccess", ex.ParamName);
             }
 
@@ -794,6 +813,30 @@ namespace NuGetGallery
                 var service = CreateService(fakeBlobClient);
 
                 var uri = await service.GetPrivilegedFileUriAsync(
+                    containerName,
+                    fileName,
+                    FileUriPermissions.Read,
+                    DateTimeOffset.Now.AddHours(3));
+
+                Assert.Equal(expectedUri, uri.AbsoluteUri);
+            }
+
+            [Theory]
+            [InlineData(CoreConstants.Folders.ValidationFolderName, "http://example.com/" + CoreConstants.Folders.ValidationFolderName + "/" + fileName + signature)]
+            [InlineData(CoreConstants.Folders.PackagesFolderName, "http://example.com/" + CoreConstants.Folders.PackagesFolderName + "/" + fileName + signature)]
+            public async Task WillAlwaysUseDelegationSasTokenDependingOnContainerAvailability(string containerName, string expectedUri)
+            {
+                var setupResult = Setup(containerName, fileName);
+                var fakeBlobClient = setupResult.Item1;
+                var fakeBlob = setupResult.Item2;
+                var blobUri = setupResult.Item3;
+
+                fakeBlob
+                    .Setup(b => b.GetDelegationSasAsync(FileUriPermissions.Read, It.IsAny<DateTimeOffset>()))
+                    .ReturnsAsync(signature);
+                var service = CreateService(fakeBlobClient);
+
+                var uri = await service.GetPrivilegedFileUriWithDelegationSasAsync(
                     containerName,
                     fileName,
                     FileUriPermissions.Read,
@@ -836,6 +879,43 @@ namespace NuGetGallery
                     Times.Once);
                 fakeBlob.Verify(
                     b => b.GetSharedAccessSignature(It.IsAny<FileUriPermissions>(),
+                    It.IsAny<DateTimeOffset>()), Times.Once);
+            }
+
+            [Fact]
+            public async Task DelegationSasWillPassTheEndOfAccessTimestampFurther()
+            {
+                const string folderName = CoreConstants.Folders.ValidationFolderName;
+                const string fileName = "theFileName";
+                const string signature = "?secret=42";
+                DateTimeOffset endOfAccess = DateTimeOffset.Now.AddHours(3);
+                Tuple<Mock<ICloudBlobClient>, Mock<ISimpleCloudBlob>, Uri> setupResult = Setup(folderName, fileName);
+                Mock<ICloudBlobClient> fakeBlobClient = setupResult.Item1;
+                Mock<ISimpleCloudBlob> fakeBlob = setupResult.Item2;
+                Uri blobUri = setupResult.Item3;
+
+                fakeBlob
+                    .Setup(b => b.GetDelegationSasAsync(
+                        FileUriPermissions.Read | FileUriPermissions.Delete,
+                        endOfAccess))
+                    .ReturnsAsync(signature)
+                    .Verifiable();
+
+                CloudBlobCoreFileStorageService service = CreateService(fakeBlobClient);
+
+                var uri = await service.GetPrivilegedFileUriWithDelegationSasAsync(
+                    folderName,
+                    fileName,
+                    FileUriPermissions.Read | FileUriPermissions.Delete,
+                    endOfAccess);
+
+                string expectedUri = new Uri(blobUri, signature).AbsoluteUri;
+                Assert.Equal(expectedUri, uri.AbsoluteUri);
+                fakeBlob.Verify(
+                    b => b.GetDelegationSasAsync(FileUriPermissions.Read | FileUriPermissions.Delete, endOfAccess),
+                    Times.Once);
+                fakeBlob.Verify(
+                    b => b.GetDelegationSasAsync(It.IsAny<FileUriPermissions>(),
                     It.IsAny<DateTimeOffset>()), Times.Once);
             }
 

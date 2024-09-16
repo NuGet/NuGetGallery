@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -35,6 +35,30 @@ namespace NuGet.Services.KeyVault
             _frame = frame;
             _secretReader = secretReader;
             _cachingSecretReader = secretReader as ICachingSecretReader;
+        }
+
+        public string Inject(string input)
+        {
+            return Inject(input, logger: null);
+        }
+
+        public string Inject(string input, ILogger logger)
+        {
+            if (string.IsNullOrEmpty(input))
+            {
+                return input;
+            }
+
+            var output = new StringBuilder(input);
+            var secretNames = GetSecretNames(input);
+
+            foreach (var secretName in secretNames)
+            {
+                var secretValue = _secretReader.GetSecret(secretName, logger);
+                output.Replace($"{_frame}{secretName}{_frame}", secretValue);
+            }
+
+            return output.ToString();
         }
 
         public Task<string> InjectAsync(string input)

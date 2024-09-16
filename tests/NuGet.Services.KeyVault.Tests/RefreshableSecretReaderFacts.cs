@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved. 
+// Copyright (c) .NET Foundation. All rights reserved. 
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information. 
 
 using System;
@@ -65,6 +65,44 @@ namespace NuGet.Services.KeyVault.Tests
             }
         }
 
+        public class Refresh : Facts
+        {
+            [Fact]
+            public void DoesNothingWithEmptyCache()
+            {
+                Target.Refresh();
+
+                SecretReader.Verify(x => x.GetSecret(It.IsAny<string>()), Times.Never);
+                SecretReader.Verify(x => x.GetSecretObject(It.IsAny<string>()), Times.Never);
+            }
+
+            [Fact]
+            public void RefreshesAllNames()
+            {
+                Target.GetSecret(SecretNameA);
+                Target.GetSecret(SecretNameB);
+                SecretReader.Invocations.Clear();
+
+                Target.Refresh();
+
+                SecretReader.Verify(x => x.GetSecret(It.IsAny<string>()), Times.Never);
+                SecretReader.Verify(x => x.GetSecretObject(SecretNameA), Times.Once);
+                SecretReader.Verify(x => x.GetSecretObject(SecretNameB), Times.Once);
+            }
+
+            [Fact]
+            public void CachesLatestValue()
+            {
+                Target.GetSecret(SecretNameA);
+                SecretReader.Setup(x => x.GetSecretObject(SecretNameA)).Returns(() => SecretB.Object);
+
+                Target.Refresh();
+
+                var secretObject = Target.GetSecretObject(SecretNameA);
+                Assert.Same(SecretB.Object, secretObject);
+            }
+        }
+
         public class GetSecretObjectAsync : Facts
         {
             [Fact]
@@ -111,6 +149,27 @@ namespace NuGet.Services.KeyVault.Tests
             }
         }
 
+        public class GetSecretObject : Facts
+        {
+            [Fact]
+            public void FetchesAnUncachedSecret()
+            {
+                var actual = Target.GetSecretObject(SecretNameA);
+
+                Assert.Same(SecretA.Object, actual);
+                SecretReader.Verify(x => x.GetSecretObject(SecretNameA), Times.Once);
+            }
+
+            [Fact]
+            public void ThrowsIfReadsAreBlocked()
+            {
+                Settings.BlockUncachedReads = true;
+
+                var ex = Assert.Throws<InvalidOperationException>(() => Target.GetSecret(SecretNameA));
+                Assert.Equal($"The secret '{SecretNameA}' is not cached.", ex.Message);
+            }
+        }
+
         public class GetSecretAsync : Facts
         {
             [Fact]
@@ -148,6 +207,19 @@ namespace NuGet.Services.KeyVault.Tests
             }
         }
 
+        public class GetSecret : Facts
+        {
+            [Fact]
+            public void FetchesAnUncachedSecret()
+            {
+                var actual = Target.GetSecret(SecretNameA);
+
+                Assert.Same(SecretA.Object.Value, actual);
+                SecretReader.Verify(x => x.GetSecret(It.IsAny<string>()), Times.Never);
+                SecretReader.Verify(x => x.GetSecretObject(SecretNameA), Times.Once);
+            }
+        }
+
         public abstract class Facts
         {
             public Facts()
@@ -164,6 +236,19 @@ namespace NuGet.Services.KeyVault.Tests
 
                 SecretA.Setup(x => x.Value).Returns("A-value");
                 SecretB.Setup(x => x.Value).Returns("B-value");
+
+                SecretReader
+                    .Setup(x => x.GetSecretObject(SecretNameA))
+                    .Returns(() =>
+                    {
+                        return SecretA.Object;
+                    });
+                SecretReader
+                    .Setup(x => x.GetSecretObject(SecretNameB))
+                    .Returns(() =>
+                    {
+                        return SecretB.Object;
+                    });
 
                 SecretReader
                     .Setup(x => x.GetSecretObjectAsync(SecretNameA))

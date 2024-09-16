@@ -2922,6 +2922,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The package nuspec file contains invalid unicode characters..
+        /// </summary>
+        public static string UploadPackage_NuspecContainsInvalidUnicodeCharacters {
+            get {
+                return ResourceManager.GetString("UploadPackage_NuspecContainsInvalidUnicodeCharacters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package nuspec file is not compliant with the normalization form C (NFC)..
+        /// </summary>
+        public static string UploadPackage_NuspecIsNotNormalized {
+            get {
+                return ResourceManager.GetString("UploadPackage_NuspecIsNotNormalized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The package ID is reserved. You can upload your package with a different package ID. Reach out to support@nuget.org if you have questions..
         /// </summary>
         public static string UploadPackage_OwnerlessIdNamespaceConflict {

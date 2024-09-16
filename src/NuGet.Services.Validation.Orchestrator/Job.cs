@@ -106,6 +106,8 @@ namespace NuGet.Services.Validation.Orchestrator
 
             try
             {
+                _serviceProvider.ValidateMessageHandlerInitialization<PackageValidationMessageData>();
+
                 var runner = GetRequiredService<OrchestrationRunner>();
                 await runner.RunOrchestrationAsync();
             }
@@ -180,13 +182,6 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<IBrokeredMessageSerializer<PackageValidationMessageData>, PackageValidationMessageDataSerializationAdapter>();
             services.AddTransient<ICriteriaEvaluator<Package>, PackageCriteriaEvaluator>();
             services.AddTransient<IProcessSignatureEnqueuer, ProcessSignatureEnqueuer>();
-            services.AddTransient<ICloudBlobClient>(c =>
-            {
-                var configurationAccessor = c.GetRequiredService<IOptionsSnapshot<ValidationConfiguration>>();
-                return new CloudBlobClientWrapper(
-                    configurationAccessor.Value.ValidationStorageConnectionString,
-                    readAccessGeoRedundant: false);
-            });
             services.AddTransient<ICloudBlobContainerInformationProvider, GalleryCloudBlobContainerInformationProvider>();
             services.AddTransient<ICoreFileStorageService, CloudBlobCoreFileStorageService>();
             services.AddTransient<IFileDownloader, FileDownloader>();
@@ -236,6 +231,10 @@ namespace NuGet.Services.Validation.Orchestrator
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
+            containerBuilder
+                .RegisterStorageAccount<ValidationConfiguration>(c => c.ValidationStorageConnectionString)
+                .As<ICloudBlobClient>();
+
             containerBuilder
                 .Register(c =>
                 {
@@ -387,11 +386,9 @@ namespace NuGet.Services.Validation.Orchestrator
                 .Register(c =>
                 {
                     LeaseConfiguration config = c.Resolve<IOptionsSnapshot<LeaseConfiguration>>().Value;
+                    StorageMsiConfiguration storageMsiConfiguration = c.Resolve<IOptionsSnapshot<StorageMsiConfiguration>>().Value;
 
-                    // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
-                    var connectionString = config.ConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
-
-                    BlobServiceClient blobServiceClient = new BlobServiceClient(connectionString);
+                    BlobServiceClient blobServiceClient = StorageAccountHelper.CreateBlobServiceClient(storageMsiConfiguration, config.ConnectionString);
                     return new CloudBlobLeaseService(blobServiceClient, config.ContainerName, config.StoragePath);
                 })
                 .As<ILeaseService>();
@@ -456,13 +453,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private static void ConfigureFlatContainer(ContainerBuilder builder)
         {
             builder
-                .Register<CloudBlobClientWrapper>(c =>
-                {
-                    var configurationAccessor = c.Resolve<IOptionsSnapshot<FlatContainerConfiguration>>();
-                    return new CloudBlobClientWrapper(
-                        configurationAccessor.Value.ConnectionString,
-                        readAccessGeoRedundant: false);
-                })
+                .RegisterStorageAccount<FlatContainerConfiguration>(c => c.ConnectionString)
                 .Keyed<ICloudBlobClient>(FlatContainerBindingKey);
 
             builder
