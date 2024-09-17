@@ -8,7 +8,6 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Stats.ImportAzureCdnStatistics;
 
 namespace Stats.RefreshClientDimension
 {
