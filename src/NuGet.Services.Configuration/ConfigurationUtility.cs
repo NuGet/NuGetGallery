@@ -29,7 +29,8 @@ namespace NuGet.Services.Configuration
         }
 
         /// <summary>
-        /// Injects secret into a string trying to use cached value first.
+        /// Injects secret into a string trying to use cached value first. If the value is absent
+        /// in cache, falls back to actually querying underlying secret store.
         /// </summary>
         /// <param name="value">String to inject secret into.</param>
         /// <param name="secretInjector">Caching secret injector to use.</param>
