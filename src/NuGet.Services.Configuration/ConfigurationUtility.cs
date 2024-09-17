@@ -3,7 +3,10 @@
 
 using System;
 using System.ComponentModel;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NuGet.Services.KeyVault;
 
 namespace NuGet.Services.Configuration
@@ -43,6 +46,24 @@ namespace NuGet.Services.Configuration
                 return injectedValue;
             }
             return secretInjector.Inject(value, logger);
+        }
+
+        public static IServiceCollection ConfigureInjected<T>(this IServiceCollection services, string sectionPrefix)
+            where T : class
+            => services.AddSingleton(sp => GetInjectedOptions<T>(sp, sectionPrefix));
+
+        private static IConfigureOptions<T> GetInjectedOptions<T>(IServiceProvider sp, string sectionPrefix)
+            where T : class
+        {
+            return new ConfigureNamedOptions<T, IConfiguration>(
+                Options.DefaultName,
+                sp.GetRequiredService<IConfiguration>(),
+                (settings, configuration) =>
+                    new SecretInjectedConfiguration(
+                        configuration.GetSection(sectionPrefix),
+                        sp.GetRequiredService<ICachingSecretInjector>(),
+                        sp.GetRequiredService<ILogger<SecretInjectedConfiguration>>())
+                    .Bind(settings));
         }
     }
 }
