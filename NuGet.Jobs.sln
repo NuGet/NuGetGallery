@@ -180,8 +180,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.SearchServic
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.SearchService.Core.Tests", "tests\NuGet.Services.SearchService.Core.Tests\NuGet.Services.SearchService.Core.Tests.csproj", "{91D6A911-3196-4970-A5FD-198E8BFB98C4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stats.LogInterpretation", "src\Stats.LogInterpretation\Stats.LogInterpretation.csproj", "{158E68FA-D06A-458A-9766-032D9C80F5A7}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.PackageManagement.Search.Web", "src\Microsoft.PackageManagement.Search.Web\Microsoft.PackageManagement.Search.Web.csproj", "{D3C638C4-8924-47EE-B025-CE7FEBAADEF9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validation.ContentScan.Core", "src\Validation.ContentScan.Core\Validation.ContentScan.Core.csproj", "{912A81F7-F0D9-43EF-A589-9A341EB2D6B6}"
