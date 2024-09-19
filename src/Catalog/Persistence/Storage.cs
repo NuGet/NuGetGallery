@@ -129,7 +129,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             }
             catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
             {
-                throw new CloudBlobNotFoundException(ex);
+                // No need to rethrow, same as below statusCode != HttpStatusCode.NotFound for CloudBlobStorageException exception
             }
             catch (CloudBlobStorageException e)
             {
