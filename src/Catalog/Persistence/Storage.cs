@@ -129,16 +129,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             }
             catch (RequestFailedException ex)
             {
-                WebException webException = ex.InnerException as WebException;
-                if (webException != null)
-                {
-                    HttpStatusCode statusCode = ((HttpWebResponse)webException.Response).StatusCode;
-                    if (statusCode != HttpStatusCode.NotFound)
-                    {
-                        throw;
-                    }
-                }
-                else
+                if (ex.ErrorCode != BlobErrorCode.BlobNotFound)
                 {
                     throw;
                 }
