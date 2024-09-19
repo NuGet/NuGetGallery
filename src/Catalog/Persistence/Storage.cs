@@ -8,6 +8,8 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure;
+using Azure.Storage.Blobs.Models;
 using Newtonsoft.Json;
 using NuGetGallery;
 
@@ -124,6 +126,10 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             try
             {
                 await OnDeleteAsync(resourceUri, deleteRequestOptions, cancellationToken);
+            }
+            catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
+            {
+                throw new CloudBlobNotFoundException(ex);
             }
             catch (CloudBlobStorageException e)
             {
