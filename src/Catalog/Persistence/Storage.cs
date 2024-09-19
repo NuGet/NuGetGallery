@@ -127,12 +127,9 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             {
                 await OnDeleteAsync(resourceUri, deleteRequestOptions, cancellationToken);
             }
-            catch (RequestFailedException ex)
+            catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
             {
-                if (ex.ErrorCode != BlobErrorCode.BlobNotFound)
-                {
-                    throw;
-                }
+                // Ignore this same as CloudBlobStorageException for below.
             }
             catch (CloudBlobStorageException e)
             {
