@@ -124,8 +124,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.Metadata.Cat
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.V3", "src\NuGet.Services.V3\NuGet.Services.V3.csproj", "{3E3052F7-671F-40F5-983E-221D81020FDB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stats.LogInterpretation", "src\Stats.LogInterpretation\Stats.LogInterpretation.csproj", "{8B8304BF-7EBD-4324-AF98-4552496DFE30}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validation.Common.Job", "src\Validation.Common.Job\Validation.Common.Job.csproj", "{7CEAADE9-3382-4E7F-8D69-5747E9E20E33}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validation.ContentScan.Core", "src\Validation.ContentScan.Core\Validation.ContentScan.Core.csproj", "{782464A0-3114-48F4-8F74-2534006C0445}"
