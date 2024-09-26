@@ -77,6 +77,37 @@ namespace NuGet.Jobs
                 requestTimeout);
         }
 
+        private static CloudBlobClientWrapper CreateCloudBlobClient(
+            StorageMsiConfiguration msiConfiguration,
+            string storageConnectionString,
+            bool readAccessGeoRedundant = false,
+            TimeSpan? requestTimeout = null)
+        {
+            if (msiConfiguration.UseManagedIdentity)
+            {
+                if (string.IsNullOrWhiteSpace(msiConfiguration.ManagedIdentityClientId))
+                {
+                    return CloudBlobClientWrapper.UsingDefaultAzureCredential(
+                        storageConnectionString,
+                        readAccessGeoRedundant: readAccessGeoRedundant,
+                        requestTimeout: requestTimeout);
+                }
+                else
+                {
+                    return CloudBlobClientWrapper.UsingMsi(
+                        storageConnectionString,
+                        msiConfiguration.ManagedIdentityClientId,
+                        readAccessGeoRedundant,
+                        requestTimeout);
+                }
+            }
+
+            return new CloudBlobClientWrapper(
+                storageConnectionString,
+                readAccessGeoRedundant,
+                requestTimeout);
+        }
+
         public static IRegistrationBuilder<CloudBlobClientWrapper, SimpleActivatorData, SingleRegistrationStyle> RegisterStorageAccount<TConfiguration>(
             this ContainerBuilder builder,
             Func<TConfiguration, string> getConnectionString,
@@ -121,9 +152,32 @@ namespace NuGet.Jobs
             }
 
             StorageMsiConfiguration msiConfiguration = serviceProvider.GetRequiredService<IOptions<StorageMsiConfiguration>>().Value;
-            return CreateTableServiceClientClient(
+            return CreateTableServiceClient(
                 msiConfiguration,
                 storageConnectionString);
+        }
+
+        public static TableServiceClient CreateTableServiceClient(
+            StorageMsiConfiguration msiConfiguration,
+            string tableStorageConnectionString)
+        {
+            if (msiConfiguration.UseManagedIdentity)
+            {
+                if (string.IsNullOrWhiteSpace(msiConfiguration.ManagedIdentityClientId))
+                {
+                    return new TableServiceClient(new Uri(tableStorageConnectionString),
+                        new DefaultAzureCredential());
+                }
+                else
+                {
+                    return new TableServiceClient(new Uri(tableStorageConnectionString),
+                        new ManagedIdentityCredential(msiConfiguration.ManagedIdentityClientId));
+                }
+            }
+
+            // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
+            tableStorageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+            return new TableServiceClient(tableStorageConnectionString);
         }
 
         public static IRegistrationBuilder<TableServiceClient, SimpleActivatorData, SingleRegistrationStyle> RegisterTableServiceClient<TConfiguration>(
@@ -145,41 +199,10 @@ namespace NuGet.Jobs
                 IOptionsSnapshot<TConfiguration> options = c.Resolve<IOptionsSnapshot<TConfiguration>>();
                 string storageConnectionString = getConnectionString(options.Value);
                 StorageMsiConfiguration msiConfiguration = c.Resolve<IOptions<StorageMsiConfiguration>>().Value;
-                return CreateTableServiceClientClient(
+                return CreateTableServiceClient(
                     msiConfiguration,
                     storageConnectionString);
             });
-        }
-
-        private static CloudBlobClientWrapper CreateCloudBlobClient(
-            StorageMsiConfiguration msiConfiguration,
-            string storageConnectionString,
-            bool readAccessGeoRedundant = false,
-            TimeSpan? requestTimeout = null)
-        {
-            if (msiConfiguration.UseManagedIdentity)
-            {
-                if (string.IsNullOrWhiteSpace(msiConfiguration.ManagedIdentityClientId))
-                {
-                    return CloudBlobClientWrapper.UsingDefaultAzureCredential(
-                        storageConnectionString,
-                        readAccessGeoRedundant: readAccessGeoRedundant,
-                        requestTimeout: requestTimeout);
-                }
-                else
-                {
-                    return CloudBlobClientWrapper.UsingMsi(
-                        storageConnectionString,
-                        msiConfiguration.ManagedIdentityClientId,
-                        readAccessGeoRedundant,
-                        requestTimeout);
-                }
-            }
-
-            return new CloudBlobClientWrapper(
-                storageConnectionString,
-                readAccessGeoRedundant,
-                requestTimeout);
         }
 
         public static BlobServiceClient CreateBlobServiceClient(
@@ -222,29 +245,6 @@ namespace NuGet.Jobs
 
                 return new BlobServiceClient(connectionString, blobClientOptions);
             }
-        }
-
-        private static TableServiceClient CreateTableServiceClientClient(
-            StorageMsiConfiguration msiConfiguration,
-            string tableStorageConnectionString)
-        {
-            if (msiConfiguration.UseManagedIdentity)
-            {
-                if (string.IsNullOrWhiteSpace(msiConfiguration.ManagedIdentityClientId))
-                {
-                    return new TableServiceClient(new Uri(tableStorageConnectionString),
-                        new DefaultAzureCredential());
-                }
-                else
-                {
-                    return new TableServiceClient(new Uri(tableStorageConnectionString),
-                        new ManagedIdentityCredential(msiConfiguration.ManagedIdentityClientId));
-                }
-            }
-
-            // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
-            tableStorageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
-            return new TableServiceClient(tableStorageConnectionString);
         }
     }
 }

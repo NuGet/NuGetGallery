@@ -177,8 +177,10 @@ namespace StatusAggregator
 
         private static TableServiceClient GetTableServiceClient(IComponentContext ctx, StatusStorageConnectionBuilder statusStorageConnectionBuilder)
         {
+            StorageMsiConfiguration storageMsiConfiguration = ctx.Resolve<IOptionsSnapshot<StorageMsiConfiguration>>().Value;
             string connectionString = GetConnectionString(ctx, statusStorageConnectionBuilder);
-            return new TableServiceClient(connectionString);
+
+            return StorageAccountHelper.CreateTableServiceClient(storageMsiConfiguration, connectionString);
         }
 
         private static ITableWrapper GetTableWrapper(IComponentContext ctx, TableServiceClient tableServiceClient)
@@ -189,8 +191,10 @@ namespace StatusAggregator
 
         private static BlobServiceClient GetBlobServiceClient(IComponentContext ctx, StatusStorageConnectionBuilder statusStorageConnectionBuilder)
         {
+            StorageMsiConfiguration storageMsiConfiguration = ctx.Resolve<IOptionsSnapshot<StorageMsiConfiguration>>().Value;
             string connectionString = GetConnectionString(ctx, statusStorageConnectionBuilder);
-            return new BlobServiceClient(connectionString);
+
+            return StorageAccountHelper.CreateBlobServiceClient(storageMsiConfiguration, connectionString);
         }
 
         private static IContainerWrapper GetContainerWrapper(IComponentContext ctx, BlobServiceClient blobServiceClient)
