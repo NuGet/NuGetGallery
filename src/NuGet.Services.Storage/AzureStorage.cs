@@ -21,11 +21,13 @@ namespace NuGet.Services.Storage
         private readonly ILogger<AzureStorage> _logger;
         private readonly BlobContainerClient _directory;
         private readonly string _path;
+        private readonly string _delimiter;
 
         public AzureStorage(
             BlobServiceClient account,
             string containerName,
             string path,
+            string delimiter,
             Uri baseAddress,
             bool initializeContainer,
             bool enablePublicAccess,
@@ -38,6 +40,7 @@ namespace NuGet.Services.Storage
                   logger)
         {
             _path = path;
+            _delimiter = delimiter;
         }
 
         private AzureStorage(
@@ -171,8 +174,14 @@ namespace NuGet.Services.Storage
                 blobTraits |= BlobTraits.Metadata;
             }
 
-            foreach (BlobHierarchyItem blob in _directory.GetBlobsByHierarchy(traits: blobTraits, prefix: _path))
+            foreach (BlobHierarchyItem blob in _directory.GetBlobsByHierarchy(traits: blobTraits, delimiter: _delimiter, prefix: _path))
             {
+                // if prefix then the blob is a directory and we should skip it
+                if (blob.IsPrefix)
+                {
+                    continue;
+                }
+
                 yield return GetStorageListItem(_directory.GetBlockBlobClient(blob.Blob.Name));
             }
         }
@@ -187,8 +196,13 @@ namespace NuGet.Services.Storage
 
             var blobList = new List<StorageListItem>();
 
-            await foreach (BlobHierarchyItem blob in _directory.GetBlobsByHierarchyAsync(traits: blobTraits, prefix: _path))
+            await foreach (BlobHierarchyItem blob in _directory.GetBlobsByHierarchyAsync(traits: blobTraits, delimiter: _delimiter, prefix: _path, cancellationToken: cancellationToken))
             {
+                // if prefix then the blob is a directory and we should skip it
+                if (blob.IsPrefix)
+                {
+                    continue;
+                }
                 blobList.Add(await GetStorageListItemAsync(_directory.GetBlockBlobClient(blob.Blob.Name)));
             }
 
@@ -364,7 +378,7 @@ namespace NuGet.Services.Storage
                 originalStream.Position = 0;
                 var propertiesResponse = await blob.GetPropertiesAsync();
                 var properties = propertiesResponse.Value;
-                
+
                 MemoryStream content;
 
                 if (properties.ContentEncoding == "gzip")
