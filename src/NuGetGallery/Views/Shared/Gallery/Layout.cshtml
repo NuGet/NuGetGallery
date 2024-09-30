@@ -63,7 +63,7 @@
     @ViewHelpers.ReleaseMeta()
     @ViewHelpers.InstrumentationScript(ViewBag)
 </head>
-<body id=@Url.Current()>
+<body @{if (Request.Url.GetComponents(UriComponents.Path, UriFormat.UriEscaped) == "") { <text>id="/"</text> } }>
     @Html.Partial("Gallery/Header")
     <div id="skippedToContent">
     @RenderBody()
