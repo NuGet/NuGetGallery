@@ -6,7 +6,6 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
-using Azure.Identity;
 using Azure.Storage.Blobs;
 using GitHubVulnerabilities2Db.Configuration;
 using GitHubVulnerabilities2Db.Fakes;
@@ -32,7 +31,6 @@ namespace GitHubVulnerabilities2Db
 {
     public class Job : JsonConfigurationJob, IDisposable
     {
-        private const string ManagedIdentityClientIdKey = "UserManagedIdentityClientId";
         private readonly HttpClient _client = new HttpClient();
 
         public override async Task Run()
@@ -61,7 +59,7 @@ namespace GitHubVulnerabilities2Db
 
             ConfigureQueryServices(containerBuilder);
             ConfigureIngestionServices(containerBuilder);
-            ConfigureCollectorServices(containerBuilder, configurationRoot);
+            ConfigureCollectorServices(containerBuilder);
         }
 
         protected void ConfigureIngestionServices(ContainerBuilder containerBuilder)
@@ -161,14 +159,14 @@ namespace GitHubVulnerabilities2Db
                 .As<IAdvisoryQueryService>();
         }
 
-        protected void ConfigureCollectorServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
+        protected void ConfigureCollectorServices(ContainerBuilder containerBuilder)
         {
             containerBuilder
                 .Register(ctx =>
                 {
                     var config = ctx.Resolve<GitHubVulnerabilities2DbConfiguration>();
-                    var credential = new ManagedIdentityCredential(configurationRoot[ManagedIdentityClientIdKey]);
-                    return new BlobServiceClient(new Uri(config.StorageConnectionString), credential);
+                    var connectionString = AzureStorageFactory.PrepareConnectionString(config.StorageConnectionString);
+                    return new BlobServiceClient(connectionString);
                 })
                 .As<BlobServiceClient>();
 
