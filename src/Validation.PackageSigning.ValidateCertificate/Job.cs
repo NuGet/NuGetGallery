@@ -44,7 +44,7 @@ namespace Validation.PackageSigning.ValidateCertificate
                         string.IsNullOrEmpty(configurationRoot[Constants.StorageManagedIdentityClientIdPropertyName]) ?
                         configurationRoot[Constants.ManagedIdentityClientIdKey] :
                         configurationRoot[Constants.StorageManagedIdentityClientIdPropertyName];
-                    var storageAccountUri = AzureStorage.GetPrimaryServiceUri(config.DataStorageAccount);
+                    var storageAccountUri = AzureStorage.GetPrimaryBlobServiceUri(config.DataStorageAccount);
                     var managedIdentity = new ManagedIdentityCredential(managedIdentityClientId);
                     targetStorageAccount = new BlobServiceClient(storageAccountUri, managedIdentity);
                 }

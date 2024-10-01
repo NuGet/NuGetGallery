@@ -9,6 +9,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
+using Azure.Data.Tables;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
@@ -420,10 +421,17 @@ namespace NuGet.Services.Storage
             return ResolveUri(Path.Combine(_path, filename));
         }
 
-        public static Uri GetPrimaryServiceUri(string storageConnectionString)
+        public static Uri GetPrimaryBlobServiceUri(string storageConnectionString)
         {
             var tempClient = new BlobServiceClient(storageConnectionString);
-            // if _storageConnectionString has SAS token, Uri will contain SAS signature, we need to strip it 
+            // if _storageConnectionString has SAS token, Uri will contain SAS signature, we need to strip it
+            return new Uri(tempClient.Uri.GetLeftPart(UriPartial.Path));
+        }
+
+        public static Uri GetPrimaryTableServiceUri(string storageConnectionString)
+        {
+            var tempClient = new TableServiceClient(storageConnectionString);
+            // if _storageConnectionString has SAS token, Uri will contain SAS signature, we need to strip it
             return new Uri(tempClient.Uri.GetLeftPart(UriPartial.Path));
         }
     }

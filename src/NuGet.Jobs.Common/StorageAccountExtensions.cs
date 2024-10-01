@@ -163,21 +163,21 @@ namespace NuGet.Jobs
         {
             if (msiConfiguration.UseManagedIdentity)
             {
+                Uri tableEndpointUri = AzureStorage.GetPrimaryTableServiceUri(tableStorageConnectionString);
+
                 if (string.IsNullOrWhiteSpace(msiConfiguration.ManagedIdentityClientId))
                 {
-                    return new TableServiceClient(new Uri(tableStorageConnectionString),
-                        new DefaultAzureCredential());
+                    return new TableServiceClient(tableEndpointUri, new DefaultAzureCredential());
                 }
                 else
                 {
-                    return new TableServiceClient(new Uri(tableStorageConnectionString),
-                        new ManagedIdentityCredential(msiConfiguration.ManagedIdentityClientId));
+                    return new TableServiceClient(tableEndpointUri, new ManagedIdentityCredential(msiConfiguration.ManagedIdentityClientId));
                 }
             }
 
             // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
-            tableStorageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
-            return new TableServiceClient(tableStorageConnectionString);
+            var connectionString = tableStorageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+            return new TableServiceClient(connectionString);
         }
 
         public static IRegistrationBuilder<TableServiceClient, SimpleActivatorData, SingleRegistrationStyle> RegisterTableServiceClient<TConfiguration>(
@@ -218,7 +218,7 @@ namespace NuGet.Jobs
 
             if (storageMsiConfiguration.UseManagedIdentity)
             {
-                Uri blobEndpointUri = AzureStorage.GetPrimaryServiceUri(storageConnectionString);
+                Uri blobEndpointUri = AzureStorage.GetPrimaryBlobServiceUri(storageConnectionString);
 
                 if (string.IsNullOrWhiteSpace(storageMsiConfiguration.ManagedIdentityClientId))
                 {
