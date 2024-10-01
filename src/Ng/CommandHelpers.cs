@@ -46,6 +46,7 @@ namespace Ng
             { Arguments.StorageContainer, Arguments.StorageContainer },
             { Arguments.StoragePath, Arguments.StoragePath },
             { Arguments.StorageSuffix, Arguments.StorageSuffix },
+            { Arguments.StorageUseManagedIdentity, Arguments.StorageUseManagedIdentity },
             { Arguments.StorageUseServerSideCopy, Arguments.StorageUseServerSideCopy },
             { Arguments.StorageOperationMaxExecutionTimeInSeconds, Arguments.StorageOperationMaxExecutionTimeInSeconds },
             { Arguments.StorageServerTimeoutInSeconds, Arguments.StorageServerTimeoutInSeconds },
@@ -115,7 +116,7 @@ namespace Ng
                     keyVaultConfig = new KeyVaultConfiguration(
                         vaultName,
                         tenantId,
-                        clientId, 
+                        clientId,
                         keyVaultCertificate,
                         sendX5c);
                 }
@@ -422,7 +423,15 @@ namespace Ng
             IDictionary<string, string> arguments,
             IDictionary<string, string> argumentNameMap)
         {
+            bool storageUseManagedIdentity = arguments.GetOrDefault(argumentNameMap[Arguments.StorageUseManagedIdentity], defaultValue: true);
             string connectionString = GetConnectionString(arguments, argumentNameMap, "BlobEndpoint", "blob");
+            if (storageUseManagedIdentity)
+            {
+                var managedIdentityClientId = arguments.GetOrThrow<string>(argumentNameMap[Arguments.ClientId]);
+                var identity = new ManagedIdentityCredential(managedIdentityClientId);
+                var serviceUri = GetServiceUri(arguments, argumentNameMap, "BlobEndpoint", "blob");
+                return new BlobServiceClient(managedIdentityClientId);
+            }
             return new BlobServiceClient(connectionString);
         }
 
@@ -467,6 +476,19 @@ namespace Ng
             }
 
             return connectionString;
+        }
+
+        private static Uri GetServiceUri(
+            IDictionary<string, string> arguments,
+            IDictionary<string, string> argumentNameMap,
+            string endpointKey,
+            string endpointDomain)
+        {
+            var storageAccountName = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageAccountName]);
+            var storageSuffix = arguments.GetOrDefault(argumentNameMap[Arguments.StorageSuffix], DefaultStorageSuffix);
+
+            string serviceUri = $"https://{storageAccountName}.{endpointDomain}.{storageSuffix}/";
+            return new Uri(serviceUri);
         }
     }
 }
