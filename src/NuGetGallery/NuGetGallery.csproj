@@ -2239,8 +2239,10 @@
     <PackageReference Include="Strathweb.CacheOutput.WebApi2.StrongName" />
     <PackageReference Include="System.Data.SqlClient" />
     <PackageReference Include="System.Diagnostics.Debug" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
     <PackageReference Include="System.Linq.Expressions" />
     <PackageReference Include="System.Net.Http" />
+    <PackageReference Include="System.Text.Json" />
     <PackageReference Include="NuGet.StrongName.WebActivator" />
     <PackageReference Include="WebActivatorEx" />
     <PackageReference Include="NuGet.StrongName.WebBackgrounder.EntityFramework" />
