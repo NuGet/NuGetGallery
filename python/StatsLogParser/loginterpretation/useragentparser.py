@@ -2,7 +2,7 @@ from __future__ import annotations
 from collections import namedtuple
 from typing import Optional
 import re
-import pkg_resources
+import pkgutil
 from ua_parser import user_agent_parser
 from ua_parser._regexes import USER_AGENT_PARSERS
 import yaml
@@ -47,11 +47,8 @@ class UserAgentParser:
 
     @staticmethod
     def _read_known_clients_yaml() -> str:
-        file_name = pkg_resources.resource_filename(__name__, 'knownclients.yaml')
-        with open(file_name, 'r', encoding='utf-8-sig') as file:
-            yaml_file = file.read()
-
-        return yaml_file
+        file_data = pkgutil.get_data(__name__, 'knownclients.yaml').decode('utf-8-sig')
+        return file_data
 
     @staticmethod
     def _create_parser_data_from_yaml(yaml_content) -> list[user_agent_parser.UserAgentParser]:

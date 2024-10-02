@@ -13,6 +13,7 @@
     <PackageReference Include="NuGet.Commands" />
     <PackageReference Include="NuGet.PackageManagement" />
     <PackageReference Include="NuGet.Resolver" />
+    <PackageReference Include="System.Text.Json" />
     <PackageReference Include="xunit.runner.visualstudio">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>

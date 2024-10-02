@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="Autofac.Extensions.DependencyInjection" />
+    <PackageReference Include="Azure.Data.Tables" />
     <PackageReference Include="Dapper.StrongName" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
@@ -28,6 +29,7 @@
     <ProjectReference Include="..\NuGet.Services.FeatureFlags\NuGet.Services.FeatureFlags.csproj" />
     <ProjectReference Include="..\NuGet.Services.Logging\NuGet.Services.Logging.csproj" />
     <ProjectReference Include="..\NuGet.Services.Sql\NuGet.Services.Sql.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Storage\NuGet.Services.Storage.csproj" />
     <ProjectReference Include="..\NuGetGallery.Core\NuGetGallery.Core.csproj" />
   </ItemGroup>
 

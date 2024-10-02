@@ -4,10 +4,14 @@
 using System;
 using Autofac;
 using Autofac.Builder;
+using Azure.Data.Tables;
+using Azure.Identity;
+using Azure.Storage.Blobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using NuGet.Services.Configuration;
+using NuGet.Services.Storage;
 using NuGetGallery;
 
 namespace NuGet.Jobs
@@ -103,6 +107,50 @@ namespace NuGet.Jobs
             });
         }
 
+        public static TableServiceClient CreateTableServiceClient(
+            this IServiceProvider serviceProvider,
+            string storageConnectionString)
+        {
+            if (serviceProvider == null)
+            {
+                throw new ArgumentNullException(nameof(serviceProvider));
+            }
+            if (string.IsNullOrWhiteSpace(storageConnectionString))
+            {
+                throw new ArgumentException($"{nameof(storageConnectionString)} cannot be null or empty.", nameof(storageConnectionString));
+            }
+
+            StorageMsiConfiguration msiConfiguration = serviceProvider.GetRequiredService<IOptions<StorageMsiConfiguration>>().Value;
+            return CreateTableServiceClientClient(
+                msiConfiguration,
+                storageConnectionString);
+        }
+
+        public static IRegistrationBuilder<TableServiceClient, SimpleActivatorData, SingleRegistrationStyle> RegisterTableServiceClient<TConfiguration>(
+            this ContainerBuilder builder,
+            Func<TConfiguration, string> getConnectionString)
+            where TConfiguration : class, new()
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+            if (getConnectionString == null)
+            {
+                throw new ArgumentNullException(nameof(getConnectionString));
+            }
+
+            return builder.Register(c =>
+            {
+                IOptionsSnapshot<TConfiguration> options = c.Resolve<IOptionsSnapshot<TConfiguration>>();
+                string storageConnectionString = getConnectionString(options.Value);
+                StorageMsiConfiguration msiConfiguration = c.Resolve<IOptions<StorageMsiConfiguration>>().Value;
+                return CreateTableServiceClientClient(
+                    msiConfiguration,
+                    storageConnectionString);
+            });
+        }
+
         private static CloudBlobClientWrapper CreateCloudBlobClient(
             StorageMsiConfiguration msiConfiguration,
             string storageConnectionString,
@@ -132,6 +180,71 @@ namespace NuGet.Jobs
                 storageConnectionString,
                 readAccessGeoRedundant,
                 requestTimeout);
+        }
+
+        public static BlobServiceClient CreateBlobServiceClient(
+            StorageMsiConfiguration storageMsiConfiguration,
+            string storageConnectionString,
+            TimeSpan? requestTimeout = null)
+        {
+            BlobClientOptions blobClientOptions = new BlobClientOptions();
+            if (requestTimeout.HasValue)
+            {
+                blobClientOptions.Retry.NetworkTimeout = requestTimeout.Value;
+            }
+
+            if (storageMsiConfiguration.UseManagedIdentity)
+            {
+                Uri blobEndpointUri = AzureStorage.GetPrimaryServiceUri(storageConnectionString);
+
+                if (string.IsNullOrWhiteSpace(storageMsiConfiguration.ManagedIdentityClientId))
+                {
+                    // 1. Using MSI with DefaultAzureCredential (local debugging)
+                    return new BlobServiceClient(
+                        blobEndpointUri,
+                        new DefaultAzureCredential(),
+                        blobClientOptions);
+                }
+                else
+                {
+                    // 2. Using MSI with ClientId
+                    return new BlobServiceClient(
+                        blobEndpointUri,
+                        new ManagedIdentityCredential(storageMsiConfiguration.ManagedIdentityClientId),
+                        blobClientOptions);
+                }
+            }
+            else
+            {
+                // 3. Using SAS token
+                // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
+                var connectionString = storageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+
+                return new BlobServiceClient(connectionString, blobClientOptions);
+            }
+        }
+
+        private static TableServiceClient CreateTableServiceClientClient(
+            StorageMsiConfiguration msiConfiguration,
+            string tableStorageConnectionString)
+        {
+            if (msiConfiguration.UseManagedIdentity)
+            {
+                if (string.IsNullOrWhiteSpace(msiConfiguration.ManagedIdentityClientId))
+                {
+                    return new TableServiceClient(new Uri(tableStorageConnectionString),
+                        new DefaultAzureCredential());
+                }
+                else
+                {
+                    return new TableServiceClient(new Uri(tableStorageConnectionString),
+                        new ManagedIdentityCredential(msiConfiguration.ManagedIdentityClientId));
+                }
+            }
+
+            // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
+            tableStorageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+            return new TableServiceClient(tableStorageConnectionString);
         }
     }
 }
