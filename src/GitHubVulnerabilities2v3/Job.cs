@@ -7,6 +7,7 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
+using Azure.Identity;
 using Azure.Storage.Blobs;
 using GitHubVulnerabilities2v3.Configuration;
 using GitHubVulnerabilities2v3.Extensions;
@@ -27,6 +28,7 @@ namespace GitHubVulnerabilities2v3
 {
     public class Job : JsonConfigurationJob, IDisposable
     {
+        private const string ManagedIdentityClientIdKey = "UserManagedIdentityClientId";
         private readonly HttpClient _client = new HttpClient();
         private readonly ProductInfoHeaderValue _userAgent = new ProductInfoHeaderValue("NuGet.Jobs.GitHubVulnerabilities2v3", "1.0.0");
 
@@ -68,7 +70,7 @@ namespace GitHubVulnerabilities2v3
 
             ConfigureQueryServices(containerBuilder);
             ConfigureIngestionServices(containerBuilder);
-            ConfigureCollectorServices(containerBuilder);
+            ConfigureCollectorServices(containerBuilder, configurationRoot);
         }
 
         protected void ConfigureIngestionServices(ContainerBuilder containerBuilder)
@@ -111,14 +113,14 @@ namespace GitHubVulnerabilities2v3
                 .As<IAdvisoryQueryService>();
         }
 
-        protected void ConfigureCollectorServices(ContainerBuilder containerBuilder)
+        protected void ConfigureCollectorServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
             containerBuilder
                 .Register(ctx =>
                 {
                     var config = ctx.Resolve<GitHubVulnerabilities2v3Configuration>();
-                    var connectionString = AzureStorageFactory.PrepareConnectionString(config.StorageConnectionString);
-                    return new BlobServiceClient(connectionString);
+                    var credential = new ManagedIdentityCredential(configurationRoot[ManagedIdentityClientIdKey]);
+                    return new BlobServiceClient(new Uri(config.StorageConnectionString), credential);
                 })
                 .As<BlobServiceClient>();
 
