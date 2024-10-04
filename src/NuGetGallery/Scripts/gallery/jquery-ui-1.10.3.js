@@ -7793,7 +7793,9 @@ $.extend(Datepicker.prototype, {
 			inst.append.remove();
 		}
 		if (appendText) {
-			inst.append = $("<span class='" + this._appendClass + "'>" + appendText + "</span>");
+			inst.append = $("<span>")
+				.addClass(this._appendClass)
+				.text(appendText);
 			input[isRTL ? "before" : "after"](inst.append);
 		}
 
