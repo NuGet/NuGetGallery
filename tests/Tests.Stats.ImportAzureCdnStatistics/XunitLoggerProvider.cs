@@ -2,8 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Reflection;
+using System.Threading;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Internal;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit.Abstractions;
 
 namespace Tests.Stats.ImportAzureCdnStatistics
@@ -39,7 +41,13 @@ namespace Tests.Stats.ImportAzureCdnStatistics
 
             public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
             {
-                var message = new FormattedLogValues(formatter.Invoke(state, exception));
+                // This code uses FormattedLogValues class that became internal between v2 and v8 of
+                // Microsoft.Extensions.Logging.Abstractions package preventing us from updating.
+                // To unblock, we'll instantiate it using reflection, yes it is ugly. It is also test code.
+                // We're also working on getting rid of the project that is being tested using it. So, it should be gone soon.
+                Assembly abstractionsAssembly = Assembly.GetAssembly(typeof(NullLogger));
+                Type formattedLogValuesType = abstractionsAssembly.GetType("Microsoft.Extensions.Logging.FormattedLogValues");
+                var message = Activator.CreateInstance(formattedLogValuesType, formatter.Invoke(state, exception));
                 _testOutputHelper.WriteLine($"{logLevel} - {eventId} - {message}");
             }
 
