@@ -14,6 +14,7 @@ In your CLI, go to the `python/StatsLogParser` directory and then run `poetry in
 
 ### Dev and Test
 VS Code is recommended -- open the `python/StatsLogParser` folder and ensure you have the Python extensions installed. Poetry extensions are recommended too for environment activation. Testing is with pytest.
+To test on the CLI, you can run `poetry run pytest tests/` and to get code coverage, `poetry run pytest tests/ --cov loginterpretation --cov-report html`
 
 ### Dependencies
 Dependencies are in the `pyproject.toml` file. If you add/update dependencies, run `poetry export -f requirements.txt --output requirements.txt` to update the `requirements.txt` as both the that file and the `whl` will be needed for Spark.

@@ -122,7 +122,7 @@ namespace NuGetGallery
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(isMarkdigMdRenderingEnabled);
                 _featureFlagService.Setup(x => x.IsImageAllowlistEnabled()).Returns(false);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
-                Assert.Equal(expectedHtml, readMeResult.Content);
+                Assert.Equal(expectedHtml.Replace("\r\n", "\n"), readMeResult.Content.Replace("\r\n", "\n"));
                 Assert.Equal(imageRewriteExpected, readMeResult.ImagesRewritten);
             }
 
