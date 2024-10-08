@@ -33,6 +33,8 @@ variables:
     value: $(Agent.BuildDirectory)\$(NuGetGalleryDirectory)
   - name: NuGetGalleryBranch
     value: $(Build.SourceBranchName)
+  - name: GDN_SUPPRESS_FORKED_BUILD_WARNING
+    value: true
 
 resources:
   repositories:
