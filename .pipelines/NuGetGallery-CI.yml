@@ -53,6 +53,8 @@ extends:
       os: windows
     customBuildTags:
       - ES365AIMigrationTooling
+    settings:
+      skipBuildTagsForGitHubPullRequests: true      
     stages:
       - stage: common
         displayName: NuGet.Server.Common.sln
