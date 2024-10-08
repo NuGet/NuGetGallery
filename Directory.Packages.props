@@ -1,5 +1,6 @@
 <Project>
   <PropertyGroup>
+    <WarningsAsErrors>NU1603</WarningsAsErrors>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
     <EnablePackageVersionOverride>true</EnablePackageVersionOverride>
