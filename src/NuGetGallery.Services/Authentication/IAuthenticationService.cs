@@ -47,7 +47,7 @@ namespace NuGetGallery.Authentication
         /// <summary>
         /// Adds a new credential to the user. This method saves changes in the entity context.
         /// </summary>
-        /// <param name="user">The user who owns the credental.</param>
+        /// <param name="user">The user who owns the credential.</param>
         /// <param name="credential">The credential to be added.</param>
         Task AddCredential(User user, Credential credential);
     }
