@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -14,6 +14,7 @@ using System.Web.Configuration;
 using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
 using NuGetGallery.Configuration.SecretReader;
+using NuGetGallery.Services.Authentication;
 
 namespace NuGetGallery.Configuration
 {
@@ -23,6 +24,7 @@ namespace NuGetGallery.Configuration
         protected const string FeaturePrefix = "Feature.";
         protected const string ServiceBusPrefix = "AzureServiceBus.";
         protected const string PackageDeletePrefix = "PackageDelete.";
+        protected const string FederatedCredentialPrefix = "FederatedCredential.";
 
         private readonly Lazy<string> _httpSiteRootThunk;
         private readonly Lazy<string> _httpsSiteRootThunk;
@@ -31,6 +33,7 @@ namespace NuGetGallery.Configuration
         private readonly Lazy<FeatureConfiguration> _lazyFeatureConfiguration;
         private readonly Lazy<IServiceBusConfiguration> _lazyServiceBusConfiguration;
         private readonly Lazy<IPackageDeleteConfiguration> _lazyPackageDeleteConfiguration;
+        private readonly Lazy<FederatedCredentialConfiguration> _lazyFederatedCredentialConfiguration;
 
         private static readonly HashSet<string> NotInjectedSettingNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
             SettingPrefix + "SqlServer",
@@ -66,6 +69,7 @@ namespace NuGetGallery.Configuration
             _lazyFeatureConfiguration = new Lazy<FeatureConfiguration>(() => ResolveFeatures().Result);
             _lazyServiceBusConfiguration = new Lazy<IServiceBusConfiguration>(() => ResolveServiceBus().Result);
             _lazyPackageDeleteConfiguration = new Lazy<IPackageDeleteConfiguration>(() => ResolvePackageDelete().Result);
+            _lazyFederatedCredentialConfiguration = new Lazy<FederatedCredentialConfiguration>(() => ResolveFederatedCredential().Result);
         }
 
         public static IEnumerable<PropertyDescriptor> GetConfigProperties<T>(T instance)
@@ -80,6 +84,8 @@ namespace NuGetGallery.Configuration
         public IServiceBusConfiguration ServiceBus => _lazyServiceBusConfiguration.Value;
 
         public IPackageDeleteConfiguration PackageDelete => _lazyPackageDeleteConfiguration.Value;
+
+        public FederatedCredentialConfiguration FederatedCredential => _lazyFederatedCredentialConfiguration.Value;
 
         /// <summary>
         /// Gets the site root using the specified protocol
@@ -204,6 +210,11 @@ namespace NuGetGallery.Configuration
         private async Task<IPackageDeleteConfiguration> ResolvePackageDelete()
         {
             return await ResolveConfigObject(new PackageDeleteConfiguration(), PackageDeletePrefix);
+        }
+
+        private async Task<FederatedCredentialConfiguration> ResolveFederatedCredential()
+        {
+            return await ResolveConfigObject(new FederatedCredentialConfiguration(), FederatedCredentialPrefix);
         }
 
         protected virtual string GetAppSetting(string settingName)

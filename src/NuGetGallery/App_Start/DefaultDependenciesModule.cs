@@ -25,6 +25,8 @@ using Microsoft.ApplicationInsights.Extensibility.Implementation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.IdentityModel.Protocols;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using NuGet.Services.Configuration;
 using NuGet.Services.Entities;
@@ -55,7 +57,9 @@ using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.Infrastructure.Search.Correlation;
 using NuGetGallery.Security;
 using NuGetGallery.Services;
+using NuGetGallery.Services.Authentication;
 using Role = NuGet.Services.Entities.Role;
+using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace NuGetGallery
 {
@@ -150,6 +154,8 @@ namespace NuGetGallery
 
             builder.Register(c => configuration.PackageDelete)
                 .As<IPackageDeleteConfiguration>();
+
+            ConfigureFederatedCredentials(builder, configuration);
 
             var telemetryService = new TelemetryService(
                 new TraceDiagnosticsSource(nameof(TelemetryService), telemetryClient),
@@ -381,7 +387,7 @@ namespace NuGetGallery
             builder.RegisterType<MarkdownService>()
                 .As<IMarkdownService>()
                 .InstancePerLifetimeScope();
-            
+
             builder.RegisterType<ImageDomainValidator>()
                 .As<IImageDomainValidator>()
                 .InstancePerLifetimeScope();
@@ -405,7 +411,7 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<ICertificateService>()
                 .InstancePerLifetimeScope();
-            
+
             RegisterTyposquattingServiceHelper(builder, loggerFactory);
 
             builder.RegisterType<TyposquattingService>()
@@ -529,6 +535,38 @@ namespace NuGetGallery
 
             ConfigureAutocomplete(builder, configuration);
             builder.Populate(services);
+        }
+
+        private static void ConfigureFederatedCredentials(ContainerBuilder builder, ConfigurationService configuration)
+        {
+            builder.Register(c => configuration.FederatedCredential)
+                .As<IFederatedCredentialConfiguration>();
+
+            builder
+                .Register(_ => new OpenIdConnectConfigurationRetriever())
+                .As<IConfigurationRetriever<OpenIdConnectConfiguration>>();
+
+            const string EntraIdKey = "EntraId";
+
+            // this is a singleton to provide caching of the OIDC metadata
+            builder
+                .Register(p => new ConfigurationManager<OpenIdConnectConfiguration>(
+                    metadataAddress: EntraIdTokenValidator.MetadataAddress,
+                    p.Resolve<IConfigurationRetriever<OpenIdConnectConfiguration>>()))
+                .SingleInstance()
+                .Keyed<ConfigurationManager<OpenIdConnectConfiguration>>(EntraIdKey);
+
+            builder
+                .RegisterType<JsonWebTokenHandler>()
+                .InstancePerLifetimeScope();
+
+            builder
+                .Register(p => new EntraIdTokenValidator(
+                    p.ResolveKeyed<ConfigurationManager<OpenIdConnectConfiguration>>(EntraIdKey),
+                    p.Resolve<JsonWebTokenHandler>(),
+                    p.Resolve<IFederatedCredentialConfiguration>()))
+                .As<IEntraIdTokenValidator>()
+                .InstancePerLifetimeScope();
         }
 
         // Internal for testing purposes
@@ -812,7 +850,9 @@ namespace NuGetGallery
                 .Register(c => new TopicClientWrapper(asyncAccountDeleteConnectionString, asyncAccountDeleteTopicName, configuration.ServiceBus.ManagedIdentityClientId))
                 .SingleInstance()
                 .Keyed<ITopicClient>(BindingKeys.AccountDeleterTopic)
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
                 .OnRelease(x => x.CloseAsync());
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
             builder
                 .RegisterType<AsynchronousDeleteAccountService>()
@@ -948,7 +988,9 @@ namespace NuGetGallery
                 .As<ITopicClient>()
                 .SingleInstance()
                 .Keyed<ITopicClient>(BindingKeys.EmailPublisherTopic)
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
                 .OnRelease(x => x.CloseAsync());
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
             builder
                 .RegisterType<EmailMessageEnqueuer>()
@@ -1103,14 +1145,18 @@ namespace NuGetGallery
                     .As<ITopicClient>()
                     .SingleInstance()
                     .Keyed<ITopicClient>(BindingKeys.PackageValidationTopic)
-                    .OnRelease(x => x.CloseAsync());
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+                .OnRelease(x => x.CloseAsync());
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
                 builder
                     .Register(c => new TopicClientWrapper(symbolsValidationConnectionString, symbolsValidationTopicName, configuration.ServiceBus.ManagedIdentityClientId))
                     .As<ITopicClient>()
                     .SingleInstance()
                     .Keyed<ITopicClient>(BindingKeys.SymbolsPackageValidationTopic)
-                    .OnRelease(x => x.CloseAsync());
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+                .OnRelease(x => x.CloseAsync());
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             }
             else
             {
