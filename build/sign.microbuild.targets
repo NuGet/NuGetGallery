@@ -116,10 +116,20 @@
       Add fully qualified paths for third-party binaries.
       -->
       <UnfilteredFilesToSign
-        Include="$([System.IO.Path]::GetFullPath('$(TargetDir)%(ThirdPartyBinaries.Identity)'))"
-        Condition="@(ThirdPartyBinaries->Count()) &gt; 0 AND Exists('$(TargetDir)%(ThirdPartyBinaries.Identity)')"
-        KeepDuplicates="false">
-        <Authenticode>3PartySHA2</Authenticode>
+          Include="$([System.IO.Path]::GetFullPath('$(TargetDir)%(ThirdPartyBinaries.Identity)'))"
+          Condition="@(ThirdPartyBinaries->Count()) &gt; 0 AND Exists('$(TargetDir)%(ThirdPartyBinaries.Identity)')"
+          KeepDuplicates="false">
+          <Authenticode>3PartySHA2</Authenticode>
+      </UnfilteredFilesToSign>
+
+      <!--
+      Add fully qualified paths for tool binaries.
+      -->
+      <UnfilteredFilesToSign
+          Include="$([System.IO.Path]::GetFullPath('$(ToolTargetDir)%(ThirdPartyBinaries.Identity)'))"
+          Condition="@(ThirdPartyBinaries->Count()) &gt; 0 AND Exists('$(ToolTargetDir)%(ThirdPartyBinaries.Identity)')"
+          KeepDuplicates="false">
+          <Authenticode>3PartySHA2</Authenticode>
       </UnfilteredFilesToSign>
     </ItemGroup>
 
