@@ -115,8 +115,14 @@ namespace StatusAggregator
         {
             var statusStorageConnectionBuilders = new StatusStorageConnectionBuilder[]
             {
-                new StatusStorageConnectionBuilder(PrimaryStorageAccountName, configuration => configuration.StorageAccount),
-                new StatusStorageConnectionBuilder(SecondaryStorageAccountName, configuration => configuration.StorageAccountSecondary)
+                new StatusStorageConnectionBuilder(
+                        PrimaryStorageAccountName,
+                        configuration => configuration.PrimaryStorageBlobEndpoint,
+                        configuration => configuration.PrimaryStorageTableEndpoint),
+                new StatusStorageConnectionBuilder(
+                        SecondaryStorageAccountName,
+                        configuration => configuration.SecondaryStorageBlobEndpoint,
+                        configuration => configuration.SecondaryStorageTableEndpoint)
             };
             
             // Add all storages to the container by name.
@@ -165,25 +171,16 @@ namespace StatusAggregator
             }
         }
 
-        private static string GetConnectionString(IComponentContext ctx, StatusStorageConnectionBuilder statusStorageConnectionBuilder)
-        {
-            var configuration = ctx.Resolve<StatusAggregatorConfiguration>();
-            var connectionString = statusStorageConnectionBuilder.GetConnectionString(configuration);
-
-            // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
-            connectionString = connectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
-            return connectionString;
-        }
-
         private static TableServiceClient GetTableServiceClient(IComponentContext ctx, StatusStorageConnectionBuilder statusStorageConnectionBuilder)
         {
             StorageMsiConfiguration storageMsiConfiguration = ctx.Resolve<IOptionsSnapshot<StorageMsiConfiguration>>().Value;
-            string connectionString = GetConnectionString(ctx, statusStorageConnectionBuilder);
+            StatusAggregatorConfiguration configuration = ctx.Resolve< IOptionsSnapshot<StatusAggregatorConfiguration>>().Value;
+            string connectionString = statusStorageConnectionBuilder.GetTableConnectionString(configuration);
 
             return StorageAccountHelper.CreateTableServiceClient(storageMsiConfiguration, connectionString);
         }
 
-        private static ITableWrapper GetTableWrapper(IComponentContext ctx, TableServiceClient tableServiceClient)
+        private static TableWrapper GetTableWrapper(IComponentContext ctx, TableServiceClient tableServiceClient)
         {
             var configuration = ctx.Resolve<StatusAggregatorConfiguration>();
             return new TableWrapper(tableServiceClient, configuration.TableName);
@@ -192,12 +189,13 @@ namespace StatusAggregator
         private static BlobServiceClient GetBlobServiceClient(IComponentContext ctx, StatusStorageConnectionBuilder statusStorageConnectionBuilder)
         {
             StorageMsiConfiguration storageMsiConfiguration = ctx.Resolve<IOptionsSnapshot<StorageMsiConfiguration>>().Value;
-            string connectionString = GetConnectionString(ctx, statusStorageConnectionBuilder);
+            StatusAggregatorConfiguration configuration = ctx.Resolve<IOptionsSnapshot<StatusAggregatorConfiguration>>().Value;
+            string connectionString = statusStorageConnectionBuilder.GetBlobConnectionString(configuration);
 
             return StorageAccountHelper.CreateBlobServiceClient(storageMsiConfiguration, connectionString);
         }
 
-        private static IContainerWrapper GetContainerWrapper(IComponentContext ctx, BlobServiceClient blobServiceClient)
+        private static ContainerWrapper GetContainerWrapper(IComponentContext ctx, BlobServiceClient blobServiceClient)
         {
             var configuration = ctx.Resolve<StatusAggregatorConfiguration>();
             var container = blobServiceClient.GetBlobContainerClient(configuration.ContainerName);
