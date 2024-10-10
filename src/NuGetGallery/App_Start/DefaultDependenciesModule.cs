@@ -588,6 +588,11 @@ namespace NuGetGallery
                 .RegisterType<FederatedCredentialEvaluator>()
                 .As<IFederatedCredentialEvaluator>()
                 .InstancePerLifetimeScope();
+
+            builder
+                .RegisterType<FederatedCredentialService>()
+                .As<IFederatedCredentialService>()
+                .InstancePerLifetimeScope();
         }
 
         // Internal for testing purposes
