@@ -550,6 +550,11 @@ namespace NuGetGallery
         private static void ConfigureFederatedCredentials(ContainerBuilder builder, ConfigurationService configuration)
         {
             builder
+                .RegisterType<FederatedCredentialRepository>()
+                .As<IFederatedCredentialRepository>()
+                .InstancePerLifetimeScope();
+
+            builder
                 .Register(c => configuration.FederatedCredential)
                 .As<IFederatedCredentialConfiguration>();
 
