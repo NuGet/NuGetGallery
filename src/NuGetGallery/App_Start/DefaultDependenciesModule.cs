@@ -583,6 +583,11 @@ namespace NuGetGallery
                     p.Resolve<IFederatedCredentialConfiguration>()))
                 .As<IEntraIdTokenValidator>()
                 .InstancePerLifetimeScope();
+
+            builder
+                .RegisterType<FederatedCredentialEvaluator>()
+                .As<IFederatedCredentialEvaluator>()
+                .InstancePerLifetimeScope();
         }
 
         // Internal for testing purposes
