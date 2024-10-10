@@ -421,7 +421,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             string blobName = GetName(resourceUri);
             BlobRequestConditions accessCondition = (deleteRequestOptions as DeleteRequestOptionsWithAccessCondition)?.BlobRequestConditions;
             BlockBlobClient blobClient = GetBlockBlobReference(blobName);
-            await blobClient.DeleteAsync(DeleteSnapshotsOption.IncludeSnapshots, accessCondition, cancellationToken);
+            await blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, accessCondition, cancellationToken);
         }
 
         public override Uri GetUri(string name)
