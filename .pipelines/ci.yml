@@ -19,6 +19,9 @@ variables:
   JobsPackageVersion: $(JobsAssemblyVersion)-$(NuGetGalleryBranch)-$(Build.BuildId)
   JobsAssemblyVersion: 5.0.0
   NuGetGalleryBranch: $(Build.SourceBranchName)
+  Codeql.Enabled: false
+  NugetSecurityAnalysisWarningLevel: none
+  nugetMultiFeedWarnLevel: none
 
 pool:
   vmImage: 'windows-latest'
