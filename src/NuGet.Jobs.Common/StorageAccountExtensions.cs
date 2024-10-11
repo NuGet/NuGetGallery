@@ -230,7 +230,8 @@ namespace NuGet.Jobs
         {
             if (msiConfiguration.UseManagedIdentity)
             {
-                Uri tableEndpointUri = AzureStorage.GetPrimaryTableServiceUri(tableStorageConnectionString);
+                //Uri tableEndpointUri = AzureStorage.GetPrimaryTableServiceUri(tableStorageConnectionString);
+                Uri tableEndpointUri = new Uri(tableStorageConnectionString);
 
                 if (string.IsNullOrWhiteSpace(msiConfiguration.ManagedIdentityClientId))
                 {
