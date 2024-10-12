@@ -289,6 +289,11 @@ namespace NuGetGallery.Services.Authentication
                 return $"The JSON web token must have a {ClaimConstants.Tid} claim that matches the policy.";
             }
 
+            if (!_entraIdTokenValidator.IsTenantAllowed(parsedTid))
+            {
+                return "The tenant ID in the JSON web token is not in allow list.";
+            }
+
             if (string.IsNullOrWhiteSpace(oid) || !Guid.TryParse(oid, out var parsedOid) || parsedOid != criteria.ObjectId)
             {
                 return $"The JSON web token must have a {ClaimConstants.Oid} claim that matches the policy.";

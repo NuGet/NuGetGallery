@@ -330,6 +330,22 @@ namespace NuGetGallery.Services.Authentication
             }
 
             [Fact]
+            public async Task RejectsNotAllowedTenantId()
+            {
+                // Arrange
+                EntraIdTokenValidator
+                    .Setup(x => x.IsTenantAllowed(TenantId))
+                    .Returns(() => false);
+
+                // Act
+                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken);
+
+                // Assert
+                Assert.Equal(EvaluatedFederatedCredentialPoliciesType.NoMatchingPolicy, evaluation.Type);
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, Assert.Single(evaluation.Results).Type);
+            }
+
+            [Fact]
             public async Task RejectsWrongObjectId()
             {
                 // Arrange
@@ -402,6 +418,9 @@ namespace NuGetGallery.Services.Authentication
             UtcNow = new DateTimeOffset(2024, 10, 10, 13, 35, 0, TimeSpan.Zero);
             Expires = new DateTimeOffset(2024, 10, 11, 0, 0, 0, TimeSpan.Zero);
 
+            EntraIdTokenValidator
+                .Setup(x => x.IsTenantAllowed(TenantId))
+                .Returns(() => true);
             EntraIdTokenValidator
                 .Setup(x => x.ValidateAsync(It.IsAny<JsonWebToken>()))
                 .ReturnsAsync(() => EntraIdTokenResult);
