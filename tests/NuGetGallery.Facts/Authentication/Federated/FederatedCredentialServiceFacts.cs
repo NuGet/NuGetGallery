@@ -112,6 +112,20 @@ namespace NuGetGallery.Services.Authentication
             }
         }
 
+        public class TheDeletePolicyAsyncMethod : FederatedCredentialServiceFacts
+        {
+            [Fact]
+            public async Task DeletesCredentialAndPolicies()
+            {
+                // Act
+                await Target.DeletePolicyAsync(Policies[0]);
+
+                // Assert
+                AuthenticationService.Verify(x => x.RemoveCredential(Policies[0].User, Credential, false), Times.Once);
+                FederatedCredentialRepository.Verify(x => x.DeletePolicyAsync(Policies[0], true), Times.Once);
+            }
+        }
+
         public class TheGenerateApiKeyAsyncMethod : FederatedCredentialServiceFacts
         {
             [Fact]
@@ -381,10 +395,13 @@ namespace NuGetGallery.Services.Authentication
             BearerToken = "my-token";
             CurrentUser = new User { Key = 1, Username = "jim", EmailAddress = "jim@localhost" };
             PackageOwner = new Organization { Key = 2, Username = "jim-org", EmailAddress = "jim-org@localhost" };
-            Policies = new List<FederatedCredentialPolicy>();
+            Policies = new List<FederatedCredentialPolicy>
+            {
+                new() { Key = 3, User = CurrentUser, UserKey = CurrentUser.Key, Owner = PackageOwner, OwnerKey = PackageOwner.Key }
+            };
             Evaluation = EvaluatedFederatedCredentialPolicies.MatchedPolicy(
                 results: [],
-                policy: new FederatedCredentialPolicy { OwnerKey = PackageOwner.Key },
+                policy: Policies[0],
                 federatedCredential: new FederatedCredential());
             PlaintextApiKey = null;
             Credential = new Credential { Scopes = [], Expires = new DateTime(2024, 10, 11, 9, 30, 0, DateTimeKind.Utc) };
@@ -396,6 +413,7 @@ namespace NuGetGallery.Services.Authentication
             UserService.Setup(x => x.FindByUsername(CurrentUser.Username, false)).Returns(() => CurrentUser);
             UserService.Setup(x => x.FindByKey(PackageOwner.Key, false)).Returns(() => PackageOwner);
             FederatedCredentialRepository.Setup(x => x.GetPoliciesForUser(CurrentUser.Key)).Returns(() => Policies);
+            FederatedCredentialRepository.Setup(x => x.GetShortLivedApiKeysForPolicy(Policies[0].Key)).Returns(() => [Credential]);
             FederatedCredentialEvaluator.Setup(x => x.GetMatchingPolicyAsync(Policies, BearerToken)).ReturnsAsync(() => Evaluation);
             FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
             CredentialBuilder
@@ -408,7 +426,7 @@ namespace NuGetGallery.Services.Authentication
             CredentialBuilder.Setup(x => x.VerifyScopes(CurrentUser, It.IsAny<IEnumerable<Scope>>())).Returns(true);
             Configuration.Setup(x => x.ShortLivedApiKeyDuration).Returns(TimeSpan.FromMinutes(15));
             DateTimeProvider.Setup(x => x.UtcNow).Returns(new DateTime(2024, 10, 12, 12, 30, 0, DateTimeKind.Utc));
-            EntraIdTokenValidator.Setup(x => x.IsTenantAllowed(EntraIdServicePrincipalCriteria.TenantId)).Returns(true);   
+            EntraIdTokenValidator.Setup(x => x.IsTenantAllowed(EntraIdServicePrincipalCriteria.TenantId)).Returns(true);
 
             Target = new FederatedCredentialService(
                 UserService.Object,
