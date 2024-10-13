@@ -34,6 +34,12 @@ namespace NuGetGallery.Services.Authentication
         /// <param name="criteria">The Entra ID service principal criteria to allow.</param>
         /// <returns>The result, successful if <see cref="AddFederatedCredentialPolicyResult.Type"/> is <see cref="AddFederatedCredentialPolicyResultType.Created"/>.</returns>
         Task<AddFederatedCredentialPolicyResult> AddEntraIdServicePrincipalPolicyAsync(User user, User packageOwner, EntraIdServicePrincipalCriteria criteria);
+
+        /// <summary>
+        /// Deletes a given federated credential policy and all associated API keys.
+        /// </summary>
+        /// <param name="policy">The policy to delete.</param>
+        Task DeletePolicyAsync(FederatedCredentialPolicy policy);
     }
 
     public class FederatedCredentialService : IFederatedCredentialService
@@ -107,6 +113,17 @@ namespace NuGetGallery.Services.Authentication
             await _repository.AddPolicyAsync(policy, saveChanges: true);
 
             return AddFederatedCredentialPolicyResult.Created(policy);
+        }
+
+        public async Task DeletePolicyAsync(FederatedCredentialPolicy policy)
+        {
+            var credentials = _repository.GetShortLivedApiKeysForPolicy(policy.Key);
+            foreach (var credential in credentials)
+            {
+                await _authenticationService.RemoveCredential(policy.CreatedBy, credential, commitChanges: false);
+            }
+
+            await _repository.DeletePolicyAsync(policy, saveChanges: true);
         }
 
         public async Task<GenerateApiKeyResult> GenerateApiKeyAsync(string username, string bearerToken)
