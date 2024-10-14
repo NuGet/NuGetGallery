@@ -19,9 +19,6 @@ variables:
   JobsPackageVersion: $(JobsAssemblyVersion)-$(NuGetGalleryBranch)-$(Build.BuildId)
   JobsAssemblyVersion: 5.0.0
   NuGetGalleryBranch: $(Build.SourceBranchName)
-  Codeql.Enabled: false
-  NugetSecurityAnalysisWarningLevel: none
-  nugetMultiFeedWarnLevel: none
 
 pool:
   vmImage: 'windows-latest'
@@ -114,11 +111,6 @@ stages:
               poetry build
               poetry run pytest tests/ --cov loginterpretation --cov-report html
             workingDirectory: $(Agent.BuildDirectory)\python\StatsLogParser
-        templateContext:
-          outputs:
-            - output: pipelineArtifact
-              path: $(Agent.BuildDirectory)\python\StatsLogParser\dist
-              artifact: StatsLogParser
 
   - stage: jobs
     displayName: NuGet.Jobs.sln
