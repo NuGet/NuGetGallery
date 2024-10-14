@@ -152,6 +152,7 @@ extends:
                 displayName: 'Install tools'
               - script: |
                   pipx install poetry
+                  pipx inject poetry artifacts-keyring
                   poetry install
                   poetry build
                   poetry run pytest tests/ --cov loginterpretation --cov-report html
