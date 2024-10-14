@@ -12,18 +12,16 @@ pr:
 variables:
   DOTNET_NOLOGO: true
   BuildConfiguration: Release
-  Codeql.Enabled: false
-  NugetSecurityAnalysisWarningLevel: none
-  nugetMultiFeedWarnLevel: none
   CommonPackageVersion: $(CommonAssemblyVersion)-$(NuGetGalleryBranch)-$(Build.BuildId)
   CommonAssemblyVersion: 5.0.0
   GalleryPackageVersion: $(GalleryAssemblyVersion)-$(NuGetGalleryBranch)-$(Build.BuildId)
   GalleryAssemblyVersion: 5.0.0
   JobsPackageVersion: $(JobsAssemblyVersion)-$(NuGetGalleryBranch)-$(Build.BuildId)
   JobsAssemblyVersion: 5.0.0
-  NuGetGalleryDirectory: ng
-  NuGetGalleryPath: $(Agent.BuildDirectory)\$(NuGetGalleryDirectory)
   NuGetGalleryBranch: $(Build.SourceBranchName)
+  Codeql.Enabled: false
+  NugetSecurityAnalysisWarningLevel: none
+  nugetMultiFeedWarnLevel: none
 
 pool:
   vmImage: 'windows-latest'
@@ -37,32 +35,27 @@ stages:
         displayName: common build and test
         cancelTimeoutInMinutes: 1
         steps:
-          - checkout: self
-            fetchDepth: 1
-            clean: true
-            fetchTags: false
-            path: $(NuGetGalleryDirectory)
           - task: PowerShell@1
             name: build
             displayName: Build
             inputs:
-              scriptName: $(NuGetGalleryPath)\build.ps1
+              scriptName: $(Agent.BuildDirectory)\build.ps1
               arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipArtifacts -SkipGallery -SkipJobs -CommonAssemblyVersion $(CommonAssemblyVersion) -CommonPackageVersion $(CommonPackageVersion) -GalleryAssemblyVersion $(GalleryAssemblyVersion) -GalleryPackageVersion $(GalleryPackageVersion) -JobsAssemblyVersion $(JobsAssemblyVersion) -JobsPackageVersion $(JobsPackageVersion) -Branch $(NuGetGalleryBranch) -CommitSHA $(Build.SourceVersion)
-              workingFolder: $(NuGetGalleryPath)
+              workingFolder: $(Agent.BuildDirectory)
           - task: PowerShell@1
             name: test
             displayName: Run tests
             inputs:
-              scriptName: $(NuGetGalleryPath)\test.ps1
+              scriptName: $(Agent.BuildDirectory)\test.ps1
               arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipGallery -SkipJobs
-              workingFolder: $(NuGetGalleryPath)
+              workingFolder: $(Agent.BuildDirectory)
           - task: PublishTestResults@2
             name: publish_test_results
             displayName: Publish test results
             condition: succeededOrFailed()
             inputs:
               testRunner: VSTest
-              testResultsFiles: $(NuGetGalleryPath)\Results.*.xml
+              testResultsFiles: $(Agent.BuildDirectory)\Results.*.xml
               failTaskOnFailedTests: true
 
   - stage: gallery
@@ -73,32 +66,27 @@ stages:
         displayName: gallery build and test
         cancelTimeoutInMinutes: 1
         steps:
-          - checkout: self
-            fetchDepth: 1
-            clean: true
-            fetchTags: false
-            path: $(NuGetGalleryDirectory)
           - task: PowerShell@1
             name: build
             displayName: Build
             inputs:
-              scriptName: $(NuGetGalleryPath)\build.ps1
+              scriptName: $(Agent.BuildDirectory)\build.ps1
               arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipArtifacts -SkipCommon -SkipJobs -CommonAssemblyVersion $(CommonAssemblyVersion) -CommonPackageVersion $(CommonPackageVersion) -GalleryAssemblyVersion $(GalleryAssemblyVersion) -GalleryPackageVersion $(GalleryPackageVersion) -JobsAssemblyVersion $(JobsAssemblyVersion) -JobsPackageVersion $(JobsPackageVersion) -Branch $(NuGetGalleryBranch) -CommitSHA $(Build.SourceVersion)
-              workingFolder: $(NuGetGalleryPath)
+              workingFolder: $(Agent.BuildDirectory)
           - task: PowerShell@1
             name: test
             displayName: Run tests
             inputs:
-              scriptName: $(NuGetGalleryPath)\test.ps1
+              scriptName: $(Agent.BuildDirectory)\test.ps1
               arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipCommon -SkipJobs
-              workingFolder: $(NuGetGalleryPath)
+              workingFolder: $(Agent.BuildDirectory)
           - task: PublishTestResults@2
             name: publish_test_results
             displayName: Publish test results
             condition: succeededOrFailed()
             inputs:
               testRunner: VSTest
-              testResultsFiles: $(NuGetGalleryPath)\Results.*.xml
+              testResultsFiles: $(Agent.BuildDirectory)\Results.*.xml
               failTaskOnFailedTests: true
 
   - stage: statslogparser
@@ -111,11 +99,6 @@ stages:
         variables:
           PIPX_HOME: $(Agent.ToolsDirectory)\pipx
         steps:
-          - checkout: self
-            fetchDepth: 1
-            clean: true
-            fetchTags: false
-            path: $(NuGetGalleryDirectory)
           - task: UsePythonVersion@0
             inputs:
               versionSpec: '3.10'
@@ -130,11 +113,11 @@ stages:
               poetry install
               poetry build
               poetry run pytest tests/ --cov loginterpretation --cov-report html
-            workingDirectory: $(NuGetGalleryPath)\python\StatsLogParser
+            workingDirectory: $(Agent.BuildDirectory)\python\StatsLogParser
         templateContext:
           outputs:
             - output: pipelineArtifact
-              path: $(NuGetGalleryPath)\python\StatsLogParser\dist
+              path: $(Agent.BuildDirectory)\python\StatsLogParser\dist
               artifact: StatsLogParser
 
   - stage: jobs
@@ -145,32 +128,27 @@ stages:
         displayName: jobs build and test
         cancelTimeoutInMinutes: 1
         steps:
-          - checkout: self
-            fetchDepth: 1
-            clean: true
-            fetchTags: false
-            path: $(NuGetGalleryDirectory)
           - task: PowerShell@1
             name: build
             displayName: Build
             inputs:
-              scriptName: $(NuGetGalleryPath)\build.ps1
+              scriptName: $(Agent.BuildDirectory)\build.ps1
               arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipArtifacts -SkipCommon -SkipGallery -CommonAssemblyVersion $(CommonAssemblyVersion) -CommonPackageVersion $(CommonPackageVersion) -GalleryAssemblyVersion $(GalleryAssemblyVersion) -GalleryPackageVersion $(GalleryPackageVersion) -JobsAssemblyVersion $(JobsAssemblyVersion) -JobsPackageVersion $(JobsPackageVersion) -Branch $(NuGetGalleryBranch) -CommitSHA $(Build.SourceVersion)
-              workingFolder: $(NuGetGalleryPath)
+              workingFolder: $(Agent.BuildDirectory)
           - task: PowerShell@1
             name: test
             displayName: Run tests
             inputs:
-              scriptName: $(NuGetGalleryPath)\test.ps1
+              scriptName: $(Agent.BuildDirectory)\test.ps1
               arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipCommon -SkipGallery
-              workingFolder: $(NuGetGalleryPath)
+              workingFolder: $(Agent.BuildDirectory)
           - task: PublishTestResults@2
             name: publish_test_results
             displayName: Publish test results
             condition: succeededOrFailed()
             inputs:
               testRunner: VSTest
-              testResultsFiles: $(NuGetGalleryPath)\Results.*.xml
+              testResultsFiles: $(Agent.BuildDirectory)\Results.*.xml
               failTaskOnFailedTests: true
 
   - stage: artifacts
@@ -181,15 +159,10 @@ stages:
         displayName: build
         cancelTimeoutInMinutes: 1
         steps:
-          - checkout: self
-            fetchDepth: 1
-            clean: true
-            fetchTags: false
-            path: $(NuGetGalleryDirectory)
           - task: PowerShell@1
             name: build_artifacts
             displayName: Build
             inputs:
-              scriptName: $(NuGetGalleryPath)\build.ps1
+              scriptName: $(Agent.BuildDirectory)\build.ps1
               arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -CommonAssemblyVersion $(CommonAssemblyVersion) -CommonPackageVersion $(CommonPackageVersion) -GalleryAssemblyVersion $(GalleryAssemblyVersion) -GalleryPackageVersion $(GalleryPackageVersion) -JobsAssemblyVersion $(JobsAssemblyVersion) -JobsPackageVersion $(JobsPackageVersion) -Branch $(NuGetGalleryBranch) -CommitSHA $(Build.SourceVersion)
-              workingFolder: $(NuGetGalleryPath)
+              workingFolder: $(Agent.BuildDirectory)
