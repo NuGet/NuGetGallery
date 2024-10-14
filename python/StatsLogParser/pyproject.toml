@@ -16,6 +16,12 @@ pytest = "^8.3.2"
 pytest-cov = "^5.0.0"
 pytest-azurepipelines = "^1.0.5"
 
+
+[[tool.poetry.source]]
+name = "dceng-public"
+url = "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-pypi/pypi/simple/"
+priority = "primary"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
