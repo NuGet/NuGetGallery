@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -12,6 +12,7 @@ using Markdig.Extensions.EmphasisExtras;
 using Markdig.Renderers;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
+using NuGetGallery.Helpers;
 
 namespace NuGetGallery
 {
@@ -20,10 +21,9 @@ namespace NuGetGallery
         private static readonly TimeSpan RegexTimeout = TimeSpan.FromMinutes(1);
         private static readonly Regex EncodedBlockQuotePattern = new Regex("^ {0,3}&gt;", RegexOptions.Multiline, RegexTimeout);
         private static readonly Regex LinkPattern = new Regex("<a href=([\"\']).*?\\1", RegexOptions.None, RegexTimeout);
-        private static readonly Regex JavaScriptPattern = new Regex("<a href=([\"\'])javascript:.*?\\1 rel=([\"'])noopener noreferrer nofollow\\1>", RegexOptions.None, RegexTimeout);
         private static readonly Regex HtmlCommentPattern = new Regex("<!--.*?-->", RegexOptions.Singleline, RegexTimeout);
         private static readonly Regex ImageTextPattern = new Regex("!\\[\\]\\(", RegexOptions.Singleline, RegexTimeout);
-        private static readonly string altTextForImage = "alternate text is missing from this package README image";
+        private static readonly string AltTextForImage = "alternate text is missing from this package README image";
 
         private readonly IFeatureFlagService _features;
         private readonly IImageDomainValidator _imageDomainValidator;
@@ -197,7 +197,7 @@ namespace NuGetGallery
 
             var markdownWithoutComments = HtmlCommentPattern.Replace(markdownString, "");
 
-            var markdownWithImageAlt = ImageTextPattern.Replace(markdownWithoutComments, $"![{altTextForImage}](");
+            var markdownWithImageAlt = ImageTextPattern.Replace(markdownWithoutComments, $"![{AltTextForImage}](");
 
             var markdownWithoutBom = markdownWithImageAlt.TrimStart('\ufeff');
 
@@ -286,7 +286,7 @@ namespace NuGetGallery
                 renderer.Render(document);
                 output.Content = htmlWriter.ToString().Trim();
                 output.IsMarkdigMdSyntaxHighlightEnabled = _features.IsMarkdigMdSyntaxHighlightEnabled();
-                output.Content = JavaScriptPattern.Replace(htmlWriter.ToString(), "").Trim();
+                output.Content = HtmlSanitizerWrapper.SanitizeText(output.Content);
 
                 return output;
             }

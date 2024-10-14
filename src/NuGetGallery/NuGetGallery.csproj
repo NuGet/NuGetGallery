@@ -240,6 +240,7 @@
     <Compile Include="Filters\AdminActionAttribute.cs" />
     <Compile Include="Filters\RequiresUserAgentAttribute.cs" />
     <Compile Include="Helpers\AdminHelper.cs" />
+    <Compile Include="Helpers\HtmlSanitizerWrapper.cs" />
     <Compile Include="Helpers\InvalidZipEntry.cs" />
     <Compile Include="Helpers\SearchResponseHelper.cs" />
     <Compile Include="Helpers\ViewModelExtensions\DeleteAccountListPackageItemViewModelFactory.cs" />
@@ -2189,6 +2190,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Autofac.Extensions.DependencyInjection" />
+    <PackageReference Include="HtmlSanitizer" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Http" />
     <PackageReference Include="Microsoft.Extensions.Http.Polly" />
