@@ -12,6 +12,7 @@ pr:
 variables:
   DOTNET_NOLOGO: true
   BuildConfiguration: Release
+  nugetMultiFeedWarnLevel: none
   CommonPackageVersion: $(CommonAssemblyVersion)-$(NuGetGalleryBranch)-$(Build.BuildId)
   CommonAssemblyVersion: 5.0.0
   GalleryPackageVersion: $(GalleryAssemblyVersion)-$(NuGetGalleryBranch)-$(Build.BuildId)
