@@ -1,0 +1,162 @@
+name: NuGetGallery CI $(Build.BuildId)
+
+trigger:
+  branches:
+    include:
+    - "*"
+pr:
+  branches:
+    include:
+    - "*"
+
+variables:
+  DOTNET_NOLOGO: true
+  BuildConfiguration: Release
+  nugetMultiFeedWarnLevel: none
+  CommonPackageVersion: $(CommonAssemblyVersion)-$(NuGetGalleryBranch)-$(Build.BuildId)
+  CommonAssemblyVersion: 5.0.0
+  GalleryPackageVersion: $(GalleryAssemblyVersion)-$(NuGetGalleryBranch)-$(Build.BuildId)
+  GalleryAssemblyVersion: 5.0.0
+  JobsPackageVersion: $(JobsAssemblyVersion)-$(NuGetGalleryBranch)-$(Build.BuildId)
+  JobsAssemblyVersion: 5.0.0
+  NuGetGalleryBranch: $(Build.SourceBranchName)
+
+pool:
+  vmImage: 'windows-latest'
+
+stages:
+  - stage: common
+    displayName: NuGet.Server.Common.sln
+    dependsOn: []
+    jobs:
+      - job: build_and_test
+        displayName: common build and test
+        cancelTimeoutInMinutes: 1
+        steps:
+          - task: PowerShell@1
+            name: build
+            displayName: Build
+            inputs:
+              scriptName: $(Agent.BuildDirectory)\build.ps1
+              arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipArtifacts -SkipGallery -SkipJobs -CommonAssemblyVersion $(CommonAssemblyVersion) -CommonPackageVersion $(CommonPackageVersion) -GalleryAssemblyVersion $(GalleryAssemblyVersion) -GalleryPackageVersion $(GalleryPackageVersion) -JobsAssemblyVersion $(JobsAssemblyVersion) -JobsPackageVersion $(JobsPackageVersion) -Branch $(NuGetGalleryBranch) -CommitSHA $(Build.SourceVersion)
+              workingFolder: $(Agent.BuildDirectory)
+          - task: PowerShell@1
+            name: test
+            displayName: Run tests
+            inputs:
+              scriptName: $(Agent.BuildDirectory)\test.ps1
+              arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipGallery -SkipJobs
+              workingFolder: $(Agent.BuildDirectory)
+          - task: PublishTestResults@2
+            name: publish_test_results
+            displayName: Publish test results
+            condition: succeededOrFailed()
+            inputs:
+              testRunner: VSTest
+              testResultsFiles: $(Agent.BuildDirectory)\Results.*.xml
+              failTaskOnFailedTests: true
+
+  - stage: gallery
+    displayName: NuGetGallery.sln
+    dependsOn: []
+    jobs:
+      - job: build_and_test
+        displayName: gallery build and test
+        cancelTimeoutInMinutes: 1
+        steps:
+          - task: PowerShell@1
+            name: build
+            displayName: Build
+            inputs:
+              scriptName: $(Agent.BuildDirectory)\build.ps1
+              arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipArtifacts -SkipCommon -SkipJobs -CommonAssemblyVersion $(CommonAssemblyVersion) -CommonPackageVersion $(CommonPackageVersion) -GalleryAssemblyVersion $(GalleryAssemblyVersion) -GalleryPackageVersion $(GalleryPackageVersion) -JobsAssemblyVersion $(JobsAssemblyVersion) -JobsPackageVersion $(JobsPackageVersion) -Branch $(NuGetGalleryBranch) -CommitSHA $(Build.SourceVersion)
+              workingFolder: $(Agent.BuildDirectory)
+          - task: PowerShell@1
+            name: test
+            displayName: Run tests
+            inputs:
+              scriptName: $(Agent.BuildDirectory)\test.ps1
+              arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipCommon -SkipJobs
+              workingFolder: $(Agent.BuildDirectory)
+          - task: PublishTestResults@2
+            name: publish_test_results
+            displayName: Publish test results
+            condition: succeededOrFailed()
+            inputs:
+              testRunner: VSTest
+              testResultsFiles: $(Agent.BuildDirectory)\Results.*.xml
+              failTaskOnFailedTests: true
+
+  - stage: statslogparser
+    displayName: StatsLogPasrser
+    dependsOn: []
+    jobs:
+      - job: build_and_test
+        displayName: statslogparser build and test
+        cancelTimeoutInMinutes: 1
+        variables:
+          PIPX_HOME: $(Agent.ToolsDirectory)\pipx
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '3.10'
+          - script: |
+              python -m pip install --upgrade pip
+              pip install keyring artifacts-keyring
+              python -m pip install --user pipx
+              pipx ensurepath
+            displayName: 'Install tools'
+          - script: |
+              pipx install poetry
+              pipx inject poetry artifacts-keyring
+              poetry install
+              poetry build
+              poetry run pytest tests/ --cov loginterpretation --cov-report html
+            workingDirectory: $(Agent.BuildDirectory)\python\StatsLogParser
+
+  - stage: jobs
+    displayName: NuGet.Jobs.sln
+    dependsOn: []
+    jobs:
+      - job: build_and_test
+        displayName: jobs build and test
+        cancelTimeoutInMinutes: 1
+        steps:
+          - task: PowerShell@1
+            name: build
+            displayName: Build
+            inputs:
+              scriptName: $(Agent.BuildDirectory)\build.ps1
+              arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipArtifacts -SkipCommon -SkipGallery -CommonAssemblyVersion $(CommonAssemblyVersion) -CommonPackageVersion $(CommonPackageVersion) -GalleryAssemblyVersion $(GalleryAssemblyVersion) -GalleryPackageVersion $(GalleryPackageVersion) -JobsAssemblyVersion $(JobsAssemblyVersion) -JobsPackageVersion $(JobsPackageVersion) -Branch $(NuGetGalleryBranch) -CommitSHA $(Build.SourceVersion)
+              workingFolder: $(Agent.BuildDirectory)
+          - task: PowerShell@1
+            name: test
+            displayName: Run tests
+            inputs:
+              scriptName: $(Agent.BuildDirectory)\test.ps1
+              arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipCommon -SkipGallery
+              workingFolder: $(Agent.BuildDirectory)
+          - task: PublishTestResults@2
+            name: publish_test_results
+            displayName: Publish test results
+            condition: succeededOrFailed()
+            inputs:
+              testRunner: VSTest
+              testResultsFiles: $(Agent.BuildDirectory)\Results.*.xml
+              failTaskOnFailedTests: true
+
+  - stage: artifacts
+    displayName: Artifacts
+    dependsOn: []
+    jobs:
+      - job: build_artifacts
+        displayName: build
+        cancelTimeoutInMinutes: 1
+        steps:
+          - task: PowerShell@1
+            name: build_artifacts
+            displayName: Build
+            inputs:
+              scriptName: $(Agent.BuildDirectory)\build.ps1
+              arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -CommonAssemblyVersion $(CommonAssemblyVersion) -CommonPackageVersion $(CommonPackageVersion) -GalleryAssemblyVersion $(GalleryAssemblyVersion) -GalleryPackageVersion $(GalleryPackageVersion) -JobsAssemblyVersion $(JobsAssemblyVersion) -JobsPackageVersion $(JobsPackageVersion) -Branch $(NuGetGalleryBranch) -CommitSHA $(Build.SourceVersion)
+              workingFolder: $(Agent.BuildDirectory)
