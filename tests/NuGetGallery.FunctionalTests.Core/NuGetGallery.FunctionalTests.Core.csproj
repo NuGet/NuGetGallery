@@ -9,7 +9,13 @@
     <Reference Include="System.IO.Compression" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" />
+    <!--
+    	NuGet.Services.Configuration wants Microsoft.Extensions.* at 2.2.0.
+    	Without it, web tests fail to run and proper fix is not trivial, so
+    	this would have to do for now.
+    	Proper fix tracked here: https://github.com/NuGet/Engineering/issues/5669
+    -->
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" VersionOverride="2.2.0" />
     <PackageReference Include="Microsoft.Web.Xdt" />
     <PackageReference Include="NuGet.Core" />
     <PackageReference Include="NuGet.Services.Configuration" VersionOverride="2.94.0" />
