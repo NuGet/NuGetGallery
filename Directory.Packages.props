@@ -12,7 +12,7 @@
     <PackageVersion Include="Autofac.Owin" Version="4.2.0" />
     <PackageVersion Include="Autofac.WebApi2" Version="4.1.0" />
     <PackageVersion Include="Autofac" Version="4.9.1" />
-    <PackageVersion Include="Azure.Core" Version="1.40.0" />
+    <PackageVersion Include="Azure.Core" Version="1.44.1" />
     <PackageVersion Include="Azure.Data.Tables" Version="12.8.3" />
     <PackageVersion Include="Azure.Identity" Version="1.12.0" />
     <PackageVersion Include="Azure.Messaging.ServiceBus" Version="7.16.1" />
