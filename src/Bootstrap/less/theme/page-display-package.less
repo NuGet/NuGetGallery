@@ -6,7 +6,7 @@
   .nuget-trends-icon {
     filter: brightness(0) invert(var(--nuget-trends-icon-invert-value));
   }
-  
+
   .no-border {
     border: 0;
   }
@@ -22,7 +22,7 @@
   .package-header {
     margin-bottom: 35px;
   }
-  
+
   .content-hidden-notice {
     // Same margin as h1
     margin-top: (@line-height-computed * 1.5)
@@ -54,7 +54,6 @@
         margin-top: 8px;
         margin-right: 12px;
       }
-
     }
 
     .prefix-reserve-title {
@@ -273,7 +272,7 @@
         margin: 1.5px;
       }
 
-      .username{
+      .username {
         margin-left: 6.5px;
       }
     }
@@ -291,7 +290,7 @@
     }
   }
 
-  .git-image-icon{
+  .git-image-icon {
     background-image: var(--git-background-image);
     width: 16px;
     height: 16px;
@@ -404,7 +403,7 @@
           border-left: 2px solid transparent;
           outline: none;
 
-          &:hover{
+          &:hover {
             background-color: var(--neutralBackgroundSubtleHover);
             color: var(--neutralForeground1Hover);
           }
@@ -427,15 +426,13 @@
     .nav-tabs > li.active > a {
       background-color: var(--neutralBackground1Rest);
       border-radius: 6px 6px 0px 0px;
-
       border-top: 2px solid var(--neutralStroke1Rest);
       border-right: 2px solid var(--neutralStroke1Rest);
       border-left: 2px solid var(--neutralStroke1Rest);
-
       color: var(--neutralForeground1Rest);
       top: 2px;
 
-      &:hover{
+      &:hover {
         background-color: var(--neutralBackgroundSubtleHover);
         color: var(--neutralForeground1Hover);
       }
@@ -455,14 +452,16 @@
 
     .tab-content {
       background-color: var(--neutralBackground1Rest);
-      
-      .tab-pane.active{
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
+
+      .tab-pane.active {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
       }
+
       .tab-pane {
         background-color: var(--neutralBackground2Rest);
+
         .install-script-row {
           display: flex;
 
@@ -471,7 +470,6 @@
             justify-content: space-between;
             align-items: center;
             padding: 6px 8px;
-
             background-color: var(--neutralBackground1Rest);
             font-family: @font-family-monospace;
             font-size: 1em;
@@ -504,6 +502,10 @@
         .alert {
           margin: 0;
           width: 100%;
+
+          a {
+            font-weight: 600;
+          }
         }
       }
     }
@@ -513,13 +515,12 @@
     .nav-tabs > li {
       padding-right: 2px;
     }
-    
+
     .nav-tabs > li.active > a {
       border-bottom-color: var(--brandStrokeCompoundRest);
       border-bottom-width: 2px;
       -webkit-text-stroke-width: calc(0.5 * 0.04ex);
-              text-shadow: calc(0.5 * -0.03ex) 0 0 currentColor,
-                           calc(0.5 * 0.03ex) 0 0 currentColor;
+      text-shadow: calc(0.5 * -0.03ex) 0 0 currentColor, calc(0.5 * 0.03ex) 0 0 currentColor;
       margin-bottom: -1px;
       background-color: transparent;
 
@@ -559,20 +560,20 @@
       font-family: @font-family-base;
       color: var(--neutralForeground1Rest);
       background-color: transparent;
-      
+
       &:hover {
         border-bottom-color: var(--neutralStroke1Hover);
         border-bottom-width: 2px;
         background-color: var(--neutralBackgroundSubtleHover);
         border-radius: 2px 2px 0px 0px;
       }
-      
+
       &:active {
         border-bottom-color: var(--neutralStroke1Pressed);
         border-bottom-width: 2px;
         background-color: var(--neutralBackgroundSubtlePressed);
       }
-      
+
       &:focus {
         border-radius: 2px;
         outline: 3px solid var(--neutralStrokeFocus2Rest);
@@ -589,6 +590,9 @@
   .body-tab-content {
     padding-top: 30px;
 
+    a {
+      font-weight: 600;
+    }
     // The "README", "Used By", and "Dependencies" tabs can start with headers.
     // which add additional whitespace between the tab and the content.
     // Undo that whitespace.

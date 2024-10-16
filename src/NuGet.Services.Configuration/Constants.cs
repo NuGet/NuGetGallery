@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 namespace NuGet.Services.Configuration
@@ -15,5 +15,7 @@ namespace NuGet.Services.Configuration
         public static string KeyVaultStoreNameKey = "KeyVault_StoreName";
         public static string KeyVaultStoreLocationKey = "KeyVault_StoreLocation";
         public static string KeyVaultSendX5c = "KeyVault_SendX5c";
+        public static string StorageUseManagedIdentityPropertyName = "Storage_UseManagedIdentity";
+        public static string StorageManagedIdentityClientIdPropertyName = "Storage_ManagedIdentityClientId";
     }
 }

@@ -9,8 +9,8 @@ using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
 using Azure;
+using Azure.Core;
 using Azure.Identity;
-using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Queues;
 using Microsoft.Extensions.Logging;
@@ -31,6 +31,7 @@ namespace Ng
 {
     public static class CommandHelpers
     {
+        private const string DefaultStorageSuffix = "core.windows.net";
         private static readonly int DefaultKeyVaultSecretCachingTimeout = 60 * 60 * 6; // 6 hours;
         private static readonly HashSet<string> NotInjectedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -213,16 +214,14 @@ namespace Ng
 
             if (Arguments.AzureStorageType.Equals(storageType, StringComparison.InvariantCultureIgnoreCase))
             {
-                var storageAccountName = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageAccountName]);
                 var storageContainer = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageContainer]);
                 var storagePath = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StoragePath]);
-                var storageSuffix = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageSuffix], "core.windows.net");
                 var storageOperationMaxExecutionTime = MaxExecutionTime(arguments.GetOrDefault<int>(argumentNameMap[Arguments.StorageOperationMaxExecutionTimeInSeconds]));
                 var storageServerTimeout = MaxExecutionTime(arguments.GetOrDefault<int>(argumentNameMap[Arguments.StorageServerTimeoutInSeconds]));
                 var storageUseServerSideCopy = arguments.GetOrDefault<bool>(argumentNameMap[Arguments.StorageUseServerSideCopy]);
-                var storageInitializeContainer = arguments.GetOrDefault<bool>(argumentNameMap[Arguments.StorageInitializeContainer], defaultValue: true);
+                var storageInitializeContainer = arguments.GetOrDefault(argumentNameMap[Arguments.StorageInitializeContainer], defaultValue: true);
 
-                BlobServiceClient account = GetBlobServiceClient(storageAccountName, storageSuffix, arguments, argumentNameMap);
+                BlobServiceClient account = GetBlobServiceClient(arguments, argumentNameMap);
 
                 return new CatalogAzureStorageFactory(
                     account,
@@ -285,19 +284,28 @@ namespace Ng
 
         public static EndpointConfiguration GetEndpointConfiguration(IDictionary<string, string> arguments)
         {
+            var clientId = arguments.GetOrDefault<string>(Arguments.ClientId);
+
             var registrationCursorUri = arguments.GetOrThrow<Uri>(Arguments.RegistrationCursorUri);
             var flatContainerCursorUri = arguments.GetOrThrow<Uri>(Arguments.FlatContainerCursorUri);
 
-            var instanceNameToSearchBaseUri = GetSuffixToUri(arguments, Arguments.SearchBaseUriPrefix);
-            var instanceNameToSearchCursorUri = GetSuffixToUri(arguments, Arguments.SearchCursorUriPrefix);
+            var instanceNameToSearchBaseUri = GetSuffixToValue<Uri>(arguments, Arguments.SearchBaseUriPrefix);
+            var instanceNameToSearchCursorUri = GetSuffixToValue<Uri>(arguments, Arguments.SearchCursorUriPrefix);
+            var instanceNameToSearchCursorSasValue = GetSuffixToValue<string>(arguments, Arguments.SearchCursorSasValuePrefix);
+            var instanceNameToSearchCursorUseManagedIdentity = GetSuffixToValue<bool>(arguments, Arguments.SearchCursorUseManagedIdentityPrefix);
             var instanceNameToSearchConfig = new Dictionary<string, SearchEndpointConfiguration>();
+
             foreach (var pair in instanceNameToSearchBaseUri)
             {
                 var instanceName = pair.Key;
 
                 // Find all cursors with an instance name starting with the search base URI instance name. We do this
                 // because there may be multiple potential cursors representing the state of a search service.
-                var matchingCursors = instanceNameToSearchCursorUri.Keys.Where(x => x.StartsWith(instanceName)).ToList();
+                var matchingCursors = instanceNameToSearchCursorUri
+                    .Keys
+                    .Where(x => x.StartsWith(instanceName))
+                    .OrderBy(x => x)
+                    .ToList();
 
                 if (!matchingCursors.Any())
                 {
@@ -306,9 +314,51 @@ namespace Ng
                         $"-{Arguments.SearchCursorUriPrefix}{instanceName}* arguments.");
                 }
 
-                instanceNameToSearchConfig[instanceName] = new SearchEndpointConfiguration(
-                    matchingCursors.Select(x => instanceNameToSearchCursorUri[x]).ToList(),
-                    pair.Value);
+                var cursors = new List<SearchCursorConfiguration>();
+
+                foreach (var suffix in matchingCursors)
+                {
+                    var cursorUri = instanceNameToSearchCursorUri[suffix];
+                    SearchCursorCredentialType credentialType;
+
+                    BlobClient blobClient = null;
+                    if (instanceNameToSearchCursorUseManagedIdentity.TryGetValue(suffix, out var useManagedIdentity)
+                        && useManagedIdentity)
+                    {
+                        TokenCredential credential;
+                        if (string.IsNullOrEmpty(clientId))
+                        {
+                            credential = new DefaultAzureCredential();
+                            credentialType = SearchCursorCredentialType.DefaultAzureCredential;
+                        }
+                        else
+                        {
+                            credential = new ManagedIdentityCredential(clientId);
+                            credentialType = SearchCursorCredentialType.ManagedIdentityCredential;
+                        }
+
+                        blobClient = new BlobClient(cursorUri, credential);
+                    }
+                    else if (instanceNameToSearchCursorSasValue.TryGetValue(suffix, out var sas))
+                    {
+                        if (sas.StartsWith("?"))
+                        {
+                            // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
+                            sas = sas.Substring(1);
+                        }
+
+                        blobClient = new BlobClient(cursorUri, new AzureSasCredential(sas));
+                        credentialType = SearchCursorCredentialType.AzureSasCredential;
+                    }
+                    else
+                    {
+                        credentialType = SearchCursorCredentialType.Anonymous;
+                    }
+
+                    cursors.Add(new SearchCursorConfiguration(cursorUri, blobClient, credentialType));
+                }
+
+                instanceNameToSearchConfig[instanceName] = new SearchEndpointConfiguration(cursors, pair.Value);
 
                 foreach (var key in matchingCursors)
                 {
@@ -331,13 +381,13 @@ namespace Ng
                 instanceNameToSearchConfig);
         }
 
-        private static Dictionary<string, Uri> GetSuffixToUri(IDictionary<string, string> arguments, string prefix)
+        private static Dictionary<string, T> GetSuffixToValue<T>(IDictionary<string, string> arguments, string prefix)
         {
-            var suffixToUri = new Dictionary<string, Uri>();
+            var suffixToUri = new Dictionary<string, T>();
             foreach (var key in arguments.Keys.Where(x => x.StartsWith(prefix)))
             {
                 var suffix = key.Substring(prefix.Length);
-                suffixToUri[suffix] = arguments.GetOrThrow<Uri>(key);
+                suffixToUri[suffix] = arguments.GetOrThrow<T>(key);
             }
 
             return suffixToUri;
@@ -356,10 +406,8 @@ namespace Ng
 
             if (Arguments.AzureStorageType.Equals(storageType, StringComparison.InvariantCultureIgnoreCase))
             {
-                var storageAccountName = arguments.GetOrThrow<string>(Arguments.StorageAccountName);
                 var storageQueueName = arguments.GetOrDefault<string>(Arguments.StorageQueueName);
-
-                QueueServiceClient account = GetQueueServiceClient(storageAccountName, arguments, ArgumentNames);
+                QueueServiceClient account = GetQueueServiceClient(arguments, ArgumentNames);
                 return new StorageQueue<T>(new AzureStorageQueue(account, storageQueueName),
                     new JsonMessageSerializer<T>(JsonSerializerUtility.SerializerSettings), version);
             }
@@ -369,58 +417,55 @@ namespace Ng
             }
         }
 
-        private static BlobServiceClient GetBlobServiceClient(string storageAccountName, string endpointSuffix, IDictionary<string, string> arguments, IDictionary<string, string> argumentNameMap)
+        private static BlobServiceClient GetBlobServiceClient(
+            IDictionary<string, string> arguments,
+            IDictionary<string, string> argumentNameMap)
         {
-            var useManagedIdentity = arguments.GetOrDefault<bool>(argumentNameMap[Arguments.UseManagedIdentity]);
-            var storageSasValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageSasValue]);
+            string connectionString = GetConnectionString(arguments, argumentNameMap, "BlobEndpoint", "blob");
+            return new BlobServiceClient(connectionString);
+        }
 
-            string blobServiceUrl = $"https://{storageAccountName}.blob.{endpointSuffix}";
-
-            if (useManagedIdentity && string.IsNullOrEmpty(storageSasValue))
+        private static QueueServiceClient GetQueueServiceClient(
+            IDictionary<string, string> arguments,
+            IDictionary<string, string> argumentNameMap)
+        {
+            string connectionString = GetConnectionString(arguments, argumentNameMap, "QueueEndpoint", "queue");
+            return new QueueServiceClient(connectionString, new QueueClientOptions
             {
-                var clientId = arguments.GetOrDefault<string>(argumentNameMap[Arguments.ClientId]);
-                var managedIdentityCredential = new ManagedIdentityCredential(clientId);
+                // We use base64 encoding for compatibility with the older SDK
+                MessageEncoding = QueueMessageEncoding.Base64,
+            });
+        }
 
-                return new BlobServiceClient(new Uri(blobServiceUrl), managedIdentityCredential);
+        private static string GetConnectionString(
+            IDictionary<string, string> arguments,
+            IDictionary<string, string> argumentNameMap,
+            string endpointKey,
+            string endpointDomain)
+        {
+            var storageAccountName = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageAccountName]);
+            var storageSuffix = arguments.GetOrDefault(argumentNameMap[Arguments.StorageSuffix], DefaultStorageSuffix);
+            var storageKeyValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageKeyValue]);
+
+            string connectionString;
+
+            if (string.IsNullOrEmpty(storageKeyValue))
+            {
+                var storageSasValue = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageSasValue]);
+                if (storageSasValue.StartsWith("?"))
+                {
+                    // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
+                    storageSasValue = storageSasValue.Substring(1);
+                }
+
+                connectionString = $"{endpointKey}=https://{storageAccountName}.{endpointDomain}.{storageSuffix}/;SharedAccessSignature={storageSasValue}";
             }
             else if (!string.IsNullOrEmpty(storageSasValue))
             {
-                var sasTokenCredential = new AzureSasCredential(storageSasValue);
-                return new BlobServiceClient(new Uri(blobServiceUrl), sasTokenCredential);
+                connectionString = $"DefaultEndpointsProtocol=https;AccountName={storageAccountName};AccountKey={storageKeyValue};EndpointSuffix={storageSuffix}";
             }
 
-            var storageKeyValue = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageKeyValue]);
-            var keyCredential = new StorageSharedKeyCredential(storageAccountName, storageKeyValue);
-
-            return new BlobServiceClient(new Uri(blobServiceUrl), keyCredential);
+            return connectionString;
         }
-
-        private static QueueServiceClient GetQueueServiceClient(string storageAccountName, IDictionary<string, string> arguments, IDictionary<string, string> argumentNameMap)
-        {
-            var useManagedIdentity = arguments.GetOrDefault<bool>(argumentNameMap[Arguments.UseManagedIdentity]);
-            var storageSasValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageSasValue]);
-
-            string queueServiceUrl = $"https://{storageAccountName}.queue.core.windows.net";
-
-            if (useManagedIdentity && string.IsNullOrEmpty(storageSasValue))
-            {
-                var clientId = arguments.GetOrDefault<string>(argumentNameMap[Arguments.ClientId]);
-                var managedIdentityCredential = new ManagedIdentityCredential(clientId);
-
-                return new QueueServiceClient(new Uri(queueServiceUrl), managedIdentityCredential);
-            }
-            else if (!string.IsNullOrEmpty(storageSasValue))
-            {
-                var sasTokenCredential = new AzureSasCredential(storageSasValue);
-
-                return new QueueServiceClient(new Uri(queueServiceUrl), sasTokenCredential);
-            }
-
-            var storageKeyValue = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageKeyValue]);
-            var keyCredential = new StorageSharedKeyCredential(storageAccountName, storageKeyValue);
-
-            return new QueueServiceClient(new Uri(queueServiceUrl), keyCredential);
-        }
-
     }
 }

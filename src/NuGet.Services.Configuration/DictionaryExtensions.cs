@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -35,7 +35,10 @@ namespace NuGet.Services.Configuration
         /// <exception cref="ArgumentException">Thrown when the value associated with the key in the dictionary is null or empty.</exception>
         public static T GetOrThrow<T>(this IDictionary<string, string> dictionary, string key)
         {
-            var value = dictionary[key];
+            if (!dictionary.TryGetValue(key, out var value))
+            {
+                throw new KeyNotFoundException($"Key {key} was not found in the dictionary.");
+            }
 
             if (string.IsNullOrEmpty(value))
             {

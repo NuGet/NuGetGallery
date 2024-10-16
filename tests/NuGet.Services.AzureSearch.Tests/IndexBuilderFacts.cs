@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Azure;
@@ -35,7 +34,7 @@ namespace NuGet.Services.AzureSearch
                 await _target.CreateAsync(retryOnConflict);
 
                 VerifyGetContainer();
-                _cloudBlobContainer.Verify(x => x.CreateAsync(true), Times.Once);
+                _cloudBlobContainer.Verify(x => x.CreateAsync(false), Times.Once);
                 _cloudBlobContainer.Verify(x => x.CreateIfNotExistAsync(It.IsAny<bool>()), Times.Never);
                 _cloudBlobContainer.Verify(x => x.DeleteIfExistsAsync(), Times.Never);
             }
@@ -45,15 +44,9 @@ namespace NuGet.Services.AzureSearch
             {
                 EnableConflict();
 
-                var sw = Stopwatch.StartNew();
                 await _target.CreateAsync(retryOnConflict: true);
-                sw.Stop();
 
-                _cloudBlobContainer.Verify(x => x.CreateAsync(true), Times.Exactly(2));
-
-                // allow for some variance in the retry duration
-                // 15ms due to Windows clock: https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task.delay
-                Assert.InRange(sw.Elapsed, _retryDuration - TimeSpan.FromMilliseconds(16), TimeSpan.MaxValue);
+                _cloudBlobContainer.Verify(x => x.CreateAsync(false), Times.Exactly(2));
             }
 
             [Fact]
@@ -79,7 +72,7 @@ namespace NuGet.Services.AzureSearch
                 await _target.CreateIfNotExistsAsync();
 
                 VerifyGetContainer();
-                _cloudBlobContainer.Verify(x => x.CreateAsync(true), Times.Once);
+                _cloudBlobContainer.Verify(x => x.CreateAsync(false), Times.Once);
                 _cloudBlobContainer.Verify(x => x.CreateIfNotExistAsync(It.IsAny<bool>()), Times.Never);
                 _cloudBlobContainer.Verify(x => x.DeleteIfExistsAsync(), Times.Never);
             }
@@ -143,7 +136,7 @@ namespace NuGet.Services.AzureSearch
                     StorageContainer = "container-name",
                 };
                 _logger = output.GetLogger<BlobContainerBuilder>();
-                _retryDuration = TimeSpan.FromMilliseconds(100);
+                _retryDuration = TimeSpan.FromMilliseconds(10);
 
                 _options
                     .Setup(x => x.Value)

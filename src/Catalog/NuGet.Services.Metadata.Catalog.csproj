@@ -1,9 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
-  <Import Project="..\..\SdkProjects.props" />
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>net472;netstandard2.1</TargetFrameworks>
+    <PackageVersion Condition="'$(PackageVersion)' == ''">$(JobsPackageVersion)</PackageVersion>
     <Description>Create, edit, or read the package metadata catalog.</Description>
     <PackageTags>nuget;services;search;catalog;metadata;collector</PackageTags>
   </PropertyGroup>
@@ -74,6 +73,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Configuration\NuGet.Services.Configuration.csproj" />
     <ProjectReference Include="..\NuGet.Services.Logging\NuGet.Services.Logging.csproj" />
     <ProjectReference Include="..\NuGet.Services.Sql\NuGet.Services.Sql.csproj" />
     <ProjectReference Include="..\NuGetGallery.Core\NuGetGallery.Core.csproj" />

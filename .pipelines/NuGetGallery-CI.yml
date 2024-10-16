@@ -18,15 +18,15 @@ variables:
   - name: CommonPackageVersion
     value: $(CommonAssemblyVersion)-$(NuGetGalleryBranch)-$(Build.BuildId)
   - name: CommonAssemblyVersion
-    value: 3.0.0
+    value: 5.0.0
   - name: GalleryPackageVersion
     value: $(GalleryAssemblyVersion)-$(NuGetGalleryBranch)-$(Build.BuildId)
   - name: GalleryAssemblyVersion
-    value: 4.4.5
+    value: 5.0.0
   - name: JobsPackageVersion
     value: $(JobsAssemblyVersion)-$(NuGetGalleryBranch)-$(Build.BuildId)
   - name: JobsAssemblyVersion
-    value: 4.3.0
+    value: 5.0.0
   - name: NuGetGalleryDirectory
     value: ng
   - name: NuGetGalleryPath
@@ -125,6 +125,40 @@ extends:
                   testRunner: VSTest
                   testResultsFiles: $(NuGetGalleryPath)\Results.*.xml
                   failTaskOnFailedTests: true
+
+      - stage: statslogparser
+        displayName: StatsLogPasrser
+        dependsOn: []
+        jobs:
+          - job: build_and_test
+            displayName: statslogparser build and test
+            cancelTimeoutInMinutes: 1
+            variables:
+              PIPX_HOME: $(Agent.ToolsDirectory)\pipx
+            steps:
+              - checkout: self
+                fetchDepth: 1
+                clean: true
+                fetchTags: false
+                path: $(NuGetGalleryDirectory)
+              - task: UsePythonVersion@0
+                inputs:
+                  versionSpec: '3.10'
+              - script: |
+                  python -m pip install --user pipx
+                  pipx ensurepath
+                displayName: 'Install tools'
+              - script: |
+                  pipx install poetry
+                  poetry install
+                  poetry build
+                  poetry run pytest tests/ --cov loginterpretation --cov-report html
+                workingDirectory: $(NuGetGalleryPath)\python\StatsLogParser
+            templateContext:
+              outputs:
+                - output: pipelineArtifact
+                  path: $(NuGetGalleryPath)\python\StatsLogParser\dist
+                  artifact: StatsLogParser
 
       - stage: jobs
         displayName: NuGet.Jobs.sln

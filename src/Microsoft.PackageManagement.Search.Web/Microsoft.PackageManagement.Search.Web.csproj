@@ -1,9 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-  
-  <Import Project="..\..\SdkProjects.props" />
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
+    <PackageVersion Condition="'$(PackageVersion)' == ''">$(JobsPackageVersion)</PackageVersion>
   </PropertyGroup>
 
   <ItemGroup>

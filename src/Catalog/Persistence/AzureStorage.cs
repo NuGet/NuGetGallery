@@ -92,12 +92,9 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             var blobEndpoint = new Uri(storageBaseUri.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped));
             // Create BlobServiceClient with anonymous credentials
-            var blobServiceClient = new BlobServiceClient(blobEndpoint, new AzureSasCredential(""));
+            var blobServiceClient = new BlobServiceClient(blobEndpoint);
 
             string containerName = pathSegments[0];
-            // Get a reference to a container
-            BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient(containerName);
-
             string pathInContainer = string.Join("/", pathSegments.Skip(1));
             return new CloudBlobDirectoryWrapper(blobServiceClient, containerName, pathInContainer);
         }
@@ -129,9 +126,9 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             if (initializeContainer)
             {
-                BlobContainerInfo blobContainerInfo = _blobContainerClientWrapper.ContainerClient.CreateIfNotExists(PublicAccessType.Blob);
+                Response<BlobContainerInfo> blobContainerInfoResponse = _blobContainerClientWrapper.ContainerClient.CreateIfNotExists(PublicAccessType.Blob);
 
-                if (blobContainerInfo != null && Verbose)
+                if (blobContainerInfoResponse?.Value != null && Verbose)
                 {
                     Trace.WriteLine($"Created '{_blobContainerClientWrapper.ContainerClient.Name}' public container");
                 }
@@ -192,10 +189,10 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             var blobs = new List<StorageListItem>();
 
             BlobContainerClient blobContainerClient = _blobContainerClientWrapper.ContainerClient;
-            await foreach (var blobItem in blobContainerClient.GetBlobsAsync(prefix: _directory.DirectoryPrefix, cancellationToken: cancellationToken))
+            await foreach (var blobItem in blobContainerClient.GetBlobsByHierarchyAsync(prefix: _directory.DirectoryPrefix, cancellationToken: cancellationToken))
             {
-                var lastModified = blobItem.Properties.LastModified?.UtcDateTime;
-                blobs.Add(new StorageListItem(new Uri(blobContainerClient.Uri, blobItem.Name), lastModified));
+                var lastModified = blobItem.Blob.Properties.LastModified?.UtcDateTime;
+                blobs.Add(new StorageListItem(blobContainerClient.GetBlobClient(blobItem.Blob.Name).Uri, lastModified));
             }
 
             return blobs;
@@ -314,7 +311,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
                     await blockBlobClient.UploadAsync(destinationStream, headers, conditions: blobRequestConditions, cancellationToken: cancellationToken);
 
-                    Trace.WriteLine($"Saved compressed blob {blockBlobClient.Uri} to container {_blobContainerClientWrapper.ContainerClient.Name}");
+                    Trace.WriteLine($"Saved compressed blob {RemoveQueryString(blockBlobClient.Uri)} to container {_blobContainerClientWrapper.ContainerClient.Name}");
                 }
             }
             else
@@ -323,7 +320,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 {
                     await blockBlobClient.UploadAsync(stream, headers, cancellationToken: cancellationToken);
 
-                    Trace.WriteLine($"Saved uncompressed blob {blockBlobClient.Uri} to container {_blobContainerClientWrapper.ContainerClient.Name}");
+                    Trace.WriteLine($"Saved uncompressed blob {RemoveQueryString(blockBlobClient.Uri)} to container {_blobContainerClientWrapper.ContainerClient.Name}");
                 }
             }
 
@@ -351,14 +348,14 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 {
                     var response = await blobBlockClient.CreateSnapshotAsync();
                     stopwatch.Stop();
-                    Trace.WriteLine($"SnapshotCreated:milliseconds={stopwatch.ElapsedMilliseconds}:{blobBlockClient.Uri.ToString()}:{response?.Value.Snapshot}");
+                    Trace.WriteLine($"SnapshotCreated:milliseconds={stopwatch.ElapsedMilliseconds}:{RemoveQueryString(blobBlockClient.Uri)}:{response?.Value.Snapshot}");
                 }
                 return true;
             }
             catch (RequestFailedException e)
             {
                 stopwatch.Stop();
-                Trace.WriteLine($"EXCEPTION:milliseconds={stopwatch.ElapsedMilliseconds}:CreateSnapshot: Failed to take the snapshot for blob {blobBlockClient.Uri.ToString()}. Exception{e.ToString()}");
+                Trace.WriteLine($"EXCEPTION:milliseconds={stopwatch.ElapsedMilliseconds}:CreateSnapshot: Failed to take the snapshot for blob {RemoveQueryString(blobBlockClient.Uri)}. Exception{e.ToString()}");
                 return false;
             }
         }
@@ -429,7 +426,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         public override Uri GetUri(string name)
         {
-            var baseUri = _directory.Uri.AbsoluteUri;
+            var baseUri = RemoveQueryString(_directory.Uri);
 
             if (baseUri.EndsWith("/"))
             {
@@ -454,33 +451,39 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             {
                 if (await sourceBlockBlob.ExistsAsync(CancellationToken.None))
                 {
-                    var sourceBlobMetadata = await sourceBlockBlob.GetMetadataAsync(CancellationToken.None);
-                    var destinationBlobMetadata = await destinationBlockBlob.GetMetadataAsync(CancellationToken.None);
-                    if (sourceBlobMetadata == null || destinationBlobMetadata == null)
+                    BlobProperties sourceBlobAttributes = await sourceBlockBlob.FetchAttributesAsync(CancellationToken.None);
+                    BlobProperties destinationBlobAttributes = await destinationBlockBlob.FetchAttributesAsync(CancellationToken.None);
+                    if (sourceBlobAttributes?.Metadata == null || destinationBlobAttributes?.Metadata == null)
                     {
                         return false;
                     }
 
-                    var sourceBlobHasSha512Hash = sourceBlobMetadata.TryGetValue(Sha512HashAlgorithmId, out var sourceBlobSha512Hash);
-                    var destinationBlobHasSha512Hash = destinationBlobMetadata.TryGetValue(Sha512HashAlgorithmId, out var destinationBlobSha512Hash);
+                    if (sourceBlobAttributes.ContentLength !=  destinationBlobAttributes.ContentLength)
+                    {
+                        Trace.WriteLine($"The source blob ({RemoveQueryString(sourceBlockBlob.Uri)}) and destination blob ({RemoveQueryString(destinationBlockBlob.Uri)}) have different sizes.");
+                        return false;
+                    }
+
+                    var sourceBlobHasSha512Hash = sourceBlobAttributes.Metadata.TryGetValue(Sha512HashAlgorithmId, out var sourceBlobSha512Hash);
+                    var destinationBlobHasSha512Hash = destinationBlobAttributes.Metadata.TryGetValue(Sha512HashAlgorithmId, out var destinationBlobSha512Hash);
                     if (!sourceBlobHasSha512Hash)
                     {
-                        Trace.TraceWarning($"The source blob ({sourceBlockBlob.Uri}) doesn't have the SHA512 hash.");
+                        Trace.TraceWarning($"The source blob ({RemoveQueryString(sourceBlockBlob.Uri)}) doesn't have the SHA512 hash.");
                     }
                     if (!destinationBlobHasSha512Hash)
                     {
-                        Trace.TraceWarning($"The destination blob ({destinationBlockBlob.Uri}) doesn't have the SHA512 hash.");
+                        Trace.TraceWarning($"The destination blob ({RemoveQueryString(destinationBlockBlob.Uri)}) doesn't have the SHA512 hash.");
                     }
                     if (sourceBlobHasSha512Hash && destinationBlobHasSha512Hash)
                     {
                         if (sourceBlobSha512Hash == destinationBlobSha512Hash)
                         {
-                            Trace.WriteLine($"The source blob ({sourceBlockBlob.Uri}) and destination blob ({destinationBlockBlob.Uri}) have the same SHA512 hash and are synchronized.");
+                            Trace.WriteLine($"The source blob ({RemoveQueryString(sourceBlockBlob.Uri)}) and destination blob ({RemoveQueryString(destinationBlockBlob.Uri)}) have the same SHA512 hash and are synchronized.");
                             return true;
                         }
 
                         // The SHA512 hash between the source and destination blob should be always same.
-                        Trace.TraceWarning($"The source blob ({sourceBlockBlob.Uri}) and destination blob ({destinationBlockBlob.Uri}) have the different SHA512 hash and are not synchronized. " +
+                        Trace.TraceWarning($"The source blob ({RemoveQueryString(sourceBlockBlob.Uri)}) and destination blob ({RemoveQueryString(destinationBlockBlob.Uri)}) have the different SHA512 hash and are not synchronized. " +
                             $"The source blob hash is {sourceBlobSha512Hash} while the destination blob hash is {destinationBlobSha512Hash}");
                     }
 
@@ -524,7 +527,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         private BlockBlobClient GetBlockBlobReference(string blobName)
         {
             IBlobContainerClientWrapper containerClient = _directory.ContainerClientWrapper;
-            BlockBlobClient blobClient = containerClient.GetBlockBlobClient(blobName);
+            BlockBlobClient blobClient = containerClient.GetBlockBlobClient(_directory.DirectoryPrefix + "/" + blobName);
 
             // ApplyBlobRequestOptions(blobClient) is not needed as the options should be set at the client level
             // when creating the BlobServiceClient or BlobContainerClient.

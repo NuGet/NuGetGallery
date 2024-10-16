@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -77,7 +77,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                 builder
                     .Register(c => new SearchEndpoint(
                         pair.Key,
-                        pair.Value.CursorUris,
+                        pair.Value.Cursors,
                         pair.Value.BaseUri,
                         c.Resolve<Func<HttpMessageHandler>>()))
                     .As<IEndpoint>()

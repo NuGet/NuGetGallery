@@ -194,6 +194,7 @@ PublishScripts/
 
 # NuGet Packages
 *.nupkg
+!**/TestData/*.nupkg
 # NuGet Symbol Packages
 *.snupkg
 # The packages folder can be ignored because of Package Restore
@@ -382,7 +383,7 @@ FodyWeavers.xsd
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-*.code-workspace
+!.vscode/*.code-snippets
 
 # Local History for Visual Studio Code
 .history/
@@ -397,6 +398,10 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 
+# macOS
+.DS_Store
+
+
 #######################
 # Repository specific #
 #######################
@@ -410,8 +415,11 @@ tests/functionaltests.*.xml
 *.trx
 *.g.txt
 
+# launch settings for running jobs locally
+**/Properties/launchSettings.json
+
 # The applicationhost.config is ignored, but already comitted on purpose
-# Reason: The localtest.me setting needs to be configured in the <sites>-section. 
+# Reason: The localtest.me setting needs to be configured in the <sites>-section.
 # See ReadMe.md for more information
 .vs/config/applicationhost.config
 
@@ -427,3 +435,5 @@ src/NuGetGallery/App_Data/Files/*
 !src/NuGetGallery/App_Data/Files/Content/
 !src/NuGetGallery/Views/Packages/
 !src/NuGetGallery/Branding/Views/Packages/
+
+

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -199,15 +199,19 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             {
                 address += "/";
             }
-            var uriString = uri.ToString();
+            var uriString = uri.GetLeftPart(UriPartial.Path);
 
             int baseAddressLength = address.Length;
 
-            var name = uriString.Substring(baseAddressLength);
+            // handle mismatched scheme (http vs https)
+            var schemeLengthDifference = uri.Scheme.Length - BaseAddress.Scheme.Length;
+
+            var name = uriString.Substring(baseAddressLength + schemeLengthDifference);
             if (name.Contains("#"))
             {
                 name = name.Substring(0, name.IndexOf("#"));
             }
+
             return name;
         }
 
@@ -229,13 +233,18 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             {
                 //The Uri depends on the storage implementation.
                 Uri storageUri = GetUri(GetName(resourceUri));
-                Trace.WriteLine(String.Format("{0} {1}", method, storageUri));
+                Trace.WriteLine(String.Format("{0} {1}", method, RemoveQueryString(storageUri)));
             }
+        }
+
+        public static string RemoveQueryString(Uri storageUri)
+        {
+            return storageUri.GetLeftPart(UriPartial.Path);
         }
 
         private string TraceException(string method, Uri resourceUri, Exception exception)
         {
-            string message = $"{method} EXCEPTION: {GetUri(GetName(resourceUri))} {exception.ToString()}";
+            string message = $"{method} EXCEPTION: {RemoveQueryString(GetUri(GetName(resourceUri)))} {exception.ToString()}";
             Trace.WriteLine(message);
             return message;
         }

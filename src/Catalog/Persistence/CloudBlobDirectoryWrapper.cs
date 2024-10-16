@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -19,12 +19,12 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         private readonly BlobClientOptions _defaultClientOptions;
 
         public BlobServiceClient ServiceClient => _containerClient.GetParentBlobServiceClient();
-        public Uri Uri => new Uri(_containerClient.Uri, _directoryPrefix);
+        public Uri Uri { get; }
         public string DirectoryPrefix => _directoryPrefix;
         public BlobClientOptions ContainerOptions => _defaultClientOptions;
         public IBlobContainerClientWrapper ContainerClientWrapper => _blobContainerClientWrapper;
 
-        public CloudBlobDirectoryWrapper(BlobServiceClient serviceClient, string containerName, string directoryPrefix, BlobClientOptions  blobClientOptions = null)
+        public CloudBlobDirectoryWrapper(BlobServiceClient serviceClient, string containerName, string directoryPrefix, BlobClientOptions blobClientOptions = null)
         {
             _directoryPrefix = directoryPrefix ?? throw new ArgumentNullException(nameof(directoryPrefix));
 
@@ -48,7 +48,9 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             {
                 _containerClient = serviceClient.GetBlobContainerClient(containerName);
             }
-            
+
+            Uri = new Uri(Storage.RemoveQueryString(_containerClient.Uri).TrimEnd('/') + "/" + _directoryPrefix);
+
             _blobContainerClientWrapper = new BlobContainerClientWrapper(_containerClient);
         }
 

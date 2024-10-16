@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using NuGetGallery.Configuration;
@@ -261,6 +261,11 @@ namespace NuGetGallery
             throw new NotImplementedException();
         }
 
+        public Task<Uri> GetPrivilegedFileUriWithDelegationSasAsync(string folderName, string fileName, FileUriPermissions permissions, DateTimeOffset endOfAccess)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task SetMetadataAsync(
             string folderName,
             string fileName,
@@ -308,9 +313,6 @@ namespace NuGetGallery
                 case CoreConstants.Folders.PackagesFolderName:
                 case CoreConstants.Folders.SymbolPackagesFolderName:
                     return CoreConstants.PackageContentType;
-
-                case CoreConstants.Folders.DownloadsFolderName:
-                    return CoreConstants.OctetStreamContentType;
 
                 default:
                     throw new InvalidOperationException(

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved. 
+// Copyright (c) .NET Foundation. All rights reserved. 
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -29,6 +29,16 @@ namespace NuGet.Services.KeyVault
             _refreshIntervalBeforeExpiry = TimeSpan.FromSeconds(refreshIntervalBeforeExpirySec);
         }
 
+        public string GetSecret(string secretName)
+        {
+            return GetSecret(secretName, logger: null);
+        }
+
+        public string GetSecret(string secretName, ILogger logger)
+        {
+            return GetSecretObject(secretName, logger).Value;
+        }
+
         public async Task<string> GetSecretAsync(string secretName)
         {
             return await GetSecretAsync(secretName, logger: null);
@@ -39,6 +49,25 @@ namespace NuGet.Services.KeyVault
             return (await GetSecretObjectAsync(secretName, logger)).Value;
         }
 
+        public ISecret GetSecretObject(string secretName)
+        {
+            return GetSecretObject(secretName, logger: null);
+        }
+
+        public ISecret GetSecretObject(string secretName, ILogger logger)
+        {
+            if (TryGetCachedSecretObject(secretName, logger, out var cachedSecret))
+            {
+                return cachedSecret;
+            }
+
+            var start = DateTimeOffset.UtcNow;
+
+            var updatedValue = new CachedSecret(_internalReader.GetSecretObject(secretName));
+
+            return UpdateCachedSecret(secretName, logger, start, updatedValue);
+        }
+
         public async Task<ISecret> GetSecretObjectAsync(string secretName)
         {
             return await GetSecretObjectAsync(secretName, logger: null);
@@ -46,25 +75,25 @@ namespace NuGet.Services.KeyVault
 
         public async Task<ISecret> GetSecretObjectAsync(string secretName, ILogger logger)
         {
-            if (string.IsNullOrEmpty(secretName))
-            {
-                throw new ArgumentException("Null or empty secret name", nameof(secretName));
-            }
-
-            // If the cache contains the secret and it is not expired, return the cached value.
             if (TryGetCachedSecretObject(secretName, logger, out var cachedSecret))
             {
                 return cachedSecret;
             }
 
             var start = DateTimeOffset.UtcNow;
-            // The cache does not contain a fresh copy of the secret. Fetch and cache the secret.
+
             var updatedValue = new CachedSecret(await _internalReader.GetSecretObjectAsync(secretName));
+
+            return UpdateCachedSecret(secretName, logger, start, updatedValue);
+        }
+
+        private ISecret UpdateCachedSecret(string secretName, ILogger logger, DateTimeOffset start, CachedSecret updatedValue)
+        {
             var updatedSecret = _cache.AddOrUpdate(secretName, updatedValue, (key, old) => updatedValue).Secret;
 
             logger?.LogInformation("Refreshed secret {SecretName}, Expiring at: {ExpirationTime}. Took {ElapsedMilliseconds}ms.",
                 updatedSecret.Name,
-                updatedSecret.Expiration == null ? "null" : ((DateTimeOffset) updatedSecret.Expiration).UtcDateTime.ToString(),
+                updatedSecret.Expiration == null ? "null" : ((DateTimeOffset)updatedSecret.Expiration).UtcDateTime.ToString(),
                 (DateTimeOffset.UtcNow - start).TotalMilliseconds.ToString("F2"));
 
             return updatedSecret;
@@ -87,6 +116,11 @@ namespace NuGet.Services.KeyVault
 
         public bool TryGetCachedSecretObject(string secretName, ILogger logger, out ISecret secretObject)
         {
+            if (string.IsNullOrEmpty(secretName))
+            {
+                throw new ArgumentException("Null or empty secret name", nameof(secretName));
+            }
+
             secretObject = null;
             if (_cache.TryGetValue(secretName, out CachedSecret result)
                 && !IsSecretOutdated(result))

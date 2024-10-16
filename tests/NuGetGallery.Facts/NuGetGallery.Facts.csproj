@@ -1,5 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\SdkProjects.props" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <RootNamespace>NuGetGallery</RootNamespace>
@@ -15,6 +14,7 @@
     <EmbeddedResource Include="TestData\PackageWithDoubleForwardSlash.1.0.0.nupkg" />
     <EmbeddedResource Include="TestData\PackageWithVeryLongZipFileEntry.1.0.0.nupkg" />
     <EmbeddedResource Include="TestData\Zip64Package.Corrupted.1.0.0.nupkg" />
+    <EmbeddedResource Include="TestData\PackageWithInvalidUnicodeCharacters.1.0.0.nupkg" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\NuGetGallery\NuGetGallery.csproj" />

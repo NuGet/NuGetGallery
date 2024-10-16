@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -19,6 +19,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Rest;
+using NuGet.Jobs;
 using NuGet.Protocol;
 using NuGet.Services.AzureSearch.Auxiliary2AzureSearch;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
@@ -26,7 +27,6 @@ using NuGet.Services.AzureSearch.Catalog2AzureSearch;
 using NuGet.Services.AzureSearch.Db2AzureSearch;
 using NuGet.Services.AzureSearch.SearchService;
 using NuGet.Services.AzureSearch.Wrappers;
-using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.V3;
 using NuGetGallery;
@@ -109,13 +109,7 @@ namespace NuGet.Services.AzureSearch
         private static void RegisterAzureSearchStorageServices(ContainerBuilder containerBuilder, string key)
         {
             containerBuilder
-                .Register<ICloudBlobClient>(c =>
-                {
-                    var options = c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>();
-                    return new CloudBlobClientWrapper(
-                        options.Value.StorageConnectionString,
-                        requestTimeout: DefaultBlobRequestOptions.ServerTimeout);
-                })
+                .RegisterStorageAccount<AzureSearchConfiguration>(c => c.StorageConnectionString, requestTimeout: DefaultBlobRequestOptions.ServerTimeout)
                 .Keyed<ICloudBlobClient>(key);
 
             containerBuilder
@@ -222,13 +216,9 @@ namespace NuGet.Services.AzureSearch
         private static void RegisterAuxiliaryDataStorageServices(ContainerBuilder containerBuilder, string key)
         {
             containerBuilder
-                .Register<ICloudBlobClient>(c =>
-                {
-                    var options = c.Resolve<IOptionsSnapshot<AuxiliaryDataStorageConfiguration>>();
-                    return new CloudBlobClientWrapper(
-                        options.Value.AuxiliaryDataStorageConnectionString,
-                        requestTimeout: DefaultBlobRequestOptions.ServerTimeout);
-                })
+                .RegisterStorageAccount<AuxiliaryDataStorageConfiguration>(
+                    c => c.AuxiliaryDataStorageConnectionString,
+                    requestTimeout: DefaultBlobRequestOptions.ServerTimeout)
                 .Keyed<ICloudBlobClient>(key);
 
             containerBuilder
@@ -316,7 +306,6 @@ namespace NuGet.Services.AzureSearch
                     }
                 });
 
-            services.AddTransient<IDownloadsV1JsonClient, DownloadsV1JsonClient>();
             services.AddSingleton<IAuxiliaryDataCache, AuxiliaryDataCache>();
             services.AddScoped(p => p.GetRequiredService<IAuxiliaryDataCache>().Get());
             services.AddSingleton<IAuxiliaryFileReloader, AuxiliaryFileReloader>();

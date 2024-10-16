@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -33,6 +33,17 @@ namespace NuGet.Services.KeyVault
             _keyVaultClient = new Lazy<SecretClient>(InitializeClient);
         }
 
+        public string GetSecret(string secretName)
+        {
+            return GetSecret(secretName, logger: null);
+        }
+
+        public string GetSecret(string secretName, ILogger logger)
+        {
+            AzureSecurityKeyVaultSecret secret = _keyVaultClient.Value.GetSecret(secretName);
+            return secret.Value;
+        }
+
         public async Task<string> GetSecretAsync(string secretName)
         {
             return await GetSecretAsync(secretName, logger: null);
@@ -44,6 +55,17 @@ namespace NuGet.Services.KeyVault
             return secret.Value;
         }
 
+        public ISecret GetSecretObject(string secretName)
+        {
+            return GetSecretObject(secretName, logger: null);
+        }
+
+        public ISecret GetSecretObject(string secretName, ILogger logger)
+        {
+            AzureSecurityKeyVaultSecret secret = _keyVaultClient.Value.GetSecret(secretName);
+            return MapSecret(secretName, secret);
+        }
+
         public async Task<ISecret> GetSecretObjectAsync(string secretName)
         {
             return await GetSecretObjectAsync(secretName, logger: null);
@@ -52,6 +74,11 @@ namespace NuGet.Services.KeyVault
         public async Task<ISecret> GetSecretObjectAsync(string secretName, ILogger logger)
         {
             AzureSecurityKeyVaultSecret secret = await _keyVaultClient.Value.GetSecretAsync(secretName);
+            return MapSecret(secretName, secret);
+        }
+
+        private static ISecret MapSecret(string secretName, AzureSecurityKeyVaultSecret secret)
+        {
             return new KeyVaultSecret(secretName, secret.Value, secret.Properties.ExpiresOn);
         }
 

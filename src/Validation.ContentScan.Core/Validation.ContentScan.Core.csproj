@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\SdkProjects.props" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
+    <PackageVersion Condition="'$(PackageVersion)' == ''">$(JobsPackageVersion)</PackageVersion>
     <RootNamespace>NuGet.Jobs.Validation.ContentScan</RootNamespace>
     <AssemblyName>NuGet.Jobs.Validation.ContentScan.Core</AssemblyName>
   </PropertyGroup>

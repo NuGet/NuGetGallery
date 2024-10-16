@@ -1,9 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
-  <Import Project="..\..\SdkProjects.props" />
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>net472;netstandard2.1</TargetFrameworks>
+    <PackageVersion Condition="'$(PackageVersion)' == ''">$(GalleryPackageVersion)</PackageVersion>
     <Description>Services library for NuGet Gallery Frontend and Backend</Description>
   </PropertyGroup>
 
