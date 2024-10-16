@@ -27,10 +27,20 @@ namespace NuGet.Jobs.Catalog2Registration
             containerBuilder.AddV3();
 
             RegisterCursorStorage(containerBuilder);
-
             containerBuilder
-                .RegisterStorageAccount<Catalog2RegistrationConfiguration>(c => c.StorageConnectionString, requestTimeout: DefaultBlobRequestOptions.ServerTimeout)
-                .As<ICloudBlobClient>();
+                .Register<ICloudBlobClient>(c =>
+                {
+                    var options = c.Resolve<IOptionsSnapshot<Catalog2RegistrationConfiguration>>();
+
+                    if (options.Value.UseManagedIdentity)
+                    {
+                        return CloudBlobClientWrapper.UsingMsi(options.Value.StorageConnectionString, options.Value.ManagedIdentityClientId);
+                    }
+
+                    return new CloudBlobClientWrapper(
+                        options.Value.StorageConnectionString,
+                        requestTimeout: DefaultBlobRequestOptions.ServerTimeout);
+                });
 
             containerBuilder.Register(c => new Catalog2RegistrationCommand(
                 c.Resolve<ICollector>(),

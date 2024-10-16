@@ -11,6 +11,7 @@ using System.Security.Cryptography.X509Certificates;
 using Azure;
 using Azure.Core;
 using Azure.Identity;
+using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Queues;
 using Microsoft.Extensions.Logging;
@@ -421,51 +422,68 @@ namespace Ng
             IDictionary<string, string> arguments,
             IDictionary<string, string> argumentNameMap)
         {
-            string connectionString = GetConnectionString(arguments, argumentNameMap, "BlobEndpoint", "blob");
-            return new BlobServiceClient(connectionString);
+            var storageAccountName = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageAccountName]);
+            var storageSuffix = arguments.GetOrDefault(argumentNameMap[Arguments.StorageSuffix], DefaultStorageSuffix);
+            var useManagedIdentity = arguments.GetOrDefault<bool>(argumentNameMap[Arguments.UseManagedIdentity]);
+            var storageSasValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageSasValue]);
+
+            string blobServiceUrl = $"https://{storageAccountName}.blob.{storageSuffix}";
+
+            if (useManagedIdentity && string.IsNullOrEmpty(storageSasValue))
+            {
+                var clientId = arguments.GetOrDefault<string>(argumentNameMap[Arguments.ClientId]);
+                var managedIdentityCredential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
+                {
+                    ManagedIdentityClientId = clientId,
+                });
+                return new BlobServiceClient(new Uri(blobServiceUrl), managedIdentityCredential);
+            }
+            else if (!string.IsNullOrEmpty(storageSasValue))
+            {
+                var sasTokenCredential = new AzureSasCredential(storageSasValue);
+                return new BlobServiceClient(new Uri(blobServiceUrl), sasTokenCredential);
+            }
+
+            var storageKeyValue = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageKeyValue]);
+            var keyCredential = new StorageSharedKeyCredential(storageAccountName, storageKeyValue);
+            return new BlobServiceClient(new Uri(blobServiceUrl), keyCredential);
         }
 
         private static QueueServiceClient GetQueueServiceClient(
             IDictionary<string, string> arguments,
             IDictionary<string, string> argumentNameMap)
         {
-            string connectionString = GetConnectionString(arguments, argumentNameMap, "QueueEndpoint", "queue");
-            return new QueueServiceClient(connectionString, new QueueClientOptions
+            var storageAccountName = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageAccountName]);
+            var storageSuffix = arguments.GetOrDefault(argumentNameMap[Arguments.StorageSuffix], DefaultStorageSuffix);
+            var useManagedIdentity = arguments.GetOrDefault<bool>(argumentNameMap[Arguments.UseManagedIdentity]);
+            var storageSasValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageSasValue]);
+
+            var options = new QueueClientOptions
             {
                 // We use base64 encoding for compatibility with the older SDK
                 MessageEncoding = QueueMessageEncoding.Base64,
-            });
-        }
+            };
 
-        private static string GetConnectionString(
-            IDictionary<string, string> arguments,
-            IDictionary<string, string> argumentNameMap,
-            string endpointKey,
-            string endpointDomain)
-        {
-            var storageAccountName = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageAccountName]);
-            var storageSuffix = arguments.GetOrDefault(argumentNameMap[Arguments.StorageSuffix], DefaultStorageSuffix);
-            var storageKeyValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageKeyValue]);
+            string queueServiceUrl = $"https://{storageAccountName}.queue.{storageSuffix}";
 
-            string connectionString;
-
-            if (string.IsNullOrEmpty(storageKeyValue))
+            if (useManagedIdentity && string.IsNullOrEmpty(storageSasValue))
             {
-                var storageSasValue = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageSasValue]);
-                if (storageSasValue.StartsWith("?"))
+                var clientId = arguments.GetOrDefault<string>(argumentNameMap[Arguments.ClientId]);
+                var managedIdentityCredential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
                 {
-                    // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
-                    storageSasValue = storageSasValue.Substring(1);
-                }
-
-                connectionString = $"{endpointKey}=https://{storageAccountName}.{endpointDomain}.{storageSuffix}/;SharedAccessSignature={storageSasValue}";
+                    ManagedIdentityClientId = clientId,
+                });
+                return new QueueServiceClient(new Uri(queueServiceUrl), managedIdentityCredential, options);
             }
             else if (!string.IsNullOrEmpty(storageSasValue))
             {
-                connectionString = $"DefaultEndpointsProtocol=https;AccountName={storageAccountName};AccountKey={storageKeyValue};EndpointSuffix={storageSuffix}";
+                var sasTokenCredential = new AzureSasCredential(storageSasValue);
+                return new QueueServiceClient(new Uri(queueServiceUrl), sasTokenCredential, options);
             }
 
-            return connectionString;
+            var storageKeyValue = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageKeyValue]);
+            var keyCredential = new StorageSharedKeyCredential(storageAccountName, storageKeyValue);
+            return new QueueServiceClient(new Uri(queueServiceUrl), keyCredential, options);
         }
     }
 }
