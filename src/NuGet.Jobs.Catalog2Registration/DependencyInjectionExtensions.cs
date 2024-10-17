@@ -65,7 +65,11 @@ namespace NuGet.Jobs.Catalog2Registration
 
                     if (options.Value.UseManagedIdentity && !options.Value.HasSasToken)
                     {
-                        var credential = new ManagedIdentityCredential(options.Value.ManagedIdentityClientId);
+                        var credential = new DefaultAzureCredential(
+                            new DefaultAzureCredentialOptions
+                            {
+                                ManagedIdentityClientId = options.Value.ManagedIdentityClientId
+                            });
 
                         return new BlobServiceClient(new Uri(options.Value.StorageServiceUrl), credential);
                     }
