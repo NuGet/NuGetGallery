@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -84,6 +84,8 @@ namespace NuGetGallery
         public DbSet<PackageVulnerability> Vulnerabilities { get; set; }
         public DbSet<VulnerablePackageVersionRange> VulnerableRanges { get; set; }
         public DbSet<PackageRename> PackageRenames { get; set; }
+        public DbSet<FederatedCredentialPolicy> FederatedCredentialPolicies { get; set; }
+        public DbSet<FederatedCredential> FederatedCredentials { get; set; }
 
         /// <summary>
         /// User or organization accounts.
@@ -558,6 +560,59 @@ namespace NuGetGallery
                 .WithMany()
                 .HasForeignKey(r => r.ToPackageRegistrationKey)
                 .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<FederatedCredentialPolicy>()
+                .HasKey(x => x.Key);
+
+            modelBuilder.Entity<FederatedCredentialPolicy>()
+                .Property(x => x.Created)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<FederatedCredentialPolicy>()
+                .Property(x => x.LastUpdated)
+                .IsOptional()
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<FederatedCredentialPolicy>()
+                .Property(x => x.LastMatched)
+                .IsOptional()
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<FederatedCredentialPolicy>()
+                .HasRequired(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<FederatedCredentialPolicy>()
+                .HasRequired(x => x.Owner)
+                .WithMany()
+                .HasForeignKey(x => x.OwnerKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<FederatedCredentialPolicy>()
+                .HasMany(x => x.Credentials)
+                .WithOptional(c => c.FederatedCredentialPolicy)
+                .WillCascadeOnDelete(false); // deletion must be done explicitly to allow auditing
+
+            modelBuilder.Entity<FederatedCredential>()
+                .HasKey(x => x.Key);
+
+            modelBuilder.Entity<FederatedCredential>()
+                .Property(x => x.Created)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<FederatedCredential>()
+                .Property(x => x.Expires)
+                .IsOptional()
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<FederatedCredential>()
+                .HasIndex(x => x.Identity)
+                .IsUnique();
+
+            modelBuilder.Entity<FederatedCredential>()
+                .HasIndex(x => x.FederatedCredentialPolicyKey);
         }
 
 #pragma warning restore 618

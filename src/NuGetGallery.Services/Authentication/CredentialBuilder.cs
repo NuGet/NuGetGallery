@@ -40,6 +40,7 @@ namespace NuGetGallery.Infrastructure.Authentication
             // Tracking: https://github.com/NuGet/NuGetGallery/issues/10212
             var credential = CreateApiKey(expiration, out plaintextApiKey);
 
+            credential.FederatedCredentialPolicy = policy;
             credential.Description = "Short-lived API key generated via a federated credential";
             credential.Scopes = [new Scope(policy.Owner, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.All)];
 
