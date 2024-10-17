@@ -20,5 +20,7 @@ namespace NuGetGallery.Infrastructure.Authentication
         IList<Scope> BuildScopes(User scopeOwner, string[] scopes, string[] subjects);
 
         bool VerifyScopes(User currentUser, IEnumerable<Scope> scopes);
+
+        Credential CreateShortLivedApiKey(TimeSpan expiration, FederatedCredentialPolicy policy, out string plaintextApiKey);
     }
 }
