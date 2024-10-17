@@ -40,6 +40,8 @@ namespace Ng
         };
         private static readonly IDictionary<string, string> ArgumentNames = new Dictionary<string, string>
         {
+            { Arguments.UseManagedIdentity, Arguments.UseManagedIdentity },
+            { Arguments.ClientId, Arguments.ClientId},
             { Arguments.StorageBaseAddress, Arguments.StorageBaseAddress },
             { Arguments.StorageAccountName, Arguments.StorageAccountName },
             { Arguments.StorageKeyValue, Arguments.StorageKeyValue },
@@ -162,6 +164,8 @@ namespace Ng
 
             IDictionary<string, string> names = new Dictionary<string, string>
             {
+                { Arguments.UseManagedIdentity, Arguments.UseManagedIdentity },
+                { Arguments.ClientId, Arguments.ClientId},
                 { Arguments.StorageBaseAddress, Arguments.StorageBaseAddress + suffix },
                 { Arguments.StorageAccountName, Arguments.StorageAccountName + suffix },
                 { Arguments.StorageKeyValue, Arguments.StorageKeyValue + suffix },
