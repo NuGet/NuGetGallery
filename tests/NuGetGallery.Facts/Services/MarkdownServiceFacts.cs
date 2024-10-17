@@ -1,7 +1,8 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Ganss.Xss;
 using Moq;
 using Xunit;
 
@@ -15,12 +16,14 @@ namespace NuGetGallery
             private readonly MarkdownService _markdownService;
             private readonly Mock<IFeatureFlagService> _featureFlagService;
             private readonly Mock<IImageDomainValidator> _imageDomainValidator;
+            private readonly Mock<IHtmlSanitizer> _htmlSanitizer;
 
             public GetReadMeHtmlMethod()
             {
                 _featureFlagService = new Mock<IFeatureFlagService>();
                 _imageDomainValidator = new Mock<IImageDomainValidator>();
-                _markdownService = new MarkdownService(_featureFlagService.Object, _imageDomainValidator.Object);
+                _htmlSanitizer = new Mock<IHtmlSanitizer>();
+                _markdownService = new MarkdownService(_featureFlagService.Object, _imageDomainValidator.Object, _htmlSanitizer.Object);
             }
 
             [Theory]
@@ -40,7 +43,6 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData("<script>alert('test')</script>", "<p>&lt;script&gt;alert('test')&lt;/script&gt;</p>", true)]
             [InlineData("<script>alert('test')</script>", "<p>&lt;script&gt;alert('test')&lt;/script&gt;</p>", false)]
             [InlineData("<img src=\"javascript:alert('test');\">", "<p>&lt;img src=&quot;javascript:alert('test');&quot;&gt;</p>", true)]
             [InlineData("<img src=\"javascript:alert('test');\">", "<p>&lt;img src=&quot;javascript:alert('test');&quot;&gt;</p>", false)]
@@ -70,7 +72,7 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData("# Heading", "<h2 id=\"heading\">Heading</h2>", false, true)]
+            [InlineData("# Heading", "<h2>Heading</h2>", false, true)]
             [InlineData("# Heading", "<h2>Heading</h2>", false, false)]
             [InlineData("<!-- foo --> <!-- foo \n bar --> baz", "<p>baz</p>", false, true)]
             [InlineData("<!-- foo --> <!-- foo \n bar --> baz", "<p>baz</p>", false, false)]

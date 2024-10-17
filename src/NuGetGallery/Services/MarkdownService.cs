@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Web;
 using CommonMark;
 using CommonMark.Syntax;
+using Ganss.Xss;
 using Markdig;
 using Markdig.Extensions.EmphasisExtras;
 using Markdig.Renderers;
@@ -27,12 +28,32 @@ namespace NuGetGallery
 
         private readonly IFeatureFlagService _features;
         private readonly IImageDomainValidator _imageDomainValidator;
+        private readonly IHtmlSanitizer _htmlSanitizer;
 
         public MarkdownService(IFeatureFlagService features,
-            IImageDomainValidator imageDomainValidator)
+            IImageDomainValidator imageDomainValidator,
+            IHtmlSanitizer htmlSanitizer)
         {
             _features = features ?? throw new ArgumentNullException(nameof(features));
             _imageDomainValidator = imageDomainValidator ?? throw new ArgumentNullException(nameof(imageDomainValidator));
+            _htmlSanitizer = htmlSanitizer ?? throw new ArgumentNullException(nameof(htmlSanitizer));
+            SanitizerSettings();
+        }
+
+        private void SanitizerSettings()
+        {
+            //Configure allowed tags, attributes for the sanitizer
+            _htmlSanitizer.AllowedAttributes.Add("id");
+            _htmlSanitizer.AllowedAttributes.Add("class");
+        }
+
+        private string SanitizeText(string input)
+        {
+            if (!string.IsNullOrWhiteSpace(input))
+            {
+                return _htmlSanitizer.Sanitize(input);
+            }
+            return input;
         }
 
         public RenderedMarkdownResult GetHtmlFromMarkdown(string markdownString)
@@ -286,7 +307,7 @@ namespace NuGetGallery
                 renderer.Render(document);
                 output.Content = htmlWriter.ToString().Trim();
                 output.IsMarkdigMdSyntaxHighlightEnabled = _features.IsMarkdigMdSyntaxHighlightEnabled();
-                output.Content = HtmlSanitizerWrapper.SanitizeText(output.Content);
+                output.Content = SanitizeText(output.Content);
 
                 return output;
             }
