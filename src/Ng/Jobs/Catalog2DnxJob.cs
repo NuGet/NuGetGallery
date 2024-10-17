@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -45,7 +45,7 @@ namespace Ng.Jobs
                    + $"-{Arguments.StoragePath} <path> "
                    + $"[-{Arguments.VaultName} <keyvault-name> "
                    + $"-{Arguments.UseManagedIdentity} true|false "
-                   + $"-{Arguments.ClientId} <keyvault-client-id> Should not be set if {Arguments.UseManagedIdentity} is true"
+                   + $"-{Arguments.ClientId} <client-id> If {Arguments.UseManagedIdentity} is true this is used for managed identity authentication, if false, is used for KeyVault certificate authentication"
                    + $"-{Arguments.CertificateThumbprint} <keyvault-certificate-thumbprint> Should not be set if {Arguments.UseManagedIdentity} is true"
                    + $"[-{Arguments.ValidateCertificate} true|false]]] "
                    + $"[-{Arguments.Verbose} true|false] "
