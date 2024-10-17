@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System.Web.Mvc;
 using System.Web.Routing;
@@ -907,6 +907,12 @@ namespace NuGetGallery
                 RouteName.ApiSimulateError,
                 "api/simulate-error",
                 new { controller = "Api", action = nameof(ApiController.SimulateError) });
+
+            routes.MapRoute(
+                RouteName.CreateToken,
+                "api/v2/token",
+                defaults: new { controller = TokenApiController.ControllerName, action = nameof(TokenApiController.CreateToken) },
+                constraints: new { httpMethod = new HttpMethodConstraint("POST") });
         }
     }
 }
