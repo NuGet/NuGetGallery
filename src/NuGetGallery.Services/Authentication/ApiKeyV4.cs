@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -10,6 +10,7 @@ namespace NuGetGallery.Infrastructure.Authentication
     public class ApiKeyV4
     {
         private const int IdPartLengthBytes = 10;
+        private const int PasswordPartLengthBytes = 16;
         private static readonly byte[] IdPrefix = Encoding.ASCII.GetBytes("v4");
 
         internal const int IdPartBase32Length = 20;
@@ -79,30 +80,35 @@ namespace NuGetGallery.Infrastructure.Authentication
             }
 
             // The verification is not case sensitive. This is to maintain the existing behavior that ApiKey authentication is not case-sensitive.
-            return V3Hasher.VerifyHash(hashedApiKeyPasswordPart.ToUpper().FromBase32String(), PasswordPart);
+            return V3Hasher.VerifyHash(hashedApiKeyPasswordPart.ToUpperInvariant().FromBase32String(), PasswordPart);
         }
 
         private void CreateInternal()
         {
-            // Create Id
-            var randomBytes = new byte[IdPartLengthBytes];
+            // Create ID. This will be incorporated into the prefix of the final API key.
+            // After formatting, this will be stored as clear text in the DB for lookup.
+            var idPartBytes = new byte[IdPartLengthBytes];
+            var passwordPartBytes = new byte[PasswordPartLengthBytes];
             using (var rng = new RNGCryptoServiceProvider())
             {
-                rng.GetNonZeroBytes(randomBytes);
+                rng.GetNonZeroBytes(idPartBytes);
+                rng.GetBytes(passwordPartBytes);
             }
 
             byte[] idBytes = new byte[IdPartLengthBytes + IdPrefix.Length];
             Buffer.BlockCopy(src: IdPrefix, srcOffset: 0, dst: idBytes, dstOffset: 0, count: IdPrefix.Length);
-            Buffer.BlockCopy(src: randomBytes, srcOffset: 0, dst: idBytes, dstOffset: IdPrefix.Length, count: randomBytes.Length);
+            Buffer.BlockCopy(src: idPartBytes, srcOffset: 0, dst: idBytes, dstOffset: IdPrefix.Length, count: idPartBytes.Length);
 
-            // Convert to Base32 string. The length of the string is APIKeyV4_IdPartBase64Length
+            // Convert to Base32 string. The length of the string is ApiKeyV4.IdPartBase32Length
             string idString = idBytes.ToBase32String().RemoveBase32Padding();
 
-            // Create password
-            var passwordString = Guid.NewGuid().ToByteArray().ToBase32String().RemoveBase32Padding();
+            // Create password. This will become the suffix of the API key and hashed before storing in the DB.
+            var passwordString = passwordPartBytes.ToBase32String().RemoveBase32Padding();
             passwordString = Normalize(passwordString);
 
             // No need to remove padding or normalize here.. it's stored in the DB and doesn't need to be pretty
+            // The hashed password bytes internally contains parameters for PBKDF2 key derivation, such as the salt,
+            // iteration count, and algorithm used, in addition to the hash itself.
             var hashedPasswordString = V3Hasher.GenerateHashAsBytes(passwordString).ToBase32String();
 
             IdPart = Normalize(idString);
@@ -123,7 +129,7 @@ namespace NuGetGallery.Infrastructure.Authentication
                 var id = plaintextApiKey.Substring(0, IdPartBase32Length);
                 var validId = id
                     .AppendBase32Padding()
-                    .ToUpper()
+                    .ToUpperInvariant()
                     .TryDecodeBase32String(out var idBytes);
 
                 if (!validId)
@@ -152,6 +158,8 @@ namespace NuGetGallery.Infrastructure.Authentication
 
         private string Normalize(string input)
         {
+            // This does not change the entropy of the input because the input is a base32 string, which is case
+            // insensitive. The Base32 encoder produces an all uppercase string. The resulting API key is all lowercase.
             return input.ToLowerInvariant();
         }
     }
