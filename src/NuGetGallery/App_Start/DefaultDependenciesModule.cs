@@ -812,9 +812,7 @@ namespace NuGetGallery
                 .Register(c => new TopicClientWrapper(asyncAccountDeleteConnectionString, asyncAccountDeleteTopicName, configuration.ServiceBus.ManagedIdentityClientId))
                 .SingleInstance()
                 .Keyed<ITopicClient>(BindingKeys.AccountDeleterTopic)
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                .OnRelease(x => x.CloseAsync());
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+                .OnRelease(x => _ = x.CloseAsync());
 
             builder
                 .RegisterType<AsynchronousDeleteAccountService>()
@@ -950,9 +948,7 @@ namespace NuGetGallery
                 .As<ITopicClient>()
                 .SingleInstance()
                 .Keyed<ITopicClient>(BindingKeys.EmailPublisherTopic)
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                .OnRelease(x => x.CloseAsync());
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+                .OnRelease(x => _ = x.CloseAsync());
 
             builder
                 .RegisterType<EmailMessageEnqueuer>()
@@ -1107,18 +1103,14 @@ namespace NuGetGallery
                     .As<ITopicClient>()
                     .SingleInstance()
                     .Keyed<ITopicClient>(BindingKeys.PackageValidationTopic)
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                    .OnRelease(x => x.CloseAsync());
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+                    .OnRelease(x => _ = x.CloseAsync());
 
                 builder
                     .Register(c => new TopicClientWrapper(symbolsValidationConnectionString, symbolsValidationTopicName, configuration.ServiceBus.ManagedIdentityClientId))
                     .As<ITopicClient>()
                     .SingleInstance()
                     .Keyed<ITopicClient>(BindingKeys.SymbolsPackageValidationTopic)
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                    .OnRelease(x => x.CloseAsync());
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+                    .OnRelease(x => _ = x.CloseAsync());
             }
             else
             {
