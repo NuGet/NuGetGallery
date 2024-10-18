@@ -102,13 +102,11 @@ stages:
               versionSpec: '3.10'
           - script: |
               python -m pip install --upgrade pip
-              pip install keyring artifacts-keyring
               python -m pip install --user pipx
               pipx ensurepath
             displayName: 'Install tools'
           - script: |
               pipx install poetry
-              pipx inject poetry artifacts-keyring
               poetry install
               poetry build
               poetry run pytest tests/ --cov loginterpretation --cov-report html
