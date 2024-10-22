@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -10,6 +10,7 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -214,14 +215,14 @@ namespace Stats.PostProcessReports
 
         private async Task<List<StorageListItem>> EnumerateSourceBlobsAsync()
         {
-            var blobs = await _sourceStorage.ListAsync(getMetadata: true, cancellationToken: CancellationToken.None);
+            var blobs = await _sourceStorage.ListTopLevelAsync(getMetadata: true, cancellationToken: CancellationToken.None);
 
             return blobs.ToList();
         }
 
         private async Task<List<StorageListItem>> EnumerateWorkStorageBlobsAsync()
         {
-            var blobs = await _workStorage.ListAsync(getMetadata: true, cancellationToken: CancellationToken.None);
+            var blobs = await _workStorage.ListTopLevelAsync(getMetadata: true, cancellationToken: CancellationToken.None);
 
             return blobs.ToList();
         }
@@ -311,7 +312,7 @@ namespace Stats.PostProcessReports
 
         private static string GetBlobName(StorageListItem blob)
         {
-            var path = blob.Uri.AbsoluteUri;
+            var path = blob.Uri.GetComponents(UriComponents.Path, UriFormat.UriEscaped);
             var lastSlash = path.LastIndexOf('/');
             if (lastSlash < 0)
             {

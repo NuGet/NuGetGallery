@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -110,6 +110,9 @@ namespace NuGet.Services.Storage
         {
             return await _primaryStorage.ListAsync(getMetadata, cancellationToken);
         }
+
+        public override async Task<IEnumerable<StorageListItem>> ListTopLevelAsync(bool getMetadata, CancellationToken cancellationToken) =>
+             await ListAsync(getMetadata, cancellationToken);
 
         public override Task SetMetadataAsync(Uri resourceUri, IDictionary<string, string> metadata)
         {
