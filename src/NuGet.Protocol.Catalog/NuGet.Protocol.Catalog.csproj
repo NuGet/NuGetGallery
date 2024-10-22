@@ -11,6 +11,7 @@
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="NuGet.Protocol" />
     <PackageReference Include="System.Formats.Asn1" />
+    <PackageReference Include="System.Text.Json" />
   </ItemGroup>
 
 </Project>

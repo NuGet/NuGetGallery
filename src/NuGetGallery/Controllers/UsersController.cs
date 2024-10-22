@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -1025,8 +1025,8 @@ namespace NuGetGallery
                 return Json(Strings.UserNotFound);
             }
 
-            var resolvedScopes = BuildScopes(scopeOwner, scopes, subjects);
-            if (!VerifyScopes(resolvedScopes))
+            var resolvedScopes = _credentialBuilder.BuildScopes(scopeOwner, scopes, subjects);
+            if (!_credentialBuilder.VerifyScopes(GetCurrentUser(), resolvedScopes))
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(Strings.ApiKeyScopesNotAllowed);
@@ -1079,7 +1079,7 @@ namespace NuGetGallery
 
             var scopeOwner = cred.Scopes.GetOwnerScope();
             var scopes = cred.Scopes.Select(x => x.AllowedAction).Distinct().ToArray();
-            var newScopes = BuildScopes(scopeOwner, scopes, subjects);
+            var newScopes = _credentialBuilder.BuildScopes(scopeOwner, scopes, subjects);
 
             await AuthenticationService.EditCredentialScopes(user, cred, newScopes);
 
@@ -1109,86 +1109,6 @@ namespace NuGetGallery
             credentialViewModel.Value = plaintextApiKey;
 
             return credentialViewModel;
-        }
-
-        private static IDictionary<string, IActionRequiringEntityPermissions[]> AllowedActionToActionRequiringEntityPermissionsMap = new Dictionary<string, IActionRequiringEntityPermissions[]>
-        {
-            { NuGetScopes.PackagePush, new IActionRequiringEntityPermissions[] { ActionsRequiringPermissions.UploadNewPackageId, ActionsRequiringPermissions.UploadNewPackageVersion } },
-            { NuGetScopes.PackagePushVersion, new [] { ActionsRequiringPermissions.UploadNewPackageVersion } },
-            { NuGetScopes.PackageUnlist, new [] { ActionsRequiringPermissions.UnlistOrRelistPackage } },
-            { NuGetScopes.PackageVerify, new [] { ActionsRequiringPermissions.VerifyPackage } },
-        };
-
-        private bool VerifyScopes(IEnumerable<Scope> scopes)
-        {
-            if (!scopes.Any())
-            {
-                // All API keys must have at least one scope.
-                return false;
-            }
-
-            foreach (var scope in scopes)
-            {
-                if (string.IsNullOrEmpty(scope.AllowedAction))
-                {
-                    // All scopes must have an allowed action.
-                    return false;
-                }
-
-                // Get the list of actions allowed by this scope.
-                var actions = new List<IActionRequiringEntityPermissions>();
-                foreach (var allowedAction in AllowedActionToActionRequiringEntityPermissionsMap.Keys)
-                {
-                    if (scope.AllowsActions(allowedAction))
-                    {
-                        actions.AddRange(AllowedActionToActionRequiringEntityPermissionsMap[allowedAction]);
-                    }
-                }
-
-                if (!actions.Any())
-                {
-                    // A scope should allow at least one action.
-                    return false;
-                }
-
-                foreach (var action in actions)
-                {
-                    if (!action.IsAllowedOnBehalfOfAccount(GetCurrentUser(), scope.Owner))
-                    {
-                        // The user must be able to perform the actions allowed by the scope on behalf of the scope's owner.
-                        return false;
-                    }
-                }
-            }
-
-            return true;
-        }
-
-        private IList<Scope> BuildScopes(User scopeOwner, string[] scopes, string[] subjects)
-        {
-            var result = new List<Scope>();
-
-            var subjectsList = subjects?.Where(s => !string.IsNullOrWhiteSpace(s)).ToList() ?? new List<string>();
-
-            // No package filtering information was provided. So allow any pattern.
-            if (!subjectsList.Any())
-            {
-                subjectsList.Add(NuGetPackagePattern.AllInclusivePattern);
-            }
-
-            if (scopes != null)
-            {
-                foreach (var scope in scopes)
-                {
-                    result.AddRange(subjectsList.Select(subject => new Scope(scopeOwner, subject, scope)));
-                }
-            }
-            else
-            {
-                result.AddRange(subjectsList.Select(subject => new Scope(scopeOwner, subject, NuGetScopes.All)));
-            }
-
-            return result;
         }
 
         private static IList<Scope> BuildScopes(IEnumerable<Scope> scopes)

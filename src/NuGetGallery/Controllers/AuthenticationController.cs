@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -479,6 +479,7 @@ namespace NuGetGallery
                         userOrganizationsWithTenantPolicy.Select(member => member.Organization.Username));
 
                     TempData["WarningMessage"] = string.Format(Strings.ChangeCredential_NotAllowed, orgList);
+                    // CodeQL [SM00405] the return URL is validated to be a relative URL before redirecting using Url.IsLocalUrl.
                     return Redirect(returnUrl);
                 }
             }
@@ -487,6 +488,7 @@ namespace NuGetGallery
             if (externalAuthProvider == null)
             {
                 TempData["Message"] = Strings.ChangeCredential_ProviderNotFound;
+                // CodeQL [SM00405] the return URL is validated to be a relative URL before redirecting using Url.IsLocalUrl.
                 return Redirect(returnUrl);
             }
 
