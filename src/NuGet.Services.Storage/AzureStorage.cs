@@ -332,11 +332,11 @@ namespace NuGet.Services.Storage
             {
                 using (Stream stream = content.GetContentStream())
                 {
-                    await blob.SetHttpHeadersAsync(headers);
                     await blob.UploadAsync(
                         stream,
                         options: null,
                         cancellationToken: cancellationToken);
+                    await blob.SetHttpHeadersAsync(headers);
 
                     if (Verbose)
                     {
