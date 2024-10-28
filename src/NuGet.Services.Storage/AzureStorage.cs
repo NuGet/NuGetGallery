@@ -189,7 +189,29 @@ namespace NuGet.Services.Storage
 
             await foreach (BlobHierarchyItem blob in _directory.GetBlobsByHierarchyAsync(traits: blobTraits, prefix: _path))
             {
-                blobList.Add(await GetStorageListItemAsync(_directory.GetBlockBlobClient(blob.Blob.Name)));
+                blobList.Add(await GetStorageListItemAsync(_directory.GetBlockBlobClient(blob.Blob.Name)));           
+            }
+
+            return blobList;
+        }
+
+        public override async Task<IEnumerable<StorageListItem>> ListTopLevelAsync(bool getMetadata, CancellationToken cancellationToken)
+        {
+            var prefix = _path.Trim('/') + '/';
+            var blobTraits = new BlobTraits();
+            if (getMetadata)
+            {
+                blobTraits |= BlobTraits.Metadata;
+            }
+
+            var blobList = new List<StorageListItem>();
+
+            await foreach (BlobHierarchyItem blob in _directory.GetBlobsByHierarchyAsync(traits: blobTraits, prefix: prefix, delimiter: "/"))
+            {
+                if (!blob.IsPrefix)
+                {
+                    blobList.Add(await GetStorageListItemAsync(_directory.GetBlockBlobClient(blob.Blob.Name)));
+                }
             }
 
             return blobList;
