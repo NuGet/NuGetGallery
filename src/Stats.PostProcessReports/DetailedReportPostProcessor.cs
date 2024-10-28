@@ -121,7 +121,7 @@ namespace Stats.PostProcessReports
             foreach (var sourceBlob in jsonBlobs)
             {
                 var blobName = GetBlobName(sourceBlob);
-                var workBlobUri = _workStorage.ResolveUri(blobName);
+                var workBlobUri = _workStorage.ResolveUri(_configuration.WorkPath + blobName);
                 var sourceBlobStats = new BlobStatistics();
                 var individualReports = await ProcessSourceBlobAsync(sourceBlob, sourceBlobStats, totals);
                 using (_logger.BeginScope("Processing {BlobName}", blobName))
@@ -155,7 +155,7 @@ namespace Stats.PostProcessReports
                     }
                 }
             }
-            var jobSucceededUrl = _workStorage.ResolveUri(JobSucceededFilename);
+            var jobSucceededUrl = _workStorage.ResolveUri(_configuration.WorkPath + JobSucceededFilename);
             var jobSucceededContent = new StringStorageContent("", TextContentType);
             await _workStorage.Save(jobSucceededUrl, jobSucceededContent, overwrite: true, cancellationToken: cancellationToken);
             _telemetryService.ReportTotals(totals.SourceFilesProcessed, totals.TotalLinesProcessed, totals.TotalFilesCreated, totals.TotalLinesFailed);
@@ -203,13 +203,13 @@ namespace Stats.PostProcessReports
             foreach (var sourceBlob in jsonBlobs)
             {
                 var blobName = GetBlobName(sourceBlob);
-                var targetUrl = _workStorage.ResolveUri(blobName);
+                var targetUrl = _workStorage.ResolveUri(_configuration.WorkPath + blobName);
                 _logger.LogInformation("{SourceBlobUri} ({BlobName})", sourceBlob.Uri.AbsoluteUri, blobName);
                 _logger.LogInformation("{WorkBlobUrl}", targetUrl);
                 await _sourceStorage.CopyAsync(sourceBlob.Uri, _workStorage, targetUrl, destinationProperties: null, cancellationToken);
             }
             var copySucceededContent = new StringStorageContent("", TextContentType);
-            var copySucceededUrl = _workStorage.ResolveUri(CopySucceededFilename);
+            var copySucceededUrl = _workStorage.ResolveUri(_configuration.WorkPath + CopySucceededFilename);
             await _workStorage.Save(copySucceededUrl, copySucceededContent, overwrite: true, cancellationToken: cancellationToken);
         }
 
@@ -246,7 +246,7 @@ namespace Stats.PostProcessReports
             var sw = Stopwatch.StartNew();
             var numLines = 0;
             var individualReports = new ConcurrentBag<LineProcessingContext>();
-            var workStorageUrl = _workStorage.ResolveUri(GetBlobName(sourceBlob));
+            var workStorageUrl = _workStorage.ResolveUri(_configuration.WorkPath + GetBlobName(sourceBlob));
             var storageContent = await _workStorage.Load(workStorageUrl, CancellationToken.None);
             using (var sourceStream = storageContent.GetContentStream())
             using (var streamReader = new StreamReader(sourceStream))
@@ -352,7 +352,7 @@ namespace Stats.PostProcessReports
                     continue;
                 }
                 var outFilename = $"recentpopularitydetail_{data.PackageId.ToLowerInvariant()}.json";
-                var destinationUri = _destinationStorage.ResolveUri(outFilename);
+                var destinationUri = _destinationStorage.ResolveUri(_configuration.DestinationPath + outFilename);
                 var storageContent = new StringStorageContent(details.Data, JsonContentType);
 
                 await _destinationStorage.Save(destinationUri, storageContent, overwrite: true, cancellationToken: cancellationToken);
