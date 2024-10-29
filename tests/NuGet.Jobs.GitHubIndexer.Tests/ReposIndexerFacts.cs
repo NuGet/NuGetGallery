@@ -196,7 +196,7 @@ namespace NuGet.Jobs.GitHubIndexer.Tests
                 await indexer.RunAsync();
 
                 var result = repo.ToRepositoryInformation();
-                Assert.Equal(0, result.Dependencies.Count);
+                Assert.Empty(result.Dependencies);
 
                 telemetry.Verify(t => t.TrackIndexRepositoryDuration("owner/test"), Times.Once);
                 telemetry.Verify(t => t.TrackListFilesDuration("owner/test"), Times.Once);

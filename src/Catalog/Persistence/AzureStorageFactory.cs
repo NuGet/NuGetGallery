@@ -2,14 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.WindowsAzure.Storage;
+using Azure.Storage.Blobs;
 using NuGet.Protocol;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public class AzureStorageFactory : StorageFactory
     {
-        private readonly CloudStorageAccount _account;
+        private readonly BlobServiceClient _blobServiceClient;
         private readonly string _containerName;
         private readonly string _path;
         private readonly Uri _differentBaseAddress = null;
@@ -19,7 +19,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         private readonly bool _initializeContainer;
 
         public AzureStorageFactory(
-            CloudStorageAccount account,
+            BlobServiceClient blobServiceClient,
             string containerName,
             TimeSpan maxExecutionTime,
             TimeSpan serverTimeout,
@@ -31,7 +31,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             bool initializeContainer,
             IThrottle throttle) : base(throttle)
         {
-            _account = account;
+            _blobServiceClient = blobServiceClient;
             _containerName = containerName;
             _path = null;
             _maxExecutionTime = maxExecutionTime;
@@ -46,7 +46,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             _differentBaseAddress = baseAddress;
 
-            var blobEndpointBuilder = new UriBuilder(account.BlobEndpoint)
+            var blobEndpointBuilder = new UriBuilder(blobServiceClient.Uri)
             {
                 Scheme = "http", // Convert base address to http. 'https' can be used for communication but is not part of the names.
                 Port = 80
@@ -84,7 +84,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         {
             string path = (_path == null) ? name : _path + name;
 
-            path = (name == null) ? (_path == null ? String.Empty : _path.Trim('/')) : path;
+            path = (name == null) ? (_path == null ? string.Empty : _path.Trim('/')) : path;
 
             Uri newBase = _differentBaseAddress;
 
@@ -94,7 +94,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             }
 
             return new AzureStorage(
-                _account,
+                _blobServiceClient,
                 _containerName,
                 path,
                 newBase,

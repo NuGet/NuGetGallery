@@ -81,7 +81,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
             var customFields = CdnLogCustomFieldParser.Parse(null);
 
             Assert.NotNull(customFields);
-            Assert.Equal(0, customFields.Count);
+            Assert.Empty(customFields);
         }
     }
 }

@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using NuGet.Services.FeatureFlags;
 using NuGet.Services.Logging;
 
 namespace NuGet.Jobs.Validation

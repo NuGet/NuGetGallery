@@ -225,7 +225,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                         continue;
                     }
 
-                    Assert.Contains(pieces[0], metadataProperties.Keys);
+                    Assert.Contains(pieces[0], metadataProperties.Keys, StringComparer.OrdinalIgnoreCase);
                     var property = metadataProperties[pieces[0]];
                     var attribute = property
                         .CustomAttributes

@@ -1,15 +1,15 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using Autofac;
+using Azure.Storage.Blobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
 using NuGet.Protocol;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.V3;
@@ -51,16 +51,21 @@ namespace NuGet.Jobs.Catalog2Registration
                 .Register(c =>
                 {
                     var options = c.Resolve<IOptionsSnapshot<Catalog2RegistrationConfiguration>>();
-                    return CloudStorageAccount.Parse(options.Value.StorageConnectionString);
+
+                    // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
+                    var connectionString = options.Value.StorageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+
+                    return new BlobServiceClient(connectionString);
                 })
-                .Keyed<CloudStorageAccount>(CursorBindingKey);
+                .Keyed<BlobServiceClient>(CursorBindingKey);
 
             containerBuilder
                 .Register<IStorageFactory>(c =>
                 {
                     var options = c.Resolve<IOptionsSnapshot<Catalog2RegistrationConfiguration>>();
+
                     return new AzureStorageFactory(
-                        c.ResolveKeyed<CloudStorageAccount>(CursorBindingKey),
+                        c.ResolveKeyed<BlobServiceClient>(CursorBindingKey),
                         options.Value.LegacyStorageContainer,
                         maxExecutionTime: AzureStorage.DefaultMaxExecutionTime,
                         serverTimeout: AzureStorage.DefaultServerTimeout,

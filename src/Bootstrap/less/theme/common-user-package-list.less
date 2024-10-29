@@ -1,0 +1,39 @@
+.user-package-list {
+  .manage-package-listing {
+    .package-icon {
+      max-height: 2em;
+      min-width: 20px;
+    }
+
+    .reserved-indicator-icon {
+      max-height: 2em;
+      min-width: 20px;
+    }
+
+    .align-middle {
+      vertical-align: middle;
+    }
+
+    .package-id {
+      .break-word;
+    }
+
+    .reserved-id {
+      .break-word;
+    }
+
+    .package-controls {
+      @media (min-width: @screen-sm-min) {
+        white-space: nowrap;
+      }
+    }
+
+    .package-default-icon {
+      content: var(--default-package-icon, url(../img/default-package-icon-256x256.png));
+    }
+  }
+
+  .table {
+    border-bottom: 1px solid @table-border-color;
+  }
+}

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -9,12 +9,12 @@ using System.Net.Mail;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
+using Azure.Storage.Blobs;
 using Gallery.CredentialExpiration.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using NuGet.Jobs;
 using NuGet.Services.Messaging;
@@ -52,10 +52,11 @@ namespace Gallery.CredentialExpiration
 
             FromAddress = new MailAddress(InitializationConfiguration.MailFrom);
             
-            var storageAccount = CloudStorageAccount.Parse(InitializationConfiguration.DataStorageAccount);
+            var storageAccount = new BlobServiceClient(AzureStorageFactory.PrepareConnectionString(InitializationConfiguration.DataStorageAccount));
             var storageFactory = new AzureStorageFactory(
                 storageAccount,
                 InitializationConfiguration.ContainerName,
+                enablePublicAccess: false,
                 LoggerFactory.CreateLogger<AzureStorage>());
             Storage = storageFactory.Create();
         }

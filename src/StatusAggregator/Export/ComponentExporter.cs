@@ -4,7 +4,6 @@
 using System;
 using System.Linq;
 using Microsoft.Extensions.Logging;
-using NuGet.Jobs.Extensions;
 using NuGet.Services.Status;
 using NuGet.Services.Status.Table;
 using StatusAggregator.Factory;

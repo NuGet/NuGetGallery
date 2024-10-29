@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <PackageVersion Condition="'$(PackageVersion)' == ''">$(GalleryPackageVersion)</PackageVersion>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Description>Core support library for NuGet database migration</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="EntityFramework" />
+    <PackageReference Include="System.Data.SqlClient" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj" />
+  </ItemGroup>
+</Project>

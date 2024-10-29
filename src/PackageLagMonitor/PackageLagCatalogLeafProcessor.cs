@@ -114,7 +114,7 @@ namespace NuGet.Jobs.Monitoring.PackageLag
                 }
                 else
                 {
-                    throw e;
+                    throw;
                 }
             }
         }

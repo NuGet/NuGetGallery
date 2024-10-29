@@ -28,7 +28,7 @@ $tempDestinationPath = Join-Path $destinationDirectory $tempFileName
 
 Write-Host "Downloading temporary configuration file '$filename' to '$tempDestinationPath'"
 $requestUri = "https://$Instance.visualstudio.com/DefaultCollection/$Project/_apis/git/repositories/$Repository/items?api-version=1.0&versionDescriptor.version=$Branch&scopePath=SearchFunctionalConfig\$filename"
-$response = Invoke-WebRequest -UseBasicParsing -Uri $requestUri -Headers $headers -OutFile $tempDestinationPath
+Invoke-WebRequest -UseBasicParsing -Uri $requestUri -Headers $headers -OutFile $tempDestinationPath | Out-Null
 $configObject = Get-Content -Path $tempDestinationPath | ConvertFrom-Json
 Remove-Item -Path $tempDestinationPath
 

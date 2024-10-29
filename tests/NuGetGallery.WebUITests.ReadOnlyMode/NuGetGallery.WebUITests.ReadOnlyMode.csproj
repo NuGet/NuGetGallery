@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\VisualStudioSearchPath.props" />
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.VisualStudio.QualityTools.WebTestFramework" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\NuGetGallery.WebUITests.P0\BasicPages\HomePageValidationTest.cs">
+      <Link>BasicPages\HomePageValidationTest.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGetGallery.FunctionalTests.Core\NuGetGallery.FunctionalTests.Core.csproj" />
+  </ItemGroup>
+</Project>

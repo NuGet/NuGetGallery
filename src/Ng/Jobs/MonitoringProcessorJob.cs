@@ -7,8 +7,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Queue.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Services.Configuration;
 using NuGet.Services.Logging;
@@ -18,7 +16,6 @@ using NuGet.Services.Metadata.Catalog.Monitoring;
 using NuGet.Services.Sql;
 using NuGet.Services.Storage;
 using NuGet.Versioning;
-using NuGetGallery;
 
 namespace Ng.Jobs
 {
@@ -305,9 +302,9 @@ namespace Ng.Jobs
                 {
                     await _queue.RemoveAsync(queueMessage, token);
                 }
-                catch (StorageException storageException)
+                catch (ArgumentException storageException)
                 {
-                    if (storageException.RequestInformation.ExtendedErrorInformation.ErrorCode == QueueErrorCodeStrings.MessageNotFound)
+                    if (storageException.Message.Contains("This message was not returned from this queue"))
                     {
                         Logger.LogWarning(
                             NuGet.Services.Metadata.Catalog.Monitoring.LogEvents.QueueMessageRemovalFailure,

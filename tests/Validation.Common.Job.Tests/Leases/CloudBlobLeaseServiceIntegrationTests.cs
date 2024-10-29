@@ -19,16 +19,16 @@ namespace Validation.Common.Job.Tests.Leases
             Fixture = fixture ?? throw new ArgumentNullException(nameof(fixture));
             Output = output ?? throw new ArgumentNullException(nameof(output));
 
-            CloudBlobClient = new BlobServiceClient(Fixture.ConnectionString);
+            BlobServiceClient = new BlobServiceClient(Fixture.ConnectionString);
             LeaseTime = TimeSpan.FromSeconds(60);
             Token = CancellationToken.None;
 
-            Target = new CloudBlobLeaseService(CloudBlobClient, fixture.TestRunId, basePath: null);
+            Target = new CloudBlobLeaseService(BlobServiceClient, fixture.TestRunId, basePath: null);
         }
 
         public BlobStorageFixture Fixture { get; }
         public ITestOutputHelper Output { get; }
-        public BlobServiceClient CloudBlobClient { get; }
+        public BlobServiceClient BlobServiceClient { get; }
         public TimeSpan LeaseTime { get; }
         public CancellationToken Token { get; }
         public CloudBlobLeaseService Target { get; }

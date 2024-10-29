@@ -1,0 +1,27 @@
+﻿@{
+    ViewBag.Title = "Thanks";
+    ViewBag.SmPageColumns = GalleryConstants.ColumnsWideAuthenticationSm;
+    ViewBag.MdPageColumns = GalleryConstants.ColumnsWideAuthenticationMd;
+}
+
+<section role="main" class="container main-container text-center">
+    <div class="row">
+        <div class="col-xs-12">
+            <h1>
+                Thanks for registering!
+            </h1>
+        </div>
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+            <p class="ms-fontSize-xl">Welcome @CurrentUser.Username! Now that you have a NuGet.org account, let's get you started!</p>
+
+            @if (!CurrentUser.Confirmed)
+            {
+                <p>Make sure your email is verified. <a href="@Url.ConfirmationRequired()">Confirm your account</a></p>
+            }
+            
+            <p>Want to update your account? <a href="@Url.AccountSettings()">View Account Settings</a></p>
+            
+            <p>Have a NuGet package ready for the world? <a href="@Url.UploadPackage()">Upload a package</a></p>
+        </div>
+    </div>
+</section>

@@ -3,20 +3,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Jobs.Validation.ContentScan;
 using NuGet.Jobs.Validation.Storage;
-using NuGet.Services.Entities;
 using NuGet.Services.Validation;
-using NuGet.Services.Validation.Orchestrator;
 using NuGet.Services.Validation.Orchestrator.ContentScan;
-using NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign;
-using NuGetGallery;
-using Tests.ContextHelpers;
 using Xunit;
 
 namespace Validation.ContentScan.Tests

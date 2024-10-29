@@ -1,0 +1,73 @@
+.page-statistics-overview {
+  td {
+    max-width: fit-content;
+    overflow: visible;
+    text-overflow: initial;
+    white-space: nowrap;
+  }
+
+  .stats-title-text {
+    font-size: 1.6em;
+    margin-bottom: 10px;
+  }
+
+  .chart {
+    width: 98%;
+    height: 300px;
+
+    .svg:not(:root){
+        overflow:visible;
+    }
+  }
+
+  circle.graph-dot {
+    fill: var(--brandBackgroundCompoundRest);
+  }
+
+  circle.graph-dot:hover {
+    fill: var(--statusGenericMarigoldStrokeActiveRest);
+  }
+
+  rect.graph-bar {
+    fill: var(--brandBackgroundCompoundRest);
+  }
+
+  rect.graph-bar:hover {
+    fill: var(--statusGenericMarigoldStrokeActiveRest);
+  }
+
+  line.graph-line {
+    stroke: var(--brandBackgroundCompoundRest);
+    stroke-width: 2;
+  }
+
+  text {
+    fill: var(--neutralForeground1Rest);
+  }
+
+  text.graph-x-axis-text {
+    font-size: 0.8em;
+  }
+
+  text.graph-x-axis-date {
+    font-size: 0.6em;
+  }
+
+  text.graph-y-axis-text {
+    font-size: 0.9em;
+  }
+
+  .table {
+    width: fit-content;
+    max-width: fit-content;
+    min-width: 100%;
+  }
+
+  .table-wrapper {
+    overflow: auto;
+  }
+
+  svg:not(:root) {
+    overflow: visible;
+  }
+}

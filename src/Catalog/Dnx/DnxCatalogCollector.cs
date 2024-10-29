@@ -300,7 +300,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             var packageFileName = PackageUtility.GetPackageFileName(packageId, normalizedPackageVersion);
             var sourceUri = _sourceStorage.ResolveUri(packageFileName);
 
-            var sourceBlob = await _sourceStorage.GetCloudBlockBlobReferenceAsync(sourceUri);
+            ICloudBlockBlob sourceBlob = await _sourceStorage.GetCloudBlockBlobReferenceAsync(sourceUri);
 
             if (await sourceBlob.ExistsAsync(cancellationToken))
             {
@@ -310,7 +310,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                 // If the ETag's differ, we'll fall back to using a single HTTP GET request.
                 var token1 = await _sourceStorage.GetOptimisticConcurrencyControlTokenAsync(sourceUri, cancellationToken);
 
-                telemetryProperties[TelemetryConstants.SizeInBytes] = sourceBlob.Length.ToString();
+                telemetryProperties[TelemetryConstants.SizeInBytes] = (await sourceBlob.GetLengthAsync(cancellationToken)).ToString();
 
                 var nuspec = await GetNuspecAsync(sourceBlob, packageId, cancellationToken);
 

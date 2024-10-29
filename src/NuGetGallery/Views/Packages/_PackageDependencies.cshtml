@@ -1,0 +1,45 @@
+﻿@model DependencySetsViewModel
+@if (Model.DependencySets.Any())
+{
+    <ul id="dependencySets">
+        @foreach (var dependencySet in Model.DependencySets)
+        {
+            var dependencySetTitle = dependencySet.Key.Replace("Windows 0.0", "Windows");
+            if (dependencySetTitle == ".NETPlatform 5.0")
+            {
+                dependencySetTitle = "DotNET 5.0";
+            }
+            else if (dependencySetTitle == "Portable Class Library (Unsupported 0.0)")
+            {
+                dependencySetTitle = "Portable Class Library";
+            }
+            
+            <li>
+                @if (!Model.OnlyHasAllFrameworks)
+                {
+                    <h4>@dependencySetTitle</h4>
+                }
+                <ul class="dependencySet">
+                    @foreach (var dependency in dependencySet.Value)
+                    {
+                        <li>
+                            @if (dependency == null)
+                            {
+                                @:No dependencies.
+                            }
+                            else
+                            {
+                                <a href="@Url.Package(dependency.Id)">@dependency.Id</a>
+                                <span>@dependency.VersionSpec</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p>This package has no dependencies.</p>
+}

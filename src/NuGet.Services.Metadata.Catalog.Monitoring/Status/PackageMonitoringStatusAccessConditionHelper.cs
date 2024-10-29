@@ -3,23 +3,23 @@
 
 using System;
 using System.Linq;
-using Microsoft.WindowsAzure.Storage;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using NuGetGallery;
 
 namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
     public static class PackageMonitoringStatusAccessConditionHelper
     {
-        public static AccessCondition FromContent(StorageContent content)
+        public static IAccessCondition FromContent(StorageContent content)
         {
             var eTag = (content as StringStorageContentWithETag)?.ETag;
             if (eTag == null)
             {
-                return AccessCondition.GenerateEmptyCondition();
+                return AccessConditionWrapper.GenerateEmptyCondition();
             }
             else
             {
-                return AccessCondition.GenerateIfMatchCondition(eTag);
+                return AccessConditionWrapper.GenerateIfMatchCondition(eTag);
             }
         }
 
@@ -27,7 +27,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         {
             foreach (var state in Enum.GetValues(typeof(PackageState)).Cast<PackageState>())
             {
-                status.ExistingState[state] = AccessCondition.GenerateIfNotExistsCondition();
+                status.ExistingState[state] = AccessConditionWrapper.GenerateIfNotExistsCondition();
             }
 
             if (existingStatus != null)
@@ -36,9 +36,9 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             }
         }
 
-        public static AccessCondition FromUnknown()
+        public static IAccessCondition FromUnknown()
         {
-            return AccessCondition.GenerateEmptyCondition();
+            return AccessConditionWrapper.GenerateEmptyCondition();
         }
     }
 }

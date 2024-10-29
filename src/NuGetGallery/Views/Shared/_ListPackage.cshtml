@@ -1,0 +1,164 @@
+﻿@using Strings = NuGetGallery.Strings
+@model ListPackageItemViewModel
+@{
+    var eventName = "search-selection";
+    if (ViewData.ContainsKey("eventName"))
+    {
+        eventName = ViewData["eventName"].ToStringOrNull();
+    }
+
+    // This view data will sometimes be null or missing. For example, the profile page uses this partial and should not
+    // emit search selection events.
+    int? itemIndex = null;
+    int parsedItemIndex;
+    if (ViewData.ContainsKey("itemIndex")
+        && int.TryParse(ViewData["itemIndex"].ToStringOrNull(), out parsedItemIndex))
+    {
+        itemIndex = parsedItemIndex;
+    }
+
+    // Don't show the edit button in some cases. For example, on the search side-by-side page we don't need it.
+    bool showEditButton;
+    if (!ViewData.ContainsKey("showEditButton")
+        || !bool.TryParse(ViewData["showEditButton"].ToStringOrNull(), out showEditButton))
+    {
+        showEditButton = true;
+    }
+}
+
+<li class="package">
+
+    <div class="row">
+        <div class="col-sm-1 hidden-xs hidden-sm col-package-icon">
+            <img class="package-icon img-responsive @(!PackageHelper.ShouldRenderUrl(Model.IconUrl) ? "package-default-icon" : null)" aria-hidden="true" alt=""
+                 src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : null)" @ViewHelpers.PackageImageFallback()/>
+        </div>
+        <div class="col-sm-11">
+            <div class="package-header">
+                <h2 class="package-title">
+                    <a class="package-title"
+                        href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null).TrimEnd('/')"
+                        @if (itemIndex.HasValue)
+                        {
+                            @:data-track="@eventName" data-track-value="@itemIndex" data-click-source="PackageId"
+                            @:data-package-id="@Model.Id" data-package-version="@Model.Version" data-use-version="@Model.UseVersion"
+                        }>
+                            @Html.BreakWord(Model.Id)
+                    </a>
+                </h2>
+
+                @if (Model.IsVerified.HasValue && Model.IsVerified.Value)
+                {
+                    <i class="ms-Icon ms-Icon--SkypeCircleCheck reserved-indicator"
+                        data-content="@Strings.ReservedNamespace_ReservedIndicatorTooltip" tabindex="0" alt="@Strings.ReservedNamespace_ReservedIndicatorTooltip"></i>
+                }
+
+                @if (showEditButton && (Model.CanEdit || Model.CanManageOwners || Model.CanUnlistOrRelist))
+                {
+                    <a href="@Url.ManagePackage(Model)" class="icon-link edit-button" title="Manage @Model.Id">
+                        <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
+                    </a>
+                }
+
+                @if (Model.Owners != null && Model.Owners.Any())
+                {
+                    <span class="package-by">
+                        by:
+                        @foreach (var owner in Model.Owners)
+                        {
+                            <a href="@Url.User(owner.Username)" title="View @owner.Username's profile"
+                                @if (itemIndex.HasValue)
+                                {
+                                    @:data-track="@eventName" data-track-value="@itemIndex" data-click-source="Owner"
+                                    @:data-package-id="@Model.Id" data-package-version="@Model.Version" data-use-version="@Model.UseVersion"
+                                    @:data-owner="@owner.Username"
+                                }>
+                                    @owner.Username
+                            </a>
+                        }
+                    </span>
+                }
+            </div>
+
+            <ul class="package-list">
+                @if (Model.IsVulnerable || Model.IsDeprecated)
+                {
+                    <li class="package-warning-indicators">
+                        @if (Model.IsVulnerable)
+                        {
+                            <span class="icon-text package-warning--vulnerable" aria-label="@Model.VulnerabilityTitle" data-content="@Model.VulnerabilityTitle">
+                                <i class="ms-Icon ms-Icon--BlockedSiteSolid12" aria-hidden="true"></i>
+                                Vulnerable
+                            </span>
+                        }
+                        @if (Model.IsDeprecated)
+                        {
+                            <span class="icon-text package-warning--deprecated" aria-label="@Model.DeprecationTitle" data-content="@Model.DeprecationTitle">
+                                <i class="ms-Icon ms-Icon--ShieldAlert" aria-hidden="true"></i>
+                                Deprecated
+                            </span>
+                        }
+                    </li>
+                }
+                <li class="package-tfm-badges">
+                    @Html.Partial("../Packages/_SupportedFrameworksBadges", Model.FrameworkBadges, new ViewDataDictionary { { "itemIndex", itemIndex }, { "eventName", eventName } })
+                </li>
+                <li>
+                    <span class="icon-text">
+                        <i class="ms-Icon ms-Icon--Download" aria-hidden="true"></i>
+                        @Model.TotalDownloadCount.ToNuGetNumberString() total @(Model.TotalDownloadCount == 1 ? "download" : "downloads")
+                    </span>
+                </li>
+                <li>
+                    <span class="icon-text">
+                        <i class="ms-Icon ms-Icon--History" aria-hidden="true"></i>
+                        last updated <span data-datetime="@Model.LastUpdated.ToString("O")">@Model.LastUpdated.ToNuGetShortDateString()</span>
+                    </span>
+                </li>
+                <li>
+                    <span class="icon-text">
+                        <i class="ms-Icon ms-Icon--Flag" aria-hidden="true"></i>
+                        Latest version: <span class="text-nowrap">@Model.Version @(Model.Prerelease ? "(prerelease)" : "")</span>
+                    </span>
+                </li>
+                @if (Model.Tags.AnySafe())
+                {
+                    <li class="package-tags">
+                        <span class="icon-text">
+                            <i class="ms-Icon ms-Icon--Tag" aria-hidden="true"></i>
+                            @{
+                                const int firstN = 10;
+                                var tags = Model.Tags.Take(firstN + 1).ToList();
+                                string lastTag = null;
+                                if (tags.Count > firstN)
+                                {
+                                    lastTag = tags[firstN - 1];
+                                    tags.RemoveRange(firstN - 1, 2);
+                                }
+                            }
+                            @foreach (var tag in tags)
+                            {
+                                <a href="@Url.Search("Tags:\"" + tag + "\"")" title="Search for @tag">@tag</a>
+                            }
+                            @if (lastTag != null)
+                            {
+                                <span class="text-nowrap">
+                                    <a href="@Url.Search("Tags:\"" + lastTag + "\"")" title="Search for @lastTag">@lastTag</a>
+                                    <a href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)" title="View more tags">More tags</a>
+                                </span>
+                            }
+                        </span>
+                    </li>
+                }
+            </ul>
+
+            <div class="package-details">
+                @Model.ShortDescription
+                @if (Model.IsDescriptionTruncated)
+                {
+                    @Html.RouteLink("More information", RouteName.DisplayPackage, new { Model.Id, Model.Version }, new { @title = "More information about " + Model.Id + " package", @aria_label = "More information about " + Model.Id + " package" })
+                }
+            </div>
+        </div>
+    </div>
+</li>

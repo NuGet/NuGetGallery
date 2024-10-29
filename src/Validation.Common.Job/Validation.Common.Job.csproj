@@ -1,15 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <Import Project="..\..\SdkProjects.props" />
-
   <PropertyGroup>
     <TargetFrameworks>net472;netstandard2.1</TargetFrameworks>
+    <PackageVersion Condition="'$(PackageVersion)' == ''">$(JobsPackageVersion)</PackageVersion>
     <RootNamespace>NuGet.Jobs.Validation</RootNamespace>
     <AssemblyName>NuGet.Services.Validation.Common.Job</AssemblyName>
     <Description>Common job infrastructure for validation jobs and basic dependency injection setup.</Description>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+    <Compile Remove="ServiceProviderExtensions.cs" />
     <Compile Remove="Storage\IValidatorStateService.cs" />
     <Compile Remove="Storage\ValidatorStateService.cs" />
     <Compile Remove="Storage\ValidatorStatusExtensions.cs" />
@@ -24,14 +24,16 @@
   <ItemGroup>
     <PackageReference Include="Autofac" />
     <PackageReference Include="Autofac.Extensions.DependencyInjection" />
+    <PackageReference Include="Azure.Storage.Blobs" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
     <PackageReference Include="NuGet.Packaging" />
+    <PackageReference Include="System.Formats.Asn1" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
-    <PackageReference Include="NuGet.Services.ServiceBus" />
-    <PackageReference Include="NuGet.Services.Storage" />
+    <ProjectReference Include="..\NuGet.Services.ServiceBus\NuGet.Services.ServiceBus.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Storage\NuGet.Services.Storage.csproj" />
   </ItemGroup>
 
   <ItemGroup>

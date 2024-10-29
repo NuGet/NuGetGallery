@@ -1,9 +1,8 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 
 namespace NuGet.Services.Metadata.Catalog.Monitoring
@@ -16,11 +15,11 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     {
         public SearchEndpoint(
             string instanceName,
-            IReadOnlyList<Uri> cursorUris,
+            IReadOnlyList<SearchCursorConfiguration> cursors,
             Uri baseUri,
             Func<HttpMessageHandler> messageHandlerFactory)
         {
-            Cursor = new AggregateCursor(cursorUris.Select(c => new HttpReadCursor(c, messageHandlerFactory)));
+            Cursor = AggregateCursors(cursors, messageHandlerFactory);
             InstanceName = instanceName;
             BaseUri = baseUri;
         }
@@ -28,5 +27,25 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         public ReadCursor Cursor { get; }
         public string InstanceName { get; }
         public Uri BaseUri { get; }
+
+        private static ReadCursor AggregateCursors(
+            IReadOnlyList<SearchCursorConfiguration> cursors,
+            Func<HttpMessageHandler> messageHandlerFactory)
+        {
+            var innerCursors = new List<ReadCursor>();
+            foreach (var config in cursors)
+            {
+                if (config.BlobClient is not null)
+                {
+                    innerCursors.Add(new AzureBlobCursor(config.BlobClient));
+                }
+                else
+                {
+                    innerCursors.Add(new HttpReadCursor(config.CursorUri, messageHandlerFactory));
+                }
+            }
+
+            return new AggregateCursor(innerCursors);
+        }
     }
 }

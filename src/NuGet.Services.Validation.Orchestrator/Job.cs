@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -106,6 +106,8 @@ namespace NuGet.Services.Validation.Orchestrator
 
             try
             {
+                _serviceProvider.ValidateMessageHandlerInitialization<PackageValidationMessageData>();
+
                 var runner = GetRequiredService<OrchestrationRunner>();
                 await runner.RunOrchestrationAsync();
             }
@@ -383,9 +385,11 @@ namespace NuGet.Services.Validation.Orchestrator
             builder
                 .Register(c =>
                 {
-                    var config = c.Resolve<IOptionsSnapshot<LeaseConfiguration>>().Value;
-                    var blobClient = new BlobServiceClient(config.ConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature="));
-                    return new CloudBlobLeaseService(blobClient, config.ContainerName, config.StoragePath);
+                    LeaseConfiguration config = c.Resolve<IOptionsSnapshot<LeaseConfiguration>>().Value;
+                    StorageMsiConfiguration storageMsiConfiguration = c.Resolve<IOptionsSnapshot<StorageMsiConfiguration>>().Value;
+
+                    BlobServiceClient blobServiceClient = StorageAccountHelper.CreateBlobServiceClient(storageMsiConfiguration, config.ConnectionString);
+                    return new CloudBlobLeaseService(blobServiceClient, config.ContainerName, config.StoragePath);
                 })
                 .As<ILeaseService>();
         }

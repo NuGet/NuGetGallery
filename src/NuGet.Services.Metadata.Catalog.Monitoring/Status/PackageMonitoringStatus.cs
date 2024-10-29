@@ -4,9 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using NuGet.Services.Metadata.Catalog.Helpers;
+using NuGetGallery;
 
 namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
@@ -56,13 +56,13 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         /// If this status was loaded from storage, this access condition should be used to overwrite it.
         /// </summary>
         [JsonIgnore]
-        public AccessCondition AccessCondition { get; set; }
+        public IAccessCondition AccessCondition { get; set; }
 
         /// <summary>
         /// When this status is saved to storage, the save operation should use these <see cref="AccessCondition"/>s to save to the containers associated with each <see cref="PackageState"/>.
         /// </summary>
         [JsonIgnore]
-        public IDictionary<PackageState, AccessCondition> ExistingState { get; }
+        public IDictionary<PackageState, IAccessCondition> ExistingState { get; }
 
         [JsonConstructor]
         public PackageMonitoringStatus(FeedPackageIdentity package, PackageValidationResult validationResult, Exception validationException)
@@ -90,7 +90,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         private PackageMonitoringStatus()
         {
             AccessCondition = PackageMonitoringStatusAccessConditionHelper.FromUnknown();
-            ExistingState = new Dictionary<PackageState, AccessCondition>();
+            ExistingState = new Dictionary<PackageState, IAccessCondition>();
             foreach (var state in Enum.GetValues(typeof(PackageState)).Cast<PackageState>())
             {
                 ExistingState[state] = PackageMonitoringStatusAccessConditionHelper.FromUnknown();

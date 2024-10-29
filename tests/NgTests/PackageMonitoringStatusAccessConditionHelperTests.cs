@@ -1,13 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.WindowsAzure.Storage;
-using NuGet.Services.Metadata.Catalog.Helpers;
-using NuGet.Services.Metadata.Catalog.Monitoring;
-using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NuGet.Services.Metadata.Catalog.Helpers;
+using NuGet.Services.Metadata.Catalog.Monitoring;
+using NuGet.Services.Metadata.Catalog.Persistence;
+using NuGetGallery;
 using Xunit;
 
 namespace NgTests
@@ -19,7 +19,7 @@ namespace NgTests
         {
             var content = new StringStorageContent("content");
             PackageMonitoringStatusTestUtility.AssertAccessCondition(
-                AccessCondition.GenerateEmptyCondition(),
+                AccessConditionWrapper.GenerateEmptyCondition(),
                 PackageMonitoringStatusAccessConditionHelper.FromContent(content));
         }
 
@@ -28,7 +28,7 @@ namespace NgTests
         {
             var content = new StringStorageContentWithETag("content", null);
             PackageMonitoringStatusTestUtility.AssertAccessCondition(
-                AccessCondition.GenerateEmptyCondition(),
+                AccessConditionWrapper.GenerateEmptyCondition(),
                 PackageMonitoringStatusAccessConditionHelper.FromContent(content));
         }
 
@@ -38,7 +38,7 @@ namespace NgTests
             var eTag = "etag";
             var content = new StringStorageContentWithETag("content", eTag);
             PackageMonitoringStatusTestUtility.AssertAccessCondition(
-                AccessCondition.GenerateIfMatchCondition(eTag),
+                AccessConditionWrapper.GenerateIfMatchCondition(eTag),
                 PackageMonitoringStatusAccessConditionHelper.FromContent(content));
         }
 
@@ -48,12 +48,12 @@ namespace NgTests
             {
                 foreach (var previousState in Enum.GetValues(typeof(PackageState)).Cast<PackageState>())
                 {
-                    foreach (var accessCondition in 
+                    foreach (var accessCondition in
                         new[]
                         {
-                            AccessCondition.GenerateIfNotExistsCondition(),
-                            AccessCondition.GenerateIfMatchCondition("howdy"),
-                            AccessCondition.GenerateEmptyCondition()
+                            AccessConditionWrapper.GenerateIfNotExistsCondition(),
+                            AccessConditionWrapper.GenerateIfMatchCondition("howdy"),
+                            AccessConditionWrapper.GenerateEmptyCondition()
                         })
                     {
                         foreach (var newState in Enum.GetValues(typeof(PackageState)).Cast<PackageState>())
@@ -67,7 +67,7 @@ namespace NgTests
 
         [Theory]
         [MemberData(nameof(UpdateFromExistingUpdatesExistingStatus_Data))]
-        public void UpdateFromExistingUpdatesExistingStatus(PackageState previousState, AccessCondition accessCondition, PackageState newState)
+        public void UpdateFromExistingUpdatesExistingStatus(PackageState previousState, IAccessCondition accessCondition, PackageState newState)
         {
             // Arrange
             var feedPackageIdentity = new FeedPackageIdentity("howdy", "3.4.6");
@@ -91,7 +91,7 @@ namespace NgTests
             foreach (var state in Enum.GetValues(typeof(PackageState)).Cast<PackageState>())
             {
                 PackageMonitoringStatusTestUtility.AssertAccessCondition(
-                    state == previousState ? accessCondition : AccessCondition.GenerateIfNotExistsCondition(),
+                    state == previousState ? accessCondition : AccessConditionWrapper.GenerateIfNotExistsCondition(),
                     newStatus.ExistingState[state]);
             }
         }
@@ -126,7 +126,7 @@ namespace NgTests
             foreach (var state in Enum.GetValues(typeof(PackageState)).Cast<PackageState>())
             {
                 PackageMonitoringStatusTestUtility.AssertAccessCondition(
-                    AccessCondition.GenerateIfNotExistsCondition(),
+                    AccessConditionWrapper.GenerateIfNotExistsCondition(),
                     newStatus.ExistingState[state]);
             }
         }
@@ -135,7 +135,7 @@ namespace NgTests
         public void FromUnknownReturnsEmptyCondition()
         {
             PackageMonitoringStatusTestUtility.AssertAccessCondition(
-                AccessCondition.GenerateEmptyCondition(),
+                AccessConditionWrapper.GenerateEmptyCondition(),
                 PackageMonitoringStatusAccessConditionHelper.FromUnknown());
         }
     }

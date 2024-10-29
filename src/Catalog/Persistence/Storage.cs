@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -8,7 +8,7 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
+using Azure;
 using Newtonsoft.Json;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
@@ -20,7 +20,10 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         public Storage(Uri baseAddress)
         {
-            string s = baseAddress.OriginalString.TrimEnd('/') + '/';
+            UriBuilder uriBuilder = new UriBuilder(baseAddress.AbsoluteUri);
+            // Remove the query string from the base address.
+            uriBuilder.Query = string.Empty;
+            string s = uriBuilder.Uri.OriginalString.TrimEnd('/') + '/';
             BaseAddress = new Uri(s);
         }
 
@@ -122,21 +125,9 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             {
                 await OnDeleteAsync(resourceUri, deleteRequestOptions, cancellationToken);
             }
-            catch (StorageException e)
+            catch (RequestFailedException e) when (e.Status == (int)HttpStatusCode.NotFound)
             {
-                WebException webException = e.InnerException as WebException;
-                if (webException != null)
-                {
-                    HttpStatusCode statusCode = ((HttpWebResponse)webException.Response).StatusCode;
-                    if (statusCode != HttpStatusCode.NotFound)
-                    {
-                        throw;
-                    }
-                }
-                else
-                {
-                    throw;
-                }
+                // continue
             }
             catch (Exception e)
             {
@@ -196,15 +187,19 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             {
                 address += "/";
             }
-            var uriString = uri.ToString();
+            var uriString = uri.GetLeftPart(UriPartial.Path);
 
             int baseAddressLength = address.Length;
 
-            var name = uriString.Substring(baseAddressLength);
+            // handle mismatched scheme (http vs https)
+            var schemeLengthDifference = uri.Scheme.Length - BaseAddress.Scheme.Length;
+
+            var name = uriString.Substring(baseAddressLength + schemeLengthDifference);
             if (name.Contains("#"))
             {
                 name = name.Substring(0, name.IndexOf("#"));
             }
+
             return name;
         }
 
@@ -226,13 +221,18 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             {
                 //The Uri depends on the storage implementation.
                 Uri storageUri = GetUri(GetName(resourceUri));
-                Trace.WriteLine(String.Format("{0} {1}", method, storageUri));
+                Trace.WriteLine(String.Format("{0} {1}", method, RemoveQueryString(storageUri)));
             }
+        }
+
+        public static string RemoveQueryString(Uri storageUri)
+        {
+            return storageUri.GetLeftPart(UriPartial.Path);
         }
 
         private string TraceException(string method, Uri resourceUri, Exception exception)
         {
-            string message = $"{method} EXCEPTION: {GetUri(GetName(resourceUri))} {exception.ToString()}";
+            string message = $"{method} EXCEPTION: {RemoveQueryString(GetUri(GetName(resourceUri)))} {exception.ToString()}";
             Trace.WriteLine(message);
             return message;
         }

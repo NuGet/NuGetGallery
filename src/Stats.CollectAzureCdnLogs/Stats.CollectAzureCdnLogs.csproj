@@ -1,114 +1,31 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="15.0">
-  <Import Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
-  <Import Project="..\..\sign.thirdparty.props" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{664CA8BB-BCF5-432C-AF68-9F97D308E623}</ProjectGuid>
+    <TargetFramework>net472</TargetFramework>
     <OutputType>Exe</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Stats.CollectAzureCdnLogs</RootNamespace>
-    <AssemblyName>Stats.CollectAzureCdnLogs</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <TargetFrameworkProfile />
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject>Stats.CollectAzureCdnLogs.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="ICSharpCode.SharpZipLib">
       <HintPath>$(MSBuildProjectDirectory)\..\..\external\ICSharpCode.SharpZipLib.0.86.0\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Core" />
-    <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Blob\CloudBlobRawLogClient.cs" />
-    <Compile Include="Configuration\CollectAzureCdnLogsConfiguration.cs" />
-    <Compile Include="FileExtensions.cs" />
-    <Compile Include="Ftp\FtpDownloadStream.cs" />
-    <Compile Include="Ftp\FtpRawLogClient.cs" />
-    <Compile Include="Exceptions\InvalidRawLogFileNameException.cs" />
-    <Compile Include="IRawLogClient.cs" />
-    <Compile Include="ITelemetryService.cs" />
-    <Compile Include="LogMessages.Designer.cs">
+    <Compile Update="LogMessages.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>LogMessages.resx</DependentUpon>
     </Compile>
-    <Compile Include="RawLogFileInfo.cs" />
-    <Compile Include="Job.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Extensions\UriExtensions.cs" />
-    <Compile Include="TelemetryService.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config">
-      <SubType>Designer</SubType>
-    </None>
     <None Include="Scripts\*" />
-    <None Include="Stats.CollectAzureCdnLogs.nuspec" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj">
-      <Project>{4b4b1efb-8f33-42e6-b79f-54e7f3293d31}</Project>
-      <Name>NuGet.Jobs.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Stats.AzureCdnLogs.Common\Stats.AzureCdnLogs.Common.csproj">
-      <Project>{f72c31a7-424d-48c6-924c-ebfd4be0918b}</Project>
-      <Name>Stats.AzureCdnLogs.Common</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj" />
+    <ProjectReference Include="..\Stats.AzureCdnLogs.Common\Stats.AzureCdnLogs.Common.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="LogMessages.resx">
+    <EmbeddedResource Update="LogMessages.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>LogMessages.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="MicroBuild.Core">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Data.Services.Client" />
-  </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <SignPath>..\..\build</SignPath>
-    <SignPath Condition="'$(BUILD_SOURCESDIRECTORY)' != ''">$(BUILD_SOURCESDIRECTORY)\build</SignPath>
-    <SignPath Condition="'$(NuGetBuildPath)' != ''">$(NuGetBuildPath)</SignPath>
-    <SignType Condition="'$(SignType)' == ''">none</SignType>
-  </PropertyGroup>
-  <Import Condition="Exists('$(SignPath)\sign.targets')" Project="$(SignPath)\sign.targets" />
-  <Import Condition="Exists('$(SignPath)\sign.microbuild.targets')" Project="$(SignPath)\sign.microbuild.targets" />
-  <Import Condition="'$(NuGetBuildExtensions)' != '' And Exists('$(NuGetBuildExtensions)')" Project="$(NuGetBuildExtensions)" />
 </Project>

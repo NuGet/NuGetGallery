@@ -1,0 +1,114 @@
+﻿@model UserProfileModel
+@{
+    ViewBag.Title = @Model.Username;
+    ViewBag.Tab = "Packages";
+}
+
+@if (Model.IsLocked)
+{
+    ViewBag.BlockSearchEngineIndexing = true;
+}
+
+@helper CreateDeleteAccountLink(string url)
+{
+    <a href="@url" aria-label="Delete this account"><i class="ms-Icon ms-Icon--Delete ms-font-xl"></i></a>
+}
+
+<section role="main" class="container main-container page-profile">
+    <div class="row">
+        <aside class="col-md-3 col-md-push-9 profile-details">
+            @ViewHelpers.GravatarImage(
+                Url,
+                Model.EmailAddress ?? Model.UnconfirmedEmailAddress,
+                Model.Username,
+                GalleryConstants.GravatarImageSizeLarge,
+                responsive: true)
+            <div class="statistics">
+                <div class="statistic">
+                    <div class="value">@Model.AllPackages.Count.ToNuGetNumberString()</div>
+                    <div class="description">@(Model.AllPackages.Count == 1 ? "Package" : "Packages")</div>
+                </div>
+                <div class="statistic">
+                    <div class="value">@Model.TotalPackageDownloadCount.ToNuGetNumberString()</div>
+                    <div class="description">Total @(Model.TotalPackageDownloadCount == 1 ? "download" : "downloads") of packages</div>
+                </div>
+            </div>
+            @if (User.IsAdministrator())
+            {
+                <div class="additional-info">
+                    <dl>
+                        <dt>Email Address:</dt>
+                        <dd>@Model.EmailAddress</dd>
+                        @if (Model.UnconfirmedEmailAddress != null)
+                        {
+                            <dt>Unconfirmed Email Address:</dt>
+                            <dd>@Model.UnconfirmedEmailAddress</dd>
+                        }
+
+                        @if (Model.UserIsOrganization)
+                        {
+                            <dt>Org Multi-factor Authentication:</dt>
+                        }
+                        else
+                        {
+                            <dt>Multi-factor Authentication:</dt>
+                        }
+                        <dd>@(Model.HasEnabledMultiFactorAuthentication ? "Enabled" : "Disabled")</dd>
+                        <dt>Locked:</dt>
+                        <dd>@(Model.IsLocked ? "Yes" : "No")</dd>
+                    </dl>
+                </div>
+            }
+        </aside>
+        <article class="col-md-9 col-md-pull-3">
+            <div class="profile-title">
+                <h1>
+                    @Model.Username&nbsp;
+                    @if (Model.CanViewAccount && (Model.UserIsOrganization || CurrentUser.MatchesUser(Model.User)))
+                    {
+                        <a href="@(Model.UserIsOrganization ? Url.ManageMyOrganization(Model.Username) : Url.AccountSettings())" aria-label="Manage this account"><i class="ms-Icon ms-Icon--Edit ms-font-xl"></i></a>
+                    }
+                    @if (AdminHelper.IsAdminPanelEnabled && User.IsAdministrator())
+                    {
+                        var deleteUrl = Model.UserIsOrganization ? Url.AdminDeleteOrganization(Model.Username) : Url.AdminDeleteAccount(Model.Username);
+                        <a href="@deleteUrl" aria-label="Delete this account"><i class="ms-Icon ms-Icon--Delete ms-font-xl" aria-hidden="true"></i></a>
+                    }
+                </h1>
+                <span>
+                    @if (Model.CanViewAccount)
+                    {
+                        if (Model.UserIsOrganization)
+                        {
+                            var administrators = (Model.User as Organization).Administrators.Count();
+                            var collaborators = (Model.User as Organization).Collaborators.Count();
+
+                            <i class="ms-Icon ms-Icon--Group ms-font-xl" aria-hidden="true">&nbsp;</i>
+                            <a href="@Url.ManageMyOrganization(Model.Username)" aria-label="Manage this organization"><span class="ms-font-xxl">@administrators</span>&nbsp;Administrator@(administrators != 1 ? "s" : "")&nbsp;</a><span aria-hidden="true" class="ms-font-xxl organization-subtitle-divider">|</span><a href="@Url.ManageMyOrganization(Model.Username)" aria-label="Manage this organization">&nbsp;<span class="ms-font-xxl">@collaborators</span>&nbsp;Collaborator@(collaborators != 1 ? "s" : "")</a>
+                        }
+                        else if (CurrentUser.MatchesUser(Model.User) && Model.User.Organizations.Any())
+                        {
+                            var organizationsCount = Model.User.Organizations.Count();
+                            var organizationString = organizationsCount + " organization" + (organizationsCount != 1 ? "s" : "");
+                            <span>member of<a href="@Url.ManageMyOrganizations()" aria-label="Manage my @organizationString"><span class="ms-font-xxl">&nbsp;@organizationString</span></a></span>
+                        }
+                    }
+                </span>
+            </div>
+
+            <hr class="profile-title-divider" />
+
+            <ul class="list-packages">
+                @foreach (var package in Model.PagedPackages)
+                {
+                    @Html.Partial("_ListPackage", package)
+                }
+            </ul>
+
+            @ViewHelpers.PreviousNextPager(Model.Pager)
+        </article>
+    </div>
+</section>
+
+@section BottomScripts {
+    @Scripts.Render("~/Scripts/gallery/page-list-packages.min.js")
+}

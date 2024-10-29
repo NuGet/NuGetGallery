@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using NuGet.Jobs.Extensions;
 using NuGet.Services.Status;
 using StatusAggregator.Container;
 

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -10,6 +10,7 @@ using Azure.Core.Pipeline;
 using Azure.Identity;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Indexes;
+using Azure.Storage.Blobs;
 using Kusto.Data;
 using Kusto.Data.Common;
 using Kusto.Data.Net.Client;
@@ -18,7 +19,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Rest;
-using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs;
 using NuGet.Protocol;
 using NuGet.Services.AzureSearch.Auxiliary2AzureSearch;
@@ -27,7 +27,6 @@ using NuGet.Services.AzureSearch.Catalog2AzureSearch;
 using NuGet.Services.AzureSearch.Db2AzureSearch;
 using NuGet.Services.AzureSearch.SearchService;
 using NuGet.Services.AzureSearch.Wrappers;
-using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.V3;
 using NuGetGallery;
@@ -123,17 +122,22 @@ namespace NuGet.Services.AzureSearch
                 .Register(c =>
                 {
                     var options = c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>();
-                    return CloudStorageAccount.Parse(options.Value.StorageConnectionString);
+                    
+                    // https://github.com/Azure/azure-sdk-for-net/issues/44373
+                    options.Value.StorageConnectionString = options.Value.StorageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+                    
+                    return new BlobServiceClient(options.Value.StorageConnectionString);
                 })
-                .Keyed<CloudStorageAccount>(key);
+                .Keyed<BlobServiceClient>(key);
 
 #if NETFRAMEWORK
             containerBuilder
                 .Register<IStorageFactory>(c =>
                 {
                     var options = c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>();
+                    BlobServiceClient blobServiceClient = c.ResolveKeyed<BlobServiceClient>(key);
                     return new AzureStorageFactory(
-                        c.ResolveKeyed<CloudStorageAccount>(key),
+                        blobServiceClient,
                         options.Value.StorageContainer,
                         maxExecutionTime: AzureStorage.DefaultMaxExecutionTime,
                         serverTimeout: AzureStorage.DefaultServerTimeout,
@@ -302,7 +306,6 @@ namespace NuGet.Services.AzureSearch
                     }
                 });
 
-            services.AddTransient<IDownloadsV1JsonClient, DownloadsV1JsonClient>();
             services.AddSingleton<IAuxiliaryDataCache, AuxiliaryDataCache>();
             services.AddScoped(p => p.GetRequiredService<IAuxiliaryDataCache>().Get());
             services.AddSingleton<IAuxiliaryFileReloader, AuxiliaryFileReloader>();

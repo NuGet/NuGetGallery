@@ -1,0 +1,137 @@
+﻿@model ManageOrganizationsViewModel
+@{
+    ViewBag.Title = "Manage My Organizations";
+}
+
+<section role="main" class="container main-container page-manage-packages">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="breadcrumb-menu">
+                <div>
+                    @ViewHelpers.BreadcrumbWithProfile(
+                        Url, 
+                        CurrentUser, 
+                        false, 
+                        @<text>Organizations&nbsp;<span aria-hidden="true" class="ms-font-xl organizations-divider">|</span>&nbsp;<a href="@Url.AddOrganization()" title="Add new organization" aria-label="Add new organization"><span aria-hidden="true" class="ms-font-m ms-Icon ms-Icon--Add"></span>&nbsp;Add new</a></text>)
+                </div>
+            </div>
+            <hr class="breadcrumb-divider"/>
+
+            @if (Model.Organizations.Any())
+            {
+                var orgCount = Model.Organizations.Count();
+                var orgCountString = orgCount > 1 ? orgCount + " organizations" : orgCount + " organization";
+
+                <div>
+                    <p>You have @(orgCountString).</p>
+                </div>
+                <div class="table-container">
+                    <table class="table user-package-list" aria-label="Organizations">
+                        <thead>
+                            <tr class="manage-package-headings">
+                                <th class="hidden-xs"></th>
+                                <th>Organization</th>
+                                <th>Membership</th>
+                                <th>Members</th>
+                                <th>Packages</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        @foreach (var organization in Model.Organizations)
+                        {
+                            <tbody>
+                                <tr class="manage-package-listing" data-bind="visible: Visible">
+                                    <td class="align-middle hidden-xs">
+                                        <img src="@GravatarHelper.Url(Url, organization.EmailAddress, organization.OrganizationName, 256)"
+                                             class="package-icon img-responsive" aria-hidden="true" alt="" />
+                                    </td>
+                                    <td class="align-middle package-id">
+                                        <a title="View Organization Profile" href="@Url.User(organization.OrganizationName)">
+                                            @organization.OrganizationName
+                                        </a>
+                                        @if (organization.IsPendingRequest)
+                                        {
+                                            <span>(pending approval)</span>
+                                        }
+                                    </td>
+                                    <td class="align-middle">
+                                        @(organization.CurrentUserIsAdmin ? "Administrator" : "Collaborator")
+                                    </td>
+                                    <td class="align-middle text-nowrap">
+                                        @organization.MemberCount
+                                    </td>
+                                    <td class="align-middle text-nowrap">
+                                        @organization.PackagesCount
+                                    </td>
+                                    <td class="text-right align-middle package-controls">
+                                        @if (!organization.IsPendingRequest && !organization.IsPendingTransformRequest)
+                                        {
+                                            <a class="btn btn-brand-icon" href="@Url.ManageMyOrganization(organization.OrganizationName)" title="Edit Organization" aria-label="@("Edit Organization " + organization.OrganizationName)">
+                                                <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
+                                            </a>
+                                        }
+                                        else if (organization.IsPendingRequest)
+                                        {
+                                            var accept = organization.IsPendingTransformRequest ? Url.ConfirmTransformAccount(organization.OrganizationName, organization.ConfirmationToken) : Url.AcceptOrganizationMembershipRequest(organization.OrganizationName, organization.ConfirmationToken);
+                                            var reject = organization.IsPendingTransformRequest ? Url.RejectTransformAccount(organization.OrganizationName, organization.ConfirmationToken) : Url.RejectOrganizationMembershipRequest(organization.OrganizationName, organization.ConfirmationToken);
+
+                                            <form method="post" action="@accept">
+                                                @Html.AntiForgeryToken()
+                                                <button class="btn btn-brand-secondary" type="submit" title="Accept Organization Membership Request" aria-label="@("Accept Organization Membership Request for " + organization.OrganizationName)">
+                                                    <i class="ms-Icon ms-Icon--Accept" aria-hidden="true"></i>
+                                                </button>
+                                            </form>
+                                            <form method="post" action="@reject">
+                                                @Html.AntiForgeryToken()
+                                                <button class="btn btn-brand-secondary" type="submit" title="Reject Organization Membership Request" aria-label="@("Reject Organization Membership Request for " + organization.OrganizationName)">
+                                                    <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                    </td>
+                                </tr>
+                            </tbody>
+                        }
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p>Organizations allow you to manage and publish packages as a team or a group. <a href="https://go.microsoft.com/fwlink/?linkid=870439">Learn more.</a></p>
+                <div class="organizations-empty text-center">
+                    <img width="260" height="150" alt="You are not a member of any organizations"
+                         src="~/Content/gallery/img/manage-organizations.svg"
+                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/manage-organizations-260x150.png")) />
+                </div>
+                <div class="subtitle text-center">
+                    <p>You are not a member of any organizations. Get started by <a href="@Url.AddOrganization()">adding a new organization.</a></p>
+                </div>
+                if (Model.PendingMigration == null)
+                {
+                    <div class="subtitle text-center">
+                        You can also <a href="@Url.TransformAccount()">transform your account into an organization.</a>
+                    </div>
+                }
+            }
+
+            @if (Model.PendingMigration != null)
+            {
+                <div class="subtitle text-center">
+                    <p>
+                        You have a pending request to transform your account <b>@CurrentUser.Username</b> into an
+                        organization.
+                        <br />
+                        To continue this process, sign in as <b>@Model.PendingMigration.AdminUsername</b> and navigate to
+                        the <b>Manage Organizations</b> page.
+                    </p>
+                </div>
+                <div class="subtitle text-center">
+                    <form method="post" action="@Url.CancelTransformAccount(Model.PendingMigration.ConfirmationToken)">
+                        @Html.AntiForgeryToken()
+                        <button class="btn btn-danger">Cancel migration request</button>
+                    </form>
+                </div>
+            }
+        </div>
+    </div>
+</section>

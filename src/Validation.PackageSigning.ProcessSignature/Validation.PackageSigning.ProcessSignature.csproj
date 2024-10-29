@@ -1,109 +1,18 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="15.0">
-  <Import Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
-  <Import Project="..\..\sign.thirdparty.props" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{DD043977-6BCD-475A-BEE2-8C34309EC622}</ProjectGuid>
+    <TargetFramework>net472</TargetFramework>
     <OutputType>Exe</OutputType>
     <RootNamespace>NuGet.Jobs.Validation.PackageSigning</RootNamespace>
     <AssemblyName>NuGet.Jobs.Validation.PackageSigning.ProcessSignature</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <TargetFrameworkProfile />
-    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+  <PropertyGroup>
+    <Description>Queue based signature verification job</Description>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Core" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Security" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Configuration\SasDefinitionConfiguration.cs" />
-    <Compile Include="ExtractedCertificates.cs" />
-    <Compile Include="Hash.cs" />
-    <Compile Include="HashedCertificate.cs" />
-    <Compile Include="ISignatureFormatValidator.cs" />
-    <Compile Include="ISignaturePartsExtractor.cs" />
-    <Compile Include="ISignatureValidator.cs" />
-    <Compile Include="MinimalSignatureVerificationProvider.cs" />
-    <Compile Include="Configuration\ProcessSignatureConfiguration.cs" />
-    <Compile Include="SignatureFormatValidator.cs" />
-    <Compile Include="SignaturePartsExtractor.cs" />
-    <Compile Include="SignatureValidator.cs" />
-    <Compile Include="Storage\PackageSigningStateService.cs" />
-    <Compile Include="Storage\IPackageSigningStateService.cs" />
-    <Compile Include="Job.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\AssemblyInfo.*.cs" />
-    <Compile Include="SignatureValidationMessageHandler.cs" />
-    <Compile Include="SignatureValidatorResult.cs" />
-    <Compile Include="Telemetry\ITelemetryService.cs" />
-    <Compile Include="Telemetry\TelemetryService.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
-    <None Include="README.md" />
     <None Include="Scripts\*" />
     <None Include="Settings\*" />
-    <None Include="Validation.PackageSigning.ProcessSignature.nuspec" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj">
-      <Project>{4B4B1EFB-8F33-42E6-B79F-54E7F3293D31}</Project>
-      <Name>NuGet.Jobs.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\NuGet.Services.Validation.Orchestrator\NuGet.Services.Validation.Orchestrator.csproj">
-      <Project>{E6D094FB-9068-4578-B176-116F97E7506B}</Project>
-      <Name>NuGet.Services.Validation.Orchestrator</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Validation.Common.Job\Validation.Common.Job.csproj">
-      <Project>{fa87d075-a934-4443-8d0b-5db32640b6d7}</Project>
-      <Name>Validation.Common.Job</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj">
-      <Project>{91c060da-736f-4da9-a57f-cb3ac0e6cb10}</Project>
-      <Name>Validation.PackageSigning.Core</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.Validation.Orchestrator\NuGet.Services.Validation.Orchestrator.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="MicroBuild.Core">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <SignPath>..\..\build</SignPath>
-    <SignPath Condition="'$(BUILD_SOURCESDIRECTORY)' != ''">$(BUILD_SOURCESDIRECTORY)\build</SignPath>
-    <SignPath Condition="'$(NuGetBuildPath)' != ''">$(NuGetBuildPath)</SignPath>
-    <SignType Condition="'$(SignType)' == ''">none</SignType>
-  </PropertyGroup>
-  <Import Condition="Exists('$(SignPath)\sign.targets')" Project="$(SignPath)\sign.targets" />
-  <Import Condition="Exists('$(SignPath)\sign.microbuild.targets')" Project="$(SignPath)\sign.microbuild.targets" />
-  <Import Condition="'$(NuGetBuildExtensions)' != '' And Exists('$(NuGetBuildExtensions)')" Project="$(NuGetBuildExtensions)" />
 </Project>

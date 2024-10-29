@@ -130,7 +130,7 @@ namespace CatalogTests
 
                     AssertCorrect(item, test.FeedPackageDetails);
 
-                    Assert.Equal(1, test.TelemetryService.TrackDurationCalls.Count);
+                    Assert.Single(test.TelemetryService.TrackDurationCalls);
 
                     var call = test.TelemetryService.TrackDurationCalls[0];
 
@@ -168,9 +168,9 @@ namespace CatalogTests
                         CancellationToken.None);
 
                     AssertCorrect(item, test.FeedPackageDetails);
-                    Assert.Equal(1, test.Handler.Requests.Count);
+                    Assert.Single(test.Handler.Requests );
 
-                    Assert.Equal(1, test.TelemetryService.TrackMetricCalls.Count);
+                    Assert.Single(test.TelemetryService.TrackMetricCalls);
 
                     var call = test.TelemetryService.TrackMetricCalls[0];
 
@@ -198,11 +198,8 @@ namespace CatalogTests
                     test.Blob.Setup(x => x.ExistsAsync(It.IsAny<CancellationToken>()))
                         .ReturnsAsync(true);
 
-                    test.Blob.Setup(x => x.FetchAttributesAsync(It.IsAny<CancellationToken>()))
-                        .Returns(Task.FromResult(0));
-
-                    test.Blob.SetupGet(x => x.ETag)
-                        .Returns("0");
+                    test.Blob.Setup(x => x.GetETagAsync(It.IsAny<CancellationToken>()))
+                        .ReturnsAsync("0");
 
                     test.Blob.Setup(x => x.GetMetadataAsync(It.IsAny<CancellationToken>()))
                         .ReturnsAsync(new Dictionary<string, string>());
@@ -216,9 +213,9 @@ namespace CatalogTests
                         CancellationToken.None);
 
                     AssertCorrect(item, test.FeedPackageDetails);
-                    Assert.Equal(1, test.Handler.Requests.Count);
+                    Assert.Single(test.Handler.Requests);
 
-                    Assert.Equal(1, test.TelemetryService.TrackMetricCalls.Count);
+                    Assert.Single(test.TelemetryService.TrackMetricCalls);
 
                     var call = test.TelemetryService.TrackMetricCalls[0];
 
@@ -246,11 +243,8 @@ namespace CatalogTests
                     test.Blob.Setup(x => x.ExistsAsync(It.IsAny<CancellationToken>()))
                         .ReturnsAsync(true);
 
-                    test.Blob.Setup(x => x.FetchAttributesAsync(It.IsAny<CancellationToken>()))
-                        .Returns(Task.FromResult(0));
-
-                    test.Blob.SetupGet(x => x.ETag)
-                        .Returns("0");
+                    test.Blob.Setup(x => x.GetETagAsync(It.IsAny<CancellationToken>()))
+                        .ReturnsAsync("0");
 
                     test.Blob.Setup(x => x.GetMetadataAsync(It.IsAny<CancellationToken>()))
                         .ReturnsAsync(new Dictionary<string, string>()
@@ -261,11 +255,8 @@ namespace CatalogTests
                     test.Blob.Setup(x => x.GetStreamAsync(It.IsAny<CancellationToken>()))
                         .ReturnsAsync(TestHelper.GetStream(test.PackageFileName + ".testdata"));
 
-                    test.Blob.Setup(x => x.FetchAttributesAsync(It.IsAny<CancellationToken>()))
-                        .Returns(Task.FromResult(0));
-
-                    test.Blob.SetupGet(x => x.ETag)
-                        .Returns("0");
+                    test.Blob.Setup(x => x.GetETagAsync(It.IsAny<CancellationToken>()))
+                        .ReturnsAsync("0");
 
                     var item = await test.Creator.CreateAsync(
                         test.FeedPackageDetails,
@@ -293,12 +284,13 @@ namespace CatalogTests
                     test.Blob.Setup(x => x.ExistsAsync(It.IsAny<CancellationToken>()))
                         .ReturnsAsync(true);
 
-                    test.Blob.Setup(x => x.FetchAttributesAsync(It.IsAny<CancellationToken>()))
-                        .Returns(Task.FromResult(0));
+                    //test.Blob.Setup(x => x.FetchAttributesAsync(It.IsAny<CancellationToken>()))
+                    //    .ReturnsAsync(new BlobProperties());
 
-                    test.Blob.SetupSequence(x => x.ETag)
-                        .Returns("0")
-                        .Returns("1");
+                    test.Blob.SetupSequence(x => x.GetETagAsync(It.IsAny<CancellationToken>()))
+                        .ReturnsAsync("0")
+                        .ReturnsAsync("1");
+
 
                     test.Blob.Setup(x => x.GetMetadataAsync(It.IsAny<CancellationToken>()))
                         .ReturnsAsync(new Dictionary<string, string>()
@@ -308,9 +300,6 @@ namespace CatalogTests
 
                     test.Blob.Setup(x => x.GetStreamAsync(It.IsAny<CancellationToken>()))
                         .ReturnsAsync(TestHelper.GetStream(test.PackageFileName + ".testdata"));
-
-                    test.Blob.Setup(x => x.FetchAttributesAsync(It.IsAny<CancellationToken>()))
-                        .Returns(Task.FromResult(0));
 
                     test.Blob.SetupGet(x => x.Uri)
                         .Returns(test.ContentUri);

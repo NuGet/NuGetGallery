@@ -7,65 +7,69 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Azure.Storage.Blobs.Models;
+using Azure.Storage.Blobs.Specialized;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public sealed class AzureCloudBlockBlob : ICloudBlockBlob
     {
-        private readonly CloudBlockBlob _blob;
+        private readonly BlockBlobClient _blockBlobClient;
 
         /// <summary>
         /// The Base64 encoded MD5 hash of the blob's content
         /// </summary>
-        public string ContentMD5
+        public async Task<string> GetContentMD5Async(CancellationToken cancellationToken)
         {
-            get => _blob.Properties.ContentMD5;
-            set => _blob.Properties.ContentMD5 = value;
+            BlobProperties properties = await FetchAttributesAsync(cancellationToken);
+            return properties.ContentHash != null ? Convert.ToBase64String(properties.ContentHash) : null;
         }
 
-        public string ETag => _blob.Properties.ETag;
-        public long Length => _blob.Properties.Length;
-        public Uri Uri => _blob.Uri;
-
-        public AzureCloudBlockBlob(CloudBlockBlob blob)
+        public async Task<string> GetETagAsync(CancellationToken cancellationToken)
         {
-            _blob = blob ?? throw new ArgumentNullException(nameof(blob));
+            BlobProperties properties = await FetchAttributesAsync(cancellationToken);
+            return properties.ETag.ToString();
+        }
+
+        public async Task<long> GetLengthAsync(CancellationToken cancellationToken)
+        {
+            BlobProperties properties = await FetchAttributesAsync(cancellationToken);
+            return properties.ContentLength;
+        }
+
+        public Uri Uri => _blockBlobClient.Uri;
+
+        public AzureCloudBlockBlob(BlockBlobClient blockBlobClient)
+        {
+            _blockBlobClient = blockBlobClient ?? throw new ArgumentNullException(nameof(blockBlobClient));
         }
 
         public async Task<bool> ExistsAsync(CancellationToken cancellationToken)
         {
-            return await _blob.ExistsAsync();
+            return await _blockBlobClient.ExistsAsync(cancellationToken);
         }
 
-        public async Task FetchAttributesAsync(CancellationToken cancellationToken)
+        public async Task<BlobProperties> FetchAttributesAsync(CancellationToken cancellationToken)
         {
-            await _blob.FetchAttributesAsync(
-                accessCondition: null,
-                options: null,
-                operationContext: null,
+            BlobProperties properties = await _blockBlobClient.GetPropertiesAsync(
+                conditions: null,
                 cancellationToken: cancellationToken);
+            return properties;
         }
 
         public async Task<IReadOnlyDictionary<string, string>> GetMetadataAsync(CancellationToken cancellationToken)
         {
-            return await Task.FromResult<IReadOnlyDictionary<string, string>>(
-                new ReadOnlyDictionary<string, string>(_blob.Metadata));
+            BlobProperties properties = await FetchAttributesAsync(cancellationToken);
+            return new ReadOnlyDictionary<string, string>(properties.Metadata);
         }
 
         public async Task<Stream> GetStreamAsync(CancellationToken cancellationToken)
         {
-            return await _blob.OpenReadAsync(
-                accessCondition: null,
-                options: null,
-                operationContext: null,
-                cancellationToken: cancellationToken);
-        }
-
-        public async Task SetPropertiesAsync(AccessCondition accessCondition, BlobRequestOptions options, OperationContext operationContext)
-        {
-            await _blob.SetPropertiesAsync(accessCondition, options, operationContext);
+            Stream response = await _blockBlobClient
+            .OpenReadAsync(
+                    new BlobOpenReadOptions(allowModifications: false), //a Azure.RequestFailedException will be thrown if the blob is modified, while it is being read from.
+                    cancellationToken: cancellationToken);
+            return response;
         }
     }
 }

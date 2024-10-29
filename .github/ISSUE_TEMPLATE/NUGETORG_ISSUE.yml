@@ -1,0 +1,68 @@
+name: NuGet.org Issue
+description: Report issues on NuGet.org
+title: "[NuGet.org Bug]: "
+labels: ["Type:Bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+       Thank you for taking the time to file this issue. In order to resolve it, we just need a few details from you.
+
+       The more detail you provide, the more likely it will be for us to be able to identify what is going on and how to solve it!
+
+       ### For issues connecting to NuGet.org, please refer to [this guide](https://docs.microsoft.com/nuget/nuget-org/nuget-org-faq#nuget.org-not-accessible).
+
+       ### For issues regarding your NuGet.org account, please refer to [this guide](https://docs.microsoft.com/nuget/nuget-org/nuget-org-faq#nuget.org-account-management).
+  - type: dropdown
+    id: impact
+    attributes:
+      label: Impact
+      multiple: false
+      description: How does this issue impact you?
+      options:
+        - I'm unable to use NuGet.org
+        - It's more difficult to complete my work
+        - It bothers me. A fix would be nice
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what the bug is.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Repro Steps
+      description: What steps can the NuGet team take to reproduce this issue?
+      placeholder: |
+        Steps to reproduce the behavior:
+        1. On this URL '...'
+        2. Perform this operation '...'
+        3. See error
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: A clear and concise description of what you expected to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: If applicable, add screenshots to explain your problem.
+    validations:
+      required: false
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context and logs
+      description: Add any other context about the problem here.
+    validations:
+      required: false

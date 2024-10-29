@@ -1,183 +1,19 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="15.0">
-  <Import Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
-  <Import Project="..\..\sign.thirdparty.props" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{E6D094FB-9068-4578-B176-116F97E7506B}</ProjectGuid>
+    <TargetFramework>net472</TargetFramework>
     <OutputType>Exe</OutputType>
-    <RootNamespace>NuGet.Services.Validation.Orchestrator</RootNamespace>
-    <AssemblyName>NuGet.Services.Validation.Orchestrator</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <TargetFrameworkProfile />
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="BaseValidationMessageHandler.cs" />
-    <Compile Include="BaseNuGetValidator.cs" />
-    <Compile Include="Configuration\ConfigurationValidator.cs" />
-    <Compile Include="Configuration\FlatContainerConfiguration.cs" />
-    <Compile Include="Configuration\SasDefinitionConfiguration.cs" />
-    <Compile Include="Configuration\TopologicalSort.cs" />
-    <Compile Include="ContainerBuilderExtensions.cs" />
-    <Compile Include="Configuration\CoreMessageServiceConfiguration.cs" />
-    <Compile Include="Configuration\EmailConfiguration.cs" />
-    <Compile Include="ContentScan\ContentScanValidator.cs" />
-    <Compile Include="ContentScan\ContentScanConfiguration.cs" />
-    <Compile Include="EntityStatusProcessor.cs" />
-    <Compile Include="Error.cs" />
-    <Compile Include="IValidatorProvider.cs" />
-    <Compile Include="PackageStatusProcessor.cs" />
-    <Compile Include="Services\MessageServiceConfiguration.cs" />
-    <Compile Include="Services\OrchestratorContentFileMetadataService.cs" />
-    <Compile Include="Services\SymbolsMessageService.cs" />
-    <Compile Include="SymbolsStatusProcessor.cs" />
-    <Compile Include="Symbols\ISymbolsIngesterMessageEnqueuer.cs" />
-    <Compile Include="Symbols\SymbolScanOnlyConfiguration.cs" />
-    <Compile Include="Symbols\SymbolCriteriaEvaluator.cs" />
-    <Compile Include="Symbols\SymbolScanValidator.cs" />
-    <Compile Include="Services\IEntityService.cs" />
-    <Compile Include="Services\IMessageService.cs" />
-    <Compile Include="IPackageStatusProcessor.cs" />
-    <Compile Include="Services\SymbolEntityService.cs" />
-    <Compile Include="Symbols\ISymbolsMessageEnqueuer.cs" />
-    <Compile Include="Symbols\SymbolsIngesterMessageEnqueuer.cs" />
-    <Compile Include="Symbols\SymbolsMessageEnqueuer.cs" />
-    <Compile Include="Symbols\SymbolsIngesterConfiguration.cs" />
-    <Compile Include="Symbols\SymbolsIngester.cs" />
-    <Compile Include="Symbols\SymbolsValidator.cs" />
-    <Compile Include="Symbols\SymbolsValidationConfiguration.cs" />
-    <Compile Include="ValidatingEntitites\IValidatingEntity.cs" />
-    <Compile Include="IValidationOutcomeProcessor.cs" />
-    <Compile Include="IValidationPackageFileService.cs" />
-    <Compile Include="IValidationSetProcessor.cs" />
-    <Compile Include="IValidationSetProvider.cs" />
-    <Compile Include="IValidationStorageService.cs" />
-    <Compile Include="Job.cs" />
-    <Compile Include="Services\PackageMessageService.cs" />
-    <Compile Include="OrchestrationRunner.cs" />
-    <Compile Include="Configuration\OrchestrationRunnerConfiguration.cs" />
-    <Compile Include="Services\PackageEntityService.cs" />
-    <Compile Include="PackageSigning\ProcessSignature\BaseSignatureProcessor.cs" />
-    <Compile Include="PackageSigning\ProcessSignature\IProcessSignatureEnqueuer.cs" />
-    <Compile Include="PackageSigning\ProcessSignature\PackageSignatureProcessor.cs" />
-    <Compile Include="PackageSigning\ProcessSignature\ProcessSignatureConfiguration.cs" />
-    <Compile Include="PackageSigning\ProcessSignature\ProcessSignatureEnqueuer.cs" />
-    <Compile Include="PackageSigning\ScanAndSign\ScanAndSignConfiguration.cs" />
-    <Compile Include="PackageSigning\ScanAndSign\ScanAndSignProcessor.cs" />
-    <Compile Include="PackageSigning\ValidateCertificate\IValidateCertificateEnqueuer.cs" />
-    <Compile Include="PackageSigning\ValidateCertificate\PackageCertificatesValidator.cs" />
-    <Compile Include="PackageSigning\ValidateCertificate\ValidateCertificateConfiguration.cs" />
-    <Compile Include="PackageSigning\ValidateCertificate\ValidateCertificateEnqueuer.cs" />
-    <Compile Include="PackageSigning\ProcessSignature\PackageSignatureValidator.cs" />
-    <Compile Include="PackageValidationMessageDataSerializer.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\AssemblyInfo.*.cs" />
-    <Compile Include="Telemetry\ITelemetryService.cs" />
-    <Compile Include="Telemetry\TelemetryService.cs" />
-    <Compile Include="Configuration\ValidationConfiguration.cs" />
-    <Compile Include="Configuration\ValidationConfigurationItem.cs" />
-    <Compile Include="ValidatingEntitites\SymbolPackageValidatingEntity.cs" />
-    <Compile Include="ValidatingEntitites\PackageValidatingEntity.cs" />
-    <Compile Include="ValidationFailureBehavior.cs" />
-    <Compile Include="SymbolValidationMessageHandler.cs" />
-    <Compile Include="ValidationPackageFileService.cs" />
-    <Compile Include="ValidationSetProcessorResult.cs" />
-    <Compile Include="Criteria\IPackageCriteria.cs" />
-    <Compile Include="Criteria\IPackageCriteriaEvaluator.cs" />
-    <Compile Include="Criteria\PackageCriteriaEvaluator.cs" />
-    <Compile Include="Criteria\PackageCriteria.cs" />
-    <Compile Include="PackageValidationMessageHandler.cs" />
-    <Compile Include="ValidationOutcomeProcessor.cs" />
-    <Compile Include="ValidationSetProcessor.cs" />
-    <Compile Include="ValidationSetProvider.cs" />
-    <Compile Include="ValidationStorageService.cs" />
-    <Compile Include="ValidatorProvider.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="README.md" />
-    <None Include="Scripts\Functions.ps1" />
-    <None Include="Scripts\PostDeploy.ps1" />
-    <None Include="Scripts\PreDeploy.ps1" />
-    <None Include="Validation.Orchestrator.nuspec" />
-    <None Include="Validation.SymbolsOrchestrator.nuspec" />
-    <None Include="Scripts\nssm.exe" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj">
-      <Project>{4b4b1efb-8f33-42e6-b79f-54e7f3293d31}</Project>
-      <Name>NuGet.Jobs.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Validation.Common.Job\Validation.Common.Job.csproj">
-      <Project>{fa87d075-a934-4443-8d0b-5db32640b6d7}</Project>
-      <Name>Validation.Common.Job</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Validation.ContentScan.Core\Validation.ContentScan.Core.csproj">
-      <Project>{912a81f7-f0d9-43ef-a589-9a341eb2d6b6}</Project>
-      <Name>Validation.ContentScan.Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj">
-      <Project>{91C060DA-736F-4DA9-A57F-CB3AC0E6CB10}</Project>
-      <Name>Validation.PackageSigning.Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Validation.ScanAndSign.Core\Validation.ScanAndSign.Core.csproj">
-      <Project>{dfac2769-4b67-4fbc-ad60-d93a39dd45ae}</Project>
-      <Name>Validation.ScanAndSign.Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Validation.Symbols.Core\Validation.Symbols.Core.csproj">
-      <Project>{17510a22-176f-4e96-a867-e79f1b54f54f}</Project>
-      <Name>Validation.Symbols.Core</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="MicroBuild.Core">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <SignPath>..\..\build</SignPath>
-    <SignPath Condition="'$(BUILD_SOURCESDIRECTORY)' != ''">$(BUILD_SOURCESDIRECTORY)\build</SignPath>
-    <SignPath Condition="'$(NuGetBuildPath)' != ''">$(NuGetBuildPath)</SignPath>
-    <SignType Condition="'$(SignType)' == ''">none</SignType>
+    <Description>Validation.Orchestrator organizes the progress of async package validation.</Description>
   </PropertyGroup>
-  <Import Condition="Exists('$(SignPath)\sign.targets')" Project="$(SignPath)\sign.targets" />
-  <Import Condition="Exists('$(SignPath)\sign.microbuild.targets')" Project="$(SignPath)\sign.microbuild.targets" />
-  <Import Condition="'$(NuGetBuildExtensions)' != '' And Exists('$(NuGetBuildExtensions)')" Project="$(NuGetBuildExtensions)" />
+  <ItemGroup>
+    <Reference Include="System.Configuration" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Validation.Common.Job\Validation.Common.Job.csproj" />
+    <ProjectReference Include="..\Validation.ContentScan.Core\Validation.ContentScan.Core.csproj" />
+    <ProjectReference Include="..\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj" />
+    <ProjectReference Include="..\Validation.ScanAndSign.Core\Validation.ScanAndSign.Core.csproj" />
+    <ProjectReference Include="..\Validation.Symbols.Core\Validation.Symbols.Core.csproj" />
+  </ItemGroup>
 </Project>

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -94,7 +94,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             // Fetch the download data from the auxiliary file, since this is what is used for displaying download
             // counts in the search service. We don't use the gallery DB values as they are different from the
             // auxiliary file.
-            var downloads = await _downloadsV1JsonClient.ReadAsync(_options.Value.DownloadsV1JsonUrl);
+            var downloads = await _downloadsV1JsonClient.ReadAsync();
             var popularityTransfers = await GetPopularityTransfersAsync();
 
             // Apply changes from popularity transfers.

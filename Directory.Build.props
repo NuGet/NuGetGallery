@@ -1,9 +1,0 @@
-<Project>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-  </ItemGroup>
-  <Import Condition="'$(NuGetCodeAnalyzerExtensions)' != '' And Exists('$(NuGetCodeAnalyzerExtensions)')" Project="$(NuGetCodeAnalyzerExtensions)" />
-</Project>

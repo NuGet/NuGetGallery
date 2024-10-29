@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -6,9 +6,9 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Storage.Blobs;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.V3;
@@ -72,12 +72,14 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             var frontCursorUri = frontCursorStorage.ResolveUri(CursorRelativeUri);
             var frontCursor = new DurableCursor(frontCursorUri, frontCursorStorage, DateTime.MinValue);
 
+            // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
+            var connectionString = _options.Value.StorageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+
             // Log information about where state will be kept.
             _logger.LogInformation(
                 "Using storage URL: {ContainerUrl}/{StoragePath}",
-                CloudStorageAccount.Parse(_options.Value.StorageConnectionString)
-                    .CreateCloudBlobClient()
-                    .GetContainerReference(_options.Value.StorageContainer)
+                new BlobServiceClient(connectionString)
+                    .GetBlobContainerClient(_options.Value.StorageContainer)
                     .Uri
                     .AbsoluteUri,
                 _options.Value.NormalizeStoragePath());

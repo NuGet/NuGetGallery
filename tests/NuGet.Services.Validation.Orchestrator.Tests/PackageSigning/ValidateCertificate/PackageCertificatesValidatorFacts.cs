@@ -11,7 +11,6 @@ using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.Storage;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGet.Services.Validation.PackageSigning.ValidateCertificate;
-using Tests.ContextHelpers;
 using Xunit;
 
 namespace NuGet.Services.Validation.PackageSigning

@@ -1,0 +1,150 @@
+{
+  "Features": {
+    "NuGetGallery.Typosquatting": "Enabled",
+    "NuGetGallery.PackagesAtomFeed": "Enabled",
+    "NuGetGallery.PreviewHijack": "Enabled",
+    "NuGetGallery.GravatarProxy": "Enabled",
+    "NuGetGallery.GravatarProxyEnSubdomain": "Enabled",
+    "NuGetGallery.ODataCacheDurations": "Enabled",
+    "NuGetGallery.ShowEnable2FADialog": "Enabled",
+    "NuGetGallery.Get2FADismissFeedback": "Disabled",
+    "NuGetGallery.ODataV1GetAllNonHijacked": "Enabled",
+    "NuGetGallery.ODataV1GetAllCountNonHijacked": "Enabled",
+    "NuGetGallery.ODataV1GetSpecificNonHijacked": "Enabled",
+    "NuGetGallery.ODataV1FindPackagesByIdNonHijacked": "Enabled",
+    "NuGetGallery.ODataV1FindPackagesByIdCountNonHijacked": "Enabled",
+    "NuGetGallery.ODataV1SearchNonHijacked": "Enabled",
+    "NuGetGallery.ODataV1SearchCountNonHijacked": "Enabled",
+    "NuGetGallery.ODataV2GetAllNonHijacked": "Enabled",
+    "NuGetGallery.ODataV2GetAllCountNonHijacked": "Enabled",
+    "NuGetGallery.ODataV2GetSpecificNonHijacked": "Enabled",
+    "NuGetGallery.ODataV2FindPackagesByIdNonHijacked": "Enabled",
+    "NuGetGallery.ODataV2FindPackagesByIdCountNonHijacked": "Enabled",
+    "NuGetGallery.ODataV2SearchNonHijacked": "Enabled",
+    "NuGetGallery.ODataV2SearchCountNonHijacked": "Enabled",
+    "NuGetGallery.DisplayVulnerabilities": "Enabled",
+    "NuGetGallery.ManagePackagesVulnerabilities": "Enabled",
+    "NuGetGallery.DisplayFuGetLinks": "Enabled",
+    "NuGetGallery.DisplayNuGetPackageExplorerLink": "Enabled",
+    "NuGetGallery.DisplayNuGetTrendsLink": "Enabled",
+    "NuGetGallery.PatternSetTfmHeuristics": "Enabled",
+    "NuGetGallery.EmbeddedIcons": "Enabled",
+    "NuGetGallery.MarkdigMdRendering": "Enabled",
+    "NuGetGallery.MarkdigMdSyntaxHighlight": "Enabled",
+    "NuGetGallery.ImageAllowlist": "Enabled",
+    "NuGetGallery.ShowReportAbuseSafetyChanges": "Enabled",
+    "NuGetGallery.ComputeTargetFramework": "Enabled",
+    "NuGetGallery.NewAccount2FAEnforcement": "Disabled",
+    "NuGetGallery.NuGetAccountPasswordLogin": "Enabled"
+  },
+  "Flights": {
+    "NuGetGallery.TyposquattingFlight": {
+      "All": true,
+      "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
+    },
+    "NuGetGallery.ManageDeprecation": {
+      "All": false,
+      "SiteAdmins": true,
+      "Accounts": [],
+      "Domains": []
+    },
+    "NuGetGallery.SearchSideBySide": {
+      "All": true,
+      "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
+    },
+    "NuGetGallery.GitHubUsage": {
+      "All": false,
+      "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
+    },
+    "NuGetGallery.ABTesting": {
+      "All": true,
+      "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
+    },
+    "NuGetGallery.ManageDeprecationApi": {
+      "All": true,
+      "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
+    },
+    "NuGetGallery.PackageDependents": {
+      "All": true,
+      "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
+    },
+    "NuGetGallery.LicenseMdRendering": {
+      "All": true,
+      "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
+    },
+    "NuGetGallery.DeletePackageApi": {
+      "All": false,
+      "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
+    },
+    "NuGetGallery.EmbeddedIcons": {
+      "All": true,
+      "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
+    },
+    "NuGetGallery.EmbeddedReadmes": {
+      "All": true,
+      "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
+    },
+    "NuGetGallery.DisplayTargetFramework": {
+      "All": true,
+      "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
+    },
+    "NuGetGallery.DisplayUploadWarningV2": {
+      "All": true,
+      "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
+    },
+    "NuGetGallery.AdvancedSearch": {
+      "All": true,
+      "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
+    },
+    "NuGetGallery.FrameworkFiltering": {
+      "All": true,
+      "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
+    },
+    "NuGetGallery.DisplayPackageReadmeWarning": {
+      "All": true,
+      "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
+    },
+    "NuGetGallery.DisplayTfmBadges": {
+      "All": true,
+      "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
+    },
+    "NuGetGallery.AdvancedFrameworkFiltering": {
+      "All": true,
+      "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
+    }
+  }
+}

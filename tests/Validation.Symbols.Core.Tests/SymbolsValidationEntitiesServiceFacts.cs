@@ -25,10 +25,10 @@ namespace Validation.Symbols.Core.Tests
             }
 
             [Fact]
-            public void NullChecks()
+            public async Task NullChecks()
             {
                 // Arrange + Act + Assert
-                Assert.ThrowsAsync< ArgumentNullException>(() => _target.AddSymbolsServerRequestAsync(null));
+                await Assert.ThrowsAsync< ArgumentNullException>(() => _target.AddSymbolsServerRequestAsync(null));
             }
 
             [Fact]
@@ -110,10 +110,10 @@ namespace Validation.Symbols.Core.Tests
             }
 
             [Fact]
-            public void NullChecks()
+            public async Task NullChecks()
             {
                 // Arrange + Act + Assert
-                Assert.ThrowsAsync<ArgumentNullException>(() => _target.TryUpdateSymbolsServerRequestAsync(null, SymbolsPackageIngestRequestStatus.Ingested));
+                await Assert.ThrowsAsync<ArgumentNullException>(() => _target.TryUpdateSymbolsServerRequestAsync(null, SymbolsPackageIngestRequestStatus.Ingested));
             }
 
             [Fact]

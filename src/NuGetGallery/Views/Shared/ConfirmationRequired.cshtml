@@ -1,0 +1,72 @@
+﻿@model ConfirmationViewModel
+@{
+    ViewBag.Title = "Confirm Your "
+        + (Model.IsOrganization ? "Organization " : "")
+        + (Model.ConfirmingNewAccount ? "Account" : "Email");
+    ViewBag.SmPageColumns = GalleryConstants.ColumnsWideAuthenticationSm;
+    ViewBag.MdPageColumns = GalleryConstants.ColumnsWideAuthenticationMd;
+
+    if (Model.IsOrganization)
+    {
+        ViewBag.AlreadyConfirmedMessage = "Your organization email address has already been confirmed.";
+        ViewBag.ConfirmationSentMessage = "A confirmation link was sent to your organization ({0}) when the "
+            + (Model.ConfirmingNewAccount ? "account was created " : "email was changed")
+            + ". Please click on that link to verify your organization email address.";
+    }
+    else
+    {
+        ViewBag.AlreadyConfirmedMessage = "Your email address has already been confirmed.";
+        ViewBag.ConfirmationSentMessage = "A confirmation link was sent to you ({0}) when you "
+            + (Model.ConfirmingNewAccount ? "created your account" : "changed your email")
+            + ". Please click on that link to verify your email address.";
+    }
+}
+
+<section role="main" class="container main-container">
+    <div class="row">
+        <div class="col-sm-12">
+            @if (Model.SentEmail)
+            {
+                <h1 class="text-center">Confirmation Email Sent</h1>
+            }
+            else
+            {
+                <h1 class="text-center">@ViewBag.Title</h1>
+            }
+        </div>
+    </div>
+    <div class="row">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+            @if (Model.SentEmail)
+            {
+                <p class="text-center">
+                    Please make sure to check your spam folder if you did not receive the confirmation email.
+                </p>
+            }
+            else
+            {
+                if (TempData.ContainsKey("ConfirmationRequiredMessage"))
+                {
+                    @ViewHelpers.AlertInfo(@<text>@((string)TempData["ConfirmationRequiredMessage"])</text>)
+                }
+
+                if (Model.AlreadyConfirmed)
+                {
+                    <p class="text-center">@ViewBag.AlreadyConfirmedMessage</p>
+                }
+                else
+                {
+                    <p class="text-center">@string.Format(ViewBag.ConfirmationSentMessage, Model.UnconfirmedEmailAddress)</p>
+                    <p class="text-center">
+                        If you cannot find this email (be sure to check your spam folder), you can resend the confirmation email.
+                    </p>
+                    <p class="text-center">
+                        If you're still having trouble, you can <a class="ms-noWrap" href="mailto:@Config.Current.GalleryOwner.Address">contact support.</a>
+                    </p>
+
+                    @Html.Partial("_ConfirmationResendForm");
+                }
+            }
+        </div>
+    </div>
+</section>

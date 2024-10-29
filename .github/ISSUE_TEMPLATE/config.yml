@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: NuGet.org Account Sign In Issue
+    url: https://www.nuget.org/policies/Contact
+    about: If you cannot sign in to NuGet.org, please read our support page or support@nuget.org instead of creating an issue (to avoid private information in public GitHub issues).
+  - name: NuGet Client Issue Tracker
+    url: https://github.com/NuGet/Home/issues/new/choose
+    about: Please file issues about the NuGet Client here.
+  - name: Report Security Issue
+    url: https://msrc.microsoft.com/
+    about: Is your issue related to security? Please submit it securely through MSRC.

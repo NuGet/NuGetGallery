@@ -1,123 +1,17 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="15.0">
-  <Import Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{A3B0B15D-22D9-4F1F-94C4-B24B28ECF632}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NuGet.Services.Validation.Orchestrator.Tests</RootNamespace>
-    <AssemblyName>NuGet.Services.Validation.Orchestrator.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <TargetFrameworkProfile />
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+    <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="BaseValidationMessageHandlerFacts.cs" />
-    <Compile Include="Configuration\ConfigurationValidatorFacts.cs" />
-    <Compile Include="Configuration\CoreMessageServiceConfigurationFacts.cs" />
-    <Compile Include="Configuration\TopologicalSortFacts.cs" />
-    <Compile Include="Services\SymbolsMessageServiceFacts.cs" />
-    <Compile Include="Services\MessageServiceFacts.cs" />
-    <Compile Include="OrchestrationRunnerFacts.cs" />
-    <Compile Include="PackageValidatingEntityFacts.cs" />
-    <Compile Include="PackageSigning\ProcessSignature\PackageSignatureValidatorFacts.cs" />
-    <Compile Include="PackageSigning\ValidateCertificate\CertificateVerificationEnqueuerFacts.cs" />
-    <Compile Include="PackageSigning\ValidateCertificate\PackageCertificatesValidatorFacts.cs" />
-    <Compile Include="PackageSigning\ProcessSignature\PackageSignatureVerificationEnqueuerFacts.cs" />
-    <Compile Include="PackageSigning\ProcessSignature\PackageSignatureProcessorFacts.cs" />
-    <Compile Include="PackageStatusProcessorFacts.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Symbol\SymbolIngesterMessageEnqueuerFacts.cs" />
-    <Compile Include="Symbol\SymbolPackageValidatingEntityFacts.cs" />
-    <Compile Include="Symbol\SymbolMessageEnqueuerFacts.cs" />
-    <Compile Include="Services\SymbolEntityServiceFacts.cs" />
-    <Compile Include="Symbol\SymbolScanValidatorFacts.cs" />
-    <Compile Include="Symbol\SymbolsIngesterFacts.cs" />
-    <Compile Include="Symbol\SymbolsStatusProcessorFacts.cs" />
-    <Compile Include="Symbol\SymbolValidatorFacts.cs" />
-    <Compile Include="TelemetryServiceFacts.cs" />
-    <Compile Include="SymbolValidationMessageHandlerFacts.cs" />
-    <Compile Include="ValidationMessageHandlerFacts.cs" />
-    <Compile Include="ValidationOutcomeProcessorFacts.cs" />
-    <Compile Include="ValidationPackageFileServiceFacts.cs" />
-    <Compile Include="ValidationProviderFacts.cs" />
-    <Compile Include="ValidationSetProcessorFacts.cs" />
-    <Compile Include="ValidationSetProviderFacts.cs" />
-    <Compile Include="ValidationStorageServiceFacts.cs" />
-    <Compile Include="Services\PackageEntityServiceFacts.cs" />
-    <Compile Include="ValidatorStateServiceFacts.cs" />
-    <Compile Include="Criteria\PackageCriteriaEvaluatorFacts.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Moq" />
-    <PackageReference Include="xunit" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit.runner.visualstudio">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\NuGet.Services.Validation.Orchestrator\NuGet.Services.Validation.Orchestrator.csproj">
-      <Project>{E6D094FB-9068-4578-B176-116F97E7506B}</Project>
-      <Name>NuGet.Services.Validation.Orchestrator</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\src\Validation.Common.Job\Validation.Common.Job.csproj">
-      <Project>{fa87d075-a934-4443-8d0b-5db32640b6d7}</Project>
-      <Name>Validation.Common.Job</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\src\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj">
-      <Project>{91C060DA-736F-4DA9-A57F-CB3AC0E6CB10}</Project>
-      <Name>Validation.PackageSigning.Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\src\Validation.ScanAndSign.Core\Validation.ScanAndSign.Core.csproj">
-      <Project>{dfac2769-4b67-4fbc-ad60-d93a39dd45ae}</Project>
-      <Name>Validation.ScanAndSign.Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\src\Validation.Symbols.Core\Validation.Symbols.Core.csproj">
-      <Project>{17510a22-176f-4e96-a867-e79f1b54f54f}</Project>
-      <Name>Validation.Symbols.Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\TestUtil\TestUtil.csproj">
-      <Project>{c3f84bad-acfa-4ae3-8286-d12f5a5bbc62}</Project>
-      <Name>TestUtil</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Validation.PackageSigning.Helpers\Tests.ContextHelpers.csproj">
-      <Project>{2c5be067-adfd-49e3-ba9f-13a74436e5db}</Project>
-      <Name>Tests.ContextHelpers</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\src\NuGet.Services.Validation.Orchestrator\NuGet.Services.Validation.Orchestrator.csproj" />
+    <ProjectReference Include="..\TestUtil\TestUtil.csproj" />
+    <ProjectReference Include="..\Validation.PackageSigning.Helpers\Tests.ContextHelpers.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

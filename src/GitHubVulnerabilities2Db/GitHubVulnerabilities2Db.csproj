@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Description>Background job to ingest GitHub vulnerability data into Gallery database.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Update="GitHubVulnerabilities2Db.nuspec">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Scripts\*" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Cursor\NuGet.Services.Cursor.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Github\NuGet.Services.GitHub.csproj" />
+    <ProjectReference Include="..\NuGetGallery.Services\NuGetGallery.Services.csproj" />
+  </ItemGroup>
+</Project>

@@ -492,7 +492,7 @@ namespace NuGet.Jobs.Catalog2Registration
                     }
                 },
                 _options.Value.MaxConcurrentOperationsPerHive);
-            _logger.LogInformation("Done deleting orphan blobs.", orphanUrls.Count);
+            _logger.LogInformation("Done deleting {Count} orphan blobs.", orphanUrls.Count);
         }
     }
 }

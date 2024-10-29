@@ -1,0 +1,132 @@
+﻿@model GalleryHomeViewModel
+@{
+    ViewBag.Title = "Home";
+    ViewBag.ShowSearchInNavbar = false;
+    ViewBag.AutofocusSearch = true;
+    ViewBag.HasJumbotron = true;
+    var AskUserToEnable2FA = TempData.ContainsKey("AskUserToEnable2FA")
+        && Convert.ToBoolean(TempData["AskUserToEnable2FA"].ToString())
+        && Model.ShowEnable2FAModalFeatureEnabled;
+}
+
+@section SocialMeta {
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@("@nuget")">
+
+    <meta property="og:title" content="@(Config.Current.Brand) @(String.IsNullOrWhiteSpace(ViewBag.Title) ? "" : "| " + ViewBag.Title)" />
+    <meta property="og:url" content="@(Url.Home(relativeUrl: false))" />
+    <meta property="og:description" content="The NuGet Gallery is the central package repository for NuGet, the package manager for .NET." />
+    <meta property="og:image" content="@(Url.Absolute("~/Content/gallery/img/logo-og-600x600.png"))" />
+}
+
+@if (Model.ShowTransformModal)
+{
+    <script type="text/javascript">
+        window.showModal = true;
+    </script>
+    <div id="popUpModal" role="dialog" class="modal fade modal-container" data-backdrop="static" tabindex="-1">
+        @Html.Partial("_TransformOrLink", Model)
+    </div>
+}
+else if (AskUserToEnable2FA)
+{
+    <script type="text/javascript">
+        window.show2FAModal = true;
+    </script>
+    <div id="popUp2FAModal" class="modal fade modal-container" data-backdrop="static">
+        @Html.Partial("_Enable2FA", Model)
+    </div>
+}
+
+<section role="main" class="page-home">
+    <div class="jumbotron text-center">
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <h1 class="large-title">Create .NET apps faster with NuGet</h1>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-8 col-sm-offset-2">
+                    <form action="@Url.PackageList()" method="get">
+                        @Html.Partial("_SearchBar")
+                        @Html.Partial("_AutocompleteTemplate")
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="circuit-board hidden-xs" role="img" data-bind="attr: { 'aria-label': label }">
+            <div class="circuit-board-label circuit-board-pd triangle">
+                <span class="ms-font-xxl" data-bind="animateNumber: packageDownloads">0</span>
+                <br />
+                <span class="ms-fontSize-l">package downloads</span>
+            </div>
+            <div class="circuit-board-label circuit-board-pv triangle">
+                <span class="ms-font-xxl" data-bind="animateNumber: packageVersions">0</span>
+                <br />
+                <span class="ms-fontSize-l">package versions</span>
+            </div>
+            <div class="circuit-board-label circuit-board-up triangle">
+                <span class="ms-font-xxl" data-bind="animateNumber: uniquePackages">0</span>
+                <br />
+                <span class="ms-fontSize-l">unique packages</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container text-center what-is-nuget">
+        <div class="row">
+            <h2>What is NuGet?</h2>
+            <p>
+                NuGet is the package manager for .NET. The NuGet client tools provide the ability to produce and consume packages.
+                The NuGet Gallery is the central package repository used by all package authors and consumers.
+            </p>
+        </div>
+        <div class="row row-gap">
+            <div class="col-sm-4">
+                <a href="https://docs.microsoft.com/nuget/quickstart/use-a-package"
+                   title="Learn about how to use NuGet packages">
+                    <div class="home-icons">
+                        <img src="@Url.Absolute("~/Content/gallery/img/book-open-icon.svg")" alt="Learn to use packages" width="96" height="96" />
+                    </div>
+                    <h3>Learn</h3>
+                </a>
+                <p>
+                    New to NuGet? Start with a walkthrough showing how NuGet powers your .NET development.
+                </p>
+            </div>
+            <div class="col-sm-4">
+                <a href="@Url.PackageList()"
+                   title="Explore packages available on NuGet.org">
+                    <div class="home-icons">
+                        <img src="@Url.Absolute("~/Content/gallery/img/search-icon.svg")" alt="Find packages" width="96" height="96" />
+                    </div>
+                    <h3>Explore</h3>
+                </a>
+                <p>
+                    Browse the thousands of packages that developers like you have created and shared with the .NET community.
+                </p>
+            </div>
+            <div class="col-sm-4">
+                <a href="https://docs.microsoft.com/nuget/quickstart/create-and-publish-a-package"
+                   title="Learn how to create a NuGet package">
+                    <div class="home-icons">
+                        <img src="@Url.Absolute("~/Content/gallery/img/rocket-icon.svg")" alt="Learn to create packages" width="96" height="96" />
+                    </div>
+                    <h3>Create</h3>
+                </a>
+                <p>
+                    Want to make your first NuGet package and share it with the community? Start with this walkthrough!
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section BottomScripts {
+    <script type="text/javascript">
+        var feedbackUrl = "@Url.Send2FAFeedback()";
+        var changeMultiFactorAuthenticationUrl = "@Url.ChangeMultiFactorAuthentication()";
+    </script>
+    @Scripts.Render("~/Scripts/gallery/page-home.min.js")
+}

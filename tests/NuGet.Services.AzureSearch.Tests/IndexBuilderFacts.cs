@@ -1,9 +1,8 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Azure;
@@ -35,7 +34,7 @@ namespace NuGet.Services.AzureSearch
                 await _target.CreateAsync(retryOnConflict);
 
                 VerifyGetContainer();
-                _cloudBlobContainer.Verify(x => x.CreateAsync(true), Times.Once);
+                _cloudBlobContainer.Verify(x => x.CreateAsync(false), Times.Once);
                 _cloudBlobContainer.Verify(x => x.CreateIfNotExistAsync(It.IsAny<bool>()), Times.Never);
                 _cloudBlobContainer.Verify(x => x.DeleteIfExistsAsync(), Times.Never);
             }
@@ -45,12 +44,9 @@ namespace NuGet.Services.AzureSearch
             {
                 EnableConflict();
 
-                var sw = Stopwatch.StartNew();
                 await _target.CreateAsync(retryOnConflict: true);
-                sw.Stop();
 
-                _cloudBlobContainer.Verify(x => x.CreateAsync(true), Times.Exactly(2));
-                Assert.InRange(sw.Elapsed, _retryDuration, TimeSpan.MaxValue);
+                _cloudBlobContainer.Verify(x => x.CreateAsync(false), Times.Exactly(2));
             }
 
             [Fact]
@@ -76,7 +72,7 @@ namespace NuGet.Services.AzureSearch
                 await _target.CreateIfNotExistsAsync();
 
                 VerifyGetContainer();
-                _cloudBlobContainer.Verify(x => x.CreateAsync(true), Times.Once);
+                _cloudBlobContainer.Verify(x => x.CreateAsync(false), Times.Once);
                 _cloudBlobContainer.Verify(x => x.CreateIfNotExistAsync(It.IsAny<bool>()), Times.Never);
                 _cloudBlobContainer.Verify(x => x.DeleteIfExistsAsync(), Times.Never);
             }
@@ -160,7 +156,7 @@ namespace NuGet.Services.AzureSearch
             {
                 _cloudBlobContainer
                     .SetupSequence(x => x.CreateAsync(It.IsAny<bool>()))
-                    .Throws(new CloudBlobConflictException(null))
+                    .ThrowsAsync(new CloudBlobConflictException(null))
                     .Returns(Task.CompletedTask);
             }
 
@@ -219,7 +215,7 @@ namespace NuGet.Services.AzureSearch
                 Assert.Equal(4.0, result.TextWeights.Weights[IndexFields.TokenizedPackageId]);
 
                 // Verify boosting functions
-                Assert.Equal(1, result.Functions.Count);
+                Assert.Single(result.Functions);
                 var downloadsBoost = result
                     .Functions
                     .Where(f => f.FieldName == IndexFields.Search.DownloadScore)

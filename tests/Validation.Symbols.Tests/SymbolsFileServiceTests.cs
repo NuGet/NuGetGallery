@@ -81,7 +81,7 @@ namespace Validation.Symbols.Tests
         }
 
         [Fact]
-        public void DownloadNupkgFileAsyncThowsIfNotFound()
+        public async Task DownloadNupkgFileAsyncThowsIfNotFound()
         {
             // Arrange
             var service = new SymbolsFileService(_packageStorageService.Object, _packageValidationStorageService.Object, _fileDownloader.Object);
@@ -89,7 +89,7 @@ namespace Validation.Symbols.Tests
             _packageValidationStorageService.Setup(pvss => pvss.FileExistsAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(false);
 
             // Act + Assert
-            Assert.ThrowsAsync<FileNotFoundException>(() => service.DownloadNupkgFileAsync(PackageId, PackageNormalizedVersion, CancellationToken.None));
+            await Assert.ThrowsAsync<FileNotFoundException>(() => service.DownloadNupkgFileAsync(PackageId, PackageNormalizedVersion, CancellationToken.None));
         }
     }
 }

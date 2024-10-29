@@ -58,7 +58,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 }
 
                 var memoryStream = new MemoryStream();
-                memoryStream.Write(reference.Value, 0, reference.Value.Length);
+                await memoryStream.WriteAsync(reference.Value, 0, reference.Value.Length);
                 return memoryStream;
             }
             finally
@@ -136,7 +136,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 output);
 
             var memoryStream = new MemoryStream();
-            memoryStream.Write(packageBytes, 0, packageBytes.Length);
+            await memoryStream.WriteAsync(packageBytes, 0, packageBytes.Length);
             return memoryStream;
         }
 
@@ -172,7 +172,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 output);
 
             var memoryStream = new MemoryStream();
-            memoryStream.Write(packageBytes, 0, packageBytes.Length);
+            await memoryStream.WriteAsync(packageBytes, 0, packageBytes.Length);
             return memoryStream;
         }
 

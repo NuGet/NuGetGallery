@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using NuGet.Services.Metadata.Catalog.Monitoring;
@@ -98,6 +98,19 @@ namespace Ng
         /// is the instance identifier, e.g. "usnc-a".
         /// </summary>
         public const string SearchCursorUriPrefix = "searchCursorUri-";
+
+        /// <summary>
+        /// The argument prefix for the cursor SAS token of a <see cref="SearchEndpoint"/> cursor.
+        /// This is used in conjunction with the <see cref="SearchBaseUriPrefix"/> argument with same suffix for authentication with blob storage.
+        /// </summary>
+        public const string SearchCursorSasValuePrefix = "searchCursorSasValue-";
+
+        /// <summary>
+        /// The argument prefix to enable using a token credential for a <see cref="SearchEndpoint"/> cursor.
+        /// This is used in conjunction with the <see cref="SearchBaseUriPrefix"/> argument with same suffix for authentication with blob storage.
+        /// If <see cref="ClientId"/> is specified, a managed identity credential will be used. Otherwise, a default Azure credential will be used.
+        /// </summary>
+        public const string SearchCursorUseManagedIdentityPrefix = "searchCursorUseManagedIdentity-";
 
         /// <summary>
         /// The argument prefix for the base URL of a <see cref="SearchEndpoint"/>. There should be the same number of

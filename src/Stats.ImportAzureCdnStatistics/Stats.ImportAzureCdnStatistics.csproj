@@ -1,121 +1,22 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="15.0">
-  <Import Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
-  <Import Project="..\..\sign.thirdparty.props" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{5B0D3EC6-4326-47A7-AEE1-CC67D07D5C84}</ProjectGuid>
+    <TargetFramework>net472</TargetFramework>
     <OutputType>Exe</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Stats.ImportAzureCdnStatistics</RootNamespace>
-    <AssemblyName>Stats.ImportAzureCdnStatistics</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <TargetFrameworkProfile />
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="ICSharpCode.SharpZipLib">
       <HintPath>$(MSBuildProjectDirectory)\..\..\external\ICSharpCode.SharpZipLib.0.86.0\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Web" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ApplicationInsightsHelper.cs" />
-    <Compile Include="Configuration\ImportAzureCdnStatisticsConfiguration.cs" />
-    <Compile Include="IPackageStatisticsParser.cs" />
-    <Compile Include="IStatisticsBlobContainerUtility.cs" />
-    <Compile Include="StatisticsBlobContainerUtility.cs" />
-    <Compile Include="Dimensions\IpAddressFact.cs" />
-    <Compile Include="IStatisticsWarehouse.cs" />
-    <Compile Include="LogFileAggregates.cs" />
-    <Compile Include="UserAgentFactTableType.cs" />
-    <Compile Include="ClientDimensionTableType.cs" />
-    <Compile Include="Dimensions\ToolDimension.cs" />
-    <Compile Include="Dimensions\UserAgentFact.cs" />
-    <Compile Include="LogFileProvider.cs" />
-    <Compile Include="Dimensions\ClientDimension.cs" />
-    <Compile Include="LogFileProcessor.cs" />
-    <Compile Include="Dimensions\DimensionId.cs" />
-    <Compile Include="ILeasedLogFile.cs" />
-    <Compile Include="PackageStatisticsParser.cs" />
-    <Compile Include="Dimensions\PlatformDimension.cs" />
-    <Compile Include="DataImporter.cs" />
-    <Compile Include="Dimensions\DateDimension.cs" />
-    <Compile Include="ImportAzureCdnStatisticsJob.cs" />
-    <Compile Include="Dimensions\PackageDimension.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SqlQueries.cs" />
-    <Compile Include="Dimensions\TimeDimension.cs" />
-    <Compile Include="StatisticsParser.cs" />
-    <Compile Include="ToolStatisticsParser.cs" />
-    <Compile Include="Warehouse.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
     <None Include="Scripts\*" />
-    <None Include="Stats.ImportAzureCdnStatistics.nuspec" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj">
-      <Project>{4B4B1EFB-8F33-42E6-B79F-54E7F3293D31}</Project>
-      <Name>NuGet.Jobs.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Stats.AzureCdnLogs.Common\Stats.AzureCdnLogs.Common.csproj">
-      <Project>{F72C31A7-424D-48C6-924C-EBFD4BE0918B}</Project>
-      <Name>Stats.AzureCdnLogs.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Stats.LogInterpretation\Stats.LogInterpretation.csproj">
-      <Project>{158e68fa-d06a-458a-9766-032d9c80f5a7}</Project>
-      <Name>Stats.LogInterpretation</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj" />
+    <ProjectReference Include="..\Stats.AzureCdnLogs.Common\Stats.AzureCdnLogs.Common.csproj" />
+    <ProjectReference Include="..\Stats.LogInterpretation\Stats.LogInterpretation.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.Services.Client" />
     <PackageReference Include="NuGet.Versioning" />
-    <PackageReference Include="MicroBuild.Core">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <SignPath>..\..\build</SignPath>
-    <SignPath Condition="'$(BUILD_SOURCESDIRECTORY)' != ''">$(BUILD_SOURCESDIRECTORY)\build</SignPath>
-    <SignPath Condition="'$(NuGetBuildPath)' != ''">$(NuGetBuildPath)</SignPath>
-    <SignType Condition="'$(SignType)' == ''">none</SignType>
-  </PropertyGroup>
-  <Import Condition="Exists('$(SignPath)\sign.targets')" Project="$(SignPath)\sign.targets" />
-  <Import Condition="Exists('$(SignPath)\sign.microbuild.targets')" Project="$(SignPath)\sign.microbuild.targets" />
-  <Import Condition="'$(NuGetBuildExtensions)' != '' And Exists('$(NuGetBuildExtensions)')" Project="$(NuGetBuildExtensions)" />
 </Project>

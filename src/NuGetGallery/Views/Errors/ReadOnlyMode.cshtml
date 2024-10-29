@@ -1,0 +1,8 @@
+﻿@{
+    ViewBag.Title = "Read-only Mode";
+    Response.StatusCode = 503;
+}
+
+@ViewHelpers.ErrorPage(Url, Html, "503", "Read-only Mode", @<text>
+<p>We can't process the request right now because the site is temporarily in read-only mode. Please try again later!</p></text>, @<text>
+<p>You can still search and download packages while we address temporary technical problems.</p></text>)

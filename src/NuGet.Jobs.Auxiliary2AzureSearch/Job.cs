@@ -1,11 +1,11 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using NuGet.Services.AzureSearch;
 using NuGet.Services.AzureSearch.Auxiliary2AzureSearch;
-using NuGet.Services.AzureSearch.AuxiliaryFiles;
 
 namespace NuGet.Jobs
 {
@@ -20,6 +20,11 @@ namespace NuGet.Jobs
             services.Configure<Auxiliary2AzureSearchConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
             services.Configure<AzureSearchJobConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
             services.Configure<AzureSearchConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
+            services.AddDownloadsV1JsonClient(provider =>
+            {
+                var jsonConfigurationAccessor = provider.GetRequiredService<IOptionsSnapshot<Auxiliary2AzureSearchConfiguration>>();
+                return jsonConfigurationAccessor.Value.DownloadsV1JsonUrl;
+            });
         }
     }
 }

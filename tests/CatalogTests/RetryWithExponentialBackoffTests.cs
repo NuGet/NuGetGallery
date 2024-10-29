@@ -7,17 +7,13 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
 using Moq;
-using NgTests.Infrastructure;
 using NuGet.Services;
 using NuGet.Services.Metadata.Catalog;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace CatalogTests
 {

@@ -35,7 +35,7 @@ namespace StatusAggregator.Tests.Manual
                     Timestamp = new DateTimeOffset(2018, 8, 21, 0, 0, 0, TimeSpan.Zero)
                 };
 
-                var time = entity.Timestamp.UtcDateTime;
+                var time = entity.Timestamp.Value.UtcDateTime;
                 var eventRowKey = EventEntity.GetRowKey(entity.EventAffectedComponentPath, entity.EventStartTime);
 
                 _table
@@ -80,7 +80,7 @@ namespace StatusAggregator.Tests.Manual
                     Timestamp = new DateTimeOffset(2018, 8, 21, 0, 0, 0, TimeSpan.Zero)
                 };
 
-                var time = entity.Timestamp.UtcDateTime;
+                var time = entity.Timestamp.Value.UtcDateTime;
                 var existingEntity =
                     new EventEntity(
                         entity.EventAffectedComponentPath,

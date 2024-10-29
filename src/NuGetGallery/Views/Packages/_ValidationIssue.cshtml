@@ -1,0 +1,91 @@
+﻿@using NuGet.Services.Validation
+@using NuGet.Services.Validation.Issues
+@model ValidationIssue
+
+@switch (Model.IssueCode)
+{
+    case ValidationIssueCode.PackageIsSigned:
+        <text>
+            We do not accept signed packages at this moment. To be notified about package signing and more, watch our
+            <a href="https://github.com/nuget/announcements/issues">Announcements</a> page or follow us on
+            <a href="https://twitter.com/nuget">Twitter</a>.
+        </text>
+        break;
+    case ValidationIssueCode.ClientSigningVerificationFailure:
+        {
+            var typedIssue = (ClientSigningVerificationFailure)Model;
+            <text>
+                <b>@typedIssue.ClientCode:</b> @typedIssue.ClientMessage
+            </text>
+        }
+        break;
+    case ValidationIssueCode.PackageIsZip64:
+        <text>
+            Zip64 packages are not supported.
+        </text>
+        break;
+    case ValidationIssueCode.OnlyAuthorSignaturesSupported:
+        <text>
+            Signed packages must only have an author signature. Other signature types are not supported.
+        </text>
+        break;
+    case ValidationIssueCode.AuthorAndRepositoryCounterSignaturesNotSupported:
+        <text>
+            Author countersignatures and repository countersignatures are not supported.
+        </text>
+        break;
+    case ValidationIssueCode.OnlySignatureFormatVersion1Supported:
+        <text>
+            <b>NU3007:</b> Package signatures must have format version 1.
+        </text>
+        break;
+    case ValidationIssueCode.AuthorCounterSignaturesNotSupported:
+        <text>
+            Author countersignatures are not supported.
+        </text>
+        break;
+    case ValidationIssueCode.PackageIsNotSigned:
+        <text>
+            This package must be signed with a registered certificate. <a href="https://aka.ms/nuget-signed-ref">Read more...</a>
+        </text>
+        break;
+    case ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificate:
+        {
+            var typedIssue = (UnauthorizedCertificateFailure)Model;
+            <text>
+                The package was signed, but the signing certificate (SHA-1 thumbprint @typedIssue.Sha1Thumbprint) is not associated with your account.
+                You must register this certificate to publish signed packages. <a href="https://aka.ms/nuget-signed-ref">Read more...</a>
+            </text>
+            break;
+        }
+    case ValidationIssueCode.SymbolErrorCode_ChecksumDoesNotMatch:
+        <text>
+            The checksum does not match for the dll(s) and corresponding pdb(s).
+        </text>
+        break;
+    case ValidationIssueCode.SymbolErrorCode_MatchingAssemblyNotFound:
+        <text>
+            The uploaded symbols package contains pdb(s) for a corresponding dll(s) not found in the nuget package.
+        </text>
+        break;
+    case ValidationIssueCode.SymbolErrorCode_PdbIsNotPortable:
+        <text>
+            The uploaded symbols package contains one or more pdbs that are not portable.
+        </text>
+        break;
+    case ValidationIssueCode.SymbolErrorCode_SnupkgDoesNotContainSymbols:
+        <text>
+            The uploaded symbols package does not contain any symbol files.
+        </text>
+	break;
+    case ValidationIssueCode.SymbolErrorCode_SnupkgContainsEntriesNotSafeForExtraction:
+        <text>
+            The uploaded symbols package contains entries that are not safe for extraction.
+        </text>
+        break;
+    default:
+        <text>
+            There was an unknown failure when validating your package.
+        </text>
+        break;
+}

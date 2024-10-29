@@ -16,13 +16,13 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests.Support
     {
         public async Task<X509Certificate2> GetIntermediateCaCertificate()
         {
-            return (await GetCertificateAuthority()).Certificate.ToX509Certificate2();
+            return (await GetCertificateAuthorityAsync()).Certificate.ToX509Certificate2();
         }
 
         public async Task RevokeCertificateAuthority()
         {
-            var ca = await GetCertificateAuthority();
-            var rootCa = await GetRootCertificateAuthority();
+            var ca = await GetCertificateAuthorityAsync();
+            var rootCa = await GetRootCertificateAuthorityAsync();
 
             rootCa.Revoke(
                 ca.Certificate,
@@ -32,7 +32,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests.Support
 
         public async Task<X509Certificate2> GetTimestampingCertificateAsync()
         {
-            var ca = await GetCertificateAuthority();
+            var ca = await GetCertificateAuthorityAsync();
             return CreateTimestampingCertificate(ca);
         }
 
@@ -51,7 +51,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests.Support
 
         public async Task<X509Certificate2> GetUnknownSigningCertificateAsync()
         {
-            var ca = await GetCertificateAuthority();
+            var ca = await GetCertificateAuthorityAsync();
 
             void CustomizeAsUnknownSigningCertificate(X509V3CertificateGenerator generator)
             {
@@ -66,7 +66,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests.Support
 
         public async Task<X509Certificate2> GetRevokedSigningCertificateAsync(DateTimeOffset revocationDate)
         {
-            var ca = await GetCertificateAuthority();
+            var ca = await GetCertificateAuthorityAsync();
 
             void CustomizeAsSigningCertificate(X509V3CertificateGenerator generator)
             {
@@ -85,7 +85,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests.Support
         {
             var testServer = await GetTestServerAsync();
 
-            var ca = await GetCertificateAuthority();
+            var ca = await GetCertificateAuthorityAsync();
             var ca2 = ca.CreateIntermediateCertificateAuthority();
             var responders = new DisposableList<IDisposable>();
 
@@ -118,7 +118,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests.Support
 
         public async Task<X509Certificate2> GetRevokedTimestampingCertificateAsync(DateTimeOffset revocationDate)
         {
-            var ca = await GetCertificateAuthority();
+            var ca = await GetCertificateAuthorityAsync();
 
             void CustomizeAsSigningCertificate(X509V3CertificateGenerator generator)
             {
@@ -136,7 +136,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests.Support
         public async Task<X509Certificate2> GetRevokedParentSigningCertificateAsync()
         {
             var testServer = await GetTestServerAsync();
-            var rootCa = await GetRootCertificateAuthority();
+            var rootCa = await GetRootCertificateAuthorityAsync();
             var intermediateCa = rootCa.CreateIntermediateCertificateAuthority();
 
             var responders = GetResponders();
@@ -152,7 +152,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests.Support
         {
             var testServer = await GetTestServerAsync();
 
-            var ca = await GetCertificateAuthority();
+            var ca = await GetCertificateAuthorityAsync();
             var ca2 = ca.CreateIntermediateCertificateAuthority();
             var responders = new DisposableList<IDisposable>();
 
@@ -179,7 +179,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests.Support
         {
             var testServer = await GetTestServerAsync();
 
-            var ca = await GetCertificateAuthority();
+            var ca = await GetCertificateAuthorityAsync();
             var ca2 = ca.CreateIntermediateCertificateAuthority();
             var responders = new DisposableList<IDisposable>();
 
@@ -203,7 +203,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests.Support
 
         public async Task<X509Certificate2> GetExpiredSigningCertificateAsync()
         {
-            var ca = await GetCertificateAuthority();
+            var ca = await GetCertificateAuthorityAsync();
 
             void CustomizeAsExpiredCertificate(X509V3CertificateGenerator generator)
             {
@@ -218,7 +218,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests.Support
 
         public async Task<X509Certificate2> GetExpiredAndRevokedSigningCertificateAsync()
         {
-            var ca = await GetCertificateAuthority();
+            var ca = await GetCertificateAuthorityAsync();
 
             void CustomizeAsExpiredAndRevokedCertificate(X509V3CertificateGenerator generator)
             {
@@ -236,7 +236,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests.Support
         public async Task<X509Certificate2> GetWeakSignatureParentSigningCertificateAsync()
         {
             var testServer = await GetTestServerAsync();
-            var rootCa = await GetRootCertificateAuthority();
+            var rootCa = await GetRootCertificateAuthorityAsync();
 
             var issueOptions = IssueCertificateOptions.CreateDefaultForIntermediateCertificateAuthority();
             var keyPair = SigningTestUtility.GenerateKeyPair(publicKeyLength: 512);
