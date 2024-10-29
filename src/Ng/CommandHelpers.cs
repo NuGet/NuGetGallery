@@ -424,14 +424,15 @@ namespace Ng
             IDictionary<string, string> argumentNameMap)
         {
             bool storageUseManagedIdentity = arguments.GetOrDefault(argumentNameMap[Arguments.StorageUseManagedIdentity], defaultValue: true);
-            string connectionString = GetConnectionString(arguments, argumentNameMap, "BlobEndpoint", "blob");
             if (storageUseManagedIdentity)
             {
                 var managedIdentityClientId = arguments.GetOrThrow<string>(argumentNameMap[Arguments.ClientId]);
                 var identity = new ManagedIdentityCredential(managedIdentityClientId);
                 var serviceUri = GetServiceUri(arguments, argumentNameMap, "BlobEndpoint", "blob");
-                return new BlobServiceClient(managedIdentityClientId);
+                return new BlobServiceClient(serviceUri, identity);
             }
+
+            string connectionString = GetConnectionString(arguments, argumentNameMap, "BlobEndpoint", "blob");
             return new BlobServiceClient(connectionString);
         }
 
@@ -439,6 +440,18 @@ namespace Ng
             IDictionary<string, string> arguments,
             IDictionary<string, string> argumentNameMap)
         {
+            bool storageUseManagedIdentity = arguments.GetOrDefault(argumentNameMap[Arguments.StorageUseManagedIdentity], defaultValue: true);
+            if (storageUseManagedIdentity)
+            {
+                var managedIdentityClientId = arguments.GetOrThrow<string>(argumentNameMap[Arguments.ClientId]);
+                var identity = new ManagedIdentityCredential(managedIdentityClientId);
+                var serviceUri = GetServiceUri(arguments, argumentNameMap, "QueueEndpoint", "queue");
+                return new QueueServiceClient(serviceUri, identity, new QueueClientOptions
+                {
+                    MessageEncoding = QueueMessageEncoding.Base64,
+                });
+            }
+
             string connectionString = GetConnectionString(arguments, argumentNameMap, "QueueEndpoint", "queue");
             return new QueueServiceClient(connectionString, new QueueClientOptions
             {
