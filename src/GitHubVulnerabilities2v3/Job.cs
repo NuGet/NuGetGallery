@@ -17,6 +17,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs;
+using NuGet.Services.Configuration;
 using NuGet.Services.Cursor;
 using NuGet.Services.GitHub.Collector;
 using NuGet.Services.GitHub.Configuration;
@@ -28,7 +29,6 @@ namespace GitHubVulnerabilities2v3
 {
     public class Job : JsonConfigurationJob, IDisposable
     {
-        private const string ManagedIdentityClientIdKey = "UserManagedIdentityClientId";
         private readonly HttpClient _client = new HttpClient();
         private readonly ProductInfoHeaderValue _userAgent = new ProductInfoHeaderValue("NuGet.Jobs.GitHubVulnerabilities2v3", "1.0.0");
 
@@ -119,7 +119,7 @@ namespace GitHubVulnerabilities2v3
                 .Register(ctx =>
                 {
                     var config = ctx.Resolve<GitHubVulnerabilities2v3Configuration>();
-                    var credential = new ManagedIdentityCredential(configurationRoot[ManagedIdentityClientIdKey]);
+                    var credential = new ManagedIdentityCredential(configurationRoot[Constants.ManagedIdentityClientIdKey]);
                     return new BlobServiceClient(new Uri(config.StorageConnectionString), credential);
                 })
                 .As<BlobServiceClient>();
