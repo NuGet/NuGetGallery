@@ -51,6 +51,7 @@ namespace Ng
             { Arguments.StorageOperationMaxExecutionTimeInSeconds, Arguments.StorageOperationMaxExecutionTimeInSeconds },
             { Arguments.StorageServerTimeoutInSeconds, Arguments.StorageServerTimeoutInSeconds },
             { Arguments.StorageInitializeContainer, Arguments.StorageInitializeContainer },
+            { Arguments.ClientId, Arguments.ClientId },
         };
 
         public static IDictionary<string, string> GetArguments(string[] args, int start, out ICachingSecretInjector secretInjector)
