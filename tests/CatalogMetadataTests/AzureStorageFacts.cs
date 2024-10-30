@@ -10,6 +10,8 @@ using Xunit;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using NuGet.Services.Storage;
+using AzureStorage = NuGet.Services.Metadata.Catalog.Persistence.AzureStorage;
 
 namespace CatalogMetadataTests
 {
@@ -138,13 +140,14 @@ namespace CatalogMetadataTests
 
     public abstract class AzureStorageBaseFacts
     {
+        protected readonly string _baseAddressString = "DefaultEndpointsProtocol=https;AccountName=devstoreaccount1;AccountKey=fake";
         protected readonly Uri _baseAddress = new Uri("https://test");
         protected readonly AzureStorage _storage;
 
         public AzureStorageBaseFacts()
         {
             // Mock the BlobServiceClient
-            var mockBlobServiceClient = new Mock<BlobServiceClient>(_baseAddress, null);
+            var mockBlobServiceClient = new Mock<BlobServiceClientFactory>(_baseAddressString);
             mockBlobServiceClient.Setup(x => x.Uri).Returns(_baseAddress);
 
             // Mock the BlobContainerClient

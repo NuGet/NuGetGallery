@@ -28,8 +28,10 @@ using NuGet.Services.AzureSearch.Db2AzureSearch;
 using NuGet.Services.AzureSearch.SearchService;
 using NuGet.Services.AzureSearch.Wrappers;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using NuGet.Services.Storage;
 using NuGet.Services.V3;
 using NuGetGallery;
+using IStorageFactory = NuGet.Services.Metadata.Catalog.Persistence.IStorageFactory;
 
 namespace NuGet.Services.AzureSearch
 {
@@ -135,12 +137,12 @@ namespace NuGet.Services.AzureSearch
                 .Register<IStorageFactory>(c =>
                 {
                     var options = c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>();
-                    BlobServiceClient blobServiceClient = c.ResolveKeyed<BlobServiceClient>(key);
-                    return new AzureStorageFactory(
+                    BlobServiceClientFactory blobServiceClient = c.ResolveKeyed<BlobServiceClientFactory>(key);
+                    return new Metadata.Catalog.Persistence.AzureStorageFactory(
                         blobServiceClient,
                         options.Value.StorageContainer,
-                        maxExecutionTime: AzureStorage.DefaultMaxExecutionTime,
-                        serverTimeout: AzureStorage.DefaultServerTimeout,
+                        maxExecutionTime: Metadata.Catalog.Persistence.AzureStorage.DefaultMaxExecutionTime,
+                        serverTimeout: Metadata.Catalog.Persistence.AzureStorage.DefaultServerTimeout,
                         path: options.Value.NormalizeStoragePath(),
                         baseAddress: null,
                         useServerSideCopy: true,

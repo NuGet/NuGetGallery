@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -12,10 +12,10 @@ namespace NuGet.Services.Metadata.Catalog
     public class DurableCursor : ReadWriteCursor
     {
         Uri _address;
-        Storage _storage;
+        Persistence.Storage _storage;
         DateTime _defaultValue;
 
-        public DurableCursor(Uri address, Storage storage, DateTime defaultValue)
+        public DurableCursor(Uri address, Persistence.Storage storage, DateTime defaultValue)
         {
             _address = address;
             _storage = storage;

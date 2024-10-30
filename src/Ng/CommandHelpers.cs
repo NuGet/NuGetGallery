@@ -14,6 +14,7 @@ using Azure.Identity;
 using Azure.Storage.Blobs;
 using Azure.Storage.Queues;
 using Microsoft.Extensions.Logging;
+using NuGet.Jobs;
 using NuGet.Protocol;
 using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
@@ -225,7 +226,7 @@ namespace Ng
                 var storageUseServerSideCopy = arguments.GetOrDefault<bool>(argumentNameMap[Arguments.StorageUseServerSideCopy]);
                 var storageInitializeContainer = arguments.GetOrDefault(argumentNameMap[Arguments.StorageInitializeContainer], defaultValue: true);
 
-                BlobServiceClient account = GetBlobServiceClient(arguments, argumentNameMap);
+                IBlobServiceClientFactory account = GetBlobServiceClient(arguments, argumentNameMap);
 
                 return new CatalogAzureStorageFactory(
                     account,
@@ -421,7 +422,7 @@ namespace Ng
             }
         }
 
-        private static BlobServiceClient GetBlobServiceClient(
+        private static IBlobServiceClientFactory GetBlobServiceClient(
             IDictionary<string, string> arguments,
             IDictionary<string, string> argumentNameMap)
         {
@@ -431,11 +432,11 @@ namespace Ng
                 var managedIdentityClientId = arguments.GetOrThrow<string>(argumentNameMap[Arguments.ClientId]);
                 var identity = new ManagedIdentityCredential(managedIdentityClientId);
                 var serviceUri = GetServiceUri(arguments, argumentNameMap, "BlobEndpoint", "blob");
-                return new BlobServiceClient(serviceUri, identity);
+                return new BlobServiceClientFactory(serviceUri, identity);
             }
 
             string connectionString = GetConnectionString(arguments, argumentNameMap, "BlobEndpoint", "blob");
-            return new BlobServiceClient(connectionString);
+            return new BlobServiceClientFactory(connectionString);
         }
 
         private static QueueServiceClient GetQueueServiceClient(

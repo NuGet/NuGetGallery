@@ -39,7 +39,7 @@ namespace Stats.PostProcessReports
                 .Register(c =>
                 {
                     var cfg = c.Resolve<IOptionsSnapshot<PostProcessReportsConfiguration>>().Value;
-                    return new BlobServiceClient(AzureStorageFactory.PrepareConnectionString(cfg.StorageAccount));
+                    return new BlobServiceClientFactory(AzureStorageFactory.PrepareConnectionString(cfg.StorageAccount));
                 })
                 .AsSelf();
 
@@ -48,7 +48,7 @@ namespace Stats.PostProcessReports
                 {
                     var cfg = c.Resolve<IOptionsSnapshot<PostProcessReportsConfiguration>>().Value;
                     var factory = new AzureStorageFactory(
-                        c.Resolve<BlobServiceClient>(),
+                        c.Resolve<BlobServiceClientFactory>(),
                         cfg.SourceContainerName,
                         enablePublicAccess: false,
                         c.Resolve<ILogger<AzureStorage>>(),
@@ -65,7 +65,7 @@ namespace Stats.PostProcessReports
                 {
                     var cfg = c.Resolve<IOptionsSnapshot<PostProcessReportsConfiguration>>().Value;
                     var factory = new AzureStorageFactory(
-                        c.Resolve<BlobServiceClient>(),
+                        c.Resolve<BlobServiceClientFactory>(),
                         cfg.WorkContainerName,
                         enablePublicAccess: false,
                         c.Resolve<ILogger<AzureStorage>>(),
@@ -82,7 +82,7 @@ namespace Stats.PostProcessReports
                 {
                     var cfg = c.Resolve<IOptionsSnapshot<PostProcessReportsConfiguration>>().Value;
                     var factory = new AzureStorageFactory(
-                        c.Resolve<BlobServiceClient>(),
+                        c.Resolve<BlobServiceClientFactory>(),
                         cfg.DestinationContainerName,
                         enablePublicAccess: true,
                         c.Resolve<ILogger<AzureStorage>>(),

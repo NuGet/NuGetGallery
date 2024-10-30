@@ -1,15 +1,16 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using Azure.Storage.Blobs;
 using NuGet.Protocol;
+using NuGet.Services.Storage;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public class AzureStorageFactory : StorageFactory
     {
-        private readonly BlobServiceClient _blobServiceClient;
+        private readonly IBlobServiceClientFactory _blobServiceClient;
         private readonly string _containerName;
         private readonly string _path;
         private readonly Uri _differentBaseAddress = null;
@@ -19,7 +20,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         private readonly bool _initializeContainer;
 
         public AzureStorageFactory(
-            BlobServiceClient blobServiceClient,
+            IBlobServiceClientFactory blobServiceClient,
             string containerName,
             TimeSpan maxExecutionTime,
             TimeSpan serverTimeout,
