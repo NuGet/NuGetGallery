@@ -32,6 +32,7 @@ namespace NuGet.Services.Storage
         {
             this.Uri = serviceUri;
             _credential = credential ?? throw new ArgumentNullException(nameof(credential));
+            _useTokenCredential = true;
         }
 
         public BlobServiceClient GetBlobServiceClient(BlobClientOptions blobClientOptions = null)
