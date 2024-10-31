@@ -35,7 +35,7 @@ namespace NuGet.Services.Storage
             _useTokenCredential = true;
         }
 
-        public BlobServiceClient GetBlobServiceClient(BlobClientOptions blobClientOptions = null)
+        public virtual BlobServiceClient GetBlobServiceClient(BlobClientOptions blobClientOptions = null)
         {
             if (_useTokenCredential)
             {
