@@ -43,15 +43,13 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             // Create the container client using the provided or default options
             if (blobClientOptions != null)
             {
-                // Extract necessary information
-                //Uri serviceUri = serviceClient.Uri;
-                // Create a new BlobServiceClient instance with the new options
+                // Request a new BlobServiceClient instance with the new options
                 var newServiceClient = _blobServiceClientFactory.GetBlobServiceClient(blobClientOptions);
                 _containerClient = newServiceClient.GetBlobContainerClient(containerName);
             }
             else
             {
-                _containerClient = _blobServiceClientFactory.GetBlobServiceClient(null).GetBlobContainerClient(containerName);
+                _containerClient = _blobServiceClientFactory.GetBlobServiceClient(blobClientOptions: null).GetBlobContainerClient(containerName);
             }
 
             Uri = new Uri(Storage.RemoveQueryString(_containerClient.Uri).TrimEnd('/') + "/" + _directoryPrefix);

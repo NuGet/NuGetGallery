@@ -431,7 +431,7 @@ namespace Ng
             {
                 var managedIdentityClientId = arguments.GetOrThrow<string>(argumentNameMap[Arguments.ClientId]);
                 var identity = new ManagedIdentityCredential(managedIdentityClientId);
-                var serviceUri = GetServiceUri(arguments, argumentNameMap, "BlobEndpoint", "blob");
+                var serviceUri = GetServiceUri(arguments, argumentNameMap, "blob");
                 return new BlobServiceClientFactory(serviceUri, identity);
             }
 
@@ -448,7 +448,7 @@ namespace Ng
             {
                 var managedIdentityClientId = arguments.GetOrThrow<string>(argumentNameMap[Arguments.ClientId]);
                 var identity = new ManagedIdentityCredential(managedIdentityClientId);
-                var serviceUri = GetServiceUri(arguments, argumentNameMap, "QueueEndpoint", "queue");
+                var serviceUri = GetServiceUri(arguments, argumentNameMap, "queue");
                 return new QueueServiceClient(serviceUri, identity, new QueueClientOptions
                 {
                     MessageEncoding = QueueMessageEncoding.Base64,
@@ -497,7 +497,6 @@ namespace Ng
         private static Uri GetServiceUri(
             IDictionary<string, string> arguments,
             IDictionary<string, string> argumentNameMap,
-            string endpointKey,
             string endpointDomain)
         {
             var storageAccountName = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageAccountName]);
