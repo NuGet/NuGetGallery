@@ -1,28 +1,29 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Autofac;
 using Dapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json.Linq;
+using NuGetGallery;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
+using Autofac.Core;
 
 namespace ArchivePackages
 {
     public class Job : JsonConfigurationJob
     {
-        private readonly JobEventSource JobEventSourceLog = JobEventSource.Log;
         private const string ContentTypeJson = "application/json";
         private const string DateTimeFormatSpecifier = "O";
         private const string CursorDateTimeKey = "cursorDateTime";
@@ -30,46 +31,27 @@ namespace ArchivePackages
         private const string DefaultPackagesArchiveContainerName = "ng-backups";
         private const string DefaultCursorBlobName = "cursor.json";
 
-        private InitializationConfiguration Configuration { get; set; }
+        private readonly JobEventSource _jobEventSourceLog = JobEventSource.Log;
+        private InitializationConfiguration _configuration;
 
-        /// <summary>
-        /// Gets or sets an Azure Storage Uri referring to a container to use as the source for package blobs
-        /// </summary>
-        public CloudStorageAccount Source { get; set; }
+        private string _sourceContainerName;
+        private string _destinationContainerName;
 
-        public string SourceContainerName { get; set; }
+        private string _sourceAccount;
+        private string _primaryDestinationAccount;
+        private string _secondaryDestinationAccount;
 
-        /// <summary>
-        /// Gets or sets an Azure Storage Uri referring to a container to use as the destination
-        /// </summary>
-        public CloudStorageAccount PrimaryDestination { get; set; }
+        private ICloudBlobContainer _sourceContainer;
+        private ICloudBlobContainer _primaryDestinationContainer;
+        private ICloudBlobContainer _secondaryDestinationContainer;
 
-        /// <summary>
-        /// Gets or sets an Azure Storage Uri referring to a container to use as the secondary destination
-        /// DestinationContainerName should be same as the primary destination
-        /// </summary>
-        public CloudStorageAccount SecondaryDestination { get; set; }
-
-        /// <summary>
-        /// Destination Container name for both Primary and Secondary destinations. Also, for the cursor blob
-        /// </summary>
-        public string DestinationContainerName { get; set; }
-
-        /// <summary>
-        /// Blob containing the cursor data. Cursor data comprises of cursorDateTime
-        /// </summary>
-        public string CursorBlobName { get; set; }
+        private string _cursorBlobName;
 
         /// <summary>
         /// Gallery database registration, for diagnostics.
         /// </summary>
-        private SqlConnectionStringBuilder GalleryDatabase { get; set; }
+        private SqlConnectionStringBuilder _galleryDatabase;
 
-        protected CloudBlobContainer SourceContainer { get; private set; }
-
-        protected CloudBlobContainer PrimaryDestinationContainer { get; private set; }
-
-        protected CloudBlobContainer SecondaryDestinationContainer { get; private set; }
 
         public Job() : base(JobEventSource.Log) { }
 
@@ -77,64 +59,72 @@ namespace ArchivePackages
         {
             base.Init(serviceContainer, jobArgsDictionary);
 
-            Configuration = _serviceProvider.GetRequiredService<IOptionsSnapshot<InitializationConfiguration>>().Value;
+            _configuration = _serviceProvider.GetRequiredService<IOptionsSnapshot<InitializationConfiguration>>().Value;
 
-            GalleryDatabase = GetDatabaseRegistration<GalleryDbConfiguration>();
+            _galleryDatabase = GetDatabaseRegistration<GalleryDbConfiguration>();
 
-            Source = CloudStorageAccount.Parse(Configuration.Source);
+            _sourceContainerName = _configuration.SourceContainerName ?? DefaultPackagesContainerName;
+            _sourceAccount = _configuration.Source;
 
-            PrimaryDestination = CloudStorageAccount.Parse(Configuration.PrimaryDestination);
+            var sourceBlobClient = _serviceProvider.CreateCloudBlobClient(
+                $"BlobEndPoint=https://{_sourceAccount}.blob.core.windows.net");
+            _sourceContainer = sourceBlobClient.GetContainerReference(_sourceContainerName);
 
-            if (!string.IsNullOrEmpty(Configuration.SecondaryDestination))
+            _destinationContainerName = _configuration.DestinationContainerName ?? DefaultPackagesArchiveContainerName;
+            _primaryDestinationAccount = _configuration.PrimaryDestination;
+            var primaryDestinationBlobClient = _serviceProvider.CreateCloudBlobClient(
+                $"BlobEndPoint=https://{_primaryDestinationAccount}.blob.core.windows.net");
+            _primaryDestinationContainer = primaryDestinationBlobClient.GetContainerReference(_destinationContainerName);
+
+            if (!string.IsNullOrEmpty(_configuration.SecondaryDestination))
             {
-                SecondaryDestination = CloudStorageAccount.Parse(Configuration.SecondaryDestination);
+                _secondaryDestinationAccount = _configuration.SecondaryDestination;
+                var secondaryDestinationBlobClient = _serviceProvider.CreateCloudBlobClient(
+                    $"BlobEndPoint=https://{_primaryDestinationAccount}.blob.core.windows.net");
+                _secondaryDestinationContainer = secondaryDestinationBlobClient.GetContainerReference(_destinationContainerName);
             }
 
-            SourceContainerName = Configuration.SourceContainerName ?? DefaultPackagesContainerName;
-            DestinationContainerName = Configuration.DestinationContainerName ?? DefaultPackagesArchiveContainerName;
-
-            SourceContainer = Source.CreateCloudBlobClient().GetContainerReference(SourceContainerName);
-            PrimaryDestinationContainer = PrimaryDestination.CreateCloudBlobClient().GetContainerReference(DestinationContainerName);
-            SecondaryDestinationContainer = SecondaryDestination?.CreateCloudBlobClient().GetContainerReference(DestinationContainerName);
-
-            CursorBlobName = Configuration.CursorBlob ?? DefaultCursorBlobName;
+            _cursorBlobName = _configuration.CursorBlob ?? DefaultCursorBlobName;
         }
 
         public override async Task Run()
         {
-            JobEventSourceLog.PreparingToArchive(Source.Credentials.AccountName, SourceContainer.Name, PrimaryDestination.Credentials.AccountName, PrimaryDestinationContainer.Name, GalleryDatabase.DataSource, GalleryDatabase.InitialCatalog);
-            await Archive(PrimaryDestinationContainer);
+            _jobEventSourceLog.PreparingToArchive(_sourceAccount, _sourceContainerName, _primaryDestinationAccount, _destinationContainerName, _galleryDatabase.DataSource, _galleryDatabase.InitialCatalog);
+            await Archive(_primaryDestinationContainer);
 
             // todo: consider reusing package query for primary and secondary archives
-            if (SecondaryDestinationContainer != null)
+            if (_secondaryDestinationContainer != null)
             {
-                JobEventSourceLog.PreparingToArchive2(SecondaryDestination.Credentials.AccountName, SecondaryDestinationContainer.Name);
-                await Archive(SecondaryDestinationContainer);
+                _jobEventSourceLog.PreparingToArchive2(_secondaryDestinationAccount, _destinationContainerName);
+                await Archive(_secondaryDestinationContainer);
             }
         }
 
-        private static async Task<JObject> GetJObject(CloudBlobContainer container, string blobName)
+        private static async Task<JObject> GetJObject(ICloudBlobContainer container, string blobName)
         {
-            var blob = container.GetBlockBlobReference(blobName);
-            var json = await blob.DownloadTextAsync();
+            var blob = container.GetBlobReference(blobName);
+            var json = await blob.DownloadTextIfExistsAsync();
             return JObject.Parse(json);
         }
 
-        private static async Task SetJObject(CloudBlobContainer container, string blobName, JObject jObject)
+        private static async Task SetJObject(ICloudBlobContainer container, string blobName, JObject jObject)
         {
-            var blob = container.GetBlockBlobReference(blobName);
+            var blob = container.GetBlobReference(blobName);
             blob.Properties.ContentType = ContentTypeJson;
-            await blob.UploadTextAsync(jObject.ToString());
+            using (Stream stream = new MemoryStream(Encoding.UTF8.GetBytes(jObject.ToString())))
+            {
+                await blob.UploadFromStreamAsync(stream, overwrite: true);
+            }
         }
 
-        private async Task Archive(CloudBlobContainer destinationContainer)
+        private async Task Archive(ICloudBlobContainer destinationContainer)
         {
-            var cursorJObject = await GetJObject(destinationContainer, CursorBlobName);
+            var cursorJObject = await GetJObject(destinationContainer, _cursorBlobName);
             var cursorDateTime = cursorJObject[CursorDateTimeKey].Value<DateTime>();
 
-            JobEventSourceLog.CursorData(cursorDateTime.ToString(DateTimeFormatSpecifier));
+            _jobEventSourceLog.CursorData(cursorDateTime.ToString(DateTimeFormatSpecifier));
 
-            JobEventSourceLog.GatheringPackagesToArchiveFromDb(GalleryDatabase.DataSource, GalleryDatabase.InitialCatalog);
+            _jobEventSourceLog.GatheringPackagesToArchiveFromDb(_galleryDatabase.DataSource, _galleryDatabase.InitialCatalog);
             List<PackageRef> packages;
             using (var connection = await OpenSqlConnectionAsync<GalleryDbConfiguration>())
             {
@@ -145,24 +135,21 @@ namespace ArchivePackages
 			    WHERE Published > @cursorDateTime OR LastEdited > @cursorDateTime", new { cursorDateTime = cursorDateTime }))
                     .ToList();
             }
-            JobEventSourceLog.GatheredPackagesToArchiveFromDb(packages.Count, GalleryDatabase.DataSource, GalleryDatabase.InitialCatalog);
+            _jobEventSourceLog.GatheredPackagesToArchiveFromDb(packages.Count, _galleryDatabase.DataSource, _galleryDatabase.InitialCatalog);
 
             var archiveSet = packages
                 .AsParallel()
                 .Select(r => Tuple.Create(StorageHelpers.GetPackageBlobName(r.Id, r.Version), StorageHelpers.GetPackageBackupBlobName(r.Id, r.Version, r.Hash)))
                 .ToList();
 
-            //if (!WhatIf)
-            {
-                await destinationContainer.CreateIfNotExistsAsync();
-            }
+            await destinationContainer.CreateIfNotExistAsync(enablePublicAccess: false);
 
             if (archiveSet.Count > 0)
             {
-                JobEventSourceLog.StartingArchive(archiveSet.Count);
+                _jobEventSourceLog.StartingArchive(archiveSet.Count);
                 foreach (var archiveItem in archiveSet)
                 {
-                    await ArchivePackage(archiveItem.Item1, archiveItem.Item2, SourceContainer, destinationContainer);
+                    await ArchivePackage(archiveItem.Item1, archiveItem.Item2, _sourceContainer, destinationContainer);
                 }
 
                 var maxLastEdited = packages.Max(p => p.LastEdited);
@@ -172,35 +159,32 @@ namespace ArchivePackages
                 var newCursorDateTime = maxLastEdited > maxPublished ? new DateTime(maxLastEdited.Value.Ticks, DateTimeKind.Utc) : new DateTime(maxPublished.Value.Ticks, DateTimeKind.Utc);
                 var newCursorDateTimeString = newCursorDateTime.ToString(DateTimeFormatSpecifier);
 
-                JobEventSourceLog.NewCursorData(newCursorDateTimeString);
+                _jobEventSourceLog.NewCursorData(newCursorDateTimeString);
                 cursorJObject[CursorDateTimeKey] = newCursorDateTimeString;
-                await SetJObject(destinationContainer, CursorBlobName, cursorJObject);
+                await SetJObject(destinationContainer, _cursorBlobName, cursorJObject);
             }
         }
 
-        private async Task ArchivePackage(string sourceBlobName, string destinationBlobName, CloudBlobContainer sourceContainer, CloudBlobContainer destinationContainer)
+        private async Task ArchivePackage(string sourceBlobName, string destinationBlobName, ICloudBlobContainer sourceContainer, ICloudBlobContainer destinationContainer)
         {
             // Identify the source and destination blobs
-            var sourceBlob = sourceContainer.GetBlockBlobReference(sourceBlobName);
-            var destBlob = destinationContainer.GetBlockBlobReference(destinationBlobName);
+            var sourceBlob = sourceContainer.GetBlobReference(sourceBlobName);
+            var destBlob = destinationContainer.GetBlobReference(destinationBlobName);
 
             if (await destBlob.ExistsAsync())
             {
-                JobEventSourceLog.ArchiveExists(destBlob.Name);
+                _jobEventSourceLog.ArchiveExists(destBlob.Name);
             }
             else if (!await sourceBlob.ExistsAsync())
             {
-                JobEventSourceLog.SourceBlobMissing(sourceBlob.Name);
+                _jobEventSourceLog.SourceBlobMissing(sourceBlob.Name);
             }
             else
             {
                 // Start the copy
-                JobEventSourceLog.StartingCopy(sourceBlob.Name, destBlob.Name);
-                //if (!WhatIf)
-                {
-                    await destBlob.StartCopyAsync(sourceBlob);
-                }
-                JobEventSourceLog.StartedCopy(sourceBlob.Name, destBlob.Name);
+                _jobEventSourceLog.StartingCopy(sourceBlob.Name, destBlob.Name);
+                await destBlob.StartCopyAsync(sourceBlob, sourceAccessCondition: AccessConditionWrapper.GenerateEmptyCondition(), destAccessCondition: AccessConditionWrapper.GenerateEmptyCondition());
+                _jobEventSourceLog.StartedCopy(sourceBlob.Name, destBlob.Name);
             }
         }
 
