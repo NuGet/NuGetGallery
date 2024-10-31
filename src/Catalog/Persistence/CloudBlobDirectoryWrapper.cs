@@ -28,9 +28,9 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         public BlobClientOptions ContainerOptions => _defaultClientOptions;
         public IBlobContainerClientWrapper ContainerClientWrapper => _blobContainerClientWrapper;
 
-        public CloudBlobDirectoryWrapper(IBlobServiceClientFactory serviceClient, string containerName, string directoryPrefix, BlobClientOptions blobClientOptions = null)
+        public CloudBlobDirectoryWrapper(IBlobServiceClientFactory serviceClientFactory, string containerName, string directoryPrefix, BlobClientOptions blobClientOptions = null)
         {
-            _blobServiceClientFactory = serviceClient ?? throw new ArgumentNullException(nameof(serviceClient));
+            _blobServiceClientFactory = serviceClientFactory ?? throw new ArgumentNullException(nameof(serviceClientFactory));
             _directoryPrefix = directoryPrefix ?? throw new ArgumentNullException(nameof(directoryPrefix));
 
             if (string.IsNullOrWhiteSpace(containerName))
@@ -40,17 +40,9 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             _defaultClientOptions = blobClientOptions ?? new BlobClientOptions();
 
-            // Create the container client using the provided or default options
-            if (blobClientOptions != null)
-            {
-                // Request a new BlobServiceClient instance with the new options
-                var newServiceClient = _blobServiceClientFactory.GetBlobServiceClient(blobClientOptions);
-                _containerClient = newServiceClient.GetBlobContainerClient(containerName);
-            }
-            else
-            {
-                _containerClient = _blobServiceClientFactory.GetBlobServiceClient(blobClientOptions: null).GetBlobContainerClient(containerName);
-            }
+            // Request a new BlobServiceClient instance with the current BlobClientOptions
+            var serviceClient = _blobServiceClientFactory.GetBlobServiceClient(blobClientOptions);
+            _containerClient = serviceClient.GetBlobContainerClient(containerName);
 
             Uri = new Uri(Storage.RemoveQueryString(_containerClient.Uri).TrimEnd('/') + "/" + _directoryPrefix);
 
