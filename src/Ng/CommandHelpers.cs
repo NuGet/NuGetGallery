@@ -14,6 +14,7 @@ using Azure.Identity;
 using Azure.Storage.Blobs;
 using Azure.Storage.Queues;
 using Microsoft.Extensions.Logging;
+using NuGet.Jobs;
 using NuGet.Protocol;
 using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
@@ -46,10 +47,12 @@ namespace Ng
             { Arguments.StorageContainer, Arguments.StorageContainer },
             { Arguments.StoragePath, Arguments.StoragePath },
             { Arguments.StorageSuffix, Arguments.StorageSuffix },
+            { Arguments.StorageUseManagedIdentity, Arguments.StorageUseManagedIdentity },
             { Arguments.StorageUseServerSideCopy, Arguments.StorageUseServerSideCopy },
             { Arguments.StorageOperationMaxExecutionTimeInSeconds, Arguments.StorageOperationMaxExecutionTimeInSeconds },
             { Arguments.StorageServerTimeoutInSeconds, Arguments.StorageServerTimeoutInSeconds },
             { Arguments.StorageInitializeContainer, Arguments.StorageInitializeContainer },
+            { Arguments.ClientId, Arguments.ClientId },
         };
 
         public static IDictionary<string, string> GetArguments(string[] args, int start, out ICachingSecretInjector secretInjector)
@@ -115,7 +118,7 @@ namespace Ng
                     keyVaultConfig = new KeyVaultConfiguration(
                         vaultName,
                         tenantId,
-                        clientId, 
+                        clientId,
                         keyVaultCertificate,
                         sendX5c);
                 }
@@ -163,6 +166,7 @@ namespace Ng
             {
                 { Arguments.StorageBaseAddress, Arguments.StorageBaseAddress + suffix },
                 { Arguments.StorageAccountName, Arguments.StorageAccountName + suffix },
+                { Arguments.StorageUseManagedIdentity, Arguments.StorageUseManagedIdentity + suffix },
                 { Arguments.StorageKeyValue, Arguments.StorageKeyValue + suffix },
                 { Arguments.StorageSasValue, Arguments.StorageSasValue + suffix },
                 { Arguments.StorageContainer, Arguments.StorageContainer + suffix },
@@ -222,7 +226,7 @@ namespace Ng
                 var storageUseServerSideCopy = arguments.GetOrDefault<bool>(argumentNameMap[Arguments.StorageUseServerSideCopy]);
                 var storageInitializeContainer = arguments.GetOrDefault(argumentNameMap[Arguments.StorageInitializeContainer], defaultValue: true);
 
-                BlobServiceClient account = GetBlobServiceClient(arguments, argumentNameMap);
+                IBlobServiceClientFactory account = GetBlobServiceClient(arguments, argumentNameMap);
 
                 return new CatalogAzureStorageFactory(
                     account,
@@ -418,18 +422,39 @@ namespace Ng
             }
         }
 
-        private static BlobServiceClient GetBlobServiceClient(
+        private static IBlobServiceClientFactory GetBlobServiceClient(
             IDictionary<string, string> arguments,
             IDictionary<string, string> argumentNameMap)
         {
+            bool storageUseManagedIdentity = arguments.GetOrDefault(argumentNameMap[Arguments.StorageUseManagedIdentity], defaultValue: false);
+            if (storageUseManagedIdentity)
+            {
+                var managedIdentityClientId = arguments.GetOrThrow<string>(argumentNameMap[Arguments.ClientId]);
+                var identity = new ManagedIdentityCredential(managedIdentityClientId);
+                var serviceUri = GetServiceUri(arguments, argumentNameMap, "blob");
+                return new BlobServiceClientFactory(serviceUri, identity);
+            }
+
             string connectionString = GetConnectionString(arguments, argumentNameMap, "BlobEndpoint", "blob");
-            return new BlobServiceClient(connectionString);
+            return new BlobServiceClientFactory(connectionString);
         }
 
         private static QueueServiceClient GetQueueServiceClient(
             IDictionary<string, string> arguments,
             IDictionary<string, string> argumentNameMap)
         {
+            bool storageUseManagedIdentity = arguments.GetOrDefault(argumentNameMap[Arguments.StorageUseManagedIdentity], defaultValue: false);
+            if (storageUseManagedIdentity)
+            {
+                var managedIdentityClientId = arguments.GetOrThrow<string>(argumentNameMap[Arguments.ClientId]);
+                var identity = new ManagedIdentityCredential(managedIdentityClientId);
+                var serviceUri = GetServiceUri(arguments, argumentNameMap, "queue");
+                return new QueueServiceClient(serviceUri, identity, new QueueClientOptions
+                {
+                    MessageEncoding = QueueMessageEncoding.Base64,
+                });
+            }
+
             string connectionString = GetConnectionString(arguments, argumentNameMap, "QueueEndpoint", "queue");
             return new QueueServiceClient(connectionString, new QueueClientOptions
             {
@@ -467,6 +492,18 @@ namespace Ng
             }
 
             return connectionString;
+        }
+
+        private static Uri GetServiceUri(
+            IDictionary<string, string> arguments,
+            IDictionary<string, string> argumentNameMap,
+            string endpointDomain)
+        {
+            var storageAccountName = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageAccountName]);
+            var storageSuffix = arguments.GetOrDefault(argumentNameMap[Arguments.StorageSuffix], DefaultStorageSuffix);
+
+            string serviceUri = $"https://{storageAccountName}.{endpointDomain}.{storageSuffix}/";
+            return new Uri(serviceUri);
         }
     }
 }

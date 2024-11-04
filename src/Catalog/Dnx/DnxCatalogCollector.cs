@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -193,7 +193,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             return processedCatalogEntries;
         }
 
-        private async Task<bool> AreRequiredPropertiesPresentAsync(Storage destinationStorage, Uri destinationUri)
+        private async Task<bool> AreRequiredPropertiesPresentAsync(Persistence.Storage destinationStorage, Uri destinationUri)
         {
             var azureStorage = destinationStorage as IAzureStorage;
 

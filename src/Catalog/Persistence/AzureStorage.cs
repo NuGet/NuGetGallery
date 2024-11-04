@@ -11,11 +11,13 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
+using Azure.Identity;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using NuGet.Protocol;
 using NuGet.Services.Metadata.Catalog.Extensions;
+using NuGet.Services.Storage;
 using NuGetGallery;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
@@ -33,7 +35,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         public static readonly TimeSpan DefaultMaxExecutionTime = TimeSpan.FromMinutes(10);
 
         public AzureStorage(
-            BlobServiceClient blobServiceClient,
+            IBlobServiceClientFactory blobServiceClient,
             string containerName,
             string path,
             Uri baseAddress,
@@ -92,7 +94,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             var blobEndpoint = new Uri(storageBaseUri.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped));
             // Create BlobServiceClient with anonymous credentials
-            var blobServiceClient = new BlobServiceClient(blobEndpoint);
+            var blobServiceClient = new BlobServiceClientFactory(blobEndpoint, new DefaultAzureCredential());
 
             string containerName = pathSegments[0];
             string pathInContainer = string.Join("/", pathSegments.Skip(1));

@@ -120,15 +120,15 @@ namespace GitHubVulnerabilities2v3
                 {
                     var config = ctx.Resolve<GitHubVulnerabilities2v3Configuration>();
                     var credential = new ManagedIdentityCredential(configurationRoot[Constants.ManagedIdentityClientIdKey]);
-                    return new BlobServiceClient(new Uri(config.StorageConnectionString), credential);
+                    return new BlobServiceClientFactory(new Uri(config.StorageConnectionString), credential);
                 })
-                .As<BlobServiceClient>();
+                .As<BlobServiceClientFactory>();
 
             containerBuilder
                 .Register(ctx =>
                 {
                     return new AzureStorageFactory(
-                        ctx.Resolve<BlobServiceClient>(),
+                        ctx.Resolve<BlobServiceClientFactory>(),
                         ctx.Resolve<GitHubVulnerabilities2v3Configuration>().V3VulnerabilityContainerName,
                         enablePublicAccess: true,
                         ctx.Resolve<ILogger<AzureStorage>>());
