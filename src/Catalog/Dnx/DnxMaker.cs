@@ -16,7 +16,7 @@ using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Versioning;
 
 using ILogger = Microsoft.Extensions.Logging.ILogger;
-using Storage = NuGet.Services.Metadata.Catalog.Persistence.Storage;
+using CatalogStorage = NuGet.Services.Metadata.Catalog.Persistence.Storage;
 
 namespace NuGet.Services.Metadata.Catalog.Dnx
 {
@@ -155,7 +155,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             await DeleteNupkgAsync(storage, id, normalizedVersion, cancellationToken);
         }
 
-        public async Task<bool> HasPackageInIndexAsync(Persistence.Storage storage, string id, string version, CancellationToken cancellationToken)
+        public async Task<bool> HasPackageInIndexAsync(CatalogStorage storage, string id, string version, CancellationToken cancellationToken)
         {
             if (storage == null)
             {
@@ -180,7 +180,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             return versionsContext.Versions.Contains(parsedVersion);
         }
 
-        private async Task<Uri> SaveNuspecAsync(Persistence.Storage storage, string id, string version, string nuspec, CancellationToken cancellationToken)
+        private async Task<Uri> SaveNuspecAsync(CatalogStorage storage, string id, string version, string nuspec, CancellationToken cancellationToken)
         {
             var relativeAddress = GetRelativeAddressNuspec(id, version);
             var nuspecUri = new Uri(storage.BaseAddress, relativeAddress);
@@ -231,7 +231,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             }
         }
 
-        private async Task<VersionsResult> GetVersionsAsync(Persistence.Storage storage, CancellationToken cancellationToken)
+        private async Task<VersionsResult> GetVersionsAsync(CatalogStorage storage, CancellationToken cancellationToken)
         {
             var relativeAddress = "index.json";
             var resourceUri = new Uri(storage.BaseAddress, relativeAddress);
@@ -266,7 +266,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             return new StringStorageContent(obj.ToString(), "application/json", Constants.NoStoreCacheControl);
         }
 
-        private async Task<Uri> SaveNupkgAsync(Stream nupkgStream, Persistence.Storage storage, string id, string version, CancellationToken cancellationToken)
+        private async Task<Uri> SaveNupkgAsync(Stream nupkgStream, CatalogStorage storage, string id, string version, CancellationToken cancellationToken)
         {
             Uri nupkgUri = new Uri(storage.BaseAddress, GetRelativeAddressNupkg(id, version));
             var content = new StreamStorageContent(
@@ -281,7 +281,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
 
         private async Task<Uri> CopyNupkgAsync(
             IStorage sourceStorage,
-            Persistence.Storage destinationStorage,
+            CatalogStorage destinationStorage,
             string id, string version, CancellationToken cancellationToken)
         {
             var packageFileName = PackageUtility.GetPackageFileName(id, version);
@@ -301,7 +301,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
 
         private async Task CopyIconFromAzureStorageIfExistAsync(
             IAzureStorage sourceStorage,
-            Persistence.Storage destinationStorage,
+            CatalogStorage destinationStorage,
             string packageId,
             string normalizedPackageVersion,
             string iconFilename,
@@ -322,7 +322,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
         private async Task CopyIconFromNupkgStreamAsync(
             Stream nupkgStream,
             string iconFilename,
-            Persistence.Storage destinationStorage,
+            CatalogStorage destinationStorage,
             string packageId,
             string normalizedPackageVersion,
             CancellationToken cancellationToken)
@@ -339,7 +339,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
         private async Task CopyIconAsync(
             Stream packageStream,
             string iconFilename,
-            Persistence.Storage destinationStorage,
+            CatalogStorage destinationStorage,
             string packageId,
             string normalizedPackageVersion,
             CancellationToken cancellationToken)
@@ -367,7 +367,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
         private async Task ExtractAndStoreIconAsync(
             Stream packageStream,
             string iconPath,
-            Persistence.Storage destinationStorage,
+            CatalogStorage destinationStorage,
             Uri destinationUri,
             CancellationToken cancellationToken,
             string packageId,
@@ -407,7 +407,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             return await packageSourceBlob.GetStreamAsync(cancellationToken);
         }
 
-        private async Task DeleteNuspecAsync(Persistence.Storage storage, string id, string version, CancellationToken cancellationToken)
+        private async Task DeleteNuspecAsync(CatalogStorage storage, string id, string version, CancellationToken cancellationToken)
         {
             string relativeAddress = GetRelativeAddressNuspec(id, version);
             Uri nuspecUri = new Uri(storage.BaseAddress, relativeAddress);
@@ -417,7 +417,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             }
         }
 
-        private async Task DeleteNupkgAsync(Persistence.Storage storage, string id, string version, CancellationToken cancellationToken)
+        private async Task DeleteNupkgAsync(CatalogStorage storage, string id, string version, CancellationToken cancellationToken)
         {
             string relativeAddress = GetRelativeAddressNupkg(id, version);
             Uri nupkgUri = new Uri(storage.BaseAddress, relativeAddress);
@@ -427,7 +427,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             }
         }
 
-        private async Task DeleteIconAsync(Persistence.Storage storage, string id, string version, CancellationToken cancellationToken)
+        private async Task DeleteIconAsync(CatalogStorage storage, string id, string version, CancellationToken cancellationToken)
         {
             string relativeAddress = GetRelativeAddressIcon(id, version);
             Uri iconUri = new Uri(storage.BaseAddress, relativeAddress);

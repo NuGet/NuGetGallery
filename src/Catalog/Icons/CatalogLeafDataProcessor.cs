@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
 
-using Storage = NuGet.Services.Metadata.Catalog.Persistence.Storage;
+using CatalogStorage = NuGet.Services.Metadata.Catalog.Persistence.Storage;
 
 namespace NuGet.Services.Metadata.Catalog.Icons
 {
@@ -44,7 +44,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task ProcessPackageDeleteLeafAsync(Persistence.Storage storage, CatalogCommitItem item, CancellationToken cancellationToken)
+        public async Task ProcessPackageDeleteLeafAsync(CatalogStorage storage, CatalogCommitItem item, CancellationToken cancellationToken)
         {
             var targetStoragePath = GetTargetStorageIconPath(item);
             await _iconProcessor.DeleteIconAsync(storage, targetStoragePath, cancellationToken, item.PackageIdentity.Id, item.PackageIdentity.Version.ToNormalizedString());
