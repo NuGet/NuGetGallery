@@ -124,22 +124,30 @@ namespace NuGet.Services.AzureSearch
                 .Register(c =>
                 {
                     var options = c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>();
-                    
-                    // https://github.com/Azure/azure-sdk-for-net/issues/44373
-                    options.Value.StorageConnectionString = options.Value.StorageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
-                    
-                    return new BlobServiceClient(options.Value.StorageConnectionString);
+                    var storageMsiConfiguration = c.Resolve<IOptionsSnapshot<StorageMsiConfiguration>>();
+
+                    return StorageAccountHelper.CreateBlobServiceClient(storageMsiConfiguration.Value, options.Value.StorageConnectionString);
                 })
                 .Keyed<BlobServiceClient>(key);
+
+            containerBuilder
+                .Register(c =>
+                {
+                    var options = c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>();
+                    var storageMsiConfiguration = c.Resolve<IOptionsSnapshot<StorageMsiConfiguration>>();
+
+                    return StorageAccountHelper.CreateBlobServiceClientFactory(storageMsiConfiguration.Value, options.Value.StorageConnectionString);
+                })
+                .Keyed<BlobServiceClientFactory>(key);
 
 #if NETFRAMEWORK
             containerBuilder
                 .Register<IStorageFactory>(c =>
                 {
                     var options = c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>();
-                    BlobServiceClientFactory blobServiceClient = c.ResolveKeyed<BlobServiceClientFactory>(key);
+                    BlobServiceClientFactory blobServiceClientFactory = c.ResolveKeyed<BlobServiceClientFactory>(key);
                     return new Metadata.Catalog.Persistence.AzureStorageFactory(
-                        blobServiceClient,
+                        blobServiceClientFactory,
                         options.Value.StorageContainer,
                         maxExecutionTime: Metadata.Catalog.Persistence.AzureStorage.DefaultMaxExecutionTime,
                         serverTimeout: Metadata.Catalog.Persistence.AzureStorage.DefaultServerTimeout,
