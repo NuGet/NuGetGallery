@@ -53,10 +53,12 @@ namespace Stats.CollectAzureChinaCDNLogs
                 _configuration.AzureContainerNameDestination,
                 serviceProvider.GetRequiredService<ILogger<AzureStatsLogDestination>>());
 
-            _chinaCollector = new ChinaStatsCollector(source, dest, serviceProvider.GetRequiredService<ILogger<ChinaStatsCollector>>())
-            {
-                WriteHeader = _configuration.WriteOutputHeader,
-            };
+            _chinaCollector = new ChinaStatsCollector(
+                source,
+                dest,
+                serviceProvider.GetRequiredService<ILogger<ChinaStatsCollector>>(),
+                _configuration.WriteOutputHeader,
+                _configuration.AddSourceFilenameColumn);
         }
 
         public override async Task Run()

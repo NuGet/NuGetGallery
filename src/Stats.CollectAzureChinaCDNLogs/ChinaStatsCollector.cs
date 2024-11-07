@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -35,7 +35,13 @@ namespace Stats.CollectAzureChinaCDNLogs
             sip = 11
         }
 
-        public ChinaStatsCollector(ILogSource source, ILogDestination destination, ILogger<ChinaStatsCollector> logger) : base(source, destination, logger)
+        public ChinaStatsCollector(
+            ILogSource source,
+            ILogDestination destination,
+            ILogger<ChinaStatsCollector> logger,
+            bool writeHeader = true,
+            bool addSourceFilenameColumn = false)
+            : base(source, destination, logger, writeHeader, addSourceFilenameColumn)
         {}
 
         public override OutputLogLine TransformRawLogLine(string line)

@@ -163,9 +163,8 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
             var collector = new ChinaStatsCollector(
                 sourceMock.Object,
                 destinationMock.Object,
-                Mock.Of<ILogger<ChinaStatsCollector>>());
-
-            collector.WriteHeader = false;
+                Mock.Of<ILogger<ChinaStatsCollector>>(),
+                writeHeader: false);
 
             await collector.TryProcessAsync(
                 maxFileCount: 10,
@@ -180,6 +179,39 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
             Assert.True(writeSucceeded);
             Assert.Single(outputLines);
             Assert.False(outputLines[0].StartsWith("#Fields"));
+        }
+
+        [Fact]
+        public async Task WritesSourceFilenameColumn()
+        {
+            const string header = "c-ip, timestamp, cs-method, cs-uri-stem, http-ver, sc-status, sc-bytes, c-referer, c-user-agent, rs-duration(ms), hit-miss, s-ip\n";
+            const string data = "1.2.3.4,4/6/2019 4:00:20 PM +00:00,GET,\"/v3-flatcontainer/microsoft.codeanalysis.common/1.2.2/microsoft.codeanalysis.common.1.2.2.nupkg\",HTTPS,200,2044843,\"NULL\",\"NuGet VS VSIX/4.7.0 (Microsoft Windows NT 10.0.17134.0, VS Enterprise/15.0)\",796,MISS,4.3.2.1";
+
+            Mock<ILogSource> sourceMock = SetupSource(header + data);
+            var writeSucceeded = false;
+            var outputStream = new MemoryStream();
+            Mock<ILogDestination> destinationMock = SetupDestination(outputStream, () => writeSucceeded = true);
+
+            var collector = new ChinaStatsCollector(
+                sourceMock.Object,
+                destinationMock.Object,
+                Mock.Of<ILogger<ChinaStatsCollector>>(),
+                addSourceFilenameColumn: true);
+
+            await collector.TryProcessAsync(
+                maxFileCount: 10,
+                fileNameTransform: s => s,
+                sourceContentType: ContentType.Text,
+                destinationContentType: ContentType.Text,
+                CancellationToken.None);
+
+            string[] outputLines = null;
+
+            outputLines = GetStreamLines(outputStream);
+            Assert.True(writeSucceeded);
+            Assert.Equal(2, outputLines.Length);
+            Assert.EndsWith("sourceFilename", outputLines[0]);
+            Assert.EndsWith("log1", outputLines[1]);
         }
 
         private static Mock<ILogDestination> SetupDestination(MemoryStream outputStream, Action onSuccess)

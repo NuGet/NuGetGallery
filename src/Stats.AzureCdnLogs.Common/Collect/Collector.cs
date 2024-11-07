@@ -25,8 +25,8 @@ namespace Stats.AzureCdnLogs.Common.Collect
         protected ILogSource _source;
         protected ILogDestination _destination;
         protected readonly ILogger<Collector> _logger;
-
-        public bool WriteHeader { get; set; } = true;
+        protected readonly bool _writeHeader;
+        protected readonly bool _addSourceFilenameColumn;
 
         /// <summary>
         /// Used by UnitTests
@@ -40,11 +40,18 @@ namespace Stats.AzureCdnLogs.Common.Collect
         /// <param name="source">The source of the Collector.</param>
         /// <param name="destination">The destination for the collector.</param>
         /// <param name="logger">The logger.</param>
-        public Collector(ILogSource source, ILogDestination destination, ILogger<Collector> logger)
+        public Collector(
+            ILogSource source,
+            ILogDestination destination,
+            ILogger<Collector> logger,
+            bool writeHeader = true,
+            bool addSourceFilenameColumn = false)
         {
             _source = source;
             _destination = destination;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _writeHeader = writeHeader;
+            _addSourceFilenameColumn = addSourceFilenameColumn;
         }
 
         /// <summary>
@@ -128,8 +135,24 @@ namespace Stats.AzureCdnLogs.Common.Collect
         /// A method to transform each line from the input stream before writing it to the output stream. It is useful for example to modify the schema of each line.
         /// </summary>
         /// <param name="line">A line from the input stream.</param>
+        /// <param name="sourceFilename">The name of the file the <paramref name="line"/> was read from.</param>
         /// <returns>The transformed line.</returns>
         public abstract OutputLogLine TransformRawLogLine(string line);
+
+        /// <summary>
+        /// A method that returns the file header to put into the output file (if enabled).
+        /// </summary>
+        /// <returns>The header line.</returns>
+        public string GetOutputFileHeader()
+        {
+            if (!_addSourceFilenameColumn)
+            {
+                return OutputLogLine.Header;
+            }
+
+            return $"{OutputLogLine.Header} sourceFilename";
+        }
+
 
         /// <summary>
         /// A method to validate the stream integrity before data transfer.
@@ -153,9 +176,9 @@ namespace Stats.AzureCdnLogs.Common.Collect
                 using (var sourceStreamReader = new StreamReader(sourceStream))
                 using (var targetStreamWriter = new StreamWriter(targetStream))
                 {
-                    if (WriteHeader)
+                    if (_writeHeader)
                     {
-                        targetStreamWriter.WriteLine(OutputLogLine.Header);
+                        targetStreamWriter.WriteLine(GetOutputFileHeader());
                     }
 
                     while (!sourceStreamReader.EndOfStream)
@@ -284,7 +307,15 @@ namespace Stats.AzureCdnLogs.Common.Collect
             stringBuilder.Append(spaceCharacter);
 
             // x-ec_custom-1
-            stringBuilder.AppendLine((parsedEntry.CustomField ?? dashCharacter));
+            stringBuilder.Append((parsedEntry.CustomField ?? dashCharacter));
+
+            if (_addSourceFilenameColumn)
+            {
+                stringBuilder.Append(spaceCharacter);
+                stringBuilder.Append(OutputLogLine.Quote(filename));
+            }
+
+            stringBuilder.AppendLine();
 
             return stringBuilder.ToString();
         }

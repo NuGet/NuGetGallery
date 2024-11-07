@@ -18,5 +18,6 @@ namespace Stats.CollectAzureChinaCDNLogs
         public int? ExecutionTimeoutInSeconds { get; set; }
 
         public bool WriteOutputHeader { get; set; } = true;
+        public bool AddSourceFilenameColumn { get; set; } = false;
     }
 }

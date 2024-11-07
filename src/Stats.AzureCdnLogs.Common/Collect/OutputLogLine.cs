@@ -87,7 +87,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
             return $"{TimeStamp} {TimeTaken} {CIp} {FileSize} {SIp} {SPort} {ScStatus} {ScBytes} {CsMethod} {CsUriStem} - {RsDuration} {RsBytes} {CReferrer} {Quote(CUserAgent)} {CustomerId} {Quote(XEc_Custom_1)}";
         }
 
-        private static string Quote(string input)
+        public static string Quote(string input)
         {
             if (input.StartsWith("\"") && input.EndsWith("\""))
             {
