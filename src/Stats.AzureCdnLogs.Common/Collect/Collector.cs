@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -25,6 +25,8 @@ namespace Stats.AzureCdnLogs.Common.Collect
         protected ILogSource _source;
         protected ILogDestination _destination;
         protected readonly ILogger<Collector> _logger;
+
+        public bool WriteHeader { get; set; } = true;
 
         /// <summary>
         /// Used by UnitTests
@@ -151,7 +153,10 @@ namespace Stats.AzureCdnLogs.Common.Collect
                 using (var sourceStreamReader = new StreamReader(sourceStream))
                 using (var targetStreamWriter = new StreamWriter(targetStream))
                 {
-                    targetStreamWriter.WriteLine(OutputLogLine.Header);
+                    if (WriteHeader)
+                    {
+                        targetStreamWriter.WriteLine(OutputLogLine.Header);
+                    }
 
                     while (!sourceStreamReader.EndOfStream)
                     {

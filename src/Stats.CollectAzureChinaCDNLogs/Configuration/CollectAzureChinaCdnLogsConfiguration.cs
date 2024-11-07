@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 namespace Stats.CollectAzureChinaCDNLogs
@@ -16,5 +16,7 @@ namespace Stats.CollectAzureChinaCDNLogs
         public string DestinationFilePrefix { get; set; }
 
         public int? ExecutionTimeoutInSeconds { get; set; }
+
+        public bool WriteOutputHeader { get; set; } = true;
     }
 }
