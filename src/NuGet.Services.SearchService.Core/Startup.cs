@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.PackageManagement.Search.Web;
+using NuGet.Jobs;
 using NuGet.Services.AzureSearch;
 using NuGet.Services.AzureSearch.SearchService;
 using NuGet.Services.Logging;
@@ -36,6 +37,8 @@ namespace NuGet.Services.SearchService
         {
             var refreshableConfig = StartupHelper.GetSecretInjectedConfiguration(Configuration);
             Configuration = refreshableConfig.Root;
+
+            services.ConfigureStorageMsi(Configuration);
             services.AddSingleton(refreshableConfig.SecretReaderFactory);
 
             services
