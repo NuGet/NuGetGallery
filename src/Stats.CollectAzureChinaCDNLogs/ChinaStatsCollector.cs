@@ -39,8 +39,8 @@ namespace Stats.CollectAzureChinaCDNLogs
             ILogSource source,
             ILogDestination destination,
             ILogger<ChinaStatsCollector> logger,
-            bool writeHeader = true,
-            bool addSourceFilenameColumn = false)
+            bool writeHeader,
+            bool addSourceFilenameColumn)
             : base(source, destination, logger, writeHeader, addSourceFilenameColumn)
         {}
 

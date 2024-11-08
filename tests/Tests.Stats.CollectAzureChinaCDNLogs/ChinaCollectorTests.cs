@@ -35,7 +35,9 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
             var collector = new ChinaStatsCollector(
                 Mock.Of<ILogSource>(),
                 Mock.Of<ILogDestination>(),
-                Mock.Of<ILogger<ChinaStatsCollector>>());
+                Mock.Of<ILogger<ChinaStatsCollector>>(),
+                writeHeader: true,
+                addSourceFilenameColumn: false);
 
             var transformedInput = collector.TransformRawLogLine(input);
             string output = transformedInput == null ? null : transformedInput.ToString();
@@ -51,7 +53,9 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
             var collector = new ChinaStatsCollector(
                 Mock.Of<ILogSource>(),
                 Mock.Of<ILogDestination>(),
-                Mock.Of<ILogger<ChinaStatsCollector>>());
+                Mock.Of<ILogger<ChinaStatsCollector>>(),
+                writeHeader: true,
+                addSourceFilenameColumn: false);
 
             var transformedInput = collector.TransformRawLogLine(input);
             if (transformedInput == null)
@@ -74,7 +78,9 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
             var collector = new ChinaStatsCollector(
                 Mock.Of<ILogSource>(),
                 Mock.Of<ILogDestination>(),
-                Mock.Of<ILogger<ChinaStatsCollector>>());
+                Mock.Of<ILogger<ChinaStatsCollector>>(),
+                writeHeader: true,
+                addSourceFilenameColumn: false);
 
             OutputLogLine transformedInput = null;
 
@@ -130,7 +136,9 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
             var collector = new ChinaStatsCollector(
                 sourceMock.Object,
                 destinationMock.Object,
-                Mock.Of<ILogger<ChinaStatsCollector>>());
+                Mock.Of<ILogger<ChinaStatsCollector>>(),
+                writeHeader: true,
+                addSourceFilenameColumn: false);
 
             await collector.TryProcessAsync(
                 maxFileCount: 10,
@@ -164,7 +172,8 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
                 sourceMock.Object,
                 destinationMock.Object,
                 Mock.Of<ILogger<ChinaStatsCollector>>(),
-                writeHeader: false);
+                writeHeader: false,
+                addSourceFilenameColumn: false);
 
             await collector.TryProcessAsync(
                 maxFileCount: 10,
@@ -196,6 +205,7 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
                 sourceMock.Object,
                 destinationMock.Object,
                 Mock.Of<ILogger<ChinaStatsCollector>>(),
+                writeHeader: true,
                 addSourceFilenameColumn: true);
 
             await collector.TryProcessAsync(

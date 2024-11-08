@@ -44,8 +44,8 @@ namespace Stats.AzureCdnLogs.Common.Collect
             ILogSource source,
             ILogDestination destination,
             ILogger<Collector> logger,
-            bool writeHeader = true,
-            bool addSourceFilenameColumn = false)
+            bool writeHeader,
+            bool addSourceFilenameColumn)
         {
             _source = source;
             _destination = destination;
