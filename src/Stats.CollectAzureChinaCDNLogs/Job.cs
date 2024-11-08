@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -53,7 +53,12 @@ namespace Stats.CollectAzureChinaCDNLogs
                 _configuration.AzureContainerNameDestination,
                 serviceProvider.GetRequiredService<ILogger<AzureStatsLogDestination>>());
 
-            _chinaCollector = new ChinaStatsCollector(source, dest, serviceProvider.GetRequiredService<ILogger<ChinaStatsCollector>>());
+            _chinaCollector = new ChinaStatsCollector(
+                source,
+                dest,
+                serviceProvider.GetRequiredService<ILogger<ChinaStatsCollector>>(),
+                _configuration.WriteOutputHeader,
+                _configuration.AddSourceFilenameColumn);
         }
 
         public override async Task Run()
