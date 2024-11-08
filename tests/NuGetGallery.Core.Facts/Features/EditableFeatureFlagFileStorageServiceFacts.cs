@@ -75,7 +75,7 @@ namespace NuGetGallery.Features
             {
                 // Arrange
                 _storage
-                    .Setup(s => s.GetFileAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.FeatureFlagsFileName, true))
+                    .Setup(s => s.GetFileAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.FeatureFlagsFileName, false))
                     .ReturnsAsync(BuildStream(ExampleJson));
 
                 // Act
@@ -89,7 +89,7 @@ namespace NuGetGallery.Features
             public async Task ThrowsOnInvalidJson()
             {
                 _storage
-                    .Setup(s => s.GetFileAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.FeatureFlagsFileName, true))
+                    .Setup(s => s.GetFileAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.FeatureFlagsFileName, false))
                     .ReturnsAsync(BuildStream("Bad"));
 
                 await Assert.ThrowsAsync<JsonReaderException>(() => _target.GetAsync());
