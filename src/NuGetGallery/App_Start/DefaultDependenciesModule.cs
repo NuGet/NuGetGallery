@@ -381,7 +381,7 @@ namespace NuGetGallery
             builder.RegisterType<MarkdownService>()
                 .As<IMarkdownService>()
                 .InstancePerLifetimeScope();
-            
+
             builder.RegisterType<ImageDomainValidator>()
                 .As<IImageDomainValidator>()
                 .InstancePerLifetimeScope();
@@ -405,7 +405,7 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<ICertificateService>()
                 .InstancePerLifetimeScope();
-            
+
             RegisterTyposquattingServiceHelper(builder, loggerFactory);
 
             builder.RegisterType<TyposquattingService>()
@@ -812,7 +812,7 @@ namespace NuGetGallery
                 .Register(c => new TopicClientWrapper(asyncAccountDeleteConnectionString, asyncAccountDeleteTopicName, configuration.ServiceBus.ManagedIdentityClientId))
                 .SingleInstance()
                 .Keyed<ITopicClient>(BindingKeys.AccountDeleterTopic)
-                .OnRelease(x => x.CloseAsync());
+                .OnRelease(x => _ = x.CloseAsync());
 
             builder
                 .RegisterType<AsynchronousDeleteAccountService>()
@@ -948,7 +948,7 @@ namespace NuGetGallery
                 .As<ITopicClient>()
                 .SingleInstance()
                 .Keyed<ITopicClient>(BindingKeys.EmailPublisherTopic)
-                .OnRelease(x => x.CloseAsync());
+                .OnRelease(x => _ = x.CloseAsync());
 
             builder
                 .RegisterType<EmailMessageEnqueuer>()
@@ -1103,14 +1103,14 @@ namespace NuGetGallery
                     .As<ITopicClient>()
                     .SingleInstance()
                     .Keyed<ITopicClient>(BindingKeys.PackageValidationTopic)
-                    .OnRelease(x => x.CloseAsync());
+                    .OnRelease(x => _ = x.CloseAsync());
 
                 builder
                     .Register(c => new TopicClientWrapper(symbolsValidationConnectionString, symbolsValidationTopicName, configuration.ServiceBus.ManagedIdentityClientId))
                     .As<ITopicClient>()
                     .SingleInstance()
                     .Keyed<ITopicClient>(BindingKeys.SymbolsPackageValidationTopic)
-                    .OnRelease(x => x.CloseAsync());
+                    .OnRelease(x => _ = x.CloseAsync());
             }
             else
             {

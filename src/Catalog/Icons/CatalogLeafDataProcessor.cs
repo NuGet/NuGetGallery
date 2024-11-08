@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -11,6 +11,8 @@ using Azure;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
+
+using CatalogStorage = NuGet.Services.Metadata.Catalog.Persistence.Storage;
 
 namespace NuGet.Services.Metadata.Catalog.Icons
 {
@@ -42,7 +44,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task ProcessPackageDeleteLeafAsync(Storage storage, CatalogCommitItem item, CancellationToken cancellationToken)
+        public async Task ProcessPackageDeleteLeafAsync(CatalogStorage storage, CatalogCommitItem item, CancellationToken cancellationToken)
         {
             var targetStoragePath = GetTargetStorageIconPath(item);
             await _iconProcessor.DeleteIconAsync(storage, targetStoragePath, cancellationToken, item.PackageIdentity.Id, item.PackageIdentity.Version.ToNormalizedString());

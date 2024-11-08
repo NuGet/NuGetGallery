@@ -1,12 +1,14 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace NuGetGallery
 {
@@ -69,7 +71,41 @@ namespace NuGetGallery
                 throw new ObjectDisposedException(nameof(RuntimeServiceProvider));
             }
 
-            return _compositionContainer.GetExportedValues<T>();
+            try
+            {
+                return _compositionContainer.GetExportedValues<T>();
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    var tracePrefix = $"Error in {nameof(RuntimeServiceProvider)}.{nameof(GetExportedValues)}<{typeof(T).Name}>().";
+
+                    // We use Trace instead of the ILogger or TelemetryClient because they may be unavailable at this point.
+                    Trace.TraceError("{0} Failed with {1}:{2}{3}", tracePrefix, ex.GetType().Name, Environment.NewLine, ex);
+                    var currentEx = ex;
+                    var loaderExceptionCount = 0;
+                    while (currentEx is not null)
+                    {
+                        if (ex is ReflectionTypeLoadException rex)
+                        {
+                            foreach (var loaderException in rex.LoaderExceptions)
+                            {
+                                loaderExceptionCount++;
+                                Trace.TraceError("{0} Loader exception {1}:{2}{3}", tracePrefix, loaderExceptionCount, Environment.NewLine, loaderException);
+                            }
+                        }
+
+                        currentEx = currentEx.InnerException;
+                    }
+                }
+                catch
+                {
+                    // best effort
+                }
+
+                throw;
+            }
         }
 
         // Runtime loadable services are only allowed from subdirectories of the base directory path.

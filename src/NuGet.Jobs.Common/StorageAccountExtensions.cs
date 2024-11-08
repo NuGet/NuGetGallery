@@ -224,6 +224,39 @@ namespace NuGet.Jobs
             }
         }
 
+        public static BlobServiceClientFactory CreateBlobServiceClientFactory(
+            StorageMsiConfiguration storageMsiConfiguration,
+            string storageConnectionString)
+        {
+            if (storageMsiConfiguration.UseManagedIdentity)
+            {
+                Uri blobEndpointUri = AzureStorage.GetPrimaryServiceUri(storageConnectionString);
+
+                if (string.IsNullOrWhiteSpace(storageMsiConfiguration.ManagedIdentityClientId))
+                {
+                    // 1. Using MSI with DefaultAzureCredential (local debugging)
+                    return new BlobServiceClientFactory(
+                        blobEndpointUri,
+                        new DefaultAzureCredential());
+                }
+                else
+                {
+                    // 2. Using MSI with ClientId
+                    return new BlobServiceClientFactory(
+                        blobEndpointUri,
+                        new ManagedIdentityCredential(storageMsiConfiguration.ManagedIdentityClientId));
+                }
+            }
+            else
+            {
+                // 3. Using SAS token
+                // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
+                var connectionString = storageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+
+                return new BlobServiceClientFactory(connectionString);
+            }
+        }
+
         private static TableServiceClient CreateTableServiceClientClient(
             StorageMsiConfiguration msiConfiguration,
             string tableStorageConnectionString)

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 #pragma warning disable CA3147 // No need to validate Antiforgery Token with API request
@@ -426,8 +426,8 @@ namespace NuGetGallery
         [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
         [ActionName("PushPackageApi")]
-        public virtual Task<ActionResult> CreatePackagePost()
         // CodeQL [SM00433] This endpoint uses API Key authentication
+        public virtual Task<ActionResult> CreatePackagePost()
         {
             return CreatePackageInternal();
         }
@@ -969,8 +969,8 @@ namespace NuGetGallery
         [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackageUnlist)]
         [ActionName("PublishPackageApi")]
-        public virtual async Task<ActionResult> PublishPackage(string id, string version)
         // CodeQL [SM00433] This endpoint uses API Key authentication
+        public virtual async Task<ActionResult> PublishPackage(string id, string version)
         {
             var package = PackageService.FindPackageByIdAndVersionStrict(id, version);
             if (package == null)

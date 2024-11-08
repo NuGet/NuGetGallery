@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
@@ -43,5 +43,12 @@ namespace NuGetGallery.Authentication
         /// </summary>
         /// <returns>Returns whether the API key credential is active or not</returns>
         bool IsActiveApiKeyCredential(Credential credential);
+
+        /// <summary>
+        /// Adds a new credential to the user. This method saves changes in the entity context.
+        /// </summary>
+        /// <param name="user">The user who owns the credential.</param>
+        /// <param name="credential">The credential to be added.</param>
+        Task AddCredential(User user, Credential credential);
     }
 }

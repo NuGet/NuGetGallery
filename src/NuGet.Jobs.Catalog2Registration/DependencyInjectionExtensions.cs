@@ -13,8 +13,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Protocol;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using NuGet.Services.Storage;
 using NuGet.Services.V3;
 using NuGetGallery;
+
+using AzureStorage = NuGet.Services.Metadata.Catalog.Persistence.AzureStorage;
+using AzureStorageFactory = NuGet.Services.Metadata.Catalog.Persistence.AzureStorageFactory;
+using IStorageFactory = NuGet.Services.Metadata.Catalog.Persistence.IStorageFactory;
 
 namespace NuGet.Jobs.Catalog2Registration
 {
@@ -74,9 +79,9 @@ namespace NuGet.Jobs.Catalog2Registration
                         return new BlobServiceClient(new Uri(options.Value.StorageServiceUrl), credential);
                     }
 
-                    return new BlobServiceClient(options.Value.StorageConnectionString);
+                    return new BlobServiceClientFactory(connectionString);
                 })
-                .Keyed<BlobServiceClient>(CursorBindingKey);
+                .Keyed<IBlobServiceClientFactory>(CursorBindingKey);
 
             containerBuilder
                 .Register<IStorageFactory>(c =>
@@ -84,7 +89,7 @@ namespace NuGet.Jobs.Catalog2Registration
                     var options = c.Resolve<IOptionsSnapshot<Catalog2RegistrationConfiguration>>();
 
                     return new AzureStorageFactory(
-                        c.ResolveKeyed<BlobServiceClient>(CursorBindingKey),
+                        c.ResolveKeyed<IBlobServiceClientFactory>(CursorBindingKey),
                         options.Value.LegacyStorageContainer,
                         maxExecutionTime: AzureStorage.DefaultMaxExecutionTime,
                         serverTimeout: AzureStorage.DefaultServerTimeout,

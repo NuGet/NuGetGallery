@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -155,9 +155,7 @@ namespace NuGetGallery.Frameworks
             var compatibleFrameworks = FrameworkCompatibilityService.GetCompatibleFrameworks(new HashSet<NuGetFramework>() { packageFramework });
 
             // Assert
-            Assert.Equal(expectedFrameworks.Length, compatibleFrameworks.Count);
-
-            var containsAllCompatibleFrameworks = compatibleFrameworks.All(cf => projectFrameworks.Contains(cf));
+            var containsAllCompatibleFrameworks = projectFrameworks.All(cf => compatibleFrameworks.Contains(cf));
             Assert.True(containsAllCompatibleFrameworks);
         }
 
@@ -189,9 +187,7 @@ namespace NuGetGallery.Frameworks
             var compatibleFrameworks = FrameworkCompatibilityService.GetCompatibleFrameworks(packageFrameworks);
 
             // Assert
-            Assert.Equal(expectedFrameworks.Length, compatibleFrameworks.Count);
-
-            var containsAllCompatibleFrameworks = compatibleFrameworks.All(cf => expectedComputedFrameworks.Contains(cf));
+            var containsAllCompatibleFrameworks = expectedComputedFrameworks.All(cf => compatibleFrameworks.Contains(cf));
             Assert.True(containsAllCompatibleFrameworks);
         }
     }

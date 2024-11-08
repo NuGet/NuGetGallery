@@ -4,7 +4,6 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Internal;
 using Moq;
 using Xunit;
 
@@ -36,9 +35,9 @@ namespace NuGet.Services.KeyVault.Tests
             mockSecretReader.Verify(x => x.GetSecretObjectAsync(It.IsAny<string>()), Times.Once);
             mockLogger.Verify(x => x.Log(It.IsAny<LogLevel>(),
                 It.IsAny<EventId>(),
-                It.IsAny<FormattedLogValues>(),
+                It.IsAny<It.IsAnyType>(),
                 It.IsAny<Exception>(),
-                It.IsAny<Func<object, Exception, string>>()), Times.Once);
+                (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()), Times.Once);
         }
 
         [Fact]
@@ -65,9 +64,9 @@ namespace NuGet.Services.KeyVault.Tests
             mockSecretReader.Verify(x => x.GetSecretObject(It.IsAny<string>()), Times.Once);
             mockLogger.Verify(x => x.Log(It.IsAny<LogLevel>(),
                 It.IsAny<EventId>(),
-                It.IsAny<FormattedLogValues>(),
+                It.IsAny<It.IsAnyType>(),
                 It.IsAny<Exception>(),
-                It.IsAny<Func<object, Exception, string>>()), Times.Once);
+                (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()), Times.Once);
         }
 
         [Fact]
@@ -120,7 +119,7 @@ namespace NuGet.Services.KeyVault.Tests
             mockSecretReader.Verify(x => x.GetSecretObjectAsync(It.IsAny<string>()), Times.Once);
             mockLogger.Verify(x => x.Log(It.IsAny<LogLevel>(),
                 It.IsAny<EventId>(),
-                It.IsAny<FormattedLogValues>(),
+                It.IsAny<It.IsAnyType>(),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<object, Exception, string>>()), Times.Never);
         }
@@ -178,9 +177,9 @@ namespace NuGet.Services.KeyVault.Tests
             mockSecretReader.Verify(x => x.GetSecretObjectAsync(It.IsAny<string>()), Times.Once);
             mockLogger.Verify(x => x.Log(It.IsAny<LogLevel>(),
                 It.IsAny<EventId>(),
-                It.IsAny<FormattedLogValues>(),
+                It.IsAny<It.IsAnyType>(),
                 It.IsAny<Exception>(),
-                It.IsAny<Func<object, Exception, string>>()), Times.Once);
+                (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()), Times.Once);
             Assert.Equal(firstSecret.Value, firstValue1);
             Assert.Equal(firstSecret.Value, firstValue2);
 
@@ -196,9 +195,9 @@ namespace NuGet.Services.KeyVault.Tests
             mockSecretReader.Verify(x => x.GetSecretObjectAsync(It.IsAny<string>()), Times.Exactly(2));
             mockLogger.Verify(x => x.Log(It.IsAny<LogLevel>(),
                 It.IsAny<EventId>(),
-                It.IsAny<FormattedLogValues>(),
+                It.IsAny<It.IsAnyType>(),
                 It.IsAny<Exception>(),
-                It.IsAny<Func<object, Exception, string>>()), Times.Exactly(2));
+                (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()), Times.Exactly(2));
             Assert.Equal(secondSecret.Value, secondValue1);
             Assert.Equal(secondSecret.Value, secondValue2);
         }
@@ -235,9 +234,9 @@ namespace NuGet.Services.KeyVault.Tests
             mockSecretReader.Verify(x => x.GetSecretObjectAsync(It.IsAny<string>()), Times.Exactly(2));
             mockLogger.Verify(x => x.Log(It.IsAny<LogLevel>(),
                 It.IsAny<EventId>(),
-                It.IsAny<FormattedLogValues>(),
+                It.IsAny<It.IsAnyType>(),
                 It.IsAny<Exception>(),
-                It.IsAny<Func<object, Exception, string>>()), Times.Exactly(2));
+                (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()), Times.Exactly(2));
             Assert.Equal(firstSecretValue, secretObject1.Value);
             Assert.Equal(secretObject1.Expiration, firstSecretExpiration);
             Assert.Equal(secondSecretValue, secretObject2.Value);

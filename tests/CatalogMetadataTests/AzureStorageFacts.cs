@@ -10,6 +10,8 @@ using Xunit;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using NuGet.Services.Storage;
+using AzureStorage = NuGet.Services.Metadata.Catalog.Persistence.AzureStorage;
 
 namespace CatalogMetadataTests
 {
@@ -138,14 +140,12 @@ namespace CatalogMetadataTests
 
     public abstract class AzureStorageBaseFacts
     {
+        protected readonly string _baseAddressString = "DefaultEndpointsProtocol=https;AccountName=devstoreaccount1;AccountKey=fake";
         protected readonly Uri _baseAddress = new Uri("https://test");
         protected readonly AzureStorage _storage;
 
         public AzureStorageBaseFacts()
         {
-            // Mock the BlobServiceClient
-            var mockBlobServiceClient = new Mock<BlobServiceClient>(_baseAddress, null);
-            mockBlobServiceClient.Setup(x => x.Uri).Returns(_baseAddress);
 
             // Mock the BlobContainerClient
             string containerName = "azuresearch";
@@ -159,12 +159,24 @@ namespace CatalogMetadataTests
 
             mockBlobContainerClient.Setup(client => client.Name)
                 .Returns(containerName);
+            
+            // Mock the BlobServiceClient
+            var mockBlobServiceClient = new Mock<BlobServiceClient>(_baseAddressString);
+            mockBlobServiceClient.Setup(x => x.Uri).Returns(_baseAddress);
+            mockBlobServiceClient.Setup(x => x.GetBlobContainerClient(It.IsAny<string>()))
+                .Returns(mockBlobContainerClient.Object);
+
+            // Mock the BlobServiceClientFactory
+            var mockBlobServiceFactoryClient = new Mock<BlobServiceClientFactory>(_baseAddressString);
+            mockBlobServiceFactoryClient.Setup(x => x.Uri).Returns(_baseAddress);
+            mockBlobServiceFactoryClient.Setup(x => x.GetBlobServiceClient(It.IsAny<BlobClientOptions>()))
+                .Returns(mockBlobServiceClient.Object);
 
             // Mock ICloudBlobDirectory
             var directory = new Mock<ICloudBlobDirectory>();
 
             // Setup the ServiceClient to return the mocked BlobServiceClient
-            directory.Setup(x => x.ServiceClient).Returns(mockBlobServiceClient.Object);
+            directory.Setup(x => x.ServiceClient).Returns(mockBlobServiceFactoryClient.Object);
             directory.Setup(x => x.DirectoryPrefix).Returns("");
             directory.Setup(x => x.ContainerClientWrapper).Returns(new BlobContainerClientWrapper(mockBlobContainerClient.Object));
 

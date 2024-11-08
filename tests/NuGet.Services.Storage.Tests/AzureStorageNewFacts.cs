@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -21,6 +21,7 @@ namespace NuGet.Services.Storage.Tests
     {
         private Mock<BlockBlobClient> _blobClientMock = new Mock<BlockBlobClient>();
         private Mock<BlobServiceClient> _blobServiceClientMock = new Mock<BlobServiceClient>();
+        private Mock<BlobServiceClientFactory> _blobServiceClientFactoryMock = new Mock<BlobServiceClientFactory>();
         private Mock<BlobContainerClient> _blobContainerClientMock = new Mock<BlobContainerClient>();
         private Mock<ILogger<AzureStorage>> _loggerMock = new Mock<ILogger<AzureStorage>>();
 
@@ -34,13 +35,16 @@ namespace NuGet.Services.Storage.Tests
             _blobServiceClientMock
                 .Setup(x => x.GetBlobContainerClient(It.IsAny<string>()))
                 .Returns(_blobContainerClientMock.Object);
+            _blobServiceClientFactoryMock
+                .Setup(x => x.GetBlobServiceClient(It.IsAny<BlobClientOptions>()))
+                .Returns(_blobServiceClientMock.Object);
         }
 
         [Fact]
         public void Constructor_DoNotInitialize()
         {
             var azureStorage = new AzureStorage(
-                _blobServiceClientMock.Object,
+                _blobServiceClientFactoryMock.Object,
                 "containerName",
                 "path",
                 new Uri("http://baseAddress"),
@@ -75,7 +79,7 @@ namespace NuGet.Services.Storage.Tests
                 .Throws(new RequestFailedException(404, "Not found"));
 
             var azureStorage = new AzureStorage(
-                _blobServiceClientMock.Object,
+                _blobServiceClientFactoryMock.Object,
                 "containerName",
                 "path",
                 new Uri("http://baseAddress"),
@@ -109,7 +113,7 @@ namespace NuGet.Services.Storage.Tests
                     Mock.Of<Response>()));
 
             var azureStorage = new AzureStorage(
-                _blobServiceClientMock.Object,
+                _blobServiceClientFactoryMock.Object,
                 "containerName",
                 "path",
                 new Uri("http://baseAddress"),
@@ -143,7 +147,7 @@ namespace NuGet.Services.Storage.Tests
                     Mock.Of<Response>()));
 
             var azureStorage = new AzureStorage(
-                _blobServiceClientMock.Object,
+                _blobServiceClientFactoryMock.Object,
                 "containerName",
                 "path",
                 new Uri("http://baseAddress"),
@@ -172,7 +176,7 @@ namespace NuGet.Services.Storage.Tests
             _blobClientMock.Setup(c => c.Exists(It.IsAny<CancellationToken>())).Returns(Response.FromValue(expected, azureResponse.Object));
             _blobContainerClientMock.Protected().Setup<BlockBlobClient>("GetBlockBlobClientCore",ItExpr.IsAny<string>())
                 .Returns(_blobClientMock.Object);
-            var azureStorage = new AzureStorage(_blobServiceClientMock.Object, "containerName", "path", new Uri("http://baseAddress"), initializeContainer: true, enablePublicAccess: false, _loggerMock.Object);
+            var azureStorage = new AzureStorage(_blobServiceClientFactoryMock.Object, "containerName", "path", new Uri("http://baseAddress"), initializeContainer: true, enablePublicAccess: false, _loggerMock.Object);
 
             Assert.Equal(azureStorage.Exists("file"), expected);
         }
@@ -186,7 +190,7 @@ namespace NuGet.Services.Storage.Tests
             _blobClientMock.Setup(c => c.ExistsAsync(It.IsAny<CancellationToken>())).Returns(Task.FromResult(Response.FromValue(expected, azureResponse.Object)));
             _blobContainerClientMock.Protected().Setup<BlockBlobClient>("GetBlockBlobClientCore", ItExpr.IsAny<string>())
                 .Returns(_blobClientMock.Object);
-            var azureStorage = new AzureStorage(_blobServiceClientMock.Object, "containerName", "path", new Uri("http://baseAddress"), initializeContainer: true, enablePublicAccess: false, _loggerMock.Object);
+            var azureStorage = new AzureStorage(_blobServiceClientFactoryMock.Object, "containerName", "path", new Uri("http://baseAddress"), initializeContainer: true, enablePublicAccess: false, _loggerMock.Object);
 
             Assert.Equal(await azureStorage.ExistsAsync("file", CancellationToken.None), expected);
         }
@@ -211,7 +215,7 @@ namespace NuGet.Services.Storage.Tests
 
             _blobContainerClientMock.Protected().Setup<BlockBlobClient>("GetBlockBlobClientCore", ItExpr.IsAny<string>())
                 .Returns(_blobClientMock.Object);
-            var azureStorage = new AzureStorage(_blobServiceClientMock.Object, "containerName", "path", new Uri("http://baseAddress"), initializeContainer: true, enablePublicAccess: false, _loggerMock.Object);
+            var azureStorage = new AzureStorage(_blobServiceClientFactoryMock.Object, "containerName", "path", new Uri("http://baseAddress"), initializeContainer: true, enablePublicAccess: false, _loggerMock.Object);
 
             await azureStorage.Save(new Uri("http://testUri.com/blob.json"), new StringStorageContent("content"), overwrite: overwrite, CancellationToken.None);
 

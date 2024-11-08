@@ -37,7 +37,7 @@ namespace Validation.PackageSigning.ValidateCertificate
                 var useStorageManagedIdentity = bool.Parse(configurationRoot[Constants.StorageUseManagedIdentityPropertyName]);
                 var config = p.GetRequiredService<IOptionsSnapshot<CertificateStoreConfiguration>>().Value;
 
-                BlobServiceClient targetStorageAccount;
+                BlobServiceClientFactory targetStorageAccount;
                 if (useStorageManagedIdentity)
                 {
                     var managedIdentityClientId =
@@ -45,12 +45,12 @@ namespace Validation.PackageSigning.ValidateCertificate
                         configurationRoot[Constants.ManagedIdentityClientIdKey] :
                         configurationRoot[Constants.StorageManagedIdentityClientIdPropertyName];
                     var storageAccountUri = AzureStorage.GetPrimaryServiceUri(config.DataStorageAccount);
-                    var managedIdentity = new ManagedIdentityCredential(managedIdentityClientId);
-                    targetStorageAccount = new BlobServiceClient(storageAccountUri, managedIdentity);
+                    var managedIdentityCredential = new ManagedIdentityCredential(managedIdentityClientId);
+                    targetStorageAccount = new BlobServiceClientFactory(storageAccountUri, managedIdentityCredential);
                 }
                 else
                 {
-                    targetStorageAccount = new BlobServiceClient(AzureStorageFactory.PrepareConnectionString(config.DataStorageAccount));
+                    targetStorageAccount = new BlobServiceClientFactory(AzureStorageFactory.PrepareConnectionString(config.DataStorageAccount));
                 }
 
                 var storageFactory = new AzureStorageFactory(
