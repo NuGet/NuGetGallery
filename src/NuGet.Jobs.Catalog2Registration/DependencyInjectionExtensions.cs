@@ -76,8 +76,9 @@ namespace NuGet.Jobs.Catalog2Registration
                                 ManagedIdentityClientId = options.Value.ManagedIdentityClientId
                             });
 
-                        return new BlobServiceClient(new Uri(options.Value.StorageServiceUrl), credential);
+                        return new BlobServiceClientFactory(new Uri(options.Value.StorageServiceUrl), credential);
                     }
+                    var connectionString = options.Value.StorageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
 
                     return new BlobServiceClientFactory(connectionString);
                 })

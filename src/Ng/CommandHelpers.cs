@@ -430,7 +430,8 @@ namespace Ng
             IDictionary<string, string> argumentNameMap)
         {
             bool storageUseManagedIdentity = arguments.GetOrDefault(argumentNameMap[Arguments.StorageUseManagedIdentity], defaultValue: false);
-            if (storageUseManagedIdentity)
+            bool useManagedIdentity = storageUseManagedIdentity || arguments.GetOrDefault(argumentNameMap[Arguments.UseManagedIdentity], defaultValue: false);
+            if (useManagedIdentity)
             {
                 var managedIdentityClientId = arguments.GetOrThrow<string>(argumentNameMap[Arguments.ClientId]);
                 var identity = new ManagedIdentityCredential(managedIdentityClientId);
@@ -447,7 +448,8 @@ namespace Ng
             IDictionary<string, string> argumentNameMap)
         {
             bool storageUseManagedIdentity = arguments.GetOrDefault(argumentNameMap[Arguments.StorageUseManagedIdentity], defaultValue: false);
-            if (storageUseManagedIdentity)
+            bool useManagedIdentity = storageUseManagedIdentity || arguments.GetOrDefault(argumentNameMap[Arguments.UseManagedIdentity], defaultValue: false);
+            if (useManagedIdentity)
             {
                 var managedIdentityClientId = arguments.GetOrThrow<string>(argumentNameMap[Arguments.ClientId]);
                 var identity = new ManagedIdentityCredential(managedIdentityClientId);
