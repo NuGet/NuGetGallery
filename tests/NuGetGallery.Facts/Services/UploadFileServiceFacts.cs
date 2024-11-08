@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System;
 using System.IO;
@@ -76,7 +76,7 @@ namespace NuGetGallery
 
                 service.GetUploadFileAsync(1);
 
-                fakeFileStorageService.Verify(x => x.GetFileAsync(CoreConstants.Folders.UploadsFolderName, It.IsAny<string>()));
+                fakeFileStorageService.Verify(x => x.GetFileAsync(CoreConstants.Folders.UploadsFolderName, It.IsAny<string>(), true));
             }
 
             [Fact]
@@ -88,7 +88,7 @@ namespace NuGetGallery
 
                 service.GetUploadFileAsync(1);
 
-                fakeFileStorageService.Verify(x => x.GetFileAsync(It.IsAny<string>(), expectedFileName));
+                fakeFileStorageService.Verify(x => x.GetFileAsync(It.IsAny<string>(), expectedFileName, true));
             }
 
             [Fact]
@@ -97,7 +97,7 @@ namespace NuGetGallery
                 var expectedFileName = String.Format(GalleryConstants.UploadFileNameTemplate, 1, CoreConstants.NuGetPackageFileExtension);
                 var fakeFileStorageService = new Mock<IFileStorageService>();
                 var fakeFileStream = new MemoryStream();
-                fakeFileStorageService.Setup(x => x.GetFileAsync(CoreConstants.Folders.UploadsFolderName, expectedFileName))
+                fakeFileStorageService.Setup(x => x.GetFileAsync(CoreConstants.Folders.UploadsFolderName, expectedFileName, true))
                                       .Returns(Task.FromResult<Stream>(fakeFileStream));
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
 

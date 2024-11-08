@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -66,7 +66,7 @@ namespace NuGetGallery.Login
             {
                 // Arrange
                 _storage
-                    .Setup(s => s.GetFileAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.LoginDiscontinuationConfigFileName))
+                    .Setup(s => s.GetFileAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.LoginDiscontinuationConfigFileName, true))
                     .ReturnsAsync(BuildStream(ExampleJson));
 
                 // Act
@@ -80,7 +80,7 @@ namespace NuGetGallery.Login
             public async Task ThrowsOnInvalidJson()
             {
                 _storage
-                    .Setup(s => s.GetFileAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.LoginDiscontinuationConfigFileName))
+                    .Setup(s => s.GetFileAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.LoginDiscontinuationConfigFileName, true))
                     .ReturnsAsync(BuildStream("Bad"));
 
                 await Assert.ThrowsAsync<JsonReaderException>(() => _target.GetAsync());
@@ -445,7 +445,7 @@ namespace NuGetGallery.Login
             public async Task GetListOfExceptionEmailListSuccessfully()
             {
                 _storage
-                    .Setup(s => s.GetFileAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.LoginDiscontinuationConfigFileName))
+                    .Setup(s => s.GetFileAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.LoginDiscontinuationConfigFileName, true))
                     .ReturnsAsync(BuildStream(ExampleJson));
 
                 // Act

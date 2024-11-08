@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -274,10 +274,10 @@ namespace NuGetGallery.Services
                 await service.DownloadLicenseFileAsync(package);
 
                 fileStorageSvc
-                    .Verify(fss => fss.GetFileAsync(CoreConstants.Folders.PackagesContentFolderName, BuildLicenseFileName("theId", "1.1.1")),
+                    .Verify(fss => fss.GetFileAsync(CoreConstants.Folders.PackagesContentFolderName, BuildLicenseFileName("theId", "1.1.1"), true),
                         Times.Once);
                 fileStorageSvc
-                    .Verify(fss => fss.GetFileAsync(It.IsAny<string>(), It.IsAny<string>()),
+                    .Verify(fss => fss.GetFileAsync(It.IsAny<string>(), It.IsAny<string>(), true),
                         Times.Once);
             }
         }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -37,7 +37,7 @@ namespace NuGet.Services.Revalidate.Tests.Services
         public async Task ReturnsHealthyIfStatusBlobIndicatesHealthyComponent(string resourceName, bool expectsHealthy)
         {
             _storage
-                .Setup(s => s.GetFileAsync(_config.ContainerName, _config.StatusBlobName))
+                .Setup(s => s.GetFileAsync(_config.ContainerName, _config.StatusBlobName, true))
                 .ReturnsAsync(TestResources.GetResourceStream(resourceName));
 
             Assert.Equal(expectsHealthy, await _target.IsHealthyAsync());
@@ -47,7 +47,7 @@ namespace NuGet.Services.Revalidate.Tests.Services
         public async Task AssumesUnhealthyIfComponentCannotBeFoundInStatusBlob()
         {
             _storage
-                .Setup(s => s.GetFileAsync(_config.ContainerName, _config.StatusBlobName))
+                .Setup(s => s.GetFileAsync(_config.ContainerName, _config.StatusBlobName, true))
                 .ReturnsAsync(TestResources.GetResourceStream(TestResources.PackagePublishingMissingStatus));
 
             Assert.False(await _target.IsHealthyAsync());
@@ -60,7 +60,7 @@ namespace NuGet.Services.Revalidate.Tests.Services
             var expectedException = new Exception("Look ma, I'm an exception!");
 
             _storage
-                .Setup(s => s.GetFileAsync(_config.ContainerName, _config.StatusBlobName))
+                .Setup(s => s.GetFileAsync(_config.ContainerName, _config.StatusBlobName, true))
                 .ThrowsAsync(expectedException);
 
             // Act & Assert

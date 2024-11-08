@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Moq;
@@ -321,7 +321,7 @@ namespace NuGetGallery
                         },
                         Version = "01.1.01"
                     };
-                    fileServiceMock.Setup(f => f.GetFileAsync(It.IsAny<string>(), It.IsAny<string>()))
+                    fileServiceMock.Setup(f => f.GetFileAsync(It.IsAny<string>(), It.IsAny<string>(), true))
                         .Returns(Task.FromResult(stream))
                         .Verifiable();
 
@@ -331,7 +331,7 @@ namespace NuGetGallery
                     // Assert.
                     Assert.Equal(expectedMd, actualMd);
 
-                    fileServiceMock.Verify(f => f.GetFileAsync(CoreConstants.Folders.PackageReadMesFolderName, "active/foo/1.1.1.md"), Times.Once);
+                    fileServiceMock.Verify(f => f.GetFileAsync(CoreConstants.Folders.PackageReadMesFolderName, "active/foo/1.1.1.md", true), Times.Once);
                 }
             }
 
@@ -350,7 +350,7 @@ namespace NuGetGallery
                     },
                     Version = "01.1.01"
                 };
-                fileServiceMock.Setup(f => f.GetFileAsync(It.IsAny<string>(), It.IsAny<string>()))
+                fileServiceMock.Setup(f => f.GetFileAsync(It.IsAny<string>(), It.IsAny<string>(), true))
                     .Returns(Task.FromResult((Stream)null))
                     .Verifiable();
 
@@ -360,7 +360,7 @@ namespace NuGetGallery
                 // Assert
                 Assert.Null(result);
 
-                fileServiceMock.Verify(f => f.GetFileAsync(CoreConstants.Folders.PackageReadMesFolderName, "active/foo/1.1.1.md"), Times.Once);
+                fileServiceMock.Verify(f => f.GetFileAsync(CoreConstants.Folders.PackageReadMesFolderName, "active/foo/1.1.1.md", true), Times.Once);
             }
         }
 

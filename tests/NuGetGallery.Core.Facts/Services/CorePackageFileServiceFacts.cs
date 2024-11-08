@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -297,10 +297,10 @@ namespace NuGetGallery
                 await _service.DownloadValidationPackageFileAsync(_package);
 
                 _fileStorageService.Verify(
-                    x => x.GetFileAsync(ValidationFolderName, ValidationFileName),
+                    x => x.GetFileAsync(ValidationFolderName, ValidationFileName, true),
                     Times.Once);
                 _fileStorageService.Verify(
-                    x => x.GetFileAsync(It.IsAny<string>(), It.IsAny<string>()),
+                    x => x.GetFileAsync(It.IsAny<string>(), It.IsAny<string>(), true),
                     Times.Once);
             }
 
@@ -310,10 +310,10 @@ namespace NuGetGallery
                 await _service.DownloadValidationPackageFileAsync(_package);
 
                 _fileStorageService.Verify(
-                    x => x.GetFileAsync(ValidationFolderName, ValidationFileName),
+                    x => x.GetFileAsync(ValidationFolderName, ValidationFileName, true),
                     Times.Once);
                 _fileStorageService.Verify(
-                    x => x.GetFileAsync(It.IsAny<string>(), It.IsAny<string>()),
+                    x => x.GetFileAsync(It.IsAny<string>(), It.IsAny<string>(), true),
                     Times.Once);
             }
         }

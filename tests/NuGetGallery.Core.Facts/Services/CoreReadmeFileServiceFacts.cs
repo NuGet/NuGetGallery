@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -178,10 +178,10 @@ namespace NuGetGallery.Services
                 await service.DownloadReadmeFileAsync(package);
 
                 fileStorageSvc
-                    .Verify(fss => fss.GetFileAsync(CoreConstants.Folders.PackagesContentFolderName, BuildReadmeFileName("theId", "1.1.1")),
+                    .Verify(fss => fss.GetFileAsync(CoreConstants.Folders.PackagesContentFolderName, BuildReadmeFileName("theId", "1.1.1"), true),
                         Times.Once);
                 fileStorageSvc
-                    .Verify(fss => fss.GetFileAsync(It.IsAny<string>(), It.IsAny<string>()),
+                    .Verify(fss => fss.GetFileAsync(It.IsAny<string>(), It.IsAny<string>(), true),
                         Times.Once);
             }
 
@@ -205,7 +205,7 @@ namespace NuGetGallery.Services
                         Version = "01.1.01"
                     };
 
-                    fileStorageSvc.Setup(f => f.GetFileAsync(It.IsAny<string>(), It.IsAny<string>()))
+                    fileStorageSvc.Setup(f => f.GetFileAsync(It.IsAny<string>(), It.IsAny<string>(), true))
                         .Returns(Task.FromResult(stream))
                         .Verifiable();
 
@@ -215,7 +215,7 @@ namespace NuGetGallery.Services
                     // Assert.
                     Assert.Equal(expectedMd, actualMd);
 
-                    fileStorageSvc.Verify(f => f.GetFileAsync(CoreConstants.Folders.PackagesContentFolderName, BuildReadmeFileName("Foo", "1.1.1")), Times.Once);
+                    fileStorageSvc.Verify(f => f.GetFileAsync(CoreConstants.Folders.PackagesContentFolderName, BuildReadmeFileName("Foo", "1.1.1"), true), Times.Once);
                 }
             }
 
@@ -235,7 +235,7 @@ namespace NuGetGallery.Services
                     Version = "01.1.01"
                 };
 
-                fileStorageSvc.Setup(f => f.GetFileAsync(It.IsAny<string>(), It.IsAny<string>()))
+                fileStorageSvc.Setup(f => f.GetFileAsync(It.IsAny<string>(), It.IsAny<string>(), true))
                     .Returns(Task.FromResult((Stream)null))
                     .Verifiable();
 
@@ -245,7 +245,7 @@ namespace NuGetGallery.Services
                 // Assert
                 Assert.Null(result);
 
-                fileStorageSvc.Verify(f => f.GetFileAsync(CoreConstants.Folders.PackagesContentFolderName, BuildReadmeFileName("Foo", "1.1.1")), Times.Once);
+                fileStorageSvc.Verify(f => f.GetFileAsync(CoreConstants.Folders.PackagesContentFolderName, BuildReadmeFileName("Foo", "1.1.1"), true), Times.Once);
             }
         }
 

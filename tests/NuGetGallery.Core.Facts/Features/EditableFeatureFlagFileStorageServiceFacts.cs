@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -75,7 +75,7 @@ namespace NuGetGallery.Features
             {
                 // Arrange
                 _storage
-                    .Setup(s => s.GetFileAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.FeatureFlagsFileName))
+                    .Setup(s => s.GetFileAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.FeatureFlagsFileName, true))
                     .ReturnsAsync(BuildStream(ExampleJson));
 
                 // Act
@@ -89,7 +89,7 @@ namespace NuGetGallery.Features
             public async Task ThrowsOnInvalidJson()
             {
                 _storage
-                    .Setup(s => s.GetFileAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.FeatureFlagsFileName))
+                    .Setup(s => s.GetFileAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.FeatureFlagsFileName, true))
                     .ReturnsAsync(BuildStream("Bad"));
 
                 await Assert.ThrowsAsync<JsonReaderException>(() => _target.GetAsync());

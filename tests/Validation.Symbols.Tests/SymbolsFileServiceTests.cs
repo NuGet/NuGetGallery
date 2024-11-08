@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -61,7 +61,7 @@ namespace Validation.Symbols.Tests
             var stream = await service.DownloadNupkgFileAsync(PackageId, PackageNormalizedVersion, CancellationToken.None);
 
             // Assert
-            _packageValidationStorageService.Verify(pss => pss.GetFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            _packageValidationStorageService.Verify(pss => pss.GetFileAsync(It.IsAny<string>(), It.IsAny<string>(), true), Times.Once);
         }
 
         [Fact]
@@ -76,8 +76,8 @@ namespace Validation.Symbols.Tests
             var stream = await service.DownloadNupkgFileAsync(PackageId, PackageNormalizedVersion, CancellationToken.None);
 
             // Assert
-            _packageStorageService.Verify(pss => pss.GetFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-            _packageValidationStorageService.Verify(pss => pss.GetFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            _packageStorageService.Verify(pss => pss.GetFileAsync(It.IsAny<string>(), It.IsAny<string>(), true), Times.Once);
+            _packageValidationStorageService.Verify(pss => pss.GetFileAsync(It.IsAny<string>(), It.IsAny<string>(), true), Times.Never);
         }
 
         [Fact]

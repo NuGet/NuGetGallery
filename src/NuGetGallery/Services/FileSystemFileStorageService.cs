@@ -89,7 +89,7 @@ namespace NuGetGallery
             return Task.FromResult(fileExists);
         }
 
-        public Task<Stream> GetFileAsync(string folderName, string fileName)
+        public Task<Stream> GetFileAsync(string folderName, string fileName, bool initializeContainer = true)
         {
             if (string.IsNullOrWhiteSpace(folderName))
             {
