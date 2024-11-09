@@ -37,9 +37,9 @@ namespace NuGet.Jobs.Catalog2Registration
                 {
                     var options = c.Resolve<IOptionsSnapshot<Catalog2RegistrationConfiguration>>();
 
-                    if (options.Value.UseManagedIdentity)
+                    if (options.Value.StorageUseManagedIdentity && !options.Value.HasSasToken)
                     {
-                        return CloudBlobClientWrapper.UsingMsi(options.Value.StorageConnectionString, options.Value.ManagedIdentityClientId);
+                        return CloudBlobClientWrapper.UsingMsi(options.Value.StorageConnectionString, options.Value.StorageManagedIdentityClientId);
                     }
 
                     return new CloudBlobClientWrapper(
@@ -68,12 +68,12 @@ namespace NuGet.Jobs.Catalog2Registration
                 {
                     var options = c.Resolve<IOptionsSnapshot<Catalog2RegistrationConfiguration>>();
 
-                    if (options.Value.UseManagedIdentity && !options.Value.HasSasToken)
+                    if (options.Value.StorageUseManagedIdentity && !options.Value.HasSasToken)
                     {
                         var credential = new DefaultAzureCredential(
                             new DefaultAzureCredentialOptions
                             {
-                                ManagedIdentityClientId = options.Value.ManagedIdentityClientId
+                                ManagedIdentityClientId = options.Value.StorageManagedIdentityClientId
                             });
 
                         return new BlobServiceClientFactory(new Uri(options.Value.StorageServiceUrl), credential);

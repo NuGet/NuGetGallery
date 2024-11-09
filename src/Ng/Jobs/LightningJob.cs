@@ -506,8 +506,8 @@ namespace Ng.Jobs
 
             services.Configure<Catalog2RegistrationConfiguration>(config =>
             {
-                config.UseManagedIdentity = _arguments.GetOrDefault<bool>(Arguments.UseManagedIdentity);
-                config.ManagedIdentityClientId = _arguments.GetOrDefault<string>(Arguments.ClientId);
+                config.StorageUseManagedIdentity = _arguments.GetOrDefault<bool>(Arguments.UseManagedIdentity);
+                config.StorageManagedIdentityClientId = _arguments.GetOrDefault<string>(Arguments.ClientId);
 
                 config.LegacyBaseUrl = _arguments.GetOrDefault<string>(Arguments.StorageBaseAddress);
                 config.LegacyStorageContainer = _arguments.GetOrDefault<string>(Arguments.StorageContainer);
@@ -526,7 +526,7 @@ namespace Ng.Jobs
                 }
                 .All(t => !string.IsNullOrEmpty(t));
 
-                if (config.UseManagedIdentity && !config.HasSasToken)
+                if (config.StorageUseManagedIdentity && !config.HasSasToken)
                 {
                     var storageAccountName = _arguments.GetOrDefault<string>(Arguments.StorageAccountName);
                     var storageSuffix = _arguments.GetOrDefault(Arguments.StorageSuffix, "core.windows.net");
