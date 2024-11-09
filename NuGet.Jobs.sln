@@ -241,6 +241,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.Messaging.Em
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.Validation.Issues", "src\NuGet.Services.Validation.Issues\NuGet.Services.Validation.Issues.csproj", "{9B159802-2A27-42EC-A357-06AAEFA70892}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.PackageSigning.Common", "tests\Validation.PackageSigning.Common\Validation.PackageSigning.Common.csproj", "{0BF935B2-B127-4901-B8DF-AAA360456C2A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -625,6 +627,10 @@ Global
 		{9B159802-2A27-42EC-A357-06AAEFA70892}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9B159802-2A27-42EC-A357-06AAEFA70892}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9B159802-2A27-42EC-A357-06AAEFA70892}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0BF935B2-B127-4901-B8DF-AAA360456C2A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0BF935B2-B127-4901-B8DF-AAA360456C2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0BF935B2-B127-4901-B8DF-AAA360456C2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0BF935B2-B127-4901-B8DF-AAA360456C2A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -726,6 +732,7 @@ Global
 		{63214B67-733D-4E9D-8249-25EEB2908FBE} = {54773F65-1227-4B35-8991-9E9C1CDACCF3}
 		{9F3DD471-DBEE-4680-B49D-5AA451E59C4C} = {54773F65-1227-4B35-8991-9E9C1CDACCF3}
 		{9B159802-2A27-42EC-A357-06AAEFA70892} = {54773F65-1227-4B35-8991-9E9C1CDACCF3}
+		{0BF935B2-B127-4901-B8DF-AAA360456C2A} = {6A776396-02B1-475D-A104-26940ADB04AB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {284A7AC3-FB43-4F1F-9C9C-2AF0E1F46C2B}

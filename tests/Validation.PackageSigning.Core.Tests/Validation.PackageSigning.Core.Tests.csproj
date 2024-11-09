@@ -4,11 +4,11 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\TestUtil\TestUtil.csproj" />
+    <ProjectReference Include="..\Validation.PackageSigning.Common\Validation.PackageSigning.Common.csproj" />
     <ProjectReference Include="..\Validation.PackageSigning.Helpers\Tests.ContextHelpers.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
-    <PackageReference Include="Test.Utility" />
     <PackageReference Include="NuGet.CommandLine" />
     <PackageReference Include="NuGet.Commands" />
     <PackageReference Include="NuGet.PackageManagement" />
