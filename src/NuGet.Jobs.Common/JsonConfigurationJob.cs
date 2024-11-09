@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -205,7 +205,8 @@ namespace NuGet.Jobs
                 .Register(c => new CloudBlobCoreFileStorageService(
                     c.ResolveKeyed<ICloudBlobClient>(FeatureFlagBindingKey),
                     c.Resolve<IDiagnosticsService>(),
-                    c.Resolve<ICloudBlobContainerInformationProvider>()))
+                    c.Resolve<ICloudBlobContainerInformationProvider>(),
+                    initializeContainer: false))
                 .Keyed<ICoreFileStorageService>(FeatureFlagBindingKey);
 
             containerBuilder

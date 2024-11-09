@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -30,15 +31,18 @@ namespace NuGetGallery
         protected readonly IDiagnosticsSource _trace;
         protected readonly ICloudBlobContainerInformationProvider _cloudBlobFolderInformationProvider;
         protected readonly ConcurrentDictionary<string, ICloudBlobContainer> _containers = new ConcurrentDictionary<string, ICloudBlobContainer>();
+        protected readonly bool _initializeContainer;
 
         public CloudBlobCoreFileStorageService(
             ICloudBlobClient client,
             IDiagnosticsService diagnosticsService,
-            ICloudBlobContainerInformationProvider cloudBlobFolderInformationProvider)
+            ICloudBlobContainerInformationProvider cloudBlobFolderInformationProvider,
+            bool initializeContainer = true)
         {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _trace = diagnosticsService?.SafeGetSource(nameof(CloudBlobCoreFileStorageService)) ?? throw new ArgumentNullException(nameof(diagnosticsService));
             _cloudBlobFolderInformationProvider = cloudBlobFolderInformationProvider ?? throw new ArgumentNullException(nameof(cloudBlobFolderInformationProvider));
+            _initializeContainer = initializeContainer;
         }
 
         public async Task DeleteFileAsync(string folderName, string fileName)
@@ -55,7 +59,7 @@ namespace NuGetGallery
             return await blob.ExistsAsync();
         }
 
-        public async Task<Stream> GetFileAsync(string folderName, string fileName, bool initializeContainer = true)
+        public async Task<Stream> GetFileAsync(string folderName, string fileName)
         {
             if (string.IsNullOrWhiteSpace(folderName))
             {
@@ -67,7 +71,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(fileName));
             }
 
-            return (await GetBlobContentAsync(folderName, fileName, initializeContainer: initializeContainer)).Data;
+            return (await GetBlobContentAsync(folderName, fileName)).Data;
         }
 
         public async Task<IFileReference> GetFileReferenceAsync(string folderName, string fileName, string ifNoneMatch = null)
@@ -536,7 +540,7 @@ namespace NuGetGallery
             return container.GetBlobReference(fileName);
         }
 
-        protected async Task<ICloudBlobContainer> GetContainerAsync(string folderName, bool initializeContainer = true)
+        protected async Task<ICloudBlobContainer> GetContainerAsync(string folderName)
         {
             ICloudBlobContainer container;
             if (_containers.TryGetValue(folderName, out container))
@@ -544,7 +548,7 @@ namespace NuGetGallery
                 return container;
             }
 
-            container = await PrepareContainer(folderName, IsPublicContainer(folderName), initializeContainer);
+            container = await PrepareContainer(folderName, IsPublicContainer(folderName));
             _containers[folderName] = container;
             return container;
         }
@@ -554,9 +558,9 @@ namespace NuGetGallery
             return _cloudBlobFolderInformationProvider.IsPublicContainer(folderName);
         }
 
-        private async Task<StorageResult> GetBlobContentAsync(string folderName, string fileName, string ifNoneMatch = null, bool initializeContainer = true)
+        private async Task<StorageResult> GetBlobContentAsync(string folderName, string fileName, string ifNoneMatch = null)
         {
-            ICloudBlobContainer container = await GetContainerAsync(folderName, initializeContainer);
+            ICloudBlobContainer container = await GetContainerAsync(folderName);
 
             var blob = container.GetBlobReference(fileName);
 
@@ -595,11 +599,11 @@ namespace NuGetGallery
             return _cloudBlobFolderInformationProvider.GetCacheControl(folderName);
         }
 
-        private async Task<ICloudBlobContainer> PrepareContainer(string folderName, bool isPublic, bool initializeContainer)
+        private async Task<ICloudBlobContainer> PrepareContainer(string folderName, bool isPublic)
         {
             var container = _client.GetContainerReference(folderName);
 
-            if (initializeContainer)
+            if (_initializeContainer)
             {
                 await container.CreateIfNotExistAsync(isPublic);
             }
