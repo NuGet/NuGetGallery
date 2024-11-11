@@ -30,15 +30,18 @@ namespace NuGetGallery
         protected readonly IDiagnosticsSource _trace;
         protected readonly ICloudBlobContainerInformationProvider _cloudBlobFolderInformationProvider;
         protected readonly ConcurrentDictionary<string, ICloudBlobContainer> _containers = new ConcurrentDictionary<string, ICloudBlobContainer>();
+        protected readonly bool _initializeContainer;
 
         public CloudBlobCoreFileStorageService(
             ICloudBlobClient client,
             IDiagnosticsService diagnosticsService,
-            ICloudBlobContainerInformationProvider cloudBlobFolderInformationProvider)
+            ICloudBlobContainerInformationProvider cloudBlobFolderInformationProvider,
+            bool initializeContainer = true)
         {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _trace = diagnosticsService?.SafeGetSource(nameof(CloudBlobCoreFileStorageService)) ?? throw new ArgumentNullException(nameof(diagnosticsService));
             _cloudBlobFolderInformationProvider = cloudBlobFolderInformationProvider ?? throw new ArgumentNullException(nameof(cloudBlobFolderInformationProvider));
+            _initializeContainer = initializeContainer;
         }
 
         public async Task DeleteFileAsync(string folderName, string fileName)
@@ -598,7 +601,11 @@ namespace NuGetGallery
         private async Task<ICloudBlobContainer> PrepareContainer(string folderName, bool isPublic)
         {
             var container = _client.GetContainerReference(folderName);
-            await container.CreateIfNotExistAsync(isPublic);
+
+            if (_initializeContainer)
+            {
+                await container.CreateIfNotExistAsync(isPublic);
+            }
 
             return container;
         }
