@@ -431,10 +431,20 @@ namespace Ng
         {
             bool storageUseManagedIdentity = arguments.GetOrDefault(argumentNameMap[Arguments.StorageUseManagedIdentity], defaultValue: false);
             bool useManagedIdentity = storageUseManagedIdentity || arguments.GetOrDefault(argumentNameMap[Arguments.UseManagedIdentity], defaultValue: false);
-            if (useManagedIdentity)
+
+            var storageKeyValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageKeyValue]);
+            var storageSasValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageSasValue]);
+
+            var hasStorageKeyOrSas = !string.IsNullOrEmpty(storageKeyValue) || !string.IsNullOrEmpty(storageSasValue);
+
+            if (useManagedIdentity && !hasStorageKeyOrSas)
             {
                 var managedIdentityClientId = arguments.GetOrThrow<string>(argumentNameMap[Arguments.ClientId]);
-                var identity = new ManagedIdentityCredential(managedIdentityClientId);
+                var identity = new DefaultAzureCredential(
+                    new DefaultAzureCredentialOptions
+                    {
+                        ManagedIdentityClientId = managedIdentityClientId
+                    });
                 var serviceUri = GetServiceUri(arguments, argumentNameMap, "blob");
                 return new BlobServiceClientFactory(serviceUri, identity);
             }
@@ -449,10 +459,20 @@ namespace Ng
         {
             bool storageUseManagedIdentity = arguments.GetOrDefault(argumentNameMap[Arguments.StorageUseManagedIdentity], defaultValue: false);
             bool useManagedIdentity = storageUseManagedIdentity || arguments.GetOrDefault(argumentNameMap[Arguments.UseManagedIdentity], defaultValue: false);
-            if (useManagedIdentity)
+
+            var storageKeyValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageKeyValue]);
+            var storageSasValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageSasValue]);
+
+            var hasStorageKeyOrSas = !string.IsNullOrEmpty(storageKeyValue) || !string.IsNullOrEmpty(storageSasValue);
+
+            if (useManagedIdentity && !hasStorageKeyOrSas)
             {
                 var managedIdentityClientId = arguments.GetOrThrow<string>(argumentNameMap[Arguments.ClientId]);
-                var identity = new ManagedIdentityCredential(managedIdentityClientId);
+                var identity = new DefaultAzureCredential(
+                    new DefaultAzureCredentialOptions
+                    {
+                        ManagedIdentityClientId = managedIdentityClientId
+                    });
                 var serviceUri = GetServiceUri(arguments, argumentNameMap, "queue");
                 return new QueueServiceClient(serviceUri, identity, new QueueClientOptions
                 {
