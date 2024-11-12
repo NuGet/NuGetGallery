@@ -256,8 +256,8 @@
 
 @* The following two helpers must be on a single line each so no extra whitespace is introduced in the expression when rendered. *@
 @* Helpers themselves are needed not to introduce that extra whitespce, which happens if they are inlined. *@
-@helper MakeLicenseLink(CompositeLicenseExpressionSegment segment) {<a href="@LicenseExpressionRedirectUrlHelper.GetLicenseExpressionRedirectUrl(segment.Value)" aria-label="License @segment.Value">@segment.Value</a>}
-@helper MakeLicenseSpan(CompositeLicenseExpressionSegment segment) {<span>@segment.Value</span>}
+@helper MakeLicenseLink(CompositeLicenseExpressionSegment segment) {<a href="@LicenseExpressionRedirectUrlHelper.GetLicenseExpressionRedirectUrl(segment.Value)" aria-label="License @segment.Value">@segment.Value license</a>}
+@helper MakeLicenseSpan(CompositeLicenseExpressionSegment segment) {<span>@segment.Value license</span>}
 
 <section role="main" class="container main-container page-package-details">
     <div class="row">
@@ -1107,7 +1107,6 @@
                                             @MakeLicenseSpan(segment);
                                         }
                                     }
-                                    @:license
                                 }
                                 else
                                 {
