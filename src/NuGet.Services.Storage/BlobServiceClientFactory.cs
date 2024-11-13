@@ -14,7 +14,7 @@ namespace NuGet.Services.Storage
 {
     public class BlobServiceClientFactory : IBlobServiceClientFactory
     {
-        private readonly BlobServiceClientAuthType _authType;
+        private readonly BlobServiceClientAuthType? _authType;
         private TokenCredential _credential;
         private string _connectionString = "";
 
@@ -51,14 +51,17 @@ namespace NuGet.Services.Storage
 
         public virtual BlobServiceClient GetBlobServiceClient(BlobClientOptions blobClientOptions = null)
         {
-            switch (_authType)
+            if (_authType.HasValue)
             {
-                case BlobServiceClientAuthType.TokenCredential:
-                    return new BlobServiceClient(this.Uri, _credential, blobClientOptions);
-                case BlobServiceClientAuthType.ConnectionString:
-                    return new BlobServiceClient(_connectionString, blobClientOptions);
-                case BlobServiceClientAuthType.Anonymous:
-                    return new BlobServiceClient(this.Uri, blobClientOptions);
+                switch (_authType)
+                {
+                    case BlobServiceClientAuthType.TokenCredential:
+                        return new BlobServiceClient(this.Uri, _credential, blobClientOptions);
+                    case BlobServiceClientAuthType.ConnectionString:
+                        return new BlobServiceClient(_connectionString, blobClientOptions);
+                    case BlobServiceClientAuthType.Anonymous:
+                        return new BlobServiceClient(this.Uri, blobClientOptions);
+                }
             }
 
             throw new Exception("No authentication type configured");
