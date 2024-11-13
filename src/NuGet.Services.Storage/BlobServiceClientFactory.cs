@@ -14,37 +14,54 @@ namespace NuGet.Services.Storage
 {
     public class BlobServiceClientFactory : IBlobServiceClientFactory
     {
-        private bool _useTokenCredential = false;
+        private readonly BlobServiceClientAuthType _authType;
         private TokenCredential _credential;
         private string _connectionString = "";
 
         public virtual Uri Uri { get; set; }
 
-        public BlobServiceClientFactory() { }
+        protected BlobServiceClientFactory() { }
 
         public BlobServiceClientFactory(string connectionString)
         {
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                throw new ArgumentNullException(nameof(connectionString));
+            }
+
             _connectionString = connectionString;
             this.Uri = new BlobServiceClient(connectionString).Uri;
+            _authType = BlobServiceClientAuthType.ConnectionString;
         }
 
-        public BlobServiceClientFactory(Uri serviceUri, TokenCredential credential)
+        public BlobServiceClientFactory(Uri serviceUri, TokenCredential credential = null)
         {
-            this.Uri = serviceUri;
-            _credential = credential ?? throw new ArgumentNullException(nameof(credential));
-            _useTokenCredential = true;
+            this.Uri = serviceUri ?? throw new ArgumentNullException(nameof(serviceUri));
+
+            if (credential != null)
+            {
+                _credential = credential;
+                _authType = BlobServiceClientAuthType.TokenCredential;
+            }
+            else
+            {
+                _authType = BlobServiceClientAuthType.Anonymous;
+            }
         }
 
         public virtual BlobServiceClient GetBlobServiceClient(BlobClientOptions blobClientOptions = null)
         {
-            if (_useTokenCredential)
+            switch (_authType)
             {
-                return new BlobServiceClient(this.Uri, _credential, blobClientOptions);
+                case BlobServiceClientAuthType.TokenCredential:
+                    return new BlobServiceClient(this.Uri, _credential, blobClientOptions);
+                case BlobServiceClientAuthType.ConnectionString:
+                    return new BlobServiceClient(_connectionString, blobClientOptions);
+                case BlobServiceClientAuthType.Anonymous:
+                    return new BlobServiceClient(this.Uri, blobClientOptions);
             }
-            else
-            {
-                return new BlobServiceClient(_connectionString, blobClientOptions);
-            }
+
+            throw new Exception("No authentication type configured");
         }
     }
 }
