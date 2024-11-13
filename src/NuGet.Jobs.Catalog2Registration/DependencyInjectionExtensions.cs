@@ -39,7 +39,7 @@ namespace NuGet.Jobs.Catalog2Registration
 
                     if (options.Value.StorageUseManagedIdentity && !options.Value.HasSasToken)
                     {
-                        return CloudBlobClientWrapper.UsingMsi(options.Value.StorageConnectionString, options.Value.StorageManagedIdentityClientId);
+                        return CloudBlobClientWrapper.UsingMsi(options.Value.StorageConnectionString, clientId: options.Value.StorageManagedIdentityClientId, requestTimeout: DefaultBlobRequestOptions.ServerTimeout);
                     }
 
                     return new CloudBlobClientWrapper(
