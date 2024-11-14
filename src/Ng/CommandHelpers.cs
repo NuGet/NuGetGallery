@@ -435,8 +435,10 @@ namespace Ng
             var storageKeyValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageKeyValue]);
             var storageSasValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageSasValue]);
 
-            var hasStorageKeyOrSas = !string.IsNullOrEmpty(storageKeyValue) || !string.IsNullOrEmpty(storageSasValue);
+            bool hasStorageKeyOrSas = !string.IsNullOrEmpty(storageKeyValue) || !string.IsNullOrEmpty(storageSasValue);
 
+            // This comparison is due to some jobs using both global and china storages in a single instance.
+            // They require MSI auth for global storage and SAS/SAK auth for china storage.
             if (useManagedIdentity && !hasStorageKeyOrSas)
             {
                 var managedIdentityClientId = arguments.GetOrThrow<string>(argumentNameMap[Arguments.ClientId]);
@@ -463,8 +465,10 @@ namespace Ng
             var storageKeyValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageKeyValue]);
             var storageSasValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageSasValue]);
 
-            var hasStorageKeyOrSas = !string.IsNullOrEmpty(storageKeyValue) || !string.IsNullOrEmpty(storageSasValue);
+            bool hasStorageKeyOrSas = !string.IsNullOrEmpty(storageKeyValue) || !string.IsNullOrEmpty(storageSasValue);
 
+            // This comparison is due to some jobs using both global and china storages in a single instance.
+            // They require MSI auth for global storage and SAS/SAK auth for china storage.
             if (useManagedIdentity && !hasStorageKeyOrSas)
             {
                 var managedIdentityClientId = arguments.GetOrThrow<string>(argumentNameMap[Arguments.ClientId]);
