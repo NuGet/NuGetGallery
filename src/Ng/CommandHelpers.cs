@@ -442,11 +442,7 @@ namespace Ng
             if (useManagedIdentity && !hasStorageKeyOrSas)
             {
                 var managedIdentityClientId = arguments.GetOrThrow<string>(argumentNameMap[Arguments.ClientId]);
-                var identity = new DefaultAzureCredential(
-                    new DefaultAzureCredentialOptions
-                    {
-                        ManagedIdentityClientId = managedIdentityClientId
-                    });
+                var identity = new ManagedIdentityCredential(managedIdentityClientId);
                 var serviceUri = GetServiceUri(arguments, argumentNameMap, "blob");
                 return new BlobServiceClientFactory(serviceUri, identity);
             }
@@ -472,11 +468,7 @@ namespace Ng
             if (useManagedIdentity && !hasStorageKeyOrSas)
             {
                 var managedIdentityClientId = arguments.GetOrThrow<string>(argumentNameMap[Arguments.ClientId]);
-                var identity = new DefaultAzureCredential(
-                    new DefaultAzureCredentialOptions
-                    {
-                        ManagedIdentityClientId = managedIdentityClientId
-                    });
+                var identity = new ManagedIdentityCredential(managedIdentityClientId);
                 var serviceUri = GetServiceUri(arguments, argumentNameMap, "queue");
                 return new QueueServiceClient(serviceUri, identity, new QueueClientOptions
                 {
