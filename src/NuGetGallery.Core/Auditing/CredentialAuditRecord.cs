@@ -21,7 +21,7 @@ namespace NuGetGallery.Auditing
         public string TenantId { get; }
         public string RevocationSource { get; }
 
-        public CredentialAuditRecord(Credential credential, bool removedOrRevoked)
+        public CredentialAuditRecord(Credential credential)
         {
             if (credential == null)
             {
@@ -34,22 +34,11 @@ namespace NuGetGallery.Auditing
             Identity = credential.Identity;
             TenantId = credential.TenantId;
 
-            // Track the value for credentials that are external (object id) or definitely revocable (API Key, etc.) and have been removed
+            // Track the value for credentials that are external (object id)
+            // Do not track the credential valid for API keys or passwords, even if they are revoked.
             if (credential.IsExternal())
             {
                 Value = credential.Value;
-            }
-            else if (removedOrRevoked)
-            {
-                if (Type == null)
-                {
-                    throw new ArgumentNullException(nameof(credential.Type));
-                }
-
-                if (!credential.IsPassword())
-                {
-                    Value = credential.Value;
-                }
             }
 
             Created = credential.Created;
@@ -65,8 +54,8 @@ namespace NuGetGallery.Auditing
             }
         }
 
-        public CredentialAuditRecord(Credential credential, bool removedOrRevoked, string revocationSource)
-                : this(credential, removedOrRevoked)
+        public CredentialAuditRecord(Credential credential, string revocationSource)
+                : this(credential)
         {
             RevocationSource = revocationSource;
         }
