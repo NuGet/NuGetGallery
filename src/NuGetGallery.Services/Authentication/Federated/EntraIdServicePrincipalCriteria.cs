@@ -14,7 +14,7 @@ namespace NuGetGallery.Services.Authentication
         public EntraIdServicePrincipalCriteria(Guid tenantId, Guid objectId)
         {
             TenantId = tenantId == Guid.Empty ? throw new ArgumentOutOfRangeException(nameof(tenantId)) : tenantId;
-            ObjectId = objectId == Guid.Empty ? throw new ArgumentNullException(nameof(objectId)) : objectId;
+            ObjectId = objectId == Guid.Empty ? throw new ArgumentOutOfRangeException(nameof(objectId)) : objectId;
         }
 
         [JsonPropertyName("tid")]
