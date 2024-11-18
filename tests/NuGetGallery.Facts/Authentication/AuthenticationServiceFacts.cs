@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -1605,7 +1605,7 @@ namespace NuGetGallery.Authentication
                     ar.AffectedCredential.Length == 1 &&
                     ar.AffectedCredential[0].Type == existingCred.Type &&
                     ar.AffectedCredential[0].Identity == existingCred.Identity &&
-                    ar.AffectedCredential[0].Value == existingCred.Value &&
+                    ar.AffectedCredential[0].Value is null &&
                     ar.AffectedCredential[0].Created == existingCred.Created &&
                     ar.AffectedCredential[0].Expires == existingCred.Expires));
             }
