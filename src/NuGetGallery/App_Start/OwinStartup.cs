@@ -1,12 +1,16 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Data.SqlTypes;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Hosting;
@@ -16,6 +20,7 @@ using Microsoft.Owin;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
+using NuGet.ContentModel;
 using NuGet.Services.FeatureFlags;
 using NuGetGallery.Authentication;
 using NuGetGallery.Authentication.Providers;
@@ -23,6 +28,8 @@ using NuGetGallery.Authentication.Providers.Cookie;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using Owin;
+using static Lucene.Net.Index.SegmentReader;
+using static Lucene.Net.Search.Vectorhighlight.FieldPhraseList.WeightedPhraseInfo;
 
 [assembly: OwinStartup(typeof(NuGetGallery.OwinStartup))]
 
@@ -31,6 +38,8 @@ namespace NuGetGallery
     public class OwinStartup
     {
         public static bool HasRun { get; private set; }
+
+        public static StringBuilder FontURLS = new();
 
         // This method is auto-detected by the OWIN pipeline. DO NOT RENAME IT!
         public static void Configuration(IAppBuilder app)
@@ -148,6 +157,38 @@ namespace NuGetGallery
                 auther.Startup(config, app).Wait();
             }
 
+            // enables Content-Security-Policy using SHA256
+            Console.WriteLine("Checking context....");
+            app.Use(async (context, next) =>
+            {
+                var resourceURl = context.Request.Uri.ToString();
+                var regexStr = "https://res-1.cdn.office.net/files/fabric-cdn-prod_20221201.001/assets/";
+               
+
+                if (Regex.IsMatch(resourceURl, regexStr))
+                {
+                    FontURLS.Append(" "+resourceURl);
+                }
+
+                var rng = new RNGCryptoServiceProvider();
+                var nonceBytes = new byte[32];
+                rng.GetBytes(nonceBytes);
+                var nonce = Convert.ToBase64String(nonceBytes);
+                context.Set("cspNonce", nonce);
+                context.Response.Headers.Add("Content-Security-Policy",
+                    [ string.Format("default-src 'self' 'nonce-{0}'; script-src 'self' https://localhost/ https://wcpstatic.microsoft.com/mscc/lib/v2/ 'nonce-{0}' 'unsafe-inline' 'unsafe-eval'; font-src 'self' {1} 'nonce-{0}'; base-uri 'none'; form-action 'self' 'nonce-{0}'; style-src 'self' 'nonce-{0}' 'unsafe-inline'", nonce,regexStr)
+                    ]);
+
+              
+                context.Environment.ToList().ForEach(x => Debug.WriteLine(x.Key + " : " + x.Value));
+                Debug.WriteLine("Request URL: " + context.Request.Uri.ToString());
+                Debug.WriteLine(context.Request);
+                Debug.WriteLine("Request URL added: " + FontURLS.ToString());
+
+                await next();
+            });
+     
+
             var featureFlags = DependencyResolver.Current.GetService<IFeatureFlagCacheService>();
             if (featureFlags != null)
             {
@@ -183,7 +224,7 @@ namespace NuGetGallery
         {
             if (telemetryService != null)
             {
-                HostingEnvironment.QueueBackgroundWorkItem(async token => 
+                HostingEnvironment.QueueBackgroundWorkItem(async token =>
                 {
                     var startTime = Process.GetCurrentProcess().StartTime.ToUniversalTime();
                     while (!token.IsCancellationRequested)

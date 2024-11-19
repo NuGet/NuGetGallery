@@ -73,12 +73,12 @@
 </section>
 
 
-<div style="display: none" id="signinAssistanceModal" class="modal fade modal-container" data-backdrop="static">
+<div style="{display: none, nonce:'@(Html.GetCSPNonce())'}" id="signinAssistanceModal" class="modal fade modal-container" data-backdrop="static" nonce="@Html.GetCSPNonce()">
     @Html.Partial("_SigninAssistance")
 </div>
 
 @section bottomScripts {
-    <script type="text/javascript">
+    <script type="text/javascript" nonce="@Html.GetCSPNonce()">
         var signinAssistanceUrl = "@Url.SigninAssistance()"
         var strings_InvalidUsername = "@Html.Raw(Strings.SigninAssistance_InvalidUser)";
     </script>

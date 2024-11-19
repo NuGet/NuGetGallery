@@ -11,7 +11,7 @@
 
     @if (!string.IsNullOrEmpty(Config.Current.SiteRoot))
     {
-        <link rel="canonical" href="@Url.GetCanonicalLinkUrl()">
+        <link rel="canonical" href="@Url.GetCanonicalLinkUrl()" nonce="@Html.GetCSPNonce()">
     }
 
     @RenderSection("SocialMeta", required: false)
@@ -22,16 +22,15 @@
         @(String.IsNullOrWhiteSpace(ViewBag.Title) ? "" : "| " + ViewBag.Title)
     </title>
 
-    <link href="@Url.Content("~/favicon.ico")" rel="shortcut icon" type="image/x-icon" />
+    <link href="@Url.Content("~/favicon.ico")" rel="shortcut icon" type="image/x-icon" nonce="@Html.GetCSPNonce()" />
     @if (LinkOpenSearchXml)
     {
-        <link title="NuGet.org" type="application/opensearchdescription+xml" href="@Url.Content("~/opensearch.xml")" rel="search">
+        <link title="NuGet.org" type="application/opensearchdescription+xml" href="@Url.Content("~/opensearch.xml")" rel="search" nonce="@Html.GetCSPNonce()">
     }
 
     @Styles.Render("~/Content/gallery/css/site.min.css")
-    @Styles.Render("~/Content/gallery/css/bootstrap.min.css")
 
-    <script>
+    <script nonce="@Html.GetCSPNonce()">
         // Check the browser preferred color scheme
         const prefersDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
         const defaultTheme = prefersDarkMode ? "dark" : "light";
@@ -53,8 +52,8 @@
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js" nonce="@Html.GetCSPNonce()"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js" nonce="@Html.GetCSPNonce()"></script>
     <![endif]-->
 
     @RenderSection("TopStyles", required: false)

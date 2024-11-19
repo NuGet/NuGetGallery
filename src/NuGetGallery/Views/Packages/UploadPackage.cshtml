@@ -49,7 +49,7 @@
                         <form aria-hidden="true" id="cancel-form">
                             @Html.AntiForgeryToken()
                         </form>
-                        <form aria-label="Upload a package" id="uploadForm" enctype="multipart/form-data">
+                        <form aria-label="Upload a package" id="uploadForm" enctype="multipart/form-data" nonce="@Html.GetCSPNonce()">
                             @Html.AntiForgeryToken()
 
                             <div class="input-group">
@@ -92,7 +92,7 @@
     @Scripts.Render("~/Scripts/gallery/page-edit-readme.min.js")
     @Scripts.Render("~/Scripts/gallery/async-file-upload.min.js")
     @Scripts.Render("~/Scripts/gallery/syntaxhighlight.min.js") 
-    <script type="text/javascript">
+    <script type="text/javascript" nonce="@Html.GetCSPNonce()">
         var InProgressPackage = @Html.Raw(Json.Encode(Model.InProgressUpload));
         window.nuget.configureExpanderHeading("upload-package-form");
         $(function () {

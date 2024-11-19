@@ -38,7 +38,7 @@
 @helper DisplayNavigationItem(string tab, string url, bool bold = false, string title = null)
 {
     <li class="@(ViewBag.Tab == tab ? "active" : string.Empty)" role="presentation">
-        <a role="tab" aria-selected="@(ViewBag.Tab == tab ? "true" : "false")" href="@url" title="@title">
+        <a role="tab" aria-selected="@(ViewBag.Tab == tab ? "true" : "false")" href="@url" title="@title" nonce="@Html.GetCSPNonce()">
             @if (bold)
             {
                 @:<b>
@@ -56,7 +56,7 @@
     <div class="container">
         <div class="row">
             <div class="col-sm-12 text-center">
-                <a href="#" id="skipToContent" class="showOnFocus" title="Skip To Content">Skip To Content</a>
+                <a href="#" id="skipToContent" class="showOnFocus" title="Skip To Content" nonce="@Html.GetCSPNonce()">Skip To Content</a>
             </div>
         </div>
         <div class="row">
@@ -68,7 +68,7 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a href="@Url.Home()" class="home-link">
+                    <a href="@Url.Home()" class="home-link" nonce="@Html.GetCSPNonce()">
                         <div class="navbar-logo nuget-logo-image" alt="NuGet home" role="img" aria-label="NuGet Home" @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/logo-header-94x29.png"))></div>
                     </a>
                 </div>
@@ -173,7 +173,7 @@
     {
         <div id="search-bar-header" class="container search-container">
             <div class="row">
-                <form aria-label="Package search bar" class="col-sm-12" action="@Url.PackageList()" method="get">
+                <form aria-label="Package search bar" class="col-sm-12" action="@Url.PackageList()" method="get" nonce="@Html.GetCSPNonce()">
                     @Html.Partial("_SearchBar")
                     @Html.Partial("_AutocompleteTemplate")
                 </form>

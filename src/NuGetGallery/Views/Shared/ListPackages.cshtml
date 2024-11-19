@@ -63,7 +63,7 @@
     };
 }
 
-<form name="search" id="search-form" method="get" class="clearfix advanced-search-panel">
+<form name="search" id="search-form" method="get" class="clearfix advanced-search-panel" nonce="@Html.GetCSPNonce()">
     <div id="search-bar-list-packages" class="navbar navbar-inverse">
         <div class="container search-container" aria-label="Package search bar">
             <div class="row">
@@ -279,7 +279,7 @@
 </form>
 
 @section bottomScripts {
-    <script type="text/javascript">
+    <script type="text/javascript" nonce="@Html.GetCSPNonce()">
     // Used to track how long the user waited before clicking a search selection.
     var pageLoadTime = Date.now();
 

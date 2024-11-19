@@ -62,7 +62,7 @@
     </div>
 </section>
 
-<script type="text/html" id="tool-list-template">
+<script type="text/html" id="tool-list-template" nonce="@Html.GetCSPNonce()">
     <h2 class="ms-fontSize-xxl" data-bind="text: displayName"></h2>
     <!-- ko if: note -->
     <p data-bind="html: note"></p>
@@ -80,7 +80,7 @@
 </script>
 
 @section BottomScripts {
-    <script type="text/javascript">
+    <script type="text/javascript" nonce="@Html.GetCSPNonce()">
         $(function () {
             $.ajax({
                 url: '//dist.nuget.org/index.json',

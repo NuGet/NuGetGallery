@@ -453,7 +453,7 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
 
 @helper AjaxAntiForgeryToken(System.Web.Mvc.HtmlHelper html)
 {
-    <form aria-hidden="true" id="AntiForgeryForm">
+    <form aria-hidden="true" id="AntiForgeryForm" nonce="@html.GetCSPNonce()">
         @html.AntiForgeryToken()
     </form>
 }
@@ -481,7 +481,7 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
     var viewSections = GetSections(viewPage.ViewBag);
     if (viewSections != null)
     {
-        <script type="text/javascript">
+        <script type="text/javascript" nonce="@viewPage.Html.GetCSPNonce()">
             var sections = @viewPage.Html.Raw(Json.Encode(viewSections));
             for (var i in sections) {
                 var configureSection = function (section) {

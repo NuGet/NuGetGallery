@@ -57,7 +57,7 @@
 </section>
 
 @section BottomScripts {
-    <script>
+    <script nonce="@Html.GetCSPNonce()">
         $(document).ready(function() {
             var viewModel = function () {
                 var $self = this;

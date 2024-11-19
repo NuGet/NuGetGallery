@@ -48,12 +48,12 @@
     @if (Model.IsCertificatesUIEnabled)
     {
         @Scripts.Render("~/Scripts/gallery/certificates.min.js")
-        <script type="text/javascript">
+        <script type="text/javascript" nonce="@Html.GetCSPNonce()">
             CertificatesManagement.init('@Url.AddUserCertificate()', '@Url.GetUserCertificates()');
         </script>
     }
 
-    <script type="text/html" id="validation-errors">
+    <script type="text/html" id="validation-errors" nonce="@Html.GetCSPNonce()">
         <div data-bind="foreach:$data" class="validation-error-message-list">
             @ViewHelpers.AlertDanger(@<text><span data-bind="text:$data"></span></text>)
         </div>

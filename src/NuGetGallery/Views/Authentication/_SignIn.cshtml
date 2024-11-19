@@ -61,7 +61,7 @@
         if (!this.Config.Current.DeprecateNuGetPasswordLogins && (Model.External == null || !Model.External.FoundExistingUser))
         {
             <p class="text-center">
-                Don't have an account? <a href="@Url.SignUp(returnUrl)">Register</a>
+                Don't have an account? <a href="@Url.SignUp(returnUrl)" nonce="@Html.GetCSPNonce()">Register</a>
             </p>
         }
     }

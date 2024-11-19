@@ -21,7 +21,7 @@
 
 @if (Model.ShowTransformModal)
 {
-    <script type="text/javascript">
+    <script type="text/javascript" nonce="@Html.GetCSPNonce()">
         window.showModal = true;
     </script>
     <div id="popUpModal" role="dialog" class="modal fade modal-container" data-backdrop="static" tabindex="-1">
@@ -30,7 +30,7 @@
 }
 else if (AskUserToEnable2FA)
 {
-    <script type="text/javascript">
+    <script type="text/javascript" nonce="@Html.GetCSPNonce()">
         window.show2FAModal = true;
     </script>
     <div id="popUp2FAModal" class="modal fade modal-container" data-backdrop="static">
@@ -48,7 +48,7 @@ else if (AskUserToEnable2FA)
             </div>
             <div class="row">
                 <div class="col-sm-8 col-sm-offset-2">
-                    <form action="@Url.PackageList()" method="get">
+                    <form action="@Url.PackageList()" method="get" nonce="@Html.GetCSPNonce()">
                         @Html.Partial("_SearchBar")
                         @Html.Partial("_AutocompleteTemplate")
                     </form>
@@ -97,7 +97,7 @@ else if (AskUserToEnable2FA)
             </div>
             <div class="col-sm-4">
                 <a href="@Url.PackageList()"
-                   title="Explore packages available on NuGet.org">
+                   title="Explore packages available on NuGet.org" nonce="@Html.GetCSPNonce()">
                     <div class="home-icons">
                         <img src="@Url.Absolute("~/Content/gallery/img/search-icon.svg")" alt="Find packages" width="96" height="96" />
                     </div>
@@ -109,7 +109,7 @@ else if (AskUserToEnable2FA)
             </div>
             <div class="col-sm-4">
                 <a href="https://docs.microsoft.com/nuget/quickstart/create-and-publish-a-package"
-                   title="Learn how to create a NuGet package">
+                   title="Learn how to create a NuGet package" nonce="@Html.GetCSPNonce()">
                     <div class="home-icons">
                         <img src="@Url.Absolute("~/Content/gallery/img/rocket-icon.svg")" alt="Learn to create packages" width="96" height="96" />
                     </div>
@@ -124,7 +124,7 @@ else if (AskUserToEnable2FA)
 </section>
 
 @section BottomScripts {
-    <script type="text/javascript">
+    <script type="text/javascript" nonce="@Html.GetCSPNonce()">
         var feedbackUrl = "@Url.Send2FAFeedback()";
         var changeMultiFactorAuthenticationUrl = "@Url.ChangeMultiFactorAuthentication()";
     </script>
