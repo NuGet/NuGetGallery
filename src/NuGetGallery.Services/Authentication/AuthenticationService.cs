@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -714,7 +714,7 @@ namespace NuGetGallery.Authentication
 
         public virtual async Task EditCredentialScopes(User user, Credential cred, ICollection<Scope> newScopes)
         {
-            foreach (var oldScope in cred.Scopes)
+            foreach (var oldScope in cred.Scopes.ToList())
             {
                 Entities.Scopes.Remove(oldScope);
             }
