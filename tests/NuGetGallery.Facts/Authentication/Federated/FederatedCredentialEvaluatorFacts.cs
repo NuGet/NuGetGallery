@@ -244,6 +244,8 @@ namespace NuGetGallery.Services.Authentication
             [InlineData("tid")]
             [InlineData("oid")]
             [InlineData("azpacr")]
+            [InlineData("idtyp")]
+            [InlineData("ver")]
             public async Task RejectsMissingClaim(string claim)
             {
                 // Arrange
@@ -262,6 +264,34 @@ namespace NuGetGallery.Services.Authentication
             {
                 // Arrange
                 Claims["azpacr"] = "1";
+
+                // Act
+                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken);
+
+                // Assert
+                Assert.Equal(EvaluatedFederatedCredentialPoliciesType.NoMatchingPolicy, evaluation.Type);
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, Assert.Single(evaluation.Results).Type);
+            }
+
+            [Fact]
+            public async Task RejectsInvalidIdentityType()
+            {
+                // Arrange
+                Claims["idtyp"] = "app+user";
+
+                // Act
+                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken);
+
+                // Assert
+                Assert.Equal(EvaluatedFederatedCredentialPoliciesType.NoMatchingPolicy, evaluation.Type);
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, Assert.Single(evaluation.Results).Type);
+            }
+
+            [Fact]
+            public async Task RejectsInvalidVersion()
+            {
+                // Arrange
+                Claims["ver"] = "1.0";
 
                 // Act
                 var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken);
@@ -355,6 +385,8 @@ namespace NuGetGallery.Services.Authentication
                 { "sub", ObjectId.ToString() },
                 { "uti", "fate's wink" },
                 { "azpacr", "2" },
+                { "idtyp", "app" },
+                { "ver", "2.0" },
             };
             Policies = new List<FederatedCredentialPolicy>
             {

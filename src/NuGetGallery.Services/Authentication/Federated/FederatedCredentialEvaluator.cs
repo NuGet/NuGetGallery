@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Identity.Web;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using NuGet.Services.Entities;
@@ -214,10 +215,12 @@ namespace NuGetGallery.Services.Authentication
         
         private async Task<(string? UserError, string? Identifier, TokenValidationResult? Result)> GetEntraIdValidationResultAsync(JsonWebToken jwt)
         {
-            if (!jwt.TryGetPayloadValue<string>("uti", out var uti)
-                || string.IsNullOrWhiteSpace(uti)) // unique token identifier (equivalent to jti)
+            const string UniqueTokenIdentifierClaim = "uti"; // unique token identifier (equivalent to jti)
+
+            if (!jwt.TryGetPayloadValue<string>(UniqueTokenIdentifierClaim, out var uti)
+                || string.IsNullOrWhiteSpace(uti))
             {
-                return ("The JSON web token must have a uti claim.", null, null);
+                return ($"The JSON web token must have a {UniqueTokenIdentifierClaim} claim.", null, null);
             }
 
             var tokenValidationResult = await _entraIdTokenValidator.ValidateAsync(jwt);
@@ -227,42 +230,68 @@ namespace NuGetGallery.Services.Authentication
         private string? EvaluateEntraIdServicePrincipal(FederatedCredentialPolicy policy, JsonWebToken jwt)
         {
             // See https://learn.microsoft.com/en-us/entra/identity-platform/access-token-claims-reference
-            if (!jwt.TryGetPayloadValue<string>("tid", out var tid)) // tenant (directory) ID
+            const string ClientCredentialTypeClaim = "azpacr";
+            const string ClientCertificateType = "2"; // 2 indicates a client certificate (or managed identity) was used
+            const string IdentityTypeClaim = "idtyp";
+            const string AppIdentityType = "app";
+            const string VersionClaim = "ver";
+            const string Version2 = "2.0";
+
+            if (!jwt.TryGetPayloadValue<string>(ClaimConstants.Tid, out var tid))
             {
-                return "The JSON web token is missing the tid claim.";
+                return $"The JSON web token is missing the {ClaimConstants.Tid} claim.";
             }
 
-            if (!jwt.TryGetPayloadValue<string>("oid", out var oid)) // object ID
+            if (!jwt.TryGetPayloadValue<string>(ClaimConstants.Oid, out var oid))
             {
-                return "The JSON web token is missing the oid claim.";
+                return $"The JSON web token is missing the {ClaimConstants.Oid} claim.";
             }
 
-            if (!jwt.TryGetPayloadValue<string>("azpacr", out var azpacr)) // client credential type
+            if (!jwt.TryGetPayloadValue<string>(ClientCredentialTypeClaim, out var azpacr))
             {
-                return "The JSON web token is missing the azpacr claim.";
+                return $"The JSON web token is missing the {ClientCredentialTypeClaim} claim.";
             }
 
-            // 2 indicates a client certificate was used
-            if (azpacr != "2")
+            if (azpacr != ClientCertificateType)
             {
-                return "The JSON web token must have an azpacr claim with a value of 2.";
+                return $"The JSON web token must have an {ClientCredentialTypeClaim} claim with a value of {ClientCertificateType}.";
+            }
+
+            if (!jwt.TryGetPayloadValue<string>(IdentityTypeClaim, out var idtyp))
+            {
+                return $"The JSON web token is missing the {IdentityTypeClaim} claim.";
+            }
+
+            if (idtyp != AppIdentityType)
+            {
+                return $"The JSON web token must have an {IdentityTypeClaim} claim with a value of {AppIdentityType}.";
+            }
+
+            if (!jwt.TryGetPayloadValue<string>(VersionClaim, out var ver))
+            {
+                return $"The JSON web token is missing the {VersionClaim} claim.";
+            }
+
+            if (ver != Version2)
+            {
+                return $"The JSON web token must have a {VersionClaim} claim with a value of {Version2}.";
             }
 
             if (jwt.Subject != oid)
             {
-                return "The JSON web token sub claim must match the oid claim.";
+                return $"The JSON web token {ClaimConstants.Sub} claim must match the {ClaimConstants.Oid} claim.";
             }
 
             var criteria = DeserializePolicy<EntraIdServicePrincipalCriteria>(policy);
 
             if (string.IsNullOrWhiteSpace(tid) || !Guid.TryParse(tid, out var parsedTid) || parsedTid != criteria.TenantId)
             {
-                return "The JSON web token must have a tid claim that matches the policy.";
+                return $"The JSON web token must have a {ClaimConstants.Tid} claim that matches the policy.";
             }
 
             if (string.IsNullOrWhiteSpace(oid) || !Guid.TryParse(oid, out var parsedOid) || parsedOid != criteria.ObjectId)
             {
-                return "The JSON web token must have a oid claim that matches the policy.";
+                return $"The JSON web token must have a {ClaimConstants.Oid} claim that matches the policy.";
             }
 
             return null;
