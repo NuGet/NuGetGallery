@@ -36,6 +36,11 @@ namespace NuGetGallery.Infrastructure.Authentication
                 throw new ArgumentException($"The {nameof(policy.PackageOwner)} property on the policy must not be null.");
             }
 
+            if (expiration <= TimeSpan.Zero || expiration > TimeSpan.FromHours(1))
+            {
+                throw new ArgumentOutOfRangeException(nameof(expiration));
+            }
+
             // TODO: introduce a new API key type for short-lived API keys
             // Tracking: https://github.com/NuGet/NuGetGallery/issues/10212
             var credential = CreateApiKey(expiration, out plaintextApiKey);
