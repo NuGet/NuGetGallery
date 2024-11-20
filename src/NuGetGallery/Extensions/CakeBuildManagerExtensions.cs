@@ -1,7 +1,8 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace NuGetGallery
@@ -13,7 +14,12 @@ namespace NuGetGallery
             return IsCakeAddin(model) || IsCakeModule(model) || IsCakeRecipe(model);
         }
 
-        public static string GetCakeInstallPackageCommand(this DisplayPackageViewModel model)
+        public static PackageManagerViewModel.InstallPackageCommand[] GetCakeInstallPackageCommands(this DisplayPackageViewModel model)
+            => model
+                .EnumerateCakeInstallPackageCommands()
+                .ToArray();
+
+        public static IEnumerable<PackageManagerViewModel.InstallPackageCommand> EnumerateCakeInstallPackageCommands(this DisplayPackageViewModel model)
         {
             var scheme = model.IsDotnetToolPackageType ? "dotnet" : "nuget";
             var reference = $"{scheme}:?package={model.Id}&version={model.Version}";
@@ -25,31 +31,32 @@ namespace NuGetGallery
 
             if (model.IsDotnetToolPackageType)
             {
-                return $"#tool {reference}";
+                yield return new PackageManagerViewModel.InstallPackageCommand($"#tool {reference}");
             }
-
-            if (IsCakeAddin(model))
+            else if (IsCakeAddin(model))
             {
-                return $"#addin {reference}";
+                yield return new PackageManagerViewModel.InstallPackageCommand($"#addin {reference}");
             }
-
-            if (IsCakeModule(model))
+            else if (IsCakeModule(model))
             {
-                return $"#module {reference}";
+                yield return new PackageManagerViewModel.InstallPackageCommand($"#module {reference}");
             }
-
-            if (IsCakeRecipe(model))
+            else if (IsCakeRecipe(model))
             {
-                return $"#load {reference}";
+                yield return new PackageManagerViewModel.InstallPackageCommand($"#load {reference}");
             }
+            else
+            {
+                yield return new PackageManagerViewModel.InstallPackageCommand(
+                    $"Install {model.Id} as a Cake Addin",
+                    $"#addin {reference}"
+                );
 
-            return string.Join(Environment.NewLine,
-                $"// Install {model.Id} as a Cake Addin",
-                $"#addin {reference}",
-                "",
-                $"// Install {model.Id} as a Cake Tool",
-                $"#tool {reference}"
-            );
+                yield return new PackageManagerViewModel.InstallPackageCommand(
+                    $"Install {model.Id} as a Cake Tool",
+                    $"#tool {reference}"
+                );
+            };
         }
 
         private static bool IsCakeAddin(ListPackageItemViewModel model) =>
