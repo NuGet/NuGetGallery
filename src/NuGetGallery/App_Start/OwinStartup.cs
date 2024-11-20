@@ -39,8 +39,6 @@ namespace NuGetGallery
     {
         public static bool HasRun { get; private set; }
 
-        public static StringBuilder FontURLS = new();
-
         // This method is auto-detected by the OWIN pipeline. DO NOT RENAME IT!
         public static void Configuration(IAppBuilder app)
         {
@@ -163,12 +161,7 @@ namespace NuGetGallery
             {
                 var resourceURl = context.Request.Uri.ToString();
                 var regexStr = "https://res-1.cdn.office.net/files/fabric-cdn-prod_20221201.001/assets/";
-               
 
-                if (Regex.IsMatch(resourceURl, regexStr))
-                {
-                    FontURLS.Append(" "+resourceURl);
-                }
 
                 var rng = new RNGCryptoServiceProvider();
                 var nonceBytes = new byte[32];
@@ -179,15 +172,14 @@ namespace NuGetGallery
                     [ string.Format("default-src 'self' 'nonce-{0}'; script-src 'self' https://localhost/ https://wcpstatic.microsoft.com/mscc/lib/v2/ 'nonce-{0}' 'unsafe-inline' 'unsafe-eval'; font-src 'self' {1} 'nonce-{0}'; base-uri 'none'; form-action 'self' 'nonce-{0}'; style-src 'self' 'nonce-{0}' 'unsafe-inline'", nonce,regexStr)
                     ]);
 
-              
+
                 context.Environment.ToList().ForEach(x => Debug.WriteLine(x.Key + " : " + x.Value));
                 Debug.WriteLine("Request URL: " + context.Request.Uri.ToString());
                 Debug.WriteLine(context.Request);
-                Debug.WriteLine("Request URL added: " + FontURLS.ToString());
 
                 await next();
             });
-     
+
 
             var featureFlags = DependencyResolver.Current.GetService<IFeatureFlagCacheService>();
             if (featureFlags != null)
