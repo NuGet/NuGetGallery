@@ -10,8 +10,6 @@ namespace NuGetGallery.Infrastructure.Authentication
 {
     public class CredentialBuilderFacts
     {
-        public CredentialBuilder Target { get; }
-
         public class TheCreateShortLivedApiKeyMethod : CredentialBuilderFacts
         {
             [Fact]
@@ -72,6 +70,8 @@ namespace NuGetGallery.Infrastructure.Authentication
         }
 
         public TimeSpan Expiration { get; set; }
+
+        public CredentialBuilder Target { get; }
 
         public CredentialBuilderFacts()
         {
