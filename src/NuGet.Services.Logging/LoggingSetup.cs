@@ -20,6 +20,7 @@ namespace NuGet.Services.Logging
             loggerConfiguration.Enrich.WithMachineName();
             loggerConfiguration.Enrich.WithProcessId();
             loggerConfiguration.Enrich.FromLogContext();
+            loggerConfiguration.Enrich.WithNuGetAssemblyMetadata();
 
             if (withConsoleLogger)
             {
