@@ -10,8 +10,6 @@ namespace NuGetGallery.Infrastructure.Authentication
 {
     public class CredentialBuilderFacts
     {
-        public CredentialBuilder Target { get; }
-
         public class TheCreateShortLivedApiKeyMethod : CredentialBuilderFacts
         {
             [Fact]
@@ -45,6 +43,19 @@ namespace NuGetGallery.Infrastructure.Authentication
                 Assert.Throws<ArgumentException>(() => Target.CreateShortLivedApiKey(Expiration, Policy, out var plaintextApiKey));
             }
 
+            [Theory]
+            [InlineData(-1)]
+            [InlineData(0)]
+            [InlineData(61)]
+            public void RejectsOutOfRangeExpiration(int expirationMinutes)
+            {
+                // Arrange
+                Expiration = TimeSpan.FromMinutes(expirationMinutes);
+
+                // Act
+                Assert.Throws<ArgumentOutOfRangeException>(() => Target.CreateShortLivedApiKey(Expiration, Policy, out var plaintextApiKey));
+            }
+
             public FederatedCredentialPolicy Policy { get; }
 
             public TheCreateShortLivedApiKeyMethod()
@@ -58,7 +69,9 @@ namespace NuGetGallery.Infrastructure.Authentication
             }
         }
 
-        public TimeSpan Expiration { get; }
+        public TimeSpan Expiration { get; set; }
+
+        public CredentialBuilder Target { get; }
 
         public CredentialBuilderFacts()
         {
