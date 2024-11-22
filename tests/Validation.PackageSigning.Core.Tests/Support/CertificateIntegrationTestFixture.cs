@@ -338,7 +338,11 @@ namespace Validation.PackageSigning.Core.Tests.Support
                 StoreLocation.LocalMachine);
 
             var timestampService = TimestampService.Create(rootCa);
-            var disposable = new DisposableList<IDisposable> { rootCertificate, trust };
+
+            // Do not add `rootCertificate`, because its disposal will cause subsequent disposal
+            // of `trust` to fail and trust removal to fail.
+            // Disposing `trust` already disposes `rootCertificate`.
+            var disposable = new DisposableList<IDisposable> { trust };
 
             Task WaitForResponseExpirationAsync()
             {
