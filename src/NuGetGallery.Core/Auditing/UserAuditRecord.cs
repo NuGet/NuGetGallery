@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -56,7 +56,7 @@ namespace NuGetGallery.Auditing
             Roles = user.Roles.Select(r => r.Name).ToArray();
 
             Credentials = user.Credentials.Where(CredentialTypes.IsSupportedCredential)
-                                          .Select(c => new CredentialAuditRecord(c, removedOrRevoked: false)).ToArray();
+                                          .Select(c => new CredentialAuditRecord(c)).ToArray();
 
             AffectedCredential = Array.Empty<CredentialAuditRecord>();
             AffectedPolicies = Array.Empty<AuditedUserSecurityPolicy>();
@@ -70,8 +70,7 @@ namespace NuGetGallery.Auditing
         public UserAuditRecord(User user, AuditedUserAction action, IEnumerable<Credential> affected, string revocationSource)
             : this(user, action)
         {
-            AffectedCredential = affected.Select(c => new CredentialAuditRecord(c,
-                removedOrRevoked: action == AuditedUserAction.RemoveCredential || action == AuditedUserAction.RevokeCredential, revocationSource: revocationSource)).ToArray();
+            AffectedCredential = affected.Select(c => new CredentialAuditRecord(c, revocationSource: revocationSource)).ToArray();
         }
 
         public UserAuditRecord(User user, AuditedUserAction action, Credential affected)
@@ -82,8 +81,7 @@ namespace NuGetGallery.Auditing
         public UserAuditRecord(User user, AuditedUserAction action, IEnumerable<Credential> affected)
             : this(user, action)
         {
-            AffectedCredential = affected.Select(c => new CredentialAuditRecord(c,
-                removedOrRevoked: action == AuditedUserAction.RemoveCredential || action == AuditedUserAction.RevokeCredential)).ToArray();
+            AffectedCredential = affected.Select(c => new CredentialAuditRecord(c)).ToArray();
         }
 
         public UserAuditRecord(User user, AuditedUserAction action, string affectedEmailAddress)

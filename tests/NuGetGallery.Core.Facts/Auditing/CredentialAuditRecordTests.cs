@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -13,31 +13,23 @@ namespace NuGetGallery.Auditing
         [Fact]
         public void Constructor_ThrowsForNullCredential()
         {
-            Assert.Throws<ArgumentNullException>(() => new CredentialAuditRecord(credential: null, removedOrRevoked: true));
+            Assert.Throws<ArgumentNullException>(() => new CredentialAuditRecord(credential: null));
         }
 
         [Fact]
-        public void Constructor_ThrowsForRemovalWithNullType()
-        {
-            var credential = new Credential();
-
-            Assert.Throws<ArgumentNullException>(() => new CredentialAuditRecord(credential, removedOrRevoked: true));
-        }
-
-        [Fact]
-        public void Constructor_RemovalOfNonPasswordSetsValue()
+        public void Constructor_RemovalOfNonPasswordDoesNotSetValue()
         {
             var credential = new Credential(type: "a", value: "b");
-            var record = new CredentialAuditRecord(credential, removedOrRevoked: true);
+            var record = new CredentialAuditRecord(credential);
 
-            Assert.Equal("b", record.Value);
+            Assert.Null(record.Value);
         }
 
         [Fact]
         public void Constructor_RemovalOfPasswordDoesNotSetValue()
         {
             var credential = new Credential(type: CredentialTypes.Password.V3, value: "a");
-            var record = new CredentialAuditRecord(credential, removedOrRevoked: true);
+            var record = new CredentialAuditRecord(credential);
 
             Assert.Null(record.Value);
         }
@@ -46,7 +38,7 @@ namespace NuGetGallery.Auditing
         public void Constructor_NonRemovalOfNonPasswordDoesNotSetsValue()
         {
             var credential = new Credential(type: "a", value: "b");
-            var record = new CredentialAuditRecord(credential, removedOrRevoked: false);
+            var record = new CredentialAuditRecord(credential);
 
             Assert.Null(record.Value);
         }
@@ -57,7 +49,7 @@ namespace NuGetGallery.Auditing
         public void Constructor_ExternalCredentialSetsValue(string externalType)
         {
             var credential = new Credential(type: externalType, value: "b");
-            var record = new CredentialAuditRecord(credential, removedOrRevoked: false);
+            var record = new CredentialAuditRecord(credential);
 
             Assert.Equal("b", record.Value);
         }
@@ -66,7 +58,7 @@ namespace NuGetGallery.Auditing
         public void Constructor_NonRemovalOfPasswordDoesNotSetValue()
         {
             var credential = new Credential(type: CredentialTypes.Password.V3, value: "a");
-            var record = new CredentialAuditRecord(credential, removedOrRevoked: false);
+            var record = new CredentialAuditRecord(credential);
 
             Assert.Null(record.Value);
         }
@@ -90,7 +82,7 @@ namespace NuGetGallery.Auditing
                 Type = "e",
                 Value = "f"
             };
-            var record = new CredentialAuditRecord(credential, removedOrRevoked: true);
+            var record = new CredentialAuditRecord(credential);
 
             Assert.Equal(created, record.Created);
             Assert.Equal("a", record.Description);
@@ -104,7 +96,7 @@ namespace NuGetGallery.Auditing
             Assert.Equal("c", scope.Subject);
             Assert.Equal("d", scope.AllowedAction);
             Assert.Equal("e", record.Type);
-            Assert.Equal("f", record.Value);
+            Assert.Null(record.Value);
         }
 
         [Fact]
@@ -112,11 +104,11 @@ namespace NuGetGallery.Auditing
         {
             var testRevocationSource = "TestRevocationSource";
             var credential = new Credential(type: "a", value: "b");
-            var record = new CredentialAuditRecord(credential, removedOrRevoked: true, revocationSource: testRevocationSource);
+            var record = new CredentialAuditRecord(credential, revocationSource: testRevocationSource);
 
             Assert.Equal(testRevocationSource, record.RevocationSource);
             Assert.Equal("a", record.Type);
-            Assert.Equal("b", record.Value);
+            Assert.Null(record.Value);
         }
     }
 }

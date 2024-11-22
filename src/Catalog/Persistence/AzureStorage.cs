@@ -94,7 +94,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             var blobEndpoint = new Uri(storageBaseUri.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped));
             // Create BlobServiceClient with anonymous credentials
-            var blobServiceClient = new BlobServiceClientFactory(blobEndpoint, new DefaultAzureCredential());
+            var blobServiceClient = new BlobServiceClientFactory(blobEndpoint);
 
             string containerName = pathSegments[0];
             string pathInContainer = string.Join("/", pathSegments.Skip(1));
