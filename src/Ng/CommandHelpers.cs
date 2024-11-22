@@ -11,6 +11,7 @@ using System.Security.Cryptography.X509Certificates;
 using Azure;
 using Azure.Core;
 using Azure.Identity;
+using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Queues;
 using Microsoft.Extensions.Logging;
@@ -40,6 +41,8 @@ namespace Ng
         };
         private static readonly IDictionary<string, string> ArgumentNames = new Dictionary<string, string>
         {
+            { Arguments.UseManagedIdentity, Arguments.UseManagedIdentity },
+            { Arguments.ClientId, Arguments.ClientId},
             { Arguments.StorageBaseAddress, Arguments.StorageBaseAddress },
             { Arguments.StorageAccountName, Arguments.StorageAccountName },
             { Arguments.StorageKeyValue, Arguments.StorageKeyValue },
@@ -52,7 +55,6 @@ namespace Ng
             { Arguments.StorageOperationMaxExecutionTimeInSeconds, Arguments.StorageOperationMaxExecutionTimeInSeconds },
             { Arguments.StorageServerTimeoutInSeconds, Arguments.StorageServerTimeoutInSeconds },
             { Arguments.StorageInitializeContainer, Arguments.StorageInitializeContainer },
-            { Arguments.ClientId, Arguments.ClientId },
         };
 
         public static IDictionary<string, string> GetArguments(string[] args, int start, out ICachingSecretInjector secretInjector)
@@ -164,6 +166,8 @@ namespace Ng
 
             IDictionary<string, string> names = new Dictionary<string, string>
             {
+                { Arguments.UseManagedIdentity, Arguments.UseManagedIdentity },
+                { Arguments.ClientId, Arguments.ClientId},
                 { Arguments.StorageBaseAddress, Arguments.StorageBaseAddress + suffix },
                 { Arguments.StorageAccountName, Arguments.StorageAccountName + suffix },
                 { Arguments.StorageUseManagedIdentity, Arguments.StorageUseManagedIdentity + suffix },
@@ -198,7 +202,6 @@ namespace Ng
             if (!string.IsNullOrEmpty(storageBaseAddressStr))
             {
                 storageBaseAddressStr = storageBaseAddressStr.TrimEnd('/') + "/";
-
                 storageBaseAddress = new Uri(storageBaseAddressStr);
             }
 
@@ -427,7 +430,16 @@ namespace Ng
             IDictionary<string, string> argumentNameMap)
         {
             bool storageUseManagedIdentity = arguments.GetOrDefault(argumentNameMap[Arguments.StorageUseManagedIdentity], defaultValue: false);
-            if (storageUseManagedIdentity)
+            bool useManagedIdentity = storageUseManagedIdentity || arguments.GetOrDefault(argumentNameMap[Arguments.UseManagedIdentity], defaultValue: false);
+
+            var storageKeyValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageKeyValue]);
+            var storageSasValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageSasValue]);
+
+            bool hasStorageKeyOrSas = !string.IsNullOrEmpty(storageKeyValue) || !string.IsNullOrEmpty(storageSasValue);
+
+            // This comparison is due to some jobs using both global and china storages in a single instance.
+            // They require MSI auth for global storage and SAS/SAK auth for china storage.
+            if (useManagedIdentity && !hasStorageKeyOrSas)
             {
                 var managedIdentityClientId = arguments.GetOrThrow<string>(argumentNameMap[Arguments.ClientId]);
                 var identity = new ManagedIdentityCredential(managedIdentityClientId);
@@ -444,7 +456,16 @@ namespace Ng
             IDictionary<string, string> argumentNameMap)
         {
             bool storageUseManagedIdentity = arguments.GetOrDefault(argumentNameMap[Arguments.StorageUseManagedIdentity], defaultValue: false);
-            if (storageUseManagedIdentity)
+            bool useManagedIdentity = storageUseManagedIdentity || arguments.GetOrDefault(argumentNameMap[Arguments.UseManagedIdentity], defaultValue: false);
+
+            var storageKeyValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageKeyValue]);
+            var storageSasValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageSasValue]);
+
+            bool hasStorageKeyOrSas = !string.IsNullOrEmpty(storageKeyValue) || !string.IsNullOrEmpty(storageSasValue);
+
+            // This comparison is due to some jobs using both global and china storages in a single instance.
+            // They require MSI auth for global storage and SAS/SAK auth for china storage.
+            if (useManagedIdentity && !hasStorageKeyOrSas)
             {
                 var managedIdentityClientId = arguments.GetOrThrow<string>(argumentNameMap[Arguments.ClientId]);
                 var identity = new ManagedIdentityCredential(managedIdentityClientId);

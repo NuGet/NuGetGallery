@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using Autofac;
+using Azure.Identity;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,10 +32,20 @@ namespace NuGet.Jobs.Catalog2Registration
             containerBuilder.AddV3();
 
             RegisterCursorStorage(containerBuilder);
-
             containerBuilder
-                .RegisterStorageAccount<Catalog2RegistrationConfiguration>(c => c.StorageConnectionString, requestTimeout: DefaultBlobRequestOptions.ServerTimeout)
-                .As<ICloudBlobClient>();
+                .Register<ICloudBlobClient>(c =>
+                {
+                    var options = c.Resolve<IOptionsSnapshot<Catalog2RegistrationConfiguration>>();
+
+                    if (options.Value.StorageUseManagedIdentity && !options.Value.HasSasToken)
+                    {
+                        return CloudBlobClientWrapper.UsingMsi(options.Value.StorageConnectionString, clientId: options.Value.StorageManagedIdentityClientId, requestTimeout: DefaultBlobRequestOptions.ServerTimeout);
+                    }
+
+                    return new CloudBlobClientWrapper(
+                        options.Value.StorageConnectionString,
+                        requestTimeout: DefaultBlobRequestOptions.ServerTimeout);
+                });
 
             containerBuilder.Register(c => new Catalog2RegistrationCommand(
                 c.Resolve<ICollector>(),
@@ -57,7 +68,12 @@ namespace NuGet.Jobs.Catalog2Registration
                 {
                     var options = c.Resolve<IOptionsSnapshot<Catalog2RegistrationConfiguration>>();
 
-                    // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
+                    if (options.Value.StorageUseManagedIdentity && !options.Value.HasSasToken)
+                    {
+                        var credential = new ManagedIdentityCredential(options.Value.StorageManagedIdentityClientId);
+
+                        return new BlobServiceClientFactory(new Uri(options.Value.StorageServiceUrl), credential);
+                    }
                     var connectionString = options.Value.StorageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
 
                     return new BlobServiceClientFactory(connectionString);
