@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -10,6 +10,26 @@ namespace NuGet.Jobs.Catalog2Registration
     public class Catalog2RegistrationConfiguration : ICommitCollectorConfiguration
     {
         private static readonly int DefaultMaxConcurrentHivesPerId = Enum.GetValues(typeof(HiveType)).Length;
+
+        /// <summary>
+        /// Whether or not managed identity will be used as credential.
+        /// </summary>
+        public bool StorageUseManagedIdentity { get; set; }
+
+        /// <summary>
+        /// Specific manage identity client id.
+        /// </summary>
+        public string StorageManagedIdentityClientId { get; set; }
+
+        /// <summary>
+        /// Whether or not any storage contains a sas token.
+        /// </summary>
+        public bool HasSasToken { get; set; }
+
+        /// <summary>
+        /// Azure storage service uri. e.g. https://<storage>.blob.core.windows.net
+        /// </summary>
+        public string StorageServiceUrl { get; set; }
 
         /// <summary>
         /// The connection string used to connect to an Azure Blob Storage account. The connection string specifies

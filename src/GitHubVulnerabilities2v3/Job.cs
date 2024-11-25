@@ -7,6 +7,7 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
+using Azure.Identity;
 using Azure.Storage.Blobs;
 using GitHubVulnerabilities2v3.Configuration;
 using GitHubVulnerabilities2v3.Extensions;
@@ -16,6 +17,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs;
+using NuGet.Services.Configuration;
 using NuGet.Services.Cursor;
 using NuGet.Services.GitHub.Collector;
 using NuGet.Services.GitHub.Configuration;
@@ -68,7 +70,7 @@ namespace GitHubVulnerabilities2v3
 
             ConfigureQueryServices(containerBuilder);
             ConfigureIngestionServices(containerBuilder);
-            ConfigureCollectorServices(containerBuilder);
+            ConfigureCollectorServices(containerBuilder, configurationRoot);
         }
 
         protected void ConfigureIngestionServices(ContainerBuilder containerBuilder)
@@ -111,22 +113,22 @@ namespace GitHubVulnerabilities2v3
                 .As<IAdvisoryQueryService>();
         }
 
-        protected void ConfigureCollectorServices(ContainerBuilder containerBuilder)
+        protected void ConfigureCollectorServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
             containerBuilder
                 .Register(ctx =>
                 {
                     var config = ctx.Resolve<GitHubVulnerabilities2v3Configuration>();
-                    var connectionString = AzureStorageFactory.PrepareConnectionString(config.StorageConnectionString);
-                    return new BlobServiceClient(connectionString);
+                    var credential = new ManagedIdentityCredential(configurationRoot[Constants.ManagedIdentityClientIdKey]);
+                    return new BlobServiceClientFactory(new Uri(config.StorageConnectionString), credential);
                 })
-                .As<BlobServiceClient>();
+                .As<BlobServiceClientFactory>();
 
             containerBuilder
                 .Register(ctx =>
                 {
                     return new AzureStorageFactory(
-                        ctx.Resolve<BlobServiceClient>(),
+                        ctx.Resolve<BlobServiceClientFactory>(),
                         ctx.Resolve<GitHubVulnerabilities2v3Configuration>().V3VulnerabilityContainerName,
                         enablePublicAccess: true,
                         ctx.Resolve<ILogger<AzureStorage>>());

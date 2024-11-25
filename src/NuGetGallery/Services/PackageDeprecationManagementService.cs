@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -148,7 +148,7 @@ namespace NuGetGallery
             foreach (var version in versions)
             {
                 var normalizedVersion = NuGetVersionFormatter.Normalize(version);
-                var package = packages.SingleOrDefault(v => v.NormalizedVersion == normalizedVersion);
+                var package = packages.SingleOrDefault(v => StringComparer.OrdinalIgnoreCase.Equals(v.NormalizedVersion, normalizedVersion));
                 if (package == null)
                 {
                     return new UpdateDeprecationError(

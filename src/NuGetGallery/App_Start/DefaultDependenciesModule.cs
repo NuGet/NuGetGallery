@@ -25,6 +25,9 @@ using Microsoft.ApplicationInsights.Extensibility.Implementation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.IdentityModel.Protocols;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using NuGet.Services.Configuration;
 using NuGet.Services.Entities;
@@ -55,6 +58,7 @@ using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.Infrastructure.Search.Correlation;
 using NuGetGallery.Security;
 using NuGetGallery.Services;
+using NuGetGallery.Services.Authentication;
 using Role = NuGet.Services.Entities.Role;
 
 namespace NuGetGallery
@@ -150,6 +154,8 @@ namespace NuGetGallery
 
             builder.Register(c => configuration.PackageDelete)
                 .As<IPackageDeleteConfiguration>();
+
+            ConfigureFederatedCredentials(builder, configuration);
 
             var telemetryService = new TelemetryService(
                 new TraceDiagnosticsSource(nameof(TelemetryService), telemetryClient),
@@ -274,6 +280,16 @@ namespace NuGetGallery
             builder.RegisterType<EntityRepository<PackageRename>>()
                 .AsSelf()
                 .As<IEntityRepository<PackageRename>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<EntityRepository<FederatedCredentialPolicy>>()
+                .AsSelf()
+                .As<IEntityRepository<FederatedCredentialPolicy>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<EntityRepository<FederatedCredential>>()
+                .AsSelf()
+                .As<IEntityRepository<FederatedCredential>>()
                 .InstancePerLifetimeScope();
 
             ConfigureGalleryReadOnlyReplicaEntitiesContext(builder, loggerFactory, configuration, secretInjector, telemetryService);
@@ -529,6 +545,44 @@ namespace NuGetGallery
 
             ConfigureAutocomplete(builder, configuration);
             builder.Populate(services);
+        }
+
+        private static void ConfigureFederatedCredentials(ContainerBuilder builder, ConfigurationService configuration)
+        {
+            builder
+                .RegisterType<FederatedCredentialRepository>()
+                .As<IFederatedCredentialRepository>()
+                .InstancePerLifetimeScope();
+
+            builder
+                .Register(c => configuration.FederatedCredential)
+                .As<IFederatedCredentialConfiguration>();
+
+            builder
+                .Register(_ => new OpenIdConnectConfigurationRetriever())
+                .As<IConfigurationRetriever<OpenIdConnectConfiguration>>();
+
+            const string EntraIdKey = "EntraId";
+
+            // this is a singleton to provide caching of the OIDC metadata
+            builder
+                .Register(p => new ConfigurationManager<OpenIdConnectConfiguration>(
+                    metadataAddress: EntraIdTokenValidator.MetadataAddress,
+                    p.Resolve<IConfigurationRetriever<OpenIdConnectConfiguration>>()))
+                .SingleInstance()
+                .Keyed<ConfigurationManager<OpenIdConnectConfiguration>>(EntraIdKey);
+
+            builder
+                .RegisterType<JsonWebTokenHandler>()
+                .InstancePerLifetimeScope();
+
+            builder
+                .Register(p => new EntraIdTokenValidator(
+                    p.ResolveKeyed<ConfigurationManager<OpenIdConnectConfiguration>>(EntraIdKey),
+                    p.Resolve<JsonWebTokenHandler>(),
+                    p.Resolve<IFederatedCredentialConfiguration>()))
+                .As<IEntraIdTokenValidator>()
+                .InstancePerLifetimeScope();
         }
 
         // Internal for testing purposes

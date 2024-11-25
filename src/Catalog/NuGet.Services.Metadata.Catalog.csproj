@@ -76,6 +76,7 @@
     <ProjectReference Include="..\NuGet.Services.Configuration\NuGet.Services.Configuration.csproj" />
     <ProjectReference Include="..\NuGet.Services.Logging\NuGet.Services.Logging.csproj" />
     <ProjectReference Include="..\NuGet.Services.Sql\NuGet.Services.Sql.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Storage\NuGet.Services.Storage.csproj" />
     <ProjectReference Include="..\NuGetGallery.Core\NuGetGallery.Core.csproj" />
   </ItemGroup>
 

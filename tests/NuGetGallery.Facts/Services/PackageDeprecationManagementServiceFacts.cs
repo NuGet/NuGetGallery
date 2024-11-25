@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -856,7 +856,7 @@ namespace NuGetGallery
 
                 var package2 = new Package
                 {
-                    NormalizedVersion = "1.0.0",
+                    NormalizedVersion = "1.0.0-RC1",
                     PackageRegistration = registration
                 };
 
@@ -932,7 +932,7 @@ namespace NuGetGallery
 
                 var service = GetService<PackageDeprecationManagementService>();
 
-                var packageNormalizedVersions = new[] { package.NormalizedVersion, package2.NormalizedVersion };
+                var packageNormalizedVersions = new[] { package.NormalizedVersion, package2.NormalizedVersion.ToLowerInvariant() };
 
                 // Act
                 var result = await InvokeUpdateDeprecation(

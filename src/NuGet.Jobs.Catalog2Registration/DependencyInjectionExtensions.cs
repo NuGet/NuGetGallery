@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using Autofac;
+using Azure.Identity;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,8 +13,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Protocol;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using NuGet.Services.Storage;
 using NuGet.Services.V3;
 using NuGetGallery;
+
+using AzureStorage = NuGet.Services.Metadata.Catalog.Persistence.AzureStorage;
+using AzureStorageFactory = NuGet.Services.Metadata.Catalog.Persistence.AzureStorageFactory;
+using IStorageFactory = NuGet.Services.Metadata.Catalog.Persistence.IStorageFactory;
 
 namespace NuGet.Jobs.Catalog2Registration
 {
@@ -26,10 +32,20 @@ namespace NuGet.Jobs.Catalog2Registration
             containerBuilder.AddV3();
 
             RegisterCursorStorage(containerBuilder);
-
             containerBuilder
-                .RegisterStorageAccount<Catalog2RegistrationConfiguration>(c => c.StorageConnectionString, requestTimeout: DefaultBlobRequestOptions.ServerTimeout)
-                .As<ICloudBlobClient>();
+                .Register<ICloudBlobClient>(c =>
+                {
+                    var options = c.Resolve<IOptionsSnapshot<Catalog2RegistrationConfiguration>>();
+
+                    if (options.Value.StorageUseManagedIdentity && !options.Value.HasSasToken)
+                    {
+                        return CloudBlobClientWrapper.UsingMsi(options.Value.StorageConnectionString, clientId: options.Value.StorageManagedIdentityClientId, requestTimeout: DefaultBlobRequestOptions.ServerTimeout);
+                    }
+
+                    return new CloudBlobClientWrapper(
+                        options.Value.StorageConnectionString,
+                        requestTimeout: DefaultBlobRequestOptions.ServerTimeout);
+                });
 
             containerBuilder.Register(c => new Catalog2RegistrationCommand(
                 c.Resolve<ICollector>(),
@@ -52,12 +68,17 @@ namespace NuGet.Jobs.Catalog2Registration
                 {
                     var options = c.Resolve<IOptionsSnapshot<Catalog2RegistrationConfiguration>>();
 
-                    // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
+                    if (options.Value.StorageUseManagedIdentity && !options.Value.HasSasToken)
+                    {
+                        var credential = new ManagedIdentityCredential(options.Value.StorageManagedIdentityClientId);
+
+                        return new BlobServiceClientFactory(new Uri(options.Value.StorageServiceUrl), credential);
+                    }
                     var connectionString = options.Value.StorageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
 
-                    return new BlobServiceClient(connectionString);
+                    return new BlobServiceClientFactory(connectionString);
                 })
-                .Keyed<BlobServiceClient>(CursorBindingKey);
+                .Keyed<IBlobServiceClientFactory>(CursorBindingKey);
 
             containerBuilder
                 .Register<IStorageFactory>(c =>
@@ -65,7 +86,7 @@ namespace NuGet.Jobs.Catalog2Registration
                     var options = c.Resolve<IOptionsSnapshot<Catalog2RegistrationConfiguration>>();
 
                     return new AzureStorageFactory(
-                        c.ResolveKeyed<BlobServiceClient>(CursorBindingKey),
+                        c.ResolveKeyed<IBlobServiceClientFactory>(CursorBindingKey),
                         options.Value.LegacyStorageContainer,
                         maxExecutionTime: AzureStorage.DefaultMaxExecutionTime,
                         serverTimeout: AzureStorage.DefaultServerTimeout,

@@ -11,9 +11,11 @@ using System.Security.Cryptography.X509Certificates;
 using Azure;
 using Azure.Core;
 using Azure.Identity;
+using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Queues;
 using Microsoft.Extensions.Logging;
+using NuGet.Jobs;
 using NuGet.Protocol;
 using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
@@ -39,6 +41,8 @@ namespace Ng
         };
         private static readonly IDictionary<string, string> ArgumentNames = new Dictionary<string, string>
         {
+            { Arguments.UseManagedIdentity, Arguments.UseManagedIdentity },
+            { Arguments.ClientId, Arguments.ClientId},
             { Arguments.StorageBaseAddress, Arguments.StorageBaseAddress },
             { Arguments.StorageAccountName, Arguments.StorageAccountName },
             { Arguments.StorageKeyValue, Arguments.StorageKeyValue },
@@ -46,6 +50,7 @@ namespace Ng
             { Arguments.StorageContainer, Arguments.StorageContainer },
             { Arguments.StoragePath, Arguments.StoragePath },
             { Arguments.StorageSuffix, Arguments.StorageSuffix },
+            { Arguments.StorageUseManagedIdentity, Arguments.StorageUseManagedIdentity },
             { Arguments.StorageUseServerSideCopy, Arguments.StorageUseServerSideCopy },
             { Arguments.StorageOperationMaxExecutionTimeInSeconds, Arguments.StorageOperationMaxExecutionTimeInSeconds },
             { Arguments.StorageServerTimeoutInSeconds, Arguments.StorageServerTimeoutInSeconds },
@@ -115,7 +120,7 @@ namespace Ng
                     keyVaultConfig = new KeyVaultConfiguration(
                         vaultName,
                         tenantId,
-                        clientId, 
+                        clientId,
                         keyVaultCertificate,
                         sendX5c);
                 }
@@ -161,8 +166,11 @@ namespace Ng
 
             IDictionary<string, string> names = new Dictionary<string, string>
             {
+                { Arguments.UseManagedIdentity, Arguments.UseManagedIdentity },
+                { Arguments.ClientId, Arguments.ClientId},
                 { Arguments.StorageBaseAddress, Arguments.StorageBaseAddress + suffix },
                 { Arguments.StorageAccountName, Arguments.StorageAccountName + suffix },
+                { Arguments.StorageUseManagedIdentity, Arguments.StorageUseManagedIdentity + suffix },
                 { Arguments.StorageKeyValue, Arguments.StorageKeyValue + suffix },
                 { Arguments.StorageSasValue, Arguments.StorageSasValue + suffix },
                 { Arguments.StorageContainer, Arguments.StorageContainer + suffix },
@@ -194,7 +202,6 @@ namespace Ng
             if (!string.IsNullOrEmpty(storageBaseAddressStr))
             {
                 storageBaseAddressStr = storageBaseAddressStr.TrimEnd('/') + "/";
-
                 storageBaseAddress = new Uri(storageBaseAddressStr);
             }
 
@@ -222,7 +229,7 @@ namespace Ng
                 var storageUseServerSideCopy = arguments.GetOrDefault<bool>(argumentNameMap[Arguments.StorageUseServerSideCopy]);
                 var storageInitializeContainer = arguments.GetOrDefault(argumentNameMap[Arguments.StorageInitializeContainer], defaultValue: true);
 
-                BlobServiceClient account = GetBlobServiceClient(arguments, argumentNameMap);
+                IBlobServiceClientFactory account = GetBlobServiceClient(arguments, argumentNameMap);
 
                 return new CatalogAzureStorageFactory(
                     account,
@@ -418,18 +425,57 @@ namespace Ng
             }
         }
 
-        private static BlobServiceClient GetBlobServiceClient(
+        private static IBlobServiceClientFactory GetBlobServiceClient(
             IDictionary<string, string> arguments,
             IDictionary<string, string> argumentNameMap)
         {
+            bool storageUseManagedIdentity = arguments.GetOrDefault(argumentNameMap[Arguments.StorageUseManagedIdentity], defaultValue: false);
+            bool useManagedIdentity = storageUseManagedIdentity || arguments.GetOrDefault(argumentNameMap[Arguments.UseManagedIdentity], defaultValue: false);
+
+            var storageKeyValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageKeyValue]);
+            var storageSasValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageSasValue]);
+
+            bool hasStorageKeyOrSas = !string.IsNullOrEmpty(storageKeyValue) || !string.IsNullOrEmpty(storageSasValue);
+
+            // This comparison is due to some jobs using both global and china storages in a single instance.
+            // They require MSI auth for global storage and SAS/SAK auth for china storage.
+            if (useManagedIdentity && !hasStorageKeyOrSas)
+            {
+                var managedIdentityClientId = arguments.GetOrThrow<string>(argumentNameMap[Arguments.ClientId]);
+                var identity = new ManagedIdentityCredential(managedIdentityClientId);
+                var serviceUri = GetServiceUri(arguments, argumentNameMap, "blob");
+                return new BlobServiceClientFactory(serviceUri, identity);
+            }
+
             string connectionString = GetConnectionString(arguments, argumentNameMap, "BlobEndpoint", "blob");
-            return new BlobServiceClient(connectionString);
+            return new BlobServiceClientFactory(connectionString);
         }
 
         private static QueueServiceClient GetQueueServiceClient(
             IDictionary<string, string> arguments,
             IDictionary<string, string> argumentNameMap)
         {
+            bool storageUseManagedIdentity = arguments.GetOrDefault(argumentNameMap[Arguments.StorageUseManagedIdentity], defaultValue: false);
+            bool useManagedIdentity = storageUseManagedIdentity || arguments.GetOrDefault(argumentNameMap[Arguments.UseManagedIdentity], defaultValue: false);
+
+            var storageKeyValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageKeyValue]);
+            var storageSasValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageSasValue]);
+
+            bool hasStorageKeyOrSas = !string.IsNullOrEmpty(storageKeyValue) || !string.IsNullOrEmpty(storageSasValue);
+
+            // This comparison is due to some jobs using both global and china storages in a single instance.
+            // They require MSI auth for global storage and SAS/SAK auth for china storage.
+            if (useManagedIdentity && !hasStorageKeyOrSas)
+            {
+                var managedIdentityClientId = arguments.GetOrThrow<string>(argumentNameMap[Arguments.ClientId]);
+                var identity = new ManagedIdentityCredential(managedIdentityClientId);
+                var serviceUri = GetServiceUri(arguments, argumentNameMap, "queue");
+                return new QueueServiceClient(serviceUri, identity, new QueueClientOptions
+                {
+                    MessageEncoding = QueueMessageEncoding.Base64,
+                });
+            }
+
             string connectionString = GetConnectionString(arguments, argumentNameMap, "QueueEndpoint", "queue");
             return new QueueServiceClient(connectionString, new QueueClientOptions
             {
@@ -467,6 +513,18 @@ namespace Ng
             }
 
             return connectionString;
+        }
+
+        private static Uri GetServiceUri(
+            IDictionary<string, string> arguments,
+            IDictionary<string, string> argumentNameMap,
+            string endpointDomain)
+        {
+            var storageAccountName = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageAccountName]);
+            var storageSuffix = arguments.GetOrDefault(argumentNameMap[Arguments.StorageSuffix], DefaultStorageSuffix);
+
+            string serviceUri = $"https://{storageAccountName}.{endpointDomain}.{storageSuffix}/";
+            return new Uri(serviceUri);
         }
     }
 }
