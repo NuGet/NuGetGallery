@@ -63,7 +63,7 @@ namespace NuGetGallery.Services.Authentication
 
                 if (result.Type == FederatedCredentialPolicyResultType.Success)
                 {
-                    return EvaluatedFederatedCredentialPolicies.MatchedPolicy(results, result.Policy, result.FederatedCredential);
+                    return EvaluatedFederatedCredentialPolicies.NewMatchedPolicy(results, result.Policy, result.FederatedCredential);
                 }
             }
 

@@ -88,11 +88,11 @@ namespace NuGetGallery.Services.Authentication
 
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.MatchedPolicy, evaluation.Type);
-                Assert.Same(Policies[1], evaluation.Policy);
+                Assert.Same(Policies[1], evaluation.MatchedPolicy);
                 Assert.Equal(23, evaluation.FederatedCredential.FederatedCredentialPolicyKey);
                 var result = Assert.Single(evaluation.Results);
                 Assert.Equal(FederatedCredentialPolicyResultType.Success, result.Type);
-                Assert.Same(evaluation.Policy, result.Policy);
+                Assert.Same(evaluation.MatchedPolicy, result.Policy);
                 Assert.Same(evaluation.FederatedCredential, result.FederatedCredential);
             }
 
@@ -353,10 +353,10 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.MatchedPolicy, evaluation.Type);
 
-                Assert.Same(Policies[0], evaluation.Policy);
+                Assert.Same(Policies[0], evaluation.MatchedPolicy);
                 var result = Assert.Single(evaluation.Results);
                 Assert.Equal(FederatedCredentialPolicyResultType.Success, result.Type);
-                Assert.Same(evaluation.Policy, result.Policy);
+                Assert.Same(evaluation.MatchedPolicy, result.Policy);
                 Assert.Same(evaluation.FederatedCredential, result.FederatedCredential);
 
                 Assert.NotNull(evaluation.FederatedCredential);
