@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -57,9 +57,6 @@ namespace NuGet.Services.Storage
             return Task.FromResult<IEnumerable<StorageListItem>>(List(getMetadata));
         }
 
-        public override Task<IEnumerable<StorageListItem>> ListTopLevelAsync(bool getMetadata, CancellationToken cancellationToken) =>
-            ListAsync(getMetadata, cancellationToken);
-        
         public string Path
         { 
             get;

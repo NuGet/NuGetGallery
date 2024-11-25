@@ -156,7 +156,6 @@ namespace NuGet.Services.Storage
         public abstract Task<bool> ExistsAsync(string fileName, CancellationToken cancellationToken);
         public abstract IEnumerable<StorageListItem> List(bool getMetadata);
         public abstract Task<IEnumerable<StorageListItem>> ListAsync(bool getMetadata, CancellationToken cancellationToken);
-        public abstract Task<IEnumerable<StorageListItem>> ListTopLevelAsync(bool getMetadata, CancellationToken cancellationToken);
 
         public bool Verbose
         {
@@ -210,12 +209,6 @@ namespace NuGet.Services.Storage
             {
                 name = name.Substring(0, name.IndexOf("#"));
             }
-
-            if (name.Contains("?"))
-            {
-                name = name.Substring(0, name.IndexOf("?"));
-            }
-
             return name;
         }
 
