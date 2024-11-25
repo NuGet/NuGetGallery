@@ -16,21 +16,21 @@ using NuGet.Services.Entities;
 
 namespace NuGetGallery.Services.Authentication
 {
-    public interface IFederatedCredentialEvaluator
+    public interface IFederatedCredentialPolicyEvaluator
     {
         Task<EvaluatedFederatedCredentialPolicies> GetMatchingPolicyAsync(IReadOnlyCollection<FederatedCredentialPolicy> policies, string bearerToken);
     }
 
-    public class FederatedCredentialEvaluator : IFederatedCredentialEvaluator
+    public class FederatedCredentialPolicyEvaluator : IFederatedCredentialPolicyEvaluator
     {
         private readonly IEntraIdTokenValidator _entraIdTokenValidator;
         private readonly IDateTimeProvider _dateTimeProvider;
-        private readonly ILogger<FederatedCredentialEvaluator> _logger;
+        private readonly ILogger<FederatedCredentialPolicyEvaluator> _logger;
 
-        public FederatedCredentialEvaluator(
+        public FederatedCredentialPolicyEvaluator(
             IEntraIdTokenValidator entraIdTokenValidator,
             IDateTimeProvider dateTimeProvider,
-            ILogger<FederatedCredentialEvaluator> logger)
+            ILogger<FederatedCredentialPolicyEvaluator> logger)
         {
             _entraIdTokenValidator = entraIdTokenValidator ?? throw new ArgumentNullException(nameof(entraIdTokenValidator));
             _dateTimeProvider = dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider));

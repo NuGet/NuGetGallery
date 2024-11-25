@@ -46,7 +46,7 @@ namespace NuGetGallery.Services.Authentication
     {
         private readonly IUserService _userService;
         private readonly IFederatedCredentialRepository _repository;
-        private readonly IFederatedCredentialEvaluator _evaluator;
+        private readonly IFederatedCredentialPolicyEvaluator _evaluator;
         private readonly IEntraIdTokenValidator _entraIdTokenValidator;
         private readonly ICredentialBuilder _credentialBuilder;
         private readonly IAuthenticationService _authenticationService;
@@ -57,7 +57,7 @@ namespace NuGetGallery.Services.Authentication
         public FederatedCredentialService(
             IUserService userService,
             IFederatedCredentialRepository repository,
-            IFederatedCredentialEvaluator evaluator,
+            IFederatedCredentialPolicyEvaluator evaluator,
             IEntraIdTokenValidator entraIdTokenValidator,
             ICredentialBuilder credentialBuilder,
             IAuthenticationService authenticationService,

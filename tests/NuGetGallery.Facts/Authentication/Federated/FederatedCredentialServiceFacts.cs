@@ -142,7 +142,7 @@ namespace NuGetGallery.Services.Authentication
             public async Task NoMatchingPolicyWhenEvaluatorFindsNoMatch()
             {
                 // Arrange
-                FederatedCredentialEvaluator
+                Evaluator
                     .Setup(x => x.GetMatchingPolicyAsync(Policies, BearerToken))
                     .ReturnsAsync(() => EvaluatedFederatedCredentialPolicies.NoMatchingPolicy([]));
 
@@ -158,7 +158,7 @@ namespace NuGetGallery.Services.Authentication
             public async Task UnauthorizedWhenEvaluatorReturnsBadToken()
             {
                 // Arrange
-                FederatedCredentialEvaluator
+                Evaluator
                     .Setup(x => x.GetMatchingPolicyAsync(Policies, BearerToken))
                     .ReturnsAsync(() => EvaluatedFederatedCredentialPolicies.BadToken("That token is missing a thing or two."));
 
@@ -370,7 +370,7 @@ namespace NuGetGallery.Services.Authentication
 
                 UserService.Verify(x => x.FindByUsername(CurrentUser.Username, false), Times.Once);
                 FederatedCredentialRepository.Verify(x => x.GetPoliciesCreatedByUser(CurrentUser.Key), Times.Once);
-                FederatedCredentialEvaluator.Verify(x => x.GetMatchingPolicyAsync(Policies, BearerToken), Times.Once);
+                Evaluator.Verify(x => x.GetMatchingPolicyAsync(Policies, BearerToken), Times.Once);
                 UserService.Verify(x => x.FindByKey(PackageOwner.Key, false), Times.Once);
                 CredentialBuilder.Verify(x => x.CreateShortLivedApiKey(TimeSpan.FromMinutes(15), Evaluation.MatchedPolicy, out PlaintextApiKey), Times.Once);
                 CredentialBuilder.Verify(x => x.VerifyScopes(CurrentUser, Credential.Scopes), Times.Once);
@@ -383,7 +383,7 @@ namespace NuGetGallery.Services.Authentication
         {
             UserService = new Mock<IUserService>();
             FederatedCredentialRepository = new Mock<IFederatedCredentialRepository>();
-            FederatedCredentialEvaluator = new Mock<IFederatedCredentialEvaluator>();
+            Evaluator = new Mock<IFederatedCredentialPolicyEvaluator>();
             EntraIdTokenValidator = new Mock<IEntraIdTokenValidator>();
             CredentialBuilder = new Mock<ICredentialBuilder>();
             AuthenticationService = new Mock<IAuthenticationService>();
@@ -413,7 +413,7 @@ namespace NuGetGallery.Services.Authentication
             UserService.Setup(x => x.FindByKey(PackageOwner.Key, false)).Returns(() => PackageOwner);
             FederatedCredentialRepository.Setup(x => x.GetPoliciesCreatedByUser(CurrentUser.Key)).Returns(() => Policies);
             FederatedCredentialRepository.Setup(x => x.GetShortLivedApiKeysForPolicy(Policies[0].Key)).Returns(() => [Credential]);
-            FederatedCredentialEvaluator.Setup(x => x.GetMatchingPolicyAsync(Policies, BearerToken)).ReturnsAsync(() => Evaluation);
+            Evaluator.Setup(x => x.GetMatchingPolicyAsync(Policies, BearerToken)).ReturnsAsync(() => Evaluation);
             FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
             CredentialBuilder
                 .Setup(x => x.CreateShortLivedApiKey(TimeSpan.FromMinutes(15), Evaluation.MatchedPolicy, out It.Ref<string>.IsAny))
@@ -430,7 +430,7 @@ namespace NuGetGallery.Services.Authentication
             Target = new FederatedCredentialService(
                 UserService.Object,
                 FederatedCredentialRepository.Object,
-                FederatedCredentialEvaluator.Object,
+                Evaluator.Object,
                 EntraIdTokenValidator.Object,
                 CredentialBuilder.Object,
                 AuthenticationService.Object,
@@ -443,7 +443,7 @@ namespace NuGetGallery.Services.Authentication
 
         public Mock<IUserService> UserService { get; }
         public Mock<IFederatedCredentialRepository> FederatedCredentialRepository { get; }
-        public Mock<IFederatedCredentialEvaluator> FederatedCredentialEvaluator { get; }
+        public Mock<IFederatedCredentialPolicyEvaluator> Evaluator { get; }
         public Mock<IEntraIdTokenValidator> EntraIdTokenValidator { get; }
         public Mock<ICredentialBuilder> CredentialBuilder { get; }
         public Mock<IAuthenticationService> AuthenticationService { get; }

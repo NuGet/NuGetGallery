@@ -16,9 +16,9 @@ using Xunit;
 
 namespace NuGetGallery.Services.Authentication
 {
-    public class FederatedCredentialEvaluatorFacts
+    public class FederatedCredentialPolicyEvaluatorFacts
     {
-        public class TheGetMatchingPolicyAsyncMethod : FederatedCredentialEvaluatorFacts
+        public class TheGetMatchingPolicyAsyncMethod : FederatedCredentialPolicyEvaluatorFacts
         {
             [Fact]
             public async Task ReturnsNoMatchingPolicyWhenNoneAreProvided()
@@ -158,7 +158,7 @@ namespace NuGetGallery.Services.Authentication
             }
         }
 
-        public class EntraId : FederatedCredentialEvaluatorFacts
+        public class EntraId : FederatedCredentialPolicyEvaluatorFacts
         {
             [Fact]
             public async Task RejectsTokenWhenEntraIdEvaluatorRejectsIt()
@@ -238,7 +238,7 @@ namespace NuGetGallery.Services.Authentication
             }
         }
 
-        public class EntraIdServicePrincipal : FederatedCredentialEvaluatorFacts
+        public class EntraIdServicePrincipal : FederatedCredentialPolicyEvaluatorFacts
         {
             [Theory]
             [InlineData("tid")]
@@ -384,11 +384,11 @@ namespace NuGetGallery.Services.Authentication
             }
         }
 
-        public FederatedCredentialEvaluatorFacts()
+        public FederatedCredentialPolicyEvaluatorFacts()
         {
             EntraIdTokenValidator = new Mock<IEntraIdTokenValidator>();
             DateTimeProvider = new Mock<IDateTimeProvider>();
-            Logger = new Mock<ILogger<FederatedCredentialEvaluator>>();
+            Logger = new Mock<ILogger<FederatedCredentialPolicyEvaluator>>();
 
             TenantId = new Guid("c311b905-19a2-483e-a014-41d0fcdc99cf");
             ObjectId = new Guid("d17083b8-74e0-46c6-b69f-764da2e6fc0e");
@@ -428,7 +428,7 @@ namespace NuGetGallery.Services.Authentication
                 .Setup(x => x.UtcNow)
                 .Returns(() => UtcNow.UtcDateTime);
 
-            Target = new FederatedCredentialEvaluator(
+            Target = new FederatedCredentialPolicyEvaluator(
                 EntraIdTokenValidator.Object,
                 DateTimeProvider.Object,
                 Logger.Object);
@@ -436,7 +436,7 @@ namespace NuGetGallery.Services.Authentication
 
         public Mock<IEntraIdTokenValidator> EntraIdTokenValidator { get; }
         public Mock<IDateTimeProvider> DateTimeProvider { get; }
-        public Mock<ILogger<FederatedCredentialEvaluator>> Logger { get; }
+        public Mock<ILogger<FederatedCredentialPolicyEvaluator>> Logger { get; }
         public Guid TenantId { get; }
         public Guid ObjectId { get; }
         public Dictionary<string, object> Claims { get; }
@@ -447,6 +447,6 @@ namespace NuGetGallery.Services.Authentication
 
         public string BearerToken => new JsonWebTokenHandler().CreateToken(new SecurityTokenDescriptor { Claims = Claims, Expires = Expires.UtcDateTime });
 
-        public FederatedCredentialEvaluator Target { get; }
+        public FederatedCredentialPolicyEvaluator Target { get; }
     }
 }
