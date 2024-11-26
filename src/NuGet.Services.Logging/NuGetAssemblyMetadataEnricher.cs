@@ -13,7 +13,7 @@ namespace NuGet.Services.Logging
     /// Branch
     /// CommitId
     /// BuildDateUtc
-    /// See PowerShell script that adds it: https://github.com/NuGet/ServerCommon/blob/a899cf3deba4c4d6a8194796e3a651a2ca520afe/build/common.ps1#L902-L908
+    /// See PowerShell script that adds it: https://github.com/NuGet/NuGetGallery/blob/27bc6a62ead3110c1d8d2d2794fc8b8b646b1f1d/build/common.ps1#L884-L889
     /// </summary>
     public class NuGetAssemblyMetadataEnricher : ILogEventEnricher
     {
