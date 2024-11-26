@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Reflection;
@@ -23,14 +23,25 @@ namespace NuGet.Services.Logging
         private const string BuildDateUtcMetadataKey = "BuildDateUtc";
 
         private LogEventProperty _cachedProperty = null;
+        private bool _hasAssemblyMetadata = false;
 
         public void Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
         {
             if (_cachedProperty == null)
             {
-                _cachedProperty = propertyFactory.CreateProperty(PropertyName, GetNuGetAssemblyMetadata(), destructureObjects: true);
+                NuGetAssemblyMetadata assemblyMetadata = GetNuGetAssemblyMetadata();
+                _cachedProperty = propertyFactory.CreateProperty(PropertyName, assemblyMetadata, destructureObjects: true);
+                _hasAssemblyMetadata =
+                    assemblyMetadata.AssemblyInformationalVersion != null
+                    || assemblyMetadata.Branch != null
+                    || assemblyMetadata.CommitId != null
+                    || assemblyMetadata.BuildDateUtc != null;
             }
-            logEvent.AddPropertyIfAbsent(_cachedProperty);
+
+            if (_hasAssemblyMetadata)
+            {
+                logEvent.AddPropertyIfAbsent(_cachedProperty);
+            }
         }
 
         private static NuGetAssemblyMetadata GetNuGetAssemblyMetadata()
@@ -69,7 +80,7 @@ namespace NuGet.Services.Logging
 
         private class NuGetAssemblyMetadata
         {
-            public string AssemblyInformationalVersion { get; set; } = "<not specified>";
+            public string AssemblyInformationalVersion { get; set; } = null;
             public string Branch { get; set; } = null;
             public string CommitId { get; set; } = null;
             public string BuildDateUtc { get; set; } = null;
