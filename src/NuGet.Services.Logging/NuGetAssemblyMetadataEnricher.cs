@@ -47,7 +47,7 @@ namespace NuGet.Services.Logging
         private static NuGetAssemblyMetadata GetNuGetAssemblyMetadata()
         {
             var entryAssembly = Assembly.GetEntryAssembly();
-            var attributes = entryAssembly.GetCustomAttributes();
+            var attributes = entryAssembly?.GetCustomAttributes();
             if (attributes == null)
             {
                 return new NuGetAssemblyMetadata();
