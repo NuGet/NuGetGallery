@@ -41,15 +41,17 @@ namespace NuGetGallery.Services.Authentication
         {
             // perform basic validations not specific to any federated credential policy
             // the error message is user-facing and should not leak sensitive information
-            var (userError, validatedJwt) = await ValidateJwtByIssuer(bearerToken);
+            var (userError, jwtInfo) = await ValidateJwtByIssuer(bearerToken);
+
             if (userError is not null)
             {
+                _logger.LogInformation("The bearer token could not be validated. Reason: {UserError}", userError);
                 return EvaluatedFederatedCredentialPolicies.BadToken(userError);
             }
 
-            if (validatedJwt is null)
+            if (!jwtInfo.IsValid || jwtInfo.IssuerType == FederatedCredentialIssuerType.Unsupported || jwtInfo.Jwt is null)
             {
-                throw new InvalidOperationException("The validated JWT must be set.");
+                throw new InvalidOperationException("A recognized, valid JWT should be available.");
             }
 
             var results = new List<FederatedCredentialPolicyResult>();
@@ -57,11 +59,12 @@ namespace NuGetGallery.Services.Authentication
             // sort the policy results by creation date, so older policy results are preferred
             foreach (var policy in policies.OrderBy(x => x.Created))
             {
-                var result = EvaluatePolicy(policy, validatedJwt);
+                var result = EvaluatePolicy(policy, jwtInfo);
 
                 results.Add(result);
 
-                if (result.Type == FederatedCredentialPolicyResultType.Success)
+                var success = result.Type == FederatedCredentialPolicyResultType.Success;
+                if (success)
                 {
                     return EvaluatedFederatedCredentialPolicies.NewMatchedPolicy(results, result.Policy, result.FederatedCredential);
                 }
@@ -70,13 +73,13 @@ namespace NuGetGallery.Services.Authentication
             return EvaluatedFederatedCredentialPolicies.NoMatchingPolicy(results);
         }
 
-        private FederatedCredentialPolicyResult EvaluatePolicy(FederatedCredentialPolicy policy, ValidatedJwt validatedJwt)
+        private FederatedCredentialPolicyResult EvaluatePolicy(FederatedCredentialPolicy policy, JwtInfo info)
         {
             // Evaluate the policy and return an unauthorized result if the policy does not match.
             // The reason is not shared with the caller to prevent leaking sensitive information.
-            string? unauthorizedReason = (validatedJwt.RecognizedIssuer, policy.Type) switch
+            string? unauthorizedReason = (info.IssuerType, policy.Type) switch
             {
-                (RecognizedIssuer.EntraId, FederatedCredentialType.EntraIdServicePrincipal) => EvaluateEntraIdServicePrincipal(policy, validatedJwt.Jwt),
+                (FederatedCredentialIssuerType.EntraId, FederatedCredentialType.EntraIdServicePrincipal) => EvaluateEntraIdServicePrincipal(policy, info.Jwt!),
                 _ => "The policy type does not match the token issuer.",
             };
 
@@ -89,11 +92,11 @@ namespace NuGetGallery.Services.Authentication
             {
                 result = FederatedCredentialPolicyResult.Success(policy, new FederatedCredential
                 {
-                    Identity = validatedJwt.Identifier,
+                    Identity = info.Identifier,
                     FederatedCredentialPolicyKey = policy.Key,
                     Type = policy.Type,
                     Created = _dateTimeProvider.UtcNow,
-                    Expires = validatedJwt.Jwt.ValidTo.ToUniversalTime(),
+                    Expires = info.Jwt!.ValidTo.ToUniversalTime(),
                 });
             }
 
@@ -107,85 +110,78 @@ namespace NuGetGallery.Services.Authentication
             return result;
         }
 
-        private enum RecognizedIssuer
+        private class JwtInfo
         {
-            None,
-            EntraId,
-        }
+            public bool IsValid { get; set; }
 
-        private class ValidatedJwt
-        {
-            public ValidatedJwt(JsonWebToken jwt, string identifier, RecognizedIssuer recognizedIssuer)
-            {
-                Jwt = jwt;
-                Identifier = identifier;
-                RecognizedIssuer = recognizedIssuer;
-            }
-
-            public JsonWebToken Jwt { get; }
+            public JsonWebToken? Jwt { get; set; }
 
             /// <summary>
             /// This should be the unique token identifier (uti for Entra ID or jti otherwise).
             /// Used to prevent replay and persisted on the <see cref="FederatedCredential"/> entity.
             /// </summary>
-            public string Identifier { get; }
+            public string? Identifier { get; set; }
 
-            public RecognizedIssuer RecognizedIssuer { get; }
+            public FederatedCredentialIssuerType IssuerType { get; set; } = FederatedCredentialIssuerType.Unsupported;
         }
 
         /// <summary>
         /// Parse the bearer token as a JWT, perform basic validation, and find the applicable that apply to all issuers.
         /// </summary>
-        private async Task<(string? UserError, ValidatedJwt?)> ValidateJwtByIssuer(string bearerToken)
+        private async Task<(string? UserError, JwtInfo Info)> ValidateJwtByIssuer(string bearerToken)
         {
-            JsonWebToken jwt;
+            var jwtInfo = new JwtInfo();
+
             try
             {
-                jwt = new JsonWebToken(bearerToken);
+                jwtInfo.Jwt = new JsonWebToken(bearerToken);
             }
             catch (ArgumentException)
             {
-                return ("The bearer token could not be parsed as a JSON web token.", null);
+                return ("The bearer token could not be parsed as a JSON web token.", jwtInfo);
             }
 
-            if (jwt.Audiences.Count() != 1)
+            if (jwtInfo.Jwt.Audiences.Count() != 1)
             {
-                return ("The JSON web token must have exactly one aud claim value.", null);
+                return ("The JSON web token must have exactly one aud claim value.", jwtInfo);
             }
 
-            if (string.IsNullOrWhiteSpace(jwt.Audiences.Single()))
+            if (string.IsNullOrWhiteSpace(jwtInfo.Jwt.Audiences.Single()))
             {
-                return ("The JSON web token must have an aud claim.", null);
+                return ("The JSON web token must have an aud claim.", jwtInfo);
             }
 
-            if (string.IsNullOrWhiteSpace(jwt.Issuer))
+            if (string.IsNullOrWhiteSpace(jwtInfo.Jwt.Issuer))
             {
-                return ("The JSON web token must have an iss claim.", null);      
+                return ("The JSON web token must have an iss claim.", jwtInfo);      
             }
 
-            if (!Uri.TryCreate(jwt.Issuer, UriKind.Absolute, out var issuerUrl)
+            if (!Uri.TryCreate(jwtInfo.Jwt.Issuer, UriKind.Absolute, out var issuerUrl)
                 || issuerUrl.Scheme != "https")
             {
-                return ("The JSON web token iss claim must be a valid HTTPS URL.", null);
+                return ("The JSON web token iss claim must be a valid HTTPS URL.", jwtInfo);
             }
 
-            RecognizedIssuer issuer;
+            FederatedCredentialIssuerType issuerType;
             string? userError;
             string? identifier;
             TokenValidationResult? validationResult;
             switch (issuerUrl.Authority)
             {
                 case "login.microsoftonline.com":
-                    issuer = RecognizedIssuer.EntraId;
-                    (userError, identifier, validationResult) = await GetEntraIdValidationResultAsync(jwt);
+                    issuerType = FederatedCredentialIssuerType.EntraId;
+                    (userError, identifier, validationResult) = await GetEntraIdValidationResultAsync(jwtInfo.Jwt);
                     break;
                 default:
-                    return ("The JSON web token iss claim is not supported.", null);
+                    return ("The JSON web token iss claim is not supported.", jwtInfo);
             }
+
+            jwtInfo.IssuerType = issuerType;
+            jwtInfo.Identifier = identifier;
 
             if (userError is not null)
             {
-                return (userError, null);
+                return (userError, jwtInfo);
             }
 
             if (string.IsNullOrWhiteSpace(identifier) || validationResult is null)
@@ -195,7 +191,8 @@ namespace NuGetGallery.Services.Authentication
 
             if (validationResult.IsValid)
             {
-                return (null, new ValidatedJwt(jwt, identifier!, issuer));
+                jwtInfo.IsValid = true;
+                return (null, jwtInfo);
             }
 
             var validationException = validationResult.Exception;
@@ -208,9 +205,9 @@ namespace NuGetGallery.Services.Authentication
                 _ => "The JSON web token could not be validated.",
             };
 
-            _logger.LogInformation(validationException, "The JSON web token with recognized issuer {Issuer} could not be validated.", issuer);
+            _logger.LogInformation(validationException, "The JSON web token with recognized issuer {Issuer} could not be validated.", jwtInfo.IssuerType);
 
-            return (userError, null);
+            return (userError, jwtInfo);
         }
         
         private async Task<(string? UserError, string? Identifier, TokenValidationResult? Result)> GetEntraIdValidationResultAsync(JsonWebToken jwt)
