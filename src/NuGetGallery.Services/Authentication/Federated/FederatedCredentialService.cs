@@ -6,6 +6,7 @@ using System.Data;
 using System.Text.Json;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
+using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
 using NuGetGallery.Infrastructure.Authentication;
 
@@ -50,6 +51,7 @@ namespace NuGetGallery.Services.Authentication
         private readonly IEntraIdTokenValidator _entraIdTokenValidator;
         private readonly ICredentialBuilder _credentialBuilder;
         private readonly IAuthenticationService _authenticationService;
+        private readonly IAuditingService _auditingService;
         private readonly IDateTimeProvider _dateTimeProvider;
         private readonly IFeatureFlagService _featureFlagService;
         private readonly IFederatedCredentialConfiguration _configuration;
@@ -61,6 +63,7 @@ namespace NuGetGallery.Services.Authentication
             IEntraIdTokenValidator entraIdTokenValidator,
             ICredentialBuilder credentialBuilder,
             IAuthenticationService authenticationService,
+            IAuditingService auditingService,
             IDateTimeProvider dateTimeProvider,
             IFeatureFlagService featureFlagService,
             IFederatedCredentialConfiguration configuration)
@@ -71,6 +74,7 @@ namespace NuGetGallery.Services.Authentication
             _entraIdTokenValidator = entraIdTokenValidator ?? throw new ArgumentNullException(nameof(EntraIdTokenValidator));
             _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
             _authenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
+            _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
             _dateTimeProvider = dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
@@ -112,6 +116,8 @@ namespace NuGetGallery.Services.Authentication
 
             await _repository.AddPolicyAsync(policy, saveChanges: true);
 
+            await _auditingService.SaveAuditRecordAsync(FederatedCredentialPolicyAuditRecord.Create(policy));
+
             return AddFederatedCredentialPolicyResult.Created(policy);
         }
 
@@ -123,7 +129,13 @@ namespace NuGetGallery.Services.Authentication
                 await _authenticationService.RemoveCredential(policy.CreatedBy, credential, commitChanges: false);
             }
 
+            // Initialize the audit record before deletion so details are still available.
+            // Entity Framework unlinks navigation properties.
+            var auditRecord = FederatedCredentialPolicyAuditRecord.Delete(policy, credentials);
+
             await _repository.DeletePolicyAsync(policy, saveChanges: true);
+
+            await _auditingService.SaveAuditRecordAsync(auditRecord);
         }
 
         public async Task<GenerateApiKeyResult> GenerateApiKeyAsync(string username, string bearerToken)
@@ -204,8 +216,17 @@ namespace NuGetGallery.Services.Authentication
             }
             catch (DataException ex) when (ex.IsSqlUniqueConstraintViolation())
             {
+                await _auditingService.SaveAuditRecordAsync(FederatedCredentialPolicyAuditRecord.RejectReplay(
+                    evaluation.MatchedPolicy,
+                    evaluation.FederatedCredential));
+
                 return GenerateApiKeyResult.Unauthorized("This bearer token has already been used. A new bearer token must be used for each request.");
             }
+
+            await _auditingService.SaveAuditRecordAsync(FederatedCredentialPolicyAuditRecord.ExchangeForApiKey(
+                evaluation.MatchedPolicy,
+                evaluation.FederatedCredential,
+                apiKeyCredential));
 
             return null;
         }
