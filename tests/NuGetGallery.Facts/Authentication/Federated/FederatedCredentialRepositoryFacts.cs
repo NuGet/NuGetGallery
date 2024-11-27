@@ -160,6 +160,32 @@ namespace NuGetGallery.Services.Authentication
             }
         }
 
+        public class TheGetPoliciesRelatedToUserKeysMethod : FederatedCredentialRepositoryFacts
+        {
+            [Fact]
+            public void FiltersByUserKeys()
+            {
+                // Act
+                var policies = Target.GetPoliciesRelatedToUserKeys([4]);
+
+                // Assert
+                Assert.Equal(2, policies.Count);
+                Assert.Equal(1, policies[0].Key);
+                Assert.Equal(2, policies[1].Key);
+            }
+
+            [Fact]
+            public void FiltersByOwnerKeys()
+            {
+                // Act
+                var policies = Target.GetPoliciesRelatedToUserKeys([8]);
+
+                // Assert
+                Assert.Single(policies);
+                Assert.Equal(2, policies[0].Key);
+            }
+        }
+
         public FederatedCredentialRepositoryFacts()
         {
             FederatedCredentialRepository = new Mock<IEntityRepository<FederatedCredential>>();
@@ -168,9 +194,9 @@ namespace NuGetGallery.Services.Authentication
 
             Policies = new List<FederatedCredentialPolicy>
             {
-                new() { Key = 1, CreatedByUserKey = 4 },
-                new() { Key = 2, CreatedByUserKey = 4 },
-                new() { Key = 3, CreatedByUserKey = 5 },
+                new() { Key = 1, CreatedByUserKey = 4, PackageOwnerUserKey = 4 },
+                new() { Key = 2, CreatedByUserKey = 4, PackageOwnerUserKey = 8 },
+                new() { Key = 3, CreatedByUserKey = 5, PackageOwnerUserKey = 9 },
             };
             PolicyRepository.Setup(x => x.GetAll()).Returns(() => Policies.AsQueryable());
 
