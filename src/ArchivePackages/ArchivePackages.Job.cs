@@ -80,7 +80,7 @@ namespace ArchivePackages
             {
                 _secondaryDestinationAccount = _configuration.SecondaryDestination;
                 var secondaryDestinationBlobClient = _serviceProvider.CreateCloudBlobClient(
-                    $"BlobEndPoint=https://{_primaryDestinationAccount}.blob.core.windows.net");
+                    $"BlobEndPoint=https://{_secondaryDestinationAccount}.blob.core.windows.net");
                 _secondaryDestinationContainer = secondaryDestinationBlobClient.GetContainerReference(_destinationContainerName);
             }
 
