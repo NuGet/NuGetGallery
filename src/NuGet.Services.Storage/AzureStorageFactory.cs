@@ -50,13 +50,7 @@ namespace NuGet.Services.Storage
 
             if (baseAddress == null)
             {
-                Uri blobEndpoint = new UriBuilder(account.Uri)
-                {
-                    Scheme = "http", // Convert base address to http. 'https' can be used for communication but is not part of the names.
-                    Port = 80
-                }.Uri;
-
-                BaseAddress = new Uri(blobEndpoint, containerName + "/" + _path ?? string.Empty);
+                BaseAddress = new Uri(account.Uri, containerName + "/" + _path ?? string.Empty);
             }
             else
             {

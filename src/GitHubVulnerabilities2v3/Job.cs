@@ -131,8 +131,7 @@ namespace GitHubVulnerabilities2v3
                         ctx.Resolve<BlobServiceClientFactory>(),
                         ctx.Resolve<GitHubVulnerabilities2v3Configuration>().V3VulnerabilityContainerName,
                         enablePublicAccess: true,
-                        azureStorageLogger: ctx.Resolve<ILogger<AzureStorage>>(),
-                        baseAddress: new Uri(ctx.Resolve<GitHubVulnerabilities2v3Configuration>().StorageConnectionString));
+                        azureStorageLogger: ctx.Resolve<ILogger<AzureStorage>>());
                 })
                 .As<StorageFactory>()
                 .As<IStorageFactory>();
