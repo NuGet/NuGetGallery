@@ -1,8 +1,9 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging;
 using Serilog;
@@ -12,7 +13,10 @@ namespace NuGet.Services.Logging
 {
     public static class LoggingSetup
     {
-        public static LoggerConfiguration CreateDefaultLoggerConfiguration(bool withConsoleLogger = false)
+        public static LoggerConfiguration CreateDefaultLoggerConfiguration(
+            bool withConsoleLogger = false,
+            bool withAssemblyMetadata = true,
+            Assembly metadataSourceAssembly = null)
         {
             var loggerConfiguration = new LoggerConfiguration()
                 .MinimumLevel.Verbose();
@@ -20,7 +24,14 @@ namespace NuGet.Services.Logging
             loggerConfiguration.Enrich.WithMachineName();
             loggerConfiguration.Enrich.WithProcessId();
             loggerConfiguration.Enrich.FromLogContext();
-            loggerConfiguration.Enrich.WithNuGetAssemblyMetadata();
+            if (withAssemblyMetadata)
+            {
+                metadataSourceAssembly ??= Assembly.GetEntryAssembly();
+                if (metadataSourceAssembly != null)
+                {
+                    loggerConfiguration.Enrich.WithNuGetAssemblyMetadata(metadataSourceAssembly);
+                }
+            }
 
             if (withConsoleLogger)
             {

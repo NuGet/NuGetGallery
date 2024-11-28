@@ -1,9 +1,12 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Reflection;
 using Serilog.Core;
 using Serilog.Events;
+
+#nullable enable
 
 namespace NuGet.Services.Logging
 {
@@ -18,72 +21,36 @@ namespace NuGet.Services.Logging
     public class NuGetAssemblyMetadataEnricher : ILogEventEnricher
     {
         public const string PropertyName = "NuGetStartingAssemblyMetadata";
-        private const string BranchMetadataKey = "Branch";
-        private const string CommitIdMetadataKey = "CommitId";
-        private const string BuildDateUtcMetadataKey = "BuildDateUtc";
 
-        private LogEventProperty _cachedProperty = null;
-        private bool _hasAssemblyMetadata = false;
+        private LogEventProperty? _cachedProperty = null;
+        private readonly bool _hasAssemblyMetadata = false;
+        private readonly NuGetAssemblyMetadata _assemblyMetadata;
+
+        public NuGetAssemblyMetadataEnricher(Assembly metadataSourceAssembly)
+        {
+            if (metadataSourceAssembly == null)
+            {
+                throw new ArgumentNullException(nameof(metadataSourceAssembly));
+            }
+
+            _assemblyMetadata = new NuGetAssemblyMetadata(metadataSourceAssembly);
+            _hasAssemblyMetadata =
+                _assemblyMetadata.AssemblyInformationalVersion != null
+                || _assemblyMetadata.Branch != null
+                || _assemblyMetadata.CommitId != null
+                || _assemblyMetadata.BuildDateUtc != null;
+        }
 
         public void Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
         {
-            if (_cachedProperty == null)
+            if (!_hasAssemblyMetadata)
             {
-                NuGetAssemblyMetadata assemblyMetadata = GetNuGetAssemblyMetadata();
-                _cachedProperty = propertyFactory.CreateProperty(PropertyName, assemblyMetadata, destructureObjects: true);
-                _hasAssemblyMetadata =
-                    assemblyMetadata.AssemblyInformationalVersion != null
-                    || assemblyMetadata.Branch != null
-                    || assemblyMetadata.CommitId != null
-                    || assemblyMetadata.BuildDateUtc != null;
+                return;
             }
 
-            if (_hasAssemblyMetadata)
-            {
-                logEvent.AddPropertyIfAbsent(_cachedProperty);
-            }
-        }
+            _cachedProperty ??= propertyFactory.CreateProperty(PropertyName, _assemblyMetadata, destructureObjects: true);
 
-        private static NuGetAssemblyMetadata GetNuGetAssemblyMetadata()
-        {
-            var entryAssembly = Assembly.GetEntryAssembly();
-            var attributes = entryAssembly?.GetCustomAttributes();
-            if (attributes == null)
-            {
-                return new NuGetAssemblyMetadata();
-            }
-            var metadata = new NuGetAssemblyMetadata();
-            foreach (var attribute in attributes)
-            {
-                if (attribute is AssemblyInformationalVersionAttribute informationalVersion)
-                {
-                    metadata.AssemblyInformationalVersion = informationalVersion.InformationalVersion;
-                }
-                if (attribute is AssemblyMetadataAttribute metadataAttribute)
-                {
-                    switch (metadataAttribute.Key)
-                    {
-                        case BranchMetadataKey:
-                            metadata.Branch = metadataAttribute.Value;
-                            break;
-                        case CommitIdMetadataKey:
-                            metadata.CommitId = metadataAttribute.Value;
-                            break;
-                        case BuildDateUtcMetadataKey:
-                            metadata.BuildDateUtc = metadataAttribute.Value;
-                            break;
-                    }
-                }
-            }
-            return metadata;
-        }
-
-        private class NuGetAssemblyMetadata
-        {
-            public string AssemblyInformationalVersion { get; set; } = null;
-            public string Branch { get; set; } = null;
-            public string CommitId { get; set; } = null;
-            public string BuildDateUtc { get; set; } = null;
+            logEvent.AddPropertyIfAbsent(_cachedProperty);
         }
     }
 }
