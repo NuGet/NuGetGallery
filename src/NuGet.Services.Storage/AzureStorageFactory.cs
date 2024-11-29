@@ -16,6 +16,7 @@ namespace NuGet.Services.Storage
         private Uri _differentBaseAddress = null;
         private readonly ILogger<AzureStorage> _azureStorageLogger;
         private readonly bool _initializeContainer;
+        private readonly string _delimiter;
 
         public static string PrepareConnectionString(string connectionString)
         {
@@ -32,7 +33,8 @@ namespace NuGet.Services.Storage
             ILogger<AzureStorage> azureStorageLogger,
             string path = null,
             Uri baseAddress = null,
-            bool initializeContainer = true)
+            bool initializeContainer = true,
+            string delimiter = null)
         {
             _account = account;
             _containerName = containerName;
@@ -40,6 +42,7 @@ namespace NuGet.Services.Storage
             _path = null;
             _azureStorageLogger = azureStorageLogger;
             _initializeContainer = initializeContainer;
+            _delimiter = delimiter;
 
             if (path != null)
             {
@@ -94,6 +97,7 @@ namespace NuGet.Services.Storage
                 _account,
                 _containerName,
                 path,
+                _delimiter,
                 newBase,
                 _initializeContainer,
                 _enablePublicAccess,
