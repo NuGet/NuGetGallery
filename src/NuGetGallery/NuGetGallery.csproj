@@ -347,6 +347,10 @@
     <Compile Include="Migrations\202205300006043_Int64PackageDownloadCount.designer.cs">
       <DependentUpon>202205300006043_Int64PackageDownloadCount.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202410302050035_AddFederatedCredentials.cs" />
+    <Compile Include="Migrations\202410302050035_AddFederatedCredentials.Designer.cs">
+      <DependentUpon>202410302050035_AddFederatedCredentials.cs</DependentUpon>
+    </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
     <Compile Include="RequestModels\UpdateListedRequest.cs" />
@@ -1706,6 +1710,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202205300006043_Int64PackageDownloadCount.resx">
       <DependentUpon>202205300006043_Int64PackageDownloadCount.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202410302050035_AddFederatedCredentials.resx">
+      <DependentUpon>202410302050035_AddFederatedCredentials.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
