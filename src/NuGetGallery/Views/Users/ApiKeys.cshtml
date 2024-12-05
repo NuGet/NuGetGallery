@@ -516,7 +516,7 @@
 </script>
 
 @section bottomScripts {
-    <script type="text/javascript">
+    <script type="text/javascript" nonce="@Html.GetCSPNonce()">
         var initialData = @Html.ToJson(new
                      {
                          ApiKeys = Model.ApiKeys,
@@ -542,4 +542,5 @@
                      });
     </script>
     @Scripts.Render("~/Scripts/gallery/page-api-keys.min.js")
+   @*@Scripts.RenderFormat("~/Scripts/gallery/page-api-keys.min.js", "nonce = '@Html.GetCSPNonce()'")*@
 }

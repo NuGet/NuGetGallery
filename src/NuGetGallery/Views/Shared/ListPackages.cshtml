@@ -1,4 +1,4 @@
-@model PackageListViewModel
+﻿@model PackageListViewModel
 @{
     ViewBag.Title = String.IsNullOrWhiteSpace(Model.SearchTerm) ? "Packages" : "Packages matching " + Model.SearchTerm;
     ViewBag.SortText = String.IsNullOrWhiteSpace(Model.SearchTerm) ? "recent installs" : "relevance";
@@ -279,7 +279,7 @@
 </form>
 
 @section bottomScripts {
-    <script type="text/javascript">
+    <script type="text/javascript" nonce="@Html.GetCSPNonce()">
     // Used to track how long the user waited before clicking a search selection.
     var pageLoadTime = Date.now();
 
@@ -417,5 +417,6 @@
     });
     </script>
 
-    @Scripts.Render("~/Scripts/gallery/page-list-packages.min.js")
+    @*@Scripts.Render("~/Scripts/gallery/page-list-packages.min.js")*@
+    @Scripts.RenderFormat("<script src=\"{0}\" nonce='"+@Html.GetCSPNonce().ToString()+"'></script>", "~/Scripts/gallery/page-list-packages.min.js");
 }
