@@ -240,6 +240,7 @@
     <Compile Include="Filters\AdminActionAttribute.cs" />
     <Compile Include="Filters\RequiresUserAgentAttribute.cs" />
     <Compile Include="Helpers\AdminHelper.cs" />
+    <Compile Include="Helpers\CSPHelper.cs" />
     <Compile Include="Helpers\InvalidZipEntry.cs" />
     <Compile Include="Helpers\SearchResponseHelper.cs" />
     <Compile Include="Helpers\ViewModelExtensions\DeleteAccountListPackageItemViewModelFactory.cs" />

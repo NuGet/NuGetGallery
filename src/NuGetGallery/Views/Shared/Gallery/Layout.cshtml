@@ -31,7 +31,7 @@
     @Styles.Render("~/Content/gallery/css/site.min.css")
     @Styles.Render("~/Content/gallery/css/bootstrap.min.css")
 
-    <script>
+    <script nonce="@Html.GetCSPNonce()">
         // Check the browser preferred color scheme
         const prefersDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
         const defaultTheme = prefersDarkMode ? "dark" : "light";
@@ -62,15 +62,24 @@
     @RenderSection("TopScripts", required: false)
     @ViewHelpers.ReleaseMeta()
     @ViewHelpers.InstrumentationScript(ViewBag)
+
+    <!--converted Inline style--->
+    <style nonce="@Html.GetCSPNonce()">
+        #input-select-file
+            {
+                display: none;
+            }
+    </style>
 </head>
-<body @{if (Request.Url.GetComponents(UriComponents.Path, UriFormat.UriEscaped) == "") { <text>id="/"</text> } }>
+<body @{if (Request.Url.GetComponents(UriComponents.Path, UriFormat.UriEscaped) == "") { <text> id="/" </text>  } }>
     @Html.Partial("Gallery/Header")
     <div id="skippedToContent">
-    @RenderBody()
+        @RenderBody()
     </div>
     @Html.Partial("Gallery/Footer")
     @ViewHelpers.CookieComplianceScript()
-    @Scripts.Render("~/Scripts/gallery/site.min.js")
+    @*@Scripts.Render("~/Scripts/gallery/site.min.js")*@
+    @Scripts.RenderFormat("<script src=\"{0}\" nonce='" + @Html.GetCSPNonce().ToString() + "'></script>", "~/Scripts/gallery/site.min.js");
     @RenderSection("BottomScripts", required: false)
 </body>
 </html>

@@ -124,9 +124,10 @@ else if (AskUserToEnable2FA)
 </section>
 
 @section BottomScripts {
-    <script type="text/javascript">
+    <script type="text/javascript" nonce="@Html.GetCSPNonce()">
         var feedbackUrl = "@Url.Send2FAFeedback()";
         var changeMultiFactorAuthenticationUrl = "@Url.ChangeMultiFactorAuthentication()";
     </script>
-    @Scripts.Render("~/Scripts/gallery/page-home.min.js")
+    @*@Scripts.Render("~/Scripts/gallery/page-home.min.js")*@
+    @Scripts.RenderFormat("<script src=\"{0}\" nonce='" + @Html.GetCSPNonce().ToString() + "'></script>", "~/Scripts/gallery/page-home.min.js");
 }

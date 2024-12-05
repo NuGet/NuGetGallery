@@ -334,7 +334,8 @@
 
 @helper CookieComplianceScript()
 {
-    <script src="https://wcpstatic.microsoft.com/mscc/lib/v2/wcp-consent.js"></script>
+
+    <script src = "https://wcpstatic.microsoft.com/mscc/lib/v2/wcp-consent.js" ></script>
 }
 
 @helper AnalyticsScript(dynamic viewBag)
@@ -481,7 +482,7 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
     var viewSections = GetSections(viewPage.ViewBag);
     if (viewSections != null)
     {
-        <script type="text/javascript">
+        <script type="text/javascript" nonce="@viewPage.Html.GetCSPNonce()">
             var sections = @viewPage.Html.Raw(Json.Encode(viewSections));
             for (var i in sections) {
                 var configureSection = function (section) {
