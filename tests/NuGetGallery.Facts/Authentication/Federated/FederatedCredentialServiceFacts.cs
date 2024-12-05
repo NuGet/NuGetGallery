@@ -5,9 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity.Infrastructure;
 using System.Data.SqlClient;
-using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
@@ -21,6 +19,98 @@ namespace NuGetGallery.Services.Authentication
 {
     public class FederatedCredentialServiceFacts
     {
+        public class TheAddEntraIdServicePrincipalPolicyAsyncMethod : FederatedCredentialServiceFacts
+        {
+            [Fact]
+            public async Task RejectsOrganizationPolicyUser()
+            {
+                // Arrange
+                CurrentUser = new Organization { Key = CurrentUser.Key, Username = CurrentUser.Username };
+
+                // Act
+                var result = await Target.AddEntraIdServicePrincipalPolicyAsync(CurrentUser, PackageOwner, EntraIdServicePrincipalCriteria);
+
+                // Assert
+                Assert.Equal(AddFederatedCredentialPolicyResultType.BadRequest, result.Type);
+                Assert.StartsWith($"Policy user '{CurrentUser.Username}' is an organization.", result.UserMessage);
+            }
+
+            [Fact]
+            public async Task RejectsFailedScopes()
+            {
+                // Arrange
+                CredentialBuilder.Setup(x => x.VerifyScopes(CurrentUser, It.IsAny<IEnumerable<Scope>>())).Returns(false);
+
+                // Act
+                var result = await Target.AddEntraIdServicePrincipalPolicyAsync(CurrentUser, PackageOwner, EntraIdServicePrincipalCriteria);
+
+                // Assert
+                Assert.Equal(AddFederatedCredentialPolicyResultType.BadRequest, result.Type);
+                Assert.StartsWith($"The user '{CurrentUser.Username}' does not have the required permissions", result.UserMessage);
+            }
+
+            [Fact]
+            public async Task RejectsPackageOwnerNotInFlight()
+            {
+                // Arrange
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(false);
+
+                // Act
+                var result = await Target.AddEntraIdServicePrincipalPolicyAsync(CurrentUser, PackageOwner, EntraIdServicePrincipalCriteria);
+
+                // Assert
+                Assert.Equal(AddFederatedCredentialPolicyResultType.BadRequest, result.Type);
+                Assert.StartsWith($"The package owner '{PackageOwner.Username}' is not enabled to use federated credentials.", result.UserMessage);
+            }
+
+            [Fact]
+            public async Task RejectsTenantIdNotInAllowList()
+            {
+                // Arrange
+                EntraIdTokenValidator.Setup(x => x.IsTenantAllowed(It.IsAny<Guid>())).Returns(false);
+
+                // Act
+                var result = await Target.AddEntraIdServicePrincipalPolicyAsync(CurrentUser, PackageOwner, EntraIdServicePrincipalCriteria);
+
+                // Assert
+                Assert.Equal(AddFederatedCredentialPolicyResultType.BadRequest, result.Type);
+                Assert.StartsWith($"The Entra ID tenant '{EntraIdServicePrincipalCriteria.TenantId}' is not in the allow list.", result.UserMessage);
+
+                Assert.Empty(FederatedCredentialRepository.Invocations);
+            }
+
+            [Fact]
+            public async Task AddsPolicy()
+            {
+                // Act
+                var result = await Target.AddEntraIdServicePrincipalPolicyAsync(CurrentUser, PackageOwner, EntraIdServicePrincipalCriteria);
+
+                // Assert
+                Assert.Equal(AddFederatedCredentialPolicyResultType.Created, result.Type);
+                Assert.Equal(new DateTime(2024, 10, 12, 12, 30, 0, DateTimeKind.Utc), result.Policy.Created);
+                Assert.Same(CurrentUser, result.Policy.CreatedBy);
+                Assert.Same(PackageOwner, result.Policy.PackageOwner);
+                Assert.Equal(FederatedCredentialType.EntraIdServicePrincipal, result.Policy.Type);
+                Assert.Equal(
+                    """
+                    {"tid":"58fa0116-d469-4fc9-83c8-9b1a8706d9cc","oid":"4ab4b916-b6de-4412-aee0-808ef692b270"}
+                    """, result.Policy.Criteria);
+                Assert.Null(result.Policy.LastMatched);
+
+                FeatureFlagService.Verify(x => x.CanUseFederatedCredentials(PackageOwner), Times.Once);
+                EntraIdTokenValidator.Verify(x => x.IsTenantAllowed(EntraIdServicePrincipalCriteria.TenantId), Times.Once);
+                CredentialBuilder.Verify(x => x.VerifyScopes(CurrentUser, It.IsAny<IEnumerable<Scope>>()), Times.Once);
+                FederatedCredentialRepository.Verify(x => x.AddPolicyAsync(result.Policy, true), Times.Once);
+
+                var isTenantAllowed = Assert.Single(CredentialBuilder.Invocations);
+                var scopes = Assert.IsAssignableFrom<IEnumerable<Scope>>(isTenantAllowed.Arguments[1]);
+                var scope = Assert.Single(scopes);
+                Assert.Equal(NuGetScopes.All, scope.AllowedAction);
+                Assert.Equal(NuGetPackagePattern.AllInclusivePattern, scope.Subject);
+                Assert.Same(PackageOwner, scope.Owner);
+            }
+        }
+
         public class TheGenerateApiKeyAsyncMethod : FederatedCredentialServiceFacts
         {
             [Fact]
@@ -280,6 +370,7 @@ namespace NuGetGallery.Services.Authentication
             UserService = new Mock<IUserService>();
             FederatedCredentialRepository = new Mock<IFederatedCredentialRepository>();
             FederatedCredentialEvaluator = new Mock<IFederatedCredentialEvaluator>();
+            EntraIdTokenValidator = new Mock<IEntraIdTokenValidator>();
             CredentialBuilder = new Mock<ICredentialBuilder>();
             AuthenticationService = new Mock<IAuthenticationService>();
             FeatureFlagService = new Mock<IFeatureFlagService>();
@@ -297,6 +388,10 @@ namespace NuGetGallery.Services.Authentication
             PlaintextApiKey = null;
             Credential = new Credential { Scopes = [], Expires = new DateTime(2024, 10, 11, 9, 30, 0, DateTimeKind.Utc) };
 
+            EntraIdServicePrincipalCriteria = new EntraIdServicePrincipalCriteria(
+                tenantId: new Guid("58fa0116-d469-4fc9-83c8-9b1a8706d9cc"),
+                objectId: new Guid("4ab4b916-b6de-4412-aee0-808ef692b270"));
+
             UserService.Setup(x => x.FindByUsername(CurrentUser.Username, false)).Returns(() => CurrentUser);
             UserService.Setup(x => x.FindByKey(PackageOwner.Key, false)).Returns(() => PackageOwner);
             FederatedCredentialRepository.Setup(x => x.GetPoliciesCreatedByUser(CurrentUser.Key)).Returns(() => Policies);
@@ -309,14 +404,16 @@ namespace NuGetGallery.Services.Authentication
                     plaintextApiKey = "secret";
                     return Credential;
                 }));
-            CredentialBuilder.Setup(x => x.VerifyScopes(CurrentUser, Credential.Scopes)).Returns(true);
+            CredentialBuilder.Setup(x => x.VerifyScopes(CurrentUser, It.IsAny<IEnumerable<Scope>>())).Returns(true);
             Configuration.Setup(x => x.ShortLivedApiKeyDuration).Returns(TimeSpan.FromMinutes(15));
             DateTimeProvider.Setup(x => x.UtcNow).Returns(new DateTime(2024, 10, 12, 12, 30, 0, DateTimeKind.Utc));
+            EntraIdTokenValidator.Setup(x => x.IsTenantAllowed(EntraIdServicePrincipalCriteria.TenantId)).Returns(true);   
 
             Target = new FederatedCredentialService(
                 UserService.Object,
                 FederatedCredentialRepository.Object,
                 FederatedCredentialEvaluator.Object,
+                EntraIdTokenValidator.Object,
                 CredentialBuilder.Object,
                 AuthenticationService.Object,
                 DateTimeProvider.Object,
@@ -329,6 +426,7 @@ namespace NuGetGallery.Services.Authentication
         public Mock<IUserService> UserService { get; }
         public Mock<IFederatedCredentialRepository> FederatedCredentialRepository { get; }
         public Mock<IFederatedCredentialEvaluator> FederatedCredentialEvaluator { get; }
+        public Mock<IEntraIdTokenValidator> EntraIdTokenValidator { get; }
         public Mock<ICredentialBuilder> CredentialBuilder { get; }
         public Mock<IAuthenticationService> AuthenticationService { get; }
         public Mock<IFeatureFlagService> FeatureFlagService { get; }
@@ -341,6 +439,7 @@ namespace NuGetGallery.Services.Authentication
         public EvaluatedFederatedCredentialPolicies Evaluation { get; }
         public string? PlaintextApiKey;
         public Credential Credential { get; }
+        public EntraIdServicePrincipalCriteria EntraIdServicePrincipalCriteria { get; }
         public FederatedCredentialService Target { get; }
 
         public static SqlException GetSqlException(int sqlErrorCode)

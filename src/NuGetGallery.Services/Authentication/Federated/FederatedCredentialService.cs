@@ -3,6 +3,7 @@
 
 using System;
 using System.Data;
+using System.Text.Json;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
 using NuGetGallery.Authentication;
@@ -22,6 +23,17 @@ namespace NuGetGallery.Services.Authentication
         /// <param name="bearerToken">The bearer token to use for federated credential evaluation.</param>
         /// <returns>The result, successful if <see cref="GenerateApiKeyResult.Type"/> is <see cref="GenerateApiKeyResultType.Created"/>.</returns>
         Task<GenerateApiKeyResult> GenerateApiKeyAsync(string username, string bearerToken);
+
+        /// <summary>
+        /// Adds a new federated credential policy for an Entra ID service principal. The policy will be owned by the user account
+        /// <paramref name="user"/>. Any API keys created from the policy will be scoped to package owner specified by <paramref name="packageOwner"/>.
+        /// account
+        /// </summary>
+        /// <param name="user">The user account to own the policy.</param>
+        /// <param name="packageOwner">The owner scope for any API key created from the policy.</param>
+        /// <param name="criteria">The Entra ID service principal criteria to allow.</param>
+        /// <returns>The result, successful if <see cref="AddFederatedCredentialPolicyResult.Type"/> is <see cref="AddFederatedCredentialPolicyResultType.Created"/>.</returns>
+        Task<AddFederatedCredentialPolicyResult> AddEntraIdServicePrincipalPolicyAsync(User user, User packageOwner, EntraIdServicePrincipalCriteria criteria);
     }
 
     public class FederatedCredentialService : IFederatedCredentialService
@@ -29,6 +41,7 @@ namespace NuGetGallery.Services.Authentication
         private readonly IUserService _userService;
         private readonly IFederatedCredentialRepository _repository;
         private readonly IFederatedCredentialEvaluator _evaluator;
+        private readonly IEntraIdTokenValidator _entraIdTokenValidator;
         private readonly ICredentialBuilder _credentialBuilder;
         private readonly IAuthenticationService _authenticationService;
         private readonly IDateTimeProvider _dateTimeProvider;
@@ -39,6 +52,7 @@ namespace NuGetGallery.Services.Authentication
             IUserService userService,
             IFederatedCredentialRepository repository,
             IFederatedCredentialEvaluator evaluator,
+            IEntraIdTokenValidator entraIdTokenValidator,
             ICredentialBuilder credentialBuilder,
             IAuthenticationService authenticationService,
             IDateTimeProvider dateTimeProvider,
@@ -48,11 +62,51 @@ namespace NuGetGallery.Services.Authentication
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
             _evaluator = evaluator ?? throw new ArgumentNullException(nameof(evaluator));
+            _entraIdTokenValidator = entraIdTokenValidator ?? throw new ArgumentNullException(nameof(EntraIdTokenValidator));
             _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
             _authenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
             _dateTimeProvider = dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        }
+
+        public async Task<AddFederatedCredentialPolicyResult> AddEntraIdServicePrincipalPolicyAsync(User createdBy, User packageOwner, EntraIdServicePrincipalCriteria criteria)
+        {
+            if (createdBy is Organization)
+            {
+                return AddFederatedCredentialPolicyResult.BadRequest(
+                    $"Policy user '{createdBy.Username}' is an organization. Creating federated credential trust policies for organizations is not supported.");
+            }
+
+            var testScope = new Scope(packageOwner, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.All);
+            if (!_credentialBuilder.VerifyScopes(createdBy, [testScope]))
+            {
+                return AddFederatedCredentialPolicyResult.BadRequest(
+                    $"The user '{createdBy.Username}' does not have the required permissions to add a federated credential policy for package owner '{packageOwner.Username}'.");
+            }
+
+            if (!_featureFlagService.CanUseFederatedCredentials(packageOwner))
+            {
+                return AddFederatedCredentialPolicyResult.BadRequest(NotInFlightMessage(packageOwner));
+            }
+
+            if (!_entraIdTokenValidator.IsTenantAllowed(criteria.TenantId))
+            {
+                return AddFederatedCredentialPolicyResult.BadRequest($"The Entra ID tenant '{criteria.TenantId}' is not in the allow list.");
+            }
+
+            var policy = new FederatedCredentialPolicy
+            {
+                Created = _dateTimeProvider.UtcNow,
+                CreatedBy = createdBy,
+                PackageOwner = packageOwner,
+                Type = FederatedCredentialType.EntraIdServicePrincipal,
+                Criteria = JsonSerializer.Serialize(criteria),
+            };
+
+            await _repository.AddPolicyAsync(policy, saveChanges: true);
+
+            return AddFederatedCredentialPolicyResult.Created(policy);
         }
 
         public async Task<GenerateApiKeyResult> GenerateApiKeyAsync(string username, string bearerToken)
