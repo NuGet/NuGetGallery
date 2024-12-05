@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -33,13 +33,13 @@ namespace Stats.PostProcessReports.Tests
         public async Task DoesntStartIfNoSuccessFile()
         {
             _sourceStorageMock
-                .Setup(ss => ss.ListAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .Setup(ss => ss.ListTopLevelAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<StorageListItem>());
 
             await _target.CopyReportsAsync();
 
             _sourceStorageMock
-                .Verify(ss => ss.ListAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Once);
+                .Verify(ss => ss.ListTopLevelAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Once);
             _sourceStorageMock.VerifyNoOtherCalls();
             _workStorageMock.VerifyNoOtherCalls();
             _destinationStorageMock.VerifyNoOtherCalls();
@@ -186,7 +186,7 @@ namespace Stats.PostProcessReports.Tests
                 { "FilesCreated", "123" }
             };
             _workStorageMock
-                .Setup(ss => ss.ListAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .Setup(ss => ss.ListTopLevelAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new List<StorageListItem>(_workFiles.Select(f => Blob(
                     _workStorageMock,
                     f,
@@ -286,7 +286,7 @@ namespace Stats.PostProcessReports.Tests
                     return files().Contains(filename);
                 });
             mock
-                .Setup(s => s.ListAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .Setup(s => s.ListTopLevelAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new List<StorageListItem>(files().Select(f => Blob(mock, f))));
             mock
                 .Setup(s => s.ResolveUri(It.IsAny<string>()))
