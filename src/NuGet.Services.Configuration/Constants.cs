@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Net.NetworkInformation;
+
 namespace NuGet.Services.Configuration
 {
     public static class Constants
@@ -17,5 +19,6 @@ namespace NuGet.Services.Configuration
         public static string KeyVaultSendX5c = "KeyVault_SendX5c";
         public static string StorageUseManagedIdentityPropertyName = "Storage_UseManagedIdentity";
         public static string StorageManagedIdentityClientIdPropertyName = "Storage_ManagedIdentityClientId";
+        public static string ConfigureForLocalDevelopment = "Local_Development";
     }
 }
