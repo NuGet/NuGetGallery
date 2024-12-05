@@ -1,5 +1,7 @@
 <Project>
   <ItemGroup>
+    <ThirdPartyBinaries Include="AngleSharp.dll" />
+    <ThirdPartyBinaries Include="AngleSharp.Css.dll" />
     <ThirdPartyBinaries Include="AnglicanGeek.MarkdownMailer.dll" />
     <ThirdPartyBinaries Include="Antlr3.Runtime.dll" />
     <ThirdPartyBinaries Include="Autofac.dll" />
@@ -16,6 +18,7 @@
     <ThirdPartyBinaries Include="Elmah.dll" />
     <ThirdPartyBinaries Include="git2-572e4d8.dll" />
     <ThirdPartyBinaries Include="HtmlAgilityPack.dll" />
+    <ThirdPartyBinaries Include="HtmlSanitizer.dll" />
     <ThirdPartyBinaries Include="ICSharpCode.SharpZipLib.dll" />
     <ThirdPartyBinaries Include="json-ld.net.StrongName.dll" />
     <ThirdPartyBinaries Include="Knapcode.MiniZip.dll" />
