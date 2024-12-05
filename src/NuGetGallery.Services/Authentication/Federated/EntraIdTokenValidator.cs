@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.IdentityModel.Validators;
+using System.Linq;
 
 #nullable enable
 
@@ -18,6 +19,11 @@ namespace NuGetGallery.Services.Authentication
     /// </summary>
     public interface IEntraIdTokenValidator
     {
+        /// <summary>
+        /// Determines if a given Entra tenant ID GUID is in the allow list.
+        /// </summary>
+        bool IsTenantAllowed(Guid tenantId);
+
         /// <summary>
         /// Perform minimal validation of the token to ensure it was issued by Entra ID. Validations:
         /// - Expected issuer (Entra ID)
@@ -47,6 +53,23 @@ namespace NuGetGallery.Services.Authentication
             _oidcConfigManager = oidcConfigManager ?? throw new ArgumentNullException(nameof(oidcConfigManager));
             _jsonWebTokenHandler = jsonWebTokenHandler ?? throw new ArgumentNullException(nameof(jsonWebTokenHandler));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        }
+
+        public bool IsTenantAllowed(Guid tenantId)
+        {
+            if (_configuration.AllowedEntraIdTenants.Length == 0)
+            {
+                return false;
+            }
+
+            if (_configuration.AllowedEntraIdTenants.Length == 1
+                && _configuration.AllowedEntraIdTenants[0] == "all")
+            {
+                return true;
+            }
+
+            var tenantIdString = tenantId.ToString();
+            return _configuration.AllowedEntraIdTenants.Contains(tenantIdString, StringComparer.OrdinalIgnoreCase);
         }
 
         public async Task<TokenValidationResult> ValidateAsync(JsonWebToken token)

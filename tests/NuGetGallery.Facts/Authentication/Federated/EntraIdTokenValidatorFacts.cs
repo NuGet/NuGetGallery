@@ -17,6 +17,55 @@ namespace NuGetGallery.Services.Authentication
 {
     public class EntraIdTokenValidatorFacts
     {
+        public class TheIsTenantAllowedMethod : EntraIdTokenValidatorFacts
+        {
+            [Fact]
+            public void AllowsTenantIdWhenInAllowList()
+            {
+                // Act
+                var allowed = Target.IsTenantAllowed(new Guid(AllowedTenantIds[0]));
+
+                // Assert
+                Assert.True(allowed);
+            }
+
+            [Fact]
+            public void RejectsTenantIdWhenInAllowList()
+            {
+                // Act
+                var allowed = Target.IsTenantAllowed(new Guid("b3ad8ee4-f667-4a19-9091-206ef363beb1"));
+
+                // Assert
+                Assert.False(allowed);
+            }
+
+            [Fact]
+            public void AllowsTenantIdWhenAllAreAllowed()
+            {
+                // Arrange
+                AllowedTenantIds[0] = "all";
+
+                // Act
+                var allowed = Target.IsTenantAllowed(new Guid("b3ad8ee4-f667-4a19-9091-206ef363beb1"));
+
+                // Assert
+                Assert.True(allowed);
+            }
+
+            [Fact]
+            public void AllTenantIdsAreNotAllowedWhenAllIsNotOnlyArrayItem()
+            {
+                // Arrange
+                AllowedTenantIds = ["all", "c311b905-19a2-483e-a014-41d0fcdc99cf"];
+
+                // Act
+                var allowed = Target.IsTenantAllowed(new Guid("b3ad8ee4-f667-4a19-9091-206ef363beb1"));
+
+                // Assert
+                Assert.False(allowed);
+            }
+        }
+
         public class TheValidateAsyncMethod : EntraIdTokenValidatorFacts
         {
             [Fact]
@@ -136,10 +185,13 @@ namespace NuGetGallery.Services.Authentication
                 ConfigurationRetriever.Object);
             JsonWebTokenHandler = new Mock<JsonWebTokenHandler>();
             Configuration = new Mock<IFederatedCredentialConfiguration>();
-            Configuration.Setup(x => x.EntraIdAudience).Returns("nuget-audience");
 
             TenantId = "c311b905-19a2-483e-a014-41d0fcdc99cf";
             Issuer = $"https://login.microsoftonline.com/{TenantId}/v2.0";
+            AllowedTenantIds = ["c311b905-19a2-483e-a014-41d0fcdc99cf"];
+
+            Configuration.Setup(x => x.EntraIdAudience).Returns("nuget-audience");
+            Configuration.Setup(x => x.AllowedEntraIdTenants).Returns(() => AllowedTenantIds);
 
             Target = new EntraIdTokenValidator(
                 OidcConfigManager.Object,
@@ -154,6 +206,7 @@ namespace NuGetGallery.Services.Authentication
         public Mock<IFederatedCredentialConfiguration> Configuration { get; }
         public string TenantId { get; }
         public string Issuer { get; set; }
+        public string[] AllowedTenantIds { get; set; }
 
         public JsonWebToken Token
         {
