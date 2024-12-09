@@ -1,5 +1,10 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 
 namespace NuGetGallery
 {
@@ -8,21 +13,32 @@ namespace NuGetGallery
     /// </summary>
     public class PackageManagerViewModel
     {
-        public PackageManagerViewModel(string name)
+        public PackageManagerViewModel(
+            string id,
+            string name,
+            params InstallPackageCommand[] installPackageCommands
+            )
         {
+            Id = id;
             Name = name;
             CopyLabel = string.Format("Copy the {0} command", name);
+            int index = 0;
+            InstallPackageCommands = installPackageCommands.ToDictionary(
+                _ => string.Format(CultureInfo.InvariantCulture, "{0}-{1:0000}", Id, ++index),
+                value => value,
+                StringComparer.OrdinalIgnoreCase
+                );
         }
 
         /// <summary>
         /// The package manager's name.
         /// </summary>
-        public string Name { get; set; }
+        public string Name { get; }
 
         /// <summary>
         /// A unique identifier that represents this package manager.
         /// </summary>
-        public string Id { get; set; }
+        public string Id { get; }
 
         /// <summary>
         /// The non-selectable prefix displayed on before the package manager's commands.
@@ -32,7 +48,7 @@ namespace NuGetGallery
         /// <summary>
         /// One or more strings that represent the command(s) used to install a specific package.
         /// </summary>
-        public string[] InstallPackageCommands { get; set; }
+        public Dictionary<string, InstallPackageCommand> InstallPackageCommands { get; }
 
         /// <summary>
         /// The alert message that contains clarifications about the command/scenario
@@ -48,6 +64,24 @@ namespace NuGetGallery
         /// The label for the copy button.
         /// </summary>
         public string CopyLabel { get; set; }
+
+        public class InstallPackageCommand
+        {
+            public InstallPackageCommand(string command) : this(string.Empty, command)
+            {
+            }
+
+            public  InstallPackageCommand(string header, string command)
+            {
+                HasHeader = !string.IsNullOrWhiteSpace(header);
+                Header = header;
+                Command = command;
+            }
+
+            public bool HasHeader { get; }
+            public string Header { get; }
+            public string Command { get; }
+        }
     }
 
     public enum AlertLevel
