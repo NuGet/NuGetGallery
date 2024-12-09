@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Web;
 using CommonMark;
 using CommonMark.Syntax;
+using Ganss.Xss;
 using Markdig;
 using Markdig.Extensions.EmphasisExtras;
 using Markdig.Renderers;
@@ -20,19 +21,38 @@ namespace NuGetGallery
         private static readonly TimeSpan RegexTimeout = TimeSpan.FromMinutes(1);
         private static readonly Regex EncodedBlockQuotePattern = new Regex("^ {0,3}&gt;", RegexOptions.Multiline, RegexTimeout);
         private static readonly Regex LinkPattern = new Regex("<a href=([\"\']).*?\\1", RegexOptions.None, RegexTimeout);
-        private static readonly Regex JavaScriptPattern = new Regex("<a href=([\"\'])javascript:.*?\\1 rel=([\"'])noopener noreferrer nofollow\\1>", RegexOptions.None, RegexTimeout);
         private static readonly Regex HtmlCommentPattern = new Regex("<!--.*?-->", RegexOptions.Singleline, RegexTimeout);
         private static readonly Regex ImageTextPattern = new Regex("!\\[\\]\\(", RegexOptions.Singleline, RegexTimeout);
-        private static readonly string altTextForImage = "alternate text is missing from this package README image";
+        private static readonly string AltTextForImage = "alternate text is missing from this package README image";
 
         private readonly IFeatureFlagService _features;
         private readonly IImageDomainValidator _imageDomainValidator;
+        private readonly IHtmlSanitizer _htmlSanitizer;
 
         public MarkdownService(IFeatureFlagService features,
-            IImageDomainValidator imageDomainValidator)
+            IImageDomainValidator imageDomainValidator,
+            IHtmlSanitizer htmlSanitizer)
         {
             _features = features ?? throw new ArgumentNullException(nameof(features));
             _imageDomainValidator = imageDomainValidator ?? throw new ArgumentNullException(nameof(imageDomainValidator));
+            _htmlSanitizer = htmlSanitizer ?? throw new ArgumentNullException(nameof(htmlSanitizer));
+            SanitizerSettings();
+        }
+
+        private void SanitizerSettings()
+        {
+            //Configure allowed tags, attributes for the sanitizer
+            _htmlSanitizer.AllowedAttributes.Add("id");
+            _htmlSanitizer.AllowedAttributes.Add("class");
+        }
+
+        private string SanitizeText(string input)
+        {
+            if (!string.IsNullOrWhiteSpace(input))
+            {
+                return _htmlSanitizer.Sanitize(input);
+            }
+            return input;
         }
 
         public RenderedMarkdownResult GetHtmlFromMarkdown(string markdownString)
@@ -41,6 +61,7 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException(nameof(markdownString));
             }
+
 
             if (_features.IsMarkdigMdRenderingEnabled()) 
             { 
@@ -179,7 +200,9 @@ namespace NuGetGallery
             using (var htmlWriter = new StringWriter())
             {
                 CommonMarkConverter.ProcessStage3(document, htmlWriter, settings);
-                output.Content = LinkPattern.Replace(htmlWriter.ToString(), "$0" + " rel=\"noopener noreferrer nofollow\"").Trim();
+                string htmlContent = htmlWriter.ToString();
+                htmlContent = SanitizeText(htmlContent);
+                output.Content = LinkPattern.Replace(htmlContent, "$0" + " rel=\"noopener noreferrer nofollow\"").Trim();
 
                 return output;
             }
@@ -197,7 +220,7 @@ namespace NuGetGallery
 
             var markdownWithoutComments = HtmlCommentPattern.Replace(markdownString, "");
 
-            var markdownWithImageAlt = ImageTextPattern.Replace(markdownWithoutComments, $"![{altTextForImage}](");
+            var markdownWithImageAlt = ImageTextPattern.Replace(markdownWithoutComments, $"![{AltTextForImage}](");
 
             var markdownWithoutBom = markdownWithImageAlt.TrimStart('\ufeff');
 
@@ -286,7 +309,7 @@ namespace NuGetGallery
                 renderer.Render(document);
                 output.Content = htmlWriter.ToString().Trim();
                 output.IsMarkdigMdSyntaxHighlightEnabled = _features.IsMarkdigMdSyntaxHighlightEnabled();
-                output.Content = JavaScriptPattern.Replace(htmlWriter.ToString(), "").Trim();
+                output.Content = SanitizeText(output.Content);
 
                 return output;
             }
