@@ -4,6 +4,7 @@
 using System;
 using Autofac;
 using Autofac.Builder;
+using Azure.Core;
 using Azure.Data.Tables;
 using Azure.Identity;
 using Azure.Storage.Blobs;
@@ -22,7 +23,8 @@ namespace NuGet.Jobs
             this IServiceCollection serviceCollection,
             IConfiguration configuration,
             string storageUseManagedIdentityPropertyName = null,
-            string storageManagedIdentityClientIdPropertyName = null)
+            string storageManagedIdentityClientIdPropertyName = null,
+            string localDevelopmentPropertyName = null)
         {
             if (serviceCollection == null)
             {
@@ -35,9 +37,12 @@ namespace NuGet.Jobs
 
             storageUseManagedIdentityPropertyName ??= Constants.StorageUseManagedIdentityPropertyName;
             storageManagedIdentityClientIdPropertyName ??= Constants.StorageManagedIdentityClientIdPropertyName;
+            localDevelopmentPropertyName ??= Constants.ConfigureForLocalDevelopment;
 
             string useManagedIdentityStr = configuration[storageUseManagedIdentityPropertyName];
+            string localDevelopmentStr = configuration[localDevelopmentPropertyName];
             bool useManagedIdentity = false;
+            bool setupLocalDevelopment = false;
 
             string managedIdentityClientId = string.IsNullOrWhiteSpace(configuration[storageManagedIdentityClientIdPropertyName])
                                                 ? configuration[Constants.ManagedIdentityClientIdKey]
@@ -47,6 +52,21 @@ namespace NuGet.Jobs
             {
                 useManagedIdentity = bool.Parse(useManagedIdentityStr);
             }
+
+            if (!string.IsNullOrWhiteSpace(localDevelopmentStr))
+            {
+                setupLocalDevelopment = bool.Parse(localDevelopmentStr);
+            }
+
+            if (setupLocalDevelopment)
+            {
+                serviceCollection.AddSingleton<TokenCredential>(new DefaultAzureCredential());
+            }
+            else
+            {
+                serviceCollection.AddSingleton<TokenCredential>(new ManagedIdentityCredential(managedIdentityClientId));
+            }
+
             return serviceCollection.Configure<StorageMsiConfiguration>(storageConfiguration =>
             {
                 storageConfiguration.UseManagedIdentity = useManagedIdentity;
