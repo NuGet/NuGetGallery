@@ -19,6 +19,11 @@ docs = ["cogapp", "furo", "myst-parser", "sphinx", "sphinx-notfound-page", "sphi
 tests = ["cloudpickle", "hypothesis", "mypy (>=1.11.1)", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins", "pytest-xdist[psutil]"]
 tests-mypy = ["mypy (>=1.11.1)", "pytest-mypy-plugins"]
 
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-pypi/pypi/simple"
+reference = "dceng-public"
+
 [[package]]
 name = "colorama"
 version = "0.4.6"
@@ -29,6 +34,11 @@ files = [
     {file = "colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"},
     {file = "colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44"},
 ]
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-pypi/pypi/simple"
+reference = "dceng-public"
 
 [[package]]
 name = "coverage"
@@ -117,6 +127,11 @@ tomli = {version = "*", optional = true, markers = "python_full_version <= \"3.1
 [package.extras]
 toml = ["tomli"]
 
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-pypi/pypi/simple"
+reference = "dceng-public"
+
 [[package]]
 name = "exceptiongroup"
 version = "1.2.2"
@@ -130,6 +145,11 @@ files = [
 
 [package.extras]
 test = ["pytest (>=6)"]
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-pypi/pypi/simple"
+reference = "dceng-public"
 
 [[package]]
 name = "importlib-resources"
@@ -150,6 +170,11 @@ enabler = ["pytest-enabler (>=2.2)"]
 test = ["jaraco.test (>=5.4)", "pytest (>=6,!=8.1.*)", "zipp (>=3.17)"]
 type = ["pytest-mypy"]
 
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-pypi/pypi/simple"
+reference = "dceng-public"
+
 [[package]]
 name = "iniconfig"
 version = "2.0.0"
@@ -161,6 +186,11 @@ files = [
     {file = "iniconfig-2.0.0.tar.gz", hash = "sha256:2d91e135bf72d31a410b17c16da610a82cb55f6b0477d1a902134b24a455b8b3"},
 ]
 
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-pypi/pypi/simple"
+reference = "dceng-public"
+
 [[package]]
 name = "packaging"
 version = "24.1"
@@ -171,6 +201,11 @@ files = [
     {file = "packaging-24.1-py3-none-any.whl", hash = "sha256:5b8f2217dbdbd2f7f384c41c628544e6d52f2d0f53c6d0c3ea61aa5d1d7ff124"},
     {file = "packaging-24.1.tar.gz", hash = "sha256:026ed72c8ed3fcce5bf8950572258698927fd1dbda10a5e981cdf0ac37f4f002"},
 ]
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-pypi/pypi/simple"
+reference = "dceng-public"
 
 [[package]]
 name = "pluggy"
@@ -186,6 +221,11 @@ files = [
 [package.extras]
 dev = ["pre-commit", "tox"]
 testing = ["pytest", "pytest-benchmark"]
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-pypi/pypi/simple"
+reference = "dceng-public"
 
 [[package]]
 name = "pytest"
@@ -209,6 +249,11 @@ tomli = {version = ">=1", markers = "python_version < \"3.11\""}
 [package.extras]
 dev = ["argcomplete", "attrs (>=19.2)", "hypothesis (>=3.56)", "mock", "pygments (>=2.7.2)", "requests", "setuptools", "xmlschema"]
 
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-pypi/pypi/simple"
+reference = "dceng-public"
+
 [[package]]
 name = "pytest-azurepipelines"
 version = "1.0.5"
@@ -224,6 +269,11 @@ files = [
 importlib-resources = "*"
 pytest = ">=5.0.0"
 pytest-nunit = ">=1.0.0,<2.0.0"
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-pypi/pypi/simple"
+reference = "dceng-public"
 
 [[package]]
 name = "pytest-cov"
@@ -243,6 +293,11 @@ pytest = ">=4.6"
 [package.extras]
 testing = ["fields", "hunter", "process-tests", "pytest-xdist", "virtualenv"]
 
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-pypi/pypi/simple"
+reference = "dceng-public"
+
 [[package]]
 name = "pytest-nunit"
 version = "1.0.7"
@@ -259,6 +314,11 @@ pytest = ">=4.6.0"
 
 [package.extras]
 dev = ["pytest", "pytest-cov", "xmlschema (==1.0.13)"]
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-pypi/pypi/simple"
+reference = "dceng-public"
 
 [[package]]
 name = "pyyaml"
@@ -322,6 +382,11 @@ files = [
     {file = "pyyaml-6.0.2.tar.gz", hash = "sha256:d584d9ec91ad65861cc08d42e834324ef890a082e591037abe114850ff7bbc3e"},
 ]
 
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-pypi/pypi/simple"
+reference = "dceng-public"
+
 [[package]]
 name = "tomli"
 version = "2.0.1"
@@ -332,6 +397,11 @@ files = [
     {file = "tomli-2.0.1-py3-none-any.whl", hash = "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc"},
     {file = "tomli-2.0.1.tar.gz", hash = "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"},
 ]
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-pypi/pypi/simple"
+reference = "dceng-public"
 
 [[package]]
 name = "ua-parser"
@@ -344,7 +414,12 @@ files = [
     {file = "ua_parser-0.18.0-py2.py3-none-any.whl", hash = "sha256:9d94ac3a80bcb0166823956a779186c746b50ea4c9fd9bf30fdb758553c38950"},
 ]
 
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-pypi/pypi/simple"
+reference = "dceng-public"
+
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "04d0ef599c172e38dc654e7c62bbbafe2acf1ab9aff6ef2ab28daf1bd5bf2266"
+content-hash = "66929ba4260ff61625cc862bc4d87b1782cbb22d9d05c8439df7d0f09d85f963"
