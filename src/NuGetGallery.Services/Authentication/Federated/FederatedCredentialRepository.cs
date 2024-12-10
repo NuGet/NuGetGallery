@@ -19,6 +19,7 @@ namespace NuGetGallery.Services.Authentication
         IReadOnlyList<FederatedCredentialPolicy> GetPoliciesCreatedByUser(int userKey);
         FederatedCredentialPolicy? GetPolicyByKey(int policyKey);
         IReadOnlyList<Credential> GetShortLivedApiKeysForPolicy(int policyKey);
+        IReadOnlyList<FederatedCredentialPolicy> GetPoliciesRelatedToUserKeys(IReadOnlyList<int> userKeys);
         Task DeletePolicyAsync(FederatedCredentialPolicy policy, bool saveChanges);
     }
 
@@ -64,6 +65,16 @@ namespace NuGetGallery.Services.Authentication
                 .GetAll()
                 .Where(c => c.FederatedCredentialPolicyKey == policyKey)
                 .Where(c => c.Type == CredentialTypes.ApiKey.V4)
+                .ToList();
+        }
+
+        public IReadOnlyList<FederatedCredentialPolicy> GetPoliciesRelatedToUserKeys(IReadOnlyList<int> userKeys)
+        {
+            return _policyRepository
+                .GetAll()
+                .Where(x => userKeys.Contains(x.CreatedByUserKey) || userKeys.Contains(x.PackageOwnerUserKey))
+                .Include(x => x.CreatedBy)
+                .Include(x => x.PackageOwner)
                 .ToList();
         }
 
