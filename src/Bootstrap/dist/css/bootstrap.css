@@ -5106,6 +5106,17 @@ a.thumbnail.active {
 .alert-danger .alert-link {
   color: #000000;
 }
+.alert-primary {
+  color: #000;
+  background-color: #EFD9FD;
+  border-color: #EFD9FD;
+}
+.alert-primary hr {
+  border-top-color: #e5c1fc;
+}
+.alert-primary .alert-link {
+  color: #000000;
+}
 .alert-brand-a a {
   color: var(--brandForegroundLinkRest);
   text-decoration: underline;
