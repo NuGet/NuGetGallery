@@ -36,6 +36,8 @@ namespace NuGetGallery
 
         Task FetchAttributesAsync();
 
+        ICloudBlobLeaseClient GetLeaseClient();
+
         Task StartCopyAsync(ISimpleCloudBlob source, IAccessCondition sourceAccessCondition, IAccessCondition destAccessCondition);
 
         /// <summary>

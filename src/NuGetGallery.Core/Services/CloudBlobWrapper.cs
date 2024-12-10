@@ -257,6 +257,9 @@ namespace NuGetGallery
             ReplaceMetadata(blobProperties.Metadata);
         }
 
+        public ICloudBlobLeaseClient GetLeaseClient() =>
+            new CloudBlobLeaseClientWrapper(_blob.GetBlobLeaseClient());
+
         private void ReplaceHttpHeaders(BlobProperties blobProperties)
         {
             if (BlobHeaders == null)
