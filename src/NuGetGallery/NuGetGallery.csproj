@@ -2212,6 +2212,7 @@
     <PackageReference Include="NuGet.StrongName.elmah.sqlserver" />
     <PackageReference Include="NuGet.StrongName.elmah" />
     <PackageReference Include="EntityFramework" />
+    <PackageReference Include="HtmlSanitizer" />
     <PackageReference Include="Lucene.Net" />
     <PackageReference Include="Lucene.Net.Contrib" />
     <PackageReference Include="Microsoft.ApplicationInsights.TraceListener" />

@@ -20,6 +20,7 @@ using AnglicanGeek.MarkdownMailer;
 using Autofac;
 using Autofac.Core;
 using Autofac.Extensions.DependencyInjection;
+using Ganss.Xss;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.Implementation;
 using Microsoft.Extensions.DependencyInjection;
@@ -108,7 +109,7 @@ namespace NuGetGallery
                 configuration.Current,
                 out ITelemetryClient telemetryClient);
 
-            var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: false);
+            var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: false, withAssemblyMetadata: false);
             var loggerFactory = LoggingSetup.CreateLoggerFactory(
                 loggerConfiguration,
                 telemetryConfiguration: applicationInsightsConfiguration.TelemetryConfiguration);
@@ -132,6 +133,7 @@ namespace NuGetGallery
 
             services.AddSingleton(loggerFactory);
             services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
+            services.AddSingleton<IHtmlSanitizer, HtmlSanitizer>();
 
             UrlHelperExtensions.SetConfigurationService(configuration);
             builder.RegisterType<UrlHelperWrapper>()
