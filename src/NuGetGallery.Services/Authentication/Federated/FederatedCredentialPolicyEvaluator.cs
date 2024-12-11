@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -19,40 +20,53 @@ namespace NuGetGallery.Services.Authentication
 {
     public interface IFederatedCredentialPolicyEvaluator
     {
-        Task<EvaluatedFederatedCredentialPolicies> GetMatchingPolicyAsync(IReadOnlyCollection<FederatedCredentialPolicy> policies, string bearerToken);
+        Task<EvaluatedFederatedCredentialPolicies> GetMatchingPolicyAsync(
+            IReadOnlyCollection<FederatedCredentialPolicy> policies,
+            string bearerToken,
+            NameValueCollection requestHeaders);
     }
 
     public class FederatedCredentialPolicyEvaluator : IFederatedCredentialPolicyEvaluator
     {
         private readonly IEntraIdTokenValidator _entraIdTokenValidator;
+        private readonly IReadOnlyList<IFederatedCredentialValidator> _additionalValidators;
         private readonly IAuditingService _auditingService;
         private readonly IDateTimeProvider _dateTimeProvider;
         private readonly ILogger<FederatedCredentialPolicyEvaluator> _logger;
 
         public FederatedCredentialPolicyEvaluator(
             IEntraIdTokenValidator entraIdTokenValidator,
+            IReadOnlyList<IFederatedCredentialValidator> additionalValidators,
             IAuditingService auditingService,
             IDateTimeProvider dateTimeProvider,
             ILogger<FederatedCredentialPolicyEvaluator> logger)
         {
             _entraIdTokenValidator = entraIdTokenValidator ?? throw new ArgumentNullException(nameof(entraIdTokenValidator));
+            _additionalValidators = additionalValidators ?? throw new ArgumentNullException(nameof(additionalValidators));
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
             _dateTimeProvider = dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<EvaluatedFederatedCredentialPolicies> GetMatchingPolicyAsync(IReadOnlyCollection<FederatedCredentialPolicy> policies, string bearerToken)
+        public async Task<EvaluatedFederatedCredentialPolicies> GetMatchingPolicyAsync(
+            IReadOnlyCollection<FederatedCredentialPolicy> policies,
+            string bearerToken,
+            NameValueCollection requestHeaders)
         {
             // perform basic validations not specific to any federated credential policy
             // the error message is user-facing and should not leak sensitive information
             var (userError, jwtInfo) = await ValidateJwtByIssuer(bearerToken);
+
+            // Whether or not we have detected a problem already, pass the information to all additional validators.
+            // This allows custom logic to execute but will not override any initial failed validation result.
+            userError = await ExecuteAdditionalValidatorsAsync(requestHeaders, userError, jwtInfo);
 
             var externalCredentialAudit = jwtInfo.CreateAuditRecord();
             await AuditExternalCredentialAsync(externalCredentialAudit);
 
             if (userError is not null)
             {
-                _logger.LogInformation("The bearer token could not be validated. Reason: {UserError}", userError);
+                _logger.LogInformation("The bearer token failed validation. Reason: {UserError}", userError);
                 return EvaluatedFederatedCredentialPolicies.BadToken(userError);
             }
 
@@ -79,6 +93,53 @@ namespace NuGetGallery.Services.Authentication
             }
 
             return EvaluatedFederatedCredentialPolicies.NoMatchingPolicy(results);
+        }
+
+        private async Task<string?> ExecuteAdditionalValidatorsAsync(NameValueCollection requestHeaders, string? userError, JwtInfo jwtInfo)
+        {
+            bool hasUnauthorized = false;
+            foreach (var validator in _additionalValidators)
+            {
+                var result = await validator.ValidateAsync(requestHeaders, jwtInfo.IssuerType, jwtInfo.Jwt?.Claims);
+                switch (result.Type)
+                {
+                    case FederatedCredentialValidationType.Unauthorized:
+                        // prefer the first user error, which will be the built-in user error if the bearer token is already rejected
+                        userError ??= result.UserError;
+                        hasUnauthorized = true;
+                        if (jwtInfo.IsValid)
+                        {
+                            _logger.LogWarning(
+                                "With issuer type {IssuerType}, the additional validator {Type} rejected the request, but the base validation accepted the bearer token. " +
+                                "Additional validator user message: {UserError}",
+                                jwtInfo.IssuerType,
+                                validator.GetType().FullName,
+                                result.UserError ?? "(none)");
+                        }
+                        break;
+                    case FederatedCredentialValidationType.Valid:
+                        if (!jwtInfo.IsValid)
+                        {
+                            _logger.LogWarning(
+                                "With issuer type {IssuerType}, the additional validator {Type} accepted the request, but the base validation rejected the bearer token.",
+                                jwtInfo.IssuerType,
+                                validator.GetType().FullName);
+                        }
+                        break;
+                    case FederatedCredentialValidationType.NotApplicable:
+                        break;
+                    default:
+                        throw new NotImplementedException("Unsupported validation type:" + result.Type);
+                }
+            }
+
+            if (hasUnauthorized)
+            {
+                userError ??= "The request could not be authenticated.";
+                jwtInfo.IsValid = false;
+            }
+
+            return userError;
         }
 
         private async Task AuditPolicyComparisonAsync(ExternalSecurityTokenAuditRecord externalCredentialAudit, FederatedCredentialPolicy policy, bool success)

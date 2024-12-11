@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Data.Entity.Infrastructure;
 using System.Data.SqlClient;
 using System.Linq;
@@ -159,7 +160,7 @@ namespace NuGetGallery.Services.Authentication
             public async Task NoMatchingPolicyForNonExistentUser()
             {
                 // Act
-                var result = await Target.GenerateApiKeyAsync("someone else", BearerToken);
+                var result = await Target.GenerateApiKeyAsync("someone else", BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.Unauthorized, result.Type);
@@ -173,11 +174,11 @@ namespace NuGetGallery.Services.Authentication
             {
                 // Arrange
                 Evaluator
-                    .Setup(x => x.GetMatchingPolicyAsync(Policies, BearerToken))
+                    .Setup(x => x.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders))
                     .ReturnsAsync(() => EvaluatedFederatedCredentialPolicies.NoMatchingPolicy([]));
 
                 // Act
-                var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken);
+                var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.Unauthorized, result.Type);
@@ -191,11 +192,11 @@ namespace NuGetGallery.Services.Authentication
             {
                 // Arrange
                 Evaluator
-                    .Setup(x => x.GetMatchingPolicyAsync(Policies, BearerToken))
+                    .Setup(x => x.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders))
                     .ReturnsAsync(() => EvaluatedFederatedCredentialPolicies.BadToken("That token is missing a thing or two."));
 
                 // Act
-                var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken);
+                var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.Unauthorized, result.Type);
@@ -211,7 +212,7 @@ namespace NuGetGallery.Services.Authentication
                 CurrentUser = new Organization { Key = CurrentUser.Key, Username = CurrentUser.Username };
 
                 // Act
-                var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken);
+                var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.BadRequest, result.Type);
@@ -227,7 +228,7 @@ namespace NuGetGallery.Services.Authentication
                 CurrentUser.IsDeleted = true;
 
                 // Act
-                var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken);
+                var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.BadRequest, result.Type);
@@ -243,7 +244,7 @@ namespace NuGetGallery.Services.Authentication
                 CurrentUser.UserStatusKey = UserStatus.Locked;
 
                 // Act
-                var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken);
+                var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.BadRequest, result.Type);
@@ -259,7 +260,7 @@ namespace NuGetGallery.Services.Authentication
                 CurrentUser.EmailAddress = null;
 
                 // Act
-                var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken);
+                var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.BadRequest, result.Type);
@@ -275,7 +276,7 @@ namespace NuGetGallery.Services.Authentication
                 UserService.Setup(x => x.FindByKey(PackageOwner.Key, false)).Returns(() => null!);
 
                 // Act
-                var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken);
+                var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.BadRequest, result.Type);
@@ -291,7 +292,7 @@ namespace NuGetGallery.Services.Authentication
                 PackageOwner.IsDeleted = true;
 
                 // Act
-                var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken);
+                var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.BadRequest, result.Type);
@@ -307,7 +308,7 @@ namespace NuGetGallery.Services.Authentication
                 PackageOwner.UserStatusKey = UserStatus.Locked;
 
                 // Act
-                var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken);
+                var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.BadRequest, result.Type);
@@ -323,7 +324,7 @@ namespace NuGetGallery.Services.Authentication
                 PackageOwner.UserStatusKey = UserStatus.Locked;
 
                 // Act
-                var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken);
+                var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.BadRequest, result.Type);
@@ -339,7 +340,7 @@ namespace NuGetGallery.Services.Authentication
                 FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(false);
 
                 // Act
-                var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken);
+                var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.BadRequest, result.Type);
@@ -355,7 +356,7 @@ namespace NuGetGallery.Services.Authentication
                 CredentialBuilder.Setup(x => x.VerifyScopes(CurrentUser, Credential.Scopes)).Returns(false);
 
                 // Act
-                var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken);
+                var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.BadRequest, result.Type);
@@ -384,7 +385,7 @@ namespace NuGetGallery.Services.Authentication
                     .ThrowsAsync(new DbUpdateException("Fail!", sqlException));
 
                 // Act
-                var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken);
+                var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.Unauthorized, result.Type);
@@ -406,7 +407,7 @@ namespace NuGetGallery.Services.Authentication
                     .ThrowsAsync(exception);
 
                 // Act
-                var actual = await Assert.ThrowsAsync<DbUpdateException>(() => Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken));
+                var actual = await Assert.ThrowsAsync<DbUpdateException>(() => Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken, RequestHeaders));
                 Assert.Same(actual, exception);
 
                 AssertNoAudits();
@@ -416,7 +417,7 @@ namespace NuGetGallery.Services.Authentication
             public async Task ReturnsCreatedApiKey()
             {
                 // Act
-                var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken);
+                var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.Created, result.Type);
@@ -428,7 +429,7 @@ namespace NuGetGallery.Services.Authentication
 
                 UserService.Verify(x => x.FindByUsername(CurrentUser.Username, false), Times.Once);
                 FederatedCredentialRepository.Verify(x => x.GetPoliciesCreatedByUser(CurrentUser.Key), Times.Once);
-                Evaluator.Verify(x => x.GetMatchingPolicyAsync(Policies, BearerToken), Times.Once);
+                Evaluator.Verify(x => x.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders), Times.Once);
                 UserService.Verify(x => x.FindByKey(PackageOwner.Key, false), Times.Once);
                 CredentialBuilder.Verify(x => x.CreateShortLivedApiKey(TimeSpan.FromMinutes(15), Evaluation.MatchedPolicy, out PlaintextApiKey), Times.Once);
                 CredentialBuilder.Verify(x => x.VerifyScopes(CurrentUser, Credential.Scopes), Times.Once);
@@ -472,6 +473,7 @@ namespace NuGetGallery.Services.Authentication
                 federatedCredential: new FederatedCredential());
             PlaintextApiKey = null;
             Credential = new Credential { Scopes = [], Expires = new DateTime(2024, 10, 11, 9, 30, 0, DateTimeKind.Utc) };
+            RequestHeaders = new NameValueCollection();
 
             EntraIdServicePrincipalCriteria = new EntraIdServicePrincipalCriteria(
                 tenantId: new Guid("58fa0116-d469-4fc9-83c8-9b1a8706d9cc"),
@@ -481,7 +483,7 @@ namespace NuGetGallery.Services.Authentication
             UserService.Setup(x => x.FindByKey(PackageOwner.Key, false)).Returns(() => PackageOwner);
             FederatedCredentialRepository.Setup(x => x.GetPoliciesCreatedByUser(CurrentUser.Key)).Returns(() => Policies);
             FederatedCredentialRepository.Setup(x => x.GetShortLivedApiKeysForPolicy(Policies[0].Key)).Returns(() => [Credential]);
-            Evaluator.Setup(x => x.GetMatchingPolicyAsync(Policies, BearerToken)).ReturnsAsync(() => Evaluation);
+            Evaluator.Setup(x => x.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders)).ReturnsAsync(() => Evaluation);
             FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
             CredentialBuilder
                 .Setup(x => x.CreateShortLivedApiKey(TimeSpan.FromMinutes(15), Evaluation.MatchedPolicy, out It.Ref<string>.IsAny))
@@ -527,6 +529,7 @@ namespace NuGetGallery.Services.Authentication
         public EvaluatedFederatedCredentialPolicies Evaluation { get; }
         public string? PlaintextApiKey;
         public Credential Credential { get; }
+        public NameValueCollection RequestHeaders { get; }
         public EntraIdServicePrincipalCriteria EntraIdServicePrincipalCriteria { get; }
         public FederatedCredentialService Target { get; }
 

@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -26,7 +28,7 @@ namespace NuGetGallery.Services.Authentication
             public async Task ReturnsNoMatchingPolicyWhenNoneAreProvided()
             {
                 // Act
-                var evaluation = await Target.GetMatchingPolicyAsync([], BearerToken);
+                var evaluation = await Target.GetMatchingPolicyAsync([], BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.NoMatchingPolicy, evaluation.Type);
@@ -42,7 +44,7 @@ namespace NuGetGallery.Services.Authentication
                 Policies[0].Type = (FederatedCredentialType)int.MaxValue;
 
                 // Act
-                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken);
+                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.NoMatchingPolicy, evaluation.Type);
@@ -60,7 +62,7 @@ namespace NuGetGallery.Services.Authentication
             public async Task DoesNotSetLastMatchedOnPolicy()
             {
                 // Act
-                await Target.GetMatchingPolicyAsync(Policies, BearerToken);
+                await Target.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Null(Policies[0].LastMatched);
@@ -70,7 +72,7 @@ namespace NuGetGallery.Services.Authentication
             public async Task DoesNotSetLastMatchedWhenNoPolicyIsMatched()
             {
                 // Act
-                await Target.GetMatchingPolicyAsync(Policies, "bad token");
+                await Target.GetMatchingPolicyAsync(Policies, "bad token", RequestHeaders);
 
                 // Assert
                 Assert.All(Policies, x => Assert.Null(x.LastMatched));
@@ -90,7 +92,7 @@ namespace NuGetGallery.Services.Authentication
                 Policies.Insert(0, newerPolicy);
 
                 // Act
-                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken);
+                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.MatchedPolicy, evaluation.Type);
@@ -108,7 +110,7 @@ namespace NuGetGallery.Services.Authentication
             public async Task RejectsInvalidTokenFormat()
             {
                 // Act
-                var evaluation = await Target.GetMatchingPolicyAsync(Policies, "bad token");
+                var evaluation = await Target.GetMatchingPolicyAsync(Policies, "bad token", RequestHeaders);
 
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.BadToken, evaluation.Type);
@@ -127,7 +129,7 @@ namespace NuGetGallery.Services.Authentication
                 Claims.Remove(claim);
 
                 // Act
-                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken);
+                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.BadToken, evaluation.Type);
@@ -148,7 +150,7 @@ namespace NuGetGallery.Services.Authentication
                 Claims[claim] = value;
 
                 // Act
-                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken);
+                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.BadToken, evaluation.Type);
@@ -164,11 +166,140 @@ namespace NuGetGallery.Services.Authentication
                 Claims["aud"] = new[] { "nuget.org", "microsoft.com" };
 
                 // Act
-                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken);
+                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.BadToken, evaluation.Type);
                 Assert.Equal("The JSON web token must have exactly one aud claim value.", evaluation.UserError);
+
+                AssertInvalidCredentialAudit();
+            }
+
+            [Fact]
+            public async Task RejectsInvalidBearerTokenWhenAdditionalValidatorPasses()
+            {
+                // Arrange
+                AdditionalValidatorA
+                    .Setup(x => x.ValidateAsync(It.IsAny<NameValueCollection>(), It.IsAny<FederatedCredentialIssuerType>(), It.IsAny<IEnumerable<Claim>>()))
+                    .ReturnsAsync(FederatedCredentialValidation.Valid);
+
+                // Act
+                var evaluation = await Target.GetMatchingPolicyAsync(Policies, "bad token", RequestHeaders);
+
+                // Assert
+                Assert.Equal(EvaluatedFederatedCredentialPoliciesType.BadToken, evaluation.Type);
+                Assert.Equal("The bearer token could not be parsed as a JSON web token.", evaluation.UserError);
+
+                Assert.Single(AdditionalValidatorA.Invocations);
+                Assert.Single(AdditionalValidatorB.Invocations);
+                Assert.Single(Logger.Invocations.Where(x => x.Arguments[0].Equals(LogLevel.Warning)));
+
+                AssertInvalidCredentialAudit();
+            }
+
+            [Fact]
+            public async Task RejectsValidBearerTokenWhenAdditionalValidatorFails()
+            {
+                // Arrange
+                AdditionalValidatorA
+                    .Setup(x => x.ValidateAsync(It.IsAny<NameValueCollection>(), It.IsAny<FederatedCredentialIssuerType>(), It.IsAny<IEnumerable<Claim>>()))
+                    .ReturnsAsync(FederatedCredentialValidation.Unauthorized("Not gonna work bruv"));
+
+                // Act
+                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders);
+
+                // Assert
+                Assert.Equal(EvaluatedFederatedCredentialPoliciesType.BadToken, evaluation.Type);
+                Assert.Equal("Not gonna work bruv", evaluation.UserError);
+
+                Assert.Single(AdditionalValidatorA.Invocations);
+                Assert.Single(AdditionalValidatorB.Invocations);
+                Assert.Single(Logger.Invocations.Where(x => x.Arguments[0].Equals(LogLevel.Warning)));
+
+                AssertInvalidCredentialAudit();
+            }
+
+            [Fact]
+            public async Task RejectsInvalidBearerTokenWhenAdditionalValidatorFails()
+            {
+                // Arrange
+                AdditionalValidatorA
+                    .Setup(x => x.ValidateAsync(It.IsAny<NameValueCollection>(), It.IsAny<FederatedCredentialIssuerType>(), It.IsAny<IEnumerable<Claim>>()))
+                    .ReturnsAsync(FederatedCredentialValidation.Unauthorized("Not gonna work bruv"));
+                AdditionalValidatorB
+                    .Setup(x => x.ValidateAsync(It.IsAny<NameValueCollection>(), It.IsAny<FederatedCredentialIssuerType>(), It.IsAny<IEnumerable<Claim>>()))
+                    .ReturnsAsync(FederatedCredentialValidation.Unauthorized(userError: null));
+
+                // Act
+                var evaluation = await Target.GetMatchingPolicyAsync(Policies, "bad token", RequestHeaders);
+
+                // Assert
+                Assert.Equal(EvaluatedFederatedCredentialPoliciesType.BadToken, evaluation.Type);
+                Assert.Equal("The bearer token could not be parsed as a JSON web token.", evaluation.UserError);
+
+                Assert.Single(AdditionalValidatorA.Invocations);
+                Assert.Single(AdditionalValidatorB.Invocations);
+                Assert.DoesNotContain(Logger.Invocations, x => x.Arguments[0].Equals(LogLevel.Warning));
+
+                AssertInvalidCredentialAudit();
+            }
+
+            [Fact]
+            public async Task UsesFirstNonNullUserErrorFromAdditionalValidators()
+            {
+                // Arrange
+                AdditionalValidatorA
+                    .Setup(x => x.ValidateAsync(It.IsAny<NameValueCollection>(), It.IsAny<FederatedCredentialIssuerType>(), It.IsAny<IEnumerable<Claim>>()))
+                    .ReturnsAsync(FederatedCredentialValidation.Unauthorized(userError: null));
+                AdditionalValidatorB
+                    .Setup(x => x.ValidateAsync(It.IsAny<NameValueCollection>(), It.IsAny<FederatedCredentialIssuerType>(), It.IsAny<IEnumerable<Claim>>()))
+                    .ReturnsAsync(FederatedCredentialValidation.Unauthorized(userError: "Not gonna work bruv"));
+
+                // Act
+                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders);
+
+                // Assert
+                Assert.Equal(EvaluatedFederatedCredentialPoliciesType.BadToken, evaluation.Type);
+                Assert.Equal("Not gonna work bruv", evaluation.UserError);
+
+                AssertInvalidCredentialAudit();
+            }
+
+            [Fact]
+            public async Task PrefersFirstUserErrorFromAdditionalValidators()
+            {
+                // Arrange
+                AdditionalValidatorA
+                    .Setup(x => x.ValidateAsync(It.IsAny<NameValueCollection>(), It.IsAny<FederatedCredentialIssuerType>(), It.IsAny<IEnumerable<Claim>>()))
+                    .ReturnsAsync(FederatedCredentialValidation.Unauthorized(userError: "A"));
+                AdditionalValidatorB
+                    .Setup(x => x.ValidateAsync(It.IsAny<NameValueCollection>(), It.IsAny<FederatedCredentialIssuerType>(), It.IsAny<IEnumerable<Claim>>()))
+                    .ReturnsAsync(FederatedCredentialValidation.Unauthorized(userError: "B"));
+
+                // Act
+                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders);
+
+                // Assert
+                Assert.Equal(EvaluatedFederatedCredentialPoliciesType.BadToken, evaluation.Type);
+                Assert.Equal("A", evaluation.UserError);
+
+                AssertInvalidCredentialAudit();
+            }
+
+            [Fact]
+            public async Task UsesGenericUserErrorWhenAdditionalValidatorFails()
+            {
+                // Arrange
+                AdditionalValidatorA
+                    .Setup(x => x.ValidateAsync(It.IsAny<NameValueCollection>(), It.IsAny<FederatedCredentialIssuerType>(), It.IsAny<IEnumerable<Claim>>()))
+                    .ReturnsAsync(FederatedCredentialValidation.Unauthorized(userError: null));
+
+                // Act
+                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders);
+
+                // Assert
+                Assert.Equal(EvaluatedFederatedCredentialPoliciesType.BadToken, evaluation.Type);
+                Assert.Equal("The request could not be authenticated.", evaluation.UserError);
 
                 AssertInvalidCredentialAudit();
             }
@@ -183,7 +314,7 @@ namespace NuGetGallery.Services.Authentication
                 EntraIdTokenResult.IsValid = false;
 
                 // Act
-                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken);
+                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.BadToken, evaluation.Type);
@@ -203,7 +334,7 @@ namespace NuGetGallery.Services.Authentication
                 EntraIdTokenResult.Exception = (Exception)Activator.CreateInstance(exceptionType);
 
                 // Act
-                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken);
+                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.BadToken, evaluation.Type);
@@ -220,7 +351,7 @@ namespace NuGetGallery.Services.Authentication
                 EntraIdTokenResult.Exception = new InvalidOperationException("I'm sorry, Dave. I'm afraid I can't do that.");
 
                 // Act
-                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken);
+                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.BadToken, evaluation.Type);
@@ -237,7 +368,7 @@ namespace NuGetGallery.Services.Authentication
                 Claims.Remove(claim);
 
                 // Act
-                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken);
+                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.BadToken, evaluation.Type);
@@ -254,7 +385,7 @@ namespace NuGetGallery.Services.Authentication
                 Claims[claim] = value;
 
                 // Act
-                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken);
+                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.BadToken, evaluation.Type);
@@ -278,7 +409,7 @@ namespace NuGetGallery.Services.Authentication
                 Claims.Remove(claim);
 
                 // Act
-                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken);
+                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.NoMatchingPolicy, evaluation.Type);
@@ -294,7 +425,7 @@ namespace NuGetGallery.Services.Authentication
                 Claims["azpacr"] = "1";
 
                 // Act
-                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken);
+                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.NoMatchingPolicy, evaluation.Type);
@@ -310,7 +441,7 @@ namespace NuGetGallery.Services.Authentication
                 Claims["idtyp"] = "app+user";
 
                 // Act
-                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken);
+                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.NoMatchingPolicy, evaluation.Type);
@@ -326,7 +457,7 @@ namespace NuGetGallery.Services.Authentication
                 Claims["ver"] = "1.0";
 
                 // Act
-                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken);
+                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.NoMatchingPolicy, evaluation.Type);
@@ -342,7 +473,7 @@ namespace NuGetGallery.Services.Authentication
                 Claims["sub"] = "my-client";
 
                 // Act
-                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken);
+                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.NoMatchingPolicy, evaluation.Type);
@@ -358,7 +489,7 @@ namespace NuGetGallery.Services.Authentication
                 Claims["tid"] = "d8f0bfc3-5def-4079-b08c-618832b6ae16";
 
                 // Act
-                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken);
+                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.NoMatchingPolicy, evaluation.Type);
@@ -376,7 +507,7 @@ namespace NuGetGallery.Services.Authentication
                     .Returns(() => false);
 
                 // Act
-                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken);
+                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.NoMatchingPolicy, evaluation.Type);
@@ -393,7 +524,7 @@ namespace NuGetGallery.Services.Authentication
                 Claims["sub"] = "d8f0bfc3-5def-4079-b08c-618832b6ae16";
 
                 // Act
-                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken);
+                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.NoMatchingPolicy, evaluation.Type);
@@ -406,7 +537,7 @@ namespace NuGetGallery.Services.Authentication
             public async Task GeneratesCredentialForMatchingPolicy()
             {
                 // Act
-                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken);
+                var evaluation = await Target.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.MatchedPolicy, evaluation.Type);
@@ -434,6 +565,9 @@ namespace NuGetGallery.Services.Authentication
             AuditingService = new Mock<IAuditingService>();
             DateTimeProvider = new Mock<IDateTimeProvider>();
             Logger = new Mock<ILogger<FederatedCredentialPolicyEvaluator>>();
+            AdditionalValidatorA = new Mock<IFederatedCredentialValidator>();
+            AdditionalValidatorB = new Mock<IFederatedCredentialValidator>();
+            AdditionalValidators = new List<Mock<IFederatedCredentialValidator>> { AdditionalValidatorA, AdditionalValidatorB };
 
             TenantId = new Guid("c311b905-19a2-483e-a014-41d0fcdc99cf");
             ObjectId = new Guid("d17083b8-74e0-46c6-b69f-764da2e6fc0e");
@@ -464,6 +598,7 @@ namespace NuGetGallery.Services.Authentication
             EntraIdTokenResult = new TokenValidationResult { IsValid = true };
             UtcNow = new DateTimeOffset(2024, 10, 10, 13, 35, 0, TimeSpan.Zero);
             Expires = new DateTimeOffset(2024, 10, 11, 0, 0, 0, TimeSpan.Zero);
+            RequestHeaders = new NameValueCollection();
 
             EntraIdTokenValidator
                 .Setup(x => x.IsTenantAllowed(TenantId))
@@ -474,18 +609,21 @@ namespace NuGetGallery.Services.Authentication
             DateTimeProvider
                 .Setup(x => x.UtcNow)
                 .Returns(() => UtcNow.UtcDateTime);
-
-            Target = new FederatedCredentialPolicyEvaluator(
-                EntraIdTokenValidator.Object,
-                AuditingService.Object,
-                DateTimeProvider.Object,
-                Logger.Object);
+            AdditionalValidatorA
+                .Setup(x => x.ValidateAsync(It.IsAny<NameValueCollection>(), It.IsAny<FederatedCredentialIssuerType>(), It.IsAny<IEnumerable<Claim>>()))
+                .ReturnsAsync(FederatedCredentialValidation.NotApplicable);
+            AdditionalValidatorB
+                .Setup(x => x.ValidateAsync(It.IsAny<NameValueCollection>(), It.IsAny<FederatedCredentialIssuerType>(), It.IsAny<IEnumerable<Claim>>()))
+                .ReturnsAsync(FederatedCredentialValidation.NotApplicable);
         }
 
         public Mock<IEntraIdTokenValidator> EntraIdTokenValidator { get; }
+        public List<Mock<IFederatedCredentialValidator>> AdditionalValidators { get; }
         public Mock<IAuditingService> AuditingService { get; }
         public Mock<IDateTimeProvider> DateTimeProvider { get; }
         public Mock<ILogger<FederatedCredentialPolicyEvaluator>> Logger { get; }
+        public Mock<IFederatedCredentialValidator> AdditionalValidatorA { get; }
+        public Mock<IFederatedCredentialValidator> AdditionalValidatorB { get; }
         public Guid TenantId { get; }
         public Guid ObjectId { get; }
         public Dictionary<string, object> Claims { get; }
@@ -493,10 +631,16 @@ namespace NuGetGallery.Services.Authentication
         public TokenValidationResult EntraIdTokenResult { get; }
         public DateTimeOffset UtcNow { get; }
         public DateTimeOffset Expires { get; }
+        public NameValueCollection RequestHeaders { get; }
 
         public string BearerToken => new JsonWebTokenHandler().CreateToken(new SecurityTokenDescriptor { Claims = Claims, Expires = Expires.UtcDateTime });
 
-        public FederatedCredentialPolicyEvaluator Target { get; }
+        public FederatedCredentialPolicyEvaluator Target => new FederatedCredentialPolicyEvaluator(
+            EntraIdTokenValidator.Object,
+            AdditionalValidators.Select(x => x.Object).ToList(),
+            AuditingService.Object,
+            DateTimeProvider.Object,
+            Logger.Object);
 
         protected List<AuditRecord> AssertAuditResourceTypes(params string[] resourceTypeOrder)
         {

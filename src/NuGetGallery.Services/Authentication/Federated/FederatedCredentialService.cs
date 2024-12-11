@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Specialized;
 using System.Data;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -22,8 +23,9 @@ namespace NuGetGallery.Services.Authentication
         /// </summary>
         /// <param name="username">The username of the user account that owns the federated credential policy.</param>
         /// <param name="bearerToken">The bearer token to use for federated credential evaluation.</param>
+        /// <param name="requestHeaders">The HTTP headers used for the request. This provides full context needed for additional request validation.</param>
         /// <returns>The result, successful if <see cref="GenerateApiKeyResult.Type"/> is <see cref="GenerateApiKeyResultType.Created"/>.</returns>
-        Task<GenerateApiKeyResult> GenerateApiKeyAsync(string username, string bearerToken);
+        Task<GenerateApiKeyResult> GenerateApiKeyAsync(string username, string bearerToken, NameValueCollection requestHeaders);
 
         /// <summary>
         /// Adds a new federated credential policy for an Entra ID service principal. The policy will be owned by the user account
@@ -138,7 +140,7 @@ namespace NuGetGallery.Services.Authentication
             await _auditingService.SaveAuditRecordAsync(auditRecord);
         }
 
-        public async Task<GenerateApiKeyResult> GenerateApiKeyAsync(string username, string bearerToken)
+        public async Task<GenerateApiKeyResult> GenerateApiKeyAsync(string username, string bearerToken, NameValueCollection requestHeaders)
         {
             var currentUser = _userService.FindByUsername(username, includeDeleted: false);
             if (currentUser is null)
@@ -147,7 +149,7 @@ namespace NuGetGallery.Services.Authentication
             }
 
             var policies = _repository.GetPoliciesCreatedByUser(currentUser.Key);
-            var policyEvaluation = await _evaluator.GetMatchingPolicyAsync(policies, bearerToken);
+            var policyEvaluation = await _evaluator.GetMatchingPolicyAsync(policies, bearerToken, requestHeaders);
             switch (policyEvaluation.Type)
             {
                 case EvaluatedFederatedCredentialPoliciesType.BadToken:
