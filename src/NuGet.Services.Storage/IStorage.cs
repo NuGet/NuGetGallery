@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -20,6 +20,8 @@ namespace NuGet.Services.Storage
         Uri ResolveUri(string relativeUri);
         IEnumerable<StorageListItem> List(bool getMetadata);
         Task<IEnumerable<StorageListItem>> ListAsync(bool getMetadata, CancellationToken cancellationToken);
+        Task<IEnumerable<StorageListItem>> ListTopLevelAsync(bool getMetadata, CancellationToken cancellationToken);
+
         Task CopyAsync(
             Uri sourceUri,
             IStorage destinationStorage,
