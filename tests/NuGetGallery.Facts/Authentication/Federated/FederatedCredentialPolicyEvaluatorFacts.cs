@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -10,6 +11,7 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Moq;
 using NuGet.Services.Entities;
+using NuGetGallery.Auditing;
 using Xunit;
 
 #nullable enable
@@ -29,6 +31,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.NoMatchingPolicy, evaluation.Type);
                 Assert.Empty(evaluation.Results);
+
+                AssertNoPoliciesCredentialAudit();
             }
 
             [Fact]
@@ -45,6 +49,8 @@ namespace NuGetGallery.Services.Authentication
                 var result = Assert.Single(evaluation.Results);
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
                 Assert.Equal("The policy type does not match the token issuer.", result.InternalReason);
+
+                AssertValidCredentialAudits(matchedPolicy: false);
             }
 
             /// <summary>
@@ -94,6 +100,8 @@ namespace NuGetGallery.Services.Authentication
                 Assert.Equal(FederatedCredentialPolicyResultType.Success, result.Type);
                 Assert.Same(evaluation.MatchedPolicy, result.Policy);
                 Assert.Same(evaluation.FederatedCredential, result.FederatedCredential);
+
+                AssertValidCredentialAudits(matchedPolicy: true);
             }
 
             [Fact]
@@ -105,6 +113,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.BadToken, evaluation.Type);
                 Assert.Equal("The bearer token could not be parsed as a JSON web token.", evaluation.UserError);
+
+                AssertInvalidCredentialAudit();
             }
 
 
@@ -122,6 +132,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.BadToken, evaluation.Type);
                 Assert.Equal(userError, evaluation.UserError);
+
+                AssertInvalidCredentialAudit();
             }
 
             [Theory]
@@ -141,6 +153,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.BadToken, evaluation.Type);
                 Assert.Equal(userError, evaluation.UserError);
+
+                AssertInvalidCredentialAudit();
             }
 
             [Fact]
@@ -155,6 +169,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.BadToken, evaluation.Type);
                 Assert.Equal("The JSON web token must have exactly one aud claim value.", evaluation.UserError);
+
+                AssertInvalidCredentialAudit();
             }
         }
 
@@ -172,6 +188,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.BadToken, evaluation.Type);
                 Assert.Equal("The JSON web token could not be validated.", evaluation.UserError);
+
+                AssertInvalidCredentialAudit();
             }
 
             [Theory]
@@ -190,6 +208,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.BadToken, evaluation.Type);
                 Assert.Equal(userError, evaluation.UserError);
+
+                AssertInvalidCredentialAudit();
             }
 
             [Fact]
@@ -205,6 +225,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.BadToken, evaluation.Type);
                 Assert.Equal("The JSON web token could not be validated.", evaluation.UserError);
+
+                AssertInvalidCredentialAudit();
             }
 
             [Theory]
@@ -220,6 +242,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.BadToken, evaluation.Type);
                 Assert.Equal(userError, evaluation.UserError);
+
+                AssertInvalidCredentialAudit();
             }
 
             [Theory]
@@ -235,6 +259,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.BadToken, evaluation.Type);
                 Assert.Equal(userError, evaluation.UserError);
+
+                AssertInvalidCredentialAudit();
             }
         }
 
@@ -257,6 +283,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.NoMatchingPolicy, evaluation.Type);
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, Assert.Single(evaluation.Results).Type);
+
+                AssertValidCredentialAudits(matchedPolicy: false);
             }
 
             [Fact]
@@ -271,6 +299,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.NoMatchingPolicy, evaluation.Type);
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, Assert.Single(evaluation.Results).Type);
+
+                AssertValidCredentialAudits(matchedPolicy: false);
             }
 
             [Fact]
@@ -285,6 +315,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.NoMatchingPolicy, evaluation.Type);
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, Assert.Single(evaluation.Results).Type);
+
+                AssertValidCredentialAudits(matchedPolicy: false);
             }
 
             [Fact]
@@ -299,6 +331,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.NoMatchingPolicy, evaluation.Type);
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, Assert.Single(evaluation.Results).Type);
+
+                AssertValidCredentialAudits(matchedPolicy: false);
             }
 
             [Fact]
@@ -313,6 +347,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.NoMatchingPolicy, evaluation.Type);
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, Assert.Single(evaluation.Results).Type);
+
+                AssertValidCredentialAudits(matchedPolicy: false);
             }
 
             [Fact]
@@ -327,6 +363,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.NoMatchingPolicy, evaluation.Type);
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, Assert.Single(evaluation.Results).Type);
+
+                AssertValidCredentialAudits(matchedPolicy: false);
             }
 
             [Fact]
@@ -343,6 +381,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.NoMatchingPolicy, evaluation.Type);
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, Assert.Single(evaluation.Results).Type);
+
+                AssertValidCredentialAudits(matchedPolicy: false);
             }
 
             [Fact]
@@ -358,6 +398,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(EvaluatedFederatedCredentialPoliciesType.NoMatchingPolicy, evaluation.Type);
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, Assert.Single(evaluation.Results).Type);
+
+                AssertValidCredentialAudits(matchedPolicy: false);
             }
 
             [Fact]
@@ -381,12 +423,15 @@ namespace NuGetGallery.Services.Authentication
                 Assert.Equal(FederatedCredentialType.EntraIdServicePrincipal, evaluation.FederatedCredential.Type);
                 Assert.Equal(UtcNow, evaluation.FederatedCredential.Created);
                 Assert.Equal(Expires, evaluation.FederatedCredential.Expires);
+
+                AssertValidCredentialAudits(matchedPolicy: true);
             }
         }
 
         public FederatedCredentialPolicyEvaluatorFacts()
         {
             EntraIdTokenValidator = new Mock<IEntraIdTokenValidator>();
+            AuditingService = new Mock<IAuditingService>();
             DateTimeProvider = new Mock<IDateTimeProvider>();
             Logger = new Mock<ILogger<FederatedCredentialPolicyEvaluator>>();
 
@@ -412,6 +457,8 @@ namespace NuGetGallery.Services.Authentication
                     Type = FederatedCredentialType.EntraIdServicePrincipal,
                     Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId)),
                     Created = new DateTime(2024, 9, 10, 11, 12, 13, DateTimeKind.Utc),
+                    CreatedBy = new User { Username = "creator" },
+                    PackageOwner = new User { Username = "owner" },
                 }
             };
             EntraIdTokenResult = new TokenValidationResult { IsValid = true };
@@ -430,11 +477,13 @@ namespace NuGetGallery.Services.Authentication
 
             Target = new FederatedCredentialPolicyEvaluator(
                 EntraIdTokenValidator.Object,
+                AuditingService.Object,
                 DateTimeProvider.Object,
                 Logger.Object);
         }
 
         public Mock<IEntraIdTokenValidator> EntraIdTokenValidator { get; }
+        public Mock<IAuditingService> AuditingService { get; }
         public Mock<IDateTimeProvider> DateTimeProvider { get; }
         public Mock<ILogger<FederatedCredentialPolicyEvaluator>> Logger { get; }
         public Guid TenantId { get; }
@@ -448,5 +497,41 @@ namespace NuGetGallery.Services.Authentication
         public string BearerToken => new JsonWebTokenHandler().CreateToken(new SecurityTokenDescriptor { Claims = Claims, Expires = Expires.UtcDateTime });
 
         public FederatedCredentialPolicyEvaluator Target { get; }
+
+        protected List<AuditRecord> AssertAuditResourceTypes(params string[] resourceTypeOrder)
+        {
+            var records = AuditingService
+                .Invocations
+                .Where(x => x.Method.Name == nameof(IAuditingService.SaveAuditRecordAsync))
+                .Select(x => x.Arguments[0])
+                .Cast<AuditRecord>()
+                .ToList();
+            Assert.Equal(resourceTypeOrder, records.Select(x => x.GetResourceType()).ToArray());
+            return records;
+        }
+
+        private void AssertNoPoliciesCredentialAudit()
+        {
+            var audits = AssertAuditResourceTypes(ExternalSecurityTokenAuditRecord.ResourceType);
+            var tokenAudit = Assert.IsType<ExternalSecurityTokenAuditRecord>(audits[0]);
+            Assert.Equal(AuditedExternalSecurityTokenAction.Validated, tokenAudit.Action);
+        }
+
+        private void AssertInvalidCredentialAudit()
+        {
+            var audits = AssertAuditResourceTypes(ExternalSecurityTokenAuditRecord.ResourceType);
+            var tokenAudit = Assert.IsType<ExternalSecurityTokenAuditRecord>(audits[0]);
+            Assert.Equal(AuditedExternalSecurityTokenAction.Rejected, tokenAudit.Action);
+        }
+
+        private void AssertValidCredentialAudits(bool matchedPolicy)
+        {
+            var audits = AssertAuditResourceTypes(ExternalSecurityTokenAuditRecord.ResourceType, FederatedCredentialPolicyAuditRecord.ResourceType);
+            var tokenAudit = Assert.IsType<ExternalSecurityTokenAuditRecord>(audits[0]);
+            Assert.Equal(AuditedExternalSecurityTokenAction.Validated, tokenAudit.Action);
+            var policyAudit = Assert.IsType<FederatedCredentialPolicyAuditRecord>(audits[1]);
+            Assert.Equal(AuditedFederatedCredentialPolicyAction.Compare, policyAudit.Action);
+            Assert.Equal(matchedPolicy, policyAudit.Success);
+        }
     }
 }
