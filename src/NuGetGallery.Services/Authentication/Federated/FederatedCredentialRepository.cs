@@ -18,6 +18,8 @@ namespace NuGetGallery.Services.Authentication
         Task SaveFederatedCredentialAsync(FederatedCredential federatedCredential, bool saveChanges);
         IReadOnlyList<FederatedCredentialPolicy> GetPoliciesCreatedByUser(int userKey);
         FederatedCredentialPolicy? GetPolicyByKey(int policyKey);
+        IReadOnlyList<Credential> GetShortLivedApiKeysForPolicy(int policyKey);
+        IReadOnlyList<FederatedCredentialPolicy> GetPoliciesRelatedToUserKeys(IReadOnlyList<int> userKeys);
         Task DeletePolicyAsync(FederatedCredentialPolicy policy, bool saveChanges);
     }
 
@@ -25,13 +27,16 @@ namespace NuGetGallery.Services.Authentication
     {
         private readonly IEntityRepository<FederatedCredentialPolicy> _policyRepository;
         private readonly IEntityRepository<FederatedCredential> _federatedCredentialRepository;
+        private readonly IEntityRepository<Credential> _credentialRepository;
 
         public FederatedCredentialRepository(
             IEntityRepository<FederatedCredentialPolicy> policyRepository,
-            IEntityRepository<FederatedCredential> federatedCredentialRepository)
+            IEntityRepository<FederatedCredential> federatedCredentialRepository,
+            IEntityRepository<Credential> credentialRepository)
         {
             _policyRepository = policyRepository;
             _federatedCredentialRepository = federatedCredentialRepository;
+            _credentialRepository = credentialRepository;
         }
 
         public IReadOnlyList<FederatedCredentialPolicy> GetPoliciesCreatedByUser(int userKey)
@@ -49,6 +54,28 @@ namespace NuGetGallery.Services.Authentication
                 .Where(p => p.Key == policyKey)
                 .Include(p => p.CreatedBy)
                 .FirstOrDefault();
+        }
+
+        public IReadOnlyList<Credential> GetShortLivedApiKeysForPolicy(int policyKey)
+        {
+            // TODO: introduce a new API key type for short-lived API keys
+            // Tracking: https://github.com/NuGet/NuGetGallery/issues/10212
+
+            return _credentialRepository
+                .GetAll()
+                .Where(c => c.FederatedCredentialPolicyKey == policyKey)
+                .Where(c => c.Type == CredentialTypes.ApiKey.V4)
+                .ToList();
+        }
+
+        public IReadOnlyList<FederatedCredentialPolicy> GetPoliciesRelatedToUserKeys(IReadOnlyList<int> userKeys)
+        {
+            return _policyRepository
+                .GetAll()
+                .Where(x => userKeys.Contains(x.CreatedByUserKey) || userKeys.Contains(x.PackageOwnerUserKey))
+                .Include(x => x.CreatedBy)
+                .Include(x => x.PackageOwner)
+                .ToList();
         }
 
         public async Task SaveFederatedCredentialAsync(FederatedCredential federatedCredential, bool saveChanges)
