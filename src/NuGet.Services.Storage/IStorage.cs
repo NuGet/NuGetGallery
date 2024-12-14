@@ -20,6 +20,12 @@ namespace NuGet.Services.Storage
         Uri ResolveUri(string relativeUri);
         IEnumerable<StorageListItem> List(bool getMetadata);
         Task<IEnumerable<StorageListItem>> ListAsync(bool getMetadata, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Lists the top-level items in the storage.
+        /// Unlike <see cref="ListAsync(bool, CancellationToken)"/>, this method uses a delimiter to comply with new SDK requirements.
+        /// Without the trailing slash, the method would return an extra entry for the path itself.
+        /// </summary>
         Task<IEnumerable<StorageListItem>> ListTopLevelAsync(bool getMetadata, CancellationToken cancellationToken);
 
         Task CopyAsync(
