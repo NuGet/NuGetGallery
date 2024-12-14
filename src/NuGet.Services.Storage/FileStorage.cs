@@ -57,8 +57,10 @@ namespace NuGet.Services.Storage
             return Task.FromResult<IEnumerable<StorageListItem>>(List(getMetadata));
         }
 
-        public override Task<IEnumerable<StorageListItem>> ListTopLevelAsync(bool getMetadata, CancellationToken cancellationToken) =>
-            ListTopLevelAsync(getMetadata, cancellationToken);
+        public override Task<IEnumerable<StorageListItem>> ListTopLevelAsync(bool getMetadata, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
         
         public string Path
         { 
