@@ -112,7 +112,7 @@ namespace NuGet.Services.Storage
         }
 
         public override async Task<IEnumerable<StorageListItem>> ListTopLevelAsync(bool getMetadata, CancellationToken cancellationToken) =>
-             await ListTopLevelAsync(getMetadata, cancellationToken);
+             await _primaryStorage.ListTopLevelAsync(getMetadata, cancellationToken);
 
         public override Task SetMetadataAsync(Uri resourceUri, IDictionary<string, string> metadata)
         {
