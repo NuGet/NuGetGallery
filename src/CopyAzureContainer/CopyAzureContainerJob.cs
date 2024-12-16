@@ -28,6 +28,7 @@ namespace CopyAzureContainer
         private const string AzCopyPath = @"tools\azcopy\azCopy.exe";
         private readonly int DefaultBackupDays = -1;
         private string _managedIdentityClientId;
+        private bool _storageUseManagedIdentity;
         private string _destStorageAccountName;
         private string _destStorageKeyValue;
         private string _destStorageSasValue;
@@ -48,8 +49,8 @@ namespace CopyAzureContainer
 
             var configuration = _serviceProvider.GetRequiredService<IConfiguration>();
             _managedIdentityClientId = configuration.GetValue<string>(Constants.ManagedIdentityClientIdKey);
-            var storageUseManagedIdentity = configuration.GetValue<bool>(Constants.StorageUseManagedIdentityPropertyName);
-            if (!storageUseManagedIdentity && string.IsNullOrEmpty(_destStorageKeyValue) && string.IsNullOrEmpty(_destStorageSasValue))
+            _storageUseManagedIdentity = configuration.GetValue<bool>(Constants.StorageUseManagedIdentityPropertyName);
+            if (!_storageUseManagedIdentity && string.IsNullOrEmpty(_destStorageKeyValue) && string.IsNullOrEmpty(_destStorageSasValue))
             {
                 throw new ArgumentException($"One of {nameof(jobConfiguration.DestStorageKeyValue)} or {nameof(jobConfiguration.DestStorageSasValue)} should be defined.");
             }
@@ -200,10 +201,8 @@ namespace CopyAzureContainer
         private BlobServiceClient GetBlobServiceClient(string storageAccountName, string storageAccountKey, string storageSasToken)
         {
             var serviceUri = new Uri($"https://{storageAccountName}.blob.core.windows.net/");
-            var isStorageSasTokenNullOrEmpty = string.IsNullOrEmpty(storageSasToken);
-            var isStorageKeyTokenNullOrEmpty = string.IsNullOrEmpty(storageAccountKey);
-
-            if (isStorageSasTokenNullOrEmpty && isStorageSasTokenNullOrEmpty)
+            
+            if (_storageUseManagedIdentity)
             {
                 DefaultAzureCredential msiCredential = new DefaultAzureCredential(
                     new DefaultAzureCredentialOptions
@@ -214,7 +213,7 @@ namespace CopyAzureContainer
 
                 return new BlobServiceClient(serviceUri, msiCredential);
             }
-            else if (!isStorageSasTokenNullOrEmpty)
+            else if (string.IsNullOrEmpty(storageAccountKey))
             {
                 var sasCredential = new AzureSasCredential(storageSasToken);
                 return new BlobServiceClient(serviceUri, sasCredential);
