@@ -13,14 +13,12 @@ using Azure;
 using Azure.Identity;
 using Azure.Storage;
 using Azure.Storage.Blobs;
-using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs;
-using NuGet.Services.Storage;
-using NuGetGallery;
+using NuGet.Services.Configuration;
 
 namespace CopyAzureContainer
 {
@@ -29,6 +27,7 @@ namespace CopyAzureContainer
         private const string SectionName = "CopyAzureContainer";
         private const string AzCopyPath = @"tools\azcopy\azCopy.exe";
         private readonly int DefaultBackupDays = -1;
+        private string _managedIdentityClientId;
         private string _destStorageAccountName;
         private string _destStorageKeyValue;
         private string _destStorageSasValue;
@@ -40,19 +39,22 @@ namespace CopyAzureContainer
         {
             base.Init(serviceContainer, jobArgsDictionary);
 
-            var configuration = _serviceProvider.GetRequiredService<IOptionsSnapshot<CopyAzureContainerConfiguration>>().Value;
+            var jobConfiguration = _serviceProvider.GetRequiredService<IOptionsSnapshot<CopyAzureContainerConfiguration>>().Value;
 
-            _backupDays = configuration.BackupDays ?? DefaultBackupDays;
-            _destStorageAccountName = configuration.DestStorageAccountName ?? throw new InvalidOperationException(nameof(configuration.DestStorageAccountName) + " is required.");
-            _destStorageKeyValue = configuration.DestStorageKeyValue;
-            _destStorageSasValue = configuration.DestStorageSasValue;
+            _backupDays = jobConfiguration.BackupDays ?? DefaultBackupDays;
+            _destStorageAccountName = jobConfiguration.DestStorageAccountName ?? throw new InvalidOperationException(nameof(jobConfiguration.DestStorageAccountName) + " is required.");
+            _destStorageKeyValue = jobConfiguration.DestStorageKeyValue;
+            _destStorageSasValue = jobConfiguration.DestStorageSasValue;
 
-            if (string.IsNullOrEmpty(_destStorageKeyValue) && string.IsNullOrEmpty(_destStorageSasValue))
+            var configuration = _serviceProvider.GetRequiredService<IConfiguration>();
+            _managedIdentityClientId = configuration.GetValue<string>(Constants.ManagedIdentityClientIdKey);
+            var storageUseManagedIdentity = configuration.GetValue<bool>(Constants.StorageUseManagedIdentityPropertyName);
+            if (!storageUseManagedIdentity && string.IsNullOrEmpty(_destStorageKeyValue) && string.IsNullOrEmpty(_destStorageSasValue))
             {
-                throw new ArgumentException($"One of {nameof(configuration.DestStorageKeyValue)} or {nameof(configuration.DestStorageSasValue)} should be defined.");
+                throw new ArgumentException($"One of {nameof(jobConfiguration.DestStorageKeyValue)} or {nameof(jobConfiguration.DestStorageSasValue)} should be defined.");
             }
 
-            _sourceContainers = configuration.SourceContainers ?? throw new InvalidOperationException(nameof(configuration.SourceContainers) + " is required.");
+            _sourceContainers = jobConfiguration.SourceContainers ?? throw new InvalidOperationException(nameof(jobConfiguration.SourceContainers) + " is required.");
         }
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
@@ -206,9 +208,9 @@ namespace CopyAzureContainer
                 DefaultAzureCredential msiCredential = new DefaultAzureCredential(
                     new DefaultAzureCredentialOptions
                     {
-                        ManagedIdentityClientId = null
+                        ManagedIdentityClientId = _managedIdentityClientId
                     }
-                    );
+                );
 
                 return new BlobServiceClient(serviceUri, msiCredential);
             }
