@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,13 +20,11 @@ namespace NuGet.Services.Storage
         Uri BaseAddress { get; }
         Uri ResolveUri(string relativeUri);
         IEnumerable<StorageListItem> List(bool getMetadata);
+
+        //Lists all children of the storage(including the ones contained in subdirectories).
         Task<IEnumerable<StorageListItem>> ListAsync(bool getMetadata, CancellationToken cancellationToken);
 
-        /// <summary>
-        /// Lists the top-level items in the storage.
-        /// Unlike <see cref="ListAsync(bool, CancellationToken)"/>, this method uses a delimiter to comply with new SDK requirements.
-        /// Without the trailing slash, the method would return an extra entry for the path itself.
-        /// </summary>
+        //Lists immediate children of the storage assuming directory-like structure
         Task<IEnumerable<StorageListItem>> ListTopLevelAsync(bool getMetadata, CancellationToken cancellationToken);
 
         Task CopyAsync(
