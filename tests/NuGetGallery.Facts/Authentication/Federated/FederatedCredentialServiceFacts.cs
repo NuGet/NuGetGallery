@@ -5,10 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity.Infrastructure;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
+using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
 using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
@@ -33,6 +35,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(AddFederatedCredentialPolicyResultType.BadRequest, result.Type);
                 Assert.StartsWith($"Policy user '{CurrentUser.Username}' is an organization.", result.UserMessage);
+
+                AssertNoAudits();
             }
 
             [Fact]
@@ -47,6 +51,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(AddFederatedCredentialPolicyResultType.BadRequest, result.Type);
                 Assert.StartsWith($"The user '{CurrentUser.Username}' does not have the required permissions", result.UserMessage);
+
+                AssertNoAudits();
             }
 
             [Fact]
@@ -61,6 +67,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(AddFederatedCredentialPolicyResultType.BadRequest, result.Type);
                 Assert.StartsWith($"The package owner '{PackageOwner.Username}' is not enabled to use federated credentials.", result.UserMessage);
+
+                AssertNoAudits();
             }
 
             [Fact]
@@ -77,6 +85,8 @@ namespace NuGetGallery.Services.Authentication
                 Assert.StartsWith($"The Entra ID tenant '{EntraIdServicePrincipalCriteria.TenantId}' is not in the allow list.", result.UserMessage);
 
                 Assert.Empty(FederatedCredentialRepository.Invocations);
+
+                AssertNoAudits();
             }
 
             [Fact]
@@ -108,6 +118,15 @@ namespace NuGetGallery.Services.Authentication
                 Assert.Equal(NuGetScopes.All, scope.AllowedAction);
                 Assert.Equal(NuGetPackagePattern.AllInclusivePattern, scope.Subject);
                 Assert.Same(PackageOwner, scope.Owner);
+
+                AssertCreateAudit();
+            }
+
+            private void AssertCreateAudit()
+            {
+                var audits = AssertAuditResourceTypes(FederatedCredentialPolicyAuditRecord.ResourceType);
+                var policyAudit = Assert.IsType<FederatedCredentialPolicyAuditRecord>(audits[0]);
+                Assert.Equal(AuditedFederatedCredentialPolicyAction.Create, policyAudit.Action);
             }
         }
 
@@ -122,6 +141,15 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 AuthenticationService.Verify(x => x.RemoveCredential(Policies[0].CreatedBy, Credential, false), Times.Once);
                 FederatedCredentialRepository.Verify(x => x.DeletePolicyAsync(Policies[0], true), Times.Once);
+
+                AssertDeleteAudit();
+            }
+
+            private void AssertDeleteAudit()
+            {
+                var audits = AssertAuditResourceTypes(FederatedCredentialPolicyAuditRecord.ResourceType);
+                var policyAudit = Assert.IsType<FederatedCredentialPolicyAuditRecord>(audits[0]);
+                Assert.Equal(AuditedFederatedCredentialPolicyAction.Delete, policyAudit.Action);
             }
         }
 
@@ -136,6 +164,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.Unauthorized, result.Type);
                 Assert.Equal("No matching federated credential trust policy owned by user 'someone else' was found.", result.UserMessage);
+
+                AssertNoAudits();
             }
 
             [Fact]
@@ -152,6 +182,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.Unauthorized, result.Type);
                 Assert.Equal("No matching federated credential trust policy owned by user 'jim' was found.", result.UserMessage);
+
+                AssertNoAudits();
             }
 
             [Fact]
@@ -168,6 +200,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.Unauthorized, result.Type);
                 Assert.Equal("That token is missing a thing or two.", result.UserMessage);
+
+                AssertNoAudits();
             }
 
             [Fact]
@@ -182,6 +216,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.BadRequest, result.Type);
                 Assert.StartsWith("Generating fetching tokens directly for organizations is not supported.", result.UserMessage);
+
+                AssertNoAudits();
             }
 
             [Fact]
@@ -196,6 +232,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.BadRequest, result.Type);
                 Assert.Equal("The user 'jim' is deleted.", result.UserMessage);
+
+                AssertNoAudits();
             }
 
             [Fact]
@@ -210,6 +248,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.BadRequest, result.Type);
                 Assert.Equal("The user 'jim' is locked.", result.UserMessage);
+
+                AssertNoAudits();
             }
 
             [Fact]
@@ -224,6 +264,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.BadRequest, result.Type);
                 Assert.Equal("The user 'jim' does not have a confirmed email address.", result.UserMessage);
+
+                AssertNoAudits();
             }
 
             [Fact]
@@ -238,6 +280,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.BadRequest, result.Type);
                 Assert.Equal("The package owner of the match federated credential trust policy not longer exists.", result.UserMessage);
+
+                AssertNoAudits();
             }
 
             [Fact]
@@ -252,6 +296,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.BadRequest, result.Type);
                 Assert.Equal("The organization 'jim-org' is deleted.", result.UserMessage);
+
+                AssertNoAudits();
             }
 
             [Fact]
@@ -266,6 +312,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.BadRequest, result.Type);
                 Assert.Equal("The organization 'jim-org' is locked.", result.UserMessage);
+
+                AssertNoAudits();
             }
 
             [Fact]
@@ -280,6 +328,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.BadRequest, result.Type);
                 Assert.Equal("The organization 'jim-org' is locked.", result.UserMessage);
+
+                AssertNoAudits();
             }
 
             [Fact]
@@ -294,6 +344,8 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.BadRequest, result.Type);
                 Assert.Equal("The package owner 'jim-org' is not enabled to use federated credentials.", result.UserMessage);
+
+                AssertNoAudits();
             }
 
             [Fact]
@@ -311,6 +363,8 @@ namespace NuGetGallery.Services.Authentication
                 CredentialBuilder.Verify(x => x.VerifyScopes(CurrentUser, Credential.Scopes), Times.Once);
 
                 Assert.Null(Evaluation.MatchedPolicy.LastMatched);
+
+                AssertNoAudits();
             }
 
             /// <summary>
@@ -338,6 +392,8 @@ namespace NuGetGallery.Services.Authentication
                 FederatedCredentialRepository.Verify(x => x.SaveFederatedCredentialAsync(Evaluation.FederatedCredential, false), Times.Once);
 
                 Assert.Equal(new DateTime(2024, 10, 12, 12, 30, 0, DateTimeKind.Utc), Evaluation.MatchedPolicy.LastMatched);
+
+                AssertRejectReplayAudit();
             }
 
             [Fact]
@@ -352,6 +408,8 @@ namespace NuGetGallery.Services.Authentication
                 // Act
                 var actual = await Assert.ThrowsAsync<DbUpdateException>(() => Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken));
                 Assert.Same(actual, exception);
+
+                AssertNoAudits();
             }
 
             [Fact]
@@ -376,6 +434,15 @@ namespace NuGetGallery.Services.Authentication
                 CredentialBuilder.Verify(x => x.VerifyScopes(CurrentUser, Credential.Scopes), Times.Once);
                 FederatedCredentialRepository.Verify(x => x.SaveFederatedCredentialAsync(Evaluation.FederatedCredential, false), Times.Once);
                 AuthenticationService.Verify(x => x.AddCredential(CurrentUser, Credential), Times.Once);
+
+                AssertExchangeForApiKeyAudit();
+            }
+
+            private void AssertExchangeForApiKeyAudit()
+            {
+                var audits = AssertAuditResourceTypes(FederatedCredentialPolicyAuditRecord.ResourceType);
+                var policyAudit = Assert.IsType<FederatedCredentialPolicyAuditRecord>(audits[0]);
+                Assert.Equal(AuditedFederatedCredentialPolicyAction.ExchangeForApiKey, policyAudit.Action);
             }
         }
 
@@ -387,6 +454,7 @@ namespace NuGetGallery.Services.Authentication
             EntraIdTokenValidator = new Mock<IEntraIdTokenValidator>();
             CredentialBuilder = new Mock<ICredentialBuilder>();
             AuthenticationService = new Mock<IAuthenticationService>();
+            AuditingService = new Mock<IAuditingService>();
             FeatureFlagService = new Mock<IFeatureFlagService>();
             DateTimeProvider = new Mock<IDateTimeProvider>();
             Configuration = new Mock<IFederatedCredentialConfiguration>();
@@ -400,7 +468,7 @@ namespace NuGetGallery.Services.Authentication
             };
             Evaluation = EvaluatedFederatedCredentialPolicies.NewMatchedPolicy(
                 results: [],
-                matchedPolicy: new FederatedCredentialPolicy { PackageOwnerUserKey = PackageOwner.Key },
+                matchedPolicy: Policies[0],
                 federatedCredential: new FederatedCredential());
             PlaintextApiKey = null;
             Credential = new Credential { Scopes = [], Expires = new DateTime(2024, 10, 11, 9, 30, 0, DateTimeKind.Utc) };
@@ -434,6 +502,7 @@ namespace NuGetGallery.Services.Authentication
                 EntraIdTokenValidator.Object,
                 CredentialBuilder.Object,
                 AuthenticationService.Object,
+                AuditingService.Object,
                 DateTimeProvider.Object,
                 FeatureFlagService.Object,
                 Configuration.Object);
@@ -447,6 +516,7 @@ namespace NuGetGallery.Services.Authentication
         public Mock<IEntraIdTokenValidator> EntraIdTokenValidator { get; }
         public Mock<ICredentialBuilder> CredentialBuilder { get; }
         public Mock<IAuthenticationService> AuthenticationService { get; }
+        public Mock<IAuditingService> AuditingService { get; }
         public Mock<IFeatureFlagService> FeatureFlagService { get; }
         public Mock<IDateTimeProvider> DateTimeProvider { get; }
         public Mock<IFederatedCredentialConfiguration> Configuration { get; }
@@ -459,6 +529,30 @@ namespace NuGetGallery.Services.Authentication
         public Credential Credential { get; }
         public EntraIdServicePrincipalCriteria EntraIdServicePrincipalCriteria { get; }
         public FederatedCredentialService Target { get; }
+
+        protected List<AuditRecord> AssertAuditResourceTypes(params string[] resourceTypeOrder)
+        {
+            var records = AuditingService
+                .Invocations
+                .Where(x => x.Method.Name == nameof(IAuditingService.SaveAuditRecordAsync))
+                .Select(x => x.Arguments[0])
+                .Cast<AuditRecord>()
+                .ToList();
+            Assert.Equal(resourceTypeOrder, records.Select(x => x.GetResourceType()).ToArray());
+            return records;
+        }
+
+        protected void AssertNoAudits()
+        {
+            AuditingService.Verify(x => x.SaveAuditRecordAsync(It.IsAny<AuditRecord>()), Times.Never);
+        }
+
+        private void AssertRejectReplayAudit()
+        {
+            var audits = AssertAuditResourceTypes(FederatedCredentialPolicyAuditRecord.ResourceType);
+            var policyAudit = Assert.IsType<FederatedCredentialPolicyAuditRecord>(audits[0]);
+            Assert.Equal(AuditedFederatedCredentialPolicyAction.RejectReplay, policyAudit.Action);
+        }
 
         public static SqlException GetSqlException(int sqlErrorCode)
         {

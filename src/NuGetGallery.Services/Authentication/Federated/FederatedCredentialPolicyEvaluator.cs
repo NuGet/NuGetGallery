@@ -11,6 +11,7 @@ using Microsoft.Identity.Web;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using NuGet.Services.Entities;
+using NuGetGallery.Auditing;
 
 #nullable enable
 
@@ -24,15 +25,18 @@ namespace NuGetGallery.Services.Authentication
     public class FederatedCredentialPolicyEvaluator : IFederatedCredentialPolicyEvaluator
     {
         private readonly IEntraIdTokenValidator _entraIdTokenValidator;
+        private readonly IAuditingService _auditingService;
         private readonly IDateTimeProvider _dateTimeProvider;
         private readonly ILogger<FederatedCredentialPolicyEvaluator> _logger;
 
         public FederatedCredentialPolicyEvaluator(
             IEntraIdTokenValidator entraIdTokenValidator,
+            IAuditingService auditingService,
             IDateTimeProvider dateTimeProvider,
             ILogger<FederatedCredentialPolicyEvaluator> logger)
         {
             _entraIdTokenValidator = entraIdTokenValidator ?? throw new ArgumentNullException(nameof(entraIdTokenValidator));
+            _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
             _dateTimeProvider = dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -42,6 +46,9 @@ namespace NuGetGallery.Services.Authentication
             // perform basic validations not specific to any federated credential policy
             // the error message is user-facing and should not leak sensitive information
             var (userError, jwtInfo) = await ValidateJwtByIssuer(bearerToken);
+
+            var externalCredentialAudit = jwtInfo.CreateAuditRecord();
+            await AuditExternalCredentialAsync(externalCredentialAudit);
 
             if (userError is not null)
             {
@@ -64,6 +71,7 @@ namespace NuGetGallery.Services.Authentication
                 results.Add(result);
 
                 var success = result.Type == FederatedCredentialPolicyResultType.Success;
+                await AuditPolicyComparisonAsync(externalCredentialAudit, policy, success);
                 if (success)
                 {
                     return EvaluatedFederatedCredentialPolicies.NewMatchedPolicy(results, result.Policy, result.FederatedCredential);
@@ -71,6 +79,19 @@ namespace NuGetGallery.Services.Authentication
             }
 
             return EvaluatedFederatedCredentialPolicies.NoMatchingPolicy(results);
+        }
+
+        private async Task AuditPolicyComparisonAsync(ExternalSecurityTokenAuditRecord externalCredentialAudit, FederatedCredentialPolicy policy, bool success)
+        {
+            await _auditingService.SaveAuditRecordAsync(FederatedCredentialPolicyAuditRecord.Compare(
+                policy,
+                externalCredentialAudit,
+                success));
+        }
+
+        private async Task AuditExternalCredentialAsync(ExternalSecurityTokenAuditRecord externalCredentialAudit)
+        {
+            await _auditingService.SaveAuditRecordAsync(externalCredentialAudit);
         }
 
         private FederatedCredentialPolicyResult EvaluatePolicy(FederatedCredentialPolicy policy, JwtInfo info)
@@ -123,6 +144,23 @@ namespace NuGetGallery.Services.Authentication
             public string? Identifier { get; set; }
 
             public FederatedCredentialIssuerType IssuerType { get; set; } = FederatedCredentialIssuerType.Unsupported;
+
+            public ExternalSecurityTokenAuditRecord CreateAuditRecord()
+            {
+                var payload = Jwt?.EncodedPayload;
+                string? claims = null;
+                if (!string.IsNullOrWhiteSpace(payload))
+                {
+                    claims = Base64UrlEncoder.Decode(payload);
+                }
+
+                return new ExternalSecurityTokenAuditRecord(
+                    IsValid ? AuditedExternalSecurityTokenAction.Validated : AuditedExternalSecurityTokenAction.Rejected,
+                    IssuerType,
+                    Jwt?.Issuer,
+                    claims,
+                    Identifier);
+            }
         }
 
         /// <summary>
