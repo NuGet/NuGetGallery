@@ -55,11 +55,15 @@ namespace CopyAzureContainer
                 throw new ArgumentException($"One of {nameof(jobConfiguration.DestStorageKeyValue)} or {nameof(jobConfiguration.DestStorageSasValue)} should be defined.");
             }
 
+            if (_storageUseManagedIdentity)
+            {
 #if DEBUG
-            Environment.SetEnvironmentVariable("AZCOPY_AUTO_LOGIN_TYPE", "MSI");
+                Environment.SetEnvironmentVariable("AZCOPY_AUTO_LOGIN_TYPE", "DEVICE");
 #else
-            Environment.SetEnvironmentVariable("AZCOPY_MSI_CLIENT_ID", _managedIdentityClientId);
+                Environment.SetEnvironmentVariable("AZCOPY_AUTO_LOGIN_TYPE", "MSI");
+                Environment.SetEnvironmentVariable("AZCOPY_MSI_CLIENT_ID", _managedIdentityClientId);
 #endif
+            }
             _sourceContainers = jobConfiguration.SourceContainers ?? throw new InvalidOperationException(nameof(jobConfiguration.SourceContainers) + " is required.");
         }
 
@@ -215,7 +219,6 @@ namespace CopyAzureContainer
                         ManagedIdentityClientId = _managedIdentityClientId
                     }
                 );
-                //DefaultAzureCredential msiCredential = new DefaultAzureCredential();
 
                 return new BlobServiceClient(serviceUri, msiCredential);
             }
