@@ -30,7 +30,6 @@ namespace CopyAzureContainer
         private string _managedIdentityClientId;
         private bool _storageUseManagedIdentity;
         private string _destStorageAccountName;
-        private string _destStorageKeyValue;
         private string _destStorageSasValue;
         private int _backupDays;
 
@@ -44,15 +43,14 @@ namespace CopyAzureContainer
 
             _backupDays = jobConfiguration.BackupDays ?? DefaultBackupDays;
             _destStorageAccountName = jobConfiguration.DestStorageAccountName ?? throw new InvalidOperationException(nameof(jobConfiguration.DestStorageAccountName) + " is required.");
-            _destStorageKeyValue = jobConfiguration.DestStorageKeyValue;
             _destStorageSasValue = jobConfiguration.DestStorageSasValue;
 
             var configuration = _serviceProvider.GetRequiredService<IConfiguration>();
             _managedIdentityClientId = configuration.GetValue<string>(Constants.ManagedIdentityClientIdKey);
             _storageUseManagedIdentity = configuration.GetValue<bool>(Constants.StorageUseManagedIdentityPropertyName);
-            if (!_storageUseManagedIdentity && string.IsNullOrEmpty(_destStorageKeyValue) && string.IsNullOrEmpty(_destStorageSasValue))
+            if (!_storageUseManagedIdentity && string.IsNullOrEmpty(_destStorageSasValue))
             {
-                throw new ArgumentException($"One of {nameof(jobConfiguration.DestStorageKeyValue)} or {nameof(jobConfiguration.DestStorageSasValue)} should be defined.");
+                throw new ArgumentException($"One of {nameof(_storageUseManagedIdentity)} or {nameof(jobConfiguration.DestStorageSasValue)} should be defined.");
             }
 
             if (_storageUseManagedIdentity)
@@ -83,7 +81,7 @@ namespace CopyAzureContainer
             {
                 if (_backupDays > 0)
                 {
-                    await TryDeleteContainerAsync(_destStorageAccountName, _destStorageKeyValue, _destStorageSasValue, sourceContainer.ContainerName, _backupDays);
+                    await TryDeleteContainerAsync(_destStorageAccountName, _destStorageSasValue, sourceContainer.ContainerName, _backupDays);
                 }
 
                 await TryCopyContainerAsync(sourceContainer, currentDate);
@@ -94,34 +92,33 @@ namespace CopyAzureContainer
         {
             var sw = new Stopwatch();
             var azCopyTempFolder = $@"{Directory.GetCurrentDirectory()}\azCopy_{containerInfo.ContainerName}";
+            Environment.SetEnvironmentVariable("AZCOPY_JOB_PLAN_LOCATION", azCopyTempFolder);
             var destContainer = FormatDestinationContainerName(date, containerInfo.ContainerName);
             var logFile = $"{destContainer}.log";
             var azCopyLogPath = Path.Combine(azCopyTempFolder, logFile);
             RefreshLogData(azCopyTempFolder, azCopyLogPath);
 
-            if (await TryCreateDestinationContainerAsync(destContainer, _destStorageAccountName, _destStorageKeyValue, _destStorageSasValue))
+            if (await TryCreateDestinationContainerAsync(destContainer, _destStorageAccountName, _destStorageSasValue))
             {
-                var arguments = $"/Source:https://{containerInfo.StorageAccountName}.blob.core.windows.net/{containerInfo.ContainerName}/ " +
-                                $"/Dest:https://{_destStorageAccountName}.blob.core.windows.net/{destContainer}/ ";
-                var argumentsLog = $"/Source:{azCopyTempFolder} /Dest:https://{_destStorageAccountName}.blob.core.windows.net/logs ";
+                var sourceUrl = $"https://{containerInfo.StorageAccountName}.blob.core.windows.net/{containerInfo.ContainerName}";
+                var destinationUrl = $"https://{_destStorageAccountName}.blob.core.windows.net/{destContainer}";
 
-                var hasKeyOrSasToken = new string[] {
-                    _destStorageSasValue,
-                    _destStorageKeyValue,
-                    containerInfo.StorageSasToken,
-                    containerInfo.StorageAccountKey }
-                .Any(credential => !string.IsNullOrEmpty(credential));
+                var logsSourceUrl = azCopyTempFolder;
+                var logsDestinationUrl = $"https://{_destStorageAccountName}.blob.core.windows.net/logs";
 
-                if (hasKeyOrSasToken)
+                if (!string.IsNullOrEmpty(containerInfo.StorageSasToken))
                 {
-                    var destCredential = string.IsNullOrEmpty(_destStorageSasValue) ? $"/DestKey:{_destStorageKeyValue} " : $"/DestSAS:{_destStorageSasValue} ";
-                    var sourceCredential = string.IsNullOrEmpty(containerInfo.StorageSasToken) ? $"/SourceKey:{containerInfo.StorageAccountKey} " : $"/SourceSAS:{containerInfo.StorageSasToken} ";
-                    arguments += $"{sourceCredential} {destCredential} ";
-                    argumentsLog += $"{destCredential} ";
+                    sourceUrl += $"?" + containerInfo.StorageSasToken.TrimStart('?');
                 }
 
-                arguments += $"/Y /S /Z:{azCopyTempFolder} /V:{azCopyLogPath}";
-                argumentsLog += "/destType:blob /Pattern:{logFile} /Y";
+                if (!string.IsNullOrEmpty(_destStorageSasValue))
+                {
+                    destinationUrl += $"?" + _destStorageSasValue.TrimStart('?');
+                    logsDestinationUrl += $"?" + _destStorageSasValue.TrimStart('?');
+                }
+
+                var arguments = $"copy {sourceUrl} {destinationUrl} --recursive --log-level";
+                var argumentsLog = $"copy {logsSourceUrl} {logsDestinationUrl} --include-pattern {logFile}";
 
                 try
                 {
@@ -192,11 +189,11 @@ namespace CopyAzureContainer
             }
         }
 
-        private async Task<bool> TryCreateDestinationContainerAsync(string containerName, string storageAccountName, string storageAccountKey, string storageSasToken)
+        private async Task<bool> TryCreateDestinationContainerAsync(string containerName, string storageAccountName, string storageSasToken)
         {
             try
             {
-                var container = GetBlobContainerClient(storageAccountName, storageAccountKey, storageSasToken, containerName);
+                var container = GetBlobContainerClient(storageAccountName, storageSasToken, containerName);
                 await container.CreateIfNotExistsAsync();
                 return true;
             }
@@ -207,34 +204,28 @@ namespace CopyAzureContainer
             }
         }
 
-        private BlobServiceClient GetBlobServiceClient(string storageAccountName, string storageAccountKey, string storageSasToken)
+        private BlobServiceClient GetBlobServiceClient(string storageAccountName, string storageSasToken)
         {
             var serviceUri = new Uri($"https://{storageAccountName}.blob.core.windows.net/");
 
-            if (_storageUseManagedIdentity)
+            if (_storageUseManagedIdentity && !string.IsNullOrEmpty(_managedIdentityClientId))
             {
-                DefaultAzureCredential msiCredential = new DefaultAzureCredential(
-                    new DefaultAzureCredentialOptions
-                    {
-                        ManagedIdentityClientId = _managedIdentityClientId
-                    }
-                );
-
+                ManagedIdentityCredential msiCredential = new ManagedIdentityCredential(_managedIdentityClientId);
                 return new BlobServiceClient(serviceUri, msiCredential);
             }
-            else if (string.IsNullOrEmpty(storageAccountKey))
+            else if (!string.IsNullOrEmpty(storageSasToken))
             {
                 var sasCredential = new AzureSasCredential(storageSasToken);
                 return new BlobServiceClient(serviceUri, sasCredential);
             }
 
-            var keyCredential = new StorageSharedKeyCredential(storageAccountName, storageAccountKey);
-            return new BlobServiceClient(serviceUri, keyCredential);
+            var credential = new DefaultAzureCredential();
+            return new BlobServiceClient(serviceUri, credential);
         }
 
-        private BlobContainerClient GetBlobContainerClient(string storageAccountName, string storageAccountKey, string storageSasToken, string containerName)
+        private BlobContainerClient GetBlobContainerClient(string storageAccountName, string storageSasToken, string containerName)
         {
-            BlobServiceClient blobService = GetBlobServiceClient(storageAccountName, storageAccountKey, storageSasToken);
+            BlobServiceClient blobService = GetBlobServiceClient(storageAccountName, storageSasToken);
             var container = blobService.GetBlobContainerClient(containerName);
             return container;
         }
@@ -244,17 +235,15 @@ namespace CopyAzureContainer
         /// returns the backup containers that need to be deleted 
         /// </summary>
         /// <param name="storageAccountName">The storage account name</param>
-        /// <param name="storageAccountKey">The storage account key</param>
         /// <param name="containerName">The base container name</param>
         /// <param name="backupDays">The number of days to keep</param>
         /// <returns></returns>
         private async Task TryDeleteContainerAsync(string storageAccountName,
-                                                              string storageAccountKey,
                                                               string storageSasToken,
                                                               string containerName,
                                                               int backupDays)
         {
-            var blobClient = GetBlobServiceClient(storageAccountName, storageAccountKey, storageSasToken);
+            var blobClient = GetBlobServiceClient(storageAccountName, storageSasToken);
             //it is used backupDays - 1 because a new container will be created
             var containersToDelete = blobClient.GetBlobContainers(prefix: $"{GetContainerPrefix(containerName)}").
                 OrderByDescending(blobContainer => blobContainer.Properties.LastModified).
