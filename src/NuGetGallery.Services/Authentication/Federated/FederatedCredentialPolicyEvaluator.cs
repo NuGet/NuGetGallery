@@ -57,6 +57,9 @@ namespace NuGetGallery.Services.Authentication
             // the error message is user-facing and should not leak sensitive information
             var (userError, jwtInfo) = await ValidateJwtByIssuer(bearerToken);
 
+            var externalCredentialAudit = jwtInfo.CreateAuditRecord();
+            await AuditExternalCredentialAsync(externalCredentialAudit);
+
             // Whether or not we have detected a problem already, pass the information to all additional validators.
             // This allows custom logic to execute but will not override any initial failed validation result.
             userError = await ExecuteAdditionalValidatorsAsync(requestHeaders, userError, jwtInfo);
