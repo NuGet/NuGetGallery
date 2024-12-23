@@ -669,34 +669,6 @@ namespace NuGetGallery.Services.Authentication
         }
 
         private void AssertValidCredentialAudits(bool matchedPolicy)
-
-        protected List<AuditRecord> AssertAuditResourceTypes(params string[] resourceTypeOrder)
-        {
-            var records = AuditingService
-                .Invocations
-                .Where(x => x.Method.Name == nameof(IAuditingService.SaveAuditRecordAsync))
-                .Select(x => x.Arguments[0])
-                .Cast<AuditRecord>()
-                .ToList();
-            Assert.Equal(resourceTypeOrder, records.Select(x => x.GetResourceType()).ToArray());
-            return records;
-        }
-
-        private void AssertNoPoliciesCredentialAudit()
-        {
-            var audits = AssertAuditResourceTypes(ExternalSecurityTokenAuditRecord.ResourceType);
-            var tokenAudit = Assert.IsType<ExternalSecurityTokenAuditRecord>(audits[0]);
-            Assert.Equal(AuditedExternalSecurityTokenAction.Validated, tokenAudit.Action);
-        }
-
-        private void AssertInvalidCredentialAudit()
-        {
-            var audits = AssertAuditResourceTypes(ExternalSecurityTokenAuditRecord.ResourceType);
-            var tokenAudit = Assert.IsType<ExternalSecurityTokenAuditRecord>(audits[0]);
-            Assert.Equal(AuditedExternalSecurityTokenAction.Rejected, tokenAudit.Action);
-        }
-
-        private void AssertValidCredentialAudits(bool matchedPolicy)
         {
             var audits = AssertAuditResourceTypes(ExternalSecurityTokenAuditRecord.ResourceType, FederatedCredentialPolicyAuditRecord.ResourceType);
             var tokenAudit = Assert.IsType<ExternalSecurityTokenAuditRecord>(audits[0]);
