@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Autofac;
 using Azure;
 using Azure.Identity;
-using Azure.Storage;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,6 +24,7 @@ namespace CopyAzureContainer
     class CopyAzureContainerJob : JsonConfigurationJob
     {
         private const string SectionName = "CopyAzureContainer";
+        private const string DestinationLogsContainerName = "logs";
         private const string AzCopyPath = @"tools\azcopy\azCopy.exe";
         private readonly int DefaultBackupDays = -1;
         private string _managedIdentityClientId;
@@ -53,15 +53,13 @@ namespace CopyAzureContainer
                 throw new ArgumentException($"One of {nameof(_storageUseManagedIdentity)} or {nameof(jobConfiguration.DestStorageSasValue)} should be defined.");
             }
 
+#if !DEBUG
             if (_storageUseManagedIdentity)
             {
-#if DEBUG
-                Environment.SetEnvironmentVariable("AZCOPY_AUTO_LOGIN_TYPE", "DEVICE");
-#else
                 Environment.SetEnvironmentVariable("AZCOPY_AUTO_LOGIN_TYPE", "MSI");
                 Environment.SetEnvironmentVariable("AZCOPY_MSI_CLIENT_ID", _managedIdentityClientId);
-#endif
             }
+#endif
             _sourceContainers = jobConfiguration.SourceContainers ?? throw new InvalidOperationException(nameof(jobConfiguration.SourceContainers) + " is required.");
         }
 
@@ -77,14 +75,18 @@ namespace CopyAzureContainer
         public override async Task Run()
         {
             var currentDate = DateTimeOffset.UtcNow;
-            foreach (AzureContainerInfo sourceContainer in _sourceContainers)
-            {
-                if (_backupDays > 0)
-                {
-                    await TryDeleteContainerAsync(_destStorageAccountName, _destStorageSasValue, sourceContainer.ContainerName, _backupDays);
-                }
 
-                await TryCopyContainerAsync(sourceContainer, currentDate);
+            if (await TryCreateDestinationContainerAsync(DestinationLogsContainerName, _destStorageAccountName, _destStorageSasValue))
+            {
+                foreach (AzureContainerInfo sourceContainer in _sourceContainers)
+                {
+                    if (_backupDays > 0)
+                    {
+                        await TryDeleteContainerAsync(_destStorageAccountName, _destStorageSasValue, sourceContainer.ContainerName, _backupDays);
+                    }
+
+                    await TryCopyContainerAsync(sourceContainer, currentDate);
+                }
             }
         }
 
@@ -93,18 +95,17 @@ namespace CopyAzureContainer
             var sw = new Stopwatch();
             var azCopyTempFolder = $@"{Directory.GetCurrentDirectory()}\azCopy_{containerInfo.ContainerName}";
             Environment.SetEnvironmentVariable("AZCOPY_JOB_PLAN_LOCATION", azCopyTempFolder);
+            Environment.SetEnvironmentVariable("AZCOPY_LOG_LOCATION", azCopyTempFolder);
             var destContainer = FormatDestinationContainerName(date, containerInfo.ContainerName);
-            var logFile = $"{destContainer}.log";
-            var azCopyLogPath = Path.Combine(azCopyTempFolder, logFile);
-            RefreshLogData(azCopyTempFolder, azCopyLogPath);
+            RefreshLogData(azCopyTempFolder);
 
             if (await TryCreateDestinationContainerAsync(destContainer, _destStorageAccountName, _destStorageSasValue))
             {
                 var sourceUrl = $"https://{containerInfo.StorageAccountName}.blob.core.windows.net/{containerInfo.ContainerName}";
                 var destinationUrl = $"https://{_destStorageAccountName}.blob.core.windows.net/{destContainer}";
 
-                var logsSourceUrl = azCopyTempFolder;
-                var logsDestinationUrl = $"https://{_destStorageAccountName}.blob.core.windows.net/logs";
+                var logsSourceUrl = $"{azCopyTempFolder}/*.log";
+                var logsDestinationUrl = $"https://{_destStorageAccountName}.blob.core.windows.net/logs/{destContainer}";
 
                 if (!string.IsNullOrEmpty(containerInfo.StorageSasToken))
                 {
@@ -117,8 +118,30 @@ namespace CopyAzureContainer
                     logsDestinationUrl += $"?" + _destStorageSasValue.TrimStart('?');
                 }
 
-                var arguments = $"copy {sourceUrl} {destinationUrl} --recursive --log-level";
-                var argumentsLog = $"copy {logsSourceUrl} {logsDestinationUrl} --include-pattern {logFile}";
+                var arguments = $"copy {sourceUrl} {destinationUrl} --recursive --log-level INFO";
+                var argumentsLog = $"copy {logsSourceUrl} {logsDestinationUrl} --recursive --as-subdir=false";
+
+#if DEBUG
+                // This command will display a link and a code to authorize your device to perform the following commands.
+                // See: https://learn.microsoft.com/azure/storage/common/storage-use-azcopy-authorize-azure-active-directory?toc=%2Fazure%2Fstorage%2Fblobs%2Ftoc.json&bc=%2Fazure%2Fstorage%2Fblobs%2Fbreadcrumb%2Ftoc.json#authorize-a-user-identity-azcopy-login-command
+                try
+                {
+                    ProcessStartInfo copyToAzureProc = new ProcessStartInfo();
+                    copyToAzureProc.FileName = $"{AzCopyPath}";
+                    copyToAzureProc.Arguments = $"login";
+                    copyToAzureProc.UseShellExecute = false;
+
+                    using (var p = Process.Start(copyToAzureProc))
+                    {
+                        p.WaitForExit();
+                        p.Close();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return false;
+                }
+#endif
 
                 try
                 {
@@ -152,6 +175,7 @@ namespace CopyAzureContainer
                     Logger.LogCritical(LogEvents.CopyContainerFailed, ex, "Exception on backup save.");
                     return false;
                 }
+
                 try
                 {
                     ProcessStartInfo copyToAzureProcLog = new ProcessStartInfo();
@@ -176,17 +200,13 @@ namespace CopyAzureContainer
             }
         }
 
-        private void RefreshLogData(string logFolder, string logFile)
+        private void RefreshLogData(string logFolder)
         {
             if (Directory.Exists(logFolder))
             {
                 Directory.Delete(logFolder, true);
             }
             Directory.CreateDirectory(logFolder);
-            using (var stream = File.Create(logFile))
-            {
-                stream.Close();
-            }
         }
 
         private async Task<bool> TryCreateDestinationContainerAsync(string containerName, string storageAccountName, string storageSasToken)
