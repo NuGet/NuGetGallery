@@ -76,13 +76,13 @@ namespace CopyAzureContainer
         {
             var currentDate = DateTimeOffset.UtcNow;
 
-            if (await TryCreateDestinationContainerAsync(DestinationLogsContainerName, _destStorageAccountName, _destStorageSasValue))
+            if (await TryCreateDestinationContainerAsync(DestinationLogsContainerName))
             {
                 foreach (AzureContainerInfo sourceContainer in _sourceContainers)
                 {
                     if (_backupDays > 0)
                     {
-                        await TryDeleteContainerAsync(_destStorageAccountName, _destStorageSasValue, sourceContainer.ContainerName, _backupDays);
+                        await TryDeleteDestinationContainerAsync(sourceContainer.ContainerName);
                     }
 
                     await TryCopyContainerAsync(sourceContainer, currentDate);
@@ -99,7 +99,7 @@ namespace CopyAzureContainer
             var destContainer = FormatDestinationContainerName(date, containerInfo.ContainerName);
             RefreshLogData(azCopyTempFolder);
 
-            if (await TryCreateDestinationContainerAsync(destContainer, _destStorageAccountName, _destStorageSasValue))
+            if (await TryCreateDestinationContainerAsync(destContainer))
             {
                 var sourceUrl = $"https://{containerInfo.StorageAccountName}.blob.core.windows.net/{containerInfo.ContainerName}";
                 var destinationUrl = $"https://{_destStorageAccountName}.blob.core.windows.net/{destContainer}";
@@ -118,28 +118,32 @@ namespace CopyAzureContainer
                     logsDestinationUrl += $"?" + _destStorageSasValue.TrimStart('?');
                 }
 
-                var arguments = $"copy {sourceUrl} {destinationUrl} --recursive --log-level INFO";
+                var arguments = $"copy {sourceUrl} {destinationUrl} --recursive --log-level WARNING";
                 var argumentsLog = $"copy {logsSourceUrl} {logsDestinationUrl} --recursive --as-subdir=false";
 
 #if DEBUG
-                // This command will display a link and a code to authorize your device to perform the following commands.
-                // See: https://learn.microsoft.com/azure/storage/common/storage-use-azcopy-authorize-azure-active-directory?toc=%2Fazure%2Fstorage%2Fblobs%2Ftoc.json&bc=%2Fazure%2Fstorage%2Fblobs%2Fbreadcrumb%2Ftoc.json#authorize-a-user-identity-azcopy-login-command
-                try
+                // When testing locally if you don't provide sas tokens for authentication we need to perform the "azcopy login" command.
+                // This command will display a link and a code in the terminal to authorize your device to perform the following commands.
+                // See: https://learn.microsoft.com/azure/storage/common/storage-use-azcopy-authorize-azure-active-directory#authorize-a-user-identity-azcopy-login-command
+                if (string.IsNullOrEmpty(_destStorageSasValue) || string.IsNullOrEmpty(containerInfo.StorageSasToken))
                 {
-                    ProcessStartInfo copyToAzureProc = new ProcessStartInfo();
-                    copyToAzureProc.FileName = $"{AzCopyPath}";
-                    copyToAzureProc.Arguments = $"login";
-                    copyToAzureProc.UseShellExecute = false;
-
-                    using (var p = Process.Start(copyToAzureProc))
+                    try
                     {
-                        p.WaitForExit();
-                        p.Close();
+                        ProcessStartInfo copyToAzureProc = new ProcessStartInfo();
+                        copyToAzureProc.FileName = $"{AzCopyPath}";
+                        copyToAzureProc.Arguments = $"login";
+                        copyToAzureProc.UseShellExecute = false;
+
+                        using (var p = Process.Start(copyToAzureProc))
+                        {
+                            p.WaitForExit();
+                            p.Close();
+                        }
                     }
-                }
-                catch (Exception ex)
-                {
-                    return false;
+                    catch (Exception ex)
+                    {
+                        return false;
+                    }
                 }
 #endif
 
@@ -192,6 +196,7 @@ namespace CopyAzureContainer
                 {
                     Logger.LogError(LogEvents.CopyLogFailed, ex, "Exception on log save.");
                 }
+
                 return true;
             }
             else
@@ -209,11 +214,11 @@ namespace CopyAzureContainer
             Directory.CreateDirectory(logFolder);
         }
 
-        private async Task<bool> TryCreateDestinationContainerAsync(string containerName, string storageAccountName, string storageSasToken)
+        private async Task<bool> TryCreateDestinationContainerAsync(string containerName)
         {
             try
             {
-                var container = GetBlobContainerClient(storageAccountName, storageSasToken, containerName);
+                var container = GetBlobContainerClient(_destStorageAccountName, _destStorageSasValue, containerName);
                 await container.CreateIfNotExistsAsync();
                 return true;
             }
@@ -251,23 +256,16 @@ namespace CopyAzureContainer
         }
 
         /// <summary>
-        /// For a specific base container 
-        /// returns the backup containers that need to be deleted 
+        /// Deletes destination backup containers that are older than the backup days.
         /// </summary>
-        /// <param name="storageAccountName">The storage account name</param>
         /// <param name="containerName">The base container name</param>
-        /// <param name="backupDays">The number of days to keep</param>
-        /// <returns></returns>
-        private async Task TryDeleteContainerAsync(string storageAccountName,
-                                                              string storageSasToken,
-                                                              string containerName,
-                                                              int backupDays)
+        private async Task TryDeleteDestinationContainerAsync(string containerName)
         {
-            var blobClient = GetBlobServiceClient(storageAccountName, storageSasToken);
-            //it is used backupDays - 1 because a new container will be created
-            var containersToDelete = blobClient.GetBlobContainers(prefix: $"{GetContainerPrefix(containerName)}").
-                OrderByDescending(blobContainer => blobContainer.Properties.LastModified).
-                Skip(backupDays - 1);
+            var blobClient = GetBlobServiceClient(_destStorageAccountName, _destStorageSasValue);
+
+            var containersToDelete = blobClient
+                .GetBlobContainers(prefix: $"{GetContainerPrefix(containerName)}")
+                .Where(blobContainer => blobContainer.Properties.LastModified < DateTime.UtcNow.AddDays(-_backupDays));
 
             foreach (var containerItem in containersToDelete)
             {
