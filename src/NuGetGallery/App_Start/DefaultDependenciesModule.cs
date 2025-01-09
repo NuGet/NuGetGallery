@@ -109,7 +109,7 @@ namespace NuGetGallery
                 configuration.Current,
                 out ITelemetryClient telemetryClient);
 
-            var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: false);
+            var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: false, withAssemblyMetadata: false);
             var loggerFactory = LoggingSetup.CreateLoggerFactory(
                 loggerConfiguration,
                 telemetryConfiguration: applicationInsightsConfiguration.TelemetryConfiguration);
@@ -584,6 +584,28 @@ namespace NuGetGallery
                     p.Resolve<JsonWebTokenHandler>(),
                     p.Resolve<IFederatedCredentialConfiguration>()))
                 .As<IEntraIdTokenValidator>()
+                .InstancePerLifetimeScope();
+
+            builder
+                .Register(c =>
+                {
+                    var configurationFactory = c.Resolve<IConfigurationFactory>();
+                    return GetAddInServices<IFederatedCredentialValidator>(sp =>
+                    {
+                        sp.ComposeExportedValue(configurationFactory);
+                    }).ToList();
+                })
+                .As<IReadOnlyList<IFederatedCredentialValidator>>() // a singleton, materialized list
+                .SingleInstance();
+
+            builder
+                .RegisterType<FederatedCredentialPolicyEvaluator>()
+                .As<IFederatedCredentialPolicyEvaluator>()
+                .InstancePerLifetimeScope();
+
+            builder
+                .RegisterType<FederatedCredentialService>()
+                .As<IFederatedCredentialService>()
                 .InstancePerLifetimeScope();
         }
 
