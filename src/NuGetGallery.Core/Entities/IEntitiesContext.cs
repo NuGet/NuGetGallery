@@ -25,7 +25,6 @@ namespace NuGetGallery
         DbSet<VulnerablePackageVersionRange> VulnerableRanges { get; set; }
         DbSet<PackageRename> PackageRenames { get; set; }
 
-        Database Database { get; set; }
         bool HasChanges { get; }
 
         Task<int> SaveChangesAsync();

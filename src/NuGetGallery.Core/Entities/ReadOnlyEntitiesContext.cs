@@ -4,7 +4,6 @@
 using System;
 using System.Data.Common;
 using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using NuGet.Services.Entities;
 
 namespace NuGetGallery
@@ -35,11 +34,6 @@ namespace NuGetGallery
         DbSet<T> IReadOnlyEntitiesContext.Set<T>()
         {
             return _entitiesContext.Set<T>();
-        }
-
-        DbEntityEntry<TEntity> IReadOnlyEntitiesContext.Entry<TEntity>(TEntity entity)
-        {
-            return _entitiesContext.Entry<TEntity>(entity);
         }
 
         public void SetCommandTimeout(int? seconds)

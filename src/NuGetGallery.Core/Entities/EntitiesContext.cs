@@ -92,16 +92,9 @@ namespace NuGetGallery
 
         public bool HasChanges => ChangeTracker.HasChanges();
 
-        Database IEntitiesContext.Database { get => Database; set => throw new NotImplementedException(); }
-
         DbSet<T> IReadOnlyEntitiesContext.Set<T>()
         {
             return base.Set<T>();
-        }
-
-        DbEntityEntry<TEntity> IReadOnlyEntitiesContext.Entry<TEntity>(TEntity entity)
-        {
-            return base.Entry<TEntity>(entity);
         }
 
         public override int SaveChanges()
