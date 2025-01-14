@@ -1,8 +1,9 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using NuGet.Services.Entities;
 
 namespace NuGetGallery
@@ -12,6 +13,8 @@ namespace NuGetGallery
         DbSet<Package> Packages { get; set; }
 
         DbSet<T> Set<T>() where T : class;
+
+        DbEntityEntry<TEntity> Entry<TEntity>(TEntity entity) where TEntity : class;
 
         void SetCommandTimeout(int? seconds);
 

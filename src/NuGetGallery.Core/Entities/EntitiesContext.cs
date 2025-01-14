@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -92,9 +92,16 @@ namespace NuGetGallery
 
         public bool HasChanges => ChangeTracker.HasChanges();
 
+        Database IEntitiesContext.Database { get => Database; set => throw new NotImplementedException(); }
+
         DbSet<T> IReadOnlyEntitiesContext.Set<T>()
         {
             return base.Set<T>();
+        }
+
+        DbEntityEntry<TEntity> IReadOnlyEntitiesContext.Entry<TEntity>(TEntity entity)
+        {
+            return base.Entry<TEntity>(entity);
         }
 
         public override int SaveChanges()

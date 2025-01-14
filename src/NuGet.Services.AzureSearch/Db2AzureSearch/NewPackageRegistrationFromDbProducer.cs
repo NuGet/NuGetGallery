@@ -234,12 +234,14 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         {
             using (var context = await CreateContextAsync())
             {
+                context.SetCommandTimeout(600); // use configuration value from config files instead
+
                 var minKey = range.MinKey;
                 var query = context
                     .Set<Package>()
                     .Include(x => x.PackageRegistration)
                     .Include(x => x.PackageTypes)
-                    .Include(x => x.SupportedFrameworks)
+                    //.Include(x => x.SupportedFrameworks)
                     .Include(x => x.Deprecations)
                     .Include(x => x.Deprecations.Select(d => d.AlternatePackage))
                     .Include(x => x.VulnerablePackageRanges)
@@ -256,7 +258,18 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
                 LogFetching("packages", range);
 
-                return await query.ToListAsync();
+                var packages = await query.ToListAsync();
+
+                // Load SupportedFrameworks separately for packages where IsLatest flag is true
+                var latestPackages = packages.Where(p => IsLatestOfSomeSort(p));
+                foreach (var package in latestPackages)
+                {
+                    await context.Entry(package)
+                        .Collection(p => p.SupportedFrameworks)
+                        .LoadAsync();
+                }
+
+                return packages;
             }
         }
 
@@ -393,6 +406,18 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 }
 
                 return ranges;
+            }
+        }
+
+        private bool IsLatestOfSomeSort(Package p)
+        {
+            if (p.IsLatest || p.IsLatestStable || p.IsLatestSemVer2 || p.IsLatestStableSemVer2)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
 
