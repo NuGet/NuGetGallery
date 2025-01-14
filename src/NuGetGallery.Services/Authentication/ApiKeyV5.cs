@@ -182,14 +182,17 @@ namespace NuGetGallery.Infrastructure.Authentication
             string encodedExpiration = EncodeExpiration(expiration);
             string providerAllocation = $"{type}{encodedExpiration}";
 
-            // TODO: pass in the allocation time when the HISv2 library supports it
-            // https://github.com/microsoft/security-utilities/pull/111
-            string plaintextApiKey = IdentifiableSecrets.GenerateCommonAnnotatedKey(
+            string plaintextApiKey = IdentifiableSecrets.GenerateCommonAnnotatedTestKey(
+                randomBytes: null,
+                IdentifiableSecrets.VersionTwoChecksumSeed,
                 base64EncodedSignature: ProviderSignature,
                 customerManagedKey: true,
                 platformReserved: Convert.FromBase64String(platformAllocation),
                 providerReserved: Convert.FromBase64String(providerAllocation),
-                testChar: testChar);
+                longForm: false,
+                testChar: testChar,
+                keyKindSignature: IdentifiableSecrets.CommonAnnotatedKeySignature[5], // JQQJ99 -> 9
+                allocationTime: allocationTime);
 
             // The first 52 characters of an HISv2 key contains 312 bits of entropy. The rest of the API key is
             // composed of identifiers, checksum, and other supporting metadata. We will hash the entire thing and

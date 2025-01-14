@@ -47,7 +47,7 @@ namespace NuGetGallery.Infrastructure.Authentication
 
                 // Assert
                 Assert.Equal(84, apiKey.PlaintextApiKey.Length);
-                Assert.Contains(IdentifiableSecrets.CommonAnnotatedKeySignature, apiKey.PlaintextApiKey, StringComparison.Ordinal);
+                Assert.Contains("JQQJ99", apiKey.PlaintextApiKey, StringComparison.Ordinal);
 
                 Assert.Equal(88, apiKey.HashedApiKey.Length); // 512 bits, base64 encoded
                 Assert.Equal(512 / 8, Convert.FromBase64String(apiKey.HashedApiKey).Length); // 512 bits from a SHA-512 hash
