@@ -1,12 +1,15 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Azure.Storage.Blobs;
+using Stats.AzureCdnLogs.Common.Collect;
+using NuGet.Services.Storage;
+//using Microsoft.WindowsAzure.Storage;
+//using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace Stats.AzureCdnLogs.Common
 {
@@ -19,8 +22,9 @@ namespace Stats.AzureCdnLogs.Common
         public const int MaxRenewPeriodInSeconds = 60;
         // The lease will be renewed with a short interval before the the lease expires
         public const int OverlapRenewPeriodInSeconds = 20;
-        private BlobRequestOptions _blobRequestOptions;
+        //private BlobRequestOptions _blobRequestOptions;
         private readonly ILogger<AzureBlobLeaseManager> _logger;
+        private readonly BlobLeaseService _blobLeaseService;
 
         public AzureBlobLeaseManager(ILogger<AzureBlobLeaseManager> logger, BlobRequestOptions blobRequestOptions = null)
         {
@@ -39,6 +43,8 @@ namespace Stats.AzureCdnLogs.Common
         /// <returns>True if the lease was acquired. </returns>
         public AzureBlobLockResult AcquireLease(CloudBlob blob, CancellationToken token)
         {
+            //this stuff just checks if the blob is already locked or the token is cancelled
+            //tryacquareasync already does that
             blob.FetchAttributes();
             if (token.IsCancellationRequested || blob.Properties.LeaseStatus == LeaseStatus.Locked)
             {
@@ -48,9 +54,25 @@ namespace Stats.AzureCdnLogs.Common
                     blob.Properties.LeaseStatus);
                 return AzureBlobLockResult.FailedLockResult(blob);
             }
+
+            //this part does the lease
             var proposedLeaseId = Guid.NewGuid().ToString();
             var leaseId = blob.AcquireLease(TimeSpan.FromSeconds(MaxRenewPeriodInSeconds), proposedLeaseId);
             var lockResult = new AzureBlobLockResult(blob: blob, lockIsTaken: true, leaseId: leaseId, linkToken: token);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             //start a task that will renew the lease until the token is cancelled or the Release methods was invoked
             var renewStatusTask = new Task( (lockresult) =>

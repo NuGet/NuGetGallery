@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -8,8 +8,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
+//using Microsoft.WindowsAzure.Storage;
+//using Microsoft.WindowsAzure.Storage.Blob;
+using Azure.Storage.Blobs;
 using ICSharpCode.SharpZipLib.GZip;
 
 namespace Stats.AzureCdnLogs.Common.Collect
@@ -28,11 +29,11 @@ namespace Stats.AzureCdnLogs.Common.Collect
 
         private string _deadletterContainerName = "-deadletter";
         private string _archiveContainerName = "-archive";
-        private CloudStorageAccount _azureAccount;
-        private AzureBlobLeaseManager _blobLeaseManager;
-        private CloudBlobContainer _container;
-        private CloudBlobClient _blobClient;
-        private BlobRequestOptions _blobRequestOptions;
+        private BlobServiceClient _blobServiceClient;
+        //private AzureBlobLeaseManager _blobLeaseManager;
+        private BlobContainerClient _container;
+        //private CloudBlobClient _blobClient;
+        //private BlobRequestOptions _blobRequestOptions;
         private readonly ILogger<AzureStatsLogSource> _logger;
 
         /// <summary>
@@ -40,17 +41,18 @@ namespace Stats.AzureCdnLogs.Common.Collect
         /// </summary>
         /// <param name="connectionString">The connection string for the Azure account.</param>
         /// <param name="containerName">The container name.</param>
-        public AzureStatsLogSource(CloudStorageAccount storageAccount,
+        public AzureStatsLogSource(BlobServiceClient blobServiceClient,
             string containerName,
             int azureServerTimeoutInSeconds,
             AzureBlobLeaseManager blobLeaseManager,
             ILogger<AzureStatsLogSource> logger)
         {
-            _azureAccount = storageAccount;
-            _blobClient = _azureAccount.CreateCloudBlobClient();
-            _container = _blobClient.GetContainerReference(containerName);
+            _blobServiceClient = blobServiceClient;
+            //_blobClient = _azureBlobServiceClient.CreateCloudBlobClient();
+            _container = _blobServiceClient.GetBlobContainerClient(containerName);
+
             _blobRequestOptions = new BlobRequestOptions();
-            _blobRequestOptions.ServerTimeout = TimeSpan.FromSeconds(azureServerTimeoutInSeconds);
+
             _blobLeaseManager = blobLeaseManager ?? throw new ArgumentNullException(nameof(blobLeaseManager));
             _deadletterContainerName = $"{containerName}-deadletter";
             _archiveContainerName = $"{containerName}-archive";
@@ -269,9 +271,9 @@ namespace Stats.AzureCdnLogs.Common.Collect
         }
 
         /// <summary>
-        /// Copy the blob from souurce to the destination 
+        /// Copy the blob from source to the destination 
         /// </summary>
-        /// <param name="sourceBlobInformation">The source blobLock as was taken at the begining of the operation.</param>
+        /// <param name="sourceBlobInformation">The source blobLock as was taken at the beginning of the operation.</param>
         /// <param name="destinationContainer">The destination Container.</param>
         /// <returns></returns>
         private async Task<bool> CopyBlobToContainerAsync(AzureBlobLockResult sourceBlobInformation, CloudBlobContainer destinationContainer, CancellationToken token)

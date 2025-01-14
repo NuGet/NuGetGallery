@@ -11,8 +11,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
+//using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs;
+using Azure.Storage.Blobs;
 using Stats.AzureCdnLogs.Common;
 using Stats.AzureCdnLogs.Common.Collect;
 
@@ -42,14 +43,14 @@ namespace Stats.CollectAzureChinaCDNLogs
             var blobLeaseManager = new AzureBlobLeaseManager(serviceProvider.GetRequiredService<ILogger<AzureBlobLeaseManager>>());
 
             var source = new AzureStatsLogSource(
-                ValidateAzureCloudStorageAccount(_configuration.AzureAccountConnectionStringSource),
+                ValidateAzureBlobServiceClient(_configuration.AzureAccountConnectionStringSource),
                 _configuration.AzureContainerNameSource,
                 _executionTimeoutInSeconds / MaxFilesToProcess,
                 blobLeaseManager,
                 serviceProvider.GetRequiredService<ILogger<AzureStatsLogSource>>());
 
             var dest = new AzureStatsLogDestination(
-                ValidateAzureCloudStorageAccount(_configuration.AzureAccountConnectionStringDestination),
+                ValidateAzureBlobServiceClient(_configuration.AzureAccountConnectionStringDestination),
                 _configuration.AzureContainerNameDestination,
                 serviceProvider.GetRequiredService<ILogger<AzureStatsLogDestination>>());
 
@@ -111,19 +112,21 @@ namespace Stats.CollectAzureChinaCDNLogs
             }
         }
 
-        private static CloudStorageAccount ValidateAzureCloudStorageAccount(string cloudStorageAccount)
+        private static BlobServiceClient ValidateAzureBlobServiceClient(string blobServiceClient)
         {
-            if (string.IsNullOrEmpty(cloudStorageAccount))
+            if (string.IsNullOrEmpty(blobServiceClient))
             {
-                throw new ArgumentException("Job parameter for Azure CDN Cloud Storage Account is not defined.");
+                throw new ArgumentException("Job parameter for Azure CDN Blob Service Client is not defined.");
             }
 
-            CloudStorageAccount account;
-            if (CloudStorageAccount.TryParse(cloudStorageAccount, out account))
+            try
             {
-                return account;
+                return new BlobServiceClient(blobServiceClient);
             }
-            throw new ArgumentException("Job parameter for Azure CDN Cloud Storage Account is invalid.");
+            catch (Exception ex)
+            {
+                throw new ArgumentException("Job parameter for Azure CDN Blob Service Client is invalid.", ex);
+            }
         }
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
