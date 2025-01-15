@@ -234,6 +234,8 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         {
             using (var context = await CreateContextAsync())
             {
+                context.SetCommandTimeout(_options.Value.DatabaseCommandTimeoutInSeconds);
+
                 var minKey = range.MinKey;
                 var query = context
                     .Set<Package>()
