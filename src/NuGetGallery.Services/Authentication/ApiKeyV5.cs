@@ -34,7 +34,7 @@ namespace NuGetGallery.Infrastructure.Authentication
     /// S                                                     |    72 | API key type (S = short-lived, L = long-lived)
     /// 003 (3 * 5 = 15 minutes)                              | 73-75 | Expiration of the key, in increments of 5 minutes, encoded as base62
     /// NUGT                                                  | 76-79 | NuGet provider signature 
-    /// 30rW                                                  | 80-83 | Checksum
+    /// 30rW                                                  | 80-83 | Part of a Marvin32 checksum, used for initial validation
     ///
     /// A plaintext value can be parsed into the above metadata components. The entire API key value should be
     /// considered as secret, and sensitive.
@@ -215,6 +215,11 @@ namespace NuGetGallery.Infrastructure.Authentication
             parsed = null;
 
             if (plaintextApiKey.Length != IdentifiableSecrets.StandardEncodedCommonAnnotatedKeySize)
+            {
+                return false;
+            }
+
+            if (plaintextApiKey.Substring(52, 6) != IdentifiableSecrets.CommonAnnotatedKeySignature)
             {
                 return false;
             }
