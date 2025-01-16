@@ -3,6 +3,7 @@
 
 using System;
 using System.Threading;
+using Azure.Storage.Blobs;
 //using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace Stats.AzureCdnLogs.Common
@@ -13,7 +14,7 @@ namespace Stats.AzureCdnLogs.Common
 
         public string LeaseId { get; }
 
-        public CloudBlob Blob { get; }
+        public BlobClient Blob { get; }
 
         /// <summary>
         /// It will be cancelled when the renew task could not renew the lease.
@@ -21,7 +22,7 @@ namespace Stats.AzureCdnLogs.Common
         /// </summary>
         public CancellationTokenSource BlobOperationToken { get; }
 
-        public AzureBlobLockResult(CloudBlob blob, bool lockIsTaken, string leaseId, CancellationToken linkToken)
+        public AzureBlobLockResult(BlobClient blob, bool lockIsTaken, string leaseId, CancellationToken linkToken)
         {
             Blob = blob ?? throw new ArgumentNullException(nameof(blob));
             LockIsTaken = lockIsTaken;
@@ -30,7 +31,7 @@ namespace Stats.AzureCdnLogs.Common
             LeaseId = leaseId;
         }
 
-        public static AzureBlobLockResult FailedLockResult(CloudBlob blob)
+        public static AzureBlobLockResult FailedLockResult(BlobClient blob)
         {
             return new AzureBlobLockResult(blob: blob, lockIsTaken: false, leaseId: null, linkToken: CancellationToken.None);
         }
