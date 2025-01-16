@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Azure.Storage.Blobs;
 using ICSharpCode.SharpZipLib.GZip;
 using Azure.Storage.Blobs.Models;
+using Azure.Storage.Blobs.Specialized;
 
 namespace Stats.AzureCdnLogs.Common.Collect
 {
@@ -76,39 +77,18 @@ namespace Stats.AzureCdnLogs.Common.Collect
                 maxResults,
                 prefix);
 
-            BlobContinuationToken continuationToken = null;
             var result = new List<Uri>();
-            do
-            {
-                _logger.LogInformation("Finding next blobs segment...");
-
-                var segment = await _container.ListBlobsSegmentedAsync(
-                    prefix: prefix,
-                    useFlatBlobListing: true,
-                    blobListingDetails: BlobListingDetails.Metadata,
-                    maxResults: null,
-                    currentToken: continuationToken,
-                    options: null,
-                    operationContext: null,
-                    cancellationToken: token);
-
-                continuationToken = segment.ContinuationToken;
-
-                _logger.LogInformation("Found next blobs segment, finding blobs with unlocked lease status...");
-
-                foreach (var blobItem in segment.Results)
+            await foreach (var blobItem in _container.GetBlobsAsync(prefix:prefix, cancellationToken:token)) {
+            
+                if (result.Count >= maxResults)
                 {
-                    if (result.Count >= maxResults)
-                    {
-                        break;
-                    }
+                    break;
+                }
 
-                    _logger.LogInformation(
-                        "Found blob {BlobUrl}, determining lease status...",
-                        blobItem.Uri);
+                _logger.LogInformation("Found blob {BlobName}, determining lease status...", blobItem.Name);
 
-                    var blob = (BlobClient)blobItem;
-                    BlobProperties properties = await blob.GetPropertiesAsync();
+                var blob = _container.GetBlobClient(blobItem.Name);
+                BlobProperties properties = await blob.GetPropertiesAsync(cancellationToken: token);
                     if (properties.LeaseStatus != LeaseStatus.Unlocked)
                     {
                         _logger.LogInformation(
@@ -119,10 +99,8 @@ namespace Stats.AzureCdnLogs.Common.Collect
                     }
 
                     result.Add(blob.Uri);
-                }
             }
-            while (continuationToken != null);
-
+            
             _logger.LogInformation(
                 "Found {Results} unlocked blobs with prefix {Prefix}",
                 result.Count,
@@ -190,8 +168,8 @@ namespace Stats.AzureCdnLogs.Common.Collect
         /// <summary>
         /// Release the lock on the blob.
         /// </summary>
-        /// <param name="blobLock">The blobLock as was taken at the begining of the operation.</param>
-        /// <param name="token">A token to be used for cancellation. For this implemention the token is ignored.</param>
+        /// <param name="blobLock">The blobLock as was taken at the beginning of the operation.</param>
+        /// <param name="token">A token to be used for cancellation. For this implementation the token is ignored.</param>
         /// <returns>True if the lease was released or the blob does not exist.</returns>
         public async Task<AsyncOperationResult> TryReleaseLockAsync(AzureBlobLockResult blobLock, CancellationToken token)
         {
@@ -239,12 +217,10 @@ namespace Stats.AzureCdnLogs.Common.Collect
                 if (await CopyBlobToContainerAsync(blobLock, archiveTargetContainer, token))
                 {
                     _logger.LogInformation("CleanAsync: Blob {Blob} was copied to container {Container}", blobLock.Blob.Uri, archiveTargetContainerName);
-                    var accessCondition = new AccessCondition { LeaseId = blobLock.LeaseId };
+                    var blobRequestConditions = new BlobRequestConditions { LeaseId = blobLock.LeaseId };
                     // The operation will throw if the lease does not match
-                    bool deleteResult = await sourceBlob.DeleteIfExistsAsync(deleteSnapshotsOption: DeleteSnapshotsOption.IncludeSnapshots,
-                        accessCondition: accessCondition,
-                        options: null,
-                        operationContext: null,
+                    bool deleteResult = await sourceBlob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots,
+                        conditions: blobRequestConditions,
                         cancellationToken: token);
                     _logger.LogInformation("CleanAsync: Blob {Blob} was deleted {DeletedResult}. The leaseId: {LeaseId}", blobLock.Blob.Uri, deleteResult, blobLock.LeaseId);
                     return new AsyncOperationResult(deleteResult, null);
@@ -263,8 +239,9 @@ namespace Stats.AzureCdnLogs.Common.Collect
         {
             try
             {
-                var blob = await _blobClient.GetBlobReferenceFromServerAsync(blobUri, accessCondition: null, options: null, operationContext: null);
-                return blob as BlobClient;
+                var blobClient = new BlobClient(blobUri);
+                var properties = await blobClient.GetPropertiesAsync();
+                return blobClient;
             }
             catch (Exception)
             {
@@ -299,13 +276,14 @@ namespace Stats.AzureCdnLogs.Common.Collect
                     _logger.LogInformation("CopyBlobToContainerAsync: Blob already exists DestinationUri {DestinationUri}.", destinationBlob.Uri);
 
                     // Overwrite
-                    var lease = destinationBlob.AcquireLease(TimeSpan.FromSeconds(CopyBlobLeaseTimeInSeconds), sourceBlobInformation.LeaseId);
-                    var destinationAccessCondition = new AccessCondition { LeaseId = lease };
-                    await destinationBlob.DeleteAsync(deleteSnapshotsOption: DeleteSnapshotsOption.IncludeSnapshots, accessCondition: destinationAccessCondition, options: null, operationContext: null);
-                    var result = await TryCopyInternalAsync(sourceBlobInformation.Blob, destinationBlob, destinationContainer, destinationAccessCondition: destinationAccessCondition);
+                    var leaseClient = destinationBlob.GetBlobLeaseClient();
+                    var leaseResponse = await leaseClient.AcquireAsync(TimeSpan.FromSeconds(CopyBlobLeaseTimeInSeconds), cancellationToken: token);
+                    var destinationAccessCondition = new BlobRequestConditions { LeaseId = leaseResponse.Value.LeaseId };
+                    await destinationBlob.DeleteAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: destinationAccessCondition, cancellationToken: token);
+                    var result = await TryCopyInternalAsync(sourceBlobInformation.Blob, destinationBlob, destinationContainer);
                     try
                     {
-                        destinationBlob.ReleaseLease(destinationAccessCondition);
+                        await leaseClient.ReleaseAsync(destinationAccessCondition);
                     }
                     catch (Azure.RequestFailedException)
                     {
@@ -323,20 +301,11 @@ namespace Stats.AzureCdnLogs.Common.Collect
 
         private async Task<bool> TryCopyInternalAsync(BlobClient sourceBlob,
             BlobClient destinationBlob,
-            BlobContainerClient destinationContainer,
-            AccessCondition destinationAccessCondition = null)
+            BlobContainerClient destinationContainer)
         {
-            var copySourceblobUri = sourceBlob.Uri;
-            if (sourceBlob.ServiceClient.Credentials.IsSAS)
-            {
-                copySourceblobUri = new Uri(sourceBlob.Uri.AbsoluteUri + sourceBlob.ServiceClient.Credentials.SASToken);
-            }
+            var copySourceBlobUri = sourceBlob.Uri;
 
-            await destinationBlob.StartCopyFromUriAsync(copySourceblobUri,
-                sourceAccessCondition: null,
-                destAccessCondition: destinationAccessCondition,
-                options: null,
-                operationContext: null);
+            await destinationBlob.StartCopyFromUriAsync(copySourceBlobUri);
 
             //round-trip to the server and get the information 
             destinationBlob = destinationContainer.GetBlobClient(GetBlobNameFromUri(sourceBlob.Uri));
@@ -345,11 +314,14 @@ namespace Stats.AzureCdnLogs.Common.Collect
 
             while (properties.CopyStatus == CopyStatus.Pending)
             {
+                properties = await destinationBlob.GetPropertiesAsync();
                 Task.Delay(TimeSpan.FromSeconds(1)).Wait();
-                destinationBlob = destinationContainer.GetBlobClient(GetBlobNameFromUri(sourceBlob.Uri));
             }
-            return true;
+
+            BlobProperties resultProperties = await destinationBlob.GetPropertiesAsync();
+            return resultProperties.CopyStatus == CopyStatus.Success; ;
         }
+
 
         private string GetBlobNameFromUri(Uri blobUri)
         {
@@ -358,7 +330,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
 
         private async Task<BlobContainerClient> CreateContainerAsync(string containerName)
         {
-            var container = _blobClient.GetContainerReference(containerName);
+            var container = _blobServiceClient.GetBlobContainerClient(containerName);
             await container.CreateIfNotExistsAsync();
             return container;
         }
