@@ -1,9 +1,10 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Threading;
-using Microsoft.WindowsAzure.Storage.Blob;
+//using Microsoft.WindowsAzure.Storage.Blob;
+using Azure.Storage.Blobs;
 using Stats.AzureCdnLogs.Common;
 using Xunit;
 
@@ -28,7 +29,7 @@ namespace Tests.Stats.AzureCdnLogs.Common
             // Arrange 
             var cts = new CancellationTokenSource();
             var testAzureBlobLockResult = new AzureBlobLockResult(
-                blob: new CloudBlob(new Uri("https://test/container")),
+                blob: new BlobClient(new Uri("https://test/container")),
                 lockIsTaken: false,
                 leaseId: string.Empty,
                 linkToken: cts.Token);
@@ -47,7 +48,7 @@ namespace Tests.Stats.AzureCdnLogs.Common
             var cts = new CancellationTokenSource();
             var externalToken = cts.Token;
             var testAzureBlobLockResult = new AzureBlobLockResult(
-                blob: new CloudBlob(new Uri("https://test/container")),
+                blob: new BlobClient(new Uri("https://test/container")),
                 lockIsTaken: false,
                 leaseId: string.Empty,
                 linkToken: externalToken);

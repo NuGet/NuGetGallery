@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -11,7 +11,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
+//using Microsoft.WindowsAzure.Storage;
+using Azure;
+using Azure.Storage.Blobs;
 using NuGet.Jobs;
 using Stats.AzureCdnLogs.Common;
 using Stats.AzureCdnLogs.Common.Collect;
@@ -79,15 +81,15 @@ namespace Stats.CDNLogsSanitizer
             }
         }
 
-        private static CloudStorageAccount ValidateAzureCloudStorageAccount(string cloudStorageAccount)
+        private static BlobServiceClient ValidateAzureCloudStorageAccount(string cloudStorageAccount)
         {
             if (string.IsNullOrEmpty(cloudStorageAccount))
             {
                 throw new ArgumentException("Job parameter for Azure CDN Cloud Storage Account is not defined.");
             }
 
-            CloudStorageAccount account;
-            if (CloudStorageAccount.TryParse(cloudStorageAccount, out account))
+            BlobServiceClient account;
+            if (BlobServiceClient.TryParse(cloudStorageAccount, out account))
             {
                 return account;
             }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -9,7 +9,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.WindowsAzure.Storage;
+//using Microsoft.WindowsAzure.Storage;
+using Azure;
+using Azure.Storage.Blobs;
 using Stats.AzureCdnLogs.Common;
 using Stats.AzureCdnLogs.Common.Collect;
 
@@ -132,7 +134,7 @@ namespace Stats.CDNLogsSanitizer
                     _logger.LogInformation("ProcessStream: Finished writting to the destination stream.");
                 }
             }
-            catch (StorageException exception)
+            catch (RequestFailedException exception)
             {
                 _logger.LogCritical(LogEvents.FailedToProcessStream, exception, "ProcessStream: An exception while processing the stream.");
                 throw;

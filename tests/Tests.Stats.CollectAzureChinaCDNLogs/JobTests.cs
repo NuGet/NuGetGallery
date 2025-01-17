@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using System.ComponentModel.Design;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
+//using Microsoft.WindowsAzure.Storage;
+using Azure.Storage.Blobs;
+using Azure;
 using Moq;
 using Stats.AzureCdnLogs.Common.Collect;
 using Stats.AzureCdnLogs.Common;
@@ -34,7 +36,7 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
             var job = new Job();
             var configuration = GetDefaultConfiguration();
 
-            Assert.ThrowsAny<StorageException>(() => job.InitializeJobConfiguration(GetMockServiceProvider(configuration)));
+            Assert.ThrowsAny<RequestFailedException>(() => job.InitializeJobConfiguration(GetMockServiceProvider(configuration)));
         }
 
         [Theory]
@@ -43,13 +45,13 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
         [InlineData("AzureAccountConnectionStringDestination", null, typeof(ArgumentException))]
         [InlineData("AzureContainerNameDestination", null, typeof(ArgumentNullException))]
         [InlineData("AzureContainerNameSource", null, typeof(ArgumentNullException))]
-        [InlineData("DestinationFilePrefix", null, typeof(StorageException))]
+        [InlineData("DestinationFilePrefix", null, typeof(RequestFailedException))]
         // empty values
         [InlineData("AzureAccountConnectionStringSource", "", typeof(ArgumentException))]
         [InlineData("AzureAccountConnectionStringDestination", "", typeof(ArgumentException))]
         [InlineData("AzureContainerNameDestination", "", typeof(ArgumentException))]
         [InlineData("AzureContainerNameSource", "", typeof(ArgumentException))]
-        [InlineData("DestinationFilePrefix", "", typeof(StorageException))]
+        [InlineData("DestinationFilePrefix", "", typeof(RequestFailedException))]
         public void InitMissingArgArguments(string property, object value, Type exceptionType)
         {
             var job = new Job();

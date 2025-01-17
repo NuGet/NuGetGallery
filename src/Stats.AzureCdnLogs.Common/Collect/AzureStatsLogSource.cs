@@ -8,8 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-//using Microsoft.WindowsAzure.Storage;
-//using Microsoft.WindowsAzure.Storage.Blob;
 using Azure.Storage.Blobs;
 using ICSharpCode.SharpZipLib.GZip;
 using Azure.Storage.Blobs.Models;
@@ -34,8 +32,6 @@ namespace Stats.AzureCdnLogs.Common.Collect
         private BlobServiceClient _blobServiceClient;
         private AzureBlobLeaseManager _blobLeaseManager;
         private BlobContainerClient _container;
-        //private CloudBlobClient _blobClient;
-        //private BlobRequestOptions _blobRequestOptions;
         private readonly ILogger<AzureStatsLogSource> _logger;
 
         /// <summary>
@@ -50,7 +46,6 @@ namespace Stats.AzureCdnLogs.Common.Collect
             ILogger<AzureStatsLogSource> logger)
         {
             _blobServiceClient = blobServiceClient;
-            //_blobClient = _azureBlobServiceClient.CreateCloudBlobClient();
             _container = _blobServiceClient.GetBlobContainerClient(containerName);
 
             _blobLeaseManager = blobLeaseManager ?? throw new ArgumentNullException(nameof(blobLeaseManager));
@@ -162,7 +157,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
             {
                 return AzureBlobLockResult.FailedLockResult(blob);
             }
-            return _blobLeaseManager.AcquireLease(blob, token);
+            return await _blobLeaseManager.AcquireLease(blob, token);
         }
 
         /// <summary>
