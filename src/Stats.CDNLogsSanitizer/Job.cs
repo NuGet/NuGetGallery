@@ -88,12 +88,15 @@ namespace Stats.CDNLogsSanitizer
                 throw new ArgumentException("Job parameter for Azure CDN Cloud Storage Account is not defined.");
             }
 
-            BlobServiceClient account;
-            if (BlobServiceClient.TryParse(cloudStorageAccount, out account))
+            try
             {
+                var account = new BlobServiceClient(cloudStorageAccount);
                 return account;
             }
-            throw new ArgumentException("Job parameter for Azure CDN Cloud Storage Account is invalid.");
+            catch (Exception ex)
+            {
+                throw new ArgumentException("Job parameter for Azure CDN Cloud Storage Account is invalid.", ex);
+            }            
         }
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
