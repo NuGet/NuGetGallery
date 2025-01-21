@@ -206,14 +206,13 @@ namespace NuGet.Services.Storage
             int baseAddressLength = address.Length;
 
             var name = uriString.Substring(baseAddressLength);
-            if (name.Contains("#"))
-            {
-                name = name.Substring(0, name.IndexOf("#"));
-            }
-
             if (name.Contains("?"))
             {
                 name = name.Substring(0, name.IndexOf("?"));
+            }
+            else if (name.Contains("#"))
+            {
+                name = name.Substring(0, name.IndexOf("#"));
             }
 
             return name;
