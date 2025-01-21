@@ -45,7 +45,13 @@ namespace Stats.AzureCdnLogs.Common.Collect
             AzureBlobLeaseManager blobLeaseManager,
             ILogger<AzureStatsLogSource> logger)
         {
-            _blobServiceClient = blobServiceClient;
+            _blobServiceClient = blobServiceClient ?? throw new ArgumentNullException(nameof(logger));
+
+            if (string.IsNullOrEmpty(containerName))
+            {
+                if (containerName == null) throw new ArgumentNullException(nameof(containerName));
+                else throw new ArgumentException(nameof(containerName));
+            }
             _container = _blobServiceClient.GetBlobContainerClient(containerName);
 
             _blobLeaseManager = blobLeaseManager ?? throw new ArgumentNullException(nameof(blobLeaseManager));

@@ -27,7 +27,12 @@ namespace Stats.AzureCdnLogs.Common.Collect
 
         public AzureStatsLogDestination(BlobServiceClient blobServiceClient, string containerName, ILogger<AzureStatsLogDestination> logger)
         {
-            _blobServiceClient = blobServiceClient;
+            if (string.IsNullOrEmpty(containerName))
+            {
+                if (containerName == null) throw new ArgumentNullException(nameof(containerName));
+                else throw new ArgumentException(nameof(containerName));
+            }
+            _blobServiceClient = blobServiceClient ?? throw new ArgumentNullException(nameof(logger));
             _blobContainerClient = _blobServiceClient.GetBlobContainerClient(containerName);
             _blobContainerClient.CreateIfNotExists();
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
