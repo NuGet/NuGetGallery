@@ -21,10 +21,14 @@ namespace NuGet.Services.Storage
         Uri ResolveUri(string relativeUri);
         IEnumerable<StorageListItem> List(bool getMetadata);
 
-        //Lists all children of the storage(including the ones contained in subdirectories).
+        /// <summary>
+        /// Lists all children of the storage(including the ones contained in subdirectories).
+        /// </summary>
         Task<IEnumerable<StorageListItem>> ListAsync(bool getMetadata, CancellationToken cancellationToken);
 
-        //Lists immediate children of the storage assuming directory-like structure
+        /// <summary>
+        /// Lists immediate children of the storage assuming directory-like structure
+        /// </summary>
         Task<IEnumerable<StorageListItem>> ListTopLevelAsync(bool getMetadata, CancellationToken cancellationToken);
 
         Task CopyAsync(
