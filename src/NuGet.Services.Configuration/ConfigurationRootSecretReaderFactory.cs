@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -12,6 +12,7 @@ namespace NuGet.Services.Configuration
     {
         private string _vaultName;
         private bool _useManagedIdentity;
+        private bool _localDevelopment;
         private string _tenantId;
         private string _clientId;
         private string _certificateThumbprint;
@@ -38,6 +39,16 @@ namespace NuGet.Services.Configuration
             else
             {
                 _clientId = config[Constants.KeyVaultClientIdKey];
+            }
+
+            string localDevelopment = config[Constants.ConfigureForLocalDevelopment];
+            if (!string.IsNullOrEmpty(localDevelopment))
+            {
+                _localDevelopment = bool.Parse(localDevelopment);
+            }
+            else
+            {
+                _localDevelopment= false;
             }
 
             _tenantId = config[Constants.KeyVaultTenantIdKey];
@@ -74,7 +85,7 @@ namespace NuGet.Services.Configuration
 
             if (_useManagedIdentity)
             {
-                keyVaultConfiguration = new KeyVaultConfiguration(_vaultName, _clientId);
+                keyVaultConfiguration = new KeyVaultConfiguration(_vaultName, _clientId, _localDevelopment);
             }
             else
             {
