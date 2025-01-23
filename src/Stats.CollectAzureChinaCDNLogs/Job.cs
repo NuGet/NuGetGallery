@@ -54,7 +54,7 @@ namespace Stats.CollectAzureChinaCDNLogs
                 throw new ArgumentException(nameof(superstring));
             }
 
-            superstring.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+            superstring = superstring.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
 
             var blobLeaseManager = new AzureBlobLeaseManager(
                 serviceProvider.GetRequiredService<ILogger<AzureBlobLeaseManager>>(),
