@@ -31,9 +31,8 @@ namespace NuGet.Services.Configuration
             _vaultName = config[Constants.KeyVaultVaultNameKey];
 
             string useManagedIdentity = config[Constants.KeyVaultUseManagedIdentity];
-            if (!string.IsNullOrEmpty(useManagedIdentity))
+            if (bool.TryParse(useManagedIdentity, out _useManagedIdentity) && _useManagedIdentity)
             {
-                _useManagedIdentity = bool.Parse(useManagedIdentity);
                 _clientId = string.IsNullOrEmpty(config[Constants.KeyVaultClientIdKey]) ? config[Constants.ManagedIdentityClientIdKey] : config[Constants.KeyVaultClientIdKey];
             }
             else
@@ -42,11 +41,7 @@ namespace NuGet.Services.Configuration
             }
 
             string localDevelopment = config[Constants.ConfigureForLocalDevelopment];
-            if (!string.IsNullOrEmpty(localDevelopment))
-            {
-                _localDevelopment = bool.Parse(localDevelopment);
-            }
-            else
+            if (!bool.TryParse(localDevelopment, out _localDevelopment))
             {
                 _localDevelopment= false;
             }
