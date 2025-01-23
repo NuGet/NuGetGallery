@@ -30,6 +30,19 @@ namespace Stats.AzureCdnLogs.Common
         public AzureBlobLeaseManager(ILogger<AzureBlobLeaseManager> logger, BlobServiceClient blobServiceClient, string containerName, string basePath)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            if (blobServiceClient == null) throw new ArgumentNullException(nameof(blobServiceClient));
+
+            if (string.IsNullOrEmpty(containerName))
+            {
+                if (containerName == null) throw new ArgumentNullException(nameof(containerName));
+                else throw new ArgumentException(nameof(containerName));
+            }
+
+            if (string.IsNullOrEmpty(basePath))
+            {
+                if (containerName == null) throw new ArgumentNullException(nameof(basePath));
+                else throw new ArgumentException(nameof(basePath));
+            }
             _blobLeaseService = new BlobLeaseService(blobServiceClient, containerName, basePath);
         }
 

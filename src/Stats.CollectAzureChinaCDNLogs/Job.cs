@@ -40,7 +40,21 @@ namespace Stats.CollectAzureChinaCDNLogs
             _configuration = serviceProvider.GetRequiredService<IOptionsSnapshot<CollectAzureChinaCdnLogsConfiguration>>().Value;
             _executionTimeoutInSeconds = _configuration.ExecutionTimeoutInSeconds ?? DefaultExecutionTimeoutInSeconds;
 
-            var superstring = _configuration.AzureAccountConnectionStringSource.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+            var superstring = _configuration.AzureAccountConnectionStringSource;
+
+
+            if (string.IsNullOrEmpty(_configuration.AzureAccountConnectionStringSource))
+            {
+                throw new ArgumentException(nameof(superstring));
+            }
+
+
+            if (string.IsNullOrEmpty(_configuration.AzureAccountConnectionStringDestination))
+            {
+                throw new ArgumentException(nameof(superstring));
+            }
+
+            superstring.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
 
             var blobLeaseManager = new AzureBlobLeaseManager(
                 serviceProvider.GetRequiredService<ILogger<AzureBlobLeaseManager>>(),
