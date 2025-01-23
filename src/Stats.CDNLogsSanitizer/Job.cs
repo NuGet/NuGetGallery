@@ -48,17 +48,22 @@ namespace Stats.CDNLogsSanitizer
             var logHeaderDelimiter = _configuration.LogHeaderDelimiter ?? throw new ArgumentNullException(nameof(_configuration.LogHeaderDelimiter));
             _logHeaderMetadata = new LogHeaderMetadata(logHeader, logHeaderDelimiter);
             _blobPrefix = _configuration.BlobPrefix ;
-            var blobLeaseManager = new AzureBlobLeaseManager(serviceProvider.GetRequiredService<ILogger<AzureBlobLeaseManager>>());
+            var superstring = _configuration.AzureAccountConnectionStringSource.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+            var blobLeaseManager = new AzureBlobLeaseManager(
+                serviceProvider.GetRequiredService<ILogger<AzureBlobLeaseManager>>(),
+                ValidateAzureCloudStorageAccount(superstring),
+                _configuration.AzureContainerNameDestination,
+                superstring);
 
             var source = new AzureStatsLogSource(
-                ValidateAzureCloudStorageAccount(_configuration.AzureAccountConnectionStringSource),
+                ValidateAzureCloudStorageAccount(superstring),
                 _configuration.AzureContainerNameSource,
                 _executionTimeoutInSeconds / _maxBlobsToProcess,
                 blobLeaseManager,
                 serviceProvider.GetRequiredService<ILogger<AzureStatsLogSource>>());
 
             var dest = new AzureStatsLogDestination(
-                ValidateAzureCloudStorageAccount(_configuration.AzureAccountConnectionStringDestination),
+                ValidateAzureCloudStorageAccount(superstring),
                 _configuration.AzureContainerNameDestination,
                 serviceProvider.GetRequiredService<ILogger<AzureStatsLogDestination>>());
 
