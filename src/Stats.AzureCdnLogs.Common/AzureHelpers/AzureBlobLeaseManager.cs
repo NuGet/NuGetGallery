@@ -25,11 +25,12 @@ namespace Stats.AzureCdnLogs.Common
         public const int OverlapRenewPeriodInSeconds = 20;
         //private BlobRequestOptions _blobRequestOptions;
         private readonly ILogger<AzureBlobLeaseManager> _logger;
-        private readonly BlobLeaseService _blobLeaseService;
+        private BlobLeaseService _blobLeaseService;
 
-        public AzureBlobLeaseManager(ILogger<AzureBlobLeaseManager> logger)
+        public AzureBlobLeaseManager(ILogger<AzureBlobLeaseManager> logger, BlobServiceClient blobServiceClient, string containerName, string basePath)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _blobLeaseService = new BlobLeaseService(blobServiceClient, containerName, basePath);
         }
 
         /// <summary>

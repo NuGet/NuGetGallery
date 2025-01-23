@@ -40,17 +40,24 @@ namespace Stats.CollectAzureChinaCDNLogs
             _configuration = serviceProvider.GetRequiredService<IOptionsSnapshot<CollectAzureChinaCdnLogsConfiguration>>().Value;
             _executionTimeoutInSeconds = _configuration.ExecutionTimeoutInSeconds ?? DefaultExecutionTimeoutInSeconds;
 
-            var blobLeaseManager = new AzureBlobLeaseManager(serviceProvider.GetRequiredService<ILogger<AzureBlobLeaseManager>>());
+            var superstring = _configuration.AzureAccountConnectionStringSource.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+
+            var blobLeaseManager = new AzureBlobLeaseManager(
+                serviceProvider.GetRequiredService<ILogger<AzureBlobLeaseManager>>(),
+                ValidateAzureBlobServiceClient(superstring),
+                _configuration.AzureContainerNameDestination,
+                superstring);
+
 
             var source = new AzureStatsLogSource(
-                ValidateAzureBlobServiceClient(_configuration.AzureAccountConnectionStringSource),
+                ValidateAzureBlobServiceClient(superstring),
                 _configuration.AzureContainerNameSource,
                 _executionTimeoutInSeconds / MaxFilesToProcess,
                 blobLeaseManager,
                 serviceProvider.GetRequiredService<ILogger<AzureStatsLogSource>>());
 
             var dest = new AzureStatsLogDestination(
-                ValidateAzureBlobServiceClient(_configuration.AzureAccountConnectionStringDestination),
+                ValidateAzureBlobServiceClient(superstring),
                 _configuration.AzureContainerNameDestination,
                 serviceProvider.GetRequiredService<ILogger<AzureStatsLogDestination>>());
 
