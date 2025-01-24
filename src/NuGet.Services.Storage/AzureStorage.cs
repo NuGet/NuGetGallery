@@ -24,7 +24,7 @@ namespace NuGet.Services.Storage
         private readonly string _path;
 
         public AzureStorage(
-            BlobServiceClient account,
+            BlobServiceClientFactory account,
             string containerName,
             string path,
             Uri baseAddress,
@@ -32,7 +32,7 @@ namespace NuGet.Services.Storage
             bool enablePublicAccess,
             ILogger<AzureStorage> logger)
             : this(
-                  account.GetBlobContainerClient(containerName),
+                  account.GetBlobServiceClient().GetBlobContainerClient(containerName),
                   baseAddress,
                   initializeContainer,
                   enablePublicAccess,
@@ -333,11 +333,11 @@ namespace NuGet.Services.Storage
             {
                 using (Stream stream = content.GetContentStream())
                 {
-                    await blob.SetHttpHeadersAsync(headers);
                     await blob.UploadAsync(
                         stream,
                         options: null,
                         cancellationToken: cancellationToken);
+                    await blob.SetHttpHeadersAsync(headers);
 
                     if (Verbose)
                     {
@@ -421,12 +421,15 @@ namespace NuGet.Services.Storage
             return ResolveUri(Path.Combine(_path, filename));
         }
 
-        public static Uri GetPrimaryBlobServiceUri(string storageConnectionString)
+        public static Uri GetPrimaryServiceUri(string storageConnectionString)
         {
             var tempClient = new BlobServiceClient(storageConnectionString);
             // if _storageConnectionString has SAS token, Uri will contain SAS signature, we need to strip it
             return new Uri(tempClient.Uri.GetLeftPart(UriPartial.Path));
         }
+
+        public static Uri GetPrimaryBlobServiceUri(string storageConnectionString) => GetPrimaryServiceUri(storageConnectionString);
+
 
         public static Uri GetPrimaryTableServiceUri(string storageConnectionString)
         {

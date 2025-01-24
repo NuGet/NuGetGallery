@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -27,26 +27,6 @@ namespace NuGetGallery.Frameworks
         public static readonly NuGetFramework Net3 = new NuGetFramework(FrameworkIdentifiers.Net, new Version(3, 0, 0, 0));
         public static readonly NuGetFramework Net48 = new NuGetFramework(FrameworkIdentifiers.Net, new Version(4, 8, 0, 0));
         public static readonly NuGetFramework Net481 = new NuGetFramework(FrameworkIdentifiers.Net, new Version(4, 8, 1, 0));
-        public static readonly NuGetFramework Net50Windows = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version5, "windows", EmptyVersion);
-        public static readonly NuGetFramework Net60Android = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version6, "android", EmptyVersion);
-        public static readonly NuGetFramework Net60Ios = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version6, "ios", EmptyVersion);
-        public static readonly NuGetFramework Net60MacOs = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version6, "macos", EmptyVersion);
-        public static readonly NuGetFramework Net60MacCatalyst = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version6, "maccatalyst", EmptyVersion);
-        public static readonly NuGetFramework Net60TvOs = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version6, "tvos", EmptyVersion);
-        public static readonly NuGetFramework Net60Windows = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version6, "windows", EmptyVersion);
-        public static readonly NuGetFramework Net70Android = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version7, "android", EmptyVersion);
-        public static readonly NuGetFramework Net70Ios = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version7, "ios", EmptyVersion);
-        public static readonly NuGetFramework Net70MacOs = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version7, "macos", EmptyVersion);
-        public static readonly NuGetFramework Net70MacCatalyst = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version7, "maccatalyst", EmptyVersion);
-        public static readonly NuGetFramework Net70TvOs = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version7, "tvos", EmptyVersion);
-        public static readonly NuGetFramework Net70Windows = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version7, "windows", EmptyVersion);
-        public static readonly NuGetFramework Net80Android = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version8, "android", EmptyVersion);
-        public static readonly NuGetFramework Net80Browser = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version8, "browser", EmptyVersion);
-        public static readonly NuGetFramework Net80Ios = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version8, "ios", EmptyVersion);
-        public static readonly NuGetFramework Net80MacOs = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version8, "macos", EmptyVersion);
-        public static readonly NuGetFramework Net80MacCatalyst = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version8, "maccatalyst", EmptyVersion);
-        public static readonly NuGetFramework Net80TvOs = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version8, "tvos", EmptyVersion);
-        public static readonly NuGetFramework Net80Windows = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version8, "windows", EmptyVersion);
         public static readonly NuGetFramework NetCore = new NuGetFramework(FrameworkIdentifiers.NetCore, EmptyVersion);
         public static readonly NuGetFramework NetMf = new NuGetFramework(FrameworkIdentifiers.NetMicro, EmptyVersion);
         public static readonly NuGetFramework UAP = new NuGetFramework(FrameworkIdentifiers.UAP, EmptyVersion);
@@ -55,7 +35,43 @@ namespace NuGetGallery.Frameworks
         public static readonly NuGetFramework XamarinMac = new NuGetFramework(FrameworkIdentifiers.XamarinMac, EmptyVersion);
         public static readonly NuGetFramework XamarinTvOs = new NuGetFramework(FrameworkIdentifiers.XamarinTVOS, EmptyVersion);
         public static readonly NuGetFramework XamarinWatchOs = new NuGetFramework(FrameworkIdentifiers.XamarinWatchOS, EmptyVersion);
-        
+
+        public static readonly NuGetFramework Net50Windows = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version5, "windows", EmptyVersion);
+
+        public static readonly NuGetFramework Net60Android = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version6, "android", EmptyVersion);
+        public static readonly NuGetFramework Net60Ios = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version6, "ios", EmptyVersion);
+        public static readonly NuGetFramework Net60MacCatalyst = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version6, "maccatalyst", EmptyVersion);
+        public static readonly NuGetFramework Net60MacOs = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version6, "macos", EmptyVersion);
+        public static readonly NuGetFramework Net60TvOs = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version6, "tvos", EmptyVersion);
+        public static readonly NuGetFramework Net60Windows = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version6, "windows", EmptyVersion);
+
+        public static readonly NuGetFramework Net70Android = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version7, "android", EmptyVersion);
+        public static readonly NuGetFramework Net70Ios = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version7, "ios", EmptyVersion);
+        public static readonly NuGetFramework Net70MacCatalyst = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version7, "maccatalyst", EmptyVersion);
+        public static readonly NuGetFramework Net70MacOs = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version7, "macos", EmptyVersion);
+        public static readonly NuGetFramework Net70TvOs = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version7, "tvos", EmptyVersion);
+        public static readonly NuGetFramework Net70Windows = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version7, "windows", EmptyVersion);
+
+        public static readonly NuGetFramework Net80Android = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version8, "android", EmptyVersion);
+        public static readonly NuGetFramework Net80Browser = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version8, "browser", EmptyVersion);
+        public static readonly NuGetFramework Net80Ios = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version8, "ios", EmptyVersion);
+        public static readonly NuGetFramework Net80MacCatalyst = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version8, "maccatalyst", EmptyVersion);
+        public static readonly NuGetFramework Net80MacOs = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version8, "macos", EmptyVersion);
+        public static readonly NuGetFramework Net80TvOs = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version8, "tvos", EmptyVersion);
+        public static readonly NuGetFramework Net80Windows = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version8, "windows", EmptyVersion);
+
+        // These 2 constants can be removed once they have been added to NuGet.Frameworks.FrameworkConstants - https://github.com/NuGet/Engineering/issues/5676
+        public static readonly Version Version9 = new Version(9, 0, 0, 0);
+        public static readonly NuGetFramework Net90 = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version9);
+
+        public static readonly NuGetFramework Net90Android = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version9, "android", EmptyVersion);
+        public static readonly NuGetFramework Net90Browser = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version9, "browser", EmptyVersion);
+        public static readonly NuGetFramework Net90Ios = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version9, "ios", EmptyVersion);
+        public static readonly NuGetFramework Net90MacCatalyst = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version9, "maccatalyst", EmptyVersion);
+        public static readonly NuGetFramework Net90MacOs = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version9, "macos", EmptyVersion);
+        public static readonly NuGetFramework Net90TvOs = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version9, "tvos", EmptyVersion);
+        public static readonly NuGetFramework Net90Windows = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version9, "windows", EmptyVersion);
+
         public static readonly IReadOnlyList<NuGetFramework> AllSupportedNuGetFrameworks;
 
         static SupportedFrameworks()
@@ -68,7 +84,8 @@ namespace NuGetGallery.Frameworks
                 Net50, Net50Windows,
                 Net60, Net60Android, Net60Ios, Net60MacCatalyst, Net60MacOs, Net60TvOs, Net60Windows,
                 Net70, Net70Android, Net70Ios, Net70MacCatalyst, Net70MacOs, Net70TvOs, Net70Windows,
-                Net80, Net80Android, Net80Ios, Net80MacCatalyst, Net80MacOs, Net80TvOs, Net80Windows, Net80Browser,
+                Net80, Net80Android, Net80Browser, Net80Ios, Net80MacCatalyst, Net80MacOs, Net80TvOs, Net80Windows,
+                Net90, Net90Android, Net90Browser, Net90Ios, Net90MacCatalyst, Net90MacOs, Net90TvOs, Net90Windows,
                 NetCore, NetCore45, NetCore451,
                 NetCoreApp10, NetCoreApp11, NetCoreApp20, NetCoreApp21, NetCoreApp22, NetCoreApp30, NetCoreApp31,
                 NetMf,

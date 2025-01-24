@@ -202,6 +202,7 @@ namespace NgTests
                     { Arguments.StorageKeyValue, DummyKey },
                     { Arguments.StorageContainer, "testContainer" },
                     { Arguments.StoragePath, "testStoragePath" },
+                    { Arguments.StorageUseManagedIdentity, "false" },
                 };
 
                 // Act
@@ -226,6 +227,7 @@ namespace NgTests
                     { Arguments.StorageContainer, "testContainer" },
                     { Arguments.StoragePath, "testStoragePath" },
                     { Arguments.StorageSuffix, "core.chinacloudapi.cn" },
+                    { Arguments.StorageUseManagedIdentity, "false" }
                 };
 
                 // Act

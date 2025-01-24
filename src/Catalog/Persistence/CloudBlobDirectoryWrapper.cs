@@ -5,27 +5,32 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Core;
+using Azure.Core.Pipeline;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
+using NuGet.Services.Storage;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public class CloudBlobDirectoryWrapper : ICloudBlobDirectory
     {
+        private readonly IBlobServiceClientFactory _blobServiceClientFactory;
         private readonly BlobContainerClient _containerClient;
         private readonly string _directoryPrefix;
         private readonly IBlobContainerClientWrapper _blobContainerClientWrapper;
         private readonly BlobClientOptions _defaultClientOptions;
 
-        public BlobServiceClient ServiceClient => _containerClient.GetParentBlobServiceClient();
+        public IBlobServiceClientFactory ServiceClient => new SimpleBlobServiceClientFactory(_containerClient.GetParentBlobServiceClient());
         public Uri Uri { get; }
         public string DirectoryPrefix => _directoryPrefix;
         public BlobClientOptions ContainerOptions => _defaultClientOptions;
         public IBlobContainerClientWrapper ContainerClientWrapper => _blobContainerClientWrapper;
 
-        public CloudBlobDirectoryWrapper(BlobServiceClient serviceClient, string containerName, string directoryPrefix, BlobClientOptions blobClientOptions = null)
+        public CloudBlobDirectoryWrapper(IBlobServiceClientFactory serviceClientFactory, string containerName, string directoryPrefix, BlobClientOptions blobClientOptions = null)
         {
+            _blobServiceClientFactory = serviceClientFactory ?? throw new ArgumentNullException(nameof(serviceClientFactory));
             _directoryPrefix = directoryPrefix ?? throw new ArgumentNullException(nameof(directoryPrefix));
 
             if (string.IsNullOrWhiteSpace(containerName))
@@ -35,19 +40,9 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             _defaultClientOptions = blobClientOptions ?? new BlobClientOptions();
 
-            // Create the container client using the provided or default options
-            if (blobClientOptions != null)
-            {
-                // Extract necessary information
-                Uri serviceUri = serviceClient.Uri;
-                // Create a new BlobServiceClient instance with the new options
-                var newServiceClient = new BlobServiceClient(serviceUri, _defaultClientOptions);
-                _containerClient = newServiceClient.GetBlobContainerClient(containerName);
-            }
-            else
-            {
-                _containerClient = serviceClient.GetBlobContainerClient(containerName);
-            }
+            // Request a new BlobServiceClient instance with the current BlobClientOptions
+            var serviceClient = _blobServiceClientFactory.GetBlobServiceClient(blobClientOptions);
+            _containerClient = serviceClient.GetBlobContainerClient(containerName);
 
             Uri = new Uri(Storage.RemoveQueryString(_containerClient.Uri).TrimEnd('/') + "/" + _directoryPrefix);
 

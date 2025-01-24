@@ -20,11 +20,15 @@ using AnglicanGeek.MarkdownMailer;
 using Autofac;
 using Autofac.Core;
 using Autofac.Extensions.DependencyInjection;
+using Ganss.Xss;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.Implementation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.IdentityModel.Protocols;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using NuGet.Services.Configuration;
 using NuGet.Services.Entities;
@@ -55,6 +59,7 @@ using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.Infrastructure.Search.Correlation;
 using NuGetGallery.Security;
 using NuGetGallery.Services;
+using NuGetGallery.Services.Authentication;
 using Role = NuGet.Services.Entities.Role;
 
 namespace NuGetGallery
@@ -104,7 +109,7 @@ namespace NuGetGallery
                 configuration.Current,
                 out ITelemetryClient telemetryClient);
 
-            var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: false);
+            var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: false, withAssemblyMetadata: false);
             var loggerFactory = LoggingSetup.CreateLoggerFactory(
                 loggerConfiguration,
                 telemetryConfiguration: applicationInsightsConfiguration.TelemetryConfiguration);
@@ -128,6 +133,7 @@ namespace NuGetGallery
 
             services.AddSingleton(loggerFactory);
             services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
+            services.AddSingleton<IHtmlSanitizer, HtmlSanitizer>();
 
             UrlHelperExtensions.SetConfigurationService(configuration);
             builder.RegisterType<UrlHelperWrapper>()
@@ -150,6 +156,8 @@ namespace NuGetGallery
 
             builder.Register(c => configuration.PackageDelete)
                 .As<IPackageDeleteConfiguration>();
+
+            ConfigureFederatedCredentials(builder, configuration);
 
             var telemetryService = new TelemetryService(
                 new TraceDiagnosticsSource(nameof(TelemetryService), telemetryClient),
@@ -276,6 +284,16 @@ namespace NuGetGallery
                 .As<IEntityRepository<PackageRename>>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<EntityRepository<FederatedCredentialPolicy>>()
+                .AsSelf()
+                .As<IEntityRepository<FederatedCredentialPolicy>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<EntityRepository<FederatedCredential>>()
+                .AsSelf()
+                .As<IEntityRepository<FederatedCredential>>()
+                .InstancePerLifetimeScope();
+
             ConfigureGalleryReadOnlyReplicaEntitiesContext(builder, loggerFactory, configuration, secretInjector, telemetryService);
 
             var supportDbConnectionFactory = CreateDbConnectionFactory(
@@ -381,7 +399,7 @@ namespace NuGetGallery
             builder.RegisterType<MarkdownService>()
                 .As<IMarkdownService>()
                 .InstancePerLifetimeScope();
-            
+
             builder.RegisterType<ImageDomainValidator>()
                 .As<IImageDomainValidator>()
                 .InstancePerLifetimeScope();
@@ -405,7 +423,7 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<ICertificateService>()
                 .InstancePerLifetimeScope();
-            
+
             RegisterTyposquattingServiceHelper(builder, loggerFactory);
 
             builder.RegisterType<TyposquattingService>()
@@ -529,6 +547,54 @@ namespace NuGetGallery
 
             ConfigureAutocomplete(builder, configuration);
             builder.Populate(services);
+        }
+
+        private static void ConfigureFederatedCredentials(ContainerBuilder builder, ConfigurationService configuration)
+        {
+            builder
+                .RegisterType<FederatedCredentialRepository>()
+                .As<IFederatedCredentialRepository>()
+                .InstancePerLifetimeScope();
+
+            builder
+                .Register(c => configuration.FederatedCredential)
+                .As<IFederatedCredentialConfiguration>();
+
+            builder
+                .Register(_ => new OpenIdConnectConfigurationRetriever())
+                .As<IConfigurationRetriever<OpenIdConnectConfiguration>>();
+
+            const string EntraIdKey = "EntraId";
+
+            // this is a singleton to provide caching of the OIDC metadata
+            builder
+                .Register(p => new ConfigurationManager<OpenIdConnectConfiguration>(
+                    metadataAddress: EntraIdTokenValidator.MetadataAddress,
+                    p.Resolve<IConfigurationRetriever<OpenIdConnectConfiguration>>()))
+                .SingleInstance()
+                .Keyed<ConfigurationManager<OpenIdConnectConfiguration>>(EntraIdKey);
+
+            builder
+                .RegisterType<JsonWebTokenHandler>()
+                .InstancePerLifetimeScope();
+
+            builder
+                .Register(p => new EntraIdTokenValidator(
+                    p.ResolveKeyed<ConfigurationManager<OpenIdConnectConfiguration>>(EntraIdKey),
+                    p.Resolve<JsonWebTokenHandler>(),
+                    p.Resolve<IFederatedCredentialConfiguration>()))
+                .As<IEntraIdTokenValidator>()
+                .InstancePerLifetimeScope();
+
+            builder
+                .RegisterType<FederatedCredentialEvaluator>()
+                .As<IFederatedCredentialEvaluator>()
+                .InstancePerLifetimeScope();
+
+            builder
+                .RegisterType<FederatedCredentialService>()
+                .As<IFederatedCredentialService>()
+                .InstancePerLifetimeScope();
         }
 
         // Internal for testing purposes
@@ -812,7 +878,7 @@ namespace NuGetGallery
                 .Register(c => new TopicClientWrapper(asyncAccountDeleteConnectionString, asyncAccountDeleteTopicName, configuration.ServiceBus.ManagedIdentityClientId))
                 .SingleInstance()
                 .Keyed<ITopicClient>(BindingKeys.AccountDeleterTopic)
-                .OnRelease(x => x.CloseAsync());
+                .OnRelease(x => _ = x.CloseAsync());
 
             builder
                 .RegisterType<AsynchronousDeleteAccountService>()
@@ -948,7 +1014,7 @@ namespace NuGetGallery
                 .As<ITopicClient>()
                 .SingleInstance()
                 .Keyed<ITopicClient>(BindingKeys.EmailPublisherTopic)
-                .OnRelease(x => x.CloseAsync());
+                .OnRelease(x => _ = x.CloseAsync());
 
             builder
                 .RegisterType<EmailMessageEnqueuer>()
@@ -1103,14 +1169,14 @@ namespace NuGetGallery
                     .As<ITopicClient>()
                     .SingleInstance()
                     .Keyed<ITopicClient>(BindingKeys.PackageValidationTopic)
-                    .OnRelease(x => x.CloseAsync());
+                    .OnRelease(x => _ = x.CloseAsync());
 
                 builder
                     .Register(c => new TopicClientWrapper(symbolsValidationConnectionString, symbolsValidationTopicName, configuration.ServiceBus.ManagedIdentityClientId))
                     .As<ITopicClient>()
                     .SingleInstance()
                     .Keyed<ITopicClient>(BindingKeys.SymbolsPackageValidationTopic)
-                    .OnRelease(x => x.CloseAsync());
+                    .OnRelease(x => _ = x.CloseAsync());
             }
             else
             {

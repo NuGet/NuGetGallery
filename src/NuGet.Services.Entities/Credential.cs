@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -86,9 +86,13 @@ namespace NuGet.Services.Entities
 
         public bool? WasCreatedSecurely { get; set; }
 
+        public int? FederatedCredentialPolicyKey { get; set; }
+
         public virtual User User { get; set; }
 
         public virtual ICollection<Scope> Scopes { get; set; }
+
+        public virtual FederatedCredentialPolicy FederatedCredentialPolicy { get; set; }
 
         [NotMapped]
         public bool HasExpired

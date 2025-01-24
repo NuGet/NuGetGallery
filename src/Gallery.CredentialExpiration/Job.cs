@@ -52,7 +52,7 @@ namespace Gallery.CredentialExpiration
 
             FromAddress = new MailAddress(InitializationConfiguration.MailFrom);
             
-            var storageAccount = new BlobServiceClient(AzureStorageFactory.PrepareConnectionString(InitializationConfiguration.DataStorageAccount));
+            var storageAccount = new BlobServiceClientFactory(AzureStorageFactory.PrepareConnectionString(InitializationConfiguration.DataStorageAccount));
             var storageFactory = new AzureStorageFactory(
                 storageAccount,
                 InitializationConfiguration.ContainerName,

@@ -28,8 +28,10 @@ using NuGet.Services.AzureSearch.Db2AzureSearch;
 using NuGet.Services.AzureSearch.SearchService;
 using NuGet.Services.AzureSearch.Wrappers;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using NuGet.Services.Storage;
 using NuGet.Services.V3;
 using NuGetGallery;
+using IStorageFactory = NuGet.Services.Metadata.Catalog.Persistence.IStorageFactory;
 
 namespace NuGet.Services.AzureSearch
 {
@@ -122,25 +124,33 @@ namespace NuGet.Services.AzureSearch
                 .Register(c =>
                 {
                     var options = c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>();
-                    
-                    // https://github.com/Azure/azure-sdk-for-net/issues/44373
-                    options.Value.StorageConnectionString = options.Value.StorageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
-                    
-                    return new BlobServiceClient(options.Value.StorageConnectionString);
+                    var storageMsiConfiguration = c.Resolve<IOptionsSnapshot<StorageMsiConfiguration>>();
+
+                    return StorageAccountHelper.CreateBlobServiceClient(storageMsiConfiguration.Value, options.Value.StorageConnectionString);
                 })
                 .Keyed<BlobServiceClient>(key);
+
+            containerBuilder
+                .Register(c =>
+                {
+                    var options = c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>();
+                    var storageMsiConfiguration = c.Resolve<IOptionsSnapshot<StorageMsiConfiguration>>();
+
+                    return StorageAccountHelper.CreateBlobServiceClientFactory(storageMsiConfiguration.Value, options.Value.StorageConnectionString);
+                })
+                .Keyed<BlobServiceClientFactory>(key);
 
 #if NETFRAMEWORK
             containerBuilder
                 .Register<IStorageFactory>(c =>
                 {
                     var options = c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>();
-                    BlobServiceClient blobServiceClient = c.ResolveKeyed<BlobServiceClient>(key);
-                    return new AzureStorageFactory(
-                        blobServiceClient,
+                    BlobServiceClientFactory blobServiceClientFactory = c.ResolveKeyed<BlobServiceClientFactory>(key);
+                    return new Metadata.Catalog.Persistence.AzureStorageFactory(
+                        blobServiceClientFactory,
                         options.Value.StorageContainer,
-                        maxExecutionTime: AzureStorage.DefaultMaxExecutionTime,
-                        serverTimeout: AzureStorage.DefaultServerTimeout,
+                        maxExecutionTime: Metadata.Catalog.Persistence.AzureStorage.DefaultMaxExecutionTime,
+                        serverTimeout: Metadata.Catalog.Persistence.AzureStorage.DefaultServerTimeout,
                         path: options.Value.NormalizeStoragePath(),
                         baseAddress: null,
                         useServerSideCopy: true,

@@ -39,6 +39,7 @@ namespace Ng
         public const string StoragePath = "storagePath";
         public const string StorageQueueName = "storageQueueName";
         public const string StorageType = "storageType";
+        public const string StorageUseManagedIdentity = "storageUseManagedIdentity";
 
         public const string StorageSuffix = "storageSuffix";
         public const string StorageOperationMaxExecutionTimeInSeconds = "storageOperationMaxExecutionTimeInSeconds";

@@ -121,9 +121,7 @@ namespace NuGet.Jobs
             }
 
             StorageMsiConfiguration msiConfiguration = serviceProvider.GetRequiredService<IOptions<StorageMsiConfiguration>>().Value;
-            return CreateTableServiceClient(
-                msiConfiguration,
-                storageConnectionString);
+            return CreateTableServiceClient(msiConfiguration, storageConnectionString);
         }
 
         public static IRegistrationBuilder<TableServiceClient, SimpleActivatorData, SingleRegistrationStyle> RegisterTableServiceClient<TConfiguration>(
@@ -145,9 +143,7 @@ namespace NuGet.Jobs
                 IOptionsSnapshot<TConfiguration> options = c.Resolve<IOptionsSnapshot<TConfiguration>>();
                 string storageConnectionString = getConnectionString(options.Value);
                 StorageMsiConfiguration msiConfiguration = c.Resolve<IOptions<StorageMsiConfiguration>>().Value;
-                return CreateTableServiceClient(
-                    msiConfiguration,
-                    storageConnectionString);
+                return CreateTableServiceClient(msiConfiguration, storageConnectionString);
             });
         }
 
@@ -224,13 +220,45 @@ namespace NuGet.Jobs
             }
         }
 
+        public static BlobServiceClientFactory CreateBlobServiceClientFactory(
+            StorageMsiConfiguration storageMsiConfiguration,
+            string storageConnectionString)
+        {
+            if (storageMsiConfiguration.UseManagedIdentity)
+            {
+                Uri blobEndpointUri = AzureStorage.GetPrimaryBlobServiceUri(storageConnectionString);
+
+                if (string.IsNullOrWhiteSpace(storageMsiConfiguration.ManagedIdentityClientId))
+                {
+                    // 1. Using MSI with DefaultAzureCredential (local debugging)
+                    return new BlobServiceClientFactory(
+                        blobEndpointUri,
+                        new DefaultAzureCredential());
+                }
+                else
+                {
+                    // 2. Using MSI with ClientId
+                    return new BlobServiceClientFactory(
+                        blobEndpointUri,
+                        new ManagedIdentityCredential(storageMsiConfiguration.ManagedIdentityClientId));
+                }
+            }
+            else
+            {
+                // 3. Using SAS token
+                // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
+                var connectionString = storageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+
+                return new BlobServiceClientFactory(connectionString);
+            }
+        }
+
         public static TableServiceClient CreateTableServiceClient(
             StorageMsiConfiguration msiConfiguration,
             string tableStorageConnectionString)
         {
             if (msiConfiguration.UseManagedIdentity)
             {
-                //Uri tableEndpointUri = AzureStorage.GetPrimaryTableServiceUri(tableStorageConnectionString);
                 Uri tableEndpointUri = new Uri(tableStorageConnectionString);
 
                 if (string.IsNullOrWhiteSpace(msiConfiguration.ManagedIdentityClientId))

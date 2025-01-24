@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
@@ -342,5 +342,10 @@ namespace NuGetGallery
         /// Whether or not to allow filtering by frameworks on NuGet.org search
         /// </summary>
         bool IsAdvancedFrameworkFilteringEnabled(User user);
+
+        /// <summary>
+        /// Whether or not the user specified in a package owner scope can use federated credentials.
+        /// </summary>
+        bool CanUseFederatedCredentials(User user);
     }
 }

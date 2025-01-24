@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -35,7 +35,9 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
             var collector = new ChinaStatsCollector(
                 Mock.Of<ILogSource>(),
                 Mock.Of<ILogDestination>(),
-                Mock.Of<ILogger<ChinaStatsCollector>>());
+                Mock.Of<ILogger<ChinaStatsCollector>>(),
+                writeHeader: true,
+                addSourceFilenameColumn: false);
 
             var transformedInput = collector.TransformRawLogLine(input);
             string output = transformedInput == null ? null : transformedInput.ToString();
@@ -51,7 +53,9 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
             var collector = new ChinaStatsCollector(
                 Mock.Of<ILogSource>(),
                 Mock.Of<ILogDestination>(),
-                Mock.Of<ILogger<ChinaStatsCollector>>());
+                Mock.Of<ILogger<ChinaStatsCollector>>(),
+                writeHeader: true,
+                addSourceFilenameColumn: false);
 
             var transformedInput = collector.TransformRawLogLine(input);
             if (transformedInput == null)
@@ -74,7 +78,9 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
             var collector = new ChinaStatsCollector(
                 Mock.Of<ILogSource>(),
                 Mock.Of<ILogDestination>(),
-                Mock.Of<ILogger<ChinaStatsCollector>>());
+                Mock.Of<ILogger<ChinaStatsCollector>>(),
+                writeHeader: true,
+                addSourceFilenameColumn: false);
 
             OutputLogLine transformedInput = null;
 
@@ -121,6 +127,126 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
         public async Task SkipsLinesWithMalformedColumns(string data, int expectedOutputLines)
         {
             const string header = "c-ip, timestamp, cs-method, cs-uri-stem, http-ver, sc-status, sc-bytes, c-referer, c-user-agent, rs-duration(ms), hit-miss, s-ip\n";
+            Mock<ILogSource> sourceMock = SetupSource(header + data);
+
+            var writeSucceeded = false;
+            var outputStream = new MemoryStream();
+            Mock<ILogDestination> destinationMock = SetupDestination(outputStream, () => writeSucceeded = true);
+
+            var collector = new ChinaStatsCollector(
+                sourceMock.Object,
+                destinationMock.Object,
+                Mock.Of<ILogger<ChinaStatsCollector>>(),
+                writeHeader: true,
+                addSourceFilenameColumn: false);
+
+            await collector.TryProcessAsync(
+                maxFileCount: 10,
+                fileNameTransform: s => s,
+                sourceContentType: ContentType.Text,
+                destinationContentType: ContentType.Text,
+                CancellationToken.None);
+
+            string[] outputLines = null;
+
+            outputLines = GetStreamLines(outputStream);
+
+            Assert.True(writeSucceeded);
+            Assert.NotEmpty(outputLines);
+            Assert.Equal("#Fields: timestamp time-taken c-ip filesize s-ip s-port sc-status sc-bytes cs-method cs-uri-stem - rs-duration rs-bytes c-referrer c-user-agent customer-id x-ec_custom-1", outputLines[0]);
+            Assert.True(expectedOutputLines <= outputLines.Length - 1); // excluding header
+        }
+
+        [Fact]
+        public async Task DoesNotWriteHeaderIfConfigured()
+        {
+            const string header = "c-ip, timestamp, cs-method, cs-uri-stem, http-ver, sc-status, sc-bytes, c-referer, c-user-agent, rs-duration(ms), hit-miss, s-ip\n";
+            const string data = "1.2.3.4,4/6/2019 4:00:20 PM +00:00,GET,\"/v3-flatcontainer/microsoft.codeanalysis.common/1.2.2/microsoft.codeanalysis.common.1.2.2.nupkg\",HTTPS,200,2044843,\"NULL\",\"NuGet VS VSIX/4.7.0 (Microsoft Windows NT 10.0.17134.0, VS Enterprise/15.0)\",796,MISS,4.3.2.1";
+
+            Mock<ILogSource> sourceMock = SetupSource(header + data);
+            var writeSucceeded = false;
+            var outputStream = new MemoryStream();
+            Mock<ILogDestination> destinationMock = SetupDestination(outputStream, () => writeSucceeded = true);
+
+            var collector = new ChinaStatsCollector(
+                sourceMock.Object,
+                destinationMock.Object,
+                Mock.Of<ILogger<ChinaStatsCollector>>(),
+                writeHeader: false,
+                addSourceFilenameColumn: false);
+
+            await collector.TryProcessAsync(
+                maxFileCount: 10,
+                fileNameTransform: s => s,
+                sourceContentType: ContentType.Text,
+                destinationContentType: ContentType.Text,
+                CancellationToken.None);
+
+            string[] outputLines = null;
+
+            outputLines = GetStreamLines(outputStream);
+            Assert.True(writeSucceeded);
+            Assert.Single(outputLines);
+            Assert.False(outputLines[0].StartsWith("#Fields"));
+        }
+
+        [Fact]
+        public async Task WritesSourceFilenameColumn()
+        {
+            const string header = "c-ip, timestamp, cs-method, cs-uri-stem, http-ver, sc-status, sc-bytes, c-referer, c-user-agent, rs-duration(ms), hit-miss, s-ip\n";
+            const string data = "1.2.3.4,4/6/2019 4:00:20 PM +00:00,GET,\"/v3-flatcontainer/microsoft.codeanalysis.common/1.2.2/microsoft.codeanalysis.common.1.2.2.nupkg\",HTTPS,200,2044843,\"NULL\",\"NuGet VS VSIX/4.7.0 (Microsoft Windows NT 10.0.17134.0, VS Enterprise/15.0)\",796,MISS,4.3.2.1";
+
+            Mock<ILogSource> sourceMock = SetupSource(header + data);
+            var writeSucceeded = false;
+            var outputStream = new MemoryStream();
+            Mock<ILogDestination> destinationMock = SetupDestination(outputStream, () => writeSucceeded = true);
+
+            var collector = new ChinaStatsCollector(
+                sourceMock.Object,
+                destinationMock.Object,
+                Mock.Of<ILogger<ChinaStatsCollector>>(),
+                writeHeader: true,
+                addSourceFilenameColumn: true);
+
+            await collector.TryProcessAsync(
+                maxFileCount: 10,
+                fileNameTransform: s => s,
+                sourceContentType: ContentType.Text,
+                destinationContentType: ContentType.Text,
+                CancellationToken.None);
+
+            string[] outputLines = null;
+
+            outputLines = GetStreamLines(outputStream);
+            Assert.True(writeSucceeded);
+            Assert.Equal(2, outputLines.Length);
+            Assert.EndsWith("sourceFilename", outputLines[0]);
+            Assert.EndsWith("log1", outputLines[1]);
+        }
+
+        private static Mock<ILogDestination> SetupDestination(MemoryStream outputStream, Action onSuccess)
+        {
+            var destinationMock = new Mock<ILogDestination>();
+            destinationMock
+                .Setup(d => d.TryWriteAsync(It.IsAny<Stream>(), It.IsAny<Action<Stream, Stream>>(), It.IsAny<string>(), It.IsAny<ContentType>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((Stream inputStream, Action<Stream, Stream> writeAction, string destinationFileName, ContentType destinationContentType, CancellationToken token) =>
+                {
+                    try
+                    {
+                        writeAction(inputStream, outputStream);
+                        onSuccess();
+                    }
+                    catch (Exception ex)
+                    {
+                        return new AsyncOperationResult(false, ex);
+                    }
+                    return new AsyncOperationResult(true, null);
+                });
+            return destinationMock;
+        }
+
+        private static Mock<ILogSource> SetupSource(string content)
+        {
             var sourceUri = new Uri("https://example.com/log1");
 
             var sourceMock = new Mock<ILogSource>();
@@ -134,41 +260,13 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
 
             sourceMock
                 .Setup(s => s.OpenReadAsync(sourceUri, It.IsAny<ContentType>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(header + data)));
+                .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(content)));
+            return sourceMock;
+        }
 
-            var destinationMock = new Mock<ILogDestination>();
-            var outputStream = new MemoryStream();
-            var writeSucceeded = false;
-            destinationMock
-                .Setup(d => d.TryWriteAsync(It.IsAny<Stream>(), It.IsAny<Action<Stream, Stream>>(), It.IsAny<string>(), It.IsAny<ContentType>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Stream inputStream, Action<Stream, Stream> writeAction, string destinationFileName, ContentType destinationContentType, CancellationToken token) =>
-                {
-                    try
-                    {
-                        writeAction(inputStream, outputStream);
-                        writeSucceeded = true;
-                    }
-                    catch (Exception ex)
-                    {
-                        return new AsyncOperationResult(false, ex);
-                    }
-                    return new AsyncOperationResult(true, null);
-                });
-
-            var collector = new ChinaStatsCollector(
-                sourceMock.Object,
-                destinationMock.Object,
-                Mock.Of<ILogger<ChinaStatsCollector>>());
-
-            await collector.TryProcessAsync(
-                maxFileCount: 10,
-                fileNameTransform: s => s,
-                sourceContentType: ContentType.Text,
-                destinationContentType: ContentType.Text,
-                CancellationToken.None);
-
-            string[] outputLines = null;
-
+        private static string[] GetStreamLines(MemoryStream outputStream)
+        {
+            string[] outputLines;
             // need to reopen closed stream
             var outputBuffer = outputStream.ToArray();
             outputStream = new MemoryStream(outputBuffer);
@@ -177,11 +275,7 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
                 outputLines = streamReader.ReadToEnd().Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
             }
 
-            Assert.True(writeSucceeded);
-            Assert.NotEmpty(outputLines);
-            Assert.Equal("#Fields: timestamp time-taken c-ip filesize s-ip s-port sc-status sc-bytes cs-method cs-uri-stem - rs-duration rs-bytes c-referrer c-user-agent customer-id x-ec_custom-1", outputLines[0]);
-            Assert.True(expectedOutputLines <= outputLines.Length - 1); // excluding header
+            return outputLines;
         }
     }
 }
- 

@@ -174,7 +174,7 @@ namespace StatusAggregator
         private static TableServiceClient GetTableServiceClient(IComponentContext ctx, StatusStorageConnectionBuilder statusStorageConnectionBuilder)
         {
             StorageMsiConfiguration storageMsiConfiguration = ctx.Resolve<IOptionsSnapshot<StorageMsiConfiguration>>().Value;
-            StatusAggregatorConfiguration configuration = ctx.Resolve< IOptionsSnapshot<StatusAggregatorConfiguration>>().Value;
+            StatusAggregatorConfiguration configuration = ctx.Resolve<IOptionsSnapshot<StatusAggregatorConfiguration>>().Value;
             string connectionString = statusStorageConnectionBuilder.GetTableConnectionString(configuration);
 
             return StorageAccountHelper.CreateTableServiceClient(storageMsiConfiguration, connectionString);

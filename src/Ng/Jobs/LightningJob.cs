@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -400,8 +400,10 @@ namespace Ng.Jobs
             {
                 AppendArgument(argument, sasTokenArgument);
             }
-
-            AppendArgument(argument, storageKeyArgument);
+            else if (!string.IsNullOrEmpty(_arguments.GetOrDefault<string>(storageKeyArgument)))
+            {
+                AppendArgument(argument, storageKeyArgument);
+            }
         }
 
         private async Task StrikeAsync()
@@ -504,32 +506,55 @@ namespace Ng.Jobs
 
             services.Configure<Catalog2RegistrationConfiguration>(config =>
             {
+                config.StorageUseManagedIdentity = _arguments.GetOrDefault<bool>(Arguments.UseManagedIdentity);
+                config.StorageManagedIdentityClientId = _arguments.GetOrDefault<string>(Arguments.ClientId);
+
                 config.LegacyBaseUrl = _arguments.GetOrDefault<string>(Arguments.StorageBaseAddress);
                 config.LegacyStorageContainer = _arguments.GetOrDefault<string>(Arguments.StorageContainer);
-                config.StorageConnectionString = GetConnectionString(
-                    config.StorageConnectionString,
-                    Arguments.StorageAccountName,
-                    Arguments.StorageKeyValue,
-                    Arguments.StorageSasValue,
-                    Arguments.StorageSuffix);
 
                 config.GzippedBaseUrl = _arguments.GetOrDefault<string>(Arguments.CompressedStorageBaseAddress);
                 config.GzippedStorageContainer = _arguments.GetOrDefault<string>(Arguments.CompressedStorageContainer);
-                config.StorageConnectionString = GetConnectionString(
-                   config.StorageConnectionString,
-                   Arguments.CompressedStorageAccountName,
-                   Arguments.CompressedStorageKeyValue,
-                   Arguments.CompressedStorageSasValue,
-                   Arguments.StorageSuffix);
 
                 config.SemVer2BaseUrl = _arguments.GetOrDefault<string>(Arguments.SemVer2StorageBaseAddress);
                 config.SemVer2StorageContainer = _arguments.GetOrDefault<string>(Arguments.SemVer2StorageContainer);
-                config.StorageConnectionString = GetConnectionString(
-                   config.StorageConnectionString,
-                   Arguments.SemVer2StorageAccountName,
-                   Arguments.SemVer2StorageKeyValue,
-                   Arguments.SemVer2StorageSasValue,
-                   Arguments.StorageSuffix);
+
+                config.HasSasToken = new List<string>()
+                {
+                    _arguments.GetOrDefault<string>(Arguments.StorageSasValue),
+                    _arguments.GetOrDefault<string>(Arguments.CompressedStorageSasValue),
+                    _arguments.GetOrDefault<string>(Arguments.SemVer2StorageSasValue)
+                }
+                .All(t => !string.IsNullOrEmpty(t));
+
+                if (config.StorageUseManagedIdentity && !config.HasSasToken)
+                {
+                    var storageAccountName = _arguments.GetOrDefault<string>(Arguments.StorageAccountName);
+                    var storageSuffix = _arguments.GetOrDefault(Arguments.StorageSuffix, "core.windows.net");
+
+                    config.StorageServiceUrl = $"https://{storageAccountName}.blob.{storageSuffix}";
+                    config.StorageConnectionString = $"BlobEndpoint={config.StorageServiceUrl}";
+                }
+                else
+                {
+                    config.StorageConnectionString = GetConnectionString(
+                        config.StorageConnectionString,
+                        Arguments.StorageAccountName,
+                        Arguments.StorageKeyValue,
+                        Arguments.StorageSasValue,
+                        Arguments.StorageSuffix);
+                    config.StorageConnectionString = GetConnectionString(
+                       config.StorageConnectionString,
+                       Arguments.CompressedStorageAccountName,
+                       Arguments.CompressedStorageKeyValue,
+                       Arguments.CompressedStorageSasValue,
+                       Arguments.StorageSuffix);
+                    config.StorageConnectionString = GetConnectionString(
+                       config.StorageConnectionString,
+                       Arguments.SemVer2StorageAccountName,
+                       Arguments.SemVer2StorageKeyValue,
+                       Arguments.SemVer2StorageSasValue,
+                       Arguments.StorageSuffix);
+                }
 
                 config.GalleryBaseUrl = _arguments.GetOrThrow<string>(Arguments.GalleryBaseAddress);
                 var contentBaseAddress = _arguments.GetOrThrow<string>(Arguments.ContentBaseAddress);
@@ -568,7 +593,13 @@ namespace Ng.Jobs
             }
             else
             {
-                builder.AppendFormat("SharedAccessSignature={0};", _arguments.GetOrThrow<string>(accountSasArgument));
+                var sasToken = _arguments.GetOrThrow<string>(accountSasArgument);
+                // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
+                if (sasToken.StartsWith("?"))
+                {
+                    sasToken = sasToken.Substring(1);
+                }
+                builder.AppendFormat("SharedAccessSignature={0};", sasToken);
             }
 
             builder.AppendFormat("EndpointSuffix={0}", _arguments.GetOrDefault(endpointSuffixArgument, "core.windows.net"));

@@ -1,8 +1,9 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Globalization;
 using System.Linq;
 using System.Security.Claims;
@@ -1605,7 +1606,7 @@ namespace NuGetGallery.Authentication
                     ar.AffectedCredential.Length == 1 &&
                     ar.AffectedCredential[0].Type == existingCred.Type &&
                     ar.AffectedCredential[0].Identity == existingCred.Identity &&
-                    ar.AffectedCredential[0].Value == existingCred.Value &&
+                    ar.AffectedCredential[0].Value is null &&
                     ar.AffectedCredential[0].Created == existingCred.Created &&
                     ar.AffectedCredential[0].Expires == existingCred.Expires));
             }
@@ -2380,6 +2381,44 @@ namespace NuGetGallery.Authentication
                 }
 
                 authService.Entities.VerifyCommitChanges();
+            }
+
+            /// <summary>
+            /// Needed to avoid collection modified exception caused by the entity context.
+            /// </summary>
+            [Fact]
+            public async Task CopiesScopeCollectionForDeletion()
+            {
+                // Arrange
+                var credentialBuilder = new CredentialBuilder();
+
+                var credScopes =
+                    Enumerable.Range(0, 5)
+                        .Select(
+                            i => new Scope { AllowedAction = NuGetScopes.PackagePush, Key = i, Subject = "package" + i }).ToList();
+
+                var mockScopes = new Mock<DbSet<Scope>>();
+                var dbContext = GetMock<IEntitiesContext>();
+                dbContext.Setup(x => x.Scopes).Returns(mockScopes.Object);
+                mockScopes.Setup(x => x.Remove(It.IsAny<Scope>())).Callback<Scope>(x => credScopes.Remove(x));
+
+                var fakes = Get<Fakes>();
+                var cred = credentialBuilder.CreateApiKey(null, out string plaintextApiKey);
+                var user = fakes.CreateUser("test", credentialBuilder.CreatePasswordCredential(Fakes.Password), cred);
+                var authService = Get<AuthenticationService>();
+
+                var newScopes =
+                    Enumerable.Range(1, 2)
+                        .Select(
+                            i => new Scope { AllowedAction = NuGetScopes.PackageUnlist, Key = i * 10, Subject = "otherpackage" + i }).ToList();
+
+                cred.Scopes = credScopes;
+
+                // Act
+                await authService.EditCredentialScopes(user, cred, newScopes);
+
+                // Act
+                Assert.Empty(credScopes);
             }
 
             [Fact]

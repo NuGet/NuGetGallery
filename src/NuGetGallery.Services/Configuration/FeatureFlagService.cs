@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -63,6 +63,7 @@ namespace NuGetGallery
         private const string FrameworkFilteringFeatureName = GalleryPrefix + "FrameworkFiltering";
         private const string DisplayTfmBadgesFeatureName = GalleryPrefix + "DisplayTfmBadges";
         private const string AdvancedFrameworkFilteringFeatureName = GalleryPrefix + "AdvancedFrameworkFiltering";
+        private const string FederatedCredentialsFeatureName = GalleryPrefix + "FederatedCredentials";
 
         private const string ODataV1GetAllNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllNonHijacked";
         private const string ODataV1GetAllCountNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllCountNonHijacked";
@@ -120,7 +121,7 @@ namespace NuGetGallery
         /// <summary>
         /// The number of versions a package needs to have before it should be flighted using <see cref="ManageDeprecationForManyVersionsFeatureName"/> instead of <see cref="ManageDeprecationFeatureName"/>.
         /// </summary>
-        private const int _manageDeprecationForManyVersionsThreshold = 500;
+        private const int ManageDeprecationForManyVersionsThreshold = 500;
 
         public bool IsManageDeprecationEnabled(User user, PackageRegistration registration)
         {
@@ -144,7 +145,7 @@ namespace NuGetGallery
                 return false;
             }
 
-            return allVersions.Count() < _manageDeprecationForManyVersionsThreshold
+            return allVersions.Count() < ManageDeprecationForManyVersionsThreshold
                 || _client.IsEnabled(ManageDeprecationForManyVersionsFeatureName, user, defaultValue: true);
         }
 
@@ -420,6 +421,11 @@ namespace NuGetGallery
         public bool IsAdvancedFrameworkFilteringEnabled(User user)
         {
             return _client.IsEnabled(AdvancedFrameworkFilteringFeatureName, user, defaultValue: false);
+        }
+
+        public bool CanUseFederatedCredentials(User user)
+        {
+            return _client.IsEnabled(FederatedCredentialsFeatureName, user, defaultValue: false);
         }
     }
 }

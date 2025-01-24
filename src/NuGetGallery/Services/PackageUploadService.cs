@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -283,21 +283,9 @@ namespace NuGetGallery
             {
                 return true;
             }
-            else if (ex is DbUpdateException dbUpdateEx)
+            else if (ex is DbUpdateException dbUpdateEx && dbUpdateEx.IsSqlUniqueConstraintViolation())
             {
-                if (dbUpdateEx.InnerException?.InnerException != null)
-                {
-                    if (dbUpdateEx.InnerException.InnerException is SqlException sqlException)
-                    {
-                        switch (sqlException.Number)
-                        {
-                            case 547:   // Constraint check violation
-                            case 2601:  // Duplicated key row error
-                            case 2627:  // Unique constraint error
-                                return true;
-                        }
-                    }
-                }
+                return true;
             }
 
             return false;
