@@ -3,6 +3,7 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 //using Microsoft.WindowsAzure.Storage.Blob;
 
@@ -15,6 +16,8 @@ namespace Stats.AzureCdnLogs.Common
         public string LeaseId { get; }
 
         public BlobClient Blob { get; }
+
+        public Task LeaseRenewalCompletionSource { get; set; }
 
         /// <summary>
         /// It will be cancelled when the renew task could not renew the lease.
