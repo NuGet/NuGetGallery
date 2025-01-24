@@ -2,10 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Specialized;
 using System.Data;
 using System.Text.Json;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
+using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
 using NuGetGallery.Infrastructure.Authentication;
 
@@ -21,8 +23,9 @@ namespace NuGetGallery.Services.Authentication
         /// </summary>
         /// <param name="username">The username of the user account that owns the federated credential policy.</param>
         /// <param name="bearerToken">The bearer token to use for federated credential evaluation.</param>
+        /// <param name="requestHeaders">The HTTP headers used for the request. This provides full context needed for additional request validation.</param>
         /// <returns>The result, successful if <see cref="GenerateApiKeyResult.Type"/> is <see cref="GenerateApiKeyResultType.Created"/>.</returns>
-        Task<GenerateApiKeyResult> GenerateApiKeyAsync(string username, string bearerToken);
+        Task<GenerateApiKeyResult> GenerateApiKeyAsync(string username, string bearerToken, NameValueCollection requestHeaders);
 
         /// <summary>
         /// Adds a new federated credential policy for an Entra ID service principal. The policy will be owned by the user account
@@ -50,6 +53,7 @@ namespace NuGetGallery.Services.Authentication
         private readonly IEntraIdTokenValidator _entraIdTokenValidator;
         private readonly ICredentialBuilder _credentialBuilder;
         private readonly IAuthenticationService _authenticationService;
+        private readonly IAuditingService _auditingService;
         private readonly IDateTimeProvider _dateTimeProvider;
         private readonly IFeatureFlagService _featureFlagService;
         private readonly IFederatedCredentialConfiguration _configuration;
@@ -61,6 +65,7 @@ namespace NuGetGallery.Services.Authentication
             IEntraIdTokenValidator entraIdTokenValidator,
             ICredentialBuilder credentialBuilder,
             IAuthenticationService authenticationService,
+            IAuditingService auditingService,
             IDateTimeProvider dateTimeProvider,
             IFeatureFlagService featureFlagService,
             IFederatedCredentialConfiguration configuration)
@@ -71,6 +76,7 @@ namespace NuGetGallery.Services.Authentication
             _entraIdTokenValidator = entraIdTokenValidator ?? throw new ArgumentNullException(nameof(EntraIdTokenValidator));
             _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
             _authenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
+            _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
             _dateTimeProvider = dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
@@ -112,6 +118,8 @@ namespace NuGetGallery.Services.Authentication
 
             await _repository.AddPolicyAsync(policy, saveChanges: true);
 
+            await _auditingService.SaveAuditRecordAsync(FederatedCredentialPolicyAuditRecord.Create(policy));
+
             return AddFederatedCredentialPolicyResult.Created(policy);
         }
 
@@ -123,10 +131,16 @@ namespace NuGetGallery.Services.Authentication
                 await _authenticationService.RemoveCredential(policy.CreatedBy, credential, commitChanges: false);
             }
 
+            // Initialize the audit record before deletion so details are still available.
+            // Entity Framework unlinks navigation properties.
+            var auditRecord = FederatedCredentialPolicyAuditRecord.Delete(policy, credentials);
+
             await _repository.DeletePolicyAsync(policy, saveChanges: true);
+
+            await _auditingService.SaveAuditRecordAsync(auditRecord);
         }
 
-        public async Task<GenerateApiKeyResult> GenerateApiKeyAsync(string username, string bearerToken)
+        public async Task<GenerateApiKeyResult> GenerateApiKeyAsync(string username, string bearerToken, NameValueCollection requestHeaders)
         {
             var currentUser = _userService.FindByUsername(username, includeDeleted: false);
             if (currentUser is null)
@@ -135,7 +149,7 @@ namespace NuGetGallery.Services.Authentication
             }
 
             var policies = _repository.GetPoliciesCreatedByUser(currentUser.Key);
-            var policyEvaluation = await _evaluator.GetMatchingPolicyAsync(policies, bearerToken);
+            var policyEvaluation = await _evaluator.GetMatchingPolicyAsync(policies, bearerToken, requestHeaders);
             switch (policyEvaluation.Type)
             {
                 case EvaluatedFederatedCredentialPoliciesType.BadToken:
@@ -204,8 +218,17 @@ namespace NuGetGallery.Services.Authentication
             }
             catch (DataException ex) when (ex.IsSqlUniqueConstraintViolation())
             {
+                await _auditingService.SaveAuditRecordAsync(FederatedCredentialPolicyAuditRecord.RejectReplay(
+                    evaluation.MatchedPolicy,
+                    evaluation.FederatedCredential));
+
                 return GenerateApiKeyResult.Unauthorized("This bearer token has already been used. A new bearer token must be used for each request.");
             }
+
+            await _auditingService.SaveAuditRecordAsync(FederatedCredentialPolicyAuditRecord.ExchangeForApiKey(
+                evaluation.MatchedPolicy,
+                evaluation.FederatedCredential,
+                apiKeyCredential));
 
             return null;
         }

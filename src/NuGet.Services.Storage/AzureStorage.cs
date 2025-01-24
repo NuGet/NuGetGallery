@@ -117,13 +117,7 @@ namespace NuGet.Services.Storage
 
         static Uri GetDirectoryUri(BlobContainerClient directory)
         {
-            Uri uri = new UriBuilder(directory.Uri)
-            {
-                Scheme = "http",
-                Port = 80
-            }.Uri;
-
-            return uri;
+            return directory.Uri;
         }
 
         //Blob exists
