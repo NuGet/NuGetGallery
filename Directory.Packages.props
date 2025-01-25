@@ -4,6 +4,7 @@
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
     <EnablePackageVersionOverride>true</EnablePackageVersionOverride>
     <NuGetClientPackageVersion>6.9.1</NuGetClientPackageVersion>
+    <NuGetAuditMode>all</NuGetAuditMode>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Autofac.Extensions.DependencyInjection" Version="4.4.0" />
@@ -80,7 +81,7 @@
     <PackageVersion Include="Microsoft.Extensions.Options" Version="8.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Primitives" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Identity.Client" Version="4.65.0" />
-    <PackageVersion Include="Microsoft.Identity.Web" Version="3.2.2" />
+    <PackageVersion Include="Microsoft.Identity.Web" Version="3.6.2" />
     <PackageVersion Include="Microsoft.Net.Http" Version="2.2.29" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
     <PackageVersion Include="Microsoft.Owin.Host.SystemWeb" Version="4.2.2" />
