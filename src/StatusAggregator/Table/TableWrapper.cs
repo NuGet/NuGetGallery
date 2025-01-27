@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -35,7 +35,7 @@ namespace StatusAggregator.Table
         public async Task<T> RetrieveAsync<T>(string rowKey) 
             where T : class, ITableEntity
         {
-            return (await _table.GetEntityAsync<T>(TablePartitionKeys.Get<T>(), rowKey)) as T;
+            return (await _table.GetEntityAsync<T>(TablePartitionKeys.Get<T>(), rowKey))?.Value as T;
         }
 
         public Task InsertAsync(ITableEntity tableEntity)
