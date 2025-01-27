@@ -153,4 +153,7 @@
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
     <PackageVersion Include="xunit" Version="2.9.0" />
   </ItemGroup>
+  <ItemGroup>
+    <GlobalPackageReference Include="PolySharp" Version="1.15.0" />
+  </ItemGroup>
 </Project>

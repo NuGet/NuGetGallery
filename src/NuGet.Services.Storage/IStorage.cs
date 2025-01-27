@@ -1,7 +1,8 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +20,17 @@ namespace NuGet.Services.Storage
         Uri BaseAddress { get; }
         Uri ResolveUri(string relativeUri);
         IEnumerable<StorageListItem> List(bool getMetadata);
+
+        /// <summary>
+        /// Lists all children of the storage(including the ones contained in subdirectories).
+        /// </summary>
         Task<IEnumerable<StorageListItem>> ListAsync(bool getMetadata, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Lists immediate children of the storage assuming directory-like structure
+        /// </summary>
+        Task<IEnumerable<StorageListItem>> ListTopLevelAsync(bool getMetadata, CancellationToken cancellationToken);
+
         Task CopyAsync(
             Uri sourceUri,
             IStorage destinationStorage,
