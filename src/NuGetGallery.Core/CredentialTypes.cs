@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -25,6 +25,7 @@ namespace NuGetGallery
             public const string V2 = Prefix + "v2";
             public const string V3 = Prefix + "v3";
             public const string V4 = Prefix + "v4";
+            public const string V5 = Prefix + "v5";
             public const string VerifyV1 = Prefix + "verify.v1";
         }
 
@@ -63,7 +64,8 @@ namespace NuGetGallery
             ApiKey.V1,
             ApiKey.V2,
             ApiKey.V3,
-            ApiKey.V4
+            ApiKey.V4,
+            ApiKey.V5
         };
 
         /// <summary>
