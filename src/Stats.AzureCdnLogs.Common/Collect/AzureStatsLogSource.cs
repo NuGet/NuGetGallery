@@ -163,7 +163,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
             {
                 return AzureBlobLockResult.FailedLockResult(blob);
             }
-            return await _blobLeaseManager.AcquireLease(blob, token);
+            return await _blobLeaseManager.AcquireLease(blob);
         }
 
         /// <summary>
@@ -222,7 +222,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
                     // The operation will throw if the lease does not match
                     bool deleteResult = await sourceBlob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots,
                         conditions: blobRequestConditions,
-                        cancellationToken: token);
+                        cancellationToken: CancellationToken.None);
                     _logger.LogInformation("CleanAsync: Blob {Blob} was deleted {DeletedResult}. The leaseId: {LeaseId}", blobLock.Blob.Uri, deleteResult, blobLock.LeaseId);
                     return new AsyncOperationResult(deleteResult, null);
                 }

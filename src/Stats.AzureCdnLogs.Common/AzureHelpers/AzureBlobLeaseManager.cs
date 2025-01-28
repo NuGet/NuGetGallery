@@ -38,12 +38,8 @@ namespace Stats.AzureCdnLogs.Common
                 else throw new ArgumentException(nameof(containerName));
             }
 
-            if (string.IsNullOrEmpty(basePath))
-            {
-                if (containerName == null) throw new ArgumentNullException(nameof(basePath));
-                else throw new ArgumentException(nameof(basePath));
-            }
-            _blobLeaseService = new BlobLeaseService(blobServiceClient, containerName, basePath);
+
+            _blobLeaseService = new BlobLeaseService(blobServiceClient, containerName, basePath, logger);
         }
 
         /// <summary>
@@ -55,32 +51,38 @@ namespace Stats.AzureCdnLogs.Common
         /// <param name="token">A token to cancel the operation.</param>
         /// <param name="renewStatusTask">The renew task.</param>
         /// <returns>True if the lease was acquired. </returns>
-        public async Task<AzureBlobLockResult> AcquireLease(BlobClient blob, CancellationToken token)
+        public async Task<AzureBlobLockResult> AcquireLease(BlobClient blob)
         {
             try
             {
-                var leaseResult = await _blobLeaseService.TryAcquireAsync(blob.Name, TimeSpan.FromSeconds(MaxRenewPeriodInSeconds), token);
+                var leaseResult = await _blobLeaseService.TryAcquireAsync(blob.Name, TimeSpan.FromSeconds(MaxRenewPeriodInSeconds), CancellationToken.None);
                 if (!leaseResult.IsSuccess)
                 {
                     _logger.LogInformation("AcquireLease: The operation was cancelled or the blob lease is already taken. Blob {BlobUri}.", blob.Uri.AbsoluteUri);
                     return AzureBlobLockResult.FailedLockResult(blob);
                 }
+                else
+                {
+                    _logger.LogInformation("AcquireLease: Lease was acquired for BlobUri {BlobUri}.", blob.Uri.AbsoluteUri);
+                }
 
-                var leaseId = leaseResult.LeaseId;
-                var lockResult = new AzureBlobLockResult(blob, true, leaseId, token);
-                var leaseRenewalCompletionSource = new TaskCompletionSource<bool>();
-
+                    var leaseId = leaseResult.LeaseId;
+                var lockResult = new AzureBlobLockResult(blob, true, leaseId, CancellationToken.None);
+                var blob1 = lockResult.Blob;
                 // Start a task that will renew the lease until the token is cancelled or the Release method is invoked
                 _ = Task.Run(async () =>
                 {
-                    try
-                    {
                         while (!lockResult.BlobOperationToken.Token.IsCancellationRequested)
                         {
                             try
                             {
+                            var delay1 = TimeSpan.FromSeconds(MaxRenewPeriodInSeconds - OverlapRenewPeriodInSeconds);
                                 await Task.Delay(TimeSpan.FromSeconds(MaxRenewPeriodInSeconds - OverlapRenewPeriodInSeconds), lockResult.BlobOperationToken.Token);
-                                await _blobLeaseService.RenewAsync(blob.Name, leaseId, lockResult.BlobOperationToken.Token);
+                            if (! await blob1.ExistsAsync())
+                            {
+                                break;
+                            }
+                            await _blobLeaseService.RenewAsync(blob.Name, leaseId, CancellationToken.None);
                                 _logger.LogInformation("RenewLeaseTask: Lease was renewed for BlobUri {BlobUri} and LeaseId {LeaseId}.",
                                     blob.Uri.AbsoluteUri,
                                     leaseId);
@@ -94,14 +96,10 @@ namespace Stats.AzureCdnLogs.Common
                                 break;
                             }
                         }
-                    }
-                    finally
-                    {
-                        leaseRenewalCompletionSource.SetResult(true);
-                    }
+                    
+                    
                    
                 }, lockResult.BlobOperationToken.Token);
-                lockResult.LeaseRenewalCompletionSource = leaseRenewalCompletionSource.Task;
                 return lockResult;
             }
             catch (Exception ex)
@@ -122,7 +120,6 @@ namespace Stats.AzureCdnLogs.Common
                     if (releaseResult)
                     {
                         _logger.LogInformation("ReleaseLockAsync: ReleaseLeaseStatus: {LeaseReleased} on the {BlobUri}.", true, releaseLock.Blob.Uri);
-                        await releaseLock.LeaseRenewalCompletionSource; // Added
                         return new AsyncOperationResult(true, null);
                     }
                     else

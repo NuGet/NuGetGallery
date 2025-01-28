@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Specialized;
+using Microsoft.Extensions.Logging;
 
 namespace NuGet.Services.Storage
 {
@@ -20,11 +21,11 @@ namespace NuGet.Services.Storage
     {
         private static readonly TimeSpan MinLeaseTime = TimeSpan.FromSeconds(15);
         private static readonly TimeSpan MaxLeaseTime = TimeSpan.FromSeconds(60);
-
+        private readonly ILogger _logger;
         private readonly BlobContainerClient _containerClient;
         private readonly string _basePath;
 
-        public BlobLeaseService(BlobServiceClient blobServiceClient, string containerName, string basePath)
+        public BlobLeaseService(BlobServiceClient blobServiceClient, string containerName, string basePath, ILogger logger)
         {
             if (blobServiceClient == null)
             {
@@ -34,11 +35,11 @@ namespace NuGet.Services.Storage
             {
                 throw new ArgumentException("The container name must be provided.", nameof(containerName));
             }
-            if (string.IsNullOrEmpty(basePath))
+            if (basePath == null)
             {
                 throw new ArgumentException("The base path must be provided.", nameof(basePath));
             }
-
+            _logger = logger;
             _containerClient = blobServiceClient.GetBlobContainerClient(containerName);
             _basePath = string.IsNullOrEmpty(basePath) ? string.Empty : basePath.TrimEnd('/') + '/';
         }
@@ -46,15 +47,22 @@ namespace NuGet.Services.Storage
         public async Task<BlobLeaseResult> TryAcquireAsync(string resourceName, TimeSpan leaseTime, CancellationToken cancellationToken)
         {
             var blob = GetBlob(resourceName);
+            
 
             try
             {
-                return await TryAcquireAsync(blob, leaseTime, cancellationToken);
+                var result = await TryAcquireAsync(blob, leaseTime, cancellationToken);
+                _logger.LogInformation("TryAcquireAsync: {resourceName} {leaseId} {leaseTime}", resourceName, result.LeaseId, leaseTime);
+
+                return result;
             }
             catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.NotFound)
             {
                 // The lease file does not exist. Try to create it and lease it.
-                return await TryCreateAndAcquireAsync(blob, leaseTime, cancellationToken);
+                var result1 = await TryCreateAndAcquireAsync(blob, leaseTime, cancellationToken);
+                _logger.LogInformation("TryAcquireAsync2: {resourceName} {leaseId}, {leaseTime}", resourceName, result1.LeaseId, leaseTime);
+
+                return result1;
             }
         }
 
@@ -64,6 +72,8 @@ namespace NuGet.Services.Storage
             {
                 var blob = GetBlob(resourceName);
                 var leaseClient = blob.GetBlobLeaseClient(leaseId);
+                _logger.LogInformation("ReleaseAsync: {resourceName} {leaseId}", resourceName, leaseId);
+
                 await leaseClient.ReleaseAsync(conditions: null, cancellationToken: cancellationToken);
 
                 return true;
@@ -93,7 +103,10 @@ namespace NuGet.Services.Storage
 
             try
             {
+                _logger.LogInformation("RenewAsync: {resourceName} {leaseId}", resourceName, leaseId);
+
                 var lease = await leaseClient.RenewAsync(conditions: null, cancellationToken: cancellationToken);
+
                 return BlobLeaseResult.Success(lease);
             }
             catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.Conflict || ex.Status == (int)HttpStatusCode.PreconditionFailed)
@@ -135,6 +148,7 @@ namespace NuGet.Services.Storage
             {
                 var leaseClient = blob.GetBlobLeaseClient();
                 var blobLease = await leaseClient.AcquireAsync(leaseTime, conditions: null, cancellationToken: cancellationToken);
+  
                 return BlobLeaseResult.Success(blobLease);
             }
             catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.Conflict)
