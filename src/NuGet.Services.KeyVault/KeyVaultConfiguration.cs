@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -10,6 +10,7 @@ namespace NuGet.Services.KeyVault
     {
         public string VaultName { get; }
         public bool UseManagedIdentity { get; }
+        public bool LocalDevelopment { get; }
         public string TenantId { get; }
         public string ClientId { get; }
         public X509Certificate2 Certificate { get; }
@@ -25,7 +26,7 @@ namespace NuGet.Services.KeyVault
         /// <summary>
         /// The constructor for keyvault configuration when using managed identities
         /// </summary>
-        public KeyVaultConfiguration(string vaultName, string clientId)
+        public KeyVaultConfiguration(string vaultName, string clientId, bool localDevelopment = false)
         {
             if (string.IsNullOrWhiteSpace(vaultName))
             {
@@ -35,6 +36,7 @@ namespace NuGet.Services.KeyVault
             VaultName = vaultName;
             UseManagedIdentity = true;
             ClientId = clientId;
+            LocalDevelopment = localDevelopment;
         }
 
         /// <summary>
