@@ -7,7 +7,6 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-//using Microsoft.WindowsAzure.Storage.Blob;
 using Azure.Storage.Blobs;
 using Azure;
 using Microsoft.Extensions.Logging;

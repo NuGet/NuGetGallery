@@ -3,7 +3,6 @@
 
 using System;
 using System.Threading;
-//using Microsoft.WindowsAzure.Storage.Blob;
 using Azure.Storage.Blobs;
 using Stats.AzureCdnLogs.Common;
 using Xunit;

@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.ComponentModel.Design;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-//using Microsoft.WindowsAzure.Storage;
 using Azure.Storage.Blobs;
 using Azure;
 using Moq;
