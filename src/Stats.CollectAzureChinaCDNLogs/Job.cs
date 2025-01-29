@@ -11,7 +11,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-//using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs;
 using Azure.Storage.Blobs;
 using Stats.AzureCdnLogs.Common;
@@ -23,7 +22,7 @@ namespace Stats.CollectAzureChinaCDNLogs
     {
         private const int DefaultExecutionTimeoutInSeconds = 14400; // 4 hours
         private const int MaxFilesToProcess = 4;
-        
+
         private CollectAzureChinaCdnLogsConfiguration _configuration;
         private int _executionTimeoutInSeconds;
         private Collector _chinaCollector;
@@ -40,41 +39,39 @@ namespace Stats.CollectAzureChinaCDNLogs
             _configuration = serviceProvider.GetRequiredService<IOptionsSnapshot<CollectAzureChinaCdnLogsConfiguration>>().Value;
             _executionTimeoutInSeconds = _configuration.ExecutionTimeoutInSeconds ?? DefaultExecutionTimeoutInSeconds;
 
-            var superstring = _configuration.AzureAccountConnectionStringSource;
+            var connectionStringSource = _configuration.AzureAccountConnectionStringSource;
+            var connectionStringDestination = _configuration.AzureAccountConnectionStringDestination;
 
 
-            if (string.IsNullOrEmpty(_configuration.AzureAccountConnectionStringSource))
+            if (string.IsNullOrEmpty(connectionStringSource))
             {
-                throw new ArgumentException(nameof(superstring));
+                throw new ArgumentException(nameof(connectionStringSource));
             }
-
 
             if (string.IsNullOrEmpty(_configuration.AzureAccountConnectionStringDestination))
             {
-                throw new ArgumentException(nameof(superstring));
+                throw new ArgumentException(nameof(connectionStringDestination));
             }
 
-            superstring = superstring.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+            connectionStringSource = connectionStringSource.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
 
             var blobLeaseManager = new AzureBlobLeaseManager(
                 serviceProvider.GetRequiredService<ILogger<AzureBlobLeaseManager>>(),
-                ValidateAzureBlobServiceClient(superstring),
+                ValidateAzureBlobServiceClient(connectionStringSource),
                 _configuration.AzureContainerNameSource,
                 "");
 
-
             var source = new AzureStatsLogSource(
-                ValidateAzureBlobServiceClient(superstring),
+                ValidateAzureBlobServiceClient(connectionStringSource),
                 _configuration.AzureContainerNameSource,
                 _executionTimeoutInSeconds / MaxFilesToProcess,
                 blobLeaseManager,
                 serviceProvider.GetRequiredService<ILogger<AzureStatsLogSource>>());
 
-            superstring = _configuration.AzureAccountConnectionStringDestination;
-            superstring = superstring.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+            connectionStringDestination = connectionStringDestination.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
 
             var dest = new AzureStatsLogDestination(
-                ValidateAzureBlobServiceClient(superstring),
+                ValidateAzureBlobServiceClient(connectionStringDestination),
                 _configuration.AzureContainerNameDestination,
                 serviceProvider.GetRequiredService<ILogger<AzureStatsLogDestination>>());
 
@@ -93,7 +90,7 @@ namespace Stats.CollectAzureChinaCDNLogs
             // so we can't reliably terminate those if they get stuck or very slow. If migrated
             // to .NET 6+ then we can properly propagate the token and this hack would no longer
             // be needed.
-            
+
             // Instead we'll wait a bit extra time after firing main CancellationTokenSource to
             // let it gracefully stop if it is indeed just slow, then stop the process and let it
             // retry processing on restart.
@@ -124,13 +121,13 @@ namespace Stats.CollectAzureChinaCDNLogs
 
             if (aggregateExceptions != null)
             {
-                foreach(var ex in aggregateExceptions.InnerExceptions)
+                foreach (var ex in aggregateExceptions.InnerExceptions)
                 {
                     Logger.LogError(LogEvents.JobRunFailed, ex, ex.Message);
                 }
             }
 
-            if(cts.IsCancellationRequested)
+            if (cts.IsCancellationRequested)
             {
                 Logger.LogInformation("Execution exceeded the timeout of {ExecutionTimeoutInSeconds} seconds and it was cancelled.", _executionTimeoutInSeconds);
             }
