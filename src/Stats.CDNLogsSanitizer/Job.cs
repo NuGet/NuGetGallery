@@ -11,8 +11,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-//using Microsoft.WindowsAzure.Storage;
-using Azure;
 using Azure.Storage.Blobs;
 using NuGet.Jobs;
 using Stats.AzureCdnLogs.Common;
@@ -48,22 +46,25 @@ namespace Stats.CDNLogsSanitizer
             var logHeaderDelimiter = _configuration.LogHeaderDelimiter ?? throw new ArgumentNullException(nameof(_configuration.LogHeaderDelimiter));
             _logHeaderMetadata = new LogHeaderMetadata(logHeader, logHeaderDelimiter);
             _blobPrefix = _configuration.BlobPrefix ;
-            var superstring = _configuration.AzureAccountConnectionStringSource.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+
+            var connectionStringSource = _configuration.AzureAccountConnectionStringSource.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+            var connectionStringDestination = _configuration.AzureAccountConnectionStringDestination.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+
             var blobLeaseManager = new AzureBlobLeaseManager(
                 serviceProvider.GetRequiredService<ILogger<AzureBlobLeaseManager>>(),
-                ValidateAzureCloudStorageAccount(superstring),
+                ValidateAzureCloudStorageAccount(connectionStringSource),
                 _configuration.AzureContainerNameDestination,
-                superstring);
+                connectionStringSource);
 
             var source = new AzureStatsLogSource(
-                ValidateAzureCloudStorageAccount(superstring),
+                ValidateAzureCloudStorageAccount(connectionStringSource),
                 _configuration.AzureContainerNameSource,
                 _executionTimeoutInSeconds / _maxBlobsToProcess,
                 blobLeaseManager,
                 serviceProvider.GetRequiredService<ILogger<AzureStatsLogSource>>());
 
             var dest = new AzureStatsLogDestination(
-                ValidateAzureCloudStorageAccount(superstring),
+                ValidateAzureCloudStorageAccount(connectionStringDestination),
                 _configuration.AzureContainerNameDestination,
                 serviceProvider.GetRequiredService<ILogger<AzureStatsLogDestination>>());
 

@@ -9,7 +9,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-//using Microsoft.WindowsAzure.Storage;
 using Azure;
 using Azure.Storage.Blobs;
 using Stats.AzureCdnLogs.Common;
