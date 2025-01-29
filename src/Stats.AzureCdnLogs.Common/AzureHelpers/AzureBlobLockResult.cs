@@ -4,7 +4,6 @@
 using System;
 using System.Threading;
 using Azure.Storage.Blobs;
-//using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace Stats.AzureCdnLogs.Common
 {
