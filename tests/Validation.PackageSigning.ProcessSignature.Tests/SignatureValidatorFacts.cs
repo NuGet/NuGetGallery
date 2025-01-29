@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -478,7 +478,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 Assert.Single(result.Issues);
                 var issue = Assert.IsType<UnauthorizedCertificateFailure>(result.Issues[0]);
                 Assert.Equal(ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificate, issue.IssueCode);
-                Assert.Equal(TestResources.Leaf2Sha1Thumbprint, issue.Sha1Thumbprint);
+                Assert.Equal(TestResources.Leaf1Thumbprint, issue.Sha256Thumbprint);
             }
 
             [Fact]
@@ -883,7 +883,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 Assert.Single(result.Issues);
                 var issue = Assert.IsType<UnauthorizedCertificateFailure>(result.Issues[0]);
                 Assert.Equal(ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificate, issue.IssueCode);
-                Assert.Equal(TestResources.Leaf2Sha1Thumbprint, issue.Sha1Thumbprint);
+                Assert.Equal(TestResources.Leaf1Thumbprint, issue.Sha256Thumbprint);
             }
 
             [Fact]
