@@ -53,6 +53,7 @@ namespace Stats.CollectAzureChinaCDNLogs
                 throw new ArgumentException(nameof(connectionStringDestination));
             }
 
+            // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
             connectionStringSource = connectionStringSource.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
 
             var blobLeaseManager = new AzureBlobLeaseManager(
@@ -68,6 +69,7 @@ namespace Stats.CollectAzureChinaCDNLogs
                 blobLeaseManager,
                 serviceProvider.GetRequiredService<ILogger<AzureStatsLogSource>>());
 
+            // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
             connectionStringDestination = connectionStringDestination.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
 
             var dest = new AzureStatsLogDestination(
