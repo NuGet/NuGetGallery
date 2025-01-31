@@ -63,9 +63,7 @@ namespace NuGet.Services.Storage
             {
                 var blob = GetBlob(resourceName);
                 var leaseClient = blob.GetBlobLeaseClient(leaseId);
-
                 await leaseClient.ReleaseAsync(conditions: null, cancellationToken: cancellationToken);
-
                 return true;
             }
             catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.Conflict)

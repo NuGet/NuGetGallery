@@ -49,7 +49,8 @@ namespace Stats.AzureCdnLogs.Common.Collect
 
             if (string.IsNullOrEmpty(containerName))
             {
-                if (containerName == null) throw new ArgumentNullException(nameof(containerName));
+                if (containerName == null)
+                    throw new ArgumentNullException(nameof(containerName));
                 else throw new ArgumentException(nameof(containerName));
             }
             _container = _blobServiceClient.GetBlobContainerClient(containerName);
@@ -88,7 +89,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
 
                 _logger.LogInformation("Found blob {BlobName}, determining lease status...", blobItem.Name);
 
-                var blob = _container.GetBlobClient(blobItem.Name);
+                BlobClient blob = _container.GetBlobClient(blobItem.Name);
                 BlobProperties properties = await blob.GetPropertiesAsync(cancellationToken: token);
                     if (properties.LeaseStatus != LeaseStatus.Unlocked)
                     {
@@ -240,9 +241,9 @@ namespace Stats.AzureCdnLogs.Common.Collect
         {
             try
             {
-                var blobClient = new BlobClient(blobUri);
-                var properties = await blobClient.GetPropertiesAsync();
-                return blobClient;
+                var _blobClient = new BlobClient(blobUri);
+                var properties = await _blobClient.GetPropertiesAsync();
+                return _blobClient;
             }
             catch (Exception)
             {
