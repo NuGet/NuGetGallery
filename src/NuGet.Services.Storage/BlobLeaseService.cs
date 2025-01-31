@@ -48,7 +48,7 @@ namespace NuGet.Services.Storage
 
             try
             {
-                return await TryAcquireAsync(blob, leaseTime, cancellationToken); ;
+                return await TryAcquireAsync(blob, leaseTime, cancellationToken);
             }
             catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.NotFound)
             {
