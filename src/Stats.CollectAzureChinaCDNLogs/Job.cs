@@ -12,9 +12,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs;
+using Azure.Storage;
 using Azure.Storage.Blobs;
 using Stats.AzureCdnLogs.Common;
 using Stats.AzureCdnLogs.Common.Collect;
+using Azure.Identity;
+using System.Linq;
 
 namespace Stats.CollectAzureChinaCDNLogs
 {
@@ -42,7 +45,6 @@ namespace Stats.CollectAzureChinaCDNLogs
             var connectionStringSource = _configuration.AzureAccountConnectionStringSource;
             var connectionStringDestination = _configuration.AzureAccountConnectionStringDestination;
 
-
             if (string.IsNullOrEmpty(connectionStringSource))
             {
                 throw new ArgumentException(nameof(connectionStringSource));
@@ -53,16 +55,16 @@ namespace Stats.CollectAzureChinaCDNLogs
                 throw new ArgumentException(nameof(connectionStringDestination));
             }
 
-            connectionStringSource = connectionStringSource.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+            StorageMsiConfiguration storageMsiConfiguration = serviceProvider.GetRequiredService<IOptionsSnapshot<StorageMsiConfiguration>>().Value;
 
             var blobLeaseManager = new AzureBlobLeaseManager(
                 serviceProvider.GetRequiredService<ILogger<AzureBlobLeaseManager>>(),
-                ValidateAzureBlobServiceClient(connectionStringSource),
+                ValidateAzureBlobServiceClient(connectionStringSource, storageMsiConfiguration),
                 _configuration.AzureContainerNameSource,
                 "");
 
             var source = new AzureStatsLogSource(
-                ValidateAzureBlobServiceClient(connectionStringSource),
+                ValidateAzureBlobServiceClient(connectionStringSource, storageMsiConfiguration),
                 _configuration.AzureContainerNameSource,
                 _executionTimeoutInSeconds / MaxFilesToProcess,
                 blobLeaseManager,
@@ -71,7 +73,7 @@ namespace Stats.CollectAzureChinaCDNLogs
             connectionStringDestination = connectionStringDestination.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
 
             var dest = new AzureStatsLogDestination(
-                ValidateAzureBlobServiceClient(connectionStringDestination),
+                ValidateAzureBlobServiceClient(connectionStringDestination, storageMsiConfiguration),
                 _configuration.AzureContainerNameDestination,
                 serviceProvider.GetRequiredService<ILogger<AzureStatsLogDestination>>());
 
@@ -133,7 +135,7 @@ namespace Stats.CollectAzureChinaCDNLogs
             }
         }
 
-        private static BlobServiceClient ValidateAzureBlobServiceClient(string blobServiceClient)
+        private static BlobServiceClient ValidateAzureBlobServiceClient(string blobServiceClient, StorageMsiConfiguration msiConfiguration)
         {
             if (string.IsNullOrEmpty(blobServiceClient))
             {
@@ -142,8 +144,35 @@ namespace Stats.CollectAzureChinaCDNLogs
 
             try
             {
-                return new BlobServiceClient(blobServiceClient);
+                if (msiConfiguration.UseManagedIdentity)
+                {
+                    Uri blobEndpointUri = new Uri(blobServiceClient);
+
+                    if (string.IsNullOrWhiteSpace(msiConfiguration.ManagedIdentityClientId))
+                    {
+                        // 1. Using MSI with DefaultAzureCredential (local debugging)
+                        return new BlobServiceClient(
+                            blobEndpointUri,
+                            new DefaultAzureCredential());
+                    }
+                    else
+                    {
+                        // 2. Using MSI with ClientId
+                        return new BlobServiceClient(
+                            blobEndpointUri,
+                            new ManagedIdentityCredential(msiConfiguration.ManagedIdentityClientId));
+                    }
+                }
+                else
+                {
+                    // 3. Using SAS token
+                    // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
+                    var connectionString = blobServiceClient.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+
+                    return new BlobServiceClient(connectionString);
+                }
             }
+
             catch (Exception ex)
             {
                 throw new ArgumentException("Job parameter for Azure CDN Blob Service Client is invalid.", ex);
@@ -157,6 +186,10 @@ namespace Stats.CollectAzureChinaCDNLogs
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             ConfigureInitializationSection<CollectAzureChinaCdnLogsConfiguration>(services, configurationRoot);
+            //var kvps = configurationRoot.AsEnumerable(false).ToList();
+            services.ConfigureStorageMsi(configurationRoot);
+            //var kvps = configurationRoot.AsEnumerable(false).ToList();
+            //var zubizu = "nonsense";
         }
     }
 }
