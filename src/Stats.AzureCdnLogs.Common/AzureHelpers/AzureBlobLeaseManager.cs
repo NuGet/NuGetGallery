@@ -70,11 +70,14 @@ namespace Stats.AzureCdnLogs.Common
                 // Start a task that will renew the lease until the token is cancelled or the Release method is invoked
                 _ = Task.Run(async () =>
                 {
+
+                    int sleepBeforeRenewInSeconds = MaxRenewPeriodInSeconds - OverlapRenewPeriodInSeconds < 0 ? MaxRenewPeriodInSeconds : MaxRenewPeriodInSeconds - OverlapRenewPeriodInSeconds;
+
                     while (!lockResult.BlobOperationToken.Token.IsCancellationRequested)
                     {
                         try
                         {
-                            await Task.Delay(TimeSpan.FromSeconds(MaxRenewPeriodInSeconds - OverlapRenewPeriodInSeconds), lockResult.BlobOperationToken.Token);
+                            await Task.Delay(TimeSpan.FromSeconds(sleepBeforeRenewInSeconds), lockResult.BlobOperationToken.Token);
                             if (!await leasedBlob.ExistsAsync())
                             {
                                 break;
