@@ -64,9 +64,9 @@ namespace Stats.AzureCdnLogs.Common
                     _logger.LogInformation("AcquireLease: Lease was acquired for BlobUri {BlobUri}.", blob.Uri.AbsoluteUri);
                 }
 
-                var leaseId = leaseResult.LeaseId;
+                string leaseId = leaseResult.LeaseId;
                 var lockResult = new AzureBlobLockResult(blob, true, leaseId, CancellationToken.None);
-                var leasedBlob = lockResult.Blob;
+                BlobClient leasedBlob = lockResult.Blob;
                 // Start a task that will renew the lease until the token is cancelled or the Release method is invoked
                 _ = Task.Run(async () =>
                 {
