@@ -73,7 +73,7 @@ namespace Stats.CollectAzureChinaCDNLogs
             connectionStringDestination = connectionStringDestination.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
 
             var dest = new AzureStatsLogDestination(
-                ValidateAzureBlobServiceClient(connectionStringDestination, storageMsiConfiguration),
+                ValidateAzureBlobServiceClient(connectionStringDestination, storageMsiConfiguration, true),
                 _configuration.AzureContainerNameDestination,
                 serviceProvider.GetRequiredService<ILogger<AzureStatsLogDestination>>());
 
@@ -135,7 +135,7 @@ namespace Stats.CollectAzureChinaCDNLogs
             }
         }
 
-        private static BlobServiceClient ValidateAzureBlobServiceClient(string blobServiceClient, StorageMsiConfiguration msiConfiguration)
+        private static BlobServiceClient ValidateAzureBlobServiceClient(string blobServiceClient, StorageMsiConfiguration msiConfiguration, Boolean isDestination = false)
         {
             if (string.IsNullOrEmpty(blobServiceClient))
             {
@@ -144,8 +144,9 @@ namespace Stats.CollectAzureChinaCDNLogs
 
             try
             {
-                if (msiConfiguration.UseManagedIdentity)
+                if (msiConfiguration.UseManagedIdentity && isDestination)
                 {
+                    blobServiceClient = blobServiceClient.Replace("BlobEndpoint=", "");
                     Uri blobEndpointUri = new Uri(blobServiceClient);
 
                     if (string.IsNullOrWhiteSpace(msiConfiguration.ManagedIdentityClientId))
