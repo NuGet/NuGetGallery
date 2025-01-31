@@ -32,7 +32,8 @@ namespace Stats.AzureCdnLogs.Common
 
             if (string.IsNullOrEmpty(containerName))
             {
-                if (containerName == null) throw new ArgumentNullException(nameof(containerName));
+                if (containerName == null)
+                    throw new ArgumentNullException(nameof(containerName));
                 else throw new ArgumentException(nameof(containerName));
             }
 
