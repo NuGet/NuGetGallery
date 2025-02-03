@@ -359,7 +359,7 @@ namespace StatusAggregator
                 certificate = new X509Certificate2(certBytes);
             }
 
-            logger.LogInformation("Successfully parsed certificate with SHA-1 thumbprint {Thumbprint}", certificate.Thumbprint);
+            logger.LogInformation("Successfully parsed certificate with SHA-256 thumbprint {SHA256Thumbprint}", certificate.ComputeSHA256Thumbprint());
             return certificate;
         }
     }

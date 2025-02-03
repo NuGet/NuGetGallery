@@ -53,7 +53,7 @@
         {
             var typedIssue = (UnauthorizedCertificateFailure)Model;
             <text>
-                The package was signed, but the signing certificate (SHA-1 thumbprint @typedIssue.Sha1Thumbprint) is not associated with your account.
+                The package was signed, but the signing certificate (SHA-256 thumbprint @typedIssue.Sha256Thumbprint) is not associated with your account.
                 You must register this certificate to publish signed packages. <a href="https://aka.ms/nuget-signed-ref">Read more...</a>
             </text>
             break;
