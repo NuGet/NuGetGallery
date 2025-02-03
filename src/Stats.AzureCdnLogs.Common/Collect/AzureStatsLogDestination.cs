@@ -89,9 +89,13 @@ namespace Stats.AzureCdnLogs.Common.Collect
                         writeAction(inputStream, resultStream);
                     }
 
-                    await resultStream.FlushAsync();
-                    _logger.LogInformation("WriteAsync: End write to {DestinationFileName}", destinationFileName);
-                    return new AsyncOperationResult(true, null);
+                    if(!(await blobClient.ExistsAsync(token)))
+                    {
+                        await resultStream.FlushAsync();
+                        _logger.LogInformation("WriteAsync: End write to {DestinationFileName}", destinationFileName);
+                        return new AsyncOperationResult(true, null);
+                    }
+                    
                 }
                 _logger.LogInformation("WriteAsync: The destination file {DestinationFileName}, was already present.", destinationFileName);
                 return new AsyncOperationResult(false, null);
