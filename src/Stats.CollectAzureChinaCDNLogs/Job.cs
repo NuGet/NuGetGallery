@@ -60,7 +60,8 @@ namespace Stats.CollectAzureChinaCDNLogs
                 serviceProvider.GetRequiredService<ILogger<AzureBlobLeaseManager>>(),
                 ValidateAzureBlobServiceClient(connectionStringSource),
                 _configuration.AzureContainerNameSource,
-                "");
+                "",
+                false);
 
             var source = new AzureStatsLogSource(
                 ValidateAzureBlobServiceClient(connectionStringSource),

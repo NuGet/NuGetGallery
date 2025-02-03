@@ -23,8 +23,9 @@ namespace Stats.AzureCdnLogs.Common
         public const int OverlapRenewPeriodInSeconds = 20;
         private readonly ILogger<AzureBlobLeaseManager> _logger;
         private BlobLeaseService _blobLeaseService;
+        private Boolean _createBlobWhenNotFound;
 
-        public AzureBlobLeaseManager(ILogger<AzureBlobLeaseManager> logger, BlobServiceClient blobServiceClient, string containerName, string basePath)
+        public AzureBlobLeaseManager(ILogger<AzureBlobLeaseManager> logger, BlobServiceClient blobServiceClient, string containerName, string basePath, bool createBlobWhenNotFound = true)
         {
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
@@ -36,8 +37,8 @@ namespace Stats.AzureCdnLogs.Common
                     throw new ArgumentNullException(nameof(containerName));
                 else throw new ArgumentException(nameof(containerName));
             }
-
-            _blobLeaseService = new BlobLeaseService(blobServiceClient, containerName, basePath);
+            _createBlobWhenNotFound = createBlobWhenNotFound;
+            _blobLeaseService = new BlobLeaseService(blobServiceClient, containerName, basePath, _createBlobWhenNotFound);
         }
 
         /// <summary>
