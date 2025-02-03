@@ -77,7 +77,7 @@ namespace Stats.AzureCdnLogs.Common
                     {
                         try
                         {
-                            await Task.Delay(TimeSpan.FromSeconds(sleepBeforeRenewInSeconds), lockResult.BlobOperationToken.Token);
+                            await Task.Delay(TimeSpan.FromSeconds(sleepBeforeRenewInSeconds));
                             if (!await leasedBlob.ExistsAsync())
                             {
                                 break;
