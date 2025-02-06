@@ -55,14 +55,14 @@ namespace Stats.AzureCdnLogs.Common
             try
             {
                 BlobLeaseResult leaseResult = await _blobLeaseService.TryAcquireAsync(blob.Name, TimeSpan.FromSeconds(MaxRenewPeriodInSeconds), CancellationToken.None);
-                if (!leaseResult.IsSuccess)
+                if (leaseResult.IsSuccess)
                 {
-                    _logger.LogInformation("AcquireLease: The operation was cancelled or the blob lease is already taken. Blob {BlobUri}.", blob.Uri.AbsoluteUri);
-                    return AzureBlobLockResult.FailedLockResult(blob);
+                    _logger.LogInformation("AcquireLease: Lease was acquired for BlobUri {BlobUri}.", blob.Uri.AbsoluteUri);
                 }
                 else
                 {
-                    _logger.LogInformation("AcquireLease: Lease was acquired for BlobUri {BlobUri}.", blob.Uri.AbsoluteUri);
+                    _logger.LogInformation("AcquireLease: The operation was cancelled or the blob lease is already taken. Blob {BlobUri}.", blob.Uri.AbsoluteUri);
+                    return AzureBlobLockResult.FailedLockResult(blob);
                 }
 
                 string leaseId = leaseResult.LeaseId;
