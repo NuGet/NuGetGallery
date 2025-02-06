@@ -70,8 +70,6 @@ namespace Stats.CollectAzureChinaCDNLogs
                 blobLeaseManager,
                 serviceProvider.GetRequiredService<ILogger<AzureStatsLogSource>>());
 
-            connectionStringDestination = connectionStringDestination.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
-
             var dest = new AzureStatsLogDestination(
                 ValidateAzureBlobServiceClient(connectionStringDestination, storageMsiConfiguration, true),
                 _configuration.AzureContainerNameDestination,
