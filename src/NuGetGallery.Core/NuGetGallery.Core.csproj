@@ -47,6 +47,7 @@
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
     <PackageReference Include="NuGet.Packaging" />
     <PackageReference Include="System.Formats.Asn1" />
+    <PackageReference Include="System.Text.Json" />
   </ItemGroup>
   
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
