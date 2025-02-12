@@ -421,19 +421,10 @@ namespace NuGet.Services.Storage
             return ResolveUri(Path.Combine(_path, filename));
         }
 
+        // Returns the primary blob service URI from the connection string
         public static Uri GetPrimaryServiceUri(string storageConnectionString)
         {
             var tempClient = new BlobServiceClient(storageConnectionString);
-            // if _storageConnectionString has SAS token, Uri will contain SAS signature, we need to strip it
-            return new Uri(tempClient.Uri.GetLeftPart(UriPartial.Path));
-        }
-
-        public static Uri GetPrimaryBlobServiceUri(string storageConnectionString) => GetPrimaryServiceUri(storageConnectionString);
-
-
-        public static Uri GetPrimaryTableServiceUri(string storageConnectionString)
-        {
-            var tempClient = new TableServiceClient(storageConnectionString);
             // if _storageConnectionString has SAS token, Uri will contain SAS signature, we need to strip it
             return new Uri(tempClient.Uri.GetLeftPart(UriPartial.Path));
         }

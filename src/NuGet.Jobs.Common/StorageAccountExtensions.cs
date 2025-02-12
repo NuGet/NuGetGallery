@@ -191,7 +191,7 @@ namespace NuGet.Jobs
 
             if (storageMsiConfiguration.UseManagedIdentity)
             {
-                Uri blobEndpointUri = AzureStorage.GetPrimaryBlobServiceUri(storageConnectionString);
+                Uri blobEndpointUri = AzureStorage.GetPrimaryServiceUri(storageConnectionString);
 
                 if (string.IsNullOrWhiteSpace(storageMsiConfiguration.ManagedIdentityClientId))
                 {
@@ -226,7 +226,7 @@ namespace NuGet.Jobs
         {
             if (storageMsiConfiguration.UseManagedIdentity)
             {
-                Uri blobEndpointUri = AzureStorage.GetPrimaryBlobServiceUri(storageConnectionString);
+                Uri blobEndpointUri = AzureStorage.GetPrimaryServiceUri(storageConnectionString);
 
                 if (string.IsNullOrWhiteSpace(storageMsiConfiguration.ManagedIdentityClientId))
                 {
