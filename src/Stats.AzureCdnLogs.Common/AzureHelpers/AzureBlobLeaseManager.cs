@@ -2,15 +2,15 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using Azure.Storage.Blobs;
-using Stats.AzureCdnLogs.Common.Collect;
-using NuGet.Services.Storage;
-using Azure.Storage.Blobs.Specialized;
-using System.Net;
 using Azure;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Specialized;
+using Microsoft.Extensions.Logging;
+using NuGet.Services.Storage;
+using Stats.AzureCdnLogs.Common.Collect;
 
 namespace Stats.AzureCdnLogs.Common
 {
