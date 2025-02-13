@@ -51,7 +51,8 @@ namespace Stats.AzureCdnLogs.Common.Collect
             {
                 if (containerName == null)
                     throw new ArgumentNullException(nameof(containerName));
-                else throw new ArgumentException(nameof(containerName));
+                else
+                    throw new ArgumentException(nameof(containerName));
             }
             _container = _blobServiceClient.GetBlobContainerClient(containerName);
 
@@ -241,7 +242,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
         {
             try
             {
-                var _blobClient = new BlobClient(blobUri);
+                var blobClient = _blobServiceClient.GetBlobClient(blobUri.AbsolutePath.TrimStart('/'));
                 var properties = await _blobClient.GetPropertiesAsync();
                 return _blobClient;
             }

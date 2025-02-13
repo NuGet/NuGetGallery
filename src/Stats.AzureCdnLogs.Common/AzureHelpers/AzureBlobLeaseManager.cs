@@ -28,15 +28,15 @@ namespace Stats.AzureCdnLogs.Common
 
         public AzureBlobLeaseManager(ILogger<AzureBlobLeaseManager> logger, BlobServiceClient blobServiceClient, string containerName, string basePath, bool createBlobWhenNotFound = true)
         {
-            _logger = logger ??
-                throw new ArgumentNullException(nameof(logger));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             if (blobServiceClient == null) throw new ArgumentNullException(nameof(blobServiceClient));
 
             if (string.IsNullOrEmpty(containerName))
             {
                 if (containerName == null)
                     throw new ArgumentNullException(nameof(containerName));
-                else throw new ArgumentException(nameof(containerName));
+                else
+                    throw new ArgumentException(nameof(containerName));
             }
         }
 
@@ -56,7 +56,7 @@ namespace Stats.AzureCdnLogs.Common
                 var leaseClient = blob.GetBlobLeaseClient();
                 var leaseResponse = await leaseClient.AcquireAsync(TimeSpan.FromSeconds(MaxRenewPeriodInSeconds));
                 string leaseId = leaseResponse.Value.LeaseId;
-                var lockResult = new AzureBlobLockResult(blob, true, leaseId, CancellationToken.None);
+                var lockResult = new AzureBlobLockResult(blob, lockIsTaken: true, leaseId, CancellationToken.None);
                 BlobClient leasedBlob = lockResult.Blob;
                 // Start a task that will renew the lease until the token is cancelled or the Release method is invoked
                 _ = Task.Run(async () =>

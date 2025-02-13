@@ -28,8 +28,10 @@ namespace Stats.AzureCdnLogs.Common.Collect
         {
             if (string.IsNullOrEmpty(containerName))
             {
-                if (containerName == null) throw new ArgumentNullException(nameof(containerName));
-                else throw new ArgumentException(nameof(containerName));
+                if (containerName == null)
+                    throw new ArgumentNullException(nameof(containerName));
+                else
+                    throw new ArgumentException(nameof(containerName));
             }
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _blobServiceClient = blobServiceClient ?? throw new ArgumentNullException(nameof(blobServiceClient));
