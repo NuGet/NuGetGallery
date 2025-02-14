@@ -39,14 +39,14 @@ namespace Stats.AzureCdnLogs.Common
         /// <returns>An <see cref="AzureBlobLockResult"/> indicating the result of the lease acquisition. 
         /// If the lease is successfully acquired, the result will contain the lease ID and a cancellation token 
         /// source that can be used to stop the lease renewal task.</returns>
-        public async Task<AzureBlobLockResult> AcquireLease(BlobClient blob)
+        public async Task<AzureBlobLockResult> AcquireLease(BlobClient blob, CancellationToken token)
         {
             try
             {
                 var leaseClient = blob.GetBlobLeaseClient();
                 var leaseResponse = await leaseClient.AcquireAsync(TimeSpan.FromSeconds(MaxRenewPeriodInSeconds));
                 string leaseId = leaseResponse.Value.LeaseId;
-                var lockResult = new AzureBlobLockResult(blob, lockIsTaken: true, leaseId, CancellationToken.None);
+                var lockResult = new AzureBlobLockResult(blob, lockIsTaken: true, leaseId, token);
                 BlobClient leasedBlob = lockResult.Blob;
                 // Start a task that will renew the lease until the token is cancelled or the Release method is invoked
                 _ = Task.Run(async () =>

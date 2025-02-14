@@ -165,7 +165,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
             {
                 return AzureBlobLockResult.FailedLockResult(blob);
             }
-            return await _blobLeaseManager.AcquireLease(blob);
+            return await _blobLeaseManager.AcquireLease(blob, token);
         }
 
         /// <summary>
