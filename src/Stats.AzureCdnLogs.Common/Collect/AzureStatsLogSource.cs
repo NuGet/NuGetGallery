@@ -242,7 +242,9 @@ namespace Stats.AzureCdnLogs.Common.Collect
         {
             try
             {
-                var _blobClient = new BlobClient(blobUri);
+                var blobUriBuilder = new BlobUriBuilder(blobUri);
+                var containerClient = _blobServiceClient.GetBlobContainerClient(blobUriBuilder.BlobContainerName);
+                var _blobClient = containerClient.GetBlobClient(blobUriBuilder.BlobName);
                 var properties = await _blobClient.GetPropertiesAsync();
                 return _blobClient;
             }
