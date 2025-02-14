@@ -51,10 +51,7 @@ namespace Stats.CDNLogsSanitizer
             var connectionStringDestination = _configuration.AzureAccountConnectionStringDestination.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
 
             var blobLeaseManager = new AzureBlobLeaseManager(
-                serviceProvider.GetRequiredService<ILogger<AzureBlobLeaseManager>>(),
-                ValidateAzureCloudStorageAccount(connectionStringSource),
-                _configuration.AzureContainerNameDestination,
-                connectionStringSource);
+                serviceProvider.GetRequiredService<ILogger<AzureBlobLeaseManager>>());
 
             var source = new AzureStatsLogSource(
                 ValidateAzureCloudStorageAccount(connectionStringSource),

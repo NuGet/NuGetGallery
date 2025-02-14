@@ -56,12 +56,7 @@ namespace Stats.CollectAzureChinaCDNLogs
             // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
             connectionStringSource = connectionStringSource.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
 
-            var blobLeaseManager = new AzureBlobLeaseManager(
-                serviceProvider.GetRequiredService<ILogger<AzureBlobLeaseManager>>(),
-                ValidateAzureBlobServiceClient(connectionStringSource),
-                _configuration.AzureContainerNameSource,
-                basePath: "",
-                createBlobWhenNotFound: false);
+            var blobLeaseManager = new AzureBlobLeaseManager(serviceProvider.GetRequiredService<ILogger<AzureBlobLeaseManager>>());
 
             var source = new AzureStatsLogSource(
                 ValidateAzureBlobServiceClient(connectionStringSource),

@@ -12,7 +12,7 @@ namespace Tests.Stats.AzureCdnLogs.Common
         [Fact]
         public void ConstructorNullArgumentTest()
         {
-            Assert.Throws<ArgumentNullException>(() => new AzureBlobLeaseManager(null, null, null, null));
+            Assert.Throws<ArgumentNullException>(() => new AzureBlobLeaseManager(null));
         }
 
         [Fact]

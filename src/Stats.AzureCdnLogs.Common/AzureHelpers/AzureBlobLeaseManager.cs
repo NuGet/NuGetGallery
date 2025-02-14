@@ -24,20 +24,10 @@ namespace Stats.AzureCdnLogs.Common
         // The lease will be renewed with a short interval before the the lease expires
         public const int OverlapRenewPeriodInSeconds = 20;
         private readonly ILogger<AzureBlobLeaseManager> _logger;
-        private BlobLeaseService _blobLeaseService;
 
-        public AzureBlobLeaseManager(ILogger<AzureBlobLeaseManager> logger, BlobServiceClient blobServiceClient, string containerName, string basePath, bool createBlobWhenNotFound = true)
+        public AzureBlobLeaseManager(ILogger<AzureBlobLeaseManager> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            if (blobServiceClient == null) throw new ArgumentNullException(nameof(blobServiceClient));
-
-            if (string.IsNullOrEmpty(containerName))
-            {
-                if (containerName == null)
-                    throw new ArgumentNullException(nameof(containerName));
-                else
-                    throw new ArgumentException(nameof(containerName));
-            }
         }
 
         /// <summary>
