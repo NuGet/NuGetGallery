@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -217,7 +217,7 @@ namespace NuGet.Services.Validation.Issues.Tests
                 // Assert
                 Assert.NotNull(result);
                 Assert.Equal(ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificate, result.IssueCode);
-                Assert.Equal("thumbprint", result.Sha1Thumbprint);
+                Assert.Equal("thumbprint", result.Sha256Thumbprint);
             }
 
             private PackageValidationIssue CreatePackageValidationIssue(ValidationIssueCode issueCode, string data)

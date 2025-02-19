@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -52,7 +52,7 @@ namespace NuGetGallery
                     return "This package must be signed with a registered certificate. [Read more...](https://aka.ms/nuget-signed-ref)";
                 case ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificate:
                     var certIssue = (UnauthorizedCertificateFailure)validationIssue;
-                    return $"The package was signed, but the signing certificate {(certIssue != null ? $"(SHA-1 thumbprint {certIssue.Sha1Thumbprint})" : "")} is not associated with your account. You must register this certificate to publish signed packages. [Read more...](https://aka.ms/nuget-signed-ref)";
+                    return $"The package was signed, but the signing certificate {(certIssue != null ? $"(SHA-256 thumbprint {certIssue.Sha256Thumbprint})" : "")} is not associated with your account. You must register this certificate to publish signed packages. [Read more...](https://aka.ms/nuget-signed-ref)";
                 case ValidationIssueCode.SymbolErrorCode_ChecksumDoesNotMatch:
                     return "The checksum does not match for the dll(s) and corresponding pdb(s).";
                 case ValidationIssueCode.SymbolErrorCode_MatchingAssemblyNotFound:
