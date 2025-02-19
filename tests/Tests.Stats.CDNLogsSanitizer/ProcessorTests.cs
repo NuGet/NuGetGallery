@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -7,8 +7,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Azure.Storage.Blobs;
-using Azure;
+using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.Extensions.Logging;
 using Stats.AzureCdnLogs.Common;
 using Stats.AzureCdnLogs.Common.Collect;
@@ -68,7 +67,7 @@ namespace Tests.Stats.CDNLogsSanitizer
                 // Arrange
                 // Set a source that returns 1 element to process
                 var _logSource = new Mock<ILogSource>();
-                var dummyLockResult = new AzureBlobLockResult(new BlobClient(new Uri("https://dummy/foo.gz")), true, "leaseid", CancellationToken.None);
+                var dummyLockResult = new AzureBlobLockResult(new CloudBlob(new Uri("https://dummy/foo.gz")), true, "leaseid", CancellationToken.None);
                 dummyLockResult.BlobOperationToken.Cancel();
                 _logSource.Setup(lS => lS.GetFilesAsync(It.IsAny<int>(), It.IsAny<CancellationToken>(), It.IsAny<string>()))
                     .ReturnsAsync(new Uri[] { new Uri("https://dummy") });
@@ -100,7 +99,7 @@ namespace Tests.Stats.CDNLogsSanitizer
                 // Arrange
                 // Set a source that returns 1 element to process
                 var uri = "https://dummy/foo.gz";
-                var cb = new BlobClient(new Uri(uri));
+                var cb = new CloudBlob(new Uri(uri));
                 var _logSource = new Mock<ILogSource>();
                 var dummyLockResult = new AzureBlobLockResult(cb, false, "leaseid", CancellationToken.None);
                 _logSource.Setup(lS => lS.GetFilesAsync(It.IsAny<int>(), It.IsAny<CancellationToken>(), It.IsAny<string>())).ReturnsAsync(new Uri[] { new Uri(uri) });
@@ -133,7 +132,7 @@ namespace Tests.Stats.CDNLogsSanitizer
                 // Arrange
                 // Set a source that returns 1 element to process
                 var _logSource = new Mock<ILogSource>();
-                var dummyLockResult = new AzureBlobLockResult(new BlobClient(new Uri("https://dummy/foo.gz")), true, "leaseid", CancellationToken.None);
+                var dummyLockResult = new AzureBlobLockResult(new CloudBlob(new Uri("https://dummy/foo.gz")), true, "leaseid", CancellationToken.None);
                 _logSource.Setup(lS => lS.GetFilesAsync(It.IsAny<int>(), It.IsAny<CancellationToken>(), It.IsAny<string>()))
                     .ReturnsAsync(new Uri[] { new Uri("https://dummy") });
                 _logSource.Setup(lS => lS.TakeLockAsync(It.IsAny<Uri>(), It.IsAny<CancellationToken>()))
@@ -170,7 +169,7 @@ namespace Tests.Stats.CDNLogsSanitizer
                 // Arrange 
                 int maxElementsToProcess = 1;
                 var _logSource = new Mock<ILogSource>();
-                var dummyLockResult = new AzureBlobLockResult(new BlobClient(new Uri("https://dummy/foo.gz")), false, "leaseid", CancellationToken.None);
+                var dummyLockResult = new AzureBlobLockResult(new CloudBlob(new Uri("https://dummy/foo.gz")), false, "leaseid", CancellationToken.None);
                 _logSource.Setup(lS => lS.GetFilesAsync(It.IsAny<int>(), It.IsAny<CancellationToken>(), It.IsAny<string>()))
                     .ReturnsAsync(new Uri[] { new Uri("https://dummy/foo.gz"), new Uri("https://dummy/foo2.gz") });
                 _logSource.Setup(lS => lS.TakeLockAsync(It.IsAny<Uri>(), It.IsAny<CancellationToken>()))

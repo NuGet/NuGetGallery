@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
@@ -8,24 +8,9 @@ namespace StatusAggregator
     public class StatusAggregatorConfiguration
     {
         /// <summary>
-        /// A connection string for the primary storage account's blob endpoint.
+        /// A connection string for the storage account to use.
         /// </summary>
-        public string PrimaryStorageBlobEndpoint { get; set; }
-
-        /// <summary>
-        /// A connection string for the primary storage account's table endpoint.
-        /// </summary>
-        public string PrimaryStorageTableEndpoint { get; set; }
-
-        /// <summary>
-        /// A connection string for the secondary storage account's blob endpoint.
-        /// </summary>
-        public string SecondaryStorageBlobEndpoint { get; set; }
-
-        /// <summary>
-        /// A connection string for the secondary storage account's table endpoint.
-        /// </summary>
-        public string SecondaryStorageTableEndpoint { get; set; }
+        public string StorageAccount { get; set; }
 
         /// <summary>
         /// The container name to export the <see cref="ServiceStatus"/> to.
@@ -36,6 +21,11 @@ namespace StatusAggregator
         /// The table name to persist the <see cref="ServiceStatus"/> in.
         /// </summary>
         public string TableName { get; set; }
+
+        /// <summary>
+        /// A connection string for the secondary storage account to use.
+        /// </summary>
+        public string StorageAccountSecondary { get; set; }
 
         /// <summary>
         /// A list of environments to filter incidents by.

@@ -9,7 +9,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Azure.Storage.Blobs;
 using Moq;
 using Stats.AzureCdnLogs.Common;
 using Stats.AzureCdnLogs.Common.Collect;
@@ -257,7 +256,7 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
 
             sourceMock
                 .Setup(s => s.TakeLockAsync(sourceUri, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new AzureBlobLockResult(new BlobClient(sourceUri), true, "foo", CancellationToken.None));
+                .ReturnsAsync(new AzureBlobLockResult(new Microsoft.WindowsAzure.Storage.Blob.CloudBlob(sourceUri), true, "foo", CancellationToken.None));
 
             sourceMock
                 .Setup(s => s.OpenReadAsync(sourceUri, It.IsAny<ContentType>(), It.IsAny<CancellationToken>()))

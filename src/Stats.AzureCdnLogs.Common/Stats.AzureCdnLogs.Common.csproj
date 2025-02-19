@@ -22,9 +22,8 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
-    <ProjectReference Include="..\NuGet.Services.Storage\NuGet.Services.Storage.csproj" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="SharpZipLib" />
-    <PackageReference Include="Azure.Storage.Blobs" />
+    <PackageReference Include="WindowsAzure.Storage" />
   </ItemGroup>
 </Project>

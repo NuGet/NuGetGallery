@@ -141,7 +141,9 @@ namespace NuGet.Jobs
             }
 
             StorageMsiConfiguration msiConfiguration = serviceProvider.GetRequiredService<IOptions<StorageMsiConfiguration>>().Value;
-            return CreateTableServiceClient(msiConfiguration, storageConnectionString);
+            return CreateTableServiceClientClient(
+                msiConfiguration,
+                storageConnectionString);
         }
 
         public static IRegistrationBuilder<TableServiceClient, SimpleActivatorData, SingleRegistrationStyle> RegisterTableServiceClient<TConfiguration>(
@@ -163,7 +165,9 @@ namespace NuGet.Jobs
                 IOptionsSnapshot<TConfiguration> options = c.Resolve<IOptionsSnapshot<TConfiguration>>();
                 string storageConnectionString = getConnectionString(options.Value);
                 StorageMsiConfiguration msiConfiguration = c.Resolve<IOptions<StorageMsiConfiguration>>().Value;
-                return CreateTableServiceClient(msiConfiguration, storageConnectionString);
+                return CreateTableServiceClientClient(
+                    msiConfiguration,
+                    storageConnectionString);
             });
         }
 
@@ -273,27 +277,27 @@ namespace NuGet.Jobs
             }
         }
 
-        public static TableServiceClient CreateTableServiceClient(
+        private static TableServiceClient CreateTableServiceClientClient(
             StorageMsiConfiguration msiConfiguration,
             string tableStorageConnectionString)
         {
             if (msiConfiguration.UseManagedIdentity)
             {
-                Uri tableEndpointUri = new Uri(tableStorageConnectionString);
-
                 if (string.IsNullOrWhiteSpace(msiConfiguration.ManagedIdentityClientId))
                 {
-                    return new TableServiceClient(tableEndpointUri, new DefaultAzureCredential());
+                    return new TableServiceClient(new Uri(tableStorageConnectionString),
+                        new DefaultAzureCredential());
                 }
                 else
                 {
-                    return new TableServiceClient(tableEndpointUri, new ManagedIdentityCredential(msiConfiguration.ManagedIdentityClientId));
+                    return new TableServiceClient(new Uri(tableStorageConnectionString),
+                        new ManagedIdentityCredential(msiConfiguration.ManagedIdentityClientId));
                 }
             }
 
             // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
-            var connectionString = tableStorageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
-            return new TableServiceClient(connectionString);
+            tableStorageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+            return new TableServiceClient(tableStorageConnectionString);
         }
     }
 }

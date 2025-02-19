@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -11,7 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Azure.Storage.Blobs;
+using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs;
 using Stats.AzureCdnLogs.Common;
 using Stats.AzureCdnLogs.Common.Collect;
@@ -46,22 +46,17 @@ namespace Stats.CDNLogsSanitizer
             var logHeaderDelimiter = _configuration.LogHeaderDelimiter ?? throw new ArgumentNullException(nameof(_configuration.LogHeaderDelimiter));
             _logHeaderMetadata = new LogHeaderMetadata(logHeader, logHeaderDelimiter);
             _blobPrefix = _configuration.BlobPrefix ;
-
-            var connectionStringSource = _configuration.AzureAccountConnectionStringSource.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
-            var connectionStringDestination = _configuration.AzureAccountConnectionStringDestination.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
-
-            var blobLeaseManager = new AzureBlobLeaseManager(
-                serviceProvider.GetRequiredService<ILogger<AzureBlobLeaseManager>>());
+            var blobLeaseManager = new AzureBlobLeaseManager(serviceProvider.GetRequiredService<ILogger<AzureBlobLeaseManager>>());
 
             var source = new AzureStatsLogSource(
-                ValidateAzureCloudStorageAccount(connectionStringSource),
+                ValidateAzureCloudStorageAccount(_configuration.AzureAccountConnectionStringSource),
                 _configuration.AzureContainerNameSource,
                 _executionTimeoutInSeconds / _maxBlobsToProcess,
                 blobLeaseManager,
                 serviceProvider.GetRequiredService<ILogger<AzureStatsLogSource>>());
 
             var dest = new AzureStatsLogDestination(
-                ValidateAzureCloudStorageAccount(connectionStringDestination),
+                ValidateAzureCloudStorageAccount(_configuration.AzureAccountConnectionStringDestination),
                 _configuration.AzureContainerNameDestination,
                 serviceProvider.GetRequiredService<ILogger<AzureStatsLogDestination>>());
 
@@ -84,22 +79,19 @@ namespace Stats.CDNLogsSanitizer
             }
         }
 
-        private static BlobServiceClient ValidateAzureCloudStorageAccount(string cloudStorageAccount)
+        private static CloudStorageAccount ValidateAzureCloudStorageAccount(string cloudStorageAccount)
         {
             if (string.IsNullOrEmpty(cloudStorageAccount))
             {
                 throw new ArgumentException("Job parameter for Azure CDN Cloud Storage Account is not defined.");
             }
 
-            try
+            CloudStorageAccount account;
+            if (CloudStorageAccount.TryParse(cloudStorageAccount, out account))
             {
-                var account = new BlobServiceClient(cloudStorageAccount);
                 return account;
             }
-            catch (Exception ex)
-            {
-                throw new ArgumentException("Job parameter for Azure CDN Cloud Storage Account is invalid.", ex);
-            }            
+            throw new ArgumentException("Job parameter for Azure CDN Cloud Storage Account is invalid.");
         }
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
