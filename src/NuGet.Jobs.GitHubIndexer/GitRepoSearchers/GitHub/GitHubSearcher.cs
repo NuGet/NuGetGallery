@@ -118,7 +118,7 @@ namespace NuGet.Jobs.GitHubIndexer
 
                     var request = new SearchRepositoriesRequest
                     {
-                        Stars = new Range(_minStars, upperStarBound),
+                        Stars = new(_minStars, upperStarBound),
                         Language = Language.CSharp,
                         SortField = RepoSearchSort.Stars,
                         Order = SortDirection.Descending,

@@ -587,8 +587,20 @@ namespace NuGetGallery
                 .InstancePerLifetimeScope();
 
             builder
-                .RegisterType<FederatedCredentialEvaluator>()
-                .As<IFederatedCredentialEvaluator>()
+                .Register(c =>
+                {
+                    var configurationFactory = c.Resolve<IConfigurationFactory>();
+                    return GetAddInServices<IFederatedCredentialValidator>(sp =>
+                    {
+                        sp.ComposeExportedValue(configurationFactory);
+                    }).ToList();
+                })
+                .As<IReadOnlyList<IFederatedCredentialValidator>>() // a singleton, materialized list
+                .SingleInstance();
+
+            builder
+                .RegisterType<FederatedCredentialPolicyEvaluator>()
+                .As<IFederatedCredentialPolicyEvaluator>()
                 .InstancePerLifetimeScope();
 
             builder
