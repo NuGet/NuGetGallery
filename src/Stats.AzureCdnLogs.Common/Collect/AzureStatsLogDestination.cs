@@ -1,4 +1,3 @@
-
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
@@ -29,8 +28,10 @@ namespace Stats.AzureCdnLogs.Common.Collect
         {
             if (string.IsNullOrEmpty(containerName))
             {
-                if (containerName == null) throw new ArgumentNullException(nameof(containerName));
-                else throw new ArgumentException(nameof(containerName));
+                if (containerName == null)
+                    throw new ArgumentNullException(nameof(containerName));
+                else
+                    throw new ArgumentException(nameof(containerName));
             }
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _blobServiceClient = blobServiceClient ?? throw new ArgumentNullException(nameof(blobServiceClient));
@@ -90,9 +91,13 @@ namespace Stats.AzureCdnLogs.Common.Collect
                         writeAction(inputStream, resultStream);
                     }
 
-                    await resultStream.FlushAsync();
-                    _logger.LogInformation("WriteAsync: End write to {DestinationFileName}", destinationFileName);
-                    return new AsyncOperationResult(true, null);
+                    if(!(await blobClient.ExistsAsync(token)))
+                    {
+                        await resultStream.FlushAsync();
+                        _logger.LogInformation("WriteAsync: End write to {DestinationFileName}", destinationFileName);
+                        return new AsyncOperationResult(true, null);
+                    }
+                    
                 }
                 _logger.LogInformation("WriteAsync: The destination file {DestinationFileName}, was already present.", destinationFileName);
                 return new AsyncOperationResult(false, null);

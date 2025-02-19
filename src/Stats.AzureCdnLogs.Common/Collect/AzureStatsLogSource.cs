@@ -49,8 +49,10 @@ namespace Stats.AzureCdnLogs.Common.Collect
 
             if (string.IsNullOrEmpty(containerName))
             {
-                if (containerName == null) throw new ArgumentNullException(nameof(containerName));
-                else throw new ArgumentException(nameof(containerName));
+                if (containerName == null)
+                    throw new ArgumentNullException(nameof(containerName));
+                else
+                    throw new ArgumentException(nameof(containerName));
             }
             _container = _blobServiceClient.GetBlobContainerClient(containerName);
 
@@ -68,7 +70,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
         /// <returns></returns>
         public async Task<IEnumerable<Uri>> GetFilesAsync(int maxResults, CancellationToken token, string prefix = null)
         {
-            if (maxResults<= 0)
+            if (maxResults <= 0)
             {
                 throw new ArgumentOutOfRangeException($"{nameof(maxResults)} needs to be positive.");
             }
@@ -79,8 +81,9 @@ namespace Stats.AzureCdnLogs.Common.Collect
                 prefix);
 
             var result = new List<Uri>();
-            await foreach (var blobItem in _container.GetBlobsAsync(prefix:prefix, cancellationToken:token)) {
-            
+            await foreach (var blobItem in _container.GetBlobsAsync(prefix: prefix, cancellationToken: token))
+            {
+
                 if (result.Count >= maxResults)
                 {
                     break;
@@ -88,20 +91,20 @@ namespace Stats.AzureCdnLogs.Common.Collect
 
                 _logger.LogInformation("Found blob {BlobName}, determining lease status...", blobItem.Name);
 
-                var blob = _container.GetBlobClient(blobItem.Name);
+                BlobClient blob = _container.GetBlobClient(blobItem.Name);
                 BlobProperties properties = await blob.GetPropertiesAsync(cancellationToken: token);
-                    if (properties.LeaseStatus != LeaseStatus.Unlocked)
-                    {
-                        _logger.LogInformation(
-                            "Skipping blob {BlobUrl} as its lease status is not unlocked: {LeaseStatus}",
-                            blob.Uri,
-                            properties.LeaseStatus);
-                        continue;
-                    }
+                if (properties.LeaseStatus != LeaseStatus.Unlocked)
+                {
+                    _logger.LogInformation(
+                        "Skipping blob {BlobUrl} as its lease status is not unlocked: {LeaseStatus}",
+                        blob.Uri,
+                        properties.LeaseStatus);
+                    continue;
+                }
 
-                    result.Add(blob.Uri);
+                result.Add(blob.Uri);
             }
-            
+
             _logger.LogInformation(
                 "Found {Results} unlocked blobs with prefix {Prefix}",
                 result.Count,
@@ -119,13 +122,13 @@ namespace Stats.AzureCdnLogs.Common.Collect
         /// <returns>The stream opened for read.</returns>
         public async Task<Stream> OpenReadAsync(Uri blobUri, ContentType contentType, CancellationToken token)
         {
-            if(token.IsCancellationRequested)
+            if (token.IsCancellationRequested)
             {
                 _logger.LogInformation("OpenReadAsync: The operation was cancelled.");
                 return null;
             }
             var blob = await GetBlobAsync(blobUri);
-            if(blob == null)
+            if (blob == null)
             {
                 _logger.LogInformation("OpenReadAsync: The blob was not found. Blob {BlobUri}", blobUri.AbsoluteUri);
                 return null;
@@ -163,7 +166,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
             {
                 return AzureBlobLockResult.FailedLockResult(blob);
             }
-            return await _blobLeaseManager.AcquireLease(blob);
+            return await _blobLeaseManager.AcquireLease(blob, token);
         }
 
         /// <summary>
@@ -179,7 +182,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
                 _logger.LogInformation("TryReleaseLockAsync: The operation was cancelled. BlobUri {BlobUri}.", blobLock.Blob.Uri);
                 new AsyncOperationResult(false, new OperationCanceledException(token));
             }
-            if ( await blobLock.Blob.ExistsAsync() )
+            if (await blobLock.Blob.ExistsAsync())
             {
                 return await _blobLeaseManager.TryReleaseLockAsync(blobLock);
             }
@@ -222,7 +225,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
                     // The operation will throw if the lease does not match
                     bool deleteResult = await sourceBlob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots,
                         conditions: blobRequestConditions,
-                        cancellationToken: CancellationToken.None);
+                        cancellationToken: token);
                     _logger.LogInformation("CleanAsync: Blob {Blob} was deleted {DeletedResult}. The leaseId: {LeaseId}", blobLock.Blob.Uri, deleteResult, blobLock.LeaseId);
                     return new AsyncOperationResult(deleteResult, null);
                 }
@@ -240,9 +243,11 @@ namespace Stats.AzureCdnLogs.Common.Collect
         {
             try
             {
-                var blobClient = new BlobClient(blobUri);
-                var properties = await blobClient.GetPropertiesAsync();
-                return blobClient;
+                var blobUriBuilder = new BlobUriBuilder(blobUri);
+                var containerClient = _blobServiceClient.GetBlobContainerClient(blobUriBuilder.BlobContainerName);
+                var _blobClient = containerClient.GetBlobClient(blobUriBuilder.BlobName);
+                var properties = await _blobClient.GetPropertiesAsync();
+                return _blobClient;
             }
             catch (Exception)
             {

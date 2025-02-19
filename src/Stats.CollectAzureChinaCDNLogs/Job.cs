@@ -57,11 +57,7 @@ namespace Stats.CollectAzureChinaCDNLogs
 
             StorageMsiConfiguration storageMsiConfiguration = serviceProvider.GetRequiredService<IOptionsSnapshot<StorageMsiConfiguration>>().Value;
 
-            var blobLeaseManager = new AzureBlobLeaseManager(
-                serviceProvider.GetRequiredService<ILogger<AzureBlobLeaseManager>>(),
-                ValidateAzureBlobServiceClient(connectionStringSource, storageMsiConfiguration),
-                _configuration.AzureContainerNameSource,
-                "");
+            var blobLeaseManager = new AzureBlobLeaseManager(serviceProvider.GetRequiredService<ILogger<AzureBlobLeaseManager>>());
 
             var source = new AzureStatsLogSource(
                 ValidateAzureBlobServiceClient(connectionStringSource, storageMsiConfiguration),
@@ -70,8 +66,11 @@ namespace Stats.CollectAzureChinaCDNLogs
                 blobLeaseManager,
                 serviceProvider.GetRequiredService<ILogger<AzureStatsLogSource>>());
 
+            // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
+            connectionStringDestination = connectionStringDestination.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+
             var dest = new AzureStatsLogDestination(
-                ValidateAzureBlobServiceClient(connectionStringDestination, storageMsiConfiguration, true),
+                ValidateAzureBlobServiceClient(connectionStringDestination, storageMsiConfiguration, isDestination: true),
                 _configuration.AzureContainerNameDestination,
                 serviceProvider.GetRequiredService<ILogger<AzureStatsLogDestination>>());
 

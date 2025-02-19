@@ -23,8 +23,9 @@ namespace NuGet.Services.Storage
         private static readonly TimeSpan MaxLeaseTime = TimeSpan.FromSeconds(60);
         private readonly BlobContainerClient _containerClient;
         private readonly string _basePath;
+        private readonly bool _createBlobWhenMissing;
 
-        public BlobLeaseService(BlobServiceClient blobServiceClient, string containerName, string basePath)
+        public BlobLeaseService(BlobServiceClient blobServiceClient, string containerName, string basePath, Boolean createBlobsWhenMissing = true)
         {
             if (blobServiceClient == null)
             {
@@ -40,6 +41,7 @@ namespace NuGet.Services.Storage
             }
             _containerClient = blobServiceClient.GetBlobContainerClient(containerName);
             _basePath = string.IsNullOrEmpty(basePath) ? string.Empty : basePath.TrimEnd('/') + '/';
+            _createBlobWhenMissing = createBlobsWhenMissing;
         }
 
         public async Task<BlobLeaseResult> TryAcquireAsync(string resourceName, TimeSpan leaseTime, CancellationToken cancellationToken)
@@ -53,7 +55,11 @@ namespace NuGet.Services.Storage
             catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.NotFound)
             {
                 // The lease file does not exist. Try to create it and lease it.
-                return await TryCreateAndAcquireAsync(blob, leaseTime, cancellationToken);
+                if (_createBlobWhenMissing)
+                {
+                    return await TryCreateAndAcquireAsync(blob, leaseTime, cancellationToken);
+                }
+                return BlobLeaseResult.Failure();
             }
         }
 
@@ -65,7 +71,6 @@ namespace NuGet.Services.Storage
                 var leaseClient = blob.GetBlobLeaseClient(leaseId);
 
                 await leaseClient.ReleaseAsync(conditions: null, cancellationToken: cancellationToken);
-
                 return true;
             }
             catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.Conflict)
