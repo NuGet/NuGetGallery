@@ -1,9 +1,11 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Core;
+using Azure.Identity;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,7 +27,7 @@ namespace Stats.PostProcessReports
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             services.Configure<PostProcessReportsConfiguration>(configurationRoot.GetSection("Configuration"));
-
+            services.ConfigureStorageMsi(configurationRoot);
             services.AddTransient<ITelemetryService, TelemetryService>();
         }
 
@@ -39,7 +41,16 @@ namespace Stats.PostProcessReports
                 .Register(c =>
                 {
                     var cfg = c.Resolve<IOptionsSnapshot<PostProcessReportsConfiguration>>().Value;
-                    return new BlobServiceClientFactory(AzureStorageFactory.PrepareConnectionString(cfg.StorageAccount));
+                    StorageMsiConfiguration storageMsiConfiguration = _serviceProvider.GetRequiredService<IOptionsSnapshot<StorageMsiConfiguration>>().Value;
+                    if (storageMsiConfiguration.UseManagedIdentity)
+                    {
+                        string connectionString = cfg.StorageAccount.Replace("BlobEndPoint=", "");
+                        return new BlobServiceClientFactory(new Uri(connectionString), new DefaultAzureCredential());
+                    }
+                    else
+                    {
+                        return new BlobServiceClientFactory(AzureStorageFactory.PrepareConnectionString(cfg.StorageAccount));
+                    }
                 })
                 .AsSelf();
 
@@ -108,5 +119,43 @@ namespace Stats.PostProcessReports
                 .As<IDetailedReportPostProcessor>();
         }
 
+        /*string FigureOutConnectionString(string connectionString, StorageMsiConfiguration msiConfiguration)
+        {
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                throw new ArgumentException("ConnectionString is not defined.");
+            }
+
+            try
+            {
+                if (msiConfiguration.UseManagedIdentity)
+                {
+                    connectionString = connectionString.Replace("BlobEndpoint=", "");
+                    Uri blobEndpointUri = new Uri(connectionString);
+
+                    if (string.IsNullOrWhiteSpace(msiConfiguration.ManagedIdentityClientId))
+                    {
+                        // 1. Using MSI with DefaultAzureCredential (local debugging)
+                        return new BlobServiceClient(blobEndpointUri, new DefaultAzureCredential());
+                    }
+                    else
+                    {
+                        // 2. Using MSI with ClientId
+                        return new BlobServiceClient(blobEndpointUri, new ManagedIdentityCredential(msiConfiguration.ManagedIdentityClientId));
+                    }
+                }
+                else
+                {
+                    // 3. Using SAS token
+                    return AzureStorageFactory.PrepareConnectionString(connectionString);
+;
+                }
+            }
+
+            catch (Exception ex)
+            {
+                throw new ArgumentException("Job parameter for Azure CDN Blob Service Client is invalid.", ex);
+            }
+        }*/
     }
 }
