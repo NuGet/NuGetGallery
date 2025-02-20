@@ -143,7 +143,7 @@ namespace Stats.CollectAzureChinaCDNLogs
             {
                 if (msiConfiguration.UseManagedIdentity && isDestination)
                 {
-                    blobServiceClient = blobServiceClient.Replace("BlobEndpoint=", "");
+                    blobServiceClient = blobServiceClient.Replace("BlobEndPoint=", "");
                     Uri blobEndpointUri = new Uri(blobServiceClient);
 
                     if (string.IsNullOrWhiteSpace(msiConfiguration.ManagedIdentityClientId))
