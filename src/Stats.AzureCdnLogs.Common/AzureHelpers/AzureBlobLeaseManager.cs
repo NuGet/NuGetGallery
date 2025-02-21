@@ -9,10 +9,8 @@ using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Specialized;
 using Microsoft.Extensions.Logging;
-using Azure.Storage.Blobs;
-using Stats.AzureCdnLogs.Common.Collect;
 using NuGet.Services.Storage;
-using Azure.Storage.Blobs.Specialized;
+using Stats.AzureCdnLogs.Common.Collect;
 
 namespace Stats.AzureCdnLogs.Common
 {
@@ -26,7 +24,6 @@ namespace Stats.AzureCdnLogs.Common
         // The lease will be renewed with a short interval before the the lease expires
         public const int OverlapRenewPeriodInSeconds = 20;
         private readonly ILogger<AzureBlobLeaseManager> _logger;
-        private BlobLeaseService _blobLeaseService;
 
         public AzureBlobLeaseManager(ILogger<AzureBlobLeaseManager> logger)
         {

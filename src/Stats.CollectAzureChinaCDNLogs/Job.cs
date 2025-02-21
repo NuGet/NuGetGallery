@@ -12,12 +12,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs;
-using Azure.Storage;
 using Azure.Storage.Blobs;
 using Stats.AzureCdnLogs.Common;
 using Stats.AzureCdnLogs.Common.Collect;
 using Azure.Identity;
-using System.Linq;
 
 namespace Stats.CollectAzureChinaCDNLogs
 {
@@ -170,7 +168,6 @@ namespace Stats.CollectAzureChinaCDNLogs
                     return new BlobServiceClient(connectionString);
                 }
             }
-
             catch (Exception ex)
             {
                 throw new ArgumentException("Job parameter for Azure CDN Blob Service Client is invalid.", ex);
@@ -184,10 +181,7 @@ namespace Stats.CollectAzureChinaCDNLogs
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             ConfigureInitializationSection<CollectAzureChinaCdnLogsConfiguration>(services, configurationRoot);
-            //var kvps = configurationRoot.AsEnumerable(false).ToList();
             services.ConfigureStorageMsi(configurationRoot);
-            //var kvps = configurationRoot.AsEnumerable(false).ToList();
-            //var zubizu = "nonsense";
         }
     }
 }
