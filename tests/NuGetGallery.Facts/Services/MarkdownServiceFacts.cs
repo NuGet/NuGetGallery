@@ -2,7 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Castle.Core.Logging;
 using Ganss.Xss;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
@@ -16,14 +18,16 @@ namespace NuGetGallery
             private readonly MarkdownService _markdownService;
             private readonly Mock<IFeatureFlagService> _featureFlagService;
             private readonly Mock<IImageDomainValidator> _imageDomainValidator;
+            private readonly Mock<ILogger<MarkdownService>> _loggerMock;
             private readonly IHtmlSanitizer _htmlSanitizer;
 
             public GetReadMeHtmlMethod()
             {
                 _featureFlagService = new Mock<IFeatureFlagService>();
                 _imageDomainValidator = new Mock<IImageDomainValidator>();
+                _loggerMock = new Mock<ILogger<MarkdownService>>();
                 _htmlSanitizer = new HtmlSanitizer();
-                _markdownService = new MarkdownService(_featureFlagService.Object, _imageDomainValidator.Object, _htmlSanitizer);
+                _markdownService = new MarkdownService(_featureFlagService.Object, _imageDomainValidator.Object, _htmlSanitizer, _loggerMock.Object);
             }
 
             [Theory]
