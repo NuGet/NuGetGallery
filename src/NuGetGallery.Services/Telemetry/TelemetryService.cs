@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -602,6 +602,15 @@ namespace NuGetGallery
             TrackMetric(Events.PackageRegistrationRequiredSignerSet, 1, properties =>
             {
                 properties.Add(PackageId, packageId);
+            });
+        }
+
+        public void TrackDependencyLoadPerformance(string packageId, long loadPerfInMs)
+        {
+            TrackMetric("LoadDependencies", 1, properties =>
+            {
+                properties.Add(PackageId, packageId);
+                properties.Add("PerfInMs", ""+loadPerfInMs);
             });
         }
 

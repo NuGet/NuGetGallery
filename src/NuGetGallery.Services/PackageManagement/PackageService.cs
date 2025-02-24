@@ -1,9 +1,10 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -201,15 +202,25 @@ namespace NuGetGallery
 
         private IReadOnlyCollection<PackageDependent> GetListOfDependents(string id)
         {
-            var listPackages = (from pd in _entitiesContext.PackageDependencies
-                                join p in _entitiesContext.Packages on pd.PackageKey equals p.Key
-                                join pr in _entitiesContext.PackageRegistrations on p.PackageRegistrationKey equals pr.Key
+            var timer = new Stopwatch();
+            timer.Start();
+            var listPackages = (from pd in _entitiesContext.PackageDependencies.AsNoTracking()
+                                join p in _entitiesContext.Packages.AsNoTracking() on pd.PackageKey equals p.Key
+                                join pr in _entitiesContext.PackageRegistrations.AsNoTracking() on p.PackageRegistrationKey equals pr.Key
                                 where p.IsLatestSemVer2 && pd.Id == id
-                                group 1 by new { pr.Id, pr.DownloadCount, pr.IsVerified, p.Description } into ng
+                                group pr by new { pr.Id, pr.DownloadCount, pr.IsVerified, p.Description } into ng
                                 orderby ng.Key.DownloadCount descending
-                                select new PackageDependent { Id = ng.Key.Id, DownloadCount = ng.Key.DownloadCount, IsVerified = ng.Key.IsVerified, Description = ng.Key.Description }
-                                ).Take(packagesDisplayed).ToList();
-
+                                select new PackageDependent
+                                {
+                                    Id = ng.Key.Id,
+                                    DownloadCount = ng.Key.DownloadCount,
+                                    IsVerified = ng.Key.IsVerified,
+                                    Description = ng.Key.Description
+                                })
+                                .Take(packagesDisplayed)
+                                .ToList();
+            timer.Stop();
+            _telemetryService.TrackDependencyLoadPerformance(id, timer.ElapsedMilliseconds);
             return listPackages;
         }
 
@@ -340,7 +351,7 @@ namespace NuGetGallery
             IEnumerable<Package> GetSortedFiltered(IEnumerable<Package> localPackages, bool applyPrereleaseFilter = true)
             {
                 var semvered = localPackages
-                    .Select(package => new {package, semVer= NuGetVersion.Parse(package.NormalizedVersion)})
+                    .Select(package => new { package, semVer = NuGetVersion.Parse(package.NormalizedVersion) })
                     .ToList();
 
                 return semvered
@@ -684,7 +695,7 @@ namespace NuGetGallery
                 package.Authors.Add(new PackageAuthor { Name = author });
             }
 #pragma warning restore 618
-            
+
             var supportedFrameworkNames = GetSupportedFrameworks(packageArchive)
                 .Select(fn => fn.GetShortFolderName())
                 .Where(fn => fn != null)

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -132,6 +132,8 @@ namespace NuGetGallery
         /// <exception cref="ArgumentException">Thrown if <paramref name="thumbprint" /> is <c>null</c>
         /// or empty.</exception>
         void TrackRequiredSignerSet(string packageId);
+
+        void TrackDependencyLoadPerformance(string packageId, long loadPerfInMs);
 
         /// <summary>
         /// A telemetry event emitted when a user requests transformation of their account into an organization.
