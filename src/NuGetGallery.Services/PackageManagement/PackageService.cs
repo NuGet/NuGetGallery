@@ -213,7 +213,7 @@ namespace NuGetGallery
                                 select new PackageDependent { Id = ng.Key.Id, DownloadCount = ng.Key.DownloadCount, IsVerified = ng.Key.IsVerified, Description = ng.Key.Description }
                                 ).Take(packagesDisplayed).ToList();
             timer.Stop();
-            _telemetryService.TrackDependencyLoadPerformance(id, timer.ElapsedMilliseconds);
+            _telemetryService.TrackDependencyLoadPerformance(id + " post change", timer.ElapsedMilliseconds);
             return listPackages;
         }
 
