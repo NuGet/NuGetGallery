@@ -130,6 +130,11 @@ namespace Stats.CollectAzureChinaCDNLogs
             }
         }
 
+        /// <summary>
+        /// Validates and creates a <see cref="BlobServiceClient"/> based on the provided connection string and MSI configuration.
+        /// Uses SAS tokens for authentication for the source storage (because it is in China) and MSI for destination because
+        /// it is in a non-China region.
+        /// </summary>
         private static BlobServiceClient ValidateAzureBlobServiceClient(string blobServiceClient, StorageMsiConfiguration msiConfiguration, Boolean isDestination = false)
         {
             if (string.IsNullOrEmpty(blobServiceClient))
