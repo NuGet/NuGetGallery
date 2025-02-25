@@ -22,7 +22,7 @@ namespace Stats.PostProcessReports
     {
         private const string JsonContentType = "application/json";
         private const string TextContentType = "text/plain";
-        private const string SuccessFilename = "_SUCCESS";
+        private const string SuccessFilename = "/_SUCCESS";
         private const string CopySucceededFilename = "_WorkCopySucceeded";
         private const string JobSucceededFilename = "_JobSucceeded";
         private const string JsonExtension = ".json";
@@ -318,8 +318,8 @@ namespace Stats.PostProcessReports
             {
                 throw new ArgumentException($"Blob URI path does not contain '/': {blob.Uri.AbsolutePath}", nameof(blob));
             }
-
-            return path.Substring(lastSlash + 1);
+            var nonsense = path.Substring(lastSlash);
+            return nonsense;
         }
 
         private async Task WriteReports(
@@ -352,7 +352,7 @@ namespace Stats.PostProcessReports
                     continue;
                 }
                 var outFilename = $"recentpopularitydetail_{data.PackageId.ToLowerInvariant()}.json";
-                var destinationUri = _destinationStorage.ResolveUri(_configuration.DestinationPath + outFilename);
+                var destinationUri = _destinationStorage.ResolveUri(_configuration.DestinationPath + '/' + outFilename);
                 var storageContent = new StringStorageContent(details.Data, JsonContentType);
 
                 await _destinationStorage.Save(destinationUri, storageContent, overwrite: true, cancellationToken: cancellationToken);
