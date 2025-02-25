@@ -6,10 +6,10 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
+using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Specialized;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Storage;
-using Azure.Storage.Blobs;
 using Stats.AzureCdnLogs.Common.Collect;
 
 namespace Stats.AzureCdnLogs.Common
