@@ -135,7 +135,7 @@ namespace Stats.CollectAzureChinaCDNLogs
         /// Uses SAS tokens for authentication for the source storage (because it is in China) and MSI for destination because
         /// it is in a non-China region.
         /// </summary>
-        private static BlobServiceClient ValidateAzureBlobServiceClient(string blobServiceClient, StorageMsiConfiguration msiConfiguration, Boolean isDestination = false)
+        private static BlobServiceClient ValidateAzureBlobServiceClient(string blobServiceClient, StorageMsiConfiguration msiConfiguration, bool isDestination = false)
         {
             if (string.IsNullOrEmpty(blobServiceClient))
             {
