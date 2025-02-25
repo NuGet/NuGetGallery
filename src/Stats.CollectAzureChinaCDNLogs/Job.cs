@@ -17,7 +17,6 @@ using Azure.Storage.Blobs;
 using Stats.AzureCdnLogs.Common;
 using Stats.AzureCdnLogs.Common.Collect;
 using Azure.Identity;
-using System.Linq;
 
 namespace Stats.CollectAzureChinaCDNLogs
 {
@@ -70,7 +69,7 @@ namespace Stats.CollectAzureChinaCDNLogs
             connectionStringDestination = connectionStringDestination.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
 
             var dest = new AzureStatsLogDestination(
-                ValidateAzureBlobServiceClient(connectionStringDestination, storageMsiConfiguration, isDestination: true),
+                ValidateAzureBlobServiceClient(connectionStringDestination, storageMsiConfiguration, isGlobal: true),
                 _configuration.AzureContainerNameDestination,
                 serviceProvider.GetRequiredService<ILogger<AzureStatsLogDestination>>());
 
@@ -132,7 +131,13 @@ namespace Stats.CollectAzureChinaCDNLogs
             }
         }
 
-        private static BlobServiceClient ValidateAzureBlobServiceClient(string blobServiceClient, StorageMsiConfiguration msiConfiguration, Boolean isDestination = false)
+        /// <summary>
+        /// Validates and creates a <see cref="BlobServiceClient"/> based on the provided connection string and MSI configuration.
+        /// Uses SAS tokens for authentication for the source storage (because it is in China) and MSI for destination because
+        /// it is in a non-China region.
+        /// </summary>
+        /// <param name="isGlobal">Indicates whether the client is using China storage or global storage. If true, MSI is used.</param> 
+        private static BlobServiceClient ValidateAzureBlobServiceClient(string blobServiceClient, StorageMsiConfiguration msiConfiguration, bool isGlobal = false)
         {
             if (string.IsNullOrEmpty(blobServiceClient))
             {
@@ -141,9 +146,9 @@ namespace Stats.CollectAzureChinaCDNLogs
 
             try
             {
-                if (msiConfiguration.UseManagedIdentity && isDestination)
+                if (msiConfiguration.UseManagedIdentity && isGlobal)
                 {
-                    blobServiceClient = blobServiceClient.Replace("BlobEndpoint=", "");
+                    blobServiceClient = blobServiceClient.Replace("BlobEndPoint=", "");
                     Uri blobEndpointUri = new Uri(blobServiceClient);
 
                     if (string.IsNullOrWhiteSpace(msiConfiguration.ManagedIdentityClientId))
@@ -184,10 +189,7 @@ namespace Stats.CollectAzureChinaCDNLogs
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             ConfigureInitializationSection<CollectAzureChinaCdnLogsConfiguration>(services, configurationRoot);
-            //var kvps = configurationRoot.AsEnumerable(false).ToList();
             services.ConfigureStorageMsi(configurationRoot);
-            //var kvps = configurationRoot.AsEnumerable(false).ToList();
-            //var zubizu = "nonsense";
         }
     }
 }

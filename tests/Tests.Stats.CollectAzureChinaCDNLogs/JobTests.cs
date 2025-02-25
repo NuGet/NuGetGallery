@@ -13,7 +13,6 @@ using Stats.AzureCdnLogs.Common.Collect;
 using Stats.AzureCdnLogs.Common;
 using Stats.CollectAzureChinaCDNLogs;
 using Xunit;
-using System.IdentityModel.Protocols.WSTrust;
 using NuGet.Jobs;
 
 namespace Tests.Stats.CollectAzureChinaCDNLogs
