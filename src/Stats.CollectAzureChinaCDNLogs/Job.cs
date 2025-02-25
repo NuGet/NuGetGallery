@@ -12,7 +12,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs;
-using Azure.Storage;
 using Azure.Storage.Blobs;
 using Stats.AzureCdnLogs.Common;
 using Stats.AzureCdnLogs.Common.Collect;
@@ -175,7 +174,6 @@ namespace Stats.CollectAzureChinaCDNLogs
                     return new BlobServiceClient(connectionString);
                 }
             }
-
             catch (Exception ex)
             {
                 throw new ArgumentException("Job parameter for Azure CDN Blob Service Client is invalid.", ex);
