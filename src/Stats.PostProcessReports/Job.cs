@@ -40,16 +40,35 @@ namespace Stats.PostProcessReports
             containerBuilder
                 .Register(c =>
                 {
-                    var cfg = c.Resolve<IOptionsSnapshot<PostProcessReportsConfiguration>>().Value;
+                    PostProcessReportsConfiguration cfg = c.Resolve<IOptionsSnapshot<PostProcessReportsConfiguration>>().Value;
                     StorageMsiConfiguration storageMsiConfiguration = _serviceProvider.GetRequiredService<IOptionsSnapshot<StorageMsiConfiguration>>().Value;
-                    if (storageMsiConfiguration.UseManagedIdentity)
+                    try
                     {
-                        string connectionString = cfg.StorageAccount.Replace("BlobEndPoint=", "");
-                        return new BlobServiceClientFactory(new Uri(connectionString), new DefaultAzureCredential());
+                        if (storageMsiConfiguration.UseManagedIdentity)
+                        {
+                            string connectionString = cfg.StorageAccount.Replace("BlobEndPoint=", "");
+                            Uri blobEndpointUri = new Uri(connectionString);
+
+                            if (string.IsNullOrWhiteSpace(storageMsiConfiguration.ManagedIdentityClientId))
+                            {
+                                // 1. Using MSI with DefaultAzureCredential (local debugging)
+                                return new BlobServiceClientFactory(blobEndpointUri, new DefaultAzureCredential());
+                            }
+                            else
+                            {
+                                // 2. Using MSI with ClientId
+                                return new BlobServiceClientFactory(blobEndpointUri, new ManagedIdentityCredential(storageMsiConfiguration.ManagedIdentityClientId));
+                            }
+                        }
+                        else
+                        {
+                            // 3. Using SAS token
+                            return new BlobServiceClientFactory(AzureStorageFactory.PrepareConnectionString(cfg.StorageAccount));
+                        }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        return new BlobServiceClientFactory(AzureStorageFactory.PrepareConnectionString(cfg.StorageAccount));
+                        throw new ArgumentException("Job parameter for Azure CDN Blob Service Client is invalid.", ex);
                     }
                 })
                 .AsSelf();
@@ -118,44 +137,5 @@ namespace Stats.PostProcessReports
                     (_, ctx) => ctx.ResolveKeyed<IStorage>(destinationKey)))
                 .As<IDetailedReportPostProcessor>();
         }
-
-        /*string FigureOutConnectionString(string connectionString, StorageMsiConfiguration msiConfiguration)
-        {
-            if (string.IsNullOrEmpty(connectionString))
-            {
-                throw new ArgumentException("ConnectionString is not defined.");
-            }
-
-            try
-            {
-                if (msiConfiguration.UseManagedIdentity)
-                {
-                    connectionString = connectionString.Replace("BlobEndpoint=", "");
-                    Uri blobEndpointUri = new Uri(connectionString);
-
-                    if (string.IsNullOrWhiteSpace(msiConfiguration.ManagedIdentityClientId))
-                    {
-                        // 1. Using MSI with DefaultAzureCredential (local debugging)
-                        return new BlobServiceClient(blobEndpointUri, new DefaultAzureCredential());
-                    }
-                    else
-                    {
-                        // 2. Using MSI with ClientId
-                        return new BlobServiceClient(blobEndpointUri, new ManagedIdentityCredential(msiConfiguration.ManagedIdentityClientId));
-                    }
-                }
-                else
-                {
-                    // 3. Using SAS token
-                    return AzureStorageFactory.PrepareConnectionString(connectionString);
-;
-                }
-            }
-
-            catch (Exception ex)
-            {
-                throw new ArgumentException("Job parameter for Azure CDN Blob Service Client is invalid.", ex);
-            }
-        }*/
     }
 }
