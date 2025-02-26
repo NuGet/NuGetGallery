@@ -22,7 +22,7 @@ namespace Stats.PostProcessReports
     {
         private const string JsonContentType = "application/json";
         private const string TextContentType = "text/plain";
-        private const string SuccessFilename = "/_SUCCESS";
+        private const string SuccessFilename = "_SUCCESS";
         private const string CopySucceededFilename = "_WorkCopySucceeded";
         private const string JobSucceededFilename = "_JobSucceeded";
         private const string JsonExtension = ".json";
@@ -121,7 +121,7 @@ namespace Stats.PostProcessReports
             foreach (var sourceBlob in jsonBlobs)
             {
                 var blobName = GetBlobName(sourceBlob);
-                var workBlobUri = _workStorage.ResolveUri(_configuration.WorkPath + blobName);
+                var workBlobUri = _workStorage.ResolveUri(_configuration.WorkPath + '/' + blobName);
                 var sourceBlobStats = new BlobStatistics();
                 var individualReports = await ProcessSourceBlobAsync(sourceBlob, sourceBlobStats, totals);
                 using (_logger.BeginScope("Processing {BlobName}", blobName))
@@ -155,7 +155,7 @@ namespace Stats.PostProcessReports
                     }
                 }
             }
-            var jobSucceededUrl = _workStorage.ResolveUri(_configuration.WorkPath + JobSucceededFilename);
+            var jobSucceededUrl = _workStorage.ResolveUri(_configuration.WorkPath + '/' + JobSucceededFilename);
             var jobSucceededContent = new StringStorageContent("", TextContentType);
             await _workStorage.Save(jobSucceededUrl, jobSucceededContent, overwrite: true, cancellationToken: cancellationToken);
             _telemetryService.ReportTotals(totals.SourceFilesProcessed, totals.TotalLinesProcessed, totals.TotalFilesCreated, totals.TotalLinesFailed);
@@ -203,13 +203,13 @@ namespace Stats.PostProcessReports
             foreach (var sourceBlob in jsonBlobs)
             {
                 var blobName = GetBlobName(sourceBlob);
-                var targetUrl = _workStorage.ResolveUri(_configuration.WorkPath + blobName);
+                var targetUrl = _workStorage.ResolveUri(_configuration.WorkPath + '/' + blobName);
                 _logger.LogInformation("{SourceBlobUri} ({BlobName})", sourceBlob.Uri.AbsoluteUri, blobName);
                 _logger.LogInformation("{WorkBlobUrl}", targetUrl);
                 await _sourceStorage.CopyAsync(sourceBlob.Uri, _workStorage, targetUrl, destinationProperties: null, cancellationToken);
             }
             var copySucceededContent = new StringStorageContent("", TextContentType);
-            var copySucceededUrl = _workStorage.ResolveUri(_configuration.WorkPath + CopySucceededFilename);
+            var copySucceededUrl = _workStorage.ResolveUri(_configuration.WorkPath + '/' + CopySucceededFilename);
             await _workStorage.Save(copySucceededUrl, copySucceededContent, overwrite: true, cancellationToken: cancellationToken);
         }
 
@@ -246,7 +246,7 @@ namespace Stats.PostProcessReports
             var sw = Stopwatch.StartNew();
             var numLines = 0;
             var individualReports = new ConcurrentBag<LineProcessingContext>();
-            var workStorageUrl = _workStorage.ResolveUri(_configuration.WorkPath + GetBlobName(sourceBlob));
+            var workStorageUrl = _workStorage.ResolveUri(_configuration.WorkPath + '/'+ GetBlobName(sourceBlob));
             var storageContent = await _workStorage.Load(workStorageUrl, CancellationToken.None);
             using (var sourceStream = storageContent.GetContentStream())
             using (var streamReader = new StreamReader(sourceStream))
@@ -318,8 +318,7 @@ namespace Stats.PostProcessReports
             {
                 throw new ArgumentException($"Blob URI path does not contain '/': {blob.Uri.AbsolutePath}", nameof(blob));
             }
-            var nonsense = path.Substring(lastSlash);
-            return nonsense;
+            return path.Substring(lastSlash + 1);
         }
 
         private async Task WriteReports(
