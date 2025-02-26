@@ -9,6 +9,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
+using Azure.Data.Tables;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
@@ -117,13 +118,7 @@ namespace NuGet.Services.Storage
 
         static Uri GetDirectoryUri(BlobContainerClient directory)
         {
-            Uri uri = new UriBuilder(directory.Uri)
-            {
-                Scheme = "http",
-                Port = 80
-            }.Uri;
-
-            return uri;
+            return directory.Uri;
         }
 
         //Blob exists
@@ -189,7 +184,29 @@ namespace NuGet.Services.Storage
 
             await foreach (BlobHierarchyItem blob in _directory.GetBlobsByHierarchyAsync(traits: blobTraits, prefix: _path))
             {
-                blobList.Add(await GetStorageListItemAsync(_directory.GetBlockBlobClient(blob.Blob.Name)));
+                blobList.Add(await GetStorageListItemAsync(_directory.GetBlockBlobClient(blob.Blob.Name)));           
+            }
+
+            return blobList;
+        }
+
+        public override async Task<IEnumerable<StorageListItem>> ListTopLevelAsync(bool getMetadata, CancellationToken cancellationToken)
+        {
+            var prefix = _path.Trim('/') + '/';
+            var blobTraits = new BlobTraits();
+            if (getMetadata)
+            {
+                blobTraits |= BlobTraits.Metadata;
+            }
+
+            var blobList = new List<StorageListItem>();
+
+            await foreach (BlobHierarchyItem blob in _directory.GetBlobsByHierarchyAsync(traits: blobTraits, prefix: prefix, delimiter: "/"))
+            {
+                if (!blob.IsPrefix)
+                {
+                    blobList.Add(await GetStorageListItemAsync(_directory.GetBlockBlobClient(blob.Blob.Name)));
+                }
             }
 
             return blobList;
@@ -420,10 +437,11 @@ namespace NuGet.Services.Storage
             return ResolveUri(Path.Combine(_path, filename));
         }
 
+        // Returns the primary blob service URI from the connection string
         public static Uri GetPrimaryServiceUri(string storageConnectionString)
         {
             var tempClient = new BlobServiceClient(storageConnectionString);
-            // if _storageConnectionString has SAS token, Uri will contain SAS signature, we need to strip it 
+            // if _storageConnectionString has SAS token, Uri will contain SAS signature, we need to strip it
             return new Uri(tempClient.Uri.GetLeftPart(UriPartial.Path));
         }
     }

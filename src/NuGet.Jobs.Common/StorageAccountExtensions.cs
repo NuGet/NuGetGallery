@@ -4,6 +4,7 @@
 using System;
 using Autofac;
 using Autofac.Builder;
+using Azure.Core;
 using Azure.Data.Tables;
 using Azure.Identity;
 using Azure.Storage.Blobs;
@@ -22,7 +23,8 @@ namespace NuGet.Jobs
             this IServiceCollection serviceCollection,
             IConfiguration configuration,
             string storageUseManagedIdentityPropertyName = null,
-            string storageManagedIdentityClientIdPropertyName = null)
+            string storageManagedIdentityClientIdPropertyName = null,
+            string localDevelopmentPropertyName = null)
         {
             if (serviceCollection == null)
             {
@@ -35,9 +37,12 @@ namespace NuGet.Jobs
 
             storageUseManagedIdentityPropertyName ??= Constants.StorageUseManagedIdentityPropertyName;
             storageManagedIdentityClientIdPropertyName ??= Constants.StorageManagedIdentityClientIdPropertyName;
+            localDevelopmentPropertyName ??= Constants.ConfigureForLocalDevelopment;
 
             string useManagedIdentityStr = configuration[storageUseManagedIdentityPropertyName];
+            string localDevelopmentStr = configuration[localDevelopmentPropertyName];
             bool useManagedIdentity = false;
+            bool setupLocalDevelopment = false;
 
             string managedIdentityClientId = string.IsNullOrWhiteSpace(configuration[storageManagedIdentityClientIdPropertyName])
                                                 ? configuration[Constants.ManagedIdentityClientIdKey]
@@ -47,6 +52,21 @@ namespace NuGet.Jobs
             {
                 useManagedIdentity = bool.Parse(useManagedIdentityStr);
             }
+
+            if (!string.IsNullOrWhiteSpace(localDevelopmentStr))
+            {
+                setupLocalDevelopment = bool.Parse(localDevelopmentStr);
+            }
+
+            if (setupLocalDevelopment)
+            {
+                serviceCollection.AddSingleton<TokenCredential>(new DefaultAzureCredential());
+            }
+            else
+            {
+                serviceCollection.AddSingleton<TokenCredential>(new ManagedIdentityCredential(managedIdentityClientId));
+            }
+
             return serviceCollection.Configure<StorageMsiConfiguration>(storageConfiguration =>
             {
                 storageConfiguration.UseManagedIdentity = useManagedIdentity;
@@ -121,9 +141,7 @@ namespace NuGet.Jobs
             }
 
             StorageMsiConfiguration msiConfiguration = serviceProvider.GetRequiredService<IOptions<StorageMsiConfiguration>>().Value;
-            return CreateTableServiceClientClient(
-                msiConfiguration,
-                storageConnectionString);
+            return CreateTableServiceClient(msiConfiguration, storageConnectionString);
         }
 
         public static IRegistrationBuilder<TableServiceClient, SimpleActivatorData, SingleRegistrationStyle> RegisterTableServiceClient<TConfiguration>(
@@ -145,9 +163,7 @@ namespace NuGet.Jobs
                 IOptionsSnapshot<TConfiguration> options = c.Resolve<IOptionsSnapshot<TConfiguration>>();
                 string storageConnectionString = getConnectionString(options.Value);
                 StorageMsiConfiguration msiConfiguration = c.Resolve<IOptions<StorageMsiConfiguration>>().Value;
-                return CreateTableServiceClientClient(
-                    msiConfiguration,
-                    storageConnectionString);
+                return CreateTableServiceClient(msiConfiguration, storageConnectionString);
             });
         }
 
@@ -257,27 +273,27 @@ namespace NuGet.Jobs
             }
         }
 
-        private static TableServiceClient CreateTableServiceClientClient(
+        public static TableServiceClient CreateTableServiceClient(
             StorageMsiConfiguration msiConfiguration,
             string tableStorageConnectionString)
         {
             if (msiConfiguration.UseManagedIdentity)
             {
+                Uri tableEndpointUri = new Uri(tableStorageConnectionString);
+
                 if (string.IsNullOrWhiteSpace(msiConfiguration.ManagedIdentityClientId))
                 {
-                    return new TableServiceClient(new Uri(tableStorageConnectionString),
-                        new DefaultAzureCredential());
+                    return new TableServiceClient(tableEndpointUri, new DefaultAzureCredential());
                 }
                 else
                 {
-                    return new TableServiceClient(new Uri(tableStorageConnectionString),
-                        new ManagedIdentityCredential(msiConfiguration.ManagedIdentityClientId));
+                    return new TableServiceClient(tableEndpointUri, new ManagedIdentityCredential(msiConfiguration.ManagedIdentityClientId));
                 }
             }
 
             // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
-            tableStorageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
-            return new TableServiceClient(tableStorageConnectionString);
+            var connectionString = tableStorageConnectionString.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+            return new TableServiceClient(connectionString);
         }
     }
 }

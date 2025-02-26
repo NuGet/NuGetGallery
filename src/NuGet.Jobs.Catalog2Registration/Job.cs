@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Net;
@@ -7,6 +7,7 @@ using Autofac;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NuGet.Jobs.Catalog2Registration;
+using NuGet.Services.Configuration;
 using NuGet.Services.V3;
 
 namespace NuGet.Jobs
@@ -33,6 +34,20 @@ namespace NuGet.Jobs
             services.AddCatalog2Registration(GlobalTelemetryDimensions, configurationRoot);
 
             services.Configure<Catalog2RegistrationConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
+            services.Configure<Catalog2RegistrationConfiguration>((config) =>
+            {
+                config.StorageUseManagedIdentity = configurationRoot.GetValue(Constants.StorageUseManagedIdentityPropertyName, false);
+                config.StorageManagedIdentityClientId = configurationRoot.GetValue(Constants.ManagedIdentityClientIdKey, string.Empty);
+
+                if(config.StorageConnectionString.Contains("SharedAccessSignature"))
+                {
+                    config.HasSasToken = true;
+                }
+                else
+                {
+                    config.StorageServiceUrl = config.StorageConnectionString.Replace("BlobEndpoint=", "");
+                }
+            });
             services.Configure<CommitCollectorConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
         }
     }

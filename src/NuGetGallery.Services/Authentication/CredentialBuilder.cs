@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NuGet.Services.Entities;
 using NuGetGallery.Authentication;
+using NuGetGallery.Services.Authentication;
 
 namespace NuGetGallery.Infrastructure.Authentication
 {
@@ -26,6 +27,29 @@ namespace NuGetGallery.Infrastructure.Authentication
             return new Credential(
                 LatestPasswordType,
                 V3Hasher.GenerateHash(plaintextPassword));
+        }
+
+        public Credential CreateShortLivedApiKey(TimeSpan expiration, FederatedCredentialPolicy policy, out string plaintextApiKey)
+        {
+            if (policy.PackageOwner is null)
+            {
+                throw new ArgumentException($"The {nameof(policy.PackageOwner)} property on the policy must not be null.");
+            }
+
+            if (expiration <= TimeSpan.Zero || expiration > TimeSpan.FromHours(1))
+            {
+                throw new ArgumentOutOfRangeException(nameof(expiration));
+            }
+
+            // TODO: introduce a new API key type for short-lived API keys
+            // Tracking: https://github.com/NuGet/NuGetGallery/issues/10212
+            var credential = CreateApiKey(expiration, out plaintextApiKey);
+
+            credential.FederatedCredentialPolicy = policy;
+            credential.Description = "Short-lived API key generated via a federated credential";
+            credential.Scopes = [new Scope(policy.PackageOwner, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.All)];
+
+            return credential;
         }
 
         public Credential CreateApiKey(TimeSpan? expiration, out string plaintextApiKey)
