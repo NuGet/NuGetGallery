@@ -52,10 +52,12 @@ def test_from_request_url_returns_none_when_invalid_url(request_url):
     ("5.9.1", "https://localhost/artifacts/win-x86-commandline/v5.9.1/nuget.exe"),
     ("5.8.0-preview.2", "https://localhost/artifacts/win-x86-commandline/v5.8.0-preview.2/nuget.exe"),
     ("3.5.0-beta2", "https://localhost/artifacts/win-x86-commandline/v3.5.0-beta2/nuget.exe"),
-    ("latest", "https://localhost/artifacts/win-x86-commandline/latest/nuget.exe")])
+    ("latest", "https://localhost/artifacts/win-x86-commandline/latest/nuget.exe"),
+    ("5.11.6", "/win-x86-commandline/v5.11.6/nuget.exe"),
+    ("latest", "/win-x86-commandline/latest/nuget.exe")])
 def test_from_nuget_exe_url_extracts_nuget_exe_version(expected_version, request_url):
     found =  PackageDefinition.from_nuget_exe_url(request_url)
-    assert found and found.package_version == expected_version
+    assert found and found.package_id == 'tool/nuget.exe' and found.package_version == expected_version
 
 @pytest.mark.parametrize("request_url", [
     "",
@@ -66,7 +68,7 @@ def test_from_nuget_exe_url_extracts_nuget_exe_version(expected_version, request
     "http://localhost/artifacts/win-x86-commandline/v3.5.0/get.exe"
     ])
 def test_from_nuget_exe_url_returns_none_when_invalid_url(request_url):
-    found =  PackageDefinition.from_nuget_exe_url(request_url)
+    found = PackageDefinition.from_nuget_exe_url(request_url)
     assert not found
 
 # To invoke the pytest framework and run all tests
