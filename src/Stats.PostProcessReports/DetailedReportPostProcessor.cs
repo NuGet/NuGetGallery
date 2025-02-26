@@ -246,7 +246,7 @@ namespace Stats.PostProcessReports
             var sw = Stopwatch.StartNew();
             var numLines = 0;
             var individualReports = new ConcurrentBag<LineProcessingContext>();
-            var workStorageUrl = _workStorage.ResolveUri(_configuration.WorkPath + '/'+ GetBlobName(sourceBlob));
+            var workStorageUrl = _workStorage.ResolveUri(_configuration.WorkPath + '/' + GetBlobName(sourceBlob));
             var storageContent = await _workStorage.Load(workStorageUrl, CancellationToken.None);
             using (var sourceStream = storageContent.GetContentStream())
             using (var streamReader = new StreamReader(sourceStream))
