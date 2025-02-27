@@ -73,6 +73,14 @@ namespace NuGetGallery.Infrastructure.Authentication
     /// </summary>
     public class ApiKeyV5
     {
+        private const int SignatureOffset = 52;
+        private const int SignatureLength = 6;
+        private const int AllocationMonthOffset = 58;
+        private const int PlatformOffset = 60;
+        private const int UserKeyLength = 6;
+        private const int ProviderOffset = 72;
+        private const int ExpirationLength = 3;
+
         private const char PlatformPrefix = 'N'; // this is to differentiate with other platforms, such as 'A' for Azure
         private const char ApiKeyVersion = '5';
         internal const string ProviderSignature = "NUGT";
@@ -134,14 +142,10 @@ namespace NuGetGallery.Infrastructure.Authentication
         /// <param name="expiration">The expiration time. This must be 366 days or shorter must be a round minute value divisible by 5.</param>
         /// <returns>The created API key.</returns>
         public static ApiKeyV5 Create(DateTime allocationTime, char environment, int userKey, char type, TimeSpan expiration)
-        {
-            return Create(allocationTime, environment, userKey, type, expiration, testChar: null);
-        }
+            => Create(allocationTime, environment, userKey, type, expiration, testChar: null);
 
         internal static ApiKeyV5 CreateTestKey(DateTime allocationTime, char environment, int userKey, char type, TimeSpan expiration, char testChar)
-        {
-            return Create(allocationTime, environment, userKey, type, expiration, testChar);
-        }
+            => Create(allocationTime, environment, userKey, type, expiration, testChar);
 
         private static ApiKeyV5 Create(DateTime allocationTime, char environment, int userKey, char type, TimeSpan expiration, char? testChar)
         {
@@ -219,7 +223,7 @@ namespace NuGetGallery.Infrastructure.Authentication
                 return false;
             }
 
-            if (plaintextApiKey.Substring(52, 6) != IdentifiableSecrets.CommonAnnotatedKeySignature)
+            if (plaintextApiKey.Substring(SignatureOffset, SignatureLength) != IdentifiableSecrets.CommonAnnotatedKeySignature)
             {
                 return false;
             }
@@ -236,23 +240,23 @@ namespace NuGetGallery.Infrastructure.Authentication
                 return false;
             }
 
-            if (plaintextApiKey[60] != PlatformPrefix)
+            if (plaintextApiKey[PlatformOffset] != PlatformPrefix)
             {
                 return false;
             }
 
-            if (plaintextApiKey[61] != ApiKeyVersion)
+            if (plaintextApiKey[PlatformOffset + 1] != ApiKeyVersion)
             {
                 return false;
             }
 
-            char environment = plaintextApiKey[62];
+            char environment = plaintextApiKey[PlatformOffset + 2];
             if (!TryParseBase62Char(environment, out _))
             {
                 return false;
             }
 
-            char type = plaintextApiKey[72];
+            char type = plaintextApiKey[ProviderOffset];
             if (!TryParseBase62Char(type, out _))
             {
                 return false;
@@ -292,11 +296,11 @@ namespace NuGetGallery.Infrastructure.Authentication
             try
             {
                 allocationTime = new DateTime(
-                    year: 2024 + ParseBase62Char(plaintextApiKey[58]), // zero-indexed per HISv2 spec
-                    month: 1 + ParseBase62Char(plaintextApiKey[59]), // zero-indexed per HISv2 spec
-                    day: 1 + ParseBase62Char(plaintextApiKey[69]), // zero-indexed base on implementation in this class
-                    hour: ParseBase62Char(plaintextApiKey[70]), // zero-indexed is fine for DateTime
-                    minute: ParseBase62Char(plaintextApiKey[71]), // zero-indexed is fine for DateTime
+                    year: 2024 + ParseBase62Char(plaintextApiKey[AllocationMonthOffset]), // zero-indexed per HISv2 spec
+                    month: 1 + ParseBase62Char(plaintextApiKey[AllocationMonthOffset + 1]), // zero-indexed per HISv2 spec
+                    day: 1 + ParseBase62Char(plaintextApiKey[PlatformOffset + 9]), // zero-indexed base on implementation in this class
+                    hour: ParseBase62Char(plaintextApiKey[PlatformOffset + 10]), // zero-indexed is fine for DateTime
+                    minute: ParseBase62Char(plaintextApiKey[PlatformOffset + 11]), // zero-indexed is fine for DateTime
                     second: 0,
                     millisecond: 0,
                     DateTimeKind.Utc);
@@ -313,7 +317,7 @@ namespace NuGetGallery.Infrastructure.Authentication
         {
             userKey = default;
 
-            var userKeyBase62 = plaintextApiKey.Substring(63, 6);
+            var userKeyBase62 = plaintextApiKey.Substring(PlatformOffset + 3, UserKeyLength);
             byte[] userKeyBytes;
             try
             {
@@ -326,12 +330,9 @@ namespace NuGetGallery.Infrastructure.Authentication
 
             // ensure all but the 4 least significant bytes are 0 (little-endian)
             // this is to ensure that the user key is not padded with extra data
-            for (var i = 0; i < userKeyBytes.Length - 4; i++)
+            if (!VerifyAllButLast4BytesAreZero(userKeyBytes))
             {
-                if (userKeyBytes[i] != 0)
-                {
-                    return false;
-                }
+                return false;
             }
 
             if (BitConverter.IsLittleEndian)
@@ -347,7 +348,7 @@ namespace NuGetGallery.Infrastructure.Authentication
         {
             expiration = default;
 
-            var expirationBase62 = plaintextApiKey.Substring(73, 3);
+            var expirationBase62 = plaintextApiKey.Substring(ProviderOffset + 1, ExpirationLength);
             byte[] expirationBytes;
             try
             {
@@ -358,15 +359,11 @@ namespace NuGetGallery.Infrastructure.Authentication
                 return false;
             }
 
-
             // ensure all but the 4 least significant bytes are 0 (little-endian)
             // this is to ensure that the expiration bytes is not padded with extra data
-            for (var i = 0; i < expirationBytes.Length - 4; i++)
+            if (!VerifyAllButLast4BytesAreZero(expirationBytes))
             {
-                if (expirationBytes[i] != 0)
-                {
-                    return false;
-                }
+                return false;
             }
 
             if (BitConverter.IsLittleEndian)
@@ -377,6 +374,19 @@ namespace NuGetGallery.Infrastructure.Authentication
             int expirationFiveMinutes = BitConverter.ToInt32(expirationBytes, 0);
 
             expiration = TimeSpan.FromMinutes(expirationFiveMinutes * 5);
+            return true;
+        }
+
+        private static bool VerifyAllButLast4BytesAreZero(byte[] bytes)
+        {
+            for (var i = 0; i < bytes.Length - 4; i++)
+            {
+                if (bytes[i] != 0)
+                {
+                    return false;
+                }
+            }
+
             return true;
         }
 
@@ -432,7 +442,7 @@ namespace NuGetGallery.Infrastructure.Authentication
 
             // Pad out the base62 encoded string to 6 characters with a zero (zero bits).
             // This allows the string to be interpreted as base64 with no needed padding.
-            string userKeyBase62Padded = userKeyBytes.ToBase62().PadLeft(6, '0');
+            string userKeyBase62Padded = userKeyBytes.ToBase62().PadLeft(UserKeyLength, '0');
             return userKeyBase62Padded;
         }
 
@@ -462,6 +472,11 @@ namespace NuGetGallery.Infrastructure.Authentication
             if (expiration > TimeSpan.FromDays(366))
             {
                 throw new ArgumentOutOfRangeException(nameof(expiration), $"The {nameof(expiration)} must be 366 days or shorter.");
+            }
+
+            if (expiration <= TimeSpan.Zero)
+            {
+                throw new ArgumentOutOfRangeException(nameof(expiration), $"The {nameof(expiration)} must be greater than zero.");
             }
 
             int expirationMinutes = (int)expiration.TotalMinutes;
