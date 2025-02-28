@@ -255,6 +255,7 @@ namespace Stats.PostProcessReports.Tests
             _configurationMock
                 .SetupGet(c => c.Value)
                 .Returns(_configuration);
+            _configuration.WorkPath = "work";
 
             _target = new DetailedReportPostProcessor(
                 _sourceStorageMock.Object,
