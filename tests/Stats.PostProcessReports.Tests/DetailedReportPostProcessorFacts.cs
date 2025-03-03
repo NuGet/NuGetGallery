@@ -217,7 +217,7 @@ namespace Stats.PostProcessReports.Tests
                 "file1.json"
             };
 
-            var fileUrl = Blob(_workStorageMock, "file1.json").Uri;
+            var fileUrl = Blob(_workStorageMock, _configuration.WorkPath + '/' + "file1.json").Uri;
             const string line1 = "{\"PackageId\": \"Foo\", \"Otherstuff\": 123}";
             const string line2 = "{\"PackageId\": \"Bar\", \"Otherstuff\": 321}";
             const string content = line1 + "\n" + line2 + "\n";
@@ -255,7 +255,6 @@ namespace Stats.PostProcessReports.Tests
             _configurationMock
                 .SetupGet(c => c.Value)
                 .Returns(_configuration);
-            _configuration.WorkPath = "work";
 
             _target = new DetailedReportPostProcessor(
                 _sourceStorageMock.Object,
