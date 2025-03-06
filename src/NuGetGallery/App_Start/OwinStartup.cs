@@ -174,7 +174,7 @@ namespace NuGetGallery
                 context.Environment.ToList().ForEach(x => Debug.WriteLine(x.Key + " : " + x.Value));
                 Debug.WriteLine("Request URL: " + context.Request.Uri.ToString());
                 Debug.WriteLine(context.Request);
-
+               
                 await next();
             });
 
