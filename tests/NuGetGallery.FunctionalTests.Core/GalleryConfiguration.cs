@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -38,6 +38,7 @@ namespace NuGetGallery.FunctionalTests
 
                 // This method is a workaround for binding redirect issues. Please check the implementation for more information.
                 RedirectAssembly("Newtonsoft.Json");
+                RedirectAssembly("Microsoft.IdentityModel.Clients.ActiveDirectory");
 
                 // Load the configuration without injection. This allows us to read KeyVault configuration.
                 var uninjectedBuilder = new ConfigurationBuilder()
