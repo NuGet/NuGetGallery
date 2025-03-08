@@ -13,6 +13,12 @@ $VsInstallationPath = & $BuiltInVsWhereExe -latest -prerelease -property install
 $vsTest = Join-Path $VsInstallationPath "Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe"
 $xunit = "$repoDir\packages\xunit.runner.console\tools\net472\xunit.console.exe"
 
+Write-Host "Using vstest.console.exe from $vsTest"
+
+& $vsTest -?
+
+Write-Host "Continuing with tests"
+
 # Test results files
 $functionalTestsResults = "$parentDir/functionaltests.$TestCategory.xml"
 $webUITestResults = "$parentDir/NuGetGallery.$TestCategory.WebUITests.trx"
