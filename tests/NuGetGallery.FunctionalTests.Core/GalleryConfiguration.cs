@@ -73,17 +73,18 @@ namespace NuGetGallery.FunctionalTests
             }
             catch (ArgumentException ae)
             {
-                throw new ArgumentException(
-                    $"No configuration file was specified! Set the '{EnvironmentSettings.ConfigurationFilePathVariableName}' environment variable to the path to a JSON configuration file.",
-                    ae);
+                string message = $"No configuration file was specified! Set the '{EnvironmentSettings.ConfigurationFilePathVariableName}' environment variable to the path to a JSON configuration file.\n{ae.ToString()}";
+                Console.Error.WriteLine(message);
+                throw new ArgumentException(message, ae);
             }
             catch (Exception e)
             {
-                throw new ArgumentException(
-                    $"Unable to load the JSON configuration file. " +
+                string message = $"Unable to load the JSON configuration file. " +
                     $"Make sure the JSON configuration file exists at the path specified by the '{EnvironmentSettings.ConfigurationFilePathVariableName}' " +
-                    $"and that it is a valid JSON file containing all required configuration.",
-                    e);
+                    $"and that it is a valid JSON file containing all required configuration.\n{e.ToString()}";
+
+                Console.Error.WriteLine(message);
+                throw new ArgumentException(message, e);
             }
         }
 
