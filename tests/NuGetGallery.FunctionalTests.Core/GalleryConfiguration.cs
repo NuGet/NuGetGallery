@@ -41,6 +41,7 @@ namespace NuGetGallery.FunctionalTests
                 var _azc = typeof(Azure.Core.AccessToken);
                 var _sm = typeof(System.MemoryExtensions);
                 var _sds = typeof(System.Diagnostics.Activity);
+                var _mxt = typeof(Microsoft.Web.XmlTransform.Locator);
 
                 // This method is a workaround for binding redirect issues. Please check the implementation for more information.
                 RedirectAssembly("Newtonsoft.Json");
@@ -50,6 +51,7 @@ namespace NuGetGallery.FunctionalTests
                 RedirectAssembly("Azure.Core");
                 RedirectAssembly("System.Memory");
                 RedirectAssembly("System.Diagnostics.DiagnosticSource");
+                RedirectAssembly("Microsoft.Web.XmlTransform");
 
                 // Load the configuration without injection. This allows us to read KeyVault configuration.
                 var uninjectedBuilder = new ConfigurationBuilder()
