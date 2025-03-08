@@ -36,9 +36,20 @@ namespace NuGetGallery.FunctionalTests
                 // This test suite hits the gallery which requires TLS 1.2 (at least in some environments).
                 ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
 
+                var _unsafe = typeof(System.Runtime.CompilerServices.Unsafe); // ensure assembly is loaded
+                var _stj = typeof(System.Text.Json.JsonDocument);
+                var _azc = typeof(Azure.Core.AccessToken);
+                var _sm = typeof(System.MemoryExtensions);
+                var _sds = typeof(System.Diagnostics.Activity);
+
                 // This method is a workaround for binding redirect issues. Please check the implementation for more information.
                 RedirectAssembly("Newtonsoft.Json");
                 RedirectAssembly("Microsoft.IdentityModel.Clients.ActiveDirectory");
+                RedirectAssembly("System.Runtime.CompilerServices.Unsafe");
+                RedirectAssembly("System.Text.Json");
+                RedirectAssembly("Azure.Core");
+                RedirectAssembly("System.Memory");
+                RedirectAssembly("System.Diagnostics.DiagnosticSource");
 
                 // Load the configuration without injection. This allows us to read KeyVault configuration.
                 var uninjectedBuilder = new ConfigurationBuilder()

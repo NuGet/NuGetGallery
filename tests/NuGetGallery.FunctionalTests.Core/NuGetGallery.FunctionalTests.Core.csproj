@@ -15,11 +15,12 @@
     	this would have to do for now.
     	Proper fix tracked here: https://github.com/NuGet/Engineering/issues/5669
     -->
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" VersionOverride="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" />
     <PackageReference Include="Microsoft.Web.Xdt" />
     <PackageReference Include="NuGet.Core" />
-    <PackageReference Include="NuGet.Services.Configuration" VersionOverride="2.94.0" />
+    <PackageReference Include="NuGet.Services.Configuration" VersionOverride="5.0.0-main-11034694" />
     <PackageReference Include="NuGet.Versioning" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" VersionOverride="8.0.1" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
