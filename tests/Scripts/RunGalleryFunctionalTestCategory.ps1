@@ -51,7 +51,7 @@ if (Test-Path $webTestsDirectory -PathType Container) {
 
 # Run load tests
 $loadTestsDirectory = "$parentDir\NuGetGallery.LoadTests\bin\$Configuration\net472"
-& $vsTest "$loadTestsDirectory\NuGetGallery.LoadTests.dll" "/Settings:$parentDir\Local.testsettings" "/TestCaseFilter:`"TestCategory=$fullTestCategory`"" "/Logger:trx;LogFileName=$loadTestResults"
+& $vsTest "$loadTestsDirectory\NuGetGallery.LoadTests.dll" "/Settings:$parentDir\Local.testsettings" "/TestCaseFilter:`"TestCategory=$fullTestCategory`"" "/Logger:trx;LogFileName=$loadTestResults;verbosity=detailed"
 if ($LASTEXITCODE -ne 0) {
     $exitCode = 1
 }
