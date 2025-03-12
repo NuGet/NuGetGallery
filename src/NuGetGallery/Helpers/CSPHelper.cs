@@ -14,7 +14,14 @@ namespace NuGetGallery.Helpers
         public static IHtmlString GetCSPNonce(this HtmlHelper helper)
         {
             var owinContext = helper.ViewContext.HttpContext.GetOwinContext();
-            return new HtmlString(owinContext.Get<string>("cspNonce"));
+            var cspNonce = string.Empty;
+            var owinContextCSPNonce = owinContext.Get<string>("cspNonce");
+
+            if (!string.IsNullOrEmpty(owinContextCSPNonce))
+            {
+                cspNonce = owinContextCSPNonce;
+            }
+            return new HtmlString(cspNonce);
         }
     }
 }
