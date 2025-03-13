@@ -10,7 +10,10 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |      SeeDefender	 version 1.0.2    |       2/26/2025       |   Untrustworthy  |
 |      SharpDefender	 version 1.0.0    |       2/25/2025       |  Untrustworthy   |
 |      DemaConsulting.WeasyprintTool version  64.1.0   |      3/5/2025       |  Untrustworthy   |
-
+|      Microsofft.EntetyFrameworkCore  version  1.0.0   |      3/13/2025       |  Untrustworthy   |
+|      Mircоsoft.EntetyFrameworkCore  version  1.0.0   |      3/13/2025       |  Untrustworthy   |
+|      Micrоsoft.EntetyFrameworkCore  version  1.0.0   |      3/13/2025       |  Untrustworthy   |
+|      Мircosоft.ЕntitуFramеworkСоrе  version  9.0.0   |      3/13/2025       |  Untrustworthy   |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.
