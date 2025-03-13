@@ -77,7 +77,7 @@
     @RenderBody()
     </div>
     @Html.Partial("Gallery/Footer")
-    @ViewHelpers.CookieComplianceScript()
+    @ViewHelpers.CookieComplianceScript(@Html.GetCSPNonce())
     @Scripts.RenderFormat("<script src=\"{0}\" nonce='" + @Html.GetCSPNonce().ToString() + "'></script>", "~/Scripts/gallery/site.min.js");
     @RenderSection("BottomScripts", required: false)
 </body>
