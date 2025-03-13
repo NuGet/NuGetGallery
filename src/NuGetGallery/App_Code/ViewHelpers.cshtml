@@ -332,10 +332,9 @@
 @* In Azure, we want the Instance ID. The Machine Name is total garbage *@
 }
 
-@helper CookieComplianceScript()
+@helper CookieComplianceScript(IHtmlString cspNonce)
 {
-    <script src="https://wcpstatic.microsoft.com/mscc/lib/v2/wcp-consent.js"></script>
-
+    <script src="https://wcpstatic.microsoft.com/mscc/lib/v2/wcp-consent.js" nonce="@cspNonce"></script>
 }
 
 @helper AnalyticsScript(dynamic viewBag)
