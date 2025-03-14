@@ -160,11 +160,11 @@ namespace NuGetGallery
                 rng.GetBytes(nonceBytes);
                 var nonce = Convert.ToBase64String(nonceBytes);
                 var reportUri = ConfigurationManager.AppSettings["CspReportUri"];
-                context.Set("cspNonce", nonce);
-                context.Response.Headers.Add("Content-Security-Policy-Report-Only",
-                    [ string.Format("default-src 'self' 'nonce-{0}' 'strict-dynamic' https: ; script-src 'nonce-{0}' 'strict-dynamic' https: ; font-src 'self' {1} 'nonce-{0}'; base-uri 'none'; form-action 'self' 'nonce-{0}'; style-src 'self' 'nonce-{0}'; report-uri {2}; object-src 'none'; frame-ancestors 'none'; ", nonce,regexStr, reportUri)
-                    ]);
 
+                var contentSecurityPolicyReportHeader = new[] { string.Format("default-src 'self' 'nonce-{0}' 'strict-dynamic' https: ; script-src 'nonce-{0}' 'strict-dynamic' https: ; font-src 'self' {1} 'nonce-{0}'; base-uri 'none'; form-action 'self' 'nonce-{0}'; style-src 'self' 'nonce-{0}'; report-uri {2}; object-src 'none'; frame-ancestors 'none'; ", nonce, regexStr, reportUri) };
+
+                context.Set("cspNonce", nonce);
+                context.Response.Headers.Add("Content-Security-Policy-Report-Only", contentSecurityPolicyReportHeader);
                 context.Response.Headers.Add("X-XSS-Protection", ["1; mode=block"]);               
                 await next();
             });
