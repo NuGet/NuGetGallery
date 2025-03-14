@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Validation.PackageSigning.ProcessSignature\Validation.PackageSigning.ProcessSignature.csproj" />
     <ProjectReference Include="..\TestUtil\TestUtil.csproj" />
+    <ProjectReference Include="..\Validation.PackageSigning.Common\Validation.PackageSigning.Common.csproj" />
     <ProjectReference Include="..\Validation.PackageSigning.Core.Tests\Validation.PackageSigning.Core.Tests.csproj" />
     <ProjectReference Include="..\Validation.PackageSigning.Helpers\Tests.ContextHelpers.csproj" />
   </ItemGroup>
