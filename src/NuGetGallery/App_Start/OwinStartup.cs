@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -7,6 +7,7 @@ using System.Configuration;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Hosting;
@@ -147,6 +148,26 @@ namespace NuGetGallery
             {
                 auther.Startup(config, app).Wait();
             }
+
+            // enables Content-Security-Policy with nonce and strict dynamic
+            app.Use(async (context, next) =>
+            {
+                var resourceURl = context.Request.Uri.ToString();
+                var regexStr = "https://res-1.cdn.office.net/files/fabric-cdn-prod_20221201.001/assets/";
+
+                var rng =  RandomNumberGenerator.Create();
+                var nonceBytes = new byte[32];
+                rng.GetBytes(nonceBytes);
+                var nonce = Convert.ToBase64String(nonceBytes);
+                var reportUri = ConfigurationManager.AppSettings["CspReportUri"];
+
+                var contentSecurityPolicyReportHeader = new[] { string.Format("default-src 'self' 'nonce-{0}' 'strict-dynamic' https: ; script-src 'nonce-{0}' 'strict-dynamic' https: ; font-src 'self' {1} 'nonce-{0}'; base-uri 'none'; form-action 'self' 'nonce-{0}'; style-src 'self' 'nonce-{0}'; report-uri {2}; object-src 'none'; frame-ancestors 'none'; ", nonce, regexStr, reportUri) };
+
+                context.Set("cspNonce", nonce);
+                context.Response.Headers.Add("Content-Security-Policy-Report-Only", contentSecurityPolicyReportHeader);
+                context.Response.Headers.Add("X-XSS-Protection", ["1; mode=block"]);               
+                await next();
+            });
 
             var featureFlags = DependencyResolver.Current.GetService<IFeatureFlagCacheService>();
             if (featureFlags != null)
