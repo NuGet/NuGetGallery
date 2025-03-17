@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -171,14 +171,6 @@ namespace NuGetGallery
             var fileName = _prefixA;
             var expectedContent = "Hello, world.";
             var bytes = Encoding.UTF8.GetBytes(expectedContent);
-            string expectedContentMD5;
-#pragma warning disable CA5351  
-            using (var md5 = MD5.Create())
-            {
-                expectedContentMD5 = Convert.ToBase64String(md5.ComputeHash(bytes));
-            }
-#pragma warning disable CA5351 
-
             var container = _clientA.GetContainerReference(folderName);
             var file = container.GetBlobReference(fileName);
 
