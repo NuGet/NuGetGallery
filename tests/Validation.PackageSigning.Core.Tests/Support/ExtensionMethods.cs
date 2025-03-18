@@ -2,19 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Security.Cryptography.X509Certificates;
-using Test.Utility.Signing;
-using BCCertificate = Org.BouncyCastle.X509.X509Certificate;
+using Microsoft.Internal.NuGet.Testing.SignedPackages;
 
 namespace Validation.PackageSigning.Core.Tests.Support
 {
     public static class ExtensionMethods
     {
-        public static X509Certificate2 ToX509Certificate2(this BCCertificate certificate)
-        {
-            return new X509Certificate2(certificate.GetEncoded());
-        }
-
         public static DisposableList<IDisposable> RegisterResponders(
             this ISigningTestServer testServer,
             CertificateAuthority ca,
