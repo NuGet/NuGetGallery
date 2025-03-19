@@ -1,21 +1,22 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Org.BouncyCastle.Asn1.X509;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
+using NuGet.Packaging.Signing;
 
-namespace Org.BouncyCastle.X509
+namespace Validation.PackageSigning.ValidateCertificate.Tests.Support
 {
     public static class X509V3CertificateGeneratorExtensions2
     {
-        public static void AddTimestampingEku(this X509V3CertificateGenerator generator)
+        public static void AddTimestampingEku(this CertificateRequest certificateRequest)
         {
-            // TimeStamping EKU
-            var usages = new[] { KeyPurposeID.IdKPTimeStamping };
+            var usages = new OidCollection { new Oid(Oids.TimeStampingEku) };
 
-            generator.AddExtension(
-                X509Extensions.ExtendedKeyUsage.Id,
-                critical: true,
-                extensionValue: new ExtendedKeyUsage(usages));
+            certificateRequest.CertificateExtensions.Add(
+                new X509EnhancedKeyUsageExtension(
+                    usages,
+                    critical: true));
         }
     }
 }
