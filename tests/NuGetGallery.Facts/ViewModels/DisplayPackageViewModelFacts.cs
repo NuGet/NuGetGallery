@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -129,6 +129,30 @@ namespace NuGetGallery.ViewModels
             var model = CreateDisplayPackageViewModel(package, currentUser: null, packageKeyToDeprecation: null, readmeHtml: null);
             Assert.Equal(expectedKind, model.RepositoryType);
             Assert.Equal(expectedUrl, model.RepositoryUrl);
+        }
+
+        [Theory]
+        [InlineData("https://github.com/dotnet/sqlclient", "git", "dotnet/SqlClient")]
+        [InlineData("https://github.com/jbogard/MediatR.git", "git", "jbogard/MediatR")]
+        [InlineData("git://github.com/AppMetrics/AppMetrics", null, "AppMetrics/AppMetrics")]
+        [InlineData("https://github.com/Azure/durabletask/", "git", "Azure/durabletask")]
+        [InlineData("https://visualstudio.com", "tfs", "")]
+        public void ItDeterminesComparableGitHubRepository(string repoUrl, string repoType, string ComparableGitHubRepository)
+        {
+            var package = new Package
+            {
+                Version = "1.0.0",
+                RepositoryUrl = repoUrl,
+                RepositoryType = repoType,
+                PackageRegistration = new PackageRegistration
+                {
+                    Owners = Enumerable.Empty<User>().ToList(),
+                    Packages = Enumerable.Empty<Package>().ToList()
+                }
+            };
+
+            var model = CreateDisplayPackageViewModel(package, currentUser: null, packageKeyToDeprecation: null, readmeHtml: null);
+            Assert.Equal(ComparableGitHubRepository.ToLowerInvariant(), model.ComparableGitHubRepository);
         }
 
         [Theory]
