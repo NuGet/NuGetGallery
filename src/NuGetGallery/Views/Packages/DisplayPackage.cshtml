@@ -858,7 +858,7 @@
                                             @{ var selectedItemsCount = 0; }
                                             @foreach (var item in Model.GitHubDependenciesInformation.Repos.Select((elem, i) => new { Value = elem, Idx = i }))
                                             {
-                                                if (item.Value.Url == Model.RepositoryUrl)
+                                                if (string.Equals(item.Value.id, Model.ComparableGitHubRepository, StringComparison.OrdinalIgnoreCase))
                                                 {
                                                     continue;
                                                 }

@@ -145,7 +145,7 @@ namespace NuGetGallery
             const string githubCom = "github.com/";
             string comparableUrl = string.Empty;
 
-            if (RepositoryUrl.Contains(githubCom))
+            if (RepositoryUrl !=null && RepositoryUrl.Contains(githubCom))
             {
                 comparableUrl = RepositoryUrl;
             }
