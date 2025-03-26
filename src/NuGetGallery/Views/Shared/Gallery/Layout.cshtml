@@ -62,14 +62,6 @@
     @RenderSection("TopScripts", required: false)
     @ViewHelpers.ReleaseMeta()
     @ViewHelpers.InstrumentationScript(ViewBag)
-
-    <!--converted Inline style--->
-    <style nonce="@Html.GetCSPNonce()">
-        #input-select-file
-            {
-                display: none;
-            }
-    </style>
 </head>
 <body @{if (Request.Url.GetComponents(UriComponents.Path, UriFormat.UriEscaped) == "") { <text>id="/"</text> } }>
     @Html.Partial("Gallery/Header")
