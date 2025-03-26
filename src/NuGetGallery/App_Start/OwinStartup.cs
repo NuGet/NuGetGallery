@@ -152,16 +152,24 @@ namespace NuGetGallery
             // enables Content-Security-Policy with nonce and strict dynamic
             app.Use(async (context, next) =>
             {
-                var resourceURl = context.Request.Uri.ToString();
-                var regexStr = "https://res-1.cdn.office.net/files/fabric-cdn-prod_20221201.001/assets/";
+                var fontAndIconSrc = string.Concat("https://res-1.cdn.office.net/files/fabric-cdn-prod_20221201.001/assets/fonts/", ' ',
+                         "https://res-1.cdn.office.net/files/fabric-cdn-prod_20221201.001/assets/icons/");
 
-                var rng =  RandomNumberGenerator.Create();
+                var scriptFileHashes = 
+                string.Concat(
+                  "'sha512-gU7kztaQEl7SHJyraPfZLQCNnrKdaQi5ndOyt4L4UPL/FHDd/uB9Je6KDARIqwnNNE27hnqoWLBq+Kpe4iHfeQ=='", ' ',
+                  "'sha512-DXYctkkhmMYJ4vYp4Dm6jprD4ZareZ7ud/d9mGCKif/Dt3FnN95SjogHvwKvxXHoMAAkZX6EO6ePwpDIR1Y8jw=='", ' ',
+                  "'sha512-mz4SrGyk+dtPY9MNYOMkD81gp8ajViZ4S0VDuM/Zqg40cg9xgIBYSiL5fN79Htbz4f2+uR9lrDO6mgcjM+NAXA=='", ' ',
+                  "'sha512-pnt8OPBTOklRd4/iSW7msOiCVO4uvffF17Egr3c7AaN0h3qFnSu7L6UmdZJUCednMhhruTLRq7X9WbyAWNBegw=='", ' '
+                 );
+
+                using var rng = RandomNumberGenerator.Create();
                 var nonceBytes = new byte[32];
                 rng.GetBytes(nonceBytes);
                 var nonce = Convert.ToBase64String(nonceBytes);
                 var reportUri = ConfigurationManager.AppSettings["CspReportUri"];
 
-                var contentSecurityPolicyReportHeader = new[] { string.Format("default-src 'self' 'nonce-{0}' 'strict-dynamic' https: ; script-src 'nonce-{0}' 'strict-dynamic' https: ; font-src 'self' {1} 'nonce-{0}'; base-uri 'none'; form-action 'self' 'nonce-{0}'; style-src 'self' 'nonce-{0}'; report-uri {2}; object-src 'none'; frame-ancestors 'none'; ", nonce, regexStr, reportUri) };
+                var contentSecurityPolicyReportHeader = new[] { string.Format("default-src 'self' 'nonce-{0}' 'strict-dynamic' https:; script-src 'nonce-{0}'  {3} 'strict-dynamic' https:; font-src 'self' {1} 'nonce-{0}'; base-uri 'none'; form-action 'self' 'nonce-{0}'; style-src 'self' 'nonce-{0}'; report-uri {2}; object-src 'none'; frame-ancestors 'none'; ", nonce, fontAndIconSrc, reportUri,scriptFileHashes) };
 
                 context.Set("cspNonce", nonce);
                 context.Response.Headers.Add("Content-Security-Policy-Report-Only", contentSecurityPolicyReportHeader);
