@@ -13,6 +13,7 @@ using Markdig.Extensions.EmphasisExtras;
 using Markdig.Renderers;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
+using Microsoft.Extensions.Logging;
 
 namespace NuGetGallery
 {
@@ -24,19 +25,23 @@ namespace NuGetGallery
         private static readonly Regex HtmlCommentPattern = new Regex("<!--.*?-->", RegexOptions.Singleline, RegexTimeout);
         private static readonly Regex ImageTextPattern = new Regex("!\\[\\]\\(", RegexOptions.Singleline, RegexTimeout);
         private static readonly string AltTextForImage = "alternate text is missing from this package README image";
+        private static readonly string ReadmeFailedToRender = "This Readme failed to render.";
 
         private readonly IFeatureFlagService _features;
         private readonly IImageDomainValidator _imageDomainValidator;
         private readonly IHtmlSanitizer _htmlSanitizer;
+        private readonly ILogger<MarkdownService> _logger;
 
         public MarkdownService(IFeatureFlagService features,
             IImageDomainValidator imageDomainValidator,
-            IHtmlSanitizer htmlSanitizer)
+            IHtmlSanitizer htmlSanitizer,
+            ILogger<MarkdownService> logger)
         {
             _features = features ?? throw new ArgumentNullException(nameof(features));
             _imageDomainValidator = imageDomainValidator ?? throw new ArgumentNullException(nameof(imageDomainValidator));
             _htmlSanitizer = htmlSanitizer ?? throw new ArgumentNullException(nameof(htmlSanitizer));
             SanitizerSettings();
+            _logger = logger ?? throw new ArgumentNullException(nameof(_logger));
         }
 
         private void SanitizerSettings()
@@ -243,71 +248,80 @@ namespace NuGetGallery
                 var renderer = new HtmlRenderer(htmlWriter);
                 pipeline.Setup(renderer);
 
-                var document = Markdown.Parse(markdownWithoutBom, pipeline);
-
-                foreach (var node in document.Descendants())
+                try
                 {
-                    if (node is Markdig.Syntax.Block)
+                    var document = Markdown.Parse(markdownWithoutBom, pipeline);
+
+                    foreach (var node in document.Descendants())
                     {
-                        // Demote heading tags so they don't overpower expander headings.
-                        if (node is HeadingBlock heading)
+                        if (node is Markdig.Syntax.Block)
                         {
-                            heading.Level = Math.Min(heading.Level + incrementHeadersBy, 6);
-                        }
-                    }
-                    else if (node is Markdig.Syntax.Inlines.Inline)
-                    {
-                        if (node is LinkInline linkInline)
-                        {
-                            if (linkInline.IsImage)
+                            // Demote heading tags so they don't overpower expander headings.
+                            if (node is HeadingBlock heading)
                             {
-                                if (_features.IsImageAllowlistEnabled())
+                                heading.Level = Math.Min(heading.Level + incrementHeadersBy, 6);
+                            }
+                        }
+                        else if (node is Markdig.Syntax.Inlines.Inline)
+                        {
+                            if (node is LinkInline linkInline)
+                            {
+                                if (linkInline.IsImage)
                                 {
-                                    if (!_imageDomainValidator.TryPrepareImageUrlForRendering(linkInline.Url, out string readyUriString))
+                                    if (_features.IsImageAllowlistEnabled())
                                     {
-                                        linkInline.Url = string.Empty;
-                                        output.ImageSourceDisallowed = true;
+                                        if (!_imageDomainValidator.TryPrepareImageUrlForRendering(linkInline.Url, out string readyUriString))
+                                        {
+                                            linkInline.Url = string.Empty;
+                                            output.ImageSourceDisallowed = true;
+                                        }
+                                        else
+                                        {
+                                            output.ImagesRewritten = output.ImagesRewritten || (linkInline.Url != readyUriString);
+                                            linkInline.Url = readyUriString;
+                                        }
                                     }
                                     else
                                     {
-                                        output.ImagesRewritten = output.ImagesRewritten || (linkInline.Url != readyUriString);
-                                        linkInline.Url = readyUriString;
+                                        if (!PackageHelper.TryPrepareUrlForRendering(linkInline.Url, out string readyUriString, rewriteAllHttp: true))
+                                        {
+                                            linkInline.Url = string.Empty;
+                                        }
+                                        else
+                                        {
+                                            output.ImagesRewritten = output.ImagesRewritten || (linkInline.Url != readyUriString);
+                                            linkInline.Url = readyUriString;
+                                        }
                                     }
                                 }
                                 else
                                 {
-                                    if (!PackageHelper.TryPrepareUrlForRendering(linkInline.Url, out string readyUriString, rewriteAllHttp: true))
+                                    // Allow only http or https links in markdown. Transform link to https for known domains.
+                                    if (!PackageHelper.TryPrepareUrlForRendering(linkInline.Url, out string readyUriString))
                                     {
-                                        linkInline.Url = string.Empty;
+                                        if (linkInline.Url != null && !linkInline.Url.StartsWith("#")) //allow internal section links
+                                        {
+                                            linkInline.Url = string.Empty;
+                                        }
                                     }
                                     else
                                     {
-                                        output.ImagesRewritten = output.ImagesRewritten || (linkInline.Url != readyUriString);
                                         linkInline.Url = readyUriString;
                                     }
                                 }
                             }
-                            else
-                            {
-                                // Allow only http or https links in markdown. Transform link to https for known domains.
-                                if (!PackageHelper.TryPrepareUrlForRendering(linkInline.Url, out string readyUriString))
-                                {
-                                    if (linkInline.Url != null && !linkInline.Url.StartsWith("#")) //allow internal section links
-                                    {
-                                        linkInline.Url = string.Empty;
-                                    }
-                                }
-                                else
-                                {
-                                    linkInline.Url = readyUriString;
-                                }
-                            }
                         }
                     }
+
+                    renderer.Render(document);
+                    output.Content = htmlWriter.ToString().Trim();
+                }
+                catch (Exception ex)
+                {
+                    output.Content = ReadmeFailedToRender;
+                    _logger.LogError(ex, "Readme Failed to Render: {Message}", ex.Message);
                 }
 
-                renderer.Render(document);
-                output.Content = htmlWriter.ToString().Trim();
                 output.IsMarkdigMdSyntaxHighlightEnabled = _features.IsMarkdigMdSyntaxHighlightEnabled();
                 output.Content = SanitizeText(output.Content);
 
