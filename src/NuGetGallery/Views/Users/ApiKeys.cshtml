@@ -491,13 +491,13 @@
                 <p>
                     <span data-bind="text: SelectedCountLabel"></span>
                 </p>
-            </div>
+            </div>  
         </div>
-        <div class="row">
+        <div class="row">  
             <div class="col-sm-6 form-group">
                 <input type="submit" class="btn btn-brand btn-block"
                        data-bind="enable: SelectPackagesEnabled() && !PendingCreateOrEdit(),
-                                  attr: { value: Key() ? 'Edit' : 'Create' }" />
+                                  attr: { value: Key() ? 'Save' : 'Create' }" />
             </div>
             <div class="col-sm-6 form-group">
                 <button data-bind="attr: { 'data-target': '#' + EditContainerId(),
