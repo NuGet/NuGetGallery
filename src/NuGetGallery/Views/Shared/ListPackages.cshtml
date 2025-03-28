@@ -1,4 +1,4 @@
-@model PackageListViewModel
+﻿@model PackageListViewModel
 @{
     ViewBag.Title = String.IsNullOrWhiteSpace(Model.SearchTerm) ? "Packages" : "Packages matching " + Model.SearchTerm;
     ViewBag.SortText = String.IsNullOrWhiteSpace(Model.SearchTerm) ? "recent installs" : "relevance";
@@ -91,12 +91,8 @@
                         {
                             <div>
                                 <fieldset id="frameworkfilters">
-                                    <legend style="display: flex; gap: 6px;">
-                                        <a href="@(Model.FrameworksFilteringInformationLink)" class="frameworkfilters-info"
-                                           data-content="@NuGetGallery.Strings.FrameworkFilters_Tooltip"
-                                           aria-label="@NuGetGallery.Strings.FrameworkFilters_Tooltip">
-                                            Frameworks
-                                        </a>
+                                    <legend>
+                                        Frameworks
                                         <a class="tooltip-target" href="javascript:void(0)" role="button" aria-labelledby="frameworksfiltersid">
                                             <i class="framework-filter-info-icon ms-Icon ms-Icon--Info"></i>
                                             <span class="tooltip-block" role="tooltip" id="frameworksfiltersid">
@@ -108,6 +104,10 @@
                                                 </span>
                                             </span>
                                         </a>
+                                        <a href="@(Model.FrameworksFilteringInformationLink)" class="frameworkfilters-info"
+                                            aria-label="Learn more about advanced filtering and sorting">
+                                            Learn more
+                                        </a> 
                                     </legend>
                                     @if (Model.IsAdvancedFrameworkFilteringEnabled)
                                     {
@@ -176,7 +176,7 @@
                                         <input id="prerel-checkbox" type="checkbox" checked="@Model.IncludePrerelease">
                                         <span>
                                             Include prerelease
-                                         </span>
+                                        </span>
                                     </label>
                                 </div>
                             </fieldset>
