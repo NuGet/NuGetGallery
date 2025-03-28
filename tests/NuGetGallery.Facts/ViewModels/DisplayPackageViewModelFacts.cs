@@ -152,7 +152,7 @@ namespace NuGetGallery.ViewModels
             };
 
             var model = CreateDisplayPackageViewModel(package, currentUser: null, packageKeyToDeprecation: null, readmeHtml: null);
-            Assert.Equal(ComparableGitHubRepository.ToLowerInvariant(), model.ComparableGitHubRepository);
+            Assert.Equal(ComparableGitHubRepository, model.ComparableGitHubRepository, StringComparer.OrdinalIgnoreCase);
         }
 
         [Theory]

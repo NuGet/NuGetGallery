@@ -858,11 +858,11 @@
                                             @{ var selectedItemsCount = 0; }
                                             @foreach (var item in Model.GitHubDependenciesInformation.Repos.Select((elem, i) => new { Value = elem, Idx = i }))
                                             {
-                                                if (string.Equals(item.Value.id, Model.ComparableGitHubRepository, StringComparison.OrdinalIgnoreCase))
+                                                if (string.Equals(item.Value.Id, Model.ComparableGitHubRepository, StringComparison.OrdinalIgnoreCase))
                                                 {
                                                     continue;
                                                 }
-                                                else if (selectedItemsCount == 5)
+                                                else if (selectedItemsCount == ReposPerPackage.ReposPerPackage - 1)
                                                 {
                                                     break;
                                                 }
