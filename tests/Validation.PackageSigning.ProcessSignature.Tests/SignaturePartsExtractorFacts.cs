@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
@@ -11,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Internal.NuGet.Testing.SignedPackages.Asn1;
 using Moq;
 using NuGet.Jobs.Validation.PackageSigning.Configuration;
 using NuGet.Jobs.Validation.PackageSigning.ProcessSignature;
@@ -19,8 +19,6 @@ using NuGet.Packaging.Signing;
 using NuGet.Services.Entities;
 using NuGet.Services.Validation;
 using NuGetGallery;
-using Org.BouncyCastle.Cms;
-using Org.BouncyCastle.X509.Store;
 using Tests.ContextHelpers;
 using Validation.PackageSigning.Core.Tests.Support;
 using Xunit;
@@ -29,8 +27,6 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
 {
     public class SignaturePartsExtractorFacts
     {
-        private const string BouncyCastleCollection = "Collection";
-
         private static readonly DateTime Leaf1TimestampValue = DateTime
             .Parse("2018-01-26T22:09:01.0000000Z")
             .ToUniversalTime();
@@ -73,7 +69,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 TimestampEndCertificate = new SubjectAndThumbprint(
                     "CN=Symantec SHA256 TimeStamping Signer - G2, OU=Symantec Trust Network, O=Symantec Corporation, C=US",
                     TestResources.Leaf1TimestampThumbprint),
-                    TimestampParentCertificates = new[]
+                TimestampParentCertificates = new[]
                 {
                     new SubjectAndThumbprint(
                         "CN=Symantec SHA256 TimeStamping CA, OU=Symantec Trust Network, O=Symantec Corporation, C=US",
@@ -1032,38 +1028,20 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
 
         private static PrimarySignature AddCertificates(SignedCms destination, SignedCms source)
         {
-            using (var readStream = new MemoryStream(destination.Encode()))
-            using (var writeStream = new MemoryStream())
+            TestSignedCms testSignedCms = TestSignedCms.Decode(destination);
+
+            foreach (X509Certificate2 sourceCertificate in source.Certificates)
             {
-                var certificates = GetBouncyCastleCertificates(destination)
-                    .Concat(GetBouncyCastleCertificates(source))
-                    .Distinct()
-                    .ToList();
-                var certificateStore = X509StoreFactory.Create(
-                    "Certificate/" + BouncyCastleCollection,
-                    new X509CollectionStoreParameters(certificates));
-
-                var crlStore = new CmsSignedData(destination.Encode()).GetCrls(BouncyCastleCollection);
-                var attributeCertificateStore = new CmsSignedData(destination.Encode()).GetAttributeCertificates(BouncyCastleCollection);
-
-                CmsSignedDataParser.ReplaceCertificatesAndCrls(
-                    readStream,
-                    certificateStore,
-                    crlStore,
-                    attributeCertificateStore,
-                    writeStream);
-
-                return PrimarySignature.Load(writeStream.ToArray());
+                if (!destination.Certificates.Contains(sourceCertificate))
+                {
+                    testSignedCms.Certificates.Add(sourceCertificate);
+                }
             }
-        }
 
-        private static List<Org.BouncyCastle.X509.X509Certificate> GetBouncyCastleCertificates(SignedCms signedCms)
-        {
-            return new CmsSignedData(signedCms.Encode())
-                .GetCertificates(BouncyCastleCollection)
-                .GetMatches(selector: null)
-                .Cast<Org.BouncyCastle.X509.X509Certificate>()
-                .ToList();
+            SignedCms updatedDestination = testSignedCms.Encode();
+            byte[] bytes = updatedDestination.Encode();
+
+            return PrimarySignature.Load(bytes);
         }
 
         private class ExtractedCertificatesThumbprints

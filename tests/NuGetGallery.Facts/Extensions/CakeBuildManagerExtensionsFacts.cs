@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -61,7 +61,8 @@ namespace NuGetGallery.Extensions
                         Version = "1.0.0",
                     };
 
-                    var actual = model.GetCakeInstallPackageCommand();
+                    var actual = model.GetCakeInstallPackageCommands()
+                                    .SingleOrDefault()?.Command;
 
                     Assert.Equal("#tool dotnet:?package=dotnet-reportgenerator-globaltool&version=1.0.0", actual);
                 }
@@ -77,7 +78,8 @@ namespace NuGetGallery.Extensions
                         Prerelease = true,
                     };
 
-                    var actual = model.GetCakeInstallPackageCommand();
+                    var actual = model.GetCakeInstallPackageCommands()
+                                    .SingleOrDefault()?.Command;
 
                     Assert.Equal("#tool dotnet:?package=dotnet-reportgenerator-globaltool&version=1.0.0-preview&prerelease", actual);
                 }
@@ -95,7 +97,8 @@ namespace NuGetGallery.Extensions
                         Tags = new[] { "cake-addin" },
                     };
 
-                    var actual = model.GetCakeInstallPackageCommand();
+                    var actual = model.GetCakeInstallPackageCommands()
+                                    .SingleOrDefault()?.Command;
 
                     Assert.Equal("#addin nuget:?package=Cake.7zip&version=1.0.0", actual);
                 }
@@ -111,7 +114,8 @@ namespace NuGetGallery.Extensions
                         Prerelease = true,
                     };
 
-                    var actual = model.GetCakeInstallPackageCommand();
+                    var actual = model.GetCakeInstallPackageCommands()
+                                    .SingleOrDefault()?.Command;
 
                     Assert.Equal("#addin nuget:?package=Cake.7zip&version=1.0.0&prerelease", actual);
                 }
@@ -129,7 +133,8 @@ namespace NuGetGallery.Extensions
                         Tags = new[] {"cake-module"},
                     };
 
-                    var actual = model.GetCakeInstallPackageCommand();
+                    var actual = model.GetCakeInstallPackageCommands()
+                                    .SingleOrDefault()?.Command;
 
                     Assert.Equal("#module nuget:?package=Cake.BuildSystems.Module&version=1.0.0", actual);
                 }
@@ -145,7 +150,8 @@ namespace NuGetGallery.Extensions
                         Prerelease = true,
                     };
 
-                    var actual = model.GetCakeInstallPackageCommand();
+                    var actual = model.GetCakeInstallPackageCommands()
+                                    .SingleOrDefault()?.Command;
 
                     Assert.Equal("#module nuget:?package=Cake.BuildSystems.Module&version=1.0.0&prerelease", actual);
                 }
@@ -163,7 +169,8 @@ namespace NuGetGallery.Extensions
                         Tags = new[] { "cake-recipe" },
                     };
 
-                    var actual = model.GetCakeInstallPackageCommand();
+                    var actual = model.GetCakeInstallPackageCommands()
+                                    .SingleOrDefault()?.Command;
 
                     Assert.Equal("#load nuget:?package=Cake.Recipe&version=1.0.0", actual);
                 }
@@ -179,7 +186,8 @@ namespace NuGetGallery.Extensions
                         Prerelease = true,
                     };
 
-                    var actual = model.GetCakeInstallPackageCommand();
+                    var actual = model.GetCakeInstallPackageCommands()
+                                    .SingleOrDefault()?.Command;
 
                     Assert.Equal("#load nuget:?package=Cake.Recipe&version=1.0.0&prerelease", actual);
                 }
@@ -198,7 +206,8 @@ namespace NuGetGallery.Extensions
                         Tags = tags,
                     };
 
-                    var actual = model.GetCakeInstallPackageCommand();
+                    var actual = model.GetCakeInstallPackageCommands()
+                                    .Select(c=>c.Command);
 
                     Assert.Contains("#addin nuget:?package=Polly&version=1.0.0", actual);
                     Assert.Contains("#tool nuget:?package=Polly&version=1.0.0", actual);
@@ -216,7 +225,8 @@ namespace NuGetGallery.Extensions
                         Prerelease = true,
                     };
 
-                    var actual = model.GetCakeInstallPackageCommand();
+                    var actual = model.GetCakeInstallPackageCommands()
+                                    .Select(c => c.Command);
 
                     Assert.Contains("#addin nuget:?package=Polly&version=1.0.0&prerelease", actual);
                     Assert.Contains("#tool nuget:?package=Polly&version=1.0.0&prerelease", actual);
