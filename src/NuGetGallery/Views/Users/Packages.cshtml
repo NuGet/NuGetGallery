@@ -487,7 +487,7 @@
 }
 
 @section BottomScripts {
-    <script type="text/javascript">
+    <script type="text/javascript" nonce="@Html.GetCSPNonce()">
         var strings_RequiredSigner_ThisAction = "@Html.Raw(Strings.RequiredSigner_ThisAction)";
         var strings_RequiredSigner_OwnerHasNoCertificate = "@Html.Raw(Strings.RequiredSigner_OwnerHasNoCertificate)";
         var strings_RequiredSigner_OwnerHasAtLeastOneCertificate = "@Html.Raw(Strings.RequiredSigner_OwnerHasAtLeastOneCertificate)";
