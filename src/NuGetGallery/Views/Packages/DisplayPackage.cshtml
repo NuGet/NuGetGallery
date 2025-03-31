@@ -921,19 +921,20 @@
                                             </tr>
                                         </thead>
                                         <tbody class="no-border">
-                                            @foreach (var item in Model.GitHubDependenciesInformation.Repos.Select((elem, i) => new { Value = elem, Idx = i }))
+                                            @for (var i = 0; i < Model.GitHubDependenciesInformation.Repos.Count; i++)
                                             {
+                                                var repo = Model.GitHubDependenciesInformation.Repos[i];
                                                 <tr>
                                                     <td class="used-by-desc-column">
-                                                        <a data-index-number="@item.Idx" class="text-left gh-link" href="@item.Value.Url" target="_blank">
-                                                            @(item.Value.Id)
+                                                        <a data-index-number="@i" class="text-left gh-link" href="@repo.Url" target="_blank">
+                                                            @(repo.Id)
                                                         </a>
                                                         <div class="row used-by-desc">
-                                                            <span>@(item.Value.Description)</span>
+                                                            <span>@(repo.Description)</span>
                                                         </div>
                                                     </td>
                                                     <td>
-                                                        <i class="ms-Icon ms-Icon--FavoriteStarFill gh-star" aria-hidden="true"></i> <label class="used-by-count">@(item.Value.Stars.ToKiloFormat())</label>
+                                                        <i class="ms-Icon ms-Icon--FavoriteStarFill gh-star" aria-hidden="true"></i> <label class="used-by-count">@(repo.Stars.ToKiloFormat())</label>
                                                     </td>
                                                 </tr>
                                             }
