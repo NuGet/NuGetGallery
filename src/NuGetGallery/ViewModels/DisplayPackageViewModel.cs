@@ -46,7 +46,7 @@ namespace NuGetGallery
         public bool IsRecentPackagesNoIndexEnabled { get; set; }
         public bool IsMarkdigMdSyntaxHighlightEnabled { get; set; }
         public bool CanDisplayReadmeWarning { get; set; }
-        public NuGetPackageGitHubInformation GitHubDependenciesInformation { get; set; }
+        public GitHubUsageViewModel GitHubDependenciesInformation { get; set; }
         public bool HasEmbeddedIcon { get; set; }
         public bool HasEmbeddedReadmeFile { get; set; }
         public PackageDependents PackageDependents { get; set; }
@@ -110,7 +110,7 @@ namespace NuGetGallery
         public bool IsComputeTargetFrameworkEnabled { get; set; }
         public PackageFrameworkCompatibility PackageFrameworkCompatibility { get; set; }
 
-        public string ComparableGitHubRepository {get; private set;}
+        public string ComparableGitHubRepository { get; private set; }
 
         public void InitializeRepositoryMetadata(string repositoryUrl, string repositoryType)
         {
