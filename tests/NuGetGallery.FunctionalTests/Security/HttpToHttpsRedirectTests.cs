@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -107,6 +107,7 @@ namespace NuGetGallery.FunctionalTests.Security
         [Category("AppServiceTests")]
         public async Task AllUrlsRedirect(HttpMethod method, string url)
         {
+            Console.WriteLine($"Method: {method}, url: {url}");
             Uri uri = ForceHttp(url);
             await VerifyHttpResponseStatus(r =>
             {
