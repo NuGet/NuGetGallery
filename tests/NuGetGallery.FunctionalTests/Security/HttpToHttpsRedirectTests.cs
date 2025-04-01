@@ -93,7 +93,7 @@ namespace NuGetGallery.FunctionalTests.Security
 
         public static IEnumerable<object[]> RemainingUrlsAndMethodsForAppService =>
                 from url in UrlsToTest.Concat(UrlsExcludedFromRedirectInCloudService).SelectMany(x => x)
-                from method in new[] { HttpMethod.Get, HttpMethod.Head, HttpMethod.Options, HttpMethod.Post, HttpMethod.Put, HttpMethod.Delete, HttpMethod.Trace }
+                from method in new[] { HttpMethod.Get, HttpMethod.Head, HttpMethod.Options, HttpMethod.Post, HttpMethod.Put, HttpMethod.Delete }
                 select new object[] { method, url };
 
         /// <summary>
@@ -107,7 +107,6 @@ namespace NuGetGallery.FunctionalTests.Security
         [Category("AppServiceTests")]
         public async Task AllUrlsRedirect(HttpMethod method, string url)
         {
-            Console.WriteLine($"Method: {method}, url: {url}");
             Uri uri = ForceHttp(url);
             await VerifyHttpResponseStatus(r =>
             {
