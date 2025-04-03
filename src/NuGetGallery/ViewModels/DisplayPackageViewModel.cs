@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -46,7 +46,7 @@ namespace NuGetGallery
         public bool IsRecentPackagesNoIndexEnabled { get; set; }
         public bool IsMarkdigMdSyntaxHighlightEnabled { get; set; }
         public bool CanDisplayReadmeWarning { get; set; }
-        public NuGetPackageGitHubInformation GitHubDependenciesInformation { get; set; }
+        public GitHubUsageViewModel GitHubDependenciesInformation { get; set; }
         public bool HasEmbeddedIcon { get; set; }
         public bool HasEmbeddedReadmeFile { get; set; }
         public PackageDependents PackageDependents { get; set; }
@@ -110,6 +110,8 @@ namespace NuGetGallery
         public bool IsComputeTargetFrameworkEnabled { get; set; }
         public PackageFrameworkCompatibility PackageFrameworkCompatibility { get; set; }
 
+        public string ComparableGitHubRepository { get; private set; }
+
         public void InitializeRepositoryMetadata(string repositoryUrl, string repositoryType)
         {
             RepositoryType = RepositoryKind.Unknown;
@@ -136,6 +138,36 @@ namespace NuGetGallery
                     RepositoryType = RepositoryKind.Git;
                 }
             }
+        }
+
+        public void InitializeComparableGitHubRepository()
+        {
+            const string githubCom = "github.com/";
+            string comparableUrl = string.Empty;
+
+            if (RepositoryUrl != null && RepositoryUrl.Contains(githubCom))
+            {
+                comparableUrl = RepositoryUrl;
+            }
+            else if (ProjectUrl != null && ProjectUrl.Contains(githubCom))
+            {
+                comparableUrl = ProjectUrl;
+            }
+
+            comparableUrl = comparableUrl.ToLowerInvariant();
+            comparableUrl = comparableUrl.EndsWith("/") ? comparableUrl.Substring(0, comparableUrl.Length - 1) : comparableUrl;
+            comparableUrl = comparableUrl.EndsWith(".git") ? comparableUrl.Substring(0, comparableUrl.Length - ".git".Length) : comparableUrl;
+
+            if (comparableUrl.StartsWith("git://"))
+            {
+                comparableUrl = comparableUrl.Replace($"git://{githubCom}", "");
+            }
+            else if (comparableUrl.StartsWith("https://"))
+            {
+                comparableUrl = comparableUrl.Replace($"https://{githubCom}", "");
+            }
+
+            ComparableGitHubRepository = comparableUrl;
         }
 
         public bool CanDisplayNuGetPackageExplorerLink()

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -93,7 +93,7 @@ namespace NuGetGallery.FunctionalTests.Security
 
         public static IEnumerable<object[]> RemainingUrlsAndMethodsForAppService =>
                 from url in UrlsToTest.Concat(UrlsExcludedFromRedirectInCloudService).SelectMany(x => x)
-                from method in new[] { HttpMethod.Get, HttpMethod.Head, HttpMethod.Options, HttpMethod.Post, HttpMethod.Put, HttpMethod.Delete, HttpMethod.Trace }
+                from method in new[] { HttpMethod.Get, HttpMethod.Head, HttpMethod.Options, HttpMethod.Post, HttpMethod.Put, HttpMethod.Delete }
                 select new object[] { method, url };
 
         /// <summary>

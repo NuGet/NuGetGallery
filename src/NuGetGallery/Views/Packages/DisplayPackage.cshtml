@@ -321,8 +321,9 @@
 
 @* The following two helpers must be on a single line each so no extra whitespace is introduced in the expression when rendered. *@
 @* Helpers themselves are needed not to introduce that extra whitespce, which happens if they are inlined. *@
-@helper MakeLicenseLink(CompositeLicenseExpressionSegment segment) {<a href="@LicenseExpressionRedirectUrlHelper.GetLicenseExpressionRedirectUrl(segment.Value)" aria-label="License @segment.Value">@segment.Value license</a>}
-@helper MakeLicenseSpan(CompositeLicenseExpressionSegment segment) {<span>@segment.Value license</span>}
+@helper MakeLicenseLink(CompositeLicenseExpressionSegment segment){<a href="@LicenseExpressionRedirectUrlHelper.GetLicenseExpressionRedirectUrl(segment.Value)" aria-label="License @segment.Value">@segment.Value license</a>}
+@helper MakeExceptionLink(CompositeLicenseExpressionSegment segment){<a href="@LicenseExpressionRedirectUrlHelper.GetLicenseExpressionRedirectUrl(segment.Value)" aria-label="License @segment.Value">@segment.Value</a>}
+@helper MakePlainSpan(CompositeLicenseExpressionSegment segment){<span>@segment.Value</span>}
 
 <section role="main" class="container main-container page-package-details">
     <div class="row">
@@ -920,19 +921,20 @@
                                             </tr>
                                         </thead>
                                         <tbody class="no-border">
-                                            @foreach (var item in Model.GitHubDependenciesInformation.Repos.Select((elem, i) => new { Value = elem, Idx = i }))
+                                            @for (var i = 0; i < Model.GitHubDependenciesInformation.Repos.Count; i++)
                                             {
+                                                var repo = Model.GitHubDependenciesInformation.Repos[i];
                                                 <tr>
                                                     <td class="used-by-desc-column">
-                                                        <a data-index-number="@item.Idx" class="text-left gh-link" href="@item.Value.Url" target="_blank">
-                                                            @(item.Value.Id)
+                                                        <a data-index-number="@i" class="text-left gh-link" href="@repo.Url" target="_blank">
+                                                            @(repo.Id)
                                                         </a>
                                                         <div class="row used-by-desc">
-                                                            <span>@(item.Value.Description)</span>
+                                                            <span>@(repo.Description)</span>
                                                         </div>
                                                     </td>
                                                     <td>
-                                                        <i class="ms-Icon ms-Icon--FavoriteStarFill gh-star" aria-hidden="true"></i> <label class="used-by-count">@(item.Value.Stars.ToKiloFormat())</label>
+                                                        <i class="ms-Icon ms-Icon--FavoriteStarFill gh-star" aria-hidden="true"></i> <label class="used-by-count">@(repo.Stars.ToKiloFormat())</label>
                                                     </td>
                                                 </tr>
                                             }
@@ -1163,13 +1165,20 @@
                                 {
                                     foreach (var segment in Model.LicenseExpressionSegments)
                                     {
-                                        if (@ViewHelpers.IsLicenseOrException(segment))
+                                        if (@ViewHelpers.IsLicense(segment))
                                         {
                                             @MakeLicenseLink(segment);
                                         }
                                         else
                                         {
-                                            @MakeLicenseSpan(segment);
+                                            if (ViewHelpers.IsException(segment))
+                                            {
+                                                @MakeExceptionLink(segment);
+                                            }
+                                            else
+                                            {
+                                                @MakePlainSpan(segment);
+                                            }
                                         }
                                     }
                                 }
