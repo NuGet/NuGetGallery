@@ -51,7 +51,7 @@ namespace NuGetGallery.Infrastructure.Authentication
     /// The value stored in the database is base64 encoded SHA-512 hash of the plaintext API key. The corresponding
     /// database value for the example plaintext API key above is:
     ///
-    /// guardian-disable-next-line
+    ///   cspell:disable-next-line
     ///   BWqhR33SkX0/BxG34nEZtByLp5uRz/H3lD89EDnFylq+peJ1EtGolGiUqOa44+5t0vlHd1joByP3rojeTF5scQ==
     ///
     /// The user ID is included in the API key so that a rate-limiting (i.e. throttling) layer can use the value as a
