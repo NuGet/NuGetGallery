@@ -204,7 +204,12 @@ namespace NuGet.Services.Storage
 
         public override async Task<IEnumerable<StorageListItem>> ListTopLevelAsync(bool getMetadata, CancellationToken cancellationToken)
         {
-            var prefix = _path.Trim('/') + '/';
+            var prefix = _path.Trim('/');
+            if (prefix.Length > 0)
+            {
+                prefix += '/';
+            }
+
             var blobTraits = BlobTraits.None;
             if (getMetadata)
             {
@@ -213,7 +218,7 @@ namespace NuGet.Services.Storage
 
             var blobList = new List<StorageListItem>();
 
-            await foreach (BlobHierarchyItem item in _directory.GetBlobsByHierarchyAsync(traits: blobTraits, prefix: prefix, delimiter: "/"))
+            await foreach (BlobHierarchyItem item in _directory.GetBlobsByHierarchyAsync(traits: blobTraits, prefix: prefix, delimiter: "/", cancellationToken: cancellationToken))
             {
                 if (!item.IsPrefix)
                 {
