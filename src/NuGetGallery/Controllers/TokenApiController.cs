@@ -26,6 +26,9 @@ namespace NuGetGallery
         public static readonly string ControllerName = nameof(TokenApiController).Replace("Controller", string.Empty);
         private const string JsonContentType = "application/json";
         private const string ApiKeyTokenType = "api_key";
+        private const string BearerScheme = "Bearer";
+        private const string BearerPrefix = $"{BearerScheme} ";
+        private const string AuthorizationHeaderName = "Authorization";
 
         private readonly IFederatedCredentialService _federatedCredentialService;
         private readonly IFederatedCredentialConfiguration _configuration;
@@ -91,10 +94,6 @@ namespace NuGetGallery
                 _ => throw new NotImplementedException($"Unexpected result type: {result.Type}"),
             };
         }
-
-        private const string BearerScheme = "Bearer";
-        private const string BearerPrefix = $"{BearerScheme} ";
-        private const string AuthorizationHeaderName = "Authorization";
 
         private JsonResult ApiKeyJson(GenerateApiKeyResult result)
         {
