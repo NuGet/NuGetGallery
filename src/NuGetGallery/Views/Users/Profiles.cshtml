@@ -83,7 +83,7 @@
                             var collaborators = (Model.User as Organization).Collaborators.Count();
 
                             <i class="ms-Icon ms-Icon--Group ms-font-xl" aria-hidden="true">&nbsp;</i>
-                            <a href="@Url.ManageMyOrganization(Model.Username)" aria-label="Manage this organization"><span class="ms-font-xxl">@administrators</span>&nbsp;Administrator@(administrators != 1 ? "s" : "")&nbsp;</a><span aria-hidden="true" class="ms-font-xxl organization-subtitle-divider">|</span><a href="@Url.ManageMyOrganization(Model.Username)" aria-label="Manage this organization">&nbsp;<span class="ms-font-xxl">@collaborators</span>&nbsp;Collaborator@(collaborators != 1 ? "s" : "")</a>
+                            <a href="@Url.ManageMyOrganization(Model.Username)" aria-label="@administrators administrator@(administrators != 1 ? "s" : "") manage@(administrators != 1 ? "" : "s") this organization"><span class="ms-font-xxl">@administrators</span>&nbsp;Administrator@(administrators != 1 ? "s" : "")&nbsp;</a><span aria-hidden="true" class="ms-font-xxl organization-subtitle-divider">|</span><a href="@Url.ManageMyOrganization(Model.Username)" aria-label="@collaborators collaborator@(collaborators != 1 ? "s" : "") manage@(collaborators != 1 ? "" : "s") this organization">&nbsp;<span class="ms-font-xxl">@collaborators</span>&nbsp;Collaborator@(collaborators != 1 ? "s" : "")</a>
                         }
                         else if (CurrentUser.MatchesUser(Model.User) && Model.User.Organizations.Any())
                         {
