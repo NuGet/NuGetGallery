@@ -30,7 +30,7 @@ namespace NuGetGallery
         private readonly IEntitiesContext _entitiesContext;
         private readonly IContentObjectService _contentObjectService;
         private readonly IFeatureFlagService _featureFlagService;
-        private const int packagesDisplayed = 5;
+        private const int packagesDisplayed = 20;
 
         public PackageService(
             IEntityRepository<PackageRegistration> packageRegistrationRepository,
