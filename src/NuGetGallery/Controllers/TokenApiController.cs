@@ -28,19 +28,28 @@ namespace NuGetGallery
         private const string ApiKeyTokenType = "api_key";
 
         private readonly IFederatedCredentialService _federatedCredentialService;
+        private readonly IFederatedCredentialConfiguration _configuration;
 
-        public TokenApiController(IFederatedCredentialService federatedCredentialService)
+        public TokenApiController(
+            IFederatedCredentialService federatedCredentialService,
+            IFederatedCredentialConfiguration configuration)
         {
             _federatedCredentialService = federatedCredentialService ?? throw new ArgumentNullException(nameof(federatedCredentialService));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
 #pragma warning disable CA3147 // No need to validate Antiforgery Token with API request
         [HttpPost]
         [ActionName(RouteName.CreateToken)]
         [AllowAnonymous] // authentication is handled inside the action
-        public async Task<JsonResult> CreateToken(CreateTokenRequest request)
+        public async Task<ActionResult> CreateToken(CreateTokenRequest request)
 #pragma warning restore CA3147 // No need to validate Antiforgery Token with API request
         {
+            if (!_configuration.EnableTokenApi)
+            {
+                return HttpNotFound();
+            }
+
             if (!TryGetBearerToken(Request.Headers, out var bearerToken, out var errorMessage))
             {
                 return UnauthorizedJson(errorMessage!);

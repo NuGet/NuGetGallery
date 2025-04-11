@@ -44,6 +44,22 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task NotFoundWhenDisabled()
+            {
+                // Arrange
+                Configuration
+                    .Setup(x => x.EnableTokenApi)
+                    .Returns(false);
+
+                // Act
+                var response = await Target.CreateToken(CreateTokenRequest);
+
+                // Assert
+                var status = Assert.IsAssignableFrom<HttpStatusCodeResult>(response);
+                Assert.Equal(HttpStatusCode.NotFound, (HttpStatusCode)status.StatusCode);
+            }
+
+            [Fact]
             public async Task RejectsMissingAuthorizationHeader()
             {
                 // Arrange
@@ -249,6 +265,7 @@ namespace NuGetGallery
             User = new Mock<ClaimsPrincipal>();
             Identity = new Mock<IIdentity>();
             FederatedCredentialService = new Mock<IFederatedCredentialService>();
+            Configuration = new Mock<IFederatedCredentialConfiguration>();
 
             RequestHeaders = new NameValueCollection();
             ResponseHeaders = new NameValueCollection();
@@ -263,11 +280,14 @@ namespace NuGetGallery
             Request.Setup(x => x.ContentType).Returns(() => "application/json");
             Request.Setup(x => x.UserAgent).Returns(() => "testbot");
 
+            Configuration
+                .Setup(x => x.EnableTokenApi)
+                .Returns(true);
             FederatedCredentialService
                 .Setup(x => x.GenerateApiKeyAsync(CreateTokenRequest.Username, BearerToken, RequestHeaders))
                 .ReturnsAsync(() => GenerateApiKeyResult);
 
-            Target = new TokenApiController(FederatedCredentialService.Object);
+            Target = new TokenApiController(FederatedCredentialService.Object, Configuration.Object);
 
             Target.SetOwinContextOverride(OwinContext.Object);
             Response.SetupProperty(x => x.StatusCode);
@@ -291,6 +311,7 @@ namespace NuGetGallery
         public Mock<ClaimsPrincipal> User { get; }
         public Mock<IIdentity> Identity { get; }
         public Mock<IFederatedCredentialService> FederatedCredentialService { get; }
+        public Mock<IFederatedCredentialConfiguration> Configuration { get; }
         public NameValueCollection RequestHeaders { get; }
         public NameValueCollection ResponseHeaders { get; }
         public string BearerToken { get; }
@@ -298,7 +319,7 @@ namespace NuGetGallery
         public CreateTokenRequest CreateTokenRequest { get; }
         public TokenApiController Target { get; }
 
-        public JsonElement GetJsonBody(JsonResult response, IReadOnlyList<string> expectedKeys)
+        public JsonElement GetJsonBody(ActionResult response, IReadOnlyList<string> expectedKeys)
         {
             response.ExecuteResult(Target.ControllerContext);
             Assert.Equal("application/json", Response.Object.ContentType);
@@ -312,14 +333,14 @@ namespace NuGetGallery
             return doc.RootElement;
         }
 
-        public void VerifyUnauthorizedError(JsonResult response, string error)
+        public void VerifyUnauthorizedError(ActionResult response, string error)
         {
             VerifyError(HttpStatusCode.Unauthorized, response, error);
             AuthenticationManager.Verify(x => x.Challenge(It.Is<string[]>(a => a[0] == "Federated" && a.Length == 1)), Times.Once);
             Assert.Equal("Bearer", ResponseHeaders["WWW-Authenticate"]);
         }
 
-        public void VerifyError(HttpStatusCode status, JsonResult response, string error)
+        public void VerifyError(HttpStatusCode status, ActionResult response, string error)
         {
             Assert.Equal(status, (HttpStatusCode)Response.Object.StatusCode);
             var json = GetJsonBody(response, ["error"]);
