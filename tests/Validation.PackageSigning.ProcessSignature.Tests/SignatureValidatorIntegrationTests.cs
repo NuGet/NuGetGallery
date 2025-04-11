@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Internal.NuGet.Testing.SignedPackages;
 using Moq;
 using NuGet.Jobs.Validation.PackageSigning.Configuration;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
@@ -27,7 +28,6 @@ using NuGet.Services.Logging;
 using NuGet.Services.Validation;
 using NuGet.Services.Validation.Issues;
 using NuGetGallery;
-using Test.Utility.Signing;
 using Tests.ContextHelpers;
 using TestUtil;
 using Validation.PackageSigning.Core.Tests.Support;
@@ -1960,16 +1960,6 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             VerifyPackageSigningStatus(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
             var issue = Assert.Single(result.Issues);
             Assert.Equal(ValidationIssueCode.PackageIsZip64, issue.IssueCode);
-        }
-
-        private IDisposable TemporarilyTrustUntrustedCertificate(X509Certificate2 certificate)
-        {
-            return new TrustedTestCert<X509Certificate2>(
-                certificate,
-                x => x,
-                new[] { X509StorePurpose.CodeSigning, X509StorePurpose.Timestamping },
-                StoreName.Root,
-                StoreLocation.LocalMachine);
         }
 
         private void SetSignatureFileContent(MemoryStream packageStream, byte[] fileContent)

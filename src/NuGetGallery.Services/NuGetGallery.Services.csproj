@@ -43,6 +43,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.ApplicationInsights" />
     <PackageReference Include="Microsoft.Identity.Web" />
+    <PackageReference Include="Microsoft.Security.Utilities.Core" />
+    <PackageReference Include="System.Text.Json" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
@@ -57,7 +59,6 @@
     <PackageReference Include="NuGet.Protocol" />
     <PackageReference Include="NuGet.StrongName.WebBackgrounder" />
     <PackageReference Include="System.Runtime" />
-    <PackageReference Include="System.Text.Json" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">

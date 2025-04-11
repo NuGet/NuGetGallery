@@ -17,5 +17,6 @@ namespace NuGet.Services.Configuration
         public static string KeyVaultSendX5c = "KeyVault_SendX5c";
         public static string StorageUseManagedIdentityPropertyName = "Storage_UseManagedIdentity";
         public static string StorageManagedIdentityClientIdPropertyName = "Storage_ManagedIdentityClientId";
+        public static string ConfigureForLocalDevelopment = "Local_Development";
     }
 }

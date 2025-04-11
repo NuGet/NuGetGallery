@@ -11,10 +11,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs;
+using Azure.Storage.Blobs;
 using Stats.AzureCdnLogs.Common;
 using Stats.AzureCdnLogs.Common.Collect;
+using Azure.Identity;
 
 namespace Stats.CollectAzureChinaCDNLogs
 {
@@ -22,7 +23,7 @@ namespace Stats.CollectAzureChinaCDNLogs
     {
         private const int DefaultExecutionTimeoutInSeconds = 14400; // 4 hours
         private const int MaxFilesToProcess = 4;
-        
+
         private CollectAzureChinaCdnLogsConfiguration _configuration;
         private int _executionTimeoutInSeconds;
         private Collector _chinaCollector;
@@ -39,17 +40,35 @@ namespace Stats.CollectAzureChinaCDNLogs
             _configuration = serviceProvider.GetRequiredService<IOptionsSnapshot<CollectAzureChinaCdnLogsConfiguration>>().Value;
             _executionTimeoutInSeconds = _configuration.ExecutionTimeoutInSeconds ?? DefaultExecutionTimeoutInSeconds;
 
+            var connectionStringSource = _configuration.AzureAccountConnectionStringSource;
+            var connectionStringDestination = _configuration.AzureAccountConnectionStringDestination;
+
+            if (string.IsNullOrEmpty(connectionStringSource))
+            {
+                throw new ArgumentException(nameof(connectionStringSource));
+            }
+
+            if (string.IsNullOrEmpty(_configuration.AzureAccountConnectionStringDestination))
+            {
+                throw new ArgumentException(nameof(connectionStringDestination));
+            }
+
+            StorageMsiConfiguration storageMsiConfiguration = serviceProvider.GetRequiredService<IOptionsSnapshot<StorageMsiConfiguration>>().Value;
+
             var blobLeaseManager = new AzureBlobLeaseManager(serviceProvider.GetRequiredService<ILogger<AzureBlobLeaseManager>>());
 
             var source = new AzureStatsLogSource(
-                ValidateAzureCloudStorageAccount(_configuration.AzureAccountConnectionStringSource),
+                ValidateAzureBlobServiceClient(connectionStringSource, storageMsiConfiguration),
                 _configuration.AzureContainerNameSource,
                 _executionTimeoutInSeconds / MaxFilesToProcess,
                 blobLeaseManager,
                 serviceProvider.GetRequiredService<ILogger<AzureStatsLogSource>>());
 
+            // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
+            connectionStringDestination = connectionStringDestination.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+
             var dest = new AzureStatsLogDestination(
-                ValidateAzureCloudStorageAccount(_configuration.AzureAccountConnectionStringDestination),
+                ValidateAzureBlobServiceClient(connectionStringDestination, storageMsiConfiguration, isGlobal: true),
                 _configuration.AzureContainerNameDestination,
                 serviceProvider.GetRequiredService<ILogger<AzureStatsLogDestination>>());
 
@@ -68,7 +87,7 @@ namespace Stats.CollectAzureChinaCDNLogs
             // so we can't reliably terminate those if they get stuck or very slow. If migrated
             // to .NET 6+ then we can properly propagate the token and this hack would no longer
             // be needed.
-            
+
             // Instead we'll wait a bit extra time after firing main CancellationTokenSource to
             // let it gracefully stop if it is indeed just slow, then stop the process and let it
             // retry processing on restart.
@@ -99,31 +118,66 @@ namespace Stats.CollectAzureChinaCDNLogs
 
             if (aggregateExceptions != null)
             {
-                foreach(var ex in aggregateExceptions.InnerExceptions)
+                foreach (var ex in aggregateExceptions.InnerExceptions)
                 {
                     Logger.LogError(LogEvents.JobRunFailed, ex, ex.Message);
                 }
             }
 
-            if(cts.IsCancellationRequested)
+            if (cts.IsCancellationRequested)
             {
                 Logger.LogInformation("Execution exceeded the timeout of {ExecutionTimeoutInSeconds} seconds and it was cancelled.", _executionTimeoutInSeconds);
             }
         }
 
-        private static CloudStorageAccount ValidateAzureCloudStorageAccount(string cloudStorageAccount)
+        /// <summary>
+        /// Validates and creates a <see cref="BlobServiceClient"/> based on the provided connection string and MSI configuration.
+        /// Uses SAS tokens for authentication for the source storage (because it is in China) and MSI for destination because
+        /// it is in a non-China region.
+        /// </summary>
+        /// <param name="isGlobal">Indicates whether the client is using China storage or global storage. If true, MSI is used.</param> 
+        private static BlobServiceClient ValidateAzureBlobServiceClient(string blobServiceClient, StorageMsiConfiguration msiConfiguration, bool isGlobal = false)
         {
-            if (string.IsNullOrEmpty(cloudStorageAccount))
+            if (string.IsNullOrEmpty(blobServiceClient))
             {
-                throw new ArgumentException("Job parameter for Azure CDN Cloud Storage Account is not defined.");
+                throw new ArgumentException("Job parameter for Azure CDN Blob Service Client is not defined.");
             }
 
-            CloudStorageAccount account;
-            if (CloudStorageAccount.TryParse(cloudStorageAccount, out account))
+            try
             {
-                return account;
+                if (msiConfiguration.UseManagedIdentity && isGlobal)
+                {
+                    blobServiceClient = blobServiceClient.Replace("BlobEndPoint=", "");
+                    Uri blobEndpointUri = new Uri(blobServiceClient);
+
+                    if (string.IsNullOrWhiteSpace(msiConfiguration.ManagedIdentityClientId))
+                    {
+                        // 1. Using MSI with DefaultAzureCredential (local debugging)
+                        return new BlobServiceClient(
+                            blobEndpointUri,
+                            new DefaultAzureCredential());
+                    }
+                    else
+                    {
+                        // 2. Using MSI with ClientId
+                        return new BlobServiceClient(
+                            blobEndpointUri,
+                            new ManagedIdentityCredential(msiConfiguration.ManagedIdentityClientId));
+                    }
+                }
+                else
+                {
+                    // 3. Using SAS token
+                    // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
+                    var connectionString = blobServiceClient.Replace("SharedAccessSignature=?", "SharedAccessSignature=");
+
+                    return new BlobServiceClient(connectionString);
+                }
             }
-            throw new ArgumentException("Job parameter for Azure CDN Cloud Storage Account is invalid.");
+            catch (Exception ex)
+            {
+                throw new ArgumentException("Job parameter for Azure CDN Blob Service Client is invalid.", ex);
+            }
         }
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
@@ -133,6 +187,7 @@ namespace Stats.CollectAzureChinaCDNLogs
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             ConfigureInitializationSection<CollectAzureChinaCdnLogsConfiguration>(services, configurationRoot);
+            services.ConfigureStorageMsi(configurationRoot);
         }
     }
 }

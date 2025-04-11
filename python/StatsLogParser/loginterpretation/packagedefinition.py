@@ -91,13 +91,14 @@ class PackageDefinition:
         if not request_url or not request_url.lower().endswith(PackageDefinition.NUGET_EXE_URL_ENDING):
             return None
 
-        # path example: /artifacts/win-x86-commandline/v5.9.1/nuget.exe
+        # origin path example: /artifacts/win-x86-commandline/v5.9.1/nuget.exe
+        # new CDN logs request path, not origin path:  /win-x86-commandline/v5.11.6/nuget.exe
 
         request_url = urllib.parse.unquote(request_url)
         url_segments = [segment for segment in request_url.split('/') if segment]
 
-        if len(url_segments) < 4:
-            # proper nuget.exe URL paths have at least 4 segments
+        if len(url_segments) < 2:
+            # proper nuget.exe URL paths have at least 2 segments
             return None
 
         suspected_version_segment = url_segments[-2].lower()

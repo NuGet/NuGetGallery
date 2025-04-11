@@ -42,6 +42,8 @@
     <ThirdPartyBinaries Include="Microsoft.AspNet.WebApi.MessageHandlers.Compression.dll" />
     <ThirdPartyBinaries Include="Microsoft.CookieCompliance.dll" />
     <ThirdPartyBinaries Include="Microsoft.CookieCompliance.NetStd.dll" />
+    <ThirdPartyBinaries Include="Microsoft.Security.Utilities.Core.dll" />
+    <ThirdPartyBinaries Include="microsoft_security_utilities_core.dll" />
     <ThirdPartyBinaries Include="Newtonsoft.Json.Bson.dll" />
     <ThirdPartyBinaries Include="Newtonsoft.Json.dll" />
     <ThirdPartyBinaries Include="Newtonsoft.Json.Schema.dll" />

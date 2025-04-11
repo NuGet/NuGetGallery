@@ -9,6 +9,8 @@ using System.Net.Mail;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
+using Azure.Core;
+using Azure.Identity;
 using Azure.Storage.Blobs;
 using Gallery.CredentialExpiration.Models;
 using Microsoft.Extensions.Configuration;
@@ -51,8 +53,10 @@ namespace Gallery.CredentialExpiration
                 InitializationConfiguration);
 
             FromAddress = new MailAddress(InitializationConfiguration.MailFrom);
-            
-            var storageAccount = new BlobServiceClientFactory(AzureStorageFactory.PrepareConnectionString(InitializationConfiguration.DataStorageAccount));
+
+            var tokenCredential = _serviceProvider.GetRequiredService<TokenCredential>();
+            var storageAccount = new BlobServiceClientFactory(new Uri(InitializationConfiguration.DataStorageAccountUrl), tokenCredential);
+
             var storageFactory = new AzureStorageFactory(
                 storageAccount,
                 InitializationConfiguration.ContainerName,

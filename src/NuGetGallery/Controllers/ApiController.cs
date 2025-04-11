@@ -329,8 +329,8 @@ namespace NuGetGallery
         [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
         [ActionName("CreatePackageVerificationKey")]
-        public virtual async Task<ActionResult> CreatePackageVerificationKeyAsync(string id, string version)
         // CodeQL [SM00433] This endpoint uses API Key authentication
+        public virtual async Task<ActionResult> CreatePackageVerificationKeyAsync(string id, string version)
         {
             // For backwards compatibility, we must preserve existing behavior where the client always pushes
             // symbols and the VerifyPackageKey callback returns the appropriate response. For this reason, we

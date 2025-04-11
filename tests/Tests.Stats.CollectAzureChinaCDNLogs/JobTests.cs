@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -6,12 +6,14 @@ using System.Collections.Generic;
 using System.ComponentModel.Design;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
+using Azure.Storage.Blobs;
+using Azure;
 using Moq;
 using Stats.AzureCdnLogs.Common.Collect;
 using Stats.AzureCdnLogs.Common;
 using Stats.CollectAzureChinaCDNLogs;
 using Xunit;
+using NuGet.Jobs;
 
 namespace Tests.Stats.CollectAzureChinaCDNLogs
 {
@@ -33,8 +35,9 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
         {
             var job = new Job();
             var configuration = GetDefaultConfiguration();
+            var msiConfiguration = GetDefaultStorageMsiConfiguration();
 
-            Assert.ThrowsAny<StorageException>(() => job.InitializeJobConfiguration(GetMockServiceProvider(configuration)));
+            Assert.ThrowsAny<RequestFailedException>(() => job.InitializeJobConfiguration(GetMockServiceProvider(configuration, msiConfiguration)));
         }
 
         [Theory]
@@ -43,19 +46,20 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
         [InlineData("AzureAccountConnectionStringDestination", null, typeof(ArgumentException))]
         [InlineData("AzureContainerNameDestination", null, typeof(ArgumentNullException))]
         [InlineData("AzureContainerNameSource", null, typeof(ArgumentNullException))]
-        [InlineData("DestinationFilePrefix", null, typeof(StorageException))]
+        [InlineData("DestinationFilePrefix", null, typeof(RequestFailedException))]
         // empty values
         [InlineData("AzureAccountConnectionStringSource", "", typeof(ArgumentException))]
         [InlineData("AzureAccountConnectionStringDestination", "", typeof(ArgumentException))]
         [InlineData("AzureContainerNameDestination", "", typeof(ArgumentException))]
         [InlineData("AzureContainerNameSource", "", typeof(ArgumentException))]
-        [InlineData("DestinationFilePrefix", "", typeof(StorageException))]
+        [InlineData("DestinationFilePrefix", "", typeof(RequestFailedException))]
         public void InitMissingArgArguments(string property, object value, Type exceptionType)
         {
             var job = new Job();
             var configuration = GetModifiedConfiguration(property, value);
+            var msiConfiguration = GetDefaultStorageMsiConfiguration();
 
-            Assert.Throws(exceptionType, () => job.InitializeJobConfiguration(GetMockServiceProvider(configuration)));
+            Assert.Throws(exceptionType, () => job.InitializeJobConfiguration(GetMockServiceProvider(configuration, msiConfiguration)));
         }
 
         private static CollectAzureChinaCdnLogsConfiguration GetModifiedConfiguration(string property, object value)
@@ -84,9 +88,19 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
             };
         }
 
-        private static IServiceProvider GetMockServiceProvider(CollectAzureChinaCdnLogsConfiguration configuration)
+        private static StorageMsiConfiguration GetDefaultStorageMsiConfiguration()
+        {
+            return new StorageMsiConfiguration
+            {
+                UseManagedIdentity = false,
+                ManagedIdentityClientId = "dummy"
+            };
+        }
+
+        private static IServiceProvider GetMockServiceProvider(CollectAzureChinaCdnLogsConfiguration configuration, StorageMsiConfiguration msiConfiguration)
         {
             var mockOptionsSnapshot = new Mock<IOptionsSnapshot<CollectAzureChinaCdnLogsConfiguration>>();
+            var mockOptionsSnapshotStorageMsi = new Mock<IOptionsSnapshot<StorageMsiConfiguration>>();
             var logger_AzureBlobLeaseManager = new Mock<ILogger<AzureBlobLeaseManager>>();
             var logger_AzureStatsLogSource = new Mock<ILogger<AzureStatsLogSource>>();
             var logger_AzureStatsLogDestination = new Mock<ILogger<AzureStatsLogDestination>>();
@@ -94,6 +108,10 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
             mockOptionsSnapshot
                 .Setup(x => x.Value)
                 .Returns(configuration);
+
+            mockOptionsSnapshotStorageMsi
+                 .Setup(x => x.Value)
+                .Returns(msiConfiguration);
 
             var mockProvider = new Mock<IServiceProvider>();
 
@@ -104,6 +122,10 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
                     if (serviceType == typeof(IOptionsSnapshot<CollectAzureChinaCdnLogsConfiguration>))
                     {
                         return mockOptionsSnapshot.Object;
+                    }
+                    if (serviceType == typeof(IOptionsSnapshot<StorageMsiConfiguration>))
+                    {
+                        return mockOptionsSnapshotStorageMsi.Object;
                     }
                     else if (serviceType == typeof(ILogger<AzureBlobLeaseManager>))
                     {
