@@ -18,14 +18,14 @@ namespace NuGetGallery
     {
         public string? Username { get; set; }
 
-        public string? Token_Type { get; set; }
+        public string? TokenType { get; set; }
     }
 
     public class TokenApiController : AppController
     {
         public static readonly string ControllerName = nameof(TokenApiController).Replace("Controller", string.Empty);
         private const string JsonContentType = "application/json";
-        private const string ApiKeyTokenType = "api_key";
+        private const string ApiKeyTokenType = "ApiKey";
         private const string BearerScheme = "Bearer";
         private const string BearerPrefix = $"{BearerScheme} ";
         private const string AuthorizationHeaderName = "Authorization";
@@ -79,9 +79,9 @@ namespace NuGetGallery
                 return ErrorJson(HttpStatusCode.BadRequest, "The username property in the request body is required.");
             }
 
-            if (request?.Token_Type != "api_key")
+            if (request?.TokenType != ApiKeyTokenType)
             {
-                return ErrorJson(HttpStatusCode.BadRequest, $"The token_type property in the request body is required and must set to '{ApiKeyTokenType}'.");
+                return ErrorJson(HttpStatusCode.BadRequest, $"The tokenType property in the request body is required and must set to '{ApiKeyTokenType}'.");
             }
 
             var result = await _federatedCredentialService.GenerateApiKeyAsync(request!.Username!, bearerToken!, Request.Headers);
@@ -99,9 +99,9 @@ namespace NuGetGallery
         {
             return Json(HttpStatusCode.OK, new
             {
-                token_type = ApiKeyTokenType,
+                tokenType = ApiKeyTokenType,
                 expires = result.Expires.ToString("O"),
-                api_key = result.PlaintextApiKey,
+                apiKey = result.PlaintextApiKey,
             });
         }
 

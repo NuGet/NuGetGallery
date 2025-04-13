@@ -35,10 +35,10 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal(HttpStatusCode.OK, (HttpStatusCode)Response.Object.StatusCode);
-                var json = GetJsonBody(response, ["api_key", "expires", "token_type"]);
-                Assert.Equal("secret", json.GetProperty("api_key").GetString());
+                var json = GetJsonBody(response, ["apiKey", "expires", "tokenType"]);
+                Assert.Equal("secret", json.GetProperty("apiKey").GetString());
                 Assert.Equal("2024-10-11T10:33:00.0000000+00:00", json.GetProperty("expires").GetString());
-                Assert.Equal("api_key", json.GetProperty("token_type").GetString());
+                Assert.Equal("ApiKey", json.GetProperty("tokenType").GetString());
 
                 FederatedCredentialService.Verify(x => x.GenerateApiKeyAsync("jim", "my-jwt", RequestHeaders), Times.Once);
             }
@@ -206,26 +206,26 @@ namespace NuGetGallery
             public async Task RejectsMissingTokenType()
             {
                 // Arrange
-                CreateTokenRequest.Token_Type = " ";
+                CreateTokenRequest.TokenType = " ";
 
                 // Act
                 var response = await Target.CreateToken(CreateTokenRequest);
 
                 // Assert
-                VerifyError(HttpStatusCode.BadRequest, response, "The token_type property in the request body is required and must set to 'api_key'.");
+                VerifyError(HttpStatusCode.BadRequest, response, "The tokenType property in the request body is required and must set to 'ApiKey'.");
             }
 
             [Fact]
             public async Task RejectsWrongTokenType()
             {
                 // Arrange
-                CreateTokenRequest.Token_Type = "macaroon";
+                CreateTokenRequest.TokenType = "macaroon";
 
                 // Act
                 var response = await Target.CreateToken(CreateTokenRequest);
 
                 // Assert
-                VerifyError(HttpStatusCode.BadRequest, response, "The token_type property in the request body is required and must set to 'api_key'.");
+                VerifyError(HttpStatusCode.BadRequest, response, "The tokenType property in the request body is required and must set to 'ApiKey'.");
             }
 
             [Fact]
@@ -271,7 +271,7 @@ namespace NuGetGallery
             ResponseHeaders = new NameValueCollection();
             BearerToken = "my-jwt";
             GenerateApiKeyResult = GenerateApiKeyResult.Created("secret", new DateTimeOffset(2024, 10, 11, 10, 33, 0, TimeSpan.Zero));
-            CreateTokenRequest = new CreateTokenRequest { Username = "jim", Token_Type = "api_key" };
+            CreateTokenRequest = new CreateTokenRequest { Username = "jim", TokenType = "ApiKey" };
 
             OwinContext.Setup(x => x.Authentication).Returns(() => AuthenticationManager.Object);
             RequestHeaders["Authorization"] = $"Bearer {BearerToken}";
