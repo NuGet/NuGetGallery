@@ -265,11 +265,11 @@ Some text
             }
 
             [Theory]
-            [InlineData("> [!NOTE]\n> This is a note", "<div class=\"markdown-alert markdown-alert-note alert alert-primary\" role=\"alert\">\n<p class=\"mb-0\">This is a note</p>\n</div>")]
-            [InlineData("> [!TIP]\n> This is a tip", "<div class=\"markdown-alert markdown-alert-tip alert alert-success\" role=\"alert\">\n<p class=\"mb-0\">This is a tip</p>\n</div>")]
-            [InlineData("> [!IMPORTANT]\n> This is a important", "<div class=\"markdown-alert markdown-alert-important alert alert-info\" role=\"alert\">\n<p class=\"mb-0\">This is a important</p>\n</div>")]
-            [InlineData("> [!WARNING]\n> This is a warning", "<div class=\"markdown-alert markdown-alert-warning alert alert-warning\" role=\"alert\">\n<p class=\"mb-0\">This is a warning</p>\n</div>")]
-            [InlineData("> [!CAUTION]\n> This is a caution", "<div class=\"markdown-alert markdown-alert-caution alert alert-danger\" role=\"alert\">\n<p class=\"mb-0\">This is a caution</p>\n</div>")]
+            [InlineData("> [!NOTE]\n> This is a note", "<div class=\"markdown-alert markdown-alert-note alert alert-primary\">\n<p class=\"mb-0\">This is a note</p>\n</div>")]
+            [InlineData("> [!TIP]\n> This is a tip", "<div class=\"markdown-alert markdown-alert-tip alert alert-success\">\n<p class=\"mb-0\">This is a tip</p>\n</div>")]
+            [InlineData("> [!IMPORTANT]\n> This is a important", "<div class=\"markdown-alert markdown-alert-important alert alert-info\">\n<p class=\"mb-0\">This is a important</p>\n</div>")]
+            [InlineData("> [!WARNING]\n> This is a warning", "<div class=\"markdown-alert markdown-alert-warning alert alert-warning\">\n<p class=\"mb-0\">This is a warning</p>\n</div>")]
+            [InlineData("> [!CAUTION]\n> This is a caution", "<div class=\"markdown-alert markdown-alert-caution alert alert-danger\">\n<p class=\"mb-0\">This is a caution</p>\n</div>")]
             public void TestToHtmlWithAlertBlocks(string originalMd, string expectedHtml)
             {
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
