@@ -237,10 +237,13 @@ namespace NuGetGallery
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "The format of the package id is invalid");
             }
 
-            // Temporary blocking for unicode package IDs
-            if (!PackageIdValidator.IsAsciiOnlyPackageId(id ?? string.Empty))
+            if (FeatureFlagService.IsAsciiOnlyPackageIdEnabled())
             {
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "The unicode characters in package Id is temporary blocked, please check our announcement board for update.");
+                // Temporary blocking for unicode package IDs
+                if (!PackageIdValidator.IsAsciiOnlyPackageId(id ?? string.Empty))
+                {
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "The unicode characters in package Id is temporary blocked, please check our announcement board for update.");
+                }
             }
 
             Package package = null;
