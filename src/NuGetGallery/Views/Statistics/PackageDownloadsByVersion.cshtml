@@ -18,7 +18,7 @@
 @section BottomScripts
 {
     @Scripts.Render("~/Scripts/gallery/stats.min.js")
-    <script>
+    <script nonce="@Html.GetCSPNonce()">
         $(document)
             .ready(function () {
                 renderGraph('@Url.StatisticsPackageDownloadByVersionReport()', location.search);

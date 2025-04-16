@@ -1,4 +1,4 @@
-﻿@using NuGet.Services.Validation
+﻿﻿﻿@using NuGet.Services.Validation
 @using NuGet.Services.Licenses
 
 @model DisplayPackageViewModel
@@ -1473,11 +1473,11 @@
         }
     }
 
-    <style type="text/css">
+    <style type="text/css" nonce="@Html.GetCSPNonce()">
         @Html.Raw(packageManagersCss)
     </style>
 
-    <script type="text/javascript">
+    <script type="text/javascript" nonce="@Html.GetCSPNonce()">
         var packageId = @Html.ToJson(Model.Id);
         var packageVersion = @Html.ToJson(Model.Version);
         var packageManagers = @Html.ToJson(
@@ -1494,7 +1494,7 @@
     { 
         @ViewHelpers.IncludeSyntaxHighlightScript();
 
-        <script>
+        <script nonce="@Html.GetCSPNonce()">
         document.addEventListener('DOMContentLoaded', (event) => {
             document.querySelectorAll('pre code').forEach((el) => {
                 hljs.highlightElement(el);
@@ -1503,5 +1503,5 @@
         </script>
     }
 
-    @Scripts.Render("~/Scripts/gallery/page-display-package.min.js")
+    @Scripts.RenderFormat("<script src=\"{0}\" nonce='" + @Html.GetCSPNonce().ToString() + "'></script>", "~/Scripts/gallery/page-display-package.min.js");
 }
