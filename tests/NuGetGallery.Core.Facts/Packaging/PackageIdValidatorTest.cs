@@ -96,5 +96,60 @@ namespace NuGetGallery.Packaging
             Assert.NotNull(thrownException);
             Assert.Equal("Id must not exceed " + Constants.MaxPackageIdLength + " characters.", thrownException.Message);
         }
+
+        [Fact]
+        public void IsAsciiPackageId_WithNull_ThrowsArgumentNullException()
+        {
+            // Arrange & Act & Assert
+            var exception = Assert.Throws<ArgumentNullException>(() => PackageIdValidator.IsAsciiOnlyPackageId(null));
+            Assert.Equal("packageId", exception.ParamName);
+        }
+
+        [Fact]
+        public void IsAsciiPackageId_WithTemplateId_ReturnsFalse()
+        {
+            // Arrange & Act
+            var result = PackageIdValidator.IsAsciiOnlyPackageId("$id$");
+
+            // Assert
+            Assert.False(result);
+        }
+
+        [Theory]
+        [InlineData("package")]
+        [InlineData("package.id")]
+        [InlineData("package-id")]
+        [InlineData("package_id")]
+        [InlineData("package.id-with_various.symbols")]
+        [InlineData("123456789")]
+        public void IsAsciiPackageId_WithAsciiOnlyCharacters_ReturnsTrue(string packageId)
+        {
+            // Arrange & Act
+            var result = PackageIdValidator.IsAsciiOnlyPackageId(packageId);
+
+            // Assert
+            Assert.True(result);
+        }
+
+        [Theory]
+        [InlineData("packageá")]
+        [InlineData("包")]
+        [InlineData("пакет")]
+        [InlineData("패키지")]
+        [InlineData("الحزمة")]
+        [InlineData("package™")]
+        [InlineData("package©")]
+        [InlineData("package£")]
+        [InlineData("elsökning")]
+        [InlineData("件")]
+        [InlineData("valoniα")]
+        public void IsAsciiPackageId_WithUnicodeCharacters_ReturnsFalse(string packageId)
+        {
+            // Arrange & Act
+            var result = PackageIdValidator.IsAsciiOnlyPackageId(packageId);
+
+            // Assert
+            Assert.False(result);
+        }
     }
 }
