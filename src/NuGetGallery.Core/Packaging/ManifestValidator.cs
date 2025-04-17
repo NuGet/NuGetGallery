@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -7,6 +7,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
 using NuGet.Packaging;
 using NuGet.Versioning;
 
@@ -14,7 +15,7 @@ namespace NuGetGallery.Packaging
 {
     public class ManifestValidator
     {
-        public static IEnumerable<ValidationResult> Validate(Stream nuspecStream, out NuspecReader nuspecReader, out PackageMetadata packageMetadata)
+        public static IEnumerable<ValidationResult> Validate(Stream nuspecStream, bool asciiOnlyPackageIds, out NuspecReader nuspecReader, out PackageMetadata packageMetadata)
         {
             packageMetadata = null;
 
@@ -25,7 +26,7 @@ namespace NuGetGallery.Packaging
                 if (rawMetadata != null && rawMetadata.Any())
                 {
                     packageMetadata = PackageMetadata.FromNuspecReader(nuspecReader, strict: true);
-                    return ValidateCore(packageMetadata);
+                    return ValidateCore(packageMetadata, asciiOnlyPackageIds);
                 }
             }
             catch (Exception ex)
@@ -38,7 +39,7 @@ namespace NuGetGallery.Packaging
             return Enumerable.Empty<ValidationResult>();
         }
 
-        private static IEnumerable<ValidationResult> ValidateCore(PackageMetadata packageMetadata)
+        private static IEnumerable<ValidationResult> ValidateCore(PackageMetadata packageMetadata, bool asciiOnlyPackageIds)
         {
             // Validate the ID
             if (string.IsNullOrEmpty(packageMetadata.Id))
@@ -51,12 +52,21 @@ namespace NuGetGallery.Packaging
                 {
                     yield return new ValidationResult(CoreStrings.Manifest_IdTooLong);
                 }
-                else if (!PackageIdValidator.IsValidPackageId(packageMetadata.Id))
+                else
                 {
-                    yield return new ValidationResult(String.Format(
-                        CultureInfo.CurrentCulture,
-                        CoreStrings.Manifest_InvalidId,
-                        packageMetadata.Id));
+                    if (!PackageIdValidator.IsValidPackageId(packageMetadata.Id))
+                    {
+                        yield return new ValidationResult(string.Format(
+                            CultureInfo.CurrentCulture,
+                            CoreStrings.Manifest_InvalidId,
+                            packageMetadata.Id));
+                    } else if (asciiOnlyPackageIds && !PackageIdValidator.IsAsciiOnlyPackageId(packageMetadata.Id))
+                    {
+                        yield return new ValidationResult(string.Format(
+                            CultureInfo.CurrentCulture,
+                            "Non-ASCII characters in package Id are temporary blocked, please check https://aka.ms/nuget/non-ascii-ids for updates.",
+                            packageMetadata.Id));
+                    }
                 }
             }
 
