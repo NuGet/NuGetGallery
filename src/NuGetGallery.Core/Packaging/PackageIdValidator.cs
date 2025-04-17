@@ -25,7 +25,7 @@ namespace NuGetGallery.Packaging
                 throw new ArgumentNullException(nameof(packageId));
             }
 
-            if (String.Equals(packageId, "$id$", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(packageId, "$id$", StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }
@@ -40,7 +40,7 @@ namespace NuGetGallery.Packaging
                 throw new ArgumentNullException(nameof(packageId));
             }
 
-            if (String.Equals(packageId, "$id$", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(packageId, "$id$", StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }

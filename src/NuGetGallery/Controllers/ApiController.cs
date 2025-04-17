@@ -237,15 +237,6 @@ namespace NuGetGallery
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "The format of the package id is invalid");
             }
 
-            if (FeatureFlagService.IsAsciiOnlyPackageIdEnabled())
-            {
-                // Temporary blocking for unicode package IDs
-                if (!PackageIdValidator.IsAsciiOnlyPackageId(id ?? string.Empty))
-                {
-                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "The unicode characters in package Id is temporary blocked, please check our announcement board for update.");
-                }
-            }
-
             Package package = null;
             try
             {
@@ -626,7 +617,7 @@ namespace NuGetGallery
 
                             NuspecReader nuspec;
                             PackageMetadata packageMetadata;
-                            var errors = ManifestValidator.Validate(packageToPush.GetNuspec(), out nuspec, out packageMetadata).ToArray();
+                            var errors = ManifestValidator.Validate(packageToPush.GetNuspec(), FeatureFlagService.IsAsciiOnlyPackageIdEnabled(), out nuspec, out packageMetadata).ToArray();
                             if (errors.Length > 0)
                             {
                                 var errorsString = string.Join("', '", errors.Select(error => error.ErrorMessage));
