@@ -64,6 +64,7 @@ namespace NuGetGallery
         private const string DisplayTfmBadgesFeatureName = GalleryPrefix + "DisplayTfmBadges";
         private const string AdvancedFrameworkFilteringFeatureName = GalleryPrefix + "AdvancedFrameworkFiltering";
         private const string FederatedCredentialsFeatureName = GalleryPrefix + "FederatedCredentials";
+        private const string AsciiOnlyPackageIdFeatureName = GalleryPrefix + "AsciiOnlyPackageId";
 
         private const string ODataV1GetAllNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllNonHijacked";
         private const string ODataV1GetAllCountNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllCountNonHijacked";
@@ -426,6 +427,11 @@ namespace NuGetGallery
         public bool CanUseFederatedCredentials(User user)
         {
             return _client.IsEnabled(FederatedCredentialsFeatureName, user, defaultValue: false);
+        }
+
+        public bool IsAsciiOnlyPackageIdEnabled()
+        {
+            return _client.IsEnabled(AsciiOnlyPackageIdFeatureName, defaultValue: false);
         }
     }
 }
