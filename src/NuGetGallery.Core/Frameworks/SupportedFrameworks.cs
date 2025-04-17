@@ -116,7 +116,6 @@ namespace NuGetGallery.Frameworks
         public static class TfmFilters {
             public static readonly List<NuGetFramework> NetTfms = new List<NuGetFramework>
             {
-                Net100,
                 Net90,
                 Net80,
                 Net70,
