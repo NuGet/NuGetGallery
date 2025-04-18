@@ -117,12 +117,6 @@ Write-Host "[DONE] Setting up IIS Express" -ForegroundColor Cyan
 Write-Host "[BEGIN] Setting up SSL certificate" -ForegroundColor Cyan
 
 $siteCert = Get-SiteCertificate
-
-
-if ($null -eq $siteCert) { 
-    $siteCert = Initialize-SiteCertificate
-}
-
 Write-Host "Using SSL Certificate: $($siteCert.Thumbprint)"
 Invoke-Netsh http delete sslcert ipport="0.0.0.0:443"
 Invoke-Netsh http delete sslcert hostnameport="$(Get-SiteHttpsHost)"
