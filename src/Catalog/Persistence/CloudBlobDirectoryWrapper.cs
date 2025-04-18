@@ -9,6 +9,7 @@ using Azure.Identity;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
+using System.Diagnostics;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
@@ -25,6 +26,13 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         public BlobClientOptions ContainerOptions => _defaultClientOptions;
         public IBlobContainerClientWrapper ContainerClientWrapper => _blobContainerClientWrapper;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CloudBlobDirectoryWrapper"/> class using a BlobServiceClient.
+        /// </summary>
+        /// <param name="serviceClient">The BlobServiceClient to use.</param>
+        /// <param name="containerName">The name of the blob container.</param>
+        /// <param name="directoryPrefix">The directory prefix within the container.</param>
+        /// <param name="blobClientOptions">Optional blob client options.</param>
         public CloudBlobDirectoryWrapper(BlobServiceClient serviceClient, string containerName, string directoryPrefix, BlobClientOptions blobClientOptions = null)
         {
             _directoryPrefix = directoryPrefix ?? throw new ArgumentNullException(nameof(directoryPrefix));
@@ -35,15 +43,14 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             }
 
             _defaultClientOptions = blobClientOptions ?? new BlobClientOptions();
-            var _serviceClient = GetBlobServiceClient(serviceClient.Uri);
+            var _serviceClient = serviceClient ?? throw new ArgumentNullException(nameof(serviceClient));
+            
             // Create the container client using the provided or default options
             if (blobClientOptions != null)
             {
-                // Extract necessary information
-                Uri serviceUri = _serviceClient.Uri;
-                // Create a new BlobServiceClient instance with the new options
-                var newServiceClient = new BlobServiceClient(serviceUri, _defaultClientOptions);
-                _containerClient = newServiceClient.GetBlobContainerClient(containerName);
+                // Just use the service client with the container name
+                // The options should already be applied to the service client
+                _containerClient = _serviceClient.GetBlobContainerClient(containerName);
             }
             else
             {
@@ -55,10 +62,84 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             _blobContainerClientWrapper = new BlobContainerClientWrapper(_containerClient);
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CloudBlobDirectoryWrapper"/> class using a connection string.
+        /// </summary>
+        /// <param name="connectionString">The connection string to use for authentication.</param>
+        /// <param name="containerName">The name of the blob container.</param>
+        /// <param name="directoryPrefix">The directory prefix within the container.</param>
+        /// <param name="blobClientOptions">Optional blob client options.</param>
+        public CloudBlobDirectoryWrapper(string connectionString, string containerName, string directoryPrefix, BlobClientOptions blobClientOptions = null)
+        {
+            _directoryPrefix = directoryPrefix ?? throw new ArgumentNullException(nameof(directoryPrefix));
+
+            if (string.IsNullOrWhiteSpace(containerName))
+            {
+                throw new ArgumentNullException(nameof(containerName));
+            }
+
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new ArgumentNullException(nameof(connectionString));
+            }
+
+            _defaultClientOptions = blobClientOptions ?? new BlobClientOptions();
+            
+            // Create service client and container client from connection string
+            var serviceClient = new BlobServiceClient(connectionString, _defaultClientOptions);
+            _containerClient = serviceClient.GetBlobContainerClient(containerName);
+            
+            Uri = new Uri(Storage.RemoveQueryString(_containerClient.Uri).TrimEnd('/') + "/" + _directoryPrefix);
+
+            _blobContainerClientWrapper = new BlobContainerClientWrapper(_containerClient);
+        }
+
+        /// <summary>
+        /// Gets a BlobServiceClient with DefaultAzureCredential (kept for backward compatibility).
+        /// </summary>
+        /// <param name="uri">Storage service URI.</param>
+        /// <param name="blobClientOptions">Optional blob client options.</param>
+        /// <returns>A BlobServiceClient instance.</returns>
         public static BlobServiceClient GetBlobServiceClient(Uri uri, BlobClientOptions blobClientOptions = null)
         {
-            var credential = new DefaultAzureCredential();
-            return new BlobServiceClient(uri, credential, blobClientOptions);
+            return GetBlobServiceClient(uri, null, blobClientOptions);
+        }
+
+        /// <summary>
+        /// Gets a BlobServiceClient using various authentication methods.
+        /// </summary>
+        /// <param name="uri">Storage service URI.</param>
+        /// <param name="connectionString">Optional connection string for authentication.</param>
+        /// <param name="blobClientOptions">Optional blob client options.</param>
+        /// <returns>A BlobServiceClient instance.</returns>
+        public static BlobServiceClient GetBlobServiceClient(Uri uri, string connectionString = null, BlobClientOptions blobClientOptions = null)
+        {
+            if (uri == null)
+            {
+                throw new ArgumentNullException(nameof(uri));
+            }
+
+            // First try to use connection string if provided
+            if (!string.IsNullOrWhiteSpace(connectionString))
+            {
+                return new BlobServiceClient(connectionString, blobClientOptions);
+            }
+            
+            // If no connection string, try DefaultAzureCredential
+            try
+            {
+                var credential = new DefaultAzureCredential();
+                return new BlobServiceClient(uri, credential, blobClientOptions);
+            }
+            catch (Exception ex)
+            {
+                // If DefaultAzureCredential fails, log it but continue with AnonymousCredential
+                // as a fallback for public storage accounts
+                Trace.WriteLine($"Failed to authenticate with DefaultAzureCredential: {ex.Message}");
+                
+                // For public containers, try anonymous access
+                return new BlobServiceClient(uri, blobClientOptions);
+            }
         }
 
         public BlockBlobClient GetBlockBlobClient(string blobName)
