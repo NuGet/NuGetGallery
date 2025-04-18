@@ -182,23 +182,32 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         protected string GetName(Uri uri)
         {
-            var address = Uri.UnescapeDataString(BaseAddress.GetLeftPart(UriPartial.Path));
+            if (uri is null)
+                throw new ArgumentNullException(nameof(uri));
+
+            if (BaseAddress is null)
+                throw new InvalidOperationException("BaseAddress must be set.");
+
+            string address = Uri.UnescapeDataString(BaseAddress.GetLeftPart(UriPartial.Path));
             if (!address.EndsWith("/"))
             {
                 address += "/";
             }
-            var uriString = uri.GetLeftPart(UriPartial.Path);
 
-            int baseAddressLength = address.Length;
+            // This method does encoding under the hood, could be a problem if it contains Unicode characters.
+            string fullPath = uri.GetLeftPart(UriPartial.Path); // Remove potential SAS token from the URI
 
             // handle mismatched scheme (http vs https)
-            var schemeLengthDifference = uri.Scheme.Length - BaseAddress.Scheme.Length;
+            int schemeLengthDifference = uri.Scheme.Length - BaseAddress.Scheme.Length;
 
-            var name = uriString.Substring(baseAddressLength + schemeLengthDifference);
-            if (name.Contains("#"))
-            {
-                name = name.Substring(0, name.IndexOf("#"));
-            }
+            string encodedName = fullPath.Substring(address.Length + schemeLengthDifference);
+
+            // decode back previous encoding in case of Unicode characters, otherwise it will be double encoded later
+            string name = Uri.UnescapeDataString(encodedName);
+
+            int hash = name.IndexOf('#');
+            if (hash >= 0)
+                name = name[..hash];
 
             return name;
         }
