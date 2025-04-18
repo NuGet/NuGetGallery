@@ -241,7 +241,9 @@ namespace NuGetGallery
                 includeSymbolPackages: false,
                 includeDeprecations: false,
                 includeDeprecationRelationships: false,
-                includeSupportedFrameworks: false);
+                includeSupportedFrameworks: false,
+                includePackageDependencies: false,
+                includePackageTypes: false);
 
             return packages.ToList();
         }
@@ -250,7 +252,10 @@ namespace NuGetGallery
             string id,
             bool includePackageRegistration,
             bool includeDeprecations,
-            bool includeSupportedFrameworks)
+            bool includeSupportedFrameworks,
+            bool includeSymbolPackages = false,
+            bool includePackageDependencies = false,
+            bool inlcudePackageTypes = false)
         {
             if (id == null)
             {
@@ -262,10 +267,12 @@ namespace NuGetGallery
                 includeLicenseReports: false,
                 includePackageRegistration: includePackageRegistration,
                 includeUser: false,
-                includeSymbolPackages: false,
+                includeSymbolPackages: includeSymbolPackages,
                 includeDeprecations: includeDeprecations,
                 includeDeprecationRelationships: false,
-                includeSupportedFrameworks: includeSupportedFrameworks);
+                includeSupportedFrameworks: includeSupportedFrameworks,
+                includePackageDependencies: includePackageDependencies,
+                includePackageTypes: inlcudePackageTypes);
 
             return packages.ToList();
         }
