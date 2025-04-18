@@ -1,9 +1,11 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
+using Azure.Core;
+using Azure.Identity;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.KeyVault;
 
@@ -117,9 +119,13 @@ namespace NuGet.Services.Sql
             }
 
             var connection = new SqlConnection(connectionString);
-            if (accessToken != null)
+            var credential = new DefaultAzureCredential();
+            AccessToken token = await credential.GetTokenAsync(
+                new TokenRequestContext(new[] { "https://database.windows.net/.default" }));
+
+            if (token.Token != null)
             {
-                connection.AccessToken = accessToken;
+                connection.AccessToken = token.Token;
             }
             return connection;
         }

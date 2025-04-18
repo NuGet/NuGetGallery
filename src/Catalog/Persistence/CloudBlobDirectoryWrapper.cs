@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Identity;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
@@ -34,24 +35,30 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             }
 
             _defaultClientOptions = blobClientOptions ?? new BlobClientOptions();
-
+            var _serviceClient = GetBlobServiceClient(serviceClient.Uri);
             // Create the container client using the provided or default options
             if (blobClientOptions != null)
             {
                 // Extract necessary information
-                Uri serviceUri = serviceClient.Uri;
+                Uri serviceUri = _serviceClient.Uri;
                 // Create a new BlobServiceClient instance with the new options
                 var newServiceClient = new BlobServiceClient(serviceUri, _defaultClientOptions);
                 _containerClient = newServiceClient.GetBlobContainerClient(containerName);
             }
             else
             {
-                _containerClient = serviceClient.GetBlobContainerClient(containerName);
+                _containerClient = _serviceClient.GetBlobContainerClient(containerName);
             }
 
             Uri = new Uri(Storage.RemoveQueryString(_containerClient.Uri).TrimEnd('/') + "/" + _directoryPrefix);
 
             _blobContainerClientWrapper = new BlobContainerClientWrapper(_containerClient);
+        }
+
+        public static BlobServiceClient GetBlobServiceClient(Uri uri, BlobClientOptions blobClientOptions = null)
+        {
+            var credential = new DefaultAzureCredential();
+            return new BlobServiceClient(uri, credential, blobClientOptions);
         }
 
         public BlockBlobClient GetBlockBlobClient(string blobName)

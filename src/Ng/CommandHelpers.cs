@@ -4,10 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.Eventing.Reader;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading;
 using Azure;
 using Azure.Core;
 using Azure.Identity;
@@ -422,8 +424,26 @@ namespace Ng
             IDictionary<string, string> arguments,
             IDictionary<string, string> argumentNameMap)
         {
-            string connectionString = GetConnectionString(arguments, argumentNameMap, "BlobEndpoint", "blob");
-            return new BlobServiceClient(connectionString);
+            // ─── Common settings ────────────────────────────────────────────────────────
+            var accountName = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageAccountName]);
+            var storageSuffix = arguments.GetOrDefault(argumentNameMap[Arguments.StorageSuffix], DefaultStorageSuffix);
+
+            // ─── 2️⃣  Password‑less path: Managed Identity + DefaultAzureCredential ─────
+            var accountUri = new Uri($"https://{accountName}.blob.{storageSuffix}");
+
+
+            var credential = new DefaultAzureCredential();
+            var ctx = new TokenRequestContext(new[] { "https://storage.azure.com/.default" });
+
+            var token = credential.GetToken(ctx);
+
+            return new BlobServiceClient(accountUri, credential); // ← managed‑identity path
+        }
+
+        public static BlobServiceClient GetBlobServiceClient(Uri uri, BlobClientOptions blobClientOptions = null)
+        {
+            var credential = new DefaultAzureCredential();
+            return new BlobServiceClient(uri, credential, blobClientOptions);
         }
 
         private static QueueServiceClient GetQueueServiceClient(
