@@ -231,6 +231,7 @@ namespace NuGetGallery
                 .UseTaskLists()
                 .UseEmojiAndSmiley()
                 .UseAutoLinks()
+                .UseAlertBlocks()
                 .UseReferralLinks("noopener noreferrer nofollow")
                 .UseAutoIdentifiers()
                 .UseEmphasisExtras(EmphasisExtraOptions.Strikethrough)

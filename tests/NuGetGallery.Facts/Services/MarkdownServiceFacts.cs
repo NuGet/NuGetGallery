@@ -151,7 +151,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void TestToHtmlWithPipeTable() 
+            public void TestToHtmlWithPipeTable()
             {
                 var originalMd = @"a | b
 -- | -
@@ -262,6 +262,20 @@ Some text
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
+            }
+
+            [Theory]
+            [InlineData("> [!NOTE]\n> This is a note", "<div class=\"markdown-alert markdown-alert-note alert alert-primary\">\n<p class=\"mb-0\">This is a note</p>\n</div>")]
+            [InlineData("> [!TIP]\n> This is a tip", "<div class=\"markdown-alert markdown-alert-tip alert alert-success\">\n<p class=\"mb-0\">This is a tip</p>\n</div>")]
+            [InlineData("> [!IMPORTANT]\n> This is a important", "<div class=\"markdown-alert markdown-alert-important alert alert-info\">\n<p class=\"mb-0\">This is a important</p>\n</div>")]
+            [InlineData("> [!WARNING]\n> This is a warning", "<div class=\"markdown-alert markdown-alert-warning alert alert-warning\">\n<p class=\"mb-0\">This is a warning</p>\n</div>")]
+            [InlineData("> [!CAUTION]\n> This is a caution", "<div class=\"markdown-alert markdown-alert-caution alert alert-danger\">\n<p class=\"mb-0\">This is a caution</p>\n</div>")]
+            public void TestToHtmlWithAlertBlocks(string originalMd, string expectedHtml)
+            {
+                _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
+                var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
+                Assert.Equal(expectedHtml, readMeResult.Content);
+                Assert.False(readMeResult.ImagesRewritten);
             }
         }
     }
