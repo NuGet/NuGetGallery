@@ -80,7 +80,7 @@
     <PackageVersion Include="Microsoft.Extensions.Options" Version="8.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Primitives" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Identity.Client" Version="4.65.0" />
-    <PackageVersion Include="Microsoft.Identity.Web" Version="3.6.2" />
+    <PackageVersion Include="Microsoft.Identity.Web" Version="3.8.2" />
     <PackageVersion Include="Microsoft.Internal.NuGet.Testing.SignedPackages" Version="6.13.2-rc.1" />
     <PackageVersion Include="Microsoft.Net.Http" Version="2.2.29" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
