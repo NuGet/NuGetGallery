@@ -513,7 +513,9 @@ namespace NuGetGallery
                     /*includePackageRegistration:*/ true,
                     /*includeDeprecations:*/ true,
                     /*includeSupportedFrameworks:*/ true,
-                    false, false, false))
+                    /*includeSymbolPackages:*/ true,
+                    /*includePackageDependencies:*/ true,
+                    /*includePackageTypes:*/ true))
                     .Returns(packages);
                 packageService
                     .Setup(p => p.FilterExactPackage(It.IsAny<IReadOnlyCollection<Package>>(), It.IsAny<string>()))
@@ -722,7 +724,9 @@ namespace NuGetGallery
                     /*includePackageRegistration:*/ true,
                     /*includeDeprecations:*/ true,
                     /*includeSupportedFrameworks:*/ true,
-                    false, false, false))
+                    /*includeSymbolPackages:*/ true,
+                    /*includePackageDependencies:*/ true,
+                    /*includePackageTypes:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -853,7 +857,9 @@ namespace NuGetGallery
                     /*includePackageRegistration:*/ true,
                     /*includeDeprecations:*/ true,
                     /*includeSupportedFrameworks:*/ true,
-                    false, false, false))
+                    /*includeSymbolPackages:*/ true,
+                    /*includePackageDependencies:*/ true,
+                    /*includePackageTypes:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -928,7 +934,9 @@ namespace NuGetGallery
                     /*includePackageRegistration:*/ true,
                     /*includeDeprecations:*/ true,
                     /*includeSupportedFrameworks:*/ true,
-                    false, false, false))
+                    /*includeSymbolPackages:*/ true,
+                    /*includePackageDependencies:*/ true,
+                    /*includePackageTypes:*/ true))
                     .Returns(new[] { notLatestPackage, latestPackage, latestButNotPackage });
 
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
@@ -977,7 +985,9 @@ namespace NuGetGallery
                     /*includePackageRegistration:*/ true,
                     /*includeDeprecations:*/ true,
                     /*includeSupportedFrameworks:*/ true,
-                    false, false, false))
+                    /*includeSymbolPackages:*/ true,
+                    /*includePackageDependencies:*/ true,
+                    /*includePackageTypes:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -1027,7 +1037,9 @@ namespace NuGetGallery
                     /*includePackageRegistration:*/ true,
                     /*includeDeprecations:*/ true,
                     /*includeSupportedFrameworks:*/ true,
-                    false, false, false))
+                    /*includeSymbolPackages:*/ true,
+                    /*includePackageDependencies:*/ true,
+                    /*includePackageTypes:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -1130,7 +1142,9 @@ namespace NuGetGallery
                     /*includePackageRegistration:*/ true,
                     /*includeDeprecations:*/ true,
                     /*includeSupportedFrameworks:*/ true,
-                    false, false, false))
+                    /*includeSymbolPackages:*/ true,
+                    /*includePackageDependencies:*/ true,
+                    /*includePackageTypes:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -1182,7 +1196,9 @@ namespace NuGetGallery
                     /*includePackageRegistration:*/ true,
                     /*includeDeprecations:*/ true,
                     /*includeSupportedFrameworks:*/ true,
-                    false, false, false))
+                    /*includeSymbolPackages:*/ true,
+                    /*includePackageDependencies:*/ true,
+                    /*includePackageTypes:*/ true))
                     .Returns(packages);
 
                 packageService.Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
@@ -1242,7 +1258,9 @@ namespace NuGetGallery
                     /*includePackageRegistration:*/ true,
                     /*includeDeprecations:*/ true,
                     /*includeSupportedFrameworks:*/ true,
-                    false, false, false))
+                    /*includeSymbolPackages:*/ true,
+                    /*includePackageDependencies:*/ true,
+                    /*includePackageTypes:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -1298,7 +1316,9 @@ namespace NuGetGallery
                     /*includePackageRegistration:*/ true,
                     /*includeDeprecations:*/ true,
                     /*includeSupportedFrameworks:*/ true,
-                    false, false, false))
+                    /*includeSymbolPackages:*/ true,
+                    /*includePackageDependencies:*/ true,
+                    /*includePackageTypes:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -1361,7 +1381,9 @@ namespace NuGetGallery
                     /*includePackageRegistration:*/ true,
                     /*includeDeprecations:*/ true,
                     /*includeSupportedFrameworks:*/ true,
-                    false, false, false))
+                    /*includeSymbolPackages:*/ true,
+                    /*includePackageDependencies:*/ true,
+                    /*includePackageTypes:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -1439,7 +1461,9 @@ namespace NuGetGallery
                     /*includePackageRegistration:*/ true,
                     /*includeDeprecations:*/ true,
                     /*includeSupportedFrameworks:*/ true,
-                    false, false, false))
+                    /*includeSymbolPackages:*/ true,
+                    /*includePackageDependencies:*/ true,
+                    /*includePackageTypes:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -1536,7 +1560,9 @@ namespace NuGetGallery
                     /*includePackageRegistration:*/ true,
                     /*includeDeprecations:*/ true,
                     /*includeSupportedFrameworks:*/ true,
-                    false, false, false))
+                    /*includeSymbolPackages:*/ true,
+                    /*includePackageDependencies:*/ true,
+                    /*includePackageTypes:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -1646,7 +1672,9 @@ namespace NuGetGallery
                     /*includePackageRegistration:*/ true,
                     /*includeDeprecations:*/ true,
                     /*includeSupportedFrameworks:*/ true,
-                    false, false, false))
+                    /*includeSymbolPackages:*/ true,
+                    /*includePackageDependencies:*/ true,
+                    /*includePackageTypes:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -1733,7 +1761,9 @@ namespace NuGetGallery
                     /*includePackageRegistration:*/ true,
                     /*includeDeprecations:*/ true,
                     /*includeSupportedFrameworks:*/ true,
-                    false, false, false))
+                    /*includeSymbolPackages:*/ true,
+                    /*includePackageDependencies:*/ true,
+                    /*includePackageTypes:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -1804,7 +1834,9 @@ namespace NuGetGallery
                     /*includePackageRegistration:*/ true,
                     /*includeDeprecations:*/ true,
                     /*includeSupportedFrameworks:*/ true,
-                    false, false, false))
+                    /*includeSymbolPackages:*/ true,
+                    /*includePackageDependencies:*/ true,
+                    /*includePackageTypes:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -1866,7 +1898,9 @@ namespace NuGetGallery
                     /*includePackageRegistration:*/ true,
                     /*includeDeprecations:*/ true,
                     /*includeSupportedFrameworks:*/ true,
-                    false, false, false))
+                    /*includeSymbolPackages:*/ true,
+                    /*includePackageDependencies:*/ true,
+                    /*includePackageTypes:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -1918,7 +1952,9 @@ namespace NuGetGallery
                     /*includePackageRegistration:*/ true,
                     /*includeDeprecations:*/ true,
                     /*includeSupportedFrameworks:*/ true,
-                    false, false, false))
+                    /*includeSymbolPackages:*/ true,
+                    /*includePackageDependencies:*/ true,
+                    /*includePackageTypes:*/ true))
                     .Returns(packages);
                 packageService
                     .Setup(p => p.FilterLatestPackage(It.IsAny<IReadOnlyCollection<Package>>(), It.IsAny<int?>(), true))
@@ -1971,7 +2007,9 @@ namespace NuGetGallery
                     /*includePackageRegistration:*/ true,
                     /*includeDeprecations:*/ true,
                     /*includeSupportedFrameworks:*/ true,
-                    false, false, false))
+                    /*includeSymbolPackages:*/ true,
+                    /*includePackageDependencies:*/ true,
+                    /*includePackageTypes:*/ true))
                     .Returns(packages);
                 packageService
                     .Setup(p => p.FilterLatestPackage(It.IsAny<IReadOnlyCollection<Package>>(), It.IsAny<int?>(), true))
@@ -2029,7 +2067,9 @@ namespace NuGetGallery
                     /*includePackageRegistration:*/ true,
                     /*includeDeprecations:*/ true,
                     /*includeSupportedFrameworks:*/ true,
-                    false, false, false))
+                    /*includeSymbolPackages:*/ true,
+                    /*includePackageDependencies:*/ true,
+                    /*includePackageTypes:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -2090,7 +2130,9 @@ namespace NuGetGallery
                     /*includePackageRegistration:*/ true,
                     /*includeDeprecations:*/ true,
                     /*includeSupportedFrameworks:*/ true,
-                    false, false, false))
+                    /*includeSymbolPackages:*/ true,
+                    /*includePackageDependencies:*/ true,
+                    /*includePackageTypes:*/ true))
                     .Returns(packages);
                 packageService
                     .Setup(p => p.FilterLatestPackage(It.IsAny<IReadOnlyCollection<Package>>(), It.IsAny<int?>(), true))
@@ -2158,7 +2200,9 @@ namespace NuGetGallery
                     /*includePackageRegistration:*/ true,
                     /*includeDeprecations:*/ true,
                     /*includeSupportedFrameworks:*/ true,
-                    false, false, false))
+                    /*includeSymbolPackages:*/ true,
+                    /*includePackageDependencies:*/ true,
+                    /*includePackageTypes:*/ true))
                     .Returns(packages);
                 packageService
                     .Setup(p => p.FilterLatestPackage(It.IsAny<IReadOnlyCollection<Package>>(), It.IsAny<int?>(), true))
@@ -2228,7 +2272,9 @@ namespace NuGetGallery
                     /*includePackageRegistration:*/ true,
                     /*includeDeprecations:*/ true,
                     /*includeSupportedFrameworks:*/ true,
-                    false, false, false))
+                    /*includeSymbolPackages:*/ true,
+                    /*includePackageDependencies:*/ true,
+                    /*includePackageTypes:*/ true))
                     .Returns(packages);
                 packageService
                     .Setup(p => p.FilterLatestPackage(It.IsAny<IReadOnlyCollection<Package>>(), It.IsAny<int?>(), true))
@@ -2286,7 +2332,9 @@ namespace NuGetGallery
                     /*includePackageRegistration:*/ true,
                     /*includeDeprecations:*/ true,
                     /*includeSupportedFrameworks:*/ true,
-                    false, false, false))
+                    /*includeSymbolPackages:*/ true,
+                    /*includePackageDependencies:*/ true,
+                    /*includePackageTypes:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -2352,7 +2400,9 @@ namespace NuGetGallery
                     /*includePackageRegistration:*/ true,
                     /*includeDeprecations:*/ true,
                     /*includeSupportedFrameworks:*/ true,
-                    false, false, false))
+                    /*includeSymbolPackages:*/ true,
+                    /*includePackageDependencies:*/ true,
+                    /*includePackageTypes:*/ true))
                     .Returns(packages);
 
                 packageService

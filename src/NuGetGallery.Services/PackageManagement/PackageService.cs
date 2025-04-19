@@ -255,7 +255,7 @@ namespace NuGetGallery
             bool includeSupportedFrameworks,
             bool includeSymbolPackages = false,
             bool includePackageDependencies = false,
-            bool inlcudePackageTypes = false)
+            bool includePackageTypes = false)
         {
             if (id == null)
             {
@@ -272,7 +272,7 @@ namespace NuGetGallery
                 includeDeprecationRelationships: false,
                 includeSupportedFrameworks: includeSupportedFrameworks,
                 includePackageDependencies: includePackageDependencies,
-                includePackageTypes: inlcudePackageTypes);
+                includePackageTypes: includePackageTypes);
 
             return packages.ToList();
         }

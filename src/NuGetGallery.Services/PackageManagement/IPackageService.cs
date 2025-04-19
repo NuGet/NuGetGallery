@@ -59,7 +59,7 @@ namespace NuGetGallery
             bool includeSupportedFrameworks,
             bool includeSymbolPackages = false,
             bool includePackageDependencies = false,
-            bool inlcudePackageTypes = false);
+            bool includePackageTypes = false);
 
         /// <summary>
         /// Gets the package with the given ID and version when exists;

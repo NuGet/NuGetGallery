@@ -930,7 +930,7 @@ namespace NuGetGallery
                 includeSupportedFrameworks: true,
                 includeSymbolPackages: true,
                 includePackageDependencies: true,
-                inlcudePackageTypes: true);
+                includePackageTypes: true);
 
             var filterContext = new PackageFilterContext(RouteData?.Route, version);
             var package = _packageFilter.GetFiltered(allVersions, filterContext);
