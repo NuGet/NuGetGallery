@@ -504,7 +504,6 @@ namespace NuGetGallery
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
                 .Include(p => p.PackageRegistration.RequiredSigners)
-                .Include(p => p.PackageRegistration.Packages)
                 .ToList();
         }
 
