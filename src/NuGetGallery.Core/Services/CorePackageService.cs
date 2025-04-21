@@ -360,7 +360,7 @@ namespace NuGetGallery
 
             if (includePackageRegistration)
             {
-                packages = packages.Include(p => p.PackageRegistration);
+                packages = packages.Include(p => p.PackageRegistration.Owners);
             }
 
             if (includeUser)
