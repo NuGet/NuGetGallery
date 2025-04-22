@@ -438,29 +438,30 @@ namespace NuGetGallery
                     && p.Listed
                     && p.PackageStatusKey == PackageStatus.Available);
 
-            packages = GetLatestVersion(packages);
-
-            var summaryPackages = packages
+            var packageSummary = packages
+                .Where(p => p.IsLatestSemVer2)
                 .Include(p => p.PackageRegistration)
-                .Select(p => new
+                .GroupBy(r => 1)
+                .Select(g => new
                 {
-                    p.PackageRegistration.DownloadCount,
+                    PackageCount = g.Sum(x => 1),
+                    DownloadCount = g.Sum(x => x.PackageRegistration.DownloadCount)
                 })
-                .ToList();
-            var packageCount = summaryPackages.Count;
-            var downloadCount = summaryPackages.Sum(p => p.DownloadCount);
+                .FirstOrDefault();
+
+            var packageCount = packageSummary != null ? packageSummary.PackageCount : 0;
+            var downloadCount = packageSummary != null ? packageSummary.DownloadCount : 0;
+
+            packages = GetLatestVersion(packages);
 
             return (packages
                 .OrderByDescending(p => p.PackageRegistration.DownloadCount)
-                .ThenBy(p => p.PackageRegistration.Id)
                 .Skip((page-1) * pageSize)
                 .Take(pageSize)
-                .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
                 .Include(p => p.PackageRegistration.RequiredSigners)
                 .Include(p => p.PackageRegistration.Packages.Select(p => p.SupportedFrameworks))
                 .Include(p => p.PackageRegistration.Packages.Select(p => p.Deprecations))
-                .Include(p => p.PackageRegistration.Packages.Select(p => p.Dependencies))
                 .ToList(),
                 downloadCount,
                 packageCount);
