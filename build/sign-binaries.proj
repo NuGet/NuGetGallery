@@ -18,6 +18,7 @@
     <Message Text="Projects considered:%0A@(_ProjectsToSign, '%0a')" Importance="High" />
     <ItemGroup>
       <SignTargetFramework Include="net472" />
+      <SignTargetFramework Include="net8" />
       <SignTargetFramework Include="netstandard2.0" />
       <SignTargetFramework Include="netstandard2.1" />
     </ItemGroup>
