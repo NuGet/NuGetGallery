@@ -183,7 +183,9 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         protected string GetName(Uri uri)
         {
             if (uri is null)
+            { 
                 throw new ArgumentNullException(nameof(uri));
+            }
 
             if (BaseAddress is null)
                 throw new InvalidOperationException("BaseAddress must be set.");
@@ -205,9 +207,10 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             // decode back previous encoding in case of Unicode characters, otherwise it will be double encoded later
             string name = Uri.UnescapeDataString(encodedName);
 
-            int hash = name.IndexOf('#');
-            if (hash >= 0)
-                name = name[..hash];
+            if (name.Contains("#"))
+            {
+                name = name.Substring(0, name.IndexOf("#"));
+            }
 
             return name;
         }
