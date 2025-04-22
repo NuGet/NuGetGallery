@@ -188,7 +188,9 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             }
 
             if (BaseAddress is null)
+            {
                 throw new InvalidOperationException("BaseAddress must be set.");
+            }
 
             string address = Uri.UnescapeDataString(BaseAddress.GetLeftPart(UriPartial.Path));
             if (!address.EndsWith("/"))
