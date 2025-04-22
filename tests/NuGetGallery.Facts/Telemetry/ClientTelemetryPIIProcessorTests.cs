@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -263,9 +263,14 @@ namespace NuGetGallery.Telemetry
 
         private static bool IsPIIUrl(string url)
         {
-            return url.ToLower().Contains("username")
+            var hasPIIParameter = url.ToLower().Contains("username")
                 || url.ToLower().Contains("accountname")
                 || url.ToLower().Contains("token");
+
+            var uri = new Uri(new Uri("https://localhost"), url);
+            var isExcluded = uri.AbsolutePath == "/api/v2/token";
+
+            return hasPIIParameter && !isExcluded;
         }
 
         public static IEnumerable<object[]> PIIUrlDataGenerator()
