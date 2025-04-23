@@ -103,6 +103,8 @@ namespace NuGetGallery
 
         IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted, bool includeVersions = false);
 
+        (IReadOnlyCollection<Package> Packages, long TotalDownloadCount, int PackageCount) FindPackagesByProfile(User user, int page, int pageSize);
+
         IEnumerable<Package> FindPackagesByAnyMatchingOwner(User user, bool includeUnlisted, bool includeVersions = false);
 
         IQueryable<PackageRegistration> FindPackageRegistrationsByOwner(User user);

@@ -751,9 +751,9 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var packages = PackageService.FindPackagesByOwner(user, includeUnlisted: false)
-                .Where(p => p.PackageStatusKey == PackageStatus.Available)
-                .OrderByDescending(p => p.PackageRegistration.DownloadCount)
+            var packageResult = PackageService.FindPackagesByProfile(user, page, GalleryConstants.DefaultPackageListPageSize);
+
+            var packages = packageResult.Packages
                 .Select(p =>
                 {
                     var viewModel = _listPackageItemViewModelFactory.Create(p, currentUser, false);
@@ -761,7 +761,15 @@ namespace NuGetGallery
                     return viewModel;
                 }).ToList();
 
-            var model = new UserProfileModel(user, currentUser, packages, page - 1, GalleryConstants.DefaultPackageListPageSize, Url);
+            var model = new UserProfileModel(
+                user,
+                currentUser,
+                packages,
+                page - 1,
+                GalleryConstants.DefaultPackageListPageSize,
+                Url,
+                packageResult.TotalDownloadCount,
+                packageResult.PackageCount);
 
             return View(model);
         }
