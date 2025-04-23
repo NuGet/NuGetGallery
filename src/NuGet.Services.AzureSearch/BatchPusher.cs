@@ -183,7 +183,7 @@ namespace NuGet.Services.AzureSearch
                 Response<IndexDocumentsResult> batchResultsResponse = await indexClient.IndexAsync(batchInput);
                 string requestId = batchResultsResponse
                     .GetRawResponse()?
-                    .Headers
+                    .Headers // See https://learn.microsoft.com/en-us/rest/api/searchservice/common-http-request-and-response-headers-used-in-azure-search
                     .FirstOrDefault(x => StringComparer.OrdinalIgnoreCase.Equals(x.Name, "request-id"))
                     .Value;
                 IndexDocumentsResult batchResults = batchResultsResponse.Value;
