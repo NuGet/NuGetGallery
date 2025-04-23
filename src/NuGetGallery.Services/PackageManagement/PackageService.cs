@@ -433,10 +433,13 @@ namespace NuGetGallery
             int page,
             int pageSize)
         {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
             IQueryable<Package> packages = _packageRepository.GetAll()
-                .Where(p => p.PackageRegistration.Owners.Any(o => o.Key == user.Key)
-                    && p.Listed
-                    && p.PackageStatusKey == PackageStatus.Available);
+                .Where(p => p.PackageRegistration.Owners.Any(o => o.Key == user.Key));
 
             var packageSummary = packages
                 .Where(p => p.IsLatestSemVer2)
@@ -452,10 +455,15 @@ namespace NuGetGallery
             var packageCount = packageSummary != null ? packageSummary.PackageCount : 0;
             var downloadCount = packageSummary != null ? packageSummary.DownloadCount : 0;
 
+            packages = packages
+                .Where(p => p.Listed
+                    && p.PackageStatusKey == PackageStatus.Available);
+
             packages = GetLatestVersion(packages);
 
             return (packages
                 .OrderByDescending(p => p.PackageRegistration.DownloadCount)
+                .ThenBy(p => p.PackageRegistration.Id)
                 .Skip((page-1) * pageSize)
                 .Take(pageSize)
                 .Include(p => p.PackageRegistration.Owners)
