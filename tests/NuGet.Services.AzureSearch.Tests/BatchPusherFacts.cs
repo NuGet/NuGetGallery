@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Azure;
+using Azure.Core;
 using Azure.Search.Documents.Models;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -246,7 +247,10 @@ namespace NuGet.Services.AzureSearch
                             throw new RequestFailedException((int)HttpStatusCode.RequestEntityTooLarge, "Too big!");
                         }
 
-                        return Task.FromResult(SearchModelFactory.IndexDocumentsResult(new List<IndexingResult>()));
+                        var response = new Mock<Response<IndexDocumentsResult>>();
+                        response.Setup(x => x.Value).Returns(() => SearchModelFactory.IndexDocumentsResult([]));
+
+                        return Task.FromResult(response.Object);
                     });
 
                 var result = await _target.TryFinishAsync();
@@ -325,16 +329,22 @@ namespace NuGet.Services.AzureSearch
                 _target.EnqueueIndexActions(IdA, _indexActions);
                 _searchIndexWrapper
                     .Setup(x => x.IndexAsync(It.IsAny<IndexDocumentsBatch<KeyedDocument>>()))
-                    .ReturnsAsync(() => SearchModelFactory.IndexDocumentsResult(new List<IndexingResult>
+                    .ReturnsAsync(() =>
                     {
-                        SearchModelFactory.IndexingResult(key: "A-0", errorMessage: "A-0 message", succeeded: false, status: 0),
-                        SearchModelFactory.IndexingResult(key: "A-1", errorMessage: "A-1 message", succeeded: false, status: 1),
-                        SearchModelFactory.IndexingResult(key: "A-2", errorMessage: "A-2 message", succeeded: true, status: 2),
-                        SearchModelFactory.IndexingResult(key: "A-3", errorMessage: "A-3 message", succeeded: false, status: 3),
-                        SearchModelFactory.IndexingResult(key: "A-4", errorMessage: "A-4 message", succeeded: false, status: 4),
-                        SearchModelFactory.IndexingResult(key: "A-5", errorMessage: "A-5 message", succeeded: false, status: 5),
-                        SearchModelFactory.IndexingResult(key: "A-6", errorMessage: "A-6 message", succeeded: false, status: 6),
-                    }));
+                        var response = new Mock<Response<IndexDocumentsResult>>();
+                        response.Setup(x => x.Value).Returns(() => SearchModelFactory.IndexDocumentsResult(new List<IndexingResult>
+                        {
+                            SearchModelFactory.IndexingResult(key: "A-0", errorMessage: "A-0 message", succeeded: false, status: 0),
+                            SearchModelFactory.IndexingResult(key: "A-1", errorMessage: "A-1 message", succeeded: false, status: 1),
+                            SearchModelFactory.IndexingResult(key: "A-2", errorMessage: "A-2 message", succeeded: true, status: 2),
+                            SearchModelFactory.IndexingResult(key: "A-3", errorMessage: "A-3 message", succeeded: false, status: 3),
+                            SearchModelFactory.IndexingResult(key: "A-4", errorMessage: "A-4 message", succeeded: false, status: 4),
+                            SearchModelFactory.IndexingResult(key: "A-5", errorMessage: "A-5 message", succeeded: false, status: 5),
+                            SearchModelFactory.IndexingResult(key: "A-6", errorMessage: "A-6 message", succeeded: false, status: 6),
+                        }));
+
+                        return response.Object;
+                    });
 
                 var ex = await Assert.ThrowsAsync<InvalidOperationException>(
                     () => _target.TryPushFullBatchesAsync());
@@ -682,11 +692,21 @@ namespace NuGet.Services.AzureSearch
 
                 _searchIndexWrapper
                     .Setup(x => x.IndexAsync(It.IsAny<IndexDocumentsBatch<KeyedDocument>>()))
-                    .ReturnsAsync(() => SearchModelFactory.IndexDocumentsResult(new IndexingResult[0]))
+                    .ReturnsAsync(() =>
+                    {
+                        var response = new Mock<Response<IndexDocumentsResult>>();
+                        response.Setup(x => x.Value).Returns(() => SearchModelFactory.IndexDocumentsResult([]));
+                        return response.Object;
+                    })
                     .Callback<IndexDocumentsBatch<KeyedDocument>>(b => _searchBatches.Add(b));
                 _hijackIndexWrapper
                     .Setup(x => x.IndexAsync(It.IsAny<IndexDocumentsBatch<KeyedDocument>>()))
-                    .ReturnsAsync(() => SearchModelFactory.IndexDocumentsResult(new IndexingResult[0]))
+                    .ReturnsAsync(() =>
+                    {
+                        var response = new Mock<Response<IndexDocumentsResult>>();
+                        response.Setup(x => x.Value).Returns(() => SearchModelFactory.IndexDocumentsResult([]));
+                        return response.Object;
+                    })
                     .Callback<IndexDocumentsBatch<KeyedDocument>>(b => _hijackBatches.Add(b));
 
                 _config.AzureSearchBatchSize = 2;

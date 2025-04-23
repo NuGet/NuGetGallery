@@ -126,7 +126,12 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
                 {
                     _indexedBatch = batch;
                 })
-                .ReturnsAsync(SearchModelFactory.IndexDocumentsResult(Enumerable.Empty<IndexingResult>()));
+                .ReturnsAsync(() =>
+                {
+                    var response = new Mock<Response<IndexDocumentsResult>>();
+                    response.Setup(x => x.Value).Returns(() => SearchModelFactory.IndexDocumentsResult([]));
+                    return response.Object;
+                });
 
             var batchPusher = new BatchPusher(
                 _searchClient.Object,
