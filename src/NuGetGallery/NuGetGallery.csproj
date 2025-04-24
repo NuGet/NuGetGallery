@@ -1364,8 +1364,12 @@
     <Content Include="Areas\Admin\DynamicData\PageTemplates\ListDetails.aspx" />
     <Content Include="Content\admin\SupportRequestStyles.css" />
     <Content Include="Content\fabric.css" />
+    <Content Include="Content\gallery\img\facebook.svg" />
+    <Content Include="Content\gallery\img\facebook-24x24.png" />
     <Content Include="Content\gallery\img\logo-og-600x600.png" />
     <Content Include="Content\gallery\img\rss-24x24.png" />
+    <Content Include="Content\gallery\img\x.svg" />
+    <Content Include="Content\gallery\img\x-24x24.png" />
     <Content Include="Content\Images\icons\apiKey.png" />
     <Content Include="Content\Images\icons\apiKeyExpired.png" />
     <Content Include="Content\Images\icons\apiKeyLegacy.png" />
@@ -1396,8 +1400,6 @@
     <Content Include="Content\gallery\img\default-package-icon-white.png" />
     <Content Include="Content\gallery\img\dotnet-foundation-42x42.png" />
     <Content Include="Content\gallery\img\dotnet-foundation.svg" />
-    <Content Include="Content\gallery\img\facebook-24x24.png" />
-    <Content Include="Content\gallery\img\facebook.svg" />
     <Content Include="Content\gallery\img\git-32x32.png" />
     <Content Include="Content\gallery\img\git.svg" />
     <Content Include="Content\gallery\img\git-white.svg" />
@@ -1427,12 +1429,8 @@
     <Content Include="Content\gallery\img\reserved-indicator-25x25.png" />
     <Content Include="Content\gallery\img\reserved-indicator.svg" />
     <Content Include="Content\gallery\img\rocket-icon.svg" />
-    <Content Include="Content\gallery\img\rss-36x36.png" />
     <Content Include="Content\gallery\img\rss.svg" />
     <Content Include="Content\gallery\img\search-icon.svg" />
-    <Content Include="Content\gallery\img\twitter-24x24.png" />
-    <Content Include="Content\gallery\img\twitter-36x36.png" />
-    <Content Include="Content\gallery\img\twitter.svg" />
     <Content Include="Content\themes\custom\images\animated-overlay.gif" />
     <Content Include="Content\themes\custom\images\ui-bg_flat_0_aaaaaa_40x100.png" />
     <Content Include="Content\themes\custom\images\ui-bg_flat_75_ffffff_40x100.png" />
