@@ -1,13 +1,15 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Threading.Tasks;
 using Dapper;
 using NuGet.Jobs;
 
 // ReSharper disable once CheckNamespace
-namespace System.Data.SqlClient
+namespace Microsoft.Data.SqlClient
 {
     public static class DapperExtensions
     {

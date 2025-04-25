@@ -18,8 +18,8 @@ namespace NuGet.Services.Validation
             // Configure Connection Resiliency / Retry Logic
             // See https://msdn.microsoft.com/en-us/data/dn456835.aspx and https://msdn.microsoft.com/en-us/data/dn307226
             SetExecutionStrategy(
-                "System.Data.SqlClient",
-                () => SuspendExecutionStrategy ? (IDbExecutionStrategy)new DefaultExecutionStrategy() : new SqlAzureExecutionStrategy());
+                MicrosoftSqlProviderServices.ProviderInvariantName,
+                () => SuspendExecutionStrategy ? (IDbExecutionStrategy)new DefaultExecutionStrategy() : new MicrosoftSqlAzureExecutionStrategy());
         }
 
         public static bool SuspendExecutionStrategy
@@ -30,7 +30,7 @@ namespace NuGet.Services.Validation
 #else
         public EntitiesConfiguration()
         {
-            SetExecutionStrategy("System.Data.SqlClient", () => new SqlAzureExecutionStrategy());
+            SetExecutionStrategy(MicrosoftSqlProviderServices.ProviderInvariantName, () => new MicrosoftSqlAzureExecutionStrategy());
         }
 #endif
     }

@@ -7,8 +7,8 @@
     <Description>Core support library for NuGet database migration</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="EntityFramework" />
-    <PackageReference Include="System.Data.SqlClient" />
+    <PackageReference Include="Microsoft.EntityFramework.SqlServer" />
+    <PackageReference Include="Microsoft.Data.SqlClient" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj" />

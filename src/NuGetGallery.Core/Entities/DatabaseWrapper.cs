@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -33,7 +33,7 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="name">Resource name</param>
         /// <param name="parameters">SQL parameters</param>
-        /// <returns>Resulting <see cref="System.Data.SqlClient.SqlDataReader.RecordsAffected"/></returns>
+        /// <returns>Resulting <see cref="Microsoft.Data.SqlClient.SqlDataReader.RecordsAffected"/></returns>
         public async Task<int> ExecuteSqlResourceAsync(string name, params object[] parameters)
         {
             string sqlCommand;

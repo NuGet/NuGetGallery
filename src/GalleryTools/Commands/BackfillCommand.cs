@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Autofac;
@@ -13,7 +13,6 @@ using NuGetGallery;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
@@ -23,6 +22,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using GalleryTools.Utils;
+using Microsoft.Data.SqlClient;
 using NuGet.Services.Sql;
 using NuGet.Packaging.Core;
 using NuGet.Versioning;

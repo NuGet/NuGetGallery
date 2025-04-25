@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -2214,7 +2214,6 @@
     <PackageReference Include="NuGet.StrongName.DynamicData.EFCodeFirstProvider" />
     <PackageReference Include="NuGet.StrongName.elmah.sqlserver" />
     <PackageReference Include="NuGet.StrongName.elmah" />
-    <PackageReference Include="EntityFramework" />
     <PackageReference Include="HtmlSanitizer" />
     <PackageReference Include="Lucene.Net" />
     <PackageReference Include="Lucene.Net.Contrib" />
@@ -2236,6 +2235,8 @@
     <PackageReference Include="Microsoft.AspNetCore.Cryptography.Internal" />
     <PackageReference Include="Microsoft.Bcl.Compression" />
     <PackageReference Include="Microsoft.Data.Services" />
+    <PackageReference Include="Microsoft.Data.SqlClient" />
+    <PackageReference Include="Microsoft.EntityFramework.SqlServer" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <PackageReference Include="Microsoft.Net.Http" />
@@ -2249,7 +2250,6 @@
     <PackageReference Include="RouteMagic" />
     <PackageReference Include="SharpZipLib" />
     <PackageReference Include="Strathweb.CacheOutput.WebApi2.StrongName" />
-    <PackageReference Include="System.Data.SqlClient" />
     <PackageReference Include="System.Diagnostics.Debug" />
     <PackageReference Include="System.Linq.Expressions" />
     <PackageReference Include="System.Net.Http" />

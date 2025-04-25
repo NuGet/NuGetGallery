@@ -3,9 +3,9 @@
 
 using System;
 using System.Data.Entity.Infrastructure;
-using System.Data.SqlClient;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.Data.SqlClient;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
 using NuGetGallery.Diagnostics;
