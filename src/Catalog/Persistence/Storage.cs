@@ -180,7 +180,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             return Task.FromResult(false);
         }
 
-        protected string GetName(Uri uri)
+        public string GetName(Uri uri)
         {
             if (uri is null)
             { 
