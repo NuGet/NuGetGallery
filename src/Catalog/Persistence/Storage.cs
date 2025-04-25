@@ -192,22 +192,22 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 throw new InvalidOperationException("BaseAddress must be set.");
             }
 
-            string address = Uri.UnescapeDataString(BaseAddress.GetLeftPart(UriPartial.Path));
+            // The GetLeftPart method performs encoding under the hood, which could be problematic if it contains Unicode characters.
+            // It doesn't perform double encoding; the Uri object knows if it's already encoded and skips encoding it again.
+            // Decoding the base address to remove any encoded characters.
+            string address = Uri.UnescapeDataString(BaseAddress.GetLeftPart(UriPartial.Path)); // Remove potential query or SAS from the URI
             if (!address.EndsWith("/"))
             {
                 address += "/";
             }
 
-            // This method does encoding under the hood, could be a problem if it contains Unicode characters.
-            string fullPath = uri.GetLeftPart(UriPartial.Path); // Remove potential SAS token from the URI
+            // Do the same with the above to get it decoded.
+            string fullPath = Uri.UnescapeDataString(uri.GetLeftPart(UriPartial.Path)); // Remove potential query or SAS from the URI
 
             // handle mismatched scheme (http vs https)
             int schemeLengthDifference = uri.Scheme.Length - BaseAddress.Scheme.Length;
 
-            string encodedName = fullPath.Substring(address.Length + schemeLengthDifference);
-
-            // decode back previous encoding in case of Unicode characters, otherwise it will be double encoded later
-            string name = Uri.UnescapeDataString(encodedName);
+            string name = fullPath.Substring(address.Length + schemeLengthDifference);
 
             if (name.Contains("#"))
             {
