@@ -20,6 +20,8 @@ namespace NuGet.Services.Validation
             SetExecutionStrategy(
                 MicrosoftSqlProviderServices.ProviderInvariantName,
                 () => SuspendExecutionStrategy ? (IDbExecutionStrategy)new DefaultExecutionStrategy() : new MicrosoftSqlAzureExecutionStrategy());
+            SetProviderFactory(MicrosoftSqlProviderServices.ProviderInvariantName, Microsoft.Data.SqlClient.SqlClientFactory.Instance);
+            SetProviderServices(MicrosoftSqlProviderServices.ProviderInvariantName, MicrosoftSqlProviderServices.Instance);
         }
 
         public static bool SuspendExecutionStrategy
@@ -31,6 +33,8 @@ namespace NuGet.Services.Validation
         public EntitiesConfiguration()
         {
             SetExecutionStrategy(MicrosoftSqlProviderServices.ProviderInvariantName, () => new MicrosoftSqlAzureExecutionStrategy());
+            SetProviderFactory(MicrosoftSqlProviderServices.ProviderInvariantName, Microsoft.Data.SqlClient.SqlClientFactory.Instance);
+            SetProviderServices(MicrosoftSqlProviderServices.ProviderInvariantName, MicrosoftSqlProviderServices.Instance);
         }
 #endif
     }

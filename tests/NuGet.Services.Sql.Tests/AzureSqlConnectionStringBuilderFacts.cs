@@ -17,7 +17,7 @@ namespace NuGet.Services.Sql.Tests
         {
             // Arrange
             var sqlConnectionString = "Data Source=tcp:noop.database.windows.net;Initial Catalog=noop;" +
-                "Persist Security Info=False;Connect Timeout=30;Encrypt=True;TrustServerCertificate=False";
+                "Persist Security Info=False;Connect Timeout=30;Encrypt=True;Trust Server Certificate=False";
             var aadConnectionString = $"{sqlConnectionString};AadTenant={AadTenant};AadClientId={AadClientId};AadCertificate={AadCertificate}";
 
             // Act
