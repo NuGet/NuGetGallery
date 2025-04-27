@@ -739,19 +739,20 @@ namespace NuGet.Services.Validation
                     types: new[]
                     {
                         typeof (int), typeof (byte), typeof (byte), typeof (string), typeof(string), typeof (string),
-                        typeof (int), typeof (uint)
+                        typeof (int), typeof(Exception)
                     },
                     modifiers: null);
+
                 var error = errorConstructor.Invoke(new object[]
                 {
-                    number,
-                    (byte)0,
-                    (byte)0,
-                    "server",
-                    "errMsg",
-                    "procedure",
-                    100,
-                    (uint)0
+                    number, /* infoNumber */
+                    (byte)0, /* errorState */
+                    (byte)0, /* errorClass */
+                    "server", /* server */
+                    "errMsg", /* errorMessage */
+                    "procedure", /* procedure */
+                    100, /* lineNumber */
+                    new Exception(), /* exception */
                 });
 
                 addMethod.Invoke(errorCollection, new[] { error });
