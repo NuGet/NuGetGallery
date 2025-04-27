@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -107,8 +107,8 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
         public async Task RevokedEndCertificate()
         {
             // Arrange - create a revocation date with no milliseconds
-            var crlUpdateTime = DateTimeOffset.Parse("10/21/1995 4:05:06 PM");
-            var revocationDate = DateTimeOffset.Parse("02/18/1994 1:02:03 PM");
+            var crlUpdateTime = new DateTimeOffset(1995, 10, 21, 16, 5, 6, TimeSpan.Zero);
+            var revocationDate = new DateTimeOffset(1994, 2, 18, 13,2, 3, TimeSpan.Zero);
 
             using (var revokedChain = await _fixture.GetRevokedSigningCertificateAsync(revocationDate, crlUpdateTime))
             {

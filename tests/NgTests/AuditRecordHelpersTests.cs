@@ -1,8 +1,9 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -311,7 +312,7 @@ namespace NgTests
             return new StringStorageContent(TestCatalogEntries.DeleteAuditRecordForOtherPackage100
                 .Replace("OtherPackage", packageId)
                 .Replace("1.0.0", packageVersion)
-                .Replace("2015-01-01T01:01:01.0748028Z", timestamp.ToString()));
+                .Replace("2015-01-01T01:01:01.0748028Z", timestamp.ToString(CultureInfo.InvariantCulture)));
         }
     }
 }
