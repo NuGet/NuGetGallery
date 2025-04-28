@@ -9,7 +9,6 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Services.Status;
 using NuGet.Services.Status.Table;
-using Serilog.Core;
 using StatusAggregator.Messages;
 using StatusAggregator.Table;
 using Xunit;
@@ -131,70 +130,6 @@ namespace StatusAggregator.Tests.Messages
 
                 Table.Verify();
             }
-
-            /*
-            [Fact]
-            public async Task CreateMessageAsync_HandlesRequestFailedException_WhenMessageNotFound()
-            {
-                // Arrange
-                var type = (MessageType)99;
-                var status = (ComponentStatus)100;
-                var component = new TestComponent("component")
-                {
-                    Status = ComponentStatus.Up
-                };
-
-                Table
-                    .Setup(x => x.RetrieveAsync<MessageEntity>(MessageEntity.GetRowKey(EventEntity, Time)))
-                    .ThrowsAsync(new RequestFailedException(404, "Not Found"))
-                    .Verifiable();
-
-                Logger
-                    .Setup(x => x.LogInformation(
-                        It.IsAny<string>(),
-                        It.IsAny<object[]>()
-                    ))
-                    .Verifiable();
-
-                // Act
-                await Factory.CreateMessageAsync(EventEntity, Time, type, component, status);
-
-                // Assert
-                Table.Verify();
-                Logger.Verify(x => x.LogInformation("No existing message found."), Times.Once());
-            }
-
-            [Fact]
-            public async Task CreateMessageAsync_DoesNotRecreate_WhenMessageExists()
-            {
-                // Arrange
-                var type = (MessageType)99;
-                var status = (ComponentStatus)100;
-                var component = new TestComponent("component")
-                {
-                    Status = ComponentStatus.Up
-                };
-
-                var existingMessage = new MessageEntity(EventEntity, Time, "existing", (MessageType)98);
-
-                Table
-                    .Setup(x => x.RetrieveAsync<MessageEntity>(MessageEntity.GetRowKey(EventEntity, Time)))
-                    .ReturnsAsync(existingMessage)
-                    .Verifiable();
-
-                // Act
-                await Factory.CreateMessageAsync(EventEntity, Time, type, component, status);
-
-                // Assert
-                Table.Verify();
-                Builder.Verify(
-                    x => x.Build(It.IsAny<MessageType>(), It.IsAny<IComponent>(), It.IsAny<ComponentStatus>()),
-                    Times.Never());
-                Table.Verify(
-                    x => x.InsertAsync(It.IsAny<MessageEntity>()),
-                    Times.Never());
-            }
-            */
 
             protected abstract Task InvokeMethod(
                 EventEntity eventEntity,
