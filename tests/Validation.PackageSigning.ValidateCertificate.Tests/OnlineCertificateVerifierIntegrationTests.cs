@@ -108,7 +108,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
         {
             // Arrange - create a revocation date with no milliseconds
             var crlUpdateTime = new DateTimeOffset(1995, 10, 21, 16, 5, 6, TimeSpan.Zero);
-            var revocationDate = new DateTimeOffset(1994, 2, 18, 13,2, 3, TimeSpan.Zero);
+            var revocationDate = new DateTimeOffset(1994, 2, 18, 13, 2, 3, TimeSpan.Zero);
 
             using (var revokedChain = await _fixture.GetRevokedSigningCertificateAsync(revocationDate, crlUpdateTime))
             {
