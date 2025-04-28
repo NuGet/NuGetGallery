@@ -14,11 +14,14 @@ function Initialize-EF6Exe() {
 
     if (!$efDirectory) {
         # Read the current version of EntityFramework so that we can find the tools.
-        $cpmPath = Join-Path $PSScriptRoot "..\Directory.Packages.props"
+        $cpmPath = Resolve-Path (Join-Path $PSScriptRoot "..\Directory.Packages.props")
         [xml]$cpm = Get-Content $cpmPath
         $efPackageReference = Select-Xml -Xml $cpm -XPath "//*[local-name()='PackageVersion']" `
             | Where-Object { $_.Node.Attributes["Include"].Value -eq "EntityFramework" }
         $efVersion = $efPackageReference.Node.Version
+        if (!$efVersion) {
+            throw "EntityFramework version could not be found. Make sure there is an EntityFramework entry in $cpmPath"
+        }
         Write-Host "Using EntityFramework version $efVersion."
 
         if ($env:NUGET_PACKAGES) {
@@ -62,7 +65,7 @@ function Update-NuGetDatabases([string] $EF6ExePath, [string] $NuGetGallerySiteP
 [string] $ef6ExeDirectory = $null
 try {
     if ([string]::IsNullOrWhiteSpace($NuGetGallerySitePath)) {
-        $NuGetGallerySitePath = [System.IO.Path]::Combine($Script:PSScriptRoot, '..', 'src\NuGetGallery')
+        $NuGetGallerySitePath = Resolve-Path([System.IO.Path]::Combine($Script:PSScriptRoot, '..', 'src\NuGetGallery'))
         Write-Host 'NuGetGallerySitePath was not provided.'
         Write-Host "We will attempt to use $NuGetGallerySitePath"
     }
@@ -75,8 +78,13 @@ try {
         -MigrationTargets $MigrationTargets
 }
 finally {
-    if ($null -ne $ef6ExeDirectory -and (Test-Path -Path $ef6ExeDirectory -PathType Container)) {
-        Remove-Item -Path $ef6ExeDirectory -Recurse -Force
+    try {
+        if ($ef6ExeDirectory -and (Test-Path -Path $ef6ExeDirectory -PathType Container)) {
+            Remove-Item -Path $ef6ExeDirectory -Recurse -Force
+        }
+    }
+    catch {
+        Write-Host "Failed to remove temporary directory: $ef6ExeDirectory"
     }
 }
 

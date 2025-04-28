@@ -25,6 +25,7 @@
     <PackageVersion Include="d3" Version="5.4.0" />
     <PackageVersion Include="Dapper.StrongName" Version="2.1.66" />
     <PackageVersion Include="dotNetRDF" Version="1.0.8.3533" />
+    <PackageVersion Include="EntityFramework" Version="6.5.1" />
     <PackageVersion Include="FluentAssertions" Version="5.5.0" />
     <PackageVersion Include="FluentLinkChecker" Version="1.0.0.10" />
     <PackageVersion Include="HtmlSanitizer" Version="8.1.870" />
