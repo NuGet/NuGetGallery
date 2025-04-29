@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -15,7 +15,7 @@ namespace NuGet.Services.AzureSearch
         void TrackGetOwnersForPackageId(int ownerCount, TimeSpan elapsed);
         void TrackIndexPushFailure(string indexName, int documentCount, TimeSpan elapsed);
         void TrackIndexPushSplit(string indexName, int documentCount);
-        void TrackIndexPushSuccess(string indexName, int documentCount, TimeSpan elapsed);
+        void TrackIndexPushSuccess(string indexName, int documentCount, TimeSpan elapsed, string requestId);
         void TrackUpdateOwnersCompleted(JobOutcome outcome, TimeSpan elapsed);
         void TrackOwnerSetComparison(int oldCount, int newCount, int changeCount, TimeSpan elapsed);
         void TrackReadLatestIndexedOwners(int packageIdCount, TimeSpan elapsed);

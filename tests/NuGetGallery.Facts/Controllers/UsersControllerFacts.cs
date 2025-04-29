@@ -1164,89 +1164,6 @@ namespace NuGetGallery
 
             [Theory]
             [MemberData(nameof(PossibleOwnershipScenarios_Data))]
-            public void ReturnsSinglePackageAsExpected(User currentUser, User owner)
-            {
-                // Arrange
-                var username = "test";
-
-                var package = new Package
-                {
-                    Version = "1.1.1",
-
-                    PackageRegistration = new PackageRegistration
-                    {
-                        Id = "package",
-                        Owners = new[] { owner },
-                        DownloadCount = 150
-                    },
-
-                    DownloadCount = 100,
-                    PackageStatusKey = PackageStatus.Available
-                };
-                var invalidatedPackage = new Package
-                {
-                    Version = "1.0.0",
-
-                    PackageRegistration = new PackageRegistration
-                    {
-                        Id = "packageFailedValidation",
-                        Owners = new[] { owner },
-                        DownloadCount = 0
-                    },
-
-                    DownloadCount = 0,
-                    PackageStatusKey = PackageStatus.FailedValidation
-                };
-                var validatingPackage = new Package
-                {
-                    Version = "1.0.0",
-
-                    PackageRegistration = new PackageRegistration
-                    {
-                        Id = "packageValidating",
-                        Owners = new[] { owner },
-                        DownloadCount = 0
-                    },
-
-                    DownloadCount = 0,
-                    PackageStatusKey = PackageStatus.Validating
-                };
-                var deletedPackage = new Package
-                {
-                    Version = "1.0.0",
-
-                    PackageRegistration = new PackageRegistration
-                    {
-                        Id = "packageDeleted",
-                        Owners = new[] { owner },
-                        DownloadCount = 0
-                    },
-
-                    DownloadCount = 0,
-                    PackageStatusKey = PackageStatus.Deleted
-                };
-
-                GetMock<IUserService>()
-                    .Setup(x => x.FindByUsername(username, false))
-                    .Returns(owner);
-
-                GetMock<IPackageService>()
-                    .Setup(x => x.FindPackagesByOwner(owner, false, false))
-                    .Returns(new[] { package, invalidatedPackage, validatingPackage, deletedPackage });
-
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(currentUser);
-
-                // Act
-                var result = controller.Profiles(username);
-
-                // Assert
-                var model = ResultAssert.IsView<UserProfileModel>(result);
-                AssertUserProfileModel(model, currentUser, owner, package);
-            }
-
-            [Theory]
-            [MemberData(nameof(PossibleOwnershipScenarios_Data))]
             public void SortsPackagesByDownloadCount(User currentUser, User owner)
             {
                 // Arrange
@@ -1284,9 +1201,11 @@ namespace NuGetGallery
                     .Setup(x => x.FindByUsername(username, false))
                     .Returns(owner);
 
+                var packages = new List<Package> { package2, package1 };
+
                 GetMock<IPackageService>()
-                    .Setup(x => x.FindPackagesByOwner(owner, false, false))
-                    .Returns(new[] { package1, package2 });
+                    .Setup(x => x.FindPackagesByProfile(owner, 1, GalleryConstants.DefaultPackageListPageSize))
+                    .Returns((packages.AsReadOnly(), 350, 2));
 
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(currentUser);
@@ -1327,8 +1246,8 @@ namespace NuGetGallery
                     .Setup(x => x.FindByUsername(username, false))
                     .Returns(owner);
                 GetMock<IPackageService>()
-                    .Setup(x => x.FindPackagesByOwner(owner, false, false))
-                    .Returns(new[] { userPackage });
+                    .Setup(x => x.FindPackagesByProfile(owner, 1, GalleryConstants.DefaultPackageListPageSize))
+                    .Returns((userPackages.AsReadOnly(), 0, 0 ));
 
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(currentUser);

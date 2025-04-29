@@ -1,4 +1,4 @@
-﻿@using Newtonsoft.Json
+﻿﻿@using Newtonsoft.Json
 @model ApiKeyListViewModel
 @using NuGetGallery.Authentication
 @{
@@ -61,13 +61,13 @@
     </div>
 </section>
 
-<script type="text/html" id="error-container">
+<script type="text/html" id="error-container" nonce="@Html.GetCSPNonce()">
     <!-- ko if: Error -->
     @ViewHelpers.AlertDanger(@<text><span data-bind="html: Error"></span></text>)
     <!-- /ko -->
 </script>
 
-<script type="text/html" id="manage-api-keys">
+<script type="text/html" id="manage-api-keys" nonce="@Html.GetCSPNonce()">
     <!-- ko if: RevocationDescriptions().length > 0 -->
     @ViewHelpers.AlertWarning(
         @<text>
@@ -144,7 +144,7 @@
     <!-- /ko -->
 </script>
 
-<script type="text/html" id="api-key-details">
+<script type="text/html" id="api-key-details" nonce="@Html.GetCSPNonce()">
     <div class="api-key-details">
         <div class="row">
             <div class="col-sm-1">
@@ -277,7 +277,7 @@
     </div>
 </script>
 
-<script type="text/html" id="upsert-api-key">
+<script type="text/html" id="upsert-api-key" nonce="@Html.GetCSPNonce()">
     <form class="upsert-form" data-bind="submit: CreateOrEdit, attr: { id: FormId }">
         <!-- ko ifnot: Key -->
         <div class="row">
@@ -497,7 +497,7 @@
             <div class="col-sm-6 form-group">
                 <input type="submit" class="btn btn-brand btn-block"
                        data-bind="enable: SelectPackagesEnabled() && !PendingCreateOrEdit(),
-                                  attr: { value: Key() ? 'Edit' : 'Create' }" />
+                                  attr: { value: Key() ? 'Save' : 'Create' }" />
             </div>
             <div class="col-sm-6 form-group">
                 <button data-bind="attr: { 'data-target': '#' + EditContainerId(),
@@ -516,7 +516,7 @@
 </script>
 
 @section bottomScripts {
-    <script type="text/javascript">
+    <script type="text/javascript" nonce="@Html.GetCSPNonce()">
         var initialData = @Html.ToJson(new
                      {
                          ApiKeys = Model.ApiKeys,
@@ -541,5 +541,5 @@
                          }
                      });
     </script>
-    @Scripts.Render("~/Scripts/gallery/page-api-keys.min.js")
+    @Scripts.RenderFormat("<script src=\"{0}\" nonce='" + @Html.GetCSPNonce().ToString() + "'></script>", "~/Scripts/gallery/page-api-keys.min.js");
 }

@@ -10,7 +10,7 @@ namespace NuGetGallery
 {
     public class UserProfileModel
     {
-        public UserProfileModel(User user, User currentUser, List<ListPackageItemViewModel> allPackages, int pageIndex, int pageSize, UrlHelper url)
+        public UserProfileModel(User user, User currentUser, List<ListPackageItemViewModel> allPackages, int pageIndex, int pageSize, UrlHelper url, long totalDownloadCount, int packageCount)
         {
             User = user;
             Username = user.Username;
@@ -18,11 +18,11 @@ namespace NuGetGallery
             UnconfirmedEmailAddress = user.UnconfirmedEmailAddress;
             IsLocked = user.IsLocked;
             AllPackages = allPackages;
-            TotalPackages = allPackages.Count;
+            TotalPackages = packageCount;
             PackagePage = pageIndex;
             PackagePageSize = pageSize;
 
-            TotalPackageDownloadCount = AllPackages.Sum(p => p.TotalDownloadCount);
+            TotalPackageDownloadCount = totalDownloadCount;
 
             PackagePageTotalCount = (TotalPackages + PackagePageSize - 1) / PackagePageSize;
 
@@ -30,8 +30,7 @@ namespace NuGetGallery
                 page => url.User(user, page));
 
             Pager = pager;
-            PagedPackages = AllPackages.Skip(PackagePageSize * pageIndex)
-                                       .Take(PackagePageSize).ToList();
+            PagedPackages = AllPackages;
 
             CanManageAccount = ActionsRequiringPermissions.ManageAccount.CheckPermissions(currentUser, user) == PermissionsCheckResult.Allowed;
             CanViewAccount = ActionsRequiringPermissions.ViewAccount.CheckPermissions(currentUser, user) == PermissionsCheckResult.Allowed;
