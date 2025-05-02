@@ -441,10 +441,19 @@ namespace Ng
             // They require MSI auth for global storage and SAS/SAK auth for china storage.
             if (useManagedIdentity && !hasStorageKeyOrSas)
             {
-                var managedIdentityClientId = arguments.GetOrThrow<string>(argumentNameMap[Arguments.ClientId]);
-                var identity = new ManagedIdentityCredential(managedIdentityClientId);
                 var serviceUri = GetServiceUri(arguments, argumentNameMap, "blob");
-                return new BlobServiceClientFactory(serviceUri, identity);
+
+                if (arguments.TryGetValue(argumentNameMap[Arguments.ClientId], out var managedIdentityClientId)
+                        && !string.IsNullOrWhiteSpace(managedIdentityClientId))
+                {
+                    var msiCredential = new ManagedIdentityCredential(managedIdentityClientId);
+                    return new BlobServiceClientFactory(serviceUri, msiCredential);
+                }
+                else
+                {
+                    var defaultCredential = new DefaultAzureCredential();
+                    return new BlobServiceClientFactory(serviceUri, defaultCredential);
+                }
             }
 
             string connectionString = GetConnectionString(arguments, argumentNameMap, "BlobEndpoint", "blob");
@@ -467,10 +476,20 @@ namespace Ng
             // They require MSI auth for global storage and SAS/SAK auth for china storage.
             if (useManagedIdentity && !hasStorageKeyOrSas)
             {
-                var managedIdentityClientId = arguments.GetOrThrow<string>(argumentNameMap[Arguments.ClientId]);
-                var identity = new ManagedIdentityCredential(managedIdentityClientId);
                 var serviceUri = GetServiceUri(arguments, argumentNameMap, "queue");
-                return new QueueServiceClient(serviceUri, identity, new QueueClientOptions
+
+                TokenCredential tokenCredential;
+                if (arguments.TryGetValue(argumentNameMap[Arguments.ClientId], out var managedIdentityClientId)
+                        && !string.IsNullOrWhiteSpace(managedIdentityClientId))
+                {
+                    tokenCredential = new ManagedIdentityCredential(managedIdentityClientId);
+                }
+                else
+                {
+                    tokenCredential = new DefaultAzureCredential();
+                }
+
+                return new QueueServiceClient(serviceUri, tokenCredential, new QueueClientOptions
                 {
                     MessageEncoding = QueueMessageEncoding.Base64,
                 });
