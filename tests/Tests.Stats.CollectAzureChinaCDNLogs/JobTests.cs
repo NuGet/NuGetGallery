@@ -37,7 +37,8 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
             var configuration = GetDefaultConfiguration();
             var msiConfiguration = GetDefaultStorageMsiConfiguration();
 
-            Assert.ThrowsAny<AggregateException>(() => job.InitializeJobConfiguration(GetMockServiceProvider(configuration, msiConfiguration)));
+            var ex = Assert.ThrowsAny<AggregateException>(() => job.InitializeJobConfiguration(GetMockServiceProvider(configuration, msiConfiguration)));
+            Assert.IsType<RequestFailedException>(ex.InnerException);
         }
 
         [Theory]
