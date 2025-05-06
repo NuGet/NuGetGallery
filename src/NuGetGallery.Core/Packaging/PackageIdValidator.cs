@@ -14,6 +14,10 @@ namespace NuGetGallery.Packaging
             @"^\w+([.-]\w+)*$",
             RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture);
 
+        private static readonly Regex AllAsciiRegex = RegexEx.CreateWithTimeout(
+            @"^[A-Za-z0-9\-_\.]+$",
+            RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture);
+
         public static bool IsValidPackageId(string packageId)
         {
             if (packageId == null)
@@ -21,12 +25,27 @@ namespace NuGetGallery.Packaging
                 throw new ArgumentNullException(nameof(packageId));
             }
 
-            if (String.Equals(packageId, "$id$", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(packageId, "$id$", StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }
 
             return IdRegex.IsMatch(packageId);
+        }
+
+        public static bool IsAsciiOnlyPackageId(string packageId)
+        {
+            if (packageId == null)
+            {
+                throw new ArgumentNullException(nameof(packageId));
+            }
+
+            if (string.Equals(packageId, "$id$", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            return AllAsciiRegex.IsMatch(packageId);
         }
 
         public static void ValidatePackageId(string packageId)
@@ -45,7 +64,7 @@ namespace NuGetGallery.Packaging
             {
                 throw new ArgumentException(string.Format(
                     CultureInfo.CurrentCulture,
-                    "The package ID '{0}' contains invalid characters. Examples of valid package IDs include 'MyPackage' and 'MyPackage.Sample'.",
+                    "The package ID '{0}' contains invalid characters. Package ID can only contain alphanumeric characters, hyphens, underscores, and periods.",
                     packageId));
             }
         }

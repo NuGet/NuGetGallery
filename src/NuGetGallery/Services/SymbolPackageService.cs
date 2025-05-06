@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -120,7 +120,7 @@ namespace NuGetGallery
             PackageHelper.ValidateNuGetPackageMetadata(metadata);
 
             // Validate nuspec manifest.
-            var errors = ManifestValidator.Validate(symbolPackage.GetNuspec(), out var nuspec, out var packageMetadata).ToArray();
+            var errors = ManifestValidator.Validate(symbolPackage.GetNuspec(), false, out var nuspec, out var packageMetadata).ToArray();
             if (errors.Length > 0)
             {
                 var errorsString = string.Join("', '", errors.Select(error => error.ErrorMessage));
