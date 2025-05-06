@@ -9,6 +9,8 @@ This repository targets multiple C# frameworks:
 * `.NET Standard 2.1`
 * `.NET Standard 2.0`
 
+This repository uses <LangVersion>latest</LangVersion>. Please try to use the latest C# version syntax if available for newly generated code.
+
 Consider these characteristics when generating or modifying code.
 
 ## Nullable Reference Types
@@ -44,9 +46,9 @@ When opting C# code into nullable reference types:
 Examples of properly formatted code:
 
 ```csharp
-Foo ();
-Bar (1, 2, "test");
-myarray [0] = 1;
+Foo();
+Bar(1, 2, "test");
+myarray[0] = 1;
 
 if (someValue)
 {
@@ -57,7 +59,8 @@ try
 {
     // Code here
 }
-catch (Exception e) {
+catch (Exception e)
+{
     // Code here
 }
 ```
