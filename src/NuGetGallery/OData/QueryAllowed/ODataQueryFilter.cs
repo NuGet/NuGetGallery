@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -43,7 +43,7 @@ namespace NuGetGallery.OData.QueryFilter
         /// <param name="fileName"></param>
         public ODataQueryFilter(string fileName)
         {
-            var assembly = Assembly.GetExecutingAssembly();
+            Assembly assembly = typeof(ODataQueryFilter).Assembly;
             using (var sr = new StreamReader(assembly.GetManifestResourceStream($"{ResourcesNamespace}.{fileName}")))
             {
                 var json = sr.ReadToEnd();
