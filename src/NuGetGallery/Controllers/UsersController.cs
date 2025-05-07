@@ -751,19 +751,54 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var packages = PackageService.FindPackagesByOwner(user, includeUnlisted: false)
-                .Where(p => p.PackageStatusKey == PackageStatus.Available)
-                .OrderByDescending(p => p.PackageRegistration.DownloadCount)
-                .Select(p =>
-                {
-                    var viewModel = _listPackageItemViewModelFactory.Create(p, currentUser, false);
-                    viewModel.DownloadCount = p.PackageRegistration.DownloadCount;
-                    return viewModel;
-                }).ToList();
+            var usesDatabasePaging = _featureFlagService.IsProfileLoadOptimizationEnabled();
 
-            var model = new UserProfileModel(user, currentUser, packages, page - 1, GalleryConstants.DefaultPackageListPageSize, Url);
+            var packages = new List<ListPackageItemViewModel>();
+
+            var totalDownloadCount = 0L;
+            var packageCount = 0;
+
+            if (!usesDatabasePaging)
+            {
+                packages = PackageService.FindPackagesByOwner(user, includeUnlisted: false)
+                    .Where(p => p.PackageStatusKey == PackageStatus.Available)
+                    .OrderByDescending(p => p.PackageRegistration.DownloadCount)
+                    .Select(p =>
+                    {
+                        var viewModel = _listPackageItemViewModelFactory.Create(p, currentUser, false);
+                        viewModel.DownloadCount = p.PackageRegistration.DownloadCount;
+                        return viewModel;
+                    }).ToList();
+            }
+            else
+            {
+                var packageResult = PackageService.FindPackagesByProfile(user, page, GalleryConstants.DefaultPackageListPageSize);
+
+                packages = packageResult.Packages
+                    .Select(p =>
+                    {
+                        var viewModel = _listPackageItemViewModelFactory.Create(p, currentUser, false);
+                        viewModel.DownloadCount = p.PackageRegistration.DownloadCount;
+                        return viewModel;
+                    }).ToList();
+
+                totalDownloadCount = packageResult.TotalDownloadCount;
+                packageCount = packageResult.PackageCount;
+            }
+
+            var model = new UserProfileModel(
+                user,
+                currentUser,
+                packages,
+                page - 1,
+                GalleryConstants.DefaultPackageListPageSize,
+                Url,
+                usesDatabasePaging,
+                totalDownloadCount,
+                packageCount);
 
             return View(model);
+
         }
 
         [HttpPost]

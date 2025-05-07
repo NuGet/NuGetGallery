@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
@@ -14,8 +14,10 @@ namespace NuGetGallery.ViewModels
     {
         public class TheTotalDownloadCountProperty : TestContainer
         {
-            [Fact]
-            public void TotalDownloadCount_DoesNotThrowIntegerOverflow()
+            [Theory]
+            [InlineData(true, 4294967294, 2)]
+            [InlineData(false, 0, 0)]
+            public void TotalDownloadCount_DoesNotThrowIntegerOverflow(bool useDatabasePaging, long totalPackageDownloadCount, int packageCount)
             {
                 // Arrange
                 var controller = GetController<UsersController>();
@@ -28,11 +30,12 @@ namespace NuGetGallery.ViewModels
                 };
 
                 // Act
-                var profile = new UserProfileModel(user, currentUser, packages, 0, 10, controller.Url);
+                var profile = new UserProfileModel(user, currentUser, packages, 0, 10, controller.Url, useDatabasePaging, totalPackageDownloadCount, packageCount);
 
                 // Assert
                 long expected = (long)int.MaxValue * 2;
                 Assert.Equal(expected, profile.TotalPackageDownloadCount);
+                Assert.Equal(2, profile.TotalPackages);
             }
 
             [Theory]
@@ -53,7 +56,7 @@ namespace NuGetGallery.ViewModels
                 };
 
                 // Act
-                var profile = new UserProfileModel(user, currentUser, packages, 0, 10, controller.Url);
+                var profile = new UserProfileModel(user, currentUser, packages, 0, 10, controller.Url, false, 0, 0);
 
                 // Assert
                 Assert.Equal(userMfaStatus, profile.HasEnabledMultiFactorAuthentication);
@@ -92,7 +95,7 @@ namespace NuGetGallery.ViewModels
                 };
 
                 // Act
-                var profile = new UserProfileModel(org, currentUser, packages, 0, 10, controller.Url);
+                var profile = new UserProfileModel(org, currentUser, packages, 0, 10, controller.Url, false, 0, 0);
 
                 // Assert
                 Assert.Equal(expectedOrgMfaStatus, profile.HasEnabledMultiFactorAuthentication);
