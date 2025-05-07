@@ -28,10 +28,10 @@ namespace NuGetGallery.ViewModels
                 };
 
                 // Act
-                long expected = (long)int.MaxValue * 2;
-                var profile = new UserProfileModel(user, currentUser, packages, 0, 10, controller.Url, expected, int.MaxValue);
+                var profile = new UserProfileModel(user, currentUser, packages, 0, 10, controller.Url);
 
                 // Assert
+                long expected = (long)int.MaxValue * 2;
                 Assert.Equal(expected, profile.TotalPackageDownloadCount);
             }
 
@@ -53,7 +53,7 @@ namespace NuGetGallery.ViewModels
                 };
 
                 // Act
-                var profile = new UserProfileModel(user, currentUser, packages, 0, 10, controller.Url, int.MaxValue, int.MaxValue);
+                var profile = new UserProfileModel(user, currentUser, packages, 0, 10, controller.Url);
 
                 // Assert
                 Assert.Equal(userMfaStatus, profile.HasEnabledMultiFactorAuthentication);
@@ -92,7 +92,7 @@ namespace NuGetGallery.ViewModels
                 };
 
                 // Act
-                var profile = new UserProfileModel(org, currentUser, packages, 0, 10, controller.Url, int.MaxValue, int.MaxValue);
+                var profile = new UserProfileModel(org, currentUser, packages, 0, 10, controller.Url);
 
                 // Assert
                 Assert.Equal(expectedOrgMfaStatus, profile.HasEnabledMultiFactorAuthentication);
