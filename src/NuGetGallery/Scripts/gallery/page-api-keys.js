@@ -646,8 +646,13 @@
         function ApiKeyListViewModel(initialData) {
             var self = this;
 
+            // Excluding v5
+            var typeToOmit = "apikey.v5";
+
             var apiKeys = $.map(initialData.ApiKeys, function (data) {
-                return new ApiKeyViewModel(self, initialData.PackageOwners, data);
+                if (data.Type !== typeToOmit) {
+                    return new ApiKeyViewModel(self, initialData.PackageOwners, data);
+                } 
             });
             var newApiKey = new ApiKeyViewModel(self, initialData.PackageOwners);
 
