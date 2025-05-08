@@ -3139,6 +3139,9 @@ p.frameworktableinfo-text {
 .page-upload #browse-for-package-button {
   margin: 0;
 }
+.page-upload #input-select-file {
+  display: none;
+}
 .page-upload .readme-tabs {
   margin-top: 0.5em;
 }
