@@ -60,20 +60,6 @@
                 <input name="isOther" type="checkbox" value="true" data-bind="checked: isOther" aria-label="Select Reason: Other."/>
                 <span><b>Other</b></span>
             </label>
-        </div>
-    </div>
-
-    <div data-bind="visible: hasCriticalBugs() || isLegacy() || isOther()">
-        <div class="deprecation-section">
-            <div class="row">
-                <div class="col-sm-8 form-group alternate-package-registration-container" data-bind="css: { 'has-error-brand': chosenAlternatePackageIdError }">
-                    <label for="alternatePackageId" class="deprecation-section-header">Alternate package</label>
-                    <input name="alternatePackageId" class="form-control full-line input-brand" type="text" aria-label="Alternate package ID" data-bind="textInput: chosenAlternatePackageId" />
-                </div>
-                <div class="col-sm-4 form-group alternate-package-container">
-                    <label for="alternatePackageVersion" class="deprecation-section-header">Version</label>
-                    <select class="form-control full-line select-brand" name="alternatePackageVersion" aria-label="Alternate package version" data-bind="options: alternatePackageVersions, value: chosenAlternatePackageVersion, enable: hasAlternatePackageVersions" size="1"></select>
-                </div>s
             </div>
             <div data-bind="visible: chosenAlternatePackageIdError">
                 @ViewHelpers.AlertDanger(@<text><span data-bind="text: chosenAlternatePackageIdError"></span></text>)
@@ -96,4 +82,3 @@
         <button class="btn btn-brand full-line" type="submit" aria-label="Save package deprecation information" data-bind="click: submit, disable: submitDisabled">Save</button>
     </div>
 </script>
-

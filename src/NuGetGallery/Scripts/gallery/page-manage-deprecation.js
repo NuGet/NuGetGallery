@@ -353,4 +353,3 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
         ko.applyBindings(this, section);
     }
 }
-
