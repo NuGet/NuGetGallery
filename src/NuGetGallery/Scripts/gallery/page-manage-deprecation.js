@@ -1,4 +1,4 @@
-'use strict';
+'use strict';s
 
 function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defaultVersion, submitUrl, packageUrl, getAlternatePackageVersionsUrl) {
     var self = this;
@@ -352,4 +352,5 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
     if (section) {
         ko.applyBindings(this, section);
     }
+
 }
