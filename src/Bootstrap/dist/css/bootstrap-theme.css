@@ -2210,10 +2210,6 @@ p.frameworktableinfo-text {
 .page-list-packages .no-margin {
   margin: 0 !important;
 }
-.page-list-packages .frameworkfilters-info {
-  color: var(--neutralForeground1Rest);
-  text-decoration: none;
-}
 @media (max-width: 992px) {
   .page-list-packages .btn-filter {
     text-align: left;
@@ -2248,6 +2244,7 @@ p.frameworktableinfo-text {
 .page-list-packages .framework-filter-info-icon {
   margin-bottom: -6px;
   overflow: hidden;
+  font-size: small;
 }
 .page-list-packages .frameworkGroup {
   display: flex;
@@ -2279,6 +2276,10 @@ p.frameworktableinfo-text {
   font-weight: 500;
   font-size: medium;
   white-space: nowrap;
+}
+.page-list-packages .advanced-search-panel legend .frameworkfilters-info {
+  font-weight: normal;
+  font-size: small;
 }
 .page-list-packages .advanced-search-panel .btn {
   margin-bottom: 10px;
@@ -3137,6 +3138,9 @@ p.frameworktableinfo-text {
 }
 .page-upload #browse-for-package-button {
   margin: 0;
+}
+.page-upload #input-select-file {
+  display: none;
 }
 .page-upload .readme-tabs {
   margin-top: 0.5em;

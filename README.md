@@ -110,7 +110,7 @@ Does it happen when you switch browsers. And so on.
 
 ## Submit a patch
 Before starting work on an issue, either create an issue or comment on an existing issue to ensure that we're all 
-communicating. We have a list of items that are [up for grabs](https://github.com/NuGet/NuGetGallery/issues?q=is%3Aopen+is%3Aissue+label%3A%22Up+for+Grabs%22) and you can start working on (but always ping us beforehand).
+communicating. We have a list of items that are [good first issue](https://github.com/NuGet/NuGetGallery/labels/good%20first%20issue) and you can start working on (but always ping us beforehand).
 
 To contribute to the gallery, make sure to create a fork first. Make your changes in the fork following 
 the Git Workflow. When you are done with your changes, send us a pull request.

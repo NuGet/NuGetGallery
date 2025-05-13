@@ -37,7 +37,8 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
             var configuration = GetDefaultConfiguration();
             var msiConfiguration = GetDefaultStorageMsiConfiguration();
 
-            Assert.ThrowsAny<RequestFailedException>(() => job.InitializeJobConfiguration(GetMockServiceProvider(configuration, msiConfiguration)));
+            var ex = Assert.ThrowsAny<AggregateException>(() => job.InitializeJobConfiguration(GetMockServiceProvider(configuration, msiConfiguration)));
+            Assert.IsType<RequestFailedException>(ex.InnerException);
         }
 
         [Theory]
@@ -46,13 +47,13 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
         [InlineData("AzureAccountConnectionStringDestination", null, typeof(ArgumentException))]
         [InlineData("AzureContainerNameDestination", null, typeof(ArgumentNullException))]
         [InlineData("AzureContainerNameSource", null, typeof(ArgumentNullException))]
-        [InlineData("DestinationFilePrefix", null, typeof(RequestFailedException))]
+        [InlineData("DestinationFilePrefix", null, typeof(AggregateException))]
         // empty values
         [InlineData("AzureAccountConnectionStringSource", "", typeof(ArgumentException))]
         [InlineData("AzureAccountConnectionStringDestination", "", typeof(ArgumentException))]
         [InlineData("AzureContainerNameDestination", "", typeof(ArgumentException))]
         [InlineData("AzureContainerNameSource", "", typeof(ArgumentException))]
-        [InlineData("DestinationFilePrefix", "", typeof(RequestFailedException))]
+        [InlineData("DestinationFilePrefix", "", typeof(AggregateException))]
         public void InitMissingArgArguments(string property, object value, Type exceptionType)
         {
             var job = new Job();
@@ -78,9 +79,9 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
             return new CollectAzureChinaCdnLogsConfiguration
             {
                 // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="Test secret")]
-                AzureAccountConnectionStringSource = "DefaultEndpointsProtocol=https;AccountName=name;AccountKey=cdummy4aadummyAAWhdummyAdummyA6A+dummydoAdummyJqdummymnm+H+2dummyA/dummygdummyqdummyKK==;EndpointSuffix=core.chinacloudapi.cn",
+                AzureAccountConnectionStringSource = "DefaultEndpointsProtocol=https;AccountName=thisstorageaccountnameistoolong;AccountKey=cdummy4aadummyAAWhdummyAdummyA6A+dummydoAdummyJqdummymnm+H+2dummyA/dummygdummyqdummyKK==;EndpointSuffix=core.chinacloudapi.cn",
                 // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="Test secret")]
-                AzureAccountConnectionStringDestination = "DefaultEndpointsProtocol=https;AccountName=name;AccountKey=cdummy4aadummyAAWhdummyAdummyA6A+dummydoAdummyJqdummymnm+H+2dummyA/dummygdummyqdummyKK==;EndpointSuffix=core.windows.net",
+                AzureAccountConnectionStringDestination = "DefaultEndpointsProtocol=https;AccountName=thisstorageaccountnameistoolong;AccountKey=cdummy4aadummyAAWhdummyAdummyA6A+dummydoAdummyJqdummymnm+H+2dummyA/dummygdummyqdummyKK==;EndpointSuffix=core.windows.net",
                 AzureContainerNameDestination = "DestContainer",
                 AzureContainerNameSource = "SourceContainer",
                 DestinationFilePrefix = "SomePrfix",

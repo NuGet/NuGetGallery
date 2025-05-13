@@ -14,6 +14,14 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |      Mircоsoft.EntetyFrameworkCore  version  1.0.0   |      3/13/2025       |  Untrustworthy   |
 |      Micrоsoft.EntetyFrameworkCore  version  1.0.0   |      3/13/2025       |  Untrustworthy   |
 |      Мircosоft.ЕntitуFramеworkСоrе  version  9.0.0   |      3/13/2025       |  Untrustworthy   |
+|      ComPDFKit.NetFramework version  2.4.0   |    4/1/2025      |  Untrustworthy   |
+|      Ewl version  83.0.0-pr00463   |    4/1/2025       |  Untrustworthy   |
+|      WaffleAuth version  2.2.5    |     4/1/2025      |  Untrustworthy   |
+|      WaffleAuth version 2.2.7    |     4/1/2025    |  Untrustworthy   |
+|      WaffleAuth version 2.2.6    |     4/1/2025    |  Untrustworthy   |
+
+
+
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.

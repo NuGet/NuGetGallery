@@ -420,7 +420,7 @@ namespace NuGetGallery
                     PackageArchiveReader packageArchiveReader = CreatePackage(uploadStream);
                     NuspecReader nuspec;
                     PackageMetadata packageMetadata;
-                    var errors = ManifestValidator.Validate(packageArchiveReader.GetNuspec(), out nuspec, out packageMetadata).ToArray();
+                    var errors = ManifestValidator.Validate(packageArchiveReader.GetNuspec(), _featureFlagService.IsAsciiOnlyPackageIdEnabled(), out nuspec, out packageMetadata).ToArray();
                     if (errors.Length > 0)
                     {
                         var errorStrings = new List<JsonValidationMessage>();
@@ -1003,7 +1003,8 @@ namespace NuGetGallery
 
             if (model.IsGitHubUsageEnabled = _featureFlagService.IsGitHubUsageEnabled(currentUser))
             {
-                model.GitHubDependenciesInformation = _contentObjectService.GitHubUsageConfiguration.GetPackageInformation(id);
+                var gitHubUsage = _contentObjectService.GitHubUsageConfiguration.GetPackageInformation(id);
+                model.GitHubDependenciesInformation = new GitHubUsageViewModel(model.ComparableGitHubRepository, gitHubUsage);
             }
 
             // If the normalized version is actually a SemVer but does not match the resolved package version, show a

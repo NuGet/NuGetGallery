@@ -329,5 +329,15 @@ namespace GitHubVulnerabilities2Db.Fakes
         {
             throw new NotImplementedException();
         }
+
+        public bool IsAsciiOnlyPackageIdEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsProfileLoadOptimizationEnabled()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
