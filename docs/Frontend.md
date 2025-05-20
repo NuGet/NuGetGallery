@@ -29,6 +29,8 @@ To compile LESS files:
 
 It might be necessary to perform a "hard refresh" in your browser after running these steps so that the updated `bootstrap.min.css` file is loaded correctly. A hard refresh will reload the page and bypass the cache, ensuring the latest version of the page and its resources (like images and scripts) are loaded from the server. In Edge, Chrome, and Firefox the command for hard refresh is `Ctrl + Shift + R`.
 
+Alternatively, you can disable the cache entirely in the Developer Tools Network tab.
+
 ### Adding a new page
 
 1. Create a new `page-X.less` file in the `src\Bootstrap\less\theme\` directory
