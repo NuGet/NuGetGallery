@@ -488,7 +488,10 @@
 
           .copy-button {
             display: flex;
-            white-space: normal;
+            white-space: nowrap;
+            @media screen and (max-width: @screen-sm) {
+              white-space: pre-wrap;
+            }
 
             button {
               display: flex;

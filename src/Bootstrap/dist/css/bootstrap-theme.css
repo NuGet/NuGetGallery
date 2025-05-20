@@ -1857,7 +1857,12 @@ p.frameworktableinfo-text {
 }
 .page-package-details .install-tabs .tab-content .tab-pane .install-script-row .copy-button {
   display: flex;
-  white-space: normal;
+  white-space: nowrap;
+}
+@media screen and (max-width: 768px) {
+  .page-package-details .install-tabs .tab-content .tab-pane .install-script-row .copy-button {
+    white-space: pre-wrap;
+  }
 }
 .page-package-details .install-tabs .tab-content .tab-pane .install-script-row .copy-button button {
   display: flex;
