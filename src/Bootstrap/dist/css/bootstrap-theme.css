@@ -1857,6 +1857,7 @@ p.frameworktableinfo-text {
 }
 .page-package-details .install-tabs .tab-content .tab-pane .install-script-row .copy-button {
   display: flex;
+  white-space: normal;
 }
 .page-package-details .install-tabs .tab-content .tab-pane .install-script-row .copy-button button {
   display: flex;
@@ -1874,6 +1875,7 @@ p.frameworktableinfo-text {
   color: var(--neutralForeground1Rest);
   justify-content: center;
   align-items: center;
+  align-content: center;
 }
 .page-package-details .install-tabs .tab-content .tab-pane .alert {
   margin: 0;
