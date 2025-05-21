@@ -57,7 +57,7 @@
 
             @if (!User.Identity.IsAuthenticated)
             {
-                <h2 class="ms-fontSize-xl ms-fontWeight-semibold sign-in-link">The above doesn't help? @Html.ActionLink("Sign in", "LogOn", new { controller = "Authentication", ReturnUrl = "/policies/Contact" }) to contact Support.</h2>
+                <h2 class="ms-fontSize-xl ms-fontWeight-semibold sign-in-link">The above doesn't help?&nbsp;@Html.ActionLink("Sign in", "LogOn", new { controller = "Authentication", ReturnUrl = "/policies/Contact" })&nbsp;to contact Support.</h2>
                 <p>
                     Need help with your nuget.org account? Please feel free to <span id="emailUs"></span>.
                 </p>
