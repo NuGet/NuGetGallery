@@ -1453,6 +1453,9 @@ p.frameworktableinfo-text {
 .page-contact a {
   text-decoration: underline;
 }
+.page-contact .sign-in-link a {
+  margin: 0 0.25em;
+}
 .page-delete-account .green-check {
   font-size: 25px;
   color: var(--statusSuccessForeground1Rest);
