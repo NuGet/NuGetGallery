@@ -15,10 +15,10 @@
 </div>
 
 <div class="form-group">
-    <div class="row-checkbox-label">
-        @Html.ShowCheckboxFor(m => m.SoftDelete, customClass: "brand-checkbox")
-        @Html.ShowLabelFor(m => m.SoftDelete)
-    </div>
+    <label class="brand-checkbox">
+        @Html.ShowCheckboxFor(m => m.SoftDelete)
+        <span>@Html.DisplayNameFor(m => m.SoftDelete)</span>
+    </label>
 
     <p>
         This will prevent new packages with the same id and version from being pushed to the gallery. It also displays "Package was deleted" on the package details page, helping existing users of the package to identify it was deleted.
@@ -26,15 +26,15 @@
 </div>
 
 <div class="form-group" id="DeleteEmptyPackageRegistrationContainer" style="display: none;">
-    <div class="row-checkbox-label">
-        @Html.ShowCheckboxFor(m => m.DeleteEmptyPackageRegistration, customClass: "brand-checkbox")
-        @Html.ShowLabelFor(m => m.DeleteEmptyPackageRegistration)
-    </div>
+    <label class="brand-checkbox">
+        @Html.ShowCheckboxFor(m => m.DeleteEmptyPackageRegistration)
+        <span>@Html.DisplayNameFor(m => m.DeleteEmptyPackageRegistration)</span>
+    </label>
 
-        <p>
-            This will make the package id available again by removing the package registration. It's advised not to use this and leave the package registration intact, unless explicitly needed.
-        </p>
-    </div>
+    <p>
+        This will make the package id available again by removing the package registration. It's advised not to use this and leave the package registration intact, unless explicitly needed.
+    </p>
+</div>
 
 <hr />
 <p>

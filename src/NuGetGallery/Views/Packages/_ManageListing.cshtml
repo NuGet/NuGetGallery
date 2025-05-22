@@ -52,8 +52,10 @@
                     @Html.Hidden("version", @Model.Version, new { id = "input-list-package" })
                     <div class="form-group @Html.HasErrorFor(package => package.Listed)">
                         <div class="row-checkbox-label">
-                            @Html.ShowCheckboxFor(package => package.Listed, customClass: "brand-checkbox")
-                            @Html.ShowLabelFor(package => package.Listed, "List in search results.", isrequired: false)
+                            <label class="brand-checkbox">
+                                @Html.ShowCheckboxFor(package => package.Listed)
+                                <span>List in search results.</span>
+                            </label>
                         </div>
                         @Html.ShowValidationMessagesFor(package => package.Listed)
 
