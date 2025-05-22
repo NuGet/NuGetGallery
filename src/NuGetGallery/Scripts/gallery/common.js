@@ -476,7 +476,7 @@
 
     const searchFilterStorageKey = "nuget-search-filters";
 
-    function getSearchFilterParams() {
+    function getStoredSearchFilterParams() {
         try {
             const value = localStorage.getItem(searchFilterStorageKey);
             if (value) {
@@ -497,8 +497,7 @@
             return url;
         }
 
-        const parser = document.createElement('a');
-        parser.href = url;
+        const parser = new URL(url);
 
         // Sanity check. URL should contain "packages" portion, e.g. "http://localhost/packages?q=&text"
         let pathName = '/' + parser.pathname.toLowerCase() + '/';
@@ -539,7 +538,7 @@
             return;
         }
 
-        const searchParams = getSearchFilterParams();
+        const searchParams = getStoredSearchFilterParams();
         if (!searchParams) {
             return;
         }
@@ -607,7 +606,7 @@
 
     nuget.updateSearchLinksWithSavedParams = function () {
         // Update all <a name="Packages"> hrefs on document to include search params.
-        const searchParams = getSearchFilterParams();
+        const searchParams = getStoredSearchFilterParams();
         if (searchParams) {
             const links = document.querySelectorAll('a[name="Packages"]');
             for (var i = 0; i < links.length; i++) {
