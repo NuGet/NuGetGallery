@@ -492,44 +492,14 @@
         return undefined;
     }
 
-    function updateUrlSearchFilterParams(searchParams, url) {
-        if (!searchParams || !url) {
-            return url;
-        }
-
-        const parser = new URL(url);
-
+    function updatePackagesLinkWithSearchFilterParams(a, searchParams) {
         // Sanity check. URL should contain "packages" portion, e.g. "http://localhost/packages?q=&text"
-        let pathName = '/' + parser.pathname.toLowerCase() + '/';
-        if (!pathName.includes('/packages/')) {
-            return url;
+        const url = new URL(a.href);
+        const pathName = '/' + url.pathname.toLowerCase() + '/';
+        if (pathName.includes('/packages/')) {
+            Object.entries(searchParams).forEach(([key, value]) => url.searchParams.set(key, value));
         }
-
-        // Parse the incoming URL
-        const query = parser.search.substring(1);
-        var urlParams = {};
-        if (query.length > 0) {
-            const pairs = query.split('&');
-            for (let i = 0; i < pairs.length; i++) {
-                const pair = pairs[i].split('=');
-                const key = decodeURIComponent(pair[0]);
-                urlParams[key] = pair.length > 1 ? decodeURIComponent(pair[1]) : '';
-            }
-        }
-
-        // Update URL params with the search filter ones
-        for (const key in searchParams) {
-            urlParams[key] = searchParams[key];
-        }
-
-        const newQuery = Object.keys(urlParams)
-            .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(urlParams[key]))
-            .join('&');
-
-        // Build the new URL
-        const baseUrl = parser.protocol + '//' + parser.host + parser.pathname + '?';
-        const hash = parser.hash || '';
-        return baseUrl + newQuery + hash;
+        a.href = url.href;
     }
 
     function addSearchFilterInputsToSimpleSearchForm() {
@@ -546,7 +516,7 @@
         // Update existing input elements or create new hidden ones
         for (const key in searchParams) {
             if (!Object.prototype.hasOwnProperty.call(searchParams, key)) continue;
-            let input = searchForm.querySelector('input[id="' + key + '"]');
+            let input = searchForm.querySelector('input[name="' + key + '"]');
             if (input) {
                 input.value = searchParams[key];
             } else {
@@ -570,23 +540,11 @@
     nuget.saveSearchFilterParams = function (url) {
         // Parse URL like "/packages?tfms=net8.0&packagetype=dotnettool&prerel=false"
         // and store specific params for later reuse.
-        const parser = document.createElement('a');
-        parser.href = url;
-        const query = parser.search.substring(1);
+        const parser = new URL(url);
         const params = {};
-        if (query.length > 0) {
-            const pairs = query.split('&');
-            for (let i = 0; i < pairs.length; i++) {
-                const pair = pairs[i].split('=');  // e.g. tfms=net8.0
-                if (pair.length == 2) {
-                    const key = decodeURIComponent(pair[0]);  // e.g. tfms
-                    if (searchFilterParamNames.indexOf(key) !== -1) {
-                        const value = decodeURIComponent(pair[1]); // e.g. net8.0
-                        if (value !== '') {
-                            params[key] = value;
-                        }
-                    }
-                }
+        for (const [key, value] of parser.searchParams.entries()) {
+            if (searchFilterParamNames.indexOf(key) !== -1 && value !== '') {
+                params[key] = value;
             }
         }
 
@@ -608,11 +566,7 @@
         // Update all <a name="Packages"> hrefs on document to include search params.
         const searchParams = getStoredSearchFilterParams();
         if (searchParams) {
-            const links = document.querySelectorAll('a[name="Packages"]');
-            for (var i = 0; i < links.length; i++) {
-                const link = links[i];
-                link.href = updateUrlSearchFilterParams(searchParams, link.href);
-            }
+            document.querySelectorAll('a[name="Packages"]').forEach(a => updatePackagesLinkWithSearchFilterParams(a, searchParams));
         }
     }
 
