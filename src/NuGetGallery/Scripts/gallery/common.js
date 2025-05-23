@@ -558,7 +558,9 @@
             const links = $('a.link-to-add-local-search-filters'); // MUST MATCH UrlHelperExtensions.cs
             links.each(function () {
                 const url = new URL(this.href);
-                Object.entries(searchParams).forEach(([key, value]) => url.searchParams.set(key, value));
+                $.each(searchParams, function (key, value) {
+                    url.searchParams.set(key, value);
+                });
                 this.href = url.href;
             });
         }
