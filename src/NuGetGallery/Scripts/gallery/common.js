@@ -492,40 +492,29 @@
         return undefined;
     }
 
-    function updatePackagesLinkWithSearchFilterParams(a, searchParams) {
-        // Sanity check. URL should contain "packages" portion, e.g. "http://localhost/packages?q=&text"
-        const url = new URL(a.href);
-        const pathName = '/' + url.pathname.toLowerCase() + '/';
-        if (pathName.includes('/packages/')) {
-            Object.entries(searchParams).forEach(([key, value]) => url.searchParams.set(key, value));
-        }
-        a.href = url.href;
-    }
-
     function addSearchFilterInputsToSimpleSearchForm() {
-        const searchForm = document.querySelector('form[name="simple-search"]');
-        if (!searchForm) {
-            return;
-        }
-
         const searchParams = getStoredSearchFilterParams();
         if (!searchParams) {
             return;
         }
 
+        const searchForm = $("#form-to-add-local-search-filters"); // MUST MATCH UrlHelperExtensions.cs
+        if (!searchForm.length) {
+            return;
+        }
+
         // Update existing input elements or create new hidden ones
         for (const key in searchParams) {
-            if (!Object.prototype.hasOwnProperty.call(searchParams, key)) continue;
-            let input = searchForm.querySelector('input[name="' + key + '"]');
-            if (input) {
-                input.value = searchParams[key];
+            let input = searchForm.find('input[name="' + key + '"]');
+            if (input.length) {
+                input.val(searchParams[key]);
             } else {
-                input = document.createElement('input');
-                input.type = 'hidden';
-                input.id = key;
-                input.name = key;
-                input.value = searchParams[key];
-                searchForm.appendChild(input);
+                $('<input>', {
+                    type: 'hidden',
+                    id: key,
+                    name: key,
+                    value: searchParams[key]
+                }).appendTo(searchForm);
             }
         }
     }
@@ -563,10 +552,15 @@
     }
 
     nuget.updateSearchLinksWithSavedParams = function () {
-        // Update all <a name="Packages"> hrefs on document to include search params.
+        // Update all specially marked <a> elements to include localy stored search params.
         const searchParams = getStoredSearchFilterParams();
         if (searchParams) {
-            document.querySelectorAll('a[name="Packages"]').forEach(a => updatePackagesLinkWithSearchFilterParams(a, searchParams));
+            const links = $('a.link-to-add-local-search-filters'); // MUST MATCH UrlHelperExtensions.cs
+            links.each(function () {
+                const url = new URL(this.href);
+                Object.entries(searchParams).forEach(([key, value]) => url.searchParams.set(key, value));
+                this.href = url.href;
+            });
         }
     }
 
