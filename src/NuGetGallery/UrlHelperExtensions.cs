@@ -247,12 +247,6 @@ namespace NuGetGallery
             return GetRouteLink(url, RouteName.ListPackages, relativeUrl);
         }
 
-        //public static string PackagesLinkId(this UrlHelper url)
-        //{
-        //    // MUST MATCH common.js. Used to add localy stored search params
-        //    return "packagesLink";
-        //}
-
         /// <summary>
         /// Initializes a package registration link that can be resolved at a later time.
         /// 
