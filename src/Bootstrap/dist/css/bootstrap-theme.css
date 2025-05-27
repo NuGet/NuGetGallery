@@ -1200,6 +1200,34 @@ p.frameworktableinfo-text {
   color: var(--statusDangerStroke2Rest);
   content: " *";
 }
+.page-admin-add-flight .brand-checkbox-group {
+  padding-left: 0;
+  padding-right: 0;
+  display: flex;
+  justify-content: space-around;
+}
+.page-admin-add-flight label.brand-checkbox {
+  flex-direction: column;
+  align-items: center;
+  padding-right: 0;
+}
+.page-admin-add-flight .brand-checkbox span {
+  text-align: center;
+}
+.page-admin-edit-flight .brand-checkbox-group {
+  padding-left: 0;
+  padding-right: 0;
+  display: flex;
+  justify-content: space-around;
+}
+.page-admin-edit-flight label.brand-checkbox {
+  flex-direction: column;
+  align-items: center;
+  padding-right: 0;
+}
+.page-admin-edit-flight .brand-checkbox span {
+  text-align: center;
+}
 .page-admin-index h2 {
   margin-bottom: 8px;
   margin-top: 8px;
