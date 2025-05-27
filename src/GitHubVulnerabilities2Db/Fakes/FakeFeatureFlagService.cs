@@ -245,6 +245,11 @@ namespace GitHubVulnerabilities2Db.Fakes
             throw new NotImplementedException();
         }
 
+        public bool IsPackagesAtomFeedCombinedAuthorsEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsPreviewHijackEnabled()
         {
             throw new NotImplementedException();

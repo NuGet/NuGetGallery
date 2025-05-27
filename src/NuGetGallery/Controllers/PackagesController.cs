@@ -1179,9 +1179,17 @@ namespace NuGetGallery
             List<SyndicationItem> feedItems = new List<SyndicationItem>();
 
             List<SyndicationPerson> ownersAsAuthors = new List<SyndicationPerson>();
-            foreach (var packageOwner in packageRegistration.Owners)
+            if (_featureFlagService.IsPackagesAtomFeedCombinedAuthorsEnabled())
             {
-                ownersAsAuthors.Add(new SyndicationPerson() { Name = packageOwner.Username, Uri = Url.User(packageOwner, relativeUrl: false) });
+                var combinedAuthors = string.Join(", ", packageRegistration.Owners.Select(o => o.Username));
+                ownersAsAuthors.Add(new SyndicationPerson() { Name = combinedAuthors });
+            }
+            else
+            {
+                foreach (var packageOwner in packageRegistration.Owners)
+                {
+                    ownersAsAuthors.Add(new SyndicationPerson() { Name = packageOwner.Username, Uri = Url.User(packageOwner, relativeUrl: false) });
+                }
             }
 
             foreach (var packageVersion in packageVersions)
