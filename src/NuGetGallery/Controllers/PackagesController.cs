@@ -1181,7 +1181,11 @@ namespace NuGetGallery
             List<SyndicationPerson> ownersAsAuthors = new List<SyndicationPerson>();
             if (_featureFlagService.IsPackagesAtomFeedCombinedAuthorsEnabled())
             {
-                var combinedAuthors = string.Join(", ", packageRegistration.Owners.Select(o => o.Username));
+                var sortedOwners = packageRegistration
+                    .Owners
+                    .Select(o => o.Username)
+                    .OrderBy(o => o, StringComparer.OrdinalIgnoreCase);
+                var combinedAuthors = string.Join(", ", sortedOwners);
                 ownersAsAuthors.Add(new SyndicationPerson() { Name = combinedAuthors });
             }
             else
