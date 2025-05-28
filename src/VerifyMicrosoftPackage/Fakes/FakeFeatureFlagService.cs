@@ -22,6 +22,8 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
 
         public bool IsPackagesAtomFeedEnabled() => throw new NotImplementedException();
 
+        public bool IsPackagesAtomFeedCombinedAuthorsEnabled() => throw new NotImplementedException();
+
         public bool IsManageDeprecationEnabled(User user, PackageRegistration registration) => throw new NotImplementedException();
 
         public bool IsManageDeprecationEnabled(User user, IEnumerable<Package> allVersions) => throw new NotImplementedException();
