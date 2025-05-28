@@ -19,7 +19,7 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |      WaffleAuth version  2.2.5    |     4/1/2025      |  Untrustworthy   |
 |      WaffleAuth version 2.2.7    |     4/1/2025    |  Untrustworthy   |
 |      WaffleAuth version 2.2.6    |     4/1/2025    |  Untrustworthy   |
-|     RESXManager 1.7.0  |     5/28/2025    |  Untrustworthy   |
+|     RESXManager 1.7.0  |     5/28/2025    | Spam   |
 
 
 
