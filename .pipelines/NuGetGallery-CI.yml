@@ -34,7 +34,7 @@ variables:
   - name: NuGetGalleryBranch
     value: $(Build.SourceBranchName)
   - name: SemverFriendlyBranchName
-    value: ${{ replace(variables.NuGetGalleryBranch, '_', '-') }}
+    value: ${{ replace(replace(variables.NuGetGalleryBranch, '_', '-'), '/', '-') }}
 
 resources:
   repositories:
