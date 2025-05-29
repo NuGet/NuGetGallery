@@ -213,12 +213,24 @@
                 AlertMessage = "#r directive can be used in F# Interactive and Polyglot Notebooks. Copy this into the interactive tool or source code of the script to reference the package."
             },
 
+            new PackageManagerViewModel(
+                "dotnet-run-file",
+                "File-based Programs",
+                new PackageManagerViewModel.InstallPackageCommand(
+                    string.Format("#:package {0}@{1}", Model.Id, Model.Version)
+                )
+            )
+            {
+                AlertLevel = AlertLevel.Info,
+                AlertMessage = "#:package directive can be used in C# file-based programs starting in .NET 10. Copy this into the top of a .cs file to reference the package."
+            },
+
             new ThirdPartyPackageManagerViewModel(
                 Model.IsCakeExtension() ? "cake-extension" : "cake",
                 "Cake",
                 "https://cakebuild.net/support/nuget",
                 Model.GetCakeInstallPackageCommands()
-                )
+            )
         };
     }
 }
