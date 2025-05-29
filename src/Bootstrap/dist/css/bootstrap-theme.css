@@ -2009,6 +2009,10 @@ p.frameworktableinfo-text {
 .page-package-details .body-tab-content #readme-tab img {
   max-width: 100%;
 }
+.page-package-details .info-icon {
+  vertical-align: -2px;
+  color: var(--brandStrokeCompoundRest);
+}
 .page-downloads .list-tools li {
   margin-top: 20px;
 }

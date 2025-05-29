@@ -962,7 +962,19 @@
                                 <tr>
                                     <th scope="col" role="columnheader">Version</th>
                                     <th scope="col" role="columnheader">Downloads</th>
-                                    <th scope="col" role="columnheader">Last updated</th>
+                                    @if (Model.CanDisplayPrivateMetadata)
+                                    {
+                                        <th scope="col" role="columnheader">
+                                            Last updated <i class="ms-Icon ms-Icon--Info info-icon" title="The individual who pushed the latest update, or the organization if pushed by a co-owner who isn't a member." aria-hidden="true"></i>
+                                        </th>
+                                    }
+                                    else
+                                    {
+                                        <th scope="col" role="columnheader">
+                                            Last updated
+                                        </th>
+                                    }
+
                                     @if (Model.CanDisplayPrivateMetadata)
                                     {
                                         <th scope="col" role="columnheader">Status</th>
