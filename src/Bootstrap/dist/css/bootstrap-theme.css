@@ -2010,8 +2010,7 @@ p.frameworktableinfo-text {
   max-width: 100%;
 }
 .page-package-details .info-icon {
-  vertical-align: -2px;
-  color: var(--brandStrokeCompoundRest);
+  vertical-align: bottom;
 }
 .page-downloads .list-tools li {
   margin-top: 20px;

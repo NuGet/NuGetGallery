@@ -962,18 +962,23 @@
                                 <tr>
                                     <th scope="col" role="columnheader">Version</th>
                                     <th scope="col" role="columnheader">Downloads</th>
-                                    @if (Model.CanDisplayPrivateMetadata)
-                                    {
-                                        <th scope="col" role="columnheader">
-                                            Last updated <i class="ms-Icon ms-Icon--Info info-icon" title="The individual who pushed the latest update, or the organization if pushed by a co-owner who isn't a member." aria-hidden="true"></i>
-                                        </th>
-                                    }
-                                    else
-                                    {
-                                        <th scope="col" role="columnheader">
-                                            Last updated
-                                        </th>
-                                    }
+                                    <th scope="col" role="columnheader">
+                                        Last Updated
+                                        @if (Model.CanDisplayPrivateMetadata)
+                                        {
+                                            <a class="tooltip-target" href="javascript:void(0)" role="button" aria-labelledby="lastupdatedid">
+                                                <i class="ms-Icon ms-Icon--Info info-icon"></i>
+                                                <span class="tooltip-block" role="tooltip" id="lastupdatedid">
+                                                    <span class="tooltip-wrapper tooltip-with-icon popover right">
+                                                        <span class="arrow"></span>
+                                                        <span class="popover-content">
+                                                            The individual who pushed the latest update, or the organization if pushed by a co-owner who isn't a member.
+                                                        </span>
+                                                    </span>
+                                                </span>
+                                            </a>
+                                        }
+                                    </th>
 
                                     @if (Model.CanDisplayPrivateMetadata)
                                     {
