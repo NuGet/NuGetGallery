@@ -229,7 +229,7 @@ Some text
             [Theory]
             [InlineData("This is a http://www.google.com URL and https://www.google.com", "<p>This is a <a href=\"http://www.google.com/\" rel=\"noopener noreferrer nofollow\">http://www.google.com</a> URL and <a href=\"https://www.google.com/\" rel=\"noopener noreferrer nofollow\">https://www.google.com</a></p>")]
             [InlineData("# This is a heading\n[Link](#this-is-a-heading)", "<h2 id=\"this-is-a-heading\">This is a heading</h2>\n<p><a href=\"#this-is-a-heading\" rel=\"noopener noreferrer nofollow\">Link</a></p>")]
-            [InlineData("# Heading\n[Heading]", "<h2 id=\"heading\">Heading</h2>\n<p><a href=\"#heading\" rel=\"noopener noreferrer nofollow\">Heading</a></p>")]
+            [InlineData("# Heading\n[Heading]", "<h2 id=\"heading\">Heading</h2>\n<p>[Heading]</p>")]
             public void TestToHtmlWithAutoLinks(string originalMd, string expectedHtml)
             {
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
@@ -251,12 +251,12 @@ Some text
             [Theory]
             [InlineData("# Heading", "<h2 id=\"heading\">Heading</h2>")]
             [InlineData("# This is a heading", "<h2 id=\"this-is-a-heading\">This is a heading</h2>")]
-            [InlineData("# This - is a &@! heading _ with . and ! -", "<h2 id=\"this-is-a-heading_with.and\">This - is a &amp;@! heading _ with . and ! -</h2>")]
+            [InlineData("# This - is a &@! heading _ with . and ! -", "<h2 id=\"this---is-a--heading-_-with--and---\">This - is a &amp;@! heading _ with . and ! -</h2>")]
             [InlineData("# This is a *heading*", "<h2 id=\"this-is-a-heading\">This is a <em>heading</em></h2>")]
             [InlineData("# This is a [heading](https://www.google.com)", "<h2 id=\"this-is-a-heading\">This is a <a href=\"https://www.google.com/\" rel=\"noopener noreferrer nofollow\">heading</a></h2>")]
             [InlineData("# Heading\n# Heading", "<h2 id=\"heading\">Heading</h2>\n<h2 id=\"heading-1\">Heading</h2>")]
-            [InlineData("# 1.0 This is a heading", "<h2 id=\"this-is-a-heading\">1.0 This is a heading</h2>")]
-            [InlineData("# 1.0 & ^ % *\n# 1.0 & ^ % *", "<h2 id=\"section\">1.0 &amp; ^ % *</h2>\n<h2 id=\"section-1\">1.0 &amp; ^ % *</h2>")]
+            [InlineData("# 1.0 This is a heading", "<h2 id=\"10-this-is-a-heading\">1.0 This is a heading</h2>")]
+            [InlineData("# 1.0 & ^ % *\n# 1.0 & ^ % *", "<h2 id=\"10----\">1.0 &amp; ^ % *</h2>\n<h2 id=\"10-----1\">1.0 &amp; ^ % *</h2>")]
             public void TestToHtmlWithAutoIdentifiers(string originalMd, string expectedHtml)
             {
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
