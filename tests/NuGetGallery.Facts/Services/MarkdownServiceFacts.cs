@@ -251,6 +251,7 @@ Some text
             [Theory]
             [InlineData("# Heading", "<h2 id=\"heading\">Heading</h2>")]
             [InlineData("# This is a heading", "<h2 id=\"this-is-a-heading\">This is a heading</h2>")]
+            [InlineData("# This .is a heading", "<h2 id=\"this-is-a-heading\">This .is a heading</h2>")]
             [InlineData("# This - is a &@! heading _ with . and ! -", "<h2 id=\"this---is-a--heading-_-with--and---\">This - is a &amp;@! heading _ with . and ! -</h2>")]
             [InlineData("# This is a *heading*", "<h2 id=\"this-is-a-heading\">This is a <em>heading</em></h2>")]
             [InlineData("# This is a [heading](https://www.google.com)", "<h2 id=\"this-is-a-heading\">This is a <a href=\"https://www.google.com/\" rel=\"noopener noreferrer nofollow\">heading</a></h2>")]
