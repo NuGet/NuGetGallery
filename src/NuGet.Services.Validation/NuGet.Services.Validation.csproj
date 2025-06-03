@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Core" />
-    <PackageReference Include="EntityFramework" />
+    <PackageReference Include="Microsoft.EntityFramework.SqlServer" />
     <PackageReference Include="NuGet.Versioning" />
     <PackageReference Include="System.Text.Json" />
   </ItemGroup>
