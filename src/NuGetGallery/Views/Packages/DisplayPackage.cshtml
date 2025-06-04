@@ -134,7 +134,8 @@
 
             new PackageManagerViewModel(
                 "package-manager",
-                "Package Manager",
+                "PMC",
+                "Package Manager Console",
                 new PackageManagerViewModel.InstallPackageCommand(
                     string.Format("NuGet\\Install-Package {0} -Version {1}", Model.Id, Model.Version)
                 )
@@ -168,6 +169,7 @@
 
             new PackageManagerViewModel(
                 "package-version",
+                "CPM",
                 "Central Package Management",
                 new PackageManagerViewModel.InstallPackageCommand(
                     "Directory.Packages.props",
@@ -262,7 +264,7 @@
            id="@packageManager.Id-tab" class="package-manager-tab"
            aria-selected="@(active ? "true" : "false")" tabindex="@(active ? "0" : "-1")"
            aria-controls="@packageManager.Id" role="tab" data-toggle="tab"
-           title="Switch to tab panel which contains package installation command for @packageManager.Name">
+           title="Switch to tab panel which contains package installation command for @(string.IsNullOrWhiteSpace(packageManager.InitialismExplanation) ? packageManager.Name : packageManager.InitialismExplanation)">
             @packageManager.Name
         </a>
     </li>
