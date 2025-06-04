@@ -215,14 +215,14 @@
 
             new PackageManagerViewModel(
                 "dotnet-run-file",
-                "File-based Programs",
+                "File-based Apps",
                 new PackageManagerViewModel.InstallPackageCommand(
                     string.Format("#:package {0}@{1}", Model.Id, Model.Version)
                 )
             )
             {
                 AlertLevel = AlertLevel.Info,
-                AlertMessage = "#:package directive can be used in C# file-based programs starting in .NET 10. Copy this into the top of a .cs file to reference the package."
+                AlertMessage = "#:package directive can be used in C# file-based apps starting in .NET 10 preview 4. Copy this into a .cs file before any lines of code to reference the package."
             },
 
             new ThirdPartyPackageManagerViewModel(
