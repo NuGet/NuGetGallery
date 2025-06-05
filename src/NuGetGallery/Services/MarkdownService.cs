@@ -9,6 +9,7 @@ using CommonMark;
 using CommonMark.Syntax;
 using Ganss.Xss;
 using Markdig;
+using Markdig.Extensions.AutoIdentifiers;
 using Markdig.Extensions.EmphasisExtras;
 using Markdig.Renderers;
 using Markdig.Syntax;
@@ -233,7 +234,7 @@ namespace NuGetGallery
                 .UseAutoLinks()
                 .UseAlertBlocks()
                 .UseReferralLinks("noopener noreferrer nofollow")
-                .UseAutoIdentifiers()
+                .UseAutoIdentifiers(AutoIdentifierOptions.GitHub)
                 .UseEmphasisExtras(EmphasisExtraOptions.Strikethrough)
                 .DisableHtml() //block inline html
                 .UseBootstrap()
