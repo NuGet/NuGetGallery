@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 
 function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defaultVersion, submitUrl, packageUrl, getAlternatePackageVersionsUrl) {
     var self = this;
@@ -61,6 +61,62 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
         }
 
         return warningMessage;
+    }, this);
+
+    this.chosenItemsHasUndeprecatedVersion = ko.pureComputed(function () {
+        var chosenItems = self.dropdown.chosenItems();
+        var hasVersionsWithNoDeprecationState = false;
+
+        if (chosenItems.length === 0) {
+            // If nothing is selected, an error will show
+            // No need to show a warning in addition to the error
+            return null;
+        }
+
+        for (var i in chosenItems) {
+            var version = chosenItems[i];
+            var versionData = versionDeprecationStateDictionary[version];
+            if (!versionData) {
+                // It shouldn't be possible to select a version that didn't exist when the page loaded.
+                // In case there is a bug and the user did select a valid version, continue on anyway.
+                continue;
+            }
+
+            if (!(versionData.IsLegacy || versionData.HasCriticalBugs || versionData.IsOther)) {
+                hasVersionsWithNoDeprecationState = true;
+            }
+
+        }
+
+        return hasVersionsWithNoDeprecationState;
+    }, this);
+
+    this.chosenItemsHasDeprecatedVersion = ko.pureComputed(function () {
+        var chosenItems = self.dropdown.chosenItems();
+        var hasVersionsWithNoDeprecationState = false;
+
+        if (chosenItems.length === 0) {
+            // If nothing is selected, an error will show
+            // No need to show a warning in addition to the error
+            return null;
+        }
+
+        for (var i in chosenItems) {
+            var version = chosenItems[i];
+            var versionData = versionDeprecationStateDictionary[version];
+            if (!versionData) {
+                // It shouldn't be possible to select a version that didn't exist when the page loaded.
+                // In case there is a bug and the user did select a valid version, continue on anyway.
+                continue;
+            }
+
+            if ((versionData.IsLegacy || versionData.HasCriticalBugs || versionData.IsOther)) {
+                hasVersionsWithNoDeprecationState = true;
+            }
+
+        }
+
+        return hasVersionsWithNoDeprecationState;
     }, this);
 
     this.isLegacy = ko.observable(false);
