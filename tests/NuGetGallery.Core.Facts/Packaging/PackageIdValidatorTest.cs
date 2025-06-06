@@ -70,7 +70,7 @@ namespace NuGetGallery.Packaging
             }
 
             Assert.NotNull(thrownException);
-            Assert.Equal("The package ID '" + packageId + "' contains invalid characters. Examples of valid package IDs include 'MyPackage' and 'MyPackage.Sample'.", thrownException.Message);
+            Assert.Equal("The package ID '" + packageId + "' contains invalid characters. Package ID can only contain alphanumeric characters, hyphens, underscores, and periods.", thrownException.Message);
         }
 
         [Theory]
