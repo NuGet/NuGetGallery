@@ -14,10 +14,6 @@ namespace NuGetGallery.Packaging
             @"^\w+([.-]\w+)*$",
             RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture);
 
-        private static readonly Regex AllAsciiRegex = RegexEx.CreateWithTimeout(
-            @"^[A-Za-z0-9\-_\.]+$",
-            RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture);
-
         public static bool IsValidPackageId(string packageId)
         {
             if (packageId == null)
@@ -31,21 +27,6 @@ namespace NuGetGallery.Packaging
             }
 
             return IdRegex.IsMatch(packageId);
-        }
-
-        public static bool IsAsciiOnlyPackageId(string packageId)
-        {
-            if (packageId == null)
-            {
-                throw new ArgumentNullException(nameof(packageId));
-            }
-
-            if (string.Equals(packageId, "$id$", StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-
-            return AllAsciiRegex.IsMatch(packageId);
         }
 
         public static void ValidatePackageId(string packageId)
