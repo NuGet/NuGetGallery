@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -364,22 +364,6 @@ namespace NuGetGallery.Packaging
                   </metadata>
                 </package>";
 
-        private const string NuSpecNonAsciiId = @"<?xml version=""1.0""?>
-                <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
-                    <metadata>
-                    <id>пакет</id>
-                    <version>1.0.1-alpha</version>
-                    <title>Package A</title>
-                    <authors>ownera, ownerb</authors>
-                    <owners>ownera, ownerb</owners>
-                    <requireLicenseAcceptance>false</requireLicenseAcceptance>
-                    <description>package A description.</description>
-                    <language>en-US</language>
-                    <dependencies />
-                    </metadata>
-                </package>";
-
-
         [Fact]
         public void ReturnsErrorIfIdNotPresent()
         {
@@ -577,37 +561,23 @@ namespace NuGetGallery.Packaging
             var nuspecStream = CreateNuspecStream(NuSpecSemVer200);
 
             // Act
-            ManifestValidator.Validate(nuspecStream, false, out var reader, out var packageMetadata);
+            ManifestValidator.Validate(nuspecStream, out var reader, out var packageMetadata);
 
             // Assert
             Assert.NotNull(packageMetadata);
         }
 
-        [Fact]
-        public void BlocksNonAsciiPackageIdsIfEnabled()
-        {
-            // Arrange
-            var nuspecStream = CreateNuspecStream(NuSpecNonAsciiId);
-
-            // Act
-            var errors = ManifestValidator.Validate(nuspecStream, true, out var reader, out var packageMetadata).ToList();
-
-            // Assert
-            Assert.NotEmpty(errors);
-            Assert.Contains(errors, error => error.ErrorMessage.Contains("ASCII"));
-        }
-
         private static string[] GetErrors(Stream nuspecStream)
         {
             return ManifestValidator
-                .Validate(nuspecStream, false, out var reader, out var metadata)
+                .Validate(nuspecStream, out var reader, out var metadata)
                 .Select(r => r.ErrorMessage)
                 .ToArray();
         }
 
         private static Stream CreateNuspecStream(string nuspec)
         {
-            byte[] byteArray = Encoding.UTF8.GetBytes(nuspec);
+            byte[] byteArray = Encoding.ASCII.GetBytes(nuspec);
             return new MemoryStream(byteArray);
         }
     }

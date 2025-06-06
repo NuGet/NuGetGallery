@@ -137,9 +137,7 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
         public bool IsAdvancedFrameworkFilteringEnabled(User user) => throw new NotImplementedException();
 
         public bool CanUseFederatedCredentials(User user) => throw new NotImplementedException();
-
-        public bool IsAsciiOnlyPackageIdEnabled() => throw new NotImplementedException();
-
+        
         public bool IsProfileLoadOptimizationEnabled() => throw new NotImplementedException();
     }
 }
