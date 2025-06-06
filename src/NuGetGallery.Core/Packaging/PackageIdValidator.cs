@@ -21,7 +21,7 @@ namespace NuGetGallery.Packaging
                 throw new ArgumentNullException(nameof(packageId));
             }
 
-            if (String.Equals(packageId, "$id$", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(packageId, "$id$", StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }
@@ -45,7 +45,7 @@ namespace NuGetGallery.Packaging
             {
                 throw new ArgumentException(string.Format(
                     CultureInfo.CurrentCulture,
-                    "The package ID '{0}' contains invalid characters. Examples of valid package IDs include 'MyPackage' and 'MyPackage.Sample'.",
+                    "The package ID '{0}' contains invalid characters. Package ID can only contain alphanumeric characters, hyphens, underscores, and periods.",
                     packageId));
             }
         }
