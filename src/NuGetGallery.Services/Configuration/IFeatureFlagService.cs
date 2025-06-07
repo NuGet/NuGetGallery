@@ -352,5 +352,9 @@ namespace NuGetGallery
         /// Whether or not only ASCII characters are allowed in PackageId, used for temporary block unicode.
         /// </summary>
         bool IsAsciiOnlyPackageIdEnabled();
+
+        /// <summary>
+        /// Whether or not new paging method is used for the profile page.
+        bool IsProfileLoadOptimizationEnabled();
     }
 }
