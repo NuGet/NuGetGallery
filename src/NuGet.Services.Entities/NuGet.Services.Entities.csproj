@@ -11,7 +11,7 @@
     <PackageReference Include="NuGet.Frameworks" />
     <PackageReference Include="System.ComponentModel.Annotations" />
     <!-- This was lifted to a top-level dependency to resolve a Component Governance alert. -->
-    <PackageReference Include="System.Data.SqlClient" />
+    <PackageReference Include="Microsoft.Data.SqlClient" />
   </ItemGroup>
 
   <ItemGroup>

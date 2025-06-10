@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -6,10 +6,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Jobs.Validation;
@@ -739,19 +739,20 @@ namespace NuGet.Services.Validation
                     types: new[]
                     {
                         typeof (int), typeof (byte), typeof (byte), typeof (string), typeof(string), typeof (string),
-                        typeof (int), typeof (uint)
+                        typeof (int), typeof(Exception)
                     },
                     modifiers: null);
+
                 var error = errorConstructor.Invoke(new object[]
                 {
-                    number,
-                    (byte)0,
-                    (byte)0,
-                    "server",
-                    "errMsg",
-                    "procedure",
-                    100,
-                    (uint)0
+                    number, /* infoNumber */
+                    (byte)0, /* errorState */
+                    (byte)0, /* errorClass */
+                    "server", /* server */
+                    "errMsg", /* errorMessage */
+                    "procedure", /* procedure */
+                    100, /* lineNumber */
+                    new Exception(), /* exception */
                 });
 
                 addMethod.Invoke(errorCollection, new[] { error });

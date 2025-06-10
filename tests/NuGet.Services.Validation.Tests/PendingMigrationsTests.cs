@@ -1,13 +1,13 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Migrations;
 using System.Data.Entity.Migrations.Design;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Data.SqlClient;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -58,7 +58,7 @@ namespace NuGet.Services.Validation.Tests
 
             var migrationsConfiguration = new ValidationMigrationsConfiguration
             {
-                TargetDatabase = new DbConnectionInfo(connectionString, "System.Data.SqlClient"),
+                TargetDatabase = new DbConnectionInfo(connectionString, "Microsoft.Data.SqlClient"),
             };
 
             var dbMigrator = new DbMigrator(migrationsConfiguration);

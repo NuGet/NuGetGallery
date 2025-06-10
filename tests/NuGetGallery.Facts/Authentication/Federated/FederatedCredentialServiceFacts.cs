@@ -5,10 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Data.Entity.Infrastructure;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.Data.SqlClient;
 using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
@@ -563,7 +563,16 @@ namespace NuGetGallery.Services.Authentication
                 typeof(SqlError),
                 BindingFlags.NonPublic | BindingFlags.Instance,
                 binder: null,
-                args: [sqlErrorCode, (byte)2, (byte)3, "server", "error", "procedure", 4],
+                args: [
+                    sqlErrorCode, /* infoNumber */
+                    (byte)2, /* errorState */
+                    (byte)3, /* errorClass */
+                    "server", /* server */
+                    "error", /* errorMessage */
+                    "procedure", /* procedure */
+                    4, /* lineNumber */
+                    null /* exception */
+                    ],
                 culture: null);
             var sqlErrorCollection = (SqlErrorCollection)Activator.CreateInstance(typeof(SqlErrorCollection), nonPublic: true);
             typeof(SqlErrorCollection)

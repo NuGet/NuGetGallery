@@ -1,7 +1,7 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using Xunit;
 
 namespace NuGet.Services.Sql.Tests
@@ -17,7 +17,7 @@ namespace NuGet.Services.Sql.Tests
         {
             // Arrange
             var sqlConnectionString = "Data Source=tcp:noop.database.windows.net;Initial Catalog=noop;" +
-                "Persist Security Info=False;Connect Timeout=30;Encrypt=True;TrustServerCertificate=False";
+                "Persist Security Info=False;Connect Timeout=30;Encrypt=True;Trust Server Certificate=False";
             var aadConnectionString = $"{sqlConnectionString};AadTenant={AadTenant};AadClientId={AadClientId};AadCertificate={AadCertificate}";
 
             // Act
