@@ -15,7 +15,7 @@ namespace NuGetGallery
     {
         public static IAppBuilder UseAutofacInjection(this IAppBuilder app, HttpConfiguration httpConfiguration)
         {
-            var currentAssembly = Assembly.GetExecutingAssembly();
+            Assembly currentAssembly = typeof(AutofacConfig).Assembly;
 
             var builder = new ContainerBuilder();
 

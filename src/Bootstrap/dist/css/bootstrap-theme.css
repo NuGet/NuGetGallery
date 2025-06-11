@@ -1200,6 +1200,34 @@ p.frameworktableinfo-text {
   color: var(--statusDangerStroke2Rest);
   content: " *";
 }
+.page-admin-add-flight .brand-checkbox-group {
+  padding-left: 0;
+  padding-right: 0;
+  display: flex;
+  justify-content: space-around;
+}
+.page-admin-add-flight label.brand-checkbox {
+  flex-direction: column;
+  align-items: center;
+  padding-right: 0;
+}
+.page-admin-add-flight .brand-checkbox span {
+  text-align: center;
+}
+.page-admin-edit-flight .brand-checkbox-group {
+  padding-left: 0;
+  padding-right: 0;
+  display: flex;
+  justify-content: space-around;
+}
+.page-admin-edit-flight label.brand-checkbox {
+  flex-direction: column;
+  align-items: center;
+  padding-right: 0;
+}
+.page-admin-edit-flight .brand-checkbox span {
+  text-align: center;
+}
 .page-admin-index h2 {
   margin-bottom: 8px;
   margin-top: 8px;
@@ -1452,6 +1480,9 @@ p.frameworktableinfo-text {
 }
 .page-contact a {
   text-decoration: underline;
+}
+.page-contact .sign-in-link {
+  display: block;
 }
 .page-delete-account .green-check {
   font-size: 25px;
@@ -1854,6 +1885,12 @@ p.frameworktableinfo-text {
 }
 .page-package-details .install-tabs .tab-content .tab-pane .install-script-row .copy-button {
   display: flex;
+  white-space: nowrap;
+}
+@media screen and (max-width: 768px) {
+  .page-package-details .install-tabs .tab-content .tab-pane .install-script-row .copy-button {
+    white-space: pre-wrap;
+  }
 }
 .page-package-details .install-tabs .tab-content .tab-pane .install-script-row .copy-button button {
   display: flex;
@@ -1867,10 +1904,11 @@ p.frameworktableinfo-text {
   font-size: 14px;
   font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
   padding: 0px 8px;
-  line-height: 75%;
+  line-height: 90%;
   color: var(--neutralForeground1Rest);
   justify-content: center;
   align-items: center;
+  align-content: center;
 }
 .page-package-details .install-tabs .tab-content .tab-pane .alert {
   margin: 0;

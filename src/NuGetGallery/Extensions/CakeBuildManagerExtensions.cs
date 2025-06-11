@@ -48,12 +48,12 @@ namespace NuGetGallery
             else
             {
                 yield return new PackageManagerViewModel.InstallPackageCommand(
-                    $"Install {model.Id} as a Cake Addin",
+                    $"Install as a Cake Addin",
                     $"#addin {reference}"
                 );
 
                 yield return new PackageManagerViewModel.InstallPackageCommand(
-                    $"Install {model.Id} as a Cake Tool",
+                    $"Install as a Cake Tool",
                     $"#tool {reference}"
                 );
             };
