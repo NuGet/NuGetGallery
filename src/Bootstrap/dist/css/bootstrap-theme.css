@@ -2479,6 +2479,15 @@ p.frameworktableinfo-text {
 .page-list-packages .toggle-advanced-search-panel span {
   margin: auto 0;
 }
+.page-list-packages .exact-match-badge {
+  padding: 1px 4px;
+  display: inline-block;
+  border-radius: 4px;
+  border: 0px;
+  height: 24px;
+  background: var(--statusExactMatchBackgroundRest);
+  color: var(--neutralForegroundOnBrandRest);
+}
 @media (max-width: 992px) {
   .page-list-packages .toggle-advanced-search-panel {
     display: flex;
@@ -3491,6 +3500,7 @@ p.frameworktableinfo-text {
   --statusDangerForeground3Rest: var(--cranberryPrimary, #c50f1f);
   --statusDangerStroke1Rest: var(--cranberryTint40, #eeacb2);
   --statusDangerStroke2Rest: var(--cranberryPrimary, #c50f1f);
+  --statusExactMatchBackgroundRest: var(--greenPrimary, #13a10e);
   --statusGenericAnchorBackground2Rest: var(--anchorTint40, #bcc3c7);
   --statusGenericAnchorForeground2Rest: var(--anchorShade30, #202427);
   --statusGenericAnchorStrokeActiveRest: var(--anchorPrimary, #394146);
@@ -3840,6 +3850,7 @@ p.frameworktableinfo-text {
   --statusDangerForeground3Rest: var(--cranberryTint30, #dc626d);
   --statusDangerStroke1Rest: var(--cranberryPrimary, #c50f1f);
   --statusDangerStroke2Rest: var(--cranberryTint30, #dc626d);
+  --statusExactMatchBackgroundRest: var(--greenPrimary, #0e700e);
   --statusGenericAnchorBackground2Rest: var(--anchorShade30, #202427);
   --statusGenericAnchorForeground2Rest: var(--anchorTint40, #bcc3c7);
   --statusGenericAnchorStrokeActiveRest: var(--anchorTint30, #808a90);

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -5051,6 +5051,41 @@ namespace NuGetGallery
 
                 var model = (PackageListViewModel) result.Model;
                 Assert.Equal("test", model.SearchTerm);
+            }
+
+            [Theory]
+            [InlineData("test")]
+            [InlineData("TEST")]
+            public async Task InitisExactMatch(string query)
+            {
+                var iconUrlProvider = new Mock<IIconUrlProvider>();
+                const string iconUrl = "https://some.test/icon";
+                iconUrlProvider
+                    .Setup(iup => iup.GetIconUrlString(It.IsAny<Package>()))
+                    .Returns(iconUrl);
+                var searchService = new Mock<ISearchService>();
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    searchService: searchService,
+                    iconUrlProvider: iconUrlProvider);
+
+                var packages = new Package[] {
+                    new Package {PackageRegistration = new PackageRegistration { Id = "foo.test" } },
+                    new Package {PackageRegistration = new PackageRegistration { Id = "test" } }, // this should be exact match
+                    new Package {PackageRegistration = new PackageRegistration { Id = "test.bar" } },
+                };
+
+                searchService
+                    .Setup(s => s.Search(It.IsAny<SearchFilter>()))
+                    .ReturnsAsync(new SearchResults(1, DateTime.UtcNow, packages.AsQueryable()));
+
+                var result = await controller.ListPackages(new PackageListSearchViewModel { Q = query });
+
+                var model = ResultAssert.IsView<PackageListViewModel>(result);
+                var matchedItems = model.Items.Where(p => p.IsExactMatch).ToList();
+                Assert.Single(matchedItems);
+                Assert.Equal("test", matchedItems[0].Id);
             }
 
             [Fact]
