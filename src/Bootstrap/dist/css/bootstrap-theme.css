@@ -2481,8 +2481,8 @@ p.frameworktableinfo-text {
 }
 .page-list-packages .exact-match-badge {
   padding: 1px 4px;
-  display: inline-block;
   border-radius: 4px;
+  display: inline-block;
   border: 0px;
   height: 24px;
   background: var(--statusExactMatchBackgroundRest);

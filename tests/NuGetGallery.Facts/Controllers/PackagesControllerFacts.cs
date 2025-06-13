@@ -5055,7 +5055,9 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData("test")]
+            [InlineData("test ")]
             [InlineData("TEST")]
+            [InlineData("\t Test")]
             public async Task InitisExactMatch(string query)
             {
                 var iconUrlProvider = new Mock<IIconUrlProvider>();
