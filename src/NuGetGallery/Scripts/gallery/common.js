@@ -464,7 +464,7 @@
         setPopoversInternal(this, rightWithVerticalFallback);
     }
 
-    // Search filter keys to store. Correspont to search filters on Packages page.
+    // Search filter keys to store. Correspond to search filters on Packages page.
     const searchFilterParamNames = [
         "frameworks",
         "tfms",
