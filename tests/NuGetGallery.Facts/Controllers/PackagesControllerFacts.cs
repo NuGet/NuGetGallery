@@ -5054,11 +5054,15 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData("test")]
-            [InlineData("test ")]
-            [InlineData("TEST")]
-            [InlineData("\t Test")]
-            public async Task InitisExactMatch(string query)
+            [InlineData("test", true)]
+            [InlineData("test ", true)]
+            [InlineData("TEST", true)]
+            [InlineData("\t Test", true)]
+            [InlineData("test+", false)]
+            [InlineData("test.", false)]
+            [InlineData("", false)]
+            [InlineData(null, false)]
+            public async Task InitisExactMatch(string query, bool expectedMatch)
             {
                 var iconUrlProvider = new Mock<IIconUrlProvider>();
                 const string iconUrl = "https://some.test/icon";
@@ -5086,8 +5090,14 @@ namespace NuGetGallery
 
                 var model = ResultAssert.IsView<PackageListViewModel>(result);
                 var matchedItems = model.Items.Where(p => p.IsExactMatch).ToList();
-                Assert.Single(matchedItems);
-                Assert.Equal("test", matchedItems[0].Id);
+                if (expectedMatch)
+                {   Assert.Single(matchedItems);
+                    Assert.Equal("test", matchedItems[0].Id);
+                }
+                else
+                {
+                    Assert.Empty(matchedItems);
+                }
             }
 
             [Fact]

@@ -1001,9 +1001,9 @@ body[id="/"] {
 }
 .framework-badge {
   padding: 1px 8px;
+  border-radius: 4px;
   justify-content: center;
   display: inline-block;
-  border-radius: 4px;
   border: 1px solid var(--transparentStrokeRest);
   height: 24px;
 }
@@ -1012,9 +1012,9 @@ body[id="/"] {
 }
 .framework-badge-asset {
   padding: 1px 8px;
+  border-radius: 4px;
   justify-content: center;
   display: inline-block;
-  border-radius: 4px;
   border: 1px solid var(--transparentStrokeRest);
   height: 24px;
   background: var(--brandBackground1Rest);
@@ -1022,9 +1022,9 @@ body[id="/"] {
 }
 .framework-badge-computed {
   padding: 1px 8px;
+  border-radius: 4px;
   justify-content: center;
   display: inline-block;
-  border-radius: 4px;
   border: 1px solid var(--transparentStrokeRest);
   height: 24px;
   color: var(--brandForeground2Rest);
