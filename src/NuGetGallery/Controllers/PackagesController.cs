@@ -1388,7 +1388,7 @@ namespace NuGetGallery
 
             var currentUser = GetCurrentUser();
             var items = results.Data
-                .Select(pv => _listPackageItemViewModelFactory.Create(pv, currentUser, includeComputedFrameworks))
+                .Select(pv => _listPackageItemViewModelFactory.Create(pv, currentUser, includeComputedFrameworks, q))
                 .ToList();
 
             var viewModel = new PackageListViewModel(

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -62,10 +62,10 @@ namespace NuGetGallery
                     SearchTerm = searchTerm,
                     OldSuccess = SearchResults.IsSuccessful(oldResults),
                     OldHits = oldResults.Hits,
-                    OldItems = oldResults.Data.Select(x => _listPackageItemViewModelFactory.Create(x, currentUser, false)).ToList(),
+                    OldItems = oldResults.Data.Select(x => _listPackageItemViewModelFactory.Create(x, currentUser, false, searchTerm)).ToList(),
                     NewSuccess = SearchResults.IsSuccessful(newResults),
                     NewHits = newResults.Hits,
-                    NewItems = newResults.Data.Select(x => _listPackageItemViewModelFactory.Create(x, currentUser, false)).ToList(),
+                    NewItems = newResults.Data.Select(x => _listPackageItemViewModelFactory.Create(x, currentUser, false, searchTerm)).ToList(),
                 };
 
                 _telemetryService.TrackSearchSideBySide(
