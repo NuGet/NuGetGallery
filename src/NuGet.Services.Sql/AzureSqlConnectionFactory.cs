@@ -1,9 +1,11 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
+using Azure.Core;
+using Azure.Identity;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.KeyVault;
 
@@ -121,7 +123,17 @@ namespace NuGet.Services.Sql
             {
                 connection.AccessToken = accessToken;
             }
-            return connection;
+            else
+            {
+                // Get access token from Managed Identity
+                var credential = new DefaultAzureCredential();
+                var tokenRequestContext = new TokenRequestContext(new[] { "https://database.windows.net/.default" });
+                var token = await credential.GetTokenAsync(tokenRequestContext);
+
+                connection.AccessToken = token.Token;
+            }
+
+           return connection;
         }
 
         protected virtual Task OpenConnectionAsync(SqlConnection sqlConnection)

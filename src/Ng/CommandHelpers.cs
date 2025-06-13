@@ -439,14 +439,24 @@ namespace Ng
 
             // This comparison is due to some jobs using both global and china storages in a single instance.
             // They require MSI auth for global storage and SAS/SAK auth for china storage.
-            if (useManagedIdentity && !hasStorageKeyOrSas)
+            if (useManagedIdentity)
             {
-                var managedIdentityClientId = arguments.GetOrThrow<string>(argumentNameMap[Arguments.ClientId]);
-                var identity = new ManagedIdentityCredential(managedIdentityClientId);
+                string managedIdentityClientId = arguments.GetOrDefault<string>(argumentNameMap[Arguments.ClientId]);
+                TokenCredential identity = null;
+                if (string.IsNullOrEmpty(managedIdentityClientId))
+                {
+                    identity = new DefaultAzureCredential();
+                }
+                else
+                {
+                    identity = new ManagedIdentityCredential(managedIdentityClientId);
+                }
+
                 var serviceUri = GetServiceUri(arguments, argumentNameMap, "blob");
                 return new BlobServiceClientFactory(serviceUri, identity);
             }
 
+            // Using SAS token
             string connectionString = GetConnectionString(arguments, argumentNameMap, "BlobEndpoint", "blob");
             return new BlobServiceClientFactory(connectionString);
         }
@@ -465,10 +475,18 @@ namespace Ng
 
             // This comparison is due to some jobs using both global and china storages in a single instance.
             // They require MSI auth for global storage and SAS/SAK auth for china storage.
-            if (useManagedIdentity && !hasStorageKeyOrSas)
+            if (useManagedIdentity)
             {
-                var managedIdentityClientId = arguments.GetOrThrow<string>(argumentNameMap[Arguments.ClientId]);
-                var identity = new ManagedIdentityCredential(managedIdentityClientId);
+                var managedIdentityClientId = arguments.GetOrDefault<string>(argumentNameMap[Arguments.ClientId]);
+                TokenCredential identity = null;
+                if (string.IsNullOrEmpty(managedIdentityClientId))
+                {
+                    identity = new DefaultAzureCredential();
+                }
+                else
+                {
+                    identity = new ManagedIdentityCredential(managedIdentityClientId);
+                }
                 var serviceUri = GetServiceUri(arguments, argumentNameMap, "queue");
                 return new QueueServiceClient(serviceUri, identity, new QueueClientOptions
                 {
