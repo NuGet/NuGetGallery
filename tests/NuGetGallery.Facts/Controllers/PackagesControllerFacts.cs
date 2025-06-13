@@ -5091,7 +5091,8 @@ namespace NuGetGallery
                 var model = ResultAssert.IsView<PackageListViewModel>(result);
                 var matchedItems = model.Items.Where(p => p.IsExactMatch).ToList();
                 if (expectedMatch)
-                {   Assert.Single(matchedItems);
+                {
+                    Assert.Single(matchedItems);
                     Assert.Equal("test", matchedItems[0].Id);
                 }
                 else
