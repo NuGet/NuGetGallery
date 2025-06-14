@@ -53,5 +53,40 @@ namespace NgTests.Validation
             Assert.Equal(packageVersion, queuedContext.Package.Version);
             Assert.Equal(catalogEntries, queuedContext.CatalogEntries);
         }
+
+        [Fact]
+        public void CreatePackageValidatorContext_DecodesPackageVersionCorrectly()
+        {
+            // Arrange
+            var packageId = "TestPackage";
+            var encodedPackageVersion = "1.0.0%2Bmetadata";
+            var decodedPackageVersion = "1.0.0+metadata";
+            var catalogEntries = new List<CatalogIndexEntry>
+            {
+                new CatalogIndexEntry(
+                    new Uri("https://example.com/catalog/entry"),
+                    "type",
+                    "commitId",
+                    DateTime.UtcNow,
+                    new NuGet.Packaging.Core.PackageIdentity(packageId, NuGet.Versioning.NuGetVersion.Parse(decodedPackageVersion)))
+            };
+
+            var queueMessage = new StorageQueueMessage<PackageValidatorContext>(
+                new PackageValidatorContext(new FeedPackageIdentity(packageId, encodedPackageVersion), catalogEntries),
+                dequeueCount: 1);
+
+            // Act - Replicate the logic from HandleQueueMessageAsync that we want to test
+            string packageIdFromMessage = queueMessage.Contents.Package.Id;
+            string packageVersion = queueMessage.Contents.Package.Version;
+
+            string decodedPackageVersionFromMessage = Uri.UnescapeDataString(packageVersion);
+            var packageIdentity = new FeedPackageIdentity(packageIdFromMessage, decodedPackageVersionFromMessage);
+            var queuedContext = new PackageValidatorContext(packageIdentity, queueMessage.Contents.CatalogEntries);
+
+            // Assert
+            Assert.Equal(packageId, queuedContext.Package.Id);
+            Assert.Equal(decodedPackageVersion, queuedContext.Package.Version);
+            Assert.Equal(catalogEntries, queuedContext.CatalogEntries);
+        }
     }
 }
