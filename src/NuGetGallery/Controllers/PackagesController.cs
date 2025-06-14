@@ -1143,6 +1143,12 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
+            // The Atom spec requires that there is at least one author for the feed to be valid.
+            if (packageRegistration.Owners.Count == 0)
+            {
+                return HttpNotFound();
+            }
+
             IEnumerable<Package> packageVersionsQuery = packageRegistration
                 .Packages
                 .Where(x => x.Listed && x.PackageStatusKey == PackageStatus.Available)

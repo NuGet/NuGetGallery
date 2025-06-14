@@ -1442,7 +1442,7 @@
                                 src="@Url.Absolute("~/Content/gallery/img/twitter.svg")"
                                 @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/twitter-24x24.png")) />
                     </a>
-                    @if (Model.IsAtomFeedEnabled)
+                    @if (Model.IsAtomFeedEnabled && Model.Owners.Any())
                     {
                         <a href="@Url.PackageAtomFeed(Model.Id)" data-track="atom-feed">
                             <img width="24" height="24" alt="Use the Atom feed to subscribe to new versions of @Model.Id"
