@@ -251,7 +251,7 @@ namespace NuGetGallery.AccountDeleter
 
         public bool IsPackagesAtomFeedCombinedAuthorsEnabled()
         {
-             throw new NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public bool IsPreviewHijackEnabled()
