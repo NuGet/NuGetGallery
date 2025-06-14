@@ -266,7 +266,15 @@ namespace Ng.Jobs
                 return;
             }
 
-            var queuedContext = queueMessage.Contents;
+            string packageId = queueMessage.Contents.Package.Id;
+            string packageVersion = queueMessage.Contents.Package.Version;
+
+            // Decode the package ID in case it was encoded for the queue message.
+            string decodedPackageId = Uri.UnescapeDataString(packageId);
+            var packageIdentity = new FeedPackageIdentity(decodedPackageId, packageVersion);
+            PackageValidatorContext queuedContext =
+                new PackageValidatorContext(packageIdentity, queueMessage.Contents.CatalogEntries);
+
             var messageWasProcessed = false;
 
             try
