@@ -1143,6 +1143,12 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
+            // The Atom spec requires that there is at least one author for the feed to be valid.
+            if (packageRegistration.Owners.Count == 0)
+            {
+                return HttpNotFound();
+            }
+
             IEnumerable<Package> packageVersionsQuery = packageRegistration
                 .Packages
                 .Where(x => x.Listed && x.PackageStatusKey == PackageStatus.Available)
@@ -1179,9 +1185,21 @@ namespace NuGetGallery
             List<SyndicationItem> feedItems = new List<SyndicationItem>();
 
             List<SyndicationPerson> ownersAsAuthors = new List<SyndicationPerson>();
-            foreach (var packageOwner in packageRegistration.Owners)
+            if (_featureFlagService.IsPackagesAtomFeedCombinedAuthorsEnabled())
             {
-                ownersAsAuthors.Add(new SyndicationPerson() { Name = packageOwner.Username, Uri = Url.User(packageOwner, relativeUrl: false) });
+                var sortedOwners = packageRegistration
+                    .Owners
+                    .Select(o => o.Username)
+                    .OrderBy(o => o, StringComparer.OrdinalIgnoreCase);
+                var combinedAuthors = string.Join(", ", sortedOwners);
+                ownersAsAuthors.Add(new SyndicationPerson() { Name = combinedAuthors });
+            }
+            else
+            {
+                foreach (var packageOwner in packageRegistration.Owners)
+                {
+                    ownersAsAuthors.Add(new SyndicationPerson() { Name = packageOwner.Username, Uri = Url.User(packageOwner, relativeUrl: false) });
+                }
             }
 
             foreach (var packageVersion in packageVersions)
