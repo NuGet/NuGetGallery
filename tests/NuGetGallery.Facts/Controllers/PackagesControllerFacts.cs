@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -2468,6 +2468,7 @@ namespace NuGetGallery
 
                 var packageRegistration = new PackageRegistration();
                 packageRegistration.Id = "Foo";
+                packageRegistration.Owners.Add(TestUtility.FakeUser);
 
                 var onlyVersion = new Package
                 {
@@ -2519,6 +2520,7 @@ namespace NuGetGallery
 
                 var packageRegistration = new PackageRegistration();
                 packageRegistration.Id = "Foo";
+                packageRegistration.Owners.Add(TestUtility.FakeUser);
 
                 var onlyVersion = new Package
                 {
@@ -2599,6 +2601,7 @@ namespace NuGetGallery
 
                 var packageRegistration = new PackageRegistration();
                 packageRegistration.Id = "Foo";
+                packageRegistration.Owners.Add(TestUtility.FakeUser);
 
                 var oldestPackage = new Package
                 {
@@ -2703,7 +2706,7 @@ namespace NuGetGallery
 
                 var packageId = "someId";
                 var packageVersion = "1.2.3-someVersion";
-                var packageRegistration = new PackageRegistration { Id = packageId };
+                var packageRegistration = new PackageRegistration { Id = packageId, Owners = [TestUtility.FakeUser] };
                 var package = new Package
                 {
                     PackageRegistration = packageRegistration,
