@@ -115,6 +115,10 @@
   - regex: '(Paket)/?(\d+)?\.?(\d+)?\.?(\d+)?'
     family_replacement: 'Paket'
 
+  # Bonsai (https://bonsai-rx.org/)
+  - regex: '(Bonsai)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'Bonsai'
+
   # Xamarin Studio (www.xamarin.com)
   - regex: '(Xamarin Studio)/(\d+)\.(\d+)\.?(\d+)?'
     family_replacement: 'Xamarin Studio'
