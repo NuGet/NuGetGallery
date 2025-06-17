@@ -1,0 +1,146 @@
+﻿﻿@using Newtonsoft.Json
+@model TrustedPublisherListViewModel
+@using NuGetGallery.Authentication
+@{
+    ViewBag.Title = "Trusted Publishers";
+    ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
+}
+
+<section role="main" class="container main-container page-api-keys">
+    @ViewHelpers.AjaxAntiForgeryToken(Html)
+    <div class="row">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+            @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, true, @<text>Trusted Publishers</text>)
+            <p>
+                Trusted Publishers introduction. Lorem ipsum.
+            </p>
+            @if (!CurrentUser.Confirmed)
+            {
+                @ViewHelpers.AlertWarning(
+                        @<text>
+                            To register a Trusted Publisher you will need to
+                            <a href="@Url.ConfirmationRequired()">confirm your account</a>.
+                        </text>)
+            }
+            else
+            {
+                @*<p>
+                        <strong>Always keep your API keys a secret!</strong> If one of your keys is accidentally revealed,
+                        you can always generate a new one at any time. You can also remove existing API keys if necessary.
+                    </p>*@
+
+                <div data-bind="template: 'error-container'"></div>
+
+                @ViewHelpers.Section(this,
+                    "create",
+                    "Create",
+                        @<text>
+                            <div class="upsert-trusted-publisher">
+                                <div class="panel-body" data-bind="template: { name: 'upsert-trusted-publisher', data: NewTrustedPublisher }"></div>
+                            </div>
+                        </text>,
+                 expanded: false,
+                 expandedIcon: "Subtraction",
+                 collapsedIcon: "Add")
+
+                @ViewHelpers.Section(this,
+                    "manage",
+                    "Manage",
+                        @<text>
+                            <div data-bind="template: 'manage-trusted-publishers'"></div>
+                        </text>)
+            }
+        </div>
+    </div>
+</section>
+
+<script type="text/html" id="error-container" nonce="@Html.GetCSPNonce()">
+    <!-- ko if: Error -->
+    @ViewHelpers.AlertDanger(@<text>
+        <span data-bind="html: Error"></span>
+    </text>)
+    <!-- /ko -->
+</script>
+
+<script type="text/html" id="upsert-trusted-publisher" nonce="@Html.GetCSPNonce()">
+    <h3>TODO: form to create Trusted Publisher</h3>
+</script>
+
+<script type="text/html" id="manage-trusted-publishers" nonce="@Html.GetCSPNonce()">
+    <div data-bind="template: { name: 'trusted-publisher-details', foreach: TrustedPublishers }">
+    </div>
+    <!-- ko if: TrustedPublishers().length === 0 -->
+    @ViewHelpers.AlertInfo(
+            @<text>You don't have any Trusted Publishers.</text>)
+    <!-- /ko -->
+</script>
+
+<script type="text/html" id="trusted-publisher-details" nonce="@Html.GetCSPNonce()">
+    <div class="api-key-details">
+        <div class="row">
+            <div class="col-sm-1">
+                <img class="package-icon img-responsive" aria-hidden="true" alt=""
+                     data-bind="attr: { src: IconUrl, onerror: IconUrlFallback }" />
+            </div>
+            <div class="col-sm-11">
+                <!-- Common properties -->
+                <h3 data-bind="text: Description"></h3>
+                <br />
+
+                <!-- ko if: Owner -->
+                <b>Package owner:</b> <span data-bind="text: Owner"></span>
+                <br />
+                <!-- /ko -->
+
+                <b>Trusted Publisher:</b> <span data-bind="text: PublisherDetails().Name" />
+                <br />
+
+                <!-- ko if: PublisherName() === 'GitHub' -->
+                <b>Repository Owner:</b> <span data-bind="text: PublisherDetails().RepositoryOwner" />
+                <br />
+                <b>Repository:</b> <span data-bind="text: PublisherDetails().Repository" />
+                <br />
+                <!-- ko if: PublisherDetails().WorkflowFile -->
+                <b>Workflow:</b> <span data-bind="text: PublisherDetails().WorkflowFile" />
+                <br />
+                <!-- /ko -->
+                <!-- ko if: PublisherDetails().Environment -->
+                <b>Environment:</b> <span data-bind="text: PublisherDetails().Environment" />
+                <br />
+                <!-- /ko -->
+                <!-- /ko -->
+                <ul class="package-list" role="presentation">
+                    <li>
+                        <a class="icon-link" href="#" role="button" data-bind="click: Edit">
+                            <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
+                            <span>Edit</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="icon-link" href="#" role="button" data-bind="click: Delete">
+                            <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
+                            <span>Delete</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</script>
+
+@section bottomScripts {
+    <script type="text/javascript" nonce="@Html.GetCSPNonce()">
+        var initialData = @Html.ToJson(new
+                     {
+                         TrustedPublishers = Model.TrustedPublishers,
+                         PackageOwners = Model.PackageOwners,
+                         RemoveUrl = Url.RemoveFederatedCredential(),
+                         EditUrl = Url.EditCredential(),
+                         ImageUrls = new {
+                             TrustedPublisher = Url.Absolute("~/Content/gallery/img/trusted-publisher.svg"),
+                             TrustedPublisherFallback = Url.Absolute("~/Content/gallery/img/trusted-publisher-256x256.png"),
+                         }
+                     });
+    </script>
+    @Scripts.RenderFormat("<script src=\"{0}\" nonce='" + @Html.GetCSPNonce().ToString() + "'></script>", "~/Scripts/gallery/page-trusted-publishers.min.js");
+}

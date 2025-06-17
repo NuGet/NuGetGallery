@@ -495,6 +495,73 @@ namespace NuGetGallery
             return View("ApiKeys", model);
         }
 
+
+        [HttpGet]
+        [UIAuthorize]
+        public virtual ActionResult TrustedPublishers()
+        {
+            var currentUser = GetCurrentUser();
+
+            // Get API keys
+            if (!GetCredentialGroups(currentUser).TryGetValue(CredentialKind.Token, out List<CredentialViewModel> credentials))
+            {
+                credentials = new List<CredentialViewModel>();
+            }
+
+            var publishers = new List<TrustedPublisherViewModel>()
+            {
+                new TrustedPublisherViewModel() {
+                    Key = 1,
+                    Description = "Release",
+                    Owner = currentUser.Username,
+                    PublisherDetails = new GitHubPublisherDetailsViewModel
+                    {
+                        RepositoryOwner = "dotnet",
+                        Repository = "roslyn",
+                        WorkflowFile = "release.yml"
+                    }
+                },
+                new TrustedPublisherViewModel() {
+                    Key = 2,
+                    Description = "Preview v5",
+                    Owner = currentUser.Organizations.FirstOrDefault()?.Organization.Username ?? currentUser.Username,
+                    PublisherDetails = new GitHubPublisherDetailsViewModel
+                    {
+                        RepositoryOwner = "dotnet",
+                        Repository = "roslyn",
+                        WorkflowFile = "preview.yml",
+                        Environment = "pre_release_5_0"
+                    }
+                }
+            };
+
+            //var publishers = credentials
+            //    .Select(c => new TrustedPublisherViewModel(c)) // TODO: factory GitHub vs AzDO
+            //    .ToList();
+
+            // Get package owners (user's self or organizations)
+            var owners = new List<ApiKeyOwnerViewModel>
+            {
+                CreateApiKeyOwnerViewModel(currentUser, currentUser)
+            };
+
+            owners.AddRange(currentUser.Organizations
+                .Select(o => CreateApiKeyOwnerViewModel(currentUser, o.Organization)));
+
+            var anyWithDeprecationApi =
+                _featureFlagService.IsManageDeprecationApiEnabled(currentUser)
+                || currentUser.Organizations.Any(m => _featureFlagService.IsManageDeprecationApiEnabled(m.Organization));
+
+            var model = new TrustedPublisherListViewModel
+            {
+                TrustedPublishers = publishers,
+                PackageOwners = owners.Where(o => o.CanPushNew || o.CanPushExisting || o.CanUnlist).ToList(),
+                IsDeprecationApiEnabled = anyWithDeprecationApi,
+            };
+
+            return View("TrustedPublishers", model);
+        }
+
         private ApiKeyOwnerViewModel CreateApiKeyOwnerViewModel(User currentUser, User account)
         {
             return new ApiKeyOwnerViewModel(
@@ -938,6 +1005,14 @@ namespace NuGetGallery
             }
 
             return await RemoveCredentialInternal(user, cred, Strings.CredentialRemoved);
+        }
+
+        [HttpPost]
+        [UIAuthorize]
+        [ValidateAntiForgeryToken]
+        public virtual Task<ActionResult> RemoveFederatedCredential(int? credentialKey)
+        {
+            return Task.FromResult<ActionResult>(default);
         }
 
         [HttpPost]

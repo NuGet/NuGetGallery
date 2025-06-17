@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -204,6 +204,10 @@ namespace NuGetGallery
             var apiKeysScriptBundle = new ScriptBundle("~/Scripts/gallery/page-api-keys.min.js")
                 .Include("~/Scripts/gallery/page-api-keys.js");
             BundleTable.Bundles.Add(apiKeysScriptBundle);
+
+            var trustedPublishersScriptBundle = new ScriptBundle("~/Scripts/gallery/page-trusted-publishers.min.js")
+                .Include("~/Scripts/gallery/page-trusted-publishers.js");
+            BundleTable.Bundles.Add(trustedPublishersScriptBundle);
 
             var accountScriptBundle = new ScriptBundle("~/Scripts/gallery/page-account.min.js")
                 .Include("~/Scripts/gallery/page-account.js");
