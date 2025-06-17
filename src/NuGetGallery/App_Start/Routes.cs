@@ -413,6 +413,11 @@ namespace NuGetGallery
                 new { controller = "Users", action = "RemoveCredential" });
 
             routes.MapRoute(
+                RouteName.RemoveFederatedCredential,
+                "account/RemoveFederatedCredential",
+                new { controller = "Users", action = "RemoveFederatedCredential" });
+
+            routes.MapRoute(
                 RouteName.PasswordReset,
                 "account/forgotpassword/{username}/{token}",
                 new { controller = "Users", action = "ResetPassword", forgot = true },
@@ -533,6 +538,11 @@ namespace NuGetGallery
                 RouteName.ApiKeys,
                 "account/apikeys",
                 new { controller = "Users", action = "ApiKeys" });
+
+            routes.MapRoute(
+                RouteName.TrustedPublishers,
+                "account/trustedpublishers",
+                new { controller = "Users", action = "TrustedPublishers" });
 
             routes.MapRoute(
                 RouteName.Account,

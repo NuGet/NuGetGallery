@@ -28,6 +28,7 @@ namespace NuGetGallery
         public const string TransformToOrganizationRejection = "RejectTransform";
         public const string TransformToOrganizationCancellationRedirect = "CancelTransformRedirect";
         public const string TransformToOrganizationCancellation = "CancelTransform";
+        public const string TrustedPublishers = "TrustedPublishers";
         public const string ApiKeys = "ApiKeys";
         public const string Profile = "Profile";
         public const string DisplayPackage = "package-route";
@@ -82,6 +83,7 @@ namespace NuGetGallery
         public const string ExternalAuthentication = "ExternalAuthentication";
         public const string ExternalAuthenticationCallback = "ExternalAuthenticationCallback";
         public const string RemoveCredential = "RemoveCredential";
+        public const string RemoveFederatedCredential = "RemoveFederatedCredential";
         public const string RemovePassword = "RemovePassword";
         public const string ConfirmAccount = "ConfirmAccount";
         public const string SigninAssistance = "SigninAssistance";

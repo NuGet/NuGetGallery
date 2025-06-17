@@ -789,6 +789,7 @@
     <Compile Include="ViewModels\DeleteOrganizationViewModel.cs" />
     <Compile Include="ViewModels\DeleteUserViewModel.cs" />
     <Compile Include="ViewModels\DisplayLicenseViewModel.cs" />
+    <Compile Include="ViewModels\GitHubPublisherDetailsViewModel.cs" />
     <Compile Include="ViewModels\GitHubUsageViewModel.cs" />
     <Compile Include="ViewModels\ListCertificateItemViewModel.cs" />
     <Compile Include="ViewModels\GalleryHomeViewModel.cs" />
@@ -799,6 +800,8 @@
     <Compile Include="ViewModels\PendingOrganizationMigrationRequestViewModel.cs" />
     <Compile Include="ViewModels\SearchSideBySideViewModel.cs" />
     <Compile Include="ViewModels\SignerViewModel.cs" />
+    <Compile Include="ViewModels\TrustedPublisherListViewModel.cs" />
+    <Compile Include="ViewModels\TrustedPublisherViewModel.cs" />
     <Compile Include="WebRole.cs" />
     <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
     <Compile Include="Areas\Admin\Controllers\AdminControllerBase.cs" />
@@ -1373,6 +1376,8 @@
     <Content Include="Content\gallery\img\facebook-24x24.png" />
     <Content Include="Content\gallery\img\logo-og-600x600.png" />
     <Content Include="Content\gallery\img\rss-24x24.png" />
+    <Content Include="Content\gallery\img\trusted-publisher-256x256.png" />
+    <Content Include="Content\gallery\img\trusted-publisher.svg" />
     <Content Include="Content\gallery\img\x.svg" />
     <Content Include="Content\gallery\img\x-24x24.png" />
     <Content Include="Content\Images\icons\apiKey.png" />
@@ -1748,6 +1753,7 @@
     <Content Include="Scripts\gallery\instrumentation.js" />
     <Content Include="Scripts\gallery\knockout-3.5.1.js" />
     <Content Include="Scripts\gallery\moment-2.29.4.js" />
+    <Content Include="Scripts\gallery\page-trusted-publishers.js" />
     <Content Include="Scripts\gallery\page-downloads.js" />
     <Content Include="Scripts\gallery\page-list-packages.js" />
     <Content Include="Scripts\gallery\syntaxhighlight.js" />
@@ -2299,6 +2305,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Areas\Admin\Views\FederatedCredentials\Index.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Users\TrustedPublishers.cshtml" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

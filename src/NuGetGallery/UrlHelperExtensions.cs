@@ -1022,6 +1022,16 @@ namespace NuGetGallery
                 supportEmail: supportEmail);
         }
 
+        public static string ManageMyTrustedPublishers(this UrlHelper url, bool relativeUrl = true, bool supportEmail = false)
+        {
+            return GetActionLink(
+                url,
+                nameof(UsersController.TrustedPublishers),
+                "Users",
+                relativeUrl,
+                supportEmail: supportEmail);
+        }
+
         public static string ManageMyOrganizations(this UrlHelper url, bool relativeUrl = true)
         {
             return GetActionLink(
@@ -1485,6 +1495,11 @@ namespace NuGetGallery
         public static string RemoveCredential(this UrlHelper url, bool relativeUrl = true)
         {
             return GetActionLink(url, "RemoveCredential", "Users", relativeUrl);
+        }
+
+        public static string RemoveFederatedCredential(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url, "RemoveFederatedCredential", "Users", relativeUrl);
         }
 
         public static string RevokeApiKeyCredential(this UrlHelper url, bool relativeUrl = true)
