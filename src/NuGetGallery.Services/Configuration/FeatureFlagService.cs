@@ -33,6 +33,7 @@ namespace NuGetGallery
         private const string DisplayNuGetTrendsLinkFeatureName = GalleryPrefix + "DisplayNuGetTrendsLink";
         private const string ODataReadOnlyDatabaseFeatureName = GalleryPrefix + "ODataReadOnlyDatabase";
         private const string PackagesAtomFeedFeatureName = GalleryPrefix + "PackagesAtomFeed";
+        private const string PackagesAtomFeedCombinedAuthorsFeatureName = GalleryPrefix + "PackagesAtomFeedCombinedAuthors";
         private const string SearchSideBySideFlightName = GalleryPrefix + "SearchSideBySide";
         private const string TyposquattingFeatureName = GalleryPrefix + "Typosquatting";
         private const string TyposquattingFlightName = GalleryPrefix + "TyposquattingFlight";
@@ -118,6 +119,11 @@ namespace NuGetGallery
         public bool IsPackagesAtomFeedEnabled()
         {
             return _client.IsEnabled(PackagesAtomFeedFeatureName, defaultValue: false);
+        }
+
+        public bool IsPackagesAtomFeedCombinedAuthorsEnabled()
+        {
+            return _client.IsEnabled(PackagesAtomFeedCombinedAuthorsFeatureName, defaultValue: false);
         }
 
         /// <summary>

@@ -249,6 +249,11 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
+        public bool IsPackagesAtomFeedCombinedAuthorsEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsPreviewHijackEnabled()
         {
             throw new NotImplementedException();
