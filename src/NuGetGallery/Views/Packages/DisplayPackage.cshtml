@@ -134,7 +134,8 @@
 
             new PackageManagerViewModel(
                 "package-manager",
-                "Package Manager",
+                "PMC",
+                "Package Manager Console",
                 new PackageManagerViewModel.InstallPackageCommand(
                     string.Format("NuGet\\Install-Package {0} -Version {1}", Model.Id, Model.Version)
                 )
@@ -168,6 +169,7 @@
 
             new PackageManagerViewModel(
                 "package-version",
+                "CPM",
                 "Central Package Management",
                 new PackageManagerViewModel.InstallPackageCommand(
                     "Directory.Packages.props",
@@ -274,7 +276,7 @@
            id="@packageManager.Id-tab" class="package-manager-tab"
            aria-selected="@(active ? "true" : "false")" tabindex="@(active ? "0" : "-1")"
            aria-controls="@packageManager.Id" role="tab" data-toggle="tab"
-           title="Switch to tab panel which contains package installation command for @packageManager.Name">
+           title="Switch to tab panel which contains package installation command for @(string.IsNullOrWhiteSpace(packageManager.InitialismExplanation) ? packageManager.Name : packageManager.InitialismExplanation)">
             @packageManager.Name
         </a>
     </li>
@@ -974,7 +976,24 @@
                                 <tr>
                                     <th scope="col" role="columnheader">Version</th>
                                     <th scope="col" role="columnheader">Downloads</th>
-                                    <th scope="col" role="columnheader">Last updated</th>
+                                    <th scope="col" role="columnheader">
+                                        Last Updated
+                                        @if (Model.CanDisplayPrivateMetadata)
+                                        {
+                                            <a class="tooltip-target" href="javascript:void(0)" role="button" aria-labelledby="lastupdatedid">
+                                                <i class="ms-Icon ms-Icon--Info info-icon"></i>
+                                                <span class="tooltip-block" role="tooltip" id="lastupdatedid">
+                                                    <span class="tooltip-wrapper tooltip-with-icon popover right">
+                                                        <span class="arrow"></span>
+                                                        <span class="popover-content">
+                                                            The individual who pushed the latest update, or the organization if pushed by a co-owner who isn't a member. This information is not publicly visible.
+                                                        </span>
+                                                    </span>
+                                                </span>
+                                            </a>
+                                        }
+                                    </th>
+
                                     @if (Model.CanDisplayPrivateMetadata)
                                     {
                                         <th scope="col" role="columnheader">Status</th>
@@ -1449,10 +1468,10 @@
                                 src="@Url.Absolute("~/Content/gallery/img/facebook.svg")"
                                 @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/facebook-24x24.png")) />
                     </a>
-                    <a href="https://twitter.com/intent/tweet?url=@absolutePackageUrl&text=@encodedText" target="_blank" rel="nofollow noreferrer">
-                        <img width="24" height="24" alt="Tweet this package"
-                                src="@Url.Absolute("~/Content/gallery/img/twitter.svg")"
-                                @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/twitter-24x24.png")) />
+                    <a href="https://x.com/intent/post?url=@absolutePackageUrl&text=@encodedText" target="_blank" rel="nofollow noreferrer">
+                        <img width="24" height="24" alt="Share this package on X"
+                                src="@Url.Absolute("~/Content/gallery/img/x.svg")"
+                                @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/x-24x24.png")) />
                     </a>
                     @if (Model.IsAtomFeedEnabled)
                     {

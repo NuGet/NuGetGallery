@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -18,6 +18,16 @@ namespace NuGetGallery
     {
         private const string Area = "area";
         private static IGalleryConfigurationService _configuration;
+
+        /// <summary>
+        /// MUST MATCH common.js. Used to add localy stored search params to a element.
+        /// </summary>
+        public const string PackagesLinkClass = "link-to-add-local-search-filters";
+
+        /// <summary>
+        /// MUST MATCH common.js. Used to add localy stored search params to form element.
+        /// </summary>
+        public const string SimpleSearchFormId = "form-to-add-local-search-filters";
 
         public static class Fragments
         {

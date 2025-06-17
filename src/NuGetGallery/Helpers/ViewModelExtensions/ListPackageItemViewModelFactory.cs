@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -22,19 +22,19 @@ namespace NuGetGallery
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
         }
 
-        public ListPackageItemViewModel Create(Package package, User currentUser, bool includeComputedBadges = false)
+        public ListPackageItemViewModel Create(Package package, User currentUser, bool includeComputedBadges = false, string query = null)
         {
             var viewModel = new ListPackageItemViewModel();
-            return Setup(viewModel, package, currentUser, includeComputedBadges);
+            return Setup(viewModel, package, currentUser, includeComputedBadges, query);
         }
 
-        public ListPackageItemViewModel Setup(ListPackageItemViewModel viewModel, Package package, User currentUser, bool includeComputedBadges = false)
+        public ListPackageItemViewModel Setup(ListPackageItemViewModel viewModel, Package package, User currentUser, bool includeComputedBadges = false, string query = null)
         {
             _packageViewModelFactory.Setup(viewModel, package);
-            return SetupInternal(viewModel, package, currentUser, includeComputedBadges);
+            return SetupInternal(viewModel, package, currentUser, includeComputedBadges, query);
         }
 
-        private ListPackageItemViewModel SetupInternal(ListPackageItemViewModel viewModel, Package package, User currentUser, bool includeComputedBadges = false)
+        private ListPackageItemViewModel SetupInternal(ListPackageItemViewModel viewModel, Package package, User currentUser, bool includeComputedBadges = false, string query = null)
         {
             viewModel.Tags = package.Tags?
                 .Split(' ')
@@ -48,6 +48,7 @@ namespace NuGetGallery
             viewModel.IsVerified = package.PackageRegistration?.IsVerified;
             viewModel.IsDeprecated = package.Deprecations?.Count > 0;
             viewModel.IsVulnerable = package.VulnerablePackageRanges?.Count > 0;
+            viewModel.IsExactMatch = string.Equals(package.Id, query, StringComparison.OrdinalIgnoreCase);
 
             if (viewModel.IsDeprecated)
             {

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -266,7 +266,16 @@ namespace Ng.Jobs
                 return;
             }
 
-            var queuedContext = queueMessage.Contents;
+            string packageId = queueMessage.Contents.Package.Id;
+            string packageVersion = queueMessage.Contents.Package.Version;
+
+            // Decode the package ID in case it was encoded for the queue message.
+            string decodedPackageId = Uri.UnescapeDataString(packageId);
+            string decodedPackageVersion = Uri.UnescapeDataString(packageVersion);
+            var packageIdentity = new FeedPackageIdentity(decodedPackageId, decodedPackageVersion);
+            PackageValidatorContext queuedContext =
+                new PackageValidatorContext(packageIdentity, queueMessage.Contents.CatalogEntries);
+
             var messageWasProcessed = false;
 
             try

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -447,6 +447,51 @@ namespace NuGetGallery
             return GetPackagesForOwners(ownerKeys, includeUnlisted, includeVersions);
         }
 
+        public (IReadOnlyCollection<Package> Packages, long TotalDownloadCount, int PackageCount) FindPackagesByProfile(
+            User user,
+            int page,
+            int pageSize)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            IQueryable<Package> packages = _packageRepository.GetAll()
+                .Where(p => p.PackageRegistration.Owners.Any(o => o.Key == user.Key));
+
+            var packageSummary = packages
+                .Where(p => p.IsLatestSemVer2)
+                .Include(p => p.PackageRegistration)
+                .GroupBy(r => 1)
+                .Select(g => new
+                {
+                    PackageCount = g.Sum(x => 1),
+                    DownloadCount = g.Sum(x => x.PackageRegistration.DownloadCount)
+                })
+                .FirstOrDefault();
+
+            var packageCount = packageSummary != null ? packageSummary.PackageCount : 0;
+            var downloadCount = packageSummary != null ? packageSummary.DownloadCount : 0;
+
+            packages = packages
+                .Where(p => p.Listed
+                    && p.PackageStatusKey == PackageStatus.Available);
+
+            packages = GetLatestVersion(packages);
+
+            return (packages
+                .OrderByDescending(p => p.PackageRegistration.DownloadCount)
+                .ThenBy(p => p.PackageRegistration.Id)
+                .Skip((page-1) * pageSize)
+                .Take(pageSize)
+                .Include(p => p.PackageRegistration.Owners)
+                .Include(p => p.PackageRegistration.RequiredSigners)
+                .ToList(),
+                downloadCount,
+                packageCount);
+        }
+
         private IEnumerable<Package> GetPackagesForOwners(IEnumerable<int> ownerKeys, bool includeUnlisted, bool includeVersions)
         {
             IQueryable<Package> packages = _packageRepository.GetAll()
@@ -459,20 +504,7 @@ namespace NuGetGallery
 
             if (!includeVersions)
             {
-                // Do a best effort of retrieving the latest versions. Note that UpdateIsLatest has had concurrency issues
-                // where sometimes packages no rows with IsLatest set. In this case, we'll just select the last inserted
-                // row (descending [Key]) as opposed to reading all rows into memory and sorting on NuGetVersion.
-                packages = packages
-                    .GroupBy(p => p.PackageRegistrationKey)
-                    .Select(g => g
-                        // order booleans desc so that true (1) comes first
-                        .OrderByDescending(p => p.IsLatestStableSemVer2)
-                        .ThenByDescending(p => p.IsLatestStable)
-                        .ThenByDescending(p => p.IsLatestSemVer2)
-                        .ThenByDescending(p => p.IsLatest)
-                        .ThenByDescending(p => p.Listed)
-                        .ThenByDescending(p => p.Key)
-                        .FirstOrDefault());
+                packages = GetLatestVersion(packages);
             }
 
             return packages
@@ -480,6 +512,25 @@ namespace NuGetGallery
                 .Include(p => p.PackageRegistration.Owners)
                 .Include(p => p.PackageRegistration.RequiredSigners)
                 .ToList();
+        }
+
+        private static IQueryable<Package> GetLatestVersion(IQueryable<Package> packages)
+        {
+            // Do a best effort of retrieving the latest versions. Note that UpdateIsLatest has had concurrency issues
+            // where sometimes packages no rows with IsLatest set. In this case, we'll just select the last inserted
+            // row (descending [Key]) as opposed to reading all rows into memory and sorting on NuGetVersion.
+            packages = packages
+                .GroupBy(p => p.PackageRegistrationKey)
+                .Select(g => g
+                    // order booleans desc so that true (1) comes first
+                    .OrderByDescending(p => p.IsLatestStableSemVer2)
+                    .ThenByDescending(p => p.IsLatestStable)
+                    .ThenByDescending(p => p.IsLatestSemVer2)
+                    .ThenByDescending(p => p.IsLatest)
+                    .ThenByDescending(p => p.Listed)
+                    .ThenByDescending(p => p.Key)
+                    .FirstOrDefault());
+            return packages;
         }
 
         public IQueryable<PackageRegistration> FindPackageRegistrationsByOwner(User user)

@@ -63,6 +63,8 @@
     };
 }
 
+
+@* IMPORTANT. If you modify this search form then update searchFilterParamNames in commons.js *@
 <form name="search" id="search-form" method="get" class="clearfix advanced-search-panel">
     <div id="search-bar-list-packages" class="navbar navbar-inverse">
         <div class="container search-container" aria-label="Package search bar">
@@ -81,8 +83,9 @@
                 {
                     <div class="toggle-advanced-search-panel">
                         <span>Advanced search filters</span>
-                        <button class ="advanced-search-toggle-button btn-brand-transparent" aria-label="Toggles search filters on narrow screens" aria-expanded="false" aria-controls="advancedSearchToggleButton" tabindex="0" id="advancedSearchToggleButton" type="button">
-                        <i class="ms-Icon ms-Icon--ChevronDown" id="advancedSearchToggleChevron" ></i></button>
+                        <button class="advanced-search-toggle-button btn-brand-transparent" aria-label="Toggles search filters on narrow screens" aria-expanded="false" aria-controls="advancedSearchToggleButton" tabindex="0" id="advancedSearchToggleButton" type="button">
+                            <i class="ms-Icon ms-Icon--ChevronDown" id="advancedSearchToggleChevron"></i>
+                        </button>
                     </div>
                     <div class="row clearfix advanced-search-panel" id="advancedSearchPanel">
                         <input type="text" hidden id="frameworks" name="frameworks" value="@Model.Frameworks">
@@ -176,7 +179,7 @@
                                         <input id="prerel-checkbox" type="checkbox" checked="@Model.IncludePrerelease">
                                         <span>
                                             Include prerelease
-                                         </span>
+                                        </span>
                                     </label>
                                 </div>
                             </fieldset>
@@ -226,12 +229,12 @@
                     @if (Model.IsAdvancedSearchFlightEnabled)
                     {
                         <div class="sortby col-md-4">
-                                <label for="sortby" class="">Sort by</label>
-                                <select name="sortby" id="sortby" form="search-form" aria-label="sort package search results by" class="form-control select-brand">
-                                    <option value="relevance" aria-label="Sort By: Relevance" @(Model.SortBy == "relevance" ? "selected" : "")>Relevance</option>
-                                    <option value="totalDownloads-desc" aria-label="Sort By: Downloads" @(Model.SortBy == "totalDownloads-desc" ? "selected" : "")>Downloads</option>
-                                    <option value="created-desc" aria-label="Sort By: Recently updated" @(Model.SortBy == "created-desc" ? "selected" : "")>Recently updated</option>
-                                </select>
+                            <label for="sortby" class="">Sort by</label>
+                            <select name="sortby" id="sortby" form="search-form" aria-label="sort package search results by" class="form-control select-brand">
+                                <option value="relevance" aria-label="Sort By: Relevance" @(Model.SortBy == "relevance" ? "selected" : "")>Relevance</option>
+                                <option value="totalDownloads-desc" aria-label="Sort By: Downloads" @(Model.SortBy == "totalDownloads-desc" ? "selected" : "")>Downloads</option>
+                                <option value="created-desc" aria-label="Sort By: Recently updated" @(Model.SortBy == "created-desc" ? "selected" : "")>Recently updated</option>
+                            </select>
                         </div>
                     }
                     else
@@ -413,9 +416,10 @@
     });
 
     $('#reset-advanced-search').on('click', function () {
+        window.nuget.resetSearchFilterParams();
         location.href = '?q=@Uri.EscapeDataString(Model.SearchTerm)';
     });
     </script>
 
-    @Scripts.RenderFormat("<script src=\"{0}\" nonce='"+@Html.GetCSPNonce().ToString()+"'></script>", "~/Scripts/gallery/page-list-packages.min.js");
+    @Scripts.RenderFormat("<script src=\"{0}\" nonce='" + @Html.GetCSPNonce().ToString() + "'></script>", "~/Scripts/gallery/page-list-packages.min.js");
 }
