@@ -5,7 +5,7 @@
     ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
 }
 
-<section role="main" class="container main-container page-api-keys">
+<section role="main" class="container main-container page-trusted-publishers">
     @ViewHelpers.AjaxAntiForgeryToken(Html)
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
@@ -133,7 +133,7 @@
                 <span class="field-validation-valid help-block"
                       data-valmsg-replace="true"
                       data-valmsg-for="repository-owner"></span>
-                <span class="help-block">The GitHub organization or owner name, e.g. <span class=".example-commands">azure</span></span>
+                <span class="help-block">The GitHub organization or owner name. Example: <span class="example-text">Azure</span></span>
             </div>
         </div>
 
@@ -146,7 +146,7 @@
                 <span class="field-validation-valid help-block"
                       data-valmsg-replace="true"
                       data-valmsg-for="repository"></span>
-                <span class="help-block">The name of the GitHub repository, e.g. <span class=".example-commands">azure-cli</span></span>
+                <span class="help-block">The GitHub repository name. Example: <span class="example-text">azure-sdk-tools</span></span>
             </div>
         </div>
 
@@ -164,9 +164,9 @@
                       data-valmsg-for="workflow-file"></span>
                 <span class="help-block">
                     The file name that contains publishing workflow and exists in the
-                    <span class=".example-commands">.github/workflows/</span> directory. Example:
-                    <span class=".example-commands">build.yml</span> or
-                    <span class=".example-commands">deploy/release.yaml</span>
+                    <span class="example-text">.github/workflows/</span> directory. Example:
+                    <span class="example-text">build.yml</span> or
+                    <span class="example-text">deploy/release.yaml</span>
                 </span>
             </div>
         </div>
