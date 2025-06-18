@@ -177,13 +177,10 @@ namespace NuGet.Services.Metadata.Catalog
                 }
 
                 string normalizedFulName = entry.FullName.Replace('\\', '/');
-                if (seen.Contains(normalizedFulName))
+                if (seen.Add(normalizedFulName))
                 {
-                    continue;
+                    result.Add(new PackageEntry(entry));
                 }
-
-                seen.Add(normalizedFulName);
-                result.Add(new PackageEntry(entry));
             }
 
             return result;
