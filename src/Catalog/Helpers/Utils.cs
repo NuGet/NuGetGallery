@@ -157,6 +157,7 @@ namespace NuGet.Services.Metadata.Catalog
         public static IEnumerable<PackageEntry> GetEntries(ZipArchive package)
         {
             IList<PackageEntry> result = new List<PackageEntry>();
+            HashSet<string> seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             foreach (ZipArchiveEntry entry in package.Entries)
             {
@@ -175,6 +176,13 @@ namespace NuGet.Services.Metadata.Catalog
                     continue;
                 }
 
+                string normalizedFulName = entry.FullName.Replace('\\', '/');
+                if (seen.Contains(normalizedFulName))
+                {
+                    continue;
+                }
+
+                seen.Add(normalizedFulName);
                 result.Add(new PackageEntry(entry));
             }
 

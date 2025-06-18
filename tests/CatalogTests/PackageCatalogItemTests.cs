@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -39,6 +39,8 @@ namespace CatalogTests.Helpers
         [InlineData("PackageTypeWhiteSpaceVersion")]
         [InlineData("PackageWithReadmeOnlyNoType")]
         [InlineData("TestPackageReadmeFileWithFileType")]
+        [InlineData("DuplicateReadmeFiles")]
+        [InlineData("DuplicateLibFilesDifferentPathSeparators")]
         public void CreateContent_ProducesExpectedJson(string packageName)
         {
             // Arrange
