@@ -63,6 +63,38 @@ namespace CatalogTests.Helpers
             Assert.Equal(expected, actual);
         }
 
+        [Fact]
+        public void CreateContent_ChoosesFirstDuplicate()
+        {
+            // Arrange
+            var catalogItem = CreateCatalogItem("DuplicateReadmeFiles");
+            var catalogContext = new CatalogContext();
+
+            // Act
+            var content = catalogItem.CreateContent(catalogContext);
+
+            // Assert
+            // The nupkg contains two README.md files with different lengths, but the catalog item should only include one.
+            // The first one is chosen, which is the one with lengths 26 and 24.
+            var expected = @"
+    {
+      ""@id"": ""http://example/data/2017.01.04.08.15.00/duplicatereadmefiles.1.0.0.json#README.md"",
+      ""@type"": ""PackageEntry"",
+      ""compressedLength"": 26,
+      ""fullName"": ""README.md"",
+      ""length"": 24,
+      ""name"": ""README.md""
+    }";
+
+            string actual;
+            using (var reader = new StreamReader(content.GetContentStream()))
+            {
+                actual = reader.ReadToEnd();
+            }
+
+            Assert.Contains(expected, actual, StringComparison.Ordinal);
+        }
+
         [Theory]
         [InlineData("Newtonsoft.Json.9.0.2-beta1", "http://example/data/2017.01.04.08.15.00/newtonsoft.json.9.0.2-beta1.json")]
         [InlineData("TestPackage.SemVer2.1.0.0-alpha.1", "http://example/data/2017.01.04.08.15.00/testpackage.semver2.1.0.0-alpha.1.json")]
