@@ -464,6 +464,108 @@
         setPopoversInternal(this, rightWithVerticalFallback);
     }
 
+    // Search filter keys to store. Correspond to search filters on Packages page.
+    const searchFilterParamNames = [
+        "frameworks",
+        "tfms",
+        "packagetype",
+        "prerel",
+        "frameworkFilterMode",
+        "includeComputedFrameworks",
+    ];
+
+    const searchFilterStorageKey = "nuget-search-filters";
+
+    function getStoredSearchFilterParams() {
+        try {
+            const value = localStorage.getItem(searchFilterStorageKey);
+            if (value) {
+                const searchParams = JSON.parse(value);
+                if (typeof searchParams === 'object' && Object.keys(searchParams).length > 0) {
+                    return searchParams;
+                }
+            }
+        } catch (e) {
+            // Ignore parse/storage errors
+        }
+
+        return undefined;
+    }
+
+    function addSearchFilterInputsToSimpleSearchForm() {
+        const searchParams = getStoredSearchFilterParams();
+        if (!searchParams) {
+            return;
+        }
+
+        const searchForm = $("#form-to-add-local-search-filters"); // MUST MATCH UrlHelperExtensions.cs
+        if (!searchForm.length) {
+            return;
+        }
+
+        // Update existing input elements or create new hidden ones
+        for (const key in searchParams) {
+            let input = searchForm.find('input[name="' + key + '"]');
+            if (input.length) {
+                input.val(searchParams[key]);
+            } else {
+                $('<input>', {
+                    type: 'hidden',
+                    id: key,
+                    name: key,
+                    value: searchParams[key]
+                }).appendTo(searchForm);
+            }
+        }
+    }
+
+    nuget.resetSearchFilterParams = function () {
+        try {
+            localStorage.removeItem(searchFilterStorageKey);
+        } catch (e) {
+        }
+    }
+
+    nuget.saveSearchFilterParams = function (url) {
+        // Parse URL like "/packages?tfms=net8.0&packagetype=dotnettool&prerel=false"
+        // and store specific params for later reuse.
+        const parser = new URL(url);
+        const params = {};
+        for (const [key, value] of parser.searchParams.entries()) {
+            if (searchFilterParamNames.indexOf(key) !== -1 && value !== '') {
+                params[key] = value;
+            }
+        }
+
+        // Save to localStorage as a single object, or clear storage if no params
+        if (Object.keys(params).length > 0) {
+            try {
+                localStorage.setItem(searchFilterStorageKey, JSON.stringify(params));
+                return;
+            } catch (e) {
+                // Ignore storage errors (e.g., quota exceeded)
+            }
+        }
+
+        // We are here if we failed to save or need to remove "empty" params.
+        nuget.resetSearchFilterParams();
+    }
+
+    nuget.updateSearchLinksWithSavedParams = function () {
+        // Update all specially marked <a> elements to include localy stored search params.
+        const searchParams = getStoredSearchFilterParams();
+        if (searchParams) {
+            const links = $('a.link-to-add-local-search-filters'); // MUST MATCH UrlHelperExtensions.cs
+            links.each(function () {
+                const url = new URL(this.href);
+                $.each(searchParams, function (key, value) {
+                    url.searchParams.set(key, value);
+                });
+                this.href = url.href;
+            });
+        }
+    }
+
     function rightWithVerticalFallback(popoverElement, ownerElement) {
         // Both numbers below are in CSS pixels.
         const MinSpaceOnRight = 150;
@@ -674,6 +776,10 @@
         if (window.nuget.wcpSiteConsent && window.nuget.wcpSiteConsent.isConsentRequired) {
             $("#footer-privacy-policy-link").after(" - <a class='button' href = 'javascript: window.nuget.wcpSiteConsent.manageConsent()' > Manage Cookies</a >")
         }
+
+        addSearchFilterInputsToSimpleSearchForm();
+        window.nuget.updateSearchLinksWithSavedParams();
+
     });
     //for tooltip hover and focus
     $('.tooltip-target').each(function () {

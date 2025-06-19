@@ -97,7 +97,7 @@ if (!(Test-Path $AppCmdPath)) {
 
 # Enable access to the necessary URLs
 # S-1-1-0 is the unlocalized version for: user=Everyone 
-Invoke-Netsh http delete urlacl "url=http://$(Get-SiteHttpHost)/"
+Invoke-Netsh http delete urlacl "url=http://$(Get-SiteHttpHost)/" # DevSkim: ignore DS137138
 Invoke-Netsh http delete urlacl "url=https://$(Get-SiteHttpsHost)/"
 Invoke-Netsh http add urlacl "url=http://$(Get-SiteHttpHost)/" "sddl=D:(A;;GX;;;S-1-1-0)" # DevSkim: ignore DS137138
 Invoke-Netsh http add urlacl "url=https://$(Get-SiteHttpsHost)/" "sddl=D:(A;;GX;;;S-1-1-0)"

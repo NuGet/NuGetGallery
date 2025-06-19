@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -2468,6 +2468,7 @@ namespace NuGetGallery
 
                 var packageRegistration = new PackageRegistration();
                 packageRegistration.Id = "Foo";
+                packageRegistration.Owners.Add(TestUtility.FakeUser);
 
                 var onlyVersion = new Package
                 {
@@ -2519,6 +2520,7 @@ namespace NuGetGallery
 
                 var packageRegistration = new PackageRegistration();
                 packageRegistration.Id = "Foo";
+                packageRegistration.Owners.Add(TestUtility.FakeUser);
 
                 var onlyVersion = new Package
                 {
@@ -2599,6 +2601,7 @@ namespace NuGetGallery
 
                 var packageRegistration = new PackageRegistration();
                 packageRegistration.Id = "Foo";
+                packageRegistration.Owners.Add(TestUtility.FakeUser);
 
                 var oldestPackage = new Package
                 {
@@ -2703,7 +2706,7 @@ namespace NuGetGallery
 
                 var packageId = "someId";
                 var packageVersion = "1.2.3-someVersion";
-                var packageRegistration = new PackageRegistration { Id = packageId };
+                var packageRegistration = new PackageRegistration { Id = packageId, Owners = [TestUtility.FakeUser] };
                 var package = new Package
                 {
                     PackageRegistration = packageRegistration,
@@ -5051,6 +5054,54 @@ namespace NuGetGallery
 
                 var model = (PackageListViewModel) result.Model;
                 Assert.Equal("test", model.SearchTerm);
+            }
+
+            [Theory]
+            [InlineData("test", true)]
+            [InlineData("test ", true)]
+            [InlineData("TEST", true)]
+            [InlineData("\t Test", true)]
+            [InlineData("test+", false)]
+            [InlineData("test.", false)]
+            [InlineData("", false)]
+            [InlineData(null, false)]
+            public async Task InitisExactMatch(string query, bool expectedMatch)
+            {
+                var iconUrlProvider = new Mock<IIconUrlProvider>();
+                const string iconUrl = "https://some.test/icon";
+                iconUrlProvider
+                    .Setup(iup => iup.GetIconUrlString(It.IsAny<Package>()))
+                    .Returns(iconUrl);
+                var searchService = new Mock<ISearchService>();
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    searchService: searchService,
+                    iconUrlProvider: iconUrlProvider);
+
+                var packages = new Package[] {
+                    new Package {PackageRegistration = new PackageRegistration { Id = "foo.test" } },
+                    new Package {PackageRegistration = new PackageRegistration { Id = "test" } }, // this should be exact match
+                    new Package {PackageRegistration = new PackageRegistration { Id = "test.bar" } },
+                };
+
+                searchService
+                    .Setup(s => s.Search(It.IsAny<SearchFilter>()))
+                    .ReturnsAsync(new SearchResults(1, DateTime.UtcNow, packages.AsQueryable()));
+
+                var result = await controller.ListPackages(new PackageListSearchViewModel { Q = query });
+
+                var model = ResultAssert.IsView<PackageListViewModel>(result);
+                var matchedItems = model.Items.Where(p => p.IsExactMatch).ToList();
+                if (expectedMatch)
+                {
+                    Assert.Single(matchedItems);
+                    Assert.Equal("test", matchedItems[0].Id);
+                }
+                else
+                {
+                    Assert.Empty(matchedItems);
+                }
             }
 
             [Fact]

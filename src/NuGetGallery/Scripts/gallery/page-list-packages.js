@@ -207,6 +207,8 @@ $(function() {
         });
         searchForm.addEventListener('submit', submitSearchForm);
         initializeFrameworkAndTfmCheckboxes();
+        window.nuget.saveSearchFilterParams(window.location.href);
+        window.nuget.updateSearchLinksWithSavedParams();
     }
 
     $(".reserved-indicator").each(window.nuget.setPopovers);
