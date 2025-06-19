@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.IO;
@@ -39,6 +39,22 @@ namespace NuGet.Services.Messaging.Email
         protected override string GetHtmlBody()
         {
             return Markdown.ToHtml(GetMarkdownBody());
+        }
+
+        protected static string EscapeMarkdown(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return text;
+            }
+
+            var specialChars = new[] { "\\", "`", "*", "_", "{", "}", "[", "]", "(", ")", "#", "+", "-", ".", "!", "|" };
+            foreach (var ch in specialChars)
+            {
+                text = text.Replace(ch, "\\" + ch);
+            }
+
+            return text;
         }
     }
 }
