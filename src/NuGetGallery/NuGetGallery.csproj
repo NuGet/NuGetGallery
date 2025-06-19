@@ -1753,7 +1753,7 @@
     <Content Include="Scripts\gallery\instrumentation.js" />
     <Content Include="Scripts\gallery\knockout-3.5.1.js" />
     <Content Include="Scripts\gallery\moment-2.29.4.js" />
-    <Content Include="Scripts\gallery\page-trusted-publishers.js" />
+    <Content Include="Scripts\gallery\page-trusted-publishing.js" />
     <Content Include="Scripts\gallery\page-downloads.js" />
     <Content Include="Scripts\gallery\page-list-packages.js" />
     <Content Include="Scripts\gallery\syntaxhighlight.js" />
@@ -2307,7 +2307,7 @@
     <Content Include="Areas\Admin\Views\FederatedCredentials\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Views\Users\TrustedPublishers.cshtml" />
+    <Content Include="Views\Users\TrustedPublishing.cshtml" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

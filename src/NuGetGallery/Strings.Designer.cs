@@ -19,7 +19,7 @@ namespace NuGetGallery {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Strings {
@@ -2477,6 +2477,28 @@ namespace NuGetGallery {
         public static string TransformAccount_Success {
             get {
                 return ResourceManager.GetString("TransformAccount_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to steps:
+        ///    # TODO: steps to produce artifacts/my-sdk.nupkg
+        ///
+        ///    # Get a short-lived NuGet API key to use for package publishing
+        ///    - name: NuGet login
+        ///    id: nuget_login
+        ///    uses: nuget/login@v1
+        ///    with:
+        ///      user: %USER_NAME%
+        ///      source: https://api.nuget.org/v3/index.json
+        ///
+        ///    # Use short-lived NuGet API key to publish the package
+        ///    - name: NuGet push
+        ///    run: dotnet nuget push artifacts/my-sdk.nupkg -k ${{steps.nuget_login.outputs.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.jso [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string TrustedPublisher_UsageExample_GitGub {
+            get {
+                return ResourceManager.GetString("TrustedPublisher_UsageExample_GitGub", resourceCulture);
             }
         }
         

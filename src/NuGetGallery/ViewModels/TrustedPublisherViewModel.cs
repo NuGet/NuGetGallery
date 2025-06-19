@@ -37,7 +37,6 @@ namespace NuGetGallery
         /// <summary>
         /// Publisher name, e.g. GitHub.
         /// </summary>
-        [JsonIgnore]
         public abstract string Name { get; }
     }
 }

@@ -28,7 +28,7 @@ namespace NuGetGallery
         public const string TransformToOrganizationRejection = "RejectTransform";
         public const string TransformToOrganizationCancellationRedirect = "CancelTransformRedirect";
         public const string TransformToOrganizationCancellation = "CancelTransform";
-        public const string TrustedPublishers = "TrustedPublishers";
+        public const string TrustedPublishing = "TrustedPublishing";
         public const string ApiKeys = "ApiKeys";
         public const string Profile = "Profile";
         public const string DisplayPackage = "package-route";

@@ -3186,67 +3186,67 @@ p.frameworktableinfo-text {
 .page-transform-account .center-box .logo-box .logo {
   flex-grow: 1;
 }
-.page-trusted-publishers .example-text {
+.page-page-trusted-publishing .example-text {
   font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
   font-weight: bold;
 }
-.page-trusted-publishers h2 {
+.page-page-trusted-publishing h2 {
   margin-top: 30px;
   margin-bottom: 10px;
 }
-.page-trusted-publishers h3 {
+.page-page-trusted-publishing h3 {
   font-size: 34px;
   margin-top: 0;
   margin-bottom: 0;
 }
-.page-trusted-publishers .in.in-inline {
+.page-page-trusted-publishing .in.in-inline {
   display: inline;
 }
-.page-trusted-publishers .upsert-trusted-publisher ul {
+.page-page-trusted-publishing .upsert-trusted-publisher ul {
   padding-left: 0;
   list-style: none;
 }
-.page-trusted-publishers .upsert-trusted-publisher ul ul {
+.page-page-trusted-publishing .upsert-trusted-publisher ul ul {
   padding-left: 20px;
 }
-.page-trusted-publishers .upsert-trusted-publisher .panel {
+.page-page-trusted-publishing .upsert-trusted-publisher .panel {
   margin-bottom: 0;
 }
-.page-trusted-publishers .upsert-trusted-publisher .required:after {
+.page-page-trusted-publishing .upsert-trusted-publisher .required:after {
   color: var(--statusDangerStroke2Rest);
   content: " *";
 }
-.page-trusted-publishers .add-trusted-publisher {
+.page-page-trusted-publishing .add-trusted-publisher {
   padding: 20px 0;
   border-top: 1px solid #dbdbdb;
   border-bottom: 1px solid #dbdbdb;
 }
-.page-trusted-publishers .add-trusted-publisher > .panel {
+.page-page-trusted-publishing .add-trusted-publisher > .panel {
   margin-top: 16px;
 }
-.page-trusted-publishers .trusted-publisher-details {
+.page-page-trusted-publishing .trusted-publisher-details {
   padding: 20px 0;
 }
-.page-trusted-publishers .trusted-publisher-details .ms-Icon {
+.page-page-trusted-publishing .trusted-publisher-details .ms-Icon {
   position: relative;
   top: 2px;
 }
-.page-trusted-publishers .trusted-publisher-details .icon-details {
+.page-page-trusted-publishing .trusted-publisher-details .icon-details {
   color: var(--neutralForeground1Rest);
   margin: 10px 0;
 }
-.page-trusted-publishers .trusted-publisher-details .icon-details li {
+.page-page-trusted-publishing .trusted-publisher-details .icon-details li {
   padding: 0;
 }
-.page-trusted-publishers .trusted-publisher-details .icon-details li + li {
+.page-page-trusted-publishing .trusted-publisher-details .icon-details li + li {
   margin-left: 10px;
   padding-left: 10px;
   border-left: 1px solid var(--neutralForeground1Rest);
 }
-.page-trusted-publishers .trusted-publisher-details .package-list li {
+.page-page-trusted-publishing .trusted-publisher-details .package-list li {
   overflow-y: visible;
 }
-.page-trusted-publishers .trusted-publisher-details:not(:first-child) {
+.page-page-trusted-publishing .trusted-publisher-details:not(:first-child) {
   border-top: 1px solid #dbdbdb;
 }
 .page-upload #browse-for-package-button {
