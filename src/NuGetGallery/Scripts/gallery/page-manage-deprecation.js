@@ -63,60 +63,60 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
         return warningMessage;
     }, this);
 
-    this.chosenItemsHasUndeprecatedVersion = ko.pureComputed(function () {
+    const checkDeprecationStatus = {
+        HasDeprecatedVersion: 'HasDeprecatedVersion',
+        HasUndeprecatedVersion: 'HasUndeprecatedVersion'
+    };
+
+    var checkDeprecationState = function (checkType) {
+
         var chosenItems = self.dropdown.chosenItems();
-        var hasVersionsWithNoDeprecationState = false;
+
+        var hasVersionWithoutDeprecation = false;
+        var hasVersionWithDeprecation = false;
 
         if (chosenItems.length === 0) {
-            // If nothing is selected, an error will show
-            // No need to show a warning in addition to the error
             return null;
         }
 
         for (var i in chosenItems) {
             var version = chosenItems[i];
             var versionData = versionDeprecationStateDictionary[version];
-            if (!versionData) {
+
+           if (!versionData) {
                 // It shouldn't be possible to select a version that didn't exist when the page loaded.
                 // In case there is a bug and the user did select a valid version, continue on anyway.
                 continue;
             }
 
-            if (!(versionData.IsLegacy || versionData.HasCriticalBugs || versionData.IsOther)) {
-                hasVersionsWithNoDeprecationState = true;
+            if (versionData.IsLegacy || versionData.HasCriticalBugs || versionData.IsOther) {
+                hasVersionWithDeprecation = true;
             }
-
+            else {
+                hasVersionWithoutDeprecation = true;
+            }
         }
 
-        return hasVersionsWithNoDeprecationState;
-    }, this);
+        if (checkType === checkDeprecationStatus.HasDeprecatedVersion) {
+            return hasVersionWithDeprecation;
+        }
+        else if (checkType === checkDeprecationStatus.HasUndeprecatedVersion) {
+            return hasVersionWithoutDeprecation;
+        } else {
+            return null;
+        }
+    }
+
+    this.chosenItemsHasUndeprecatedVersion = ko.pureComputed(function () {
+
+        return checkDeprecationState(checkDeprecationStatus.HasUndeprecatedVersion);
+
+     }, this);
 
     this.chosenItemsHasDeprecatedVersion = ko.pureComputed(function () {
-        var chosenItems = self.dropdown.chosenItems();
-        var hasVersionsWithNoDeprecationState = false;
 
-        if (chosenItems.length === 0) {
-            // If nothing is selected, an error will show
-            // No need to show a warning in addition to the error
-            return null;
-        }
+        return checkDeprecationState(checkDeprecationStatus.HasDeprecatedVersion);
 
-        for (var i in chosenItems) {
-            var version = chosenItems[i];
-            var versionData = versionDeprecationStateDictionary[version];
-            if (!versionData) {
-                // It shouldn't be possible to select a version that didn't exist when the page loaded.
-                // In case there is a bug and the user did select a valid version, continue on anyway.
-                continue;
-            }
-
-            if ((versionData.IsLegacy || versionData.HasCriticalBugs || versionData.IsOther)) {
-                hasVersionsWithNoDeprecationState = true;
-            }
-
-        }
-
-        return hasVersionsWithNoDeprecationState;
     }, this);
 
     this.isLegacy = ko.observable(false);
