@@ -205,9 +205,9 @@ namespace NuGetGallery
                 .Include("~/Scripts/gallery/page-api-keys.js");
             BundleTable.Bundles.Add(apiKeysScriptBundle);
 
-            var trustedPublishersScriptBundle = new ScriptBundle("~/Scripts/gallery/page-trusted-publishers.min.js")
-                .Include("~/Scripts/gallery/page-trusted-publishers.js");
-            BundleTable.Bundles.Add(trustedPublishersScriptBundle);
+            var trustedPublishingScriptBundle = new ScriptBundle("~/Scripts/gallery/page-trusted-publishing.min.js")
+                .Include("~/Scripts/gallery/page-trusted-publishing.js");
+            BundleTable.Bundles.Add(trustedPublishingScriptBundle);
 
             var accountScriptBundle = new ScriptBundle("~/Scripts/gallery/page-account.min.js")
                 .Include("~/Scripts/gallery/page-account.js");

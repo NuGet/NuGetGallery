@@ -498,7 +498,7 @@ namespace NuGetGallery
 
         [HttpGet]
         [UIAuthorize]
-        public virtual ActionResult TrustedPublishers()
+        public virtual ActionResult TrustedPublishing()
         {
             var currentUser = GetCurrentUser();
 
@@ -514,7 +514,7 @@ namespace NuGetGallery
                     Key = 1,
                     Description = "Release",
                     Owner = currentUser.Username,
-                    PublisherDetails = new GitHubPublisherDetailsViewModel
+                    PublisherDetails = new GitHubPublisherDetailsViewModel()
                     {
                         RepositoryOwner = "dotnet",
                         Repository = "roslyn",
@@ -525,7 +525,7 @@ namespace NuGetGallery
                     Key = 2,
                     Description = "Preview v5",
                     Owner = currentUser.Organizations.FirstOrDefault()?.Organization.Username ?? currentUser.Username,
-                    PublisherDetails = new GitHubPublisherDetailsViewModel
+                    PublisherDetails = new GitHubPublisherDetailsViewModel()
                     {
                         RepositoryOwner = "dotnet",
                         Repository = "roslyn",
@@ -554,12 +554,13 @@ namespace NuGetGallery
 
             var model = new TrustedPublisherListViewModel
             {
+                Username = currentUser.Username,
                 TrustedPublishers = publishers,
                 PackageOwners = owners.Where(o => o.CanPushNew || o.CanPushExisting || o.CanUnlist).ToList(),
                 IsDeprecationApiEnabled = anyWithDeprecationApi,
             };
 
-            return View("TrustedPublishers", model);
+            return View("TrustedPublishing", model);
         }
 
         private ApiKeyOwnerViewModel CreateApiKeyOwnerViewModel(User currentUser, User account)

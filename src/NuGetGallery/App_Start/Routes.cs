@@ -540,9 +540,9 @@ namespace NuGetGallery
                 new { controller = "Users", action = "ApiKeys" });
 
             routes.MapRoute(
-                RouteName.TrustedPublishers,
-                "account/trustedpublishers",
-                new { controller = "Users", action = "TrustedPublishers" });
+                RouteName.TrustedPublishing,
+                "account/trustedpublishing",
+                new { controller = "Users", action = "TrustedPublishing" });
 
             routes.MapRoute(
                 RouteName.Account,
