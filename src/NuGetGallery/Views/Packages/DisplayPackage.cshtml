@@ -1438,10 +1438,10 @@
                              src="@Url.Absolute("~/Content/gallery/img/facebook.svg")"
                              @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/facebook-24x24.png")) />
                     </a>
-                    <a href="https://twitter.com/intent/tweet?url=@absolutePackageUrl&text=@encodedText" target="_blank" rel="nofollow noreferrer">
-                        <img width="24" height="24" alt="Tweet this package"
-                             src="@Url.Absolute("~/Content/gallery/img/twitter.svg")"
-                             @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/twitter-24x24.png")) />
+                    <a href="https://x.com/intent/post?url=@absolutePackageUrl&text=@encodedText" target="_blank" rel="nofollow noreferrer">
+                        <img width="24" height="24" alt="Share this package on X"
+                             src="@Url.Absolute("~/Content/gallery/img/x.svg")"
+                             @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/x-24x24.png")) />
                     </a>
                     @if (Model.IsAtomFeedEnabled)
                     {
