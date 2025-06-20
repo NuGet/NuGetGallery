@@ -14,38 +14,65 @@ namespace NuGetGallery
         {
         }
 
-        //[JsonIgnore]
+        [JsonIgnore]
         public override string Name => "GitHub";
 
         /// <summary>
         /// GitHub organization/owner name.
         /// </summary>
         [Required]
-        //[JsonProperty("repository_owner")]
+        [JsonProperty("repository_owner")]
         public string RepositoryOwner { get; set; }
+
+        /// <summary>
+        /// GitHub organization/owner ID. Obtained from GitHub API.
+        /// </summary>
+        [Required]
+        [JsonProperty("repository_owner_id")]
+        public int RepositoryOwnerId { get; set; }
 
         /// <summary>
         /// GitHub repository name.
         /// </summary>
         [Required]
-        //[JsonProperty("repository")]
+        [JsonProperty("repository")]
         public string Repository { get; set; }
+
+        /// <summary>
+        /// GitHub repository id. Obtained from GitHub API.
+        /// </summary>
+        [Required]
+        [JsonProperty("repository_id")]
+        public int RepositoryId { get; set; }
+
 
         /// <summary>
         /// GitHub Action workflow file name, e.g. release.yml.
         /// </summary>
         [Required]
-        //[JsonProperty("workflow")]
+        [JsonProperty("workflow")]
         public string WorkflowFile { get; set; }
 
-        //[JsonIgnore]
+        [JsonIgnore]
         public string WorkflowPath => $"/.github/workflows/{WorkflowFile}";
 
         /// <summary>
         /// GitHub Action environment name, e.g. production.
         /// </summary>
-        //[JsonProperty("environment")]
+        [JsonProperty("environment")]
         public string Environment { get; set; }
+
+        /// <summary>
+        /// GitHub Action environment name, e.g. production.
+        /// </summary>
+        [JsonProperty("branch")]
+        public string Branch { get; set; }
+
+        /// <summary>
+        /// GitHub Action tag.
+        /// </summary>
+        [JsonProperty("tag")]
+        public string Tag { get; set; }
 
         public string Serialize()
             => JsonConvert.SerializeObject(this, Formatting.Indented);

@@ -54,17 +54,26 @@
         var _gitHubDetails = {};
         _gitHubDetails.Initialize = function (self) {
             self.GitHub_RepositoryOwner = ko.observable();
+            self.GitHub_RepositoryOwnerId = ko.observable();
             self.GitHub_Repository = ko.observable();
+            self.GitHub_RepositoryId = ko.observable();
             self.GitHub_WorkflowFile = ko.observable();
             self.GitHub_Environment = ko.observable();
+            self.GitHub_Branch = ko.observable();
+            self.GitHub_Tag = ko.observable();
         }
 
         _gitHubDetails.Update = function (self, data) {
+            // Incoming data property names much match JsonProperty names in in GitHubPublisherDetailsViewModel.cs
             const details = data.PublisherName !== "GitHub" ? {} : data.PublisherDetails || {};
-            self.GitHub_RepositoryOwner(details.RepositoryOwner || '');
-            self.GitHub_Repository(details.Repository || '');
-            self.GitHub_WorkflowFile(details.WorkflowFile || '');
-            self.GitHub_Environment(details.Environment || '');
+            self.GitHub_RepositoryOwner(details.repository_owner || '');
+            self.GitHub_RepositoryOwnerId(details.repository_owner_id || 0);
+            self.GitHub_Repository(details.repository || '');
+            self.GitHub_RepositoryId(details.repository_id || 0);
+            self.GitHub_WorkflowFile(details.workflow || '');
+            self.GitHub_Environment(details.environment || '');
+            self.GitHub_Branch(details.branch || '');
+            self.GitHub_Tag(details.tag || '');
         }
 
         function TrustedPublisherViewModel(parent, packageOwners, data) {
