@@ -33,7 +33,7 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="name">Resource name</param>
         /// <param name="parameters">SQL parameters</param>
-        /// <returns>Resulting <see cref="System.Data.SqlClient.SqlDataReader.RecordsAffected"/></returns>
+        /// <returns>Resulting <see cref="Microsoft.Data.SqlClient.SqlDataReader.RecordsAffected"/></returns>
         public async Task<int> ExecuteSqlResourceAsync(string name, params object[] parameters)
         {
             string sqlCommand;

@@ -1,8 +1,7 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Data.SqlClient;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Messaging;
@@ -11,6 +10,7 @@ using NuGet.Services.ServiceBus;
 using NuGet.SupportRequests.Notifications.Notifications;
 using NuGet.SupportRequests.Notifications.Services;
 using NuGet.SupportRequests.Notifications.Templates;
+using Microsoft.Data.SqlClient;
 
 namespace NuGet.SupportRequests.Notifications.Tasks
 {
