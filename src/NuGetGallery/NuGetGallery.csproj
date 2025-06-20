@@ -357,6 +357,9 @@
     <Compile Include="Migrations\202506250741123_AddCustomDataToPackageTypes.cs" />
     <Compile Include="Migrations\202506250741123_AddCustomDataToPackageTypes.Designer.cs">
       <DependentUpon>202506250741123_AddCustomDataToPackageTypes.cs</DependentUpon>
+    <Compile Include="Migrations\202506201427587_AddFederatedCredentialPolicyName.cs" />
+    <Compile Include="Migrations\202506201427587_AddFederatedCredentialPolicyName.Designer.cs">
+      <DependentUpon>202506201427587_AddFederatedCredentialPolicyName.cs</DependentUpon>
     </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
@@ -1726,6 +1729,8 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202506250741123_AddCustomDataToPackageTypes.resx">
       <DependentUpon>202506250741123_AddCustomDataToPackageTypes.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202506201427587_AddFederatedCredentialPolicyName.resx">
+      <DependentUpon>202506201427587_AddFederatedCredentialPolicyName.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
