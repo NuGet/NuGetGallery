@@ -38,12 +38,6 @@
             <b>Select reason(s):</b>
         </div>
         <div data-bind="visible: chosenItemsHasUndeprecatedVersion()">
-            @ViewHelpers.AlertInfo(@<text>At least one reason needs to be checked in order to deprecate the selected package(s).</text>, true)
-        </div>
-        <div data-bind="visible: chosenItemsHasDeprecatedVersion()">
-            @ViewHelpers.AlertInfo(@<text>Deselect the deprecation reasons to undeprecate the selected package(s).</text>, true)
-        </div>
-        <div data-bind="visible: chosenItemsHasUndeprecatedVersion()">
             @ViewHelpers.AlertInfo(@<text>At least one reason needs to be checked in order to deprecate the selected packages(s).</text>, true)
         </div>
         <div data-bind="visible: chosenItemsHasDeprecatedVersion()">
@@ -63,9 +57,23 @@
         </div>
         <div class="form-group unbolded-label">
             <label class="brand-checkbox">
-                <input name="isOther" type="checkbox" value="true" data-bind="checked: isOther" aria-label="Select Reason: Other." />
+                <input name="isOther" type="checkbox" value="true" data-bind="checked: isOther" aria-label="Select Reason: Other."/>
                 <span><b>Other</b></span>
             </label>
+        </div>
+    </div>
+
+    <div data-bind="visible: hasCriticalBugs() || isLegacy() || isOther()">
+        <div class="deprecation-section">
+            <div class="row">
+                <div class="col-sm-8 form-group alternate-package-registration-container" data-bind="css: { 'has-error-brand': chosenAlternatePackageIdError }">
+                    <label for="alternatePackageId" class="deprecation-section-header">Alternate package</label>
+                    <input name="alternatePackageId" class="form-control full-line input-brand" type="text" aria-label="Alternate package ID" data-bind="textInput: chosenAlternatePackageId" />
+                </div>
+                <div class="col-sm-4 form-group alternate-package-container">
+                    <label for="alternatePackageVersion" class="deprecation-section-header">Version</label>
+                    <select class="form-control full-line select-brand" name="alternatePackageVersion" aria-label="Alternate package version" data-bind="options: alternatePackageVersions, value: chosenAlternatePackageVersion, enable: hasAlternatePackageVersions" size="1"></select>
+                </div>
             </div>
             <div data-bind="visible: chosenAlternatePackageIdError">
                 @ViewHelpers.AlertDanger(@<text><span data-bind="text: chosenAlternatePackageIdError"></span></text>)
