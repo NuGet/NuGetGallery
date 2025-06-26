@@ -9,6 +9,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NuGet.Packaging;
 using NuGet.Packaging.Licenses;
 using NuGet.Services.Entities;
@@ -60,6 +62,9 @@ namespace NuGetGallery
         private const int MaxAllowedLicenseNodeValueLength = 500;
         // 1 MB Keep consistent with icon, license for now, change value later once we define the size
         private const int MaxAllowedReadmeLengthForUploading = GalleryConstants.MaxFileLengthBytes;
+        // The database column has a max length of 20,000 characters and we'll assume 1 byte each
+        private const int MaxAllowedMcpServerMetadataLengthForUploading = 20_000;
+
         private const string LicenseNodeName = "license";
         private const string IconNodeName = "icon";
         private const string AllowedLicenseVersion = "1.0.0";
@@ -164,6 +169,15 @@ namespace NuGetGallery
             if (result != null)
             {
                 return result;
+            }
+
+            if (IsMcpServerPackage(nuGetPackage))
+            {
+                result = await CheckMcpServerMetadataAsync(nuGetPackage, warnings, currentUser);
+                if (result != null)
+                {
+                    return result;
+                }
             }
 
             return PackageValidationResult.AcceptedWithWarnings(warnings);
@@ -533,6 +547,94 @@ namespace NuGetGallery
             }
 
             return null;
+        }
+
+        private async Task<PackageValidationResult> CheckMcpServerMetadataAsync(PackageArchiveReader nuGetPackage, List<IValidationMessage> warnings, User user)
+        {
+            var mcpServerMetadataFilePath = @".mcp/server.json";
+            if (!FileExists(nuGetPackage, mcpServerMetadataFilePath))
+            {
+                if (_featureFlagService.IsDisplayUploadWarningV2Enabled(user))
+                {
+                    warnings.Add(new MissingMcpServerMetadataMessage());
+                }
+
+                return null;
+            }
+
+            var mcpServerMetadataFileEntry = nuGetPackage.GetEntry(mcpServerMetadataFilePath);
+
+            if (mcpServerMetadataFileEntry.Length == 0)
+            {
+                return PackageValidationResult.Invalid(
+                    string.Format(
+                        Strings.McpServerMetadataErrorEmpty,
+                        mcpServerMetadataFilePath));
+            }
+
+            if (mcpServerMetadataFileEntry.Length > MaxAllowedMcpServerMetadataLengthForUploading)
+            {
+                return PackageValidationResult.Invalid(
+                    string.Format(
+                        Strings.UploadPackage_FileTooLong,
+                        mcpServerMetadataFilePath,
+                        MaxAllowedMcpServerMetadataLengthForUploading.ToUserFriendlyBytesLabel()));
+            }
+
+            using var stream = await nuGetPackage.GetStreamAsync(mcpServerMetadataFilePath, CancellationToken.None);
+            if (!IsValidJsonObject(stream))
+            {
+                return PackageValidationResult.Invalid(
+                    string.Format(
+                        Strings.McpServerMetadataErrorInvalid,
+                        mcpServerMetadataFilePath));
+            }
+
+            return null;
+        }
+
+        private static bool IsValidJsonObject(Stream inputStream)
+        {
+            if (inputStream == null || !inputStream.CanRead)
+            {
+                return false;
+            }
+
+            if (inputStream.CanSeek)
+            {
+                inputStream.Seek(0, SeekOrigin.Begin);
+            }
+
+            using var reader = new StreamReader(inputStream);
+            using var jsonReader = new JsonTextReader(reader);
+            try
+            {
+                var token = JToken.ReadFrom(jsonReader);
+                return token is JObject;
+            }
+            catch
+            {
+                return false;
+            }
+            finally
+            {
+                if (inputStream.CanSeek)
+                {
+                    inputStream.Seek(0, SeekOrigin.Begin);
+                }
+            }
+        }
+
+        private static bool IsMcpServerPackage(PackageArchiveReader nuGetPackage)
+        {
+            // Should we add McpServer to Nuget.Client PackageType?
+            // https://github.com/NuGet/NuGet.Client/blob/dev/src/NuGet.Core/NuGet.Packaging/Core/PackageType.cs
+            var packageTypes = nuGetPackage.GetPackageTypes();
+
+            // The package must be of type McpServer and DotnetTool and nothing else.
+            return packageTypes.Count == 2 &&
+                packageTypes.Contains(NuGet.Packaging.Core.PackageType.DotnetTool) &&
+                packageTypes.Any(t => t.Name == "McpServer");
         }
 
         private static async Task<bool> FileMatchesPredicate(PackageArchiveReader nuGetPackage, string filePath, Func<Stream, Task<bool>> predicate)
