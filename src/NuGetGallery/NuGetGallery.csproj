@@ -365,6 +365,7 @@
     <Compile Include="Services\MissingLicenseValidationMessageV2.cs" />
     <Compile Include="Services\NormalizedPackageIdInfo.cs" />
     <Compile Include="Services\NullTyposquattingService.cs" />
+    <Compile Include="Services\MissingMcpServerMetadataMessage.cs" />
     <Compile Include="Services\UploadPackageMissingReadme.cs" />
     <Compile Include="Services\MissingLicenseValidationMessage.cs" />
     <Compile Include="Services\UploadPackageIdNamespaceConflict.cs" />
