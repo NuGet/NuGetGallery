@@ -54,7 +54,6 @@
         var _gitHubDetails = {};
         _gitHubDetails.Initialize = function (self) {
             self.GitHub_RepositoryOwner = ko.observable();
-            self.GitHub_RepositoryOwnerId = ko.observable();
             self.GitHub_Repository = ko.observable();
             self.GitHub_RepositoryId = ko.observable();
             self.GitHub_WorkflowFile = ko.observable();
@@ -67,7 +66,6 @@
             // Incoming data property names much match JsonProperty names in in GitHubPublisherDetailsViewModel.cs
             const details = data.PublisherName !== "GitHub" ? {} : data.PublisherDetails || {};
             self.GitHub_RepositoryOwner(details.repository_owner || '');
-            self.GitHub_RepositoryOwnerId(details.repository_owner_id || 0);
             self.GitHub_Repository(details.repository || '');
             self.GitHub_RepositoryId(details.repository_id || 0);
             self.GitHub_WorkflowFile(details.workflow || '');
@@ -82,8 +80,8 @@
 
             // Common properties
             this.Key = ko.observable(0);
-            this.Description = ko.observable();
-            this.PendingDescription = ko.observable();
+            this.PolicyName = ko.observable();
+            this.PendingPolicyName = ko.observable();
             this.Owner = ko.observable();
             this.PublisherName = ko.observable();
             
@@ -92,10 +90,27 @@
             
             this._UpdateData = function (data) {
                 this.Key(data.Key || 0);
-                this.Description(data.Description || null);
-                this.PendingDescription(data.Description || null);
+                this.PolicyName(data.PolicyName || null);
+                this.PendingPolicyName(data.PolicyName || null);
                 this.Owner(data.Owner || null);
                 this.PublisherName(data.PublisherName || null);
+
+                if (this.Owner()) {
+                    var existingOwner = ko.utils.arrayFirst(
+                        this.PackageOwners,
+                        function (owner) {
+                            return owner.toUpperCase() === data.Owner.toUpperCase()
+                        });
+
+                    if (existingOwner === null) {
+                        existingOwner = { "Owner": data.Owner };
+                    }
+
+                    this.PackageOwner(existingOwner);
+
+                } else if (this.PackageOwners.length == 1) {
+                    this.PackageOwner(this.PackageOwners[0]);
+                }
 
                 // Provider specific properties
                 _gitHubDetails.Update(this, data);
@@ -105,11 +120,7 @@
             this.packageViewModels = [];
 
             // Package owner selection
-            this.PackageOwner = ko.observable();
-            this.PackageOwnerName = ko.pureComputed(function () {
-                return self.PackageOwner() && self.PackageOwner().Owner;
-            }, this);
-
+            this.PackageOwner = ko.observable(false);
             this.PendingCreateOrEdit = ko.observable(false);
             this.JustCreated = ko.observable(false);
             this.JustRegenerated = ko.observable(false);
@@ -138,7 +149,7 @@
             this.StartEditId = ComputedId("start-edit");
             this.CancelEditId = ComputedId("cancel-edit");
             this.CopyId = ComputedId("copy");
-            this.DescriptionId = ComputedId("description");
+            this.PolicyNameId = ComputedId("policy-name");
             this.PackageOwnerId = ComputedId("package-owner");
             this.IconUrl = ko.pureComputed(function () {
                 return initialData.ImageUrls.TrustedPublisher;
@@ -148,7 +159,7 @@
                 return "this.src='" + url + "'; this.onerror = null;";
             }, this);
 
-            // Update data only after PackageOwner subscription is fully enabled.
+
             this._UpdateData(data);
 
             // Methods
@@ -167,8 +178,8 @@
                 $.validator.unobtrusive.parse($form);
                 var $validator = $form.validate();
 
-                // Immediately validate the description
-                $validator.submitted[self.DescriptionId()] = null;
+                // Immediately validate the PolicyName
+                $validator.submitted[self.PolicyNameId()] = null;
             }
 
             this.Valid = function () {
@@ -183,7 +194,7 @@
                 $("#" + containerId).collapse('hide');
 
                 // Reset the field values.
-                self.PendingDescription(self.Description());
+                self.PendingPolicyName(self.PolicyName());
 
                 // Reset the form.
                 var formElement = $("#" + self.FormId())[0];
@@ -245,8 +256,8 @@
             this.Create = function () {
                 // Build the request.
                 var data = {
-                    description: this.PendingDescription(),
-                    owner: this.PackageOwnerName()
+                    policyName: this.PendingPolicyName(),
+                    owner: this.PackageOwner()
                 };
                 addAntiForgeryToken(data);
 

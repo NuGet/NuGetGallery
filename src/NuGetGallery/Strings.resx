@@ -1278,20 +1278,12 @@ The {1} Team</value>
   <data name="TrustedPublisher_GitGub_WhatIsRepositoryId" xml:space="preserve">
     <value>A unique GitHub ID assigned to a repository at the time of its creation.</value>
   </data>
-  <data name="TrustedPublisher_GitGub_UsageExample" xml:space="preserve">
-    <value>steps:
-    # TODO: steps to produce artifacts/my-sdk.nupkg
-
-    # Get a short-lived NuGet API key to use for package publishing
-    - name: NuGet login
-    id: nuget_login
-    uses: nuget/login@v1
-    with:
-      user: {{ secrets.NUGET_USERNAME }}
-      source: https://api.nuget.org/v3/index.json
-
-    # Use short-lived NuGet API key to publish the package
-    - name: NuGet push
-    run: dotnet nuget push artifacts/my-sdk.nupkg -k ${{steps.nuget_login.outputs.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json</value>
+  <data name="PolicyNameRequired" xml:space="preserve">
+    <value>Can't generate a trusted publisher policy without a policy name.</value>
   </data>
+  <data name="PolicyOwnerRequired" xml:space="preserve">
+    <value>Can't generate a trusted publisher policy without a policy owner.</value>
+  </data>
+
+
 </root>

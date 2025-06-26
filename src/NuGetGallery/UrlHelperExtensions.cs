@@ -1497,11 +1497,6 @@ namespace NuGetGallery
             return GetActionLink(url, "RemoveCredential", "Users", relativeUrl);
         }
 
-        public static string RemoveFederatedCredential(this UrlHelper url, bool relativeUrl = true)
-        {
-            return GetActionLink(url, "RemoveFederatedCredential", "Users", relativeUrl);
-        }
-
         public static string RevokeApiKeyCredential(this UrlHelper url, bool relativeUrl = true)
         {
             return GetActionLink(url, "RevokeApiKeyCredential", "Users", relativeUrl);
@@ -1520,6 +1515,21 @@ namespace NuGetGallery
         public static string GenerateApiKey(this UrlHelper url, bool relativeUrl = true)
         {
             return GetActionLink(url, "GenerateApiKey", "Users", relativeUrl);
+        }
+
+        public static string GenerateTrustedPublisherPolicy(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url, "GenerateTrustedPublisherPolicy", "Users", relativeUrl);
+        }
+
+        public static string EditTrustedPublisherPolicy(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url, "EditTrustedPublisherPolicy", "Users", relativeUrl);
+        }
+
+        public static string RemoveTrustedPublisherPolicy(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url, "RemoveTrustedPublisherPolicy", "Users", relativeUrl);
         }
 
         public static string TransformAccount(this UrlHelper url, bool relativeUrl = true)

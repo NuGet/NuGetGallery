@@ -56,6 +56,13 @@ namespace NuGet.Services.Entities
         public string Criteria { get; set; }
 
         /// <summary>
+        /// User provided policy name to help identify this policy. This is not used in any evaluation of the policy.
+        /// </summary>
+        [Required]
+        [StringLength(256)]
+        public string PolicyName { get; set; }
+
+        /// <summary>
         /// The key of the user that created this policy. If this policy was created by a site admin, this key will
         /// point to the user record that the site admin was acting on behalf of, not the site admin themselves.
         /// </summary>
