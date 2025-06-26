@@ -2489,16 +2489,34 @@ namespace NuGetGallery {
         ///    id: nuget_login
         ///    uses: nuget/login@v1
         ///    with:
-        ///      user: %USER_NAME%
+        ///      user: {{ secrets.NUGET_USERNAME }}
         ///      source: https://api.nuget.org/v3/index.json
         ///
         ///    # Use short-lived NuGet API key to publish the package
         ///    - name: NuGet push
-        ///    run: dotnet nuget push artifacts/my-sdk.nupkg -k ${{steps.nuget_login.outputs.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.jso [rest of string was truncated]&quot;;.
+        ///    run: dotnet nuget push artifacts/my-sdk.nupkg -k ${{steps.nuget_login.outputs.NUGET_API_KEY}} -s https://api.nuget [rest of string was truncated]&quot;;.
         /// </summary>
-        public static string TrustedPublisher_UsageExample_GitGub {
+        public static string TrustedPublisher_GitGub_UsageExample {
             get {
-                return ResourceManager.GetString("TrustedPublisher_UsageExample_GitGub", resourceCulture);
+                return ResourceManager.GetString("TrustedPublisher_GitGub_UsageExample", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A unique GitHub ID assigned to a user or organization when it&apos;s created..
+        /// </summary>
+        public static string TrustedPublisher_GitGub_WhatIsOwnerId {
+            get {
+                return ResourceManager.GetString("TrustedPublisher_GitGub_WhatIsOwnerId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A unique GitHub ID assigned to a repository at the time of its creation..
+        /// </summary>
+        public static string TrustedPublisher_GitGub_WhatIsRepositoryId {
+            get {
+                return ResourceManager.GetString("TrustedPublisher_GitGub_WhatIsRepositoryId", resourceCulture);
             }
         }
         
