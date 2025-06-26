@@ -495,7 +495,6 @@ namespace NuGetGallery
             return View("ApiKeys", model);
         }
 
-
         [HttpGet]
         [UIAuthorize]
         public virtual ActionResult TrustedPublishing()
@@ -517,7 +516,9 @@ namespace NuGetGallery
                     PublisherDetails = new GitHubPublisherDetailsViewModel()
                     {
                         RepositoryOwner = "dotnet",
+                        RepositoryOwnerId = 129826,
                         Repository = "roslyn",
+                        RepositoryId = 78564,
                         WorkflowFile = "release.yml"
                     }
                 },
@@ -528,9 +529,13 @@ namespace NuGetGallery
                     PublisherDetails = new GitHubPublisherDetailsViewModel()
                     {
                         RepositoryOwner = "dotnet",
+                        RepositoryOwnerId = 129826,
                         Repository = "roslyn",
+                        RepositoryId = 78564,
                         WorkflowFile = "preview.yml",
-                        Environment = "pre_release_5_0"
+                        Environment = "pre_release_5_0",
+                        Branch = "pre_release",
+                        Tag = "v5.0.0-preview.1",
                     }
                 }
             };

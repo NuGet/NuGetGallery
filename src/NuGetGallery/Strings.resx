@@ -1272,7 +1272,13 @@ The {1} Team</value>
   <data name="SearchResult_ExactMatch" xml:space="preserve">
     <value>exact match</value>
   </data>
-  <data name="TrustedPublisher_UsageExample_GitGub" xml:space="preserve">
+  <data name="TrustedPublisher_GitGub_WhatIsOwnerId" xml:space="preserve">
+    <value>A unique GitHub ID assigned to a user or organization when it's created.</value>
+  </data>
+  <data name="TrustedPublisher_GitGub_WhatIsRepositoryId" xml:space="preserve">
+    <value>A unique GitHub ID assigned to a repository at the time of its creation.</value>
+  </data>
+  <data name="TrustedPublisher_GitGub_UsageExample" xml:space="preserve">
     <value>steps:
     # TODO: steps to produce artifacts/my-sdk.nupkg
 
@@ -1281,11 +1287,11 @@ The {1} Team</value>
     id: nuget_login
     uses: nuget/login@v1
     with:
-      user: %USER_NAME%
+      user: {{ secrets.NUGET_USERNAME }}
       source: https://api.nuget.org/v3/index.json
 
     # Use short-lived NuGet API key to publish the package
     - name: NuGet push
     run: dotnet nuget push artifacts/my-sdk.nupkg -k ${{steps.nuget_login.outputs.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json</value>
-  </data>  
+  </data>
 </root>
