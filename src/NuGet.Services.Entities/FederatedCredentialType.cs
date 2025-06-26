@@ -19,5 +19,10 @@ namespace NuGet.Services.Entities
         /// subject and expiration claims.
         /// </summary>
         EntraIdServicePrincipal = 1,
+
+        /// <summary>
+        /// A trusted publisher like GitHub Actions.
+        /// </summary>
+        TrustedPublisher = 2,
     }
 }

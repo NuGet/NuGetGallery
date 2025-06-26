@@ -801,6 +801,8 @@
     <Compile Include="ViewModels\ManagePackageViewModel.cs" />
     <Compile Include="ViewModels\BasicUserViewModel.cs" />
     <Compile Include="ViewModels\PendingOrganizationMigrationRequestViewModel.cs" />
+    <Compile Include="ViewModels\PublisherDetailsViewModel.cs" />
+    <Compile Include="ViewModels\PublisherDetailsViewModelFactory.cs" />
     <Compile Include="ViewModels\SearchSideBySideViewModel.cs" />
     <Compile Include="ViewModels\SignerViewModel.cs" />
     <Compile Include="ViewModels\TrustedPublisherListViewModel.cs" />

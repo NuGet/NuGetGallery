@@ -1697,6 +1697,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Can&apos;t generate a trusted publisher policy without a policy name..
+        /// </summary>
+        public static string PolicyNameRequired {
+            get {
+                return ResourceManager.GetString("PolicyNameRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Can&apos;t generate a trusted publisher policy without a policy owner..
+        /// </summary>
+        public static string PolicyOwnerRequired {
+            get {
+                return ResourceManager.GetString("PolicyOwnerRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Conversion of Markdown to HTML failed with &apos;{0}&apos;..
         /// </summary>
         public static string PreviewReadMe_ConversionFailed {
@@ -2477,28 +2495,6 @@ namespace NuGetGallery {
         public static string TransformAccount_Success {
             get {
                 return ResourceManager.GetString("TransformAccount_Success", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to steps:
-        ///    # TODO: steps to produce artifacts/my-sdk.nupkg
-        ///
-        ///    # Get a short-lived NuGet API key to use for package publishing
-        ///    - name: NuGet login
-        ///    id: nuget_login
-        ///    uses: nuget/login@v1
-        ///    with:
-        ///      user: {{ secrets.NUGET_USERNAME }}
-        ///      source: https://api.nuget.org/v3/index.json
-        ///
-        ///    # Use short-lived NuGet API key to publish the package
-        ///    - name: NuGet push
-        ///    run: dotnet nuget push artifacts/my-sdk.nupkg -k ${{steps.nuget_login.outputs.NUGET_API_KEY}} -s https://api.nuget [rest of string was truncated]&quot;;.
-        /// </summary>
-        public static string TrustedPublisher_GitGub_UsageExample {
-            get {
-                return ResourceManager.GetString("TrustedPublisher_GitGub_UsageExample", resourceCulture);
             }
         }
         

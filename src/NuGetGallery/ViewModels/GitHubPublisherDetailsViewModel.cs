@@ -25,13 +25,6 @@ namespace NuGetGallery
         public string RepositoryOwner { get; set; }
 
         /// <summary>
-        /// GitHub organization/owner ID. Obtained from GitHub API.
-        /// </summary>
-        [Required]
-        [JsonProperty("repository_owner_id")]
-        public int RepositoryOwnerId { get; set; }
-
-        /// <summary>
         /// GitHub repository name.
         /// </summary>
         [Required]
@@ -44,7 +37,6 @@ namespace NuGetGallery
         [Required]
         [JsonProperty("repository_id")]
         public int RepositoryId { get; set; }
-
 
         /// <summary>
         /// GitHub Action workflow file name, e.g. release.yml.
@@ -61,18 +53,6 @@ namespace NuGetGallery
         /// </summary>
         [JsonProperty("environment")]
         public string Environment { get; set; }
-
-        /// <summary>
-        /// GitHub Action environment name, e.g. production.
-        /// </summary>
-        [JsonProperty("branch")]
-        public string Branch { get; set; }
-
-        /// <summary>
-        /// GitHub Action tag.
-        /// </summary>
-        [JsonProperty("tag")]
-        public string Tag { get; set; }
 
         public string Serialize()
             => JsonConvert.SerializeObject(this, Formatting.Indented);

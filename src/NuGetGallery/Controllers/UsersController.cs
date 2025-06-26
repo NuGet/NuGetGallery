@@ -10,6 +10,9 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using NuGet.Packaging;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
 using NuGet.Versioning;
@@ -23,6 +26,7 @@ using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Security;
+using NuGetGallery.Services.Authentication;
 
 namespace NuGetGallery
 {
@@ -37,6 +41,7 @@ namespace NuGetGallery
         private readonly ISupportRequestService _supportRequestService;
         private readonly IFeatureFlagService _featureFlagService;
         private readonly IPackageVulnerabilitiesService _packageVulnerabilitiesService;
+        private readonly IFederatedCredentialRepository _federatedCredentialRepository;
 
         public UsersController(
             IUserService userService,
@@ -57,7 +62,8 @@ namespace NuGetGallery
             IMessageServiceConfiguration messageServiceConfiguration,
             IIconUrlProvider iconUrlProvider,
             IGravatarProxyService gravatarProxy,
-            IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory)
+            IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory,
+            IFederatedCredentialRepository federatedCredentialRepository)
             : base(
                   authService,
                   packageService,
@@ -80,6 +86,7 @@ namespace NuGetGallery
             _supportRequestService = supportRequestService ?? throw new ArgumentNullException(nameof(supportRequestService));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _packageVulnerabilitiesService = packageVulnerabilitiesService ?? throw new ArgumentNullException(nameof(packageVulnerabilitiesService));
+            _federatedCredentialRepository = federatedCredentialRepository ?? throw new ArgumentNullException(nameof(federatedCredentialRepository));
 
             _listPackageItemRequiredSignerViewModelFactory = new ListPackageItemRequiredSignerViewModelFactory(
                 securityPolicyService, iconUrlProvider, packageVulnerabilitiesService, frameworkCompatibilityFactory, featureFlagService);
@@ -499,73 +506,45 @@ namespace NuGetGallery
         [UIAuthorize]
         public virtual ActionResult TrustedPublishing()
         {
-            var currentUser = GetCurrentUser();
+            User currentUser = GetCurrentUser();
+            var owners = new List<User>() { currentUser };
+            owners.AddRange(currentUser.Organizations.Select(o => o.Organization));
 
-            // Get API keys
-            if (!GetCredentialGroups(currentUser).TryGetValue(CredentialKind.Token, out List<CredentialViewModel> credentials))
-            {
-                credentials = new List<CredentialViewModel>();
-            }
+            // Get policies
+            var allFederatedCredentialPolicies = _federatedCredentialRepository
+                .GetPoliciesRelatedToUserKeys([.. owners.Select(o => o.Key)])
+                .ToList();
 
-            var publishers = new List<TrustedPublisherViewModel>()
-            {
-                new TrustedPublisherViewModel() {
-                    Key = 1,
-                    Description = "Release",
-                    Owner = currentUser.Username,
-                    PublisherDetails = new GitHubPublisherDetailsViewModel()
-                    {
-                        RepositoryOwner = "dotnet",
-                        RepositoryOwnerId = 129826,
-                        Repository = "roslyn",
-                        RepositoryId = 78564,
-                        WorkflowFile = "release.yml"
-                    }
-                },
-                new TrustedPublisherViewModel() {
-                    Key = 2,
-                    Description = "Preview v5",
-                    Owner = currentUser.Organizations.FirstOrDefault()?.Organization.Username ?? currentUser.Username,
-                    PublisherDetails = new GitHubPublisherDetailsViewModel()
-                    {
-                        RepositoryOwner = "dotnet",
-                        RepositoryOwnerId = 129826,
-                        Repository = "roslyn",
-                        RepositoryId = 78564,
-                        WorkflowFile = "preview.yml",
-                        Environment = "pre_release_5_0",
-                        Branch = "pre_release",
-                        Tag = "v5.0.0-preview.1",
-                    }
-                }
-            };
-
-            //var publishers = credentials
-            //    .Select(c => new TrustedPublisherViewModel(c)) // TODO: factory GitHub vs AzDO
-            //    .ToList();
-
-            // Get package owners (user's self or organizations)
-            var owners = new List<ApiKeyOwnerViewModel>
-            {
-                CreateApiKeyOwnerViewModel(currentUser, currentUser)
-            };
-
-            owners.AddRange(currentUser.Organizations
-                .Select(o => CreateApiKeyOwnerViewModel(currentUser, o.Organization)));
-
-            var anyWithDeprecationApi =
-                _featureFlagService.IsManageDeprecationApiEnabled(currentUser)
-                || currentUser.Organizations.Any(m => _featureFlagService.IsManageDeprecationApiEnabled(m.Organization));
+            var publishers = allFederatedCredentialPolicies
+                .Select(CreatePublisherViewModel)
+                .Where(p => p != null)
+                .ToList();
 
             var model = new TrustedPublisherListViewModel
             {
                 Username = currentUser.Username,
                 TrustedPublishers = publishers,
-                PackageOwners = owners.Where(o => o.CanPushNew || o.CanPushExisting || o.CanUnlist).ToList(),
-                IsDeprecationApiEnabled = anyWithDeprecationApi,
+                PackageOwners = [.. owners.Select(o => o.Username)],
             };
 
             return View("TrustedPublishing", model);
+        }
+
+        private TrustedPublisherViewModel CreatePublisherViewModel(FederatedCredentialPolicy policy)
+        {
+            if (policy.Type != FederatedCredentialType.TrustedPublisher)
+            {
+                return null;
+            }
+
+            var publisherDetails = PublisherDetailsViewModelFactory.FromJson(policy.Criteria);
+            return new TrustedPublisherViewModel
+            {
+                Key = policy.Key,
+                PolicyName = !string.IsNullOrEmpty(policy.PolicyName) ? policy.PolicyName : $"Policy {policy.Key}",
+                Owner = policy.PackageOwner?.Username ?? GetCurrentUser().Username,
+                PublisherDetails = publisherDetails
+            };
         }
 
         private ApiKeyOwnerViewModel CreateApiKeyOwnerViewModel(User currentUser, User account)
@@ -1016,14 +995,6 @@ namespace NuGetGallery
         [HttpPost]
         [UIAuthorize]
         [ValidateAntiForgeryToken]
-        public virtual Task<ActionResult> RemoveFederatedCredential(int? credentialKey)
-        {
-            return Task.FromResult<ActionResult>(default);
-        }
-
-        [HttpPost]
-        [UIAuthorize]
-        [ValidateAntiForgeryToken]
         public virtual async Task<JsonResult> RevokeApiKeyCredential(string credentialType, int? credentialKey)
         {
             var user = GetCurrentUser();
@@ -1108,6 +1079,67 @@ namespace NuGetGallery
         public virtual ActionResult PasswordChanged()
         {
             return View();
+        }
+
+        [UIAuthorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<JsonResult> GenerateTrustedPublisherPolicy(string policyName, string owner, string criteria)
+        {
+            if (string.IsNullOrWhiteSpace(policyName))
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.PolicyNameRequired);
+            }
+            if (string.IsNullOrWhiteSpace(owner))
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.PolicyOwnerRequired);
+            }
+
+            var currentUser = GetCurrentUser();
+            if (currentUser.IsLocked)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(ServicesStrings.UserAccountIsLocked);
+            }
+
+            // Get the owner scope
+            if (UserService.FindByUsername(owner) is not User policyOwner)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.UserNotFound);
+            }
+
+            var policyViewModel = new TrustedPublisherViewModel();
+
+            //var emailMessage = new CredentialAddedMessage(
+            //        _config,
+            //        currentUser,
+            //        newCredentialViewModel.GetCredentialTypeInfo());
+            //await MessageService.SendMessageAsync(emailMessage);
+
+            await Task.CompletedTask;
+
+            return Json(policyViewModel);
+        }
+
+        [UIAuthorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<JsonResult> EditTrustedPublisherPolicy(int? federatedCredentialKey)
+        {
+            await Task.CompletedTask;
+            return default;
+        }
+
+        [HttpPost]
+        [UIAuthorize]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> RemoveTrustedPublisherPolicy(int? federatedCredentialKey)
+        {
+            await Task.CompletedTask;
+            return default;
         }
 
         [UIAuthorize]

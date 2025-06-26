@@ -8,7 +8,6 @@ namespace NuGetGallery
     public class TrustedPublisherListViewModel
     {
         public string Username { get; set; }
+        public IList<string> PackageOwners { get; set; }
         public IList<TrustedPublisherViewModel> TrustedPublishers { get; set; }
-        public IList<ApiKeyOwnerViewModel> PackageOwners { get; set; }
-        public bool IsDeprecationApiEnabled { get; set; }
     }}
