@@ -48,6 +48,12 @@ namespace NuGetGallery
         bool IsPackagesAtomFeedEnabled();
 
         /// <summary>
+        /// Whether the packages Atom feed xml file returns a combined authors list. If true, the feed will
+        /// return a single author entry for all package authors.
+        /// </summary>
+        bool IsPackagesAtomFeedCombinedAuthorsEnabled();
+
+        /// <summary>
         /// Whether or not the user can manage their package's deprecation state.
         /// </summary>
         bool IsManageDeprecationEnabled(User user, PackageRegistration registration);
@@ -348,13 +354,6 @@ namespace NuGetGallery
         /// </summary>
         bool CanUseFederatedCredentials(User user);
 
-        /// <summary>
-        /// Whether or not only ASCII characters are allowed in PackageId, used for temporary block unicode.
-        /// </summary>
-        bool IsAsciiOnlyPackageIdEnabled();
-
-        /// <summary>
-        /// Whether or not new paging method is used for the profile page.
         bool IsProfileLoadOptimizationEnabled();
     }
 }
