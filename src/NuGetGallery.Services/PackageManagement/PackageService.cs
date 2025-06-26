@@ -486,7 +486,6 @@ namespace NuGetGallery
                 .Skip((page-1) * pageSize)
                 .Take(pageSize)
                 .Include(p => p.PackageRegistration.Owners)
-                .Include(p => p.PackageRegistration.RequiredSigners)
                 .ToList(),
                 downloadCount,
                 packageCount);
