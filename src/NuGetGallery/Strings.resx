@@ -1272,17 +1272,32 @@ The {1} Team</value>
   <data name="SearchResult_ExactMatch" xml:space="preserve">
     <value>exact match</value>
   </data>
-  <data name="TrustedPublisher_GitGub_WhatIsOwnerId" xml:space="preserve">
-    <value>A unique GitHub ID assigned to a user or organization when it's created.</value>
-  </data>
-  <data name="TrustedPublisher_GitGub_WhatIsRepositoryId" xml:space="preserve">
+  <data name="GitHub_WhatIsRepositoryId" xml:space="preserve">
     <value>A unique GitHub ID assigned to a repository at the time of its creation.</value>
   </data>
-  <data name="PolicyNameRequired" xml:space="preserve">
-    <value>Can't generate a trusted publisher policy without a policy name.</value>
+  <data name="GitHub_OwnerRequired" xml:space="preserve">
+    <value>.</value>
   </data>
-  <data name="PolicyOwnerRequired" xml:space="preserve">
-    <value>Can't generate a trusted publisher policy without a policy owner.</value>
+  <data name="GitHub_RepositoryRequired" xml:space="preserve">
+    <value>.</value>
+  </data>
+  <data name="GitHub_RepositoryIdRequired" xml:space="preserve">
+    <value>The GitHub repository id is required.</value>
+  </data>
+  <data name="GitHub_WorkflowFileRequired" xml:space="preserve">
+    <value>The GitHub Action workflow file is required.</value>
+  </data>
+  <data name="TrustedPublisher_PolicyNameRequired" xml:space="preserve">
+    <value>Can't generate a trusted publisher policy without a name.</value>
+  </data>
+  <data name="TrustedPublisher_PolicyOwnerRequired" xml:space="preserve">
+    <value>Can't generate a trusted publisher policy without an owner.</value>
+  </data>
+  <data name="TrustedPublisher_NameTooLong" xml:space="preserve">
+    <value>Name is too long.</value>
+  </data>
+  <data name="TrustedPublisher_Unexpected" xml:space="preserve">
+    <value>Unexpected trusted publisher.</value>
   </data>
 
 

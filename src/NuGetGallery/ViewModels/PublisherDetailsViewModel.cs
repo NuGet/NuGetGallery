@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 
 namespace NuGetGallery
@@ -10,9 +11,22 @@ namespace NuGetGallery
     {
         protected PublisherDetailsViewModel() { }
 
+        protected abstract string NameInternal { get; }
+
         /// <summary>
-        /// Publisher name, e.g. GitHub.
+        /// Publisher name, e.g. GitHub. Writable to be JSON serializable.
         /// </summary>
-        public abstract string Name { get; }
+        [Required]
+        public string Name
+        {
+            get => NameInternal;
+            set { /*noop*/ }
+        }
+
+        /// <summary>
+        /// Validates data in the view model. Returns error message if validation fails, otherwise returns null or empty string.
+        /// </summary>
+        /// <returns></returns>
+        public abstract string Validate();
     }
 }

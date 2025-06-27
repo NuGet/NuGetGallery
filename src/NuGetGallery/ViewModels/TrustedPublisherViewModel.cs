@@ -8,13 +8,13 @@ using Newtonsoft.Json;
 
 namespace NuGetGallery
 {
-    [DebuggerDisplay("{PublisherName,nq}: {Description,nq}")]
+    [DebuggerDisplay("{PublisherName,nq}: {PolicyName,nq}")]
     public sealed class TrustedPublisherViewModel
     {
         public int Key { get; set; }
 
         /// <summary>
-        /// User provided description.
+        /// User provided policy name.
         /// </summary>
         public string PolicyName { get; set; }
 

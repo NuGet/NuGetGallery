@@ -12,6 +12,7 @@ using System.Web;
 using System.Web.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
@@ -27,6 +28,7 @@ using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Security;
 using NuGetGallery.Services.Authentication;
+using Polly;
 
 namespace NuGetGallery
 {
@@ -1089,12 +1091,19 @@ namespace NuGetGallery
             if (string.IsNullOrWhiteSpace(policyName))
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(Strings.PolicyNameRequired);
+                return Json(Strings.TrustedPublisher_PolicyNameRequired);
             }
+
+            if (policyName.Length >= 128)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.TrustedPublisher_NameTooLong);
+            }
+
             if (string.IsNullOrWhiteSpace(owner))
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(Strings.PolicyOwnerRequired);
+                return Json(Strings.TrustedPublisher_PolicyOwnerRequired);
             }
 
             var currentUser = GetCurrentUser();
@@ -1104,22 +1113,44 @@ namespace NuGetGallery
                 return Json(ServicesStrings.UserAccountIsLocked);
             }
 
-            // Get the owner scope
             if (UserService.FindByUsername(owner) is not User policyOwner)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(Strings.UserNotFound);
             }
 
-            var policyViewModel = new TrustedPublisherViewModel();
+            if (PublisherDetailsViewModelFactory.FromJson(criteria) is not PublisherDetailsViewModel publisherDetails)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.TrustedPublisher_Unexpected);
+            }
 
-            //var emailMessage = new CredentialAddedMessage(
-            //        _config,
-            //        currentUser,
-            //        newCredentialViewModel.GetCredentialTypeInfo());
-            //await MessageService.SendMessageAsync(emailMessage);
+            if (publisherDetails.Validate() is string errorMessage && errorMessage.Length > 0)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(errorMessage);
+            }
 
-            await Task.CompletedTask;
+            // Create and store the federated credential policy
+            var policy = new FederatedCredentialPolicy()
+            {
+                Type = FederatedCredentialType.TrustedPublisher,
+                PolicyName = policyName,
+                Criteria = criteria,
+                Created = DateTime.UtcNow,
+                CreatedByUserKey = currentUser.Key,
+                PackageOwnerUserKey = policyOwner.Key
+            };
+
+            await _federatedCredentialRepository.AddPolicyAsync(policy, saveChanges: true);
+
+            var policyViewModel = new TrustedPublisherViewModel
+            {
+                Key = policy.Key,
+                PolicyName = policyName,
+                Owner = owner,
+                PublisherDetails = publisherDetails
+            };
 
             return Json(policyViewModel);
         }
@@ -1127,10 +1158,43 @@ namespace NuGetGallery
         [UIAuthorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<JsonResult> EditTrustedPublisherPolicy(int? federatedCredentialKey)
+        public virtual async Task<JsonResult> EditTrustedPublisherPolicy(int? federatedCredentialKey, string policyName, string owner, string criteria)
         {
-            await Task.CompletedTask;
-            return default;
+            if (federatedCredentialKey is not int key)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.TrustedPublisher_Unexpected);
+            }
+
+
+            if (_federatedCredentialRepository.GetPolicyByKey(key) is not FederatedCredentialPolicy policy)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.TrustedPublisher_Unexpected);
+            }
+
+            // Sanity check. The policy must be owned by user or an organization the user belongs to.
+            var currentUser = GetCurrentUser();
+
+            // Check if the policy is owned by the current user or any organization the user belongs to
+            var isOwner = policy.PackageOwnerUserKey == currentUser.Key ||
+                currentUser.Organizations.Any(o => o.Organization.Key == policy.PackageOwnerUserKey);
+
+            if (!isOwner)
+            {
+                Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                return Json(Strings.Unauthorized);
+            }
+
+            // Update policy
+            var result = await GenerateTrustedPublisherPolicy(policyName, owner, criteria);
+            if (Response.StatusCode == (int)HttpStatusCode.OK)
+            {
+                // Delete the existing policy
+                await _federatedCredentialRepository.DeletePolicyAsync(policy, saveChanges: true);
+            }
+
+            return result;
         }
 
         [HttpPost]
