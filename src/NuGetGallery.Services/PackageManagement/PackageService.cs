@@ -476,9 +476,8 @@ namespace NuGetGallery
 
             packages = packages
                 .Where(p => p.Listed
+                    && p.IsLatestSemVer2
                     && p.PackageStatusKey == PackageStatus.Available);
-
-            packages = GetLatestVersion(packages);
 
             return (packages
                 .OrderByDescending(p => p.PackageRegistration.DownloadCount)
