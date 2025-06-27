@@ -15,7 +15,7 @@ namespace NuGetGallery
             try
             {
                 var criteriaObj = JObject.Parse(json);
-                var publisherName = criteriaObj["name"]?.ToString();
+                var publisherName = criteriaObj["Name"]?.ToString();
                 if (!string.Equals(publisherName, "GitHub", StringComparison.OrdinalIgnoreCase))
                 {
                     return null;

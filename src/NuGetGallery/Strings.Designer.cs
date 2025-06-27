@@ -1130,6 +1130,51 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ..
+        /// </summary>
+        public static string GitHub_OwnerRequired {
+            get {
+                return ResourceManager.GetString("GitHub_OwnerRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The GitHub repository id is required..
+        /// </summary>
+        public static string GitHub_RepositoryIdRequired {
+            get {
+                return ResourceManager.GetString("GitHub_RepositoryIdRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ..
+        /// </summary>
+        public static string GitHub_RepositoryRequired {
+            get {
+                return ResourceManager.GetString("GitHub_RepositoryRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A unique GitHub ID assigned to a repository at the time of its creation..
+        /// </summary>
+        public static string GitHub_WhatIsRepositoryId {
+            get {
+                return ResourceManager.GetString("GitHub_WhatIsRepositoryId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The GitHub Action workflow file is required..
+        /// </summary>
+        public static string GitHub_WorkflowFileRequired {
+            get {
+                return ResourceManager.GetString("GitHub_WorkflowFileRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The API key &apos;{0}&apos; is invalid..
         /// </summary>
         public static string InvalidApiKey {
@@ -1693,24 +1738,6 @@ namespace NuGetGallery {
         public static string PasswordSet {
             get {
                 return ResourceManager.GetString("PasswordSet", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t generate a trusted publisher policy without a policy name..
-        /// </summary>
-        public static string PolicyNameRequired {
-            get {
-                return ResourceManager.GetString("PolicyNameRequired", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t generate a trusted publisher policy without a policy owner..
-        /// </summary>
-        public static string PolicyOwnerRequired {
-            get {
-                return ResourceManager.GetString("PolicyOwnerRequired", resourceCulture);
             }
         }
         
@@ -2499,20 +2526,38 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A unique GitHub ID assigned to a user or organization when it&apos;s created..
+        ///   Looks up a localized string similar to Name is too long..
         /// </summary>
-        public static string TrustedPublisher_GitGub_WhatIsOwnerId {
+        public static string TrustedPublisher_NameTooLong {
             get {
-                return ResourceManager.GetString("TrustedPublisher_GitGub_WhatIsOwnerId", resourceCulture);
+                return ResourceManager.GetString("TrustedPublisher_NameTooLong", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A unique GitHub ID assigned to a repository at the time of its creation..
+        ///   Looks up a localized string similar to Can&apos;t generate a trusted publisher policy without a name..
         /// </summary>
-        public static string TrustedPublisher_GitGub_WhatIsRepositoryId {
+        public static string TrustedPublisher_PolicyNameRequired {
             get {
-                return ResourceManager.GetString("TrustedPublisher_GitGub_WhatIsRepositoryId", resourceCulture);
+                return ResourceManager.GetString("TrustedPublisher_PolicyNameRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Can&apos;t generate a trusted publisher policy without an owner..
+        /// </summary>
+        public static string TrustedPublisher_PolicyOwnerRequired {
+            get {
+                return ResourceManager.GetString("TrustedPublisher_PolicyOwnerRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unexpected trusted publisher..
+        /// </summary>
+        public static string TrustedPublisher_Unexpected {
+            get {
+                return ResourceManager.GetString("TrustedPublisher_Unexpected", resourceCulture);
             }
         }
         

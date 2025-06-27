@@ -51,27 +51,103 @@
             }
         }
 
+        function computedUid(self, prefix, suffix, defaultId) {
+            return ko.pureComputed(function () {
+                var id = self.Key();
+                if (id === 0 && defaultId) {
+                    id = defaultId;
+                }
+                else {
+                    if (prefix) {
+                        id = prefix + "-" + id;
+                    }
+                    if (suffix) {
+                        id = id + "-" + suffix;
+                    }
+                }
+                return id;
+            }, self);
+        }
+
         var _gitHubDetails = {};
         _gitHubDetails.Initialize = function (self) {
             self.GitHub_RepositoryOwner = ko.observable();
+            self.GitHub_PendingRepositoryOwner = ko.observable();
+            self.GitHub_RepositoryOwnerUid = computedUid(self, "github-repository-owner");
+
             self.GitHub_Repository = ko.observable();
+            self.GitHub_PendingRepository = ko.observable();
+            self.GitHub_RepositoryUid = computedUid(self, "github-repository");
+
             self.GitHub_RepositoryId = ko.observable();
+            self.GitHub_PendingRepositoryId = ko.observable();
+            self.GitHub_RepositoryIdUid = computedUid(self, "github-repository-id");
+
             self.GitHub_WorkflowFile = ko.observable();
+            self.GitHub_PendingWorkflowFile = ko.observable();
+            self.GitHub_WorkflowFileUid = computedUid(self, "github-workflow-file");
+
             self.GitHub_Environment = ko.observable();
-            self.GitHub_Branch = ko.observable();
-            self.GitHub_Tag = ko.observable();
+            self.GitHub_PendingEnvironment = ko.observable();
+            self.GitHub_EnvironmentUid = computedUid(self, "github-environment");
         }
 
         _gitHubDetails.Update = function (self, data) {
-            // Incoming data property names much match JsonProperty names in in GitHubPublisherDetailsViewModel.cs
             const details = data.PublisherName !== "GitHub" ? {} : data.PublisherDetails || {};
-            self.GitHub_RepositoryOwner(details.repository_owner || '');
-            self.GitHub_Repository(details.repository || '');
-            self.GitHub_RepositoryId(details.repository_id || 0);
-            self.GitHub_WorkflowFile(details.workflow || '');
-            self.GitHub_Environment(details.environment || '');
-            self.GitHub_Branch(details.branch || '');
-            self.GitHub_Tag(details.tag || '');
+            self.GitHub_RepositoryOwner(details.RepositoryOwner || '');
+            self.GitHub_PendingRepositoryOwner(details.RepositoryOwner || '');
+
+            self.GitHub_Repository(details.Repository || '');
+            self.GitHub_PendingRepository(details.Repository || '');
+
+            self.GitHub_RepositoryId(details.RepositoryId || 0);
+            self.GitHub_PendingRepositoryId(details.RepositoryId || 0);
+
+            self.GitHub_WorkflowFile(details.WorkflowFile || '');
+            self.GitHub_PendingWorkflowFile(details.WorkflowFile || '');
+
+            self.GitHub_Environment(details.Environment || '');
+            self.GitHub_PendingEnvironment(details.Environment || '');
+        }
+
+        _gitHubDetails.CancelEdit = function (self) {
+            self.GitHub_PendingRepositoryOwner(self.GitHub_RepositoryOwner());
+            self.GitHub_PendingRepository(self.GitHub_Repository());
+            self.GitHub_PendingRepositoryId(self.GitHub_RepositoryId());
+            self.GitHub_PendingWorkflowFile(self.GitHub_WorkflowFile());
+            self.GitHub_PendingEnvironment(self.GitHub_Environment());
+        }
+
+        _gitHubDetails.AttachExtensions = function (self, validator) {
+            validator.submitted[self.PolicyNameUid()] = null;
+        }
+
+        _gitHubDetails.Valid = function (self) {
+            const owner = self.GitHub_PendingRepositoryOwner();
+            const repository = self.GitHub_PendingRepository();
+            const repositoryId = parseInt(self.GitHub_PendingRepositoryId(), 10);
+            const workflowFile = self.GitHub_PendingWorkflowFile();
+
+            return owner && repository && workflowFile && repositoryId && !isNaN(repositoryId) && repositoryId > 0;
+        }
+
+        _gitHubDetails.CreatePendingCriteria = function (self) {
+            var githubData = {
+                Name: 'GitHub',
+                RepositoryOwner: self.GitHub_PendingRepositoryOwner() || '',
+                Repository: self.GitHub_PendingRepository() || '',
+                RepositoryId: parseInt(self.GitHub_PendingRepositoryId()) || 0,
+                WorkflowFile: self.GitHub_PendingWorkflowFile() || ''
+            };
+
+            // Only include environment if it has a value
+            var environment = self.GitHub_PendingEnvironment();
+            if (environment && environment.trim()) {
+                githubData.Environment = environment;
+            }
+
+            // Return as JSON string
+            return JSON.stringify(githubData);
         }
 
         function TrustedPublisherViewModel(parent, packageOwners, data) {
@@ -102,12 +178,9 @@
                             return owner.toUpperCase() === data.Owner.toUpperCase()
                         });
 
-                    if (existingOwner === null) {
-                        existingOwner = { "Owner": data.Owner };
+                    if (existingOwner !== null) {
+                        this.PackageOwner(existingOwner);
                     }
-
-                    this.PackageOwner(existingOwner);
-
                 } else if (this.PackageOwners.length == 1) {
                     this.PackageOwner(this.PackageOwners[0]);
                 }
@@ -120,37 +193,18 @@
             this.packageViewModels = [];
 
             // Package owner selection
-            this.PackageOwner = ko.observable(false);
+            this.PackageOwner = ko.observable(null);
             this.PendingCreateOrEdit = ko.observable(false);
             this.JustCreated = ko.observable(false);
             this.JustRegenerated = ko.observable(false);
 
             // Computed properties
-            function ComputedId(prefix, suffix, defaultId ) {
-                return ko.pureComputed(function () {
-                    var id = self.Key();
-                    if (id === 0 && defaultId) {
-                        id = defaultId;
-                    }
-                    else {
-                        if (prefix) {
-                            id = prefix + "-" + id;
-                        }
-                        if (suffix) {
-                            id = id + "-" + suffix;
-                        }
-                    }
-                    return id;
-                }, self);
-            }
-
-            this.FormId = ComputedId("form");
-            this.EditContainerId = ComputedId("edit", "container", "create-container");
-            this.StartEditId = ComputedId("start-edit");
-            this.CancelEditId = ComputedId("cancel-edit");
-            this.CopyId = ComputedId("copy");
-            this.PolicyNameId = ComputedId("policy-name");
-            this.PackageOwnerId = ComputedId("package-owner");
+            this.FormUid = computedUid(self, "form");
+            this.EditContainerUid = computedUid(self, "edit", "container", "create-container");
+            this.StartEditUid = computedUid(self, "start-edit");
+            this.CancelEditUid = computedUid(self, "cancel-edit");
+            this.PolicyNameUid = computedUid(self, "policy-name");
+            this.PackageOwnerUid = computedUid(self, "package-owner");
             this.IconUrl = ko.pureComputed(function () {
                 return initialData.ImageUrls.TrustedPublisher;
             }, this);
@@ -168,36 +222,43 @@
                 return true;
             };
 
-            this._GetCopyButton = function () {
-                return $("#" + self.CopyId());
-            }
-
             this.AttachExtensions = function () {
                 // Enable form validation.
-                var $form = $("#" + self.FormId());
+                var $form = $("#" + self.FormUid());
                 $.validator.unobtrusive.parse($form);
                 var $validator = $form.validate();
 
                 // Immediately validate the PolicyName
-                $validator.submitted[self.PolicyNameId()] = null;
+                $validator.submitted[self.PolicyNameUid()] = null;
+                _gitHubDetails.AttachExtensions(self, $validator);
             }
 
             this.Valid = function () {
                 // Execute form validation.
-                const formError = !$("#" + this.FormId()).valid();
-                return !formError;
+                const formError = !$("#" + this.FormUid()).valid();
+                
+                // Check if PackageOwner is selected
+                const packageOwnerError = !this.PackageOwner();
+                const gitHubValid = _gitHubDetails.Valid(this);
+                return !formError && !packageOwnerError && gitHubValid;
             }
 
             this.CancelEdit = function () {
                 // Hide the form.
-                var containerId = self.Key() ? self.EditContainerId() : 'create-container';
+                var containerId = self.Key() ? self.EditContainerUid() : 'create-container';
                 $("#" + containerId).collapse('hide');
 
                 // Reset the field values.
                 self.PendingPolicyName(self.PolicyName());
+                _gitHubDetails.CancelEdit(self);
+
+                // Reset PackageOwner to null for new items, or to the current Owner for existing items
+                if (!self.Key()) {
+                    self.PackageOwner(null);
+                }
 
                 // Reset the form.
-                var formElement = $("#" + self.FormId())[0];
+                var formElement = $("#" + self.FormUid())[0];
                 window.nuget.resetFormValidation(formElement);
 
                 // Remove error classes from the form groups.
@@ -211,7 +272,7 @@
 
                 // Focus the edit link so that the next tab key will continue with where it was left off prior to
                 // opening the edit form. See https://github.com/NuGet/NuGetGallery/issues/8183.
-                $("#" + self.StartEditId()).focus();
+                $("#" + self.StartEditUid()).focus();
             };
 
             this.Delete = function () {
@@ -254,11 +315,12 @@
             };
 
             this.Create = function () {
-                // Build the request.
                 var data = {
                     policyName: this.PendingPolicyName(),
-                    owner: this.PackageOwner()
+                    owner: this.PackageOwner(),
+                    criteria: _gitHubDetails.CreatePendingCriteria(this)
                 };
+                // Build the request.
                 addAntiForgeryToken(data);
 
                 // Send the request.
@@ -292,7 +354,10 @@
             this.Edit = function () {
                 // Build the request.
                 var data = {
-                    federatedCredentialKey: this.Key()
+                    federatedCredentialKey: this.Key(),
+                    policyName: this.PendingPolicyName(),
+                    owner: this.PackageOwner(),
+                    criteria: _gitHubDetails.CreatePendingCriteria(this)
                 };
                 addAntiForgeryToken(data);
 
@@ -330,7 +395,7 @@
             var trustedPublishers = $.map(initialData.TrustedPublishers, function (data) {
                 return new TrustedPublisherViewModel(self, initialData.PackageOwners, data);
             });
-            var newTrustedPublisher = new TrustedPublisherViewModel(self, initialData.PackageOwners);
+            var newTrustedPublisher = new TrustedPublisherViewModel(self, initialData.PackageOwners, {PublisherName: 'GitHub'});
 
             this.TrustedPublishers = ko.observableArray(trustedPublishers);
             this.NewTrustedPublisher = ko.observable(newTrustedPublisher);
