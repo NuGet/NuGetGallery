@@ -474,12 +474,8 @@ namespace NuGetGallery
             var packageCount = packageSummary != null ? packageSummary.PackageCount : 0;
             var downloadCount = packageSummary != null ? packageSummary.DownloadCount : 0;
 
-            packages = packages
-                .Where(p => p.Listed
-                    && p.IsLatestSemVer2
-                    && p.PackageStatusKey == PackageStatus.Available);
-
             return (packages
+                .Where(p => p.IsLatestSemVer2)
                 .OrderByDescending(p => p.PackageRegistration.DownloadCount)
                 .ThenBy(p => p.PackageRegistration.Id)
                 .Skip((page-1) * pageSize)
