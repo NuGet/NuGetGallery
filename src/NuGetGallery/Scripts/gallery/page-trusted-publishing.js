@@ -71,80 +71,89 @@
 
         var _gitHubDetails = {};
         _gitHubDetails.Initialize = function (self) {
-            self.GitHub_RepositoryOwner = ko.observable();
-            self.GitHub_PendingRepositoryOwner = ko.observable();
-            self.GitHub_RepositoryOwnerUid = computedUid(self, "github-repository-owner");
+            // Create a gitHub object to hold all GitHub-related properties
+            self.gitHub = {
+                RepositoryOwner: ko.observable(),
+                PendingRepositoryOwner: ko.observable(),
+                RepositoryOwnerUid: computedUid(self, "github-repository-owner"),
 
-            self.GitHub_Repository = ko.observable();
-            self.GitHub_PendingRepository = ko.observable();
-            self.GitHub_RepositoryUid = computedUid(self, "github-repository");
+                Repository: ko.observable(),
+                PendingRepository: ko.observable(),
+                RepositoryUid: computedUid(self, "github-repository"),
 
-            self.GitHub_RepositoryId = ko.observable();
-            self.GitHub_PendingRepositoryId = ko.observable();
-            self.GitHub_RepositoryIdUid = computedUid(self, "github-repository-id");
+                RepositoryId: ko.observable(),
+                PendingRepositoryId: ko.observable(),
+                RepositoryIdUid: computedUid(self, "github-repository-id"),
 
-            self.GitHub_WorkflowFile = ko.observable();
-            self.GitHub_PendingWorkflowFile = ko.observable();
-            self.GitHub_WorkflowFileUid = computedUid(self, "github-workflow-file");
+                WorkflowFile: ko.observable(),
+                PendingWorkflowFile: ko.observable(),
+                WorkflowFileUid: computedUid(self, "github-workflow-file"),
 
-            self.GitHub_Environment = ko.observable();
-            self.GitHub_PendingEnvironment = ko.observable();
-            self.GitHub_EnvironmentUid = computedUid(self, "github-environment");
+                Environment: ko.observable(),
+                PendingEnvironment: ko.observable(),
+                EnvironmentUid: computedUid(self, "github-environment")
+            };
         }
 
         _gitHubDetails.Update = function (self, data) {
             const details = data.PublisherName !== "GitHub" ? {} : data.PublisherDetails || {};
-            self.GitHub_RepositoryOwner(details.RepositoryOwner || '');
-            self.GitHub_PendingRepositoryOwner(details.RepositoryOwner || '');
+            const gitHub = self.gitHub;
+            gitHub.RepositoryOwner(details.RepositoryOwner || '');
+            gitHub.PendingRepositoryOwner(details.RepositoryOwner || '');
 
-            self.GitHub_Repository(details.Repository || '');
-            self.GitHub_PendingRepository(details.Repository || '');
+            gitHub.Repository(details.Repository || '');
+            gitHub.PendingRepository(details.Repository || '');
 
-            self.GitHub_RepositoryId(details.RepositoryId || 0);
-            self.GitHub_PendingRepositoryId(details.RepositoryId || 0);
+            gitHub.RepositoryId(details.RepositoryId || '');
+            gitHub.PendingRepositoryId(details.RepositoryId || '');
 
-            self.GitHub_WorkflowFile(details.WorkflowFile || '');
-            self.GitHub_PendingWorkflowFile(details.WorkflowFile || '');
+            gitHub.WorkflowFile(details.WorkflowFile || '');
+            gitHub.PendingWorkflowFile(details.WorkflowFile || '');
 
-            self.GitHub_Environment(details.Environment || '');
-            self.GitHub_PendingEnvironment(details.Environment || '');
+            gitHub.Environment(details.Environment || '');
+            gitHub.PendingEnvironment(details.Environment || '');
         }
 
         _gitHubDetails.CancelEdit = function (self) {
-            self.GitHub_PendingRepositoryOwner(self.GitHub_RepositoryOwner());
-            self.GitHub_PendingRepository(self.GitHub_Repository());
-            self.GitHub_PendingRepositoryId(self.GitHub_RepositoryId());
-            self.GitHub_PendingWorkflowFile(self.GitHub_WorkflowFile());
-            self.GitHub_PendingEnvironment(self.GitHub_Environment());
+            const gitHub = self.gitHub;
+            gitHub.PendingRepositoryOwner(gitHub.RepositoryOwner());
+            gitHub.PendingRepository(gitHub.Repository());
+            gitHub.PendingRepositoryId(gitHub.RepositoryId());
+            gitHub.PendingWorkflowFile(gitHub.WorkflowFile());
+            gitHub.PendingEnvironment(gitHub.Environment());
         }
 
         _gitHubDetails.AttachExtensions = function (self, validator) {
-            validator.submitted[self.GitHub_RepositoryOwner()] = null;
-            validator.submitted[self.GitHub_Repository()] = null;
-            validator.submitted[self.GitHub_RepositoryId()] = null;
-            validator.submitted[self.GitHub_WorkflowFile()] = null;
+            // Validate required fields only
+            const gitHub = self.gitHub;
+            validator.submitted[gitHub.RepositoryOwnerUid()] = null;
+            validator.submitted[gitHub.RepositoryUid()] = null;
+            validator.submitted[gitHub.RepositoryIdUid()] = null;
+            validator.submitted[gitHub.WorkflowFileUid()] = null;
         }
 
         _gitHubDetails.Valid = function (self) {
-            const owner = self.GitHub_PendingRepositoryOwner();
-            const repository = self.GitHub_PendingRepository();
-            const repositoryId = self.GitHub_PendingRepositoryId();
-            const workflowFile = self.GitHub_PendingWorkflowFile();
+            const gitHub = self.gitHub;
+            const owner = gitHub.PendingRepositoryOwner();
+            const repository = gitHub.PendingRepository();
+            const repositoryId = gitHub.PendingRepositoryId();
+            const workflowFile = gitHub.PendingWorkflowFile();
 
             return owner && repository && workflowFile && repositoryId;
         }
 
         _gitHubDetails.CreatePendingCriteria = function (self) {
+            const gitHub = self.gitHub;
             var githubData = {
                 Name: 'GitHub',
-                RepositoryOwner: self.GitHub_PendingRepositoryOwner() || '',
-                Repository: self.GitHub_PendingRepository() || '',
-                RepositoryId: parseInt(self.GitHub_PendingRepositoryId()) || 0,
-                WorkflowFile: self.GitHub_PendingWorkflowFile() || ''
+                RepositoryOwner: gitHub.PendingRepositoryOwner() || '',
+                Repository: gitHub.PendingRepository() || '',
+                RepositoryId: gitHub.PendingRepositoryId() || '',
+                WorkflowFile: gitHub.PendingWorkflowFile() || ''
             };
 
             // Only include environment if it has a value
-            var environment = self.GitHub_PendingEnvironment();
+            var environment = gitHub.PendingEnvironment();
             if (environment && environment.trim()) {
                 githubData.Environment = environment;
             }
