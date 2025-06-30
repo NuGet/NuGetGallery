@@ -283,11 +283,6 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(id));
             }
 
-            if (includeVersion == null)
-            {
-                throw new ArgumentNullException(nameof(id));
-            }
-
             var packages = GetPackagesByIdQueryable(
                 id,
                 includeLicenseReports: false,
@@ -301,7 +296,7 @@ namespace NuGetGallery
                 .Take(numLatestVersions)
                 .ToList();
 
-            if (!packages.Any(p => p.NormalizedVersion == includeVersion))
+            if (!string.IsNullOrWhiteSpace(includeVersion) && !packages.Any(p => p.NormalizedVersion == includeVersion))
             {
                 var requiredPackage = GetPackagesByIdQueryable(
                     id,
