@@ -66,6 +66,7 @@ namespace NuGetGallery
         private const string AdvancedFrameworkFilteringFeatureName = GalleryPrefix + "AdvancedFrameworkFiltering";
         private const string FederatedCredentialsFeatureName = GalleryPrefix + "FederatedCredentials";
         private const string ProfileLoadOptimization = GalleryPrefix + "ProfileLoadOptimization";
+        private const string ReducedVersionLists = GalleryPrefix + "ReducedVersionLists";
 
         private const string ODataV1GetAllNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllNonHijacked";
         private const string ODataV1GetAllCountNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllCountNonHijacked";
@@ -416,7 +417,8 @@ namespace NuGetGallery
             return _client.IsEnabled(NuGetAccountPasswordLoginFeatureName, defaultValue: true);
         }
 
-        public bool IsFrameworkFilteringEnabled(User user) {
+        public bool IsFrameworkFilteringEnabled(User user)
+        {
             return _client.IsEnabled(FrameworkFilteringFeatureName, user, defaultValue: false);
         }
 
@@ -434,10 +436,15 @@ namespace NuGetGallery
         {
             return _client.IsEnabled(FederatedCredentialsFeatureName, user, defaultValue: false);
         }
-        
+
         public bool IsProfileLoadOptimizationEnabled()
         {
             return _client.IsEnabled(ProfileLoadOptimization, defaultValue: true);
+        }
+
+        public bool IsReducedVersionListsEnabled()
+        {
+            return _client.IsEnabled(ReducedVersionLists, defaultValue: false);
         }
     }
 }
