@@ -119,16 +119,19 @@
         }
 
         _gitHubDetails.AttachExtensions = function (self, validator) {
-            validator.submitted[self.PolicyNameUid()] = null;
+            validator.submitted[self.GitHub_RepositoryOwner()] = null;
+            validator.submitted[self.GitHub_Repository()] = null;
+            validator.submitted[self.GitHub_RepositoryId()] = null;
+            validator.submitted[self.GitHub_WorkflowFile()] = null;
         }
 
         _gitHubDetails.Valid = function (self) {
             const owner = self.GitHub_PendingRepositoryOwner();
             const repository = self.GitHub_PendingRepository();
-            const repositoryId = parseInt(self.GitHub_PendingRepositoryId(), 10);
+            const repositoryId = self.GitHub_PendingRepositoryId();
             const workflowFile = self.GitHub_PendingWorkflowFile();
 
-            return owner && repository && workflowFile && repositoryId && !isNaN(repositoryId) && repositoryId > 0;
+            return owner && repository && workflowFile && repositoryId;
         }
 
         _gitHubDetails.CreatePendingCriteria = function (self) {
@@ -235,7 +238,8 @@
 
             this.Valid = function () {
                 // Execute form validation.
-                const formError = !$("#" + this.FormUid()).valid();
+                const $form = $("#" + this.FormUid());
+                const formError = !$form.valid();
                 
                 // Check if PackageOwner is selected
                 const packageOwnerError = !this.PackageOwner();

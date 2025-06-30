@@ -39,7 +39,7 @@ namespace NuGetGallery
         /// GitHub repository id. Obtained from GitHub API.
         /// </summary>
         [Required]
-        public int RepositoryId { get; set; }
+        public string RepositoryId { get; set; }
 
         /// <summary>
         /// GitHub Action workflow file name, e.g. release.yml.
@@ -68,7 +68,7 @@ namespace NuGetGallery
                 errors.Add(Strings.GitHub_RepositoryRequired);
             }
 
-            if (RepositoryId <= 0)
+            if (string.IsNullOrWhiteSpace(RepositoryId))
             {
                 errors.Add(Strings.GitHub_RepositoryIdRequired);
             }

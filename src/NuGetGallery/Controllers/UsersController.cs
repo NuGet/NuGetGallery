@@ -1166,11 +1166,46 @@ namespace NuGetGallery
                 return Json(Strings.TrustedPublisher_Unexpected);
             }
 
-
-            if (_federatedCredentialRepository.GetPolicyByKey(key) is not FederatedCredentialPolicy policy)
+            var getResult = GetFederatedCredentialPolicy(federatedCredentialKey);
+            if (getResult.policy == null)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(Strings.TrustedPublisher_Unexpected);
+                return Json(getResult.error);
+            }
+
+            // Update policy
+            var result = await GenerateTrustedPublisherPolicy(policyName, owner, criteria);
+            if (Response.StatusCode == (int)HttpStatusCode.OK)
+            {
+                // Delete the existing policy
+                await _federatedCredentialRepository.DeletePolicyAsync(getResult.policy, saveChanges: true);
+            }
+
+            return result;
+        }
+
+        [HttpPost]
+        [UIAuthorize]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> RemoveTrustedPublisherPolicy(int? federatedCredentialKey)
+        {
+            var getResult = GetFederatedCredentialPolicy(federatedCredentialKey);
+            if (getResult.policy == null)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(getResult.error);
+            }
+
+            await _federatedCredentialRepository.DeletePolicyAsync(getResult.policy, saveChanges: true);
+            return Json(Strings.CredentialRemoved);
+        }
+
+        private (FederatedCredentialPolicy policy, string error) GetFederatedCredentialPolicy(int? federatedCredentialKey)
+        {
+            if (federatedCredentialKey is not int key ||
+                _federatedCredentialRepository.GetPolicyByKey(key) is not FederatedCredentialPolicy policy)
+            {
+                return (null, Strings.TrustedPublisher_Unexpected);
             }
 
             // Sanity check. The policy must be owned by user or an organization the user belongs to.
@@ -1183,27 +1218,10 @@ namespace NuGetGallery
             if (!isOwner)
             {
                 Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                return Json(Strings.Unauthorized);
+                return (null, Strings.Unauthorized);
             }
 
-            // Update policy
-            var result = await GenerateTrustedPublisherPolicy(policyName, owner, criteria);
-            if (Response.StatusCode == (int)HttpStatusCode.OK)
-            {
-                // Delete the existing policy
-                await _federatedCredentialRepository.DeletePolicyAsync(policy, saveChanges: true);
-            }
-
-            return result;
-        }
-
-        [HttpPost]
-        [UIAuthorize]
-        [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> RemoveTrustedPublisherPolicy(int? federatedCredentialKey)
-        {
-            await Task.CompletedTask;
-            return default;
+            return (policy, null);
         }
 
         [UIAuthorize]
