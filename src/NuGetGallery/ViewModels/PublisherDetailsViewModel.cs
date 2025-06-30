@@ -11,17 +11,11 @@ namespace NuGetGallery
     {
         protected PublisherDetailsViewModel() { }
 
-        protected abstract string NameInternal { get; }
-
         /// <summary>
         /// Publisher name, e.g. GitHub. Writable to be JSON serializable.
         /// </summary>
         [Required]
-        public string Name
-        {
-            get => NameInternal;
-            set { /*noop*/ }
-        }
+        public abstract string Name { get; }
 
         /// <summary>
         /// Validates data in the view model. Returns error message if validation fails, otherwise returns null or empty string.

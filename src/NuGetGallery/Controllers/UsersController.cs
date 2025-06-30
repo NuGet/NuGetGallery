@@ -10,10 +10,6 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
-using NuGet.Packaging;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
 using NuGet.Versioning;
@@ -28,7 +24,6 @@ using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Security;
 using NuGetGallery.Services.Authentication;
-using Polly;
 
 namespace NuGetGallery
 {

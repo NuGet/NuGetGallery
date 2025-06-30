@@ -413,11 +413,6 @@ namespace NuGetGallery
                 new { controller = "Users", action = "RemoveCredential" });
 
             routes.MapRoute(
-                RouteName.RemoveFederatedCredential,
-                "account/RemoveFederatedCredential",
-                new { controller = "Users", action = "RemoveFederatedCredential" });
-
-            routes.MapRoute(
                 RouteName.PasswordReset,
                 "account/forgotpassword/{username}/{token}",
                 new { controller = "Users", action = "ResetPassword", forgot = true },

@@ -1130,7 +1130,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ..
+        ///   Looks up a localized string similar to The GitHub repository owner is required..
         /// </summary>
         public static string GitHub_OwnerRequired {
             get {
@@ -1148,7 +1148,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ..
+        ///   Looks up a localized string similar to The GitHub repository is required..
         /// </summary>
         public static string GitHub_RepositoryRequired {
             get {
@@ -2544,7 +2544,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t generate a trusted publisher policy without a name..
+        ///   Looks up a localized string similar to The trusted publisher policy name is required..
         /// </summary>
         public static string TrustedPublisher_PolicyNameRequired {
             get {
@@ -2553,7 +2553,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t generate a trusted publisher policy without an owner..
+        ///   Looks up a localized string similar to The trusted publisher policy owner is required..
         /// </summary>
         public static string TrustedPublisher_PolicyOwnerRequired {
             get {

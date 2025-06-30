@@ -14,14 +14,14 @@ namespace NuGetGallery
     /// <remarks>
     /// DO NOT change the property names. They are serialized to JSON which is stored in DB.
     /// </remarks>
-    [DebuggerDisplay("{WorkflowPath,nq}")]
+    [DebuggerDisplay("{RepositoryOwner,nq}/{Repository,nq}/.github/workflows/{WorkflowFile,nq}")]
     public sealed class GitHubPublisherDetailsViewModel : PublisherDetailsViewModel
     {
         public GitHubPublisherDetailsViewModel()
         {
         }
 
-        protected override string NameInternal => "GitHub";
+        public override string Name => "GitHub";
 
         /// <summary>
         /// GitHub organization/owner name.
@@ -39,15 +39,13 @@ namespace NuGetGallery
         /// GitHub repository id. Obtained from GitHub API.
         /// </summary>
         [Required]
-        public string RepositoryId { get; set; }
+        public string RepositoryId { get; set; } = string.Empty;
 
         /// <summary>
         /// GitHub Action workflow file name, e.g. release.yml.
         /// </summary>
         [Required]
         public string WorkflowFile { get; set; } = string.Empty;
-
-        public string WorkflowPath => $"{RepositoryOwner}/{Repository}/.github/workflows/{WorkflowFile}";
 
         /// <summary>
         /// GitHub Action environment name, e.g. production.

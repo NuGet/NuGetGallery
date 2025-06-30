@@ -158,7 +158,6 @@
         The policy package owner can be the same as the policy user or an organization the policy user is a member of.
     </p>
 
-    @*TODO: add GitHub Actions support*@
     <form method="post" action="@Url.Action("CreatePolicy")" onsubmit="return confirm('Are you sure you want to add this policy?');">
         @Html.AntiForgeryToken()
         <div class="row @Html.HasErrorFor(m => m.AddPolicy)">

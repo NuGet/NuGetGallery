@@ -7,33 +7,6 @@
     var EditErrorMessage = "An error occurred while editing an Trusted Publisher. Please try again.";
 
     $(function () {
-
-        // Toggle collapsible example sections
-        $(document).on('click', '.collapsible-example-toggle', function () {
-            var $this = $(this);
-            var $content = $this.closest('.collapsible-example').find('.collapsible-example-content');
-            var expanded = $this.attr('aria-expanded') === 'true';
-
-            // Toggle the visibility
-            if (expanded) {
-                $content.slideUp('fast');
-                $this.attr('aria-expanded', 'false');
-                $this.find('.ms-Icon').removeClass('ms-Icon--ChevronUp').addClass('ms-Icon--ChevronDown');
-            } else {
-                $content.slideDown('fast');
-                $this.attr('aria-expanded', 'true');
-                $this.find('.ms-Icon').removeClass('ms-Icon--ChevronDown').addClass('ms-Icon--ChevronUp');
-            }
-        });
-
-        // Copy button functionality
-        $(document).on('click', '.copy-button', function () {
-            var $this = $(this);
-            var $code = $this.closest('.collapsible-example').find('.example-code');
-            var text = $code.text();
-            window.nuget.copyTextToClipboard(text, $this);
-        });
-
         function addAntiForgeryToken(data) {
             var $field = $("#AntiForgeryForm input[name=__RequestVerificationToken]");
             data["__RequestVerificationToken"] = $field.val();
@@ -328,12 +301,12 @@
             };
 
             this.Create = function () {
+                // Build the request.
                 var data = {
                     policyName: this.PendingPolicyName(),
                     owner: this.PackageOwner(),
                     criteria: _gitHubDetails.CreatePendingCriteria(this)
                 };
-                // Build the request.
                 addAntiForgeryToken(data);
 
                 // Send the request.
