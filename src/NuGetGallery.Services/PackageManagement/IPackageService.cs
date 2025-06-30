@@ -55,6 +55,14 @@ namespace NuGetGallery
             bool includeDeprecations,
             bool includeSupportedFrameworks);
 
+        IReadOnlyCollection<Package> FindLatestVersionsById(
+            string id,
+            string includeVersion,
+            bool includePackageRegistration,
+            bool includeDeprecations,
+            bool includeSupportedFrameworks,
+            int numTopVersions);
+
         /// <summary>
         /// Gets the package with the given ID and version when exists;
         /// otherwise gets the latest package version for the given package ID matching the provided constraints.
