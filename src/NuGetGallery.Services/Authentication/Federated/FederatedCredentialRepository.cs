@@ -16,6 +16,7 @@ namespace NuGetGallery.Services.Authentication
     {
         Task AddPolicyAsync(FederatedCredentialPolicy policy, bool saveChanges);
         Task SaveFederatedCredentialAsync(FederatedCredential federatedCredential, bool saveChanges);
+        Task SaveFederatedCredentialPolicyAsync(FederatedCredentialPolicy policy, bool saveChanges);
         IReadOnlyList<FederatedCredentialPolicy> GetPoliciesCreatedByUser(int userKey);
         FederatedCredentialPolicy? GetPolicyByKey(int policyKey);
         IReadOnlyList<Credential> GetShortLivedApiKeysForPolicy(int policyKey);
@@ -85,6 +86,14 @@ namespace NuGetGallery.Services.Authentication
             if (saveChanges)
             {
                 await _federatedCredentialRepository.CommitChangesAsync();
+            }
+        }
+
+        public async Task SaveFederatedCredentialPolicyAsync(FederatedCredentialPolicy policy, bool saveChanges)
+        {
+            if (saveChanges)
+            {
+                await _policyRepository.CommitChangesAsync();
             }
         }
 

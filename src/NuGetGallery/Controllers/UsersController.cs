@@ -1144,7 +1144,7 @@ namespace NuGetGallery
 
             await _federatedCredentialRepository.AddPolicyAsync(policy, saveChanges: true);
 
-            var policyViewModel = new TrustedPublisherViewModel
+            var model = new TrustedPublisherViewModel
             {
                 Key = policy.Key,
                 PolicyName = policyName,
@@ -1152,13 +1152,13 @@ namespace NuGetGallery
                 PublisherDetails = publisherDetails
             };
 
-            return Json(policyViewModel);
+            return Json(model);
         }
 
         [UIAuthorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<JsonResult> EditTrustedPublisherPolicy(int? federatedCredentialKey, string policyName, string owner, string criteria)
+        public virtual async Task<JsonResult> EditTrustedPublisherPolicy(int? federatedCredentialKey, string criteria)
         {
             if (federatedCredentialKey is not int key)
             {
@@ -1166,22 +1166,22 @@ namespace NuGetGallery
                 return Json(Strings.TrustedPublisher_Unexpected);
             }
 
-            var getResult = GetFederatedCredentialPolicy(federatedCredentialKey);
-            if (getResult.policy == null)
+            var result = GetFederatedCredentialPolicy(federatedCredentialKey);
+            if (result.policy == null)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(getResult.error);
+                return Json(result.error);
             }
 
-            // Update policy
-            var result = await GenerateTrustedPublisherPolicy(policyName, owner, criteria);
-            if (Response.StatusCode == (int)HttpStatusCode.OK)
+            result.policy.Criteria = criteria;
+            if (CreatePublisherViewModel(result.policy) is not TrustedPublisherViewModel model)
             {
-                // Delete the existing policy
-                await _federatedCredentialRepository.DeletePolicyAsync(getResult.policy, saveChanges: true);
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.TrustedPublisher_Unexpected);
             }
 
-            return result;
+            await _federatedCredentialRepository.SaveFederatedCredentialPolicyAsync(result.policy, saveChanges: true);
+            return Json(model);
         }
 
         [HttpPost]
