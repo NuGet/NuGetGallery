@@ -7,7 +7,7 @@ namespace NuGetGallery.Migrations
     {
         public override void Up()
         {
-            AddColumn("dbo.FederatedCredentialPolicies", "PolicyName", c => c.String(nullable: true, maxLength: 128));
+            AddColumn("dbo.FederatedCredentialPolicies", "PolicyName", c => c.String(nullable: true, maxLength: 64));
         }
 
         public override void Down()

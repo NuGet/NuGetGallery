@@ -2526,6 +2526,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The policy has been removed..
+        /// </summary>
+        public static string TrustedPolicyRemoved {
+            get {
+                return ResourceManager.GetString("TrustedPolicyRemoved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Name is too long..
         /// </summary>
         public static string TrustedPublisher_NameTooLong {

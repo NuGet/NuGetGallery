@@ -1107,7 +1107,7 @@ namespace NuGetGallery
                 return Json(Strings.TrustedPublisher_PolicyNameRequired);
             }
 
-            if (policyName.Length >= 128)
+            if (policyName.Length >= 64)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(Strings.TrustedPublisher_NameTooLong);
@@ -1128,7 +1128,7 @@ namespace NuGetGallery
             if (UserService.FindByUsername(owner) is not User policyOwner)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(Strings.UserNotFound);
+                return Json(Strings.AddOwner_OwnerNotFound);
             }
 
             if (PublisherDetailsViewModelFactory.FromJson(criteria) is not PublisherDetailsViewModel publisherDetails)
@@ -1217,7 +1217,7 @@ namespace NuGetGallery
             }
 
             await _federatedCredentialRepository.DeletePolicyAsync(getResult.policy, saveChanges: true);
-            return Json(Strings.CredentialRemoved);
+            return Json(Strings.TrustedPolicyRemoved);
         }
 
         private (FederatedCredentialPolicy policy, string error) GetFederatedCredentialPolicy(int? federatedCredentialKey)
@@ -1237,7 +1237,6 @@ namespace NuGetGallery
 
             if (!isOwner)
             {
-                Response.StatusCode = (int)HttpStatusCode.Forbidden;
                 return (null, Strings.Unauthorized);
             }
 

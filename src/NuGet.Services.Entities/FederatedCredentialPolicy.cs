@@ -59,7 +59,7 @@ namespace NuGet.Services.Entities
         /// User provided policy name to help identify this policy. This is not used in any evaluation of the policy.
         /// </summary>
         [Required]
-        [StringLength(128)]
+        [StringLength(64)]
         public string PolicyName { get; set; }
 
         /// <summary>
