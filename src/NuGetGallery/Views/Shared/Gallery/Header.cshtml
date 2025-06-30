@@ -6,6 +6,8 @@
         && Config.Current.DeprecateNuGetPasswordLogins
         && User.HasPasswordLogin();
     var rawErrorMessage = TempData.ContainsKey("RawErrorMessage") ? TempData["RawErrorMessage"].ToString() : null;
+    var featureFlagService = DependencyResolver.Current.GetService<IFeatureFlagService>();
+    ViewBag.IsTrustedPublishingEnabled = featureFlagService != null && featureFlagService.IsTrustedPublishingEnabled(CurrentUser);
 }
 
 <div id="cookie-banner"></div>
@@ -141,7 +143,12 @@
                                             </a>
                                         </li>
                                         <li role="presentation"><a href="@Url.ManageMyApiKeys()" role="menuitem">API Keys</a></li>
-                                        <li role="presentation"><a href="@Url.ManageMyTrustedPublishing()" role="menuitem">Trusted Publishing</a></li>
+
+                                        @if (ViewBag.IsTrustedPublishingEnabled)
+                                        {
+                                            <li role="presentation"><a href="@Url.ManageMyTrustedPublishing()" role="menuitem">Trusted Publishing</a></li>
+                                        }
+
                                         <li class="divider"></li>
                                         <li role="presentation"><a href="@Url.ManageMyOrganizations()" role="menuitem">Manage Organizations</a></li>
                                         <li role="presentation"><a href="@Url.ManageMyPackages()" role="menuitem">Manage Packages</a></li>

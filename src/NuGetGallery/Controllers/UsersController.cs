@@ -509,6 +509,12 @@ namespace NuGetGallery
         public virtual ActionResult TrustedPublishing()
         {
             User currentUser = GetCurrentUser();
+            if (!_featureFlagService.IsTrustedPublishingEnabled(currentUser))
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.DefaultUserSafeExceptionMessage);
+            }
+
             var owners = new List<User>() { currentUser };
             owners.AddRange(currentUser.Organizations.Select(o => o.Organization));
 
@@ -1088,6 +1094,13 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<JsonResult> GenerateTrustedPublisherPolicy(string policyName, string owner, string criteria)
         {
+            User currentUser = GetCurrentUser();
+            if (!_featureFlagService.IsTrustedPublishingEnabled(currentUser))
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.DefaultUserSafeExceptionMessage);
+            }
+
             if (string.IsNullOrWhiteSpace(policyName))
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
@@ -1106,7 +1119,6 @@ namespace NuGetGallery
                 return Json(Strings.TrustedPublisher_PolicyOwnerRequired);
             }
 
-            var currentUser = GetCurrentUser();
             if (currentUser.IsLocked)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
@@ -1160,10 +1172,11 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<JsonResult> EditTrustedPublisherPolicy(int? federatedCredentialKey, string criteria)
         {
-            if (federatedCredentialKey is not int key)
+            User currentUser = GetCurrentUser();
+            if (!_featureFlagService.IsTrustedPublishingEnabled(currentUser))
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(Strings.TrustedPublisher_Unexpected);
+                return Json(Strings.DefaultUserSafeExceptionMessage);
             }
 
             var result = GetFederatedCredentialPolicy(federatedCredentialKey);
@@ -1189,6 +1202,13 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> RemoveTrustedPublisherPolicy(int? federatedCredentialKey)
         {
+            User currentUser = GetCurrentUser();
+            if (!_featureFlagService.IsTrustedPublishingEnabled(currentUser))
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.DefaultUserSafeExceptionMessage);
+            }
+
             var getResult = GetFederatedCredentialPolicy(federatedCredentialKey);
             if (getResult.policy == null)
             {
