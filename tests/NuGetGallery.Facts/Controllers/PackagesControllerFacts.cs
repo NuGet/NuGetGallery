@@ -542,6 +542,7 @@ namespace NuGetGallery
 
                 var controller = CreateController(
                     GetConfigurationService(),
+                    packageService: packageService,
                     featureFlagService: featureFlagServiceMock);
 
                 await controller.DisplayPackage("TestPackage", "0.1.2");
