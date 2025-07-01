@@ -1,5 +1,7 @@
 ﻿﻿﻿@using NuGet.Services.Validation
 @using NuGet.Services.Licenses
+@using NuGetGallery.Services.Helpers
+@using NuGetGallery.Services.Models
 
 @model DisplayPackageViewModel
 @{
@@ -80,6 +82,62 @@
                 CommandPrefix = "> ",
             }
         };
+
+        if (Model.IsMcpServerPackageType)
+        {
+            var validity = Model.VsCodeMcpServerEntryTemplate.Validity;
+            var template = Model.VsCodeMcpServerEntryTemplate.Template;
+
+            AlertLevel alertLevel = AlertLevel.Info;
+            string alertMessage;
+            string vsCodeEntryTemplate;
+            bool copyEnabled;
+
+            if (validity == McpServerEntryResultValidity.Success)
+            {
+                alertLevel = AlertLevel.Info;
+                alertMessage = "This package contains an <a href='https://aka.ms/vscode-mcp-server'>MCP Server</a>. You can install it in VS Code.";
+                vsCodeEntryTemplate = !string.IsNullOrEmpty(Model.VsCodeMcpServerEntryTemplate.Template) ? template.Replace(McpHelper.McpServerPackageIdPlaceholder, Model.Id) : string.Empty;
+                copyEnabled = true;
+            }
+            else if (validity == McpServerEntryResultValidity.MissingMetadata)
+            {
+                alertLevel = AlertLevel.Warning;
+                alertMessage = "The VS Code MCP server configuration entry cannot be generated because this package does not include a server.json file. Please refer to the package README and the <a href='https://aka.ms/vscode-mcp-server-config'>MCP Configuration Guide</a> for proper setup instructions.";
+                vsCodeEntryTemplate = string.Empty;
+                copyEnabled = false;
+            }
+            else if (validity == McpServerEntryResultValidity.InvalidMetadata)
+            {
+                alertLevel = AlertLevel.Warning;
+                alertMessage = "The VS Code MCP server configuration entry cannot be generated because the server.json file is invalid. Please refer to the package README and the <a href='https://aka.ms/vscode-mcp-server-config'>MCP Configuration Guide</a> for proper setup instructions.";
+                vsCodeEntryTemplate = string.Empty;
+                copyEnabled = false;
+            }
+            else
+            {
+                alertLevel = AlertLevel.None;
+                alertMessage = string.Empty;
+                vsCodeEntryTemplate = string.Empty;
+                copyEnabled = false;
+            }
+
+            PackageManagerViewModel[] packageManagersWithMcp = new PackageManagerViewModel[packageManagers.Length + 1];
+            packageManagersWithMcp[0] = new PackageManagerViewModel(
+                "vscode-mcp-server",
+                "MCP Server",
+                new PackageManagerViewModel.InstallPackageCommand(vsCodeEntryTemplate)
+            )
+            {
+                CommandPrefix = "",
+                AlertLevel = alertLevel,
+                AlertMessage = alertMessage,
+                CopyEnabled = copyEnabled,
+            };
+
+            Array.Copy(packageManagers, 0, packageManagersWithMcp, 1, packageManagers.Length);
+            packageManagers = packageManagersWithMcp;
+        }
     }
     else if (Model.IsDotnetNewTemplatePackageType)
     {
@@ -284,7 +342,8 @@
                         </span>
                         }<button id="@installPackageCommand.Key-button" class="btn btn-brand-icon" type="button"
                                 data-toggle="popover" data-placement="bottom" data-content="Copied."
-                                aria-label="@packageManager.CopyLabel" role="button">
+                                aria-label="@packageManager.CopyLabel" role="button"
+                                disabled="@(!packageManager.CopyEnabled)">
                             <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
                             <span>Copy</span>
                         </button>

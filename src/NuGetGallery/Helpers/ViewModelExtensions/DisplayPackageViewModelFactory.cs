@@ -8,6 +8,8 @@ using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Frameworks;
 using NuGetGallery.Helpers;
+using NuGetGallery.Services.Helpers;
+using NuGetGallery.Services.Models;
 
 namespace NuGetGallery
 {
@@ -107,6 +109,16 @@ namespace NuGetGallery
                 viewModel.IsDotnetToolPackageType = package.PackageTypes.Any(e => e.Name.Equals("DotnetTool", StringComparison.OrdinalIgnoreCase));
                 viewModel.IsDotnetNewTemplatePackageType = package.PackageTypes.Any(e => e.Name.Equals("Template", StringComparison.OrdinalIgnoreCase));
                 viewModel.IsMSBuildSdkPackageType = package.PackageTypes.Any(e => e.Name.Equals("MSBuildSdk", StringComparison.OrdinalIgnoreCase));
+
+                viewModel.IsMcpServerPackageType = false;
+                viewModel.VsCodeMcpServerEntryTemplate = null;
+
+                var mcpServerPackageType = package.PackageTypes.FirstOrDefault(e => e.Name.Equals(McpHelper.McpServerPackageTypeName, StringComparison.OrdinalIgnoreCase));
+                if (mcpServerPackageType != null)
+                {
+                    viewModel.IsMcpServerPackageType = true;
+                    viewModel.VsCodeMcpServerEntryTemplate = McpHelper.CreateVsCodeMcpServerEntryTemplate(mcpServerPackageType.CustomData);
+                }
             }
 
             if (packageKeyToDeprecation != null && packageKeyToDeprecation.TryGetValue(package.Key, out var deprecation))
