@@ -238,6 +238,9 @@ namespace NuGetGallery
             {
                 featureFlagService = new Mock<IFeatureFlagService>();
                 featureFlagService.SetReturnsDefault<bool>(true);
+                featureFlagService
+                    .Setup(ff => ff.IsReducedVersionListsEnabled())
+                    .Returns(false);
             }
 
             renameService = renameService ?? new Mock<IPackageRenameService>();
@@ -525,6 +528,29 @@ namespace NuGetGallery
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal(id, model.Id);
                 searchService.Verify(x => x.RawSearch(It.IsAny<SearchFilter>()), Times.Exactly(searchTimes));
+            }
+
+            [Fact]
+            public async Task UsesFindLatestVersionsWhenFeatureFlagIsEnabled()
+            {
+                var featureFlagServiceMock = new Mock<IFeatureFlagService>();
+                featureFlagServiceMock
+                    .Setup(ff => ff.IsReducedVersionListsEnabled())
+                    .Returns(true);
+
+                var packageService = new Mock<IPackageService>();
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    featureFlagService: featureFlagServiceMock);
+
+                await controller.DisplayPackage("TestPackage", "0.1.2");
+
+                packageService
+                    .Verify(ps => ps.FindLatestVersionsById("TestPackage", "0.1.2", It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>()), Times.Once);
+
+                packageService
+                    .Verify(ps => ps.FindPackagesById(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
             }
 
             [Fact]
