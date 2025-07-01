@@ -356,5 +356,10 @@ namespace NuGetGallery
         /// <summary>
         /// Whether or not new paging method is used for the profile page.
         bool IsProfileLoadOptimizationEnabled();
+
+        /// <summary>
+        /// Whether or not Api Key V5 is enabled for a package owner.
+        /// </summary>
+        bool IsApiKeyV5Enabled(User user);
     }
 }

@@ -13,6 +13,7 @@ using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
+using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
 
@@ -431,7 +432,7 @@ namespace NuGetGallery.Services.Authentication
                 FederatedCredentialRepository.Verify(x => x.GetPoliciesCreatedByUser(CurrentUser.Key), Times.Once);
                 Evaluator.Verify(x => x.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders), Times.Once);
                 UserService.Verify(x => x.FindByKey(PackageOwner.Key, false), Times.Once);
-                CredentialBuilder.Verify(x => x.CreateShortLivedApiKey(TimeSpan.FromMinutes(15), Evaluation.MatchedPolicy, out PlaintextApiKey), Times.Once);
+                CredentialBuilder.Verify(x => x.CreateShortLivedApiKey(TimeSpan.FromMinutes(15), Evaluation.MatchedPolicy, It.IsAny<char>(), It.IsAny<bool>(), out PlaintextApiKey), Times.Once);
                 CredentialBuilder.Verify(x => x.VerifyScopes(CurrentUser, Credential.Scopes), Times.Once);
                 FederatedCredentialRepository.Verify(x => x.SaveFederatedCredentialAsync(Evaluation.FederatedCredential, false), Times.Once);
                 AuthenticationService.Verify(x => x.AddCredential(CurrentUser, Credential), Times.Once);
@@ -459,6 +460,7 @@ namespace NuGetGallery.Services.Authentication
             FeatureFlagService = new Mock<IFeatureFlagService>();
             DateTimeProvider = new Mock<IDateTimeProvider>();
             Configuration = new Mock<IFederatedCredentialConfiguration>();
+            GalleryConfigurationService = new Mock<IGalleryConfigurationService>();
 
             BearerToken = "my-token";
             CurrentUser = new User { Key = 1, Username = "jim", EmailAddress = "jim@localhost" };
@@ -486,14 +488,15 @@ namespace NuGetGallery.Services.Authentication
             Evaluator.Setup(x => x.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders)).ReturnsAsync(() => Evaluation);
             FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
             CredentialBuilder
-                .Setup(x => x.CreateShortLivedApiKey(TimeSpan.FromMinutes(15), Evaluation.MatchedPolicy, out It.Ref<string>.IsAny))
-                .Returns(new CreateShortLivedApiKey((TimeSpan expires, FederatedCredentialPolicy policy, out string plaintextApiKey) =>
+                .Setup(x => x.CreateShortLivedApiKey(TimeSpan.FromMinutes(15), Evaluation.MatchedPolicy, It.IsAny<char>(), It.IsAny<bool>(), out It.Ref<string>.IsAny))
+                .Returns(new CreateShortLivedApiKey((TimeSpan expires, FederatedCredentialPolicy policy, char apiKeyEnvironment, bool isApiKeyV5Enabled, out string plaintextApiKey) =>
                 {
                     plaintextApiKey = "secret";
                     return Credential;
                 }));
             CredentialBuilder.Setup(x => x.VerifyScopes(CurrentUser, It.IsAny<IEnumerable<Scope>>())).Returns(true);
             Configuration.Setup(x => x.ShortLivedApiKeyDuration).Returns(TimeSpan.FromMinutes(15));
+            GalleryConfigurationService.Setup(x => x.Current.Environment).Returns("TestEnv");
             DateTimeProvider.Setup(x => x.UtcNow).Returns(new DateTime(2024, 10, 12, 12, 30, 0, DateTimeKind.Utc));
             EntraIdTokenValidator.Setup(x => x.IsTenantAllowed(EntraIdServicePrincipalCriteria.TenantId)).Returns(true);
 
@@ -507,10 +510,11 @@ namespace NuGetGallery.Services.Authentication
                 AuditingService.Object,
                 DateTimeProvider.Object,
                 FeatureFlagService.Object,
-                Configuration.Object);
+                Configuration.Object,
+                GalleryConfigurationService.Object);
         }
 
-        delegate Credential CreateShortLivedApiKey(TimeSpan expires, FederatedCredentialPolicy policy, out string plaintextApiKey);
+        delegate Credential CreateShortLivedApiKey(TimeSpan expires, FederatedCredentialPolicy policy, char apiKeyEnvironment, bool isApiKeyV5Enabled, out string plaintextApiKey);
 
         public Mock<IUserService> UserService { get; }
         public Mock<IFederatedCredentialRepository> FederatedCredentialRepository { get; }
@@ -522,6 +526,7 @@ namespace NuGetGallery.Services.Authentication
         public Mock<IFeatureFlagService> FeatureFlagService { get; }
         public Mock<IDateTimeProvider> DateTimeProvider { get; }
         public Mock<IFederatedCredentialConfiguration> Configuration { get; }
+        public Mock<IGalleryConfigurationService> GalleryConfigurationService { get; }
         public string BearerToken { get; }
         public User CurrentUser { get; set; }
         public User PackageOwner { get; }

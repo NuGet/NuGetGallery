@@ -141,5 +141,7 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
         public bool IsAsciiOnlyPackageIdEnabled() => throw new NotImplementedException();
 
         public bool IsProfileLoadOptimizationEnabled() => throw new NotImplementedException();
+
+        public bool IsApiKeyV5Enabled(User user) => throw new NotImplementedException();
     }
 }

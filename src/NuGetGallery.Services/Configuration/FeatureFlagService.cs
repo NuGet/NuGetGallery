@@ -66,6 +66,7 @@ namespace NuGetGallery
         private const string FederatedCredentialsFeatureName = GalleryPrefix + "FederatedCredentials";
         private const string AsciiOnlyPackageIdFeatureName = GalleryPrefix + "AsciiOnlyPackageId";
         private const string ProfileLoadOptimization = GalleryPrefix + "ProfileLoadOptimization";
+        private const string ApiKeyV5FeatureName = GalleryPrefix + "ApiKeyV5";
 
         private const string ODataV1GetAllNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllNonHijacked";
         private const string ODataV1GetAllCountNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllCountNonHijacked";
@@ -438,6 +439,11 @@ namespace NuGetGallery
         public bool IsProfileLoadOptimizationEnabled()
         {
             return _client.IsEnabled(ProfileLoadOptimization, defaultValue: true);
+        }
+
+        public bool IsApiKeyV5Enabled(User user)
+        {
+            return _client.IsEnabled(ApiKeyV5FeatureName, user, defaultValue: false);
         }
     }
 }

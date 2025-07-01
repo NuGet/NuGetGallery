@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -17,6 +17,10 @@ namespace NuGetGallery
         public const string NuGetProtocolHeaderName = "X-NuGet-Protocol-Version";
 
         public const string DevelopmentEnvironment = "Development";
+        public const string DevEnvironment = "Dev";
+        public const string IntEnvironment = "Int";
+        public const string ProdEnvironment = "Prod";
+
         public const string GitRepository = "git";
 
         public const string MarkdownFileExtension = ".md";

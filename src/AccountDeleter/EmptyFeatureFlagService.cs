@@ -338,5 +338,10 @@ namespace NuGetGallery.AccountDeleter
         {
             throw new NotImplementedException();
         }
+
+        public bool IsApiKeyV5Enabled(User user)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

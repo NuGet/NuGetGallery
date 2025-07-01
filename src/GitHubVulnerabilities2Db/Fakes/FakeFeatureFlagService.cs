@@ -339,5 +339,10 @@ namespace GitHubVulnerabilities2Db.Fakes
         {
             throw new NotImplementedException();
         }
+
+        public bool IsApiKeyV5Enabled(User user)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
