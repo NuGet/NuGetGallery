@@ -4,7 +4,7 @@
     var ConfirmDeleteMessage = "Are you sure you want to remove the Trusted Publisher?";
     var DeleteErrorMessage = "An error occurred while deleting the Trusted Publisher. Please try again.";
     var CreateErrorMessage = "An error occurred while creating a new Trusted Publisher. Please try again.";
-    var EditErrorMessage = "An error occurred while editing an Trusted Publisher. Please try again.";
+    var EditErrorMessage = "An error occurred while editing a Trusted Publisher. Please try again.";
 
     $(function () {
         function addAntiForgeryToken(data) {

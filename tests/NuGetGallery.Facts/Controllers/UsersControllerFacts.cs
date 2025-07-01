@@ -1142,9 +1142,14 @@ namespace NuGetGallery
                     .Setup(f => f.IsTrustedPublishingEnabled(currentUser))
                     .Returns(true);
 
+                GetMock<IFederatedCredentialRepository>()
+                    .Setup(r => r.GetPoliciesRelatedToUserKeys(It.IsAny<IReadOnlyList<int>>()))
+                    .Returns([]);
+
+                // Act
                 var model = GetModelForTrustedPublishing(currentUser);
 
-                // Act & Assert
+                // Assert
                 Assert.NotNull(model);
                 Assert.Equal(currentUser.Username, model.Username);
                 Assert.NotNull(model.PackageOwners);
@@ -1181,8 +1186,14 @@ namespace NuGetGallery
                     .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
                     .Returns(true);
 
+                GetMock<IFederatedCredentialRepository>()
+                    .Setup(r => r.GetPoliciesRelatedToUserKeys(It.IsAny<IReadOnlyList<int>>()))
+                    .Returns([]);
+
                 var currentUser = TestUtility.FakeOrganizationAdmin;
                 var organization = TestUtility.FakeOrganization;
+
+                // Act
                 var model = GetModelForTrustedPublishing(currentUser);
 
                 // Assert

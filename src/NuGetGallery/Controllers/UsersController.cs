@@ -512,11 +512,11 @@ namespace NuGetGallery
 
             var owners = new List<User>() { currentUser };
             owners.AddRange(currentUser.Organizations.Select(o => o.Organization));
+            var ownerKeys = owners.Select(o => o.Key).ToArray();
 
             // Get policies
             var allFederatedCredentialPolicies = _federatedCredentialRepository
-                .GetPoliciesRelatedToUserKeys([.. owners.Select(o => o.Key)])
-                .ToList();
+                .GetPoliciesRelatedToUserKeys(ownerKeys);
 
             var publishers = allFederatedCredentialPolicies
                 .Select(CreatePublisherViewModel)
@@ -527,7 +527,7 @@ namespace NuGetGallery
             {
                 Username = currentUser.Username,
                 TrustedPublishers = publishers,
-                PackageOwners = [.. owners.Select(o => o.Username)],
+                PackageOwners = owners.Select(o => o.Username).ToList(),
             };
 
             return View("TrustedPublishing", model);
