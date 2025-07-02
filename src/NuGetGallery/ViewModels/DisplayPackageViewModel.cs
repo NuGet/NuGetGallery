@@ -115,6 +115,8 @@ namespace NuGetGallery
 
         public string ComparableGitHubRepository { get; private set; }
 
+        public bool IsMcpServerPackageDisplayEnabled { get; set; }
+
         public void InitializeRepositoryMetadata(string repositoryUrl, string repositoryType)
         {
             RepositoryType = RepositoryKind.Unknown;
@@ -191,6 +193,11 @@ namespace NuGetGallery
         public bool CanDisplayTargetFrameworks()
         {
             return IsDisplayTargetFrameworkEnabled && !Deleted && !IsDotnetNewTemplatePackageType;
+        }
+
+        public bool CanDisplayMcpServerPackageTab()
+        {
+            return IsMcpServerPackageType && IsMcpServerPackageDisplayEnabled && VsCodeMcpServerEntryTemplate != null;
         }
 
         public bool BlockSearchEngineIndexing

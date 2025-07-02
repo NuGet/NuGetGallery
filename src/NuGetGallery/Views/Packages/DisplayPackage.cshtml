@@ -83,7 +83,7 @@
             }
         };
 
-        if (Model.IsMcpServerPackageType)
+        if (Model.CanDisplayMcpServerPackageTab())
         {
             var validity = Model.VsCodeMcpServerEntryTemplate.Validity;
             var template = Model.VsCodeMcpServerEntryTemplate.Template;

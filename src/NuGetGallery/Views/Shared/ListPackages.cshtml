@@ -51,19 +51,6 @@
     </div>
 }
 
-@functions
-{
-    private const string DefaultPackageType = "";
-    private static readonly IReadOnlyDictionary<string, string> UiSupportedPackageTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-{
-        { DefaultPackageType, "All types" },
-        { "dependency", "Dependency" },
-        { "dotnettool", ".NET tool" },
-        { "template" , "Template" },
-        { "mcpserver", "MCP Server" },
-    };
-}
-
 
 @* IMPORTANT. If you modify this search form then update searchFilterParamNames in commons.js *@
 <form name="search" id="search-form" method="get" class="clearfix advanced-search-panel">
@@ -154,7 +141,7 @@
                                 </fieldset>
                             </div>
                         }
-                        @if (Model.PackageType != null && !UiSupportedPackageTypes.ContainsKey(Model.PackageType))
+                        @if (Model.PackageType != null && !Model.UiSupportedPackageTypes.ContainsKey(Model.PackageType))
                         {
                             <div class="row warning-panel">
                                 <div class="col-md-12 icon-text alert alert-warning">
@@ -166,9 +153,9 @@
                         <div>
                             <fieldset id="packagetype">
                                 <legend>Package type</legend>
-                                @foreach (var packageType in UiSupportedPackageTypes)
+                                @foreach (var packageType in Model.UiSupportedPackageTypes)
                                 {
-                                    @AddPackageFilterOption(packageType.Value, packageType.Key, isDefault: packageType.Key == DefaultPackageType)
+                                    @AddPackageFilterOption(packageType.Value, packageType.Key, isDefault: packageType.Key == Model.DefaultPackageType)
                                 }
                             </fieldset>
                         </div>

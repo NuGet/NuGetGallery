@@ -40,6 +40,7 @@ using NuGetGallery.OData;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using NuGetGallery.Services;
+using NuGetGallery.Services.Helpers;
 using NuGetGallery.ViewModels;
 
 namespace NuGetGallery
@@ -989,6 +990,7 @@ namespace NuGetGallery
             model.IsDisplayTargetFrameworkEnabled = _featureFlagService.IsDisplayTargetFrameworkEnabled(currentUser);
             model.IsComputeTargetFrameworkEnabled = _featureFlagService.IsComputeTargetFrameworkEnabled();
             model.IsMarkdigMdSyntaxHighlightEnabled = _featureFlagService.IsMarkdigMdSyntaxHighlightEnabled();
+            model.IsMcpServerPackageDisplayEnabled = _featureFlagService.IsMcpServerPackageDisplayEnabled();
             model.CanDisplayReadmeWarning = canDisplayReadmeWarning;
 
             if (model.IsComputeTargetFrameworkEnabled || model.IsDisplayTargetFrameworkEnabled)
@@ -1005,6 +1007,21 @@ namespace NuGetGallery
             {
                 var gitHubUsage = _contentObjectService.GitHubUsageConfiguration.GetPackageInformation(id);
                 model.GitHubDependenciesInformation = new GitHubUsageViewModel(model.ComparableGitHubRepository, gitHubUsage);
+            }
+
+            if (model.IsMcpServerPackageDisplayEnabled)
+            {
+                var mcpServerPackageType = package.PackageTypes.FirstOrDefault(e => e.Name.Equals(McpHelper.McpServerPackageTypeName, StringComparison.OrdinalIgnoreCase));
+                if (mcpServerPackageType != null)
+                {
+                    model.IsMcpServerPackageType = true;
+                    model.VsCodeMcpServerEntryTemplate = McpHelper.CreateVsCodeMcpServerEntryTemplate(mcpServerPackageType.CustomData);
+                }
+            }
+            else
+            {
+                model.IsMcpServerPackageType = false;
+                model.VsCodeMcpServerEntryTemplate = null;
             }
 
             // If the normalized version is actually a SemVer but does not match the resolved package version, show a
@@ -1316,6 +1333,7 @@ namespace NuGetGallery
             var isAdvancedSearchFlightEnabled = _featureFlagService.IsAdvancedSearchEnabled(GetCurrentUser());
             var isFrameworkFilteringEnabled = _featureFlagService.IsFrameworkFilteringEnabled(GetCurrentUser());
             var isAdvancedFrameworkFilteringEnabled = _featureFlagService.IsAdvancedFrameworkFilteringEnabled(GetCurrentUser());
+            var isMcpServerPackageFilteringEnabled = _featureFlagService.IsMcpServerPackageFilteringEnabled();
 
             // If advanced search is disabled, use the default experience
             if (!isAdvancedSearchFlightEnabled || !searchService.SupportsAdvancedSearch)
@@ -1425,6 +1443,11 @@ namespace NuGetGallery
                 searchAndListModel.FrameworkFilterMode,
                 searchAndListModel.PackageType,
                 searchAndListModel.SortBy);
+
+            if (isMcpServerPackageFilteringEnabled)
+            {
+                viewModel.UiSupportedPackageTypes.Add("mcpserver", "MCP Server");
+            }
 
             // If the experience hasn't been cached, it means it's not the default experienced, therefore, show the panel
             viewModel.IsAdvancedSearchFlightEnabled = searchService.SupportsAdvancedSearch && isAdvancedSearchFlightEnabled;
