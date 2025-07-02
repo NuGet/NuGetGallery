@@ -30,6 +30,12 @@ namespace NuGetGallery
         public string RepositoryOwner { get; set; } = string.Empty;
 
         /// <summary>
+        /// GitHub repository owner id. Obtained from GitHub API.
+        /// </summary>
+        [Required]
+        public string RepositoryOwnerId { get; set; } = string.Empty;
+
+        /// <summary>
         /// GitHub repository name.
         /// </summary>
         [Required]
@@ -66,10 +72,10 @@ namespace NuGetGallery
                 errors.Add(Strings.GitHub_RepositoryRequired);
             }
 
-            if (string.IsNullOrWhiteSpace(RepositoryId))
-            {
-                errors.Add(Strings.GitHub_RepositoryIdRequired);
-            }
+            //if (string.IsNullOrWhiteSpace(RepositoryId))
+            //{
+            //    errors.Add(Strings.GitHub_RepositoryIdRequired);
+            //}
 
             if (string.IsNullOrWhiteSpace(WorkflowFile))
             {
