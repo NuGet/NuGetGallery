@@ -114,6 +114,13 @@
                 vsCodeEntryTemplate = string.Empty;
                 copyEnabled = false;
             }
+            else if (validity == McpServerEntryResultValidity.MissingNugetRegistry)
+            {
+                alertLevel = AlertLevel.Warning;
+                alertMessage = "The VS Code MCP server configuration entry cannot be generated because the server.json file is missing a NuGet entry. Please refer to the package README and the <a href='https://aka.ms/vscode-mcp-server-config'>MCP Configuration Guide</a> for proper setup instructions.";
+                vsCodeEntryTemplate = string.Empty;
+                copyEnabled = false;
+            }
             else
             {
                 alertLevel = AlertLevel.None;

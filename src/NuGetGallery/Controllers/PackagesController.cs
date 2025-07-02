@@ -41,6 +41,7 @@ using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using NuGetGallery.Services;
 using NuGetGallery.Services.Helpers;
+using NuGetGallery.Services.Models;
 using NuGetGallery.ViewModels;
 
 namespace NuGetGallery
@@ -1021,7 +1022,11 @@ namespace NuGetGallery
             else
             {
                 model.IsMcpServerPackageType = false;
-                model.VsCodeMcpServerEntryTemplate = null;
+                model.VsCodeMcpServerEntryTemplate = new McpServerEntryTemplateResult()
+                {
+                    Validity = McpServerEntryResultValidity.Unset,
+                    Template = string.Empty,
+                };
             }
 
             // If the normalized version is actually a SemVer but does not match the resolved package version, show a

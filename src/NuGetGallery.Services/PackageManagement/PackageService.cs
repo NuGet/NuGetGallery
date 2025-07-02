@@ -764,7 +764,12 @@ namespace NuGetGallery
                 .Distinct()
                 .ToList();
 
-            package.PackageTypes = EnrichMcpServerMetadata(packageArchive, uniquePackageTypes);
+            if (McpHelper.IsMcpServerPackage(packageArchive))
+            {
+                uniquePackageTypes = EnrichMcpServerMetadata(packageArchive, uniquePackageTypes);
+            }
+
+            package.PackageTypes = uniquePackageTypes;
 
             package.FlattenedDependencies = package.Dependencies.Flatten();
 
@@ -876,11 +881,6 @@ namespace NuGetGallery
 
         private static List<PackageType> EnrichMcpServerMetadata(PackageArchiveReader packageArchive, List<PackageType> packageTypes)
         {
-            if (!McpHelper.IsMcpServerPackage(packageArchive))
-            {
-                return packageTypes;
-            }
-
             if (!McpHelper.PackageContainsMcpServerMetadata(packageArchive))
             {
                 return packageTypes;

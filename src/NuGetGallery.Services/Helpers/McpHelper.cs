@@ -57,7 +57,7 @@ namespace NuGetGallery.Services.Helpers
                 return new McpServerEntryTemplateResult
                 {
                     Validity = McpServerEntryResultValidity.MissingMetadata,
-                    Template = null,
+                    Template = string.Empty,
                 };
             }
 
@@ -71,7 +71,7 @@ namespace NuGetGallery.Services.Helpers
                 return new McpServerEntryTemplateResult
                 {
                     Validity = McpServerEntryResultValidity.InvalidMetadata,
-                    Template = null,
+                    Template = string.Empty,
                 };
             }
 
@@ -80,8 +80,8 @@ namespace NuGetGallery.Services.Helpers
             {
                 return new McpServerEntryTemplateResult
                 {
-                    Validity = McpServerEntryResultValidity.MissingMetadata,
-                    Template = null,
+                    Validity = McpServerEntryResultValidity.MissingNugetRegistry,
+                    Template = string.Empty,
                 };
             }
 
@@ -121,7 +121,7 @@ namespace NuGetGallery.Services.Helpers
                 return new McpServerEntryTemplateResult
                 {
                     Validity = McpServerEntryResultValidity.InvalidMetadata,
-                    Template = null,
+                    Template = string.Empty,
                 };
             }
         }
@@ -170,7 +170,7 @@ namespace NuGetGallery.Services.Helpers
                     Type = "promptString",
                     Id = $"input-{inputId++}",
                     Description = arg.Description,
-                    Password = false,
+                    Password = true,
                 });
             }
 

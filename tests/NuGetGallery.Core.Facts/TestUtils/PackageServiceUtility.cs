@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -158,6 +158,8 @@ namespace NuGetGallery.TestUtils
             byte[] iconFileBinaryContents = null,
             string readmeFilename = null,
             byte[] readmeFileContents = null,
+            string mcpServerMetadataFilename = null,
+            byte[] mcpServerMetadataFileContents = null,
             IReadOnlyList<string> entryNames = null)
         {
             if (packageDependencyGroups == null)
@@ -234,7 +236,9 @@ namespace NuGetGallery.TestUtils
                 iconFilename: iconFilename,
                 iconFileContents: iconFileBinaryContents,
                 readmeFilename: readmeFilename,
-                readmeFileContents: readmeFileContents);
+                readmeFileContents: readmeFileContents,
+                mcpServerMetadataFileName,
+                mcpServerMetadataFileContents);
         }
 
         private static void WriteEntry(ZipArchive archive, string entryName)

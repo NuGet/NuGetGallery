@@ -197,7 +197,7 @@ namespace NuGetGallery
 
         public bool CanDisplayMcpServerPackageTab()
         {
-            return IsMcpServerPackageType && IsMcpServerPackageDisplayEnabled && VsCodeMcpServerEntryTemplate != null;
+            return IsMcpServerPackageType && IsMcpServerPackageDisplayEnabled;
         }
 
         public bool BlockSearchEngineIndexing

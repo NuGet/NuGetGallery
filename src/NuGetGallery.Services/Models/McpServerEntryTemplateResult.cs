@@ -13,6 +13,8 @@ namespace NuGetGallery.Services.Models
     {
         Success,
         MissingMetadata,
+        MissingNugetRegistry,
         InvalidMetadata,
+        Unset,
     }
 }

@@ -9,6 +9,8 @@ using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Framework;
 using NuGetGallery.Frameworks;
+using NuGetGallery.Services.Models;
+using NuGetGallery.TestData;
 using Xunit;
 using static NuGetGallery.DisplayPackageViewModel;
 
@@ -471,6 +473,107 @@ namespace NuGetGallery.ViewModels
 
             var model = CreateDisplayPackageViewModel(package, currentUser: null, packageKeyToDeprecation: null, readmeHtml: null);
             Assert.Equal(expected, model.ShowDetailsAndLinks);
+        }
+
+        [Theory]
+        [InlineData(false, false, false)]
+        [InlineData(true, false, false)]
+        [InlineData(false, true, false)]
+        [InlineData(true, true, true)]
+        public void ItIsMcpServerPackageType(
+            bool includeMcpServer,
+            bool includeDotNetTool,
+            bool expected)
+        {
+            var packageTypes = new List<PackageType>();
+
+            if (includeMcpServer)
+            {
+                packageTypes.Add(new PackageType
+                {
+                    Name = "McpServer"
+                });
+            }
+
+            if (includeDotNetTool)
+            {
+                packageTypes.Add(new PackageType
+                {
+                    Name = "DotnetTool"
+                });
+            }
+
+            var package = new Package
+            {
+                Version = "1.0.0",
+                NormalizedVersion = "1.0.0",
+                PackageRegistration = new PackageRegistration
+                {
+                    Id = "foo",
+                    Owners = Enumerable.Empty<User>().ToList(),
+                    Packages = Enumerable.Empty<Package>().ToList()
+                },
+                PackageTypes = packageTypes
+            };
+
+            var model = CreateDisplayPackageViewModel(package, currentUser: null, packageKeyToDeprecation: null, readmeHtml: null);
+            Assert.Equal(expected, model.IsMcpServerPackageType);
+        }
+
+        [Theory]
+        [InlineData(false, false, null, McpServerEntryResultValidity.Unset, "")]
+        [InlineData(true, true, null, McpServerEntryResultValidity.MissingMetadata, "")]
+        [InlineData(true, true, "", McpServerEntryResultValidity.MissingMetadata, "")]
+        [InlineData(true, true, "{}", McpServerEntryResultValidity.InvalidMetadata, "")]
+        [InlineData(true, true, McpServerData.ServerJsonNoNugetRegistry, McpServerEntryResultValidity.MissingNugetRegistry, "")]
+        [InlineData(true, true, McpServerData.ServerJsonValid, McpServerEntryResultValidity.MissingNugetRegistry, McpServerData.McpJsonValid)]
+        public void ItHandlesMcpServerMetadata(
+            bool includeMcpServer,
+            bool includeDotNetTool,
+            string mcpServerMetadata,
+            McpServerEntryResultValidity expectedValidity,
+            string expectedTemplate)
+        {
+            var packageTypes = new List<PackageType>();
+
+            if (includeMcpServer)
+            {
+                packageTypes.Add(new PackageType
+                {
+                    Name = "McpServer",
+                    CustomData = mcpServerMetadata
+                });
+            }
+
+            if (includeDotNetTool)
+            {
+                packageTypes.Add(new PackageType
+                {
+                    Name = "DotnetTool"
+                });
+            }
+
+            var package = new Package
+            {
+                Version = "1.0.0",
+                NormalizedVersion = "1.0.0",
+                PackageRegistration = new PackageRegistration
+                {
+                    Id = "foo",
+                    Owners = Enumerable.Empty<User>().ToList(),
+                    Packages = Enumerable.Empty<Package>().ToList()
+                },
+                PackageTypes = packageTypes
+            };
+
+            McpServerEntryTemplateResult expectedResult = new McpServerEntryTemplateResult
+            {
+                Validity = expectedValidity,
+                Template = expectedTemplate,
+            };
+
+            var model = CreateDisplayPackageViewModel(package, currentUser: null, packageKeyToDeprecation: null, readmeHtml: null);
+            Assert.Equal(expectedResult, model.VsCodeMcpServerEntryTemplate);
         }
 
         [Theory]

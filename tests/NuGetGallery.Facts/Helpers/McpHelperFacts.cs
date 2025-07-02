@@ -1,0 +1,295 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading.Tasks;
+using NuGet.Packaging.Core;
+using NuGetGallery.Services.Helpers;
+using NuGetGallery.Services.Models;
+using NuGetGallery.TestData;
+using NuGetGallery.TestUtils;
+using Xunit;
+
+namespace NuGetGallery.Helpers
+{
+    public class McpHelperFacts
+    {
+        public class IsMcpServerPackageMethod
+        {
+            [Fact]
+            public void ReturnsTrue_WhenPackageIsDotnetToolAndMcpServer()
+            {
+                // Arrange
+                var packageTypes = new List<PackageType>
+                {
+                    new("DotnetTool", new Version("1.0.0")),
+                    new("McpServer", new Version("1.0.0")),
+                };
+                var packageStream = PackageServiceUtility.CreateNuGetPackageStream(packageTypes: packageTypes);
+                var package = PackageServiceUtility.CreateNuGetPackage(packageStream);
+
+                // Act
+                var isMcpServerPackage = McpHelper.IsMcpServerPackage(package.Object);
+
+                // Assert
+                Assert.True(isMcpServerPackage);
+            }
+
+            [Fact]
+            public void ReturnsFalse_WhenPackageIsNotDotnetTool()
+            {
+                // Arrange
+                var packageTypes = new List<PackageType>
+                {
+                    new("McpServer", new Version("1.0.0")),
+                };
+                var packageStream = PackageServiceUtility.CreateNuGetPackageStream(packageTypes: packageTypes);
+                var package = PackageServiceUtility.CreateNuGetPackage(packageStream);
+
+                // Act
+                var isMcpServerPackage = McpHelper.IsMcpServerPackage(package.Object);
+
+                // Assert
+                Assert.True(isMcpServerPackage);
+            }
+
+            [Fact]
+            public void ReturnsFalse_WhenPackageIsNotMcpServer()
+            {
+                // Arrange
+                var packageTypes = new List<PackageType>
+                {
+                    new("DotnetTool", new Version("1.0.0")),
+                };
+                var packageStream = PackageServiceUtility.CreateNuGetPackageStream(packageTypes: packageTypes);
+                var package = PackageServiceUtility.CreateNuGetPackage(packageStream);
+
+                // Act
+                var isMcpServerPackage = McpHelper.IsMcpServerPackage(package.Object);
+
+                // Assert
+                Assert.True(isMcpServerPackage);
+            }
+        }
+
+        public class PackageContainsMcpServerMetadataMethod
+        {
+            [Fact]
+            public void ReturnsTrue_WhenMetadataFileIsPresent()
+            {
+                // Arrange
+                var packageStream = PackageServiceUtility.CreateNuGetPackageStream(
+                    mcpServerMetadataFilename: ".mcp/server.json",
+                    mcpServerMetadataFileContents: []);
+                var package = PackageServiceUtility.CreateNuGetPackage(packageStream);
+
+                // Act
+                var containsMetadata = McpHelper.PackageContainsMcpServerMetadata(package.Object);
+
+                // Assert
+                Assert.True(containsMetadata);
+            }
+
+            [Fact]
+            public void ReturnsFalse_WhenMetadataFileIsMissing()
+            {
+                // Arrange
+                var packageStream = PackageServiceUtility.CreateNuGetPackageStream();
+                var package = PackageServiceUtility.CreateNuGetPackage(packageStream);
+
+                // Act
+                var containsMetadata = McpHelper.PackageContainsMcpServerMetadata(package.Object);
+
+                // Assert
+                Assert.False(containsMetadata);
+            }
+        }
+
+        public class ReadMcpServerMetadataMethod
+        {
+            [Fact]
+            public void ReturnsMetadataContent_WhenFileExists()
+            {
+                // Arrange
+                var expectedContent = "{\"key\":\"value\"}";
+
+                var packageStream = PackageServiceUtility.CreateNuGetPackageStream(
+                    mcpServerMetadataFilename: ".mcp/server.json",
+                    mcpServerMetadataFileContents: Encoding.UTF8.GetBytes(expectedContent));
+                var package = PackageServiceUtility.CreateNuGetPackage(packageStream);
+
+                // Act
+                var actualContent = McpHelper.ReadMcpServerMetadata(package.Object);
+
+                // Assert
+                Assert.True(actualContent == expectedContent);
+            }
+        }
+
+        public class ReadMcpServerMetadataAsyncMethod
+        {
+            [Fact]
+            public async Task ReturnsMetadataContent_WhenFileExists()
+            {
+                // Arrange
+                var expectedContent = "{\"key\":\"value\"}";
+
+                var packageStream = PackageServiceUtility.CreateNuGetPackageStream(
+                    mcpServerMetadataFilename: ".mcp/server.json",
+                    mcpServerMetadataFileContents: Encoding.UTF8.GetBytes(expectedContent));
+                var package = PackageServiceUtility.CreateNuGetPackage(packageStream);
+
+                // Act
+                var actualContent = await McpHelper.ReadMcpServerMetadataAsync(package.Object);
+
+                // Assert
+                Assert.True(actualContent == expectedContent);
+            }
+        }
+
+        public class CreateVsCodeMcpServerEntryTemplateMethod
+        {
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            public void ReturnsMissingMetadata_WhenMetadataIsNullOrWhiteSpace(string metadataJson)
+            {
+                // Arrange
+                var expectedResult = new McpServerEntryTemplateResult
+                {
+                    Validity = McpServerEntryResultValidity.MissingMetadata,
+                    Template = string.Empty,
+                };
+
+                // Act
+                var actualResult = McpHelper.CreateVsCodeMcpServerEntryTemplate(metadataJson);
+
+                // Assert
+                Assert.True(actualResult == expectedResult);
+            }
+
+            [Fact]
+            public void ReturnsMissingNugetRegistry_WhenNoNugetRegistryInMetadata()
+            {
+                // Arrange
+                var expectedResult = new McpServerEntryTemplateResult
+                {
+                    Validity = McpServerEntryResultValidity.MissingNugetRegistry,
+                    Template = string.Empty,
+                };
+
+                var metadataJson = McpServerData.ServerJsonNoNugetRegistry;
+
+                // Act
+                var actualResult = McpHelper.CreateVsCodeMcpServerEntryTemplate(metadataJson);
+
+                // Assert
+                Assert.True(actualResult == expectedResult);
+            }
+
+            [Theory]
+            [InlineData(McpServerData.ServerJsonValid, McpServerData.McpJsonValid)]
+            [InlineData(McpServerData.ServerJsonNoArgsAndEnv, McpServerData.McpJsonNoArgsAndEnv)]
+            public void ReturnsSuccess_WhenMetadataIsValid(string metadataJson, string vsCodeTemplateJson)
+            {
+                // Arrange
+                var expectedResult = new McpServerEntryTemplateResult
+                {
+                    Validity = McpServerEntryResultValidity.Success,
+                    Template = vsCodeTemplateJson,
+                };
+
+                // Act
+                var actualResult = McpHelper.CreateVsCodeMcpServerEntryTemplate(metadataJson);
+
+                // Assert
+                Assert.True(actualResult == expectedResult);
+            }
+        }
+
+        public class MapEnvVarsToEnvMethod
+        {
+            [Fact]
+            public void MapsEnvironmentVariablesToDictionary()
+            {
+                // Arrange
+                var envVars = new List<EnvironmentVariable>
+                {
+                    new() { Name = "USER", Description = "User name" },
+                    new() { Name = "TOKEN", Description = "Access token" }
+                };
+
+                // Act
+                var result = McpHelper.MapEnvVarsToEnv(envVars);
+
+                // Assert
+                Assert.Equal(2, result.Count);
+                Assert.Equal("${input:input-0}", result["USER"]);
+                Assert.Equal("${input:input-1}", result["TOKEN"]);
+            }
+        }
+
+        public class MapEnvVarsToInputsMethod
+        {
+            [Fact]
+            public void MapsEnvironmentVariablesToInputs()
+            {
+                // Arrange
+                var envVars = new List<EnvironmentVariable>
+                {
+                    new() { Name = "USER", Description = "User name" },
+                    new() { Name = "TOKEN", Description = "Access token" }
+                };
+
+                // Act
+                var result = McpHelper.MapEnvVarsToInputs(envVars);
+
+                // Assert
+                Assert.Equal(2, result.Count);
+
+                Assert.Equal("promptString", result[0].Type);
+                Assert.Equal("input-0", result[0].Id);
+                Assert.Equal("User name", result[0].Description);
+                Assert.True(result[0].Password);
+
+                Assert.Equal("promptString", result[1].Type);
+                Assert.Equal("input-1", result[1].Id);
+                Assert.Equal("Access token", result[1].Description);
+                Assert.True(result[1].Password);
+            }
+        }
+
+        public class MapArgumentsToInputsMethod
+        {
+            [Fact]
+            public void MapsArgumentsToInputsWithCorrectStartId()
+            {
+                // Arrange
+                var args = new List<PackageArgument>
+                {
+                    new() { Description = "First arg" },
+                    new() { Description = "Second arg" }
+                };
+                int startId = 2;
+
+                // Act
+                var result = McpHelper.MapArgumentsToInputs(args, startId);
+
+                // Assert
+                Assert.Equal(2, result.Count);
+
+                Assert.Equal("promptString", result[0].Type);
+                Assert.Equal("input-2", result[0].Id);
+                Assert.Equal("First arg", result[0].Description);
+                Assert.False(result[0].Password);
+
+                Assert.Equal("promptString", result[1].Type);
+                Assert.Equal("input-3", result[1].Id);
+                Assert.Equal("Second arg", result[1].Description);
+                Assert.False(result[1].Password);
+            }
+        }
+    }
+}
