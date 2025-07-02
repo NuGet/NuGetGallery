@@ -30,9 +30,23 @@
                     aria-label="shows and hides TFM filters for @(frameworkDisplayName)" aria-expanded="false" aria-controls="@(frameworkShortName)tab">
                 <i class="ms-Icon ms-Icon--ChevronRight" id="@(frameworkShortName)button"></i>
             </button>
-            <label class="brand-checkbox">
+            <label class="brand-checkbox" style="display: flex; align-items: baseline;">
                 <input type="checkbox" id="@(frameworkShortName)" class="framework">
                 <span>@(frameworkDisplayName)</span>
+                @if (frameworkDisplayName == ".NET")
+                {
+                    <a class="tooltip-target" href="javascript:void(0)" role="button" aria-labelledby="dotnetframework-tooltip">
+                        <i class="ms-Icon ms-Icon--Info" style="margin-left: 4px;"></i>
+                        <span class="tooltip-block" role="tooltip" id="dotnetframework-tooltip">
+                            <span class="tooltip-wrapper tooltip-with-icon popover right">
+                                <span class="arrow"></span>
+                                <span class="popover-content">
+                                    Selecting .NET will show you packages compatible with any of the individual frameworks within the .NET generation.
+                                </span>
+                            </span>
+                        </span>
+                    </a>
+                }
             </label>
         </div>
         <div class="tfmTab" id="@(frameworkShortName)tab">
