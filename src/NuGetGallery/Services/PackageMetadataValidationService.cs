@@ -180,6 +180,13 @@ namespace NuGetGallery
                     return result;
                 }
             }
+            else
+            {
+                if (nuGetPackage.GetPackageTypes().Any(type => string.Equals(type.Name, McpHelper.McpServerPackageTypeName, StringComparison.OrdinalIgnoreCase)))
+                {
+                    return PackageValidationResult.Invalid(Strings.McpServerWithoutDotnetTool);
+                }
+            }
 
             return PackageValidationResult.AcceptedWithWarnings(warnings);
         }
@@ -556,11 +563,7 @@ namespace NuGetGallery
 
             if (!McpHelper.PackageContainsMcpServerMetadata(nuGetPackage))
             {
-                if (_featureFlagService.IsDisplayUploadWarningV2Enabled(user))
-                {
-                    warnings.Add(new MissingMcpServerMetadataMessage());
-                }
-
+                warnings.Add(new MissingMcpServerMetadataMessage());
                 return null;
             }
 

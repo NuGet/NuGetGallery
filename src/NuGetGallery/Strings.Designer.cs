@@ -1265,6 +1265,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A package cannot contain the &apos;McpServer&apos; package type without the &apos;DotnetTool&apos; package type..
+        /// </summary>
+        public static string McpServerWithoutDotnetTool {
+            get {
+                return ResourceManager.GetString("McpServerWithoutDotnetTool", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Your organization must be confirmed before you can change its membership..
         /// </summary>
         public static string Member_OrganizationUnconfirmed {

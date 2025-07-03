@@ -52,7 +52,7 @@ namespace NuGetGallery.Helpers
                 var isMcpServerPackage = McpHelper.IsMcpServerPackage(package.Object);
 
                 // Assert
-                Assert.True(isMcpServerPackage);
+                Assert.False(isMcpServerPackage);
             }
 
             [Fact]
@@ -70,7 +70,7 @@ namespace NuGetGallery.Helpers
                 var isMcpServerPackage = McpHelper.IsMcpServerPackage(package.Object);
 
                 // Assert
-                Assert.True(isMcpServerPackage);
+                Assert.False(isMcpServerPackage);
             }
         }
 
@@ -226,8 +226,8 @@ namespace NuGetGallery.Helpers
 
                 // Assert
                 Assert.Equal(2, result.Count);
-                Assert.Equal("${input:input-0}", result["USER"]);
-                Assert.Equal("${input:input-1}", result["TOKEN"]);
+                Assert.Equal("${input:input-1}", result["USER"]);
+                Assert.Equal("${input:input-2}", result["TOKEN"]);
             }
         }
 
@@ -240,24 +240,38 @@ namespace NuGetGallery.Helpers
                 var envVars = new List<EnvironmentVariable>
                 {
                     new() { Name = "USER", Description = "User name" },
-                    new() { Name = "TOKEN", Description = "Access token" }
+                    new() { Name = "TOKEN", Description = "Access token", IsSecret = true },
+                    new() { Name = "HOST", Description = "Database host", Default = "localhost" },
+                    new() { Name = "PORT", Description = "Database port", Choices = ["1", "2", "3"] }
                 };
 
                 // Act
                 var result = McpHelper.MapEnvVarsToInputs(envVars);
 
                 // Assert
-                Assert.Equal(2, result.Count);
+                Assert.Equal(4, result.Count);
 
                 Assert.Equal("promptString", result[0].Type);
-                Assert.Equal("input-0", result[0].Id);
+                Assert.Equal("input-1", result[0].Id);
                 Assert.Equal("User name", result[0].Description);
-                Assert.True(result[0].Password);
+                Assert.False(result[0].Password);
 
                 Assert.Equal("promptString", result[1].Type);
-                Assert.Equal("input-1", result[1].Id);
+                Assert.Equal("input-2", result[1].Id);
                 Assert.Equal("Access token", result[1].Description);
                 Assert.True(result[1].Password);
+
+                Assert.Equal("promptString", result[2].Type);
+                Assert.Equal("input-3", result[2].Id);
+                Assert.Equal("Database host", result[2].Description);
+                Assert.False(result[2].Password);
+                Assert.Equal("localhost", result[2].Default);
+
+                Assert.Equal("pickString", result[3].Type);
+                Assert.Equal("input-4", result[3].Id);
+                Assert.Equal("Database port", result[3].Description);
+                Assert.False(result[3].Password);
+                Assert.Equal(["1", "2", "3"], result[3].Choices);
             }
         }
 
@@ -267,10 +281,25 @@ namespace NuGetGallery.Helpers
             public void MapsArgumentsToInputsWithCorrectStartId()
             {
                 // Arrange
-                var args = new List<PackageArgument>
+                var args = new List<Argument>
                 {
-                    new() { Description = "First arg" },
-                    new() { Description = "Second arg" }
+                    new PositionalArgument()
+                    {
+                        Type = "positional",
+                        Description = "First arg",
+                        Value = "arg1",
+                        IsRequired = true,
+                        IsRepeated = false,
+                        Format = "string",
+                        Choices = ["1", "2", "3"],
+                        ValueHint = "Enter first arg",
+                        Default = "default1"
+                    },
+                    new NamedArgument()
+                    {
+                        Type = "named",
+                        Name = "secondArg",
+                    }
                 };
                 int startId = 2;
 
@@ -280,15 +309,15 @@ namespace NuGetGallery.Helpers
                 // Assert
                 Assert.Equal(2, result.Count);
 
-                Assert.Equal("promptString", result[0].Type);
+                Assert.Equal("pickString", result[0].Type);
                 Assert.Equal("input-2", result[0].Id);
                 Assert.Equal("First arg", result[0].Description);
                 Assert.False(result[0].Password);
+                Assert.Equal("default1", result[0].Default);
+                Assert.Equal(["1", "2", "3"], result[0].Choices);
 
                 Assert.Equal("promptString", result[1].Type);
                 Assert.Equal("input-3", result[1].Id);
-                Assert.Equal("Second arg", result[1].Description);
-                Assert.False(result[1].Password);
             }
         }
     }

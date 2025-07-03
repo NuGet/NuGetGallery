@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -26,8 +27,8 @@ namespace NuGetGallery.Services.Helpers
 
             // The package must be of type McpServer and DotnetTool
             return
-                packageTypes.Contains(NuGet.Packaging.Core.PackageType.DotnetTool) &&
-                packageTypes.Any(t => t.Name == McpServerPackageTypeName);
+                packageTypes.Any(t => string.Equals(t.Name, NuGet.Packaging.Core.PackageType.DotnetTool.Name, StringComparison.OrdinalIgnoreCase)) &&
+                packageTypes.Any(t => string.Equals(t.Name,McpServerPackageTypeName, StringComparison.OrdinalIgnoreCase));
         }
 
         public static bool PackageContainsMcpServerMetadata(PackageArchiveReader packageArchive)
@@ -64,13 +65,25 @@ namespace NuGetGallery.Services.Helpers
             McpServerMetadata mcpServerMetadata;
             try
             {
-                mcpServerMetadata = JsonConvert.DeserializeObject<McpServerMetadata>(metadataJson);
+                mcpServerMetadata = JsonConvert.DeserializeObject<McpServerMetadata>(
+                    metadataJson,
+                    new ArgumentConverter(),
+                    new RuntimeArgumentConverter());
             }
             catch(JsonException)
             {
                 return new McpServerEntryTemplateResult
                 {
                     Validity = McpServerEntryResultValidity.InvalidMetadata,
+                    Template = string.Empty,
+                };
+            }
+
+            if (mcpServerMetadata.Packages == null)
+            {
+                return new McpServerEntryTemplateResult
+                {
+                    Validity = McpServerEntryResultValidity.MissingNugetRegistry,
                     Template = string.Empty,
                 };
             }
@@ -87,7 +100,7 @@ namespace NuGetGallery.Services.Helpers
 
             var env = MapEnvVarsToEnv(nugetPackage.EnvironmentVariables);
             var envInputs = MapEnvVarsToInputs(nugetPackage.EnvironmentVariables);
-            var argInputs = MapArgumentsToInputs(nugetPackage.PackageArguments, envInputs.Count);
+            var argInputs = MapArgumentsToInputs(nugetPackage.PackageArguments, envInputs.Count + 1);
             var inputs = envInputs.Concat(argInputs).ToList();
 
             var server = new VsCodeServer
@@ -109,7 +122,13 @@ namespace NuGetGallery.Services.Helpers
 
             try
             {
-                var templateJson = JsonConvert.SerializeObject(entry, Formatting.Indented);
+                var jsonSerializerSettings = new JsonSerializerSettings
+                {
+                    NullValueHandling = NullValueHandling.Ignore,
+                    Formatting = Formatting.Indented
+                };
+                var templateJson = JsonConvert.SerializeObject(entry, jsonSerializerSettings);
+
                 return new McpServerEntryTemplateResult
                 {
                     Validity = McpServerEntryResultValidity.Success,
@@ -130,7 +149,7 @@ namespace NuGetGallery.Services.Helpers
         {
             var env = new Dictionary<string, string>();
 
-            var inputId = 0;
+            var inputId = 1;
             foreach (var envVar in envVars)
             {
                 env[envVar.Name] = $"${{input:input-{inputId++}}}";
@@ -143,35 +162,73 @@ namespace NuGetGallery.Services.Helpers
         {
             var result = new List<VsCodeInput>();
 
-            int inputId = 0;
+            int inputId = 1;
             foreach (var envVar in envVars)
             {
+                var type = "promptString";
+                if (envVar.Choices != null && envVar.Choices.Count > 0)
+                {
+                    type = "pickString";
+                }
+
+                var isPassword = false;
+                if (envVar.IsSecret.HasValue)
+                {
+                    isPassword = envVar.IsSecret.Value;
+                }
+
                 result.Add(new VsCodeInput
                 {
-                    Type = "promptString",
+                    Type = type,
                     Id = $"input-{inputId++}",
                     Description = envVar.Description,
-                    Password = true,
+                    Password = isPassword,
+                    Default = envVar.Default,
+                    Choices = envVar.Choices,
                 });
             }
 
             return result;
         }
 
-        public static List<VsCodeInput> MapArgumentsToInputs(List<PackageArgument> arguments, int startId)
+        public static List<VsCodeInput> MapArgumentsToInputs(List<Argument> arguments, int startId)
         {
             var result = new List<VsCodeInput>();
 
             int inputId = startId;
             foreach (var arg in arguments)
             {
-                result.Add(new VsCodeInput
+                var type = "promptString";
+                if (arg.Choices != null && arg.Choices.Count > 0)
                 {
-                    Type = "promptString",
-                    Id = $"input-{inputId++}",
-                    Description = arg.Description,
-                    Password = true,
-                });
+                    type = "pickString";
+                }
+
+                if (arg.Type == "positional")
+                {
+                    var positionalArg = arg as PositionalArgument;
+                    result.Add(new VsCodeInput
+                    {
+                        Type = type,
+                        Id = $"input-{inputId++}",
+                        Description = positionalArg.Description,
+                        Password = false,
+                        Default = positionalArg.Default,
+                        Choices = positionalArg.Choices,
+                    });
+                }
+                else if (arg.Type == "named")
+                {
+                    var namedArg = arg as NamedArgument;
+                    result.Add(new VsCodeInput
+                    {
+                        Type = type,
+                        Id = $"input-{inputId++}",
+                        Description = namedArg.Description,
+                        Password = false,
+                        Choices = namedArg.Choices,
+                    });
+                }
             }
 
             return result;

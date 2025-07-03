@@ -1284,4 +1284,7 @@ The {1} Team</value>
   <data name="UploadPackage_MissingMcpServerMetadataHtml" xml:space="preserve">
     <value>&lt;strong&gt;Server.json&lt;/strong&gt; missing.&lt;a href="https://aka.ms/nuget-include-mcp"&gt; See how to include a server.json file within the package.</value>
   </data>
+  <data name="McpServerWithoutDotnetTool" xml:space="preserve">
+    <value>A package cannot contain the 'McpServer' package type without the 'DotnetTool' package type.</value>
+  </data>
 </root>

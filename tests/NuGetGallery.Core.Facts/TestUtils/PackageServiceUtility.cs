@@ -237,8 +237,8 @@ namespace NuGetGallery.TestUtils
                 iconFileContents: iconFileBinaryContents,
                 readmeFilename: readmeFilename,
                 readmeFileContents: readmeFileContents,
-                mcpServerMetadataFileName,
-                mcpServerMetadataFileContents);
+                mcpServerMetadataFileName: mcpServerMetadataFilename,
+                mcpServerMetadataFileContents: mcpServerMetadataFileContents);
         }
 
         private static void WriteEntry(ZipArchive archive, string entryName)

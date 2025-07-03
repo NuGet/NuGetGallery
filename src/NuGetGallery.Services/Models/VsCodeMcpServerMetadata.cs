@@ -30,6 +30,13 @@ namespace NuGetGallery.Services.Models
 
         [JsonProperty("password")]
         public bool Password { get; set; }
+
+        [JsonProperty("default")]
+        public string Default { get; set; }
+
+        [JsonProperty("choices")]
+        [JsonConverter(typeof(InlineStringListConverter))]
+        public List<string> Choices { get; set; }
     }
 
     public class VsCodeServer

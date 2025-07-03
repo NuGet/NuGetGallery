@@ -43,6 +43,8 @@ using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using NuGetGallery.Services;
 using NuGetGallery.Services.Helpers;
+using NuGetGallery.Services.Models;
+using NuGetGallery.TestData;
 using NuGetGallery.TestUtils;
 using Xunit;
 
@@ -1138,6 +1140,90 @@ namespace NuGetGallery
                 }
 
                 return await controller.DisplayPackage(id, /*version*/null);
+            }
+
+            [Theory]
+            [InlineData(false, false, null, McpServerEntryResultValidity.Unset, "")]
+            [InlineData(true, true, null, McpServerEntryResultValidity.MissingMetadata, "")]
+            [InlineData(true, true, "", McpServerEntryResultValidity.MissingMetadata, "")]
+            [InlineData(true, true, "{}", McpServerEntryResultValidity.MissingNugetRegistry, "")]
+            [InlineData(true, true, McpServerData.ServerJsonNoPackages, McpServerEntryResultValidity.MissingNugetRegistry, "")]
+            [InlineData(true, true, McpServerData.ServerJsonNoNugetRegistry, McpServerEntryResultValidity.MissingNugetRegistry, "")]
+            [InlineData(true, true, McpServerData.ServerJsonValid, McpServerEntryResultValidity.Success, McpServerData.McpJsonValid)]
+            public async Task HandlesMcpServerMetadata(
+                bool includeMcpServer,
+                bool includeDotNetTool,
+                string mcpServerMetadata,
+                McpServerEntryResultValidity expectedValidity,
+                string expectedTemplate)
+            {
+                var packageService = new Mock<IPackageService>();
+                var indexingService = new Mock<IIndexingService>();
+                var fileService = new Mock<IPackageFileService>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    indexingService: indexingService,
+                    packageFileService: fileService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var packageTypes = new List<PackageType>();
+
+                if (includeMcpServer)
+                {
+                    packageTypes.Add(new PackageType
+                    {
+                        Name = "McpServer",
+                        CustomData = mcpServerMetadata
+                    });
+                }
+
+                if (includeDotNetTool)
+                {
+                    packageTypes.Add(new PackageType
+                    {
+                        Name = "DotnetTool"
+                    });
+                }
+
+                var id = "Foo";
+                var package = new Package
+                {
+                    Version = "1.0.0",
+                    NormalizedVersion = "1.0.0",
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = id,
+                        Owners = Enumerable.Empty<User>().ToList(),
+                        Packages = Enumerable.Empty<Package>().ToList()
+                    },
+                    PackageTypes = packageTypes
+                };
+
+                var packages = new[] { package };
+                packageService
+                    .Setup(p => p.FindPackagesById(id,
+                    /*includePackageRegistration:*/ true,
+                    /*includeDeprecations:*/ true,
+                    /*includeSupportedFrameworks:*/ true))
+                    .Returns(packages);
+
+                packageService
+                    .Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
+                    .Returns(package);
+
+                indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
+
+                var result = await controller.DisplayPackage(id, /*version*/null);
+
+                McpServerEntryTemplateResult expectedResult = new McpServerEntryTemplateResult
+                {
+                    Validity = expectedValidity,
+                    Template = expectedTemplate,
+                };
+
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                Assert.Equal(model.VsCodeMcpServerEntryTemplate, expectedResult);
             }
 
             [Fact]

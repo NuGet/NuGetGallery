@@ -3681,18 +3681,18 @@ namespace NuGetGallery
                     PackageTypes = [],
                 };
 
-                var packageStream = PackageServiceUtility.CreateNuGetPackageStream(package.Id);
+                var packageTypes = new List<NuGet.Packaging.Core.PackageType>
+                {
+                    new("DotnetTool", new Version("1.0.0")),
+                    new("McpServer", new Version("1.0.0")),
+                };
+
+                var packageStream = PackageServiceUtility.CreateNuGetPackageStream(package.Id, packageTypes: packageTypes);
                 var packageArchiveReader = new PackageArchiveReader(packageStream);
 
                 var metadataDictionary = new Dictionary<string, string>
                 {
                     { "version", "1.2.3" },
-                };
-
-                var packageTypes = new List<NuGet.Packaging.Core.PackageType>
-                {
-                    new("DotnetTool", new Version("1.0.0")),
-                    new("McpServer", new Version("1.0.0")),
                 };
 
                 var packageMetadata = new PackageMetadata(
@@ -3708,7 +3708,7 @@ namespace NuGetGallery
 
                 Assert.Equal(2, package.PackageTypes.Count);
                 Assert.Equal("DotnetTool", package.PackageTypes.First().Name);
-                Assert.Equal("McpServer", package.PackageTypes.First().Name);
+                Assert.Equal("McpServer", package.PackageTypes.Last().Name);
                 Assert.Null(package.PackageTypes.Last().CustomData);
             }
 
@@ -3725,8 +3725,15 @@ namespace NuGetGallery
                     PackageTypes = [],
                 };
 
+                var packageTypes = new List<NuGet.Packaging.Core.PackageType>
+                {
+                    new("DotnetTool", new Version("1.0.0")),
+                    new("McpServer", new Version("1.0.0")),
+                };
+
                 var packageStream = PackageServiceUtility.CreateNuGetPackageStream(
                     id: package.Id,
+                    packageTypes: packageTypes,
                     mcpServerMetadataFilename: ".mcp/server.json",
                     mcpServerMetadataFileContents: Encoding.UTF8.GetBytes(McpServerData.ServerJsonValid));
                 var packageArchiveReader = new PackageArchiveReader(packageStream);
@@ -3734,12 +3741,6 @@ namespace NuGetGallery
                 var metadataDictionary = new Dictionary<string, string>
                 {
                     { "version", "1.2.3" },
-                };
-
-                var packageTypes = new List<NuGet.Packaging.Core.PackageType>
-                {
-                    new("DotnetTool", new Version("1.0.0")),
-                    new("McpServer", new Version("1.0.0")),
                 };
 
                 var packageMetadata = new PackageMetadata(
@@ -3755,8 +3756,8 @@ namespace NuGetGallery
 
                 Assert.Equal(2, package.PackageTypes.Count);
                 Assert.Equal("DotnetTool", package.PackageTypes.First().Name);
-                Assert.Equal("McpServer", package.PackageTypes.First().Name);
-                Assert.Equal(McpServerData.ServerJsonMinified, package.PackageTypes.Last().CustomData);
+                Assert.Equal("McpServer", package.PackageTypes.Last().Name);
+                Assert.Equal(McpServerData.ServerJsonValidMinified, package.PackageTypes.Last().CustomData);
             }
         }
     }

@@ -1763,12 +1763,33 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WarnsAboutMissingMcpServerMetadata()
+            public async Task RejectsMcpServerWithMissingDotnetToolPackageType()
             {
                 _nuGetPackage = GeneratePackageWithUserContent(
                     packageTypes:
                     [
-                        new NuGet.Packaging.Core.PackageType("DotNetTool", new Version("1.0.0")),
+                        new NuGet.Packaging.Core.PackageType("McpServer", new Version("1.0.0"))
+                    ]);
+
+                var result = await _target.ValidateMetadataBeforeUploadAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage),
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Contains("'McpServer' package type without the 'DotnetTool'", result.Message.PlainTextMessage);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Fact]
+            public async Task WarnsAboutMissingMcpServerMetadata()
+            {
+                _nuGetPackage = GeneratePackageWithUserContent(
+                    licenseExpression: "MIT",
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"),
+                    packageTypes:
+                    [
+                        new NuGet.Packaging.Core.PackageType("DotnetTool", new Version("1.0.0")),
                         new NuGet.Packaging.Core.PackageType("McpServer", new Version("1.0.0"))
                     ]);
 
@@ -1789,9 +1810,11 @@ namespace NuGetGallery
             public async Task RejectsEmptyMcpServerMetadata()
             {
                 _nuGetPackage = GeneratePackageWithUserContent(
+                    licenseExpression: "MIT",
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"),
                     packageTypes:
                     [
-                        new NuGet.Packaging.Core.PackageType("DotNetTool", new Version("1.0.0")),
+                        new NuGet.Packaging.Core.PackageType("DotnetTool", new Version("1.0.0")),
                         new NuGet.Packaging.Core.PackageType("McpServer", new Version("1.0.0"))
                     ],
                     mcpServerMetadataFilename: ".mcp/server.json",
@@ -1817,9 +1840,11 @@ namespace NuGetGallery
                 }
 
                 _nuGetPackage = GeneratePackageWithUserContent(
+                    licenseExpression: "MIT",
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"),
                     packageTypes:
                     [
-                        new NuGet.Packaging.Core.PackageType("DotNetTool", new Version("1.0.0")),
+                        new NuGet.Packaging.Core.PackageType("DotnetTool", new Version("1.0.0")),
                         new NuGet.Packaging.Core.PackageType("McpServer", new Version("1.0.0"))
                     ],
                     mcpServerMetadataFilename: ".mcp/server.json",
@@ -1839,9 +1864,11 @@ namespace NuGetGallery
             public async Task RejectsInvalidMcpServerMetadataJson()
             {
                 _nuGetPackage = GeneratePackageWithUserContent(
+                    licenseExpression: "MIT",
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"),
                     packageTypes:
                     [
-                        new NuGet.Packaging.Core.PackageType("DotNetTool", new Version("1.0.0")),
+                        new NuGet.Packaging.Core.PackageType("DotnetTool", new Version("1.0.0")),
                         new NuGet.Packaging.Core.PackageType("McpServer", new Version("1.0.0"))
                     ],
                     mcpServerMetadataFilename: ".mcp/server.json",
@@ -1861,9 +1888,11 @@ namespace NuGetGallery
             public async Task AcceptsValidMcpServerMetadata()
             {
                 _nuGetPackage = GeneratePackageWithUserContent(
+                    licenseExpression: "MIT",
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"),
                     packageTypes:
                     [
-                        new NuGet.Packaging.Core.PackageType("DotNetTool", new Version("1.0.0")),
+                        new NuGet.Packaging.Core.PackageType("DotnetTool", new Version("1.0.0")),
                         new NuGet.Packaging.Core.PackageType("McpServer", new Version("1.0.0"))
                     ],
                     mcpServerMetadataFilename: ".mcp/server.json",

@@ -1010,6 +1010,13 @@ namespace NuGetGallery
                 model.GitHubDependenciesInformation = new GitHubUsageViewModel(model.ComparableGitHubRepository, gitHubUsage);
             }
 
+            model.IsMcpServerPackageType = false;
+            model.VsCodeMcpServerEntryTemplate = new McpServerEntryTemplateResult()
+            {
+                Validity = McpServerEntryResultValidity.Unset,
+                Template = string.Empty,
+            };
+
             if (model.IsMcpServerPackageDisplayEnabled)
             {
                 var mcpServerPackageType = package.PackageTypes.FirstOrDefault(e => e.Name.Equals(McpHelper.McpServerPackageTypeName, StringComparison.OrdinalIgnoreCase));
@@ -1018,15 +1025,6 @@ namespace NuGetGallery
                     model.IsMcpServerPackageType = true;
                     model.VsCodeMcpServerEntryTemplate = McpHelper.CreateVsCodeMcpServerEntryTemplate(mcpServerPackageType.CustomData);
                 }
-            }
-            else
-            {
-                model.IsMcpServerPackageType = false;
-                model.VsCodeMcpServerEntryTemplate = new McpServerEntryTemplateResult()
-                {
-                    Validity = McpServerEntryResultValidity.Unset,
-                    Template = string.Empty,
-                };
             }
 
             // If the normalized version is actually a SemVer but does not match the resolved package version, show a
