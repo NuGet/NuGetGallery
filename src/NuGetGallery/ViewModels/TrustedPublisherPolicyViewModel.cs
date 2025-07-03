@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 namespace NuGetGallery
 {
     [DebuggerDisplay("{PublisherName,nq}: {PolicyName,nq}")]
-    public sealed class TrustedPublisherViewModel
+    public sealed class TrustedPublisherPolicyViewModel
     {
         public int Key { get; set; }
 
@@ -23,8 +23,8 @@ namespace NuGetGallery
         /// </summary>
         public string Owner { get; set; }
 
-        public PublisherDetailsViewModel PublisherDetails { get; set; }
+        public TrustedPublisherPolicyDetailsViewModel PolicyDetails { get; set; }
 
-        public string PublisherName => PublisherDetails?.Name ?? string.Empty;
+        public string PublisherName => PolicyDetails?.Name ?? string.Empty;
     }
 }

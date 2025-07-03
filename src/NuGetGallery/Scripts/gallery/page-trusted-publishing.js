@@ -1,11 +1,11 @@
 (function () {
     'use strict';
 
-    var ConfirmDeleteMessage = "Are you sure you want to remove the Trusted Publisher  Policy?";
-    var DeleteErrorMessage = "An error occurred while deleting the Trusted Publisher Policy. Please try again.";
-    var ResetErrorMessage = "An error occurred while enabling the Trusted Publisher Policy. Please try again.";
     var CreateErrorMessage = "An error occurred while creating a new Trusted Publisher Policy. Please try again.";
     var EditErrorMessage = "An error occurred while editing a Trusted Publisher Policy. Please try again.";
+    var EnableErrorMessage = "An error occurred while enabling the Trusted Publisher Policy. Please try again.";
+    var ConfirmDeleteMessage = "Are you sure you want to remove the Trusted Publisher  Policy?";
+    var DeleteErrorMessage = "An error occurred while deleting the Trusted Publisher Policy. Please try again.";
 
     ko.bindingHandlers.trimmedValue = {
         init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
@@ -93,7 +93,7 @@
         }
 
         _gitHubDetails.Update = function (self, data) {
-            const details = data.PublisherName !== "GitHub" ? {} : data.PublisherDetails || {};
+            const details = data.PublisherName !== "GitHub" ? {} : data.PolicyDetails || {};
             const gitHub = self.gitHub;
             if (data.Key) {
                 gitHub.IsPermamentlyEnabled(details.IsPermanentlyEnabled || false);
@@ -146,7 +146,7 @@
             return owner && repository && workflowFile;
         }
 
-        _gitHubDetails.LookupGitHubIdentifiers = function (self, existingTrustedPublishers, callback) {
+        _gitHubDetails.LookupGitHubIdentifiers = function (self, existingPolicies, callback) {
             const gitHub = self.gitHub;
             const owner = gitHub.PendingRepositoryOwner().toLowerCase();
             const repository = gitHub.PendingRepository().toLowerCase();
@@ -164,9 +164,9 @@
             }
 
             // First, check if we can find the repository IDs from existing policies
-            if (existingTrustedPublishers && existingTrustedPublishers.length > 0) {
-                for (var i = 0; i < existingTrustedPublishers.length; i++) {
-                    var existing = existingTrustedPublishers[i].gitHub;
+            if (existingPolicies && existingPolicies.length > 0) {
+                for (var i = 0; i < existingPolicies.length; i++) {
+                    var existing = existingPolicies[i].gitHub;
                     if (existing && existing !== gitHub &&
                         existing.RepositoryOwner().toLowerCase() === owner &&
                         existing.Repository().toLowerCase() === repository &&
@@ -205,7 +205,7 @@
         };
 
         _gitHubDetails.CreatePendingCriteria = function (self) {
-            // MUST MATCH GitHub details deserialization in GitHubPublisherDetailsViewModel.cs.
+            // MUST MATCH GitHub details deserialization in GitHubPolicyDetailsViewModel.cs.
             const gitHub = self.gitHub;
             var githubData = {
                 Name: 'GitHub',
@@ -230,7 +230,7 @@
             return JSON.stringify(githubData);
         }
 
-        function TrustedPublisherViewModel(parent, packageOwners, data) {
+        function PolicyViewModel(parent, packageOwners, data) {
             var self = this;
             data = data || {};
 
@@ -286,10 +286,10 @@
             this.PolicyNameUid = computedUid(self, "policy-name");
             this.PackageOwnerUid = computedUid(self, "package-owner");
             this.IconUrl = ko.pureComputed(function () {
-                return initialData.ImageUrls.TrustedPublisher;
+                return initialData.ImageUrls.TrustedPolicy;
             }, this);
             this.IconUrlFallback = ko.pureComputed(function () {
-                const url =  initialData.ImageUrls.TrustedPublisherFallback;
+                const url =  initialData.ImageUrls.TrustedPolicyFallback;
                 return "this.src='" + url + "'; this.onerror = null;";
             }, this);
 
@@ -375,7 +375,7 @@
                     data: data,
                     success: function () {
                         parent.Error(null);
-                        parent.TrustedPublishers.remove(self);
+                        parent.Policies.remove(self);
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
                         parent.Error(DeleteErrorMessage);
@@ -383,7 +383,7 @@
                 });
             };
 
-            this.ResetValidateBy = function () {
+            this.Enable = function () {
                 // Build the request.
                 var data = {
                     federatedCredentialKey: this.Key()
@@ -392,7 +392,7 @@
 
                 // Send the request.
                 $.ajax({
-                    url: initialData.ResetValidateByUrl,
+                    url: initialData.EnableUrl,
                     type: 'POST',
                     dataType: 'json',
                     data: data,
@@ -401,7 +401,7 @@
                         self._UpdateData(newData);
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
-                        parent.Error(ResetErrorMessage);
+                        parent.Error(EnableErrorMessage);
                     }
                 });
             };
@@ -423,7 +423,7 @@
                 this.PendingCreateOrEdit(true);
 
                 // Get owner and repo IDs first
-                _gitHubDetails.LookupGitHubIdentifiers(self, parent.TrustedPublishers(),
+                _gitHubDetails.LookupGitHubIdentifiers(self, parent.Policies(),
                     function () {
                         self.CreateAfterLookup();
                     }
@@ -449,11 +449,11 @@
                         parent.Error(null);
                         self._UpdateData(data);
                         self.JustCreated(true);
-                        parent.TrustedPublishers.unshift(self);
+                        parent.Policies.unshift(self);
 
-                        var newTrustedPublisher = new TrustedPublisherViewModel(parent, packageOwners);
-                        parent.NewTrustedPublisher(newTrustedPublisher);
-                        newTrustedPublisher.CancelEdit();
+                        var newPolicy = new PolicyViewModel(parent, packageOwners);
+                        parent.NewPolicy(newPolicy);
+                        newPolicy.CancelEdit();
 
                         $("#manage-container").collapse("show");
                     },
@@ -502,22 +502,22 @@
             };
         }
 
-        function TrustedPublisherListViewModel(initialData) {
+        function PolicyListViewModel(initialData) {
             var self = this;
 
-            var trustedPublishers = $.map(initialData.TrustedPublishers, function (data) {
-                return new TrustedPublisherViewModel(self, initialData.PackageOwners, data);
+            var policies = $.map(initialData.Policies, function (data) {
+                return new PolicyViewModel(self, initialData.PackageOwners, data);
             });
-            var newTrustedPublisher = new TrustedPublisherViewModel(self, initialData.PackageOwners, {PublisherName: 'GitHub'});
+            var newPolicy = new PolicyViewModel(self, initialData.PackageOwners, {PublisherName: 'GitHub'});
 
-            this.TrustedPublishers = ko.observableArray(trustedPublishers);
-            this.NewTrustedPublisher = ko.observable(newTrustedPublisher);
+            this.Policies = ko.observableArray(policies);
+            this.NewPolicy = ko.observable(newPolicy);
             this.Error = ko.observable();
 
             this.AnyJustCreated = ko.pureComputed(function () {
-                var trustedPublishers = this.TrustedPublishers();
-                for (var i in trustedPublishers) {
-                    if (trustedPublishers[i].JustCreated()) {
+                var policies = this.Policies();
+                for (var i in policies) {
+                    if (policies[i].JustCreated()) {
                         return true;
                     }
                 }
@@ -525,16 +525,16 @@
             }, this);
 
             this.Idle = function () {
-                var trustedPublishers = self.TrustedPublishers();
-                for (var i in trustedPublishers) {
-                    trustedPublishers[i].Idle();
+                var policies = self.Policies();
+                for (var i in policies) {
+                    policies[i].Idle();
                 }
             };
         }
 
         // Set up the data binding.
-        var trustedPublisherListViewModel = new TrustedPublisherListViewModel(initialData);
-        ko.applyBindings(trustedPublisherListViewModel, document.body);
+        var policyListViewModel = new PolicyListViewModel(initialData);
+        ko.applyBindings(policyListViewModel, document.body);
 
         // Configure the expander headings.
         window.nuget.configureExpander(
@@ -546,6 +546,6 @@
         window.nuget.configureExpanderHeading("manage-container");
 
         // Start the idle timer for 15 minutes.
-        executeOnInactive(trustedPublisherListViewModel.Idle, 15 * 60 * 1000);
+        executeOnInactive(policyListViewModel.Idle, 15 * 60 * 1000);
     });
 })();

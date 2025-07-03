@@ -8,15 +8,15 @@ using Polly;
 
 namespace NuGetGallery
 {
-    public static class PublisherDetailsViewModelFactory
+    public static class TrustedPublisherPolicyDetailsViewModelFactory
     {
         /// <summary>
-        /// Creates a <see cref="PublisherDetailsViewModel"/> instance from a JSON string from database.
+        /// Creates a <see cref="TrustedPublisherPolicyDetailsViewModel"/> instance from a JSON string from database.
         /// </summary>
         /// <remarks>
         /// Same model can be serialized to JSON differently when passing data to JavaScript versus when storing it in SQL database.
         /// </remarks>
-        public static PublisherDetailsViewModel FromDatabaseJson(string json)
+        public static TrustedPublisherPolicyDetailsViewModel FromDatabaseJson(string json)
         {
             try
             {
@@ -27,7 +27,7 @@ namespace NuGetGallery
                     return null;
                 }
 
-                return GitHubPublisherDetailsViewModel.FromDatabaseJson(json);
+                return GitHubPolicyDetailsViewModel.FromDatabaseJson(json);
             }
             catch (JsonException)
             {
@@ -36,12 +36,12 @@ namespace NuGetGallery
         }
 
         /// <summary>
-        /// Creates a <see cref="PublisherDetailsViewModel"/> instance from a JSON string from database.
+        /// Creates a <see cref="TrustedPublisherPolicyDetailsViewModel"/> instance from a JSON string from database.
         /// </summary>
         /// <remarks>
         /// Same model can be serialized to JSON differently when passing data to JavaScript versus when storing it in SQL database.
         /// </remarks>
-        public static PublisherDetailsViewModel FromJavaScriptJson(string json)
+        public static TrustedPublisherPolicyDetailsViewModel FromJavaScriptJson(string json)
         {
             try
             {
@@ -52,7 +52,7 @@ namespace NuGetGallery
                     return null;
                 }
 
-                var model = new GitHubPublisherDetailsViewModel();
+                var model = new GitHubPolicyDetailsViewModel();
                 return model.Update(json);
             }
             catch (JsonException)

@@ -1527,14 +1527,14 @@ namespace NuGetGallery
             return GetActionLink(url, "EditTrustedPublisherPolicy", "Users", relativeUrl);
         }
 
+        public static string EnableTrustedPublisherPolicy(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url, "EnableTrustedPublisherPolicy", "Users", relativeUrl);
+        }
+
         public static string RemoveTrustedPublisherPolicy(this UrlHelper url, bool relativeUrl = true)
         {
             return GetActionLink(url, "RemoveTrustedPublisherPolicy", "Users", relativeUrl);
-        }
-
-        public static string ResetValidateByTrustedPublisherPolicy(this UrlHelper url, bool relativeUrl = true)
-        {
-            return GetActionLink(url, "ResetValidateByTrustedPublisherPolicy", "Users", relativeUrl);
         }
 
         public static string TransformAccount(this UrlHelper url, bool relativeUrl = true)

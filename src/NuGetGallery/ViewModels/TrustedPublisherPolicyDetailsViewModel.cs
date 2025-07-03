@@ -7,9 +7,9 @@ using System.Diagnostics;
 namespace NuGetGallery
 {
     [DebuggerDisplay("{Name,nq}")]
-    public abstract class PublisherDetailsViewModel
+    public abstract class TrustedPublisherPolicyDetailsViewModel
     {
-        protected PublisherDetailsViewModel() { }
+        protected TrustedPublisherPolicyDetailsViewModel() { }
 
         /// <summary>
         /// Publisher name, e.g. GitHub. Writable to be JSON serializable.
@@ -27,7 +27,7 @@ namespace NuGetGallery
         /// Creates a copy of itself and updates it with JSON data.
         /// </summary>
         /// <param name="javaScriptJson">A JSON string containing the updated details. Propery names match existing C# property names.</param>
-        public abstract PublisherDetailsViewModel Update(string javaScriptJson);
+        public abstract TrustedPublisherPolicyDetailsViewModel Update(string javaScriptJson);
 
         public abstract string ToDatabaseJson();
     }

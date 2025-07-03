@@ -1056,30 +1056,35 @@ namespace NuGetGallery
             var owners = new List<User>() { currentUser };
             owners.AddRange(currentUser.Organizations.Select(o => o.Organization));
 
-            var model = new TrustedPublisherListViewModel
+            var model = new TrustedPublisherPolicyListViewModel
             {
                 Username = currentUser.Username,
-                TrustedPublishers = publishers,
+                Policies = publishers,
                 PackageOwners = owners.Select(o => o.Username).ToList(),
             };
 
             return View("TrustedPublishing", model);
         }
 
-        private TrustedPublisherViewModel CreatePublisherViewModel(FederatedCredentialPolicy policy)
+        private TrustedPublisherPolicyViewModel CreatePublisherViewModel(FederatedCredentialPolicy policy)
         {
             if (policy.Type != FederatedCredentialType.TrustedPublisher)
             {
                 return null;
             }
 
-            var publisherDetails = PublisherDetailsViewModelFactory.FromDatabaseJson(policy.Criteria);
-            return new TrustedPublisherViewModel
+            if (TrustedPublisherPolicyDetailsViewModelFactory.FromDatabaseJson(policy.Criteria)
+                is not TrustedPublisherPolicyDetailsViewModel publisherDetails)
+            {
+                return null;
+            }
+
+            return new TrustedPublisherPolicyViewModel
             {
                 Key = policy.Key,
                 PolicyName = !string.IsNullOrEmpty(policy.PolicyName) ? policy.PolicyName : $"Policy {policy.Key}",
                 Owner = policy.PackageOwner?.Username ?? GetCurrentUser().Username,
-                PublisherDetails = publisherDetails
+                PolicyDetails = publisherDetails
             };
         }
 
@@ -1125,13 +1130,14 @@ namespace NuGetGallery
                 return Json(Strings.AddOwner_OwnerNotFound);
             }
 
-            if (PublisherDetailsViewModelFactory.FromJavaScriptJson(criteria) is not PublisherDetailsViewModel publisherDetails)
+            if (TrustedPublisherPolicyDetailsViewModelFactory.FromJavaScriptJson(criteria)
+                is not TrustedPublisherPolicyDetailsViewModel policyDetails)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(Strings.TrustedPublisher_Unexpected);
             }
 
-            if (publisherDetails.Validate() is string errorMessage && errorMessage.Length > 0)
+            if (policyDetails.Validate() is string errorMessage && errorMessage.Length > 0)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(errorMessage);
@@ -1142,7 +1148,7 @@ namespace NuGetGallery
             {
                 Type = FederatedCredentialType.TrustedPublisher,
                 PolicyName = policyName,
-                Criteria = publisherDetails.ToDatabaseJson(),
+                Criteria = policyDetails.ToDatabaseJson(),
                 Created = DateTime.UtcNow,
                 CreatedByUserKey = currentUser.Key,
                 PackageOwnerUserKey = policyOwner.Key
@@ -1150,12 +1156,12 @@ namespace NuGetGallery
 
             await _federatedCredentialRepository.AddPolicyAsync(policy, saveChanges: true);
 
-            var model = new TrustedPublisherViewModel
+            var model = new TrustedPublisherPolicyViewModel
             {
                 Key = policy.Key,
                 PolicyName = policyName,
                 Owner = owner,
-                PublisherDetails = publisherDetails
+                PolicyDetails = policyDetails
             };
 
             return Json(model);
@@ -1180,13 +1186,13 @@ namespace NuGetGallery
                 return Json(result.error);
             }
 
-            if (CreatePublisherViewModel(result.policy) is not TrustedPublisherViewModel model)
+            if (CreatePublisherViewModel(result.policy) is not TrustedPublisherPolicyViewModel model)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(Strings.TrustedPublisher_Unexpected);
             }
 
-            var newDetails = model.PublisherDetails.Update(criteria);
+            var newDetails = model.PolicyDetails.Update(criteria);
             if (newDetails.Validate() is string errorMessage && errorMessage.Length > 0)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
@@ -1194,7 +1200,7 @@ namespace NuGetGallery
             }
 
             result.policy.Criteria = newDetails.ToDatabaseJson();
-            model.PublisherDetails = newDetails;
+            model.PolicyDetails = newDetails;
 
             await _federatedCredentialRepository.SaveFederatedCredentialPolicyAsync(result.policy, saveChanges: true);
             return Json(model);
@@ -1203,7 +1209,7 @@ namespace NuGetGallery
         [HttpPost]
         [UIAuthorize]
         [ValidateAntiForgeryToken]
-        public virtual async Task<JsonResult> ResetValidateByTrustedPublisherPolicy(int? federatedCredentialKey)
+        public virtual async Task<JsonResult> EnableTrustedPublisherPolicy(int? federatedCredentialKey)
         {
             User currentUser = GetCurrentUser();
             if (!_featureFlagService.IsTrustedPublishingEnabled(currentUser))
@@ -1219,8 +1225,8 @@ namespace NuGetGallery
                 return Json(result.error);
             }
 
-            if (CreatePublisherViewModel(result.policy) is not TrustedPublisherViewModel model ||
-                model.PublisherDetails is not GitHubPublisherDetailsViewModel gitHubModel)
+            if (CreatePublisherViewModel(result.policy) is not TrustedPublisherPolicyViewModel model ||
+                model.PolicyDetails is not GitHubPolicyDetailsViewModel gitHubModel)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(Strings.TrustedPublisher_Unexpected);

@@ -1,4 +1,4 @@
-.page-page-trusted-publishing {
+.page-trusted-publishing {
   @section-vertical-padding: (@padding-large-vertical * 2);
   @section-padding: @section-vertical-padding 0;
   @section-border: 1px solid @gray-lighter;
@@ -23,7 +23,7 @@
     display: inline;
   }
 
-  .upsert-trusted-publisher {
+  .upsert-policy {
     ul {
       padding-left: 0;
       list-style: none;
@@ -74,35 +74,9 @@
       font-size: 12px;
       font-family: Consolas, Monaco, "Courier New", monospace;
     }
-
-    .copy-button {
-      position: absolute;
-      bottom: 5px;
-      right: 5px;
-      padding: 3px 8px;
-      font-size: 12px;
-      background-color: #f8f8f8;
-      border: 1px solid #ddd;
-      border-radius: 3px;
-      color: #0078d4;
-    }
-
-    .copy-button:hover {
-      background-color: #f0f0f0;
-    }
   }
 
-  .add-trusted-publisher {
-    padding: @section-padding;
-    border-top: @section-border;
-    border-bottom: @section-border;
-
-    > .panel {
-      margin-top: @padding-large-horizontal;
-    }
-  }
-
-  .trusted-publisher-details {
+  .policy-details {
     padding: @section-padding;
 
     .ms-Icon {
@@ -132,7 +106,7 @@
     }
   }
 
-  .trusted-publisher-details:not(:first-child) {
+  .policy-details:not(:first-child) {
     border-top: @section-border;
   }
 }

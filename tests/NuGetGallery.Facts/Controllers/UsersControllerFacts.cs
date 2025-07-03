@@ -1143,7 +1143,7 @@ namespace NuGetGallery
                     .Returns(true);
 
                 GetMock<IFederatedCredentialRepository>()
-                    .Setup(r => r.GetPoliciesRelatedToUserKeys(It.IsAny<IReadOnlyList<int>>()))
+                    .Setup(r => r.GetPoliciesCreatedByUser(It.IsAny<int>()))
                     .Returns([]);
 
                 // Act
@@ -1153,7 +1153,7 @@ namespace NuGetGallery
                 Assert.NotNull(model);
                 Assert.Equal(currentUser.Username, model.Username);
                 Assert.NotNull(model.PackageOwners);
-                Assert.NotNull(model.TrustedPublishers);
+                Assert.NotNull(model.Policies);
 
                 var firstPackageOwner = model.PackageOwners.FirstOrDefault();
                 Assert.Equal(currentUser.Username, firstPackageOwner);
@@ -1179,30 +1179,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void IncludesCurrentUserAndOrganizationsAsPackageOwners()
-            {
-                // Arrange
-                GetMock<IFeatureFlagService>()
-                    .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
-                    .Returns(true);
-
-                GetMock<IFederatedCredentialRepository>()
-                    .Setup(r => r.GetPoliciesRelatedToUserKeys(It.IsAny<IReadOnlyList<int>>()))
-                    .Returns([]);
-
-                var currentUser = TestUtility.FakeOrganizationAdmin;
-                var organization = TestUtility.FakeOrganization;
-
-                // Act
-                var model = GetModelForTrustedPublishing(currentUser);
-
-                // Assert
-                Assert.Contains(currentUser.Username, model.PackageOwners);
-                Assert.Contains(organization.Username, model.PackageOwners);
-            }
-
-            [Fact]
-            public void IncludesFederatedCredentialPoliciesForUserAndOrganizations()
+            public void FiltersOnlyTrustedPublisherPolicies()
             {
                 // Arrange
                 GetMock<IFeatureFlagService>()
@@ -1215,66 +1192,33 @@ namespace NuGetGallery
                     new FederatedCredentialPolicy
                     {
                         Key = 1,
-                        PolicyName = "Test Policy 1",
+                        PolicyName = "Trusted Publisher Policy",
                         PackageOwner = currentUser,
-                        PackageOwnerUserKey = currentUser.Key,
                         Type = FederatedCredentialType.TrustedPublisher,
-                        Criteria = "{\"test\": \"value\"}"
+                        Criteria = "{\"name\": \"GitHub\"}"
+                    },
+                    new FederatedCredentialPolicy
+                    {
+                        Key = 2,
+                        PolicyName = "Other Policy Type",
+                        PackageOwner = currentUser,
+                        Type = FederatedCredentialType.EntraIdServicePrincipal, // Different type
+                        Criteria = "{\"name\": \"GitHub\"}"
                     }
                 };
 
                 GetMock<IFederatedCredentialRepository>()
-                    .Setup(r => r.GetPoliciesRelatedToUserKeys(It.IsAny<IReadOnlyList<int>>()))
+                    .Setup(r => r.GetPoliciesCreatedByUser(It.IsAny<int>()))
                     .Returns(policies);
 
                 var model = GetModelForTrustedPublishing(currentUser);
 
                 // Assert
-                Assert.Single(model.TrustedPublishers);
-                Assert.Equal("Test Policy 1", model.TrustedPublishers.First().PolicyName);
+                Assert.Single(model.Policies);
+                Assert.Equal("Trusted Publisher Policy", model.Policies.First().PolicyName);
             }
 
-            [Fact]
-            public void FiltersOnlyTrustedPublisherPolicies()
-            {
-                // Arrange
-                GetMock<IFeatureFlagService>()
-                    .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
-                    .Returns(true);
-
-                var currentUser = TestUtility.FakeUser;
-                var policies = new List<FederatedCredentialPolicy>
-        {
-            new FederatedCredentialPolicy
-            {
-                Key = 1,
-                PolicyName = "Trusted Publisher Policy",
-                PackageOwner = currentUser,
-                Type = FederatedCredentialType.TrustedPublisher,
-                Criteria = "{\"test\": \"value\"}"
-            },
-            new FederatedCredentialPolicy
-            {
-                Key = 2,
-                PolicyName = "Other Policy Type",
-                PackageOwner = currentUser,
-                Type = FederatedCredentialType.EntraIdServicePrincipal, // Different type
-                Criteria = "{\"test\": \"value\"}"
-            }
-        };
-
-                GetMock<IFederatedCredentialRepository>()
-                    .Setup(r => r.GetPoliciesRelatedToUserKeys(It.IsAny<IReadOnlyList<int>>()))
-                    .Returns(policies);
-
-                var model = GetModelForTrustedPublishing(currentUser);
-
-                // Assert
-                Assert.Single(model.TrustedPublishers);
-                Assert.Equal("Trusted Publisher Policy", model.TrustedPublishers.First().PolicyName);
-            }
-
-            private TrustedPublisherListViewModel GetModelForTrustedPublishing(User currentUser)
+            private TrustedPublisherPolicyListViewModel GetModelForTrustedPublishing(User currentUser)
             {
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(currentUser);
@@ -1284,8 +1228,8 @@ namespace NuGetGallery
 
                 // Assert
                 var viewResult = Assert.IsType<ViewResult>(result);
-                Assert.IsType<TrustedPublisherListViewModel>(viewResult.Model);
-                return viewResult.Model as TrustedPublisherListViewModel;
+                Assert.IsType<TrustedPublisherPolicyListViewModel>(viewResult.Model);
+                return viewResult.Model as TrustedPublisherPolicyListViewModel;
             }
         }
 
@@ -1578,8 +1522,16 @@ namespace NuGetGallery
                     .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
                     .Returns(true);
 
-                string oldCriteria = @"{""Name"":""GitHub"",""RepositoryOwner"":""oldOwner"",""Repository"":""repo"",""RepositoryId"":""1"",""WorkflowFile"":""a.yml""}";
-                string newCriteria = @"{""Name"":""GitHub"",""RepositoryOwner"":""newOwner"",""Repository"":""repo"",""RepositoryId"":""1"",""WorkflowFile"":""a.yml""}";
+                string oldDBCriteria = @"{""name"":""GitHub"",""owner"":""someOwner"",""repository"":""repo"",""workflow"":""old.yml"",""ownerId"":""12"",""repositoryId"":""45"",""environment"":""prod""}";
+                string newDBCriteria = @"{""name"":""GitHub"",""owner"":""someOwner"",""repository"":""repo"",""workflow"":""new.yml"",""ownerId"":""12"",""repositoryId"":""45""}";
+                string newJSCriteria = $@"{{
+                    ""Name"":""GitHub"",
+                    ""{nameof(GitHubPolicyDetailsViewModel.RepositoryOwner)}"":""someOwner"",
+                    ""{nameof(GitHubPolicyDetailsViewModel.RepositoryOwnerId)}"":""12"",
+                    ""{nameof(GitHubPolicyDetailsViewModel.Repository)}"":""repo"",
+                    ""{nameof(GitHubPolicyDetailsViewModel.RepositoryId)}"":""45"",
+                    ""{nameof(GitHubPolicyDetailsViewModel.WorkflowFile)}"":""new.yml"",
+                    ""{nameof(GitHubPolicyDetailsViewModel.Environment)}"":""""}}";
 
                 var user = TestUtility.FakeUser;
                 var policy = new FederatedCredentialPolicy
@@ -1589,7 +1541,7 @@ namespace NuGetGallery
                     PackageOwner = user,
                     PackageOwnerUserKey = user.Key,
                     Type = FederatedCredentialType.TrustedPublisher,
-                    Criteria = oldCriteria
+                    Criteria = oldDBCriteria
                 };
 
                 GetMock<IFederatedCredentialRepository>()
@@ -1607,11 +1559,11 @@ namespace NuGetGallery
                 // Act
                 var result = await controller.EditTrustedPublisherPolicy(
                     federatedCredentialKey: 1,
-                    criteria: newCriteria);
+                    criteria: newJSCriteria);
 
                 // Assert
                 Assert.IsType<JsonResult>(result);
-                Assert.Equal(newCriteria, policy.Criteria);
+                Assert.Equal(newDBCriteria, policy.Criteria);
                 GetMock<IFederatedCredentialRepository>()
                     .Verify(s => s.SaveFederatedCredentialPolicyAsync(
                         policy, true), Times.Once);

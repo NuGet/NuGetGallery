@@ -3186,49 +3186,49 @@ p.frameworktableinfo-text {
 .page-transform-account .center-box .logo-box .logo {
   flex-grow: 1;
 }
-.page-page-trusted-publishing .example-text {
+.page-trusted-publishing .example-text {
   font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
   font-weight: bold;
 }
-.page-page-trusted-publishing h2 {
+.page-trusted-publishing h2 {
   margin-top: 30px;
   margin-bottom: 10px;
 }
-.page-page-trusted-publishing h3 {
+.page-trusted-publishing h3 {
   font-size: 34px;
   margin-top: 0;
   margin-bottom: 0;
 }
-.page-page-trusted-publishing .in.in-inline {
+.page-trusted-publishing .in.in-inline {
   display: inline;
 }
-.page-page-trusted-publishing .upsert-trusted-publisher ul {
+.page-trusted-publishing .upsert-policy ul {
   padding-left: 0;
   list-style: none;
 }
-.page-page-trusted-publishing .upsert-trusted-publisher ul ul {
+.page-trusted-publishing .upsert-policy ul ul {
   padding-left: 20px;
 }
-.page-page-trusted-publishing .upsert-trusted-publisher .panel {
+.page-trusted-publishing .upsert-policy .panel {
   margin-bottom: 0;
 }
-.page-page-trusted-publishing .upsert-trusted-publisher .required:after {
+.page-trusted-publishing .upsert-policy .required:after {
   color: var(--statusDangerStroke2Rest);
   content: " *";
 }
-.page-page-trusted-publishing .upsert-trusted-publisher .collapsible-example {
+.page-trusted-publishing .upsert-policy .collapsible-example {
   margin-top: 10px;
 }
-.page-page-trusted-publishing .upsert-trusted-publisher .collapsible-example-toggle {
+.page-trusted-publishing .upsert-policy .collapsible-example-toggle {
   padding: 0;
   color: #0078d4;
   text-align: left;
   margin-bottom: 6px;
 }
-.page-page-trusted-publishing .upsert-trusted-publisher .collapsible-example-toggle:hover {
+.page-trusted-publishing .upsert-policy .collapsible-example-toggle:hover {
   text-decoration: underline;
 }
-.page-page-trusted-publishing .upsert-trusted-publisher .collapsible-example-content {
+.page-trusted-publishing .upsert-policy .collapsible-example-content {
   display: none;
   position: relative;
   background-color: #f8f8f8;
@@ -3237,58 +3237,36 @@ p.frameworktableinfo-text {
   padding: 10px;
   margin-bottom: 10px;
 }
-.page-page-trusted-publishing .upsert-trusted-publisher .example-code {
+.page-trusted-publishing .upsert-policy .example-code {
   white-space: pre-wrap;
   word-break: break-all;
   margin-bottom: 30px;
   font-size: 12px;
   font-family: Consolas, Monaco, "Courier New", monospace;
 }
-.page-page-trusted-publishing .upsert-trusted-publisher .copy-button {
-  position: absolute;
-  bottom: 5px;
-  right: 5px;
-  padding: 3px 8px;
-  font-size: 12px;
-  background-color: #f8f8f8;
-  border: 1px solid #ddd;
-  border-radius: 3px;
-  color: #0078d4;
-}
-.page-page-trusted-publishing .upsert-trusted-publisher .copy-button:hover {
-  background-color: #f0f0f0;
-}
-.page-page-trusted-publishing .add-trusted-publisher {
-  padding: 20px 0;
-  border-top: 1px solid #dbdbdb;
-  border-bottom: 1px solid #dbdbdb;
-}
-.page-page-trusted-publishing .add-trusted-publisher > .panel {
-  margin-top: 16px;
-}
-.page-page-trusted-publishing .trusted-publisher-details {
+.page-trusted-publishing .policy-details {
   padding: 20px 0;
 }
-.page-page-trusted-publishing .trusted-publisher-details .ms-Icon {
+.page-trusted-publishing .policy-details .ms-Icon {
   position: relative;
   top: 2px;
 }
-.page-page-trusted-publishing .trusted-publisher-details .icon-details {
+.page-trusted-publishing .policy-details .icon-details {
   color: var(--neutralForeground1Rest);
   margin: 10px 0;
 }
-.page-page-trusted-publishing .trusted-publisher-details .icon-details li {
+.page-trusted-publishing .policy-details .icon-details li {
   padding: 0;
 }
-.page-page-trusted-publishing .trusted-publisher-details .icon-details li + li {
+.page-trusted-publishing .policy-details .icon-details li + li {
   margin-left: 10px;
   padding-left: 10px;
   border-left: 1px solid var(--neutralForeground1Rest);
 }
-.page-page-trusted-publishing .trusted-publisher-details .package-list li {
+.page-trusted-publishing .policy-details .package-list li {
   overflow-y: visible;
 }
-.page-page-trusted-publishing .trusted-publisher-details:not(:first-child) {
+.page-trusted-publishing .policy-details:not(:first-child) {
   border-top: 1px solid #dbdbdb;
 }
 .page-upload #browse-for-package-button {

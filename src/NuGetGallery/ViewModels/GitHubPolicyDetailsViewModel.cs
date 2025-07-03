@@ -17,7 +17,7 @@ namespace NuGetGallery
     /// DO NOT change the property names. They are serialized to JSON which is stored in DB.
     /// </remarks>
     [DebuggerDisplay("{RepositoryOwner,nq}/{Repository,nq}/.github/workflows/{WorkflowFile,nq}")]
-    public sealed class GitHubPublisherDetailsViewModel : PublisherDetailsViewModel
+    public sealed class GitHubPolicyDetailsViewModel : TrustedPublisherPolicyDetailsViewModel
     {
         public const int ValidationExpirationDays = 7;
         private string _repositoryOwner = string.Empty;
@@ -27,7 +27,7 @@ namespace NuGetGallery
         private string _workflowFile = string.Empty;
         private string _environment = string.Empty;
 
-        public GitHubPublisherDetailsViewModel()
+        public GitHubPolicyDetailsViewModel()
         {
             this.InitialieValidateByDate();
         }
@@ -164,7 +164,7 @@ namespace NuGetGallery
             }
         }
 
-        public override PublisherDetailsViewModel Update(string javaScriptJson)
+        public override TrustedPublisherPolicyDetailsViewModel Update(string javaScriptJson)
         {
             var properties = JObject.Parse(javaScriptJson);
             var publisherName = properties["Name"]?.ToString();
@@ -173,7 +173,7 @@ namespace NuGetGallery
                 throw new InvalidOperationException("Invalid publisher name. Expected 'GitHub'.");
             }
 
-            var model = new GitHubPublisherDetailsViewModel();
+            var model = new GitHubPolicyDetailsViewModel();
             model._repositoryOwner = _repositoryOwner;
             model._repositoryOwnerId = _repositoryOwnerId;
             model._repository = _repository;
@@ -245,10 +245,10 @@ namespace NuGetGallery
             return json;
         }
 
-        public static GitHubPublisherDetailsViewModel FromDatabaseJson(string json)
+        public static GitHubPolicyDetailsViewModel FromDatabaseJson(string json)
         {
             var properties = JObject.Parse(json);
-            var model = new GitHubPublisherDetailsViewModel
+            var model = new GitHubPolicyDetailsViewModel
             {
                 RepositoryOwner = properties["owner"]?.ToString(),
                 Repository = properties["repository"]?.ToString(),

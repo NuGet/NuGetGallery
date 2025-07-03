@@ -5,9 +5,9 @@ using System.Collections.Generic;
 
 namespace NuGetGallery
 {
-    public class TrustedPublisherListViewModel
+    public class TrustedPublisherPolicyListViewModel
     {
         public string Username { get; set; }
         public IList<string> PackageOwners { get; set; }
-        public IList<TrustedPublisherViewModel> TrustedPublishers { get; set; }
+        public IList<TrustedPublisherPolicyViewModel> Policies { get; set; }
     }}
