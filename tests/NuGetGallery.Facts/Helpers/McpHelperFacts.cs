@@ -76,12 +76,14 @@ namespace NuGetGallery.Helpers
 
         public class PackageContainsMcpServerMetadataMethod
         {
-            [Fact]
-            public void ReturnsTrue_WhenMetadataFileIsPresent()
+            [Theory]
+            [InlineData(".mcp/server.json")]
+            [InlineData(".mcp/Server.json")]
+            public void ReturnsTrue_WhenMetadataFileIsPresent(string mcpServerFileName)
             {
                 // Arrange
                 var packageStream = PackageServiceUtility.CreateNuGetPackageStream(
-                    mcpServerMetadataFilename: ".mcp/server.json",
+                    mcpServerMetadataFilename: mcpServerFileName,
                     mcpServerMetadataFileContents: []);
                 var package = PackageServiceUtility.CreateNuGetPackage(packageStream);
 

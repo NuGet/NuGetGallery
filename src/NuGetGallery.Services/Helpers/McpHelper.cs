@@ -33,8 +33,9 @@ namespace NuGetGallery.Services.Helpers
 
         public static bool PackageContainsMcpServerMetadata(PackageArchiveReader packageArchive)
         {
-            var fileList = new HashSet<string>(packageArchive.GetFiles());
-            return fileList.Contains(McpServerMetadataFilePath);
+            return packageArchive.GetFiles()
+                .Select(f => f.ToLowerInvariant())
+                .Contains(McpServerMetadataFilePath);
         }
 
         public static string ReadMcpServerMetadata(PackageArchiveReader packageArchive)
