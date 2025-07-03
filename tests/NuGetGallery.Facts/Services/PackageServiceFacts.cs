@@ -3624,8 +3624,10 @@ namespace NuGetGallery
                 Assert.Equal(expectedFlag, package.HasReadMe);
             }
 
-            [Fact]
-            public void DeduplicatesPackageTypes()
+            [Theory]
+            [InlineData("Foo", "Foo", "Bar")]
+            [InlineData("Foo", "foo", "Bar")]
+            public void DeduplicatesPackageTypes(string packageA, string packageB, string packageC)
             {
                 var service = CreateService();
                 var package = new Package
@@ -3647,9 +3649,9 @@ namespace NuGetGallery
 
                 var packageTypes = new List<NuGet.Packaging.Core.PackageType>
                 {
-                    new("Foo", new Version("1.0.0")),
-                    new("Foo", new Version("1.0.0")),
-                    new("Bar", new Version("1.0.0")),
+                    new(packageA, new Version("1.0.0")),
+                    new(packageB, new Version("1.0.0")),
+                    new(packageC, new Version("1.0.0")),
                 };
 
                 var packageMetadata = new PackageMetadata(
@@ -3664,8 +3666,8 @@ namespace NuGetGallery
                 service.EnrichPackageFromNuGetPackage(package, packageArchiveReader, packageMetadata, new PackageStreamMetadata(), new User());
 
                 Assert.Equal(2, package.PackageTypes.Count);
-                Assert.Equal("Foo", package.PackageTypes.First().Name);
-                Assert.Equal("Bar", package.PackageTypes.Last().Name);
+                Assert.Equal(packageA, package.PackageTypes.First().Name);
+                Assert.Equal(packageC, package.PackageTypes.Last().Name);
             }
 
             [Fact]
