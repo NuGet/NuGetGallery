@@ -17,6 +17,16 @@ namespace NuGetGallery.Services.Models
 
         public bool Equals(McpServerEntryTemplateResult other)
         {
+            if (ReferenceEquals(other, null))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             return Validity == other.Validity && string.Equals(Template, other.Template, StringComparison.Ordinal);
         }
 
@@ -33,6 +43,16 @@ namespace NuGetGallery.Services.Models
 
         public static bool operator ==(McpServerEntryTemplateResult left, McpServerEntryTemplateResult right)
         {
+            if (ReferenceEquals(left, right))
+            {
+                return true;
+            }
+
+            if (ReferenceEquals(left, null) || ReferenceEquals(right, null))
+            {
+                return false;
+            }
+
             return left.Equals(right);
         }
 
