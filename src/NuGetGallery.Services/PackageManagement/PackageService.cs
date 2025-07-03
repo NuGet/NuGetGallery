@@ -276,11 +276,16 @@ namespace NuGetGallery
             bool includePackageRegistration,
             bool includeDeprecations,
             bool includeSupportedFrameworks,
-            int numLatestVersions)
+            int maxCount)
         {
             if (id == null)
             {
                 throw new ArgumentNullException(nameof(id));
+            }
+
+            if (maxCount < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(maxCount), "Max count must be greater than 0.");
             }
 
             var packages = GetPackagesByIdQueryable(
@@ -293,7 +298,7 @@ namespace NuGetGallery
                 includeDeprecationRelationships: false,
                 includeSupportedFrameworks: includeSupportedFrameworks)
                 .OrderByDescending(p => p.Created)
-                .Take(numLatestVersions)
+                .Take(maxCount)
                 .ToList();
 
             if (!string.IsNullOrWhiteSpace(includeVersion) && !packages.Any(p => p.NormalizedVersion == includeVersion))
@@ -312,7 +317,7 @@ namespace NuGetGallery
 
                 if (requiredPackage is not null)
                 {
-                    if (packages.Count >= numLatestVersions)
+                    if (packages.Count >= maxCount)
                     {
                         packages.RemoveAt(packages.Count - 1);
                     }

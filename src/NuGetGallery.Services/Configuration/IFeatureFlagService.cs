@@ -354,8 +354,14 @@ namespace NuGetGallery
         /// </summary>
         bool CanUseFederatedCredentials(User user);
 
+        /// <summary>
+        /// When enabled, the profile page shows the package list using pages.
+        /// </summary>
         bool IsProfileLoadOptimizationEnabled();
 
+        /// <summary>
+        /// when enabled, the package details page shows short version lists.
+        /// </summary>
         bool IsReducedVersionListsEnabled();
     }
 }

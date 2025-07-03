@@ -55,13 +55,24 @@ namespace NuGetGallery
             bool includeDeprecations,
             bool includeSupportedFrameworks);
 
+        /// <summary>
+        /// Returns <paramref name="maxCount"/> latest (by Created) versions of packages with an <see cref="Package.Id"/> of <paramref name="id"/>.
+        /// The list always includes the <paramref name="includeVersion"/> version if specified.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="includeVersion"></param>
+        /// <param name="includePackageRegistration"></param>
+        /// <param name="includeDeprecations"></param>
+        /// <param name="includeSupportedFrameworks"></param>
+        /// <param name="maxCount"></param>
+        /// <returns></returns>
         IReadOnlyCollection<Package> FindLatestVersionsById(
             string id,
             string includeVersion,
             bool includePackageRegistration,
             bool includeDeprecations,
             bool includeSupportedFrameworks,
-            int numTopVersions);
+            int maxCount);
 
         /// <summary>
         /// Gets the package with the given ID and version when exists;
