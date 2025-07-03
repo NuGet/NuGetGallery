@@ -21,8 +21,6 @@ namespace NuGetGallery.Services.Helpers
 
         public static bool IsMcpServerPackage(PackageArchiveReader packageArchive)
         {
-            // Should we add McpServer to Nuget.Client PackageType?
-            // https://github.com/NuGet/NuGet.Client/blob/dev/src/NuGet.Core/NuGet.Packaging/Core/PackageType.cs
             var packageTypes = packageArchive.GetPackageTypes();
 
             // The package must be of type McpServer and DotnetTool
