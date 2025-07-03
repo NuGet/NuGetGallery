@@ -1265,6 +1265,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The MCP server metadata file &apos;{0}&apos; cannot be larger than {1}..
+        /// </summary>
+        public static string McpServerMetadataTooLong {
+            get {
+                return ResourceManager.GetString("McpServerMetadataTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A package cannot contain the &apos;McpServer&apos; package type without the &apos;DotnetTool&apos; package type..
         /// </summary>
         public static string McpServerWithoutDotnetTool {

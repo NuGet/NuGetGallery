@@ -581,7 +581,7 @@ namespace NuGetGallery
             {
                 return PackageValidationResult.Invalid(
                     string.Format(
-                        Strings.UploadPackage_FileTooLong,
+                        Strings.McpServerMetadataTooLong,
                         metadataFilePath,
                         MaxAllowedMcpServerMetadataLengthForUploading.ToUserFriendlyBytesLabel()));
             }

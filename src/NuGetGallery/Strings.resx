@@ -1287,4 +1287,7 @@ The {1} Team</value>
   <data name="McpServerWithoutDotnetTool" xml:space="preserve">
     <value>A package cannot contain the 'McpServer' package type without the 'DotnetTool' package type.</value>
   </data>
+  <data name="McpServerMetadataTooLong" xml:space="preserve">
+    <value>The MCP server metadata file '{0}' cannot be larger than {1}.</value>
+  </data>
 </root>
