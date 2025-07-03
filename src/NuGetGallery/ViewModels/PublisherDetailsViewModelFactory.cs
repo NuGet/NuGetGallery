@@ -21,7 +21,7 @@ namespace NuGetGallery
                     return null;
                 }
 
-                return GitHubPublisherDetailsViewModel.Deserialize(json);
+                return GitHubPublisherDetailsViewModel.FromJson(json);
             }
             catch (JsonException)
             {

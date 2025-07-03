@@ -46,9 +46,16 @@
         _gitHubDetails.Initialize = function (self) {
             // Create a gitHub object to hold all GitHub-related properties
             self.gitHub = {
+                IsGitHubIdsAvailable: ko.observable(),
+                DaysUntilPolicyDisabled: ko.observable(),
+
                 RepositoryOwner: ko.observable(),
                 PendingRepositoryOwner: ko.observable(),
                 RepositoryOwnerUid: computedUid(self, "github-repository-owner"),
+
+                RepositoryOwnerId: ko.observable(),
+                PendingRepositoryOwnerId: ko.observable(),
+                RepositoryOwnerIdUid: computedUid(self, "github-repository-owner-id"),
 
                 Repository: ko.observable(),
                 PendingRepository: ko.observable(),
@@ -64,15 +71,31 @@
 
                 Environment: ko.observable(),
                 PendingEnvironment: ko.observable(),
-                EnvironmentUid: computedUid(self, "github-environment")
+                EnvironmentUid: computedUid(self, "github-environment"),
             };
         }
 
         _gitHubDetails.Update = function (self, data) {
             const details = data.PublisherName !== "GitHub" ? {} : data.PublisherDetails || {};
             const gitHub = self.gitHub;
+            if (data.Key && !details.IsGitHubIdsAvailable) {
+                const validateBy = details.ValidateByDate;
+                const validateByDate = new Date(validateBy);
+                const currentDate = new Date();
+                const timeDiff = validateByDate.getTime() - currentDate.getTime();
+                const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+                gitHub.IsGitHubIdsAvailable(false);
+                gitHub.DaysUntilPolicyDisabled(daysDiff);
+            } else {
+                gitHub.IsGitHubIdsAvailable(true);
+                gitHub.DaysUntilPolicyDisabled(1);
+            }
+
             gitHub.RepositoryOwner(details.RepositoryOwner || '');
             gitHub.PendingRepositoryOwner(details.RepositoryOwner || '');
+
+            gitHub.RepositoryOwnerId(details.RepositoryOwnerId || '');
+            gitHub.PendingRepositoryOwnerId(details.RepositoryOwnerId || '');
 
             gitHub.Repository(details.Repository || '');
             gitHub.PendingRepository(details.Repository || '');
@@ -90,6 +113,7 @@
         _gitHubDetails.CancelEdit = function (self) {
             const gitHub = self.gitHub;
             gitHub.PendingRepositoryOwner(gitHub.RepositoryOwner());
+            gitHub.PendingRepositoryOwnerId(gitHub.RepositoryOwnerId());
             gitHub.PendingRepository(gitHub.Repository());
             gitHub.PendingRepositoryId(gitHub.RepositoryId());
             gitHub.PendingWorkflowFile(gitHub.WorkflowFile());
@@ -101,7 +125,6 @@
             const gitHub = self.gitHub;
             validator.submitted[gitHub.RepositoryOwnerUid()] = null;
             validator.submitted[gitHub.RepositoryUid()] = null;
-            validator.submitted[gitHub.RepositoryIdUid()] = null;
             validator.submitted[gitHub.WorkflowFileUid()] = null;
         }
 
@@ -109,23 +132,91 @@
             const gitHub = self.gitHub;
             const owner = gitHub.PendingRepositoryOwner();
             const repository = gitHub.PendingRepository();
-            const repositoryId = gitHub.PendingRepositoryId();
             const workflowFile = gitHub.PendingWorkflowFile();
 
-            return owner && repository && workflowFile && repositoryId;
+            return owner && repository && workflowFile;
         }
+
+        _gitHubDetails.LookupGitHubIdentifiers = function (self, existingTrustedPublishers, callback) {
+            const gitHub = self.gitHub;
+            const owner = gitHub.PendingRepositoryOwner().toLowerCase();
+            const repository = gitHub.PendingRepository().toLowerCase();
+
+            // Validate inputs
+            if (!owner || !repository) {
+                callback();
+                return;
+            }
+
+            // Check if we already have the IDs
+            if (gitHub.PendingRepositoryOwnerId() && gitHub.PendingRepositoryId()) {
+                callback();
+                return;
+            }
+
+            // First, check if we can find the repository IDs from existing policies
+            if (existingTrustedPublishers && existingTrustedPublishers.length > 0) {
+                for (var i = 0; i < existingTrustedPublishers.length; i++) {
+                    var existing = existingTrustedPublishers[i].gitHub;
+                    if (existing && existing !== gitHub &&
+                        existing.RepositoryOwner().toLowerCase() === owner &&
+                        existing.Repository().toLowerCase() === repository &&
+                        existing.RepositoryOwnerId() &&
+                        existing.RepositoryId()) {
+
+                        gitHub.PendingRepositoryOwnerId(existing.RepositoryOwnerId());
+                        gitHub.PendingRepositoryId(existing.RepositoryId());
+                        callback();
+                        return;
+                    }
+                }
+            }
+
+            // Build GitHub API URL
+            var apiUrl = "https://api.github.com/repos/" + encodeURIComponent(owner) + "/" + encodeURIComponent(repository);
+
+            // Make AJAX request to GitHub API
+            $.ajax({
+                url: apiUrl,
+                type: 'GET',
+                dataType: 'json',
+                timeout: 10000, // 10 second timeout
+                headers: {
+                    'Accept': 'application/vnd.github.v3+json'
+                },
+                success: function (data) {
+                    // Extract repository info from response
+                    gitHub.PendingRepositoryOwnerId(data.owner && data.owner.id ? data.owner.id.toString() : '');
+                    gitHub.PendingRepositoryId(data.id ? data.id.toString() : '');
+                },
+                complete: function() {
+                    callback();
+                }
+            });
+        };
 
         _gitHubDetails.CreatePendingCriteria = function (self) {
             const gitHub = self.gitHub;
             var githubData = {
                 Name: 'GitHub',
                 RepositoryOwner: gitHub.PendingRepositoryOwner() || '',
+                RepositoryOwnerId: gitHub.PendingRepositoryOwnerId() || '',
                 Repository: gitHub.PendingRepository() || '',
                 RepositoryId: gitHub.PendingRepositoryId() || '',
                 WorkflowFile: gitHub.PendingWorkflowFile() || ''
             };
 
-            // Only include environment if it has a value
+            // Include optional fields only if set
+            var repositoryOwnerId = gitHub.PendingRepositoryOwnerId();
+            if (repositoryOwnerId && repositoryOwnerId.trim()) {
+                githubData.RepositoryOwnerId = repositoryOwnerId;
+            }
+
+            var repositoryId = gitHub.PendingRepositoryId();
+            if (repositoryId && repositoryId.trim()) {
+                githubData.RepositoryId = repositoryId;
+            }
+
             var environment = gitHub.PendingEnvironment();
             if (environment && environment.trim()) {
                 githubData.Environment = environment;
@@ -301,6 +392,18 @@
             };
 
             this.Create = function () {
+                // Set loading state immediately
+                this.PendingCreateOrEdit(true);
+
+                // Get owner and repo IDs first
+                _gitHubDetails.LookupGitHubIdentifiers(self, parent.TrustedPublishers(),
+                    function () {
+                        self.CreateAfterLookup();
+                    }
+                );
+            };
+
+            this.CreateAfterLookup = function () {
                 // Build the request.
                 var data = {
                     policyName: this.PendingPolicyName(),
@@ -310,7 +413,6 @@
                 addAntiForgeryToken(data);
 
                 // Send the request.
-                this.PendingCreateOrEdit(true);
                 $.ajax({
                     url: initialData.GenerateUrl,
                     type: 'POST',

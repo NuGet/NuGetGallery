@@ -24,6 +24,7 @@ using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Security;
 using NuGetGallery.Services.Authentication;
+using Polly;
 
 namespace NuGetGallery
 {
@@ -1143,7 +1144,7 @@ namespace NuGetGallery
             {
                 Type = FederatedCredentialType.TrustedPublisher,
                 PolicyName = policyName,
-                Criteria = criteria,
+                Criteria = publisherDetails.ToJson(),
                 Created = DateTime.UtcNow,
                 CreatedByUserKey = currentUser.Key,
                 PackageOwnerUserKey = policyOwner.Key
@@ -1181,12 +1182,21 @@ namespace NuGetGallery
                 return Json(result.error);
             }
 
-            result.policy.Criteria = criteria;
             if (CreatePublisherViewModel(result.policy) is not TrustedPublisherViewModel model)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(Strings.TrustedPublisher_Unexpected);
             }
+
+            var publisherDetails = PublisherDetailsViewModelFactory.FromJson(criteria);
+            if (publisherDetails.Validate() is string errorMessage && errorMessage.Length > 0)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(errorMessage);
+            }
+
+            result.policy.Criteria = publisherDetails.ToJson();
+            model.PublisherDetails = publisherDetails;
 
             await _federatedCredentialRepository.SaveFederatedCredentialPolicyAsync(result.policy, saveChanges: true);
             return Json(model);

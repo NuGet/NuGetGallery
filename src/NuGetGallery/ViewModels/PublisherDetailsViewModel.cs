@@ -22,5 +22,7 @@ namespace NuGetGallery
         /// </summary>
         /// <returns></returns>
         public abstract string Validate();
+
+        public abstract string ToJson();
     }
 }

@@ -1139,7 +1139,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The GitHub repository id is required..
+        ///   Looks up a localized string similar to The GitHub repository ID is required..
         /// </summary>
         public static string GitHub_RepositoryIdRequired {
             get {
@@ -1157,11 +1157,11 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A unique GitHub ID assigned to a repository at the time of its creation..
+        ///   Looks up a localized string similar to A permanent GitHub ID assigned to a user, organization, or repository when it&apos;s created. Used for trusted publishing validation..
         /// </summary>
-        public static string GitHub_WhatIsRepositoryId {
+        public static string GitHub_WhatIsUniqueId {
             get {
-                return ResourceManager.GetString("GitHub_WhatIsRepositoryId", resourceCulture);
+                return ResourceManager.GetString("GitHub_WhatIsUniqueId", resourceCulture);
             }
         }
         

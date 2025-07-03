@@ -3216,6 +3216,48 @@ p.frameworktableinfo-text {
   color: var(--statusDangerStroke2Rest);
   content: " *";
 }
+.page-page-trusted-publishing .upsert-trusted-publisher .collapsible-example {
+  margin-top: 10px;
+}
+.page-page-trusted-publishing .upsert-trusted-publisher .collapsible-example-toggle {
+  padding: 0;
+  color: #0078d4;
+  text-align: left;
+  margin-bottom: 6px;
+}
+.page-page-trusted-publishing .upsert-trusted-publisher .collapsible-example-toggle:hover {
+  text-decoration: underline;
+}
+.page-page-trusted-publishing .upsert-trusted-publisher .collapsible-example-content {
+  display: none;
+  position: relative;
+  background-color: #f8f8f8;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+.page-page-trusted-publishing .upsert-trusted-publisher .example-code {
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin-bottom: 30px;
+  font-size: 12px;
+  font-family: Consolas, Monaco, "Courier New", monospace;
+}
+.page-page-trusted-publishing .upsert-trusted-publisher .copy-button {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  padding: 3px 8px;
+  font-size: 12px;
+  background-color: #f8f8f8;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  color: #0078d4;
+}
+.page-page-trusted-publishing .upsert-trusted-publisher .copy-button:hover {
+  background-color: #f0f0f0;
+}
 .page-page-trusted-publishing .add-trusted-publisher {
   padding: 20px 0;
   border-top: 1px solid #dbdbdb;
