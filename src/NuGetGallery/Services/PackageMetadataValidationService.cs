@@ -601,8 +601,8 @@ namespace NuGetGallery
         {
             try
             {
-                var jsonObject = JObject.Parse(json);
-                return jsonObject != null && jsonObject.Type == JTokenType.Object;
+                var token = JToken.Parse(json);
+                return token != null && token.Type == JTokenType.Object;
             }
             catch (JsonReaderException)
             {
