@@ -1,10 +1,31 @@
 (function () {
     'use strict';
 
-    var ConfirmDeleteMessage = "Are you sure you want to remove the Trusted Publisher?";
-    var DeleteErrorMessage = "An error occurred while deleting the Trusted Publisher. Please try again.";
-    var CreateErrorMessage = "An error occurred while creating a new Trusted Publisher. Please try again.";
-    var EditErrorMessage = "An error occurred while editing a Trusted Publisher. Please try again.";
+    var ConfirmDeleteMessage = "Are you sure you want to remove the Trusted Publisher  Policy?";
+    var DeleteErrorMessage = "An error occurred while deleting the Trusted Publisher Policy. Please try again.";
+    var ResetErrorMessage = "An error occurred while enabling the Trusted Publisher Policy. Please try again.";
+    var CreateErrorMessage = "An error occurred while creating a new Trusted Publisher Policy. Please try again.";
+    var EditErrorMessage = "An error occurred while editing a Trusted Publisher Policy. Please try again.";
+
+    ko.bindingHandlers.trimmedValue = {
+        init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+            // Handle the initial value and user input
+            var observable = valueAccessor();
+            var interceptor = ko.pureComputed({
+                read: observable,
+                write: function(value) {
+                    observable(typeof value === "string" ? value.trim() : value);
+                }
+            });
+            
+            // Use the standard value binding with our interceptor
+            ko.bindingHandlers.value.init(element, function() { return interceptor; }, allBindings, viewModel, bindingContext);
+        },
+        update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+            // Use the standard value binding for updates
+            ko.bindingHandlers.value.update(element, valueAccessor, allBindings, viewModel, bindingContext);
+        }
+    };
 
     $(function () {
         function addAntiForgeryToken(data) {
@@ -46,24 +67,20 @@
         _gitHubDetails.Initialize = function (self) {
             // Create a gitHub object to hold all GitHub-related properties
             self.gitHub = {
-                IsGitHubIdsAvailable: ko.observable(),
-                DaysUntilPolicyDisabled: ko.observable(),
+                IsPermamentlyEnabled: ko.observable(),
+                EnabledDaysLeft: ko.observable(),
 
                 RepositoryOwner: ko.observable(),
                 PendingRepositoryOwner: ko.observable(),
                 RepositoryOwnerUid: computedUid(self, "github-repository-owner"),
 
                 RepositoryOwnerId: ko.observable(),
-                PendingRepositoryOwnerId: ko.observable(),
-                RepositoryOwnerIdUid: computedUid(self, "github-repository-owner-id"),
 
                 Repository: ko.observable(),
                 PendingRepository: ko.observable(),
                 RepositoryUid: computedUid(self, "github-repository"),
 
                 RepositoryId: ko.observable(),
-                PendingRepositoryId: ko.observable(),
-                RepositoryIdUid: computedUid(self, "github-repository-id"),
 
                 WorkflowFile: ko.observable(),
                 PendingWorkflowFile: ko.observable(),
@@ -78,30 +95,24 @@
         _gitHubDetails.Update = function (self, data) {
             const details = data.PublisherName !== "GitHub" ? {} : data.PublisherDetails || {};
             const gitHub = self.gitHub;
-            if (data.Key && !details.IsGitHubIdsAvailable) {
-                const validateBy = details.ValidateByDate;
-                const validateByDate = new Date(validateBy);
-                const currentDate = new Date();
-                const timeDiff = validateByDate.getTime() - currentDate.getTime();
-                const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
-                gitHub.IsGitHubIdsAvailable(false);
-                gitHub.DaysUntilPolicyDisabled(daysDiff);
+            if (data.Key) {
+                gitHub.IsPermamentlyEnabled(details.IsPermanentlyEnabled || false);
+                gitHub.EnabledDaysLeft(details.EnabledDaysLeft || 0);
             } else {
-                gitHub.IsGitHubIdsAvailable(true);
-                gitHub.DaysUntilPolicyDisabled(1);
+                // Ignore the IsPermanentlyEnabled and EnabledDaysLeft for new items
+                gitHub.IsPermamentlyEnabled(true);
+                gitHub.EnabledDaysLeft(1); // any positive number is okay
             }
 
             gitHub.RepositoryOwner(details.RepositoryOwner || '');
             gitHub.PendingRepositoryOwner(details.RepositoryOwner || '');
 
             gitHub.RepositoryOwnerId(details.RepositoryOwnerId || '');
-            gitHub.PendingRepositoryOwnerId(details.RepositoryOwnerId || '');
 
             gitHub.Repository(details.Repository || '');
             gitHub.PendingRepository(details.Repository || '');
 
             gitHub.RepositoryId(details.RepositoryId || '');
-            gitHub.PendingRepositoryId(details.RepositoryId || '');
 
             gitHub.WorkflowFile(details.WorkflowFile || '');
             gitHub.PendingWorkflowFile(details.WorkflowFile || '');
@@ -113,9 +124,7 @@
         _gitHubDetails.CancelEdit = function (self) {
             const gitHub = self.gitHub;
             gitHub.PendingRepositoryOwner(gitHub.RepositoryOwner());
-            gitHub.PendingRepositoryOwnerId(gitHub.RepositoryOwnerId());
             gitHub.PendingRepository(gitHub.Repository());
-            gitHub.PendingRepositoryId(gitHub.RepositoryId());
             gitHub.PendingWorkflowFile(gitHub.WorkflowFile());
             gitHub.PendingEnvironment(gitHub.Environment());
         }
@@ -149,7 +158,7 @@
             }
 
             // Check if we already have the IDs
-            if (gitHub.PendingRepositoryOwnerId() && gitHub.PendingRepositoryId()) {
+            if (gitHub.RepositoryOwnerId() && gitHub.RepositoryId()) {
                 callback();
                 return;
             }
@@ -164,8 +173,8 @@
                         existing.RepositoryOwnerId() &&
                         existing.RepositoryId()) {
 
-                        gitHub.PendingRepositoryOwnerId(existing.RepositoryOwnerId());
-                        gitHub.PendingRepositoryId(existing.RepositoryId());
+                        gitHub.RepositoryOwnerId(existing.RepositoryOwnerId());
+                        gitHub.RepositoryId(existing.RepositoryId());
                         callback();
                         return;
                     }
@@ -186,8 +195,8 @@
                 },
                 success: function (data) {
                     // Extract repository info from response
-                    gitHub.PendingRepositoryOwnerId(data.owner && data.owner.id ? data.owner.id.toString() : '');
-                    gitHub.PendingRepositoryId(data.id ? data.id.toString() : '');
+                    gitHub.RepositoryOwnerId(data.owner && data.owner.id ? data.owner.id.toString() : '');
+                    gitHub.RepositoryId(data.id ? data.id.toString() : '');
                 },
                 complete: function() {
                     callback();
@@ -196,30 +205,25 @@
         };
 
         _gitHubDetails.CreatePendingCriteria = function (self) {
+            // MUST MATCH GitHub details deserialization in GitHubPublisherDetailsViewModel.cs.
             const gitHub = self.gitHub;
             var githubData = {
                 Name: 'GitHub',
                 RepositoryOwner: gitHub.PendingRepositoryOwner() || '',
-                RepositoryOwnerId: gitHub.PendingRepositoryOwnerId() || '',
                 Repository: gitHub.PendingRepository() || '',
-                RepositoryId: gitHub.PendingRepositoryId() || '',
-                WorkflowFile: gitHub.PendingWorkflowFile() || ''
+                WorkflowFile: gitHub.PendingWorkflowFile() || '',
+                Environment: gitHub.PendingEnvironment() || ''
             };
 
-            // Include optional fields only if set
-            var repositoryOwnerId = gitHub.PendingRepositoryOwnerId();
-            if (repositoryOwnerId && repositoryOwnerId.trim()) {
+            // Include IDs only if available
+            var repositoryOwnerId = gitHub.RepositoryOwnerId();
+            if (repositoryOwnerId) {
                 githubData.RepositoryOwnerId = repositoryOwnerId;
             }
 
-            var repositoryId = gitHub.PendingRepositoryId();
-            if (repositoryId && repositoryId.trim()) {
+            var repositoryId = gitHub.RepositoryId();
+            if (repositoryId) {
                 githubData.RepositoryId = repositoryId;
-            }
-
-            var environment = gitHub.PendingEnvironment();
-            if (environment && environment.trim()) {
-                githubData.Environment = environment;
             }
 
             // Return as JSON string
@@ -379,6 +383,29 @@
                 });
             };
 
+            this.ResetValidateBy = function () {
+                // Build the request.
+                var data = {
+                    federatedCredentialKey: this.Key()
+                };
+                addAntiForgeryToken(data);
+
+                // Send the request.
+                $.ajax({
+                    url: initialData.ResetValidateByUrl,
+                    type: 'POST',
+                    dataType: 'json',
+                    data: data,
+                    success: function (newData) {
+                        parent.Error(null);
+                        self._UpdateData(newData);
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        parent.Error(ResetErrorMessage);
+                    }
+                });
+            };
+
             this.CreateOrEdit = function () {
                 if (!this.Valid()) {
                     return;
@@ -455,9 +482,9 @@
                     type: 'POST',
                     dataType: 'json',
                     data: data,
-                    success: function (data) {
+                    success: function (newData) {
                         parent.Error(null);
-                        self._UpdateData(data);
+                        self._UpdateData(newData);
                         self.CancelEdit();
                     },
                     error: function (jqXHR, textStatus, errorThrown) {

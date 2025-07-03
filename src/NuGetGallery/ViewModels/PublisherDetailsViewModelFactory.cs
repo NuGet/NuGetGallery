@@ -10,18 +10,50 @@ namespace NuGetGallery
 {
     public static class PublisherDetailsViewModelFactory
     {
-        public static PublisherDetailsViewModel FromJson(string json)
+        /// <summary>
+        /// Creates a <see cref="PublisherDetailsViewModel"/> instance from a JSON string from database.
+        /// </summary>
+        /// <remarks>
+        /// Same model can be serialized to JSON differently when passing data to JavaScript versus when storing it in SQL database.
+        /// </remarks>
+        public static PublisherDetailsViewModel FromDatabaseJson(string json)
         {
             try
             {
-                var criteriaObj = JObject.Parse(json);
-                var publisherName = criteriaObj["Name"]?.ToString();
+                var properties = JObject.Parse(json);
+                var publisherName = properties["name"]?.ToString();
                 if (!string.Equals(publisherName, "GitHub", StringComparison.OrdinalIgnoreCase))
                 {
                     return null;
                 }
 
-                return GitHubPublisherDetailsViewModel.FromJson(json);
+                return GitHubPublisherDetailsViewModel.FromDatabaseJson(json);
+            }
+            catch (JsonException)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Creates a <see cref="PublisherDetailsViewModel"/> instance from a JSON string from database.
+        /// </summary>
+        /// <remarks>
+        /// Same model can be serialized to JSON differently when passing data to JavaScript versus when storing it in SQL database.
+        /// </remarks>
+        public static PublisherDetailsViewModel FromJavaScriptJson(string json)
+        {
+            try
+            {
+                var properties = JObject.Parse(json);
+                var publisherName = properties["Name"]?.ToString();
+                if (!string.Equals(publisherName, "GitHub", StringComparison.OrdinalIgnoreCase))
+                {
+                    return null;
+                }
+
+                var model = new GitHubPublisherDetailsViewModel();
+                return model.Update(json);
             }
             catch (JsonException)
             {

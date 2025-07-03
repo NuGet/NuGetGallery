@@ -500,57 +500,6 @@ namespace NuGetGallery
             return View("ApiKeys", model);
         }
 
-        [HttpGet]
-        [UIAuthorize]
-        public virtual ActionResult TrustedPublishing()
-        {
-            User currentUser = GetCurrentUser();
-            if (!_featureFlagService.IsTrustedPublishingEnabled(currentUser))
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(Strings.DefaultUserSafeExceptionMessage);
-            }
-
-            var owners = new List<User>() { currentUser };
-            owners.AddRange(currentUser.Organizations.Select(o => o.Organization));
-            var ownerKeys = owners.Select(o => o.Key).ToArray();
-
-            // Get policies
-            var allFederatedCredentialPolicies = _federatedCredentialRepository
-                .GetPoliciesRelatedToUserKeys(ownerKeys);
-
-            var publishers = allFederatedCredentialPolicies
-                .Select(CreatePublisherViewModel)
-                .Where(p => p != null)
-                .ToList();
-
-            var model = new TrustedPublisherListViewModel
-            {
-                Username = currentUser.Username,
-                TrustedPublishers = publishers,
-                PackageOwners = owners.Select(o => o.Username).ToList(),
-            };
-
-            return View("TrustedPublishing", model);
-        }
-
-        private TrustedPublisherViewModel CreatePublisherViewModel(FederatedCredentialPolicy policy)
-        {
-            if (policy.Type != FederatedCredentialType.TrustedPublisher)
-            {
-                return null;
-            }
-
-            var publisherDetails = PublisherDetailsViewModelFactory.FromJson(policy.Criteria);
-            return new TrustedPublisherViewModel
-            {
-                Key = policy.Key,
-                PolicyName = !string.IsNullOrEmpty(policy.PolicyName) ? policy.PolicyName : $"Policy {policy.Key}",
-                Owner = policy.PackageOwner?.Username ?? GetCurrentUser().Username,
-                PublisherDetails = publisherDetails
-            };
-        }
-
         private ApiKeyOwnerViewModel CreateApiKeyOwnerViewModel(User currentUser, User account)
         {
             return new ApiKeyOwnerViewModel(
@@ -1085,6 +1034,55 @@ namespace NuGetGallery
             return View();
         }
 
+        [HttpGet]
+        [UIAuthorize]
+        public virtual ActionResult TrustedPublishing()
+        {
+            User currentUser = GetCurrentUser();
+            if (!_featureFlagService.IsTrustedPublishingEnabled(currentUser))
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.DefaultUserSafeExceptionMessage);
+            }
+
+            var userPolicies = _federatedCredentialRepository.GetPoliciesCreatedByUser(currentUser.Key);
+
+            // Filter out policies that are not trusted publishers
+            var publishers = userPolicies
+                .Select(CreatePublisherViewModel)
+                .Where(p => p != null)
+                .ToList();
+
+            var owners = new List<User>() { currentUser };
+            owners.AddRange(currentUser.Organizations.Select(o => o.Organization));
+
+            var model = new TrustedPublisherListViewModel
+            {
+                Username = currentUser.Username,
+                TrustedPublishers = publishers,
+                PackageOwners = owners.Select(o => o.Username).ToList(),
+            };
+
+            return View("TrustedPublishing", model);
+        }
+
+        private TrustedPublisherViewModel CreatePublisherViewModel(FederatedCredentialPolicy policy)
+        {
+            if (policy.Type != FederatedCredentialType.TrustedPublisher)
+            {
+                return null;
+            }
+
+            var publisherDetails = PublisherDetailsViewModelFactory.FromDatabaseJson(policy.Criteria);
+            return new TrustedPublisherViewModel
+            {
+                Key = policy.Key,
+                PolicyName = !string.IsNullOrEmpty(policy.PolicyName) ? policy.PolicyName : $"Policy {policy.Key}",
+                Owner = policy.PackageOwner?.Username ?? GetCurrentUser().Username,
+                PublisherDetails = publisherDetails
+            };
+        }
+
         [UIAuthorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -1127,7 +1125,7 @@ namespace NuGetGallery
                 return Json(Strings.AddOwner_OwnerNotFound);
             }
 
-            if (PublisherDetailsViewModelFactory.FromJson(criteria) is not PublisherDetailsViewModel publisherDetails)
+            if (PublisherDetailsViewModelFactory.FromJavaScriptJson(criteria) is not PublisherDetailsViewModel publisherDetails)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(Strings.TrustedPublisher_Unexpected);
@@ -1144,7 +1142,7 @@ namespace NuGetGallery
             {
                 Type = FederatedCredentialType.TrustedPublisher,
                 PolicyName = policyName,
-                Criteria = publisherDetails.ToJson(),
+                Criteria = publisherDetails.ToDatabaseJson(),
                 Created = DateTime.UtcNow,
                 CreatedByUserKey = currentUser.Key,
                 PackageOwnerUserKey = policyOwner.Key
@@ -1188,19 +1186,54 @@ namespace NuGetGallery
                 return Json(Strings.TrustedPublisher_Unexpected);
             }
 
-            var publisherDetails = PublisherDetailsViewModelFactory.FromJson(criteria);
-            if (publisherDetails.Validate() is string errorMessage && errorMessage.Length > 0)
+            var newDetails = model.PublisherDetails.Update(criteria);
+            if (newDetails.Validate() is string errorMessage && errorMessage.Length > 0)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(errorMessage);
             }
 
-            result.policy.Criteria = publisherDetails.ToJson();
-            model.PublisherDetails = publisherDetails;
+            result.policy.Criteria = newDetails.ToDatabaseJson();
+            model.PublisherDetails = newDetails;
 
             await _federatedCredentialRepository.SaveFederatedCredentialPolicyAsync(result.policy, saveChanges: true);
             return Json(model);
         }
+
+        [HttpPost]
+        [UIAuthorize]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<JsonResult> ResetValidateByTrustedPublisherPolicy(int? federatedCredentialKey)
+        {
+            User currentUser = GetCurrentUser();
+            if (!_featureFlagService.IsTrustedPublishingEnabled(currentUser))
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.DefaultUserSafeExceptionMessage);
+            }
+
+            var result = GetFederatedCredentialPolicy(federatedCredentialKey);
+            if (result.policy == null)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(result.error);
+            }
+
+            if (CreatePublisherViewModel(result.policy) is not TrustedPublisherViewModel model ||
+                model.PublisherDetails is not GitHubPublisherDetailsViewModel gitHubModel)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.TrustedPublisher_Unexpected);
+            }
+
+            gitHubModel.InitialieValidateByDate();
+
+            result.policy.Criteria = gitHubModel.ToDatabaseJson();
+            await _federatedCredentialRepository.SaveFederatedCredentialPolicyAsync(result.policy, saveChanges: true);
+
+            return Json(model);
+        }
+
 
         [HttpPost]
         [UIAuthorize]

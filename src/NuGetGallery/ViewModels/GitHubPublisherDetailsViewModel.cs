@@ -1,11 +1,12 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.ComponentModel.DataAnnotations;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using Newtonsoft.Json;
-using System;
+using Newtonsoft.Json.Linq;
 
 namespace NuGetGallery
 {
@@ -28,6 +29,7 @@ namespace NuGetGallery
 
         public GitHubPublisherDetailsViewModel()
         {
+            this.InitialieValidateByDate();
         }
 
         public override string Name => "GitHub";
@@ -36,63 +38,63 @@ namespace NuGetGallery
         /// GitHub organization/owner name.
         /// </summary>
         [Required]
-        public string RepositoryOwner 
-        { 
-            get => _repositoryOwner; 
-            set => _repositoryOwner = value?.Trim() ?? string.Empty; 
+        public string RepositoryOwner
+        {
+            get => _repositoryOwner;
+            set => _repositoryOwner = value?.Trim() ?? string.Empty;
         }
 
         /// <summary>
-        /// GitHub repository owner id. Obtained from GitHub API.
+        /// GitHub repository owner id. Obtained from GitHub.
         /// </summary>
-        public string RepositoryOwnerId 
-        { 
-            get => _repositoryOwnerId; 
-            set => _repositoryOwnerId = value?.Trim() ?? string.Empty; 
+        public string RepositoryOwnerId
+        {
+            get => _repositoryOwnerId;
+            set => _repositoryOwnerId = value?.Trim() ?? string.Empty;
         }
 
         /// <summary>
         /// GitHub repository name.
         /// </summary>
         [Required]
-        public string Repository 
-        { 
-            get => _repository; 
-            set => _repository = value?.Trim() ?? string.Empty; 
+        public string Repository
+        {
+            get => _repository;
+            set => _repository = value?.Trim() ?? string.Empty;
         }
 
         /// <summary>
-        /// GitHub repository id. Obtained from GitHub API.
+        /// GitHub repository id. Obtained from GitHub.
         /// </summary>
-        public string RepositoryId 
-        { 
-            get => _repositoryId; 
-            set => _repositoryId = value?.Trim() ?? string.Empty; 
+        public string RepositoryId
+        {
+            get => _repositoryId;
+            set => _repositoryId = value?.Trim() ?? string.Empty;
         }
 
         /// <summary>
         /// GitHub Action workflow file name, e.g. release.yml.
         /// </summary>
         [Required]
-        public string WorkflowFile 
-        { 
-            get => _workflowFile; 
-            set => _workflowFile = value?.Trim() ?? string.Empty; 
+        public string WorkflowFile
+        {
+            get => _workflowFile;
+            set => _workflowFile = value?.Trim() ?? string.Empty;
         }
 
         /// <summary>
         /// GitHub Action environment name, e.g. production.
         /// </summary>
-        public string Environment 
-        { 
-            get => _environment; 
-            set => _environment = value?.Trim() ?? string.Empty; 
+        public string Environment
+        {
+            get => _environment;
+            set => _environment = value?.Trim() ?? string.Empty;
         }
 
         /// <summary>
         /// GitHub policy is considered validated when owner and repo IDs are set.
         /// </summary>
-        public bool IsGitHubIdsAvailable => !string.IsNullOrEmpty(RepositoryOwnerId) && !string.IsNullOrEmpty(RepositoryId);
+        public bool IsPermanentlyEnabled => !string.IsNullOrEmpty(RepositoryOwnerId) && !string.IsNullOrEmpty(RepositoryId);
 
         /// <summary>
         /// UTC date and time when the publisher details need to be validated by.
@@ -104,23 +106,31 @@ namespace NuGetGallery
         /// </remarks>
         public DateTime? ValidateByDate { get; set; }
 
+        public int EnabledDaysLeft
+        {
+            get
+            {
+                if (this.IsPermanentlyEnabled)
+                {
+                    return int.MaxValue; // Permanently enabled, no expiration.
+                }
+
+                if (this.ValidateByDate.HasValue)
+                {
+                    var daysLeft = Math.Ceiling((this.ValidateByDate.Value - DateTime.UtcNow).TotalDays);
+                    return Math.Max((int)daysLeft, 0); // Ensure non-negative days left.
+                }
+
+                return ValidationExpirationDays;
+            }
+        }
+
         public override string Validate()
         {
             var errors = new List<string>();
 
-            if (!this.IsGitHubIdsAvailable)
-            {
-                // Make sure we have both or nothing, owner and repo IDs.
-                RepositoryOwnerId = RepositoryId = string.Empty;
+            this.InitialieValidateByDate();
 
-                // This method is called for create and update operations only. In both cases we need to reset the validation date.
-                DateTime utcNow = DateTime.UtcNow + TimeSpan.FromDays(ValidationExpirationDays);
-                this.ValidateByDate = new DateTime(utcNow.Year, utcNow.Month, utcNow.Day, utcNow.Hour, 0, 0, DateTimeKind.Utc);
-            }
-            else
-            {
-                this.ValidateByDate = null;
-            }
             if (string.IsNullOrEmpty(RepositoryOwner))
             {
                 errors.Add(Strings.GitHub_OwnerRequired);
@@ -135,18 +145,120 @@ namespace NuGetGallery
             {
                 errors.Add(Strings.GitHub_WorkflowFileRequired);
             }
-            
+
             return errors.Count > 0 ? string.Join(", ", errors) : null;
         }
 
-        public override string ToJson()
-            => JsonConvert.SerializeObject(this, Formatting.Indented,
-                new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Ignore, NullValueHandling = NullValueHandling.Ignore });
-
-        public static GitHubPublisherDetailsViewModel FromJson(string json)
+        internal void InitialieValidateByDate()
         {
-            var model = JsonConvert.DeserializeObject<GitHubPublisherDetailsViewModel>(json);
-            model.Validate();
+            if (!this.IsPermanentlyEnabled)
+            {
+                // Make sure we have both or nothing, owner and repo IDs. Round date to the next hour.
+                _repositoryOwnerId = _repositoryId = string.Empty;
+                DateTime date = DateTime.UtcNow + TimeSpan.FromDays(ValidationExpirationDays);
+                this.ValidateByDate = new DateTime(date.Year, date.Month, date.Day, date.Hour, 0, 0, DateTimeKind.Utc);
+            }
+            else
+            {
+                this.ValidateByDate = null;
+            }
+        }
+
+        public override PublisherDetailsViewModel Update(string javaScriptJson)
+        {
+            var properties = JObject.Parse(javaScriptJson);
+            var publisherName = properties["Name"]?.ToString();
+            if (!string.Equals(publisherName, "GitHub", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("Invalid publisher name. Expected 'GitHub'.");
+            }
+
+            var model = new GitHubPublisherDetailsViewModel();
+            model._repositoryOwner = _repositoryOwner;
+            model._repositoryOwnerId = _repositoryOwnerId;
+            model._repository = _repository;
+            model._repositoryId = _repositoryId;
+            model._workflowFile = _workflowFile;
+            model._environment = _environment;
+            model.ValidateByDate = ValidateByDate;
+
+            // MUST MATCH GitHub details serialization in page-trusted-publishing.js.
+            if (properties.TryGetValue(nameof(RepositoryOwner), out var owner))
+            {
+                model.RepositoryOwner = owner?.ToString();
+            }
+            if (properties.TryGetValue(nameof(RepositoryOwnerId), out var ownerId))
+            {
+                model.RepositoryOwnerId = ownerId?.ToString();
+            }
+            if (properties.TryGetValue(nameof(Repository), out var repository))
+            {
+                model.Repository = repository?.ToString();
+            }
+            if (properties.TryGetValue(nameof(RepositoryId), out var repositoryId))
+            {
+                model.RepositoryId = repositoryId?.ToString();
+            }
+            if (properties.TryGetValue(nameof(WorkflowFile), out var workflowFile))
+            {
+                model.WorkflowFile = workflowFile?.ToString();
+            }
+            if (properties.TryGetValue(nameof(Environment), out var environment))
+            {
+                model.Environment = environment?.ToString();
+            }
+
+            return model;
+        }
+
+        public override string ToDatabaseJson()
+        {
+            // When storing in database we want to serialize the object differently than when passing to JavaScript.
+            // This gives us flexibility to change the model without breaking existing data.
+            var properties = new Dictionary<string, object>
+            {
+                { "name", "GitHub" },
+                { "owner", RepositoryOwner },
+                { "repository", Repository },
+                { "workflow", WorkflowFile },
+            };
+
+            if (!string.IsNullOrEmpty(RepositoryOwnerId))
+            {
+                properties["ownerId"] = RepositoryOwnerId;
+            }
+            if (!string.IsNullOrEmpty(RepositoryId))
+            {
+                properties["repositoryId"] = RepositoryId;
+            }
+            if (!string.IsNullOrEmpty(Environment))
+            {
+                properties["environment"] = Environment;
+            }
+            if (ValidateByDate.HasValue)
+            {
+                properties["validateBy"] = ValidateByDate.Value.ToString("o"); // ISO 8601 format
+            }
+
+            // Serialize to JSON
+            string json = JsonConvert.SerializeObject(properties, Formatting.None);
+            return json;
+        }
+
+        public static GitHubPublisherDetailsViewModel FromDatabaseJson(string json)
+        {
+            var properties = JObject.Parse(json);
+            var model = new GitHubPublisherDetailsViewModel
+            {
+                RepositoryOwner = properties["owner"]?.ToString(),
+                Repository = properties["repository"]?.ToString(),
+                WorkflowFile = properties["workflow"]?.ToString(),
+                RepositoryOwnerId = properties["ownerId"]?.ToString(),
+                RepositoryId = properties["repositoryId"]?.ToString(),
+                Environment = properties["environment"]?.ToString(),
+                ValidateByDate = DateTime.TryParse(properties["validateBy"]?.ToString(), out var validateBy) ? validateBy : null,
+            };
+
             return model;
         }
     }

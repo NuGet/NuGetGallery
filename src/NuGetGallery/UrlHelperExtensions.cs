@@ -1532,6 +1532,11 @@ namespace NuGetGallery
             return GetActionLink(url, "RemoveTrustedPublisherPolicy", "Users", relativeUrl);
         }
 
+        public static string ResetValidateByTrustedPublisherPolicy(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url, "ResetValidateByTrustedPublisherPolicy", "Users", relativeUrl);
+        }
+
         public static string TransformAccount(this UrlHelper url, bool relativeUrl = true)
         {
             return GetActionLink(

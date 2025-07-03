@@ -23,6 +23,12 @@ namespace NuGetGallery
         /// <returns></returns>
         public abstract string Validate();
 
-        public abstract string ToJson();
+        /// <summary>
+        /// Creates a copy of itself and updates it with JSON data.
+        /// </summary>
+        /// <param name="javaScriptJson">A JSON string containing the updated details. Propery names match existing C# property names.</param>
+        public abstract PublisherDetailsViewModel Update(string javaScriptJson);
+
+        public abstract string ToDatabaseJson();
     }
 }
