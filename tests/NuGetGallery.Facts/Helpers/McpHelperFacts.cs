@@ -170,8 +170,12 @@ namespace NuGetGallery.Helpers
                 Assert.True(actualResult == expectedResult);
             }
 
-            [Fact]
-            public void ReturnsMissingNugetRegistry_WhenNoNugetRegistryInMetadata()
+            [Theory]
+            [InlineData(McpServerData.ServerJsonNoNugetRegistry)]
+            [InlineData(McpServerData.ServerJsonNullString)]
+            [InlineData(McpServerData.ServerJsonNullList)]
+            [InlineData(McpServerData.ServerJsonNullPackage)]
+            public void ReturnsMissingNugetRegistry_WhenNoNugetRegistryInMetadata(string metadataJson)
             {
                 // Arrange
                 var expectedResult = new McpServerEntryTemplateResult
@@ -180,7 +184,24 @@ namespace NuGetGallery.Helpers
                     Template = string.Empty,
                 };
 
-                var metadataJson = McpServerData.ServerJsonNoNugetRegistry;
+                // Act
+                var actualResult = McpHelper.CreateVsCodeMcpServerEntryTemplate(metadataJson);
+
+                // Assert
+                Assert.True(actualResult == expectedResult);
+            }
+
+            [Theory]
+            [InlineData(McpServerData.ServerJsonNullPackageArgument)]
+            [InlineData(McpServerData.ServerJsonNonTypedPackageArgs)]
+            public void ReturnsInvalid_WhenMetadataIsMalformed(string metadataJson)
+            {
+                // Arrange
+                var expectedResult = new McpServerEntryTemplateResult
+                {
+                    Validity = McpServerEntryResultValidity.InvalidMetadata,
+                    Template = string.Empty,
+                };
 
                 // Act
                 var actualResult = McpHelper.CreateVsCodeMcpServerEntryTemplate(metadataJson);
@@ -191,7 +212,12 @@ namespace NuGetGallery.Helpers
 
             [Theory]
             [InlineData(McpServerData.ServerJsonValid, McpServerData.McpJsonValid)]
-            [InlineData(McpServerData.ServerJsonNoArgsAndEnv, McpServerData.McpJsonNoArgsAndEnv)]
+            [InlineData(McpServerData.ServerJsonEmptyArgsAndEnv, McpServerData.McpJsonMinimal)]
+            [InlineData(McpServerData.ServerJsonNoArgsAndEnv, McpServerData.McpJsonMinimal)]
+            [InlineData(McpServerData.ServerJsonNoNamedArgValues, McpServerData.McpJsonMinimal)]
+            [InlineData(McpServerData.ServerJsonNoPositionalArgValues, McpServerData.McpJsonMinimal)]
+            [InlineData(McpServerData.ServerJsonNoEnvVarValues, McpServerData.McpJsonMinimal)]
+            [InlineData(McpServerData.ServerJsonNullEnvVar, McpServerData.McpJsonMinimal)]
             public void ReturnsSuccess_WhenMetadataIsValid(string metadataJson, string vsCodeTemplateJson)
             {
                 // Arrange
@@ -217,6 +243,7 @@ namespace NuGetGallery.Helpers
                 // Arrange
                 var envVars = new List<EnvironmentVariable>
                 {
+                    null,
                     new() { Name = "USER", Description = "User name" },
                     new() { Name = "TOKEN", Description = "Access token" }
                 };
@@ -239,6 +266,7 @@ namespace NuGetGallery.Helpers
                 // Arrange
                 var envVars = new List<EnvironmentVariable>
                 {
+                    null,
                     new() { Name = "USER", Description = "User name" },
                     new() { Name = "TOKEN", Description = "Access token", IsSecret = true },
                     new() { Name = "HOST", Description = "Database host", Default = "localhost" },
@@ -283,6 +311,7 @@ namespace NuGetGallery.Helpers
                 // Arrange
                 var args = new List<Argument>
                 {
+                    null,
                     new PositionalArgument()
                     {
                         Type = "positional",
@@ -298,6 +327,7 @@ namespace NuGetGallery.Helpers
                     new NamedArgument()
                     {
                         Type = "named",
+                        Description = "Second arg",
                         Name = "secondArg",
                     }
                 };

@@ -88,7 +88,7 @@ namespace NuGetGallery.Services.Helpers
                 };
             }
 
-            var nugetPackage = mcpServerMetadata.Packages.FirstOrDefault(p => p.RegistryName?.ToLowerInvariant() == "nuget");
+            var nugetPackage = mcpServerMetadata.Packages.FirstOrDefault(p => p != null && p.RegistryName?.ToLowerInvariant() == "nuget");
             if (nugetPackage == null)
             {
                 return new McpServerEntryTemplateResult
@@ -149,9 +149,24 @@ namespace NuGetGallery.Services.Helpers
         {
             var env = new Dictionary<string, string>();
 
+            if (envVars == null || envVars.Count == 0)
+            {
+                return env;
+            }
+
             var inputId = 1;
             foreach (var envVar in envVars)
             {
+                if (envVar == null)
+                {
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(envVar.Name))
+                {
+                    continue;
+                }
+
                 env[envVar.Name] = $"${{input:input-{inputId++}}}";
             }
 
@@ -162,9 +177,24 @@ namespace NuGetGallery.Services.Helpers
         {
             var result = new List<VsCodeInput>();
 
+            if (envVars == null || envVars.Count == 0)
+            {
+                return result;
+            }
+
             int inputId = 1;
             foreach (var envVar in envVars)
             {
+                if (envVar == null)
+                {
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(envVar.Name))
+                {
+                    continue;
+                }
+
                 var type = "promptString";
                 if (envVar.Choices != null && envVar.Choices.Count > 0)
                 {
@@ -195,9 +225,19 @@ namespace NuGetGallery.Services.Helpers
         {
             var result = new List<VsCodeInput>();
 
+            if (arguments == null || arguments.Count == 0)
+            {
+                return result;
+            }
+
             int inputId = startId;
             foreach (var arg in arguments)
             {
+                if (arg == null || string.IsNullOrWhiteSpace(arg.Description))
+                {
+                    continue;
+                }
+
                 var type = "promptString";
                 if (arg.Choices != null && arg.Choices.Count > 0)
                 {
