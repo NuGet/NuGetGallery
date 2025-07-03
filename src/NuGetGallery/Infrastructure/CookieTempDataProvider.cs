@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Net;
 using System.Web;
 using System.Web.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace NuGetGallery
 {
@@ -56,6 +57,11 @@ namespace NuGetGallery
             try
             {
                 cookie = _httpContext.Request.Cookies[TempDataCookieKey];
+                /*cookie = new HttpCookie("__Controller::TempData");
+                cookie["Message"] = HttpUtility.UrlEncode("Hello");
+                cookie["Count"] = HttpUtility.UrlEncode("5");
+                _httpContext.Request.Cookies.Add(cookie);*/
+
             }
             catch (HttpRequestValidationException ex)
             {
@@ -68,6 +74,12 @@ namespace NuGetGallery
             var dictionary = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
             if ((cookie == null) || String.IsNullOrEmpty(cookie.Value))
             {
+                if (cookie == null)
+                {
+                    Console.WriteLine("Cookie not found");
+                    return null;
+                }
+                Console.WriteLine("Cookie value: " + cookie.Value);
                 return dictionary;
             }
 
