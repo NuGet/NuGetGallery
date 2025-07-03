@@ -1143,19 +1143,20 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData(false, false, null, McpServerEntryResultValidity.Unset, "")]
-            [InlineData(true, true, null, McpServerEntryResultValidity.MissingMetadata, "")]
-            [InlineData(true, true, "", McpServerEntryResultValidity.MissingMetadata, "")]
-            [InlineData(true, true, "{}", McpServerEntryResultValidity.MissingNugetRegistry, "")]
-            [InlineData(true, true, McpServerData.ServerJsonNoPackages, McpServerEntryResultValidity.MissingNugetRegistry, "")]
-            [InlineData(true, true, McpServerData.ServerJsonNoNugetRegistry, McpServerEntryResultValidity.MissingNugetRegistry, "")]
-            [InlineData(true, true, McpServerData.ServerJsonValid, McpServerEntryResultValidity.Success, McpServerData.McpJsonValid)]
+            [InlineData(false, false, null, McpServerEntryResultValidity.Unset, "", false)]
+            [InlineData(true, true, null, McpServerEntryResultValidity.MissingMetadata, "", true)]
+            [InlineData(true, true, "", McpServerEntryResultValidity.MissingMetadata, "", true)]
+            [InlineData(true, true, "{}", McpServerEntryResultValidity.MissingNugetRegistry, "", true)]
+            [InlineData(true, true, McpServerData.ServerJsonNoPackages, McpServerEntryResultValidity.MissingNugetRegistry, "", true)]
+            [InlineData(true, true, McpServerData.ServerJsonNoNugetRegistry, McpServerEntryResultValidity.MissingNugetRegistry, "", true)]
+            [InlineData(true, true, McpServerData.ServerJsonValid, McpServerEntryResultValidity.Success, McpServerData.McpJsonValid, true)]
             public async Task HandlesMcpServerMetadata(
                 bool includeMcpServer,
                 bool includeDotNetTool,
                 string mcpServerMetadata,
                 McpServerEntryResultValidity expectedValidity,
-                string expectedTemplate)
+                string expectedTemplate,
+                bool shouldDisplayMcpPackageTab)
             {
                 var packageService = new Mock<IPackageService>();
                 var indexingService = new Mock<IIndexingService>();
@@ -1224,6 +1225,7 @@ namespace NuGetGallery
 
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal(model.VsCodeMcpServerEntryTemplate, expectedResult);
+                Assert.Equal(model.CanDisplayMcpServerPackageTab(), shouldDisplayMcpPackageTab);
             }
 
             [Fact]
