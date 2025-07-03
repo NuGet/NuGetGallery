@@ -96,7 +96,7 @@
             if (validity == McpServerEntryResultValidity.Success)
             {
                 alertLevel = AlertLevel.Info;
-                alertMessage = "This package contains an <a href='https://aka.ms/vscode-mcp-server'>MCP Server</a>. You can install it in VS Code.";
+                alertMessage = "This package contains an <a href='https://aka.ms/vscode-mcp-server'>MCP Server</a>. The server can be used in VS Code by copying the generated JSON to your VS Code workspace's <code>.vscode/mcp.json</code> settings file.";
                 vsCodeEntryTemplate = !string.IsNullOrEmpty(Model.VsCodeMcpServerEntryTemplate.Template) ? template.Replace(McpHelper.McpServerPackageIdPlaceholder, Model.Id) : string.Empty;
                 copyEnabled = true;
             }
