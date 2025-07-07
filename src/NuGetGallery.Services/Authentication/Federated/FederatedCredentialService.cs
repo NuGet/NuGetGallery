@@ -61,7 +61,7 @@ namespace NuGetGallery.Services.Authentication
         private readonly IFederatedCredentialConfiguration _configuration;
         private readonly IGalleryConfigurationService _galleryConfigurationService;
 
-        private readonly IDictionary<string, char> _galleryToApiKeyV5EnvironmentMappings = new Dictionary<string, char>
+        private static readonly IReadOnlyDictionary<string, char> GalleryToApiKeyV5EnvironmentMappings = new Dictionary<string, char>(StringComparer.OrdinalIgnoreCase)
         {
             { ServicesConstants.DevelopmentEnvironment, ApiKeyV5.KnownEnvironments.Local },
             { ServicesConstants.DevEnvironment, ApiKeyV5.KnownEnvironments.Development },
@@ -191,7 +191,7 @@ namespace NuGetGallery.Services.Authentication
             }
 
             var apiKeyV5Environment = ApiKeyV5.KnownEnvironments.Local;
-            if (_galleryToApiKeyV5EnvironmentMappings.TryGetValue(_galleryConfigurationService.Current.Environment, out var value))
+            if (GalleryToApiKeyV5EnvironmentMappings.TryGetValue(_galleryConfigurationService.Current.Environment, out var value))
             {
                 apiKeyV5Environment = value;
             }
@@ -200,7 +200,7 @@ namespace NuGetGallery.Services.Authentication
                 _configuration.ShortLivedApiKeyDuration,
                 policyEvaluation.MatchedPolicy,
                 apiKeyV5Environment,
-                _featureFlagService.IsApiKeyV5Enabled(packageOwner),
+                _featureFlagService.IsApiKeyV5EnabledForOIDC(packageOwner),
                 out var plaintextApiKey);
 
             if (!_credentialBuilder.VerifyScopes(currentUser, apiKeyCredential.Scopes))

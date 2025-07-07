@@ -142,6 +142,6 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
 
         public bool IsProfileLoadOptimizationEnabled() => throw new NotImplementedException();
 
-        public bool IsApiKeyV5Enabled(User user) => throw new NotImplementedException();
+        public bool IsApiKeyV5EnabledForOIDC(User user) => throw new NotImplementedException();
     }
 }

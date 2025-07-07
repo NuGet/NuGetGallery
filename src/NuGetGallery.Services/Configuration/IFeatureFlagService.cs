@@ -358,8 +358,8 @@ namespace NuGetGallery
         bool IsProfileLoadOptimizationEnabled();
 
         /// <summary>
-        /// Whether or not Api Key V5 is enabled for a package owner.
+        /// Whether or not Api Key V5 is used for OIDC.
         /// </summary>
-        bool IsApiKeyV5Enabled(User user);
+        bool IsApiKeyV5EnabledForOIDC(User user);
     }
 }
