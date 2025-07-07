@@ -63,8 +63,6 @@ namespace NuGetGallery
         private const int MaxAllowedLicenseNodeValueLength = 500;
         // 1 MB Keep consistent with icon, license for now, change value later once we define the size
         private const int MaxAllowedReadmeLengthForUploading = GalleryConstants.MaxFileLengthBytes;
-        // The database column has a max length of 20,000 characters and we'll assume 1 byte each
-        private const int MaxAllowedMcpServerMetadataLengthForUploading = 20_000;
 
         private const string LicenseNodeName = "license";
         private const string IconNodeName = "icon";
@@ -577,13 +575,13 @@ namespace NuGetGallery
                         metadataFilePath));
             }
 
-            if (mcpServerMetadata.Length > MaxAllowedMcpServerMetadataLengthForUploading)
+            if (mcpServerMetadata.Length > McpHelper.McpServerMetadataMaxLength)
             {
                 return PackageValidationResult.Invalid(
                     string.Format(
                         Strings.McpServerMetadataTooLong,
                         metadataFilePath,
-                        MaxAllowedMcpServerMetadataLengthForUploading.ToUserFriendlyBytesLabel()));
+                        McpHelper.McpServerMetadataMaxLength.ToUserFriendlyBytesLabel()));
             }
 
             if (!IsValidJsonObject(mcpServerMetadata))

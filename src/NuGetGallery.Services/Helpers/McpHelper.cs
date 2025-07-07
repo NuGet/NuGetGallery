@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -18,6 +19,8 @@ namespace NuGetGallery.Services.Helpers
         public const string McpServerPackageTypeName = "McpServer";
         public const string McpServerMetadataFilePath = @".mcp/server.json";
         public const string McpServerPackageIdPlaceholder = "%%PACKAGE_ID_PLACEHOLDER%%";
+
+        public const int McpServerMetadataMaxLength = 20_000;
 
         public static bool IsMcpServerPackage(PackageArchiveReader packageArchive)
         {
@@ -39,15 +42,17 @@ namespace NuGetGallery.Services.Helpers
         public static string ReadMcpServerMetadata(PackageArchiveReader packageArchive)
         {
             using var stream = packageArchive.GetStream(McpServerMetadataFilePath);
-            using var reader = new StreamReader(stream);
-            return reader.ReadToEnd();
+            using var truncatedStream = StreamHelper.GetTruncatedStreamWithMaxSize(stream, McpServerMetadataMaxLength);
+
+            return Encoding.UTF8.GetString(truncatedStream.Stream.GetBuffer(), 0, (int)truncatedStream.Stream.Length);
         }
 
         public static async Task<string> ReadMcpServerMetadataAsync(PackageArchiveReader packageArchive)
         {
-            using var stream = await packageArchive.GetStreamAsync(McpServerMetadataFilePath, CancellationToken.None);
-            using var reader = new StreamReader(stream);
-            return await reader.ReadToEndAsync();
+            using var stream = packageArchive.GetStream(McpServerMetadataFilePath);
+            using var truncatedStream = await StreamHelper.GetTruncatedStreamWithMaxSizeAsync(stream, McpServerMetadataMaxLength);
+
+            return Encoding.UTF8.GetString(truncatedStream.Stream.GetBuffer(), 0, (int)truncatedStream.Stream.Length);
         }
 
         public static McpServerEntryTemplateResult CreateVsCodeMcpServerEntryTemplate(string metadataJson)
