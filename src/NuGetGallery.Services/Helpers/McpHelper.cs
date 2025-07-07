@@ -110,7 +110,7 @@ namespace NuGetGallery.Services.Helpers
             {
                 Type = "stdio",
                 Command = "dnx",
-                Args = [packageId, "--", "mcp", "start"],
+                Args = [packageId, "--version", packageVersion, "--yes"],
                 Env = env,
             };
 
