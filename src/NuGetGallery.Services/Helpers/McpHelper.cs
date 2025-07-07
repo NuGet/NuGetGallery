@@ -70,8 +70,7 @@ namespace NuGetGallery.Services.Helpers
             {
                 mcpServerMetadata = JsonConvert.DeserializeObject<McpServerMetadata>(
                     metadataJson,
-                    new ArgumentConverter(),
-                    new RuntimeArgumentConverter());
+                    new ArgumentConverter());
             }
             catch(JsonException)
             {

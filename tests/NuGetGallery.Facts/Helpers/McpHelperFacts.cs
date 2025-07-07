@@ -321,19 +321,13 @@ namespace NuGetGallery.Helpers
                     {
                         Type = "positional",
                         Description = "First arg",
-                        Value = "arg1",
-                        IsRequired = true,
-                        IsRepeated = false,
-                        Format = "string",
                         Choices = ["1", "2", "3"],
-                        ValueHint = "Enter first arg",
                         Default = "default1"
                     },
                     new NamedArgument()
                     {
                         Type = "named",
                         Description = "Second arg",
-                        Name = "secondArg",
                     }
                 };
                 int startId = 2;
