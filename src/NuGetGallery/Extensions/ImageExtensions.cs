@@ -3,8 +3,6 @@
 
 using System.IO;
 using System.Threading.Tasks;
-using NuGetGallery.Helpers;
-using NuGetGallery.Services.Helpers;
 
 namespace NuGetGallery
 {

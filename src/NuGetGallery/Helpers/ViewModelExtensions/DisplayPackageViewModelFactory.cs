@@ -9,7 +9,6 @@ using NuGet.Versioning;
 using NuGetGallery.Frameworks;
 using NuGetGallery.Helpers;
 using NuGetGallery.Services.Helpers;
-using NuGetGallery.Services.Models;
 
 namespace NuGetGallery
 {
