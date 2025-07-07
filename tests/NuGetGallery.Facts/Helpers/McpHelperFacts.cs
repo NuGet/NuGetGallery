@@ -16,6 +16,9 @@ namespace NuGetGallery.Helpers
 {
     public class McpHelperFacts
     {
+        private const string TestPackageId = "Test.McpServer";
+        private const string TestPackageVersion = "1.0.0";
+
         public class IsMcpServerPackageMethod
         {
             [Fact]
@@ -24,8 +27,8 @@ namespace NuGetGallery.Helpers
                 // Arrange
                 var packageTypes = new List<PackageType>
                 {
-                    new("DotnetTool", new Version("1.0.0")),
-                    new("McpServer", new Version("1.0.0")),
+                    new("DotnetTool", new Version(TestPackageVersion)),
+                    new("McpServer", new Version(TestPackageVersion)),
                 };
                 var packageStream = PackageServiceUtility.CreateNuGetPackageStream(packageTypes: packageTypes);
                 var package = PackageServiceUtility.CreateNuGetPackage(packageStream);
@@ -43,7 +46,7 @@ namespace NuGetGallery.Helpers
                 // Arrange
                 var packageTypes = new List<PackageType>
                 {
-                    new("McpServer", new Version("1.0.0")),
+                    new("McpServer", new Version(TestPackageVersion)),
                 };
                 var packageStream = PackageServiceUtility.CreateNuGetPackageStream(packageTypes: packageTypes);
                 var package = PackageServiceUtility.CreateNuGetPackage(packageStream);
@@ -61,7 +64,7 @@ namespace NuGetGallery.Helpers
                 // Arrange
                 var packageTypes = new List<PackageType>
                 {
-                    new("DotnetTool", new Version("1.0.0")),
+                    new("DotnetTool", new Version(TestPackageVersion)),
                 };
                 var packageStream = PackageServiceUtility.CreateNuGetPackageStream(packageTypes: packageTypes);
                 var package = PackageServiceUtility.CreateNuGetPackage(packageStream);
@@ -166,7 +169,7 @@ namespace NuGetGallery.Helpers
                 };
 
                 // Act
-                var actualResult = McpHelper.CreateVsCodeMcpServerEntryTemplate(metadataJson);
+                var actualResult = McpHelper.CreateVsCodeMcpServerEntryTemplate(metadataJson, TestPackageId, TestPackageVersion);
 
                 // Assert
                 Assert.True(actualResult == expectedResult);
@@ -187,7 +190,7 @@ namespace NuGetGallery.Helpers
                 };
 
                 // Act
-                var actualResult = McpHelper.CreateVsCodeMcpServerEntryTemplate(metadataJson);
+                var actualResult = McpHelper.CreateVsCodeMcpServerEntryTemplate(metadataJson, TestPackageId, TestPackageVersion);
 
                 // Assert
                 Assert.True(actualResult == expectedResult);
@@ -206,7 +209,7 @@ namespace NuGetGallery.Helpers
                 };
 
                 // Act
-                var actualResult = McpHelper.CreateVsCodeMcpServerEntryTemplate(metadataJson);
+                var actualResult = McpHelper.CreateVsCodeMcpServerEntryTemplate(metadataJson, TestPackageId, TestPackageVersion);
 
                 // Assert
                 Assert.True(actualResult == expectedResult);
@@ -230,7 +233,7 @@ namespace NuGetGallery.Helpers
                 };
 
                 // Act
-                var actualResult = McpHelper.CreateVsCodeMcpServerEntryTemplate(metadataJson);
+                var actualResult = McpHelper.CreateVsCodeMcpServerEntryTemplate(metadataJson, TestPackageId, TestPackageVersion);
 
                 // Assert
                 Assert.True(actualResult == expectedResult);

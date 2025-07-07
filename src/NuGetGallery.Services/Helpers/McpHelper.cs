@@ -18,7 +18,6 @@ namespace NuGetGallery.Services.Helpers
     {
         public const string McpServerPackageTypeName = "McpServer";
         public const string McpServerMetadataFilePath = @".mcp/server.json";
-        public const string McpServerPackageIdPlaceholder = "%%PACKAGE_ID_PLACEHOLDER%%";
 
         public const int McpServerMetadataMaxLength = 20_000;
 
@@ -55,7 +54,7 @@ namespace NuGetGallery.Services.Helpers
             return Encoding.UTF8.GetString(truncatedStream.Stream.GetBuffer(), 0, (int)truncatedStream.Stream.Length);
         }
 
-        public static McpServerEntryTemplateResult CreateVsCodeMcpServerEntryTemplate(string metadataJson)
+        public static McpServerEntryTemplateResult CreateVsCodeMcpServerEntryTemplate(string metadataJson, string packageId, string packageVersion)
         {
             if (string.IsNullOrWhiteSpace(metadataJson))
             {
@@ -111,7 +110,7 @@ namespace NuGetGallery.Services.Helpers
             {
                 Type = "stdio",
                 Command = "dnx",
-                Args = [McpServerPackageIdPlaceholder, "--", "mcp", "start"],
+                Args = [packageId, "--", "mcp", "start"],
                 Env = env,
             };
 
@@ -120,7 +119,7 @@ namespace NuGetGallery.Services.Helpers
                 Inputs = inputs,
                 Servers = new Dictionary<string, VsCodeServer>
                 {
-                    { McpServerPackageIdPlaceholder, server },
+                    { packageId, server },
                 }
             };
 
