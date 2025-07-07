@@ -892,18 +892,15 @@ namespace NuGetGallery
 
             if (mcpPackageType != null)
             {
-                string minifiedMetadataJson;
                 try
                 {
                     var parsedMetadata = JToken.Parse(metadataJson);
-                    minifiedMetadataJson = parsedMetadata.ToString(Formatting.None);
+                    mcpPackageType.CustomData = parsedMetadata.ToString(Formatting.None);
                 }
                 catch (JsonReaderException)
                 {
                     return packageTypes;
                 }
-
-                mcpPackageType.CustomData = minifiedMetadataJson;
             }
 
             return packageTypes;
