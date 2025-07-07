@@ -212,18 +212,12 @@ namespace NuGetGallery.Services.Helpers
                     type = "pickString";
                 }
 
-                var isPassword = false;
-                if (envVar.IsSecret.HasValue)
-                {
-                    isPassword = envVar.IsSecret.Value;
-                }
-
                 result.Add(new VsCodeInput
                 {
                     Type = type,
                     Id = $"input-{inputId++}",
                     Description = envVar.Description,
-                    Password = isPassword,
+                    Password = envVar.IsSecret ?? false,
                     Default = envVar.Default,
                     Choices = envVar.Choices,
                 });
