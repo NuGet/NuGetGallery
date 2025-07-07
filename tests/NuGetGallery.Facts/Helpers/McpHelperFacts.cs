@@ -159,6 +159,7 @@ namespace NuGetGallery.Helpers
             [Theory]
             [InlineData(null)]
             [InlineData("")]
+            [InlineData(" ")]
             public void ReturnsMissingMetadata_WhenMetadataIsNullOrWhiteSpace(string metadataJson)
             {
                 // Arrange
