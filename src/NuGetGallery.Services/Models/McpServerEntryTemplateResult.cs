@@ -36,7 +36,7 @@ namespace NuGetGallery.Services.Models
             {
                 int hash = 17;
                 hash = hash * 23 + Validity.GetHashCode();
-                hash = hash * 23 + (Template != null ? Template.GetHashCode() : 0);
+                hash = hash * 23 + Template?.GetHashCode() ?? 0;
                 return hash;
             }
         }
