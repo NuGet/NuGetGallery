@@ -8,10 +8,10 @@ namespace NuGetGallery.TestData
         public const string McpJsonMinimal = @"{
   ""inputs"": [],
   ""servers"": {
-    ""%%PACKAGE_ID_PLACEHOLDER%%"": {
+    ""Test.McpServer"": {
       ""type"": ""stdio"",
       ""command"": ""dnx"",
-      ""args"": [""%%PACKAGE_ID_PLACEHOLDER%%"", ""--"", ""mcp"", ""start""],
+      ""args"": [""Test.McpServer"", ""--version"", ""1.0.0"", ""--yes""],
       ""env"": {}
     }
   }
@@ -122,10 +122,10 @@ namespace NuGetGallery.TestData
     }
   ],
   ""servers"": {
-    ""%%PACKAGE_ID_PLACEHOLDER%%"": {
+    ""Foo"": {
       ""type"": ""stdio"",
       ""command"": ""dnx"",
-      ""args"": [""%%PACKAGE_ID_PLACEHOLDER%%"", ""--"", ""mcp"", ""start""],
+      ""args"": [""Foo"", ""--version"", ""1.0.0"", ""--yes"", ""--"", ""--host"", ""${input:input-4}"", ""--port"", ""${input:input-5}"", ""input-${input:input-6}""],
       ""env"": {
         ""DB_USERNAME"": ""${input:input-1}"",
         ""DB_PASSWORD"": ""${input:input-2}"",

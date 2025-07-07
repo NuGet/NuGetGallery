@@ -349,5 +349,43 @@ namespace NuGetGallery.Helpers
                 Assert.Equal("input-3", result[1].Id);
             }
         }
+
+        public class MapArgumentsToArgs
+        {
+            [Fact]
+            public void MapsArgumentsToArgsWithCorrectStartId()
+            {
+                // Arrange
+                var args = new List<Argument>
+                {
+                    null,
+                    new PositionalArgument()
+                    {
+                        Type = "positional",
+                        Description = "First arg",
+                        Choices = ["1", "2", "3"],
+                        Default = "default1"
+                    },
+                    new NamedArgument()
+                    {
+                        Type = "named",
+                        Description = "Second arg",
+                        Name = "secondArg"
+                    }
+                };
+
+                int startId = 2;
+
+                // Act
+                var result = McpHelper.MapArgumentsToArgs(args, startId);
+
+                // Assert
+                Assert.Equal(3, result.Count);
+
+                Assert.Equal("--secondArg", result[0]);
+                Assert.Equal("${input:input-2}", result[1]);
+                Assert.Equal("${input:input-3}", result[2]);
+            }
+        }
     }
 }

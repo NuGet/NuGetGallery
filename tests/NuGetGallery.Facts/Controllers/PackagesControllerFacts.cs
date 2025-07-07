@@ -1158,14 +1158,10 @@ namespace NuGetGallery
                 string expectedTemplate,
                 bool shouldDisplayMcpPackageTab)
             {
+                var version = "1.0.0";
+
                 var packageService = new Mock<IPackageService>();
-                var indexingService = new Mock<IIndexingService>();
-                var fileService = new Mock<IPackageFileService>();
-                var controller = CreateController(
-                    GetConfigurationService(),
-                    packageService: packageService,
-                    indexingService: indexingService,
-                    packageFileService: fileService);
+                var controller = CreateController(GetConfigurationService(), packageService: packageService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var packageTypes = new List<PackageType>();
@@ -1190,8 +1186,8 @@ namespace NuGetGallery
                 var id = "Foo";
                 var package = new Package
                 {
-                    Version = "1.0.0",
-                    NormalizedVersion = "1.0.0",
+                    Version = version,
+                    NormalizedVersion = version,
                     PackageRegistration = new PackageRegistration
                     {
                         Id = id,
@@ -1213,9 +1209,7 @@ namespace NuGetGallery
                     .Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
                     .Returns(package);
 
-                indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
-
-                var result = await controller.DisplayPackage(id, /*version*/null);
+                var result = await controller.DisplayPackage(id, /*version*/version);
 
                 McpServerEntryTemplateResult expectedResult = new McpServerEntryTemplateResult
                 {

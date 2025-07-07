@@ -55,6 +55,9 @@ namespace NuGetGallery.Services.Models
     public class NamedArgument : Argument
     {
         public NamedArgument() { Type = "named"; }
+
+        [JsonProperty("name")]
+        public string Name { get; set; }
     }
 
     public class EnvironmentVariable

@@ -41,7 +41,7 @@ namespace NuGetGallery.Services.Helpers
         public static string ReadMcpServerMetadata(PackageArchiveReader packageArchive)
         {
             using var stream = packageArchive.GetStream(McpServerMetadataFilePath);
-            using var truncatedStream = StreamHelper.GetTruncatedStreamWithMaxSize(stream, McpServerMetadataMaxLength);
+            using var truncatedStream = StreamHelper.GetTruncatedStreamWithMaxSize(stream, McpServerMetadataMaxLength + 1);
 
             return Encoding.UTF8.GetString(truncatedStream.Stream.GetBuffer(), 0, (int)truncatedStream.Stream.Length);
         }
@@ -49,7 +49,7 @@ namespace NuGetGallery.Services.Helpers
         public static async Task<string> ReadMcpServerMetadataAsync(PackageArchiveReader packageArchive)
         {
             using var stream = packageArchive.GetStream(McpServerMetadataFilePath);
-            using var truncatedStream = await StreamHelper.GetTruncatedStreamWithMaxSizeAsync(stream, McpServerMetadataMaxLength);
+            using var truncatedStream = await StreamHelper.GetTruncatedStreamWithMaxSizeAsync(stream, McpServerMetadataMaxLength + 1);
 
             return Encoding.UTF8.GetString(truncatedStream.Stream.GetBuffer(), 0, (int)truncatedStream.Stream.Length);
         }
@@ -105,11 +105,20 @@ namespace NuGetGallery.Services.Helpers
             var argInputs = MapArgumentsToInputs(nugetPackage.PackageArguments, envInputs.Count + 1);
             var inputs = envInputs.Concat(argInputs).ToList();
 
+            var argArgs = MapArgumentsToArgs(nugetPackage.PackageArguments, envInputs.Count + 1);
+            var args = new List<string> { packageId, "--version", packageVersion, "--yes" };
+
+            if (argArgs.Count > 0)
+            {
+                args.Add("--");
+                args.AddRange(argArgs);
+            }
+
             var server = new VsCodeServer
             {
                 Type = "stdio",
                 Command = "dnx",
-                Args = [packageId, "--version", packageVersion, "--yes"],
+                Args = args,
                 Env = env,
             };
 
@@ -246,6 +255,33 @@ namespace NuGetGallery.Services.Helpers
                     type = "pickString";
                 }
 
+                if (arg.Type == "named")
+                {
+                    var namedArg = arg as NamedArgument;
+                    result.Add(new VsCodeInput
+                    {
+                        Type = type,
+                        Id = $"input-{inputId++}",
+                        Description = namedArg.Description,
+                        Password = false,
+                        Choices = namedArg.Choices,
+                    });
+                }
+            }
+
+            foreach (var arg in arguments)
+            {
+                if (arg == null || string.IsNullOrWhiteSpace(arg.Description))
+                {
+                    continue;
+                }
+
+                var type = "promptString";
+                if (arg.Choices != null && arg.Choices.Count > 0)
+                {
+                    type = "pickString";
+                }
+
                 if (arg.Type == "positional")
                 {
                     var positionalArg = arg as PositionalArgument;
@@ -259,17 +295,59 @@ namespace NuGetGallery.Services.Helpers
                         Choices = positionalArg.Choices,
                     });
                 }
-                else if (arg.Type == "named")
+            }
+
+            return result;
+        }
+
+        public static List<string> MapArgumentsToArgs(List<Argument> arguments, int startId)
+        {
+            var result = new List<string>();
+
+            if (arguments == null || arguments.Count == 0)
+            {
+                return result;
+            }
+
+            int inputId = startId;
+            foreach (var arg in arguments)
+            {
+                if (arg == null || string.IsNullOrWhiteSpace(arg.Description))
+                {
+                    continue;
+                }
+
+                if (arg.Type == "named")
                 {
                     var namedArg = arg as NamedArgument;
-                    result.Add(new VsCodeInput
+
+                    if (string.IsNullOrWhiteSpace(namedArg.Name))
                     {
-                        Type = type,
-                        Id = $"input-{inputId++}",
-                        Description = namedArg.Description,
-                        Password = false,
-                        Choices = namedArg.Choices,
-                    });
+                        continue;
+                    }
+
+                    var name = namedArg.Name;
+                    if (!name.StartsWith("--", StringComparison.Ordinal))
+                    {
+                        name = "--" + name;
+                    }
+
+                    result.Add($"{namedArg.Name}");
+                    result.Add($"${{input:input-{inputId++}}}");
+                }
+            }
+
+            foreach (var arg in arguments)
+            {
+                if (arg == null || string.IsNullOrWhiteSpace(arg.Description))
+                {
+                    continue;
+                }
+
+                if (arg.Type == "positional")
+                {
+                    var positionalArg = arg as PositionalArgument;
+                    result.Add($"${{input:input-{inputId++}}}");
                 }
             }
 
