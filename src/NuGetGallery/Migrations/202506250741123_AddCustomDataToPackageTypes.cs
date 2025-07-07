@@ -9,7 +9,7 @@ namespace NuGetGallery.Migrations
             AddColumn(
                 "dbo.PackageTypes",
                 "CustomData",
-                c => c.String(maxLength: 20_000)
+                c => c.String()
             );
         }
 
