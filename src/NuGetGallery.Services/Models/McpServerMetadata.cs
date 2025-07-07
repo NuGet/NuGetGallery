@@ -26,12 +26,6 @@ namespace NuGetGallery.Services.Models
         public List<EnvironmentVariable> EnvironmentVariables { get; set; }
     }
 
-    public abstract class RuntimeArgument
-    {
-        [JsonProperty("type")]
-        public string Type { get; set; }
-    }
-
     public abstract class Argument
     {
         [JsonProperty("type")]
