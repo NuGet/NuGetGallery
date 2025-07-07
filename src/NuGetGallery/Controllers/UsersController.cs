@@ -24,7 +24,6 @@ using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Security;
 using NuGetGallery.Services.Authentication;
-using Polly;
 
 namespace NuGetGallery
 {
@@ -1051,7 +1050,7 @@ namespace NuGetGallery
             var publishers = userPolicies
                 .Select(CreatePublisherViewModel)
                 .Where(p => p != null)
-                .ToList();
+                .ToArray();
 
             var owners = new List<User>() { currentUser };
             owners.AddRange(currentUser.Organizations.Select(o => o.Organization));
@@ -1060,7 +1059,7 @@ namespace NuGetGallery
             {
                 Username = currentUser.Username,
                 Policies = publishers,
-                PackageOwners = owners.Select(o => o.Username).ToList(),
+                PackageOwners = owners.Select(o => o.Username).ToArray(),
             };
 
             return View("TrustedPublishing", model);
@@ -1074,7 +1073,7 @@ namespace NuGetGallery
             }
 
             if (TrustedPublisherPolicyDetailsViewModelFactory.FromDatabaseJson(policy.Criteria)
-                is not TrustedPublisherPolicyDetailsViewModel publisherDetails)
+                is not TrustedPublisherPolicyDetailsViewModel policyDetails)
             {
                 return null;
             }
@@ -1083,8 +1082,8 @@ namespace NuGetGallery
             {
                 Key = policy.Key,
                 PolicyName = !string.IsNullOrEmpty(policy.PolicyName) ? policy.PolicyName : $"Policy {policy.Key}",
-                Owner = policy.PackageOwner?.Username ?? GetCurrentUser().Username,
-                PolicyDetails = publisherDetails
+                Owner = policy.PackageOwner.Username,
+                PolicyDetails = policyDetails
             };
         }
 
@@ -1232,14 +1231,15 @@ namespace NuGetGallery
                 return Json(Strings.TrustedPublisher_Unexpected);
             }
 
-            gitHubModel.InitialieValidateByDate();
-
-            result.policy.Criteria = gitHubModel.ToDatabaseJson();
-            await _federatedCredentialRepository.SaveFederatedCredentialPolicyAsync(result.policy, saveChanges: true);
+            if (!gitHubModel.IsPermanentlyEnabled)
+            {
+                gitHubModel.InitialieValidateByDate();
+                result.policy.Criteria = gitHubModel.ToDatabaseJson();
+                await _federatedCredentialRepository.SaveFederatedCredentialPolicyAsync(result.policy, saveChanges: true);
+            }
 
             return Json(model);
         }
-
 
         [HttpPost]
         [UIAuthorize]

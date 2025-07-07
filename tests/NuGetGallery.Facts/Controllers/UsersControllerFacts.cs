@@ -408,7 +408,7 @@ namespace NuGetGallery
 
                 var result = controller.ForgotPassword() as ViewResult;
                 var model = result.Model as ForgotPasswordViewModel;
-                
+
                 Assert.NotNull(result);
                 Assert.IsNotType<RedirectResult>(result);
                 Assert.Equal(flagEnabled, model.IsPasswordLoginEnabled);
@@ -1411,7 +1411,7 @@ namespace NuGetGallery
                     .Returns(user);
 
                 GetMock<IFederatedCredentialRepository>()
-                    .Setup(s => s.AddPolicyAsync(It.IsAny<FederatedCredentialPolicy>(),true))
+                    .Setup(s => s.AddPolicyAsync(It.IsAny<FederatedCredentialPolicy>(), true))
                     .Returns(Task.CompletedTask);
 
                 string criteria = @"{""Name"":""GitHub"",""RepositoryOwner"":""repoOwner"",""Repository"":""repo"",""RepositoryId"":""1"",""WorkflowFile"":""a.yml""}";
@@ -1567,6 +1567,249 @@ namespace NuGetGallery
                 GetMock<IFederatedCredentialRepository>()
                     .Verify(s => s.SaveFederatedCredentialPolicyAsync(
                         policy, true), Times.Once);
+            }
+        }
+        public class TheEnableTrustedPublisherPolicyAction : TestContainer
+        {
+            [Fact]
+            public async Task WhenTrustedPublishingDisabled_ReturnsBadRequest()
+            {
+                // Arrange
+                GetMock<IFeatureFlagService>()
+                    .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
+                    .Returns(false);
+
+                var user = TestUtility.FakeUser;
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.EnableTrustedPublisherPolicy(federatedCredentialKey: 1);
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+                Assert.Equal(Strings.DefaultUserSafeExceptionMessage, (string)result.Data);
+            }
+
+            [Fact]
+            public async Task WhenPolicyNotFound_ReturnsBadRequest()
+            {
+                // Arrange
+                GetMock<IFeatureFlagService>()
+                    .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
+                    .Returns(true);
+
+                GetMock<IFederatedCredentialRepository>()
+                    .Setup(r => r.GetPolicyByKey(1))
+                    .Returns((FederatedCredentialPolicy)null);
+
+                var user = TestUtility.FakeUser;
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.EnableTrustedPublisherPolicy(federatedCredentialKey: 1);
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+                Assert.Equal(Strings.TrustedPublisher_Unexpected, (string)result.Data);
+            }
+
+            [Fact]
+            public async Task WhenUserNotOwnerOfPolicy_ReturnsBadRequest()
+            {
+                // Arrange
+                GetMock<IFeatureFlagService>()
+                    .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
+                    .Returns(true);
+
+                var user = TestUtility.FakeUser;
+                var otherUser = TestUtility.FakeAdminUser;
+                var policy = new FederatedCredentialPolicy
+                {
+                    Key = 1,
+                    PackageOwner = otherUser,
+                    PackageOwnerUserKey = otherUser.Key,
+                    Type = FederatedCredentialType.TrustedPublisher
+                };
+
+                GetMock<IFederatedCredentialRepository>()
+                    .Setup(r => r.GetPolicyByKey(1))
+                    .Returns(policy);
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.EnableTrustedPublisherPolicy(federatedCredentialKey: 1);
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+                Assert.Equal(Strings.Unauthorized, (string)result.Data);
+            }
+
+            [Fact]
+            public async Task WhenPolicyIsNotGitHubType_ReturnsBadRequest()
+            {
+                // Arrange
+                GetMock<IFeatureFlagService>()
+                    .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
+                    .Returns(true);
+
+                var user = TestUtility.FakeUser;
+                // Create a policy with invalid criteria that won't deserialize to GitHubPolicyDetailsViewModel
+                var policy = new FederatedCredentialPolicy
+                {
+                    Key = 1,
+                    PolicyName = "Test Policy",
+                    PackageOwner = user,
+                    PackageOwnerUserKey = user.Key,
+                    Type = FederatedCredentialType.TrustedPublisher,
+                    Criteria = @"{""name"":""NotGitHub"",""someOtherProperty"":""value""}"
+                };
+
+                GetMock<IFederatedCredentialRepository>()
+                    .Setup(r => r.GetPolicyByKey(1))
+                    .Returns(policy);
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.EnableTrustedPublisherPolicy(federatedCredentialKey: 1);
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+                Assert.Equal(Strings.TrustedPublisher_Unexpected, (string)result.Data);
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData(0)]
+            public async Task WhenFederatedCredentialKeyIsInvalid_ReturnsBadRequest(int? federatedCredentialKey)
+            {
+                // Arrange
+                GetMock<IFeatureFlagService>()
+                    .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
+                    .Returns(true);
+
+                GetMock<IFederatedCredentialRepository>()
+                    .Setup(r => r.GetPolicyByKey(It.IsAny<int>()))
+                    .Returns((FederatedCredentialPolicy)null);
+
+                var user = TestUtility.FakeUser;
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.EnableTrustedPublisherPolicy(federatedCredentialKey: federatedCredentialKey);
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+                Assert.Equal(Strings.TrustedPublisher_Unexpected, (string)result.Data);
+            }
+
+            [Fact]
+            public async Task WhenValidRequest_InitializesValidateByDateAndSavesPolicy()
+            {
+                // Arrange
+                GetMock<IFeatureFlagService>()
+                    .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
+                    .Returns(true);
+
+                var user = TestUtility.FakeUser;
+
+                // Create criteria for a temporarily enabled policy (no owner/repo IDs)
+                string oldDBCriteria = @"{""name"":""GitHub"",""owner"":""someOwner"",""repository"":""repo"",""workflow"":""test.yml"",""ownerId"":"""",""repositoryId"":""""}";
+                var policy = new FederatedCredentialPolicy
+                {
+                    Key = 1,
+                    PolicyName = "Test Policy",
+                    PackageOwner = user,
+                    PackageOwnerUserKey = user.Key,
+                    Type = FederatedCredentialType.TrustedPublisher,
+                    Criteria = oldDBCriteria
+                };
+
+                GetMock<IFederatedCredentialRepository>()
+                    .Setup(r => r.GetPolicyByKey(1))
+                    .Returns(policy);
+
+                GetMock<IFederatedCredentialRepository>()
+                    .Setup(s => s.SaveFederatedCredentialPolicyAsync(
+                        It.IsAny<FederatedCredentialPolicy>(), true))
+                    .Returns(Task.CompletedTask);
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.EnableTrustedPublisherPolicy(federatedCredentialKey: 1);
+
+                // Assert
+                Assert.IsType<JsonResult>(result);
+                var viewModel = result.Data as TrustedPublisherPolicyViewModel;
+                Assert.NotNull(viewModel);
+                Assert.Equal("Test Policy", viewModel.PolicyName);
+                Assert.Equal(user.Username, viewModel.Owner);
+
+                // Verify that the policy was saved
+                GetMock<IFederatedCredentialRepository>()
+                    .Verify(s => s.SaveFederatedCredentialPolicyAsync(
+                        policy, true), Times.Once);
+
+                // Verify that InitialieValidateByDate was called (criteria should be updated)
+                Assert.NotEqual(oldDBCriteria, policy.Criteria);
+            }
+
+            [Fact]
+            public async Task WhenPolicyAlreadyPermanentlyEnabled_Noop()
+            {
+                // Arrange
+                GetMock<IFeatureFlagService>()
+                    .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
+                    .Returns(true);
+
+                var user = TestUtility.FakeUser;
+
+                // Create criteria for a permanently enabled policy (with owner/repo IDs)
+                string oldDBCriteria = @"{""name"":""GitHub"",""owner"":""someOwner"",""repository"":""repo"",""workflow"":""test.yml"",""ownerId"":""123"",""repositoryId"":""456""}";
+                var policy = new FederatedCredentialPolicy
+                {
+                    Key = 1,
+                    PolicyName = "Test Policy",
+                    PackageOwner = user,
+                    PackageOwnerUserKey = user.Key,
+                    Type = FederatedCredentialType.TrustedPublisher,
+                    Criteria = oldDBCriteria
+                };
+
+                GetMock<IFederatedCredentialRepository>()
+                    .Setup(r => r.GetPolicyByKey(1))
+                    .Returns(policy);
+
+                GetMock<IFederatedCredentialRepository>()
+                    .Setup(s => s.SaveFederatedCredentialPolicyAsync(
+                        It.IsAny<FederatedCredentialPolicy>(), true))
+                    .Returns(Task.CompletedTask);
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.EnableTrustedPublisherPolicy(federatedCredentialKey: 1);
+
+                // Assert
+                Assert.IsType<JsonResult>(result);
+                var viewModel = result.Data as TrustedPublisherPolicyViewModel;
+                Assert.NotNull(viewModel);
+                Assert.Equal("Test Policy", viewModel.PolicyName);
+                Assert.Equal(user.Username, viewModel.Owner);
+
+                // Verify that no DB changes were made
+                GetMock<IFederatedCredentialRepository>()
+                    .Verify(s => s.SaveFederatedCredentialPolicyAsync(
+                        policy, true), Times.Never);
             }
         }
 
@@ -4625,7 +4868,7 @@ namespace NuGetGallery
                 PackageRegistration packageRegistration2 = CreatePackageRegistration("Company.AlphaPackage", 1, "1.0.0", "first");
                 PackageRegistration packageRegistration3 = CreatePackageRegistration("Company.NormalPackage", 1, "1.0.0", "middle");
 
-                var userPackages = new List<Package> { 
+                var userPackages = new List<Package> {
                     packageRegistration1.Packages.First(),
                     packageRegistration2.Packages.First(),
                     packageRegistration3.Packages.First()
@@ -4647,7 +4890,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void PackagesVersionSortOrderIsSetBySemVer()  
+            public void PackagesVersionSortOrderIsSetBySemVer()
             {
                 PackageRegistration packageRegistration1 = CreatePackageRegistration("Company.ZebraPackage", 1, "1.0.0", "middle");
                 PackageRegistration packageRegistration2 = CreatePackageRegistration("Company.NormalPackage", 1, "0.0.1", "first");

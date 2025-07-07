@@ -29,7 +29,6 @@ namespace NuGetGallery
 
         public GitHubPolicyDetailsViewModel()
         {
-            this.InitialieValidateByDate();
         }
 
         public override string Name => "GitHub";

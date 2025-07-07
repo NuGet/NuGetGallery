@@ -4,7 +4,7 @@
     var CreateErrorMessage = "An error occurred while creating a new Trusted Publisher Policy. Please try again.";
     var EditErrorMessage = "An error occurred while editing a Trusted Publisher Policy. Please try again.";
     var EnableErrorMessage = "An error occurred while enabling the Trusted Publisher Policy. Please try again.";
-    var ConfirmDeleteMessage = "Are you sure you want to remove the Trusted Publisher  Policy?";
+    var ConfirmDeleteMessage = "Are you sure you want to remove the Trusted Publisher Policy?";
     var DeleteErrorMessage = "An error occurred while deleting the Trusted Publisher Policy. Please try again.";
 
     ko.bindingHandlers.trimmedValue = {
