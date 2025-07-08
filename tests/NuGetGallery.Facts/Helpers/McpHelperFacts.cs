@@ -339,15 +339,15 @@ namespace NuGetGallery.Helpers
                 // Assert
                 Assert.Equal(2, result.Count);
 
-                Assert.Equal("pickString", result[0].Type);
+                Assert.Equal("promptString", result[0].Type);
                 Assert.Equal("input-2", result[0].Id);
-                Assert.Equal("First arg", result[0].Description);
-                Assert.False(result[0].Password);
-                Assert.Equal("default1", result[0].Default);
-                Assert.Equal(["1", "2", "3"], result[0].Choices);
 
-                Assert.Equal("promptString", result[1].Type);
+                Assert.Equal("pickString", result[1].Type);
                 Assert.Equal("input-3", result[1].Id);
+                Assert.Equal("First arg", result[1].Description);
+                Assert.False(result[1].Password);
+                Assert.Equal("default1", result[1].Default);
+                Assert.Equal(["1", "2", "3"], result[1].Choices);
             }
         }
 

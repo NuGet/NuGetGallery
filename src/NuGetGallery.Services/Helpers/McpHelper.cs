@@ -317,7 +317,7 @@ namespace NuGetGallery.Services.Helpers
                         name = "--" + name;
                     }
 
-                    result.Add($"{namedArg.Name}");
+                    result.Add($"{name}");
                     result.Add($"${{input:input-{inputId++}}}");
                 }
             }

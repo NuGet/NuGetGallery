@@ -125,7 +125,7 @@ namespace NuGetGallery.TestData
     ""Foo"": {
       ""type"": ""stdio"",
       ""command"": ""dnx"",
-      ""args"": [""Foo"", ""--version"", ""1.0.0"", ""--yes"", ""--"", ""--host"", ""${input:input-4}"", ""--port"", ""${input:input-5}"", ""input-${input:input-6}""],
+      ""args"": [""Foo"", ""--version"", ""1.0.0"", ""--yes"", ""--"", ""--host"", ""${input:input-4}"", ""--port"", ""${input:input-5}"", ""${input:input-6}""],
       ""env"": {
         ""DB_USERNAME"": ""${input:input-1}"",
         ""DB_PASSWORD"": ""${input:input-2}"",
