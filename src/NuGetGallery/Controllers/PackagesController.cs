@@ -1445,12 +1445,8 @@ namespace NuGetGallery
                 includeComputedFrameworks,
                 searchAndListModel.FrameworkFilterMode,
                 searchAndListModel.PackageType,
-                searchAndListModel.SortBy);
-
-            if (isMcpServerPackageFilteringEnabled)
-            {
-                viewModel.UiSupportedPackageTypes.Add("mcpserver", "MCP Server");
-            }
+                searchAndListModel.SortBy,
+                mcpFilteringEnabled: isMcpServerPackageFilteringEnabled);
 
             // If the experience hasn't been cached, it means it's not the default experienced, therefore, show the panel
             viewModel.IsAdvancedSearchFlightEnabled = searchService.SupportsAdvancedSearch && isAdvancedSearchFlightEnabled;

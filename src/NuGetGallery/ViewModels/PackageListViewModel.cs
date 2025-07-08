@@ -26,7 +26,8 @@ namespace NuGetGallery
             bool includeComputedFrameworks,
             string frameworkFilterMode,
             string packageType,
-            string sortBy)
+            string sortBy,
+            bool mcpFilteringEnabled)
         {
             PageIndex = pageIndex;
             IndexTimestampUtc = indexTimestampUtc;
@@ -51,13 +52,22 @@ namespace NuGetGallery
             PackageType = packageType;
             SortBy = sortBy;
             DefaultPackageType = "";
-            UiSupportedPackageTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+
+            var uiSupportedPackageTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 { DefaultPackageType, "All types" },
                 { "dependency", "Dependency" },
                 { "dotnettool", ".NET tool" },
                 { "template" , "Template" },
             };
+
+
+            if (mcpFilteringEnabled)
+            {
+                uiSupportedPackageTypes.Add("mcpserver", "MCP Server");
+            }
+
+            UiSupportedPackageTypes = uiSupportedPackageTypes;
         }
 
         public int FirstResultIndex => 1 + (PageIndex * PageSize);
@@ -83,7 +93,7 @@ namespace NuGetGallery
 
         public string DefaultPackageType { get; }
 
-        public Dictionary<string, string> UiSupportedPackageTypes { get; }
+        public IReadOnlyDictionary<string, string> UiSupportedPackageTypes { get; }
 
         public string Frameworks { get; set; }
 
