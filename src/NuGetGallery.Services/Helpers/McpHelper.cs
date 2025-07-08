@@ -81,16 +81,7 @@ namespace NuGetGallery.Services.Helpers
                 };
             }
 
-            if (mcpServerMetadata.Packages == null)
-            {
-                return new McpServerEntryTemplateResult
-                {
-                    Validity = McpServerEntryResultValidity.MissingNugetRegistry,
-                    Template = string.Empty,
-                };
-            }
-
-            var nugetPackage = mcpServerMetadata.Packages.FirstOrDefault(p => p != null && p.RegistryName?.ToLowerInvariant() == "nuget");
+            var nugetPackage = mcpServerMetadata.Packages?.FirstOrDefault(p => p != null && p.RegistryName?.ToLowerInvariant() == "nuget");
             if (nugetPackage == null)
             {
                 return new McpServerEntryTemplateResult
