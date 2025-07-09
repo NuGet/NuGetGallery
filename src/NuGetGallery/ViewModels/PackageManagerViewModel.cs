@@ -80,6 +80,11 @@ namespace NuGetGallery
         /// </summary>
         public string CopyLabel { get; set; }
 
+        /// <summary>
+        /// Whether the copy button is enabled or not.
+        /// </summary>
+        public bool CopyEnabled { get; set; } = true;
+
         public class InstallPackageCommand
         {
             public InstallPackageCommand(string command) : this(string.Empty, command)

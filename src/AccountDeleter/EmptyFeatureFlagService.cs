@@ -338,5 +338,15 @@ namespace NuGetGallery.AccountDeleter
         {
             throw new NotImplementedException();
         }
+
+        public bool IsMcpServerPackageFilteringEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsMcpServerPackageDisplayEnabled()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
