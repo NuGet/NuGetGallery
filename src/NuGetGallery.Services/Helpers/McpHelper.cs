@@ -3,10 +3,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NuGet.Packaging;
@@ -68,9 +66,7 @@ namespace NuGetGallery.Services.Helpers
             McpServerMetadata mcpServerMetadata;
             try
             {
-                mcpServerMetadata = JsonConvert.DeserializeObject<McpServerMetadata>(
-                    metadataJson,
-                    new ArgumentConverter());
+                mcpServerMetadata = JsonConvert.DeserializeObject<McpServerMetadata>(metadataJson);
             }
             catch(JsonException)
             {
@@ -81,8 +77,8 @@ namespace NuGetGallery.Services.Helpers
                 };
             }
 
-            var nugetPackage = mcpServerMetadata.Packages?.FirstOrDefault(p => p != null && p.RegistryName?.ToLowerInvariant() == "nuget");
-            if (nugetPackage == null)
+            var nugetRegistryPackage = mcpServerMetadata.Packages?.FirstOrDefault(p => p != null && p.RegistryName?.ToLowerInvariant() == "nuget");
+            if (nugetRegistryPackage == null)
             {
                 return new McpServerEntryTemplateResult
                 {
@@ -91,36 +87,19 @@ namespace NuGetGallery.Services.Helpers
                 };
             }
 
-            var env = MapEnvVarsToEnv(nugetPackage.EnvironmentVariables);
-            var envInputs = MapEnvVarsToInputs(nugetPackage.EnvironmentVariables);
-            var argInputs = MapArgumentsToInputs(nugetPackage.PackageArguments, envInputs.Count + 1);
-            var inputs = envInputs.Concat(argInputs).ToList();
-
-            var argArgs = MapArgumentsToArgs(nugetPackage.PackageArguments, envInputs.Count + 1);
-            var args = new List<string> { packageId, "--version", packageVersion, "--yes" };
-
-            if (argArgs.Count > 0)
+            VsCodeMcpServerEntry entry;
+            try
             {
-                args.Add("--");
-                args.AddRange(argArgs);
+                entry = RegistryToVsCodeServerEntry(nugetRegistryPackage, packageId, packageVersion);
             }
-
-            var server = new VsCodeServer
+            catch (Exception)
             {
-                Type = "stdio",
-                Command = "dnx",
-                Args = args,
-                Env = env,
-            };
-
-            var entry = new VsCodeMcpServerEntry
-            {
-                Inputs = inputs,
-                Servers = new Dictionary<string, VsCodeServer>
+                return new McpServerEntryTemplateResult
                 {
-                    { packageId, server },
-                }
-            };
+                    Validity = McpServerEntryResultValidity.InvalidMetadata,
+                    Template = string.Empty,
+                };
+            }
 
             try
             {
@@ -147,193 +126,213 @@ namespace NuGetGallery.Services.Helpers
             }
         }
 
-        public static Dictionary<string, string> MapEnvVarsToEnv(List<EnvironmentVariable> envVars)
+        private static VsCodeMcpServerEntry RegistryToVsCodeServerEntry(McpPackage registryPackage, string packageId, string packageVersion)
         {
+            var inputs = new List<VsCodeInput>();
+            var args = new List<string>();
             var env = new Dictionary<string, string>();
 
-            if (envVars == null || envVars.Count == 0)
+            foreach (var arg in registryPackage.RuntimeArguments ?? [])
             {
-                return env;
-            }
-
-            var inputId = 1;
-            foreach (var envVar in envVars)
-            {
-                if (envVar == null)
+                if (arg == null)
                 {
                     continue;
                 }
 
-                if (string.IsNullOrWhiteSpace(envVar.Name))
+                var variables = GetVariables(arg.Variables);
+
+                if (arg is PositionalInput positionalArg)
                 {
-                    continue;
-                }
-
-                env[envVar.Name] = $"${{input:input-{inputId++}}}";
-            }
-
-            return env;
-        }
-
-        public static List<VsCodeInput> MapEnvVarsToInputs(List<EnvironmentVariable> envVars)
-        {
-            var result = new List<VsCodeInput>();
-
-            if (envVars == null || envVars.Count == 0)
-            {
-                return result;
-            }
-
-            int inputId = 1;
-            foreach (var envVar in envVars)
-            {
-                if (envVar == null)
-                {
-                    continue;
-                }
-
-                if (string.IsNullOrWhiteSpace(envVar.Name))
-                {
-                    continue;
-                }
-
-                var type = "promptString";
-                if (envVar.Choices != null && envVar.Choices.Count > 0)
-                {
-                    type = "pickString";
-                }
-
-                result.Add(new VsCodeInput
-                {
-                    Type = type,
-                    Id = $"input-{inputId++}",
-                    Description = envVar.Description,
-                    Password = envVar.IsSecret ?? false,
-                    Default = envVar.Default,
-                    Choices = envVar.Choices,
-                });
-            }
-
-            return result;
-        }
-
-        public static List<VsCodeInput> MapArgumentsToInputs(List<Argument> arguments, int startId)
-        {
-            var result = new List<VsCodeInput>();
-
-            if (arguments == null || arguments.Count == 0)
-            {
-                return result;
-            }
-
-            int inputId = startId;
-            foreach (var arg in arguments)
-            {
-                if (arg == null || string.IsNullOrWhiteSpace(arg.Description))
-                {
-                    continue;
-                }
-
-                var type = "promptString";
-                if (arg.Choices != null && arg.Choices.Count > 0)
-                {
-                    type = "pickString";
-                }
-
-                if (arg.Type == "named")
-                {
-                    var namedArg = arg as NamedArgument;
-                    result.Add(new VsCodeInput
+                    var value = positionalArg.Value;
+                    if (!string.IsNullOrWhiteSpace(value))
                     {
-                        Type = type,
-                        Id = $"input-{inputId++}",
-                        Description = namedArg.Description,
-                        Password = false,
-                        Choices = namedArg.Choices,
-                    });
-                }
-            }
-
-            foreach (var arg in arguments)
-            {
-                if (arg == null || string.IsNullOrWhiteSpace(arg.Description))
-                {
-                    continue;
-                }
-
-                var type = "promptString";
-                if (arg.Choices != null && arg.Choices.Count > 0)
-                {
-                    type = "pickString";
-                }
-
-                if (arg.Type == "positional")
-                {
-                    var positionalArg = arg as PositionalArgument;
-                    result.Add(new VsCodeInput
+                        foreach (var variable in variables)
+                        {
+                            value = value.Replace($"{{{variable.Id}}}", $"{{input:{variable.Id}}}");
+                        }
+                    }
+                    else
                     {
-                        Type = type,
-                        Id = $"input-{inputId++}",
-                        Description = positionalArg.Description,
-                        Password = false,
-                        Default = positionalArg.Default,
-                        Choices = positionalArg.Choices,
-                    });
-                }
-            }
+                        value = positionalArg.ValueHint;
+                    }
 
-            return result;
-        }
-
-        public static List<string> MapArgumentsToArgs(List<Argument> arguments, int startId)
-        {
-            var result = new List<string>();
-
-            if (arguments == null || arguments.Count == 0)
-            {
-                return result;
-            }
-
-            int inputId = startId;
-            foreach (var arg in arguments)
-            {
-                if (arg == null || string.IsNullOrWhiteSpace(arg.Description))
-                {
-                    continue;
-                }
-
-                if (arg.Type == "named")
-                {
-                    var namedArg = arg as NamedArgument;
-
-                    if (string.IsNullOrWhiteSpace(namedArg.Name))
+                    if (string.IsNullOrWhiteSpace(value))
                     {
                         continue;
                     }
 
-                    var name = namedArg.Name;
-                    if (!name.StartsWith("--", StringComparison.Ordinal))
+                    args.Add(value);
+                }
+                else if (arg is NamedInput namedArg)
+                {
+                    if (string.IsNullOrWhiteSpace(namedArg.Name) || string.IsNullOrWhiteSpace(namedArg.Value))
                     {
-                        name = "--" + name;
+                        continue;
                     }
 
-                    result.Add($"{name}");
-                    result.Add($"${{input:input-{inputId++}}}");
+                    args.Add(namedArg.Name);
+
+                    var value = namedArg.Value;
+                    foreach (var variable in variables)
+                    {
+                        value = value.Replace($"{{{variable.Id}}}", $"{{input:{variable.Id}}}");
+                    }
+
+                    if (string.IsNullOrWhiteSpace(value))
+                    {
+                        continue;
+                    }
+
+                    args.Add(value);
+                }
+
+                if (variables.Count > 0)
+                {
+                    inputs.AddRange(variables);
                 }
             }
 
-            foreach (var arg in arguments)
+            foreach (var envVar in  registryPackage.EnvironmentVariables ?? [])
             {
-                if (arg == null || string.IsNullOrWhiteSpace(arg.Description))
+                if (envVar == null)
                 {
                     continue;
                 }
 
-                if (arg.Type == "positional")
+                var variables = GetVariables(envVar.Variables);
+
+                var value = envVar.Value;
+                foreach (var variable in variables)
                 {
-                    var positionalArg = arg as PositionalArgument;
-                    result.Add($"${{input:input-{inputId++}}}");
+                    value = value.Replace($"{{{variable.Id}}}", $"${{input:{variable.Id}}}");
                 }
+
+                if (string.IsNullOrWhiteSpace(value) || string.IsNullOrWhiteSpace(value))
+                {
+                    continue;
+                }
+
+                env[envVar.Name] = value;
+
+                if (variables.Count > 0)
+                {
+                    inputs.AddRange(variables);
+                }
+            }
+
+            args.Add($"{packageId}@{packageVersion}");
+            args.Add("--yes");
+
+            var packageArgs = new List<string>();
+            foreach (var arg in registryPackage.PackageArguments ?? [])
+            {
+                if (arg == null)
+                {
+                    continue;
+                }
+
+                var variables = GetVariables(arg.Variables);
+
+                if (arg is PositionalInput positionalArg)
+                {
+                    var value = positionalArg.Value;
+                    if (!string.IsNullOrWhiteSpace(value))
+                    {
+                        foreach (var variable in variables)
+                        {
+                            value = value.Replace($"{{{variable.Id}}}", $"${{input:{variable.Id}}}");
+                        }
+                    }
+                    else
+                    {
+                        value = positionalArg.ValueHint;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(value))
+                    {
+                        continue;
+                    }
+
+                    packageArgs.Add(value);
+                }
+                else if (arg is NamedInput namedArg)
+                {
+                    if (string.IsNullOrWhiteSpace(namedArg.Name) || string.IsNullOrWhiteSpace(namedArg.Value))
+                    {
+                        continue;
+                    }
+
+                    packageArgs.Add(namedArg.Name);
+
+                    var value = namedArg.Value;
+                    foreach (var variable in variables)
+                    {
+                        value = value.Replace($"{{{variable.Id}}}", $"${{input:{variable.Id}}}");
+                    }
+
+                    if (string.IsNullOrWhiteSpace(value))
+                    {
+                        continue;
+                    }
+
+                    packageArgs.Add(value);
+                }
+
+                if (variables.Count > 0)
+                {
+                    inputs.AddRange(variables);
+                }
+            }
+
+            if (packageArgs.Count > 0)
+            {
+                args.Add("--");
+                args.AddRange(packageArgs);
+            }
+
+            var server = new VsCodeServer
+            {
+                Type = "stdio",
+                Command = "dnx",
+                Args = args,
+                Env = env,
+            };
+
+            return new VsCodeMcpServerEntry
+            {
+                Inputs = inputs,
+                Servers = new Dictionary<string, VsCodeServer>
+                {
+                    { packageId, server },
+                }
+            };
+        }
+
+        private static List<VsCodeInput> GetVariables(IReadOnlyDictionary<string, Input> variables)
+        {
+            var result = new List<VsCodeInput>();
+
+            if (variables == null || variables.Count == 0)
+            {
+                return result;
+            }
+
+            foreach (var item in variables)
+            {
+                if (item.Value == null)
+                {
+                    throw new Exception("Variable input cannot be null.");
+                }
+
+                result.Add(new VsCodeInput
+                {
+                    Id = item.Key,
+                    Type = item.Value.Choices?.Count > 0 ? "pickString" : "promptString",
+                    Description = item.Value.Description,
+                    Password = item.Value.IsSecret,
+                    Default = item.Value.Default,
+                    Options = item.Value.Choices?.ToList(),
+                });
             }
 
             return result;

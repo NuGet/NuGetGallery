@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
@@ -11,88 +13,110 @@ namespace NuGetGallery.Services.Models
     public class McpServerMetadata
     {
         [JsonProperty("packages")]
-        public List<McpPackage> Packages { get; set; }
+        public IReadOnlyList<McpPackage>? Packages { get; set; }
     }
 
     public class McpPackage
     {
-        [JsonProperty("registry_name")]
-        public string RegistryName { get; set; }
+        [JsonProperty("registry_name", Required = Required.Always)]
+        public required string RegistryName { get; set; }
+
+        [JsonProperty("runtime_arguments")]
+        [JsonConverter(typeof(ArgumentListConverter))]
+        public IReadOnlyList<VariableInput>? RuntimeArguments { get; set; }
 
         [JsonProperty("package_arguments")]
-        public List<Argument> PackageArguments { get; set; }
+        [JsonConverter(typeof(ArgumentListConverter))]
+        public IReadOnlyList<VariableInput>? PackageArguments { get; set; }
 
         [JsonProperty("environment_variables")]
-        public List<EnvironmentVariable> EnvironmentVariables { get; set; }
+        public IReadOnlyList<KeyValueInput>? EnvironmentVariables { get; set; }
     }
 
-    public abstract class Argument
+    public class Input
     {
-        [JsonProperty("type")]
-        public string Type { get; set; }
-
         [JsonProperty("description")]
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
-        [JsonProperty("choices")]
-        public List<string> Choices { get; set; }
-    }
-
-    public class PositionalArgument : Argument
-    {
-        public PositionalArgument() { Type = "positional"; }
-
-        [JsonProperty("default")]
-        public string Default { get; set; }
-    }
-
-    public class NamedArgument : Argument
-    {
-        public NamedArgument() { Type = "named"; }
-
-        [JsonProperty("name")]
-        public string Name { get; set; }
-    }
-
-    public class EnvironmentVariable
-    {
-        [JsonProperty("name")]
-        public string Name { get; set; }
-
-        [JsonProperty("description")]
-        public string Description { get; set; }
-
-        [JsonProperty("default")]
-        public string Default { get; set; }
+        [JsonProperty("value")]
+        public string? Value { get; set; }
 
         [JsonProperty("is_secret")]
         public bool? IsSecret { get; set; }
 
+        [JsonProperty("default")]
+        public string? Default { get; set; }
+
         [JsonProperty("choices")]
-        public List<string> Choices { get; set; }
+        public IReadOnlyList<string>? Choices { get; set; }
     }
 
-    public class ArgumentConverter : JsonConverter
+    public class VariableInput : Input
     {
-        public override bool CanConvert(Type objectType) => objectType == typeof(Argument);
+        [JsonProperty("variables")]
+        public IReadOnlyDictionary<string, Input>? Variables { get; set; }
+    }
 
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+    public class PositionalInput : VariableInput
+    {
+        [JsonProperty("type", Required = Required.Always)]
+        public required string Type { get; set; }
+
+        [JsonProperty("value_hint", Required = Required.Always)]
+        public required string ValueHint { get; set; }
+    }
+
+    public class NamedInput : VariableInput
+    {
+        [JsonProperty("type", Required = Required.Always)]
+        public required string Type { get; set; }
+
+        [JsonProperty("name", Required = Required.Always)]
+        public required string Name { get; set; }
+    }
+
+    public class KeyValueInput : VariableInput
+    {
+        [JsonProperty("name", Required = Required.Always)]
+        public required string Name { get; set; }
+
+        [JsonProperty("value")]
+        public new string? Value { get; set; }
+    }
+
+    public class ArgumentListConverter : JsonConverter
+    {
+        public override bool CanConvert(Type objectType) =>
+            objectType == typeof(IReadOnlyList<VariableInput>) || objectType == typeof(List<VariableInput>);
+
+        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
-            var jsonObject = JObject.Load(reader);
-            var type = jsonObject["type"]?.Value<string>();
-            if (type == "positional")
-            {
-                return jsonObject.ToObject<PositionalArgument>(serializer);
-            }
-            else if (type == "named")
-            {
-                return jsonObject.ToObject<NamedArgument>(serializer);
-            }
+            var array = JArray.Load(reader);
+            var items = new List<VariableInput>();
 
-            throw new JsonSerializationException($"Unknown argument type: {type}");
+            foreach (var token in array)
+            {
+                if (token.Type != JTokenType.Object)
+                {
+                    throw new JsonSerializationException();
+                }
+
+                var type = token["type"]?.Value<string>();
+                VariableInput? input = null;
+
+                if (type == "positional")
+                    input = token.ToObject<PositionalInput>(serializer);
+                else if (type == "named")
+                    input = token.ToObject<NamedInput>(serializer);
+                else
+                    throw new JsonSerializationException($"Unknown input type: {type}");
+
+                items.Add(input!);
+            }
+            return items;
         }
 
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
             serializer.Serialize(writer, value);
         }

@@ -29,14 +29,14 @@ namespace NuGetGallery.Services.Models
         public string Description { get; set; }
 
         [JsonProperty("password")]
-        public bool Password { get; set; }
+        public bool? Password { get; set; }
 
         [JsonProperty("default")]
         public string Default { get; set; }
 
-        [JsonProperty("choices")]
+        [JsonProperty("options")]
         [JsonConverter(typeof(InlineStringListConverter))]
-        public List<string> Choices { get; set; }
+        public List<string> Options { get; set; }
     }
 
     public class VsCodeServer

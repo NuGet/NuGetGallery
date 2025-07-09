@@ -11,7 +11,7 @@ namespace NuGetGallery.TestData
     ""Test.McpServer"": {
       ""type"": ""stdio"",
       ""command"": ""dnx"",
-      ""args"": [""Test.McpServer"", ""--version"", ""1.0.0"", ""--yes""],
+      ""args"": [""Test.McpServer@1.0.0"", ""--yes""],
       ""env"": {}
     }
   }
@@ -34,102 +34,168 @@ namespace NuGetGallery.TestData
       ""registry_name"": ""nuget"",
       ""name"": ""example/my-db-mcp"",
       ""version"": ""3.1.0"",
+      ""runtime_arguments"": [
+        {
+          ""type"": ""named"",
+          ""name"": ""--network"",
+          ""value"": ""host"",
+          ""description"": ""Use host network mode""
+        },
+        {
+          ""type"": ""named"",
+          ""name"": ""-e"",
+          ""value"": ""DB_TYPE={db_type}"",
+          ""description"": ""Database type to connect to"",
+          ""is_repeated"": true,
+          ""variables"": {
+            ""db_type"": {
+              ""description"": ""Type of database"",
+              ""choices"": [""postgres"", ""mysql"", ""mongodb"", ""redis""],
+              ""is_required"": true
+            }
+          }
+        },
+        {
+          ""type"": ""positional"",
+          ""value_hint"": ""database_size"",
+          ""description"": ""Size of the database to connect to"",
+          ""value"": ""{db_size}"",
+          ""variables"": {
+            ""db_size"": {
+              ""description"": ""Database size"",
+              ""is_required"": true
+            }
+          }
+        }
+      ],
       ""package_arguments"": [
         {
           ""type"": ""named"",
           ""name"": ""--host"",
           ""description"": ""Database host"",
-          ""default"": ""localhost"",
+          ""value"": ""localhost"",
           ""is_required"": true
         },
         {
           ""type"": ""named"",
           ""name"": ""--port"",
           ""description"": ""Database port"",
-          ""format"": ""number""
+          ""format"": ""number"",
+          ""value"": ""{db_port}"",
+          ""variables"": {
+            ""db_port"": {
+              ""description"": ""Database port"",
+              ""is_required"": true
+            }
+          }
         },
         {
           ""type"": ""positional"",
           ""value_hint"": ""database_name"",
           ""description"": ""Name of the database to connect to"",
-          ""is_required"": true
+          ""value"": ""{db_name}"",
+          ""variables"": {
+            ""db_name"": {
+              ""description"": ""Database name"",
+              ""is_required"": true
+            }
+          }
         }
       ],
       ""environment_variables"": [
         {
           ""name"": ""DB_USERNAME"",
           ""description"": ""Database username"",
-          ""is_required"": true
+          ""value"": ""DB_USERNAME={db_username}"",
+          ""variables"": {
+            ""db_username"": {
+              ""description"": ""Database username"",
+              ""is_required"": true
+            }
+          }
         },
         {
           ""name"": ""DB_PASSWORD"",
           ""description"": ""Database password"",
-          ""is_required"": true,
-          ""is_secret"": true
+          ""value"": ""DB_PASSWORD={db_password}"",
+          ""variables"": {
+            ""db_password"": {
+              ""description"": ""Database password"",
+              ""is_required"": true,
+              ""is_secret"": true
+            }
+          }
         },
         {
           ""name"": ""SSL_MODE"",
           ""description"": ""SSL connection mode"",
-          ""default"": ""prefer"",
-          ""choices"": [""disable"", ""prefer"", ""require""]
+          ""value"": ""SSL_MODE={ssl_mode}"",
+          ""variables"": {
+            ""ssl_mode"": {
+              ""description"": ""SSL connection mode"",
+              ""default"": ""prefer"",
+              ""choices"": [""disable"", ""prefer"", ""require""]
+            }
+          }
         }
       ]
     }
   ]
 }";
 
-        public const string ServerJsonValidMinified = @"{""name"":""my-db-mcp"",""description"":""my db mcp"",""repository"":{""url"":""https://github.com/example/my-db-mcp"",""source"":""github"",""id"":""ghi789jk-lmno-1234-pqrs-tuvwxyz56789""},""version_detail"":{""version"":""3.1.0"",""release_date"":""2024-03-05T16:45:00Z""},""packages"":[{""registry_name"":""nuget"",""name"":""example/my-db-mcp"",""version"":""3.1.0"",""package_arguments"":[{""type"":""named"",""name"":""--host"",""description"":""Database host"",""default"":""localhost"",""is_required"":true},{""type"":""named"",""name"":""--port"",""description"":""Database port"",""format"":""number""},{""type"":""positional"",""value_hint"":""database_name"",""description"":""Name of the database to connect to"",""is_required"":true}],""environment_variables"":[{""name"":""DB_USERNAME"",""description"":""Database username"",""is_required"":true},{""name"":""DB_PASSWORD"",""description"":""Database password"",""is_required"":true,""is_secret"":true},{""name"":""SSL_MODE"",""description"":""SSL connection mode"",""default"":""prefer"",""choices"":[""disable"",""prefer"",""require""]}]}]}";
+        public const string ServerJsonValidMinified = @"{""name"":""my-db-mcp"",""description"":""my db mcp"",""repository"":{""url"":""https://github.com/example/my-db-mcp"",""source"":""github"",""id"":""ghi789jk-lmno-1234-pqrs-tuvwxyz56789""},""version_detail"":{""version"":""3.1.0"",""release_date"":""2024-03-05T16:45:00Z""},""packages"":[{""registry_name"":""nuget"",""name"":""example/my-db-mcp"",""version"":""3.1.0"",""runtime_arguments"":[{""type"":""named"",""name"":""--network"",""value"":""host"",""description"":""Use host network mode""},{""type"":""named"",""name"":""-e"",""value"":""DB_TYPE={db_type}"",""description"":""Database type to connect to"",""is_repeated"":true,""variables"":{""db_type"":{""description"":""Type of database"",""choices"":[""postgres"",""mysql"",""mongodb"",""redis""],""is_required"":true}}},{""type"":""positional"",""value_hint"":""database_size"",""description"":""Size of the database to connect to"",""value"":""{db_size}"",""variables"":{""db_size"":{""description"":""Database size"",""is_required"":true}}}],""package_arguments"":[{""type"":""named"",""name"":""--host"",""description"":""Database host"",""value"":""localhost"",""is_required"":true},{""type"":""named"",""name"":""--port"",""description"":""Database port"",""format"":""number"",""value"":""{db_port}"",""variables"":{""db_port"":{""description"":""Database port"",""is_required"":true}}},{""type"":""positional"",""value_hint"":""database_name"",""description"":""Name of the database to connect to"",""value"":""{db_name}"",""variables"":{""db_name"":{""description"":""Database name"",""is_required"":true}}}],""environment_variables"":[{""name"":""DB_USERNAME"",""description"":""Database username"",""value"":""DB_USERNAME={db_username}"",""variables"":{""db_username"":{""description"":""Database username"",""is_required"":true}}},{""name"":""DB_PASSWORD"",""description"":""Database password"",""value"":""DB_PASSWORD={db_password}"",""variables"":{""db_password"":{""description"":""Database password"",""is_required"":true,""is_secret"":true}}},{""name"":""SSL_MODE"",""description"":""SSL connection mode"",""value"":""SSL_MODE={ssl_mode}"",""variables"":{""ssl_mode"":{""description"":""SSL connection mode"",""default"":""prefer"",""choices"":[""disable"",""prefer"",""require""]}}}]}]}";
 
         public const string McpJsonValid = @"{
   ""inputs"": [
     {
-      ""type"": ""promptString"",
-      ""id"": ""input-1"",
-      ""description"": ""Database username"",
-      ""password"": false
+      ""type"": ""pickString"",
+      ""id"": ""db_type"",
+      ""description"": ""Type of database"",
+      ""options"": [""postgres"", ""mysql"", ""mongodb"", ""redis""]
     },
     {
       ""type"": ""promptString"",
-      ""id"": ""input-2"",
+      ""id"": ""db_size"",
+      ""description"": ""Database size""
+    },
+    {
+      ""type"": ""promptString"",
+      ""id"": ""db_username"",
+      ""description"": ""Database username""
+    },
+    {
+      ""type"": ""promptString"",
+      ""id"": ""db_password"",
       ""description"": ""Database password"",
       ""password"": true
     },
     {
       ""type"": ""pickString"",
-      ""id"": ""input-3"",
+      ""id"": ""ssl_mode"",
       ""description"": ""SSL connection mode"",
-      ""password"": false,
       ""default"": ""prefer"",
-      ""choices"": [""disable"", ""prefer"", ""require""]
+      ""options"": [""disable"", ""prefer"", ""require""]
     },
     {
       ""type"": ""promptString"",
-      ""id"": ""input-4"",
-      ""description"": ""Database host"",
-      ""password"": false
+      ""id"": ""db_port"",
+      ""description"": ""Database port""
     },
     {
       ""type"": ""promptString"",
-      ""id"": ""input-5"",
-      ""description"": ""Database port"",
-      ""password"": false
-    },
-    {
-      ""type"": ""promptString"",
-      ""id"": ""input-6"",
-      ""description"": ""Name of the database to connect to"",
-      ""password"": false
+      ""id"": ""db_name"",
+      ""description"": ""Database name""
     }
   ],
   ""servers"": {
-    ""Foo"": {
+    ""Test.McpServer"": {
       ""type"": ""stdio"",
       ""command"": ""dnx"",
-      ""args"": [""Foo"", ""--version"", ""1.0.0"", ""--yes"", ""--"", ""--host"", ""${input:input-4}"", ""--port"", ""${input:input-5}"", ""${input:input-6}""],
+      ""args"": [""--network"", ""host"", ""-e"", ""DB_TYPE={input:db_type}"", ""{input:db_size}"", ""Test.McpServer@1.0.0"", ""--yes"", ""--"", ""--host"", ""localhost"", ""--port"", ""${input:db_port}"", ""${input:db_name}""],
       ""env"": {
-        ""DB_USERNAME"": ""${input:input-1}"",
-        ""DB_PASSWORD"": ""${input:input-2}"",
-        ""SSL_MODE"": ""${input:input-3}""
+        ""DB_USERNAME"": ""DB_USERNAME=${input:db_username}"",
+        ""DB_PASSWORD"": ""DB_PASSWORD=${input:db_password}"",
+        ""SSL_MODE"": ""SSL_MODE=${input:ssl_mode}""
       }
     }
   }
@@ -399,6 +465,39 @@ namespace NuGetGallery.TestData
       ""name"": """",
       ""version"": """",
       ""environment_variables"": [null]
+    }
+  ]
+}";
+
+        public const string ServerJsonNullVariables = @"{
+  ""name"": """",
+  ""description"": """",
+  ""repository"": {
+    ""url"": """",
+    ""source"": """",
+    ""id"": """"
+  },
+  ""version_detail"": {
+    ""version"": """",
+    ""release_date"": """"
+  },
+  ""packages"": [
+    {
+      ""registry_name"": ""nuget"",
+      ""name"": """",
+      ""version"": """",
+       ""package_arguments"": [
+        {
+          ""type"": ""named"",
+          ""name"": ""--port"",
+          ""description"": ""Database port"",
+          ""format"": ""number"",
+          ""value"": ""{db_port}"",
+          ""variables"": {
+            ""db_port"": null
+          }
+        },
+      ]
     }
   ]
 }";
