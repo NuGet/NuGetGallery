@@ -77,7 +77,7 @@ namespace NuGetGallery.Services.Helpers
                 };
             }
 
-            var nugetRegistryPackage = mcpServerMetadata.Packages?.FirstOrDefault(p => p != null && p.RegistryName?.ToLowerInvariant() == "nuget");
+            var nugetRegistryPackage = mcpServerMetadata.Packages?.FirstOrDefault(p => p != null && StringComparer.OrdinalIgnoreCase.Equals(p.RegistryName, "nuget"));
             if (nugetRegistryPackage == null)
             {
                 return new McpServerEntryTemplateResult
