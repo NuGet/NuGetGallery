@@ -1,11 +1,14 @@
 (function () {
     'use strict';
 
-    var CreateErrorMessage = "An error occurred while creating a new Trusted Publisher Policy. Please try again.";
-    var EditErrorMessage = "An error occurred while editing a Trusted Publisher Policy. Please try again.";
-    var EnableErrorMessage = "An error occurred while enabling the Trusted Publisher Policy. Please try again.";
-    var ConfirmDeleteMessage = "Are you sure you want to remove the Trusted Publisher Policy?";
-    var DeleteErrorMessage = "An error occurred while deleting the Trusted Publisher Policy. Please try again.";
+    const CreateErrorMessage = "An error occurred while creating a new Trusted Publisher Policy. Please try again.";
+    const EditErrorMessage = "An error occurred while editing a Trusted Publisher Policy. Please try again.";
+    const EnableErrorMessage = "An error occurred while enabling the Trusted Publisher Policy. Please try again.";
+    const ConfirmDeleteMessage = "Are you sure you want to remove the Trusted Publisher Policy?";
+    const DeleteErrorMessage = "An error occurred while deleting the Trusted Publisher Policy. Please try again.";
+
+    const GitHubActionsPublisherName = "GitHubActions"; // must match the PublisherType in GitHubPolicyDetailsViewModel.cs
+
 
     ko.bindingHandlers.trimmedValue = {
         init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
@@ -93,7 +96,7 @@
         }
 
         _gitHubDetails.Update = function (self, data) {
-            const details = data.PublisherName !== "GitHub" ? {} : data.PolicyDetails || {};
+            const details = data.PublisherName !== GitHubActionsPublisherName ? {} : data.PolicyDetails || {};
             const gitHub = self.gitHub;
             if (data.Key) {
                 gitHub.IsPermamentlyEnabled(details.IsPermanentlyEnabled || false);
@@ -208,7 +211,7 @@
             // MUST MATCH GitHub details deserialization in GitHubPolicyDetailsViewModel.cs.
             const gitHub = self.gitHub;
             var githubData = {
-                Name: 'GitHub',
+                Name: GitHubActionsPublisherName,
                 RepositoryOwner: gitHub.PendingRepositoryOwner() || '',
                 Repository: gitHub.PendingRepository() || '',
                 WorkflowFile: gitHub.PendingWorkflowFile() || '',
@@ -247,6 +250,7 @@
             this._UpdateData = function (data) {
                 this.Key(data.Key || 0);
                 this.PolicyName(data.PolicyName || null);
+                this.InvalidReason(data.InvalidReason || null);
                 this.PendingPolicyName(data.PolicyName || null);
                 this.Owner(data.Owner || null);
                 this.PublisherName(data.PublisherName || null);
@@ -274,6 +278,7 @@
 
             // Package owner selection
             this.PackageOwner = ko.observable(null);
+            this.InvalidReason = ko.observable(null);
             this.PendingCreateOrEdit = ko.observable(false);
             this.JustCreated = ko.observable(false);
             this.JustRegenerated = ko.observable(false);
@@ -508,7 +513,7 @@
             var policies = $.map(initialData.Policies, function (data) {
                 return new PolicyViewModel(self, initialData.PackageOwners, data);
             });
-            var newPolicy = new PolicyViewModel(self, initialData.PackageOwners, {PublisherName: 'GitHub'});
+            var newPolicy = new PolicyViewModel(self, initialData.PackageOwners, { PublisherName: GitHubActionsPublisherName });
 
             this.Policies = ko.observableArray(policies);
             this.NewPolicy = ko.observable(newPolicy);

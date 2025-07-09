@@ -1194,7 +1194,7 @@ namespace NuGetGallery
                         Key = 1,
                         PolicyName = "Trusted Publisher Policy",
                         PackageOwner = currentUser,
-                        Type = FederatedCredentialType.TrustedPublisher,
+                        Type = FederatedCredentialType.GitHubActions,
                         Criteria = "{\"name\": \"GitHub\"}"
                     },
                     new FederatedCredentialPolicy
@@ -1216,6 +1216,163 @@ namespace NuGetGallery
                 // Assert
                 Assert.Single(model.Policies);
                 Assert.Equal("Trusted Publisher Policy", model.Policies.First().PolicyName);
+            }
+
+            [Fact]
+            public void WhenPolicyHasUserNotInOrganizationInvalidReason_CorrectlyPopulatesModel()
+            {
+                // Arrange
+                GetMock<IFeatureFlagService>()
+                    .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
+                    .Returns(true);
+
+                var currentUser = TestUtility.FakeUser;
+                var organization = TestUtility.FakeOrganization;
+
+                var policy = new FederatedCredentialPolicy
+                {
+                    Key = 1,
+                    PolicyName = "Invalid Policy - User Not In Org",
+                    PackageOwner = organization,
+                    PackageOwnerUserKey = organization.Key,
+                    Type = FederatedCredentialType.GitHubActions,
+                    Criteria = @"{""owner"":""someOwner"",""repository"":""repo"",""workflow"":""test.yml""}"
+                };
+
+                var policies = new List<FederatedCredentialPolicy> { policy };
+
+                GetMock<IFederatedCredentialRepository>()
+                    .Setup(r => r.GetPoliciesCreatedByUser(It.IsAny<int>()))
+                    .Returns(policies);
+
+                var model = GetModelForTrustedPublishing(currentUser);
+
+                // Assert
+                Assert.Single(model.Policies);
+                var policyViewModel = model.Policies.First();
+                Assert.Equal(TrustedPublisherPolicyInvalidReason.UserNotInOrganization, policyViewModel.InvalidReason);
+                Assert.Equal("Invalid Policy - User Not In Org", policyViewModel.PolicyName);
+                Assert.Equal(organization.Username, policyViewModel.Owner);
+            }
+
+            [Theory]
+            [InlineData(true, false)]
+            [InlineData(false, true)]
+            [InlineData(true, true)]
+            public void WhenPolicyHasOrganizationLockedOrDeletedInvalidReason_CorrectlyPopulatesModel(bool isLocked, bool isDeleted)
+            {
+                // Arrange
+                GetMock<IFeatureFlagService>()
+                    .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
+                    .Returns(true);
+
+                // Create a new organization and user for this test
+                var organization = new Organization { Username = "TestOrganization", Key = 5 };
+                var currentUser = Get<Fakes>().CreateUser("TestOrganizationAdmin");
+                currentUser.Key = 4;
+                currentUser.Organizations = [new Membership { Organization = organization, Member = currentUser }];
+
+                organization.IsDeleted = isDeleted;
+                organization.UserStatusKey = isLocked ? UserStatus.Locked : UserStatus.Unlocked;
+
+                var policy = new FederatedCredentialPolicy
+                {
+                    Key = 10,
+                    PolicyName = "Invalid Policy",
+                    PackageOwner = organization,
+                    PackageOwnerUserKey = organization.Key,
+                    Type = FederatedCredentialType.GitHubActions,
+                    Criteria = @"{""owner"":""someOwner"",""repository"":""repo"",""workflow"":""test.yml""}"
+                };
+
+                var policies = new List<FederatedCredentialPolicy> { policy };
+
+                GetMock<IFederatedCredentialRepository>()
+                    .Setup(r => r.GetPoliciesCreatedByUser(It.IsAny<int>()))
+                    .Returns(policies);
+
+                var model = GetModelForTrustedPublishing(currentUser);
+
+                // Assert
+                Assert.Single(model.Policies);
+                var policyViewModel = model.Policies.First();
+                Assert.Equal(TrustedPublisherPolicyInvalidReason.OrganizationIsLockedOrDeleted, policyViewModel.InvalidReason);
+                Assert.Equal("Invalid Policy", policyViewModel.PolicyName);
+                Assert.Equal(organization.Username, policyViewModel.Owner);
+            }
+
+            [Fact]
+            public void WhenPolicyHasValidOwnership_InvalidReasonIsNull()
+            {
+                // Arrange
+                GetMock<IFeatureFlagService>()
+                    .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
+                    .Returns(true);
+
+                var currentUser = TestUtility.FakeOrganizationAdmin;
+                var organization = TestUtility.FakeOrganization;
+
+                var policy = new FederatedCredentialPolicy
+                {
+                    Key = 3,
+                    PolicyName = "Valid Policy",
+                    PackageOwner = currentUser, // User owns their own policy
+                    PackageOwnerUserKey = currentUser.Key,
+                    Type = FederatedCredentialType.GitHubActions,
+                    Criteria = @"{""owner"":""someOwner"",""repository"":""repo"",""workflow"":""test.yml""}"
+                };
+
+                var policies = new List<FederatedCredentialPolicy> { policy };
+
+                GetMock<IFederatedCredentialRepository>()
+                    .Setup(r => r.GetPoliciesCreatedByUser(It.IsAny<int>()))
+                    .Returns(policies);
+
+                var model = GetModelForTrustedPublishing(currentUser);
+
+                // Assert
+                Assert.Single(model.Policies);
+                var policyViewModel = model.Policies.First();
+                Assert.Null(policyViewModel.InvalidReason);
+                Assert.Equal("Valid Policy", policyViewModel.PolicyName);
+                Assert.Equal(currentUser.Username, policyViewModel.Owner);
+            }
+
+            [Fact]
+            public void WhenOrganizationMemberOwnsPolicy_InvalidReasonIsNull()
+            {
+                // Arrange
+                GetMock<IFeatureFlagService>()
+                    .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
+                    .Returns(true);
+
+                var currentUser = TestUtility.FakeOrganizationAdmin;
+                var organization = TestUtility.FakeOrganization;
+
+                var policy = new FederatedCredentialPolicy
+                {
+                    Key = 4,
+                    PolicyName = "Org Member Policy",
+                    PackageOwner = organization,
+                    PackageOwnerUserKey = organization.Key,
+                    Type = FederatedCredentialType.GitHubActions,
+                    Criteria = @"{""owner"":""someOwner"",""repository"":""repo"",""workflow"":""test.yml""}"
+                };
+
+                var policies = new List<FederatedCredentialPolicy> { policy };
+
+                GetMock<IFederatedCredentialRepository>()
+                    .Setup(r => r.GetPoliciesCreatedByUser(It.IsAny<int>()))
+                    .Returns(policies);
+
+                var model = GetModelForTrustedPublishing(currentUser);
+
+                // Assert
+                Assert.Single(model.Policies);
+                var policyViewModel = model.Policies.First();
+                Assert.Null(policyViewModel.InvalidReason);
+                Assert.Equal("Org Member Policy", policyViewModel.PolicyName);
+                Assert.Equal(organization.Username, policyViewModel.Owner);
             }
 
             private TrustedPublisherPolicyListViewModel GetModelForTrustedPublishing(User currentUser)
@@ -1414,7 +1571,7 @@ namespace NuGetGallery
                     .Setup(s => s.AddPolicyAsync(It.IsAny<FederatedCredentialPolicy>(), true))
                     .Returns(Task.CompletedTask);
 
-                string criteria = @"{""Name"":""GitHub"",""RepositoryOwner"":""repoOwner"",""Repository"":""repo"",""RepositoryId"":""1"",""WorkflowFile"":""a.yml""}";
+                string criteria = @"{""RepositoryOwner"":""repoOwner"",""Repository"":""repo"",""RepositoryId"":""1"",""WorkflowFile"":""a.yml""}";
 
                 // Act
                 var result = await controller.GenerateTrustedPublisherPolicy(
@@ -1494,7 +1651,7 @@ namespace NuGetGallery
                     Key = 1,
                     PackageOwner = otherUser,
                     PackageOwnerUserKey = otherUser.Key,
-                    Type = FederatedCredentialType.TrustedPublisher
+                    Type = FederatedCredentialType.GitHubActions
                 };
 
                 GetMock<IFederatedCredentialRepository>()
@@ -1522,10 +1679,10 @@ namespace NuGetGallery
                     .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
                     .Returns(true);
 
-                string oldDBCriteria = @"{""name"":""GitHub"",""owner"":""someOwner"",""repository"":""repo"",""workflow"":""old.yml"",""ownerId"":""12"",""repositoryId"":""45"",""environment"":""prod""}";
-                string newDBCriteria = @"{""name"":""GitHub"",""owner"":""someOwner"",""repository"":""repo"",""workflow"":""new.yml"",""ownerId"":""12"",""repositoryId"":""45""}";
+                string oldDBCriteria = @"{""owner"":""someOwner"",""repository"":""repo"",""workflow"":""old.yml"",""ownerId"":""12"",""repositoryId"":""45"",""environment"":""prod""}";
+                string newDBCriteria = @"{""owner"":""someOwner"",""repository"":""repo"",""workflow"":""new.yml"",""ownerId"":""12"",""repositoryId"":""45""}";
                 string newJSCriteria = $@"{{
-                    ""Name"":""GitHub"",
+                    
                     ""{nameof(GitHubPolicyDetailsViewModel.RepositoryOwner)}"":""someOwner"",
                     ""{nameof(GitHubPolicyDetailsViewModel.RepositoryOwnerId)}"":""12"",
                     ""{nameof(GitHubPolicyDetailsViewModel.Repository)}"":""repo"",
@@ -1540,7 +1697,7 @@ namespace NuGetGallery
                     PolicyName = "Test Policy",
                     PackageOwner = user,
                     PackageOwnerUserKey = user.Key,
-                    Type = FederatedCredentialType.TrustedPublisher,
+                    Type = FederatedCredentialType.GitHubActions,
                     Criteria = oldDBCriteria
                 };
 
@@ -1630,7 +1787,7 @@ namespace NuGetGallery
                     Key = 1,
                     PackageOwner = otherUser,
                     PackageOwnerUserKey = otherUser.Key,
-                    Type = FederatedCredentialType.TrustedPublisher
+                    Type = FederatedCredentialType.GitHubActions
                 };
 
                 GetMock<IFederatedCredentialRepository>()
@@ -1664,7 +1821,7 @@ namespace NuGetGallery
                     PolicyName = "Test Policy",
                     PackageOwner = user,
                     PackageOwnerUserKey = user.Key,
-                    Type = FederatedCredentialType.TrustedPublisher,
+                    Type = FederatedCredentialType.GitHubActions,
                     Criteria = @"{""name"":""NotGitHub"",""someOtherProperty"":""value""}"
                 };
 
@@ -1720,14 +1877,14 @@ namespace NuGetGallery
                 var user = TestUtility.FakeUser;
 
                 // Create criteria for a temporarily enabled policy (no owner/repo IDs)
-                string oldDBCriteria = @"{""name"":""GitHub"",""owner"":""someOwner"",""repository"":""repo"",""workflow"":""test.yml"",""ownerId"":"""",""repositoryId"":""""}";
+                string oldDBCriteria = @"{""owner"":""someOwner"",""repository"":""repo"",""workflow"":""test.yml"",""ownerId"":"""",""repositoryId"":""""}";
                 var policy = new FederatedCredentialPolicy
                 {
                     Key = 1,
                     PolicyName = "Test Policy",
                     PackageOwner = user,
                     PackageOwnerUserKey = user.Key,
-                    Type = FederatedCredentialType.TrustedPublisher,
+                    Type = FederatedCredentialType.GitHubActions,
                     Criteria = oldDBCriteria
                 };
 
@@ -1773,14 +1930,14 @@ namespace NuGetGallery
                 var user = TestUtility.FakeUser;
 
                 // Create criteria for a permanently enabled policy (with owner/repo IDs)
-                string oldDBCriteria = @"{""name"":""GitHub"",""owner"":""someOwner"",""repository"":""repo"",""workflow"":""test.yml"",""ownerId"":""123"",""repositoryId"":""456""}";
+                string oldDBCriteria = @"{""owner"":""someOwner"",""repository"":""repo"",""workflow"":""test.yml"",""ownerId"":""123"",""repositoryId"":""456""}";
                 var policy = new FederatedCredentialPolicy
                 {
                     Key = 1,
                     PolicyName = "Test Policy",
                     PackageOwner = user,
                     PackageOwnerUserKey = user.Key,
-                    Type = FederatedCredentialType.TrustedPublisher,
+                    Type = FederatedCredentialType.GitHubActions,
                     Criteria = oldDBCriteria
                 };
 
@@ -1874,7 +2031,7 @@ namespace NuGetGallery
                     Key = 1,
                     PackageOwner = otherUser,
                     PackageOwnerUserKey = otherUser.Key,
-                    Type = FederatedCredentialType.TrustedPublisher
+                    Type = FederatedCredentialType.GitHubActions
                 };
 
                 GetMock<IFederatedCredentialRepository>()
@@ -1907,7 +2064,7 @@ namespace NuGetGallery
                     PolicyName = "Test Policy",
                     PackageOwner = user,
                     PackageOwnerUserKey = user.Key,
-                    Type = FederatedCredentialType.TrustedPublisher
+                    Type = FederatedCredentialType.GitHubActions
                 };
 
                 GetMock<IFederatedCredentialRepository>()

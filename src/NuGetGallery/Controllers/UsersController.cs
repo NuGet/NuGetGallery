@@ -1046,9 +1046,10 @@ namespace NuGetGallery
 
             var userPolicies = _federatedCredentialRepository.GetPoliciesCreatedByUser(currentUser.Key);
 
-            // Filter out policies that are not trusted publishers
+            // Show newest policies on the top.
             var publishers = userPolicies
-                .Select(CreatePublisherViewModel)
+                .OrderByDescending(p => p.Created)
+                .Select(p => CreatePublisherViewModel(currentUser, p))
                 .Where(p => p != null)
                 .ToArray();
 
@@ -1065,17 +1066,35 @@ namespace NuGetGallery
             return View("TrustedPublishing", model);
         }
 
-        private TrustedPublisherPolicyViewModel CreatePublisherViewModel(FederatedCredentialPolicy policy)
+        private TrustedPublisherPolicyViewModel CreatePublisherViewModel(User currentUser, FederatedCredentialPolicy policy)
         {
-            if (policy.Type != FederatedCredentialType.TrustedPublisher)
+            if (policy.Type != FederatedCredentialType.GitHubActions)
             {
                 return null;
             }
 
-            if (TrustedPublisherPolicyDetailsViewModelFactory.FromDatabaseJson(policy.Criteria)
-                is not TrustedPublisherPolicyDetailsViewModel policyDetails)
+            if (GitHubPolicyDetailsViewModel.FromDatabaseJson(policy.Criteria)
+                is not GitHubPolicyDetailsViewModel policyDetails)
             {
                 return null;
+            }
+
+            TrustedPublisherPolicyInvalidReason? reason = null;
+
+            var ownerKey = policy.PackageOwnerUserKey;
+            if (ownerKey != currentUser.Key)
+            {
+                var owner = currentUser.Organizations
+                    .Select(o => o.Organization)
+                    .FirstOrDefault(o => o.Key == ownerKey);
+                if (owner == null)
+                {
+                    reason = TrustedPublisherPolicyInvalidReason.UserNotInOrganization;
+                }
+                else if (owner.IsLocked || owner.IsDeleted)
+                {
+                    reason = TrustedPublisherPolicyInvalidReason.OrganizationIsLockedOrDeleted;
+                }
             }
 
             return new TrustedPublisherPolicyViewModel
@@ -1083,6 +1102,7 @@ namespace NuGetGallery
                 Key = policy.Key,
                 PolicyName = !string.IsNullOrEmpty(policy.PolicyName) ? policy.PolicyName : $"Policy {policy.Key}",
                 Owner = policy.PackageOwner.Username,
+                InvalidReason = reason,
                 PolicyDetails = policyDetails
             };
         }
@@ -1129,8 +1149,9 @@ namespace NuGetGallery
                 return Json(Strings.AddOwner_OwnerNotFound);
             }
 
-            if (TrustedPublisherPolicyDetailsViewModelFactory.FromJavaScriptJson(criteria)
-                is not TrustedPublisherPolicyDetailsViewModel policyDetails)
+            // Currently only GitHub Actions policies are expected
+            if (GitHubPolicyDetailsViewModel.FromJavaScriptJson(criteria)
+                is not GitHubPolicyDetailsViewModel policyDetails)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(Strings.TrustedPublisher_Unexpected);
@@ -1145,7 +1166,7 @@ namespace NuGetGallery
             // Create and store the federated credential policy
             var policy = new FederatedCredentialPolicy()
             {
-                Type = FederatedCredentialType.TrustedPublisher,
+                Type = policyDetails.PublisherType,
                 PolicyName = policyName,
                 Criteria = policyDetails.ToDatabaseJson(),
                 Created = DateTime.UtcNow,
@@ -1185,7 +1206,8 @@ namespace NuGetGallery
                 return Json(result.error);
             }
 
-            if (CreatePublisherViewModel(result.policy) is not TrustedPublisherPolicyViewModel model)
+            if (CreatePublisherViewModel(currentUser, result.policy) is not TrustedPublisherPolicyViewModel model ||
+                model.InvalidReason.HasValue)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(Strings.TrustedPublisher_Unexpected);
@@ -1224,7 +1246,8 @@ namespace NuGetGallery
                 return Json(result.error);
             }
 
-            if (CreatePublisherViewModel(result.policy) is not TrustedPublisherPolicyViewModel model ||
+            if (CreatePublisherViewModel(currentUser, result.policy) is not TrustedPublisherPolicyViewModel model ||
+                model.InvalidReason.HasValue ||
                 model.PolicyDetails is not GitHubPolicyDetailsViewModel gitHubModel)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;

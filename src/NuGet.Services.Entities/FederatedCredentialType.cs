@@ -21,8 +21,8 @@ namespace NuGet.Services.Entities
         EntraIdServicePrincipal = 1,
 
         /// <summary>
-        /// A trusted publisher like GitHub Actions.
+        /// GitHub Actions as a trusted publisher.
         /// </summary>
-        TrustedPublisher = 2,
+        GitHubActions = 2,
     }
 }

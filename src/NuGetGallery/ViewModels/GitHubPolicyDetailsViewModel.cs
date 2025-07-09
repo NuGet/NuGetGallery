@@ -7,6 +7,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
@@ -31,7 +32,7 @@ namespace NuGetGallery
         {
         }
 
-        public override string Name => "GitHub";
+        public override FederatedCredentialType PublisherType => FederatedCredentialType.GitHubActions;
 
         /// <summary>
         /// GitHub organization/owner name.
@@ -165,13 +166,6 @@ namespace NuGetGallery
 
         public override TrustedPublisherPolicyDetailsViewModel Update(string javaScriptJson)
         {
-            var properties = JObject.Parse(javaScriptJson);
-            var publisherName = properties["Name"]?.ToString();
-            if (!string.Equals(publisherName, "GitHub", StringComparison.OrdinalIgnoreCase))
-            {
-                throw new InvalidOperationException("Invalid publisher name. Expected 'GitHub'.");
-            }
-
             var model = new GitHubPolicyDetailsViewModel();
             model._repositoryOwner = _repositoryOwner;
             model._repositoryOwnerId = _repositoryOwnerId;
@@ -181,33 +175,46 @@ namespace NuGetGallery
             model._environment = _environment;
             model.ValidateByDate = ValidateByDate;
 
+            model.UpdateFromJavaScript(javaScriptJson);
+            return model;
+        }
+
+        public static GitHubPolicyDetailsViewModel FromJavaScriptJson(string json)
+        {
+            var model = new GitHubPolicyDetailsViewModel();
+            model.UpdateFromJavaScript(json);
+            return model;
+        }
+
+        private void UpdateFromJavaScript(string json)
+        { 
+            var properties = JObject.Parse(json);
+
             // MUST MATCH GitHub details serialization in page-trusted-publishing.js.
             if (properties.TryGetValue(nameof(RepositoryOwner), out var owner))
             {
-                model.RepositoryOwner = owner?.ToString();
+                RepositoryOwner = owner?.ToString();
             }
             if (properties.TryGetValue(nameof(RepositoryOwnerId), out var ownerId))
             {
-                model.RepositoryOwnerId = ownerId?.ToString();
+                RepositoryOwnerId = ownerId?.ToString();
             }
             if (properties.TryGetValue(nameof(Repository), out var repository))
             {
-                model.Repository = repository?.ToString();
+                Repository = repository?.ToString();
             }
             if (properties.TryGetValue(nameof(RepositoryId), out var repositoryId))
             {
-                model.RepositoryId = repositoryId?.ToString();
+                RepositoryId = repositoryId?.ToString();
             }
             if (properties.TryGetValue(nameof(WorkflowFile), out var workflowFile))
             {
-                model.WorkflowFile = workflowFile?.ToString();
+                WorkflowFile = workflowFile?.ToString();
             }
             if (properties.TryGetValue(nameof(Environment), out var environment))
             {
-                model.Environment = environment?.ToString();
+                Environment = environment?.ToString();
             }
-
-            return model;
         }
 
         public override string ToDatabaseJson()
