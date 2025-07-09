@@ -61,7 +61,6 @@ namespace NuGetGallery
                 { "template" , "Template" },
             };
 
-
             if (mcpFilteringEnabled)
             {
                 uiSupportedPackageTypes.Add("mcpserver", "MCP Server");

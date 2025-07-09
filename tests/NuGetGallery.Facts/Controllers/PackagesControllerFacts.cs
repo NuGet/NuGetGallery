@@ -1143,16 +1143,18 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData(false, false, null, McpServerEntryResultValidity.Unset, "", false)]
-            [InlineData(true, true, null, McpServerEntryResultValidity.MissingMetadata, "", true)]
-            [InlineData(true, true, "", McpServerEntryResultValidity.MissingMetadata, "", true)]
-            [InlineData(true, true, "{}", McpServerEntryResultValidity.MissingNugetRegistry, "", true)]
-            [InlineData(true, true, McpServerData.ServerJsonNoPackages, McpServerEntryResultValidity.MissingNugetRegistry, "", true)]
-            [InlineData(true, true, McpServerData.ServerJsonNoNugetRegistry, McpServerEntryResultValidity.MissingNugetRegistry, "", true)]
-            [InlineData(true, true, McpServerData.ServerJsonValid, McpServerEntryResultValidity.Success, McpServerData.McpJsonValid, true)]
+            [InlineData(false, false, true, null, McpServerEntryResultValidity.Unset, "", false)]
+            [InlineData(true, true, true, null, McpServerEntryResultValidity.MissingMetadata, "", true)]
+            [InlineData(true, true, true, "", McpServerEntryResultValidity.MissingMetadata, "", true)]
+            [InlineData(true, true, true, "{}", McpServerEntryResultValidity.MissingNugetRegistry, "", true)]
+            [InlineData(true, true, true, McpServerData.ServerJsonNoPackages, McpServerEntryResultValidity.MissingNugetRegistry, "", true)]
+            [InlineData(true, true, true, McpServerData.ServerJsonNoNugetRegistry, McpServerEntryResultValidity.MissingNugetRegistry, "", true)]
+            [InlineData(true, true, false, McpServerData.ServerJsonValid, McpServerEntryResultValidity.Unset, "", false)]
+            [InlineData(true, true, true, McpServerData.ServerJsonValid, McpServerEntryResultValidity.Success, McpServerData.McpJsonValid, true)]
             public async Task HandlesMcpServerMetadata(
                 bool includeMcpServer,
                 bool includeDotNetTool,
+                bool enableMcpServerPackageDisplay,
                 string mcpServerMetadata,
                 McpServerEntryResultValidity expectedValidity,
                 string expectedTemplate,
@@ -1160,8 +1162,12 @@ namespace NuGetGallery
             {
                 var version = "1.0.0";
 
+                var featureFlagService = new Mock<IFeatureFlagService>();
                 var packageService = new Mock<IPackageService>();
-                var controller = CreateController(GetConfigurationService(), packageService: packageService);
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    featureFlagService: featureFlagService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var packageTypes = new List<PackageType>();
@@ -1183,7 +1189,7 @@ namespace NuGetGallery
                     });
                 }
 
-                var id = "Foo";
+                var id = "Test.McpServer";
                 var package = new Package
                 {
                     Version = version,
@@ -1209,6 +1215,10 @@ namespace NuGetGallery
                     .Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
                     .Returns(package);
 
+                featureFlagService
+                    .Setup(x => x.IsMcpServerPackageDisplayEnabled())
+                    .Returns(enableMcpServerPackageDisplay);
+
                 var result = await controller.DisplayPackage(id, /*version*/version);
 
                 McpServerEntryTemplateResult expectedResult = new McpServerEntryTemplateResult
@@ -1220,6 +1230,32 @@ namespace NuGetGallery
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal(model.VsCodeMcpServerEntryTemplate, expectedResult);
                 Assert.Equal(model.CanDisplayMcpServerPackageTab(), shouldDisplayMcpPackageTab);
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task RespectsMcpServerPackageFilteringFlag(bool enableMcpServerPackageFiltering)
+            {
+                var searchService = new Mock<ISearchService>();
+                var featureFlagService = new Mock<IFeatureFlagService>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    searchService: searchService,
+                    featureFlagService: featureFlagService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns(
+                    Task.FromResult(new SearchResults(0, DateTime.UtcNow)));
+
+                featureFlagService
+                    .Setup(x => x.IsMcpServerPackageFilteringEnabled())
+                    .Returns(enableMcpServerPackageFiltering);
+
+                var result = (ViewResult)(await controller.ListPackages(new PackageListSearchViewModel() { Q = " test " }));
+                var model = (PackageListViewModel)result.Model;
+
+                Assert.Equal(enableMcpServerPackageFiltering, model.UiSupportedPackageTypes.ContainsKey("mcpserver") && model.UiSupportedPackageTypes["mcpserver"] == "MCP Server");
             }
 
             [Fact]
