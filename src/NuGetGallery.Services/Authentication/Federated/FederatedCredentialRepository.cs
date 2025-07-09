@@ -1,11 +1,12 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Threading.Tasks;
-using System.Linq;
-using System.Data;
+using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Entity;
+using System.Linq;
+using System.Threading.Tasks;
 using NuGet.Services.Entities;
 
 #nullable enable
@@ -16,7 +17,7 @@ namespace NuGetGallery.Services.Authentication
     {
         Task AddPolicyAsync(FederatedCredentialPolicy policy, bool saveChanges);
         Task SaveFederatedCredentialAsync(FederatedCredential federatedCredential, bool saveChanges);
-        Task SaveFederatedCredentialPolicyAsync(FederatedCredentialPolicy policy, bool saveChanges);
+        Task SavePoliciesAsync();
         IReadOnlyList<FederatedCredentialPolicy> GetPoliciesCreatedByUser(int userKey);
         FederatedCredentialPolicy? GetPolicyByKey(int policyKey);
         IReadOnlyList<Credential> GetShortLivedApiKeysForPolicy(int policyKey);
@@ -89,13 +90,7 @@ namespace NuGetGallery.Services.Authentication
             }
         }
 
-        public async Task SaveFederatedCredentialPolicyAsync(FederatedCredentialPolicy policy, bool saveChanges)
-        {
-            if (saveChanges)
-            {
-                await _policyRepository.CommitChangesAsync();
-            }
-        }
+        public Task SavePoliciesAsync() => _policyRepository.CommitChangesAsync();
 
         public async Task AddPolicyAsync(FederatedCredentialPolicy policy, bool saveChanges)
         {

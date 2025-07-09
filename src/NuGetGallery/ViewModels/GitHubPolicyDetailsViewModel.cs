@@ -104,7 +104,7 @@ namespace NuGetGallery
         /// The policy can be created without these IDs, and later validated upon first use
         /// or user manually updating the policy.
         /// </remarks>
-        public DateTime? ValidateByDate { get; set; }
+        public DateTimeOffset? ValidateByDate { get; set; }
 
         public int EnabledDaysLeft
         {
@@ -117,7 +117,7 @@ namespace NuGetGallery
 
                 if (this.ValidateByDate.HasValue)
                 {
-                    var daysLeft = Math.Ceiling((this.ValidateByDate.Value - DateTime.UtcNow).TotalDays);
+                    var daysLeft = Math.Ceiling((this.ValidateByDate.Value - DateTimeOffset.UtcNow).TotalDays);
                     return Math.Max((int)daysLeft, 0); // Ensure non-negative days left.
                 }
 
@@ -155,7 +155,7 @@ namespace NuGetGallery
             {
                 // Make sure we have both or nothing, owner and repo IDs. Round date to the next hour.
                 _repositoryOwnerId = _repositoryId = string.Empty;
-                DateTime date = DateTime.UtcNow + TimeSpan.FromDays(ValidationExpirationDays);
+                DateTimeOffset date = DateTimeOffset.UtcNow + TimeSpan.FromDays(ValidationExpirationDays);
                 this.ValidateByDate = new DateTime(date.Year, date.Month, date.Day, date.Hour, 0, 0, DateTimeKind.Utc);
             }
             else

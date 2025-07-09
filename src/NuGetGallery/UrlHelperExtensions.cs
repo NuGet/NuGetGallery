@@ -1022,14 +1022,13 @@ namespace NuGetGallery
                 supportEmail: supportEmail);
         }
 
-        public static string ManageMyTrustedPublishing(this UrlHelper url, bool relativeUrl = true, bool supportEmail = false)
+        public static string ManageMyTrustedPublishing(this UrlHelper url, bool relativeUrl = true)
         {
             return GetActionLink(
                 url,
                 nameof(UsersController.TrustedPublishing),
                 "Users",
-                relativeUrl,
-                supportEmail: supportEmail);
+                relativeUrl);
         }
 
         public static string ManageMyOrganizations(this UrlHelper url, bool relativeUrl = true)

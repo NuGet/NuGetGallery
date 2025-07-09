@@ -1047,7 +1047,7 @@ namespace NuGetGallery
             var userPolicies = _federatedCredentialRepository.GetPoliciesCreatedByUser(currentUser.Key);
 
             // Show newest policies on the top.
-            var publishers = userPolicies
+            var policies = userPolicies
                 .OrderByDescending(p => p.Created)
                 .Select(p => CreatePublisherViewModel(currentUser, p))
                 .Where(p => p != null)
@@ -1059,7 +1059,7 @@ namespace NuGetGallery
             var model = new TrustedPublisherPolicyListViewModel
             {
                 Username = currentUser.Username,
-                Policies = publishers,
+                Policies = policies,
                 PackageOwners = owners.Select(o => o.Username).ToArray(),
             };
 
@@ -1223,7 +1223,7 @@ namespace NuGetGallery
             result.policy.Criteria = newDetails.ToDatabaseJson();
             model.PolicyDetails = newDetails;
 
-            await _federatedCredentialRepository.SaveFederatedCredentialPolicyAsync(result.policy, saveChanges: true);
+            await _federatedCredentialRepository.SavePoliciesAsync();
             return Json(model);
         }
 
@@ -1258,7 +1258,7 @@ namespace NuGetGallery
             {
                 gitHubModel.InitialieValidateByDate();
                 result.policy.Criteria = gitHubModel.ToDatabaseJson();
-                await _federatedCredentialRepository.SaveFederatedCredentialPolicyAsync(result.policy, saveChanges: true);
+                await _federatedCredentialRepository.SavePoliciesAsync();
             }
 
             return Json(model);

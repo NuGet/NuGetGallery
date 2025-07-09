@@ -1706,8 +1706,7 @@ namespace NuGetGallery
                     .Returns(policy);
 
                 GetMock<IFederatedCredentialRepository>()
-                    .Setup(s => s.SaveFederatedCredentialPolicyAsync(
-                        It.IsAny<FederatedCredentialPolicy>(), true))
+                    .Setup(s => s.SavePoliciesAsync())
                     .Returns(Task.CompletedTask);
 
                 var controller = GetController<UsersController>();
@@ -1722,8 +1721,7 @@ namespace NuGetGallery
                 Assert.IsType<JsonResult>(result);
                 Assert.Equal(newDBCriteria, policy.Criteria);
                 GetMock<IFederatedCredentialRepository>()
-                    .Verify(s => s.SaveFederatedCredentialPolicyAsync(
-                        policy, true), Times.Once);
+                    .Verify(s => s.SavePoliciesAsync(), Times.Once);
             }
         }
         public class TheEnableTrustedPublisherPolicyAction : TestContainer
@@ -1893,8 +1891,7 @@ namespace NuGetGallery
                     .Returns(policy);
 
                 GetMock<IFederatedCredentialRepository>()
-                    .Setup(s => s.SaveFederatedCredentialPolicyAsync(
-                        It.IsAny<FederatedCredentialPolicy>(), true))
+                    .Setup(s => s.SavePoliciesAsync())
                     .Returns(Task.CompletedTask);
 
                 var controller = GetController<UsersController>();
@@ -1912,8 +1909,7 @@ namespace NuGetGallery
 
                 // Verify that the policy was saved
                 GetMock<IFederatedCredentialRepository>()
-                    .Verify(s => s.SaveFederatedCredentialPolicyAsync(
-                        policy, true), Times.Once);
+                    .Verify(s => s.SavePoliciesAsync(), Times.Once);
 
                 // Verify that InitialieValidateByDate was called (criteria should be updated)
                 Assert.NotEqual(oldDBCriteria, policy.Criteria);
@@ -1946,8 +1942,7 @@ namespace NuGetGallery
                     .Returns(policy);
 
                 GetMock<IFederatedCredentialRepository>()
-                    .Setup(s => s.SaveFederatedCredentialPolicyAsync(
-                        It.IsAny<FederatedCredentialPolicy>(), true))
+                    .Setup(s => s.SavePoliciesAsync())
                     .Returns(Task.CompletedTask);
 
                 var controller = GetController<UsersController>();
@@ -1965,8 +1960,7 @@ namespace NuGetGallery
 
                 // Verify that no DB changes were made
                 GetMock<IFederatedCredentialRepository>()
-                    .Verify(s => s.SaveFederatedCredentialPolicyAsync(
-                        policy, true), Times.Never);
+                    .Verify(s => s.SavePoliciesAsync(), Times.Never);
             }
         }
 
