@@ -1295,14 +1295,9 @@ namespace NuGetGallery
                 return (null, Strings.TrustedPublisher_Unexpected);
             }
 
-            // Sanity check. The policy must be owned by user or an organization the user belongs to.
+            // Sanity check. The policy must be owned by current user
             var currentUser = GetCurrentUser();
-
-            // Check if the policy is owned by the current user or any organization the user belongs to
-            var isOwner = policy.PackageOwnerUserKey == currentUser.Key ||
-                currentUser.Organizations.Any(o => o.Organization.Key == policy.PackageOwnerUserKey);
-
-            if (!isOwner)
+            if (currentUser.Key != policy.CreatedByUserKey)
             {
                 return (null, Strings.Unauthorized);
             }

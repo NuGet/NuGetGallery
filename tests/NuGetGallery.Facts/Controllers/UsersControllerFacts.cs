@@ -1803,41 +1803,6 @@ namespace NuGetGallery
                 Assert.Equal(Strings.Unauthorized, (string)result.Data);
             }
 
-            [Fact]
-            public async Task WhenPolicyIsNotGitHubType_ReturnsBadRequest()
-            {
-                // Arrange
-                GetMock<IFeatureFlagService>()
-                    .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
-                    .Returns(true);
-
-                var user = TestUtility.FakeUser;
-                // Create a policy with invalid criteria that won't deserialize to GitHubPolicyDetailsViewModel
-                var policy = new FederatedCredentialPolicy
-                {
-                    Key = 1,
-                    PolicyName = "Test Policy",
-                    PackageOwner = user,
-                    PackageOwnerUserKey = user.Key,
-                    Type = FederatedCredentialType.GitHubActions,
-                    Criteria = @"{""name"":""NotGitHub"",""someOtherProperty"":""value""}"
-                };
-
-                GetMock<IFederatedCredentialRepository>()
-                    .Setup(r => r.GetPolicyByKey(1))
-                    .Returns(policy);
-
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-
-                // Act
-                var result = await controller.EnableTrustedPublisherPolicy(federatedCredentialKey: 1);
-
-                // Assert
-                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
-                Assert.Equal(Strings.TrustedPublisher_Unexpected, (string)result.Data);
-            }
-
             [Theory]
             [InlineData(null)]
             [InlineData(0)]
@@ -1880,8 +1845,9 @@ namespace NuGetGallery
                 {
                     Key = 1,
                     PolicyName = "Test Policy",
-                    PackageOwner = user,
+                    CreatedByUserKey = user.Key,
                     PackageOwnerUserKey = user.Key,
+                    PackageOwner = user,
                     Type = FederatedCredentialType.GitHubActions,
                     Criteria = oldDBCriteria
                 };
@@ -1931,8 +1897,9 @@ namespace NuGetGallery
                 {
                     Key = 1,
                     PolicyName = "Test Policy",
-                    PackageOwner = user,
+                    CreatedByUserKey = user.Key,
                     PackageOwnerUserKey = user.Key,
+                    PackageOwner = user,
                     Type = FederatedCredentialType.GitHubActions,
                     Criteria = oldDBCriteria
                 };

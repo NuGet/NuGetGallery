@@ -31,10 +31,10 @@
             @if (!CurrentUser.Confirmed)
             {
                 @ViewHelpers.AlertWarning(
-                            @<text>
-                                To get an API Key you will need to
-                                <a href="@Url.ConfirmationRequired()">confirm your account</a>.
-                            </text>)
+                    @<text>
+                        To get an API Key you will need to
+                        <a href="@Url.ConfirmationRequired()">confirm your account</a>.
+                    </text>)
             }
             else
             {
@@ -47,11 +47,11 @@
                 @ViewHelpers.Section(this,
                     "create",
                     "Create",
-                            @<text>
-                                <div class="upsert-api-key">
-                                    <div class="panel-body" data-bind="template: { name: 'upsert-api-key', data: NewApiKey }"></div>
-                                </div>
-                            </text>,
+                    @<text>
+                        <div class="upsert-api-key">
+                            <div class="panel-body" data-bind="template: { name: 'upsert-api-key', data: NewApiKey }"></div>
+                        </div>
+                    </text>,
               expanded: false,
               expandedIcon: "Subtraction",
               collapsedIcon: "Add")
@@ -59,9 +59,9 @@
                 @ViewHelpers.Section(this,
                     "manage",
                     "Manage",
-                            @<text>
-                                <div data-bind="template: 'manage-api-keys'"></div>
-                            </text>)
+                    @<text>
+                        <div data-bind="template: 'manage-api-keys'"></div>
+                    </text>)
             }
         </div>
     </div>

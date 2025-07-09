@@ -291,10 +291,17 @@
             this.PolicyNameUid = computedUid(self, "policy-name");
             this.PackageOwnerUid = computedUid(self, "package-owner");
             this.IconUrl = ko.pureComputed(function () {
+                // Use disabled icon if there's an invalid reason or if enabled days left is 0 or less
+                if (this.InvalidReason() || (this.gitHub.EnabledDaysLeft() <= 0)) {
+                    return initialData.ImageUrls.DisabledTrustedPolicy;
+                }
                 return initialData.ImageUrls.TrustedPolicy;
             }, this);
             this.IconUrlFallback = ko.pureComputed(function () {
-                const url =  initialData.ImageUrls.TrustedPolicyFallback;
+                var url = initialData.ImageUrls.TrustedPolicyFallback;
+                if (this.InvalidReason() || (this.gitHub.EnabledDaysLeft() <= 0)) {
+                    return initialData.ImageUrls.DisabledTrustedPolicy;
+                }
                 return "this.src='" + url + "'; this.onerror = null;";
             }, this);
 

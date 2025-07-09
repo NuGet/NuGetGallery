@@ -223,7 +223,6 @@ namespace NuGetGallery
             // This gives us flexibility to change the model without breaking existing data.
             var properties = new Dictionary<string, object>
             {
-                { "name", "GitHub" },
                 { "owner", RepositoryOwner },
                 { "repository", Repository },
                 { "workflow", WorkflowFile },
@@ -243,7 +242,7 @@ namespace NuGetGallery
             }
             if (ValidateByDate.HasValue)
             {
-                properties["validateBy"] = ValidateByDate.Value.ToString("o"); // ISO 8601 format
+                properties["validateBy"] = properties["validateBy"] = ValidateByDate.Value.ToString("yyyy-MM-ddTHH:00:00Z"); // UTC format with hour precision
             }
 
             // Serialize to JSON
@@ -262,7 +261,7 @@ namespace NuGetGallery
                 RepositoryOwnerId = properties["ownerId"]?.ToString(),
                 RepositoryId = properties["repositoryId"]?.ToString(),
                 Environment = properties["environment"]?.ToString(),
-                ValidateByDate = DateTime.TryParse(properties["validateBy"]?.ToString(), out var validateBy) ? validateBy : null,
+                ValidateByDate = DateTimeOffset.TryParse(properties["validateBy"]?.ToString(), out var validateBy) ? validateBy : null,
             };
 
             return model;
