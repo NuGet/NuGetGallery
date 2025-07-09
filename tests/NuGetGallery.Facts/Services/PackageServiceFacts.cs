@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -17,6 +18,7 @@ using NuGetGallery.Framework;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using NuGetGallery.Services;
+using NuGetGallery.TestData;
 using NuGetGallery.TestUtils;
 using Xunit;
 
@@ -3620,6 +3622,144 @@ namespace NuGetGallery
                 service.EnrichPackageFromNuGetPackage(package, packageArchiveReader, packageMetadata, new PackageStreamMetadata(), new User());
 
                 Assert.Equal(expectedFlag, package.HasReadMe);
+            }
+
+            [Theory]
+            [InlineData("Foo", "Foo", "Bar")]
+            [InlineData("Foo", "foo", "Bar")]
+            public void DeduplicatesPackageTypes(string packageA, string packageB, string packageC)
+            {
+                var service = CreateService();
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "SomePackage"
+                    },
+                    PackageTypes = [],
+                };
+
+                var packageStream = PackageServiceUtility.CreateNuGetPackageStream(package.Id);
+                var packageArchiveReader = new PackageArchiveReader(packageStream);
+
+                var metadataDictionary = new Dictionary<string, string>
+                {
+                    { "version", "1.2.3" },
+                };
+
+                var packageTypes = new List<NuGet.Packaging.Core.PackageType>
+                {
+                    new(packageA, new Version("1.0.0")),
+                    new(packageB, new Version("1.0.0")),
+                    new(packageC, new Version("1.0.0")),
+                };
+
+                var packageMetadata = new PackageMetadata(
+                    metadataDictionary,
+                    Enumerable.Empty<PackageDependencyGroup>(),
+                    Enumerable.Empty<FrameworkSpecificGroup>(),
+                    packageTypes,
+                    new NuGetVersion(3, 2, 1),
+                    repositoryMetadata: null,
+                    licenseMetadata: null);
+
+                service.EnrichPackageFromNuGetPackage(package, packageArchiveReader, packageMetadata, new PackageStreamMetadata(), new User());
+
+                Assert.Equal(2, package.PackageTypes.Count);
+                Assert.Equal(packageA, package.PackageTypes.First().Name);
+                Assert.Equal(packageC, package.PackageTypes.Last().Name);
+            }
+
+            [Fact]
+            public void NoOpForMcpServerPackageTypeWithMissingMetadataFile()
+            {
+                var service = CreateService();
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "SomePackage"
+                    },
+                    PackageTypes = [],
+                };
+
+                var packageTypes = new List<NuGet.Packaging.Core.PackageType>
+                {
+                    new("DotnetTool", new Version("1.0.0")),
+                    new("McpServer", new Version("1.0.0")),
+                };
+
+                var packageStream = PackageServiceUtility.CreateNuGetPackageStream(package.Id, packageTypes: packageTypes);
+                var packageArchiveReader = new PackageArchiveReader(packageStream);
+
+                var metadataDictionary = new Dictionary<string, string>
+                {
+                    { "version", "1.2.3" },
+                };
+
+                var packageMetadata = new PackageMetadata(
+                    metadataDictionary,
+                    Enumerable.Empty<PackageDependencyGroup>(),
+                    Enumerable.Empty<FrameworkSpecificGroup>(),
+                    packageTypes,
+                    new NuGetVersion(3, 2, 1),
+                    repositoryMetadata: null,
+                    licenseMetadata: null);
+
+                service.EnrichPackageFromNuGetPackage(package, packageArchiveReader, packageMetadata, new PackageStreamMetadata(), new User());
+
+                Assert.Equal(2, package.PackageTypes.Count);
+                Assert.Equal("DotnetTool", package.PackageTypes.First().Name);
+                Assert.Equal("McpServer", package.PackageTypes.Last().Name);
+                Assert.Null(package.PackageTypes.Last().CustomData);
+            }
+
+            [Fact]
+            public void MinifiesMcpServerMetadata()
+            {
+                var service = CreateService();
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "SomePackage"
+                    },
+                    PackageTypes = [],
+                };
+
+                var packageTypes = new List<NuGet.Packaging.Core.PackageType>
+                {
+                    new("DotnetTool", new Version("1.0.0")),
+                    new("McpServer", new Version("1.0.0")),
+                };
+
+                var packageStream = PackageServiceUtility.CreateNuGetPackageStream(
+                    id: package.Id,
+                    packageTypes: packageTypes,
+                    mcpServerMetadataFilename: ".mcp/server.json",
+                    mcpServerMetadataFileContents: Encoding.UTF8.GetBytes(McpServerData.ServerJsonValid));
+                var packageArchiveReader = new PackageArchiveReader(packageStream);
+
+                var metadataDictionary = new Dictionary<string, string>
+                {
+                    { "version", "1.2.3" },
+                };
+
+                var packageMetadata = new PackageMetadata(
+                    metadataDictionary,
+                    Enumerable.Empty<PackageDependencyGroup>(),
+                    Enumerable.Empty<FrameworkSpecificGroup>(),
+                    packageTypes,
+                    new NuGetVersion(3, 2, 1),
+                    repositoryMetadata: null,
+                    licenseMetadata: null);
+
+                service.EnrichPackageFromNuGetPackage(package, packageArchiveReader, packageMetadata, new PackageStreamMetadata(), new User());
+
+                Assert.Equal(2, package.PackageTypes.Count);
+                Assert.Equal("DotnetTool", package.PackageTypes.First().Name);
+                Assert.Equal("McpServer", package.PackageTypes.Last().Name);
+                Assert.Equal(McpServerData.ServerJsonValidMinified, package.PackageTypes.Last().CustomData);
             }
         }
     }

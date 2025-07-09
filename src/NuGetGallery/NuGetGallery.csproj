@@ -354,6 +354,10 @@
     <Compile Include="Migrations\202410302050035_AddFederatedCredentials.Designer.cs">
       <DependentUpon>202410302050035_AddFederatedCredentials.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202506250741123_AddCustomDataToPackageTypes.cs" />
+    <Compile Include="Migrations\202506250741123_AddCustomDataToPackageTypes.Designer.cs">
+      <DependentUpon>202506250741123_AddCustomDataToPackageTypes.cs</DependentUpon>
+    </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
     <Compile Include="RequestModels\UpdateListedRequest.cs" />
@@ -361,6 +365,7 @@
     <Compile Include="Services\MissingLicenseValidationMessageV2.cs" />
     <Compile Include="Services\NormalizedPackageIdInfo.cs" />
     <Compile Include="Services\NullTyposquattingService.cs" />
+    <Compile Include="Services\MissingMcpServerMetadataMessage.cs" />
     <Compile Include="Services\UploadPackageMissingReadme.cs" />
     <Compile Include="Services\MissingLicenseValidationMessage.cs" />
     <Compile Include="Services\UploadPackageIdNamespaceConflict.cs" />
@@ -419,11 +424,9 @@
     <Compile Include="Filters\ValidateRecaptchaResponseAttribute.cs" />
     <Compile Include="GalleryConstants.cs" />
     <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="Helpers\TruncatedStream.cs" />
     <Compile Include="Helpers\GravatarHelper.cs" />
     <Compile Include="Helpers\LicenseExpressionRedirectUrlHelper.cs" />
     <Compile Include="Helpers\ObfuscationHelper.cs" />
-    <Compile Include="Helpers\StreamHelper.cs" />
     <Compile Include="Helpers\TextHelper.cs" />
     <Compile Include="Helpers\ZipArchiveHelpers.cs" />
     <Compile Include="Helpers\RouteUrlTemplate.cs" />
@@ -1715,6 +1718,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202410302050035_AddFederatedCredentials.resx">
       <DependentUpon>202410302050035_AddFederatedCredentials.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202506250741123_AddCustomDataToPackageTypes.resx">
+      <DependentUpon>202506250741123_AddCustomDataToPackageTypes.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

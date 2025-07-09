@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -26,7 +26,8 @@ namespace NuGetGallery
             bool includeComputedFrameworks,
             string frameworkFilterMode,
             string packageType,
-            string sortBy)
+            string sortBy,
+            bool mcpFilteringEnabled)
         {
             PageIndex = pageIndex;
             IndexTimestampUtc = indexTimestampUtc;
@@ -50,6 +51,22 @@ namespace NuGetGallery
             FrameworkFilterMode = frameworkFilterMode;
             PackageType = packageType;
             SortBy = sortBy;
+            DefaultPackageType = "";
+
+            var uiSupportedPackageTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { DefaultPackageType, "All types" },
+                { "dependency", "Dependency" },
+                { "dotnettool", ".NET tool" },
+                { "template" , "Template" },
+            };
+
+            if (mcpFilteringEnabled)
+            {
+                uiSupportedPackageTypes.Add("mcpserver", "MCP Server");
+            }
+
+            UiSupportedPackageTypes = uiSupportedPackageTypes;
         }
 
         public int FirstResultIndex => 1 + (PageIndex * PageSize);
@@ -61,7 +78,7 @@ namespace NuGetGallery
 
         public int TotalCount { get; }
 
-        public string SearchTerm { get;  }
+        public string SearchTerm { get; }
 
         public int PageIndex { get; }
 
@@ -72,6 +89,10 @@ namespace NuGetGallery
         public bool IncludePrerelease { get; }
 
         public bool IsPreviewSearch { get; }
+
+        public string DefaultPackageType { get; }
+
+        public IReadOnlyDictionary<string, string> UiSupportedPackageTypes { get; }
 
         public string Frameworks { get; set; }
 

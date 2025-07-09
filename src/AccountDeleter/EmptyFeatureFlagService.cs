@@ -249,6 +249,11 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
+        public bool IsPackagesAtomFeedCombinedAuthorsEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsPreviewHijackEnabled()
         {
             throw new NotImplementedException();
@@ -328,13 +333,18 @@ namespace NuGetGallery.AccountDeleter
         {
             throw new NotImplementedException();
         }
-
-        public bool IsAsciiOnlyPackageIdEnabled()
+        
+        public bool IsProfileLoadOptimizationEnabled()
         {
             throw new NotImplementedException();
         }
 
-        public bool IsProfileLoadOptimizationEnabled()
+        public bool IsMcpServerPackageFilteringEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsMcpServerPackageDisplayEnabled()
         {
             throw new NotImplementedException();
         }
