@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
+using System.Globalization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Entities;
@@ -110,14 +111,14 @@ namespace NuGetGallery
         {
             get
             {
-                if (this.IsPermanentlyEnabled)
+                if (IsPermanentlyEnabled)
                 {
                     return int.MaxValue; // Permanently enabled, no expiration.
                 }
 
-                if (this.ValidateByDate.HasValue)
+                if (ValidateByDate.HasValue)
                 {
-                    var daysLeft = Math.Ceiling((this.ValidateByDate.Value - DateTimeOffset.UtcNow).TotalDays);
+                    var daysLeft = Math.Ceiling((ValidateByDate.Value - DateTimeOffset.UtcNow).TotalDays);
                     return Math.Max((int)daysLeft, 0); // Ensure non-negative days left.
                 }
 
@@ -129,7 +130,7 @@ namespace NuGetGallery
         {
             var errors = new List<string>();
 
-            this.InitialieValidateByDate();
+            InitialieValidateByDate();
 
             if (string.IsNullOrEmpty(RepositoryOwner))
             {
@@ -151,16 +152,18 @@ namespace NuGetGallery
 
         internal void InitialieValidateByDate()
         {
-            if (!this.IsPermanentlyEnabled)
+            if (!IsPermanentlyEnabled)
             {
                 // Make sure we have both or nothing, owner and repo IDs. Round date to the next hour.
                 _repositoryOwnerId = _repositoryId = string.Empty;
                 DateTimeOffset date = DateTimeOffset.UtcNow + TimeSpan.FromDays(ValidationExpirationDays);
-                this.ValidateByDate = new DateTime(date.Year, date.Month, date.Day, date.Hour, 0, 0, DateTimeKind.Utc);
+
+                // Truncate to the current hour (zero out minutes/seconds)
+                ValidateByDate = new DateTimeOffset(date.Year, date.Month, date.Day, date.Hour, 0, 0, TimeSpan.Zero);
             }
             else
             {
-                this.ValidateByDate = null;
+                ValidateByDate = null;
             }
         }
 
@@ -261,7 +264,8 @@ namespace NuGetGallery
                 RepositoryOwnerId = properties["ownerId"]?.ToString(),
                 RepositoryId = properties["repositoryId"]?.ToString(),
                 Environment = properties["environment"]?.ToString(),
-                ValidateByDate = DateTimeOffset.TryParse(properties["validateBy"]?.ToString(), out var validateBy) ? validateBy : null,
+                // ValidateByDate = DateTimeOffset.TryParseExact(properties["validateBy"]?.ToString(), "yyyy-MM-ddTHH:00:00Z", null, DateTimeStyles.AssumeUniversal, out var validateBy) ? validateBy : null,
+                ValidateByDate = DateTimeOffset.TryParse(properties["validateBy"]?.ToString(), null, DateTimeStyles.AssumeUniversal, out var validateBy) ? validateBy : null,
             };
 
             return model;
