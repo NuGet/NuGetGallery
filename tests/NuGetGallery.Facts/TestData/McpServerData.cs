@@ -608,5 +608,39 @@ namespace NuGetGallery.TestData
               ]
             }
             """;
+
+        public const string ServerJsonEnvVarNameButNoValue =
+            """
+            {
+              "packages": [
+                {
+                  "registry_name": "nuget",
+                  "environment_variables": [
+                    {
+                      "name": "Foo",
+                      "description": "",
+                    }
+                  ]
+                }
+              ]
+            }
+            """;
+
+        public const string McpJsonEnvVarNameButNoValue =
+            """
+            {
+              "inputs": [],
+              "servers": {
+                "Test.McpServer": {
+                  "type": "stdio",
+                  "command": "dnx",
+                  "args": ["Test.McpServer@1.0.0", "--yes"],
+                  "env": {
+                    "Foo": ""
+                  }
+                }
+              }
+            }
+            """;
     }
 }

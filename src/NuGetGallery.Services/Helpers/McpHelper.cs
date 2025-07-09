@@ -207,12 +207,13 @@ namespace NuGetGallery.Services.Helpers
                     value = value.Replace($"{{{variable.Id}}}", $"${{input:{variable.Id}}}");
                 }
 
-                if (string.IsNullOrWhiteSpace(value) || string.IsNullOrWhiteSpace(value))
+                var name = envVar.Name;
+                if (string.IsNullOrWhiteSpace(name))
                 {
                     continue;
                 }
 
-                env[envVar.Name] = value;
+                env[name] = value ?? string.Empty;
 
                 if (variables.Count > 0)
                 {

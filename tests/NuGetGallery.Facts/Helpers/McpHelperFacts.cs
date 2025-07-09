@@ -226,6 +226,7 @@ namespace NuGetGallery.Helpers
             [InlineData(McpServerData.ServerJsonNoPositionalArgValues, McpServerData.McpJsonMinimal)]
             [InlineData(McpServerData.ServerJsonNoEnvVarValues, McpServerData.McpJsonMinimal)]
             [InlineData(McpServerData.ServerJsonNullEnvVar, McpServerData.McpJsonMinimal)]
+            [InlineData(McpServerData.ServerJsonEnvVarNameButNoValue, McpServerData.McpJsonEnvVarNameButNoValue)]
             public void ReturnsSuccess_WhenMetadataIsValid(string metadataJson, string vsCodeTemplateJson)
             {
                 // Arrange
