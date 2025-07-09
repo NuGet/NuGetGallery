@@ -11,10 +11,10 @@ namespace NuGetGallery.TestData
               "inputs": [],
               "servers": {
                 "Test.McpServer": {
-                   "type": "stdio",
-                   "command": "dnx",
-                   "args": ["Test.McpServer@1.0.0", "--yes"],
-                   "env": {}
+                  "type": "stdio",
+                  "command": "dnx",
+                  "args": ["Test.McpServer@1.0.0", "--yes"],
+                  "env": {}
                 }
               }
             }
