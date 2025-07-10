@@ -13,7 +13,7 @@ namespace NuGetGallery.Migrations
         
         string IMigrationMetadata.Id
         {
-            get { return "202507011509180_AddFederatedCredentialPolicyName"; }
+            get { return "202507101756059_AddFederatedCredentialPolicyName"; }
         }
         
         string IMigrationMetadata.Source
