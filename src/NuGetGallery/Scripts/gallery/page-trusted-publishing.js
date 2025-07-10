@@ -482,6 +482,7 @@
                 // Build the request.
                 var data = {
                     federatedCredentialKey: this.Key(),
+                    policyName: this.PendingPolicyName(),
                     criteria: _gitHubDetails.CreatePendingCriteria(this)
                 };
                 addAntiForgeryToken(data);

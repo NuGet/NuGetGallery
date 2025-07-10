@@ -122,7 +122,7 @@ namespace NuGetGallery
                     return Math.Max((int)daysLeft, 0); // Ensure non-negative days left.
                 }
 
-                return ValidationExpirationDays;
+                return 0;
             }
         }
 
@@ -154,11 +154,9 @@ namespace NuGetGallery
         {
             if (!IsPermanentlyEnabled)
             {
-                // Make sure we have both or nothing, owner and repo IDs. Round date to the next hour.
+                // Make sure we have both or nothing, owner and repo IDs. Round date to the hour.
                 _repositoryOwnerId = _repositoryId = string.Empty;
                 DateTimeOffset date = DateTimeOffset.UtcNow + TimeSpan.FromDays(ValidationExpirationDays);
-
-                // Truncate to the current hour (zero out minutes/seconds)
                 ValidateByDate = new DateTimeOffset(date.Year, date.Month, date.Day, date.Hour, 0, 0, TimeSpan.Zero);
             }
             else
@@ -202,6 +200,7 @@ namespace NuGetGallery
             {
                 RepositoryOwnerId = ownerId?.ToString();
             }
+
             if (properties.TryGetValue(nameof(Repository), out var repository))
             {
                 Repository = repository?.ToString();
@@ -210,6 +209,7 @@ namespace NuGetGallery
             {
                 RepositoryId = repositoryId?.ToString();
             }
+
             if (properties.TryGetValue(nameof(WorkflowFile), out var workflowFile))
             {
                 WorkflowFile = workflowFile?.ToString();
@@ -259,11 +259,14 @@ namespace NuGetGallery
             var model = new GitHubPolicyDetailsViewModel
             {
                 RepositoryOwner = properties["owner"]?.ToString(),
-                Repository = properties["repository"]?.ToString(),
-                WorkflowFile = properties["workflow"]?.ToString(),
                 RepositoryOwnerId = properties["ownerId"]?.ToString(),
+
+                Repository = properties["repository"]?.ToString(),
                 RepositoryId = properties["repositoryId"]?.ToString(),
+
+                WorkflowFile = properties["workflow"]?.ToString(),
                 Environment = properties["environment"]?.ToString(),
+
                 // ValidateByDate = DateTimeOffset.TryParseExact(properties["validateBy"]?.ToString(), "yyyy-MM-ddTHH:00:00Z", null, DateTimeStyles.AssumeUniversal, out var validateBy) ? validateBy : null,
                 ValidateByDate = DateTimeOffset.TryParse(properties["validateBy"]?.ToString(), null, DateTimeStyles.AssumeUniversal, out var validateBy) ? validateBy : null,
             };

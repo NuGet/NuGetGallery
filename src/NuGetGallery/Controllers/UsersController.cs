@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Net;
@@ -1079,9 +1080,18 @@ namespace NuGetGallery
                 return null;
             }
 
-            TrustedPublisherPolicyInvalidReason? reason = null;
+            return new TrustedPublisherPolicyViewModel
+            {
+                Key = policy.Key,
+                PolicyName = !string.IsNullOrEmpty(policy.PolicyName) ? policy.PolicyName : $"Policy {policy.Key}",
+                Owner = policy.PackageOwner.Username,
+                InvalidReason = VerifyPolicyOwner(currentUser, policy.PackageOwnerUserKey),
+                PolicyDetails = policyDetails
+            };
+        }
 
-            var ownerKey = policy.PackageOwnerUserKey;
+        private static TrustedPublisherPolicyInvalidReason? VerifyPolicyOwner(User currentUser, int ownerKey)
+        {
             if (ownerKey != currentUser.Key)
             {
                 var owner = currentUser.Organizations
@@ -1089,22 +1099,15 @@ namespace NuGetGallery
                     .FirstOrDefault(o => o.Key == ownerKey);
                 if (owner == null)
                 {
-                    reason = TrustedPublisherPolicyInvalidReason.UserNotInOrganization;
+                    return TrustedPublisherPolicyInvalidReason.UserNotInOrganization;
                 }
                 else if (owner.IsLocked || owner.IsDeleted)
                 {
-                    reason = TrustedPublisherPolicyInvalidReason.OrganizationIsLockedOrDeleted;
+                    return TrustedPublisherPolicyInvalidReason.OrganizationIsLockedOrDeleted;
                 }
             }
 
-            return new TrustedPublisherPolicyViewModel
-            {
-                Key = policy.Key,
-                PolicyName = !string.IsNullOrEmpty(policy.PolicyName) ? policy.PolicyName : $"Policy {policy.Key}",
-                Owner = policy.PackageOwner.Username,
-                InvalidReason = reason,
-                PolicyDetails = policyDetails
-            };
+            return null;
         }
 
         [UIAuthorize]
@@ -1119,13 +1122,13 @@ namespace NuGetGallery
                 return Json(Strings.DefaultUserSafeExceptionMessage);
             }
 
-            if (string.IsNullOrWhiteSpace(policyName))
+            if (VerifyPolicyName(policyName) is string policyNameError)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(Strings.TrustedPublisher_PolicyNameRequired);
+                return Json(policyNameError);
             }
 
-            if (policyName.Length >= 64)
+            if (policyName.Length > FederatedCredentialPolicy.MaxPolicyNameLength)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(Strings.TrustedPublisher_NameTooLong);
@@ -1147,6 +1150,13 @@ namespace NuGetGallery
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(Strings.AddOwner_OwnerNotFound);
+            }
+
+            // Sanity check. The policy must be owned by current user or one of their organizations
+            if (VerifyPolicyOwner(currentUser, policyOwner.Key) != null)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.TrustedPublisher_Unexpected);
             }
 
             // Currently only GitHub Actions policies are expected
@@ -1190,13 +1200,19 @@ namespace NuGetGallery
         [UIAuthorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<JsonResult> EditTrustedPublisherPolicy(int? federatedCredentialKey, string criteria)
+        public virtual async Task<JsonResult> EditTrustedPublisherPolicy(int? federatedCredentialKey, string policyName, string criteria)
         {
             User currentUser = GetCurrentUser();
             if (!_featureFlagService.IsTrustedPublishingEnabled(currentUser))
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(Strings.DefaultUserSafeExceptionMessage);
+            }
+
+            if (VerifyPolicyName(policyName) is string policyNameError)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(policyNameError);
             }
 
             var result = GetFederatedCredentialPolicy(federatedCredentialKey);
@@ -1213,6 +1229,7 @@ namespace NuGetGallery
                 return Json(Strings.TrustedPublisher_Unexpected);
             }
 
+            model.PolicyName = policyName;
             var newDetails = model.PolicyDetails.Update(criteria);
             if (newDetails.Validate() is string errorMessage && errorMessage.Length > 0)
             {
@@ -1220,11 +1237,25 @@ namespace NuGetGallery
                 return Json(errorMessage);
             }
 
+            result.policy.PolicyName = model.PolicyName;
             result.policy.Criteria = newDetails.ToDatabaseJson();
             model.PolicyDetails = newDetails;
 
             await _federatedCredentialRepository.SavePoliciesAsync();
             return Json(model);
+        }
+
+        private static string VerifyPolicyName(string policyName)
+        {
+            if (string.IsNullOrWhiteSpace(policyName))
+            {
+                return Strings.TrustedPublisher_PolicyNameRequired;
+            }
+            if (policyName.Length > FederatedCredentialPolicy.MaxPolicyNameLength)
+            {
+                return Strings.TrustedPublisher_NameTooLong;
+            }
+            return null;
         }
 
         [HttpPost]
