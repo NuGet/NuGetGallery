@@ -339,5 +339,15 @@ namespace GitHubVulnerabilities2Db.Fakes
         {
             throw new NotImplementedException();
         }
+
+        public bool IsMcpServerPackageFilteringEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsMcpServerPackageDisplayEnabled()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

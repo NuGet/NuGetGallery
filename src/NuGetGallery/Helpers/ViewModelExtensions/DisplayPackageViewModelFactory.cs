@@ -8,6 +8,7 @@ using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Frameworks;
 using NuGetGallery.Helpers;
+using NuGetGallery.Services.Helpers;
 
 namespace NuGetGallery
 {
@@ -107,6 +108,7 @@ namespace NuGetGallery
                 viewModel.IsDotnetToolPackageType = package.PackageTypes.Any(e => e.Name.Equals("DotnetTool", StringComparison.OrdinalIgnoreCase));
                 viewModel.IsDotnetNewTemplatePackageType = package.PackageTypes.Any(e => e.Name.Equals("Template", StringComparison.OrdinalIgnoreCase));
                 viewModel.IsMSBuildSdkPackageType = package.PackageTypes.Any(e => e.Name.Equals("MSBuildSdk", StringComparison.OrdinalIgnoreCase));
+                viewModel.IsMcpServerPackageType = package.PackageTypes.Any(e => e.Name.Equals(McpHelper.McpServerPackageTypeName, StringComparison.OrdinalIgnoreCase));
             }
 
             if (packageKeyToDeprecation != null && packageKeyToDeprecation.TryGetValue(package.Key, out var deprecation))

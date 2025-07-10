@@ -355,5 +355,9 @@ namespace NuGetGallery
         bool CanUseFederatedCredentials(User user);
 
         bool IsProfileLoadOptimizationEnabled();
+
+        bool IsMcpServerPackageFilteringEnabled();
+
+        bool IsMcpServerPackageDisplayEnabled();
     }
 }

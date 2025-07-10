@@ -9,6 +9,7 @@ using NuGet.Services.Licenses;
 using NuGet.Services.Validation.Issues;
 using NuGet.Versioning;
 using NuGetGallery.Frameworks;
+using NuGetGallery.Services.Models;
 
 namespace NuGetGallery
 {
@@ -32,6 +33,7 @@ namespace NuGetGallery
         public SymbolPackage LatestAvailableSymbolsPackage { get; set; }
 
         public bool IsDotnetToolPackageType { get; set; }
+        public bool IsMcpServerPackageType { get; set; }
         public bool IsDotnetNewTemplatePackageType { get; set; }
         public bool IsMSBuildSdkPackageType { get; set; }
         public bool IsAtomFeedEnabled { get; set; }
@@ -50,6 +52,7 @@ namespace NuGetGallery
         public bool HasEmbeddedIcon { get; set; }
         public bool HasEmbeddedReadmeFile { get; set; }
         public PackageDependents PackageDependents { get; set; }
+        public McpServerEntryTemplateResult VsCodeMcpServerEntryTemplate { get; set; }
 
         public const int NumberOfDaysToBlockIndexing = 90;
 
@@ -111,6 +114,8 @@ namespace NuGetGallery
         public PackageFrameworkCompatibility PackageFrameworkCompatibility { get; set; }
 
         public string ComparableGitHubRepository { get; private set; }
+
+        public bool IsMcpServerPackageDisplayEnabled { get; set; }
 
         public void InitializeRepositoryMetadata(string repositoryUrl, string repositoryType)
         {
@@ -188,6 +193,15 @@ namespace NuGetGallery
         public bool CanDisplayTargetFrameworks()
         {
             return IsDisplayTargetFrameworkEnabled && !Deleted && !IsDotnetNewTemplatePackageType;
+        }
+
+        public bool CanDisplayMcpServerPackageTab()
+        {
+            return
+                IsDotnetToolPackageType &&
+                IsMcpServerPackageType &&
+                IsMcpServerPackageDisplayEnabled &&
+                VsCodeMcpServerEntryTemplate != null;
         }
 
         public bool BlockSearchEngineIndexing
