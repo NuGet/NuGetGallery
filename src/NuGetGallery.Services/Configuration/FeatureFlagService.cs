@@ -68,6 +68,7 @@ namespace NuGetGallery
         private const string ProfileLoadOptimization = GalleryPrefix + "ProfileLoadOptimization";
         private const string McpServerPackageFilteringFeatureName = GalleryPrefix + "McpServerPackageFiltering";
         private const string McpServerPackageDisplayFeatureName = GalleryPrefix + "McpServerPackageDisplay";
+        private const string EnableApiKeyV5ForOIDCFeatureName = GalleryPrefix + "EnableApiKeyV5ForOIDC";
 
         private const string ODataV1GetAllNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllNonHijacked";
         private const string ODataV1GetAllCountNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllCountNonHijacked";
@@ -450,6 +451,11 @@ namespace NuGetGallery
         public bool IsMcpServerPackageDisplayEnabled()
         {
             return _client.IsEnabled(McpServerPackageDisplayFeatureName, defaultValue: false);
+        }
+
+        public bool IsApiKeyV5EnabledForOIDC(User user)
+        {
+            return _client.IsEnabled(EnableApiKeyV5ForOIDCFeatureName, user, defaultValue: false);
         }
     }
 }

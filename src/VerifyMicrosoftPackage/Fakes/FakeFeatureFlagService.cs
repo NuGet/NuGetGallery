@@ -139,11 +139,13 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
         public bool IsAdvancedFrameworkFilteringEnabled(User user) => throw new NotImplementedException();
 
         public bool CanUseFederatedCredentials(User user) => throw new NotImplementedException();
-        
+
         public bool IsProfileLoadOptimizationEnabled() => throw new NotImplementedException();
 
         public bool IsMcpServerPackageFilteringEnabled() => throw new NotImplementedException();
 
         public bool IsMcpServerPackageDisplayEnabled() => throw new NotImplementedException();
+
+        public bool IsApiKeyV5EnabledForOIDC(User user) => throw new NotImplementedException();
     }
 }

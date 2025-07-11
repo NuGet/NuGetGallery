@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Data;
 using System.Text.Json;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
+using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure.Authentication;
 
 #nullable enable
@@ -57,6 +59,15 @@ namespace NuGetGallery.Services.Authentication
         private readonly IDateTimeProvider _dateTimeProvider;
         private readonly IFeatureFlagService _featureFlagService;
         private readonly IFederatedCredentialConfiguration _configuration;
+        private readonly IGalleryConfigurationService _galleryConfigurationService;
+
+        private static readonly IReadOnlyDictionary<string, char> GalleryToApiKeyV5EnvironmentMappings = new Dictionary<string, char>(StringComparer.OrdinalIgnoreCase)
+        {
+            { ServicesConstants.DevelopmentEnvironment, ApiKeyV5.KnownEnvironments.Local },
+            { ServicesConstants.DevEnvironment, ApiKeyV5.KnownEnvironments.Development },
+            { ServicesConstants.IntEnvironment, ApiKeyV5.KnownEnvironments.Integration },
+            { ServicesConstants.ProdEnvironment, ApiKeyV5.KnownEnvironments.Production },
+        };
 
         public FederatedCredentialService(
             IUserService userService,
@@ -68,7 +79,8 @@ namespace NuGetGallery.Services.Authentication
             IAuditingService auditingService,
             IDateTimeProvider dateTimeProvider,
             IFeatureFlagService featureFlagService,
-            IFederatedCredentialConfiguration configuration)
+            IFederatedCredentialConfiguration configuration,
+            IGalleryConfigurationService galleryConfigurationService)
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
@@ -80,6 +92,7 @@ namespace NuGetGallery.Services.Authentication
             _dateTimeProvider = dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _galleryConfigurationService = galleryConfigurationService ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         public async Task<AddFederatedCredentialPolicyResult> AddEntraIdServicePrincipalPolicyAsync(User createdBy, User packageOwner, EntraIdServicePrincipalCriteria criteria)
@@ -163,7 +176,6 @@ namespace NuGetGallery.Services.Authentication
             }
 
             // perform validations after the policy evaluation to avoid leaking information about the related users
-
             var currentUserError = ValidateCurrentUser(currentUser);
             if (currentUserError != null)
             {
@@ -178,10 +190,19 @@ namespace NuGetGallery.Services.Authentication
                 return packageOwnerError;
             }
 
+            var apiKeyV5Environment = ApiKeyV5.KnownEnvironments.Local;
+            if (GalleryToApiKeyV5EnvironmentMappings.TryGetValue(_galleryConfigurationService.Current.Environment, out var value))
+            {
+                apiKeyV5Environment = value;
+            }
+
             var apiKeyCredential = _credentialBuilder.CreateShortLivedApiKey(
                 _configuration.ShortLivedApiKeyDuration,
                 policyEvaluation.MatchedPolicy,
+                apiKeyV5Environment,
+                _featureFlagService.IsApiKeyV5EnabledForOIDC(packageOwner),
                 out var plaintextApiKey);
+
             if (!_credentialBuilder.VerifyScopes(currentUser, apiKeyCredential.Scopes))
             {
                 return GenerateApiKeyResult.BadRequest(
