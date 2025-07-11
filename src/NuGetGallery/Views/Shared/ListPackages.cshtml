@@ -32,10 +32,10 @@
             </button>
             <label class="brand-checkbox">
                 <input type="checkbox" id="@(frameworkShortName)" class="framework">
-                <span>@(frameworkDisplayName)</span>
+                <span>@(frameworkDisplayName)
                 @if (frameworkDisplayName == ".NET")
                 {
-                    <a class="tooltip-target" href="javascript:void(0)" role="button" aria-labelledby="dotnetframework-tooltip" style="margin-left: 4px; margin-top: 8px;">
+                    <a class="tooltip-target" href="javascript:void(0)" role="button" aria-labelledby="dotnetframework-tooltip" style="vertical-align: middle">
                         <i class="ms-Icon ms-Icon--Info"></i>
                         <span class="tooltip-block" role="tooltip" id="dotnetframework-tooltip">
                             <span class="tooltip-wrapper tooltip-with-icon popover right">
@@ -47,6 +47,7 @@
                         </span>
                     </a>
                 }
+                </span>
             </label>
         </div>
         <div class="tfmTab" id="@(frameworkShortName)tab">
