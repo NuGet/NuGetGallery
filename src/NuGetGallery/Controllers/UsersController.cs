@@ -3,16 +3,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
-using System.Web.Http.Results;
 using System.Web.Mvc;
-using Lucene.Net.Util;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
 using NuGet.Versioning;
@@ -25,10 +22,8 @@ using NuGetGallery.Frameworks;
 using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Mail.Messages;
-using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using NuGetGallery.Services.Authentication;
-using Polly;
 
 namespace NuGetGallery
 {

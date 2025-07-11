@@ -291,7 +291,7 @@
             }, this);
             this.IconUrlFallback = ko.pureComputed(function () {
                 var url = initialData.ImageUrls.TrustedPolicyFallback;
-                if (this.IsOwnerValid() || (this.gitHub.EnabledDaysLeft() <= 0)) {
+                if (!this.IsOwnerValid() || this.gitHub.EnabledDaysLeft() <= 0) {
                     return initialData.ImageUrls.DisabledTrustedPolicy;
                 }
                 return "this.src='" + url + "'; this.onerror = null;";
