@@ -31,23 +31,6 @@
     };
 
     $(function () {
-        function addAntiForgeryToken(data) {
-            var $field = $("#AntiForgeryForm input[name=__RequestVerificationToken]");
-            data["__RequestVerificationToken"] = $field.val();
-        }
-
-        function executeOnInactive(onTimeout, timeoutInMs) {
-            var t;
-            window.onload = resetTimer;
-            document.onmousemove = resetTimer;
-            document.onkeypress = resetTimer;
-
-            function resetTimer() {
-                clearTimeout(t);
-                t = setTimeout(onTimeout, timeoutInMs)
-            }
-        }
-
         function computedUid(self, prefix, suffix, defaultId) {
             return ko.pureComputed(function () {
                 var id = self.Key();
@@ -62,7 +45,8 @@
                         id = id + "-" + suffix;
                     }
                 }
-                return id;
+
+                return "__" + id;
             }, self);
         }
 
@@ -186,6 +170,7 @@
 
             // Build GitHub API URL
             var apiUrl = "https://api.github.com/repos/" + encodeURIComponent(owner) + "/" + encodeURIComponent(repository);
+            var properties = { apiUrl: apiUrl };
 
             // Make AJAX request to GitHub API
             $.ajax({
@@ -200,8 +185,15 @@
                     // Extract repository info from response
                     gitHub.RepositoryOwnerId(data.owner && data.owner.id ? data.owner.id.toString() : '');
                     gitHub.RepositoryId(data.id ? data.id.toString() : '');
+                    properties.httpStatus = 200; // success
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    // Track the error to Application Insights
+                    properties.httpStatus = jqXHR.status;
+                    properties.responseText = jqXHR.responseText;
                 },
                 complete: function() {
+                    window.nuget.sendMetric('GitHubRepositoryLookup', 1, properties);
                     callback();
                 }
             });
@@ -250,7 +242,7 @@
             this._UpdateData = function (data) {
                 this.Key(data.Key || 0);
                 this.PolicyName(data.PolicyName || null);
-                this.InvalidReason(data.InvalidReason || null);
+                this.IsOwnerValid(data.IsOwnerValid || null);
                 this.PendingPolicyName(data.PolicyName || null);
                 this.Owner(data.Owner || null);
                 this.PublisherName(data.PublisherName || null);
@@ -278,7 +270,7 @@
 
             // Package owner selection
             this.PackageOwner = ko.observable(null);
-            this.InvalidReason = ko.observable(null);
+            this.IsOwnerValid = ko.observable(null);
             this.PendingCreateOrEdit = ko.observable(false);
             this.JustCreated = ko.observable(false);
             this.JustRegenerated = ko.observable(false);
@@ -292,14 +284,14 @@
             this.PackageOwnerUid = computedUid(self, "package-owner");
             this.IconUrl = ko.pureComputed(function () {
                 // Use disabled icon if there's an invalid reason or if enabled days left is 0 or less
-                if (this.InvalidReason() || (this.gitHub.EnabledDaysLeft() <= 0)) {
+                if (!this.IsOwnerValid() || this.gitHub.EnabledDaysLeft() <= 0) {
                     return initialData.ImageUrls.DisabledTrustedPolicy;
                 }
                 return initialData.ImageUrls.TrustedPolicy;
             }, this);
             this.IconUrlFallback = ko.pureComputed(function () {
                 var url = initialData.ImageUrls.TrustedPolicyFallback;
-                if (this.InvalidReason() || (this.gitHub.EnabledDaysLeft() <= 0)) {
+                if (this.IsOwnerValid() || (this.gitHub.EnabledDaysLeft() <= 0)) {
                     return initialData.ImageUrls.DisabledTrustedPolicy;
                 }
                 return "this.src='" + url + "'; this.onerror = null;";
@@ -377,7 +369,7 @@
                 var data = {
                     federatedCredentialKey: this.Key()
                 };
-                addAntiForgeryToken(data);
+                window.nuget.addAjaxAntiForgeryToken(data);
 
                 // Send the request.
                 $.ajax({
@@ -400,7 +392,7 @@
                 var data = {
                     federatedCredentialKey: this.Key()
                 };
-                addAntiForgeryToken(data);
+                window.nuget.addAjaxAntiForgeryToken(data);
 
                 // Send the request.
                 $.ajax({
@@ -449,7 +441,7 @@
                     owner: this.PackageOwner(),
                     criteria: _gitHubDetails.CreatePendingCriteria(this)
                 };
-                addAntiForgeryToken(data);
+                window.nuget.addAjaxAntiForgeryToken(data);
 
                 // Send the request.
                 $.ajax({
@@ -485,7 +477,7 @@
                     policyName: this.PendingPolicyName(),
                     criteria: _gitHubDetails.CreatePendingCriteria(this)
                 };
-                addAntiForgeryToken(data);
+                window.nuget.addAjaxAntiForgeryToken(data);
 
                 // Send the request.
                 this.PendingCreateOrEdit(true);
@@ -559,6 +551,6 @@
         window.nuget.configureExpanderHeading("manage-container");
 
         // Start the idle timer for 15 minutes.
-        executeOnInactive(policyListViewModel.Idle, 15 * 60 * 1000);
+        window.nuget.executeOnInactive(policyListViewModel.Idle, 15 * 60 * 1000);
     });
 })();

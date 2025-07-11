@@ -128,9 +128,14 @@ namespace NuGetGallery
 
         public override string Validate()
         {
+            InitializeValidateByDate();
+            return ValidateInternal();
+        }
+
+        private string ValidateInternal()
+        {
             var errors = new List<string>();
 
-            InitialieValidateByDate();
 
             if (string.IsNullOrEmpty(RepositoryOwner))
             {
@@ -147,10 +152,11 @@ namespace NuGetGallery
                 errors.Add(Strings.GitHub_WorkflowFileRequired);
             }
 
+
             return errors.Count > 0 ? string.Join(", ", errors) : null;
         }
 
-        internal void InitialieValidateByDate()
+        internal void InitializeValidateByDate()
         {
             if (!IsPermanentlyEnabled)
             {
@@ -165,7 +171,8 @@ namespace NuGetGallery
             }
         }
 
-        public override TrustedPublisherPolicyDetailsViewModel Update(string javaScriptJson)
+        /// <inheritdoc />
+        public override TrustedPublisherPolicyDetailsViewModel Update(string viewJson)
         {
             var model = new GitHubPolicyDetailsViewModel();
             model._repositoryOwner = _repositoryOwner;
@@ -176,18 +183,18 @@ namespace NuGetGallery
             model._environment = _environment;
             model.ValidateByDate = ValidateByDate;
 
-            model.UpdateFromJavaScript(javaScriptJson);
+            model.UpdateFromViewJson(viewJson);
             return model;
         }
 
-        public static GitHubPolicyDetailsViewModel FromJavaScriptJson(string json)
+        public static GitHubPolicyDetailsViewModel FromViewJson(string json)
         {
             var model = new GitHubPolicyDetailsViewModel();
-            model.UpdateFromJavaScript(json);
+            model.UpdateFromViewJson(json);
             return model;
         }
 
-        private void UpdateFromJavaScript(string json)
+        private void UpdateFromViewJson(string json)
         { 
             var properties = JObject.Parse(json);
 
@@ -270,6 +277,11 @@ namespace NuGetGallery
                 // ValidateByDate = DateTimeOffset.TryParseExact(properties["validateBy"]?.ToString(), "yyyy-MM-ddTHH:00:00Z", null, DateTimeStyles.AssumeUniversal, out var validateBy) ? validateBy : null,
                 ValidateByDate = DateTimeOffset.TryParse(properties["validateBy"]?.ToString(), null, DateTimeStyles.AssumeUniversal, out var validateBy) ? validateBy : null,
             };
+
+            if (model.ValidateInternal() is string error)
+            {
+                throw new InvalidOperationException($"Invalid GitHub policy details: {error}");
+            }
 
             return model;
         }

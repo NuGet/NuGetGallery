@@ -25,8 +25,8 @@ namespace NuGetGallery
         /// <summary>
         /// Creates a copy of itself and updates it with JSON data.
         /// </summary>
-        /// <param name="javaScriptJson">A JSON string containing the updated details. Propery names match existing C# property names.</param>
-        public abstract TrustedPublisherPolicyDetailsViewModel Update(string javaScriptJson);
+        /// <param name="viewJson">A JSON string containing the updated details. Propery names match existing C# property names.</param>
+        public abstract TrustedPublisherPolicyDetailsViewModel Update(string viewJson);
 
         /// <summary>
         /// Converts the current object to a JSON string suitable for database storage.

@@ -26,13 +26,6 @@ public class TheTrustedPublishingAction : TestContainer
             TestUtility.FakeOrganizationAdmin,
             TestUtility.FakeOrganizationCollaborator);
 
-    public static IEnumerable<object[]> CurrentUserWithTrustedPublishingDisabled_Data =
-        MemberDataHelper.AsDataSet(
-            TestUtility.FakeUser,
-            TestUtility.FakeAdminUser,
-            TestUtility.FakeOrganizationAdmin,
-            TestUtility.FakeOrganizationCollaborator);
-
     [Theory]
     [MemberData(nameof(CurrentUserWithTrustedPublishingEnabled_Data))]
     public void WhenTrustedPublishingEnabled_ReturnsTrustedPublishingView(User currentUser)
@@ -59,23 +52,21 @@ public class TheTrustedPublishingAction : TestContainer
         Assert.Equal(currentUser.Username, firstPackageOwner);
     }
 
-    [Theory]
-    [MemberData(nameof(CurrentUserWithTrustedPublishingDisabled_Data))]
-    public void WhenTrustedPublishingDisabled_ReturnsBadRequest(User currentUser)
+    [Fact]
+    public void WhenTrustedPublishingDisabled_ReturnsBadRequest()
     {
         // Arrange
         GetMock<IFeatureFlagService>()
-            .Setup(f => f.IsTrustedPublishingEnabled(currentUser))
+            .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
             .Returns(false);
 
         var controller = GetController<UsersController>();
-        controller.SetCurrentUser(currentUser);
-
+        
         // Act
         var result = controller.TrustedPublishing();
 
         // Assert
-        Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+        Assert.Equal((int)HttpStatusCode.NotFound, ((HttpStatusCodeResult)result).StatusCode);
     }
 
     [Fact]
@@ -95,7 +86,7 @@ public class TheTrustedPublishingAction : TestContainer
                         PolicyName = "Trusted Publisher Policy",
                         PackageOwner = currentUser,
                         Type = FederatedCredentialType.GitHubActions,
-                        Criteria = "{\"name\": \"GitHub\"}"
+                        Criteria = """{"owner":"someOwner","repository":"repo","workflow":"test.yml"}"""
                     },
                     new FederatedCredentialPolicy
                     {
@@ -103,7 +94,7 @@ public class TheTrustedPublishingAction : TestContainer
                         PolicyName = "Other Policy Type",
                         PackageOwner = currentUser,
                         Type = FederatedCredentialType.EntraIdServicePrincipal, // Different type
-                        Criteria = "{\"name\": \"GitHub\"}"
+                        Criteria = """{"owner":"someOwner","repository":"repo","workflow":"test.yml"}"""
                     }
                 };
 
@@ -150,7 +141,7 @@ public class TheTrustedPublishingAction : TestContainer
         // Assert
         Assert.Single(model.Policies);
         var policyViewModel = model.Policies.First();
-        Assert.Equal(TrustedPublisherPolicyInvalidReason.UserNotInOrganization, policyViewModel.InvalidReason);
+        Assert.False(policyViewModel.IsOwnerValid);
         Assert.Equal("Invalid Policy - User Not In Org", policyViewModel.PolicyName);
         Assert.Equal(organization.Username, policyViewModel.Owner);
     }
@@ -196,13 +187,13 @@ public class TheTrustedPublishingAction : TestContainer
         // Assert
         Assert.Single(model.Policies);
         var policyViewModel = model.Policies.First();
-        Assert.Equal(TrustedPublisherPolicyInvalidReason.OrganizationIsLockedOrDeleted, policyViewModel.InvalidReason);
+        Assert.False(policyViewModel.IsOwnerValid);
         Assert.Equal("Invalid Policy", policyViewModel.PolicyName);
         Assert.Equal(organization.Username, policyViewModel.Owner);
     }
 
     [Fact]
-    public void WhenPolicyHasValidOwnership_InvalidReasonIsNull()
+    public void WhenUserOwnsPolicy_OwnerIsValid()
     {
         // Arrange
         GetMock<IFeatureFlagService>()
@@ -210,14 +201,14 @@ public class TheTrustedPublishingAction : TestContainer
             .Returns(true);
 
         var currentUser = TestUtility.FakeOrganizationAdmin;
-        var organization = TestUtility.FakeOrganization;
 
         var policy = new FederatedCredentialPolicy
         {
             Key = 3,
             PolicyName = "Valid Policy",
-            PackageOwner = currentUser, // User owns their own policy
+            CreatedByUserKey = currentUser.Key,
             PackageOwnerUserKey = currentUser.Key,
+            PackageOwner = currentUser, // User owns their own policy
             Type = FederatedCredentialType.GitHubActions,
             Criteria = """{"owner":"someOwner","repository":"repo","workflow":"test.yml"}"""
         };
@@ -233,13 +224,13 @@ public class TheTrustedPublishingAction : TestContainer
         // Assert
         Assert.Single(model.Policies);
         var policyViewModel = model.Policies.First();
-        Assert.Null(policyViewModel.InvalidReason);
+        Assert.True(policyViewModel.IsOwnerValid);
         Assert.Equal("Valid Policy", policyViewModel.PolicyName);
         Assert.Equal(currentUser.Username, policyViewModel.Owner);
     }
 
     [Fact]
-    public void WhenOrganizationMemberOwnsPolicy_InvalidReasonIsNull()
+    public void WhenOrganizationMemberOwnsPolicy_OwnerIsValid()
     {
         // Arrange
         GetMock<IFeatureFlagService>()
@@ -253,8 +244,9 @@ public class TheTrustedPublishingAction : TestContainer
         {
             Key = 4,
             PolicyName = "Org Member Policy",
-            PackageOwner = organization,
+            CreatedByUserKey = currentUser.Key,
             PackageOwnerUserKey = organization.Key,
+            PackageOwner = organization,
             Type = FederatedCredentialType.GitHubActions,
             Criteria = """{"owner":"someOwner","repository":"repo","workflow":"test.yml"}"""
         };
@@ -265,12 +257,16 @@ public class TheTrustedPublishingAction : TestContainer
             .Setup(r => r.GetPoliciesCreatedByUser(It.IsAny<int>()))
             .Returns(policies);
 
+        GetMock<IUserService>()
+            .Setup(u => u.FindByKey(organization.Key, It.IsAny<bool>()))
+            .Returns(organization);
+
         var model = GetModelForTrustedPublishing(currentUser);
 
         // Assert
         Assert.Single(model.Policies);
         var policyViewModel = model.Policies.First();
-        Assert.Null(policyViewModel.InvalidReason);
+        Assert.True(policyViewModel.IsOwnerValid);
         Assert.Equal("Org Member Policy", policyViewModel.PolicyName);
         Assert.Equal(organization.Username, policyViewModel.Owner);
     }

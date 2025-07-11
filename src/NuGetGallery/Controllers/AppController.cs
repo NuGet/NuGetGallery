@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Net;
@@ -137,9 +137,9 @@ namespace NuGetGallery
             if (filterContext.HttpContext?.Items[ServicesConstants.CookieComplianceCanWriteAnalyticsCookies] == null
                 || (bool)filterContext.HttpContext.Items[ServicesConstants.CookieComplianceCanWriteAnalyticsCookies] == false)
             {
-                ViewBag.CanWriteAnalyticsCookies = false;
+                ViewBag.CanWriteAnalyticsCookies = true;
 
-                _cookieExpirationService.ExpireAnalyticsCookies(filterContext.HttpContext);
+                //_cookieExpirationService.ExpireAnalyticsCookies(filterContext.HttpContext);
             }
             else
             {

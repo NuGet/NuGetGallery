@@ -202,10 +202,12 @@ namespace NuGetGallery
             BundleTable.Bundles.Add(downloadsScriptBundle);
 
             var apiKeysScriptBundle = new ScriptBundle("~/Scripts/gallery/page-api-keys.min.js")
+                .Include("~/Scripts/gallery/idle-timer.js")
                 .Include("~/Scripts/gallery/page-api-keys.js");
             BundleTable.Bundles.Add(apiKeysScriptBundle);
 
             var trustedPublishingScriptBundle = new ScriptBundle("~/Scripts/gallery/page-trusted-publishing.min.js")
+                .Include("~/Scripts/gallery/idle-timer.js")
                 .Include("~/Scripts/gallery/page-trusted-publishing.js");
             BundleTable.Bundles.Add(trustedPublishingScriptBundle);
 

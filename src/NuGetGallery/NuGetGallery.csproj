@@ -805,7 +805,6 @@
     <Compile Include="ViewModels\TrustedPublisherPolicyDetailsViewModel.cs" />
     <Compile Include="ViewModels\SearchSideBySideViewModel.cs" />
     <Compile Include="ViewModels\SignerViewModel.cs" />
-    <Compile Include="ViewModels\TrustedPublisherPolicyInvalidReason.cs" />
     <Compile Include="ViewModels\TrustedPublisherPolicyListViewModel.cs" />
     <Compile Include="ViewModels\TrustedPublisherPolicyViewModel.cs" />
     <Compile Include="WebRole.cs" />
@@ -1761,6 +1760,7 @@
     <Content Include="Scripts\d3\API.md" />
     <Content Include="Areas\Admin\Views\Revalidation\Index.cshtml" />
     <Content Include="App_Data\Files\Content\Symbols-Configuration.json" />
+    <Content Include="Scripts\gallery\idle-timer.js" />
     <Content Include="Scripts\gallery\instrumentation.js" />
     <Content Include="Scripts\gallery\knockout-3.5.1.js" />
     <Content Include="Scripts\gallery\moment-2.29.4.js" />

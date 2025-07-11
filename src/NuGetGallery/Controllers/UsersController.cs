@@ -10,7 +10,9 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Http.Results;
 using System.Web.Mvc;
+using Lucene.Net.Util;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
 using NuGet.Versioning;
@@ -23,8 +25,10 @@ using NuGetGallery.Frameworks;
 using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Mail.Messages;
+using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using NuGetGallery.Services.Authentication;
+using Polly;
 
 namespace NuGetGallery
 {
@@ -1041,8 +1045,7 @@ namespace NuGetGallery
             User currentUser = GetCurrentUser();
             if (!_featureFlagService.IsTrustedPublishingEnabled(currentUser))
             {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(Strings.DefaultUserSafeExceptionMessage);
+                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
 
             var userPolicies = _federatedCredentialRepository.GetPoliciesCreatedByUser(currentUser.Key);
@@ -1055,7 +1058,9 @@ namespace NuGetGallery
                 .ToArray();
 
             var owners = new List<User>() { currentUser };
-            owners.AddRange(currentUser.Organizations.Select(o => o.Organization));
+            owners.AddRange(currentUser.Organizations
+                .Select(o => o.Organization)
+                .Where(o => IsTrustedPublishingPolicyOwnerValid(currentUser, o)));
 
             var model = new TrustedPublisherPolicyListViewModel
             {
@@ -1069,6 +1074,7 @@ namespace NuGetGallery
 
         private TrustedPublisherPolicyViewModel CreatePublisherViewModel(User currentUser, FederatedCredentialPolicy policy)
         {
+            // Currently only GitHub Actions policies are supported by our Trusted Publishing UX.
             if (policy.Type != FederatedCredentialType.GitHubActions)
             {
                 return null;
@@ -1080,34 +1086,23 @@ namespace NuGetGallery
                 return null;
             }
 
+            var owner = currentUser.Key == policy.PackageOwnerUserKey ?
+                currentUser : UserService.FindByKey(policy.PackageOwnerUserKey);
+
             return new TrustedPublisherPolicyViewModel
             {
                 Key = policy.Key,
                 PolicyName = !string.IsNullOrEmpty(policy.PolicyName) ? policy.PolicyName : $"Policy {policy.Key}",
                 Owner = policy.PackageOwner.Username,
-                InvalidReason = VerifyPolicyOwner(currentUser, policy.PackageOwnerUserKey),
+                IsOwnerValid = IsTrustedPublishingPolicyOwnerValid(currentUser, owner),
                 PolicyDetails = policyDetails
             };
         }
 
-        private static TrustedPublisherPolicyInvalidReason? VerifyPolicyOwner(User currentUser, int ownerKey)
+        private bool IsTrustedPublishingPolicyOwnerValid(User currentUser, User owner)
         {
-            if (ownerKey != currentUser.Key)
-            {
-                var owner = currentUser.Organizations
-                    .Select(o => o.Organization)
-                    .FirstOrDefault(o => o.Key == ownerKey);
-                if (owner == null)
-                {
-                    return TrustedPublisherPolicyInvalidReason.UserNotInOrganization;
-                }
-                else if (owner.IsLocked || owner.IsDeleted)
-                {
-                    return TrustedPublisherPolicyInvalidReason.OrganizationIsLockedOrDeleted;
-                }
-            }
-
-            return null;
+            var result = ActionsRequiringPermissions.TrustedPublishing.CheckPermissions(currentUser, owner);
+            return result == PermissionsCheckResult.Allowed;
         }
 
         [UIAuthorize]
@@ -1152,15 +1147,15 @@ namespace NuGetGallery
                 return Json(Strings.AddOwner_OwnerNotFound);
             }
 
-            // Sanity check. The policy must be owned by current user or one of their organizations
-            if (VerifyPolicyOwner(currentUser, policyOwner.Key) != null)
+            // Sanity check. The policy owner must be valid.
+            if (!IsTrustedPublishingPolicyOwnerValid(currentUser, policyOwner))
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(Strings.TrustedPublisher_Unexpected);
             }
 
             // Currently only GitHub Actions policies are expected
-            if (GitHubPolicyDetailsViewModel.FromJavaScriptJson(criteria)
+            if (GitHubPolicyDetailsViewModel.FromViewJson(criteria)
                 is not GitHubPolicyDetailsViewModel policyDetails)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
@@ -1191,6 +1186,7 @@ namespace NuGetGallery
                 Key = policy.Key,
                 PolicyName = policyName,
                 Owner = owner,
+                IsOwnerValid = true, // we already validated owner above
                 PolicyDetails = policyDetails
             };
 
@@ -1223,7 +1219,7 @@ namespace NuGetGallery
             }
 
             if (CreatePublisherViewModel(currentUser, result.policy) is not TrustedPublisherPolicyViewModel model ||
-                model.InvalidReason.HasValue)
+                !model.IsOwnerValid)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(Strings.TrustedPublisher_Unexpected);
@@ -1278,7 +1274,7 @@ namespace NuGetGallery
             }
 
             if (CreatePublisherViewModel(currentUser, result.policy) is not TrustedPublisherPolicyViewModel model ||
-                model.InvalidReason.HasValue ||
+                !model.IsOwnerValid ||
                 model.PolicyDetails is not GitHubPolicyDetailsViewModel gitHubModel)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
@@ -1287,7 +1283,7 @@ namespace NuGetGallery
 
             if (!gitHubModel.IsPermanentlyEnabled)
             {
-                gitHubModel.InitialieValidateByDate();
+                gitHubModel.InitializeValidateByDate();
                 result.policy.Criteria = gitHubModel.ToDatabaseJson();
                 await _federatedCredentialRepository.SavePoliciesAsync();
             }
@@ -1326,7 +1322,7 @@ namespace NuGetGallery
                 return (null, Strings.TrustedPublisher_Unexpected);
             }
 
-            // Sanity check. The policy must be owned by current user
+            // Sanity check. The policy must be created by current user
             var currentUser = GetCurrentUser();
             if (currentUser.Key != policy.CreatedByUserKey)
             {

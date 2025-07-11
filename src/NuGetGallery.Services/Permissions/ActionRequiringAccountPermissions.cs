@@ -1,6 +1,7 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Linq;
 using System.Security.Principal;
 using NuGet.Services.Entities;
 
@@ -16,6 +17,27 @@ namespace NuGetGallery
         public ActionRequiringAccountPermissions(PermissionsRequirement accountPermissionsRequirement)
         {
             AccountPermissionsRequirement = accountPermissionsRequirement;
+        }
+
+        /// <summary>
+        /// Determines whether <paramref name="currentUser"/> can perform this action on <paramref name="account"/>.
+        /// </summary>
+        public PermissionsCheckResult CheckPermissions(User currentUser, int accountKey)
+        {
+            User account;
+            if (currentUser.Key == accountKey)
+            {
+                account = currentUser;
+            }
+            else
+            {
+                account = currentUser.Organizations
+                    .Select(o => o.Organization)
+                    .Where(o => o.Key == accountKey)
+                    .FirstOrDefault();
+            }
+
+            return CheckPermissions(currentUser, account);
         }
 
         /// <summary>

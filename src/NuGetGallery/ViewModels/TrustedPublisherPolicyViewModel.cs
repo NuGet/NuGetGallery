@@ -37,7 +37,13 @@ namespace NuGetGallery
             set => _owner = value?.Trim() ?? string.Empty;
         }
 
-        public TrustedPublisherPolicyInvalidReason? InvalidReason { get; set; }
+        /// <summary>
+        /// Indicates whether the owner is currently valid.
+        /// </summary>
+        /// <remarks>
+        /// The user's relationship to the owner may become invalid between the time the policy is created and when it is retrieved.
+        /// </remarks>
+        public bool IsOwnerValid { get; set; }
 
         public TrustedPublisherPolicyDetailsViewModel PolicyDetails { get; set; }
 

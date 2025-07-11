@@ -18,18 +18,6 @@
             data["__RequestVerificationToken"] = $field.val();
         }
 
-        function executeOnInactive(onTimeout, timeoutInMs) {
-            var t;
-            window.onload = resetTimer;
-            document.onmousemove = resetTimer;
-            document.onkeypress = resetTimer;
-
-            function resetTimer() {
-                clearTimeout(t);
-                t = setTimeout(onTimeout, timeoutInMs)
-            }
-        }
-
         function globToRegex(glob) {
             var specialChars = "\\^$*+?.()|{}[]";
             var regexChars = ["^"];
@@ -720,7 +708,7 @@
         window.nuget.configureExpanderHeading("manage-container");
 
         // Start the idle timer for 10 minutes.
-        executeOnInactive(apiKeyListViewModel.Idle, 10 * 60 * 1000);
+        window.nuget.executeOnInactive(apiKeyListViewModel.Idle, 10 * 60 * 1000);
     });
 
 })();
