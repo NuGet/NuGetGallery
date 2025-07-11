@@ -246,9 +246,9 @@
 {
     // Get instrumentation keys
     var config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
-    var iKey = config == null ? string.Empty : config.Current.AppInsightsInstrumentationKey ?? "key";
+    var iKey = config == null ? string.Empty : config.Current.AppInsightsInstrumentationKey;
     var samplingPct = config == null ? 100 : config.Current.AppInsightsSamplingPercentage;
-    var tenantKey = config == null ? string.Empty : config.Current.InternalMicrosoftTenantKey ?? "tenantKey";
+    var tenantKey = config == null ? string.Empty : config.Current.InternalMicrosoftTenantKey;
 
     if (!string.IsNullOrEmpty(iKey) || !string.IsNullOrEmpty(tenantKey))
     {

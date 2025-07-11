@@ -137,9 +137,9 @@ namespace NuGetGallery
             if (filterContext.HttpContext?.Items[ServicesConstants.CookieComplianceCanWriteAnalyticsCookies] == null
                 || (bool)filterContext.HttpContext.Items[ServicesConstants.CookieComplianceCanWriteAnalyticsCookies] == false)
             {
-                ViewBag.CanWriteAnalyticsCookies = true;
+                ViewBag.CanWriteAnalyticsCookies = false;
 
-                //_cookieExpirationService.ExpireAnalyticsCookies(filterContext.HttpContext);
+                _cookieExpirationService.ExpireAnalyticsCookies(filterContext.HttpContext);
             }
             else
             {
