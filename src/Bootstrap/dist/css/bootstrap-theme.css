@@ -2984,6 +2984,9 @@ p.frameworktableinfo-text {
 .page-statistics-overview .table-wrapper {
   overflow: auto;
 }
+.page-statistics-overview .chart.table-wrapper {
+  overflow: visible;
+}
 .page-statistics-overview svg:not(:root) {
   overflow: visible;
 }
