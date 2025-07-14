@@ -1,8 +1,6 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-using System.Globalization;
 using NuGet.Services.Messaging.Email;
 using NuGetGallery.Infrastructure.Mail.Requests;
 
@@ -26,41 +24,56 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
         protected override string GetMarkdownBody()
         {
-            var alreadyContactedOwnersString = AlreadyContactedOwners ? "Yes" : "No";
-            var userString = string.Empty;
-            if (Request.RequestingUser != null && Request.RequestingUserUrl != null)
+            string emailLine;
+            var fromAddress = EscapeMarkdown(Request.FromAddress.Address);
+            var fromAddressDisplayName = EscapeMarkdown(Request.FromAddress.DisplayName);
+            if (!string.IsNullOrEmpty(fromAddressDisplayName))
             {
-                userString = string.Format(
-                    CultureInfo.CurrentCulture,
-                    "{2}**User:** {0} ({1}){2}{3}",
-                    Request.RequestingUser.Username,
-                    Request.RequestingUser.EmailAddress,
-                    Environment.NewLine,
-                    Request.RequestingUserUrl);
+                emailLine = $"**Email:** {fromAddressDisplayName} ({fromAddress})";
+            }
+            else
+            {
+                emailLine = $"**Email:** {fromAddress}";
             }
 
-            return $@"**Email**: {Request.FromAddress.DisplayName} ({Request.FromAddress.Address})
+            var signatureLine = string.Empty;
+            if (!string.IsNullOrEmpty(Request.Signature))
+            {
+                signatureLine = $"**Signature:** {EscapeMarkdown(Request.Signature)}";
+            }
 
-**Signature**: {Request.Signature}
+            var packageId = EscapeMarkdown(Request.Package.PackageRegistration.Id);
 
-**Package**: {Request.Package.PackageRegistration.Id}
-{Request.PackageUrl}
+            var userLine = string.Empty;
+            if (Request.RequestingUser != null && Request.RequestingUserUrl != null)
+            {
+                var username = EscapeMarkdown(Request.RequestingUser.Username);
+                var email = EscapeMarkdown(Request.RequestingUser.EmailAddress);
+                var url = EscapeMarkdown(Request.RequestingUserUrl);
+                userLine = $"**User:** [{username} ({email})]({url})";
+            }
 
-**Version**: {Request.Package.Version}
-{Request.PackageVersionUrl}
-{userString}
+            var alreadyContactedOwners = AlreadyContactedOwners ? "Yes" : "No";
+            var message = EscapeMarkdown(Request.Message);
+            var galleryOwnerDisplayName = EscapeMarkdown(Configuration.GalleryOwner.DisplayName);
 
-**Reason**:
-{Request.Reason}
+            return $@"{emailLine}
 
-**Has the package owner been contacted?**
-{alreadyContactedOwnersString}
+{signatureLine}
 
-**Message:**
-{Request.Message}
+**Package:** [{packageId}]({Request.PackageUrl})
 
+**Version:** [{Request.Package.Version}]({Request.PackageVersionUrl})
 
-Message sent from {Configuration.GalleryOwner.DisplayName}";
+{userLine}
+
+**Reason:** {Request.Reason}
+
+**Has the package owner been contacted?** {alreadyContactedOwners}
+
+**Message:** {message}
+
+_Message sent from {galleryOwnerDisplayName}_";
         }
     }
 }

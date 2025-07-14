@@ -1,6 +1,7 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.IO;
 using Markdig;
 using NuGet.Services.Messaging.Email.Internal;
@@ -12,6 +13,11 @@ namespace NuGet.Services.Messaging.Email
     /// </summary>
     public abstract class MarkdownEmailBuilder : EmailBuilder
     {
+        private static readonly IReadOnlyList<string> SpecialMarkdownChars =
+        [
+            "\\", "`", "*", "_", "{", "}", "[", "]", "<", ">", "(", ")", "#", "+", "-", ".", "!", "|"
+        ];
+
         protected override string GetPlainTextBody()
         {
             var markdown = GetMarkdownBody();
@@ -39,6 +45,21 @@ namespace NuGet.Services.Messaging.Email
         protected override string GetHtmlBody()
         {
             return Markdown.ToHtml(GetMarkdownBody());
+        }
+
+        public static string EscapeMarkdown(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return text;
+            }
+
+            foreach (var ch in SpecialMarkdownChars)
+            {
+                text = text.Replace(ch, "\\" + ch);
+            }
+
+            return text;
         }
     }
 }
