@@ -99,7 +99,11 @@ namespace NuGet.Services.KeyVault
             {
                 if (string.IsNullOrEmpty(_configuration.ClientId) || _configuration.LocalDevelopment)
                 {
+#if DEBUG
                     credential = new DefaultAzureCredential();
+#else
+                    throw new InvalidOperationException("Managed identity client ID is not set.");
+#endif
                 }
                 else
                 {
