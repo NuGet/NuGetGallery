@@ -18,7 +18,11 @@ namespace NuGet.Services.Configuration
                 return new ManagedIdentityCredential(clientId);
             }
 
+#if DEBUG
             return new DefaultAzureCredential();
+#else
+            throw new InvalidOperationException("Managed identity client ID is not set.");
+#endif
         }
     }
 }
