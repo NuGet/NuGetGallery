@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Azure.Core;
@@ -27,9 +27,19 @@ namespace NuGet.Services.ServiceBus
                 return new ServiceBusClient(connectionString);
             }
 
-            var credential = string.IsNullOrEmpty(managedIdentityClientId) 
-                ? (TokenCredential)new DefaultAzureCredential()
-                : new ManagedIdentityCredential(managedIdentityClientId);
+            TokenCredential credential;
+            if (string.IsNullOrWhiteSpace(managedIdentityClientId))
+            {
+#if DEBUG
+                credential = new DefaultAzureCredential();
+#else
+                throw new InvalidOperationException("Managed identity client ID is not set.");
+#endif
+            }
+            else
+            {
+                credential = new ManagedIdentityCredential(managedIdentityClientId);
+            }
 
             if (Uri.TryCreate(connectionString, UriKind.Absolute, out var uri) && uri.Scheme == "sb")
             {
