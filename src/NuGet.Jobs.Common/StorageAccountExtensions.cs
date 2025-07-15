@@ -177,10 +177,14 @@ namespace NuGet.Jobs
             {
                 if (string.IsNullOrWhiteSpace(msiConfiguration.ManagedIdentityClientId))
                 {
+#if DEBUG
                     return CloudBlobClientWrapper.UsingDefaultAzureCredential(
                         storageConnectionString,
                         readAccessGeoRedundant: readAccessGeoRedundant,
                         requestTimeout: requestTimeout);
+#else
+                    throw new InvalidOperationException("Managed identity client ID is not set.");
+#endif
                 }
                 else
                 {
