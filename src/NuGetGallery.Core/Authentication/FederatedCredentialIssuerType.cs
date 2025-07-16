@@ -9,5 +9,6 @@ namespace NuGetGallery.Services.Authentication
     {
         Unsupported,
         EntraId,
+        GitHubActions,
     }
 }

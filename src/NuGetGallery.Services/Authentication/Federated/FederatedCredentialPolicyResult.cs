@@ -3,43 +3,39 @@
 
 #nullable enable
 
-using System;
-using NuGet.Services.Entities;
+using System.Diagnostics;
 
 namespace NuGetGallery.Services.Authentication
 {
     public enum FederatedCredentialPolicyResultType
     {
         Success, // policy matched token
+        NotApplicable, // policy does not apply to the token
         Unauthorized, // details are hidden from the user
     }
 
+    /// <summary>
+    /// Represents the result of evaluating a single <see cref="NuGet.Services.Entities.FederatedCredentialPolicy">
+    /// against validated and authenticated OIDC token.
+    /// </summary>
+    [DebuggerDisplay("{Type}, reason: {InternalReason}")]
     public class FederatedCredentialPolicyResult
     {
-        private readonly FederatedCredential? _federatedCredential;
-        private readonly string? _internalReason;
+        public static readonly FederatedCredentialPolicyResult Success = new(FederatedCredentialPolicyResultType.Success);
+        public static readonly FederatedCredentialPolicyResult NotApplicable = new(FederatedCredentialPolicyResultType.NotApplicable);
 
         private FederatedCredentialPolicyResult(
             FederatedCredentialPolicyResultType type,
-            FederatedCredentialPolicy federatedCredentialPolicy,
-            FederatedCredential? federatedCredential = null,
             string? internalReason = null)
         {
             Type = type;
-            Policy = federatedCredentialPolicy;
-            _federatedCredential = federatedCredential;
-            _internalReason = internalReason;
+            InternalReason = internalReason ?? string.Empty;
         }
 
         public FederatedCredentialPolicyResultType Type { get; }
-        public FederatedCredentialPolicy Policy { get; }
-        public FederatedCredential FederatedCredential => _federatedCredential ?? throw new InvalidOperationException();
-        public string InternalReason => _internalReason ?? throw new InvalidOperationException();
+        public string InternalReason { get; }
 
-        public static FederatedCredentialPolicyResult Success(FederatedCredentialPolicy policy, FederatedCredential federatedCredential)
-            => new(FederatedCredentialPolicyResultType.Success, policy, federatedCredential: federatedCredential);
-
-        public static FederatedCredentialPolicyResult Unauthorized(FederatedCredentialPolicy policy, string internalReason)
-            => new(FederatedCredentialPolicyResultType.Unauthorized, policy, internalReason: internalReason);
+        public static FederatedCredentialPolicyResult Unauthorized(string internalReason)
+            => new(FederatedCredentialPolicyResultType.Unauthorized, internalReason: internalReason);
     }
 }
