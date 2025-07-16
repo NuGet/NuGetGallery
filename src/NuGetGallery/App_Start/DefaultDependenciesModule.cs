@@ -1593,7 +1593,9 @@ namespace NuGetGallery
                         connectionString,
                         readAccessGeoRedundant: useStorageReadAccessGeoRedundant);
 #else
-                    throw new InvalidOperationException("Managed identity client ID is not set.");
+                    return CloudBlobClientWrapper.UsingMsi(
+                        connectionString,
+                        readAccessGeoRedundant: useStorageReadAccessGeoRedundant);
 #endif
                 }
                 else
