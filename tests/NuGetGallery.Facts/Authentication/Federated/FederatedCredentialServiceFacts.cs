@@ -489,7 +489,7 @@ namespace NuGetGallery.Services.Authentication
             FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
             CredentialBuilder
                 .Setup(x => x.CreateShortLivedApiKey(TimeSpan.FromMinutes(15), Evaluation.MatchedPolicy, It.IsAny<string>(), It.IsAny<bool>(), out It.Ref<string>.IsAny))
-                .Returns(new CreateShortLivedApiKey((TimeSpan expires, FederatedCredentialPolicy policy, char apiKeyEnvironment, bool isApiKeyV5Enabled, out string plaintextApiKey) =>
+                .Returns(new CreateShortLivedApiKey((TimeSpan expires, FederatedCredentialPolicy policy, string galleryEnvironment, bool isApiKeyV5Enabled, out string plaintextApiKey) =>
                 {
                     plaintextApiKey = "secret";
                     return Credential;
@@ -514,7 +514,7 @@ namespace NuGetGallery.Services.Authentication
                 GalleryConfigurationService.Object);
         }
 
-        delegate Credential CreateShortLivedApiKey(TimeSpan expires, FederatedCredentialPolicy policy, char apiKeyEnvironment, bool isApiKeyV5Enabled, out string plaintextApiKey);
+        delegate Credential CreateShortLivedApiKey(TimeSpan expires, FederatedCredentialPolicy policy, string galleryEnvironment, bool isApiKeyV5Enabled, out string plaintextApiKey);
 
         public Mock<IUserService> UserService { get; }
         public Mock<IFederatedCredentialRepository> FederatedCredentialRepository { get; }

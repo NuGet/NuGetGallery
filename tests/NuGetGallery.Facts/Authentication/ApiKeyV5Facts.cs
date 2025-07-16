@@ -318,8 +318,11 @@ namespace NuGetGallery.Infrastructure.Authentication
 
                 var apiKey = ApiKeyV5.Create(allocationTime, Environment, UserKey, Type, Expiration);
 
-                // Act & Assert
-                Assert.True(ApiKeyV5.TryParseAndValidate(apiKey.PlaintextApiKey, Environment, out var apiKeyV5));
+                // Act
+                var result = ApiKeyV5.TryParseAndValidate(apiKey.PlaintextApiKey, Environment, out var apiKeyV5);
+
+                // Assert
+                Assert.True(result);
             }
 
             [Fact]
@@ -331,14 +334,21 @@ namespace NuGetGallery.Infrastructure.Authentication
 
                 var apiKey = ApiKeyV5.Create(allocationTime, Environment, UserKey, Type, Expiration);
 
-                // Act & Assert
-                Assert.False(ApiKeyV5.TryParseAndValidate(TestApiKey, ApiKeyV5.KnownEnvironments.Production, out var apiKeyV5));
+                // Act
+                var result = ApiKeyV5.TryParseAndValidate(TestApiKey, ApiKeyV5.KnownEnvironments.Production, out var apiKeyV5);
+
+                // Assert
+                Assert.False(result);
             }
 
             [Fact]
             public void InvalidhApiKeyV5WithExpired()
             {
-                Assert.False(ApiKeyV5.TryParseAndValidate(TestApiKey, Environment, out var apiKeyV5));
+                // Arrange & Act
+                var result = ApiKeyV5.TryParseAndValidate(TestApiKey, Environment, out var apiKeyV5);
+
+                // Assert
+                Assert.False(result);
             }
         }
 
@@ -351,13 +361,21 @@ namespace NuGetGallery.Infrastructure.Authentication
             [InlineData(ServicesConstants.DevelopmentEnvironment, ApiKeyV5.KnownEnvironments.Local)]
             public void ValidEnvironment(string galleryEnvironment, char environment)
             {
-                Assert.Equal(environment, ApiKeyV5.GetEnvironment(galleryEnvironment));
+                // Arrange & Act
+                var result = ApiKeyV5.GetEnvironment(galleryEnvironment);
+
+                // Assert
+                Assert.Equal(environment, result);
             }
 
             [Fact]
             public void InvalidEnvironmentDefaultToLocal()
             {
-                Assert.Equal(ApiKeyV5.KnownEnvironments.Local, ApiKeyV5.GetEnvironment("TestEnvironment"));
+                // Arrange & Act
+                var result = ApiKeyV5.GetEnvironment("TestEnvironment");
+
+                // Assert
+                Assert.Equal(ApiKeyV5.KnownEnvironments.Local, result);
             }
         }
 
