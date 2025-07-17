@@ -2,12 +2,19 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 #nullable enable
 
 namespace NuGetGallery.Services.Authentication
 {
+    /// <summary>
+    /// Represents trusted publisher policies for GitHub Actions.  Stored in the
+    /// dbo.FederatedCredentialPolicies.Criteria field and used by both the UI
+    /// view model layer and backend processing.
+    /// </summary>
+    [DebuggerDisplay("{RepositoryOwner,nq}/{Repository,nq}/.github/workflows/{WorkflowFile,nq}")]
     public class GitHubCriteria
     {
         private string _repositoryOwner = string.Empty;
@@ -115,9 +122,11 @@ namespace NuGetGallery.Services.Authentication
 
         public string ToDatabaseJson()
         {
-            return JsonSerializer.Serialize(this, new JsonSerializerOptions() {
+            return JsonSerializer.Serialize(this, new JsonSerializerOptions()
+            {
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
-                IgnoreReadOnlyProperties = true });
+                IgnoreReadOnlyProperties = true
+            });
         }
 
         public static GitHubCriteria FromDatabaseJson(string json)

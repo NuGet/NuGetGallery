@@ -21,7 +21,8 @@ namespace NuGet.Services.Entities
         EntraIdServicePrincipal = 1,
 
         /// <summary>
-        /// GitHub Actions as a trusted publisher.
+        /// This credential type applies to GitHub Actions workflows running in GitHub repositories. The workflow
+        /// is identified by repository owner, repository name, workflow file, etc.
         /// </summary>
         GitHubActions = 2,
     }

@@ -985,8 +985,8 @@ public class TheEditTrustedPublisherPolicyAction : TestContainer
             .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
             .Returns(true);
 
-        string oldDBCriteria = """{"owner":"someOwner","repository":"repo","workflow":"old.yml","ownerId":"12","repositoryId":"45","environment":"prod"}""";
-        string newDBCriteria = """{"owner":"someOwner","repository":"repo","workflow":"new.yml","ownerId":"12","repositoryId":"45"}""";
+        string oldDBCriteria = """{"owner":"someOwner","ownerId":"12","repository":"repo","repositoryId":"45","workflow":"old.yml","environment":"prod"}""";
+        string newDBCriteria = """{"owner":"someOwner","ownerId":"12","repository":"repo","repositoryId":"45","workflow":"new.yml"}""";
         string newJSCriteria = """{"RepositoryOwner":"someOwner","RepositoryOwnerId":"12","Repository":"repo","RepositoryId":"45","WorkflowFile":"new.yml","Environment":""}""";
 
         var user = TestUtility.FakeUser;
