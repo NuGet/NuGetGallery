@@ -20,14 +20,17 @@ namespace NuGetGallery.Services.Authentication
     {
         protected readonly ConfigurationManager<OpenIdConnectConfiguration> _oidcConfigManager;
         protected readonly JsonWebTokenHandler _jsonWebTokenHandler;
+        protected readonly IFederatedCredentialConfiguration _configuration;
         private readonly string _tokenIdentifierClaimName;
 
         protected TokenPolicyValidator(
             ConfigurationManager<OpenIdConnectConfiguration> oidcConfigManager,
+            IFederatedCredentialConfiguration configuration,
             JsonWebTokenHandler jsonWebTokenHandler,
             string tokenIdentifierClaimName = "jti")
         {
             _oidcConfigManager = oidcConfigManager ?? throw new ArgumentNullException(nameof(oidcConfigManager));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _jsonWebTokenHandler = jsonWebTokenHandler ?? throw new ArgumentNullException(nameof(jsonWebTokenHandler));
             _tokenIdentifierClaimName = tokenIdentifierClaimName ?? throw new ArgumentNullException(nameof(tokenIdentifierClaimName));
         }

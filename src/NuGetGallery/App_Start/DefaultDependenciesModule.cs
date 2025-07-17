@@ -602,34 +602,27 @@ namespace NuGetGallery
             builder
                 .Register(c => new EntraIdTokenPolicyValidator(
                     c.ResolveKeyed<ConfigurationManager<OpenIdConnectConfiguration>>(EntraIdKey),
-                    c.Resolve<JsonWebTokenHandler>(),
-                    c.Resolve<IFederatedCredentialConfiguration>()))
+                    c.Resolve<IFederatedCredentialConfiguration>(),
+                    c.Resolve<JsonWebTokenHandler>()))
                 .As<IEntraIdTokenValidator>()
+                .As<ITokenPolicyValidator>()
                 .SingleInstance();
 
             builder
                 .Register(c => new GitHubTokenPolicyValidator(
                     c.Resolve<IFederatedCredentialRepository>(),
                     c.ResolveKeyed<ConfigurationManager<OpenIdConnectConfiguration>>(GitHubActionsKey),
-                    c.Resolve<JsonWebTokenHandler>()))
-                .SingleInstance();
-
-            builder
-                .Register(c =>
-                {
-                    return new ITokenPolicyValidator[]
-                    {
-                        c.Resolve<IEntraIdTokenValidator>(),
-                        c.Resolve<GitHubTokenPolicyValidator>()
-                    };
-                })
-                .As<IReadOnlyList<ITokenPolicyValidator>>()
+                    c.Resolve<IFederatedCredentialConfiguration>(),
+                    c.Resolve<IAuditingService>(),
+                    c.Resolve<JsonWebTokenHandler>()
+                    ))
+                .As<ITokenPolicyValidator>()
                 .SingleInstance();
 
             builder
                 .RegisterType<FederatedCredentialPolicyEvaluator>()
                 .As<IFederatedCredentialPolicyEvaluator>()
-                .InstancePerLifetimeScope();
+                .InstancePerDependency();
 
             builder
                 .RegisterType<FederatedCredentialService>()

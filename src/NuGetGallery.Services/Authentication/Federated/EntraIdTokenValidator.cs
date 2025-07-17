@@ -33,15 +33,12 @@ namespace NuGetGallery.Services.Authentication
         public const string Issuer = $"https://{Authority}/common/v2.0";
         public const string MetadataAddress = $"{Issuer}/.well-known/openid-configuration";
 
-        private readonly IFederatedCredentialConfiguration _configuration;
-
         public EntraIdTokenPolicyValidator(
             ConfigurationManager<OpenIdConnectConfiguration> oidcConfigManager,
-            JsonWebTokenHandler jsonWebTokenHandler,
-            IFederatedCredentialConfiguration configuration)
-            : base(oidcConfigManager, jsonWebTokenHandler, "uti")
+            IFederatedCredentialConfiguration configuration,
+            JsonWebTokenHandler jsonWebTokenHandler)
+            : base(oidcConfigManager, configuration, jsonWebTokenHandler, "uti")
         {
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         public override string IssuerAuthority => Authority;
@@ -83,6 +80,14 @@ namespace NuGetGallery.Services.Authentication
             return Task.FromResult(FederatedCredentialPolicyResult.Success);
         }
 
+        /// <summary>
+        /// Evaluates an Entra ID service principal federated credential policy against a validated JWT token.
+        /// This method validates that the token contains the required claims for an Entra ID service principal
+        /// authentication flow and that the claims match the policy criteria.
+        /// </summary>
+        /// <returns>
+        /// <see langword="null"/> if the policy evaluation succeeds; otherwise, an error message describing the validation failure.
+        /// </returns>
         private string? EvaluateEntraIdServicePrincipal(FederatedCredentialPolicy policy, JsonWebToken jwt)
         {
             // See https://learn.microsoft.com/en-us/entra/identity-platform/access-token-claims-reference

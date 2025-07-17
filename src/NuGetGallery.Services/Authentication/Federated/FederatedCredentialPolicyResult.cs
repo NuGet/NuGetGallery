@@ -10,8 +10,8 @@ namespace NuGetGallery.Services.Authentication
     public enum FederatedCredentialPolicyResultType
     {
         Success, // policy matched token
-        NotApplicable, // policy does not apply to the token
         Unauthorized, // details are hidden from the user
+        NotApplicable, // policy does not apply to the token
     }
 
     /// <summary>

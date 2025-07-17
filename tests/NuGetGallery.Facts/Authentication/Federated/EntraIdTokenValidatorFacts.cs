@@ -17,9 +17,9 @@ using Xunit;
 
 namespace NuGetGallery.Services.Authentication
 {
-    public class EntraIdTokenPolicyValidatorFacts
+    public class EntraIdTokenValidatorFacts
     {
-        public class TheIsTenantAllowedMethod : EntraIdTokenPolicyValidatorFacts
+        public class TheIsTenantAllowedMethod : EntraIdTokenValidatorFacts
         {
             [Fact]
             public void AllowsTenantIdWhenInAllowList()
@@ -68,7 +68,7 @@ namespace NuGetGallery.Services.Authentication
             }
         }
 
-        public class TheValidateAsyncMethod : EntraIdTokenPolicyValidatorFacts
+        public class TheValidateAsyncMethod : EntraIdTokenValidatorFacts
         {
             [Fact]
             public async Task RejectsMissingAudience()
@@ -207,7 +207,7 @@ namespace NuGetGallery.Services.Authentication
             }
         }
 
-        public class TheEvaluatePolicyMethod : EntraIdTokenPolicyValidatorFacts
+        public class TheEvaluatePolicyMethod : EntraIdTokenValidatorFacts
         {
             [Fact]
             public async Task ReturnsNotApplicableForNonEntraIdPolicy()
@@ -533,7 +533,7 @@ namespace NuGetGallery.Services.Authentication
             }
         }
 
-        public EntraIdTokenPolicyValidatorFacts()
+        public EntraIdTokenValidatorFacts()
         {
             ConfigurationRetriever = new Mock<IConfigurationRetriever<OpenIdConnectConfiguration>>();
             OidcConfigManager = new Mock<ConfigurationManager<OpenIdConnectConfiguration>>(
@@ -552,8 +552,8 @@ namespace NuGetGallery.Services.Authentication
 
             Target = new EntraIdTokenPolicyValidator(
                 OidcConfigManager.Object,
-                JsonWebTokenHandler.Object,
-                Configuration.Object);
+                Configuration.Object,
+                JsonWebTokenHandler.Object);
         }
 
         public EntraIdTokenPolicyValidator Target { get; }

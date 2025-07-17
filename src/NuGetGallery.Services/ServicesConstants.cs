@@ -51,11 +51,6 @@ namespace NuGetGallery
         public const string ApiKeyHeaderName = "X-NuGet-ApiKey";
 
         /// <summary>
-        /// The expected audience ("aud" claim) for OIDC tokens from trusted publishers, e.g. GitHub Actions.
-        /// </summary>
-        public const string NuGetAudience = "https://www.nuget.org";
-
-        /// <summary>
         /// Parameter for passing the cookie compliance permission.
         /// </summary>
         public const string CookieComplianceCanWriteAnalyticsCookies = "CanWriteAnalyticsCookies";

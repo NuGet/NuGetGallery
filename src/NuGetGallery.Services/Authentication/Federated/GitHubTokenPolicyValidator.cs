@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using NuGet.Services.Entities;
+using NuGetGallery.Auditing;
 
 #nullable enable
 
@@ -27,15 +28,30 @@ namespace NuGetGallery.Services.Authentication
         public const string Issuer = $"https://{Authority}";
         public const string MetadataAddress = $"{Issuer}/.well-known/openid-configuration";
 
+        private const string RepositoryOwnerClaim = "repository_owner";
+        private const string RepositoryClaim = "repository";
+        private const string JobWorkflowRefClaim = "job_workflow_ref";
+        private const string EnvironmentClaim = "environment";
+        private const string RepositoryOwnerIdClaim = "repository_owner_id";
+        private const string RepositoryIdClaim = "repository_id";
+
+        // Error message templates
+        private const string MissingClaimError = "The JSON web token must have '{0}' claim.";
+        private const string ClaimMismatchError = "The JSON web token {0} claim '{1}' does not match policy '{2}'.";
+
         private readonly IFederatedCredentialRepository _federatedCredentialRepository;
+        private readonly IAuditingService _auditingService;
 
         public GitHubTokenPolicyValidator(
             IFederatedCredentialRepository federatedCredentialRepository,
             ConfigurationManager<OpenIdConnectConfiguration> oidcConfigManager,
+            IFederatedCredentialConfiguration configuration,
+            IAuditingService auditingService,
             JsonWebTokenHandler jsonWebTokenHandler)
-            : base(oidcConfigManager, jsonWebTokenHandler)
+            : base(oidcConfigManager, configuration, jsonWebTokenHandler)
         {
             _federatedCredentialRepository = federatedCredentialRepository ?? throw new ArgumentNullException(nameof(federatedCredentialRepository));
+            _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
         }
 
         public override string IssuerAuthority => Authority;
@@ -43,11 +59,19 @@ namespace NuGetGallery.Services.Authentication
 
         public override async Task<TokenValidationResult> ValidateTokenAsync(JsonWebToken jwt)
         {
+            if (string.IsNullOrWhiteSpace(_configuration.NuGetAudience))
+            {
+                throw new InvalidOperationException("Unable to validate GitHub Actions token. NuGet audience is not configured.");
+            }
+
             var validationParameters = new TokenValidationParameters
             {
                 ValidIssuer = Issuer,
-                ValidAudience = ServicesConstants.NuGetAudience,
+                ValidAudience = _configuration.NuGetAudience,
                 ConfigurationManager = _oidcConfigManager,
+
+                ValidateLifetime = true,
+                RequireExpirationTime = true,
                 ValidateIssuerSigningKey = true,
                 RequireSignedTokens = true,
             };
@@ -75,8 +99,12 @@ namespace NuGetGallery.Services.Authentication
         }
 
         /// <summary>
-        /// Evaluates a GitHub Actions policy against a provided JSON Web Token (JWT).
+        /// Evaluates a GitHub Actions federated credential policy against a provided JSON Web Token (JWT)
+        /// to determine if the token's claims match the policy criteria.
         /// </summary>
+        /// <returns>
+        /// <see langword="null"/> if the policy evaluation succeeds; otherwise, an error message describing the validation failure.
+        /// </returns>
         private async Task<string?> EvaluateGitHubActionsPolicyAsync(FederatedCredentialPolicy policy, JsonWebToken jwt)
         {
             var criteria = GitHubCriteria.FromDatabaseJson(policy.Criteria);
@@ -90,75 +118,50 @@ namespace NuGetGallery.Services.Authentication
                 }
             }
 
-            // Validate repository owner
-            if (!jwt.TryGetPayloadValue<string>("repository_owner", out var repositoryOwner) ||
-                string.IsNullOrWhiteSpace(repositoryOwner))
+            string? error;
+            error = ValidateClaim(jwt, RepositoryOwnerClaim, criteria.RepositoryOwner);
+            if (error != null)
             {
-                return "The JSON web token must have 'repository_owner' claim.";
+                return error;
             }
 
-            if (!repositoryOwner.Equals(criteria.RepositoryOwner, StringComparison.OrdinalIgnoreCase))
+            error = ValidateClaim(jwt, RepositoryClaim, $"{criteria.RepositoryOwner}/{criteria.Repository}");
+            if (error != null)
             {
-                return $"The JSON web token repository_owner claim '{repositoryOwner}' does not match policy owner '{criteria.RepositoryOwner}'.";
+                return error;
             }
 
-            // Validate repository which contains both owner and repository name
-            if (!jwt.TryGetPayloadValue<string>("repository", out var repository) ||
-                string.IsNullOrWhiteSpace(repository))
+            error = ValidateClaim(jwt, JobWorkflowRefClaim, $"{criteria.RepositoryOwner}/{criteria.Repository}/.github/workflows/{criteria.WorkflowFile}@", fullValue: false);
+            if (error != null)
             {
-                return "The JSON web token must have 'repository' claim.";
-            }
-
-            var expectedRepository = $"{criteria.RepositoryOwner}/{criteria.Repository}";
-            if (!repository.Equals(expectedRepository, StringComparison.OrdinalIgnoreCase))
-            {
-                return $"The JSON web token repository claim '{repository}' does not match policy repository '{expectedRepository}'.";
-            }
-
-            // Validate workflow file
-            if (!jwt.TryGetPayloadValue<string>("job_workflow_ref", out var jobWorkflowRef) ||
-                string.IsNullOrWhiteSpace(jobWorkflowRef))
-            {
-                return "The JSON web token must have 'job_workflow_ref' claim.";
-            }
-
-            // job_workflow_ref format: owner/repo/.github/workflows/workflow.yml@ref
-            var expectedWorkflowRef = $"{criteria.RepositoryOwner}/{criteria.Repository}/.github/workflows/{criteria.WorkflowFile}@";
-            if (!jobWorkflowRef.StartsWith(expectedWorkflowRef, StringComparison.OrdinalIgnoreCase))
-            {
-                return $"The JSON web token job_workflow_ref claim '{jobWorkflowRef}' does not match policy workflow file '{expectedWorkflowRef}'.";
+                return error;
             }
 
             // Validate environment if specified in criteria
             if (!string.IsNullOrWhiteSpace(criteria.Environment))
             {
-                if (!jwt.TryGetPayloadValue<string>("environment", out var environment) ||
-                    string.IsNullOrWhiteSpace(environment))
+                error = ValidateClaim(jwt, EnvironmentClaim, criteria.Environment!);
+                if (error != null)
                 {
-                    return "The JSON web token must have 'environment' claim.";
+                    return error;
                 }
-
-                if (!environment.Equals(criteria.Environment, StringComparison.OrdinalIgnoreCase))
-                {
-                    return $"The JSON web token environment claim '{environment}' does not match policy environment '{criteria.Environment}'.";
-                }
-            }
-
-            // Get owner and repo IDs from token
-            if (!jwt.TryGetPayloadValue<string>("repository_owner_id", out var repositoryOwnerId) ||
-                string.IsNullOrWhiteSpace(repositoryOwnerId))
-            {
-                return "The JSON web token must have 'repository_owner_id' claim.";
-            }
-            if (!jwt.TryGetPayloadValue<string>("repository_id", out var repositoryId) ||
-                string.IsNullOrWhiteSpace(repositoryId))
-            {
-                return "The JSON web token must have 'repository_id' claim.";
             }
 
             if (!criteria.IsPermanentlyEnabled)
             {
                 // First time use, i.e. if policy is missing repo and owner IDs then get them from the token
+                error = TryGetRequiredClaim(jwt, RepositoryOwnerIdClaim, out string repositoryOwnerId);
+                if (error != null)
+                {
+                    return error;
+                }
+
+                error = TryGetRequiredClaim(jwt, RepositoryIdClaim, out string repositoryId);
+                if (error != null)
+                {
+                    return error;
+                }
+
                 criteria.RepositoryOwnerId = repositoryOwnerId;
                 criteria.RepositoryId = repositoryId;
                 criteria.ValidateByDate = null;
@@ -166,6 +169,7 @@ namespace NuGetGallery.Services.Authentication
                 try
                 {
                     await _federatedCredentialRepository.SavePoliciesAsync();
+                    await _auditingService.SaveAuditRecordAsync(FederatedCredentialPolicyAuditRecord.FirstUseUpdate(policy));
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -191,14 +195,52 @@ namespace NuGetGallery.Services.Authentication
             else
             {
                 // Note that ID comparisons are case-sensitive
-                if (!repositoryOwnerId.Equals(criteria.RepositoryOwnerId, StringComparison.Ordinal))
+                error = ValidateClaim(jwt, RepositoryOwnerIdClaim, criteria.RepositoryOwnerId!, StringComparison.Ordinal);
+                if (error != null)
                 {
-                    return $"The JSON web token repository_owner_id claim '{repositoryOwnerId}' does not match policy owner id '{criteria.RepositoryOwnerId}'.";
+                    return error;
                 }
-                if (!repositoryId.Equals(criteria.RepositoryId, StringComparison.Ordinal))
+                error = ValidateClaim(jwt, RepositoryIdClaim, criteria.RepositoryId!, StringComparison.Ordinal);
+                if (error != null)
                 {
-                    return $"The JSON web token repository_id claim '{repositoryId}' does not match policy repository id '{criteria.RepositoryId}'.";
+                    return error;
                 }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Attempts to get a required string claim from the JWT token.
+        /// </summary>
+        /// <returns><see langword="null"/> if the claim value present; otherwise, an error message.</returns>
+        private static string? TryGetRequiredClaim(JsonWebToken jwt, string claim, out string claimValue)
+        {
+            if (!jwt.TryGetPayloadValue(claim, out claimValue) || string.IsNullOrWhiteSpace(claimValue))
+            {
+                return string.Format(MissingClaimError, claim);
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Validates that a JWT claim exists and equals the expected value using the specified string comparison.
+        /// </summary>
+        /// <returns><see langword="null"/> if the claim is valid; otherwise, an error message.</returns>
+        private static string? ValidateClaim(JsonWebToken jwt, string claim, string expectedValue, StringComparison comparison = StringComparison.OrdinalIgnoreCase, bool fullValue = true)
+        {
+            if (TryGetRequiredClaim(jwt, claim, out string claimValue) is string error)
+            {
+                return error;
+            }
+
+            var isValid = fullValue
+                ? claimValue.Equals(expectedValue, comparison)
+                : claimValue.StartsWith(expectedValue, comparison);
+            if (!isValid)
+            {
+                return string.Format(ClaimMismatchError, claim, claimValue, expectedValue);
             }
 
             return null;

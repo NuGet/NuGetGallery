@@ -28,7 +28,6 @@ namespace NuGetGallery.Services.Authentication
         /// </summary>
         FederatedCredentialIssuerType IssuerType { get; }
 
-
         /// <summary>
         /// Validates the token identifier of the specified JSON Web Token.
         /// </summary>

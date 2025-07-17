@@ -15,6 +15,7 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Moq;
 using NuGet.Services.Entities;
+using NuGetGallery.Auditing;
 using Xunit;
 
 namespace NuGetGallery.Services.Authentication
@@ -77,12 +78,13 @@ namespace NuGetGallery.Services.Authentication
         public static readonly string ValidIssuer = GitHubTokenPolicyValidator.Issuer;
         public static readonly string InvalidIssuer = "invalid-issuer";
 
+        public static readonly string ValidAudience = "nuget.org";
         public static readonly string InvalidAudience = "invalid-audience";
 
         public static readonly SymmetricSecurityKey DefaultSigningKey = CreateTestSymmetricKey();
 
         public static JsonWebToken CreateTestJwt()
-            => CreateTestJwt(ValidClaims, ValidIssuer, ServicesConstants.NuGetAudience, DefaultSigningKey);
+            => CreateTestJwt(ValidClaims, ValidIssuer, ValidAudience, DefaultSigningKey);
 
         public static JsonWebToken CreateTestJwtWithCustomClaimValue(string claimName, string? value = null)
         {
@@ -95,7 +97,7 @@ namespace NuGetGallery.Services.Authentication
             {
                 claims[claimName] = value;
             }
-            return CreateTestJwt(claims, ValidIssuer, ServicesConstants.NuGetAudience, DefaultSigningKey);
+            return CreateTestJwt(claims, ValidIssuer, ValidAudience, DefaultSigningKey);
         }
 
         public static JsonWebToken CreateTestJwt(Dictionary<string, object> claims, string issuer, string audience, SecurityKey signingKey)
@@ -152,9 +154,11 @@ namespace NuGetGallery.Services.Authentication
                     It.Is<TokenValidationParameters>(p =>
                         // MAKE SURE we validate the issuer and audience
                         p.ValidIssuer == GitHubTokenPolicyValidator.Issuer &&
-                        p.ValidAudience == ServicesConstants.NuGetAudience &&
+                        p.ValidAudience == TokenTestHelper.ValidAudience &&
 
                         // MAKE SURE we validate the signing key and require signed tokens
+                        p.ValidateLifetime == true &&
+                        p.RequireExpirationTime == true &&
                         p.ValidateIssuerSigningKey == true &&
                         p.RequireSignedTokens == true
                     )), Times.Once);
@@ -352,7 +356,9 @@ namespace NuGetGallery.Services.Authentication
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.GitHubActions,
-                    Criteria = TokenTestHelper.TemporaryPolicyCriteria
+                    Criteria = TokenTestHelper.TemporaryPolicyCriteria,
+                    CreatedBy = new User("test-user"),
+                    PackageOwner = new User("test-owner")
                 };
 
                 var token = TokenTestHelper.CreateTestJwt();
@@ -365,6 +371,10 @@ namespace NuGetGallery.Services.Authentication
                 FederatedCredentialRepository.Verify(x => x.SavePoliciesAsync(), Times.Once);
                 var dbCriteria = GitHubCriteria.FromDatabaseJson(policy.Criteria)!;
                 Assert.True(dbCriteria.IsPermanentlyEnabled);
+
+                // Verify that the first-time use audit was saved
+                AuditingService.Verify(x => x.SaveAuditRecordAsync(It.Is<FederatedCredentialPolicyAuditRecord>(
+                    audit => audit.Action == AuditedFederatedCredentialPolicyAction.FirstUsePolicyUpdate)), Times.Once);
             }
 
             [Fact]
@@ -403,6 +413,7 @@ namespace NuGetGallery.Services.Authentication
                 Assert.Equal(FederatedCredentialPolicyResultType.Success, result.Type);
                 FederatedCredentialRepository.Verify(x => x.SavePoliciesAsync(), Times.Once);
                 FederatedCredentialRepository.Verify(x => x.GetPolicyByKey(123), Times.Once);
+                AuditingService.Verify(x => x.SaveAuditRecordAsync(It.IsAny<AuditRecord>()), Times.Never);
             }
 
             [Theory]
@@ -488,8 +499,11 @@ namespace NuGetGallery.Services.Authentication
             OidcConfigManager = new Mock<ConfigurationManager<OpenIdConnectConfiguration>>(
                 "https://token.actions.githubusercontent.com/.well-known/openid-configuration",
                 ConfigurationRetriever.Object);
-            JsonWebTokenHandler = new Mock<JsonWebTokenHandler>();
+
             FederatedCredentialRepository = new Mock<IFederatedCredentialRepository>();
+            Configuration = new Mock<IFederatedCredentialConfiguration>();
+            AuditingService = new Mock<IAuditingService>();
+            JsonWebTokenHandler = new Mock<JsonWebTokenHandler>();
 
             // Setup test OIDC configuration with the same key used for token signing
             var oidcConfig = new OpenIdConnectConfiguration
@@ -503,9 +517,13 @@ namespace NuGetGallery.Services.Authentication
             OidcConfigManager.Setup(x => x.GetConfigurationAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(oidcConfig);
 
+            Configuration.Setup(x => x.NuGetAudience).Returns(TokenTestHelper.ValidAudience);
+
             Target = new GitHubTokenPolicyValidator(
                 FederatedCredentialRepository.Object,
                 OidcConfigManager.Object,
+                Configuration.Object,
+                AuditingService.Object,
                 JsonWebTokenHandler.Object);
         }
 
@@ -513,7 +531,9 @@ namespace NuGetGallery.Services.Authentication
         public Mock<IConfigurationRetriever<OpenIdConnectConfiguration>> ConfigurationRetriever { get; }
         public Mock<ConfigurationManager<OpenIdConnectConfiguration>> OidcConfigManager { get; }
         public Mock<JsonWebTokenHandler> JsonWebTokenHandler { get; }
+        public Mock<IFederatedCredentialConfiguration> Configuration { get; }
         public Mock<IFederatedCredentialRepository> FederatedCredentialRepository { get; }
+        public Mock<IAuditingService> AuditingService { get; }
 
         private JsonWebKey CreateTestJsonWebKey()
         {
