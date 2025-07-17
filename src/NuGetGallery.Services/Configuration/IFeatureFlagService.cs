@@ -354,6 +354,11 @@ namespace NuGetGallery
         /// </summary>
         bool CanUseFederatedCredentials(User user);
 
+        /// <summary>
+        /// Whether or not the user can access trusted publishing functionality.
+        /// </summary>
+        bool IsTrustedPublishingEnabled(User user);
+
         bool IsProfileLoadOptimizationEnabled();
 
         bool IsMcpServerPackageFilteringEnabled();

@@ -781,14 +781,12 @@
         window.nuget.updateSearchLinksWithSavedParams();
 
     });
-    //for tooltip hover and focus
-    $('.tooltip-target').each(function () {
-        $(this).on('mouseenter focusin', function () {
-            $(this).find('.tooltip-wrapper').addClass('show');
-        });
-        $(this).on('mouseleave focusout', function () {
-            $(this).find('.tooltip-wrapper').removeClass('show');
-        });
+    // For tooltip hover and focus - using event delegation for Knockout compatibility
+    $(document).on('mouseenter focusin', '.tooltip-target', function () {
+        $(this).find('.tooltip-wrapper').addClass('show');
     });
 
+    $(document).on('mouseleave focusout', '.tooltip-target', function () {
+        $(this).find('.tooltip-wrapper').removeClass('show');
+    });
 }());

@@ -65,6 +65,7 @@ namespace NuGetGallery
         private const string DisplayTfmBadgesFeatureName = GalleryPrefix + "DisplayTfmBadges";
         private const string AdvancedFrameworkFilteringFeatureName = GalleryPrefix + "AdvancedFrameworkFiltering";
         private const string FederatedCredentialsFeatureName = GalleryPrefix + "FederatedCredentials";
+        private const string TrustedPublishingFeatureName = GalleryPrefix + "TrustedPublishing";
         private const string ProfileLoadOptimization = GalleryPrefix + "ProfileLoadOptimization";
         private const string McpServerPackageFilteringFeatureName = GalleryPrefix + "McpServerPackageFiltering";
         private const string McpServerPackageDisplayFeatureName = GalleryPrefix + "McpServerPackageDisplay";
@@ -437,7 +438,12 @@ namespace NuGetGallery
         {
             return _client.IsEnabled(FederatedCredentialsFeatureName, user, defaultValue: false);
         }
-        
+
+        public bool IsTrustedPublishingEnabled(User user)
+        {
+            return _client.IsEnabled(TrustedPublishingFeatureName, user, defaultValue: false);
+        }
+
         public bool IsProfileLoadOptimizationEnabled()
         {
             return _client.IsEnabled(ProfileLoadOptimization, defaultValue: true);

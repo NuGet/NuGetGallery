@@ -122,9 +122,11 @@ namespace NuGetGallery.Services.Authentication
 
         public string ToDatabaseJson()
         {
-            return JsonSerializer.Serialize(this, new JsonSerializerOptions() {
+            return JsonSerializer.Serialize(this, new JsonSerializerOptions()
+            {
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
-                IgnoreReadOnlyProperties = true });
+                IgnoreReadOnlyProperties = true
+            });
         }
 
         public static GitHubCriteria FromDatabaseJson(string json)
