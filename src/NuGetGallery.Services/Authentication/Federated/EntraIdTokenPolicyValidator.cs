@@ -33,12 +33,15 @@ namespace NuGetGallery.Services.Authentication
         public const string Issuer = $"https://{Authority}/common/v2.0";
         public const string MetadataAddress = $"{Issuer}/.well-known/openid-configuration";
 
+        private readonly IFederatedCredentialConfiguration _configuration;
+
         public EntraIdTokenPolicyValidator(
             ConfigurationManager<OpenIdConnectConfiguration> oidcConfigManager,
             JsonWebTokenHandler jsonWebTokenHandler,
             IFederatedCredentialConfiguration configuration)
-            : base(oidcConfigManager, jsonWebTokenHandler, configuration, "uti")
+            : base(oidcConfigManager, jsonWebTokenHandler, "uti")
         {
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         public override string IssuerAuthority => Authority;

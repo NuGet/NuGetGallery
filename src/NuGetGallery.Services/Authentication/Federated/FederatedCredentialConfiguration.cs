@@ -19,15 +19,10 @@ namespace NuGetGallery.Services.Authentication
         bool EnableTokenApi { get; }
 
         /// <summary>
-        /// The expected audience for the incoming Entra ID token. This is the "aud" claim and should be specific
-        /// to the gallery service itself (not shared between multiple services).
+        /// The expected audience for the incoming token. This is the "aud" claim and should be specific to the gallery
+        /// service itself (not shared between multiple services). This is used only for Entra ID token validation.
         /// </summary>
         string? EntraIdAudience { get; }
-
-        /// <summary>
-        /// The expected audience ("aud" claim) for tokens from publishers that allow audience configuration, such as GitHub Actions.
-        /// </summary>
-        string? NuGetAudience { get; }
 
         /// <summary>
         /// How long the short lived API keys should last.
@@ -49,7 +44,6 @@ namespace NuGetGallery.Services.Authentication
         public bool EnableTokenApi { get; set; }
 
         public string? EntraIdAudience { get; set; }
-        public string? NuGetAudience { get; set; }
 
         public TimeSpan ShortLivedApiKeyDuration { get; set; } = TimeSpan.FromMinutes(15);
 

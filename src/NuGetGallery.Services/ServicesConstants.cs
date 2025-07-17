@@ -7,9 +7,9 @@ namespace NuGetGallery
 {
     public static class ServicesConstants
     {
-        public static readonly string CurrentUserOwinEnvironmentKey = "nuget.user";
+        public const string CurrentUserOwinEnvironmentKey = "nuget.user";
 
-        internal static readonly string UserAgentHeaderName = "User-Agent";
+        internal const string UserAgentHeaderName = "User-Agent";
 
         // X-NuGet-Client-Version header was deprecated and replaced with X-NuGet-Protocol-Version header
         // It stays here for backwards compatibility
@@ -51,21 +51,26 @@ namespace NuGetGallery
         public const string ApiKeyHeaderName = "X-NuGet-ApiKey";
 
         /// <summary>
+        /// The expected audience ("aud" claim) for OIDC tokens from trusted publishers, e.g. GitHub Actions.
+        /// </summary>
+        public const string NuGetAudience = "https://www.nuget.org";
+
+        /// <summary>
         /// Parameter for passing the cookie compliance permission.
         /// </summary>
         public const string CookieComplianceCanWriteAnalyticsCookies = "CanWriteAnalyticsCookies";
 
         public static class ContentNames
         {
-            public static readonly string LoginDiscontinuationConfiguration = "Login-Discontinuation-Configuration";
-            public static readonly string CertificatesConfiguration = "Certificates-Configuration";
-            public static readonly string SymbolsConfiguration = "Symbols-Configuration";
-            public static readonly string TyposquattingConfiguration = "Typosquatting-Configuration";
-            public static readonly string NuGetPackagesGitHubDependencies = "GitHubUsage.v1";
-            public static readonly string ABTestConfiguration = "AB-Test-Configuration";
-            public static readonly string CacheConfiguration = "Cache-Configuration";
-            public static readonly string QueryHintConfiguration = "Query-Hint-Configuration";
-            public static readonly string TrustedImageDomains = "Trusted-Image-Domains";
+            public const string LoginDiscontinuationConfiguration = "Login-Discontinuation-Configuration";
+            public const string CertificatesConfiguration = "Certificates-Configuration";
+            public const string SymbolsConfiguration = "Symbols-Configuration";
+            public const string TyposquattingConfiguration = "Typosquatting-Configuration";
+            public const string NuGetPackagesGitHubDependencies = "GitHubUsage.v1";
+            public const string ABTestConfiguration = "AB-Test-Configuration";
+            public const string CacheConfiguration = "Cache-Configuration";
+            public const string QueryHintConfiguration = "Query-Hint-Configuration";
+            public const string TrustedImageDomains = "Trusted-Image-Domains";
         }
     }
 }

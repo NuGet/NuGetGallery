@@ -611,8 +611,7 @@ namespace NuGetGallery
                 .Register(c => new GitHubTokenPolicyValidator(
                     c.Resolve<IFederatedCredentialRepository>(),
                     c.ResolveKeyed<ConfigurationManager<OpenIdConnectConfiguration>>(GitHubActionsKey),
-                    c.Resolve<JsonWebTokenHandler>(),
-                    c.Resolve<IFederatedCredentialConfiguration>()))
+                    c.Resolve<JsonWebTokenHandler>()))
                 .SingleInstance();
 
             builder

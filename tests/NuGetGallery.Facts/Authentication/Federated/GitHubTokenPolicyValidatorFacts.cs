@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity.Infrastructure;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -76,13 +77,12 @@ namespace NuGetGallery.Services.Authentication
         public static readonly string ValidIssuer = GitHubTokenPolicyValidator.Issuer;
         public static readonly string InvalidIssuer = "invalid-issuer";
 
-        public static readonly string ValidAudience = "nuget.org";
         public static readonly string InvalidAudience = "invalid-audience";
 
         public static readonly SymmetricSecurityKey DefaultSigningKey = CreateTestSymmetricKey();
 
         public static JsonWebToken CreateTestJwt()
-            => CreateTestJwt(ValidClaims, ValidIssuer, ValidAudience, DefaultSigningKey);
+            => CreateTestJwt(ValidClaims, ValidIssuer, ServicesConstants.NuGetAudience, DefaultSigningKey);
 
         public static JsonWebToken CreateTestJwtWithCustomClaimValue(string claimName, string? value = null)
         {
@@ -95,7 +95,7 @@ namespace NuGetGallery.Services.Authentication
             {
                 claims[claimName] = value;
             }
-            return CreateTestJwt(claims, ValidIssuer, ValidAudience, DefaultSigningKey);
+            return CreateTestJwt(claims, ValidIssuer, ServicesConstants.NuGetAudience, DefaultSigningKey);
         }
 
         public static JsonWebToken CreateTestJwt(Dictionary<string, object> claims, string issuer, string audience, SecurityKey signingKey)
@@ -133,7 +133,7 @@ namespace NuGetGallery.Services.Authentication
             [Theory]
             [InlineData(true)]
             [InlineData(false)]
-            public async Task WithToken_DoesNotThrow(bool isTokenValid)
+            public async Task ValidateTokenAsync_CallsJsonWebTokenHandlerWithCorrectParameters(bool isTokenValid)
             {
                 // Arrange
                 var token = TokenTestHelper.CreateTestJwt();
@@ -152,46 +152,9 @@ namespace NuGetGallery.Services.Authentication
                     It.Is<TokenValidationParameters>(p =>
                         // MAKE SURE we validate the issuer and audience
                         p.ValidIssuer == GitHubTokenPolicyValidator.Issuer &&
-                        p.ValidAudience == Configuration.Object.NuGetAudience &&
+                        p.ValidAudience == ServicesConstants.NuGetAudience &&
 
                         // MAKE SURE we validate the signing key and require signed tokens
-                        p.ValidateIssuerSigningKey == true &&
-                        p.RequireSignedTokens == true
-                    )), Times.Once);
-            }
-
-            [Fact]
-            public async Task WithMissingAudience_ThrowsException()
-            {
-                // Arrange
-                Configuration.Setup(x => x.NuGetAudience).Returns((string)null!);
-
-                var token = TokenTestHelper.CreateTestJwt();
-
-                // Act & Assert
-                await Assert.ThrowsAsync<InvalidOperationException>(() => Target.ValidateTokenAsync(token));
-            }
-
-            [Fact]
-            public async Task VerifiesTokenValidationParameters()
-            {
-                // Arrange
-                var token = TokenTestHelper.CreateTestJwt();
-
-                JsonWebTokenHandler
-                    .Setup(x => x.ValidateTokenAsync(It.IsAny<JsonWebToken>(), It.IsAny<TokenValidationParameters>()))
-                    .ReturnsAsync(new TokenValidationResult { IsValid = true });
-
-                // Act
-                await Target.ValidateTokenAsync(token);
-
-                // Assert
-                JsonWebTokenHandler.Verify(x => x.ValidateTokenAsync(
-                    It.IsAny<JsonWebToken>(),
-                    It.Is<TokenValidationParameters>(p =>
-                        p.ValidIssuer == GitHubTokenPolicyValidator.Issuer &&
-                        p.ValidAudience == Configuration.Object.NuGetAudience &&
-                        p.ConfigurationManager == OidcConfigManager.Object &&
                         p.ValidateIssuerSigningKey == true &&
                         p.RequireSignedTokens == true
                     )), Times.Once);
@@ -403,6 +366,120 @@ namespace NuGetGallery.Services.Authentication
                 var dbCriteria = GitHubCriteria.FromDatabaseJson(policy.Criteria)!;
                 Assert.True(dbCriteria.IsPermanentlyEnabled);
             }
+
+            [Fact]
+            public async Task HandlesConcurrentFirstUseScenario()
+            {
+                // Arrange
+                var policy = new FederatedCredentialPolicy
+                {
+                    Key = 123,
+                    Type = FederatedCredentialType.GitHubActions,
+                    Criteria = TokenTestHelper.TempotatyPolicyCriteria
+                };
+                var updatedPolicy = new FederatedCredentialPolicy
+                {
+                    Key = policy.Key,
+                    Type = policy.Type,
+                    Criteria = TokenTestHelper.PermanentPolicyCriteria
+                };
+
+                var token = TokenTestHelper.CreateTestJwt();
+
+                // Setup SavePoliciesAsync to throw DbUpdateConcurrencyException on first call
+                FederatedCredentialRepository
+                    .SetupSequence(x => x.SavePoliciesAsync())
+                    .ThrowsAsync(new DbUpdateConcurrencyException())
+                    .Returns(Task.CompletedTask);
+
+                FederatedCredentialRepository
+                    .Setup(x => x.GetPolicyByKey(123))
+                    .Returns(updatedPolicy);
+
+                // Act
+                var result = await Target.EvaluatePolicyAsync(policy, token);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyResultType.Success, result.Type);
+                FederatedCredentialRepository.Verify(x => x.SavePoliciesAsync(), Times.Once);
+                FederatedCredentialRepository.Verify(x => x.GetPolicyByKey(123), Times.Once);
+            }
+
+            [Theory]
+            [InlineData("wrong-owner-id", null)]
+            [InlineData(null, "wrong-repo-id")]
+            [InlineData("wrong-owner-id", "wrong-repo-id")]
+            public async Task RejectsConcurrentFirstUseWithDifferentIds(string? ownerId, string? repoId)
+            {
+                // Arrange
+                GitHubCriteria updatedCriteria = GitHubCriteria.FromDatabaseJson(TokenTestHelper.PermanentPolicyCriteria)!;
+                updatedCriteria.RepositoryOwnerId = ownerId ?? updatedCriteria.RepositoryOwnerId;
+                updatedCriteria.RepositoryId = repoId ?? updatedCriteria.RepositoryId;
+
+                var policy = new FederatedCredentialPolicy
+                {
+                    Key = 123,
+                    Type = FederatedCredentialType.GitHubActions,
+                    Criteria = TokenTestHelper.TempotatyPolicyCriteria
+                };
+
+                var updatedPolicy = new FederatedCredentialPolicy
+                {
+                    Key = policy.Key,
+                    Type = policy.Type,
+                    Criteria = updatedCriteria.ToDatabaseJson()
+                };
+                var token = TokenTestHelper.CreateTestJwt();
+
+                // Setup SavePoliciesAsync to throw DbUpdateConcurrencyException
+                FederatedCredentialRepository
+                    .Setup(x => x.SavePoliciesAsync())
+                    .ThrowsAsync(new DbUpdateConcurrencyException());
+
+                FederatedCredentialRepository
+                    .Setup(x => x.GetPolicyByKey(123))
+                    .Returns(updatedPolicy);
+
+                // Act
+                var result = await Target.EvaluatePolicyAsync(policy, token);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                FederatedCredentialRepository.Verify(x => x.SavePoliciesAsync(), Times.Once);
+                FederatedCredentialRepository.Verify(x => x.GetPolicyByKey(123), Times.Once);
+            }
+
+            [Fact]
+            public async Task HandlesConcurrentFirstUseWhenPolicyDeleted()
+            {
+                // Arrange
+                var policy = new FederatedCredentialPolicy
+                {
+                    Key = 123,
+                    Type = FederatedCredentialType.GitHubActions,
+                    Criteria = TokenTestHelper.TempotatyPolicyCriteria
+                };
+
+                var token = TokenTestHelper.CreateTestJwt();
+
+                // Setup SavePoliciesAsync to throw DbUpdateConcurrencyException
+                FederatedCredentialRepository
+                    .Setup(x => x.SavePoliciesAsync())
+                    .ThrowsAsync(new DbUpdateConcurrencyException());
+
+                // Setup GetPolicyByKey to return null (policy was deleted)
+                FederatedCredentialRepository
+                    .Setup(x => x.GetPolicyByKey(123))
+                    .Returns((FederatedCredentialPolicy?)null);
+
+                // Act
+                var result = await Target.EvaluatePolicyAsync(policy, token);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                FederatedCredentialRepository.Verify(x => x.SavePoliciesAsync(), Times.Once);
+                FederatedCredentialRepository.Verify(x => x.GetPolicyByKey(123), Times.Once);
+            }
         }
 
         public GitHubTokenPolicyValidatorFacts()
@@ -412,7 +489,6 @@ namespace NuGetGallery.Services.Authentication
                 "https://token.actions.githubusercontent.com/.well-known/openid-configuration",
                 ConfigurationRetriever.Object);
             JsonWebTokenHandler = new Mock<JsonWebTokenHandler>();
-            Configuration = new Mock<IFederatedCredentialConfiguration>();
             FederatedCredentialRepository = new Mock<IFederatedCredentialRepository>();
 
             // Setup test OIDC configuration with the same key used for token signing
@@ -427,21 +503,16 @@ namespace NuGetGallery.Services.Authentication
             OidcConfigManager.Setup(x => x.GetConfigurationAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(oidcConfig);
 
-            // Setup configuration
-            Configuration.Setup(x => x.NuGetAudience).Returns(TokenTestHelper.ValidAudience);
-
             Target = new GitHubTokenPolicyValidator(
                 FederatedCredentialRepository.Object,
                 OidcConfigManager.Object,
-                JsonWebTokenHandler.Object,
-                Configuration.Object);
+                JsonWebTokenHandler.Object);
         }
 
         public GitHubTokenPolicyValidator Target { get; }
         public Mock<IConfigurationRetriever<OpenIdConnectConfiguration>> ConfigurationRetriever { get; }
         public Mock<ConfigurationManager<OpenIdConnectConfiguration>> OidcConfigManager { get; }
         public Mock<JsonWebTokenHandler> JsonWebTokenHandler { get; }
-        public Mock<IFederatedCredentialConfiguration> Configuration { get; }
         public Mock<IFederatedCredentialRepository> FederatedCredentialRepository { get; }
 
         private JsonWebKey CreateTestJsonWebKey()

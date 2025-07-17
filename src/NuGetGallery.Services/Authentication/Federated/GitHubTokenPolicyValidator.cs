@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Data.Entity.Infrastructure;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Protocols;
@@ -31,9 +32,8 @@ namespace NuGetGallery.Services.Authentication
         public GitHubTokenPolicyValidator(
             IFederatedCredentialRepository federatedCredentialRepository,
             ConfigurationManager<OpenIdConnectConfiguration> oidcConfigManager,
-            JsonWebTokenHandler jsonWebTokenHandler,
-            IFederatedCredentialConfiguration configuration)
-            : base(oidcConfigManager, jsonWebTokenHandler, configuration)
+            JsonWebTokenHandler jsonWebTokenHandler)
+            : base(oidcConfigManager, jsonWebTokenHandler)
         {
             _federatedCredentialRepository = federatedCredentialRepository ?? throw new ArgumentNullException(nameof(federatedCredentialRepository));
         }
@@ -43,15 +43,10 @@ namespace NuGetGallery.Services.Authentication
 
         public override async Task<TokenValidationResult> ValidateTokenAsync(JsonWebToken jwt)
         {
-            if (string.IsNullOrWhiteSpace(_configuration.NuGetAudience))
-            {
-                throw new InvalidOperationException("Unable to validate GitHub Actions token. NuGet audience is not configured.");
-            }
-
             var validationParameters = new TokenValidationParameters
             {
                 ValidIssuer = Issuer,
-                ValidAudience = _configuration.NuGetAudience,
+                ValidAudience = ServicesConstants.NuGetAudience,
                 ConfigurationManager = _oidcConfigManager,
                 ValidateIssuerSigningKey = true,
                 RequireSignedTokens = true,
@@ -170,7 +165,30 @@ namespace NuGetGallery.Services.Authentication
                 criteria.RepositoryId = repositoryId;
                 criteria.ValidateByDate = null;
                 policy.Criteria = criteria.ToDatabaseJson();
-                await _federatedCredentialRepository.SavePoliciesAsync();
+                try
+                {
+                    await _federatedCredentialRepository.SavePoliciesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    // Highly unlikely, but a concurrent "first use" scenario is possible.
+                    // This can only occur if *all* of the following conditions are met:
+                    //   1. The policy has never previously been used to match an incoming GitHub Actions OIDC token.
+                    //   2. The same workflow (e.g., github.com/contoso/repo/.github/workflows/prod.yml)
+                    //      runs concurrently and both instances call nuget.org at the same time.
+                    // Verify that updated policy has same IDs.
+                    var updatedPolicy = _federatedCredentialRepository.GetPolicyByKey(policy.Key);
+                    if (updatedPolicy == null)
+                    {
+                        return "The policy was not found after concurrent first use.";
+                    }
+                    var updatedCriteria = GitHubCriteria.FromDatabaseJson(updatedPolicy.Criteria);
+                    if (!string.Equals(updatedCriteria.RepositoryOwnerId, criteria.RepositoryOwnerId, StringComparison.Ordinal) ||
+                        !string.Equals(updatedCriteria.RepositoryId, criteria.RepositoryId, StringComparison.Ordinal))
+                    {
+                        return $"The policy was updated with different repository owner/repo IDs during concurrent first use. Expected {criteria.RepositoryOwnerId}/{criteria.RepositoryId}, actual {updatedCriteria.RepositoryOwnerId}/{updatedCriteria.RepositoryId}";
+                    }
+                }
             }
             else
             {
