@@ -225,6 +225,9 @@
   <data name="CredentialRemoved" xml:space="preserve">
     <value>The credential has been removed.</value>
   </data>
+  <data name="TrustedPolicyRemoved" xml:space="preserve">
+    <value>The policy has been removed.</value>
+  </data>
   <data name="PasswordChanged" xml:space="preserve">
     <value>Your password has been changed.</value>
   </data>
@@ -1289,5 +1292,32 @@ The {1} Team</value>
   </data>
   <data name="McpServerMetadataTooLong" xml:space="preserve">
     <value>The MCP server metadata file '{0}' cannot be larger than {1}.</value>
+  </data>
+  <data name="GitHub_WhatIsUniqueId" xml:space="preserve">
+    <value>A permanent GitHub ID assigned to a user, organization, or repository when it's created. Used for trusted publishing validation.</value>
+  </data>
+  <data name="GitHub_OwnerRequired" xml:space="preserve">
+    <value>The GitHub repository owner is required.</value>
+  </data>
+  <data name="GitHub_RepositoryRequired" xml:space="preserve">
+    <value>The GitHub repository is required.</value>
+  </data>
+  <data name="GitHub_RepositoryIdRequired" xml:space="preserve">
+    <value>The GitHub repository ID is required.</value>
+  </data>
+  <data name="GitHub_WorkflowFileRequired" xml:space="preserve">
+    <value>The GitHub Action workflow file is required.</value>
+  </data>
+  <data name="TrustedPublisher_PolicyNameRequired" xml:space="preserve">
+    <value>The trusted publisher policy name is required.</value>
+  </data>
+  <data name="TrustedPublisher_PolicyOwnerRequired" xml:space="preserve">
+    <value>The trusted publisher policy owner is required.</value>
+  </data>
+  <data name="TrustedPublisher_NameTooLong" xml:space="preserve">
+    <value>Name is too long.</value>
+  </data>
+  <data name="TrustedPublisher_Unexpected" xml:space="preserve">
+    <value>Unexpected trusted publisher.</value>
   </data>
 </root>
