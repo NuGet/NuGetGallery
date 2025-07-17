@@ -29,7 +29,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Protocols;
-using Microsoft.WindowsAzure.ServiceRuntime;
 using NuGet.Services.Configuration;
 using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
@@ -633,19 +632,6 @@ namespace NuGetGallery
             var telemetryConfiguration = applicationInsightsConfiguration.TelemetryConfiguration;
 
             // Add enrichers
-            try
-            {
-                if (RoleEnvironment.IsAvailable)
-                {
-                    telemetryConfiguration.TelemetryInitializers.Add(
-                        new DeploymentIdTelemetryEnricher(RoleEnvironment.DeploymentId));
-                }
-            }
-            catch
-            {
-                // This likely means the cloud service runtime is not available.
-            }
-
             if (configuration.DeploymentLabel != null)
             {
                 telemetryConfiguration.TelemetryInitializers.Add(new DeploymentLabelEnricher(configuration.DeploymentLabel));
