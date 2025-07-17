@@ -68,9 +68,7 @@ namespace NuGetGallery.Services.Authentication
             {
                 // If the policy is not valid, we return an Unauthorized result with the error message.
                 // This indicates that the token does not meet the criteria defined in the policy.
-                {
-                    return FederatedCredentialPolicyResult.Unauthorized(error);
-                }
+                return FederatedCredentialPolicyResult.Unauthorized(error);
             }
 
             return FederatedCredentialPolicyResult.Success;

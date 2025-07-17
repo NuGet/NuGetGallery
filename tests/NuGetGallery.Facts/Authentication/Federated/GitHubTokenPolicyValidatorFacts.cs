@@ -53,7 +53,7 @@ namespace NuGetGallery.Services.Authentication
             }
             """;
 
-        public const string TempotatyPolicyCriteria = """
+        public const string TemporaryPolicyCriteria = """
             {
                 "owner": "test-owner",
                 "repository": "test-repo",
@@ -352,7 +352,7 @@ namespace NuGetGallery.Services.Authentication
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.GitHubActions,
-                    Criteria = TokenTestHelper.TempotatyPolicyCriteria
+                    Criteria = TokenTestHelper.TemporaryPolicyCriteria
                 };
 
                 var token = TokenTestHelper.CreateTestJwt();
@@ -375,7 +375,7 @@ namespace NuGetGallery.Services.Authentication
                 {
                     Key = 123,
                     Type = FederatedCredentialType.GitHubActions,
-                    Criteria = TokenTestHelper.TempotatyPolicyCriteria
+                    Criteria = TokenTestHelper.TemporaryPolicyCriteria
                 };
                 var updatedPolicy = new FederatedCredentialPolicy
                 {
@@ -420,7 +420,7 @@ namespace NuGetGallery.Services.Authentication
                 {
                     Key = 123,
                     Type = FederatedCredentialType.GitHubActions,
-                    Criteria = TokenTestHelper.TempotatyPolicyCriteria
+                    Criteria = TokenTestHelper.TemporaryPolicyCriteria
                 };
 
                 var updatedPolicy = new FederatedCredentialPolicy
@@ -457,7 +457,7 @@ namespace NuGetGallery.Services.Authentication
                 {
                     Key = 123,
                     Type = FederatedCredentialType.GitHubActions,
-                    Criteria = TokenTestHelper.TempotatyPolicyCriteria
+                    Criteria = TokenTestHelper.TemporaryPolicyCriteria
                 };
 
                 var token = TokenTestHelper.CreateTestJwt();
