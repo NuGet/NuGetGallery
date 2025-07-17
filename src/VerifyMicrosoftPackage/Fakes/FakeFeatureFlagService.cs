@@ -140,6 +140,8 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
 
         public bool CanUseFederatedCredentials(User user) => throw new NotImplementedException();
 
+        public bool IsTrustedPublishingEnabled(User user) => throw new NotImplementedException();
+
         public bool IsProfileLoadOptimizationEnabled() => throw new NotImplementedException();
 
         public bool IsMcpServerPackageFilteringEnabled() => throw new NotImplementedException();

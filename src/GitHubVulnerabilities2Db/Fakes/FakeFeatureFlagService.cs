@@ -334,7 +334,12 @@ namespace GitHubVulnerabilities2Db.Fakes
         {
             throw new NotImplementedException();
         }
-        
+
+        public bool IsTrustedPublishingEnabled(User user)
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsProfileLoadOptimizationEnabled()
         {
             throw new NotImplementedException();
