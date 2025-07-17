@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -30,7 +30,7 @@ namespace NuGetGallery.Infrastructure.Authentication
             return validator(providedPassword, credential);
         }
 
-        public IList<Credential> GetValidCredentialsForApiKey(IQueryable<Credential> allCredentials, string providedApiKey)
+        public IList<Credential> GetValidCredentialsForApiKey(IQueryable<Credential> allCredentials, string providedApiKey, string galleryEnvironment)
         {
             var results = new List<Credential>();
 
@@ -41,6 +41,10 @@ namespace NuGetGallery.Infrastructure.Authentication
 
                 // There shouldn't be duplications in the id part because it's long enough, but we shouldn't assume that.
                 results = foundApiKeys.Where(c => apiKeyV4.Verify(c.Value)).ToList();
+            }
+            else if (ApiKeyV5.TryParseAndValidate(providedApiKey, ApiKeyV5.GetEnvironment(galleryEnvironment), out ApiKeyV5 apiKeyV5))
+            {
+                results = allCredentials.Where(c => c.Type == CredentialTypes.ApiKey.V5 && c.Value == apiKeyV5.HashedApiKey).ToList();
             }
             else
             {

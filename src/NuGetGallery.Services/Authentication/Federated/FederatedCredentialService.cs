@@ -61,14 +61,6 @@ namespace NuGetGallery.Services.Authentication
         private readonly IFederatedCredentialConfiguration _configuration;
         private readonly IGalleryConfigurationService _galleryConfigurationService;
 
-        private static readonly IReadOnlyDictionary<string, char> GalleryToApiKeyV5EnvironmentMappings = new Dictionary<string, char>(StringComparer.OrdinalIgnoreCase)
-        {
-            { ServicesConstants.DevelopmentEnvironment, ApiKeyV5.KnownEnvironments.Local },
-            { ServicesConstants.DevEnvironment, ApiKeyV5.KnownEnvironments.Development },
-            { ServicesConstants.IntEnvironment, ApiKeyV5.KnownEnvironments.Integration },
-            { ServicesConstants.ProdEnvironment, ApiKeyV5.KnownEnvironments.Production },
-        };
-
         public FederatedCredentialService(
             IUserService userService,
             IFederatedCredentialRepository repository,
@@ -190,16 +182,10 @@ namespace NuGetGallery.Services.Authentication
                 return packageOwnerError;
             }
 
-            var apiKeyV5Environment = ApiKeyV5.KnownEnvironments.Local;
-            if (GalleryToApiKeyV5EnvironmentMappings.TryGetValue(_galleryConfigurationService.Current.Environment, out var value))
-            {
-                apiKeyV5Environment = value;
-            }
-
             var apiKeyCredential = _credentialBuilder.CreateShortLivedApiKey(
                 _configuration.ShortLivedApiKeyDuration,
                 policyEvaluation.MatchedPolicy,
-                apiKeyV5Environment,
+                _galleryConfigurationService.Current.Environment,
                 _featureFlagService.IsApiKeyV5EnabledForOIDC(packageOwner),
                 out var plaintextApiKey);
 

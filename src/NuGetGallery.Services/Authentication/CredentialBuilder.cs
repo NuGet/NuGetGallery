@@ -29,7 +29,7 @@ namespace NuGetGallery.Infrastructure.Authentication
                 V3Hasher.GenerateHash(plaintextPassword));
         }
 
-        public Credential CreateShortLivedApiKey(TimeSpan expiration, FederatedCredentialPolicy policy, char apiKeyEnvironment, bool isApiKeyV5Enabled, out string plaintextApiKey)
+        public Credential CreateShortLivedApiKey(TimeSpan expiration, FederatedCredentialPolicy policy, string galleryEnvironment, bool isApiKeyV5Enabled, out string plaintextApiKey)
         {
             if (policy.PackageOwner is null)
             {
@@ -47,7 +47,7 @@ namespace NuGetGallery.Infrastructure.Authentication
                 var allocationTime = DateTime.UtcNow;
                 allocationTime = allocationTime.AddSeconds(-allocationTime.Second).AddMilliseconds(-allocationTime.Millisecond);
 
-                var apiKey = ApiKeyV5.Create(allocationTime, apiKeyEnvironment, policy.PackageOwnerUserKey, ApiKeyV5.KnownApiKeyTypes.ShortLived, expiration);
+                var apiKey = ApiKeyV5.Create(allocationTime, ApiKeyV5.GetEnvironment(galleryEnvironment), policy.PackageOwnerUserKey, ApiKeyV5.KnownApiKeyTypes.ShortLived, expiration);
                 plaintextApiKey = apiKey.PlaintextApiKey;
 
                 credential = new Credential(CredentialTypes.ApiKey.V5, apiKey.HashedApiKey, expiration: expiration);
