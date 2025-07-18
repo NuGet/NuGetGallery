@@ -154,6 +154,7 @@ namespace NuGetGallery.Auditing
                 apiKeyCredentials: [],
                 externalCredential: null);
         }
+
         public static FederatedCredentialPolicyAuditRecord FirstUseUpdate(
             FederatedCredentialPolicy policy)
         {

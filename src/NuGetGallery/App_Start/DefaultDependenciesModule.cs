@@ -584,7 +584,7 @@ namespace NuGetGallery
 
             builder
                 .RegisterType<JsonWebTokenHandler>()
-                .InstancePerLifetimeScope();
+                .InstancePerDependency();
 
             builder
                 .Register(c =>
