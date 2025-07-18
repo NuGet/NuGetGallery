@@ -39,6 +39,7 @@ namespace NuGetGallery
         private readonly IFeatureFlagService _featureFlagService;
         private readonly IPackageVulnerabilitiesService _packageVulnerabilitiesService;
         private readonly IFederatedCredentialRepository _federatedCredentialRepository;
+        private readonly IFederatedCredentialService _federatedCredentialService;
 
         public UsersController(
             IUserService userService,
@@ -60,6 +61,7 @@ namespace NuGetGallery
             IIconUrlProvider iconUrlProvider,
             IGravatarProxyService gravatarProxy,
             IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory,
+            IFederatedCredentialService federatedCredentialService,
             IFederatedCredentialRepository federatedCredentialRepository)
             : base(
                   authService,
@@ -83,6 +85,7 @@ namespace NuGetGallery
             _supportRequestService = supportRequestService ?? throw new ArgumentNullException(nameof(supportRequestService));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _packageVulnerabilitiesService = packageVulnerabilitiesService ?? throw new ArgumentNullException(nameof(packageVulnerabilitiesService));
+            _federatedCredentialService = federatedCredentialService ?? throw new ArgumentNullException(nameof(federatedCredentialService));
             _federatedCredentialRepository = federatedCredentialRepository ?? throw new ArgumentNullException(nameof(federatedCredentialRepository));
 
             _listPackageItemRequiredSignerViewModelFactory = new ListPackageItemRequiredSignerViewModelFactory(
@@ -1052,10 +1055,13 @@ namespace NuGetGallery
                 .Where(p => p != null)
                 .ToArray();
 
-            var owners = new List<User>() { currentUser };
-            owners.AddRange(currentUser.Organizations
-                .Select(o => o.Organization)
-                .Where(o => IsTrustedPublishingPolicyOwnerValid(currentUser, o)));
+            // Get package owners (user's self or organizations). The final list can be empty,
+            // e.g. if the user is not a member of any organization and has no packages.
+            var ownersCandidates = new List<User>() { currentUser };
+            ownersCandidates.AddRange(currentUser.Organizations.Select(o => o.Organization));
+            var owners = ownersCandidates
+                .Where(o => _federatedCredentialService.IsValidPolicyOwner(currentUser, o))
+                .ToArray();
 
             var model = new TrustedPublisherPolicyListViewModel
             {
@@ -1084,20 +1090,16 @@ namespace NuGetGallery
             var owner = currentUser.Key == policy.PackageOwnerUserKey ?
                 currentUser : UserService.FindByKey(policy.PackageOwnerUserKey);
 
+            bool isOwnerValid = _federatedCredentialService.IsValidPolicyOwner(currentUser, owner);
+
             return new TrustedPublisherPolicyViewModel
             {
                 Key = policy.Key,
                 PolicyName = !string.IsNullOrEmpty(policy.PolicyName) ? policy.PolicyName : $"Policy {policy.Key}",
                 Owner = policy.PackageOwner.Username,
-                IsOwnerValid = IsTrustedPublishingPolicyOwnerValid(currentUser, owner),
+                IsOwnerValid = isOwnerValid,
                 PolicyDetails = policyDetails
             };
-        }
-
-        private bool IsTrustedPublishingPolicyOwnerValid(User currentUser, User owner)
-        {
-            var result = ActionsRequiringPermissions.TrustedPublishing.CheckPermissions(currentUser, owner);
-            return result == PermissionsCheckResult.Allowed;
         }
 
         [UIAuthorize]
@@ -1142,13 +1144,6 @@ namespace NuGetGallery
                 return Json(Strings.AddOwner_OwnerNotFound);
             }
 
-            // Sanity check. The policy owner must be valid.
-            if (!IsTrustedPublishingPolicyOwnerValid(currentUser, policyOwner))
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(Strings.TrustedPublisher_Unexpected);
-            }
-
             // Currently only GitHub Actions policies are expected
             if (GitHubPolicyDetailsViewModel.FromViewJson(criteria)
                 is not GitHubPolicyDetailsViewModel policyDetails)
@@ -1163,22 +1158,20 @@ namespace NuGetGallery
                 return Json(errorMessage);
             }
 
-            // Create and store the federated credential policy
-            var policy = new FederatedCredentialPolicy()
-            {
-                Type = policyDetails.PublisherType,
-                PolicyName = policyName,
-                Criteria = policyDetails.ToDatabaseJson(),
-                Created = DateTime.UtcNow,
-                CreatedByUserKey = currentUser.Key,
-                PackageOwnerUserKey = policyOwner.Key
-            };
+            // Try adding policy
+            AddFederatedCredentialPolicyResult result = await _federatedCredentialService.AddTrustedPublishingPolicyAsync(currentUser, policyOwner, policyName,
+                policyDetails.PublisherType,
+                policyDetails.ToDatabaseJson());
 
-            await _federatedCredentialRepository.AddPolicyAsync(policy, saveChanges: true);
+            if (result.Type == AddFederatedCredentialPolicyResultType.BadRequest)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(result.UserMessage);
+            }
 
             var model = new TrustedPublisherPolicyViewModel
             {
-                Key = policy.Key,
+                Key = result.Policy.Key,
                 PolicyName = policyName,
                 Owner = owner,
                 IsOwnerValid = true, // we already validated owner above
@@ -1228,11 +1221,9 @@ namespace NuGetGallery
                 return Json(errorMessage);
             }
 
-            result.policy.PolicyName = model.PolicyName;
-            result.policy.Criteria = newDetails.ToDatabaseJson();
+            await _federatedCredentialService.UpdatePolicyAsync(result.policy, model.PolicyName, newDetails.ToDatabaseJson());
             model.PolicyDetails = newDetails;
 
-            await _federatedCredentialRepository.SavePoliciesAsync();
             return Json(model);
         }
 
@@ -1280,7 +1271,7 @@ namespace NuGetGallery
             {
                 gitHubModel.InitializeValidateByDate();
                 result.policy.Criteria = gitHubModel.ToDatabaseJson();
-                await _federatedCredentialRepository.SavePoliciesAsync();
+                await _federatedCredentialService.UpdatePolicyAsync(result.policy, result.policy.PolicyName, gitHubModel.ToDatabaseJson());
             }
 
             return Json(model);
@@ -1298,14 +1289,14 @@ namespace NuGetGallery
                 return Json(Strings.DefaultUserSafeExceptionMessage);
             }
 
-            var getResult = GetFederatedCredentialPolicy(federatedCredentialKey);
-            if (getResult.policy == null)
+            var result = GetFederatedCredentialPolicy(federatedCredentialKey);
+            if (result.policy == null)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(getResult.error);
+                return Json(result.error);
             }
 
-            await _federatedCredentialRepository.DeletePolicyAsync(getResult.policy, saveChanges: true);
+            await _federatedCredentialService.DeletePolicyAsync(result.policy);
             return Json(Strings.TrustedPolicyRemoved);
         }
 

@@ -41,10 +41,38 @@ namespace NuGetGallery.Services.Authentication
         Task<AddFederatedCredentialPolicyResult> AddEntraIdServicePrincipalPolicyAsync(User user, User packageOwner, EntraIdServicePrincipalCriteria criteria);
 
         /// <summary>
+        /// Asynchronously adds a trusted publishing policy for a specified user and package owner.
+        /// </summary>
+        /// <param name="user">The user for whom the policy is being added. Cannot be null.</param>
+        /// <param name="packageOwner">The owner of the package to which the policy applies. Cannot be null.</param>
+        /// <param name="policyName">The name of the policy to be added. Must be a non-empty string.</param>
+        /// <param name="policyType">The type of federated credential policy to be added.</param>
+        /// <param name="criteria">The criteria that define the conditions under which the policy is applied. Must be a valid string.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains an  <see
+        /// cref="AddFederatedCredentialPolicyResult"/> indicating the outcome of the operation.</returns>
+        Task<AddFederatedCredentialPolicyResult> AddTrustedPublishingPolicyAsync(User user, User packageOwner, string? policyName, FederatedCredentialType policyType, string criteria);
+
+        /// <summary>
+        /// Determines whether the specified user is a valid trusted publishing policy owner for the given package
+        /// owner.
+        /// </summary>
+        /// <param name="user">The user to validate as a trusted publishing policy owner.</param>
+        /// <param name="packageOwner">The owner of the package for which the policy is being validated.</param>
+        /// <returns><see langword="true"/> if the specified user is a valid trusted publishing policy owner for the package
+        /// owner; otherwise, <see langword="false"/>.</returns>
+        bool IsValidPolicyOwner(User user, User packageOwner);
+
+        /// <summary>
         /// Deletes a given federated credential policy and all associated API keys.
         /// </summary>
         /// <param name="policy">The policy to delete.</param>
         Task DeletePolicyAsync(FederatedCredentialPolicy policy);
+
+        /// <summary>
+        /// Updates policy. Any API keys created from the policy will be deleted.
+        /// </summary>
+        /// <param name="policy">The policy to update.</param>
+        Task UpdatePolicyAsync(FederatedCredentialPolicy policy, string? policyName, string criteria);
     }
 
     public class FederatedCredentialService : IFederatedCredentialService
@@ -87,45 +115,70 @@ namespace NuGetGallery.Services.Authentication
             _galleryConfigurationService = galleryConfigurationService ?? throw new ArgumentNullException(nameof(configuration));
         }
 
-        public async Task<AddFederatedCredentialPolicyResult> AddEntraIdServicePrincipalPolicyAsync(User createdBy, User packageOwner, EntraIdServicePrincipalCriteria criteria)
+        public Task<AddFederatedCredentialPolicyResult> AddEntraIdServicePrincipalPolicyAsync(User createdBy, User packageOwner, EntraIdServicePrincipalCriteria criteria)
         {
             if (createdBy is Organization)
             {
-                return AddFederatedCredentialPolicyResult.BadRequest(
-                    $"Policy user '{createdBy.Username}' is an organization. Creating federated credential trust policies for organizations is not supported.");
-            }
-
-            var testScope = new Scope(packageOwner, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.All);
-            if (!_credentialBuilder.VerifyScopes(createdBy, [testScope]))
-            {
-                return AddFederatedCredentialPolicyResult.BadRequest(
-                    $"The user '{createdBy.Username}' does not have the required permissions to add a federated credential policy for package owner '{packageOwner.Username}'.");
+                return Task.FromResult(AddFederatedCredentialPolicyResult.BadRequest(
+                    $"Policy user '{createdBy.Username}' is an organization. Creating federated credential trust policies for organizations is not supported."));
             }
 
             if (!_featureFlagService.CanUseFederatedCredentials(packageOwner))
             {
-                return AddFederatedCredentialPolicyResult.BadRequest(NotInFlightMessage(packageOwner));
+                return Task.FromResult(AddFederatedCredentialPolicyResult.BadRequest(NotInFlightMessage(packageOwner)));
             }
 
             if (!_entraIdTokenValidator.IsTenantAllowed(criteria.TenantId))
             {
-                return AddFederatedCredentialPolicyResult.BadRequest($"The Entra ID tenant '{criteria.TenantId}' is not in the allow list.");
+                return Task.FromResult(AddFederatedCredentialPolicyResult.BadRequest($"The Entra ID tenant '{criteria.TenantId}' is not in the allow list."));
+            }
+
+            return AddPolicyAsync(createdBy, packageOwner, null,
+                FederatedCredentialType.EntraIdServicePrincipal,
+                JsonSerializer.Serialize(criteria));
+        }
+
+        public Task<AddFederatedCredentialPolicyResult> AddTrustedPublishingPolicyAsync(User user, User packageOwner, string? policyName, FederatedCredentialType policyType, string criteria)
+        {
+            if (!_featureFlagService.IsTrustedPublishingEnabled(user))
+            {
+                return Task.FromResult(AddFederatedCredentialPolicyResult.BadRequest(
+                    $"Trusted Publishing is not enabled for '{user.Username}'."));
+            }
+
+            return AddPolicyAsync(user, packageOwner, policyName, policyType, criteria);
+        }
+
+        private async Task<AddFederatedCredentialPolicyResult> AddPolicyAsync(User user, User packageOwner, string? policyName, FederatedCredentialType policyType, string criteria)
+        { 
+            if (!IsValidPolicyOwner(user, packageOwner))
+            {
+                return AddFederatedCredentialPolicyResult.BadRequest(
+                    $"The user '{user.Username}' does not have the required permissions to add a federated credential policy for package owner '{packageOwner.Username}'.");
             }
 
             var policy = new FederatedCredentialPolicy
             {
+                PolicyName = policyName,
                 Created = _dateTimeProvider.UtcNow,
-                CreatedBy = createdBy,
+                CreatedBy = user,
                 PackageOwner = packageOwner,
-                Type = FederatedCredentialType.EntraIdServicePrincipal,
-                Criteria = JsonSerializer.Serialize(criteria),
+                Type = policyType,
+                Criteria = criteria ?? throw new ArgumentNullException(nameof(criteria)),
             };
+
 
             await _repository.AddPolicyAsync(policy, saveChanges: true);
 
             await _auditingService.SaveAuditRecordAsync(FederatedCredentialPolicyAuditRecord.Create(policy));
 
             return AddFederatedCredentialPolicyResult.Created(policy);
+        }
+
+        public bool IsValidPolicyOwner(User user, User packageOwner)
+        {
+            var testScope = new Scope(packageOwner, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.All);
+            return _credentialBuilder.VerifyScopes(user, [testScope]);
         }
 
         public async Task DeletePolicyAsync(FederatedCredentialPolicy policy)
@@ -142,6 +195,30 @@ namespace NuGetGallery.Services.Authentication
 
             await _repository.DeletePolicyAsync(policy, saveChanges: true);
 
+            await _auditingService.SaveAuditRecordAsync(auditRecord);
+        }
+
+        public async Task UpdatePolicyAsync(FederatedCredentialPolicy policy, string? policyName, string criteria)
+        {
+            if (string.Equals(policy.PolicyName, policyName) &&
+                string.Equals(policy.Criteria, criteria))
+            {
+                // No changes to the policy, nothing to do.
+                return;
+            }
+
+            policy.PolicyName = policyName;
+            policy.Criteria = criteria ?? throw new ArgumentNullException(nameof(criteria));
+
+            var credentials = _repository.GetShortLivedApiKeysForPolicy(policy.Key);
+            foreach (var credential in credentials)
+            {
+                await _authenticationService.RemoveCredential(policy.CreatedBy, credential, commitChanges: false);
+            }
+
+            await _repository.SavePoliciesAsync();
+
+            var auditRecord = FederatedCredentialPolicyAuditRecord.Update(policy, credentials);
             await _auditingService.SaveAuditRecordAsync(auditRecord);
         }
 

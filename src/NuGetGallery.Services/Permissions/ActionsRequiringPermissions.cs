@@ -144,13 +144,6 @@ namespace NuGetGallery
                 accountPermissionsRequirement: RequireOwnerOrOrganizationAdmin);
 
         /// <summary>
-        /// The action of modifying packages via Trusted Publishing.
-        /// </summary>
-        public static ActionRequiringAccountPermissions TrustedPublishing =>
-            new ActionRequiringAccountPermissions(
-                accountPermissionsRequirement: RequireOwnerOrOrganizationMember);
-
-        /// <summary>
         /// The action of managing an organization's memberships.
         /// </summary>
         public static ActionRequiringAccountPermissions ManageMembership =>
