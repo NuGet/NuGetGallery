@@ -31,26 +31,26 @@ namespace NuGetGallery.Services.Authentication
 
         /// <summary>
         /// Adds a new federated credential policy for an Entra ID service principal. The policy will be owned by the user account
-        /// <paramref name="user"/>. Any API keys created from the policy will be scoped to package owner specified by <paramref name="packageOwner"/>.
+        /// <paramref name="createdBy"/>. Any API keys created from the policy will be scoped to package owner specified by <paramref name="packageOwner"/>.
         /// account
         /// </summary>
-        /// <param name="user">The user account to own the policy.</param>
+        /// <param name="createdBy">The user account to own the policy.</param>
         /// <param name="packageOwner">The owner scope for any API key created from the policy.</param>
         /// <param name="criteria">The Entra ID service principal criteria to allow.</param>
         /// <returns>The result, successful if <see cref="AddFederatedCredentialPolicyResult.Type"/> is <see cref="AddFederatedCredentialPolicyResultType.Created"/>.</returns>
-        Task<AddFederatedCredentialPolicyResult> AddEntraIdServicePrincipalPolicyAsync(User user, User packageOwner, EntraIdServicePrincipalCriteria criteria);
+        Task<AddFederatedCredentialPolicyResult> AddEntraIdServicePrincipalPolicyAsync(User createdBy, User packageOwner, EntraIdServicePrincipalCriteria criteria);
 
         /// <summary>
         /// Asynchronously adds a trusted publishing policy for a specified user and package owner.
         /// </summary>
-        /// <param name="user">The user for whom the policy is being added. Cannot be null.</param>
+        /// <param name="createdBy">The user for whom the policy is being added. Cannot be null.</param>
         /// <param name="packageOwner">The owner of the package to which the policy applies. Cannot be null.</param>
         /// <param name="policyName">The name of the policy to be added. Must be a non-empty string.</param>
         /// <param name="policyType">The type of federated credential policy to be added.</param>
         /// <param name="criteria">The criteria that define the conditions under which the policy is applied. Must be a valid string.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains an  <see
         /// cref="AddFederatedCredentialPolicyResult"/> indicating the outcome of the operation.</returns>
-        Task<AddFederatedCredentialPolicyResult> AddTrustedPublishingPolicyAsync(User user, User packageOwner, string? policyName, FederatedCredentialType policyType, string criteria);
+        Task<AddFederatedCredentialPolicyResult> AddTrustedPublishingPolicyAsync(User createdBy, User packageOwner, string? policyName, FederatedCredentialType policyType, string criteria);
 
         /// <summary>
         /// Determines whether the specified user is a valid trusted publishing policy owner for the given package
@@ -115,53 +115,53 @@ namespace NuGetGallery.Services.Authentication
             _galleryConfigurationService = galleryConfigurationService ?? throw new ArgumentNullException(nameof(configuration));
         }
 
-        public Task<AddFederatedCredentialPolicyResult> AddEntraIdServicePrincipalPolicyAsync(User createdBy, User packageOwner, EntraIdServicePrincipalCriteria criteria)
+        public async Task<AddFederatedCredentialPolicyResult> AddEntraIdServicePrincipalPolicyAsync(User createdBy, User packageOwner, EntraIdServicePrincipalCriteria criteria)
         {
             if (createdBy is Organization)
             {
-                return Task.FromResult(AddFederatedCredentialPolicyResult.BadRequest(
-                    $"Policy user '{createdBy.Username}' is an organization. Creating federated credential trust policies for organizations is not supported."));
+                return AddFederatedCredentialPolicyResult.BadRequest(
+                    $"Policy user '{createdBy.Username}' is an organization. Creating federated credential trust policies for organizations is not supported.");
             }
 
             if (!_featureFlagService.CanUseFederatedCredentials(packageOwner))
             {
-                return Task.FromResult(AddFederatedCredentialPolicyResult.BadRequest(NotInFlightMessage(packageOwner)));
+                return AddFederatedCredentialPolicyResult.BadRequest(NotInFlightMessage(packageOwner));
             }
 
             if (!_entraIdTokenValidator.IsTenantAllowed(criteria.TenantId))
             {
-                return Task.FromResult(AddFederatedCredentialPolicyResult.BadRequest($"The Entra ID tenant '{criteria.TenantId}' is not in the allow list."));
+                return AddFederatedCredentialPolicyResult.BadRequest($"The Entra ID tenant '{criteria.TenantId}' is not in the allow list.");
             }
 
-            return AddPolicyAsync(createdBy, packageOwner, null,
+            return await AddPolicyAsync(createdBy, packageOwner, null,
                 FederatedCredentialType.EntraIdServicePrincipal,
                 JsonSerializer.Serialize(criteria));
         }
 
-        public Task<AddFederatedCredentialPolicyResult> AddTrustedPublishingPolicyAsync(User user, User packageOwner, string? policyName, FederatedCredentialType policyType, string criteria)
+        public async Task<AddFederatedCredentialPolicyResult> AddTrustedPublishingPolicyAsync(User createdBy, User packageOwner, string? policyName, FederatedCredentialType policyType, string criteria)
         {
-            if (!_featureFlagService.IsTrustedPublishingEnabled(user))
-            {
-                return Task.FromResult(AddFederatedCredentialPolicyResult.BadRequest(
-                    $"Trusted Publishing is not enabled for '{user.Username}'."));
-            }
-
-            return AddPolicyAsync(user, packageOwner, policyName, policyType, criteria);
-        }
-
-        private async Task<AddFederatedCredentialPolicyResult> AddPolicyAsync(User user, User packageOwner, string? policyName, FederatedCredentialType policyType, string criteria)
-        { 
-            if (!IsValidPolicyOwner(user, packageOwner))
+            if (!_featureFlagService.IsTrustedPublishingEnabled(createdBy))
             {
                 return AddFederatedCredentialPolicyResult.BadRequest(
-                    $"The user '{user.Username}' does not have the required permissions to add a federated credential policy for package owner '{packageOwner.Username}'.");
+                    $"Trusted Publishing is not enabled for '{createdBy.Username}'.");
+            }
+
+            return await AddPolicyAsync(createdBy, packageOwner, policyName, policyType, criteria);
+        }
+
+        private async Task<AddFederatedCredentialPolicyResult> AddPolicyAsync(User createdBy, User packageOwner, string? policyName, FederatedCredentialType policyType, string criteria)
+        { 
+            if (!IsValidPolicyOwner(createdBy, packageOwner))
+            {
+                return AddFederatedCredentialPolicyResult.BadRequest(
+                    $"The user '{createdBy.Username}' does not have the required permissions to add a federated credential policy for package owner '{packageOwner.Username}'.");
             }
 
             var policy = new FederatedCredentialPolicy
             {
                 PolicyName = policyName,
                 Created = _dateTimeProvider.UtcNow,
-                CreatedBy = user,
+                CreatedBy = createdBy,
                 PackageOwner = packageOwner,
                 Type = policyType,
                 Criteria = criteria ?? throw new ArgumentNullException(nameof(criteria)),
