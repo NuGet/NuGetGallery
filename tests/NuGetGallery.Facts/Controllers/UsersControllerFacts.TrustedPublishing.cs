@@ -39,6 +39,10 @@ public class TheTrustedPublishingAction : TestContainer
             .Setup(r => r.GetPoliciesCreatedByUser(It.IsAny<int>()))
             .Returns([]);
 
+        GetMock<IFederatedCredentialService>()
+            .Setup(x => x.IsValidPolicyOwner(currentUser, It.IsAny<User>()))
+            .Returns(true);
+
         // Act
         var model = GetModelForTrustedPublishing(currentUser);
 
@@ -219,6 +223,10 @@ public class TheTrustedPublishingAction : TestContainer
             .Setup(r => r.GetPoliciesCreatedByUser(It.IsAny<int>()))
             .Returns(policies);
 
+        GetMock<IFederatedCredentialService>()
+            .Setup(x => x.IsValidPolicyOwner(currentUser, currentUser))
+            .Returns(true);
+
         var model = GetModelForTrustedPublishing(currentUser);
 
         // Assert
@@ -258,8 +266,12 @@ public class TheTrustedPublishingAction : TestContainer
             .Returns(policies);
 
         GetMock<IUserService>()
-            .Setup(u => u.FindByKey(organization.Key, It.IsAny<bool>()))
+            .Setup(u => u.FindByKey(organization.Key, false))
             .Returns(organization);
+
+        GetMock<IFederatedCredentialService>()
+            .Setup(x => x.IsValidPolicyOwner(currentUser, organization))
+            .Returns(true);
 
         var model = GetModelForTrustedPublishing(currentUser);
 
