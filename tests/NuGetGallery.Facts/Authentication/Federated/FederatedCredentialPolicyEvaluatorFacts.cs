@@ -361,6 +361,49 @@ namespace NuGetGallery.Services.Authentication
                     invocation.Arguments[2].ToString()!.Contains("Unauthorized") &&
                     invocation.Arguments[2].ToString()!.Contains("Lorem ipsum"));
             }
+
+            [Theory]
+            [InlineData(0)]
+            [InlineData(1)]
+            [InlineData(int.MaxValue)]
+            public async Task NoMatchingPolicy_ReturnsFirstDisclosableError(int firstDisclosableError)
+            {
+                // Arrange
+                var user = new User { Username = "user" };
+                var policies = new List<FederatedCredentialPolicy>
+                {
+                    new FederatedCredentialPolicy{Key = 0, CreatedBy = user, PackageOwner = user, Type = FederatedCredentialType.EntraIdServicePrincipal},
+                    new FederatedCredentialPolicy{Key = 1, CreatedBy = user, PackageOwner = user, Type = FederatedCredentialType.EntraIdServicePrincipal},
+                    new FederatedCredentialPolicy{Key = 2, CreatedBy = user, PackageOwner = user, Type = FederatedCredentialType.EntraIdServicePrincipal},
+                };
+
+                var validator = TokenValidators.First(v => v.Object.IssuerType == FederatedCredentialIssuerType.EntraId);
+
+                // Setup policies to return errors based on the test parameter
+                for (int i = 0; i < policies.Count; i++)
+                {
+                    var evaluationResult = FederatedCredentialPolicyResult.Unauthorized(
+                        $"Error #{i}", isErrorDisclosable: i >= firstDisclosableError);
+
+                    validator
+                        .Setup(x => x.EvaluatePolicyAsync(policies[i], It.IsAny<JsonWebToken>()))
+                        .Returns(Task.FromResult(evaluationResult));
+                }
+
+                // Act
+                var evaluation = await Target.GetMatchingPolicyAsync(policies, BearerToken, RequestHeaders);
+
+                // Assert
+                Assert.Equal(OidcTokenEvaluationResultType.NoMatchingPolicy, evaluation.Type);
+                if (firstDisclosableError < policies.Count)
+                {
+                    Assert.Equal($"Error #{firstDisclosableError}", evaluation.UserError);
+                }
+                else
+                {
+                    Assert.Null(evaluation.UserError);
+                }
+            }
         }
 
         public FederatedCredentialPolicyEvaluatorFacts()

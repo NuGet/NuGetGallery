@@ -4,6 +4,7 @@
 using System;
 using System.Data.Entity.Infrastructure;
 using System.Threading.Tasks;
+using Microsoft.Identity.Web;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
@@ -34,10 +35,6 @@ namespace NuGetGallery.Services.Authentication
         private const string EnvironmentClaim = "environment";
         private const string RepositoryOwnerIdClaim = "repository_owner_id";
         private const string RepositoryIdClaim = "repository_id";
-
-        // Error message templates
-        private const string MissingClaimError = "The JSON web token must have '{0}' claim.";
-        private const string ClaimMismatchError = "The JSON web token {0} claim '{1}' does not match policy '{2}'.";
 
         private readonly IFederatedCredentialRepository _federatedCredentialRepository;
         private readonly IAuditingService _auditingService;
@@ -87,81 +84,62 @@ namespace NuGetGallery.Services.Authentication
                 return FederatedCredentialPolicyResult.NotApplicable;
             }
 
-            string? error = await EvaluateGitHubActionsPolicyAsync(policy, jwt);
+            var criteria = GitHubCriteria.FromDatabaseJson(policy.Criteria);
+
+            // Validate required GitHub criterias first
+            string? error = ValidateClaimExactMatch(jwt, RepositoryOwnerClaim, criteria.RepositoryOwner, StringComparison.OrdinalIgnoreCase);
             if (error != null)
             {
-                // If the policy is not valid, we return an Unauthorized result with the error message.
-                // This indicates that the token does not meet the criteria defined in the policy.
                 return FederatedCredentialPolicyResult.Unauthorized(error);
             }
 
-            return FederatedCredentialPolicyResult.Success;
-        }
+            error = ValidateClaimExactMatch(jwt, RepositoryClaim, $"{criteria.RepositoryOwner}/{criteria.Repository}", StringComparison.OrdinalIgnoreCase);
+            if (error != null)
+            {
+                return FederatedCredentialPolicyResult.Unauthorized(error);
+            }
 
-        /// <summary>
-        /// Evaluates a GitHub Actions federated credential policy against a provided JSON Web Token (JWT)
-        /// to determine if the token's claims match the policy criteria.
-        /// </summary>
-        /// <returns>
-        /// <see langword="null"/> if the policy evaluation succeeds; otherwise, an error message describing the validation failure.
-        /// </returns>
-        private async Task<string?> EvaluateGitHubActionsPolicyAsync(FederatedCredentialPolicy policy, JsonWebToken jwt)
-        {
-            var criteria = GitHubCriteria.FromDatabaseJson(policy.Criteria);
+            error = ValidateClaimStartsWith(jwt, JobWorkflowRefClaim, $"{criteria.RepositoryOwner}/{criteria.Repository}/.github/workflows/{criteria.WorkflowFile}@", StringComparison.OrdinalIgnoreCase);
+            if (error != null)
+            {
+                return FederatedCredentialPolicyResult.Unauthorized(error);
+            }
+
+            // Validate environment if specified in criteria. We do it last to make sure we report disclosable error
+            if (!string.IsNullOrWhiteSpace(criteria.Environment))
+            {
+                error = ValidateClaimExactMatch(jwt, EnvironmentClaim, criteria.Environment!, StringComparison.OrdinalIgnoreCase);
+                if (error != null)
+                {
+                    return FederatedCredentialPolicyResult.Unauthorized(error);
+                }
+            }
 
             // Check if this policy has expired (only applies to non-permanently enabled policies)
             if (!criteria.IsPermanentlyEnabled)
             {
+                // // First time use. Check if policy is still enabled.
                 if (!criteria.ValidateByDate.HasValue || DateTimeOffset.UtcNow > criteria.ValidateByDate.Value)
                 {
-                    return "The policy has expired.";
+                    return FederatedCredentialPolicyResult.Unauthorized(
+                        $"The policy '{policy.PolicyName}' has expired. Sign in and renew the trust policy on the Trusted Publishing page.",
+                        isErrorDisclosable: true);
                 }
-            }
 
-            string? error;
-            error = ValidateClaim(jwt, RepositoryOwnerClaim, criteria.RepositoryOwner);
-            if (error != null)
-            {
-                return error;
-            }
-
-            error = ValidateClaim(jwt, RepositoryClaim, $"{criteria.RepositoryOwner}/{criteria.Repository}");
-            if (error != null)
-            {
-                return error;
-            }
-
-            error = ValidateClaim(jwt, JobWorkflowRefClaim, $"{criteria.RepositoryOwner}/{criteria.Repository}/.github/workflows/{criteria.WorkflowFile}@", fullValue: false);
-            if (error != null)
-            {
-                return error;
-            }
-
-            // Validate environment if specified in criteria
-            if (!string.IsNullOrWhiteSpace(criteria.Environment))
-            {
-                error = ValidateClaim(jwt, EnvironmentClaim, criteria.Environment!);
-                if (error != null)
-                {
-                    return error;
-                }
-            }
-
-            if (!criteria.IsPermanentlyEnabled)
-            {
-                // First time use, i.e. if policy is missing repo and owner IDs then get them from the token
+                // Get repo and owner IDs from the token
                 error = TryGetRequiredClaim(jwt, RepositoryOwnerIdClaim, out string repositoryOwnerId);
                 if (error != null)
                 {
-                    return error;
+                    return FederatedCredentialPolicyResult.Unauthorized(error);
                 }
 
                 error = TryGetRequiredClaim(jwt, RepositoryIdClaim, out string repositoryId);
                 if (error != null)
                 {
-                    return error;
+                    return FederatedCredentialPolicyResult.Unauthorized(error);
                 }
 
+                // Update the policy with the repo and owner IDs
                 criteria.RepositoryOwnerId = repositoryOwnerId;
                 criteria.RepositoryId = repositoryId;
                 criteria.ValidateByDate = null;
@@ -182,68 +160,33 @@ namespace NuGetGallery.Services.Authentication
                     var updatedPolicy = _federatedCredentialRepository.GetPolicyByKey(policy.Key);
                     if (updatedPolicy == null)
                     {
-                        return "The policy was not found after concurrent first use.";
+                        return FederatedCredentialPolicyResult.Unauthorized("The policy was not found after concurrent first use.");
                     }
                     var updatedCriteria = GitHubCriteria.FromDatabaseJson(updatedPolicy.Criteria);
                     if (!string.Equals(updatedCriteria.RepositoryOwnerId, criteria.RepositoryOwnerId, StringComparison.Ordinal) ||
                         !string.Equals(updatedCriteria.RepositoryId, criteria.RepositoryId, StringComparison.Ordinal))
                     {
-                        return $"The policy was updated with different repository owner/repo IDs during concurrent first use. Expected {criteria.RepositoryOwnerId}/{criteria.RepositoryId}, actual {updatedCriteria.RepositoryOwnerId}/{updatedCriteria.RepositoryId}";
+                        return FederatedCredentialPolicyResult.Unauthorized($"The policy was updated with different repository owner/repo IDs during concurrent first use. Expected {criteria.RepositoryOwnerId}/{criteria.RepositoryId}, actual {updatedCriteria.RepositoryOwnerId}/{updatedCriteria.RepositoryId}");
                     }
                 }
             }
             else
             {
                 // Note that ID comparisons are case-sensitive
-                error = ValidateClaim(jwt, RepositoryOwnerIdClaim, criteria.RepositoryOwnerId!, StringComparison.Ordinal);
+                error = ValidateClaimExactMatch(jwt, RepositoryOwnerIdClaim, criteria.RepositoryOwnerId!, StringComparison.Ordinal);
                 if (error != null)
                 {
-                    return error;
+                    return FederatedCredentialPolicyResult.Unauthorized(error);
                 }
-                error = ValidateClaim(jwt, RepositoryIdClaim, criteria.RepositoryId!, StringComparison.Ordinal);
+
+                error = ValidateClaimExactMatch(jwt, RepositoryIdClaim, criteria.RepositoryId!, StringComparison.Ordinal);
                 if (error != null)
                 {
-                    return error;
+                    return FederatedCredentialPolicyResult.Unauthorized(error);
                 }
             }
 
-            return null;
-        }
-
-        /// <summary>
-        /// Attempts to get a required string claim from the JWT token.
-        /// </summary>
-        /// <returns><see langword="null"/> if the claim value present; otherwise, an error message.</returns>
-        private static string? TryGetRequiredClaim(JsonWebToken jwt, string claim, out string claimValue)
-        {
-            if (!jwt.TryGetPayloadValue(claim, out claimValue) || string.IsNullOrWhiteSpace(claimValue))
-            {
-                return string.Format(MissingClaimError, claim);
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Validates that a JWT claim exists and equals the expected value using the specified string comparison.
-        /// </summary>
-        /// <returns><see langword="null"/> if the claim is valid; otherwise, an error message.</returns>
-        private static string? ValidateClaim(JsonWebToken jwt, string claim, string expectedValue, StringComparison comparison = StringComparison.OrdinalIgnoreCase, bool fullValue = true)
-        {
-            if (TryGetRequiredClaim(jwt, claim, out string claimValue) is string error)
-            {
-                return error;
-            }
-
-            var isValid = fullValue
-                ? claimValue.Equals(expectedValue, comparison)
-                : claimValue.StartsWith(expectedValue, comparison);
-            if (!isValid)
-            {
-                return string.Format(ClaimMismatchError, claim, claimValue, expectedValue);
-            }
-
-            return null;
+            return FederatedCredentialPolicyResult.Success;
         }
     }
 }

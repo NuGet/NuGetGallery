@@ -34,46 +34,46 @@ namespace NuGetGallery.Services.Authentication
         };
 
         public const string PermanentPolicyCriteria = """
-            {
-                "owner": "test-owner",
-                "ownerId": "id-123",
-                "repository": "test-repo",
-                "repositoryId": "id-456",
-                "workflow": "test.yml",
-                "environment": "production"
-            }
-            """;
+			{
+				"owner": "test-owner",
+				"ownerId": "id-123",
+				"repository": "test-repo",
+				"repositoryId": "id-456",
+				"workflow": "test.yml",
+				"environment": "production"
+			}
+			""";
 
         public const string PermanentPolicyCriteriaNoEnvironment = """
-            {
-                "owner": "test-owner",
-                "ownerId": "id-123",
-                "repository": "test-repo",
-                "repositoryId": "id-456",
-                "workflow": "test.yml"
-            }
-            """;
+			{
+				"owner": "test-owner",
+				"ownerId": "id-123",
+				"repository": "test-repo",
+				"repositoryId": "id-456",
+				"workflow": "test.yml"
+			}
+			""";
 
         public const string TemporaryPolicyCriteria = """
-            {
-                "owner": "test-owner",
-                "repository": "test-repo",
-                "workflow": "test.yml",
-                "environment": "production",
-                "validateBy": "2222-01-01T00:00:00Z"
-            }
-            """;
+			{
+				"owner": "test-owner",
+				"repository": "test-repo",
+				"workflow": "test.yml",
+				"environment": "production",
+				"validateBy": "2222-01-01T00:00:00Z"
+			}
+			""";
 
         public static readonly string ExpiredPolicyCriteria = """
-            {
-                "jti": "test-jti",
-                "owner": "test-owner",
-                "repository": "test-repo",
-                "workflow": "test.yml",
-                "environment": "production",
-                "validateBy": "1999-01-01T00:00:00Z"
-            }
-            """;
+			{
+				"jti": "test-jti",
+				"owner": "test-owner",
+				"repository": "test-repo",
+				"workflow": "test.yml",
+				"environment": "production",
+				"validateBy": "1999-01-01T00:00:00Z"
+			}
+			""";
 
         public static readonly string ValidIssuer = GitHubTokenPolicyValidator.Issuer;
         public static readonly string InvalidIssuer = "invalid-issuer";
@@ -225,6 +225,7 @@ namespace NuGetGallery.Services.Authentication
                 // Arrange
                 var policy = new FederatedCredentialPolicy
                 {
+                    PolicyName = "Temporary Policy",
                     Type = FederatedCredentialType.GitHubActions,
                     Criteria = TokenTestHelper.ExpiredPolicyCriteria
                 };
@@ -236,7 +237,9 @@ namespace NuGetGallery.Services.Authentication
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
-                Assert.Equal("The policy has expired.", result.InternalReason);
+                Assert.True(result.IsErrorDisclosable); // we disclose the error for expired policies
+                Assert.Contains("expired", result.Error);
+                Assert.Contains(policy.PolicyName, result.Error);
             }
 
             [Theory]
@@ -264,9 +267,11 @@ namespace NuGetGallery.Services.Authentication
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, resultEmpty.Type);
-                Assert.Contains(claim, resultEmpty.InternalReason);
+                Assert.False(resultEmpty.IsErrorDisclosable);
+                Assert.Contains(claim, resultEmpty.Error);
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, resultMissing.Type);
-                Assert.Contains(claim, resultMissing.InternalReason);
+                Assert.False(resultMissing.IsErrorDisclosable);
+                Assert.Contains(claim, resultMissing.Error);
             }
 
             [Theory]
@@ -292,10 +297,11 @@ namespace NuGetGallery.Services.Authentication
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                Assert.False(result.IsErrorDisclosable);
 
-                // Error string should contain the claim name, mismatched value and the expected value
-                Assert.Contains(claim, result.InternalReason);
-                Assert.Contains("mismatched-value", result.InternalReason);
+                // Error string should contain the claim name and the mismatched value.
+                Assert.Contains(claim, result.Error);
+                Assert.Contains("mismatched-value", result.Error);
             }
 
             [Theory]
@@ -456,6 +462,7 @@ namespace NuGetGallery.Services.Authentication
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                Assert.False(result.IsErrorDisclosable);
                 FederatedCredentialRepository.Verify(x => x.SavePoliciesAsync(), Times.Once);
                 FederatedCredentialRepository.Verify(x => x.GetPolicyByKey(123), Times.Once);
             }
@@ -488,6 +495,7 @@ namespace NuGetGallery.Services.Authentication
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                Assert.False(result.IsErrorDisclosable);
                 FederatedCredentialRepository.Verify(x => x.SavePoliciesAsync(), Times.Once);
                 FederatedCredentialRepository.Verify(x => x.GetPolicyByKey(123), Times.Once);
             }

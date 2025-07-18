@@ -18,24 +18,26 @@ namespace NuGetGallery.Services.Authentication
     /// Represents the result of evaluating a single <see cref="NuGet.Services.Entities.FederatedCredentialPolicy">
     /// against validated and authenticated OIDC token.
     /// </summary>
-    [DebuggerDisplay("{Type}, reason: {InternalReason}")]
+    [DebuggerDisplay("{Type}, error: {Error}")]
     public class FederatedCredentialPolicyResult
     {
-        public static readonly FederatedCredentialPolicyResult Success = new(FederatedCredentialPolicyResultType.Success);
-        public static readonly FederatedCredentialPolicyResult NotApplicable = new(FederatedCredentialPolicyResultType.NotApplicable);
+        public static readonly FederatedCredentialPolicyResult Success = new(FederatedCredentialPolicyResultType.Success, null, false);
+        public static readonly FederatedCredentialPolicyResult NotApplicable = new(FederatedCredentialPolicyResultType.NotApplicable, null, false);
 
         private FederatedCredentialPolicyResult(
             FederatedCredentialPolicyResultType type,
-            string? internalReason = null)
+            string? error, bool isErrorDisclosable)
         {
             Type = type;
-            InternalReason = internalReason ?? string.Empty;
+            Error = error;
+            IsErrorDisclosable = isErrorDisclosable;
         }
 
         public FederatedCredentialPolicyResultType Type { get; }
-        public string InternalReason { get; }
+        public string? Error { get; }
+        public bool IsErrorDisclosable { get; }
 
-        public static FederatedCredentialPolicyResult Unauthorized(string internalReason)
-            => new(FederatedCredentialPolicyResultType.Unauthorized, internalReason: internalReason);
+        public static FederatedCredentialPolicyResult Unauthorized(string error, bool isErrorDisclosable = false)
+            => new(FederatedCredentialPolicyResultType.Unauthorized, error, isErrorDisclosable);
     }
 }

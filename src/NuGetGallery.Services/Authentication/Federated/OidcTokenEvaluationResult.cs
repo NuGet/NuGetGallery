@@ -28,10 +28,9 @@ namespace NuGetGallery.Services.Authentication
     /// <para>• Authenticating the token</para>
     /// <para>• Matching against the user's configured <see cref="FederatedCredentialPolicy"/> entries</para>
     /// </remarks>
-    [DebuggerDisplay("{Type}, error: {_userError}")]
+    [DebuggerDisplay("{Type}, error: {UserError}")]
     public class OidcTokenEvaluationResult
     {
-        private readonly string? _userError;
         private readonly FederatedCredentialPolicy? _matchedPolicy;
         private readonly FederatedCredential? _federatedCredential;
 
@@ -42,23 +41,41 @@ namespace NuGetGallery.Services.Authentication
             FederatedCredential? federatedCredential = null)
         {
             Type = type;
-            _userError = userError;
+            UserError = userError;
             _matchedPolicy = policy;
             _federatedCredential = federatedCredential;
         }
 
+        /// <summary>
+        /// Type of evaluation result indicating whether the token was valid, matched a policy, or had no matching policy.
+        /// </summary>
         public OidcTokenEvaluationResultType Type { get; }
-        public string UserError => _userError ?? throw new InvalidOperationException();
+
+        /// <summary>
+        /// User-facing error message when evaluation fails. Null for successful
+        /// results or when no disclosable error details are available.
+        /// </summary>
+        public string? UserError { get; }
+
+        /// <summary>
+        /// Federated credential policy that matched the incoming token.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when accessed and <see cref="Type"/> is not <see cref="OidcTokenEvaluationResultType.MatchedPolicy"/>.</exception>
         public FederatedCredentialPolicy MatchedPolicy => _matchedPolicy ?? throw new InvalidOperationException();
+
+        /// <summary>
+        /// Federated credential created from the matched policy and token.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when accessed and <see cref="Type"/> is not <see cref="OidcTokenEvaluationResultType.MatchedPolicy"/>.</exception>
         public FederatedCredential FederatedCredential => _federatedCredential ?? throw new InvalidOperationException();
 
         public static OidcTokenEvaluationResult BadToken(string userError)
-            => new(OidcTokenEvaluationResultType.BadToken, userError);
+            => new(OidcTokenEvaluationResultType.BadToken, userError ?? throw new ArgumentNullException(nameof(userError)));
 
         public static OidcTokenEvaluationResult NewMatchedPolicy(FederatedCredentialPolicy matchedPolicy, FederatedCredential federatedCredential)
             => new(OidcTokenEvaluationResultType.MatchedPolicy, userError: null, matchedPolicy, federatedCredential);
 
-        public static OidcTokenEvaluationResult NoMatchingPolicy()
-            => new(OidcTokenEvaluationResultType.NoMatchingPolicy, userError: null);
+        public static OidcTokenEvaluationResult NoMatchingPolicy(string? userError = null)
+            => new(OidcTokenEvaluationResultType.NoMatchingPolicy, userError);
     }
 }

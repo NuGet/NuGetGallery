@@ -261,7 +261,8 @@ namespace NuGetGallery.Services.Authentication
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
-                Assert.Equal($"The JSON web token is missing the {claim} claim.", result.InternalReason);
+                Assert.False(result.IsErrorDisclosable);
+                Assert.Equal($"The JSON Web Token is missing the required claim '{claim}'.", result.Error);
             }
 
             [Fact]
@@ -291,7 +292,8 @@ namespace NuGetGallery.Services.Authentication
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
-                Assert.Equal("The JSON web token must have an azpacr claim with a value of 2.", result.InternalReason);
+                Assert.False(result.IsErrorDisclosable);
+                Assert.Equal("The JSON web token must have an azpacr claim with a value of 2.", result.Error);
             }
 
             [Fact]
@@ -321,7 +323,8 @@ namespace NuGetGallery.Services.Authentication
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
-                Assert.Equal("The JSON web token must have an idtyp claim with a value of app.", result.InternalReason);
+                Assert.False(result.IsErrorDisclosable);
+                Assert.Equal("The JSON web token must have an idtyp claim with a value of app.", result.Error);
             }
 
             [Fact]
@@ -351,7 +354,8 @@ namespace NuGetGallery.Services.Authentication
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
-                Assert.Equal("The JSON web token must have a ver claim with a value of 2.0.", result.InternalReason);
+                Assert.False(result.IsErrorDisclosable);
+                Assert.Equal("The JSON web token must have a ver claim with a value of 2.0.", result.Error);
             }
 
             [Fact]
@@ -381,7 +385,8 @@ namespace NuGetGallery.Services.Authentication
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
-                Assert.Equal("The JSON web token sub claim must match the oid claim.", result.InternalReason);
+                Assert.False(result.IsErrorDisclosable);
+                Assert.Equal("The JSON web token sub claim must match the oid claim.", result.Error);
             }
 
             [Fact]
@@ -411,7 +416,8 @@ namespace NuGetGallery.Services.Authentication
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
-                Assert.Equal("The JSON web token must have a tid claim that matches the policy.", result.InternalReason);
+                Assert.False(result.IsErrorDisclosable);
+                Assert.Equal("The JSON web token must have a tid claim that matches the policy.", result.Error);
             }
 
             [Fact]
@@ -443,7 +449,8 @@ namespace NuGetGallery.Services.Authentication
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
-                Assert.Equal("The tenant ID in the JSON web token is not in allow list.", result.InternalReason);
+                Assert.False(result.IsErrorDisclosable);
+                Assert.Equal("The tenant ID in the JSON web token is not in allow list.", result.Error);
             }
 
             [Fact]
@@ -474,7 +481,8 @@ namespace NuGetGallery.Services.Authentication
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
-                Assert.Equal("The JSON web token must have a oid claim that matches the policy.", result.InternalReason);
+                Assert.False(result.IsErrorDisclosable);
+                Assert.Equal("The JSON web token must have a oid claim that matches the policy.", result.Error);
             }
 
             [Fact]

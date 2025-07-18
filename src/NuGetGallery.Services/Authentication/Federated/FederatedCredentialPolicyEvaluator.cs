@@ -77,6 +77,7 @@ namespace NuGetGallery.Services.Authentication
             }
 
             // sort the policy results by creation date, so older policy results are preferred
+            string? disclosableError = null; // we'll use first disclosable error (if any)
             foreach (var policy in policies.OrderBy(x => x.Created))
             {
                 var result = await EvaluatePolicyAsync(policy, context);
@@ -96,9 +97,13 @@ namespace NuGetGallery.Services.Authentication
 
                     return OidcTokenEvaluationResult.NewMatchedPolicy(policy, credential);
                 }
+                else if (disclosableError == null && result.IsErrorDisclosable && result.Error != null)
+                {
+                    disclosableError = result.Error;
+                }
             }
 
-            return OidcTokenEvaluationResult.NoMatchingPolicy();
+            return OidcTokenEvaluationResult.NoMatchingPolicy(disclosableError);
         }
 
         private async Task ExecuteAdditionalValidatorsAsync(NameValueCollection requestHeaders, TokenContext context)
@@ -174,11 +179,12 @@ namespace NuGetGallery.Services.Authentication
             if (result.Type != FederatedCredentialPolicyResultType.NotApplicable)
             {
                 _logger.LogInformation(
-                    "Evaluated policy key {PolicyKey} of type {PolicyType}. Result type: {ResultType}. Reason: {Reason}",
+                    "Evaluated policy key {PolicyKey} of type {PolicyType}. Result type: {ResultType}. Reason: {Reason}. Disclosable {Disclosable}",
                     policy.Key,
                     policy.Type,
                     result.Type,
-                    result.InternalReason);
+                    result.Error,
+                    result.IsErrorDisclosable);
             }
 
             return result;
@@ -294,6 +300,7 @@ namespace NuGetGallery.Services.Authentication
                 context.Error = validationException switch
                 {
                     SecurityTokenExpiredException => "The JSON web token has expired.",
+                    SecurityTokenNotYetValidException => "The JSON web token is not yet valid.",
                     SecurityTokenInvalidAudienceException => "The JSON web token has an incorrect audience.",
                     SecurityTokenInvalidSignatureException => "The JSON web token has an invalid signature.",
                     _ => "The JSON web token could not be validated.",

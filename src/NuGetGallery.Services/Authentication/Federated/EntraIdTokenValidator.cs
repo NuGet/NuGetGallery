@@ -98,19 +98,22 @@ namespace NuGetGallery.Services.Authentication
             const string VersionClaim = "ver";
             const string Version2 = "2.0";
 
-            if (!jwt.TryGetPayloadValue<string>(ClaimConstants.Tid, out var tid))
+            string? error = TryGetRequiredClaim(jwt, ClaimConstants.Tid, out var tid);
+            if (error != null)
             {
-                return $"The JSON web token is missing the {ClaimConstants.Tid} claim.";
+                return error;
             }
 
-            if (!jwt.TryGetPayloadValue<string>(ClaimConstants.Oid, out var oid))
+            error = TryGetRequiredClaim(jwt, ClaimConstants.Oid, out var oid);
+            if (error != null)
             {
-                return $"The JSON web token is missing the {ClaimConstants.Oid} claim.";
+                return error;
             }
 
-            if (!jwt.TryGetPayloadValue<string>(ClientCredentialTypeClaim, out var azpacr))
+            error = TryGetRequiredClaim(jwt, ClientCredentialTypeClaim, out var azpacr);
+            if (error != null)
             {
-                return $"The JSON web token is missing the {ClientCredentialTypeClaim} claim.";
+                return error;
             }
 
             if (azpacr != ClientCertificateType)
@@ -118,9 +121,10 @@ namespace NuGetGallery.Services.Authentication
                 return $"The JSON web token must have an {ClientCredentialTypeClaim} claim with a value of {ClientCertificateType}.";
             }
 
-            if (!jwt.TryGetPayloadValue<string>(IdentityTypeClaim, out var idtyp))
+            error = TryGetRequiredClaim(jwt, IdentityTypeClaim, out var idtyp);
+            if (error != null)
             {
-                return $"The JSON web token is missing the {IdentityTypeClaim} claim.";
+                return error;
             }
 
             if (idtyp != AppIdentityType)
@@ -128,9 +132,10 @@ namespace NuGetGallery.Services.Authentication
                 return $"The JSON web token must have an {IdentityTypeClaim} claim with a value of {AppIdentityType}.";
             }
 
-            if (!jwt.TryGetPayloadValue<string>(VersionClaim, out var ver))
+            error = TryGetRequiredClaim(jwt, VersionClaim, out var ver);
+            if (error != null)
             {
-                return $"The JSON web token is missing the {VersionClaim} claim.";
+                return error;
             }
 
             if (ver != Version2)

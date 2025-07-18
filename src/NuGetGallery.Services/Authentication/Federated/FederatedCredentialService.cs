@@ -166,8 +166,11 @@ namespace NuGetGallery.Services.Authentication
             switch (policyEvaluation.Type)
             {
                 case OidcTokenEvaluationResultType.BadToken:
-                    return GenerateApiKeyResult.Unauthorized(policyEvaluation.UserError);
                 case OidcTokenEvaluationResultType.NoMatchingPolicy:
+                    if (policyEvaluation.UserError is string userError)
+                    {
+                        return GenerateApiKeyResult.Unauthorized(userError);
+                    }
                     return NoMatchingPolicy(username);
                 case OidcTokenEvaluationResultType.MatchedPolicy:
                     break;
