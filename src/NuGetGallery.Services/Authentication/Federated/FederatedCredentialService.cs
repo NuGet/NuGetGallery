@@ -77,7 +77,7 @@ namespace NuGetGallery.Services.Authentication
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
             _evaluator = evaluator ?? throw new ArgumentNullException(nameof(evaluator));
-            _entraIdTokenValidator = entraIdTokenValidator ?? throw new ArgumentNullException(nameof(EntraIdTokenValidator));
+            _entraIdTokenValidator = entraIdTokenValidator ?? throw new ArgumentNullException(nameof(EntraIdTokenPolicyValidator));
             _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
             _authenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
@@ -157,11 +157,14 @@ namespace NuGetGallery.Services.Authentication
             var policyEvaluation = await _evaluator.GetMatchingPolicyAsync(policies, bearerToken, requestHeaders);
             switch (policyEvaluation.Type)
             {
-                case EvaluatedFederatedCredentialPoliciesType.BadToken:
-                    return GenerateApiKeyResult.Unauthorized(policyEvaluation.UserError);
-                case EvaluatedFederatedCredentialPoliciesType.NoMatchingPolicy:
+                case OidcTokenEvaluationResultType.BadToken:
+                case OidcTokenEvaluationResultType.NoMatchingPolicy:
+                    if (policyEvaluation.UserError is string userError)
+                    {
+                        return GenerateApiKeyResult.Unauthorized(userError);
+                    }
                     return NoMatchingPolicy(username);
-                case EvaluatedFederatedCredentialPoliciesType.MatchedPolicy:
+                case OidcTokenEvaluationResultType.MatchedPolicy:
                     break;
                 default:
                     throw new NotImplementedException("Unexpected result type: " + policyEvaluation.Type);
@@ -207,12 +210,12 @@ namespace NuGetGallery.Services.Authentication
 
         private static GenerateApiKeyResult NoMatchingPolicy(string username)
         {
-            return GenerateApiKeyResult.Unauthorized($"No matching federated credential trust policy owned by user '{username}' was found.");
+            return GenerateApiKeyResult.Unauthorized($"No matching trust policy owned by user '{username}' was found.");
         }
 
         private async Task<GenerateApiKeyResult?> SaveAndRejectReplayAsync(
             User currentUser,
-            EvaluatedFederatedCredentialPolicies evaluation,
+            OidcTokenEvaluationResult evaluation,
             Credential apiKeyCredential)
         {
             evaluation.MatchedPolicy.LastMatched = _dateTimeProvider.UtcNow;
@@ -246,7 +249,7 @@ namespace NuGetGallery.Services.Authentication
             {
                 return GenerateApiKeyResult.BadRequest(
                     "Generating fetching tokens directly for organizations is not supported. " +
-                    "The federated credential trust policy is created on the profile of one of the organization's administrators and is scoped to the organization in the policy.");
+                    "The trust policy is created on the profile of one of the organization's administrators and is scoped to the organization in the policy.");
             }
 
             var error = GetUserStateError(currentUser);
@@ -262,7 +265,7 @@ namespace NuGetGallery.Services.Authentication
         {
             if (packageOwner is null)
             {
-                return GenerateApiKeyResult.BadRequest("The package owner of the match federated credential trust policy not longer exists.");
+                return GenerateApiKeyResult.BadRequest("The package owner of the match trust policy not longer exists.");
             }
 
             var error = GetUserStateError(packageOwner);

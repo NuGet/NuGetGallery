@@ -563,27 +563,27 @@ namespace NuGetGallery
                 .Register(_ => new OpenIdConnectConfigurationRetriever())
                 .As<IConfigurationRetriever<OpenIdConnectConfiguration>>();
 
+            // Register EntraID-specific OIDC configuration manager
             const string EntraIdKey = "EntraId";
-
-            // this is a singleton to provide caching of the OIDC metadata
             builder
                 .Register(p => new ConfigurationManager<OpenIdConnectConfiguration>(
-                    metadataAddress: EntraIdTokenValidator.MetadataAddress,
+                    metadataAddress: EntraIdTokenPolicyValidator.MetadataAddress,
                     p.Resolve<IConfigurationRetriever<OpenIdConnectConfiguration>>()))
                 .SingleInstance()
                 .Keyed<ConfigurationManager<OpenIdConnectConfiguration>>(EntraIdKey);
 
+            // Register GitHub-specific OIDC configuration manager
+            const string GitHubActionsKey = "GitHubActions";
             builder
-                .RegisterType<JsonWebTokenHandler>()
-                .InstancePerLifetimeScope();
+                .Register(p => new ConfigurationManager<OpenIdConnectConfiguration>(
+                    metadataAddress: GitHubTokenPolicyValidator.MetadataAddress,
+                    p.Resolve<IConfigurationRetriever<OpenIdConnectConfiguration>>()))
+                .SingleInstance()
+                .Keyed<ConfigurationManager<OpenIdConnectConfiguration>>(GitHubActionsKey);
 
             builder
-                .Register(p => new EntraIdTokenValidator(
-                    p.ResolveKeyed<ConfigurationManager<OpenIdConnectConfiguration>>(EntraIdKey),
-                    p.Resolve<JsonWebTokenHandler>(),
-                    p.Resolve<IFederatedCredentialConfiguration>()))
-                .As<IEntraIdTokenValidator>()
-                .InstancePerLifetimeScope();
+                .RegisterType<JsonWebTokenHandler>()
+                .InstancePerDependency();
 
             builder
                 .Register(c =>
@@ -597,10 +597,31 @@ namespace NuGetGallery
                 .As<IReadOnlyList<IFederatedCredentialValidator>>() // a singleton, materialized list
                 .SingleInstance();
 
+            // Register individual validators
+            builder
+                .Register(c => new EntraIdTokenPolicyValidator(
+                    c.ResolveKeyed<ConfigurationManager<OpenIdConnectConfiguration>>(EntraIdKey),
+                    c.Resolve<IFederatedCredentialConfiguration>(),
+                    c.Resolve<JsonWebTokenHandler>()))
+                .As<IEntraIdTokenValidator>()
+                .As<ITokenPolicyValidator>()
+                .SingleInstance();
+
+            builder
+                .Register(c => new GitHubTokenPolicyValidator(
+                    c.Resolve<IFederatedCredentialRepository>(),
+                    c.ResolveKeyed<ConfigurationManager<OpenIdConnectConfiguration>>(GitHubActionsKey),
+                    c.Resolve<IFederatedCredentialConfiguration>(),
+                    c.Resolve<IAuditingService>(),
+                    c.Resolve<JsonWebTokenHandler>()
+                    ))
+                .As<ITokenPolicyValidator>()
+                .SingleInstance();
+
             builder
                 .RegisterType<FederatedCredentialPolicyEvaluator>()
                 .As<IFederatedCredentialPolicyEvaluator>()
-                .InstancePerLifetimeScope();
+                .InstancePerDependency();
 
             builder
                 .RegisterType<FederatedCredentialService>()

@@ -38,6 +38,13 @@ namespace NuGetGallery.Auditing
         /// A federated credential matched a policy but rejected due to token replace protection.
         /// </summary>
         RejectReplay,
+
+        /// <summary>
+        /// Indicates that the federated credential policy was updated on first use, after all
+        /// required criteria were satisfied. For example, a GitHub Actions policy may be
+        /// updated with the repository owner and repository ID upon its first use.
+        /// </summary>
+        FirstUsePolicyUpdate,
     }
 
     public class FederatedCredentialPolicyAuditRecord : AuditRecord<AuditedFederatedCredentialPolicyAction>
@@ -141,6 +148,18 @@ namespace NuGetGallery.Auditing
         {
             return new FederatedCredentialPolicyAuditRecord(
                 AuditedFederatedCredentialPolicyAction.Create,
+                policy,
+                success: true,
+                federatedCredential: null,
+                apiKeyCredentials: [],
+                externalCredential: null);
+        }
+
+        public static FederatedCredentialPolicyAuditRecord FirstUseUpdate(
+            FederatedCredentialPolicy policy)
+        {
+            return new FederatedCredentialPolicyAuditRecord(
+                AuditedFederatedCredentialPolicyAction.FirstUsePolicyUpdate,
                 policy,
                 success: true,
                 federatedCredential: null,

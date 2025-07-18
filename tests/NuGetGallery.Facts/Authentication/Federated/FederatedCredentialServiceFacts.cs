@@ -165,7 +165,7 @@ namespace NuGetGallery.Services.Authentication
 
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.Unauthorized, result.Type);
-                Assert.Equal("No matching federated credential trust policy owned by user 'someone else' was found.", result.UserMessage);
+                Assert.Equal("No matching trust policy owned by user 'someone else' was found.", result.UserMessage);
 
                 AssertNoAudits();
             }
@@ -176,14 +176,14 @@ namespace NuGetGallery.Services.Authentication
                 // Arrange
                 Evaluator
                     .Setup(x => x.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders))
-                    .ReturnsAsync(() => EvaluatedFederatedCredentialPolicies.NoMatchingPolicy([]));
+                    .ReturnsAsync(() => OidcTokenEvaluationResult.NoMatchingPolicy());
 
                 // Act
                 var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.Unauthorized, result.Type);
-                Assert.Equal("No matching federated credential trust policy owned by user 'jim' was found.", result.UserMessage);
+                Assert.Equal("No matching trust policy owned by user 'jim' was found.", result.UserMessage);
 
                 AssertNoAudits();
             }
@@ -194,7 +194,7 @@ namespace NuGetGallery.Services.Authentication
                 // Arrange
                 Evaluator
                     .Setup(x => x.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders))
-                    .ReturnsAsync(() => EvaluatedFederatedCredentialPolicies.BadToken("That token is missing a thing or two."));
+                    .ReturnsAsync(() => OidcTokenEvaluationResult.BadToken("That token is missing a thing or two."));
 
                 // Act
                 var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken, RequestHeaders);
@@ -281,7 +281,7 @@ namespace NuGetGallery.Services.Authentication
 
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.BadRequest, result.Type);
-                Assert.Equal("The package owner of the match federated credential trust policy not longer exists.", result.UserMessage);
+                Assert.Equal("The package owner of the match trust policy not longer exists.", result.UserMessage);
 
                 AssertNoAudits();
             }
@@ -469,8 +469,7 @@ namespace NuGetGallery.Services.Authentication
             {
                 new() { Key = 3, CreatedBy = CurrentUser, CreatedByUserKey = CurrentUser.Key, PackageOwner = PackageOwner, PackageOwnerUserKey = PackageOwner.Key }
             };
-            Evaluation = EvaluatedFederatedCredentialPolicies.NewMatchedPolicy(
-                results: [],
+            Evaluation = OidcTokenEvaluationResult.NewMatchedPolicy(
                 matchedPolicy: Policies[0],
                 federatedCredential: new FederatedCredential());
             PlaintextApiKey = null;
@@ -531,7 +530,7 @@ namespace NuGetGallery.Services.Authentication
         public User CurrentUser { get; set; }
         public User PackageOwner { get; }
         public List<FederatedCredentialPolicy> Policies { get; }
-        public EvaluatedFederatedCredentialPolicies Evaluation { get; }
+        public OidcTokenEvaluationResult Evaluation { get; }
         public string? PlaintextApiKey;
         public Credential Credential { get; }
         public NameValueCollection RequestHeaders { get; }

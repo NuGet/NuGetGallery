@@ -25,6 +25,11 @@ namespace NuGetGallery.Services.Authentication
         string? EntraIdAudience { get; }
 
         /// <summary>
+        /// The expected audience ("aud" claim) for tokens from publishers that allow audience configuration, such as GitHub Actions.
+        /// </summary>
+        string? NuGetAudience { get; }
+
+        /// <summary>
         /// How long the short lived API keys should last.
         /// </summary>
         TimeSpan ShortLivedApiKeyDuration { get; }
@@ -44,6 +49,7 @@ namespace NuGetGallery.Services.Authentication
         public bool EnableTokenApi { get; set; }
 
         public string? EntraIdAudience { get; set; }
+        public string? NuGetAudience { get; set; }
 
         public TimeSpan ShortLivedApiKeyDuration { get; set; } = TimeSpan.FromMinutes(15);
 
