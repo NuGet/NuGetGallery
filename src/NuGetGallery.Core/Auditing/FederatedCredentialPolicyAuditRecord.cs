@@ -49,7 +49,7 @@ namespace NuGetGallery.Auditing
         /// <summary>
         /// A federated credential policy was modified.
         /// </summary>
-        Update
+        Update,
     }
 
     public class FederatedCredentialPolicyAuditRecord : AuditRecord<AuditedFederatedCredentialPolicyAction>
