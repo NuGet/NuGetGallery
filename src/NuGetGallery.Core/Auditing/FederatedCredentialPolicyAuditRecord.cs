@@ -50,6 +50,11 @@ namespace NuGetGallery.Auditing
         /// A federated credential policy was modified.
         /// </summary>
         Update,
+
+        /// <summary>
+        /// Failure to create a federated credential policy.
+        /// </summary>
+        FailedToCreate,
     }
 
     public class FederatedCredentialPolicyAuditRecord : AuditRecord<AuditedFederatedCredentialPolicyAction>
@@ -64,18 +69,45 @@ namespace NuGetGallery.Auditing
             bool success,
             FederatedCredential? federatedCredential,
             IReadOnlyList<CredentialAuditRecord> apiKeyCredentials,
-            ExternalSecurityTokenAuditRecord? externalCredential) : base(action)
+            ExternalSecurityTokenAuditRecord? externalCredential) : this(
+                action,
+                policy.Key,
+                policy.Type,
+                policy.CreatedBy,
+                policy.PackageOwner,
+                policy.Criteria,
+                success,
+                federatedCredential,
+                apiKeyCredentials,
+                externalCredential,
+                null)
         {
-            Key = policy.Key;
-            Type = policy.Type.ToString();
-            Criteria = policy.Criteria;
-            CreatedByUsername = policy.CreatedBy.Username;
-            PackageOwnerUsername = policy.PackageOwner.Username;
+        }
+
+        private FederatedCredentialPolicyAuditRecord(
+            AuditedFederatedCredentialPolicyAction action,
+            int key,
+            FederatedCredentialType type,
+            User createdBy,
+            User packageOwner,
+            string criteria,
+            bool success,
+            FederatedCredential? federatedCredential,
+            IReadOnlyList<CredentialAuditRecord> apiKeyCredentials,
+            ExternalSecurityTokenAuditRecord? externalCredential,
+            string? errorMessage) : base(action)
+        {
+            Key = key;
+            Type = type.ToString();
+            Criteria = criteria;
+            CreatedByUsername = createdBy.Username;
+            PackageOwnerUsername = packageOwner.Username;
 
             Success = success;
             FederatedCredential = federatedCredential is null ? null : new FederatedCredentialAuditRecord(AuditedFederatedCredentialAction.Create, federatedCredential);
             ApiKeyCredentials = apiKeyCredentials;
             ExternalCredential = externalCredential;
+            ErrorMessage = errorMessage;
         }
 
         public int Key { get; }
@@ -87,6 +119,7 @@ namespace NuGetGallery.Auditing
         public IReadOnlyList<CredentialAuditRecord> ApiKeyCredentials { get; }
         public bool Success { get; }
         public ExternalSecurityTokenAuditRecord? ExternalCredential { get; }
+        public string? ErrorMessage { get; }
 
         public static FederatedCredentialPolicyAuditRecord Compare(
             FederatedCredentialPolicy policy,
@@ -183,6 +216,27 @@ namespace NuGetGallery.Auditing
                 federatedCredential: null,
                 apiKeyCredentials: [],
                 externalCredential: null);
+        }
+
+        public static FederatedCredentialPolicyAuditRecord FailedToCreate(
+            FederatedCredentialType type,
+            User createdBy,
+            User packageOwner,
+            string criteria,
+            string errorMessage)
+        {
+            return new FederatedCredentialPolicyAuditRecord(
+                AuditedFederatedCredentialPolicyAction.FailedToCreate,
+                0,
+                type,
+                createdBy,
+                packageOwner,
+                criteria,
+                success: false,
+                federatedCredential: null,
+                apiKeyCredentials: [],
+                externalCredential: null,
+                errorMessage: errorMessage);
         }
 
         public override string GetPath()

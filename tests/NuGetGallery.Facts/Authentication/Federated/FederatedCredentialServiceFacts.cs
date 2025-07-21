@@ -38,7 +38,12 @@ namespace NuGetGallery.Services.Authentication
                 Assert.Equal(AddFederatedCredentialPolicyResultType.BadRequest, result.Type);
                 Assert.StartsWith($"Policy user '{CurrentUser.Username}' is an organization.", result.UserMessage);
 
-                AssertNoAudits();
+                AssertFailedCreateAudit(
+                    CurrentUser,
+                    PackageOwner,
+                    FederatedCredentialType.EntraIdServicePrincipal,
+                    """{"tid":"58fa0116-d469-4fc9-83c8-9b1a8706d9cc","oid":"4ab4b916-b6de-4412-aee0-808ef692b270"}""",
+                    result.UserMessage);
             }
 
             [Fact]
@@ -54,7 +59,12 @@ namespace NuGetGallery.Services.Authentication
                 Assert.Equal(AddFederatedCredentialPolicyResultType.BadRequest, result.Type);
                 Assert.StartsWith($"The user '{CurrentUser.Username}' does not have the required permissions", result.UserMessage);
 
-                AssertNoAudits();
+                AssertFailedCreateAudit(
+                    CurrentUser,
+                    PackageOwner,
+                    FederatedCredentialType.EntraIdServicePrincipal,
+                    """{"tid":"58fa0116-d469-4fc9-83c8-9b1a8706d9cc","oid":"4ab4b916-b6de-4412-aee0-808ef692b270"}""",
+                    result.UserMessage);
             }
 
             [Fact]
@@ -70,7 +80,12 @@ namespace NuGetGallery.Services.Authentication
                 Assert.Equal(AddFederatedCredentialPolicyResultType.BadRequest, result.Type);
                 Assert.StartsWith($"The package owner '{PackageOwner.Username}' is not enabled to use federated credentials.", result.UserMessage);
 
-                AssertNoAudits();
+                AssertFailedCreateAudit(
+                    CurrentUser,
+                    PackageOwner,
+                    FederatedCredentialType.EntraIdServicePrincipal,
+                    """{"tid":"58fa0116-d469-4fc9-83c8-9b1a8706d9cc","oid":"4ab4b916-b6de-4412-aee0-808ef692b270"}""",
+                    result.UserMessage);
             }
 
             [Fact]
@@ -88,7 +103,12 @@ namespace NuGetGallery.Services.Authentication
 
                 Assert.Empty(FederatedCredentialRepository.Invocations);
 
-                AssertNoAudits();
+                AssertFailedCreateAudit(
+                    CurrentUser,
+                    PackageOwner,
+                    FederatedCredentialType.EntraIdServicePrincipal,
+                    """{"tid":"58fa0116-d469-4fc9-83c8-9b1a8706d9cc","oid":"4ab4b916-b6de-4412-aee0-808ef692b270"}""",
+                    result.UserMessage);
             }
 
             [Fact]
@@ -104,9 +124,8 @@ namespace NuGetGallery.Services.Authentication
                 Assert.Same(PackageOwner, result.Policy.PackageOwner);
                 Assert.Equal(FederatedCredentialType.EntraIdServicePrincipal, result.Policy.Type);
                 Assert.Equal(
-                    """
-                    {"tid":"58fa0116-d469-4fc9-83c8-9b1a8706d9cc","oid":"4ab4b916-b6de-4412-aee0-808ef692b270"}
-                    """, result.Policy.Criteria);
+                    """{"tid":"58fa0116-d469-4fc9-83c8-9b1a8706d9cc","oid":"4ab4b916-b6de-4412-aee0-808ef692b270"}""",
+                    result.Policy.Criteria);
                 Assert.Null(result.Policy.LastMatched);
 
                 FeatureFlagService.Verify(x => x.CanUseFederatedCredentials(PackageOwner), Times.Once);
@@ -152,7 +171,12 @@ namespace NuGetGallery.Services.Authentication
                 Assert.Equal(AddFederatedCredentialPolicyResultType.BadRequest, result.Type);
                 Assert.StartsWith($"The user '{CurrentUser.Username}' does not have the required permissions", result.UserMessage);
 
-                AssertNoAudits();
+                AssertFailedCreateAudit(
+                    CurrentUser,
+                    PackageOwner,
+                    PolicyType,
+                    PolicyCriteria,
+                    result.UserMessage);
             }
 
             [Fact]
@@ -168,7 +192,12 @@ namespace NuGetGallery.Services.Authentication
                 Assert.Equal(AddFederatedCredentialPolicyResultType.BadRequest, result.Type);
                 Assert.StartsWith("Trusted Publishing is not enabled", result.UserMessage);
 
-                AssertNoAudits();
+                AssertFailedCreateAudit(
+                    CurrentUser,
+                    PackageOwner,
+                    PolicyType,
+                    PolicyCriteria,
+                    result.UserMessage);
             }
 
             [Fact]
@@ -718,6 +747,22 @@ namespace NuGetGallery.Services.Authentication
         protected void AssertNoAudits()
         {
             AuditingService.Verify(x => x.SaveAuditRecordAsync(It.IsAny<AuditRecord>()), Times.Never);
+        }
+
+        protected void AssertFailedCreateAudit(User createdBy, User packageOwner, FederatedCredentialType policyType, string criteria, string failureReason)
+        {
+            var audits = AssertAuditResourceTypes(FederatedCredentialPolicyAuditRecord.ResourceType);
+            var policyAudit = Assert.IsType<FederatedCredentialPolicyAuditRecord>(audits[0]);
+            Assert.Equal(AuditedFederatedCredentialPolicyAction.FailedToCreate, policyAudit.Action);
+
+            // Verify the audit record was created with the expected parameters
+            AuditingService.Verify(x => x.SaveAuditRecordAsync(
+                It.Is<FederatedCredentialPolicyAuditRecord>(audit =>
+                    audit.Action == AuditedFederatedCredentialPolicyAction.FailedToCreate &&
+                    audit.Type == policyType.ToString() &&
+                    audit.Criteria == criteria &&
+                    audit.ErrorMessage == failureReason
+                )), Times.Once);
         }
 
         private void AssertRejectReplayAudit()

@@ -138,6 +138,23 @@ namespace NuGetGallery.Services.Authentication
 
         public async Task<AddFederatedCredentialPolicyResult> AddEntraIdServicePrincipalPolicyAsync(User createdBy, User packageOwner, EntraIdServicePrincipalCriteria criteria)
         {
+            var result = await AddEntraIdServicePrincipalPolicyInternalAsync(createdBy, packageOwner, criteria);
+            if (result.Type == AddFederatedCredentialPolicyResultType.BadRequest)
+            {
+                // If the policy creation failed, log the audit record with the error message.
+                await _auditingService.SaveAuditRecordAsync(FederatedCredentialPolicyAuditRecord.FailedToCreate(
+                    FederatedCredentialType.EntraIdServicePrincipal,
+                    createdBy,
+                    packageOwner,
+                    JsonSerializer.Serialize(criteria),
+                    result.UserMessage));
+            }
+
+            return result;
+        }
+
+        private async Task<AddFederatedCredentialPolicyResult> AddEntraIdServicePrincipalPolicyInternalAsync(User createdBy, User packageOwner, EntraIdServicePrincipalCriteria criteria)
+        {
             if (createdBy is Organization)
             {
                 return AddFederatedCredentialPolicyResult.BadRequest(
@@ -160,6 +177,23 @@ namespace NuGetGallery.Services.Authentication
         }
 
         public async Task<AddFederatedCredentialPolicyResult> AddTrustedPublishingPolicyAsync(User createdBy, User packageOwner, string? policyName, FederatedCredentialType policyType, string criteria)
+        {
+            var result = await AddTrustedPublishingPolicyInternalAsync(createdBy, packageOwner, policyName, policyType, criteria);
+            if (result.Type == AddFederatedCredentialPolicyResultType.BadRequest)
+            {
+                // If the policy creation failed, log the audit record with the error message.
+                await _auditingService.SaveAuditRecordAsync(FederatedCredentialPolicyAuditRecord.FailedToCreate(
+                    policyType,
+                    createdBy,
+                    packageOwner,
+                    criteria,
+                    result.UserMessage));
+            }
+
+            return result;
+        }
+
+        private async Task<AddFederatedCredentialPolicyResult> AddTrustedPublishingPolicyInternalAsync(User createdBy, User packageOwner, string? policyName, FederatedCredentialType policyType, string criteria)
         {
             if (!_featureFlagService.IsTrustedPublishingEnabled(createdBy))
             {
