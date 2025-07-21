@@ -73,6 +73,27 @@ namespace NuGetGallery.Services.Authentication
         /// </summary>
         /// <param name="policy">The policy to update.</param>
         Task UpdatePolicyAsync(FederatedCredentialPolicy policy, string? policyName, string criteria);
+
+        /// <summary>
+        /// Gets policies created by a specific user.
+        /// </summary>
+        /// <param name="userKey">The key of the user who created the policies.</param>
+        /// <returns>List of federated credential policies created by the user.</returns>
+        IReadOnlyList<FederatedCredentialPolicy> GetPoliciesCreatedByUser(int userKey);
+
+        /// <summary>
+        /// Gets a policy by its key.
+        /// </summary>
+        /// <param name="policyKey">The key of the policy to retrieve.</param>
+        /// <returns>The policy if found, otherwise null.</returns>
+        FederatedCredentialPolicy? GetPolicyByKey(int policyKey);
+
+        /// <summary>
+        /// Gets policies related to specified user keys (either created by or owned by the users).
+        /// </summary>
+        /// <param name="userKeys">The list of user keys.</param>
+        /// <returns>List of related federated credential policies.</returns>
+        IReadOnlyList<FederatedCredentialPolicy> GetPoliciesRelatedToUserKeys(IReadOnlyList<int> userKeys);
     }
 
     public class FederatedCredentialService : IFederatedCredentialService
@@ -150,7 +171,7 @@ namespace NuGetGallery.Services.Authentication
         }
 
         private async Task<AddFederatedCredentialPolicyResult> AddPolicyAsync(User createdBy, User packageOwner, string? policyName, FederatedCredentialType policyType, string criteria)
-        { 
+        {
             if (!IsValidPolicyOwner(createdBy, packageOwner))
             {
                 return AddFederatedCredentialPolicyResult.BadRequest(
@@ -221,6 +242,16 @@ namespace NuGetGallery.Services.Authentication
             var auditRecord = FederatedCredentialPolicyAuditRecord.Update(policy, credentials);
             await _auditingService.SaveAuditRecordAsync(auditRecord);
         }
+
+        public IReadOnlyList<FederatedCredentialPolicy> GetPoliciesCreatedByUser(int userKey)
+            => _repository.GetPoliciesCreatedByUser(userKey);
+
+        public FederatedCredentialPolicy? GetPolicyByKey(int policyKey)
+            =>  _repository.GetPolicyByKey(policyKey);
+
+        public IReadOnlyList<FederatedCredentialPolicy> GetPoliciesRelatedToUserKeys(IReadOnlyList<int> userKeys)
+            => _repository.GetPoliciesRelatedToUserKeys(userKeys);
+
 
         public async Task<GenerateApiKeyResult> GenerateApiKeyAsync(string username, string bearerToken, NameValueCollection requestHeaders)
         {

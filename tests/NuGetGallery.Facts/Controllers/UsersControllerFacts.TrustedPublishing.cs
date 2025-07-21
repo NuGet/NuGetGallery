@@ -35,7 +35,7 @@ public class TheTrustedPublishingAction : TestContainer
             .Setup(f => f.IsTrustedPublishingEnabled(currentUser))
             .Returns(true);
 
-        GetMock<IFederatedCredentialRepository>()
+        GetMock<IFederatedCredentialService>()
             .Setup(r => r.GetPoliciesCreatedByUser(It.IsAny<int>()))
             .Returns([]);
 
@@ -102,7 +102,7 @@ public class TheTrustedPublishingAction : TestContainer
                     }
                 };
 
-        GetMock<IFederatedCredentialRepository>()
+        GetMock<IFederatedCredentialService>()
             .Setup(r => r.GetPoliciesCreatedByUser(It.IsAny<int>()))
             .Returns(policies);
 
@@ -136,7 +136,7 @@ public class TheTrustedPublishingAction : TestContainer
 
         var policies = new List<FederatedCredentialPolicy> { policy };
 
-        GetMock<IFederatedCredentialRepository>()
+        GetMock<IFederatedCredentialService>()
             .Setup(r => r.GetPoliciesCreatedByUser(It.IsAny<int>()))
             .Returns(policies);
 
@@ -182,7 +182,7 @@ public class TheTrustedPublishingAction : TestContainer
 
         var policies = new List<FederatedCredentialPolicy> { policy };
 
-        GetMock<IFederatedCredentialRepository>()
+        GetMock<IFederatedCredentialService>()
             .Setup(r => r.GetPoliciesCreatedByUser(It.IsAny<int>()))
             .Returns(policies);
 
@@ -219,7 +219,7 @@ public class TheTrustedPublishingAction : TestContainer
 
         var policies = new List<FederatedCredentialPolicy> { policy };
 
-        GetMock<IFederatedCredentialRepository>()
+        GetMock<IFederatedCredentialService>()
             .Setup(r => r.GetPoliciesCreatedByUser(It.IsAny<int>()))
             .Returns(policies);
 
@@ -261,7 +261,7 @@ public class TheTrustedPublishingAction : TestContainer
 
         var policies = new List<FederatedCredentialPolicy> { policy };
 
-        GetMock<IFederatedCredentialRepository>()
+        GetMock<IFederatedCredentialService>()
             .Setup(r => r.GetPoliciesCreatedByUser(It.IsAny<int>()))
             .Returns(policies);
 
@@ -304,7 +304,7 @@ public class TheTrustedPublishingAction : TestContainer
 
         var policies = new List<FederatedCredentialPolicy> { policy };
 
-        GetMock<IFederatedCredentialRepository>()
+        GetMock<IFederatedCredentialService>()
             .Setup(r => r.GetPoliciesCreatedByUser(It.IsAny<int>()))
             .Returns(policies);
 
@@ -345,7 +345,7 @@ public class TheTrustedPublishingAction : TestContainer
 
         var policies = new List<FederatedCredentialPolicy> { policy };
 
-        GetMock<IFederatedCredentialRepository>()
+        GetMock<IFederatedCredentialService>()
             .Setup(r => r.GetPoliciesCreatedByUser(It.IsAny<int>()))
             .Returns(policies);
 
@@ -391,7 +391,7 @@ public class TheTrustedPublishingAction : TestContainer
 
         var policies = new List<FederatedCredentialPolicy> { temporaryPolicy, permanentPolicy };
 
-        GetMock<IFederatedCredentialRepository>()
+        GetMock<IFederatedCredentialService>()
             .Setup(r => r.GetPoliciesCreatedByUser(It.IsAny<int>()))
             .Returns(policies);
 
@@ -741,7 +741,7 @@ public class TheEditTrustedPublisherPolicyAction : TestContainer
             Criteria = oldDBCriteria
         };
 
-        GetMock<IFederatedCredentialRepository>()
+        GetMock<IFederatedCredentialService>()
             .Setup(r => r.GetPolicyByKey(123))
             .Returns(policy);
 
@@ -788,7 +788,7 @@ public class TheEditTrustedPublisherPolicyAction : TestContainer
             Criteria = oldDBCriteria
         };
 
-        GetMock<IFederatedCredentialRepository>()
+        GetMock<IFederatedCredentialService>()
             .Setup(r => r.GetPolicyByKey(123))
             .Returns(policy);
 
@@ -834,11 +834,11 @@ public class TheEditTrustedPublisherPolicyAction : TestContainer
             Criteria = oldDBCriteria
         };
 
-        GetMock<IFederatedCredentialRepository>()
+        GetMock<IFederatedCredentialService>()
             .Setup(r => r.GetPoliciesCreatedByUser(user.Key))
             .Returns([policy]);
 
-        GetMock<IFederatedCredentialRepository>()
+        GetMock<IFederatedCredentialService>()
             .Setup(r => r.GetPolicyByKey(123))
             .Returns(policy);
 
@@ -884,7 +884,7 @@ public class TheEditTrustedPublisherPolicyAction : TestContainer
             Type = FederatedCredentialType.GitHubActions
         };
 
-        GetMock<IFederatedCredentialRepository>()
+        GetMock<IFederatedCredentialService>()
             .Setup(r => r.GetPolicyByKey(123))
             .Returns(policy);
 
@@ -918,7 +918,7 @@ public class TheEditTrustedPublisherPolicyAction : TestContainer
             Type = FederatedCredentialType.GitHubActions
         };
 
-        GetMock<IFederatedCredentialRepository>()
+        GetMock<IFederatedCredentialService>()
             .Setup(r => r.GetPolicyByKey(123))
             .Returns(policy);
 
@@ -963,7 +963,7 @@ public class TheEditTrustedPublisherPolicyAction : TestContainer
             .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
             .Returns(true);
 
-        GetMock<IFederatedCredentialRepository>()
+        GetMock<IFederatedCredentialService>()
             .Setup(r => r.GetPolicyByKey(1))
             .Returns((FederatedCredentialPolicy)null);
 
@@ -999,7 +999,7 @@ public class TheEditTrustedPublisherPolicyAction : TestContainer
             Type = FederatedCredentialType.GitHubActions
         };
 
-        GetMock<IFederatedCredentialRepository>()
+        GetMock<IFederatedCredentialService>()
             .Setup(r => r.GetPolicyByKey(123))
             .Returns(policy);
 
@@ -1037,7 +1037,7 @@ public class TheEditTrustedPublisherPolicyAction : TestContainer
             Criteria = oldDBCriteria
         };
 
-        GetMock<IFederatedCredentialRepository>()
+        GetMock<IFederatedCredentialService>()
             .Setup(r => r.GetPolicyByKey(123))
             .Returns(policy);
 
@@ -1088,7 +1088,7 @@ public class TheEnableTrustedPublisherPolicyAction : TestContainer
             .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
             .Returns(true);
 
-        GetMock<IFederatedCredentialRepository>()
+        GetMock<IFederatedCredentialService>()
             .Setup(r => r.GetPolicyByKey(1))
             .Returns((FederatedCredentialPolicy)null);
 
@@ -1122,7 +1122,7 @@ public class TheEnableTrustedPublisherPolicyAction : TestContainer
             Type = FederatedCredentialType.GitHubActions
         };
 
-        GetMock<IFederatedCredentialRepository>()
+        GetMock<IFederatedCredentialService>()
             .Setup(r => r.GetPolicyByKey(1))
             .Returns(policy);
 
@@ -1147,7 +1147,7 @@ public class TheEnableTrustedPublisherPolicyAction : TestContainer
             .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
             .Returns(true);
 
-        GetMock<IFederatedCredentialRepository>()
+        GetMock<IFederatedCredentialService>()
             .Setup(r => r.GetPolicyByKey(It.IsAny<int>()))
             .Returns((FederatedCredentialPolicy)null);
 
@@ -1186,7 +1186,7 @@ public class TheEnableTrustedPublisherPolicyAction : TestContainer
             Criteria = oldDBCriteria
         };
 
-        GetMock<IFederatedCredentialRepository>()
+        GetMock<IFederatedCredentialService>()
             .Setup(r => r.GetPolicyByKey(1))
             .Returns(policy);
 
@@ -1238,7 +1238,7 @@ public class TheEnableTrustedPublisherPolicyAction : TestContainer
             Criteria = oldDBCriteria
         };
 
-        GetMock<IFederatedCredentialRepository>()
+        GetMock<IFederatedCredentialService>()
             .Setup(r => r.GetPolicyByKey(1))
             .Returns(policy);
 
@@ -1258,10 +1258,6 @@ public class TheEnableTrustedPublisherPolicyAction : TestContainer
         Assert.NotNull(viewModel);
         Assert.Equal("Test Policy", viewModel.PolicyName);
         Assert.Equal(user.Username, viewModel.Owner);
-
-        // Verify that no DB changes were made
-        GetMock<IFederatedCredentialRepository>()
-            .Verify(s => s.SavePoliciesAsync(), Times.Never);
     }
 }
 
@@ -1295,7 +1291,7 @@ public class TheRemoveTrustedPublisherPolicyAction : TestContainer
             .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
             .Returns(true);
 
-        GetMock<IFederatedCredentialRepository>()
+        GetMock<IFederatedCredentialService>()
             .Setup(r => r.GetPolicyByKey(1))
             .Returns((FederatedCredentialPolicy)null);
 
@@ -1329,7 +1325,7 @@ public class TheRemoveTrustedPublisherPolicyAction : TestContainer
             Type = FederatedCredentialType.GitHubActions
         };
 
-        GetMock<IFederatedCredentialRepository>()
+        GetMock<IFederatedCredentialService>()
             .Setup(r => r.GetPolicyByKey(1))
             .Returns(policy);
 
@@ -1363,7 +1359,7 @@ public class TheRemoveTrustedPublisherPolicyAction : TestContainer
             Type = FederatedCredentialType.GitHubActions
         };
 
-        GetMock<IFederatedCredentialRepository>()
+        GetMock<IFederatedCredentialService>()
             .Setup(r => r.GetPolicyByKey(1))
             .Returns(policy);
 

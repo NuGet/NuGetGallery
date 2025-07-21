@@ -38,7 +38,6 @@ namespace NuGetGallery
         private readonly ISupportRequestService _supportRequestService;
         private readonly IFeatureFlagService _featureFlagService;
         private readonly IPackageVulnerabilitiesService _packageVulnerabilitiesService;
-        private readonly IFederatedCredentialRepository _federatedCredentialRepository;
         private readonly IFederatedCredentialService _federatedCredentialService;
 
         public UsersController(
@@ -86,7 +85,6 @@ namespace NuGetGallery
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _packageVulnerabilitiesService = packageVulnerabilitiesService ?? throw new ArgumentNullException(nameof(packageVulnerabilitiesService));
             _federatedCredentialService = federatedCredentialService ?? throw new ArgumentNullException(nameof(federatedCredentialService));
-            _federatedCredentialRepository = federatedCredentialRepository ?? throw new ArgumentNullException(nameof(federatedCredentialRepository));
 
             _listPackageItemRequiredSignerViewModelFactory = new ListPackageItemRequiredSignerViewModelFactory(
                 securityPolicyService, iconUrlProvider, packageVulnerabilitiesService, frameworkCompatibilityFactory, featureFlagService);
@@ -1046,7 +1044,7 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
 
-            var userPolicies = _federatedCredentialRepository.GetPoliciesCreatedByUser(currentUser.Key);
+            var userPolicies = _federatedCredentialService.GetPoliciesCreatedByUser(currentUser.Key);
 
             // Show newest policies on the top.
             var policies = userPolicies
@@ -1303,7 +1301,7 @@ namespace NuGetGallery
         private (FederatedCredentialPolicy policy, string error) GetFederatedCredentialPolicy(int? federatedCredentialKey)
         {
             if (federatedCredentialKey is not int key ||
-                _federatedCredentialRepository.GetPolicyByKey(key) is not FederatedCredentialPolicy policy)
+                _federatedCredentialService.GetPolicyByKey(key) is not FederatedCredentialPolicy policy)
             {
                 return (null, Strings.TrustedPublisher_Unexpected);
             }
