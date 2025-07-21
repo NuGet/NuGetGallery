@@ -45,6 +45,11 @@ namespace NuGetGallery.Auditing
         /// updated with the repository owner and repository ID upon its first use.
         /// </summary>
         FirstUsePolicyUpdate,
+
+        /// <summary>
+        /// A federated credential policy was modified.
+        /// </summary>
+        Update,
     }
 
     public class FederatedCredentialPolicyAuditRecord : AuditRecord<AuditedFederatedCredentialPolicyAction>
@@ -136,6 +141,19 @@ namespace NuGetGallery.Auditing
         {
             return new FederatedCredentialPolicyAuditRecord(
                 AuditedFederatedCredentialPolicyAction.Delete,
+                policy,
+                success: true,
+                federatedCredential: null,
+                apiKeyCredentials: deletedApiKeyCredentials.Select(x => new CredentialAuditRecord(x)).ToList(),
+                externalCredential: null);
+        }
+
+        public static FederatedCredentialPolicyAuditRecord Update(
+            FederatedCredentialPolicy policy,
+            IReadOnlyList<Credential> deletedApiKeyCredentials)
+        {
+            return new FederatedCredentialPolicyAuditRecord(
+                AuditedFederatedCredentialPolicyAction.Update,
                 policy,
                 success: true,
                 federatedCredential: null,

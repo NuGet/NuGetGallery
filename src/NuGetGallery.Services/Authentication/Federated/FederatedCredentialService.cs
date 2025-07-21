@@ -31,20 +31,69 @@ namespace NuGetGallery.Services.Authentication
 
         /// <summary>
         /// Adds a new federated credential policy for an Entra ID service principal. The policy will be owned by the user account
-        /// <paramref name="user"/>. Any API keys created from the policy will be scoped to package owner specified by <paramref name="packageOwner"/>.
+        /// <paramref name="createdBy"/>. Any API keys created from the policy will be scoped to package owner specified by <paramref name="packageOwner"/>.
         /// account
         /// </summary>
-        /// <param name="user">The user account to own the policy.</param>
+        /// <param name="createdBy">The user account to own the policy.</param>
         /// <param name="packageOwner">The owner scope for any API key created from the policy.</param>
         /// <param name="criteria">The Entra ID service principal criteria to allow.</param>
         /// <returns>The result, successful if <see cref="AddFederatedCredentialPolicyResult.Type"/> is <see cref="AddFederatedCredentialPolicyResultType.Created"/>.</returns>
-        Task<AddFederatedCredentialPolicyResult> AddEntraIdServicePrincipalPolicyAsync(User user, User packageOwner, EntraIdServicePrincipalCriteria criteria);
+        Task<AddFederatedCredentialPolicyResult> AddEntraIdServicePrincipalPolicyAsync(User createdBy, User packageOwner, EntraIdServicePrincipalCriteria criteria);
+
+        /// <summary>
+        /// Asynchronously adds a trusted publishing policy for a specified user and package owner.
+        /// </summary>
+        /// <param name="createdBy">The user for whom the policy is being added. Cannot be null.</param>
+        /// <param name="packageOwner">The owner of the package to which the policy applies. Cannot be null.</param>
+        /// <param name="policyName">The name of the policy to be added. Must be a non-empty string.</param>
+        /// <param name="policyType">The type of federated credential policy to be added.</param>
+        /// <param name="criteria">The criteria that define the conditions under which the policy is applied. Must be a valid string.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains an  <see
+        /// cref="AddFederatedCredentialPolicyResult"/> indicating the outcome of the operation.</returns>
+        Task<AddFederatedCredentialPolicyResult> AddTrustedPublishingPolicyAsync(User createdBy, User packageOwner, string? policyName, FederatedCredentialType policyType, string criteria);
+
+        /// <summary>
+        /// Determines whether the specified user is a valid trusted publishing policy owner for the given package
+        /// owner.
+        /// </summary>
+        /// <param name="user">The user to validate as a trusted publishing policy owner.</param>
+        /// <param name="packageOwner">The owner of the package for which the policy is being validated.</param>
+        /// <returns><see langword="true"/> if the specified user is a valid trusted publishing policy owner for the package
+        /// owner; otherwise, <see langword="false"/>.</returns>
+        bool IsValidPolicyOwner(User user, User packageOwner);
 
         /// <summary>
         /// Deletes a given federated credential policy and all associated API keys.
         /// </summary>
         /// <param name="policy">The policy to delete.</param>
         Task DeletePolicyAsync(FederatedCredentialPolicy policy);
+
+        /// <summary>
+        /// Updates policy. Any API keys created from the policy will be deleted.
+        /// </summary>
+        /// <param name="policy">The policy to update.</param>
+        Task UpdatePolicyAsync(FederatedCredentialPolicy policy, string? policyName, string criteria);
+
+        /// <summary>
+        /// Gets policies created by a specific user.
+        /// </summary>
+        /// <param name="userKey">The key of the user who created the policies.</param>
+        /// <returns>List of federated credential policies created by the user.</returns>
+        IReadOnlyList<FederatedCredentialPolicy> GetPoliciesCreatedByUser(int userKey);
+
+        /// <summary>
+        /// Gets a policy by its key.
+        /// </summary>
+        /// <param name="policyKey">The key of the policy to retrieve.</param>
+        /// <returns>The policy if found, otherwise null.</returns>
+        FederatedCredentialPolicy? GetPolicyByKey(int policyKey);
+
+        /// <summary>
+        /// Gets policies related to specified user keys (either created by or owned by the users).
+        /// </summary>
+        /// <param name="userKeys">The list of user keys.</param>
+        /// <returns>List of related federated credential policies.</returns>
+        IReadOnlyList<FederatedCredentialPolicy> GetPoliciesRelatedToUserKeys(IReadOnlyList<int> userKeys);
     }
 
     public class FederatedCredentialService : IFederatedCredentialService
@@ -95,13 +144,6 @@ namespace NuGetGallery.Services.Authentication
                     $"Policy user '{createdBy.Username}' is an organization. Creating federated credential trust policies for organizations is not supported.");
             }
 
-            var testScope = new Scope(packageOwner, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.All);
-            if (!_credentialBuilder.VerifyScopes(createdBy, [testScope]))
-            {
-                return AddFederatedCredentialPolicyResult.BadRequest(
-                    $"The user '{createdBy.Username}' does not have the required permissions to add a federated credential policy for package owner '{packageOwner.Username}'.");
-            }
-
             if (!_featureFlagService.CanUseFederatedCredentials(packageOwner))
             {
                 return AddFederatedCredentialPolicyResult.BadRequest(NotInFlightMessage(packageOwner));
@@ -112,20 +154,52 @@ namespace NuGetGallery.Services.Authentication
                 return AddFederatedCredentialPolicyResult.BadRequest($"The Entra ID tenant '{criteria.TenantId}' is not in the allow list.");
             }
 
+            return await AddPolicyAsync(createdBy, packageOwner, null,
+                FederatedCredentialType.EntraIdServicePrincipal,
+                JsonSerializer.Serialize(criteria));
+        }
+
+        public async Task<AddFederatedCredentialPolicyResult> AddTrustedPublishingPolicyAsync(User createdBy, User packageOwner, string? policyName, FederatedCredentialType policyType, string criteria)
+        {
+            if (!_featureFlagService.IsTrustedPublishingEnabled(createdBy))
+            {
+                return AddFederatedCredentialPolicyResult.BadRequest(
+                    $"Trusted Publishing is not enabled for '{createdBy.Username}'.");
+            }
+
+            return await AddPolicyAsync(createdBy, packageOwner, policyName, policyType, criteria);
+        }
+
+        private async Task<AddFederatedCredentialPolicyResult> AddPolicyAsync(User createdBy, User packageOwner, string? policyName, FederatedCredentialType policyType, string criteria)
+        {
+            if (!IsValidPolicyOwner(createdBy, packageOwner))
+            {
+                return AddFederatedCredentialPolicyResult.BadRequest(
+                    $"The user '{createdBy.Username}' does not have the required permissions to add a federated credential policy for package owner '{packageOwner.Username}'.");
+            }
+
             var policy = new FederatedCredentialPolicy
             {
+                PolicyName = policyName,
                 Created = _dateTimeProvider.UtcNow,
                 CreatedBy = createdBy,
                 PackageOwner = packageOwner,
-                Type = FederatedCredentialType.EntraIdServicePrincipal,
-                Criteria = JsonSerializer.Serialize(criteria),
+                Type = policyType,
+                Criteria = criteria ?? throw new ArgumentNullException(nameof(criteria)),
             };
+
 
             await _repository.AddPolicyAsync(policy, saveChanges: true);
 
             await _auditingService.SaveAuditRecordAsync(FederatedCredentialPolicyAuditRecord.Create(policy));
 
             return AddFederatedCredentialPolicyResult.Created(policy);
+        }
+
+        public bool IsValidPolicyOwner(User user, User packageOwner)
+        {
+            var testScope = new Scope(packageOwner, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.All);
+            return _credentialBuilder.VerifyScopes(user, [testScope]);
         }
 
         public async Task DeletePolicyAsync(FederatedCredentialPolicy policy)
@@ -144,6 +218,40 @@ namespace NuGetGallery.Services.Authentication
 
             await _auditingService.SaveAuditRecordAsync(auditRecord);
         }
+
+        public async Task UpdatePolicyAsync(FederatedCredentialPolicy policy, string? policyName, string criteria)
+        {
+            if (string.Equals(policy.PolicyName, policyName) &&
+                string.Equals(policy.Criteria, criteria))
+            {
+                // No changes to the policy, nothing to do.
+                return;
+            }
+
+            policy.PolicyName = policyName;
+            policy.Criteria = criteria ?? throw new ArgumentNullException(nameof(criteria));
+
+            var credentials = _repository.GetShortLivedApiKeysForPolicy(policy.Key);
+            foreach (var credential in credentials)
+            {
+                await _authenticationService.RemoveCredential(policy.CreatedBy, credential, commitChanges: false);
+            }
+
+            await _repository.SavePoliciesAsync();
+
+            var auditRecord = FederatedCredentialPolicyAuditRecord.Update(policy, credentials);
+            await _auditingService.SaveAuditRecordAsync(auditRecord);
+        }
+
+        public IReadOnlyList<FederatedCredentialPolicy> GetPoliciesCreatedByUser(int userKey)
+            => _repository.GetPoliciesCreatedByUser(userKey);
+
+        public FederatedCredentialPolicy? GetPolicyByKey(int policyKey)
+            =>  _repository.GetPolicyByKey(policyKey);
+
+        public IReadOnlyList<FederatedCredentialPolicy> GetPoliciesRelatedToUserKeys(IReadOnlyList<int> userKeys)
+            => _repository.GetPoliciesRelatedToUserKeys(userKeys);
+
 
         public async Task<GenerateApiKeyResult> GenerateApiKeyAsync(string username, string bearerToken, NameValueCollection requestHeaders)
         {

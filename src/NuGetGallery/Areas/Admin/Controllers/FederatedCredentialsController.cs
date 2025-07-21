@@ -57,18 +57,15 @@ namespace NuGetGallery.Areas.Admin.Controllers.FederatedCredentials
 
     public class FederatedCredentialsController : AdminControllerBase
     {
-        private readonly IFederatedCredentialRepository _federatedCredentialRepository;
         private readonly IEntityRepository<User> _userEntityRepository;
         private readonly IUserService _userService;
         private readonly IFederatedCredentialService _federatedCredentialService;
 
         public FederatedCredentialsController(
-            IFederatedCredentialRepository federatedCredentialRepository,
             IEntityRepository<User> userEntityRepository,
             IUserService userService,
             IFederatedCredentialService federatedCredentialService)
         {
-            _federatedCredentialRepository = federatedCredentialRepository ?? throw new ArgumentNullException(nameof(federatedCredentialRepository));
             _userEntityRepository = userEntityRepository ?? throw new ArgumentNullException(nameof(userEntityRepository));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _federatedCredentialService = federatedCredentialService ?? throw new ArgumentNullException(nameof(federatedCredentialService));
@@ -128,7 +125,7 @@ namespace NuGetGallery.Areas.Admin.Controllers.FederatedCredentials
             }
 
             var userKeys = users.Select(x => x.Key).ToList();
-            var policies = _federatedCredentialRepository.GetPoliciesRelatedToUserKeys(userKeys);
+            var policies = _federatedCredentialService.GetPoliciesRelatedToUserKeys(userKeys);
 
             var userPoliciesViewModels = new List<UserPoliciesViewModel>();
             var remainingUsernames = new HashSet<string>(foundUsernames, StringComparer.OrdinalIgnoreCase);
@@ -164,7 +161,7 @@ namespace NuGetGallery.Areas.Admin.Controllers.FederatedCredentials
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeletePolicy(int policyKey)
         {
-            var policy = _federatedCredentialRepository.GetPolicyByKey(policyKey);
+            var policy = _federatedCredentialService.GetPolicyByKey(policyKey);
 
             if (policy is null)
             {
