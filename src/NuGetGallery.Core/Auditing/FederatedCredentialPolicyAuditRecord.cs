@@ -227,7 +227,7 @@ namespace NuGetGallery.Auditing
         {
             return new FederatedCredentialPolicyAuditRecord(
                 AuditedFederatedCredentialPolicyAction.FailedToCreate,
-                0,
+                0, // no DB keys for failed-to-create policies
                 type,
                 createdBy,
                 packageOwner,
