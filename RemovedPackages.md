@@ -70,6 +70,7 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |   ComponentPro.SftpServer.CF  |    06/11/2025    | Copyright violation |
 |   ComponentPro.EmailValidator.CF |    06/11/2025    | Copyright violation |
 |   ComponentPro.Time.CF   |     06/11/2025      |  Copyright violation |
+|   UnityGameLibs.ThiefSimulatorGameLibs	 version 1.8.0-steam    |       07/18/2025       |   Untrustworthy  |
 
 
 
