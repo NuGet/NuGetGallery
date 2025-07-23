@@ -1157,26 +1157,35 @@ namespace NuGetGallery
             }
 
             // Try adding policy
-            AddFederatedCredentialPolicyResult result = await _federatedCredentialService.AddTrustedPublishingPolicyAsync(currentUser, policyOwner, policyName,
-                policyDetails.PublisherType,
-                policyDetails.ToDatabaseJson());
+            string dbJson = policyDetails.ToDatabaseJson();
+            AddFederatedCredentialPolicyResult result = await _federatedCredentialService.AddTrustedPublishingPolicyAsync(
+                currentUser, policyOwner, policyName,
+                policyDetails.PublisherType, dbJson);
 
-            if (result.Type == AddFederatedCredentialPolicyResultType.BadRequest)
+            switch (result.Type)
             {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(result.UserMessage);
+                case AddFederatedCredentialPolicyResultType.BadRequest:
+                    Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                    return Json(result.UserMessage);
+
+                case AddFederatedCredentialPolicyResultType.Unauthorized:
+                    Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    return Json(result.UserMessage);
+
+                case AddFederatedCredentialPolicyResultType.Created:
+                    var model = new TrustedPublisherPolicyViewModel
+                    {
+                        Key = result.Policy.Key,
+                        PolicyName = policyName,
+                        Owner = owner,
+                        IsOwnerValid = true, // we already validated owner above
+                        PolicyDetails = policyDetails
+                    };
+                    return Json(model);
+
+                default:
+                    throw new NotImplementedException($"The policy creation result type '{result.Type}' is not supported.");
             }
-
-            var model = new TrustedPublisherPolicyViewModel
-            {
-                Key = result.Policy.Key,
-                PolicyName = policyName,
-                Owner = owner,
-                IsOwnerValid = true, // we already validated owner above
-                PolicyDetails = policyDetails
-            };
-
-            return Json(model);
         }
 
         [UIAuthorize]

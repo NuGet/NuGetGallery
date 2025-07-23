@@ -38,7 +38,7 @@ namespace NuGetGallery.Services.Authentication
                 Assert.Equal(AddFederatedCredentialPolicyResultType.BadRequest, result.Type);
                 Assert.StartsWith($"Policy user '{CurrentUser.Username}' is an organization.", result.UserMessage);
 
-                AssertFailedCreateAudit(
+                AssertBadRequest(
                     CurrentUser,
                     PackageOwner,
                     FederatedCredentialType.EntraIdServicePrincipal,
@@ -56,10 +56,10 @@ namespace NuGetGallery.Services.Authentication
                 var result = await Target.AddEntraIdServicePrincipalPolicyAsync(CurrentUser, PackageOwner, EntraIdServicePrincipalCriteria);
 
                 // Assert
-                Assert.Equal(AddFederatedCredentialPolicyResultType.BadRequest, result.Type);
+                Assert.Equal(AddFederatedCredentialPolicyResultType.Unauthorized, result.Type);
                 Assert.StartsWith($"The user '{CurrentUser.Username}' does not have the required permissions", result.UserMessage);
 
-                AssertFailedCreateAudit(
+                AssertUnauthorized(
                     CurrentUser,
                     PackageOwner,
                     FederatedCredentialType.EntraIdServicePrincipal,
@@ -80,7 +80,7 @@ namespace NuGetGallery.Services.Authentication
                 Assert.Equal(AddFederatedCredentialPolicyResultType.BadRequest, result.Type);
                 Assert.StartsWith($"The package owner '{PackageOwner.Username}' is not enabled to use federated credentials.", result.UserMessage);
 
-                AssertFailedCreateAudit(
+                AssertBadRequest(
                     CurrentUser,
                     PackageOwner,
                     FederatedCredentialType.EntraIdServicePrincipal,
@@ -98,12 +98,12 @@ namespace NuGetGallery.Services.Authentication
                 var result = await Target.AddEntraIdServicePrincipalPolicyAsync(CurrentUser, PackageOwner, EntraIdServicePrincipalCriteria);
 
                 // Assert
-                Assert.Equal(AddFederatedCredentialPolicyResultType.BadRequest, result.Type);
+                Assert.Equal(AddFederatedCredentialPolicyResultType.Unauthorized, result.Type);
                 Assert.StartsWith($"The Entra ID tenant '{EntraIdServicePrincipalCriteria.TenantId}' is not in the allow list.", result.UserMessage);
 
                 Assert.Empty(FederatedCredentialRepository.Invocations);
 
-                AssertFailedCreateAudit(
+                AssertUnauthorized(
                     CurrentUser,
                     PackageOwner,
                     FederatedCredentialType.EntraIdServicePrincipal,
@@ -168,10 +168,10 @@ namespace NuGetGallery.Services.Authentication
                 var result = await Target.AddTrustedPublishingPolicyAsync(CurrentUser, PackageOwner, PolicyName, PolicyType, PolicyCriteria);
 
                 // Assert
-                Assert.Equal(AddFederatedCredentialPolicyResultType.BadRequest, result.Type);
+                Assert.Equal(AddFederatedCredentialPolicyResultType.Unauthorized, result.Type);
                 Assert.StartsWith($"The user '{CurrentUser.Username}' does not have the required permissions", result.UserMessage);
 
-                AssertFailedCreateAudit(
+                AssertUnauthorized(
                     CurrentUser,
                     PackageOwner,
                     PolicyType,
@@ -192,7 +192,7 @@ namespace NuGetGallery.Services.Authentication
                 Assert.Equal(AddFederatedCredentialPolicyResultType.BadRequest, result.Type);
                 Assert.StartsWith("Trusted Publishing is not enabled", result.UserMessage);
 
-                AssertFailedCreateAudit(
+                AssertBadRequest(
                     CurrentUser,
                     PackageOwner,
                     PolicyType,
@@ -749,16 +749,32 @@ namespace NuGetGallery.Services.Authentication
             AuditingService.Verify(x => x.SaveAuditRecordAsync(It.IsAny<AuditRecord>()), Times.Never);
         }
 
-        protected void AssertFailedCreateAudit(User createdBy, User packageOwner, FederatedCredentialType policyType, string criteria, string failureReason)
+        protected void AssertBadRequest(User createdBy, User packageOwner, FederatedCredentialType policyType, string criteria, string failureReason)
         {
             var audits = AssertAuditResourceTypes(FederatedCredentialPolicyAuditRecord.ResourceType);
             var policyAudit = Assert.IsType<FederatedCredentialPolicyAuditRecord>(audits[0]);
-            Assert.Equal(AuditedFederatedCredentialPolicyAction.FailedToCreate, policyAudit.Action);
+            Assert.Equal(AuditedFederatedCredentialPolicyAction.BadRequest, policyAudit.Action);
 
             // Verify the audit record was created with the expected parameters
             AuditingService.Verify(x => x.SaveAuditRecordAsync(
                 It.Is<FederatedCredentialPolicyAuditRecord>(audit =>
-                    audit.Action == AuditedFederatedCredentialPolicyAction.FailedToCreate &&
+                    audit.Action == AuditedFederatedCredentialPolicyAction.BadRequest &&
+                    audit.Type == policyType.ToString() &&
+                    audit.Criteria == criteria &&
+                    audit.ErrorMessage == failureReason
+                )), Times.Once);
+        }
+
+        protected void AssertUnauthorized(User createdBy, User packageOwner, FederatedCredentialType policyType, string criteria, string failureReason)
+        {
+            var audits = AssertAuditResourceTypes(FederatedCredentialPolicyAuditRecord.ResourceType);
+            var policyAudit = Assert.IsType<FederatedCredentialPolicyAuditRecord>(audits[0]);
+            Assert.Equal(AuditedFederatedCredentialPolicyAction.Unauthorized, policyAudit.Action);
+
+            // Verify the audit record was created with the expected parameters
+            AuditingService.Verify(x => x.SaveAuditRecordAsync(
+                It.Is<FederatedCredentialPolicyAuditRecord>(audit =>
+                    audit.Action == AuditedFederatedCredentialPolicyAction.Unauthorized &&
                     audit.Type == policyType.ToString() &&
                     audit.Criteria == criteria &&
                     audit.ErrorMessage == failureReason

@@ -52,9 +52,14 @@ namespace NuGetGallery.Auditing
         Update,
 
         /// <summary>
-        /// Failure to create a federated credential policy.
+        /// Bad request occurred while creating a <see cref="FederatedCredentialPolicy"/>.
         /// </summary>
-        FailedToCreate,
+        BadRequest,
+
+        /// <summary>
+        /// Unauthorized request while creating a <see cref="FederatedCredentialPolicy"/>.
+        /// </summary>
+        Unauthorized,
     }
 
     public class FederatedCredentialPolicyAuditRecord : AuditRecord<AuditedFederatedCredentialPolicyAction>
@@ -218,7 +223,7 @@ namespace NuGetGallery.Auditing
                 externalCredential: null);
         }
 
-        public static FederatedCredentialPolicyAuditRecord FailedToCreate(
+        public static FederatedCredentialPolicyAuditRecord BadRequest(
             FederatedCredentialType type,
             User createdBy,
             User packageOwner,
@@ -226,8 +231,29 @@ namespace NuGetGallery.Auditing
             string errorMessage)
         {
             return new FederatedCredentialPolicyAuditRecord(
-                AuditedFederatedCredentialPolicyAction.FailedToCreate,
-                0, // no DB keys for failed-to-create policies
+                AuditedFederatedCredentialPolicyAction.BadRequest,
+                0, // no DB policy key
+                type,
+                createdBy,
+                packageOwner,
+                criteria,
+                success: false,
+                federatedCredential: null,
+                apiKeyCredentials: [],
+                externalCredential: null,
+                errorMessage: errorMessage);
+        }
+
+        public static FederatedCredentialPolicyAuditRecord Unauthorized(
+            FederatedCredentialType type,
+            User createdBy,
+            User packageOwner,
+            string criteria,
+            string errorMessage)
+        {
+            return new FederatedCredentialPolicyAuditRecord(
+                AuditedFederatedCredentialPolicyAction.Unauthorized,
+                0, // no DB policy key
                 type,
                 createdBy,
                 packageOwner,
