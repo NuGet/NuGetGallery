@@ -714,6 +714,39 @@ public class TheGenerateTrustedPublisherPolicyAction : TestContainer
         Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
         Assert.Equal("Something went wrong", (string)result.Data);
     }
+
+    [Fact]
+    public async Task WhenFederatedCredentialServiceReturnsUnauthorizes_ReturnsUnauthorizedWithUserMessage()
+    {
+        // Arrange
+        GetMock<IFeatureFlagService>()
+            .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
+            .Returns(true);
+
+        var user = TestUtility.FakeUser;
+        var controller = GetController<UsersController>();
+        controller.SetCurrentUser(user);
+
+        GetMock<IUserService>()
+            .Setup(u => u.FindByUsername(user.Username, false))
+            .Returns(user);
+
+        var policyResult = AddFederatedCredentialPolicyResult.Unauthorized("Something went wrong");
+
+        GetMock<IFederatedCredentialService>()
+            .Setup(s => s.AddTrustedPublishingPolicyAsync(user, user, "Test Policy", FederatedCredentialType.GitHubActions, It.IsAny<string>()))
+            .ReturnsAsync(policyResult);
+
+        // Act
+        var result = await controller.GenerateTrustedPublisherPolicy(
+            policyName: "Test Policy",
+            owner: user.Username,
+            criteria: """{"RepositoryOwner":"repoOwner","Repository":"repo","WorkflowFile":"a.yml"}""");
+
+        // Assert
+        Assert.Equal((int)HttpStatusCode.Unauthorized, controller.Response.StatusCode);
+        Assert.Equal("Something went wrong", (string)result.Data);
+    }
 }
 
 public class TheEditTrustedPublisherPolicyAction : TestContainer

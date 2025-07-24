@@ -12,6 +12,7 @@ namespace NuGetGallery.Services.Authentication
     {
         Created,
         BadRequest,
+        Unauthorized,
     }
 
     public class AddFederatedCredentialPolicyResult
@@ -38,5 +39,8 @@ namespace NuGetGallery.Services.Authentication
 
         public static AddFederatedCredentialPolicyResult BadRequest(string userMessage)
             => new AddFederatedCredentialPolicyResult(AddFederatedCredentialPolicyResultType.BadRequest, userMessage);
+
+        public static AddFederatedCredentialPolicyResult Unauthorized(string userMessage)
+            => new AddFederatedCredentialPolicyResult(AddFederatedCredentialPolicyResultType.Unauthorized, userMessage);
     }
 }

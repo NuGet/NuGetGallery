@@ -138,12 +138,40 @@ namespace NuGetGallery.Services.Authentication
 
         public async Task<AddFederatedCredentialPolicyResult> AddEntraIdServicePrincipalPolicyAsync(User createdBy, User packageOwner, EntraIdServicePrincipalCriteria criteria)
         {
-            if (createdBy is Organization)
+            var result = await AddEntraIdServicePrincipalPolicyInternalAsync(createdBy, packageOwner, criteria);
+            switch (result.Type)
             {
-                return AddFederatedCredentialPolicyResult.BadRequest(
-                    $"Policy user '{createdBy.Username}' is an organization. Creating federated credential trust policies for organizations is not supported.");
+                case AddFederatedCredentialPolicyResultType.BadRequest:
+                    await _auditingService.SaveAuditRecordAsync(FederatedCredentialPolicyAuditRecord.BadRequest(
+                        FederatedCredentialType.EntraIdServicePrincipal,
+                        createdBy,
+                        packageOwner,
+                        JsonSerializer.Serialize(criteria),
+                        result.UserMessage));
+                    break;
+
+                case AddFederatedCredentialPolicyResultType.Unauthorized:
+                    await _auditingService.SaveAuditRecordAsync(FederatedCredentialPolicyAuditRecord.Unauthorized(
+                        FederatedCredentialType.EntraIdServicePrincipal,
+                        createdBy,
+                        packageOwner,
+                        JsonSerializer.Serialize(criteria),
+                        result.UserMessage));
+                    break;
+
+                case AddFederatedCredentialPolicyResultType.Created:
+                    // For successful policy creation audit is logged in AddPolicyAsync.
+                    break;
+
+                default:
+                    throw new NotImplementedException($"Unexpected result type: {result.Type}");
             }
 
+            return result;
+        }
+
+        private async Task<AddFederatedCredentialPolicyResult> AddEntraIdServicePrincipalPolicyInternalAsync(User createdBy, User packageOwner, EntraIdServicePrincipalCriteria criteria)
+        {
             if (!_featureFlagService.CanUseFederatedCredentials(packageOwner))
             {
                 return AddFederatedCredentialPolicyResult.BadRequest(NotInFlightMessage(packageOwner));
@@ -151,7 +179,7 @@ namespace NuGetGallery.Services.Authentication
 
             if (!_entraIdTokenValidator.IsTenantAllowed(criteria.TenantId))
             {
-                return AddFederatedCredentialPolicyResult.BadRequest($"The Entra ID tenant '{criteria.TenantId}' is not in the allow list.");
+                return AddFederatedCredentialPolicyResult.Unauthorized($"The Entra ID tenant '{criteria.TenantId}' is not in the allow list.");
             }
 
             return await AddPolicyAsync(createdBy, packageOwner, null,
@@ -160,6 +188,40 @@ namespace NuGetGallery.Services.Authentication
         }
 
         public async Task<AddFederatedCredentialPolicyResult> AddTrustedPublishingPolicyAsync(User createdBy, User packageOwner, string? policyName, FederatedCredentialType policyType, string criteria)
+        {
+            var result = await AddTrustedPublishingPolicyInternalAsync(createdBy, packageOwner, policyName, policyType, criteria);
+            switch (result.Type)
+            {
+                case AddFederatedCredentialPolicyResultType.BadRequest:
+                    await _auditingService.SaveAuditRecordAsync(FederatedCredentialPolicyAuditRecord.BadRequest(
+                        policyType,
+                        createdBy,
+                        packageOwner,
+                        criteria,
+                        result.UserMessage));
+                    break;
+
+                case AddFederatedCredentialPolicyResultType.Unauthorized:
+                    await _auditingService.SaveAuditRecordAsync(FederatedCredentialPolicyAuditRecord.Unauthorized(
+                        policyType,
+                        createdBy,
+                        packageOwner,
+                        criteria,
+                        result.UserMessage));
+                    break;
+
+                case AddFederatedCredentialPolicyResultType.Created:
+                    // For successful policy creation audit is logged in AddPolicyAsync.
+                    break;
+
+                default:
+                    throw new NotImplementedException($"Unexpected result type: {result.Type}");
+            }
+
+            return result;
+        }
+
+        private async Task<AddFederatedCredentialPolicyResult> AddTrustedPublishingPolicyInternalAsync(User createdBy, User packageOwner, string? policyName, FederatedCredentialType policyType, string criteria)
         {
             if (!_featureFlagService.IsTrustedPublishingEnabled(createdBy))
             {
@@ -170,11 +232,25 @@ namespace NuGetGallery.Services.Authentication
             return await AddPolicyAsync(createdBy, packageOwner, policyName, policyType, criteria);
         }
 
+        /// <summary>
+        /// Adds a new federated credential policy for the specified user and package owner. 
+        /// The policy defines the trust relationship and scoping for federated credential authentication.
+        /// </summary>
+        /// <remarks>
+        /// An audit record is generated and saved if the policy is successfully created.
+        /// No audit record is created for unsuccessful attempts.
+        /// </remarks>
         private async Task<AddFederatedCredentialPolicyResult> AddPolicyAsync(User createdBy, User packageOwner, string? policyName, FederatedCredentialType policyType, string criteria)
         {
-            if (!IsValidPolicyOwner(createdBy, packageOwner))
+            if (createdBy is Organization)
             {
                 return AddFederatedCredentialPolicyResult.BadRequest(
+                    $"Policy user '{createdBy.Username}' is an organization. Creating federated credential trust policies for organizations is not supported.");
+            }
+
+            if (!IsValidPolicyOwner(createdBy, packageOwner))
+            {
+                return AddFederatedCredentialPolicyResult.Unauthorized(
                     $"The user '{createdBy.Username}' does not have the required permissions to add a federated credential policy for package owner '{packageOwner.Username}'.");
             }
 
@@ -247,7 +323,7 @@ namespace NuGetGallery.Services.Authentication
             => _repository.GetPoliciesCreatedByUser(userKey);
 
         public FederatedCredentialPolicy? GetPolicyByKey(int policyKey)
-            =>  _repository.GetPolicyByKey(policyKey);
+            => _repository.GetPolicyByKey(policyKey);
 
         public IReadOnlyList<FederatedCredentialPolicy> GetPoliciesRelatedToUserKeys(IReadOnlyList<int> userKeys)
             => _repository.GetPoliciesRelatedToUserKeys(userKeys);
