@@ -27,19 +27,11 @@ namespace NuGet.Services.ServiceBus
                 return new ServiceBusClient(connectionString);
             }
 
-            TokenCredential credential;
-            if (string.IsNullOrWhiteSpace(managedIdentityClientId))
-            {
 #if DEBUG
-                credential = new DefaultAzureCredential();
+            TokenCredential credential = new DefaultAzureCredential();
 #else
-                throw new InvalidOperationException("Managed identity client ID is not set.");
+            TokenCredential credential = new ManagedIdentityCredential(managedIdentityClientId);
 #endif
-            }
-            else
-            {
-                credential = new ManagedIdentityCredential(managedIdentityClientId);
-            }
 
             if (Uri.TryCreate(connectionString, UriKind.Absolute, out var uri) && uri.Scheme == "sb")
             {

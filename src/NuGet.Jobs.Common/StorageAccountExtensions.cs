@@ -175,25 +175,18 @@ namespace NuGet.Jobs
         {
             if (msiConfiguration.UseManagedIdentity)
             {
-                if (string.IsNullOrWhiteSpace(msiConfiguration.ManagedIdentityClientId))
-                {
 #if DEBUG
-                    return CloudBlobClientWrapper.UsingDefaultAzureCredential(
-                        storageConnectionString,
-                        readAccessGeoRedundant: readAccessGeoRedundant,
-                        requestTimeout: requestTimeout);
+                return CloudBlobClientWrapper.UsingDefaultAzureCredential(
+                    storageConnectionString,
+                    readAccessGeoRedundant: readAccessGeoRedundant,
+                    requestTimeout: requestTimeout);
 #else
-                    throw new InvalidOperationException("Managed identity client ID is not set.");
+                return CloudBlobClientWrapper.UsingMsi(
+                    storageConnectionString,
+                    msiConfiguration.ManagedIdentityClientId,
+                    readAccessGeoRedundant,
+                    requestTimeout);
 #endif
-                }
-                else
-                {
-                    return CloudBlobClientWrapper.UsingMsi(
-                        storageConnectionString,
-                        msiConfiguration.ManagedIdentityClientId,
-                        readAccessGeoRedundant,
-                        requestTimeout);
-                }
             }
 
             return new CloudBlobClientWrapper(

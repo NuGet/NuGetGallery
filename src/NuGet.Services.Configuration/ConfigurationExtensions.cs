@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation. All rights reserved. 
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information. 
 
-using System;
 using Azure.Core;
 using Azure.Identity;
 using Microsoft.Extensions.Configuration;
@@ -14,15 +13,10 @@ namespace NuGet.Services.Configuration
         {
             string clientId = configuration[Constants.ManagedIdentityClientIdKey];
 
-            if (!string.IsNullOrWhiteSpace(clientId))
-            {
-                return new ManagedIdentityCredential(clientId);
-            }
-
 #if DEBUG
             return new DefaultAzureCredential();
 #else
-            throw new InvalidOperationException("Managed identity client ID is not set.");
+            return new ManagedIdentityCredential(clientId);
 #endif
         }
     }

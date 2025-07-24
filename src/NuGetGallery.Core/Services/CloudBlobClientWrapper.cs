@@ -79,11 +79,7 @@ namespace NuGetGallery
             TimeSpan? requestTimeout = null)
         {
 #if DEBUG
-            var options = new DefaultAzureCredentialOptions
-            {
-                ManagedIdentityClientId = clientId,
-            };
-            var tokenCredential = new DefaultAzureCredential(options);
+            var tokenCredential = new DefaultAzureCredential();
             return new CloudBlobClientWrapper(storageConnectionString, tokenCredential, readAccessGeoRedundant, requestTimeout);
 #else
             throw new InvalidOperationException("DefaultAzureCredential is only supported in DEBUG builds.");
