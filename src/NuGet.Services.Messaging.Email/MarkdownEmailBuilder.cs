@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using Markdig;
 using NuGet.Services.Messaging.Email.Internal;
 
@@ -13,9 +14,10 @@ namespace NuGet.Services.Messaging.Email
     /// </summary>
     public abstract class MarkdownEmailBuilder : EmailBuilder
     {
-        private static readonly IReadOnlyList<string> SpecialMarkdownChars =
+        // https://www.markdownguide.org/basic-syntax/#characters-you-can-escape
+        private static readonly HashSet<char> SpecialMarkdownChars =
         [
-            "\\", "`", "*", "_", "{", "}", "[", "]", "<", ">", "(", ")", "#", "+", "-", ".", "!", "|"
+            '\\', '`', '*', '_', '{', '}', '[', ']', '<', '>', '(', ')', '#', '+', '-', '.', '!', '|'
         ];
 
         protected override string GetPlainTextBody()
@@ -54,12 +56,18 @@ namespace NuGet.Services.Messaging.Email
                 return text;
             }
 
-            foreach (var ch in SpecialMarkdownChars)
+            StringBuilder sb = new(text.Length + 10);
+            foreach (char c in text)
             {
-                text = text.Replace(ch, "\\" + ch);
+                if (SpecialMarkdownChars.Contains(c))
+                {
+                    sb.Append('\\');
+                }
+
+                sb.Append(c);
             }
 
-            return text;
+            return sb.ToString();
         }
     }
 }
