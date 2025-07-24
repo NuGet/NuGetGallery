@@ -160,6 +160,7 @@ namespace NuGetGallery.Services.Authentication
                     break;
 
                 case AddFederatedCredentialPolicyResultType.Created:
+                    // For successful policy creation audit is logged in AddPolicyAsync.
                     break;
 
                 default:
@@ -210,6 +211,7 @@ namespace NuGetGallery.Services.Authentication
                     break;
 
                 case AddFederatedCredentialPolicyResultType.Created:
+                    // For successful policy creation audit is logged in AddPolicyAsync.
                     break;
 
                 default:
@@ -230,6 +232,14 @@ namespace NuGetGallery.Services.Authentication
             return await AddPolicyAsync(createdBy, packageOwner, policyName, policyType, criteria);
         }
 
+        /// <summary>
+        /// Adds a new federated credential policy for the specified user and package owner. 
+        /// The policy defines the trust relationship and scoping for federated credential authentication.
+        /// </summary>
+        /// <remarks>
+        /// An audit record is generated and saved if the policy is successfully created.
+        /// No audit record is created for unsuccessful attempts.
+        /// </remarks>
         private async Task<AddFederatedCredentialPolicyResult> AddPolicyAsync(User createdBy, User packageOwner, string? policyName, FederatedCredentialType policyType, string criteria)
         {
             if (createdBy is Organization)

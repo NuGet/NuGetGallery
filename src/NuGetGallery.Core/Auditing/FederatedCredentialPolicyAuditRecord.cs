@@ -91,7 +91,7 @@ namespace NuGetGallery.Auditing
 
         private FederatedCredentialPolicyAuditRecord(
             AuditedFederatedCredentialPolicyAction action,
-            int key,
+            int? key,
             FederatedCredentialType type,
             User createdBy,
             User packageOwner,
@@ -115,7 +115,7 @@ namespace NuGetGallery.Auditing
             ErrorMessage = errorMessage;
         }
 
-        public int Key { get; }
+        public int? Key { get; }
         public string Type { get; }
         public string Criteria { get; }
         public string CreatedByUsername { get; }
@@ -232,7 +232,7 @@ namespace NuGetGallery.Auditing
         {
             return new FederatedCredentialPolicyAuditRecord(
                 AuditedFederatedCredentialPolicyAction.BadRequest,
-                0, // no DB policy key
+                null, // no DB policy key
                 type,
                 createdBy,
                 packageOwner,
@@ -253,7 +253,7 @@ namespace NuGetGallery.Auditing
         {
             return new FederatedCredentialPolicyAuditRecord(
                 AuditedFederatedCredentialPolicyAction.Unauthorized,
-                0, // no DB policy key
+                null, // no DB policy key
                 type,
                 createdBy,
                 packageOwner,
@@ -267,7 +267,7 @@ namespace NuGetGallery.Auditing
 
         public override string GetPath()
         {
-            return $"{Type}/{Key}";
+            return $"{Type}/{Key?.ToString() ?? "no-key"}";
         }
     }
 }
