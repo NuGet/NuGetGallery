@@ -602,6 +602,7 @@ namespace NuGetGallery
                 .Register(c => new EntraIdTokenPolicyValidator(
                     c.ResolveKeyed<ConfigurationManager<OpenIdConnectConfiguration>>(EntraIdKey),
                     c.Resolve<IFederatedCredentialConfiguration>(),
+                    c.Resolve<IFeatureFlagService>(),
                     c.Resolve<JsonWebTokenHandler>()))
                 .As<IEntraIdTokenValidator>()
                 .As<ITokenPolicyValidator>()
@@ -613,6 +614,7 @@ namespace NuGetGallery
                     c.ResolveKeyed<ConfigurationManager<OpenIdConnectConfiguration>>(GitHubActionsKey),
                     c.Resolve<IFederatedCredentialConfiguration>(),
                     c.Resolve<IAuditingService>(),
+                    c.Resolve<IFeatureFlagService>(),
                     c.Resolve<JsonWebTokenHandler>()
                     ))
                 .As<ITokenPolicyValidator>()

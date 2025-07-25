@@ -458,11 +458,6 @@ namespace NuGetGallery.Services.Authentication
                 return error;
             }
 
-            if (!_featureFlagService.CanUseFederatedCredentials(packageOwner))
-            {
-                return GenerateApiKeyResult.BadRequest(NotInFlightMessage(packageOwner));
-            }
-
             return null;
         }
 

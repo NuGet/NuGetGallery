@@ -240,7 +240,8 @@ namespace NuGetGallery.Services.Authentication
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.EntraIdServicePrincipal,
-                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId))
+                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId)),
+                    PackageOwner = PackageOwner
                 };
 
                 var claims = new Dictionary<string, object>
@@ -272,7 +273,8 @@ namespace NuGetGallery.Services.Authentication
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.EntraIdServicePrincipal,
-                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId))
+                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId)),
+                    PackageOwner = PackageOwner
                 };
 
                 var claims = new Dictionary<string, object>
@@ -303,7 +305,8 @@ namespace NuGetGallery.Services.Authentication
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.EntraIdServicePrincipal,
-                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId))
+                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId)),
+                    PackageOwner = PackageOwner
                 };
 
                 var claims = new Dictionary<string, object>
@@ -334,7 +337,8 @@ namespace NuGetGallery.Services.Authentication
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.EntraIdServicePrincipal,
-                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId))
+                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId)),
+                    PackageOwner = PackageOwner
                 };
 
                 var claims = new Dictionary<string, object>
@@ -365,7 +369,8 @@ namespace NuGetGallery.Services.Authentication
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.EntraIdServicePrincipal,
-                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId))
+                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId)),
+                    PackageOwner = PackageOwner
                 };
 
                 var claims = new Dictionary<string, object>
@@ -396,7 +401,8 @@ namespace NuGetGallery.Services.Authentication
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.EntraIdServicePrincipal,
-                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId))
+                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId)),
+                    PackageOwner = PackageOwner
                 };
 
                 var claims = new Dictionary<string, object>
@@ -429,7 +435,8 @@ namespace NuGetGallery.Services.Authentication
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.EntraIdServicePrincipal,
-                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId))
+                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId)),
+                    PackageOwner = PackageOwner
                 };
 
                 var claims = new Dictionary<string, object>
@@ -461,7 +468,8 @@ namespace NuGetGallery.Services.Authentication
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.EntraIdServicePrincipal,
-                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId))
+                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId)),
+                    PackageOwner = PackageOwner
                 };
 
                 var claims = new Dictionary<string, object>
@@ -489,10 +497,13 @@ namespace NuGetGallery.Services.Authentication
             public async Task ReturnsSuccessForValidPolicy()
             {
                 // Arrange
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
+
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.EntraIdServicePrincipal,
-                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId))
+                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId)),
+                    PackageOwner = PackageOwner
                 };
 
                 var claims = new Dictionary<string, object>
@@ -515,13 +526,47 @@ namespace NuGetGallery.Services.Authentication
             }
 
             [Fact]
+            public async Task RejectsWhenFeatureFlagDisabled()
+            {
+                // Arrange
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(false);
+
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = FederatedCredentialType.EntraIdServicePrincipal,
+                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId)),
+                    PackageOwner = PackageOwner
+                };
+
+                var claims = new Dictionary<string, object>
+                {
+                    { "tid", TenantId.ToString() },
+                    { "oid", ObjectId.ToString() },
+                    { "sub", ObjectId.ToString() },
+                    { "azpacr", "2" },
+                    { "idtyp", "app" },
+                    { "ver", "2.0" },
+                };
+
+                var token = CreateToken(claims);
+
+                // Act
+                var result = await Target.EvaluatePolicyAsync(policy, token);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                Assert.Equal("The package owner 'test-user' is not enabled to use federated credentials.", result.Error);
+            }
+
+            [Fact]
             public async Task RejectsInvalidCriteriaJson()
             {
                 // Arrange
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.EntraIdServicePrincipal,
-                    Criteria = "invalid"
+                    Criteria = "invalid",
+                    PackageOwner = PackageOwner
                 };
 
                 var claims = new Dictionary<string, object>
@@ -549,11 +594,14 @@ namespace NuGetGallery.Services.Authentication
                 ConfigurationRetriever.Object);
             JsonWebTokenHandler = new Mock<JsonWebTokenHandler>();
             Configuration = new Mock<IFederatedCredentialConfiguration>();
+            FeatureFlagService = new Mock<IFeatureFlagService>();
 
             TenantId = new Guid("c311b905-19a2-483e-a014-41d0fcdc99cf");
             ObjectId = new Guid("d17083b8-74e0-46c6-b69f-764da2e6fc0e");
             Issuer = $"https://login.microsoftonline.com/{TenantId}/v2.0";
             AllowedTenantIds = [TenantId.ToString()];
+
+            PackageOwner = new User("test-user");
 
             Configuration.Setup(x => x.EntraIdAudience).Returns("nuget-audience");
             Configuration.Setup(x => x.AllowedEntraIdTenants).Returns(() => AllowedTenantIds);
@@ -561,6 +609,7 @@ namespace NuGetGallery.Services.Authentication
             Target = new EntraIdTokenPolicyValidator(
                 OidcConfigManager.Object,
                 Configuration.Object,
+                FeatureFlagService.Object,
                 JsonWebTokenHandler.Object);
         }
 
@@ -569,10 +618,12 @@ namespace NuGetGallery.Services.Authentication
         public Mock<ConfigurationManager<OpenIdConnectConfiguration>> OidcConfigManager { get; }
         public Mock<JsonWebTokenHandler> JsonWebTokenHandler { get; }
         public Mock<IFederatedCredentialConfiguration> Configuration { get; }
+        public Mock<IFeatureFlagService> FeatureFlagService { get; }
         public Guid TenantId { get; }
         public Guid ObjectId { get; }
         public string Issuer { get; set; }
         public string[] AllowedTenantIds { get; set; }
+        public User PackageOwner { get; }
 
         public JsonWebToken Token
         {
