@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using Newtonsoft.Json;
@@ -23,16 +22,17 @@ namespace NuGetGallery
     [DebuggerDisplay("{RepositoryOwner,nq}/{Repository,nq}/.github/workflows/{WorkflowFile,nq}")]
     public sealed class GitHubPolicyDetailsViewModel : TrustedPublisherPolicyDetailsViewModel
     {
-        public const int ValidationExpirationDays = 7;
+        public const int ValidationExpirationDays = GitHubCriteria.ValidationExpirationDays;
 
-        private readonly GitHubCriteria _criteria;
 
         public GitHubPolicyDetailsViewModel(GitHubCriteria criteria)
         {
-            _criteria = criteria ?? new GitHubCriteria();
+            Criteria = criteria ?? new GitHubCriteria();
         }
 
         public override FederatedCredentialType PublisherType => FederatedCredentialType.GitHubActions;
+
+        public GitHubCriteria Criteria { get; }
 
         /// <summary>
         /// GitHub organization/owner name.
@@ -40,8 +40,8 @@ namespace NuGetGallery
         [Required]
         public string RepositoryOwner
         {
-            get => _criteria.RepositoryOwner;
-            set => _criteria.RepositoryOwner = value;
+            get => Criteria.RepositoryOwner;
+            set => Criteria.RepositoryOwner = value;
         }
 
         /// <summary>
@@ -49,8 +49,8 @@ namespace NuGetGallery
         /// </summary>
         public string? RepositoryOwnerId
         {
-            get => _criteria.RepositoryOwnerId ?? string.Empty;
-            set => _criteria.RepositoryOwnerId = value;
+            get => Criteria.RepositoryOwnerId ?? string.Empty;
+            set => Criteria.RepositoryOwnerId = value;
         }
 
         /// <summary>
@@ -59,8 +59,8 @@ namespace NuGetGallery
         [Required]
         public string Repository
         {
-            get => _criteria.Repository;
-            set => _criteria.Repository = value;
+            get => Criteria.Repository;
+            set => Criteria.Repository = value;
         }
 
         /// <summary>
@@ -68,8 +68,8 @@ namespace NuGetGallery
         /// </summary>
         public string? RepositoryId
         {
-            get => _criteria.RepositoryId;
-            set => _criteria.RepositoryId = value;
+            get => Criteria.RepositoryId;
+            set => Criteria.RepositoryId = value;
         }
 
         /// <summary>
@@ -78,8 +78,8 @@ namespace NuGetGallery
         [Required]
         public string WorkflowFile
         {
-            get => _criteria.WorkflowFile;
-            set => _criteria.WorkflowFile = value;
+            get => Criteria.WorkflowFile;
+            set => Criteria.WorkflowFile = value;
         }
 
         /// <summary>
@@ -87,8 +87,8 @@ namespace NuGetGallery
         /// </summary>
         public string? Environment
         {
-            get => _criteria.Environment;
-            set => _criteria.Environment = value;
+            get => Criteria.Environment;
+            set => Criteria.Environment = value;
         }
 
         /// <summary>
@@ -101,85 +101,16 @@ namespace NuGetGallery
         /// </remarks>
         public DateTimeOffset? ValidateByDate
         {
-            get => _criteria.ValidateByDate;
-            set => _criteria.ValidateByDate = value;
+            get => Criteria.ValidateByDate;
+            set => Criteria.ValidateByDate = value;
         }
 
         /// <summary>
         /// GitHub policy is considered validated when owner and repo IDs are set.
         /// </summary>
-        public bool IsPermanentlyEnabled => !string.IsNullOrEmpty(RepositoryOwnerId) && !string.IsNullOrEmpty(RepositoryId);
+        public bool IsPermanentlyEnabled => Criteria.IsPermanentlyEnabled;
 
-        public int EnabledDaysLeft
-        {
-            get
-            {
-                if (IsPermanentlyEnabled)
-                {
-                    return int.MaxValue; // Permanently enabled, no expiration.
-                }
-
-                if (ValidateByDate.HasValue)
-                {
-                    var daysLeft = Math.Ceiling((ValidateByDate.Value - DateTimeOffset.UtcNow).TotalDays);
-                    return Math.Max((int)daysLeft, 0); // Ensure non-negative days left.
-                }
-
-                return 0;
-            }
-        }
-
-        public override string? Validate()
-        {
-            InitializeValidateByDate();
-            return ValidateInternal();
-        }
-
-        private string? ValidateInternal()
-        {
-            var errors = new List<string>();
-
-            if (string.IsNullOrEmpty(RepositoryOwner))
-            {
-                errors.Add(Strings.GitHub_OwnerRequired);
-            }
-
-            if (string.IsNullOrEmpty(Repository))
-            {
-                errors.Add(Strings.GitHub_RepositoryRequired);
-            }
-
-            if (string.IsNullOrEmpty(WorkflowFile))
-            {
-                errors.Add(Strings.GitHub_WorkflowFileRequired);
-            }
-
-
-            return errors.Count > 0 ? string.Join(", ", errors) : null;
-        }
-
-        internal void InitializeValidateByDate()
-        {
-            if (!IsPermanentlyEnabled)
-            {
-                // Make sure we have both or nothing, owner and repo IDs. Round date to the hour.
-                RepositoryOwnerId = RepositoryId = string.Empty;
-                DateTimeOffset date = DateTimeOffset.UtcNow + TimeSpan.FromDays(ValidationExpirationDays);
-                ValidateByDate = new DateTimeOffset(date.Year, date.Month, date.Day, date.Hour, 0, 0, TimeSpan.Zero);
-            }
-            else
-            {
-                ValidateByDate = null;
-            }
-        }
-
-        /// <inheritdoc />
-        public override TrustedPublisherPolicyDetailsViewModel Update(string viewJson)
-        {
-            var model = new GitHubPolicyDetailsViewModel(_criteria.Clone());
-            model.UpdateFromViewJson(viewJson);
-            return model;
-        }
+        public int EnabledDaysLeft => Criteria.EnabledDaysLeft;
 
         public static GitHubPolicyDetailsViewModel FromViewJson(string json)
         {
@@ -221,14 +152,12 @@ namespace NuGetGallery
             }
         }
 
-        public override string ToDatabaseJson() => _criteria.ToDatabaseJson();
-
         public static GitHubPolicyDetailsViewModel FromDatabaseJson(string json)
         {
             var criteria = GitHubCriteria.FromDatabaseJson(json);
             var properties = JObject.Parse(json);
             var model = new GitHubPolicyDetailsViewModel(criteria);
-            if (model.ValidateInternal() is string error)
+            if (criteria.Validate() is string error)
             {
                 throw new InvalidOperationException($"Invalid GitHub policy details: {error}");
             }

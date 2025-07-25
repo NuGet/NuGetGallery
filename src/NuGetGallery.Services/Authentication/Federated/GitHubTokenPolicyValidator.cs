@@ -57,6 +57,42 @@ namespace NuGetGallery.Services.Authentication
         public override string IssuerAuthority => Authority;
         public override FederatedCredentialIssuerType IssuerType => FederatedCredentialIssuerType.GitHubActions;
 
+        public override FederatedCredentialPolicyValidationResult ValidatePolicy(FederatedCredentialPolicy policy)
+        {
+            if (policy.Type != FederatedCredentialType.GitHubActions)
+            {
+                return FederatedCredentialPolicyValidationResult.BadRequest($"Invalid policy type '{policy.Type}' for GitHub Actions validation", null);
+            }
+
+            if (!_featureFlagService.IsTrustedPublishingEnabled(policy.CreatedBy))
+            {
+                return FederatedCredentialPolicyValidationResult.BadRequest(
+                    $"Trusted Publishing is not enabled for '{policy.CreatedBy.Username}'.",
+                    nameof(FederatedCredentialPolicy.CreatedBy));
+            }
+
+            if (string.IsNullOrWhiteSpace(policy.PolicyName))
+            {
+                return FederatedCredentialPolicyValidationResult.BadRequest(
+                    $"The policy name is required.",
+                    nameof(FederatedCredentialPolicy.PolicyName));
+            }
+
+            // Ensure consistent ValidateByDate. Note that for temporary GitHub Actions policies
+            // we always reset it on each update (to 7 days from now). 
+            GitHubCriteria gitHubCriteria = GitHubCriteria.FromDatabaseJson(policy.Criteria);
+            gitHubCriteria.InitializeValidateByDate();
+            policy.Criteria = gitHubCriteria.ToDatabaseJson();
+
+            if (gitHubCriteria.Validate() is string error)
+            {
+                return FederatedCredentialPolicyValidationResult.BadRequest(error,
+                    nameof(FederatedCredentialPolicy.Criteria));
+            }
+
+            return base.ValidatePolicy(policy);
+        }
+
         public override async Task<TokenValidationResult> ValidateTokenAsync(JsonWebToken jwt)
         {
             if (string.IsNullOrWhiteSpace(_configuration.NuGetAudience))
