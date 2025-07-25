@@ -583,7 +583,7 @@ namespace NuGetGallery
 
             builder
                 .RegisterType<JsonWebTokenHandler>()
-                .InstancePerDependency();
+                .InstancePerLifetimeScope();
 
             builder
                 .Register(c =>
@@ -595,7 +595,7 @@ namespace NuGetGallery
                     }).ToList();
                 })
                 .As<IReadOnlyList<IFederatedCredentialValidator>>() // a singleton, materialized list
-                .SingleInstance();
+                .InstancePerLifetimeScope();
 
             // Register individual validators
             builder
@@ -605,7 +605,7 @@ namespace NuGetGallery
                     c.Resolve<JsonWebTokenHandler>()))
                 .As<IEntraIdTokenValidator>()
                 .As<ITokenPolicyValidator>()
-                .SingleInstance();
+                .InstancePerLifetimeScope();
 
             builder
                 .Register(c => new GitHubTokenPolicyValidator(
@@ -616,12 +616,12 @@ namespace NuGetGallery
                     c.Resolve<JsonWebTokenHandler>()
                     ))
                 .As<ITokenPolicyValidator>()
-                .SingleInstance();
+                .InstancePerLifetimeScope();
 
             builder
                 .RegisterType<FederatedCredentialPolicyEvaluator>()
                 .As<IFederatedCredentialPolicyEvaluator>()
-                .InstancePerDependency();
+                .InstancePerLifetimeScope();
 
             builder
                 .RegisterType<FederatedCredentialService>()
