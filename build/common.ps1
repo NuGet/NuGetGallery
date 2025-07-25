@@ -616,6 +616,21 @@ Function Get-PackageVersion() {
     [string]"$SemanticVersion-$ReleaseLabel$BuildNumber"
 }
 
+Function Test-SdkStyleProject {
+    [CmdletBinding()]
+    param(
+        [string]$ProjectPath
+    )
+    
+    if (-not (Test-Path $ProjectPath)) {
+        return $false
+    }
+    
+    # Check if the project file contains SDK attribute which indicates SDK-style project
+    $firstLine = Get-Content $ProjectPath -TotalCount 1
+    return $firstLine -match '<Project\s+Sdk\s*='
+}
+
 Function New-Package {
     [CmdletBinding()]
     param(
@@ -635,8 +650,9 @@ Function New-Package {
         [string[]]$NoWarn = @("NU5100", "NU5110", "NU5111", "NU5128")
     )
     Trace-Log "Creating package from @""$TargetFilePath"""
-    $opts = , 'pack'
-    $opts += $TargetFilePath
+    
+    # Check if this is an SDK-style project
+    $isSdkStyle = Test-SdkStyleProject $TargetFilePath
     
     if (-not (Test-Path $Artifacts)) {
         New-Item $Artifacts -Type Directory
@@ -646,24 +662,6 @@ Function New-Package {
     if (-not (Test-Path $OutputDir)) {
         New-Item $OutputDir -Type Directory
     }
-    $opts += '-OutputDirectory', $OutputDir
-    
-    $Properties = "Configuration=$Configuration"
-    if ($TargetProfile) {
-        $Properties += ";TargetProfile=$TargetProfile"
-    }
-    if ($Branch) {
-        $Properties += ";branch=$Branch"
-    }
-    if ($PackageId) {
-        $Properties += ";PackageId=$PackageId"
-    }
-    if ($NoWarn) {
-        $Properties += ";NoWarn=" + ($NoWarn -join ",")
-    }
-    $opts += '-Properties', $Properties
-    
-    $opts += '-MSBuildPath', (Split-Path -Path (Get-MSBuildExe $MSBuildVersion) -Parent)
     
     if (-not $BuildNumber) {
         $BuildNumber = Get-BuildNumber
@@ -676,26 +674,92 @@ Function New-Package {
         $PackageVersion = Get-PackageVersion $ReleaseLabel $BuildNumber
     }
     
-    if ($PackageVersion) {
-        $opts += '-Version', "$PackageVersion"
+    if ($isSdkStyle) {
+        # Use MSBuild for SDK-style projects
+        Trace-Log "Detected SDK-style project, using MSBuild pack target"
+        
+        $MSBuildExe = Get-MSBuildExe $MSBuildVersion
+        $opts = , $TargetFilePath
+        $opts += "/t:pack"
+        $opts += "/p:Configuration=$Configuration"
+        $opts += "/p:BuildNumber=$(Format-BuildNumber $BuildNumber)"
+        $opts += "/p:PackageOutputPath=$OutputDir"
+        $opts += "/p:NoBuild=true"
+        
+        if ($TargetProfile) {
+            $opts += "/p:TargetProfile=$TargetProfile"
+        }
+        if ($Branch) {
+            $opts += "/p:branch=$Branch"
+        }
+        if ($PackageId) {
+            $opts += "/p:PackageId=$PackageId"
+        }
+        if ($PackageVersion) {
+            $opts += "/p:PackageVersion=$PackageVersion"
+        }
+        if ($NoPackageAnalysis) {
+            $opts += '/p:NoPackageAnalysis=True'
+        }
+        if ($Symbols) {
+            $opts += "/p:IncludeSymbols=True"
+        }
+        if ($NoWarn) {
+            $opts += "/p:NoWarn=`"" + ($NoWarn -join ",") + "`""
+        }
+        
+        Trace-Log "$MSBuildExe $opts"
+        & $MSBuildExe $opts
+        if (-not $?) {
+            Error-Log "Pack failed for @""$TargetFilePath"". Code: ${LASTEXITCODE}"
+        }
     }
-    
-    if ($NoPackageAnalysis) {
-        $opts += '-NoPackageAnalysis'
-    }
-    
-    if ($Symbols) {
-        $opts += '-Symbols'
-    }
-    
-    if ($IncludeReferencedProjects) {
-        $opts += '-IncludeReferencedProjects'
-    }
-    
-    Trace-Log "$NuGetExe $opts"
-    & $NuGetExe $opts
-    if (-not $?) {
-        Error-Log "Pack failed for @""$TargetFilePath"". Code: ${LASTEXITCODE}"
+    else {
+        # Use nuget.exe for legacy projects
+        Trace-Log "Detected legacy project, using nuget.exe pack"
+        
+        $opts = , 'pack'
+        $opts += $TargetFilePath
+        $opts += '-OutputDirectory', $OutputDir
+        
+        $Properties = "Configuration=$Configuration"
+        if ($TargetProfile) {
+            $Properties += ";TargetProfile=$TargetProfile"
+        }
+        if ($Branch) {
+            $Properties += ";branch=$Branch"
+        }
+        if ($PackageId) {
+            $Properties += ";PackageId=$PackageId"
+        }
+        if ($NoWarn) {
+            $Properties += ";NoWarn=" + ($NoWarn -join ",")
+        }
+        $opts += '-Properties', $Properties
+        
+        $opts += '-MSBuildPath', (Split-Path -Path (Get-MSBuildExe $MSBuildVersion) -Parent)
+        
+        if ($PackageVersion) {
+            $opts += '-Version', "$PackageVersion"
+        }
+        
+        if ($NoPackageAnalysis) {
+            $opts += '-NoPackageAnalysis'
+        }
+        
+        if ($Symbols) {
+            $opts += '-Symbols'
+        }
+        
+        if ($IncludeReferencedProjects) {
+            $opts += '-IncludeReferencedProjects'
+        }
+        
+        Trace-Log "$NuGetExe $opts"
+        & $NuGetExe $opts
+        if (-not $?) {
+            Error-Log "Pack failed for @""$TargetFilePath"". Code: ${LASTEXITCODE}"
+        }
     }
 }
 
