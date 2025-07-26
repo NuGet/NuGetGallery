@@ -675,91 +675,69 @@ Function New-Package {
     }
     
     if ($isSdkStyle) {
-        # Use MSBuild for SDK-style projects
-        Trace-Log "Detected SDK-style project, using MSBuild pack target"
+        # Check if there's a .nuspec file with the same name as the project
+        $projectDir = Split-Path -Path $TargetFilePath -Parent
+        $projectName = [System.IO.Path]::GetFileNameWithoutExtension($TargetFilePath)
+        $nuspecPath = Join-Path $projectDir "$projectName.nuspec"
         
-        $MSBuildExe = Get-MSBuildExe $MSBuildVersion
-        $opts = , $TargetFilePath
-        $opts += "/t:pack"
-        $opts += "/p:Configuration=$Configuration"
-        $opts += "/p:BuildNumber=$(Format-BuildNumber $BuildNumber)"
-        $opts += "/p:PackageOutputPath=$OutputDir"
-        $opts += "/p:NoBuild=true"
-        
-        if ($TargetProfile) {
-            $opts += "/p:TargetProfile=$TargetProfile"
+        if (Test-Path $nuspecPath) {
+            # Use nuget.exe with .nuspec file for SDK-style projects
+            Trace-Log "Detected SDK-style project with .nuspec file, using nuget.exe pack with nuspec"
+            $packTarget = $nuspecPath
         }
-        if ($Branch) {
-            $opts += "/p:branch=$Branch"
-        }
-        if ($PackageId) {
-            $opts += "/p:PackageId=$PackageId"
-        }
-        if ($PackageVersion) {
-            $opts += "/p:PackageVersion=$PackageVersion"
-        }
-        if ($NoPackageAnalysis) {
-            $opts += '/p:NoPackageAnalysis=True'
-        }
-        if ($Symbols) {
-            $opts += "/p:IncludeSymbols=True"
-        }
-        if ($NoWarn) {
-            $opts += "/p:NoWarn=`"" + ($NoWarn -join ",") + "`""
-        }
-        
-        Trace-Log "$MSBuildExe $opts"
-        & $MSBuildExe $opts
-        if (-not $?) {
-            Error-Log "Pack failed for @""$TargetFilePath"". Code: ${LASTEXITCODE}"
+        else {
+            # Throw exception if .nuspec file doesn't exist for SDK-style project
+            Error-Log "SDK-style project detected but required .nuspec file not found at: $nuspecPath" -Fatal
         }
     }
     else {
         # Use nuget.exe for legacy projects
         Trace-Log "Detected legacy project, using nuget.exe pack"
-        
-        $opts = , 'pack'
-        $opts += $TargetFilePath
-        $opts += '-OutputDirectory', $OutputDir
-        
-        $Properties = "Configuration=$Configuration"
-        if ($TargetProfile) {
-            $Properties += ";TargetProfile=$TargetProfile"
-        }
-        if ($Branch) {
-            $Properties += ";branch=$Branch"
-        }
-        if ($PackageId) {
-            $Properties += ";PackageId=$PackageId"
-        }
-        if ($NoWarn) {
-            $Properties += ";NoWarn=" + ($NoWarn -join ",")
-        }
-        $opts += '-Properties', $Properties
-        
-        $opts += '-MSBuildPath', (Split-Path -Path (Get-MSBuildExe $MSBuildVersion) -Parent)
-        
-        if ($PackageVersion) {
-            $opts += '-Version', "$PackageVersion"
-        }
-        
-        if ($NoPackageAnalysis) {
-            $opts += '-NoPackageAnalysis'
-        }
-        
-        if ($Symbols) {
-            $opts += '-Symbols'
-        }
-        
-        if ($IncludeReferencedProjects) {
-            $opts += '-IncludeReferencedProjects'
-        }
-        
-        Trace-Log "$NuGetExe $opts"
-        & $NuGetExe $opts
-        if (-not $?) {
-            Error-Log "Pack failed for @""$TargetFilePath"". Code: ${LASTEXITCODE}"
-        }
+        $packTarget = $TargetFilePath
+    }
+    
+    # Common nuget.exe packing logic
+    $opts = , 'pack'
+    $opts += $packTarget
+    $opts += '-OutputDirectory', $OutputDir
+    
+    $Properties = "Configuration=$Configuration"
+    if ($TargetProfile) {
+        $Properties += ";TargetProfile=$TargetProfile"
+    }
+    if ($Branch) {
+        $Properties += ";branch=$Branch"
+    }
+    if ($PackageId) {
+        $Properties += ";PackageId=$PackageId"
+    }
+    if ($NoWarn) {
+        $Properties += ";NoWarn=" + ($NoWarn -join ",")
+    }
+    $opts += '-Properties', $Properties
+    
+    $opts += '-MSBuildPath', (Split-Path -Path (Get-MSBuildExe $MSBuildVersion) -Parent)
+    
+    if ($PackageVersion) {
+        $opts += '-Version', "$PackageVersion"
+    }
+    
+    if ($NoPackageAnalysis) {
+        $opts += '-NoPackageAnalysis'
+    }
+    
+    if ($Symbols) {
+        $opts += '-Symbols'
+    }
+    
+    if ($IncludeReferencedProjects) {
+        $opts += '-IncludeReferencedProjects'
+    }
+    
+    Trace-Log "$NuGetExe $opts"
+    & $NuGetExe $opts
+    if (-not $?) {
+        Error-Log "Pack failed for @""$TargetFilePath"". Code: ${LASTEXITCODE}"
     }
 }
 
