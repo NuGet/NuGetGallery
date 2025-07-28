@@ -287,12 +287,18 @@
                 if (!this.IsOwnerValid() || this.gitHub.EnabledDaysLeft() <= 0) {
                     return initialData.ImageUrls.DisabledTrustedPolicy;
                 }
+                if (!this.gitHub.IsPermamentlyEnabled()) {
+                    return initialData.ImageUrls.TemporaryTrustedPolicy;
+                }
                 return initialData.ImageUrls.TrustedPolicy;
             }, this);
             this.IconUrlFallback = ko.pureComputed(function () {
                 var url = initialData.ImageUrls.TrustedPolicyFallback;
                 if (!this.IsOwnerValid() || this.gitHub.EnabledDaysLeft() <= 0) {
-                    return initialData.ImageUrls.DisabledTrustedPolicy;
+                    return initialData.ImageUrls.DisabledTrustedPolicyFallback;
+                }
+                if (!this.gitHub.IsPermamentlyEnabled()) {
+                    return initialData.ImageUrls.TemporaryTrustedPolicyFallback;
                 }
                 return "this.src='" + url + "'; this.onerror = null;";
             }, this);
