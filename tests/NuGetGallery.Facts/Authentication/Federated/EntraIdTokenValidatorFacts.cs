@@ -237,6 +237,7 @@ namespace NuGetGallery.Services.Authentication
             public async Task RejectsMissingClaim(string claim)
             {
                 // Arrange
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.EntraIdServicePrincipal,
@@ -270,6 +271,7 @@ namespace NuGetGallery.Services.Authentication
             public async Task RejectsInvalidCredentialType()
             {
                 // Arrange
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.EntraIdServicePrincipal,
@@ -302,6 +304,7 @@ namespace NuGetGallery.Services.Authentication
             public async Task RejectsInvalidIdentityType()
             {
                 // Arrange
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.EntraIdServicePrincipal,
@@ -334,6 +337,7 @@ namespace NuGetGallery.Services.Authentication
             public async Task RejectsInvalidVersion()
             {
                 // Arrange
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.EntraIdServicePrincipal,
@@ -366,6 +370,7 @@ namespace NuGetGallery.Services.Authentication
             public async Task RejectsOidNotMatchingSub()
             {
                 // Arrange
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.EntraIdServicePrincipal,
@@ -398,6 +403,7 @@ namespace NuGetGallery.Services.Authentication
             public async Task RejectsWrongTenantId()
             {
                 // Arrange
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.EntraIdServicePrincipal,
@@ -430,6 +436,7 @@ namespace NuGetGallery.Services.Authentication
             public async Task RejectsNotAllowedTenantId()
             {
                 // Arrange
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
                 AllowedTenantIds = ["different-tenant-id"];
 
                 var policy = new FederatedCredentialPolicy
@@ -464,6 +471,7 @@ namespace NuGetGallery.Services.Authentication
             public async Task RejectsWrongObjectId()
             {
                 // Arrange
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
                 var differentObjectId = new Guid("d8f0bfc3-5def-4079-b08c-618832b6ae16");
                 var policy = new FederatedCredentialPolicy
                 {
@@ -562,6 +570,7 @@ namespace NuGetGallery.Services.Authentication
             public async Task RejectsInvalidCriteriaJson()
             {
                 // Arrange
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.EntraIdServicePrincipal,
