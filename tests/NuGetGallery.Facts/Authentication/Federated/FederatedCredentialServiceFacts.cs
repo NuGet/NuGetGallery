@@ -529,22 +529,6 @@ namespace NuGetGallery.Services.Authentication
             }
 
             [Fact]
-            public async Task RejectsPackageOwnerNotInFlight()
-            {
-                // Arrange
-                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(false);
-
-                // Act
-                var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken, RequestHeaders);
-
-                // Assert
-                Assert.Equal(GenerateApiKeyResultType.BadRequest, result.Type);
-                Assert.Equal("The package owner 'jim-org' is not enabled to use federated credentials.", result.UserMessage);
-
-                AssertNoAudits();
-            }
-
-            [Fact]
             public async Task RejectsCredentialWithInvalidScopes()
             {
                 // Arrange

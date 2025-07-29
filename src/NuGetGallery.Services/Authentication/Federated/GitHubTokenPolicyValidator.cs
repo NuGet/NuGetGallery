@@ -38,17 +38,20 @@ namespace NuGetGallery.Services.Authentication
 
         private readonly IFederatedCredentialRepository _federatedCredentialRepository;
         private readonly IAuditingService _auditingService;
+        private readonly IFeatureFlagService _featureFlagService;
 
         public GitHubTokenPolicyValidator(
             IFederatedCredentialRepository federatedCredentialRepository,
             ConfigurationManager<OpenIdConnectConfiguration> oidcConfigManager,
             IFederatedCredentialConfiguration configuration,
             IAuditingService auditingService,
+            IFeatureFlagService featureFlagService,
             JsonWebTokenHandler jsonWebTokenHandler)
             : base(oidcConfigManager, configuration, jsonWebTokenHandler)
         {
             _federatedCredentialRepository = federatedCredentialRepository ?? throw new ArgumentNullException(nameof(federatedCredentialRepository));
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
         }
 
         public override string IssuerAuthority => Authority;
@@ -82,6 +85,11 @@ namespace NuGetGallery.Services.Authentication
             if (policy.Type != FederatedCredentialType.GitHubActions)
             {
                 return FederatedCredentialPolicyResult.NotApplicable;
+            }
+
+            if (!_featureFlagService.IsTrustedPublishingEnabled(policy.CreatedBy))
+            {
+                return FederatedCredentialPolicyResult.Unauthorized($"Trusted publishing is not enabled for {policy.CreatedBy.Username}");
             }
 
             var criteria = GitHubCriteria.FromDatabaseJson(policy.Criteria);

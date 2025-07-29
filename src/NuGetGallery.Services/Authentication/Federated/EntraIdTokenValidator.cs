@@ -33,12 +33,16 @@ namespace NuGetGallery.Services.Authentication
         public const string Issuer = $"https://{Authority}/common/v2.0";
         public const string MetadataAddress = $"{Issuer}/.well-known/openid-configuration";
 
+        private readonly IFeatureFlagService _featureFlagService;
+
         public EntraIdTokenPolicyValidator(
             ConfigurationManager<OpenIdConnectConfiguration> oidcConfigManager,
             IFederatedCredentialConfiguration configuration,
+            IFeatureFlagService featureFlagService,
             JsonWebTokenHandler jsonWebTokenHandler)
             : base(oidcConfigManager, configuration, jsonWebTokenHandler, "uti")
         {
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
         }
 
         public override string IssuerAuthority => Authority;
@@ -97,6 +101,11 @@ namespace NuGetGallery.Services.Authentication
             const string AppIdentityType = "app";
             const string VersionClaim = "ver";
             const string Version2 = "2.0";
+
+            if (!_featureFlagService.CanUseFederatedCredentials(policy.PackageOwner))
+            {
+                return $"The package owner '{policy.PackageOwner.Username}' is not enabled to use federated credentials.";
+            }
 
             string? error = TryGetRequiredClaim(jwt, ClaimConstants.Tid, out var tid);
             if (error != null)
