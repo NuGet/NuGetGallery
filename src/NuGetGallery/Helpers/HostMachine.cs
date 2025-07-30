@@ -1,7 +1,6 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System;
-using Microsoft.WindowsAzure.ServiceRuntime;
 
 namespace NuGetGallery.Helpers
 {
@@ -16,21 +15,7 @@ namespace NuGetGallery.Helpers
 
         private static string DetermineName()
         {
-            try
-            {
-                if (RoleEnvironment.IsAvailable)
-                {
-                    return RoleEnvironment.CurrentRoleInstance.Id;
-                }
-                else
-                {
-                    return Environment.MachineName;
-                }
-            }
-            catch // Can't even run RoleEnvironment.IsAvailable because Azure SDK is not installed.
-            {
-                return Environment.MachineName;
-            }
+            return Environment.MachineName;
         }
     }
 }

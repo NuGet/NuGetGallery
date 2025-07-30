@@ -19,7 +19,7 @@ namespace NuGetGallery {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Strings {
@@ -1126,6 +1126,51 @@ namespace NuGetGallery {
         public static string FrameworkFilters_Tooltip {
             get {
                 return ResourceManager.GetString("FrameworkFilters_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The GitHub repository owner is required..
+        /// </summary>
+        public static string GitHub_OwnerRequired {
+            get {
+                return ResourceManager.GetString("GitHub_OwnerRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The GitHub repository ID is required..
+        /// </summary>
+        public static string GitHub_RepositoryIdRequired {
+            get {
+                return ResourceManager.GetString("GitHub_RepositoryIdRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The GitHub repository is required..
+        /// </summary>
+        public static string GitHub_RepositoryRequired {
+            get {
+                return ResourceManager.GetString("GitHub_RepositoryRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A permanent GitHub ID assigned to a user, organization, or repository when it&apos;s created. Used for trusted publishing validation..
+        /// </summary>
+        public static string GitHub_WhatIsUniqueId {
+            get {
+                return ResourceManager.GetString("GitHub_WhatIsUniqueId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The GitHub Action workflow file is required..
+        /// </summary>
+        public static string GitHub_WorkflowFileRequired {
+            get {
+                return ResourceManager.GetString("GitHub_WorkflowFileRequired", resourceCulture);
             }
         }
         
@@ -2477,6 +2522,51 @@ namespace NuGetGallery {
         public static string TransformAccount_Success {
             get {
                 return ResourceManager.GetString("TransformAccount_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The policy has been removed..
+        /// </summary>
+        public static string TrustedPolicyRemoved {
+            get {
+                return ResourceManager.GetString("TrustedPolicyRemoved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Name is too long..
+        /// </summary>
+        public static string TrustedPublisher_NameTooLong {
+            get {
+                return ResourceManager.GetString("TrustedPublisher_NameTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The trusted publisher policy name is required..
+        /// </summary>
+        public static string TrustedPublisher_PolicyNameRequired {
+            get {
+                return ResourceManager.GetString("TrustedPublisher_PolicyNameRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The trusted publisher policy owner is required..
+        /// </summary>
+        public static string TrustedPublisher_PolicyOwnerRequired {
+            get {
+                return ResourceManager.GetString("TrustedPublisher_PolicyOwnerRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unexpected trusted publisher..
+        /// </summary>
+        public static string TrustedPublisher_Unexpected {
+            get {
+                return ResourceManager.GetString("TrustedPublisher_Unexpected", resourceCulture);
             }
         }
         

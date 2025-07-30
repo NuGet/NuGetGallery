@@ -350,14 +350,28 @@ namespace NuGetGallery
         bool IsAdvancedFrameworkFilteringEnabled(User user);
 
         /// <summary>
-        /// Whether or not the user specified in a package owner scope can use federated credentials.
+        /// Whether or not the user specified in a package owner scope can use federated credentials,
+        /// a.k.a. Entra ID. When enabled, this controls both the ability to create federated credential
+        /// policies and the ability to exchange external tokens for NuGet API keys during package operations.
         /// </summary>
         bool CanUseFederatedCredentials(User user);
+
+        /// <summary>
+        /// Whether or not the user can access trusted publishing functionality, e.g. GitHub Actions workflows.
+        /// When enabled, this controls both the ability to create Trusted Publishing policies and the ability
+        /// to exchange external tokens for NuGet API keys during package operations.
+        /// </summary>
+        bool IsTrustedPublishingEnabled(User user);
 
         bool IsProfileLoadOptimizationEnabled();
 
         bool IsMcpServerPackageFilteringEnabled();
 
         bool IsMcpServerPackageDisplayEnabled();
+
+        /// <summary>
+        /// Whether or not Api Key V5 is enabled for OIDC.
+        /// </summary>
+        bool IsApiKeyV5EnabledForOIDC(User user);
     }
 }

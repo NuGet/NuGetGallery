@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 using Base62;
@@ -92,6 +93,14 @@ namespace NuGetGallery.Infrastructure.Authentication
             public const char Development = 'D';
             public const char Local = 'L';
         }
+
+        private static readonly IReadOnlyDictionary<string, char> GalleryToApiKeyV5EnvironmentMappings = new Dictionary<string, char>(StringComparer.OrdinalIgnoreCase)
+        {
+            { ServicesConstants.DevelopmentEnvironment, KnownEnvironments.Local },
+            { ServicesConstants.DevEnvironment, KnownEnvironments.Development },
+            { ServicesConstants.IntEnvironment, KnownEnvironments.Integration },
+            { ServicesConstants.ProdEnvironment, KnownEnvironments.Production },
+        };
 
         public static class KnownApiKeyTypes
         {
@@ -287,6 +296,46 @@ namespace NuGetGallery.Infrastructure.Authentication
                 plaintextApiKey);
 
             return true;
+        }
+
+        public static bool TryParseAndValidate(string plaintextApiKey, char environment, out ApiKeyV5? apiKeyV5)
+        {
+            apiKeyV5 = null;
+            if (!TryParse(plaintextApiKey, out var parsedKey))
+            {
+                return false;
+            }
+
+            if (parsedKey == null)
+            {
+                return false;
+            }
+
+            if (parsedKey.Environment != environment)
+            {
+                return false;
+            }
+
+            if (parsedKey.AllocationTime == null || parsedKey.Expiration == null ||
+                parsedKey.AllocationTime.Add(parsedKey.Expiration) < DateTime.UtcNow)
+            {
+                return false;
+            }
+
+            apiKeyV5 = parsedKey;
+
+            return true;
+        }
+
+        public static char GetEnvironment(string galleryEnvironment)
+        {
+            var environment = KnownEnvironments.Local;
+            if (GalleryToApiKeyV5EnvironmentMappings.TryGetValue(galleryEnvironment, out var value))
+            {
+                environment = value;
+            }
+
+            return environment;
         }
 
         private static bool TryParseAllocationTime(string plaintextApiKey, out DateTime allocationTime)

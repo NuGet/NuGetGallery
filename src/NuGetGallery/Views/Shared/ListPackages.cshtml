@@ -30,13 +30,13 @@
                     aria-label="shows and hides TFM filters for @(frameworkDisplayName)" aria-expanded="false" aria-controls="@(frameworkShortName)tab">
                 <i class="ms-Icon ms-Icon--ChevronRight" id="@(frameworkShortName)button"></i>
             </button>
-            <label class="brand-checkbox" style="display: flex; align-items: baseline;">
+            <label class="brand-checkbox">
                 <input type="checkbox" id="@(frameworkShortName)" class="framework">
-                <span>@(frameworkDisplayName)</span>
+                <span>@(frameworkDisplayName)
                 @if (frameworkDisplayName == ".NET")
                 {
-                    <a class="tooltip-target" href="javascript:void(0)" role="button" aria-labelledby="dotnetframework-tooltip">
-                        <i class="ms-Icon ms-Icon--Info" style="margin-left: 4px;"></i>
+                    <a class="tooltip-target" href="javascript:void(0)" role="button" aria-labelledby="dotnetframework-tooltip" style="vertical-align: middle">
+                        <i class="ms-Icon ms-Icon--Info"></i>
                         <span class="tooltip-block" role="tooltip" id="dotnetframework-tooltip">
                             <span class="tooltip-wrapper tooltip-with-icon popover right">
                                 <span class="arrow"></span>
@@ -47,6 +47,7 @@
                         </span>
                     </a>
                 }
+                </span>
             </label>
         </div>
         <div class="tfmTab" id="@(frameworkShortName)tab">
