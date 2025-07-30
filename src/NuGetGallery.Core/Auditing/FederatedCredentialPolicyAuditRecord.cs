@@ -237,7 +237,7 @@ namespace NuGetGallery.Auditing
                 federatedCredential: null,
                 apiKeyCredentials: [],
                 externalCredential: null,
-                errorMessage: errorMessage ?? throw new ArgumentNullException(errorMessage));
+                errorMessage: errorMessage ?? throw new ArgumentNullException(nameof(errorMessage)));
         }
 
         public static FederatedCredentialPolicyAuditRecord Unauthorized(
@@ -254,7 +254,7 @@ namespace NuGetGallery.Auditing
                 federatedCredential: null,
                 apiKeyCredentials: [],
                 externalCredential: null,
-                errorMessage: errorMessage ?? throw new ArgumentNullException(errorMessage));
+                errorMessage: errorMessage ?? throw new ArgumentNullException(nameof(errorMessage)));
         }
 
         public override string GetPath()

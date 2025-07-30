@@ -189,7 +189,7 @@ namespace NuGetGallery.Services.Authentication
                 return result;
             }
 
-            // Skip update if nothing has changed. It is IMPROTANT to do the check after the validation.
+            // Skip update if nothing has changed. It is IMPORTANT to do the check after the validation.
             // It can update the criteria, e.g. ensure ValidateBy date for temporary GitHub Actions policies.
             if (string.Equals(policy.PolicyName, tempPolicy.PolicyName) && string.Equals(policy.Criteria, tempPolicy.Criteria))
             {
