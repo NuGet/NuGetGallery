@@ -3,8 +3,8 @@
 
 using System;
 using System.Data.Entity.Infrastructure;
+using System.IO;
 using System.Threading.Tasks;
-using Microsoft.Identity.Web;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
@@ -61,7 +61,8 @@ namespace NuGetGallery.Services.Authentication
         {
             if (policy.Type != FederatedCredentialType.GitHubActions)
             {
-                return FederatedCredentialPolicyValidationResult.BadRequest($"Invalid policy type '{policy.Type}' for GitHub Actions validation", null);
+                return FederatedCredentialPolicyValidationResult.BadRequest(
+                    $"Invalid policy type '{policy.Type}' for GitHub Actions validation", null);
             }
 
             if (!_featureFlagService.IsTrustedPublishingEnabled(policy.CreatedBy))
@@ -69,13 +70,6 @@ namespace NuGetGallery.Services.Authentication
                 return FederatedCredentialPolicyValidationResult.BadRequest(
                     $"Trusted Publishing is not enabled for '{policy.CreatedBy.Username}'.",
                     nameof(FederatedCredentialPolicy.CreatedBy));
-            }
-
-            if (string.IsNullOrWhiteSpace(policy.PolicyName))
-            {
-                return FederatedCredentialPolicyValidationResult.BadRequest(
-                    $"The policy name is required.",
-                    nameof(FederatedCredentialPolicy.PolicyName));
             }
 
             // Ensure consistent ValidateByDate. Note that for temporary GitHub Actions policies
@@ -88,6 +82,21 @@ namespace NuGetGallery.Services.Authentication
             {
                 return FederatedCredentialPolicyValidationResult.BadRequest(error,
                     nameof(FederatedCredentialPolicy.Criteria));
+            }
+
+            // The policy name isn't required for OIDC token processing, but it's helpful for customers to identify
+            // policies. The user-facing UI is expected to block policy creation or updates if the name is missing.
+            // Here, we enforce the presence of a policy name when the request originates from the admin UI.
+            // Users can still modify the name later if needed.
+            if (string.IsNullOrWhiteSpace(policy.PolicyName))
+            {
+                // Use workflow file name as the policy name, e.g. , "prod" for "deployments/prod.yml".
+                policy.PolicyName = Path.GetFileNameWithoutExtension(gitHubCriteria.WorkflowFile);
+                if (policy.PolicyName.Length > FederatedCredentialPolicy.MaxPolicyNameLength)
+                {
+                    // If the policy name is too long, truncate it to the maximum length.
+                    policy.PolicyName = policy.PolicyName[..FederatedCredentialPolicy.MaxPolicyNameLength];
+                }
             }
 
             return base.ValidatePolicy(policy);

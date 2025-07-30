@@ -178,7 +178,7 @@ namespace NuGetGallery.Services.Authentication
         [InlineData(null)]
         [InlineData("")]
         [InlineData("   ")]
-        public void RejectsEmptyPolicyName(string? policyName)
+        public void EnsuresNonEmptyPolicyName(string? policyName)
         {
             // Arrange
             var user = new User("test-user");
@@ -196,9 +196,8 @@ namespace NuGetGallery.Services.Authentication
             var result = Target.ValidatePolicy(policy);
 
             // Assert
-            Assert.Equal(FederatedCredentialPolicyValidationResultType.BadRequest, result.Type);
-            Assert.Equal("The policy name is required.", result.UserMessage);
-            Assert.Equal(nameof(FederatedCredentialPolicy.PolicyName), result.PolicyPropertyName);
+            Assert.Equal(FederatedCredentialPolicyValidationResultType.Success, result.Type);
+            Assert.Equal("test", policy.PolicyName);
         }
 
         [Fact]

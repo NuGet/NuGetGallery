@@ -42,7 +42,8 @@ namespace NuGetGallery.Services.Authentication
         {
             if (policy.Type != FederatedCredentialType.EntraIdServicePrincipal)
             {
-                return FederatedCredentialPolicyValidationResult.BadRequest($"Invalid policy type '{policy.Type}' for Entra ID validation.", null);
+                return FederatedCredentialPolicyValidationResult.BadRequest(
+                    $"Invalid policy type '{policy.Type}' for Entra ID validation.", null);
             }
 
             if (!_featureFlagService.CanUseFederatedCredentials(policy.PackageOwner))
@@ -54,28 +55,23 @@ namespace NuGetGallery.Services.Authentication
 
             if (string.IsNullOrWhiteSpace(policy.Criteria))
             {
-                return FederatedCredentialPolicyValidationResult.BadRequest("Criteria must be provided for Entra ID service principal policies.",
+                return FederatedCredentialPolicyValidationResult.BadRequest(
+                    "Criteria must be provided for Entra ID service principal policies.",
                     nameof(FederatedCredentialPolicy.Criteria));
             }
 
-            EntraIdServicePrincipalCriteria? criteriaObject = null;
-            try
+            var criteria = JsonSerializer.Deserialize<EntraIdServicePrincipalCriteria>(policy.Criteria);
+            if (criteria is null)
             {
-                criteriaObject = JsonSerializer.Deserialize<EntraIdServicePrincipalCriteria>(policy.Criteria);
-            }
-            catch (JsonException)
-            {
-            }
-
-            if (criteriaObject is null)
-            {
-                return FederatedCredentialPolicyValidationResult.BadRequest("Invalid criteria format for Entra ID service principal policy.",
+                return FederatedCredentialPolicyValidationResult.BadRequest(
+                    "Invalid criteria format for Entra ID service principal policy.",
                     nameof(FederatedCredentialPolicy.Criteria));
             }
 
-            if (!IsTenantAllowed(criteriaObject.TenantId))
+            if (!IsTenantAllowed(criteria.TenantId))
             {
-                return FederatedCredentialPolicyValidationResult.Unauthorized($"The Entra ID tenant '{criteriaObject.TenantId}' is not in the allow list.",
+                return FederatedCredentialPolicyValidationResult.Unauthorized(
+                    $"The Entra ID tenant '{criteria.TenantId}' is not in the allow list.",
                     nameof(FederatedCredentialPolicy.Criteria));
             }
 

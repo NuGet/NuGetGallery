@@ -105,13 +105,8 @@ namespace NuGetGallery.Services.Authentication
 
                 FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(user)).Returns(true);
 
-                // Act
-                var result = Target.ValidatePolicy(policy);
-
-                // Assert
-                Assert.Equal(FederatedCredentialPolicyValidationResultType.BadRequest, result.Type);
-                Assert.Equal("Invalid criteria format for Entra ID service principal policy.", result.UserMessage);
-                Assert.Equal(nameof(FederatedCredentialPolicy.Criteria), result.PolicyPropertyName);
+                // Act & Assert
+                Assert.ThrowsAny<Exception>(() => Target.ValidatePolicy(policy));
             }
 
             [Fact]
