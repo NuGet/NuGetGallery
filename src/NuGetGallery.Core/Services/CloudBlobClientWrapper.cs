@@ -78,12 +78,12 @@ namespace NuGetGallery
             bool readAccessGeoRedundant = false,
             TimeSpan? requestTimeout = null)
         {
-            var options = new DefaultAzureCredentialOptions
-            {
-                ManagedIdentityClientId = clientId,
-            };
-            var tokenCredential = new DefaultAzureCredential(options);
+#if DEBUG
+            var tokenCredential = new DefaultAzureCredential();
             return new CloudBlobClientWrapper(storageConnectionString, tokenCredential, readAccessGeoRedundant, requestTimeout);
+#else
+            throw new InvalidOperationException("DefaultAzureCredential is only supported in DEBUG builds.");
+#endif
         }
 
         public ISimpleCloudBlob GetBlobFromUri(Uri uri)

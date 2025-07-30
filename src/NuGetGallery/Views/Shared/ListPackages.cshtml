@@ -32,7 +32,22 @@
             </button>
             <label class="brand-checkbox">
                 <input type="checkbox" id="@(frameworkShortName)" class="framework">
-                <span>@(frameworkDisplayName)</span>
+                <span>@(frameworkDisplayName)
+                @if (frameworkDisplayName == ".NET")
+                {
+                    <a class="tooltip-target" href="javascript:void(0)" role="button" aria-labelledby="dotnetframework-tooltip" style="vertical-align: middle">
+                        <i class="ms-Icon ms-Icon--Info"></i>
+                        <span class="tooltip-block" role="tooltip" id="dotnetframework-tooltip">
+                            <span class="tooltip-wrapper tooltip-with-icon popover right">
+                                <span class="arrow"></span>
+                                <span class="popover-content">
+                                    Selecting .NET will show you packages compatible with any of the individual frameworks within the .NET generation.
+                                </span>
+                            </span>
+                        </span>
+                    </a>
+                }
+                </span>
             </label>
         </div>
         <div class="tfmTab" id="@(frameworkShortName)tab">
@@ -49,18 +64,6 @@
             </ul>
         </div>
     </div>
-}
-
-@functions
-{
-    private const string DefaultPackageType = "";
-    private static readonly IReadOnlyDictionary<string, string> UiSupportedPackageTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-{
-        { DefaultPackageType, "All types" },
-        { "dependency", "Dependency" },
-        { "dotnettool", ".NET tool" },
-        { "template" , "Template" },
-    };
 }
 
 
@@ -153,7 +156,7 @@
                                 </fieldset>
                             </div>
                         }
-                        @if (Model.PackageType != null && !UiSupportedPackageTypes.ContainsKey(Model.PackageType))
+                        @if (Model.PackageType != null && !Model.UiSupportedPackageTypes.ContainsKey(Model.PackageType))
                         {
                             <div class="row warning-panel">
                                 <div class="col-md-12 icon-text alert alert-warning">
@@ -165,9 +168,9 @@
                         <div>
                             <fieldset id="packagetype">
                                 <legend>Package type</legend>
-                                @foreach (var packageType in UiSupportedPackageTypes)
+                                @foreach (var packageType in Model.UiSupportedPackageTypes)
                                 {
-                                    @AddPackageFilterOption(packageType.Value, packageType.Key, isDefault: packageType.Key == DefaultPackageType)
+                                    @AddPackageFilterOption(packageType.Value, packageType.Key, isDefault: packageType.Key == Model.DefaultPackageType)
                                 }
                             </fieldset>
                         </div>
