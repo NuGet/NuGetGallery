@@ -354,6 +354,14 @@ namespace NuGetGallery
         /// </summary>
         bool CanUseFederatedCredentials(User user);
 
+        /// <summary>
+        /// Whether or not the first iteration of the profile load optimization is enabled.
+        /// </summary>
         bool IsProfileLoadOptimizationEnabled();
+
+        /// <summary>
+        /// Wther or not the second iteration of the profile load optimization is enabled.
+        /// </summary>
+        bool IsProfileLoadOptimizationV2Enabled();
     }
 }

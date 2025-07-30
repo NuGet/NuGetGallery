@@ -339,5 +339,10 @@ namespace GitHubVulnerabilities2Db.Fakes
         {
             throw new NotImplementedException();
         }
+
+        public bool IsProfileLoadOptimizationV2Enabled()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
