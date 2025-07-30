@@ -363,7 +363,15 @@ namespace NuGetGallery
         /// </summary>
         bool IsTrustedPublishingEnabled(User user);
 
+        /// <summary>
+        /// Whether or not the first iteration of the profile load optimization is enabled.
+        /// </summary>
         bool IsProfileLoadOptimizationEnabled();
+
+        /// <summary>
+        /// Whether or not the second iteration of the profile load optimization is enabled.
+        /// </summary>
+        bool IsProfileLoadOptimizationV2Enabled();
 
         bool IsMcpServerPackageFilteringEnabled();
 
