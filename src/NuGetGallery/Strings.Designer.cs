@@ -1130,47 +1130,11 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The GitHub repository owner is required..
-        /// </summary>
-        public static string GitHub_OwnerRequired {
-            get {
-                return ResourceManager.GetString("GitHub_OwnerRequired", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The GitHub repository ID is required..
-        /// </summary>
-        public static string GitHub_RepositoryIdRequired {
-            get {
-                return ResourceManager.GetString("GitHub_RepositoryIdRequired", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The GitHub repository is required..
-        /// </summary>
-        public static string GitHub_RepositoryRequired {
-            get {
-                return ResourceManager.GetString("GitHub_RepositoryRequired", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to A permanent GitHub ID assigned to a user, organization, or repository when it&apos;s created. Used for trusted publishing validation..
         /// </summary>
         public static string GitHub_WhatIsUniqueId {
             get {
                 return ResourceManager.GetString("GitHub_WhatIsUniqueId", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The GitHub Action workflow file is required..
-        /// </summary>
-        public static string GitHub_WorkflowFileRequired {
-            get {
-                return ResourceManager.GetString("GitHub_WorkflowFileRequired", resourceCulture);
             }
         }
         
@@ -2531,15 +2495,6 @@ namespace NuGetGallery {
         public static string TrustedPolicyRemoved {
             get {
                 return ResourceManager.GetString("TrustedPolicyRemoved", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Name is too long..
-        /// </summary>
-        public static string TrustedPublisher_NameTooLong {
-            get {
-                return ResourceManager.GetString("TrustedPublisher_NameTooLong", resourceCulture);
             }
         }
         

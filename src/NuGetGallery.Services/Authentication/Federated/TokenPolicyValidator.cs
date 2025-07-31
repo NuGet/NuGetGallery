@@ -107,5 +107,25 @@ namespace NuGetGallery.Services.Authentication
 
             return null;
         }
+
+        public virtual FederatedCredentialPolicyValidationResult ValidatePolicy(FederatedCredentialPolicy policy)
+        {
+            if (policy.CreatedBy is Organization)
+            {
+                return FederatedCredentialPolicyValidationResult.BadRequest(
+                    $"Policy user '{policy.CreatedBy.Username}' is an organization. Creating federated credential trust policies for organizations is not supported.",
+                    nameof(FederatedCredentialPolicy.CreatedBy));
+            }
+
+            // If policy name is provided then it should not be too long.
+            if (policy.PolicyName?.Length > FederatedCredentialPolicy.MaxPolicyNameLength)
+            {
+                return FederatedCredentialPolicyValidationResult.Unauthorized(
+                    $"The policy name cannot be longer than {FederatedCredentialPolicy.MaxPolicyNameLength}.",
+                    nameof(FederatedCredentialPolicy.PolicyName));
+            }
+
+            return FederatedCredentialPolicyValidationResult.Success(policy);
+        }
     }
 }

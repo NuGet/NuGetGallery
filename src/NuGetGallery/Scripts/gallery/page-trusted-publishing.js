@@ -480,8 +480,8 @@
                 // Build the request.
                 var data = {
                     federatedCredentialKey: this.Key(),
-                    policyName: this.PendingPolicyName(),
-                    criteria: _gitHubDetails.CreatePendingCriteria(this)
+                    criteria: _gitHubDetails.CreatePendingCriteria(this),
+                    policyName: this.PendingPolicyName()
                 };
                 window.nuget.addAjaxAntiForgeryToken(data);
 

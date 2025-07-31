@@ -19,8 +19,22 @@ using NuGetGallery.Auditing;
 
 namespace NuGetGallery.Services.Authentication
 {
+    /// <summary>
+    /// Provides a unified interface for evaluating federated credential policies and OIDC tokens:
+    /// <para> * <see cref="FederatedCredentialPolicy"/> validation during creation or update. </para>
+    /// <para> * <see cref="JsonWebToken"/> OIDC token authentication. </para>
+    /// <para> * Token-to-policy matching. </para>
+    /// </summary>
     public interface IFederatedCredentialPolicyEvaluator
     {
+        /// <summary>
+        /// Validates a federated credential policy during its creation or update.
+        /// </summary>
+        FederatedCredentialPolicyValidationResult ValidatePolicy(FederatedCredentialPolicy policy);
+
+        /// <summary>
+        /// Evaluates federated credential policies against a specified bearer token and request headers.
+        /// </summary>
         Task<OidcTokenEvaluationResult> GetMatchingPolicyAsync(
             IReadOnlyCollection<FederatedCredentialPolicy> policies,
             string bearerToken,
@@ -29,24 +43,42 @@ namespace NuGetGallery.Services.Authentication
 
     public class FederatedCredentialPolicyEvaluator : IFederatedCredentialPolicyEvaluator
     {
-        private readonly IReadOnlyList<ITokenPolicyValidator> _tokenValidators;
+        private readonly IReadOnlyList<ITokenPolicyValidator> _validators;
         private readonly IReadOnlyList<IFederatedCredentialValidator> _additionalValidators;
         private readonly IAuditingService _auditingService;
         private readonly IDateTimeProvider _dateTimeProvider;
         private readonly ILogger<FederatedCredentialPolicyEvaluator> _logger;
 
         public FederatedCredentialPolicyEvaluator(
-            IReadOnlyList<ITokenPolicyValidator> tokenValidators,
+            IReadOnlyList<ITokenPolicyValidator> validators,
             IReadOnlyList<IFederatedCredentialValidator> additionalValidators,
             IAuditingService auditingService,
             IDateTimeProvider dateTimeProvider,
             ILogger<FederatedCredentialPolicyEvaluator> logger)
         {
-            _tokenValidators = tokenValidators ?? throw new ArgumentNullException(nameof(tokenValidators));
+            _validators = validators ?? throw new ArgumentNullException(nameof(validators));
             _additionalValidators = additionalValidators ?? throw new ArgumentNullException(nameof(additionalValidators));
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
             _dateTimeProvider = dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
+        public FederatedCredentialPolicyValidationResult ValidatePolicy(FederatedCredentialPolicy policy)
+        {
+            FederatedCredentialIssuerType issuerType = policy.Type switch
+            {
+                FederatedCredentialType.EntraIdServicePrincipal => FederatedCredentialIssuerType.EntraId,
+                FederatedCredentialType.GitHubActions => FederatedCredentialIssuerType.GitHubActions,
+                _ => throw new ArgumentException($"Unsupported {policy.Type}"),
+            };
+
+            var validator = _validators.FirstOrDefault(v => v.IssuerType == issuerType);
+            if (validator == null)
+            {
+                throw new ArgumentException($"No validator found for issuer type {issuerType}.");
+            }
+
+            return validator.ValidatePolicy(policy);
         }
 
         public async Task<OidcTokenEvaluationResult> GetMatchingPolicyAsync(
@@ -272,7 +304,7 @@ namespace NuGetGallery.Services.Authentication
                 return context;
             }
 
-            context.TokenValidator = _tokenValidators.FirstOrDefault(v => string.Equals(v.IssuerAuthority, issuerUrl.Authority, StringComparison.OrdinalIgnoreCase));
+            context.TokenValidator = _validators.FirstOrDefault(v => string.Equals(v.IssuerAuthority, issuerUrl.Authority, StringComparison.OrdinalIgnoreCase));
             if (context.TokenValidator == null)
             {
                 context.Error = "The JSON web token iss claim is not supported.";
