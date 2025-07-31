@@ -687,7 +687,7 @@ Function New-Package {
         }
         else {
             # Throw exception if .nuspec file doesn't exist for SDK-style project
-            Error-Log "SDK-style project detected but required .nuspec file not found at: $nuspecPath" -Fatal
+            throw "SDK-style project '$projectName' detected but required .nuspec file for packing not found at: $nuspecPath"
         }
     }
     else {
