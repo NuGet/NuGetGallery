@@ -616,6 +616,21 @@ Function Get-PackageVersion() {
     [string]"$SemanticVersion-$ReleaseLabel$BuildNumber"
 }
 
+Function Test-SdkStyleProject {
+    [CmdletBinding()]
+    param(
+        [string]$ProjectPath
+    )
+    
+    if (-not (Test-Path $ProjectPath)) {
+        return $false
+    }
+    
+    # Check if the project file contains SDK attribute which indicates SDK-style project
+    $firstLine = Get-Content $ProjectPath -TotalCount 1
+    return $firstLine -match '<Project\s+Sdk\s*='
+}
+
 Function New-Package {
     [CmdletBinding()]
     param(
@@ -635,8 +650,9 @@ Function New-Package {
         [string[]]$NoWarn = @("NU5100", "NU5110", "NU5111", "NU5128")
     )
     Trace-Log "Creating package from @""$TargetFilePath"""
-    $opts = , 'pack'
-    $opts += $TargetFilePath
+    
+    # Check if this is an SDK-style project
+    $isSdkStyle = Test-SdkStyleProject $TargetFilePath
     
     if (-not (Test-Path $Artifacts)) {
         New-Item $Artifacts -Type Directory
@@ -646,6 +662,43 @@ Function New-Package {
     if (-not (Test-Path $OutputDir)) {
         New-Item $OutputDir -Type Directory
     }
+    
+    if (-not $BuildNumber) {
+        $BuildNumber = Get-BuildNumber
+    }
+    
+    if ($Version){
+        $PackageVersion = $Version
+    }
+    elseif ($ReleaseLabel) {
+        $PackageVersion = Get-PackageVersion $ReleaseLabel $BuildNumber
+    }
+    
+    if ($isSdkStyle) {
+        # Check if there's a .nuspec file with the same name as the project
+        $projectDir = Split-Path -Path $TargetFilePath -Parent
+        $projectName = [System.IO.Path]::GetFileNameWithoutExtension($TargetFilePath)
+        $nuspecPath = Join-Path $projectDir "$projectName.nuspec"
+        
+        if (Test-Path $nuspecPath) {
+            # Use nuget.exe with .nuspec file for SDK-style projects
+            Trace-Log "Detected SDK-style project with .nuspec file, using nuget.exe pack with nuspec"
+            $packTarget = $nuspecPath
+        }
+        else {
+            # Throw exception if .nuspec file doesn't exist for SDK-style project
+            throw "SDK-style project '$projectName' detected but required .nuspec file for packing not found at: $nuspecPath"
+        }
+    }
+    else {
+        # Use nuget.exe for legacy projects
+        Trace-Log "Detected legacy project, using nuget.exe pack"
+        $packTarget = $TargetFilePath
+    }
+    
+    # Common nuget.exe packing logic
+    $opts = , 'pack'
+    $opts += $packTarget
     $opts += '-OutputDirectory', $OutputDir
     
     $Properties = "Configuration=$Configuration"
@@ -664,17 +717,6 @@ Function New-Package {
     $opts += '-Properties', $Properties
     
     $opts += '-MSBuildPath', (Split-Path -Path (Get-MSBuildExe $MSBuildVersion) -Parent)
-    
-    if (-not $BuildNumber) {
-        $BuildNumber = Get-BuildNumber
-    }
-    
-    if ($Version){
-        $PackageVersion = $Version
-    }
-    elseif ($ReleaseLabel) {
-        $PackageVersion = Get-PackageVersion $ReleaseLabel $BuildNumber
-    }
     
     if ($PackageVersion) {
         $opts += '-Version', "$PackageVersion"
