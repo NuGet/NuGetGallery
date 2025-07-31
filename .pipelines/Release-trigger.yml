@@ -16,5 +16,5 @@ pool:
 
 steps:
 - powershell: |
-    Write-Host "Hello World from the Gallery release trigger pipeline!!"
+    Write-Host "Hello World from the Gallery release trigger pipeline!"
   displayName: 'Hello World'
