@@ -7,6 +7,10 @@ trigger:
 
 pr: none
 
+variables:
+- name: NugetMultifeedWarnLevel
+  value: none
+
 pool:
   vmImage: 'windows-latest'
 
