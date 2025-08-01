@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 
 function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defaultVersion, submitUrl, packageUrl, getAlternatePackageVersionsUrl) {
     var self = this;
@@ -61,6 +61,62 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
         }
 
         return warningMessage;
+    }, this);
+
+    const checkDeprecationStatus = {
+        HasDeprecatedVersion: 'HasDeprecatedVersion',
+        HasUndeprecatedVersion: 'HasUndeprecatedVersion'
+    };
+
+    var checkDeprecationState = function (checkType) {
+
+        var chosenItems = self.dropdown.chosenItems();
+
+        var hasVersionWithoutDeprecation = false;
+        var hasVersionWithDeprecation = false;
+
+        if (chosenItems.length === 0) {
+            return null;
+        }
+
+        for (var i in chosenItems) {
+            var version = chosenItems[i];
+            var versionData = versionDeprecationStateDictionary[version];
+
+           if (!versionData) {
+                // It shouldn't be possible to select a version that didn't exist when the page loaded.
+                // In case there is a bug and the user did select a valid version, continue on anyway.
+                continue;
+            }
+
+            if (versionData.IsLegacy || versionData.HasCriticalBugs || versionData.IsOther) {
+                hasVersionWithDeprecation = true;
+            }
+            else {
+                hasVersionWithoutDeprecation = true;
+            }
+        }
+
+        if (checkType === checkDeprecationStatus.HasDeprecatedVersion) {
+            return hasVersionWithDeprecation;
+        }
+        else if (checkType === checkDeprecationStatus.HasUndeprecatedVersion) {
+            return hasVersionWithoutDeprecation;
+        } else {
+            return null;
+        }
+    }
+
+    this.chosenItemsHasUndeprecatedVersion = ko.pureComputed(function () {
+
+        return checkDeprecationState(checkDeprecationStatus.HasUndeprecatedVersion);
+
+     }, this);
+
+    this.chosenItemsHasDeprecatedVersion = ko.pureComputed(function () {
+
+        return checkDeprecationState(checkDeprecationStatus.HasDeprecatedVersion);
+
     }, this);
 
     this.isLegacy = ko.observable(false);
