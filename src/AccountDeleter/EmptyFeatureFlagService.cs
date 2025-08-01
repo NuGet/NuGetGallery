@@ -334,7 +334,17 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
         
+        public bool IsTrustedPublishingEnabled(User user)
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsProfileLoadOptimizationEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsProfileLoadOptimizationV2Enabled()
         {
             throw new NotImplementedException();
         }
@@ -345,6 +355,11 @@ namespace NuGetGallery.AccountDeleter
         }
 
         public bool IsMcpServerPackageDisplayEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsApiKeyV5EnabledForOIDC(User user)
         {
             throw new NotImplementedException();
         }

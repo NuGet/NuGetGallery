@@ -13,6 +13,7 @@ using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
+using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
 
@@ -37,7 +38,12 @@ namespace NuGetGallery.Services.Authentication
                 Assert.Equal(AddFederatedCredentialPolicyResultType.BadRequest, result.Type);
                 Assert.StartsWith($"Policy user '{CurrentUser.Username}' is an organization.", result.UserMessage);
 
-                AssertNoAudits();
+                AssertBadRequest(
+                    CurrentUser,
+                    PackageOwner,
+                    FederatedCredentialType.EntraIdServicePrincipal,
+                    """{"tid":"58fa0116-d469-4fc9-83c8-9b1a8706d9cc","oid":"4ab4b916-b6de-4412-aee0-808ef692b270"}""",
+                    result.UserMessage);
             }
 
             [Fact]
@@ -50,10 +56,15 @@ namespace NuGetGallery.Services.Authentication
                 var result = await Target.AddEntraIdServicePrincipalPolicyAsync(CurrentUser, PackageOwner, EntraIdServicePrincipalCriteria);
 
                 // Assert
-                Assert.Equal(AddFederatedCredentialPolicyResultType.BadRequest, result.Type);
+                Assert.Equal(AddFederatedCredentialPolicyResultType.Unauthorized, result.Type);
                 Assert.StartsWith($"The user '{CurrentUser.Username}' does not have the required permissions", result.UserMessage);
 
-                AssertNoAudits();
+                AssertUnauthorized(
+                    CurrentUser,
+                    PackageOwner,
+                    FederatedCredentialType.EntraIdServicePrincipal,
+                    """{"tid":"58fa0116-d469-4fc9-83c8-9b1a8706d9cc","oid":"4ab4b916-b6de-4412-aee0-808ef692b270"}""",
+                    result.UserMessage);
             }
 
             [Fact]
@@ -69,7 +80,12 @@ namespace NuGetGallery.Services.Authentication
                 Assert.Equal(AddFederatedCredentialPolicyResultType.BadRequest, result.Type);
                 Assert.StartsWith($"The package owner '{PackageOwner.Username}' is not enabled to use federated credentials.", result.UserMessage);
 
-                AssertNoAudits();
+                AssertBadRequest(
+                    CurrentUser,
+                    PackageOwner,
+                    FederatedCredentialType.EntraIdServicePrincipal,
+                    """{"tid":"58fa0116-d469-4fc9-83c8-9b1a8706d9cc","oid":"4ab4b916-b6de-4412-aee0-808ef692b270"}""",
+                    result.UserMessage);
             }
 
             [Fact]
@@ -82,12 +98,17 @@ namespace NuGetGallery.Services.Authentication
                 var result = await Target.AddEntraIdServicePrincipalPolicyAsync(CurrentUser, PackageOwner, EntraIdServicePrincipalCriteria);
 
                 // Assert
-                Assert.Equal(AddFederatedCredentialPolicyResultType.BadRequest, result.Type);
+                Assert.Equal(AddFederatedCredentialPolicyResultType.Unauthorized, result.Type);
                 Assert.StartsWith($"The Entra ID tenant '{EntraIdServicePrincipalCriteria.TenantId}' is not in the allow list.", result.UserMessage);
 
                 Assert.Empty(FederatedCredentialRepository.Invocations);
 
-                AssertNoAudits();
+                AssertUnauthorized(
+                    CurrentUser,
+                    PackageOwner,
+                    FederatedCredentialType.EntraIdServicePrincipal,
+                    """{"tid":"58fa0116-d469-4fc9-83c8-9b1a8706d9cc","oid":"4ab4b916-b6de-4412-aee0-808ef692b270"}""",
+                    result.UserMessage);
             }
 
             [Fact]
@@ -103,9 +124,8 @@ namespace NuGetGallery.Services.Authentication
                 Assert.Same(PackageOwner, result.Policy.PackageOwner);
                 Assert.Equal(FederatedCredentialType.EntraIdServicePrincipal, result.Policy.Type);
                 Assert.Equal(
-                    """
-                    {"tid":"58fa0116-d469-4fc9-83c8-9b1a8706d9cc","oid":"4ab4b916-b6de-4412-aee0-808ef692b270"}
-                    """, result.Policy.Criteria);
+                    """{"tid":"58fa0116-d469-4fc9-83c8-9b1a8706d9cc","oid":"4ab4b916-b6de-4412-aee0-808ef692b270"}""",
+                    result.Policy.Criteria);
                 Assert.Null(result.Policy.LastMatched);
 
                 FeatureFlagService.Verify(x => x.CanUseFederatedCredentials(PackageOwner), Times.Once);
@@ -128,6 +148,181 @@ namespace NuGetGallery.Services.Authentication
                 var audits = AssertAuditResourceTypes(FederatedCredentialPolicyAuditRecord.ResourceType);
                 var policyAudit = Assert.IsType<FederatedCredentialPolicyAuditRecord>(audits[0]);
                 Assert.Equal(AuditedFederatedCredentialPolicyAction.Create, policyAudit.Action);
+            }
+        }
+
+        public class TheAddTrustedPublishingPolicyAsyncMethod : FederatedCredentialServiceFacts
+        {
+            private const string PolicyName = "Test Policy";
+            private const FederatedCredentialType PolicyType = FederatedCredentialType.GitHubActions;
+            private const string PolicyCriteria = "{\"repository\":\"owner/repo\"}";
+
+            [Fact]
+            public async Task RejectsFailedScopes()
+            {
+                // Arrange
+                FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(CurrentUser)).Returns(true);
+                CredentialBuilder.Setup(x => x.VerifyScopes(CurrentUser, It.IsAny<IEnumerable<Scope>>())).Returns(false);
+
+                // Act
+                var result = await Target.AddTrustedPublishingPolicyAsync(CurrentUser, PackageOwner, PolicyName, PolicyType, PolicyCriteria);
+
+                // Assert
+                Assert.Equal(AddFederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                Assert.StartsWith($"The user '{CurrentUser.Username}' does not have the required permissions", result.UserMessage);
+
+                AssertUnauthorized(
+                    CurrentUser,
+                    PackageOwner,
+                    PolicyType,
+                    PolicyCriteria,
+                    result.UserMessage);
+            }
+
+            [Fact]
+            public async Task RejectsUserNotInFlight()
+            {
+                // Arrange
+                FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(CurrentUser)).Returns(false);
+
+                // Act
+                var result = await Target.AddTrustedPublishingPolicyAsync(CurrentUser, PackageOwner, PolicyName, PolicyType, PolicyCriteria);
+
+                // Assert
+                Assert.Equal(AddFederatedCredentialPolicyResultType.BadRequest, result.Type);
+                Assert.StartsWith("Trusted Publishing is not enabled", result.UserMessage);
+
+                AssertBadRequest(
+                    CurrentUser,
+                    PackageOwner,
+                    PolicyType,
+                    PolicyCriteria,
+                    result.UserMessage);
+            }
+
+            [Fact]
+            public async Task AddsPolicy()
+            {
+                // Arrange
+                FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(CurrentUser)).Returns(true);
+
+                // Act
+                var result = await Target.AddTrustedPublishingPolicyAsync(CurrentUser, PackageOwner, PolicyName, PolicyType, PolicyCriteria);
+
+                // Assert
+                Assert.Equal(AddFederatedCredentialPolicyResultType.Created, result.Type);
+                Assert.Equal(new DateTime(2024, 10, 12, 12, 30, 0, DateTimeKind.Utc), result.Policy.Created);
+                Assert.Same(CurrentUser, result.Policy.CreatedBy);
+                Assert.Same(PackageOwner, result.Policy.PackageOwner);
+                Assert.Equal(PolicyType, result.Policy.Type);
+                Assert.Equal(PolicyCriteria, result.Policy.Criteria);
+                Assert.Equal(PolicyName, result.Policy.PolicyName);
+                Assert.Null(result.Policy.LastMatched);
+
+                FeatureFlagService.Verify(x => x.IsTrustedPublishingEnabled(CurrentUser), Times.Once);
+                CredentialBuilder.Verify(x => x.VerifyScopes(CurrentUser, It.IsAny<IEnumerable<Scope>>()), Times.Once);
+                FederatedCredentialRepository.Verify(x => x.AddPolicyAsync(result.Policy, true), Times.Once);
+
+                var verifyScopes = Assert.Single(CredentialBuilder.Invocations);
+                var scopes = Assert.IsAssignableFrom<IEnumerable<Scope>>(verifyScopes.Arguments[1]);
+                var scope = Assert.Single(scopes);
+                Assert.Equal(NuGetScopes.All, scope.AllowedAction);
+                Assert.Equal(NuGetPackagePattern.AllInclusivePattern, scope.Subject);
+                Assert.Same(PackageOwner, scope.Owner);
+
+                AssertCreateAudit();
+            }
+
+            private void AssertCreateAudit()
+            {
+                var audits = AssertAuditResourceTypes(FederatedCredentialPolicyAuditRecord.ResourceType);
+                var policyAudit = Assert.IsType<FederatedCredentialPolicyAuditRecord>(audits[0]);
+                Assert.Equal(AuditedFederatedCredentialPolicyAction.Create, policyAudit.Action);
+            }
+        }
+
+        public class TheUpdatePolicyAsyncMethod : FederatedCredentialServiceFacts
+        {
+            private const string NewPolicyName = "Updated Policy";
+            private const string NewPolicyCriteria = "{\"repository\":\"owner/updated-repo\"}";
+            public FederatedCredentialPolicy PolicyToUpdate;
+
+            public TheUpdatePolicyAsyncMethod()
+            {
+                PolicyToUpdate = Policies[0];
+            }
+
+            [Fact]
+            public async Task UpdatesPolicyNameAndCriteria()
+            {
+                // Act
+                await Target.UpdatePolicyAsync(PolicyToUpdate, NewPolicyName, NewPolicyCriteria);
+
+                // Assert
+                Assert.Equal(NewPolicyName, PolicyToUpdate.PolicyName);
+                Assert.Equal(NewPolicyCriteria, PolicyToUpdate.Criteria);
+
+                FederatedCredentialRepository.Verify(x => x.SavePoliciesAsync(), Times.Once);
+                AssertUpdateAudit();
+            }
+
+            [Fact]
+            public async Task UpdatesOnlyPolicyName()
+            {
+                // Arrange
+                var policyCriteria = PolicyToUpdate.Criteria;
+
+                // Act
+                await Target.UpdatePolicyAsync(PolicyToUpdate, NewPolicyName, PolicyToUpdate.Criteria);
+
+                // Assert
+                Assert.Equal(NewPolicyName, PolicyToUpdate.PolicyName);
+                Assert.Equal(policyCriteria, PolicyToUpdate.Criteria);
+
+                FederatedCredentialRepository.Verify(x => x.SavePoliciesAsync(), Times.Once);
+                AssertUpdateAudit();
+            }
+
+            [Fact]
+            public async Task UpdatesOnlyCriteria()
+            {
+                // Arrange
+                var policyName = PolicyToUpdate.PolicyName;
+
+                // Act
+                await Target.UpdatePolicyAsync(PolicyToUpdate, PolicyToUpdate.PolicyName, NewPolicyCriteria);
+
+                // Assert
+                Assert.Equal(policyName, PolicyToUpdate.PolicyName);
+                Assert.Equal(NewPolicyCriteria, PolicyToUpdate.Criteria);
+
+                FederatedCredentialRepository.Verify(x => x.SavePoliciesAsync(), Times.Once);
+                AssertUpdateAudit();
+            }
+
+            [Fact]
+            public async Task UpdatesNothingWhenValuesUnchanged()
+            {
+                // Arrange
+                var policyName = PolicyToUpdate.PolicyName;
+                var policyCriteria = PolicyToUpdate.Criteria;
+
+                // Act
+                await Target.UpdatePolicyAsync(PolicyToUpdate, PolicyToUpdate.PolicyName, PolicyToUpdate.Criteria);
+
+                // Assert
+                Assert.Equal(policyName, PolicyToUpdate.PolicyName);
+                Assert.Equal(policyCriteria, PolicyToUpdate.Criteria);
+
+                FederatedCredentialRepository.Verify(x => x.SavePoliciesAsync(), Times.Never);
+                AssertNoAudits();
+            }
+
+            private void AssertUpdateAudit()
+            {
+                var audits = AssertAuditResourceTypes(FederatedCredentialPolicyAuditRecord.ResourceType);
+                var policyAudit = Assert.IsType<FederatedCredentialPolicyAuditRecord>(audits[0]);
+                Assert.Equal(AuditedFederatedCredentialPolicyAction.Update, policyAudit.Action);
             }
         }
 
@@ -164,7 +359,7 @@ namespace NuGetGallery.Services.Authentication
 
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.Unauthorized, result.Type);
-                Assert.Equal("No matching federated credential trust policy owned by user 'someone else' was found.", result.UserMessage);
+                Assert.Equal("No matching trust policy owned by user 'someone else' was found.", result.UserMessage);
 
                 AssertNoAudits();
             }
@@ -175,14 +370,14 @@ namespace NuGetGallery.Services.Authentication
                 // Arrange
                 Evaluator
                     .Setup(x => x.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders))
-                    .ReturnsAsync(() => EvaluatedFederatedCredentialPolicies.NoMatchingPolicy([]));
+                    .ReturnsAsync(() => OidcTokenEvaluationResult.NoMatchingPolicy());
 
                 // Act
                 var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken, RequestHeaders);
 
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.Unauthorized, result.Type);
-                Assert.Equal("No matching federated credential trust policy owned by user 'jim' was found.", result.UserMessage);
+                Assert.Equal("No matching trust policy owned by user 'jim' was found.", result.UserMessage);
 
                 AssertNoAudits();
             }
@@ -193,7 +388,7 @@ namespace NuGetGallery.Services.Authentication
                 // Arrange
                 Evaluator
                     .Setup(x => x.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders))
-                    .ReturnsAsync(() => EvaluatedFederatedCredentialPolicies.BadToken("That token is missing a thing or two."));
+                    .ReturnsAsync(() => OidcTokenEvaluationResult.BadToken("That token is missing a thing or two."));
 
                 // Act
                 var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken, RequestHeaders);
@@ -280,7 +475,7 @@ namespace NuGetGallery.Services.Authentication
 
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.BadRequest, result.Type);
-                Assert.Equal("The package owner of the match federated credential trust policy not longer exists.", result.UserMessage);
+                Assert.Equal("The package owner of the match trust policy not longer exists.", result.UserMessage);
 
                 AssertNoAudits();
             }
@@ -329,22 +524,6 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(GenerateApiKeyResultType.BadRequest, result.Type);
                 Assert.Equal("The organization 'jim-org' is locked.", result.UserMessage);
-
-                AssertNoAudits();
-            }
-
-            [Fact]
-            public async Task RejectsPackageOwnerNotInFlight()
-            {
-                // Arrange
-                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(false);
-
-                // Act
-                var result = await Target.GenerateApiKeyAsync(CurrentUser.Username, BearerToken, RequestHeaders);
-
-                // Assert
-                Assert.Equal(GenerateApiKeyResultType.BadRequest, result.Type);
-                Assert.Equal("The package owner 'jim-org' is not enabled to use federated credentials.", result.UserMessage);
 
                 AssertNoAudits();
             }
@@ -431,7 +610,7 @@ namespace NuGetGallery.Services.Authentication
                 FederatedCredentialRepository.Verify(x => x.GetPoliciesCreatedByUser(CurrentUser.Key), Times.Once);
                 Evaluator.Verify(x => x.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders), Times.Once);
                 UserService.Verify(x => x.FindByKey(PackageOwner.Key, false), Times.Once);
-                CredentialBuilder.Verify(x => x.CreateShortLivedApiKey(TimeSpan.FromMinutes(15), Evaluation.MatchedPolicy, out PlaintextApiKey), Times.Once);
+                CredentialBuilder.Verify(x => x.CreateShortLivedApiKey(TimeSpan.FromMinutes(15), Evaluation.MatchedPolicy, It.IsAny<string>(), It.IsAny<bool>(), out PlaintextApiKey), Times.Once);
                 CredentialBuilder.Verify(x => x.VerifyScopes(CurrentUser, Credential.Scopes), Times.Once);
                 FederatedCredentialRepository.Verify(x => x.SaveFederatedCredentialAsync(Evaluation.FederatedCredential, false), Times.Once);
                 AuthenticationService.Verify(x => x.AddCredential(CurrentUser, Credential), Times.Once);
@@ -459,16 +638,16 @@ namespace NuGetGallery.Services.Authentication
             FeatureFlagService = new Mock<IFeatureFlagService>();
             DateTimeProvider = new Mock<IDateTimeProvider>();
             Configuration = new Mock<IFederatedCredentialConfiguration>();
+            GalleryConfigurationService = new Mock<IGalleryConfigurationService>();
 
             BearerToken = "my-token";
             CurrentUser = new User { Key = 1, Username = "jim", EmailAddress = "jim@localhost" };
             PackageOwner = new Organization { Key = 2, Username = "jim-org", EmailAddress = "jim-org@localhost" };
             Policies = new List<FederatedCredentialPolicy>
             {
-                new() { Key = 3, CreatedBy = CurrentUser, CreatedByUserKey = CurrentUser.Key, PackageOwner = PackageOwner, PackageOwnerUserKey = PackageOwner.Key }
+                new() { Key = 3, CreatedBy = CurrentUser, CreatedByUserKey = CurrentUser.Key, PackageOwner = PackageOwner, PackageOwnerUserKey = PackageOwner.Key, Criteria = "{}" }
             };
-            Evaluation = EvaluatedFederatedCredentialPolicies.NewMatchedPolicy(
-                results: [],
+            Evaluation = OidcTokenEvaluationResult.NewMatchedPolicy(
                 matchedPolicy: Policies[0],
                 federatedCredential: new FederatedCredential());
             PlaintextApiKey = null;
@@ -483,17 +662,19 @@ namespace NuGetGallery.Services.Authentication
             UserService.Setup(x => x.FindByKey(PackageOwner.Key, false)).Returns(() => PackageOwner);
             FederatedCredentialRepository.Setup(x => x.GetPoliciesCreatedByUser(CurrentUser.Key)).Returns(() => Policies);
             FederatedCredentialRepository.Setup(x => x.GetShortLivedApiKeysForPolicy(Policies[0].Key)).Returns(() => [Credential]);
+            FederatedCredentialRepository.Setup(x => x.SavePoliciesAsync()).Returns(Task.CompletedTask);
             Evaluator.Setup(x => x.GetMatchingPolicyAsync(Policies, BearerToken, RequestHeaders)).ReturnsAsync(() => Evaluation);
             FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
             CredentialBuilder
-                .Setup(x => x.CreateShortLivedApiKey(TimeSpan.FromMinutes(15), Evaluation.MatchedPolicy, out It.Ref<string>.IsAny))
-                .Returns(new CreateShortLivedApiKey((TimeSpan expires, FederatedCredentialPolicy policy, out string plaintextApiKey) =>
+                .Setup(x => x.CreateShortLivedApiKey(TimeSpan.FromMinutes(15), Evaluation.MatchedPolicy, It.IsAny<string>(), It.IsAny<bool>(), out It.Ref<string>.IsAny))
+                .Returns(new CreateShortLivedApiKey((TimeSpan expires, FederatedCredentialPolicy policy, string galleryEnvironment, bool isApiKeyV5Enabled, out string plaintextApiKey) =>
                 {
                     plaintextApiKey = "secret";
                     return Credential;
                 }));
             CredentialBuilder.Setup(x => x.VerifyScopes(CurrentUser, It.IsAny<IEnumerable<Scope>>())).Returns(true);
             Configuration.Setup(x => x.ShortLivedApiKeyDuration).Returns(TimeSpan.FromMinutes(15));
+            GalleryConfigurationService.Setup(x => x.Current.Environment).Returns("TestEnv");
             DateTimeProvider.Setup(x => x.UtcNow).Returns(new DateTime(2024, 10, 12, 12, 30, 0, DateTimeKind.Utc));
             EntraIdTokenValidator.Setup(x => x.IsTenantAllowed(EntraIdServicePrincipalCriteria.TenantId)).Returns(true);
 
@@ -507,10 +688,11 @@ namespace NuGetGallery.Services.Authentication
                 AuditingService.Object,
                 DateTimeProvider.Object,
                 FeatureFlagService.Object,
-                Configuration.Object);
+                Configuration.Object,
+                GalleryConfigurationService.Object);
         }
 
-        delegate Credential CreateShortLivedApiKey(TimeSpan expires, FederatedCredentialPolicy policy, out string plaintextApiKey);
+        delegate Credential CreateShortLivedApiKey(TimeSpan expires, FederatedCredentialPolicy policy, string galleryEnvironment, bool isApiKeyV5Enabled, out string plaintextApiKey);
 
         public Mock<IUserService> UserService { get; }
         public Mock<IFederatedCredentialRepository> FederatedCredentialRepository { get; }
@@ -522,11 +704,12 @@ namespace NuGetGallery.Services.Authentication
         public Mock<IFeatureFlagService> FeatureFlagService { get; }
         public Mock<IDateTimeProvider> DateTimeProvider { get; }
         public Mock<IFederatedCredentialConfiguration> Configuration { get; }
+        public Mock<IGalleryConfigurationService> GalleryConfigurationService { get; }
         public string BearerToken { get; }
         public User CurrentUser { get; set; }
         public User PackageOwner { get; }
         public List<FederatedCredentialPolicy> Policies { get; }
-        public EvaluatedFederatedCredentialPolicies Evaluation { get; }
+        public OidcTokenEvaluationResult Evaluation { get; }
         public string? PlaintextApiKey;
         public Credential Credential { get; }
         public NameValueCollection RequestHeaders { get; }
@@ -548,6 +731,38 @@ namespace NuGetGallery.Services.Authentication
         protected void AssertNoAudits()
         {
             AuditingService.Verify(x => x.SaveAuditRecordAsync(It.IsAny<AuditRecord>()), Times.Never);
+        }
+
+        protected void AssertBadRequest(User createdBy, User packageOwner, FederatedCredentialType policyType, string criteria, string failureReason)
+        {
+            var audits = AssertAuditResourceTypes(FederatedCredentialPolicyAuditRecord.ResourceType);
+            var policyAudit = Assert.IsType<FederatedCredentialPolicyAuditRecord>(audits[0]);
+            Assert.Equal(AuditedFederatedCredentialPolicyAction.BadRequest, policyAudit.Action);
+
+            // Verify the audit record was created with the expected parameters
+            AuditingService.Verify(x => x.SaveAuditRecordAsync(
+                It.Is<FederatedCredentialPolicyAuditRecord>(audit =>
+                    audit.Action == AuditedFederatedCredentialPolicyAction.BadRequest &&
+                    audit.Type == policyType.ToString() &&
+                    audit.Criteria == criteria &&
+                    audit.ErrorMessage == failureReason
+                )), Times.Once);
+        }
+
+        protected void AssertUnauthorized(User createdBy, User packageOwner, FederatedCredentialType policyType, string criteria, string failureReason)
+        {
+            var audits = AssertAuditResourceTypes(FederatedCredentialPolicyAuditRecord.ResourceType);
+            var policyAudit = Assert.IsType<FederatedCredentialPolicyAuditRecord>(audits[0]);
+            Assert.Equal(AuditedFederatedCredentialPolicyAction.Unauthorized, policyAudit.Action);
+
+            // Verify the audit record was created with the expected parameters
+            AuditingService.Verify(x => x.SaveAuditRecordAsync(
+                It.Is<FederatedCredentialPolicyAuditRecord>(audit =>
+                    audit.Action == AuditedFederatedCredentialPolicyAction.Unauthorized &&
+                    audit.Type == policyType.ToString() &&
+                    audit.Criteria == criteria &&
+                    audit.ErrorMessage == failureReason
+                )), Times.Once);
         }
 
         private void AssertRejectReplayAudit()

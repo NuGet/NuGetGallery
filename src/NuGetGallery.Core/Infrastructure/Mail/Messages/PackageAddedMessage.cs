@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -78,7 +78,11 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
         {
             var warningMessages = GetWarningMessages();
 
-            var markdown = $@"The package [{Package.PackageRegistration.Id} {Package.Version}]({_packageUrl}) was recently published on {_configuration.GalleryOwner.DisplayName} by {Package.User.Username}. If this was not intended, please [contact support]({_packageSupportUrl}).";
+            var packageRegistrationId = EscapeMarkdown(Package.PackageRegistration.Id);
+            var galleryOwnerDisplayName = EscapeMarkdown(_configuration.GalleryOwner.DisplayName);
+            var packageUsername = EscapeMarkdown(Package.User.Username);
+
+            var markdown = $@"The package [{packageRegistrationId} {Package.Version}]({_packageUrl}) was recently published on {galleryOwnerDisplayName} by {packageUsername}. If this was not intended, please [contact support]({_packageSupportUrl}).";
 
             if (!string.IsNullOrEmpty(warningMessages))
             {

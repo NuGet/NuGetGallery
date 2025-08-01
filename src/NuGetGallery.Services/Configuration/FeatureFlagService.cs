@@ -65,9 +65,12 @@ namespace NuGetGallery
         private const string DisplayTfmBadgesFeatureName = GalleryPrefix + "DisplayTfmBadges";
         private const string AdvancedFrameworkFilteringFeatureName = GalleryPrefix + "AdvancedFrameworkFiltering";
         private const string FederatedCredentialsFeatureName = GalleryPrefix + "FederatedCredentials";
+        private const string TrustedPublishingFeatureName = GalleryPrefix + "TrustedPublishing";
         private const string ProfileLoadOptimization = GalleryPrefix + "ProfileLoadOptimization";
+        private const string ProfileLoadOptimizationV2 = GalleryPrefix + "ProfileLoadOptimizationV2";
         private const string McpServerPackageFilteringFeatureName = GalleryPrefix + "McpServerPackageFiltering";
         private const string McpServerPackageDisplayFeatureName = GalleryPrefix + "McpServerPackageDisplay";
+        private const string EnableApiKeyV5ForOIDCFeatureName = GalleryPrefix + "EnableApiKeyV5ForOIDC";
 
         private const string ODataV1GetAllNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllNonHijacked";
         private const string ODataV1GetAllCountNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllCountNonHijacked";
@@ -436,10 +439,20 @@ namespace NuGetGallery
         {
             return _client.IsEnabled(FederatedCredentialsFeatureName, user, defaultValue: false);
         }
-        
+
+        public bool IsTrustedPublishingEnabled(User user)
+        {
+            return _client.IsEnabled(TrustedPublishingFeatureName, user, defaultValue: false);
+        }
+
         public bool IsProfileLoadOptimizationEnabled()
         {
             return _client.IsEnabled(ProfileLoadOptimization, defaultValue: true);
+        }
+
+        public bool IsProfileLoadOptimizationV2Enabled()
+        {
+            return _client.IsEnabled(ProfileLoadOptimizationV2, defaultValue: false);
         }
 
         public bool IsMcpServerPackageFilteringEnabled()
@@ -450,6 +463,11 @@ namespace NuGetGallery
         public bool IsMcpServerPackageDisplayEnabled()
         {
             return _client.IsEnabled(McpServerPackageDisplayFeatureName, defaultValue: false);
+        }
+
+        public bool IsApiKeyV5EnabledForOIDC(User user)
+        {
+            return _client.IsEnabled(EnableApiKeyV5ForOIDCFeatureName, user, defaultValue: false);
         }
     }
 }

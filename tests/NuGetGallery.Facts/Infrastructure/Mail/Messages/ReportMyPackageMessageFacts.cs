@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -131,57 +131,42 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
         }
 
         private const string _expectedMarkdownBody =
-            @"**Email**: Sender (sender@gallery.org)
+            @"**Email:** Sender (sender@gallery\.org)
 
-**Package**: PackageId
-packageUrl
+**Package:** [PackageId](packageUrl)
 
-**Version**: 1.0.0
-packageVersionUrl
+**Version:** [1.0.0](packageVersionUrl)
 
-**User:** requestingUser (requestUser@gallery.org)
-profileUrl
+**User:** [requestingUser (requestUser@gallery\.org)](profileUrl)
 
-**Reason**:
-reason
+**Reason:** reason
 
-**Message**:
-message
+**Message:** message
 
+_Message sent from NuGetGallery_";
 
-Message sent from NuGetGallery";
         private const string _expectedPlainTextBody =
-            @"Email: Sender (sender@gallery.org)
+            @"Email: Sender (sender@gallery\.org)
 
-Package: PackageId
-packageUrl
+Package: PackageId (packageUrl)
 
-Version: 1.0.0
-packageVersionUrl
+Version: 1.0.0 (packageVersionUrl)
 
-User: requestingUser (requestUser@gallery.org)
-profileUrl
+User: requestingUser (requestUser@gallery\.org) (profileUrl)
 
-Reason:
-reason
+Reason: reason
 
-Message:
-message
+Message: message
 
 Message sent from NuGetGallery";
 
         private const string _expectedHtmlBody =
-            "<p><strong>Email</strong>: Sender (sender@gallery.org)</p>\n" +
-"<p><strong>Package</strong>: PackageId\n" +
-"packageUrl</p>\n" +
-"<p><strong>Version</strong>: 1.0.0\n" +
-"packageVersionUrl</p>\n" +
-"<p><strong>User:</strong> requestingUser (requestUser@gallery.org)\n" +
-"profileUrl</p>\n" +
-"<p><strong>Reason</strong>:\n" +
-"reason</p>\n" +
-"<p><strong>Message</strong>:\n" +
-"message</p>\n" +
-"<p>Message sent from NuGetGallery</p>\n";
+            "<p><strong>Email:</strong> Sender (sender@gallery.org)</p>\n" +
+"<p><strong>Package:</strong> <a href=\"packageUrl\">PackageId</a></p>\n" +
+"<p><strong>Version:</strong> <a href=\"packageVersionUrl\">1.0.0</a></p>\n" +
+"<p><strong>User:</strong> <a href=\"profileUrl\">requestingUser (requestUser@gallery.org)</a></p>\n" +
+"<p><strong>Reason:</strong> reason</p>\n" +
+"<p><strong>Message:</strong> message</p>\n" +
+"<p><em>Message sent from NuGetGallery</em></p>\n";
     }
 }

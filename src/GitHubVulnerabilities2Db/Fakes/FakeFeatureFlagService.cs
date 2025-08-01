@@ -334,8 +334,18 @@ namespace GitHubVulnerabilities2Db.Fakes
         {
             throw new NotImplementedException();
         }
-        
+
+        public bool IsTrustedPublishingEnabled(User user)
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsProfileLoadOptimizationEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsProfileLoadOptimizationV2Enabled()
         {
             throw new NotImplementedException();
         }
@@ -346,6 +356,11 @@ namespace GitHubVulnerabilities2Db.Fakes
         }
 
         public bool IsMcpServerPackageDisplayEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsApiKeyV5EnabledForOIDC(User user)
         {
             throw new NotImplementedException();
         }
