@@ -42,8 +42,10 @@ namespace NuGetGallery.Services.Authentication
         {
             if (policy.Type != FederatedCredentialType.EntraIdServicePrincipal)
             {
+                // We do not expect callers to pass non-Entra ID policies to this validator.
                 return FederatedCredentialPolicyValidationResult.BadRequest(
-                    $"Invalid policy type '{policy.Type}' for Entra ID validation.", null);
+                    $"Invalid policy type '{policy.Type}' for Entra ID validation.",
+                    policyPropertyName: null);
             }
 
             if (!_featureFlagService.CanUseFederatedCredentials(policy.PackageOwner))

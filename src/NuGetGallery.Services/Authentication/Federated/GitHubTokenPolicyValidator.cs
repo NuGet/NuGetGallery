@@ -61,8 +61,10 @@ namespace NuGetGallery.Services.Authentication
         {
             if (policy.Type != FederatedCredentialType.GitHubActions)
             {
+                // We do not expect callers to pass non-GitHub policies to this validator.
                 return FederatedCredentialPolicyValidationResult.BadRequest(
-                    $"Invalid policy type '{policy.Type}' for GitHub Actions validation", null);
+                    $"Invalid policy type '{policy.Type}' for GitHub Actions validation",
+                    policyPropertyName: null);
             }
 
             if (!_featureFlagService.IsTrustedPublishingEnabled(policy.CreatedBy))

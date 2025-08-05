@@ -188,6 +188,13 @@ namespace NuGetGallery.Areas.Admin.Controllers.FederatedCredentials
                 isValid = false;
             }
 
+            var createdBy = _userService.FindByUsername(addPolicy.PolicyUser);
+            if (createdBy == null)
+            {
+                AddModelError(nameof(FederatedCredentialPolicy.CreatedBy), $"The policy user '{addPolicy.PolicyUser}' does not exist.");
+                isValid = false;
+            }
+
             if (!addPolicy.PolicyType.HasValue)
             {
                 AddModelError(nameof(FederatedCredentialPolicy.Type), "The policy type field is required.");
@@ -203,7 +210,7 @@ namespace NuGetGallery.Areas.Admin.Controllers.FederatedCredentials
             if (isValid)
             {
                 var result = await _federatedCredentialService.AddPolicyAsync(
-                            _userService.FindByUsername(addPolicy.PolicyUser),
+                            createdBy!,
                             addPolicy.PolicyPackageOwner!,
                             addPolicy.PolicyCriteria!,
                             addPolicy.PolicyName,

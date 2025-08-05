@@ -24,12 +24,12 @@ namespace NuGetGallery.Services.Authentication
         private FederatedCredentialPolicyValidationResult(
             FederatedCredentialPolicyValidationResultType type,
             string? userMessage = null,
-            string? policyColumnName = null,
+            string? policyPropertyName = null,
             FederatedCredentialPolicy? policy = null)
         {
             Type = type;
             UserMessage = userMessage;
-            PolicyPropertyName = policyColumnName;
+            PolicyPropertyName = policyPropertyName;
             _policy = policy;
         }
 
