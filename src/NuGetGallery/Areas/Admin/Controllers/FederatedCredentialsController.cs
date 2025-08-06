@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
@@ -37,6 +36,7 @@ namespace NuGetGallery.Areas.Admin.Controllers.FederatedCredentials
 
     public class AddPolicyViewModel
     {
+        public string? PolicyName { get; set; }
         public string? PolicyUser { get; set; }
         public string? PolicyPackageOwner { get; set; }
         public FederatedCredentialType? PolicyType { get; set; }
@@ -180,77 +180,77 @@ namespace NuGetGallery.Areas.Admin.Controllers.FederatedCredentials
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> CreatePolicy(AddPolicyViewModel addPolicy)
         {
-            var modelPrefix = $"{nameof(ViewPoliciesViewModel.AddPolicy)}.";
-
+            // Perform basic validation of incoming fields.
+            bool isValid = true;
             if (string.IsNullOrWhiteSpace(addPolicy.PolicyUser))
             {
-                ModelState.AddModelError(modelPrefix + nameof(addPolicy.PolicyUser), "The policy user field is required.");
+                AddModelError(nameof(FederatedCredentialPolicy.CreatedBy), "The policy user field is required.");
+                isValid = false;
             }
 
-            var policyUser = _userService.FindByUsername(addPolicy.PolicyUser);
-            if (policyUser is null)
+            var createdBy = _userService.FindByUsername(addPolicy.PolicyUser);
+            if (createdBy == null)
             {
-                ModelState.AddModelError(modelPrefix + nameof(addPolicy.PolicyUser), "The policy user does not exist.");
-            }
-
-            if (string.IsNullOrWhiteSpace(addPolicy.PolicyPackageOwner))
-            {
-                ModelState.AddModelError(modelPrefix + nameof(addPolicy.PolicyPackageOwner), "The policy package owner field is required.");
-            }
-
-            var policyPackageOwner = _userService.FindByUsername(addPolicy.PolicyPackageOwner);
-            if (policyPackageOwner is null)
-            {
-                ModelState.AddModelError(modelPrefix + nameof(addPolicy.PolicyPackageOwner), "The policy package owner does not exist.");
+                AddModelError(nameof(FederatedCredentialPolicy.CreatedBy), $"The policy user '{addPolicy.PolicyUser}' does not exist.");
+                isValid = false;
             }
 
             if (!addPolicy.PolicyType.HasValue)
             {
-                ModelState.AddModelError(modelPrefix + nameof(addPolicy.PolicyType), "The policy type field is required.");
+                AddModelError(nameof(FederatedCredentialPolicy.Type), "The policy type field is required.");
+                isValid = false;
             }
 
             if (string.IsNullOrWhiteSpace(addPolicy.PolicyCriteria))
             {
-                ModelState.AddModelError(modelPrefix + nameof(addPolicy.PolicyCriteria), "The policy criteria field is required.");
+                AddModelError(nameof(FederatedCredentialPolicy.Criteria), "The policy criteria field is required.");
+                isValid = false;
             }
 
-            if (addPolicy.PolicyType == FederatedCredentialType.EntraIdServicePrincipal)
+            if (isValid)
             {
-                EntraIdServicePrincipalCriteria? criteria = null;
-                try
-                {
-                    criteria = JsonSerializer.Deserialize<EntraIdServicePrincipalCriteria>(addPolicy.PolicyCriteria!);
-                    if (criteria is null)
-                    {
-                        ModelState.AddModelError(modelPrefix + nameof(addPolicy.PolicyCriteria), $"The policy criteria parsed as null.");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    ModelState.AddModelError(modelPrefix + nameof(addPolicy.PolicyCriteria), $"The policy criteria field could not be parsed as a {nameof(EntraIdServicePrincipalCriteria)}. Exception: " + ex.Message);
-                }
+                var result = await _federatedCredentialService.AddPolicyAsync(
+                            createdBy!,
+                            addPolicy.PolicyPackageOwner!,
+                            addPolicy.PolicyCriteria!,
+                            addPolicy.PolicyName,
+                            addPolicy.PolicyType!.Value);
 
-                if (criteria is not null)
+                switch (result.Type)
                 {
-                    var result = await _federatedCredentialService.AddEntraIdServicePrincipalPolicyAsync(
-                        policyUser!,
-                        policyPackageOwner!,
-                        criteria);
-
-                    switch (result.Type)
-                    {
-                        case AddFederatedCredentialPolicyResultType.BadRequest:
-                            ModelState.AddModelError(nameof(ViewPoliciesViewModel.AddPolicy), result.UserMessage);
-                            break;
-                        case AddFederatedCredentialPolicyResultType.Created:
-                            return RedirectForUser(policyUser!.Username, $"Policy with key {result.Policy.Key} added successfully.");
-                        default:
-                            throw new NotImplementedException($"Unexpected result type: {result.Type}");
-                    }
+                    case FederatedCredentialPolicyValidationResultType.BadRequest:
+                    case FederatedCredentialPolicyValidationResultType.Unauthorized:
+                        AddModelError(result.PolicyPropertyName, result.UserMessage!);
+                        break;
+                    case FederatedCredentialPolicyValidationResultType.Success:
+                        return RedirectForUser(result.Policy.CreatedBy.Username, $"Policy with key {result.Policy.Key} added successfully.");
+                    default:
+                        throw new NotImplementedException($"Unexpected result type: {result.Type}");
                 }
             }
 
             return View(nameof(Index), new ViewPoliciesViewModel([], [], [], addPolicy));
+        }
+
+        private void AddModelError(string? policyPropertyName, string errorMessage)
+        {
+            const string modelPrefix = $"{nameof(ViewPoliciesViewModel.AddPolicy)}.";
+            string key = policyPropertyName switch
+            {
+                nameof(FederatedCredentialPolicy.CreatedBy) =>
+                    $"{modelPrefix}{nameof(AddPolicyViewModel.PolicyUser)}",
+                nameof(FederatedCredentialPolicy.PackageOwner) =>
+                    $"{modelPrefix}{nameof(AddPolicyViewModel.PolicyPackageOwner)}",
+                nameof(FederatedCredentialPolicy.Type) =>
+                    $"{modelPrefix}{nameof(AddPolicyViewModel.PolicyType)}",
+                nameof(FederatedCredentialPolicy.Criteria) =>
+                    $"{modelPrefix}{nameof(AddPolicyViewModel.PolicyCriteria)}",
+                nameof(FederatedCredentialPolicy.PolicyName) =>
+                    $"{modelPrefix}{nameof(AddPolicyViewModel.PolicyName)}",
+                _ => nameof(ViewPoliciesViewModel.AddPolicy)
+            };
+
+            ModelState.AddModelError(key, errorMessage);
         }
 
         private RedirectResult RedirectForUser(string username, string message)
