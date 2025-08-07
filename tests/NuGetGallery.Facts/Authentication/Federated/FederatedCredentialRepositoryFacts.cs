@@ -202,8 +202,8 @@ namespace NuGetGallery.Services.Authentication
 
             Credentials = new List<Credential>
             {
-                new() { Key = 6, Type = CredentialTypes.ApiKey.V4, FederatedCredentialPolicyKey = 1 },
-                new() { Key = 7, Type = CredentialTypes.ApiKey.V4, FederatedCredentialPolicyKey = 3 },
+                new() { Key = 6, Type = CredentialTypes.ApiKey.V5, FederatedCredentialPolicyKey = 1 },
+                new() { Key = 7, Type = CredentialTypes.ApiKey.V5, FederatedCredentialPolicyKey = 3 },
             };
             CredentialRepository.Setup(x => x.GetAll()).Returns(() => Credentials.AsQueryable());
 
