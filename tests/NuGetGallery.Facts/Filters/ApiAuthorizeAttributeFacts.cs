@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -64,6 +64,25 @@ namespace NuGetGallery.Filters
                 Assert.Equal(200, owinContext.Response.StatusCode);
                 Assert.Contains("X-NuGet-Warning", context.HttpContext.Response.Headers.AllKeys);
                 Assert.Equal(expectedWarning, context.HttpContext.Response.Headers["X-NuGet-Warning"]);
+            }
+
+            [Fact]
+            public void AddsNoExpirationInDaysWarningForApiKeyV5()
+            {
+                var apiKey = TestCredentialHelper.CreateV5ApiKey(galleryEnvironment: ServicesConstants.DevelopmentEnvironment,
+                    userKey: 1,
+                    expiration: TimeSpan.FromHours(1),
+                    out _);
+
+                var context = BuildAuthorizationContext(authenticated: true, credential: apiKey).Object;
+                var attribute = new ApiAuthorizeAttribute();
+
+                // Act
+                attribute.OnAuthorization(context);
+                var owinContext = context.HttpContext.GetOwinContext();
+
+                // Assert
+                Assert.DoesNotContain("X-NuGet-Warning", context.HttpContext.Response.Headers.AllKeys);
             }
 
             [Fact]

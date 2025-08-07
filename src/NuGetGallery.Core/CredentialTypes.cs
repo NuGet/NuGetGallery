@@ -55,8 +55,8 @@ namespace NuGetGallery
         {
             return c?.Type?.Equals(type, StringComparison.OrdinalIgnoreCase) ?? false;
         }
-      
-        internal static IReadOnlyList<string> SupportedCredentialTypes = new List<string>
+
+        private static IReadOnlyList<string> ViewSupportedPasswordAndApiKeyTypes = new List<string>
         {
             Password.Sha1,
             Password.Pbkdf2,
@@ -75,7 +75,9 @@ namespace NuGetGallery
         /// <returns></returns>
         public static bool IsSupportedCredential(this Credential credential)
         {
-            return credential.IsViewSupportedCredential() || IsPackageVerificationApiKey(credential.Type);
+            return credential.IsViewSupportedCredential() ||
+                   credential.IsType(ApiKey.V5) ||
+                   credential.IsType(ApiKey.VerifyV1);
         }
 
         /// <summary>
@@ -86,9 +88,8 @@ namespace NuGetGallery
         /// <returns></returns>
         public static bool IsViewSupportedCredential(this Credential credential)
         {
-            return
-                SupportedCredentialTypes.Any(credType => credential.IsType(credType)) ||
-                credential.IsExternal();
+            return ViewSupportedPasswordAndApiKeyTypes.Any(credType => credential.IsType(credType)) ||
+                   credential.IsExternal();
         }
 
         public static bool IsScopedApiKey(this Credential credential)

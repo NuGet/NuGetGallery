@@ -60,13 +60,10 @@ namespace NuGetGallery.Services.Authentication
 
         public IReadOnlyList<Credential> GetShortLivedApiKeysForPolicy(int policyKey)
         {
-            // TODO: introduce a new API key type for short-lived API keys
-            // Tracking: https://github.com/NuGet/NuGetGallery/issues/10212
-
             return _credentialRepository
                 .GetAll()
                 .Where(c => c.FederatedCredentialPolicyKey == policyKey)
-                .Where(c => c.Type == CredentialTypes.ApiKey.V4)
+                .Where(c => c.Type == CredentialTypes.ApiKey.V4 || c.Type == CredentialTypes.ApiKey.V5)
                 .ToList();
         }
 
