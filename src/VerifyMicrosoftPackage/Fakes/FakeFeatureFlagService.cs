@@ -149,7 +149,5 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
         public bool IsMcpServerPackageFilteringEnabled() => throw new NotImplementedException();
 
         public bool IsMcpServerPackageDisplayEnabled() => throw new NotImplementedException();
-
-        public bool IsApiKeyV5EnabledForOIDC(User user) => throw new NotImplementedException();
     }
 }

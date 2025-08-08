@@ -14,30 +14,10 @@ namespace NuGetGallery.Infrastructure.Authentication
         public class TheCreateShortLivedApiKeyMethod : CredentialBuilderFacts
         {
             [Fact]
-            public void CreatesShortLivedApiKeyWithV4()
-            {
-                // Act
-                var credential = Target.CreateShortLivedApiKey(Expiration, Policy, galleryEnvironment: It.IsAny<string>(), isApiKeyV5Enabled: false, out var plaintextApiKey);
-
-                // Assert
-                Assert.Null(credential.User);
-                Assert.Equal(default, credential.UserKey);
-                Assert.StartsWith("oy2", plaintextApiKey, StringComparison.Ordinal);
-                Assert.Equal(CredentialTypes.ApiKey.V4, credential.Type);
-                Assert.Equal("Short-lived API key generated via a federated credential", credential.Description);
-                Assert.Equal(Expiration.Ticks, credential.ExpirationTicks);
-
-                var scope = Assert.Single(credential.Scopes);
-                Assert.Equal(NuGetScopes.All, scope.AllowedAction);
-                Assert.Equal(NuGetPackagePattern.AllInclusivePattern, scope.Subject);
-                Assert.Same(Policy.PackageOwner, scope.Owner);
-            }
-
-            [Fact]
             public void CreatesShortLivedApiKeyWithV5()
             {
                 // Act
-                var credential = Target.CreateShortLivedApiKey(Expiration, Policy, galleryEnvironment: ServicesConstants.DevelopmentEnvironment, isApiKeyV5Enabled: true, out var plaintextApiKey);
+                var credential = Target.CreateShortLivedApiKey(Expiration, Policy, galleryEnvironment: ServicesConstants.DevelopmentEnvironment, out var plaintextApiKey);
 
                 // Assert
                 Assert.Null(credential.User);
@@ -59,7 +39,7 @@ namespace NuGetGallery.Infrastructure.Authentication
                 Policy.PackageOwner = null;
 
                 // Act
-                Assert.Throws<ArgumentException>(() => Target.CreateShortLivedApiKey(Expiration, Policy, It.IsAny<string>(), It.IsAny<bool>(), out var plaintextApiKey));
+                Assert.Throws<ArgumentException>(() => Target.CreateShortLivedApiKey(Expiration, Policy, It.IsAny<string>(), out var plaintextApiKey));
             }
 
             [Theory]
@@ -72,7 +52,7 @@ namespace NuGetGallery.Infrastructure.Authentication
                 Expiration = TimeSpan.FromMinutes(expirationMinutes);
 
                 // Act
-                Assert.Throws<ArgumentOutOfRangeException>(() => Target.CreateShortLivedApiKey(Expiration, Policy, It.IsAny<string>(), It.IsAny<bool>(), out var plaintextApiKey));
+                Assert.Throws<ArgumentOutOfRangeException>(() => Target.CreateShortLivedApiKey(Expiration, Policy, It.IsAny<string>(), out var plaintextApiKey));
             }
 
             public FederatedCredentialPolicy Policy { get; }

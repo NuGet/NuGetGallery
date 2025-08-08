@@ -94,7 +94,6 @@ namespace NuGetGallery.Services.Authentication
         private readonly IAuthenticationService _authenticationService;
         private readonly IAuditingService _auditingService;
         private readonly IDateTimeProvider _dateTimeProvider;
-        private readonly IFeatureFlagService _featureFlagService;
         private readonly IFederatedCredentialConfiguration _configuration;
         private readonly IGalleryConfigurationService _galleryConfigurationService;
 
@@ -106,7 +105,6 @@ namespace NuGetGallery.Services.Authentication
             IAuthenticationService authenticationService,
             IAuditingService auditingService,
             IDateTimeProvider dateTimeProvider,
-            IFeatureFlagService featureFlagService,
             IFederatedCredentialConfiguration configuration,
             IGalleryConfigurationService galleryConfigurationService)
         {
@@ -117,7 +115,6 @@ namespace NuGetGallery.Services.Authentication
             _authenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
             _dateTimeProvider = dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider));
-            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _galleryConfigurationService = galleryConfigurationService ?? throw new ArgumentNullException(nameof(configuration));
         }
@@ -332,7 +329,6 @@ namespace NuGetGallery.Services.Authentication
                 _configuration.ShortLivedApiKeyDuration,
                 policyEvaluation.MatchedPolicy,
                 _galleryConfigurationService.Current.Environment,
-                _featureFlagService.IsApiKeyV5EnabledForOIDC(packageOwner),
                 out var plaintextApiKey);
 
             if (!_credentialBuilder.VerifyScopes(currentUser, apiKeyCredential.Scopes))

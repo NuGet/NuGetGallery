@@ -464,10 +464,5 @@ namespace NuGetGallery
         {
             return _client.IsEnabled(McpServerPackageDisplayFeatureName, defaultValue: false);
         }
-
-        public bool IsApiKeyV5EnabledForOIDC(User user)
-        {
-            return _client.IsEnabled(EnableApiKeyV5ForOIDCFeatureName, user, defaultValue: false);
-        }
     }
 }

@@ -359,10 +359,5 @@ namespace GitHubVulnerabilities2Db.Fakes
         {
             throw new NotImplementedException();
         }
-
-        public bool IsApiKeyV5EnabledForOIDC(User user)
-        {
-            throw new NotImplementedException();
-        }
     }
 }
