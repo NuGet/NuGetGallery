@@ -1273,8 +1273,8 @@ namespace NuGetGallery
 
                 if (package.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
                 {
-                    // The "licenseFileStream" below is already in memory, since low level method <see cref="GetFileAsync"/> in <see cref="CloudBlobCoreFileStorageService"/> reads the whole stream from blob storage into memory.
-                    // There is a need to consider refactoring <see cref="CoreLicenseFileService"/> and provide a "GetUnBufferedFileAsync" method in <see cref="CloudBlobCoreFileStorageService"/>.
+                    // The "licenseFileStream" below is already in memory, since low level method GetFileAsync in CloudBlobCoreFileStorageService reads the whole stream from blob storage into memory.
+                    // There is a need to consider refactoring CoreLicenseFileService and provide a "GetUnBufferedFileAsync" method in CloudBlobCoreFileStorageService.
                     // In this way, we could read very large stream from blob storage with max size restriction.
                     using (var licenseFileStream = await _coreLicenseFileService.DownloadLicenseFileAsync(package))
                     using (var licenseFileTruncatedStream = await licenseFileStream.GetTruncatedStreamWithMaxSizeAsync(MaxAllowedLicenseLengthForDisplaying))
