@@ -13,12 +13,11 @@ namespace NuGet.Services.Configuration
         {
             string clientId = configuration[Constants.ManagedIdentityClientIdKey];
 
-            if (!string.IsNullOrWhiteSpace(clientId))
-            {
-                return new ManagedIdentityCredential(clientId);
-            }
-
+#if DEBUG
             return new DefaultAzureCredential();
+#else
+            return new ManagedIdentityCredential(clientId);
+#endif
         }
     }
 }

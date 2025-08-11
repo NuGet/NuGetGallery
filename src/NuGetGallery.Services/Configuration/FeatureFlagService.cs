@@ -33,6 +33,7 @@ namespace NuGetGallery
         private const string DisplayNuGetTrendsLinkFeatureName = GalleryPrefix + "DisplayNuGetTrendsLink";
         private const string ODataReadOnlyDatabaseFeatureName = GalleryPrefix + "ODataReadOnlyDatabase";
         private const string PackagesAtomFeedFeatureName = GalleryPrefix + "PackagesAtomFeed";
+        private const string PackagesAtomFeedCombinedAuthorsFeatureName = GalleryPrefix + "PackagesAtomFeedCombinedAuthors";
         private const string SearchSideBySideFlightName = GalleryPrefix + "SearchSideBySide";
         private const string TyposquattingFeatureName = GalleryPrefix + "Typosquatting";
         private const string TyposquattingFlightName = GalleryPrefix + "TyposquattingFlight";
@@ -64,8 +65,12 @@ namespace NuGetGallery
         private const string DisplayTfmBadgesFeatureName = GalleryPrefix + "DisplayTfmBadges";
         private const string AdvancedFrameworkFilteringFeatureName = GalleryPrefix + "AdvancedFrameworkFiltering";
         private const string FederatedCredentialsFeatureName = GalleryPrefix + "FederatedCredentials";
-        private const string AsciiOnlyPackageIdFeatureName = GalleryPrefix + "AsciiOnlyPackageId";
+        private const string TrustedPublishingFeatureName = GalleryPrefix + "TrustedPublishing";
         private const string ProfileLoadOptimization = GalleryPrefix + "ProfileLoadOptimization";
+        private const string ProfileLoadOptimizationV2 = GalleryPrefix + "ProfileLoadOptimizationV2";
+        private const string McpServerPackageFilteringFeatureName = GalleryPrefix + "McpServerPackageFiltering";
+        private const string McpServerPackageDisplayFeatureName = GalleryPrefix + "McpServerPackageDisplay";
+        private const string EnableApiKeyV5ForOIDCFeatureName = GalleryPrefix + "EnableApiKeyV5ForOIDC";
 
         private const string ODataV1GetAllNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllNonHijacked";
         private const string ODataV1GetAllCountNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllCountNonHijacked";
@@ -118,6 +123,11 @@ namespace NuGetGallery
         public bool IsPackagesAtomFeedEnabled()
         {
             return _client.IsEnabled(PackagesAtomFeedFeatureName, defaultValue: false);
+        }
+
+        public bool IsPackagesAtomFeedCombinedAuthorsEnabled()
+        {
+            return _client.IsEnabled(PackagesAtomFeedCombinedAuthorsFeatureName, defaultValue: false);
         }
 
         /// <summary>
@@ -430,14 +440,34 @@ namespace NuGetGallery
             return _client.IsEnabled(FederatedCredentialsFeatureName, user, defaultValue: false);
         }
 
-        public bool IsAsciiOnlyPackageIdEnabled()
+        public bool IsTrustedPublishingEnabled(User user)
         {
-            return _client.IsEnabled(AsciiOnlyPackageIdFeatureName, defaultValue: false);
+            return _client.IsEnabled(TrustedPublishingFeatureName, user, defaultValue: false);
         }
 
         public bool IsProfileLoadOptimizationEnabled()
         {
             return _client.IsEnabled(ProfileLoadOptimization, defaultValue: true);
+        }
+
+        public bool IsProfileLoadOptimizationV2Enabled()
+        {
+            return _client.IsEnabled(ProfileLoadOptimizationV2, defaultValue: false);
+        }
+
+        public bool IsMcpServerPackageFilteringEnabled()
+        {
+            return _client.IsEnabled(McpServerPackageFilteringFeatureName, defaultValue: false);
+        }
+
+        public bool IsMcpServerPackageDisplayEnabled()
+        {
+            return _client.IsEnabled(McpServerPackageDisplayFeatureName, defaultValue: false);
+        }
+
+        public bool IsApiKeyV5EnabledForOIDC(User user)
+        {
+            return _client.IsEnabled(EnableApiKeyV5ForOIDCFeatureName, user, defaultValue: false);
         }
     }
 }

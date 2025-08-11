@@ -245,6 +245,11 @@ namespace GitHubVulnerabilities2Db.Fakes
             throw new NotImplementedException();
         }
 
+        public bool IsPackagesAtomFeedCombinedAuthorsEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsPreviewHijackEnabled()
         {
             throw new NotImplementedException();
@@ -330,12 +335,32 @@ namespace GitHubVulnerabilities2Db.Fakes
             throw new NotImplementedException();
         }
 
-        public bool IsAsciiOnlyPackageIdEnabled()
+        public bool IsTrustedPublishingEnabled(User user)
         {
             throw new NotImplementedException();
         }
 
         public bool IsProfileLoadOptimizationEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsProfileLoadOptimizationV2Enabled()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsMcpServerPackageFilteringEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsMcpServerPackageDisplayEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsApiKeyV5EnabledForOIDC(User user)
         {
             throw new NotImplementedException();
         }

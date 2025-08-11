@@ -19,5 +19,11 @@ namespace NuGet.Services.Entities
         /// subject and expiration claims.
         /// </summary>
         EntraIdServicePrincipal = 1,
+
+        /// <summary>
+        /// This credential type applies to GitHub Actions workflows running in GitHub repositories. The workflow
+        /// is identified by repository owner, repository name, workflow file, etc.
+        /// </summary>
+        GitHubActions = 2,
     }
 }

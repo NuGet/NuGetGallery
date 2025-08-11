@@ -19,7 +19,7 @@ namespace NuGetGallery {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Strings {
@@ -1130,6 +1130,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A permanent GitHub ID assigned to a user, organization, or repository when it&apos;s created. Used for trusted publishing validation..
+        /// </summary>
+        public static string GitHub_WhatIsUniqueId {
+            get {
+                return ResourceManager.GetString("GitHub_WhatIsUniqueId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The API key &apos;{0}&apos; is invalid..
         /// </summary>
         public static string InvalidApiKey {
@@ -1243,6 +1252,42 @@ namespace NuGetGallery {
         public static string ManagePackageOwners_RemovingSelf {
             get {
                 return ResourceManager.GetString("ManagePackageOwners_RemovingSelf", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The MCP server metadata file &apos;{0}&apos; cannot be empty..
+        /// </summary>
+        public static string McpServerMetadataErrorEmpty {
+            get {
+                return ResourceManager.GetString("McpServerMetadataErrorEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The MCP server metadata file &apos;{0}&apos; is invalid..
+        /// </summary>
+        public static string McpServerMetadataErrorInvalid {
+            get {
+                return ResourceManager.GetString("McpServerMetadataErrorInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The MCP server metadata file &apos;{0}&apos; cannot be larger than {1}..
+        /// </summary>
+        public static string McpServerMetadataTooLong {
+            get {
+                return ResourceManager.GetString("McpServerMetadataTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A package cannot contain the &apos;McpServer&apos; package type without the &apos;DotnetTool&apos; package type..
+        /// </summary>
+        public static string McpServerWithoutDotnetTool {
+            get {
+                return ResourceManager.GetString("McpServerWithoutDotnetTool", resourceCulture);
             }
         }
         
@@ -1958,6 +2003,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to exact match.
+        /// </summary>
+        public static string SearchResult_ExactMatch {
+            get {
+                return ResourceManager.GetString("SearchResult_ExactMatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Search Service is not available. Please try again later..
         /// </summary>
         public static string SearchServiceIsNotAvailable {
@@ -2436,6 +2490,42 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The policy has been removed..
+        /// </summary>
+        public static string TrustedPolicyRemoved {
+            get {
+                return ResourceManager.GetString("TrustedPolicyRemoved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The trusted publisher policy name is required..
+        /// </summary>
+        public static string TrustedPublisher_PolicyNameRequired {
+            get {
+                return ResourceManager.GetString("TrustedPublisher_PolicyNameRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The trusted publisher policy owner is required..
+        /// </summary>
+        public static string TrustedPublisher_PolicyOwnerRequired {
+            get {
+                return ResourceManager.GetString("TrustedPublisher_PolicyOwnerRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unexpected trusted publisher..
+        /// </summary>
+        public static string TrustedPublisher_Unexpected {
+            get {
+                return ResourceManager.GetString("TrustedPublisher_Unexpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to There was an unexpected error when submitting feedback. Please contact NuGet support..
         /// </summary>
         public static string TwoFAFeedback_Error {
@@ -2855,6 +2945,24 @@ namespace NuGetGallery {
         public static string UploadPackage_MissingLicenseInformation {
             get {
                 return ResourceManager.GetString("UploadPackage_MissingLicenseInformation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Server.json missing. Go to https://aka.ms/nuget-include-mcp to learn how to include a server.json file within the package..
+        /// </summary>
+        public static string UploadPackage_MissingMcpServerMetadata {
+            get {
+                return ResourceManager.GetString("UploadPackage_MissingMcpServerMetadata", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;strong&gt;Server.json&lt;/strong&gt; missing.&lt;a href=&quot;https://aka.ms/nuget-include-mcp&quot;&gt; See how to include a server.json file within the package..
+        /// </summary>
+        public static string UploadPackage_MissingMcpServerMetadataHtml {
+            get {
+                return ResourceManager.GetString("UploadPackage_MissingMcpServerMetadataHtml", resourceCulture);
             }
         }
         

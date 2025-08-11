@@ -16,12 +16,21 @@ namespace NuGetGallery
         public PackageManagerViewModel(
             string id,
             string name,
-            params InstallPackageCommand[] installPackageCommands
-            )
+            params InstallPackageCommand[] installPackageCommands)
+            : this(id, name, initialismExplanation: null, installPackageCommands)
+        {
+        }
+
+        public PackageManagerViewModel(
+            string id,
+            string name,
+            string initialismExplanation,
+            params InstallPackageCommand[] installPackageCommands)
         {
             Id = id;
             Name = name;
-            CopyLabel = string.Format("Copy the {0} command", name);
+            InitialismExplanation = initialismExplanation;
+            CopyLabel = string.Format(CultureInfo.InvariantCulture, "Copy the {0} command", name);
             int index = 0;
             InstallPackageCommands = installPackageCommands.ToDictionary(
                 _ => string.Format(CultureInfo.InvariantCulture, "{0}-{1:0000}", Id, ++index),
@@ -34,6 +43,12 @@ namespace NuGetGallery
         /// The package manager's name.
         /// </summary>
         public string Name { get; }
+
+        /// <summary>
+        /// If <see cref="Name"/> is an initialism this property contains the explanation for it shown in a tooltip.
+        /// If null or empty string, <see cref="Name"/> is used instead.
+        /// </summary>
+        public string InitialismExplanation { get; } = null;
 
         /// <summary>
         /// A unique identifier that represents this package manager.
@@ -64,6 +79,11 @@ namespace NuGetGallery
         /// The label for the copy button.
         /// </summary>
         public string CopyLabel { get; set; }
+
+        /// <summary>
+        /// Whether the copy button is enabled or not.
+        /// </summary>
+        public bool CopyEnabled { get; set; } = true;
 
         public class InstallPackageCommand
         {

@@ -22,6 +22,8 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
 
         public bool IsPackagesAtomFeedEnabled() => throw new NotImplementedException();
 
+        public bool IsPackagesAtomFeedCombinedAuthorsEnabled() => throw new NotImplementedException();
+
         public bool IsManageDeprecationEnabled(User user, PackageRegistration registration) => throw new NotImplementedException();
 
         public bool IsManageDeprecationEnabled(User user, IEnumerable<Package> allVersions) => throw new NotImplementedException();
@@ -138,8 +140,16 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
 
         public bool CanUseFederatedCredentials(User user) => throw new NotImplementedException();
 
-        public bool IsAsciiOnlyPackageIdEnabled() => throw new NotImplementedException();
+        public bool IsTrustedPublishingEnabled(User user) => throw new NotImplementedException();
 
         public bool IsProfileLoadOptimizationEnabled() => throw new NotImplementedException();
+
+        public bool IsProfileLoadOptimizationV2Enabled() => throw new NotImplementedException();
+
+        public bool IsMcpServerPackageFilteringEnabled() => throw new NotImplementedException();
+
+        public bool IsMcpServerPackageDisplayEnabled() => throw new NotImplementedException();
+
+        public bool IsApiKeyV5EnabledForOIDC(User user) => throw new NotImplementedException();
     }
 }

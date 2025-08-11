@@ -1,10 +1,11 @@
-﻿﻿// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using NuGetGallery.Services.Helpers;
 using Xunit;
 
 namespace NuGetGallery.Helpers
@@ -94,7 +95,7 @@ namespace NuGetGallery.Helpers
         [Fact]
         public async Task NextBytesMatchThrowsWhenStreamIsNull()
         {
-            var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => StreamHelper.NextBytesMatchAsync(stream: null, expectedBytes: Array.Empty<byte>()));
+            var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => StreamExtensions.NextBytesMatchAsync(stream: null, expectedBytes: Array.Empty<byte>()));
             Assert.Equal("stream", ex.ParamName);
         }
 
@@ -103,7 +104,7 @@ namespace NuGetGallery.Helpers
         {
             using (var ms = new MemoryStream())
             {
-                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => StreamHelper.NextBytesMatchAsync(stream: ms, expectedBytes: null));
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => StreamExtensions.NextBytesMatchAsync(stream: ms, expectedBytes: null));
                 Assert.Equal("expectedBytes", ex.ParamName);
             }
         }

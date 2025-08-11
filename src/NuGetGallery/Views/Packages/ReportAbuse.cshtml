@@ -103,9 +103,11 @@
                             @Html.ShowTextBoxFor(m => m.Email, customClass: "input-brand")
                             @Html.ShowValidationMessagesFor(m => m.Email)
                         </div>
-                        <div class="form-group already-contacted-owner row-checkbox-label @Html.HasErrorFor(m => m.AlreadyContactedOwner)">
-                            @Html.ShowCheckboxFor(m => m.AlreadyContactedOwner, "brand-checkbox")
-                            @Html.ShowLabelFor(m => m.AlreadyContactedOwner)
+                        <div class="form-group already-contacted-owner @Html.HasErrorFor(m => m.AlreadyContactedOwner)">
+                            <label class="brand-checkbox">
+                                @Html.ShowCheckboxFor(m => m.AlreadyContactedOwner)
+                                <span>@Html.DisplayNameFor(m => m.AlreadyContactedOwner)</span>
+                            </label>
                             @Html.ShowValidationMessagesFor(m => m.AlreadyContactedOwner)
                         </div>
                         <div class="form-group @Html.HasErrorFor(m => m.Message)">
@@ -136,9 +138,11 @@
                             @Html.ShowTextAreaFor(m => m.Message, 10, 50, customClass: "textarea-brand")
                             @Html.ShowValidationMessagesFor(m => m.Message)
                         </div>
-                        <div class="form-group row-checkbox-label @Html.HasErrorFor(m => m.CopySender)">
-                            @Html.ShowCheckboxFor(m => m.CopySender, customClass: "brand-checkbox")
-                            @Html.ShowLabelFor(m => m.CopySender)
+                        <div class="form-group @Html.HasErrorFor(m => m.CopySender)">
+                            <label class="brand-checkbox">
+                                @Html.ShowCheckboxFor(m => m.CopySender)
+                                <span>@Html.DisplayNameFor(m => m.CopySender)</span>
+                            </label>
                             @Html.ShowValidationMessagesFor(m => m.CopySender)
                         </div>
                         <div class="form-group">
