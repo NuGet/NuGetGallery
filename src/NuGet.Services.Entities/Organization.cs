@@ -9,8 +9,8 @@ using System.Linq;
 namespace NuGet.Services.Entities
 {
     /// <summary>
-    /// Organization <see cref="NuGetGallery.User" /> account, based on TPT hierarchy.
-    /// 
+    /// Organization <see cref="NuGet.Services.Entities.User" /> account, based on TPT hierarchy.
+    ///
     /// With the addition of organizations, the users table effectively becomes an account table. Organizations accounts
     /// are child types created using TPT inheritance. User accounts are not child types, but this could be done in the
     /// future if we want to add constraints for user accounts or user-only settings.

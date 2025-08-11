@@ -17,7 +17,6 @@ namespace NuGet.Services.ServiceBus
         /// Creates a new wrapper around a received Service Bus message.
         /// </summary>
         /// <param name="args">The receiver which produced the <paramref name="message"/>. The wrapper does not own the provided receiver and therefore will not close it upon <see cref="Dispose"/>.</param>
-        /// <param name="message">The received message.</param>
         public ServiceBusReceivedMessageWrapper(ProcessMessageEventArgs args)
         {
             _args = args ?? throw new ArgumentNullException(nameof(args));
