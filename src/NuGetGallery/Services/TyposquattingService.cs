@@ -112,7 +112,6 @@ namespace NuGetGallery
             // User "a" is uploading a package named "xyz", while "xyz" collides with existing packages "xyzz" (owned by "a", "b", "c"), "xyyz" (owned by "b"), "xxyz" (owned by "b", "c").
             // We will pass this package because "a" has the ownership of package "xyzz" even though this package Id collides with "xyyz" and "xxyz".
             // The "typosquattingCheckCollisionIds" will be saved as "xyyz" and "xxyz" because this package collides with these two packages which are not owned by "a", while "xyzz" will not be saved as "a" owns it.
-            // </summary>
             var isUserAllowedTyposquatting = collisionPackagesIdAndOwners
                 .Any(pio => pio.Owners.Any(k => k == uploadedPackageOwner.Key));
 
