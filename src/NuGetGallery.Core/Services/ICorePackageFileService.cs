@@ -46,7 +46,7 @@ namespace NuGetGallery
         /// <summary>
         /// Checks whether package file exists in the public container for available packages
         /// </summary>
-        /// <param name="">The package metadata</param>
+        /// <param name="package">The package metadata</param>
         /// <returns>True if file exists, false otherwise</returns>
         Task<bool> DoesPackageFileExistAsync(Package package);
 

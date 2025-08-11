@@ -19,7 +19,7 @@ namespace NuGetGallery.AccountDeleter
 
         /// <summary>
         /// No-reply name and address to use in emails that should not be answered,
-        /// should be in form of "No Reply <noreply@my.org>"
+        /// should be in form of "No Reply &lt;noreply@my.org&gt;"
         /// </summary>
         public string GalleryNoReplyAddress { get; set; }
 
