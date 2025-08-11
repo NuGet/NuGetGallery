@@ -105,7 +105,6 @@ namespace NuGetGallery
                 .Select(pio => pio.Id)
                 .ToList();
 
-            // <summary>
             // The following statement is used to double check whether the collision Id belongs to the same user who is uploading the package.
             // The current policy is that if the user has the ownership of any of the collision packages, we will pass the package.
             // The reason is that maybe this user is trying to update an existing package who is owned by themselves.
