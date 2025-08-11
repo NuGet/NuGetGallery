@@ -11,12 +11,12 @@ using System.Web.Http.Hosting;
 
 namespace NuGetGallery.Infrastructure.Search.Correlation
 {
-    public class WebApiCorrelationHandler 
+    public class WebApiCorrelationHandler
         : DelegatingHandler
     {
         public static string CallContextKey = "CorrelatingHttpHandler_CID";
         public static string CorrelationIdHttpHeaderName = "X-CorrelationId";
-        
+
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             // Determine correlation id
@@ -47,11 +47,7 @@ namespace NuGetGallery.Infrastructure.Search.Correlation
                     if (Guid.TryParse(temp, out correlationId))
                     {
                         // Overwrite the correlation id from Web API's MS_RequestId header
-                        if (request.Properties.ContainsKey(HttpPropertyKeys.RequestCorrelationKey))
-                        {
-                            request.Properties.Remove(HttpPropertyKeys.RequestCorrelationKey);
-                        }
-
+                        request.Properties.Remove(HttpPropertyKeys.RequestCorrelationKey);
                         request.Properties.Add(HttpPropertyKeys.RequestCorrelationKey, correlationId);
                     }
                 }

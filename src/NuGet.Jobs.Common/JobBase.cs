@@ -181,12 +181,12 @@ namespace NuGet.Jobs
 
         private ICoreSqlConnectionFactory GetSqlConnectionFactory(string name)
         {
-            if (!SqlConnectionFactories.ContainsKey(name))
+            if (SqlConnectionFactories.TryGetValue(name, out ICoreSqlConnectionFactory factory))
             {
-                throw new InvalidOperationException($"Database {name} has not been registered.");
+                return factory;
             }
 
-            return SqlConnectionFactories[name];
+            throw new InvalidOperationException($"Database {name} has not been registered.");
         }
 
         private static string GetDatabaseKey<T>()
