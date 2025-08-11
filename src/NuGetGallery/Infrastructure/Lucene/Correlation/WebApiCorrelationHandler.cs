@@ -47,8 +47,7 @@ namespace NuGetGallery.Infrastructure.Search.Correlation
                     if (Guid.TryParse(temp, out correlationId))
                     {
                         // Overwrite the correlation id from Web API's MS_RequestId header
-                        request.Properties.Remove(HttpPropertyKeys.RequestCorrelationKey);
-                        request.Properties.Add(HttpPropertyKeys.RequestCorrelationKey, correlationId);
+                        request.Properties[HttpPropertyKeys.RequestCorrelationKey] = correlationId;
                     }
                 }
 
