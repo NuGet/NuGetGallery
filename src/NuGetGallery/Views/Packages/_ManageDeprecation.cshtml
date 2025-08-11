@@ -35,7 +35,13 @@
 
     <div class="deprecation-section">
         <div class="deprecation-section-header">
-            <b>Select reason(s)</b>
+            <b>Select reason(s):</b>
+        </div>
+        <div data-bind="visible: chosenItemsHasUndeprecatedVersion()">
+            @ViewHelpers.AlertInfo(@<text>At least one reason needs to be checked in order to deprecate the selected version(s).</text>, true)
+        </div>
+        <div data-bind="visible: chosenItemsHasDeprecatedVersion()">
+            @ViewHelpers.AlertInfo(@<text>Deselect the deprecation reasons to undeprecate the selected version(s).</text>, true)
         </div>
         <div class="form-group unbolded-label">
             <label class="brand-checkbox">
