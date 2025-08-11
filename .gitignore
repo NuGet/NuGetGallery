@@ -437,3 +437,4 @@ src/NuGetGallery/App_Data/Files/*
 !src/NuGetGallery/Branding/Views/Packages/
 
 
+/.idea
