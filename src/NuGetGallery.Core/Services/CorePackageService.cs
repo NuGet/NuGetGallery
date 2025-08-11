@@ -50,7 +50,7 @@ namespace NuGetGallery
             package.LastUpdated = now;
 
             // If the package is available, consider this change as an "edit" so that the package appears for cursors
-            // on the <see cref="Package.LastEdited"/> field.
+            // on the Package.LastEdited field.
             if (package.PackageStatusKey == PackageStatus.Available)
             {
                 package.LastEdited = now;
@@ -87,7 +87,7 @@ namespace NuGetGallery
                 package.LastUpdated = DateTime.UtcNow;
 
                 // If the package is being made available, consider this change as an "edit" so that the package
-                // appears for cursors on the <see cref="Package.LastEdited"/> field.
+                // appears for cursors on the Package.LastEdited field.
                 if (newPackageStatus == PackageStatus.Available)
                 {
                     package.LastEdited = DateTime.UtcNow;
