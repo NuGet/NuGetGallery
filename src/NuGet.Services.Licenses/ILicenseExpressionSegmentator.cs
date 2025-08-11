@@ -58,7 +58,7 @@ namespace NuGet.Services.Licenses
 
         /// <summary>
         /// "Projects" the list of the segments provided by
-        /// <see cref="GetLicenseExpressionSegments(NuGetLicenseExpression)"/> method
+        /// <see cref="GetLicenseExpressionSegments"/> method
         /// onto the license expression string discovering any extra "segments" of
         /// type <see cref="CompositeLicenseExpressionSegmentType.Other"/> it might have.
         /// </summary>
