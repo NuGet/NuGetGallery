@@ -239,15 +239,15 @@ namespace NuGetGallery
 
         public Task<Uri> GetFileUriAsync(string folderName, string fileName)
         {
-            /// Not implemented for the same reason as <see cref="GetFileReadUriAsync(string, string, DateTimeOffset?)"/>.
+            // Not implemented for the same reason as <see cref="GetFileReadUriAsync(string, string, DateTimeOffset?)"/>.
             throw new NotImplementedException();
         }
 
         public Task<Uri> GetFileReadUriAsync(string folderName, string fileName, DateTimeOffset? endOfAccess)
         {
             // technically, we would be able to generate the file:/// url here, but we don't need it right now
-            // and implementation would be a bit non-trivial: System.Uri handles the "%" character in paths 
-            // in a funny way: 
+            // and implementation would be a bit non-trivial: System.Uri handles the "%" character in paths
+            // in a funny way:
             // new Uri(@"c:\%41foo%20bar%25.baz")
             // produces the
             // file:///c:/Afoo%20bar%2525.baz
@@ -257,7 +257,7 @@ namespace NuGetGallery
 
         public Task<Uri> GetPrivilegedFileUriAsync(string folderName, string fileName, FileUriPermissions permissions, DateTimeOffset endOfAccess)
         {
-            /// Not implemented for the same reason as <see cref="GetFileReadUriAsync(string, string, DateTimeOffset?)"/>.
+            // Not implemented for the same reason as <see cref="GetFileReadUriAsync(string, string, DateTimeOffset?)"/>.
             throw new NotImplementedException();
         }
 

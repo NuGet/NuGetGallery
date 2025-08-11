@@ -12,7 +12,7 @@ namespace NuGetGallery.Features
     {
         /// <summary>
         /// Get a reference to the feature flag's raw content.  This should be used
-        /// in conjuction with <see cref="TrySaveAsync(string, string)"/> to update
+        /// in conjuction with <see cref="TrySaveAsync(FeatureFlags, string)"/> to update
         /// the feature flags.
         /// </summary>
         /// <returns>A snapshot of the flags' content and ETag.</returns>

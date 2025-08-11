@@ -8,13 +8,13 @@ using Microsoft.Extensions.Options;
 namespace NuGet.Services.Configuration
 {
     /// <summary>
-    /// <see cref="IOptionsSnapshot{TOptions}"/> implementation that does not use default implementation's 
+    /// <see cref="IOptionsSnapshot{TOptions}"/> implementation that does not use default implementation's
     /// cache for the <typeparamref name="TOptions"/> objects and always instantiates and binds a new one.
     /// </summary>
     /// <typeparam name="TOptions">The actual data object</typeparam>
     /// <example>
     /// To use, add the following line before services.AddOptions() call:
-    /// services.Add(ServiceDescriptor.Scoped(typeof(IOptionsSnapshot<>), typeof(NonCachingOptionsSnapshot<>)));
+    /// services.Add(ServiceDescriptor.Scoped(typeof(IOptionsSnapshot&lt;&gt;), typeof(NonCachingOptionsSnapshot&lt;&gt;)));
     /// </example>
     public class NonCachingOptionsSnapshot<TOptions> : IOptionsSnapshot<TOptions>
         where TOptions : class, new()

@@ -8,7 +8,7 @@ namespace NuGet.Services.Validation
 {
     /// <summary>
     /// Represents a single validation step performed on a package. The associated package is implied via the validations's
-    /// <see cref="NuGetGallery.PackageValidationSet"/>.
+    /// <see cref="PackageValidationSet"/>.
     /// </summary>
     public class PackageValidation
     {
@@ -18,7 +18,7 @@ namespace NuGet.Services.Validation
         public Guid Key { get; set; }
 
         /// <summary>
-        /// The foreign key referencing a <see cref="NuGetGallery.PackageValidationSet"/>.
+        /// The foreign key referencing a <see cref="PackageValidationSet"/>.
         /// </summary>
         public long PackageValidationSetKey { get; set; }
 
@@ -31,7 +31,7 @@ namespace NuGet.Services.Validation
         public string Type { get; set; }
 
         /// <summary>
-        /// The time when the validation was started (i.e. when the validation record first moves out of the 
+        /// The time when the validation was started (i.e. when the validation record first moves out of the
         /// <see cref="ValidationStatus.NotStarted"/> state). This can be null if the validation has not been started
         /// yet, as indicated by the <see cref="ValidationStatus.NotStarted"/> status.
         /// </summary>

@@ -475,7 +475,7 @@ namespace NuGetGallery
             var packageForUploadingSymbols = symbolsPackageValidationResult.Package;
             var existingPackageRegistration = packageForUploadingSymbols.PackageRegistration;
 
-            // Evaluate the permissions for user on behalf of any account possible, since the user 
+            // Evaluate the permissions for user on behalf of any account possible, since the user
             // could change the ownership before submitting the package.
             if (ActionsRequiringPermissions.UploadSymbolPackage.CheckPermissionsOnBehalfOfAnyAccount(
                 currentUser, existingPackageRegistration, out accountsAllowedOnBehalfOf) != PermissionsCheckResult.Allowed)
@@ -621,7 +621,7 @@ namespace NuGetGallery
                 }
                 else
                 {
-                    // Determine if the package versions only differ by metadata, 
+                    // Determine if the package versions only differ by metadata,
                     // and provide the most optimal the user-facing error message.
                     var existingPackageVersion = new NuGetVersion(existingPackage.Version);
                     String message = string.Empty;
@@ -876,7 +876,7 @@ namespace NuGetGallery
             }
             else
             {
-                // we should never get here: wrong file contents should have been caught during validation 
+                // we should never get here: wrong file contents should have been caught during validation
                 throw new InvalidOperationException("The package icon is neither JPEG nor PNG file");
             }
 
@@ -1273,11 +1273,9 @@ namespace NuGetGallery
 
                 if (package.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
                 {
-                    /// <remarks>
-                    /// The "licenseFileStream" below is already in memory, since low level method <see cref="GetFileAsync"/> in <see cref="CloudBlobCoreFileStorageService"/> reads the whole stream from blob storage into memory.
-                    /// There is a need to consider refactoring <see cref="CoreLicenseFileService"/> and provide a "GetUnBufferedFileAsync" method in <see cref="CloudBlobCoreFileStorageService"/>.
-                    /// In this way, we could read very large stream from blob storage with max size restriction.
-                    /// </remarks>
+                    // The "licenseFileStream" below is already in memory, since low level method <see cref="GetFileAsync"/> in <see cref="CloudBlobCoreFileStorageService"/> reads the whole stream from blob storage into memory.
+                    // There is a need to consider refactoring <see cref="CoreLicenseFileService"/> and provide a "GetUnBufferedFileAsync" method in <see cref="CloudBlobCoreFileStorageService"/>.
+                    // In this way, we could read very large stream from blob storage with max size restriction.
                     using (var licenseFileStream = await _coreLicenseFileService.DownloadLicenseFileAsync(package))
                     using (var licenseFileTruncatedStream = await licenseFileStream.GetTruncatedStreamWithMaxSizeAsync(MaxAllowedLicenseLengthForDisplaying))
                     {
@@ -2630,7 +2628,7 @@ namespace NuGetGallery
             string packageVersion = null;
             try
             {
-                // Perform initial validations again, the state could have been changed between the time 
+                // Perform initial validations again, the state could have been changed between the time
                 // when the symbols package file was uploaded and before submitting for publish.
                 var symbolsPackageValidationResult = await _symbolPackageUploadService.ValidateUploadedSymbolsPackage(uploadFile, currentUser);
                 var uploadResult = GetJsonResultOrNull(symbolsPackageValidationResult);

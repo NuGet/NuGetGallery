@@ -14,7 +14,7 @@ namespace NuGet.Services.Storage
         /// <summary>
         /// Adds a <see cref="StorageQueueMessage"/> to the queue.
         /// </summary>
-        /// <param name="message">The message to add.</param>
+        /// <param name="contents">The message to add.</param>
         /// <param name="token">A token to cancel the task with.</param>
         Task AddAsync(string contents, CancellationToken token);
 

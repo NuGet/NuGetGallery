@@ -13,7 +13,7 @@ namespace NuGetGallery.AccountDeleter
         public ServiceBusConfiguration ServiceBus { get; set; }
 
         /// <summary>
-        /// Gallery owner name and email looking like "Gallery Owner <admin@my.org>"
+        /// Gallery owner name and email looking like "Gallery Owner &lt;admin@my.org&gt;"
         /// </summary>
         public string GalleryOwner { get; set; }
 

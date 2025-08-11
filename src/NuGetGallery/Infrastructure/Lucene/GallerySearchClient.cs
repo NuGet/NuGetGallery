@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using SearchModels = NuGetGallery.Infrastructure.Search.Models;
 
-namespace NuGetGallery.Infrastructure.Search 
+namespace NuGetGallery.Infrastructure.Search
 {
     public class GallerySearchClient : ISearchClient
     {
@@ -19,8 +19,8 @@ namespace NuGetGallery.Infrastructure.Search
         /// <summary>
         /// Create a search service client.
         /// </summary>
-        /// <param name="httpClient">The <see cref="HttpClient"/> to be used for the requests.</param>
-        public GallerySearchClient(IResilientSearchClient resilientHttpClient) 
+        /// <param name="resilientHttpClient">The <see cref="HttpClient"/> to be used for the requests.</param>
+        public GallerySearchClient(IResilientSearchClient resilientHttpClient)
         {
             _httpClient = resilientHttpClient ?? throw new ArgumentNullException(nameof(resilientHttpClient));
         }
@@ -30,7 +30,7 @@ namespace NuGetGallery.Infrastructure.Search
             return new ServiceResponse<JObject>(await _httpClient.GetAsync(_diagnosticsPath, null));
         }
 
-        // This code is copied from the SearchClient [and modified a bit] 
+        // This code is copied from the SearchClient [and modified a bit]
         private static readonly Dictionary<SearchModels.SortOrder, string> SortNames = new Dictionary<SearchModels.SortOrder, string>
         {
             {SearchModels.SortOrder.LastEdited, GalleryConstants.SearchSortNames.LastEdited},
@@ -44,7 +44,7 @@ namespace NuGetGallery.Infrastructure.Search
             {SearchModels.SortOrder.TotalDownloadsDescending, GalleryConstants.SearchSortNames.TotalDownloadsDesc},
         };
 
-        // This code is copied from the SearchClient 
+        // This code is copied from the SearchClient
         public async Task<ServiceResponse<SearchModels.SearchResults>> Search(
             string query,
             string projectTypeFilter = null,

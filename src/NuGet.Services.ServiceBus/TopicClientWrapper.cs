@@ -14,7 +14,7 @@ namespace NuGet.Services.ServiceBus
         private readonly ServiceBusSender _sender;
 
         /// <summary>
-        /// Create an instance of wrapper for <see cref="TopicClient"/>. Use the managed identity authentication if the `SharedAccessKey` is not
+        /// Create an instance of wrapper for <see cref="ITopicClient"/>. Use the managed identity authentication if the `SharedAccessKey` is not
         /// specified in the <paramref name="connectionString"/>.
         /// </summary>
         /// <param name="connectionString">This can be a connection string with shared access key or a service bus endpoint URL string to be used with managed identities.
@@ -25,13 +25,12 @@ namespace NuGet.Services.ServiceBus
         /// </list>
         /// </param>
         /// <param name="path">Path of the topic name</param>
-        /// <param name="managedIdentityClientId">The client ID of the managed identity to try. This should be used for a user-assigned managed identity.</param>
         public TopicClientWrapper(string connectionString, string path) : this(connectionString, path, managedIdentityClientId: null)
         {
         }
 
         /// <summary>
-        /// Create an instance of wrapper for <see cref="TopicClient"/>. Use the managed identity authentication if the `SharedAccessKey` is not
+        /// Create an instance of wrapper for <see cref="ITopicClient"/>. Use the managed identity authentication if the `SharedAccessKey` is not
         /// specified in the <paramref name="connectionString"/>.
         /// </summary>
         /// <param name="connectionString">This can be a connection string with shared access key or a service bus endpoint URL string to be used with managed identities.

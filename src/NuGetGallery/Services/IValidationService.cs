@@ -29,7 +29,7 @@ namespace NuGetGallery
         /// The caller must also call <see cref="StartValidationAsync(Package)"/>
         /// at later time.
         /// </summary>
-        /// <param name="package">The package to update</param>
+        /// <param name="symbolPackage">The package to update</param>
         /// <remarks>This method only updates the object passed into it, no database commit is performed.</remarks>
         Task UpdatePackageAsync(SymbolPackage symbolPackage);
 
