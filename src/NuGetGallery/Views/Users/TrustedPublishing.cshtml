@@ -14,7 +14,7 @@
             <p>
                 <strong>Trusted Publishing</strong> lets you publish NuGet packages securely without managing API keys.
                 It currently supports publishing from <strong>GitHub Actions</strong>.
-                <a href="https://aka.ms/nuget-org-trusted-publishing"
+                <a href="https://aka.ms/nuget/trusted-publishing"
                    target="_blank" aria-label="Learn more about Trusted Publishing">Learn more</a>
             </p>
 
@@ -99,7 +99,7 @@
                         <!-- ko if: !IsOwnerValid() -->
                         <i class="ms-Icon ms-Icon--Warning" aria-hidden="true" />
                         You can no longer use Trusted Publishing for <b data-bind="text: Owner" />.
-                        <a href="https://aka.ms/nuget-org-trusted-publishing-ownership-warnings" target="_blank" aria-label="Learn more about GitHub Trusted Publishing">Learn more about policies</a>
+                        <a href="https://aka.ms/nuget/trusted-publishing-ownership-warnings" target="_blank" aria-label="Learn more about GitHub Trusted Publishing">Learn more about policies</a>
                         <!-- /ko -->
 
                         <!-- GitHub specific warnings and info -->
@@ -107,7 +107,7 @@
                         <!-- ko if: gitHub.EnabledDaysLeft() > 0 -->
                         <i class="ms-Icon ms-Icon--Info" aria-hidden="true" />
                         Use within <b><span data-bind="text: gitHub.EnabledDaysLeft()" /> day(s)</b> to keep it permanently active.
-                        <a href="https://aka.ms/nuget-org-trusted-publishing-pending-activation" target="_blank" aria-label="Learn more about GitHub Trusted Publishing">Learn more about policies</a>
+                        <a href="https://aka.ms/nuget/trusted-publishing-pending-activation" target="_blank" aria-label="Learn more about GitHub Trusted Publishing">Learn more about policies</a>
                         <!-- /ko -->
                         <!-- ko ifnot: gitHub.EnabledDaysLeft() > 0 -->
                         <i class="ms-Icon ms-Icon--Warning" aria-hidden="true" />
@@ -115,7 +115,7 @@
                             Activate
                         </a>
                         and use within <b>@GitHubPolicyDetailsViewModel.ValidationExpirationDays days</b> to keep it permanently active.
-                        <a href="https://aka.ms/nuget-org-trusted-publishing-pending-activation" target="_blank" aria-label="Learn more about GitHub Trusted Publishing">Learn more about policies</a>
+                        <a href="https://aka.ms/nuget/trusted-publishing-pending-activation" target="_blank" aria-label="Learn more about GitHub Trusted Publishing">Learn more about policies</a>
                         <!-- /ko -->
                         <!-- /ko -->
                     </li>
@@ -259,7 +259,7 @@
         <!-- GitHub specific content -->
         <div style="display: flex; align-items: center; gap: 10px;">
             <h4><b>GitHub</b></h4>
-            <a href="https://aka.ms/nuget-org-trusted-publishing-github-actions" target="_blank" aria-label="Learn more GitHubActions and Trusted Publishing">
+            <a href="https://aka.ms/nuget/trusted-publishing-github-actions" target="_blank" aria-label="Learn more GitHubActions and Trusted Publishing">
                 Learn more
             </a>
         </div>
