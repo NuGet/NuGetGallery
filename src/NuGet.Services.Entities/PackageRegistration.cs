@@ -55,5 +55,13 @@ namespace NuGet.Services.Entities
         /// Gets or sets the user-provided custom message for this renamed package registration.
         /// </summary>
         public string RenamedMessage { get; set; }
+
+        /// <summary>
+        /// Gets or sets the sponsorship URLs for this package registration as a JSON array.
+        /// Stored as JSON string. Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(4000).
+        /// </summary>
+
+        [StringLength(4000)]
+        public string SponsorshipUrls { get; set; }
     }
 }

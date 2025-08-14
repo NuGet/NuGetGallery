@@ -1,5 +1,190 @@
-﻿$(function () {
+$(function () {
     'use strict';
+
+    var packageId = typeof packageId !== 'undefined' ? packageId : null;
+    var packageVersion = typeof packageVersion !== 'undefined' ? packageVersion : null;
+    var packageManagers = typeof packageManagers !== 'undefined' ? packageManagers : [];
+    var sponsorshipUrlCount = typeof sponsorshipUrlCount !== 'undefined' ? sponsorshipUrlCount : 0;
+
+    // Focus trap variables for sponsorship popup
+    var focusTrapElements = [];
+    var firstFocusableElement = null;
+    var lastFocusableElement = null;
+
+    // Sponsorship popup functions
+    function openSponsorshipPopup() {
+        var popup = document.getElementById('sponsorship-popup');
+        var sponsorButton = document.getElementById('sponsor-button');
+
+        if (popup) {
+            popup.style.display = 'flex';
+            popup.setAttribute('aria-hidden', 'false');
+
+            if (sponsorButton) {
+                sponsorButton.setAttribute('aria-expanded', 'true');
+            }
+            setupFocusTrap(popup);
+
+            // Focus on close button for accessibility
+            var closeButton = document.getElementById('sponsorship-popup-close');
+            if (closeButton) {
+                closeButton.focus();
+            }
+
+            // Track popup opened
+            if (window.nuget && window.nuget.sendMetric) {
+                window.nuget.sendMetric('SponsorshipPopupOpened', 1, {
+                    PackageId: packageId,
+                    PackageVersion: packageVersion,
+                    SponsorshipUrlCount: sponsorshipUrlCount
+                });
+            }
+        }
+    }
+
+    function closeSponsorshipPopup() {
+        var popup = document.getElementById('sponsorship-popup');
+        var sponsorButton = document.getElementById('sponsor-button');
+
+        if (popup) {
+            popup.style.display = 'none';
+            popup.setAttribute('aria-hidden', 'true');
+            removeFocusTrap();
+
+            if (sponsorButton) {
+                sponsorButton.setAttribute('aria-expanded', 'false');
+                sponsorButton.focus();
+            }
+
+            // Track popup closed
+            if (window.nuget && window.nuget.sendMetric) {
+                window.nuget.sendMetric('SponsorshipPopupClosed', 1, {
+                    PackageId: packageId,
+                    PackageVersion: packageVersion
+                });
+            }
+        }
+    }
+
+    function setupFocusTrap(popup) {
+        // Get all focusable elements within the popup
+        var focusableElementsString = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex="0"]';
+
+        focusTrapElements = popup.querySelectorAll(focusableElementsString);
+
+        if (focusTrapElements.length > 0) {
+            firstFocusableElement = focusTrapElements[0];
+            lastFocusableElement = focusTrapElements[focusTrapElements.length - 1];
+    
+            // Add keydown listener for focus trapping
+            document.addEventListener('keydown', trapFocus);
+        }
+    }
+
+    function removeFocusTrap() {
+        // Remove keydown listener
+        document.removeEventListener('keydown', trapFocus);
+
+        // Clear focus trap variables
+        focusTrapElements = [];
+        firstFocusableElement = null;
+        lastFocusableElement = null;
+    }
+
+    function trackSponsorshipLinkClick(sponsorshipUrl) {
+        // Track sponsorship link clicked
+        if (window.nuget && window.nuget.sendMetric) {
+            window.nuget.sendMetric('SponsorshipLinkClicked', 1, {
+                PackageId: packageId,
+                PackageVersion: packageVersion,
+                SponsorshipUrl: sponsorshipUrl,
+                ClickSource: 'Popup'
+            });
+        }
+    }
+
+    function trapFocus(e) {
+        var popup = document.getElementById('sponsorship-popup');
+
+        // Only trap focus if popup is visible and we have focusable elements
+        if (!popup || popup.style.display !== 'flex' || focusTrapElements.length === 0) {
+            return;
+        }
+
+        var isTabPressed = (e.key === 'Tab' || e.keyCode === 9);
+        var isEscapePressed = (e.key === 'Escape' || e.keyCode === 27);
+
+        // Handle Escape key
+        if (isEscapePressed) {
+            closeSponsorshipPopup();
+            return;
+        }
+
+        // Handle Tab key for focus trapping
+        if (isTabPressed) {
+            // If shift + tab
+            if (e.shiftKey) {
+                if (document.activeElement === firstFocusableElement) {
+                    lastFocusableElement.focus();
+                    e.preventDefault();
+                }
+            } else {
+                // If tab
+                if (document.activeElement === lastFocusableElement) {
+                    firstFocusableElement.focus();
+                    e.preventDefault();
+                }
+            }
+        }
+    }
+
+    // Initialize sponsorship popup functionality
+    function initializeSponsorshipPopup() {
+        var sponsorButton = document.getElementById('sponsor-button');
+        if (sponsorButton) {
+            sponsorButton.setAttribute('aria-expanded', 'false');
+            sponsorButton.setAttribute('aria-haspopup', 'dialog');
+
+            sponsorButton.addEventListener('click', function() {
+                openSponsorshipPopup();
+            });
+        }
+
+        var closeButton = document.getElementById('sponsorship-popup-close');
+        if (closeButton) {
+            closeButton.addEventListener('click', function() {
+                closeSponsorshipPopup();
+            });
+        }
+
+        // Handle sponsorship link clicks
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('sidebar-popup-link') && e.target.hasAttribute('data-sponsorship-url')) {
+                var sponsorshipUrl = e.target.getAttribute('data-sponsorship-url');
+                if (sponsorshipUrl) {
+                    trackSponsorshipLinkClick(JSON.parse(sponsorshipUrl));
+                }
+            }
+        });
+
+        var popup = document.getElementById('sponsorship-popup');
+        if (popup) {
+            // Close on outside click
+            popup.addEventListener('click', function(e) {
+                if (e.target === popup) {
+                    closeSponsorshipPopup();
+                }
+            });
+        }
+    }
+
+    // Initialize sponsorship popup when DOM is ready
+    initializeSponsorshipPopup();
+
+    // Configure the rename information container
+    window.nuget.configureExpander("rename-content-container", "ChevronDown", null, "ChevronUp");
+    configureExpanderWithEnterKeydown($('#show-rename-content-container'));
+    var expanderAttributes = ['data-toggle', 'data-target', 'aria-expanded', 'aria-controls', 'tabindex'];
 
     // Configure the rename information container
     window.nuget.configureExpander("rename-content-container", "ChevronDown", null, "ChevronUp");

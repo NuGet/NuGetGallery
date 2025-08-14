@@ -9,6 +9,7 @@ using NuGet.Versioning;
 using NuGetGallery.Frameworks;
 using NuGetGallery.Helpers;
 using NuGetGallery.Services.Helpers;
+using Newtonsoft.Json;
 
 namespace NuGetGallery
 {
@@ -203,6 +204,35 @@ namespace NuGetGallery
                     viewModel.LicenseNames = licenseNames.Split(',').Select(l => l.Trim()).ToList();
                 }
             }
+
+            // Parse and validate sponsorship URLs from PackageRegistration
+            var sponsorshipUrls = new List<string>();
+            if (!string.IsNullOrEmpty(package.PackageRegistration?.SponsorshipUrls))
+            {
+                try
+                {
+                    var urls = JsonConvert.DeserializeObject<List<string>>(package.PackageRegistration.SponsorshipUrls);
+                    if (urls != null)
+                    {
+                        // Validate all URLs and only store valid ones
+                        foreach (var url in urls)
+                        {
+                            if (!string.IsNullOrWhiteSpace(url) && PackageHelper.TryPrepareUrlForRendering(url, out string validatedUrl))
+                            {
+                                sponsorshipUrls.Add(validatedUrl);
+                            }
+                        }
+                    }
+                }
+                catch (JsonException ex)
+                {
+                    // If JSON parsing fails, leave sponsorshipUrls empty and log the error for diagnostics
+                    System.Diagnostics.Debug.WriteLine(
+                        $"Failed to parse sponsorship URLs for package {package.PackageRegistration?.Id ?? "unknown"}: {ex.Message}");
+                }
+            }
+
+            viewModel.SponsorshipUrls = sponsorshipUrls.AsReadOnly();
 
             PackageDeprecation deprecation = null;
             if (packageKeyToDeprecation != null && packageKeyToDeprecation.TryGetValue(package.Key, out deprecation))
