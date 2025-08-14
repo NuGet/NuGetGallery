@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Identity.Web;
 using Microsoft.IdentityModel.JsonWebTokens;
@@ -16,33 +17,68 @@ using NuGet.Services.Entities;
 
 namespace NuGetGallery.Services.Authentication
 {
-    /// <summary>
-    /// This interface is used to ensure a given token is issued by Entra ID.
-    /// </summary>
-    public interface IEntraIdTokenValidator : ITokenPolicyValidator
-    {
-        /// <summary>
-        /// Determines if a given Entra tenant ID GUID is in the allow list.
-        /// </summary>
-        bool IsTenantAllowed(Guid tenantId);
-    }
-
-    public class EntraIdTokenPolicyValidator : TokenPolicyValidator, IEntraIdTokenValidator
+    public class EntraIdTokenPolicyValidator : TokenPolicyValidator
     {
         public const string Authority = "login.microsoftonline.com";
         public const string Issuer = $"https://{Authority}/common/v2.0";
         public const string MetadataAddress = $"{Issuer}/.well-known/openid-configuration";
 
+        private readonly IFeatureFlagService _featureFlagService;
+
         public EntraIdTokenPolicyValidator(
             ConfigurationManager<OpenIdConnectConfiguration> oidcConfigManager,
             IFederatedCredentialConfiguration configuration,
+            IFeatureFlagService featureFlagService,
             JsonWebTokenHandler jsonWebTokenHandler)
             : base(oidcConfigManager, configuration, jsonWebTokenHandler, "uti")
         {
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
         }
 
         public override string IssuerAuthority => Authority;
         public override FederatedCredentialIssuerType IssuerType => FederatedCredentialIssuerType.EntraId;
+
+        public override FederatedCredentialPolicyValidationResult ValidatePolicy(FederatedCredentialPolicy policy)
+        {
+            if (policy.Type != FederatedCredentialType.EntraIdServicePrincipal)
+            {
+                // We do not expect callers to pass non-Entra ID policies to this validator.
+                return FederatedCredentialPolicyValidationResult.BadRequest(
+                    $"Invalid policy type '{policy.Type}' for Entra ID validation.",
+                    policyPropertyName: null);
+            }
+
+            if (!_featureFlagService.CanUseFederatedCredentials(policy.PackageOwner))
+            {
+                return FederatedCredentialPolicyValidationResult.BadRequest(
+                    $"The package owner '{policy.PackageOwner.Username}' is not enabled to use federated credentials.",
+                    nameof(FederatedCredentialPolicy.PackageOwner));
+            }
+
+            if (string.IsNullOrWhiteSpace(policy.Criteria))
+            {
+                return FederatedCredentialPolicyValidationResult.BadRequest(
+                    "Criteria must be provided for Entra ID service principal policies.",
+                    nameof(FederatedCredentialPolicy.Criteria));
+            }
+
+            var criteria = JsonSerializer.Deserialize<EntraIdServicePrincipalCriteria>(policy.Criteria);
+            if (criteria is null)
+            {
+                return FederatedCredentialPolicyValidationResult.BadRequest(
+                    "Invalid criteria format for Entra ID service principal policy.",
+                    nameof(FederatedCredentialPolicy.Criteria));
+            }
+
+            if (!IsTenantAllowed(criteria.TenantId))
+            {
+                return FederatedCredentialPolicyValidationResult.Unauthorized(
+                    $"The Entra ID tenant '{criteria.TenantId}' is not in the allow list.",
+                    nameof(FederatedCredentialPolicy.Criteria));
+            }
+
+            return base.ValidatePolicy(policy);
+        }
 
         public override async Task<TokenValidationResult> ValidateTokenAsync(JsonWebToken jwt)
         {
@@ -98,6 +134,11 @@ namespace NuGetGallery.Services.Authentication
             const string VersionClaim = "ver";
             const string Version2 = "2.0";
 
+            if (!_featureFlagService.CanUseFederatedCredentials(policy.PackageOwner))
+            {
+                return $"The package owner '{policy.PackageOwner.Username}' is not enabled to use federated credentials.";
+            }
+
             string? error = TryGetRequiredClaim(jwt, ClaimConstants.Tid, out var tid);
             if (error != null)
             {
@@ -148,7 +189,7 @@ namespace NuGetGallery.Services.Authentication
                 return $"The JSON web token {ClaimConstants.Sub} claim must match the {ClaimConstants.Oid} claim.";
             }
 
-            var criteria = System.Text.Json.JsonSerializer.Deserialize<EntraIdServicePrincipalCriteria>(policy.Criteria);
+            var criteria = JsonSerializer.Deserialize<EntraIdServicePrincipalCriteria>(policy.Criteria);
             if (criteria is null)
             {
                 return "The policy criteria is not a valid JSON object.";
@@ -172,7 +213,7 @@ namespace NuGetGallery.Services.Authentication
             return null;
         }
 
-        public bool IsTenantAllowed(Guid tenantId)
+        private bool IsTenantAllowed(Guid tenantId)
         {
             if (_configuration.AllowedEntraIdTenants.Length == 0)
             {

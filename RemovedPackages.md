@@ -70,7 +70,14 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |   ComponentPro.SftpServer.CF  |    06/11/2025    | Copyright violation |
 |   ComponentPro.EmailValidator.CF |    06/11/2025    | Copyright violation |
 |   ComponentPro.Time.CF   |     06/11/2025      |  Copyright violation |
-
+|   UnityGameLibs.ThiefSimulatorGameLibs	 version 1.8.0-steam    |       07/18/2025       |   Untrustworthy  |
+|    SolanaNet          |    07/29/2025    |    Potentially Malicious    |
+|    GoogleAds.API      |    07/29/2025    |    Potentially Malicious    |
+|    Binance.Csharp     |    07/29/2025    |    Potentially Malicious    |
+|    BinanceCsharp      |    07/29/2025    |    Potentially Malicious    |
+|    BitcoinCore        |    07/29/2025    |    Potentially Malicious    |
+|    BybitApi.Net       |    07/29/2025    |    Potentially Malicious    |
+|    Coinbase.Net.Api   |    07/29/2025    |    Potentially Malicious    |
 
 
 

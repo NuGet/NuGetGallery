@@ -1049,8 +1049,8 @@ namespace NuGetGallery
             // Show newest policies on the top.
             var policies = userPolicies
                 .OrderByDescending(p => p.Created)
-                .Select(p => CreatePublisherViewModel(currentUser, p))
-                .Where(p => p != null)
+                .Select(CreatePublisherViewModel)
+                .Where(m => m != null)
                 .ToArray();
 
             // Get package owners (user's self or organizations). The final list can be empty,
@@ -1071,7 +1071,7 @@ namespace NuGetGallery
             return View("TrustedPublishing", model);
         }
 
-        private TrustedPublisherPolicyViewModel CreatePublisherViewModel(User currentUser, FederatedCredentialPolicy policy)
+        private TrustedPublisherPolicyViewModel CreatePublisherViewModel(FederatedCredentialPolicy policy)
         {
             // Currently only GitHub Actions policies are supported by our Trusted Publishing UX.
             if (policy.Type != FederatedCredentialType.GitHubActions)
@@ -1085,11 +1085,7 @@ namespace NuGetGallery
                 return null;
             }
 
-            var owner = currentUser.Key == policy.PackageOwnerUserKey ?
-                currentUser : UserService.FindByKey(policy.PackageOwnerUserKey);
-
-            bool isOwnerValid = _federatedCredentialService.IsValidPolicyOwner(currentUser, owner);
-
+            bool isOwnerValid = _federatedCredentialService.IsValidPolicyOwner(policy.CreatedBy, policy.PackageOwner);
             return new TrustedPublisherPolicyViewModel
             {
                 Key = policy.Key,
@@ -1106,22 +1102,10 @@ namespace NuGetGallery
         public virtual async Task<JsonResult> GenerateTrustedPublisherPolicy(string policyName, string owner, string criteria)
         {
             User currentUser = GetCurrentUser();
-            if (!_featureFlagService.IsTrustedPublishingEnabled(currentUser))
+            if (currentUser == null)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(Strings.DefaultUserSafeExceptionMessage);
-            }
-
-            if (VerifyPolicyName(policyName) is string policyNameError)
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(policyNameError);
-            }
-
-            if (policyName.Length > FederatedCredentialPolicy.MaxPolicyNameLength)
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(Strings.TrustedPublisher_NameTooLong);
             }
 
             if (string.IsNullOrWhiteSpace(owner))
@@ -1130,73 +1114,36 @@ namespace NuGetGallery
                 return Json(Strings.TrustedPublisher_PolicyOwnerRequired);
             }
 
-            if (currentUser.IsLocked)
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(ServicesStrings.UserAccountIsLocked);
-            }
-
-            if (UserService.FindByUsername(owner) is not User policyOwner)
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(Strings.AddOwner_OwnerNotFound);
-            }
-
-            // Currently only GitHub Actions policies are expected
-            if (GitHubPolicyDetailsViewModel.FromViewJson(criteria)
-                is not GitHubPolicyDetailsViewModel policyDetails)
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(Strings.TrustedPublisher_Unexpected);
-            }
-
-            if (policyDetails.Validate() is string errorMessage && errorMessage.Length > 0)
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(errorMessage);
-            }
+            var policyCriteria = ViewToPolicyCriteria(criteria);
 
             // Try adding policy
-            AddFederatedCredentialPolicyResult result = await _federatedCredentialService.AddTrustedPublishingPolicyAsync(currentUser, policyOwner, policyName,
-                policyDetails.PublisherType,
-                policyDetails.ToDatabaseJson());
+            FederatedCredentialPolicyValidationResult result = await _federatedCredentialService.AddPolicyAsync(
+                currentUser, owner, policyCriteria, policyName, FederatedCredentialType.GitHubActions);
 
-            if (result.Type == AddFederatedCredentialPolicyResultType.BadRequest)
+            switch (result.Type)
             {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(result.UserMessage);
+                case FederatedCredentialPolicyValidationResultType.BadRequest:
+                    Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                    return Json(result.UserMessage);
+
+                case FederatedCredentialPolicyValidationResultType.Unauthorized:
+                    Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    return Json(result.UserMessage);
+
+                case FederatedCredentialPolicyValidationResultType.Success:
+                    var model = CreatePublisherViewModel(result.Policy);
+                    return Json(model);
+
+                default:
+                    throw new NotImplementedException($"The policy creation result type '{result.Type}' is not supported.");
             }
-
-            var model = new TrustedPublisherPolicyViewModel
-            {
-                Key = result.Policy.Key,
-                PolicyName = policyName,
-                Owner = owner,
-                IsOwnerValid = true, // we already validated owner above
-                PolicyDetails = policyDetails
-            };
-
-            return Json(model);
         }
 
         [UIAuthorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<JsonResult> EditTrustedPublisherPolicy(int? federatedCredentialKey, string policyName, string criteria)
+        public virtual async Task<JsonResult> EditTrustedPublisherPolicy(int? federatedCredentialKey, string criteria, string policyName)
         {
-            User currentUser = GetCurrentUser();
-            if (!_featureFlagService.IsTrustedPublishingEnabled(currentUser))
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(Strings.DefaultUserSafeExceptionMessage);
-            }
-
-            if (VerifyPolicyName(policyName) is string policyNameError)
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(policyNameError);
-            }
-
             var result = GetFederatedCredentialPolicy(federatedCredentialKey);
             if (result.policy == null)
             {
@@ -1204,38 +1151,8 @@ namespace NuGetGallery
                 return Json(result.error);
             }
 
-            if (CreatePublisherViewModel(currentUser, result.policy) is not TrustedPublisherPolicyViewModel model ||
-                !model.IsOwnerValid)
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(Strings.TrustedPublisher_Unexpected);
-            }
-
-            model.PolicyName = policyName;
-            var newDetails = model.PolicyDetails.Update(criteria);
-            if (newDetails.Validate() is string errorMessage && errorMessage.Length > 0)
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(errorMessage);
-            }
-
-            await _federatedCredentialService.UpdatePolicyAsync(result.policy, model.PolicyName, newDetails.ToDatabaseJson());
-            model.PolicyDetails = newDetails;
-
-            return Json(model);
-        }
-
-        private static string VerifyPolicyName(string policyName)
-        {
-            if (string.IsNullOrWhiteSpace(policyName))
-            {
-                return Strings.TrustedPublisher_PolicyNameRequired;
-            }
-            if (policyName.Length > FederatedCredentialPolicy.MaxPolicyNameLength)
-            {
-                return Strings.TrustedPublisher_NameTooLong;
-            }
-            return null;
+            var policyCriteria = ViewToPolicyCriteria(criteria);
+            return await UpdatePolicyAsync(result.policy, policyCriteria, policyName);
         }
 
         [HttpPost]
@@ -1243,13 +1160,6 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<JsonResult> EnableTrustedPublisherPolicy(int? federatedCredentialKey)
         {
-            User currentUser = GetCurrentUser();
-            if (!_featureFlagService.IsTrustedPublishingEnabled(currentUser))
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(Strings.DefaultUserSafeExceptionMessage);
-            }
-
             var result = GetFederatedCredentialPolicy(federatedCredentialKey);
             if (result.policy == null)
             {
@@ -1257,22 +1167,39 @@ namespace NuGetGallery
                 return Json(result.error);
             }
 
-            if (CreatePublisherViewModel(currentUser, result.policy) is not TrustedPublisherPolicyViewModel model ||
-                !model.IsOwnerValid ||
-                model.PolicyDetails is not GitHubPolicyDetailsViewModel gitHubModel)
+            // Updating temp GitHub Actions policy will reset ValidateBy date.
+            return await UpdatePolicyAsync(result.policy, result.policy.Criteria, result.policy.PolicyName);
+        }
+
+        private async Task<JsonResult> UpdatePolicyAsync(FederatedCredentialPolicy policy, string criteria, string policyName)
+        {
+            var validation = await _federatedCredentialService.UpdatePolicyAsync(policy, criteria, policyName);
+            if (validation.Type == FederatedCredentialPolicyValidationResultType.Unauthorized)
+            {
+                Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                return Json(validation.UserMessage);
+            }
+            if (validation.Type == FederatedCredentialPolicyValidationResultType.BadRequest)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(validation.UserMessage);
+            }
+
+            // Get updated policy details
+            if (CreatePublisherViewModel(validation.Policy) is not TrustedPublisherPolicyViewModel model)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(Strings.TrustedPublisher_Unexpected);
             }
 
-            if (!gitHubModel.IsPermanentlyEnabled)
-            {
-                gitHubModel.InitializeValidateByDate();
-                result.policy.Criteria = gitHubModel.ToDatabaseJson();
-                await _federatedCredentialService.UpdatePolicyAsync(result.policy, result.policy.PolicyName, gitHubModel.ToDatabaseJson());
-            }
-
             return Json(model);
+        }
+
+        private string ViewToPolicyCriteria(string criteria)
+        {
+            // Currently only GitHub Actions policies are expected
+            var details = GitHubPolicyDetailsViewModel.FromViewJson(criteria);
+            return details.Criteria.ToDatabaseJson();
         }
 
         [HttpPost]

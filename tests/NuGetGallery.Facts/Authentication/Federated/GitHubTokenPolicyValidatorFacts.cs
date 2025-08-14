@@ -128,6 +128,313 @@ namespace NuGetGallery.Services.Authentication
         }
     }
 
+    public class TheValidatePolicyMethod : GitHubTokenPolicyValidatorFacts
+    {
+        [Fact]
+        public void RejectsNonGitHubActionsPolicy()
+        {
+            // Arrange
+            var user = new User("test-user");
+            var policy = new FederatedCredentialPolicy
+            {
+                Type = FederatedCredentialType.EntraIdServicePrincipal,
+                CreatedBy = user,
+                Criteria = "dummy"
+            };
+
+            // Act
+            var result = Target.ValidatePolicy(policy);
+
+            // Assert
+            Assert.Equal(FederatedCredentialPolicyValidationResultType.BadRequest, result.Type);
+            Assert.Equal("Invalid policy type 'EntraIdServicePrincipal' for GitHub Actions validation", result.UserMessage);
+            Assert.Null(result.PolicyPropertyName);
+        }
+
+        [Fact]
+        public void RejectsWhenTrustedPublishingDisabled()
+        {
+            // Arrange
+            var user = new User("test-user");
+            var policy = new FederatedCredentialPolicy
+            {
+                Type = FederatedCredentialType.GitHubActions,
+                CreatedBy = user,
+                Criteria = TokenTestHelper.PermanentPolicyCriteria
+            };
+
+            FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(user)).Returns(false);
+
+            // Act
+            var result = Target.ValidatePolicy(policy);
+
+            // Assert
+            Assert.Equal(FederatedCredentialPolicyValidationResultType.BadRequest, result.Type);
+            Assert.Equal("Trusted Publishing is not enabled for 'test-user'.", result.UserMessage);
+            Assert.Equal(nameof(FederatedCredentialPolicy.CreatedBy), result.PolicyPropertyName);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("   ")]
+        public void EnsuresNonEmptyPolicyName(string? policyName)
+        {
+            // Arrange
+            var user = new User("test-user");
+            var policy = new FederatedCredentialPolicy
+            {
+                Type = FederatedCredentialType.GitHubActions,
+                CreatedBy = user,
+                PolicyName = policyName,
+                Criteria = TokenTestHelper.PermanentPolicyCriteria
+            };
+
+            FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(user)).Returns(true);
+
+            // Act
+            var result = Target.ValidatePolicy(policy);
+
+            // Assert
+            Assert.Equal(FederatedCredentialPolicyValidationResultType.Success, result.Type);
+            Assert.Equal("test", policy.PolicyName);
+        }
+
+        [Fact]
+        public void RejectsInvalidCriteriaJson()
+        {
+            // Arrange
+            var user = new User("test-user");
+            var policy = new FederatedCredentialPolicy
+            {
+                Type = FederatedCredentialType.GitHubActions,
+                CreatedBy = user,
+                PolicyName = "Test Policy",
+                Criteria = "invalid json"
+            };
+
+            FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(user)).Returns(true);
+
+            // Act & Assert
+            Assert.ThrowsAny<Exception>(() => Target.ValidatePolicy(policy));
+        }
+
+        [Theory]
+        [InlineData("""{"owner":"test-owner","repository":"test-repo"}""")] // Missing workflow
+        [InlineData("""{"owner":"test-owner","workflow":"test.yml"}""")] // Missing repository
+        [InlineData("""{"repository":"test-repo","workflow":"test.yml"}""")] // Missing owner
+        [InlineData("""{"owner":"","repository":"test-repo","workflow":"test.yml"}""")] // Empty owner
+        [InlineData("""{"owner":"test-owner","repository":"","workflow":"test.yml"}""")] // Empty repository
+        [InlineData("""{"owner":"test-owner","repository":"test-repo","workflow":""}""")] // Empty workflow
+        public void RejectsInvalidCriteria(string invalidCriteria)
+        {
+            // Arrange
+            var user = new User("test-user");
+            var policy = new FederatedCredentialPolicy
+            {
+                Type = FederatedCredentialType.GitHubActions,
+                CreatedBy = user,
+                PolicyName = "Test Policy",
+                Criteria = invalidCriteria
+            };
+
+            FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(user)).Returns(true);
+
+            // Act
+            var result = Target.ValidatePolicy(policy);
+
+            // Assert
+            Assert.Equal(FederatedCredentialPolicyValidationResultType.BadRequest, result.Type);
+            Assert.NotNull(result.UserMessage);
+            Assert.Equal(nameof(FederatedCredentialPolicy.Criteria), result.PolicyPropertyName);
+        }
+
+        [Fact]
+        public void AcceptsValidPermanentPolicy()
+        {
+            // Arrange
+            var user = new User("test-user");
+            var policy = new FederatedCredentialPolicy
+            {
+                Type = FederatedCredentialType.GitHubActions,
+                CreatedBy = user,
+                PolicyName = "Test Policy",
+                Criteria = TokenTestHelper.PermanentPolicyCriteria
+            };
+
+            FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(user)).Returns(true);
+
+            // Act
+            var result = Target.ValidatePolicy(policy);
+
+            // Assert
+            Assert.Equal(FederatedCredentialPolicyValidationResultType.Success, result.Type);
+            Assert.Null(result.UserMessage);
+            Assert.Null(result.PolicyPropertyName);
+            Assert.NotNull(result.Policy);
+        }
+
+        [Fact]
+        public void AcceptsValidTemporaryPolicy()
+        {
+            // Arrange
+            var user = new User("test-user");
+            var policy = new FederatedCredentialPolicy
+            {
+                Type = FederatedCredentialType.GitHubActions,
+                CreatedBy = user,
+                PolicyName = "Test Policy",
+                Criteria = """{"owner":"test-owner","repository":"test-repo","workflow":"test.yml"}"""
+            };
+
+            FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(user)).Returns(true);
+
+            // Act
+            var result = Target.ValidatePolicy(policy);
+
+            // Assert
+            Assert.Equal(FederatedCredentialPolicyValidationResultType.Success, result.Type);
+            Assert.Null(result.UserMessage);
+            Assert.Null(result.PolicyPropertyName);
+            Assert.NotNull(result.Policy);
+
+            // Verify that the policy criteria was updated with validateBy date
+            var updatedCriteria = GitHubCriteria.FromDatabaseJson(policy.Criteria);
+            Assert.NotNull(updatedCriteria.ValidateByDate);
+            Assert.True(updatedCriteria.ValidateByDate > DateTimeOffset.UtcNow);
+        }
+
+        [Fact]
+        public void InitializesValidateByDateForTemporaryPolicy()
+        {
+            // Arrange
+            var user = new User("test-user");
+            var originalCriteria = """{"owner":"test-owner","repository":"test-repo","workflow":"test.yml"}""";
+            var policy = new FederatedCredentialPolicy
+            {
+                Type = FederatedCredentialType.GitHubActions,
+                CreatedBy = user,
+                PolicyName = "Test Policy",
+                Criteria = originalCriteria
+            };
+
+            FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(user)).Returns(true);
+
+            // Act
+            var result = Target.ValidatePolicy(policy);
+
+            // Assert
+            Assert.Equal(FederatedCredentialPolicyValidationResultType.Success, result.Type);
+
+            // Verify that the criteria was modified to include validateBy
+            Assert.NotEqual(originalCriteria, policy.Criteria);
+            var updatedCriteria = GitHubCriteria.FromDatabaseJson(policy.Criteria);
+            Assert.NotNull(updatedCriteria.ValidateByDate);
+            Assert.True(updatedCriteria.ValidateByDate > DateTimeOffset.UtcNow);
+        }
+
+        [Fact]
+        public void DoesNotModifyValidateByDateForPermanentPolicy()
+        {
+            // Arrange
+            var user = new User("test-user");
+            var originalCriteria = TokenTestHelper.PermanentPolicyCriteria;
+            var policy = new FederatedCredentialPolicy
+            {
+                Type = FederatedCredentialType.GitHubActions,
+                CreatedBy = user,
+                PolicyName = "Test Policy",
+                Criteria = originalCriteria
+            };
+
+            FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(user)).Returns(true);
+
+            // Act
+            var result = Target.ValidatePolicy(policy);
+
+            // Assert
+            Assert.Equal(FederatedCredentialPolicyValidationResultType.Success, result.Type);
+
+            // Verify that permanent policy criteria remains unchanged (no validateBy date added)
+            var updatedCriteria = GitHubCriteria.FromDatabaseJson(policy.Criteria);
+            Assert.Null(updatedCriteria.ValidateByDate);
+            Assert.True(updatedCriteria.IsPermanentlyEnabled);
+        }
+
+        [Fact]
+        public void ResetsValidateByDateForTemporaryPolicyOnValidation()
+        {
+            // Arrange
+            var user = new User("test-user");
+            var pastDate = DateTimeOffset.UtcNow.AddDays(-1);
+            var expiredCriteria = """{"owner":"test-owner","repository":"test-repo","workflow":"test.yml","validateBy":"2025-01-01T01:00:00+00:00"}""";
+            var policy = new FederatedCredentialPolicy
+            {
+                Type = FederatedCredentialType.GitHubActions,
+                CreatedBy = user,
+                PolicyName = "Test Policy",
+                Criteria = expiredCriteria
+            };
+
+            FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(user)).Returns(true);
+
+            // Act
+            var result = Target.ValidatePolicy(policy);
+
+            // Assert
+            Assert.Equal(FederatedCredentialPolicyValidationResultType.Success, result.Type);
+
+            // Verify that the validateBy date was reset to a future date
+            var updatedCriteria = GitHubCriteria.FromDatabaseJson(policy.Criteria);
+            Assert.NotNull(updatedCriteria.ValidateByDate);
+            Assert.True(updatedCriteria.ValidateByDate > DateTimeOffset.UtcNow);
+        }
+
+        [Fact]
+        public void AcceptsPolicyWithEnvironment()
+        {
+            // Arrange
+            var user = new User("test-user");
+            var policy = new FederatedCredentialPolicy
+            {
+                Type = FederatedCredentialType.GitHubActions,
+                CreatedBy = user,
+                PolicyName = "Test Policy",
+                Criteria = """{"owner":"test-owner","repository":"test-repo","workflow":"test.yml","environment":"production"}"""
+            };
+
+            FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(user)).Returns(true);
+
+            // Act
+            var result = Target.ValidatePolicy(policy);
+
+            // Assert
+            Assert.Equal(FederatedCredentialPolicyValidationResultType.Success, result.Type);
+        }
+
+        [Fact]
+        public void CallsBaseValidatePolicyForValidInput()
+        {
+            // Arrange
+            var user = new User("test-user");
+            var policy = new FederatedCredentialPolicy
+            {
+                Type = FederatedCredentialType.GitHubActions,
+                CreatedBy = user,
+                PolicyName = "Test Policy",
+                Criteria = TokenTestHelper.PermanentPolicyCriteria
+            };
+
+            FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(user)).Returns(true);
+
+            // Act
+            var result = Target.ValidatePolicy(policy);
+
+            // Assert
+            Assert.Equal(FederatedCredentialPolicyValidationResultType.Success, result.Type);
+        }
+    }
+
     public class GitHubTokenPolicyValidatorFacts
     {
         public class TheValidateTokenAsyncMethod : GitHubTokenPolicyValidatorFacts
@@ -204,14 +511,42 @@ namespace NuGetGallery.Services.Authentication
             }
 
             [Fact]
-            public async Task ThrowsInvalidCriteriaJson()
+            public async Task RejectsWhenTrustedPublishingDisabled()
             {
                 // Arrange
+                var createdBy = new User("test-user");
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.GitHubActions,
-                    Criteria = "invalid"
+                    Criteria = TokenTestHelper.PermanentPolicyCriteria,
+                    CreatedBy = createdBy
                 };
+
+                FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(createdBy)).Returns(false);
+
+                var token = TokenTestHelper.CreateTestJwt();
+
+                // Act
+                var result = await Target.EvaluatePolicyAsync(policy, token);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                Assert.Equal("Trusted publishing is not enabled for test-user", result.Error);
+            }
+
+            [Fact]
+            public async Task ThrowsInvalidCriteriaJson()
+            {
+                // Arrange
+                var createdBy = new User("test-user");
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = FederatedCredentialType.GitHubActions,
+                    Criteria = "invalid",
+                    CreatedBy = createdBy
+                };
+
+                FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(createdBy)).Returns(true);
 
                 var token = TokenTestHelper.CreateTestJwt();
 
@@ -223,12 +558,16 @@ namespace NuGetGallery.Services.Authentication
             public async Task RejectsExpiredTemporaryPolicy()
             {
                 // Arrange
+                var createdBy = new User("test-user");
                 var policy = new FederatedCredentialPolicy
                 {
                     PolicyName = "Temporary Policy",
                     Type = FederatedCredentialType.GitHubActions,
-                    Criteria = TokenTestHelper.ExpiredPolicyCriteria
+                    Criteria = TokenTestHelper.ExpiredPolicyCriteria,
+                    CreatedBy = createdBy
                 };
+
+                FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(createdBy)).Returns(true);
 
                 var token = TokenTestHelper.CreateTestJwt();
 
@@ -252,11 +591,15 @@ namespace NuGetGallery.Services.Authentication
             public async Task RejectsMissingRequiredClaim(string claim)
             {
                 // Arrange
+                var createdBy = new User("test-user");
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.GitHubActions,
-                    Criteria = TokenTestHelper.PermanentPolicyCriteria
+                    Criteria = TokenTestHelper.PermanentPolicyCriteria,
+                    CreatedBy = createdBy
                 };
+
+                FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(createdBy)).Returns(true);
 
                 var tokenWithEmptyValue = TokenTestHelper.CreateTestJwtWithCustomClaimValue(claim, null);
                 var tokenWithMissingValue = TokenTestHelper.CreateTestJwtWithCustomClaimValue(claim, "");
@@ -284,11 +627,15 @@ namespace NuGetGallery.Services.Authentication
             public async Task RejectsMismatchedClaim(string claim)
             {
                 // Arrange
+                var createdBy = new User("test-user");
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.GitHubActions,
-                    Criteria = TokenTestHelper.PermanentPolicyCriteria
+                    Criteria = TokenTestHelper.PermanentPolicyCriteria,
+                    CreatedBy = createdBy
                 };
+
+                FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(createdBy)).Returns(true);
 
                 var token = TokenTestHelper.CreateTestJwtWithCustomClaimValue(claim, "mismatched-value");
 
@@ -314,11 +661,15 @@ namespace NuGetGallery.Services.Authentication
             public async Task VerifyCaseSensitivity(string claim, bool isCaseSensitive)
             {
                 // Arrange
+                var createdBy = new User("test-user");
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.GitHubActions,
-                    Criteria = TokenTestHelper.PermanentPolicyCriteria
+                    Criteria = TokenTestHelper.PermanentPolicyCriteria,
+                    CreatedBy = createdBy
                 };
+
+                FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(createdBy)).Returns(true);
 
                 string value = TokenTestHelper.ValidClaims[claim].ToString().ToUpperInvariant();
                 var token = TokenTestHelper.CreateTestJwtWithCustomClaimValue(claim, value);
@@ -339,11 +690,15 @@ namespace NuGetGallery.Services.Authentication
             public async Task ReturnsSuccessForValidPermanentPolicy(string policyCriteria)
             {
                 // Arrange
+                var createdBy = new User("test-user");
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.GitHubActions,
-                    Criteria = policyCriteria
+                    Criteria = policyCriteria,
+                    CreatedBy = createdBy
                 };
+
+                FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(createdBy)).Returns(true);
 
                 var token = TokenTestHelper.CreateTestJwt();
 
@@ -359,13 +714,16 @@ namespace NuGetGallery.Services.Authentication
             public async Task ReturnsSuccessForValidTemporaryPolicy()
             {
                 // Arrange
+                var createdBy = new User("test-user");
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.GitHubActions,
                     Criteria = TokenTestHelper.TemporaryPolicyCriteria,
-                    CreatedBy = new User("test-user"),
+                    CreatedBy = createdBy,
                     PackageOwner = new User("test-owner")
                 };
+
+                FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(createdBy)).Returns(true);
 
                 var token = TokenTestHelper.CreateTestJwt();
 
@@ -387,11 +745,13 @@ namespace NuGetGallery.Services.Authentication
             public async Task HandlesConcurrentFirstUseScenario()
             {
                 // Arrange
+                var createdBy = new User("test-user");
                 var policy = new FederatedCredentialPolicy
                 {
                     Key = 123,
                     Type = FederatedCredentialType.GitHubActions,
-                    Criteria = TokenTestHelper.TemporaryPolicyCriteria
+                    Criteria = TokenTestHelper.TemporaryPolicyCriteria,
+                    CreatedBy = createdBy
                 };
                 var updatedPolicy = new FederatedCredentialPolicy
                 {
@@ -399,6 +759,8 @@ namespace NuGetGallery.Services.Authentication
                     Type = policy.Type,
                     Criteria = TokenTestHelper.PermanentPolicyCriteria
                 };
+
+                FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(createdBy)).Returns(true);
 
                 var token = TokenTestHelper.CreateTestJwt();
 
@@ -429,6 +791,7 @@ namespace NuGetGallery.Services.Authentication
             public async Task RejectsConcurrentFirstUseWithDifferentIds(string? ownerId, string? repoId)
             {
                 // Arrange
+                var createdBy = new User("test-user");
                 GitHubCriteria updatedCriteria = GitHubCriteria.FromDatabaseJson(TokenTestHelper.PermanentPolicyCriteria)!;
                 updatedCriteria.RepositoryOwnerId = ownerId ?? updatedCriteria.RepositoryOwnerId;
                 updatedCriteria.RepositoryId = repoId ?? updatedCriteria.RepositoryId;
@@ -437,7 +800,8 @@ namespace NuGetGallery.Services.Authentication
                 {
                     Key = 123,
                     Type = FederatedCredentialType.GitHubActions,
-                    Criteria = TokenTestHelper.TemporaryPolicyCriteria
+                    Criteria = TokenTestHelper.TemporaryPolicyCriteria,
+                    CreatedBy = createdBy
                 };
 
                 var updatedPolicy = new FederatedCredentialPolicy
@@ -446,6 +810,9 @@ namespace NuGetGallery.Services.Authentication
                     Type = policy.Type,
                     Criteria = updatedCriteria.ToDatabaseJson()
                 };
+
+                FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(createdBy)).Returns(true);
+
                 var token = TokenTestHelper.CreateTestJwt();
 
                 // Setup SavePoliciesAsync to throw DbUpdateConcurrencyException
@@ -471,12 +838,16 @@ namespace NuGetGallery.Services.Authentication
             public async Task HandlesConcurrentFirstUseWhenPolicyDeleted()
             {
                 // Arrange
+                var createdBy = new User("test-user");
                 var policy = new FederatedCredentialPolicy
                 {
                     Key = 123,
                     Type = FederatedCredentialType.GitHubActions,
-                    Criteria = TokenTestHelper.TemporaryPolicyCriteria
+                    Criteria = TokenTestHelper.TemporaryPolicyCriteria,
+                    CreatedBy = createdBy
                 };
+
+                FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(createdBy)).Returns(true);
 
                 var token = TokenTestHelper.CreateTestJwt();
 
@@ -511,6 +882,7 @@ namespace NuGetGallery.Services.Authentication
             FederatedCredentialRepository = new Mock<IFederatedCredentialRepository>();
             Configuration = new Mock<IFederatedCredentialConfiguration>();
             AuditingService = new Mock<IAuditingService>();
+            FeatureFlagService = new Mock<IFeatureFlagService>();
             JsonWebTokenHandler = new Mock<JsonWebTokenHandler>();
 
             // Setup test OIDC configuration with the same key used for token signing
@@ -532,6 +904,7 @@ namespace NuGetGallery.Services.Authentication
                 OidcConfigManager.Object,
                 Configuration.Object,
                 AuditingService.Object,
+                FeatureFlagService.Object,
                 JsonWebTokenHandler.Object);
         }
 
@@ -542,6 +915,8 @@ namespace NuGetGallery.Services.Authentication
         public Mock<IFederatedCredentialConfiguration> Configuration { get; }
         public Mock<IFederatedCredentialRepository> FederatedCredentialRepository { get; }
         public Mock<IAuditingService> AuditingService { get; }
+        public Mock<IFeatureFlagService> FeatureFlagService { get; }
+
 
         private JsonWebKey CreateTestJsonWebKey()
         {

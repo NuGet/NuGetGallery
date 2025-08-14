@@ -67,6 +67,7 @@ namespace NuGetGallery
         private const string FederatedCredentialsFeatureName = GalleryPrefix + "FederatedCredentials";
         private const string TrustedPublishingFeatureName = GalleryPrefix + "TrustedPublishing";
         private const string ProfileLoadOptimization = GalleryPrefix + "ProfileLoadOptimization";
+        private const string ProfileLoadOptimizationV2 = GalleryPrefix + "ProfileLoadOptimizationV2";
         private const string McpServerPackageFilteringFeatureName = GalleryPrefix + "McpServerPackageFiltering";
         private const string McpServerPackageDisplayFeatureName = GalleryPrefix + "McpServerPackageDisplay";
         private const string EnableApiKeyV5ForOIDCFeatureName = GalleryPrefix + "EnableApiKeyV5ForOIDC";
@@ -449,6 +450,11 @@ namespace NuGetGallery
             return _client.IsEnabled(ProfileLoadOptimization, defaultValue: true);
         }
 
+        public bool IsProfileLoadOptimizationV2Enabled()
+        {
+            return _client.IsEnabled(ProfileLoadOptimizationV2, defaultValue: false);
+        }
+
         public bool IsMcpServerPackageFilteringEnabled()
         {
             return _client.IsEnabled(McpServerPackageFilteringFeatureName, defaultValue: false);
@@ -457,11 +463,6 @@ namespace NuGetGallery
         public bool IsMcpServerPackageDisplayEnabled()
         {
             return _client.IsEnabled(McpServerPackageDisplayFeatureName, defaultValue: false);
-        }
-
-        public bool IsApiKeyV5EnabledForOIDC(User user)
-        {
-            return _client.IsEnabled(EnableApiKeyV5ForOIDCFeatureName, user, defaultValue: false);
         }
     }
 }

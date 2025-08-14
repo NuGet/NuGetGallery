@@ -583,7 +583,7 @@ namespace NuGetGallery
 
             builder
                 .RegisterType<JsonWebTokenHandler>()
-                .InstancePerDependency();
+                .InstancePerLifetimeScope();
 
             builder
                 .Register(c =>
@@ -595,17 +595,17 @@ namespace NuGetGallery
                     }).ToList();
                 })
                 .As<IReadOnlyList<IFederatedCredentialValidator>>() // a singleton, materialized list
-                .SingleInstance();
+                .InstancePerLifetimeScope();
 
             // Register individual validators
             builder
                 .Register(c => new EntraIdTokenPolicyValidator(
                     c.ResolveKeyed<ConfigurationManager<OpenIdConnectConfiguration>>(EntraIdKey),
                     c.Resolve<IFederatedCredentialConfiguration>(),
+                    c.Resolve<IFeatureFlagService>(),
                     c.Resolve<JsonWebTokenHandler>()))
-                .As<IEntraIdTokenValidator>()
                 .As<ITokenPolicyValidator>()
-                .SingleInstance();
+                .InstancePerLifetimeScope();
 
             builder
                 .Register(c => new GitHubTokenPolicyValidator(
@@ -613,15 +613,16 @@ namespace NuGetGallery
                     c.ResolveKeyed<ConfigurationManager<OpenIdConnectConfiguration>>(GitHubActionsKey),
                     c.Resolve<IFederatedCredentialConfiguration>(),
                     c.Resolve<IAuditingService>(),
+                    c.Resolve<IFeatureFlagService>(),
                     c.Resolve<JsonWebTokenHandler>()
                     ))
                 .As<ITokenPolicyValidator>()
-                .SingleInstance();
+                .InstancePerLifetimeScope();
 
             builder
                 .RegisterType<FederatedCredentialPolicyEvaluator>()
                 .As<IFederatedCredentialPolicyEvaluator>()
-                .InstancePerDependency();
+                .InstancePerLifetimeScope();
 
             builder
                 .RegisterType<FederatedCredentialService>()

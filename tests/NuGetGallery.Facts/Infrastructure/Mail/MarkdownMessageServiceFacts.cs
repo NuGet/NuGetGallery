@@ -69,8 +69,8 @@ namespace NuGetGallery
                 Assert.Equal(from, message.ReplyToList.Single());
                 Assert.Equal($"[{TestGalleryOwner.DisplayName}] Support Request for 'smangit' version 1.42.0.1 (Reason: Reason!)", message.Subject);
                 Assert.Contains("Reason!", message.Body);
-                Assert.Contains("Abuse!", message.Body);
-                Assert.Contains("too (legit@example.com)", message.Body);
+                Assert.Contains("Abuse\\!", message.Body);
+                Assert.Contains("too (legit@example\\.com)", message.Body);
                 Assert.Contains("smangit", message.Body);
                 Assert.Contains("1.42.0.1", message.Body);
                 Assert.Contains("Yes", message.Body);

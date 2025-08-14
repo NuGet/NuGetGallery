@@ -479,22 +479,33 @@ namespace NuGetGallery
             var packageCount = packageSummary != null ? packageSummary.PackageCount : 0;
             var downloadCount = packageSummary != null ? packageSummary.DownloadCount : 0;
 
+            if (!_featureFlagService.IsProfileLoadOptimizationV2Enabled())
+            {
+                packages = packages
+                    .Where(p => p.Listed
+                        && p.PackageStatusKey == PackageStatus.Available);
+
+                packages = GetLatestVersion(packages);
+            }
+            else
+            {
+                packages = packages.Where(p => p.IsLatestSemVer2);
+            }
+
             packages = packages
-                .Where(p => p.Listed
-                    && p.PackageStatusKey == PackageStatus.Available);
-
-            packages = GetLatestVersion(packages);
-
-            return (packages
                 .OrderByDescending(p => p.PackageRegistration.DownloadCount)
                 .ThenBy(p => p.PackageRegistration.Id)
-                .Skip((page-1) * pageSize)
+                .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .Include(p => p.PackageRegistration.Owners)
-                .Include(p => p.PackageRegistration.RequiredSigners)
-                .ToList(),
-                downloadCount,
-                packageCount);
+                .Include(p => p.PackageRegistration.Owners);
+
+            if (!_featureFlagService.IsProfileLoadOptimizationV2Enabled())
+            {
+                packages = packages
+                    .Include(p => p.PackageRegistration.RequiredSigners);
+            }
+
+            return (packages.ToList(), downloadCount, packageCount);
         }
 
         private IEnumerable<Package> GetPackagesForOwners(IEnumerable<int> ownerKeys, bool includeUnlisted, bool includeVersions)
