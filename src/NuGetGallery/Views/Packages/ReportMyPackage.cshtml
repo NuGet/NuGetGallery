@@ -52,8 +52,10 @@
                     @Html.ShowValidationMessagesFor(m => m.Message)
                 </div>
                 <div id="form-field-copy-sender" class="form-group @Html.HasErrorFor(m => m.CopySender)">
-                    @Html.ShowCheckboxFor(m => m.CopySender)
-                    @Html.ShowLabelFor(m => m.CopySender)
+                    <label class="brand-checkbox">
+                        @Html.ShowCheckboxFor(m => m.CopySender)
+                        <span>@Html.DisplayNameFor(m => m.CopySender)</span>
+                    </label>
                     @Html.ShowValidationMessagesFor(m => m.CopySender)
                 </div>
                 <input type="submit" class="btn btn-brand form-control" value="Submit"

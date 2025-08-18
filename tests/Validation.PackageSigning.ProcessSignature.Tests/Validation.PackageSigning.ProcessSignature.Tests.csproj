@@ -3,6 +3,7 @@
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.Internal.NuGet.Testing.SignedPackages" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="SharpZipLib" />
     <PackageReference Include="xunit.runner.visualstudio">

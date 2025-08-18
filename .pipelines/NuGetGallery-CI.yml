@@ -16,15 +16,15 @@ variables:
   - name: nugetMultiFeedWarnLevel
     value: none
   - name: CommonPackageVersion
-    value: $(CommonAssemblyVersion)-$(NuGetGalleryBranch)-$(Build.BuildId)
+    value: $(CommonAssemblyVersion)-$(SemverFriendlyBranchName)-$(Build.BuildId)
   - name: CommonAssemblyVersion
     value: 5.0.0
   - name: GalleryPackageVersion
-    value: $(GalleryAssemblyVersion)-$(NuGetGalleryBranch)-$(Build.BuildId)
+    value: $(GalleryAssemblyVersion)-$(SemverFriendlyBranchName)-$(Build.BuildId)
   - name: GalleryAssemblyVersion
     value: 5.0.0
   - name: JobsPackageVersion
-    value: $(JobsAssemblyVersion)-$(NuGetGalleryBranch)-$(Build.BuildId)
+    value: $(JobsAssemblyVersion)-$(SemverFriendlyBranchName)-$(Build.BuildId)
   - name: JobsAssemblyVersion
     value: 5.0.0
   - name: NuGetGalleryDirectory
@@ -33,6 +33,8 @@ variables:
     value: $(Agent.BuildDirectory)\$(NuGetGalleryDirectory)
   - name: NuGetGalleryBranch
     value: $(Build.SourceBranchName)
+  - name: SemverFriendlyBranchName
+    value: ${{ replace(replace(variables['Build.SourceBranchName'], '_', '-'), '/', '-') }}
 
 resources:
   repositories:

@@ -1,4 +1,4 @@
-﻿var AsyncFileUploadManager = (function () {
+var AsyncFileUploadManager = (function () {
     'use strict';
 
     return new function () {
@@ -245,7 +245,6 @@
             $("#verify-package-block").remove();
             $("#submit-block").remove();
             $("#verify-collapser-container").addClass("hidden");
-            $("#submit-collapser-container").addClass("hidden");
             $("#readme-collapser-container").addClass("hidden");
 
             if (model != null) {
@@ -300,7 +299,6 @@
                 });
 
                 $("#verify-collapser-container").removeClass("hidden");
-                $("#submit-collapser-container").removeClass("hidden");
                 $("#readme-collapser-container").removeClass("hidden");
                 
                 if (model != null && model.IsDisplayUploadWarningV2Enabled) {

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -23,7 +23,7 @@ namespace NuGet.Services.AzureSearch.Wrappers
 
         public string IndexName => _inner.IndexName;
 
-        public async Task<IndexDocumentsResult> IndexAsync<T>(IndexDocumentsBatch<T> batch) where T : class
+        public async Task<Response<IndexDocumentsResult>> IndexAsync<T>(IndexDocumentsBatch<T> batch) where T : class
         {
             return await _inner.IndexDocumentsAsync(batch);
         }

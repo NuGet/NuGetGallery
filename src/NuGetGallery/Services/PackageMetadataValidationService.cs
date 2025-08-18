@@ -9,6 +9,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NuGet.Packaging;
 using NuGet.Packaging.Licenses;
 using NuGet.Services.Entities;
@@ -17,6 +19,7 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Helpers;
 using NuGetGallery.Packaging;
+using NuGetGallery.Services.Helpers;
 
 namespace NuGetGallery
 {
@@ -60,6 +63,7 @@ namespace NuGetGallery
         private const int MaxAllowedLicenseNodeValueLength = 500;
         // 1 MB Keep consistent with icon, license for now, change value later once we define the size
         private const int MaxAllowedReadmeLengthForUploading = GalleryConstants.MaxFileLengthBytes;
+
         private const string LicenseNodeName = "license";
         private const string IconNodeName = "icon";
         private const string AllowedLicenseVersion = "1.0.0";
@@ -164,6 +168,22 @@ namespace NuGetGallery
             if (result != null)
             {
                 return result;
+            }
+
+            if (McpHelper.IsMcpServerPackage(nuGetPackage))
+            {
+                result = await CheckMcpServerMetadataAsync(nuGetPackage, warnings, currentUser);
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+            else
+            {
+                if (nuGetPackage.GetPackageTypes().Any(type => string.Equals(type.Name, McpHelper.McpServerPackageTypeName, StringComparison.OrdinalIgnoreCase)))
+                {
+                    return PackageValidationResult.Invalid(Strings.McpServerWithoutDotnetTool);
+                }
             }
 
             return PackageValidationResult.AcceptedWithWarnings(warnings);
@@ -533,6 +553,59 @@ namespace NuGetGallery
             }
 
             return null;
+        }
+
+        private async Task<PackageValidationResult> CheckMcpServerMetadataAsync(PackageArchiveReader nuGetPackage, List<IValidationMessage> warnings, User user)
+        {
+            var metadataFilePath = McpHelper.McpServerMetadataFilePath;
+
+            if (!McpHelper.PackageContainsMcpServerMetadata(nuGetPackage))
+            {
+                warnings.Add(new MissingMcpServerMetadataMessage());
+                return null;
+            }
+
+            var mcpServerMetadata = await McpHelper.ReadMcpServerMetadataAsync(nuGetPackage);
+
+            if (mcpServerMetadata.Length == 0)
+            {
+                return PackageValidationResult.Invalid(
+                    string.Format(
+                        Strings.McpServerMetadataErrorEmpty,
+                        metadataFilePath));
+            }
+
+            if (mcpServerMetadata.Length > McpHelper.McpServerMetadataMaxLength)
+            {
+                return PackageValidationResult.Invalid(
+                    string.Format(
+                        Strings.McpServerMetadataTooLong,
+                        metadataFilePath,
+                        McpHelper.McpServerMetadataMaxLength.ToUserFriendlyBytesLabel()));
+            }
+
+            if (!IsValidJsonObject(mcpServerMetadata))
+            {
+                return PackageValidationResult.Invalid(
+                    string.Format(
+                        Strings.McpServerMetadataErrorInvalid,
+                        metadataFilePath));
+            }
+
+            return null;
+        }
+
+        private static bool IsValidJsonObject(string json)
+        {
+            try
+            {
+                var token = JToken.Parse(json);
+                return token != null && token.Type == JTokenType.Object;
+            }
+            catch (JsonReaderException)
+            {
+                return false;
+            }
         }
 
         private static async Task<bool> FileMatchesPredicate(PackageArchiveReader nuGetPackage, string filePath, Func<Stream, Task<bool>> predicate)

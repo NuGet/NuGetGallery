@@ -9,7 +9,6 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
-using Azure.Data.Tables;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
@@ -160,21 +159,21 @@ namespace NuGet.Services.Storage
 
         public override IEnumerable<StorageListItem> List(bool getMetadata)
         {
-            var blobTraits = new BlobTraits();
+            var blobTraits = BlobTraits.None;
             if (getMetadata)
             {
                 blobTraits |= BlobTraits.Metadata;
             }
 
-            foreach (BlobHierarchyItem blob in _directory.GetBlobsByHierarchy(traits: blobTraits, prefix: _path))
+            foreach (BlobHierarchyItem item in _directory.GetBlobsByHierarchy(traits: blobTraits, prefix: _path))
             {
-                yield return GetStorageListItem(_directory.GetBlockBlobClient(blob.Blob.Name));
+                yield return ToStorageListItem(item);
             }
         }
 
         public override async Task<IEnumerable<StorageListItem>> ListAsync(bool getMetadata, CancellationToken cancellationToken)
         {
-            var blobTraits = new BlobTraits();
+            var blobTraits = BlobTraits.None;
             if (getMetadata)
             {
                 blobTraits |= BlobTraits.Metadata;
@@ -182,18 +181,36 @@ namespace NuGet.Services.Storage
 
             var blobList = new List<StorageListItem>();
 
-            await foreach (BlobHierarchyItem blob in _directory.GetBlobsByHierarchyAsync(traits: blobTraits, prefix: _path))
+            await foreach (BlobHierarchyItem item in _directory.GetBlobsByHierarchyAsync(traits: blobTraits, prefix: _path, cancellationToken: cancellationToken))
             {
-                blobList.Add(await GetStorageListItemAsync(_directory.GetBlockBlobClient(blob.Blob.Name)));           
+                blobList.Add(ToStorageListItem(item));           
             }
 
             return blobList;
         }
 
+        private StorageListItem ToStorageListItem(BlobHierarchyItem item)
+        {
+            if (!item.IsBlob)
+            {
+                throw new ArgumentException(
+                    $"Unable to convert a non-blob {nameof(BlobHierarchyItem)} to a {nameof(StorageListItem)}. " +
+                    $"{nameof(item.IsPrefix)} = {item.IsPrefix}, {nameof(item.Prefix)} = '{item.Prefix}'.", nameof(item));
+            }
+
+            var client = _directory.GetBlockBlobClient(item.Blob.Name);
+            return new StorageListItem(client.Uri, item.Blob.Properties.LastModified, item.Blob.Metadata);
+        }
+
         public override async Task<IEnumerable<StorageListItem>> ListTopLevelAsync(bool getMetadata, CancellationToken cancellationToken)
         {
-            var prefix = _path.Trim('/') + '/';
-            var blobTraits = new BlobTraits();
+            var prefix = _path.Trim('/');
+            if (prefix.Length > 0)
+            {
+                prefix += '/';
+            }
+
+            var blobTraits = BlobTraits.None;
             if (getMetadata)
             {
                 blobTraits |= BlobTraits.Metadata;
@@ -201,11 +218,11 @@ namespace NuGet.Services.Storage
 
             var blobList = new List<StorageListItem>();
 
-            await foreach (BlobHierarchyItem blob in _directory.GetBlobsByHierarchyAsync(traits: blobTraits, prefix: prefix, delimiter: "/"))
+            await foreach (BlobHierarchyItem item in _directory.GetBlobsByHierarchyAsync(traits: blobTraits, prefix: prefix, delimiter: "/", cancellationToken: cancellationToken))
             {
-                if (!blob.IsPrefix)
+                if (!item.IsPrefix)
                 {
-                    blobList.Add(await GetStorageListItemAsync(_directory.GetBlockBlobClient(blob.Blob.Name)));
+                    blobList.Add(ToStorageListItem(item));
                 }
             }
 
@@ -216,24 +233,6 @@ namespace NuGet.Services.Storage
         {
             BlockBlobClient blob = GetBlobReference(GetName(resourceUri));
             await blob.SetMetadataAsync(metadata);
-        }
-
-        private async Task<StorageListItem> GetStorageListItemAsync(BlockBlobClient listBlobItem)
-        {
-            var blobPropertiesResponse = await listBlobItem.GetPropertiesAsync();
-            var blobProperties = blobPropertiesResponse?.Value;
-            var lastModified = blobProperties?.LastModified;
-
-            return new StorageListItem(listBlobItem.Uri, lastModified, blobProperties?.Metadata);
-        }
-
-        private StorageListItem GetStorageListItem(BlockBlobClient listBlobItem)
-        {
-            var blobPropertiesResponse = listBlobItem.GetProperties();
-            var blobProperties = blobPropertiesResponse?.Value;
-            var lastModified = blobProperties?.LastModified;
-
-            return new StorageListItem(listBlobItem.Uri, lastModified, blobProperties?.Metadata);
         }
 
         protected override async Task OnCopyAsync(

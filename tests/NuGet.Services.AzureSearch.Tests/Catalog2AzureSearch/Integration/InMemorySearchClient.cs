@@ -1,12 +1,14 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Azure;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
+using Moq;
 using NuGet.Services.AzureSearch.Wrappers;
 
 namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
@@ -40,7 +42,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
             throw new NotImplementedException();
         }
 
-        public Task<IndexDocumentsResult> IndexAsync<T>(IndexDocumentsBatch<T> batch) where T : class
+        public Task<Response<IndexDocumentsResult>> IndexAsync<T>(IndexDocumentsBatch<T> batch) where T : class
         {
             if (typeof(T) != typeof(KeyedDocument))
             {
@@ -49,7 +51,10 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
 
             Batches.Enqueue(batch as IndexDocumentsBatch<KeyedDocument>);
 
-            return Task.FromResult(SearchModelFactory.IndexDocumentsResult(new List<IndexingResult>()));
+            var response = new Mock<Response<IndexDocumentsResult>>();
+            response.Setup(x => x.Value).Returns(() => SearchModelFactory.IndexDocumentsResult([]));
+
+            return Task.FromResult(response.Object);
         }
 
         public Task<SingleSearchResultPage<T>> SearchAsync<T>(string searchText, SearchOptions searchParameters) where T : class

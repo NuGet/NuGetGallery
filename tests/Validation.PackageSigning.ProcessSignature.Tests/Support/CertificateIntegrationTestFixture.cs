@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Common;
 using NuGet.Packaging.Signing;
-using NuGet.Test.Utility;
 using Xunit.Abstractions;
 
 namespace Validation.PackageSigning.ProcessSignature.Tests

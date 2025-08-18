@@ -16,6 +16,10 @@
         {
             "file": "tests/NuGet.Services.KeyVault.Tests/KeyVaultReaderFormatterFacts.cs",
             "_justification": "Test file containing fake credentials"
+        },
+        {
+            "file": "src/NuGetGallery.Services/Authentication/ApiKeyV5.cs",
+            "_justification": "File containing fake credentials"
         }
     ]
 }

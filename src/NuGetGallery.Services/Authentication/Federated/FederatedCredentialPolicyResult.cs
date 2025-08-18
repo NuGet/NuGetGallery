@@ -3,8 +3,7 @@
 
 #nullable enable
 
-using System;
-using NuGet.Services.Entities;
+using System.Diagnostics;
 
 namespace NuGetGallery.Services.Authentication
 {
@@ -12,34 +11,33 @@ namespace NuGetGallery.Services.Authentication
     {
         Success, // policy matched token
         Unauthorized, // details are hidden from the user
+        NotApplicable, // policy does not apply to the token
     }
 
+    /// <summary>
+    /// Represents the result of evaluating a single <see cref="NuGet.Services.Entities.FederatedCredentialPolicy">
+    /// against validated and authenticated OIDC token.
+    /// </summary>
+    [DebuggerDisplay("{Type}, error: {Error}")]
     public class FederatedCredentialPolicyResult
     {
-        private readonly FederatedCredential? _federatedCredential;
-        private readonly string? _internalReason;
+        public static readonly FederatedCredentialPolicyResult Success = new(FederatedCredentialPolicyResultType.Success, null, false);
+        public static readonly FederatedCredentialPolicyResult NotApplicable = new(FederatedCredentialPolicyResultType.NotApplicable, null, false);
 
         private FederatedCredentialPolicyResult(
             FederatedCredentialPolicyResultType type,
-            FederatedCredentialPolicy federatedCredentialPolicy,
-            FederatedCredential? federatedCredential = null,
-            string? internalReason = null)
+            string? error, bool isErrorDisclosable)
         {
             Type = type;
-            Policy = federatedCredentialPolicy;
-            _federatedCredential = federatedCredential;
-            _internalReason = internalReason;
+            Error = error;
+            IsErrorDisclosable = isErrorDisclosable;
         }
 
         public FederatedCredentialPolicyResultType Type { get; }
-        public FederatedCredentialPolicy Policy { get; }
-        public FederatedCredential FederatedCredential => _federatedCredential ?? throw new InvalidOperationException();
-        public string InternalReason => _internalReason ?? throw new InvalidOperationException();
+        public string? Error { get; }
+        public bool IsErrorDisclosable { get; }
 
-        public static FederatedCredentialPolicyResult Success(FederatedCredentialPolicy policy, FederatedCredential federatedCredential)
-            => new(FederatedCredentialPolicyResultType.Success, policy, federatedCredential: federatedCredential);
-
-        public static FederatedCredentialPolicyResult Unauthorized(FederatedCredentialPolicy policy, string internalReason)
-            => new(FederatedCredentialPolicyResultType.Unauthorized, policy, internalReason: internalReason);
+        public static FederatedCredentialPolicyResult Unauthorized(string error, bool isErrorDisclosable = false)
+            => new(FederatedCredentialPolicyResultType.Unauthorized, error, isErrorDisclosable);
     }
 }

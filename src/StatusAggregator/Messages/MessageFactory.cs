@@ -3,6 +3,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Azure;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Status;
 using NuGet.Services.Status.Table;
@@ -36,7 +37,17 @@ namespace StatusAggregator.Messages
         {
             _logger.LogInformation("Creating new message of type {Type} for event {EventRowKey} at {Timestamp} affecting {ComponentPath} with status {ComponentStatus}.",
                 type, eventEntity.RowKey, time, component.Path, status);
-            var existingMessage = await _table.RetrieveAsync<MessageEntity>(MessageEntity.GetRowKey(eventEntity, time));
+
+            MessageEntity existingMessage = null;
+            try
+            {
+                existingMessage = await _table.RetrieveAsync<MessageEntity>(MessageEntity.GetRowKey(eventEntity, time));
+            }
+            catch (RequestFailedException e) when (e.Status == 404)
+            {
+                _logger.LogInformation("No existing message found.");
+            }
+
             if (existingMessage != null)
             {
                 _logger.LogInformation("Message already exists, will not recreate.");

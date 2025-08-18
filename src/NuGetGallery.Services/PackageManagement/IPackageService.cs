@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -106,6 +106,8 @@ namespace NuGetGallery
         IEnumerable<Package> FindPackagesByAnyMatchingOwner(User user, bool includeUnlisted, bool includeVersions = false);
 
         IQueryable<PackageRegistration> FindPackageRegistrationsByOwner(User user);
+
+        (IReadOnlyCollection<Package> Packages, long TotalDownloadCount, int PackageCount) FindPackagesByProfile(User user, int page, int pageSize);
 
         IQueryable<PackageRegistration> GetAllPackageRegistrations();
 

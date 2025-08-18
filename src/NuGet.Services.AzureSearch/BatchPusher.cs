@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -180,11 +180,17 @@ namespace NuGet.Services.AzureSearch
             {
                 var batchInput = new IndexDocumentsBatch<KeyedDocument>();
                 batchInput.Actions.AddRange(batch);
-                var batchResults = await indexClient.IndexAsync(batchInput);
+                Response<IndexDocumentsResult> batchResultsResponse = await indexClient.IndexAsync(batchInput);
+                string requestId = batchResultsResponse
+                    .GetRawResponse()?
+                    .Headers // See https://learn.microsoft.com/en-us/rest/api/searchservice/common-http-request-and-response-headers-used-in-azure-search
+                    .FirstOrDefault(x => StringComparer.OrdinalIgnoreCase.Equals(x.Name, "request-id"))
+                    .Value;
+                IndexDocumentsResult batchResults = batchResultsResponse.Value;
                 indexingResults = batchResults.Results;
 
                 stopwatch.Stop();
-                _telemetryService.TrackIndexPushSuccess(indexClient.IndexName, batch.Count, stopwatch.Elapsed);
+                _telemetryService.TrackIndexPushSuccess(indexClient.IndexName, batch.Count, stopwatch.Elapsed, requestId);
             }
             catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.RequestEntityTooLarge && batch.Count > 1)
             {

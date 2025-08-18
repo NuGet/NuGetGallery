@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -124,9 +124,9 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
         }
 
         private const string _expectedMarkdownBody =
-            @"_User Sender &lt;sender@gallery.org&gt; sends the following message to the owners of Package '[PackageId 1.0.0](packageUrl)'._
+            @"User Sender &lt;sender@gallery.org&gt; sends the following message to the owners of Package '[PackageId 1.0.0](packageUrl)'.
 
-user input
+_user input_
 
 -----------------------------------------------
 <em style=""font-size: 0.8em;"">
@@ -144,8 +144,8 @@ user input
     change your email notification settings (emailSettingsUrl).";
 
         private const string _expectedHtmlBody =
-            "<p><em>User Sender &lt;sender@gallery.org&gt; sends the following message to the owners of Package '<a href=\"packageUrl\">PackageId 1.0.0</a>'.</em></p>\n" +
-"<p>user input</p>\n" +
+            "<p>User Sender &lt;sender@gallery.org&gt; sends the following message to the owners of Package '<a href=\"packageUrl\">PackageId 1.0.0</a>'.</p>\n" +
+"<p><em>user input</em></p>\n" +
 @"<hr />
 <em style=""font-size: 0.8em;"">
     To stop receiving contact emails as an owner of this package, sign in to the NuGetGallery and

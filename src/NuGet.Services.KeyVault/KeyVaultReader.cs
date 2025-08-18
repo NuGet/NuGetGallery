@@ -97,14 +97,11 @@ namespace NuGet.Services.KeyVault
 
             if (_configuration.UseManagedIdentity)
             {
-                if (string.IsNullOrEmpty(_configuration.ClientId) || _configuration.LocalDevelopment)
-                {
-                    credential = new DefaultAzureCredential();
-                }
-                else
-                {
-                    credential = new ManagedIdentityCredential(_configuration.ClientId);
-                }
+#if DEBUG
+                credential = new DefaultAzureCredential();
+#else
+                credential = new ManagedIdentityCredential(_configuration.ClientId);
+#endif
             }
             else if (_configuration.SendX5c)
             {

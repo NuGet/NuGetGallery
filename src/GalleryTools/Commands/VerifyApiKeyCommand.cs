@@ -1,10 +1,11 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
 using Microsoft.Extensions.CommandLineUtils;
 using NuGet.Services.Entities;
+using NuGetGallery;
 using NuGetGallery.Infrastructure.Authentication;
 
 namespace GalleryTools.Commands
@@ -80,7 +81,8 @@ namespace GalleryTools.Commands
 
                 var validCredentials = credentialValidator.GetValidCredentialsForApiKey(
                     new[] { credential }.AsQueryable(),
-                    clearTextOption.Value());
+                    clearTextOption.Value(),
+                    ServicesConstants.ProdEnvironment);
 
                 Console.WriteLine();
                 Console.WriteLine($"API key {i + 1}:");

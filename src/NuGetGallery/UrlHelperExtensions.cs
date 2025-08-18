@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -18,6 +18,16 @@ namespace NuGetGallery
     {
         private const string Area = "area";
         private static IGalleryConfigurationService _configuration;
+
+        /// <summary>
+        /// MUST MATCH common.js. Used to add localy stored search params to a element.
+        /// </summary>
+        public const string PackagesLinkClass = "link-to-add-local-search-filters";
+
+        /// <summary>
+        /// MUST MATCH common.js. Used to add localy stored search params to form element.
+        /// </summary>
+        public const string SimpleSearchFormId = "form-to-add-local-search-filters";
 
         public static class Fragments
         {
@@ -1012,6 +1022,15 @@ namespace NuGetGallery
                 supportEmail: supportEmail);
         }
 
+        public static string ManageMyTrustedPublishing(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(
+                url,
+                nameof(UsersController.TrustedPublishing),
+                "Users",
+                relativeUrl);
+        }
+
         public static string ManageMyOrganizations(this UrlHelper url, bool relativeUrl = true)
         {
             return GetActionLink(
@@ -1495,6 +1514,26 @@ namespace NuGetGallery
         public static string GenerateApiKey(this UrlHelper url, bool relativeUrl = true)
         {
             return GetActionLink(url, "GenerateApiKey", "Users", relativeUrl);
+        }
+
+        public static string GenerateTrustedPublisherPolicy(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url, "GenerateTrustedPublisherPolicy", "Users", relativeUrl);
+        }
+
+        public static string EditTrustedPublisherPolicy(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url, "EditTrustedPublisherPolicy", "Users", relativeUrl);
+        }
+
+        public static string EnableTrustedPublisherPolicy(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url, "EnableTrustedPublisherPolicy", "Users", relativeUrl);
+        }
+
+        public static string RemoveTrustedPublisherPolicy(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url, "RemoveTrustedPublisherPolicy", "Users", relativeUrl);
         }
 
         public static string TransformAccount(this UrlHelper url, bool relativeUrl = true)

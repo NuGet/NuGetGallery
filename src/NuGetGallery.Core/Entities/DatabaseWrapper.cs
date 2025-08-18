@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -38,7 +38,7 @@ namespace NuGetGallery
         {
             string sqlCommand;
 
-            var assembly = Assembly.GetExecutingAssembly();
+            Assembly assembly = typeof(DatabaseWrapper).Assembly;
             using (var reader = new StreamReader(assembly.GetManifestResourceStream(name)))
             {
                 sqlCommand = await reader.ReadToEndAsync();

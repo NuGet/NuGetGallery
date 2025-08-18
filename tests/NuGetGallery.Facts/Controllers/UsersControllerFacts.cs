@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -27,7 +27,6 @@ using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Security;
-
 using Xunit;
 
 namespace NuGetGallery
@@ -408,7 +407,7 @@ namespace NuGetGallery
 
                 var result = controller.ForgotPassword() as ViewResult;
                 var model = result.Model as ForgotPasswordViewModel;
-                
+
                 Assert.NotNull(result);
                 Assert.IsNotType<RedirectResult>(result);
                 Assert.Equal(flagEnabled, model.IsPasswordLoginEnabled);
@@ -4053,7 +4052,7 @@ namespace NuGetGallery
                 PackageRegistration packageRegistration2 = CreatePackageRegistration("Company.AlphaPackage", 1, "1.0.0", "first");
                 PackageRegistration packageRegistration3 = CreatePackageRegistration("Company.NormalPackage", 1, "1.0.0", "middle");
 
-                var userPackages = new List<Package> { 
+                var userPackages = new List<Package> {
                     packageRegistration1.Packages.First(),
                     packageRegistration2.Packages.First(),
                     packageRegistration3.Packages.First()
@@ -4075,7 +4074,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void PackagesVersionSortOrderIsSetBySemVer()  
+            public void PackagesVersionSortOrderIsSetBySemVer()
             {
                 PackageRegistration packageRegistration1 = CreatePackageRegistration("Company.ZebraPackage", 1, "1.0.0", "middle");
                 PackageRegistration packageRegistration2 = CreatePackageRegistration("Company.NormalPackage", 1, "0.0.1", "first");

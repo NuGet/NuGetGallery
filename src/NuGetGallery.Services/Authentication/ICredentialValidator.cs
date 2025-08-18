@@ -1,9 +1,10 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
 using NuGet.Services.Entities;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Infrastructure.Authentication
 {
@@ -19,7 +20,8 @@ namespace NuGetGallery.Infrastructure.Authentication
         /// </summary>
         /// <param name="allCredentials">An <see cref="IQueryable"/> with of all credentials.</param>
         /// <param name="providedApiKey">User provided ApiKey</param>
+        /// <param name="galleryEnvironment">Gallery environment from <see cref="IAppConfiguration.Environment"/></param>
         /// <returns>List of matching ApiKeys. If only a single result is expected it's up to the caller to validate count.</returns>
-        IList<Credential> GetValidCredentialsForApiKey(IQueryable<Credential> allCredentials, string providedApiKey);
+        IList<Credential> GetValidCredentialsForApiKey(IQueryable<Credential> allCredentials, string providedApiKey, string galleryEnvironment);
     }
 }

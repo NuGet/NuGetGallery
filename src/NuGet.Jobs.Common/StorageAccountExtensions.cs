@@ -175,21 +175,18 @@ namespace NuGet.Jobs
         {
             if (msiConfiguration.UseManagedIdentity)
             {
-                if (string.IsNullOrWhiteSpace(msiConfiguration.ManagedIdentityClientId))
-                {
-                    return CloudBlobClientWrapper.UsingDefaultAzureCredential(
-                        storageConnectionString,
-                        readAccessGeoRedundant: readAccessGeoRedundant,
-                        requestTimeout: requestTimeout);
-                }
-                else
-                {
-                    return CloudBlobClientWrapper.UsingMsi(
-                        storageConnectionString,
-                        msiConfiguration.ManagedIdentityClientId,
-                        readAccessGeoRedundant,
-                        requestTimeout);
-                }
+#if DEBUG
+                return CloudBlobClientWrapper.UsingDefaultAzureCredential(
+                    storageConnectionString,
+                    readAccessGeoRedundant: readAccessGeoRedundant,
+                    requestTimeout: requestTimeout);
+#else
+                return CloudBlobClientWrapper.UsingMsi(
+                    storageConnectionString,
+                    msiConfiguration.ManagedIdentityClientId,
+                    readAccessGeoRedundant,
+                    requestTimeout);
+#endif
             }
 
             return new CloudBlobClientWrapper(

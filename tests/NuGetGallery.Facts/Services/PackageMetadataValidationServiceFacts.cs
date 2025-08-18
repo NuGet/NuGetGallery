@@ -16,6 +16,7 @@ using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Packaging;
+using NuGetGallery.TestData;
 using NuGetGallery.TestUtils;
 using Xunit;
 
@@ -1761,6 +1762,152 @@ namespace NuGetGallery
                 }
             }
 
+            [Fact]
+            public async Task RejectsMcpServerWithMissingDotnetToolPackageType()
+            {
+                _nuGetPackage = GeneratePackageWithUserContent(
+                    packageTypes:
+                    [
+                        new NuGet.Packaging.Core.PackageType("McpServer", new Version("1.0.0"))
+                    ]);
+
+                var result = await _target.ValidateMetadataBeforeUploadAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage),
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Contains("'McpServer' package type without the 'DotnetTool'", result.Message.PlainTextMessage);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Fact]
+            public async Task WarnsAboutMissingMcpServerMetadata()
+            {
+                _nuGetPackage = GeneratePackageWithUserContent(
+                    licenseExpression: "MIT",
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"),
+                    packageTypes:
+                    [
+                        new NuGet.Packaging.Core.PackageType("DotnetTool", new Version("1.0.0")),
+                        new NuGet.Packaging.Core.PackageType("McpServer", new Version("1.0.0"))
+                    ]);
+
+                var result = await _target.ValidateMetadataBeforeUploadAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage),
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+
+                var warning = Assert.Single(result.Warnings);
+                Assert.IsType<MissingMcpServerMetadataMessage>(warning);
+                Assert.StartsWith("Server.json missing", warning.PlainTextMessage);
+            }
+
+            [Fact]
+            public async Task RejectsEmptyMcpServerMetadata()
+            {
+                _nuGetPackage = GeneratePackageWithUserContent(
+                    licenseExpression: "MIT",
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"),
+                    packageTypes:
+                    [
+                        new NuGet.Packaging.Core.PackageType("DotnetTool", new Version("1.0.0")),
+                        new NuGet.Packaging.Core.PackageType("McpServer", new Version("1.0.0"))
+                    ],
+                    mcpServerMetadataFilename: ".mcp/server.json",
+                    mcpServerMetadataFileContents: "");
+
+                var result = await _target.ValidateMetadataBeforeUploadAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage),
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Contains("cannot be empty", result.Message.PlainTextMessage);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Fact]
+            public async Task RejectsTooLongMcpServerMetadata()
+            {
+                var longString = string.Empty;
+                for (int i = 0; i < 1001; i++)
+                {
+                    longString += "aaaaaaaaaaaaaaaaaaaa";
+                }
+
+                _nuGetPackage = GeneratePackageWithUserContent(
+                    licenseExpression: "MIT",
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"),
+                    packageTypes:
+                    [
+                        new NuGet.Packaging.Core.PackageType("DotnetTool", new Version("1.0.0")),
+                        new NuGet.Packaging.Core.PackageType("McpServer", new Version("1.0.0"))
+                    ],
+                    mcpServerMetadataFilename: ".mcp/server.json",
+                    mcpServerMetadataFileContents: longString);
+
+                var result = await _target.ValidateMetadataBeforeUploadAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage),
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Contains("cannot be larger than", result.Message.PlainTextMessage);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Fact]
+            public async Task RejectsInvalidMcpServerMetadataJson()
+            {
+                _nuGetPackage = GeneratePackageWithUserContent(
+                    licenseExpression: "MIT",
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"),
+                    packageTypes:
+                    [
+                        new NuGet.Packaging.Core.PackageType("DotnetTool", new Version("1.0.0")),
+                        new NuGet.Packaging.Core.PackageType("McpServer", new Version("1.0.0"))
+                    ],
+                    mcpServerMetadataFilename: ".mcp/server.json",
+                    mcpServerMetadataFileContents: "{}}");
+
+                var result = await _target.ValidateMetadataBeforeUploadAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage),
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Contains("is invalid", result.Message.PlainTextMessage);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Fact]
+            public async Task AcceptsValidMcpServerMetadata()
+            {
+                _nuGetPackage = GeneratePackageWithUserContent(
+                    licenseExpression: "MIT",
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"),
+                    packageTypes:
+                    [
+                        new NuGet.Packaging.Core.PackageType("DotnetTool", new Version("1.0.0")),
+                        new NuGet.Packaging.Core.PackageType("McpServer", new Version("1.0.0"))
+                    ],
+                    mcpServerMetadataFilename: ".mcp/server.json",
+                    mcpServerMetadataFileContents: McpServerData.ServerJsonValid);
+
+                var result = await _target.ValidateMetadataBeforeUploadAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage),
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+                Assert.Empty(result.Warnings);
+            }
+
             /// <summary>
             /// A (quite ineffective) method to search for a sequence in an array
             /// </summary>
@@ -2180,6 +2327,7 @@ namespace NuGetGallery
             protected static Mock<TestPackageReader> GeneratePackageWithUserContent(
                 string version = "1.2.3-alpha.0",
                 RepositoryMetadata repositoryMetadata = null,
+                IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes = null,
                 bool isSigned = true,
                 int? desiredTotalEntryCount = null,
                 Func<string> getCustomNuspecNodes = null,
@@ -2194,12 +2342,15 @@ namespace NuGetGallery
                 string readmeFilename = null,
                 string readmeFileContents = null,
                 byte[] readmeFileBinaryContents = null,
+                string mcpServerMetadataFilename = null,
+                string mcpServerMetadataFileContents = null,
                 string releaseNotes = null,
                 IReadOnlyList<string> entryNames = null)
             {
                 var packageStream = GeneratePackageStream(
                     version: version,
                     repositoryMetadata: repositoryMetadata,
+                    packageTypes: packageTypes,
                     isSigned: isSigned,
                     desiredTotalEntryCount: desiredTotalEntryCount,
                     getCustomNuspecNodes: getCustomNuspecNodes,
@@ -2214,6 +2365,8 @@ namespace NuGetGallery
                     readmeFilename: readmeFilename,
                     readmeFileContents: readmeFileContents,
                     readmeFileBinaryContents: readmeFileBinaryContents,
+                    mcpServerMetadataFilename: mcpServerMetadataFilename,
+                    mcpServerMetadataFileContents: mcpServerMetadataFileContents,
                     releaseNotes: releaseNotes,
                     entryNames: entryNames);
 
@@ -2223,6 +2376,7 @@ namespace NuGetGallery
             protected static MemoryStream GeneratePackageStream(
                 string version = "1.2.3-alpha.0",
                 RepositoryMetadata repositoryMetadata = null,
+                IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes = null,
                 bool isSigned = true,
                 int? desiredTotalEntryCount = null,
                 Func<string> getCustomNuspecNodes = null,
@@ -2237,6 +2391,8 @@ namespace NuGetGallery
                 string readmeFilename = null,
                 string readmeFileContents = null,
                 byte[] readmeFileBinaryContents = null,
+                string mcpServerMetadataFilename = null,
+                string mcpServerMetadataFileContents = null,
                 string releaseNotes = null,
                 IReadOnlyList<string> entryNames = null)
             {
@@ -2244,6 +2400,7 @@ namespace NuGetGallery
                     id: PackageId,
                     version: version,
                     repositoryMetadata: repositoryMetadata,
+                    packageTypes: packageTypes,
                     isSigned: isSigned,
                     desiredTotalEntryCount: desiredTotalEntryCount,
                     getCustomNuspecNodes: getCustomNuspecNodes,
@@ -2256,6 +2413,8 @@ namespace NuGetGallery
                     iconFileBinaryContents: iconFileBinaryContents,
                     readmeFilename: readmeFilename,
                     readmeFileContents: GetBinaryLicenseOrReadmeFileContents(readmeFileBinaryContents, readmeFileContents),
+                    mcpServerMetadataFilename: mcpServerMetadataFilename,
+                    mcpServerMetadataFileContents: GetBinaryLicenseOrReadmeFileContents(null, mcpServerMetadataFileContents),
                     releaseNotes: releaseNotes,
                     entryNames: entryNames);
             }

@@ -180,21 +180,35 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             return Task.FromResult(false);
         }
 
-        protected string GetName(Uri uri)
+        public string GetName(Uri uri)
         {
-            var address = Uri.UnescapeDataString(BaseAddress.GetLeftPart(UriPartial.Path));
+            if (uri is null)
+            { 
+                throw new ArgumentNullException(nameof(uri));
+            }
+
+            if (BaseAddress is null)
+            {
+                throw new InvalidOperationException("BaseAddress must be set.");
+            }
+
+            // The GetLeftPart method performs encoding under the hood, which could be problematic if it contains Unicode characters.
+            // It doesn't perform double encoding; the Uri object knows if it's already encoded and skips encoding it again.
+            // Decoding the base address to remove any encoded characters.
+            string address = Uri.UnescapeDataString(BaseAddress.GetLeftPart(UriPartial.Path)); // Remove potential query or SAS from the URI
             if (!address.EndsWith("/"))
             {
                 address += "/";
             }
-            var uriString = uri.GetLeftPart(UriPartial.Path);
 
-            int baseAddressLength = address.Length;
+            // Do the same with the above to get it decoded.
+            string fullPath = Uri.UnescapeDataString(uri.GetLeftPart(UriPartial.Path)); // Remove potential query or SAS from the URI
 
             // handle mismatched scheme (http vs https)
-            var schemeLengthDifference = uri.Scheme.Length - BaseAddress.Scheme.Length;
+            int schemeLengthDifference = uri.Scheme.Length - BaseAddress.Scheme.Length;
 
-            var name = uriString.Substring(baseAddressLength + schemeLengthDifference);
+            string name = fullPath.Substring(address.Length + schemeLengthDifference);
+
             if (name.Contains("#"))
             {
                 name = name.Substring(0, name.IndexOf("#"));

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -65,6 +65,7 @@ namespace NuGetGallery
         private static string GetSha1Thumbprint(MemoryStream stream)
         {
 #pragma warning disable CA5350 // Do Not Use Weak Cryptographic Algorithms
+            // CodeQL [SM02196] Calculated for backwards compatibility, it is not used for anything
             using (var hashAlgorithm = SHA1.Create())
 #pragma warning restore CA5350 // Do Not Use Weak Cryptographic Algorithms
             {

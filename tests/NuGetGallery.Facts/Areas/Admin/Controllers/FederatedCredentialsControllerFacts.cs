@@ -95,7 +95,6 @@ public class FederatedCredentialsControllerFacts
 
     public FederatedCredentialsControllerFacts()
     {
-        FederatedCredentialRepository = new Mock<IFederatedCredentialRepository>();
         UserRepository = new Mock<IEntityRepository<User>>();
         UserService = new Mock<IUserService>();
         FederatedCredentialService = new Mock<IFederatedCredentialService>();
@@ -114,10 +113,10 @@ public class FederatedCredentialsControllerFacts
             new FederatedCredentialPolicy { Key = 5, Created = baseTime.AddHours(1), CreatedByUserKey = UserA.Key, CreatedBy = UserA, PackageOwnerUserKey = OrgA.Key, PackageOwner = OrgA },
         };
 
-        FederatedCredentialRepository
+        FederatedCredentialService
             .Setup(x => x.GetPoliciesRelatedToUserKeys(It.IsAny<IReadOnlyList<int>>()))
             .Returns(() => Policies);
-        FederatedCredentialRepository
+        FederatedCredentialService
             .Setup(x => x.GetPolicyByKey(It.IsAny<int>()))
             .Returns<int>(k => Policies.FirstOrDefault(p => p.Key == k));
         UserRepository
@@ -128,7 +127,6 @@ public class FederatedCredentialsControllerFacts
             .Returns<string, bool>((u, _) => Users.FirstOrDefault(x => x.Username == u));
 
         Target = new FederatedCredentialsController(
-            FederatedCredentialRepository.Object,
             UserRepository.Object,
             UserService.Object,
             FederatedCredentialService.Object);
@@ -136,7 +134,6 @@ public class FederatedCredentialsControllerFacts
         TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), Target);
     }
 
-    public Mock<IFederatedCredentialRepository> FederatedCredentialRepository { get; }
     public Mock<IEntityRepository<User>> UserRepository { get; }
     public Mock<IUserService> UserService { get; }
     public Mock<IFederatedCredentialService> FederatedCredentialService { get; }

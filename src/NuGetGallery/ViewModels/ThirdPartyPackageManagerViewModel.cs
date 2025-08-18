@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 namespace NuGetGallery
@@ -15,7 +15,16 @@ namespace NuGetGallery
         /// </summary>
         public string ContactUrl { get; set; }
 
-        public ThirdPartyPackageManagerViewModel(string name, string contactUrl) : base(name)
+        public ThirdPartyPackageManagerViewModel(
+            string id,
+            string name,
+            string contactUrl,
+            params InstallPackageCommand[] installPackageCommands
+            ) : base(
+                id,
+                name,
+                installPackageCommands
+                )
         {
             ContactUrl = contactUrl;
             AlertLevel = AlertLevel.Warning;

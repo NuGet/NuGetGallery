@@ -43,6 +43,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.ApplicationInsights" />
     <PackageReference Include="Microsoft.Identity.Web" />
+    <PackageReference Include="Microsoft.Security.Utilities.Core" />
     <PackageReference Include="System.Text.Json" />
   </ItemGroup>
 

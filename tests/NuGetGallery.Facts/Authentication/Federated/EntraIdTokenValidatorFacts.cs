@@ -3,12 +3,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Moq;
+using NuGet.Services.Entities;
 using Xunit;
 
 #nullable enable
@@ -75,7 +77,7 @@ namespace NuGetGallery.Services.Authentication
                 Configuration.Setup(x => x.EntraIdAudience).Returns((string?)null);
 
                 // Act & Assert
-                await Assert.ThrowsAsync<InvalidOperationException>(() => Target.ValidateAsync(Token));
+                await Assert.ThrowsAsync<InvalidOperationException>(() => Target.ValidateTokenAsync(Token));
             }
 
             [Fact]
@@ -88,7 +90,7 @@ namespace NuGetGallery.Services.Authentication
                     .ReturnsAsync(result);
 
                 // Act
-                var actual = await Target.ValidateAsync(Token);
+                var actual = await Target.ValidateTokenAsync(Token);
 
                 // Assert
                 Assert.Same(result, actual);
@@ -101,7 +103,7 @@ namespace NuGetGallery.Services.Authentication
                 var token = Token;
 
                 // Act
-                await Target.ValidateAsync(token);
+                await Target.ValidateTokenAsync(token);
 
                 // Assert
                 JsonWebTokenHandler.Verify(x => x.ValidateTokenAsync(token, It.IsAny<TokenValidationParameters>()), Times.Once);
@@ -117,7 +119,7 @@ namespace NuGetGallery.Services.Authentication
             public async Task AcceptsEntraIdIssuer()
             {
                 // Arrange
-                await Target.ValidateAsync(Token);
+                await Target.ValidateTokenAsync(Token);
                 JsonWebTokenHandler.Verify(x => x.ValidateTokenAsync(It.IsAny<JsonWebToken>(), It.IsAny<TokenValidationParameters>()), Times.Once);
                 var invocation = Assert.Single(JsonWebTokenHandler.Invocations);
                 var tokenValidationParameters = (TokenValidationParameters)invocation.Arguments[1];
@@ -134,7 +136,7 @@ namespace NuGetGallery.Services.Authentication
             {
                 // Arrange
                 Issuer = "https://localhost/my-issuer";
-                await Target.ValidateAsync(Token);
+                await Target.ValidateTokenAsync(Token);
                 JsonWebTokenHandler.Verify(x => x.ValidateTokenAsync(It.IsAny<JsonWebToken>(), It.IsAny<TokenValidationParameters>()), Times.Once);
                 var invocation = Assert.Single(JsonWebTokenHandler.Invocations);
                 var tokenValidationParameters = (TokenValidationParameters)invocation.Arguments[1];
@@ -148,7 +150,7 @@ namespace NuGetGallery.Services.Authentication
             public async Task AcceptsSigningKeyWithMatchingIssuer()
             {
                 // Arrange
-                await Target.ValidateAsync(Token);
+                await Target.ValidateTokenAsync(Token);
                 JsonWebTokenHandler.Verify(x => x.ValidateTokenAsync(It.IsAny<JsonWebToken>(), It.IsAny<TokenValidationParameters>()), Times.Once);
                 var invocation = Assert.Single(JsonWebTokenHandler.Invocations);
                 var tokenValidationParameters = (TokenValidationParameters)invocation.Arguments[1];
@@ -164,7 +166,7 @@ namespace NuGetGallery.Services.Authentication
             public async Task RejectsSigningKeyWithDifferentIssuer()
             {
                 // Arrange
-                await Target.ValidateAsync(Token);
+                await Target.ValidateTokenAsync(Token);
                 JsonWebTokenHandler.Verify(x => x.ValidateTokenAsync(It.IsAny<JsonWebToken>(), It.IsAny<TokenValidationParameters>()), Times.Once);
                 var invocation = Assert.Single(JsonWebTokenHandler.Invocations);
                 var tokenValidationParameters = (TokenValidationParameters)invocation.Arguments[1];
@@ -175,38 +177,462 @@ namespace NuGetGallery.Services.Authentication
                 Assert.Throws<SecurityTokenInvalidIssuerException>(
                     () => tokenValidationParameters.IssuerSigningKeyValidatorUsingConfiguration(key, Token, tokenValidationParameters, config));
             }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            [InlineData(" ")]
+            public void RejectsMissingTokenIdentifierClaim(string? utiValue)
+            {
+                // Arrange
+                var claims = new Dictionary<string, object>
+                {
+                    { "tid", TenantId },
+                    { "iss", Issuer },
+                };
+
+                if (utiValue != null)
+                {
+                    claims.Add("uti", utiValue);
+                }
+
+                var token = CreateToken(claims);
+
+                // Act
+                var (tokenId, error) = Target.ValidateTokenIdentifier(token);
+
+                // Assert
+                Assert.Null(tokenId);
+                Assert.Equal("The JSON web token must have a uti claim.", error);
+            }
+        }
+
+        public class TheEvaluatePolicyMethod : EntraIdTokenValidatorFacts
+        {
+            [Fact]
+            public async Task ReturnsNotApplicableForNonEntraIdPolicy()
+            {
+                // Arrange
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = FederatedCredentialType.GitHubActions,
+                    Criteria = JsonSerializer.Serialize(new { test = "value" })
+                };
+
+                var token = Token;
+
+                // Act
+                var result = await Target.EvaluatePolicyAsync(policy, token);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyResultType.NotApplicable, result.Type);
+            }
+
+            [Theory]
+            [InlineData("tid")]
+            [InlineData("oid")]
+            [InlineData("azpacr")]
+            [InlineData("idtyp")]
+            [InlineData("ver")]
+            public async Task RejectsMissingClaim(string claim)
+            {
+                // Arrange
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = FederatedCredentialType.EntraIdServicePrincipal,
+                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId)),
+                    PackageOwner = PackageOwner
+                };
+
+                var claims = new Dictionary<string, object>
+                {
+                    { "tid", TenantId.ToString() },
+                    { "oid", ObjectId.ToString() },
+                    { "sub", ObjectId.ToString() },
+                    { "azpacr", "2" },
+                    { "idtyp", "app" },
+                    { "ver", "2.0" },
+                };
+                claims.Remove(claim);
+
+                var token = CreateToken(claims);
+
+                // Act
+                var result = await Target.EvaluatePolicyAsync(policy, token);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                Assert.False(result.IsErrorDisclosable);
+                Assert.Equal($"The JSON Web Token is missing the required claim '{claim}'.", result.Error);
+            }
+
+            [Fact]
+            public async Task RejectsInvalidCredentialType()
+            {
+                // Arrange
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = FederatedCredentialType.EntraIdServicePrincipal,
+                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId)),
+                    PackageOwner = PackageOwner
+                };
+
+                var claims = new Dictionary<string, object>
+                {
+                    { "tid", TenantId.ToString() },
+                    { "oid", ObjectId.ToString() },
+                    { "sub", ObjectId.ToString() },
+                    { "azpacr", "1" }, // Invalid credential type
+                    { "idtyp", "app" },
+                    { "ver", "2.0" },
+                };
+
+                var token = CreateToken(claims);
+
+                // Act
+                var result = await Target.EvaluatePolicyAsync(policy, token);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                Assert.False(result.IsErrorDisclosable);
+                Assert.Equal("The JSON web token must have an azpacr claim with a value of 2.", result.Error);
+            }
+
+            [Fact]
+            public async Task RejectsInvalidIdentityType()
+            {
+                // Arrange
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = FederatedCredentialType.EntraIdServicePrincipal,
+                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId)),
+                    PackageOwner = PackageOwner
+                };
+
+                var claims = new Dictionary<string, object>
+                {
+                    { "tid", TenantId.ToString() },
+                    { "oid", ObjectId.ToString() },
+                    { "sub", ObjectId.ToString() },
+                    { "azpacr", "2" },
+                    { "idtyp", "app+user" }, // Invalid identity type
+                    { "ver", "2.0" },
+                };
+
+                var token = CreateToken(claims);
+
+                // Act
+                var result = await Target.EvaluatePolicyAsync(policy, token);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                Assert.False(result.IsErrorDisclosable);
+                Assert.Equal("The JSON web token must have an idtyp claim with a value of app.", result.Error);
+            }
+
+            [Fact]
+            public async Task RejectsInvalidVersion()
+            {
+                // Arrange
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = FederatedCredentialType.EntraIdServicePrincipal,
+                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId)),
+                    PackageOwner = PackageOwner
+                };
+
+                var claims = new Dictionary<string, object>
+                {
+                    { "tid", TenantId.ToString() },
+                    { "oid", ObjectId.ToString() },
+                    { "sub", ObjectId.ToString() },
+                    { "azpacr", "2" },
+                    { "idtyp", "app" },
+                    { "ver", "1.0" }, // Invalid version
+                };
+
+                var token = CreateToken(claims);
+
+                // Act
+                var result = await Target.EvaluatePolicyAsync(policy, token);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                Assert.False(result.IsErrorDisclosable);
+                Assert.Equal("The JSON web token must have a ver claim with a value of 2.0.", result.Error);
+            }
+
+            [Fact]
+            public async Task RejectsOidNotMatchingSub()
+            {
+                // Arrange
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = FederatedCredentialType.EntraIdServicePrincipal,
+                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId)),
+                    PackageOwner = PackageOwner
+                };
+
+                var claims = new Dictionary<string, object>
+                {
+                    { "tid", TenantId.ToString() },
+                    { "oid", ObjectId.ToString() },
+                    { "sub", "different-client-id" }, // Different from oid
+                    { "azpacr", "2" },
+                    { "idtyp", "app" },
+                    { "ver", "2.0" },
+                };
+
+                var token = CreateToken(claims);
+
+                // Act
+                var result = await Target.EvaluatePolicyAsync(policy, token);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                Assert.False(result.IsErrorDisclosable);
+                Assert.Equal("The JSON web token sub claim must match the oid claim.", result.Error);
+            }
+
+            [Fact]
+            public async Task RejectsWrongTenantId()
+            {
+                // Arrange
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = FederatedCredentialType.EntraIdServicePrincipal,
+                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId)),
+                    PackageOwner = PackageOwner
+                };
+
+                var claims = new Dictionary<string, object>
+                {
+                    { "tid", "d8f0bfc3-5def-4079-b08c-618832b6ae16" }, // Different tenant ID
+                    { "oid", ObjectId.ToString() },
+                    { "sub", ObjectId.ToString() },
+                    { "azpacr", "2" },
+                    { "idtyp", "app" },
+                    { "ver", "2.0" },
+                };
+
+                var token = CreateToken(claims);
+
+                // Act
+                var result = await Target.EvaluatePolicyAsync(policy, token);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                Assert.False(result.IsErrorDisclosable);
+                Assert.Equal("The JSON web token must have a tid claim that matches the policy.", result.Error);
+            }
+
+            [Fact]
+            public async Task RejectsNotAllowedTenantId()
+            {
+                // Arrange
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
+                AllowedTenantIds = ["different-tenant-id"];
+
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = FederatedCredentialType.EntraIdServicePrincipal,
+                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId)),
+                    PackageOwner = PackageOwner
+                };
+
+                var claims = new Dictionary<string, object>
+                {
+                    { "tid", TenantId.ToString() },
+                    { "oid", ObjectId.ToString() },
+                    { "sub", ObjectId.ToString() },
+                    { "azpacr", "2" },
+                    { "idtyp", "app" },
+                    { "ver", "2.0" },
+                };
+
+                var token = CreateToken(claims);
+
+                // Act
+                var result = await Target.EvaluatePolicyAsync(policy, token);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                Assert.False(result.IsErrorDisclosable);
+                Assert.Equal("The tenant ID in the JSON web token is not in allow list.", result.Error);
+            }
+
+            [Fact]
+            public async Task RejectsWrongObjectId()
+            {
+                // Arrange
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
+                var differentObjectId = new Guid("d8f0bfc3-5def-4079-b08c-618832b6ae16");
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = FederatedCredentialType.EntraIdServicePrincipal,
+                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId)),
+                    PackageOwner = PackageOwner
+                };
+
+                var claims = new Dictionary<string, object>
+                {
+                    { "tid", TenantId.ToString() },
+                    { "oid", differentObjectId.ToString() }, // Different object ID
+                    { "sub", differentObjectId.ToString() },
+                    { "azpacr", "2" },
+                    { "idtyp", "app" },
+                    { "ver", "2.0" },
+                };
+
+                var token = CreateToken(claims);
+
+                // Act
+                var result = await Target.EvaluatePolicyAsync(policy, token);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                Assert.False(result.IsErrorDisclosable);
+                Assert.Equal("The JSON web token must have a oid claim that matches the policy.", result.Error);
+            }
+
+            [Fact]
+            public async Task ReturnsSuccessForValidPolicy()
+            {
+                // Arrange
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
+
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = FederatedCredentialType.EntraIdServicePrincipal,
+                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId)),
+                    PackageOwner = PackageOwner
+                };
+
+                var claims = new Dictionary<string, object>
+                {
+                    { "tid", TenantId.ToString() },
+                    { "oid", ObjectId.ToString() },
+                    { "sub", ObjectId.ToString() },
+                    { "azpacr", "2" },
+                    { "idtyp", "app" },
+                    { "ver", "2.0" },
+                };
+
+                var token = CreateToken(claims);
+
+                // Act
+                var result = await Target.EvaluatePolicyAsync(policy, token);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyResultType.Success, result.Type);
+            }
+
+            [Fact]
+            public async Task RejectsWhenFeatureFlagDisabled()
+            {
+                // Arrange
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(false);
+
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = FederatedCredentialType.EntraIdServicePrincipal,
+                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId)),
+                    PackageOwner = PackageOwner
+                };
+
+                var claims = new Dictionary<string, object>
+                {
+                    { "tid", TenantId.ToString() },
+                    { "oid", ObjectId.ToString() },
+                    { "sub", ObjectId.ToString() },
+                    { "azpacr", "2" },
+                    { "idtyp", "app" },
+                    { "ver", "2.0" },
+                };
+
+                var token = CreateToken(claims);
+
+                // Act
+                var result = await Target.EvaluatePolicyAsync(policy, token);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                Assert.Equal("The package owner 'test-user' is not enabled to use federated credentials.", result.Error);
+            }
+
+            [Fact]
+            public async Task RejectsInvalidCriteriaJson()
+            {
+                // Arrange
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = FederatedCredentialType.EntraIdServicePrincipal,
+                    Criteria = "invalid",
+                    PackageOwner = PackageOwner
+                };
+
+                var claims = new Dictionary<string, object>
+                {
+                    { "tid", TenantId.ToString() },
+                    { "oid", ObjectId.ToString() },
+                    { "sub", ObjectId.ToString() },
+                    { "azpacr", "2" },
+                    { "idtyp", "app" },
+                    { "ver", "2.0" },
+                };
+
+                var token = CreateToken(claims);
+
+                // Act & Assert
+                await Assert.ThrowsAnyAsync<Exception>(() => Target.EvaluatePolicyAsync(policy, token));
+            }
         }
 
         public EntraIdTokenValidatorFacts()
         {
             ConfigurationRetriever = new Mock<IConfigurationRetriever<OpenIdConnectConfiguration>>();
             OidcConfigManager = new Mock<ConfigurationManager<OpenIdConnectConfiguration>>(
-                EntraIdTokenValidator.MetadataAddress,
+                EntraIdTokenPolicyValidator.MetadataAddress,
                 ConfigurationRetriever.Object);
             JsonWebTokenHandler = new Mock<JsonWebTokenHandler>();
             Configuration = new Mock<IFederatedCredentialConfiguration>();
+            FeatureFlagService = new Mock<IFeatureFlagService>();
 
-            TenantId = "c311b905-19a2-483e-a014-41d0fcdc99cf";
+            TenantId = new Guid("c311b905-19a2-483e-a014-41d0fcdc99cf");
+            ObjectId = new Guid("d17083b8-74e0-46c6-b69f-764da2e6fc0e");
             Issuer = $"https://login.microsoftonline.com/{TenantId}/v2.0";
-            AllowedTenantIds = ["c311b905-19a2-483e-a014-41d0fcdc99cf"];
+            AllowedTenantIds = [TenantId.ToString()];
+
+            PackageOwner = new User("test-user");
 
             Configuration.Setup(x => x.EntraIdAudience).Returns("nuget-audience");
             Configuration.Setup(x => x.AllowedEntraIdTenants).Returns(() => AllowedTenantIds);
 
-            Target = new EntraIdTokenValidator(
+            Target = new EntraIdTokenPolicyValidator(
                 OidcConfigManager.Object,
-                JsonWebTokenHandler.Object,
-                Configuration.Object);
+                Configuration.Object,
+                FeatureFlagService.Object,
+                JsonWebTokenHandler.Object);
         }
 
-        public EntraIdTokenValidator Target { get; }
+        public EntraIdTokenPolicyValidator Target { get; }
         public Mock<IConfigurationRetriever<OpenIdConnectConfiguration>> ConfigurationRetriever { get; }
         public Mock<ConfigurationManager<OpenIdConnectConfiguration>> OidcConfigManager { get; }
         public Mock<JsonWebTokenHandler> JsonWebTokenHandler { get; }
         public Mock<IFederatedCredentialConfiguration> Configuration { get; }
-        public string TenantId { get; }
+        public Mock<IFeatureFlagService> FeatureFlagService { get; }
+        public Guid TenantId { get; }
+        public Guid ObjectId { get; }
         public string Issuer { get; set; }
         public string[] AllowedTenantIds { get; set; }
+        public User PackageOwner { get; }
 
         public JsonWebToken Token
         {
@@ -217,8 +643,9 @@ namespace NuGetGallery.Services.Authentication
                 {
                     Claims = new Dictionary<string, object>
                     {
-                        { "tid", TenantId },
+                        { "tid", TenantId.ToString() },
                         { "iss", Issuer },
+                        { "uti", "test-token-id" },
                     }
                 }));
             }
@@ -226,5 +653,14 @@ namespace NuGetGallery.Services.Authentication
 
         public JsonWebKey JsonWebKey => new() { Kid = "key-id", AdditionalData = { { "issuer", Issuer } } };
         public OpenIdConnectConfiguration OpenIdConnectConfiguration => new() { JsonWebKeySet = new JsonWebKeySet { Keys = { JsonWebKey } } };
+
+        private JsonWebToken CreateToken(Dictionary<string, object> claims)
+        {
+            var handler = new JsonWebTokenHandler();
+            return handler.ReadJsonWebToken(handler.CreateToken(new SecurityTokenDescriptor
+            {
+                Claims = claims
+            }));
+        }
     }
 }

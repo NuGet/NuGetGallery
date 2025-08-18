@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -53,6 +53,17 @@ namespace NuGetGallery.Authentication
             plaintextApiKey = apiKey.PlaintextApiKey;
 
             return CreateApiKey(CredentialTypes.ApiKey.V4, apiKey.HashedApiKey, expiration);
+        }
+
+        public static Credential CreateV5ApiKey(string galleryEnvironment, int userKey, TimeSpan expiration, out string plaintextApiKey)
+        {
+            var allocationTime = DateTime.UtcNow;
+            allocationTime = allocationTime.AddSeconds(-allocationTime.Second).AddMilliseconds(-allocationTime.Millisecond);
+
+            var apiKey = ApiKeyV5.Create(allocationTime, ApiKeyV5.GetEnvironment(galleryEnvironment), userKey, ApiKeyV5.KnownApiKeyTypes.ShortLived, expiration);
+            plaintextApiKey = apiKey.PlaintextApiKey;
+
+            return CreateApiKey(CredentialTypes.ApiKey.V5, apiKey.HashedApiKey, expiration);
         }
 
         public static Credential WithScopes(this Credential credential, ICollection<Scope> scopes)

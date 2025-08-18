@@ -56,7 +56,7 @@
                                 <input type="text" class="form-control input-brand" id="file-select-feedback" value="@placeholder" aria-label="Upload Your Package" readonly />
                                 <label for="input-select-file" id="PackageFileLabel" class="input-group-btn">
                                     <span id="browse-for-package-button" class="btn btn-brand" tabindex="0" aria-label="Browse for package" role="button">
-                                        Browse&hellip;<input type="file" name="UploadFile" accept="@acceptExtensions" aria-labelledby="PackageFileLabel" id="input-select-file" style="display:none;" />
+                                        Browse&hellip;<input type="file" name="UploadFile" accept="@acceptExtensions" aria-labelledby="PackageFileLabel" id="input-select-file" />
                                     </span>
                                 </label>
                             </div>
@@ -89,10 +89,10 @@
 @section BottomScripts
 {
     @* Right now this is the only page that uses this script. If we increase our usage of it, we should put it in our bundles *@
-    @Scripts.Render("~/Scripts/gallery/page-edit-readme.min.js")
-    @Scripts.Render("~/Scripts/gallery/async-file-upload.min.js")
-    @Scripts.Render("~/Scripts/gallery/syntaxhighlight.min.js") 
-    <script type="text/javascript">
+    @Scripts.RenderFormat("<script src=\"{0}\" nonce='" + @Html.GetCSPNonce().ToString() + "'></script>", "~/Scripts/gallery/page-edit-readme.min.js");
+    @Scripts.RenderFormat("<script src=\"{0}\" nonce='" + @Html.GetCSPNonce().ToString() + "'></script>", "~/Scripts/gallery/async-file-upload.min.js");
+    @Scripts.RenderFormat("<script src=\"{0}\" nonce='" + @Html.GetCSPNonce().ToString() + "'></script>", "~/Scripts/gallery/syntaxhighlight.min.js");
+    <script type="text/javascript" nonce="@Html.GetCSPNonce()">
         var InProgressPackage = @Html.Raw(Json.Encode(Model.InProgressUpload));
         window.nuget.configureExpanderHeading("upload-package-form");
         $(function () {

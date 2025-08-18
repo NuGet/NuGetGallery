@@ -40,6 +40,8 @@ using NuGetGallery.OData;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using NuGetGallery.Services;
+using NuGetGallery.Services.Helpers;
+using NuGetGallery.Services.Models;
 using NuGetGallery.ViewModels;
 
 namespace NuGetGallery
@@ -989,6 +991,7 @@ namespace NuGetGallery
             model.IsDisplayTargetFrameworkEnabled = _featureFlagService.IsDisplayTargetFrameworkEnabled(currentUser);
             model.IsComputeTargetFrameworkEnabled = _featureFlagService.IsComputeTargetFrameworkEnabled();
             model.IsMarkdigMdSyntaxHighlightEnabled = _featureFlagService.IsMarkdigMdSyntaxHighlightEnabled();
+            model.IsMcpServerPackageDisplayEnabled = _featureFlagService.IsMcpServerPackageDisplayEnabled();
             model.CanDisplayReadmeWarning = canDisplayReadmeWarning;
 
             if (model.IsComputeTargetFrameworkEnabled || model.IsDisplayTargetFrameworkEnabled)
@@ -1003,7 +1006,25 @@ namespace NuGetGallery
 
             if (model.IsGitHubUsageEnabled = _featureFlagService.IsGitHubUsageEnabled(currentUser))
             {
-                model.GitHubDependenciesInformation = _contentObjectService.GitHubUsageConfiguration.GetPackageInformation(id);
+                var gitHubUsage = _contentObjectService.GitHubUsageConfiguration.GetPackageInformation(id);
+                model.GitHubDependenciesInformation = new GitHubUsageViewModel(model.ComparableGitHubRepository, gitHubUsage);
+            }
+
+            model.IsMcpServerPackageType = false;
+            model.VsCodeMcpServerEntryTemplate = new McpServerEntryTemplateResult()
+            {
+                Validity = McpServerEntryResultValidity.Unset,
+                Template = string.Empty,
+            };
+
+            if (model.IsMcpServerPackageDisplayEnabled)
+            {
+                var mcpServerPackageType = package.PackageTypes.FirstOrDefault(e => e.Name.Equals(McpHelper.McpServerPackageTypeName, StringComparison.OrdinalIgnoreCase));
+                if (mcpServerPackageType != null)
+                {
+                    model.IsMcpServerPackageType = true;
+                    model.VsCodeMcpServerEntryTemplate = McpHelper.CreateVsCodeMcpServerEntryTemplate(mcpServerPackageType.CustomData, id, version);
+                }
             }
 
             // If the normalized version is actually a SemVer but does not match the resolved package version, show a
@@ -1142,6 +1163,12 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
+            // The Atom spec requires that there is at least one author for the feed to be valid.
+            if (packageRegistration.Owners.Count == 0)
+            {
+                return HttpNotFound();
+            }
+
             IEnumerable<Package> packageVersionsQuery = packageRegistration
                 .Packages
                 .Where(x => x.Listed && x.PackageStatusKey == PackageStatus.Available)
@@ -1178,9 +1205,21 @@ namespace NuGetGallery
             List<SyndicationItem> feedItems = new List<SyndicationItem>();
 
             List<SyndicationPerson> ownersAsAuthors = new List<SyndicationPerson>();
-            foreach (var packageOwner in packageRegistration.Owners)
+            if (_featureFlagService.IsPackagesAtomFeedCombinedAuthorsEnabled())
             {
-                ownersAsAuthors.Add(new SyndicationPerson() { Name = packageOwner.Username, Uri = Url.User(packageOwner, relativeUrl: false) });
+                var sortedOwners = packageRegistration
+                    .Owners
+                    .Select(o => o.Username)
+                    .OrderBy(o => o, StringComparer.OrdinalIgnoreCase);
+                var combinedAuthors = string.Join(", ", sortedOwners);
+                ownersAsAuthors.Add(new SyndicationPerson() { Name = combinedAuthors });
+            }
+            else
+            {
+                foreach (var packageOwner in packageRegistration.Owners)
+                {
+                    ownersAsAuthors.Add(new SyndicationPerson() { Name = packageOwner.Username, Uri = Url.User(packageOwner, relativeUrl: false) });
+                }
             }
 
             foreach (var packageVersion in packageVersions)
@@ -1297,6 +1336,7 @@ namespace NuGetGallery
             var isAdvancedSearchFlightEnabled = _featureFlagService.IsAdvancedSearchEnabled(GetCurrentUser());
             var isFrameworkFilteringEnabled = _featureFlagService.IsFrameworkFilteringEnabled(GetCurrentUser());
             var isAdvancedFrameworkFilteringEnabled = _featureFlagService.IsAdvancedFrameworkFilteringEnabled(GetCurrentUser());
+            var isMcpServerPackageFilteringEnabled = _featureFlagService.IsMcpServerPackageFilteringEnabled();
 
             // If advanced search is disabled, use the default experience
             if (!isAdvancedSearchFlightEnabled || !searchService.SupportsAdvancedSearch)
@@ -1387,7 +1427,7 @@ namespace NuGetGallery
 
             var currentUser = GetCurrentUser();
             var items = results.Data
-                .Select(pv => _listPackageItemViewModelFactory.Create(pv, currentUser, includeComputedFrameworks))
+                .Select(pv => _listPackageItemViewModelFactory.Create(pv, currentUser, includeComputedFrameworks, q))
                 .ToList();
 
             var viewModel = new PackageListViewModel(
@@ -1405,7 +1445,8 @@ namespace NuGetGallery
                 includeComputedFrameworks,
                 searchAndListModel.FrameworkFilterMode,
                 searchAndListModel.PackageType,
-                searchAndListModel.SortBy);
+                searchAndListModel.SortBy,
+                mcpFilteringEnabled: isMcpServerPackageFilteringEnabled);
 
             // If the experience hasn't been cached, it means it's not the default experienced, therefore, show the panel
             viewModel.IsAdvancedSearchFlightEnabled = searchService.SupportsAdvancedSearch && isAdvancedSearchFlightEnabled;

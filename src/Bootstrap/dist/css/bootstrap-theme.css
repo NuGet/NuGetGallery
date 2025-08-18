@@ -226,7 +226,7 @@ body h3 {
   display: none;
 }
 .tag {
-  color: var(--brandForeground1Rest);
+  color: var(--brandForeground2Rest);
   background: var(--brandBackground2Rest);
   border-radius: 4px;
   padding: 2px 10px;
@@ -1001,9 +1001,9 @@ body[id="/"] {
 }
 .framework-badge {
   padding: 1px 8px;
+  border-radius: 4px;
   justify-content: center;
   display: inline-block;
-  border-radius: 4px;
   border: 1px solid var(--transparentStrokeRest);
   height: 24px;
 }
@@ -1012,9 +1012,9 @@ body[id="/"] {
 }
 .framework-badge-asset {
   padding: 1px 8px;
+  border-radius: 4px;
   justify-content: center;
   display: inline-block;
-  border-radius: 4px;
   border: 1px solid var(--transparentStrokeRest);
   height: 24px;
   background: var(--brandBackground1Rest);
@@ -1022,9 +1022,9 @@ body[id="/"] {
 }
 .framework-badge-computed {
   padding: 1px 8px;
+  border-radius: 4px;
   justify-content: center;
   display: inline-block;
-  border-radius: 4px;
   border: 1px solid var(--transparentStrokeRest);
   height: 24px;
   color: var(--brandForeground2Rest);
@@ -1199,6 +1199,34 @@ p.frameworktableinfo-text {
 .page-add-organization .required:after {
   color: var(--statusDangerStroke2Rest);
   content: " *";
+}
+.page-admin-add-flight .brand-checkbox-group {
+  padding-left: 0;
+  padding-right: 0;
+  display: flex;
+  justify-content: space-around;
+}
+.page-admin-add-flight label.brand-checkbox {
+  flex-direction: column;
+  align-items: center;
+  padding-right: 0;
+}
+.page-admin-add-flight .brand-checkbox span {
+  text-align: center;
+}
+.page-admin-edit-flight .brand-checkbox-group {
+  padding-left: 0;
+  padding-right: 0;
+  display: flex;
+  justify-content: space-around;
+}
+.page-admin-edit-flight label.brand-checkbox {
+  flex-direction: column;
+  align-items: center;
+  padding-right: 0;
+}
+.page-admin-edit-flight .brand-checkbox span {
+  text-align: center;
 }
 .page-admin-index h2 {
   margin-bottom: 8px;
@@ -1452,6 +1480,9 @@ p.frameworktableinfo-text {
 }
 .page-contact a {
   text-decoration: underline;
+}
+.page-contact .sign-in-link {
+  display: block;
 }
 .page-delete-account .green-check {
   font-size: 25px;
@@ -1854,6 +1885,12 @@ p.frameworktableinfo-text {
 }
 .page-package-details .install-tabs .tab-content .tab-pane .install-script-row .copy-button {
   display: flex;
+  white-space: nowrap;
+}
+@media screen and (max-width: 768px) {
+  .page-package-details .install-tabs .tab-content .tab-pane .install-script-row .copy-button {
+    white-space: pre-wrap;
+  }
 }
 .page-package-details .install-tabs .tab-content .tab-pane .install-script-row .copy-button button {
   display: flex;
@@ -1861,6 +1898,17 @@ p.frameworktableinfo-text {
   padding: 2px 8px;
   justify-content: center;
   align-items: center;
+}
+.page-package-details .install-tabs .tab-content .tab-pane .install-script-row .copy-button .package-manager-command-header {
+  display: inline;
+  font-size: 14px;
+  font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
+  padding: 0px 8px;
+  line-height: 90%;
+  color: var(--neutralForeground1Rest);
+  justify-content: center;
+  align-items: center;
+  align-content: center;
 }
 .page-package-details .install-tabs .tab-content .tab-pane .alert {
   margin: 0;
@@ -1960,6 +2008,9 @@ p.frameworktableinfo-text {
 }
 .page-package-details .body-tab-content #readme-tab img {
   max-width: 100%;
+}
+.page-package-details .info-icon {
+  vertical-align: bottom;
 }
 .page-downloads .list-tools li {
   margin-top: 20px;
@@ -2200,10 +2251,6 @@ p.frameworktableinfo-text {
 .page-list-packages .no-margin {
   margin: 0 !important;
 }
-.page-list-packages .frameworkfilters-info {
-  color: var(--neutralForeground1Rest);
-  text-decoration: none;
-}
 @media (max-width: 992px) {
   .page-list-packages .btn-filter {
     text-align: left;
@@ -2238,6 +2285,7 @@ p.frameworktableinfo-text {
 .page-list-packages .framework-filter-info-icon {
   margin-bottom: -6px;
   overflow: hidden;
+  font-size: small;
 }
 .page-list-packages .frameworkGroup {
   display: flex;
@@ -2269,6 +2317,10 @@ p.frameworktableinfo-text {
   font-weight: 500;
   font-size: medium;
   white-space: nowrap;
+}
+.page-list-packages .advanced-search-panel legend .frameworkfilters-info {
+  font-weight: normal;
+  font-size: small;
 }
 .page-list-packages .advanced-search-panel .btn {
   margin-bottom: 10px;
@@ -2426,6 +2478,15 @@ p.frameworktableinfo-text {
 }
 .page-list-packages .toggle-advanced-search-panel span {
   margin: auto 0;
+}
+.page-list-packages .exact-match-badge {
+  padding: 1px 4px;
+  border-radius: 4px;
+  display: inline-block;
+  border: 0px;
+  height: 24px;
+  background: var(--statusExactMatchBackgroundRest);
+  color: var(--neutralForegroundOnBrandRest);
 }
 @media (max-width: 992px) {
   .page-list-packages .toggle-advanced-search-panel {
@@ -3125,8 +3186,94 @@ p.frameworktableinfo-text {
 .page-transform-account .center-box .logo-box .logo {
   flex-grow: 1;
 }
+.page-trusted-publishing .example-text {
+  font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
+  font-weight: bold;
+}
+.page-trusted-publishing h2 {
+  margin-top: 30px;
+  margin-bottom: 10px;
+}
+.page-trusted-publishing h3 {
+  font-size: 34px;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.page-trusted-publishing .in.in-inline {
+  display: inline;
+}
+.page-trusted-publishing .upsert-policy ul {
+  padding-left: 0;
+  list-style: none;
+}
+.page-trusted-publishing .upsert-policy ul ul {
+  padding-left: 20px;
+}
+.page-trusted-publishing .upsert-policy .panel {
+  margin-bottom: 0;
+}
+.page-trusted-publishing .upsert-policy .required:after {
+  color: var(--statusDangerStroke2Rest);
+  content: " *";
+}
+.page-trusted-publishing .upsert-policy .collapsible-example {
+  margin-top: 10px;
+}
+.page-trusted-publishing .upsert-policy .collapsible-example-toggle {
+  padding: 0;
+  color: #0078d4;
+  text-align: left;
+  margin-bottom: 6px;
+}
+.page-trusted-publishing .upsert-policy .collapsible-example-toggle:hover {
+  text-decoration: underline;
+}
+.page-trusted-publishing .upsert-policy .collapsible-example-content {
+  display: none;
+  position: relative;
+  background-color: #f8f8f8;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+.page-trusted-publishing .upsert-policy .example-code {
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin-bottom: 30px;
+  font-size: 12px;
+  font-family: Consolas, Monaco, "Courier New", monospace;
+}
+.page-trusted-publishing .policy-details {
+  padding: 20px 0;
+}
+.page-trusted-publishing .policy-details .ms-Icon {
+  position: relative;
+  top: 2px;
+}
+.page-trusted-publishing .policy-details .icon-details {
+  color: var(--neutralForeground1Rest);
+  margin: 10px 0;
+}
+.page-trusted-publishing .policy-details .icon-details li {
+  padding: 0;
+}
+.page-trusted-publishing .policy-details .icon-details li + li {
+  margin-left: 10px;
+  padding-left: 10px;
+  border-left: 1px solid var(--neutralForeground1Rest);
+}
+.page-trusted-publishing .policy-details .package-list li {
+  overflow-y: visible;
+}
+.page-trusted-publishing .policy-details:not(:first-child) {
+  border-top: 1px solid #dbdbdb;
+}
 .page-upload #browse-for-package-button {
   margin: 0;
+}
+.page-upload #input-select-file {
+  display: none;
 }
 .page-upload .readme-tabs {
   margin-top: 0.5em;
@@ -3436,6 +3583,7 @@ p.frameworktableinfo-text {
   --statusDangerForeground3Rest: var(--cranberryPrimary, #c50f1f);
   --statusDangerStroke1Rest: var(--cranberryTint40, #eeacb2);
   --statusDangerStroke2Rest: var(--cranberryPrimary, #c50f1f);
+  --statusExactMatchBackgroundRest: var(--greenPrimary, #13a10e);
   --statusGenericAnchorBackground2Rest: var(--anchorTint40, #bcc3c7);
   --statusGenericAnchorForeground2Rest: var(--anchorShade30, #202427);
   --statusGenericAnchorStrokeActiveRest: var(--anchorPrimary, #394146);
@@ -3785,6 +3933,7 @@ p.frameworktableinfo-text {
   --statusDangerForeground3Rest: var(--cranberryTint30, #dc626d);
   --statusDangerStroke1Rest: var(--cranberryPrimary, #c50f1f);
   --statusDangerStroke2Rest: var(--cranberryTint30, #dc626d);
+  --statusExactMatchBackgroundRest: var(--greenPrimary, #0e700e);
   --statusGenericAnchorBackground2Rest: var(--anchorShade30, #202427);
   --statusGenericAnchorForeground2Rest: var(--anchorTint40, #bcc3c7);
   --statusGenericAnchorStrokeActiveRest: var(--anchorTint30, #808a90);

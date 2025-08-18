@@ -6,6 +6,8 @@
         && Config.Current.DeprecateNuGetPasswordLogins
         && User.HasPasswordLogin();
     var rawErrorMessage = TempData.ContainsKey("RawErrorMessage") ? TempData["RawErrorMessage"].ToString() : null;
+    var featureFlagService = DependencyResolver.Current.GetService<IFeatureFlagService>();
+    ViewBag.IsTrustedPublishingEnabled = featureFlagService != null && featureFlagService.IsTrustedPublishingEnabled(CurrentUser);
 }
 
 <div id="cookie-banner"></div>
@@ -35,10 +37,10 @@
     </div>
 }
 
-@helper DisplayNavigationItem(string tab, string url, bool bold = false, string title = null)
+@helper DisplayNavigationItem(string tab, string url, bool bold = false, string title = null, string className = null)
 {
     <li class="@(ViewBag.Tab == tab ? "active" : string.Empty)" role="presentation">
-        <a role="tab" aria-selected="@(ViewBag.Tab == tab ? "true" : "false")" href="@url" title="@title">
+        <a role="tab" name="@tab" aria-selected="@(ViewBag.Tab == tab ? "true" : "false")" href="@url" title="@title" class="@className">
             @if (bold)
             {
                 @:<b>
@@ -74,7 +76,7 @@
                 </div>
                 <div id="navbar" class="navbar-collapse collapse">
                     <ul class="nav navbar-nav" role="tablist">
-                        @DisplayNavigationItem("Packages", Url.PackageList())
+                        @DisplayNavigationItem("Packages", Url.PackageList(), className: UrlHelperExtensions.PackagesLinkClass)
                         @DisplayNavigationItem("Upload", Url.UploadPackage())
                         @if (StatisticsHelper.IsStatisticsPageAvailable)
                         {
@@ -140,7 +142,13 @@
                                                 }
                                             </a>
                                         </li>
+
+                                        @if (ViewBag.IsTrustedPublishingEnabled)
+                                        {
+                                            <li role="presentation"><a href="@Url.ManageMyTrustedPublishing()" role="menuitem">Trusted Publishing</a></li>
+                                        }
                                         <li role="presentation"><a href="@Url.ManageMyApiKeys()" role="menuitem">API Keys</a></li>
+
                                         <li class="divider"></li>
                                         <li role="presentation"><a href="@Url.ManageMyOrganizations()" role="menuitem">Manage Organizations</a></li>
                                         <li role="presentation"><a href="@Url.ManageMyPackages()" role="menuitem">Manage Packages</a></li>
@@ -173,7 +181,7 @@
     {
         <div id="search-bar-header" class="container search-container">
             <div class="row">
-                <form aria-label="Package search bar" class="col-sm-12" action="@Url.PackageList()" method="get">
+                <form aria-label="Package search bar" class="col-sm-12" id="@UrlHelperExtensions.SimpleSearchFormId" action="@Url.PackageList()" method="get">
                     @Html.Partial("_SearchBar")
                     @Html.Partial("_AutocompleteTemplate")
                 </form>

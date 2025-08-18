@@ -2,18 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using Microsoft.Internal.NuGet.Testing.SignedPackages;
 using NuGet.Common;
-using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Security;
-using Org.BouncyCastle.X509;
-using Org.BouncyCastle.X509.Extension;
-using Test.Utility.Signing;
 using TestUtil;
 using Xunit;
-using BCCertificate = Org.BouncyCastle.X509.X509Certificate;
 
 namespace Validation.PackageSigning.Core.Tests.Support
 {
@@ -38,7 +33,7 @@ namespace Validation.PackageSigning.Core.Tests.Support
         {
             Assert.True(
                 UserHelper.IsAdministrator(),
-                $"This test must be executing with administrator privileges since it installs a trusted root. Add {UserHelper.EnableSkipVariableName} environment variable to skip this test.");      
+                $"This test must be executing with administrator privileges since it installs a trusted root. Add {UserHelper.EnableSkipVariableName} environment variable to skip this test.");
             _testServer = new AsyncLazy<SigningTestServer>(SigningTestServer.CreateAsync);
             _rootCertificateAuthority = new AsyncLazy<CertificateAuthority>(CreateDefaultTrustedRootCertificateAuthorityAsync);
             _certificateAuthority = new AsyncLazy<CertificateAuthority>(CreateDefaultTrustedCertificateAuthorityAsync);
@@ -88,7 +83,7 @@ namespace Validation.PackageSigning.Core.Tests.Support
         {
             var testServer = await GetTestServerAsync();
             var rootCa = CertificateAuthority.Create(testServer.Url);
-            var rootCertificate = rootCa.Certificate.ToX509Certificate2();
+            var rootCertificate = new X509Certificate2(rootCa.Certificate);
 
             _trustedRoot = new TrustedTestCert<X509Certificate2>(
                 rootCertificate,
@@ -138,10 +133,10 @@ namespace Validation.PackageSigning.Core.Tests.Support
 
         public X509Certificate2 CreateSigningCertificate(CertificateAuthority ca)
         {
-            void CustomizeAsSigningCertificate(X509V3CertificateGenerator generator)
+            void CustomizeAsSigningCertificate(CertificateRequest certificateRequest)
             {
-                generator.AddSigningEku();
-                generator.AddAuthorityInfoAccess(ca, addOcsp: true, addCAIssuers: true);
+                certificateRequest.AddSigningEku();
+                certificateRequest.AddAuthorityInfoAccess(ca, addOcsp: true, addCAIssuers: true);
             }
 
             return IssueCertificate(ca, "Signing", CustomizeAsSigningCertificate).certificate;
@@ -151,41 +146,31 @@ namespace Validation.PackageSigning.Core.Tests.Support
         {
             var options = IssueCertificateOptions.CreateDefaultForRootCertificateAuthority();
 
-            options.CustomizeCertificate = (X509V3CertificateGenerator generator) =>
+            options.CustomizeCertificate = (CertificateRequest certificateRequest) =>
             {
-                generator.AddExtension(
-                    X509Extensions.SubjectKeyIdentifier,
-                    critical: false,
-                    extensionValue: new SubjectKeyIdentifierStructure(options.KeyPair.Public));
-                generator.AddExtension(
-                    X509Extensions.BasicConstraints,
-                    critical: true,
-                    extensionValue: new BasicConstraints(cA: true));
-                generator.AddExtension(
-                    X509Extensions.KeyUsage,
-                    critical: true,
-                    extensionValue: new KeyUsage(KeyUsage.DigitalSignature | KeyUsage.KeyCertSign | KeyUsage.CrlSign));
-                generator.AddSigningEku();
+                certificateRequest.CertificateExtensions.Add(
+                    new X509SubjectKeyIdentifierExtension(certificateRequest.PublicKey, critical: false));
+                certificateRequest.CertificateExtensions.Add(
+                    new X509BasicConstraintsExtension(certificateAuthority: true, hasPathLengthConstraint: false, pathLengthConstraint: 0, critical: true));
+                certificateRequest.CertificateExtensions.Add(
+                    new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign, critical: true));
+                certificateRequest.AddSigningEku();
             };
 
             var testServer = await GetTestServerAsync();
             var rootCa = CertificateAuthority.Create(testServer.Url, options);
 
-            var certificate = rootCa.Certificate.ToX509Certificate2();
-
-            certificate.PrivateKey = DotNetUtilities.ToRSA(options.KeyPair.Private as RsaPrivateCrtKeyParameters);
-
-            return certificate;
+            return rootCa.Certificate;
         }
 
         public async Task<RevokableCertificate> CreateRevokableSigningCertificateAsync()
         {
             var ca = await GetCertificateAuthorityAsync();
 
-            void CustomizeAsSigningCertificate(X509V3CertificateGenerator generator)
+            void CustomizeAsSigningCertificate(CertificateRequest certificateRequest)
             {
-                generator.AddSigningEku();
-                generator.AddAuthorityInfoAccess(ca, addOcsp: true, addCAIssuers: true);
+                certificateRequest.AddSigningEku();
+                certificateRequest.AddAuthorityInfoAccess(ca, addOcsp: true, addCAIssuers: true);
             }
 
             var issued = IssueCertificate(ca, "Revoked Signing", CustomizeAsSigningCertificate);
@@ -193,7 +178,7 @@ namespace Validation.PackageSigning.Core.Tests.Support
 
             void Revoke()
             {
-                ca.Revoke(issued.publicCertificate, RevocationReason.Unspecified, revocationDate);
+                ca.Revoke(issued.publicCertificate, X509RevocationReason.Unspecified, revocationDate);
             }
 
             Task WaitForResponseExpirationAsync()
@@ -211,7 +196,7 @@ namespace Validation.PackageSigning.Core.Tests.Support
         {
             var testServer = await GetTestServerAsync();
             var untrustedRootCa = CertificateAuthority.Create(testServer.Url);
-            var untrustedRootCertificate = untrustedRootCa.Certificate.ToX509Certificate2();
+            var untrustedRootCertificate = new X509Certificate2(untrustedRootCa.Certificate);
             var responders = testServer.RegisterRespondersForEntireChain(untrustedRootCa);
 
             var certificate = CreateSigningCertificate(untrustedRootCa);
@@ -225,16 +210,16 @@ namespace Validation.PackageSigning.Core.Tests.Support
         {
             var ca = await GetCertificateAuthorityAsync();
 
-            void CustomizeExpiringSigningCertificate(X509V3CertificateGenerator generator)
+            void CustomizeExpiringSigningCertificate(CertificateRequest certificateRequest)
             {
-                generator.AddSigningEku();
-                generator.AddAuthorityInfoAccess(ca, addOcsp: true, addCAIssuers: true);
-
-                generator.SetNotBefore(DateTime.UtcNow.AddSeconds(-2));
-                generator.SetNotAfter(DateTime.UtcNow.AddSeconds(10));
+                certificateRequest.AddSigningEku();
+                certificateRequest.AddAuthorityInfoAccess(ca, addOcsp: true, addCAIssuers: true);
             }
 
-            var (@public, certificate) = IssueCertificate(ca, "Expired Signing", CustomizeExpiringSigningCertificate);
+            DateTimeOffset notBefore = DateTimeOffset.UtcNow.AddSeconds(-2);
+            DateTimeOffset notAfter = DateTimeOffset.UtcNow.AddSeconds(10);
+
+            var (@public, certificate) = IssueCertificate(ca, "Expired Signing", CustomizeExpiringSigningCertificate, notBefore, notAfter);
 
             return certificate;
         }
@@ -255,7 +240,7 @@ namespace Validation.PackageSigning.Core.Tests.Support
         {
             var testServer = await GetTestServerAsync();
             var untrustedRootCa = CertificateAuthority.Create(testServer.Url);
-            var untrustedRootCertificate = untrustedRootCa.Certificate.ToX509Certificate2();
+            var untrustedRootCertificate = new X509Certificate2(untrustedRootCa.Certificate);
             var timestampService = TimestampService.Create(untrustedRootCa);
             var responders = testServer.RegisterDefaultResponders(timestampService);
 
@@ -276,7 +261,7 @@ namespace Validation.PackageSigning.Core.Tests.Support
 
             void Revoke()
             {
-                rootCa.Revoke(timestampService.Certificate, RevocationReason.Unspecified, revocationDate);
+                rootCa.Revoke(timestampService.Certificate, X509RevocationReason.Unspecified, revocationDate);
             }
 
             Task WaitForResponseExpirationAsync()
@@ -304,10 +289,10 @@ namespace Validation.PackageSigning.Core.Tests.Support
                 return testServer.RegisterResponder(intermediateCa.OcspResponder);
             }
 
-            void CustomizeAsSigningCertificate(X509V3CertificateGenerator generator)
+            void CustomizeAsSigningCertificate(CertificateRequest certificateRequest)
             {
-                generator.AddSigningEku();
-                generator.AddAuthorityInfoAccess(intermediateCa, addOcsp: true, addCAIssuers: true);
+                certificateRequest.AddSigningEku();
+                certificateRequest.AddAuthorityInfoAccess(intermediateCa, addOcsp: true, addCAIssuers: true);
             }
 
             var issued = IssueCertificate(intermediateCa, "Signing Certificate With Unavailable Revocation", CustomizeAsSigningCertificate);
@@ -328,7 +313,7 @@ namespace Validation.PackageSigning.Core.Tests.Support
         {
             var testServer = await GetTestServerAsync();
             var rootCa = CertificateAuthority.Create(testServer.Url);
-            var rootCertificate = rootCa.Certificate.ToX509Certificate2();
+            var rootCertificate = new X509Certificate2(rootCa.Certificate);
 
             var trust = new TrustedTestCert<X509Certificate2>(
                 rootCertificate,
@@ -356,27 +341,31 @@ namespace Validation.PackageSigning.Core.Tests.Support
                 disposable);
         }
 
-        protected (BCCertificate publicCertificate, X509Certificate2 certificate) IssueCertificate(
+        protected (X509Certificate2 publicCertificate, X509Certificate2 certificate) IssueCertificate(
             CertificateAuthority ca,
             string name,
-            Action<X509V3CertificateGenerator> customizeCertificate)
+            Action<CertificateRequest> customizeCertificate,
+            DateTimeOffset? notBefore = null,
+            DateTimeOffset? notAfter = null)
         {
-            var keyPair = SigningTestUtility.GenerateKeyPair(publicKeyLength: 2048);
-
-            var publicCertificate = ca.IssueCertificate(new IssueCertificateOptions
+            using (RSA keyPair = SigningTestUtility.GenerateKeyPair(publicKeyLength: 2048))
             {
-                CustomizeCertificate = customizeCertificate,
-                NotAfter = DateTime.UtcNow.AddMinutes(10),
-                NotBefore = DateTime.UtcNow.AddSeconds(-10),
-                KeyPair = keyPair,
+                notBefore ??= DateTimeOffset.UtcNow.AddSeconds(-10);
+                notAfter ??= DateTimeOffset.UtcNow.AddMinutes(10);
 
-                SubjectName = new X509Name($"C=US,ST=WA,L=Redmond,O=NuGet,CN=NuGet Test ${name} Certificate ({Guid.NewGuid()})")
-            });
+                X509Certificate2 certificate = ca.IssueCertificate(new IssueCertificateOptions
+                {
+                    CustomizeCertificate = customizeCertificate,
+                    NotAfter = notAfter.Value,
+                    NotBefore = notBefore.Value,
+                    KeyPair = keyPair,
+                    SubjectName = new X500DistinguishedName($"C=US,ST=WA,L=Redmond,O=NuGet,CN=NuGet Test ${name} Certificate ({Guid.NewGuid()})")
+                });
 
-            var certificate = publicCertificate.ToX509Certificate2();
-            certificate.PrivateKey = DotNetUtilities.ToRSA(keyPair.Private as RsaPrivateCrtKeyParameters);
+                X509Certificate2 publicCertificate = new(certificate.RawData);
 
-            return (publicCertificate, certificate);
+                return (publicCertificate, certificate);
+            }
         }
 
         private async Task<string> GetDefaultTrustedSigningCertificateThumbprintAsync()

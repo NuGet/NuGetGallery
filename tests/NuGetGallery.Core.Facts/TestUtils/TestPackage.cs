@@ -229,7 +229,9 @@ namespace NuGetGallery
             string iconFilename = null,
             byte[] iconFileContents = null,
             string readmeFilename = null,
-            byte[] readmeFileContents = null)
+            byte[] readmeFileContents = null,
+            string mcpServerMetadataFileName = null,
+            byte[] mcpServerMetadataFileContents = null)
         {
             return CreateTestPackageStream(packageArchive =>
             {
@@ -245,6 +247,7 @@ namespace NuGetGallery
                 licenseFilename = AddBinaryFile(packageArchive, licenseFilename, licenseFileContents);
                 iconFilename = AddBinaryFile(packageArchive, iconFilename, iconFileContents);
                 readmeFilename = AddBinaryFile(packageArchive, readmeFilename, readmeFileContents);
+                mcpServerMetadataFileName = AddBinaryFile(packageArchive, mcpServerMetadataFileName, mcpServerMetadataFileContents);
 
                 if (populatePackage != null)
                 {

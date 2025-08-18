@@ -40,7 +40,7 @@
                     </p>
                     if (Model.HasPackagesThatWillBeOrphaned)
                     {
-                            @ViewHelpers.AlertDanger(@<text>One or more packages do not have co-owners.</text>)
+                        @ViewHelpers.AlertDanger(@<text>One or more packages do not have co-owners.</text>)
                     }
                     <p>
                         It is recommended that you transfer ownership of any package where you are the sole owner, using the <i>manage owners</i> <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i> button for that package below. Read more about <a href="https://go.microsoft.com/fwlink/?linkid=862794">Manage package owners.</a>
@@ -54,6 +54,10 @@
                     <div class="form-group">
                         @Html.Partial("_UserOrganizationsListForDeletedAccount", Model.Organizations)
                     </div>
+                    <p>
+                        If you're currently managing packages as a team under a single user account and want to convert it into an organization,
+                        visit the <a href="@Url.TransformAccount()">Transform account page.</a>
+                    </p>
                     <p>
                         We can expedite processing your deletion request if you are not the sole owner of any packages or organizations.<br />
                         If you choose to proceed as the sole owner of any packages or organizations, someone from the NuGet team may reach out and work with you to find a resolution.

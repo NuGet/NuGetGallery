@@ -63,7 +63,7 @@
 </section>
 
 @section BottomScripts {
-    <script type="text/javascript">
+    <script type="text/javascript" nonce="@Html.GetCSPNonce()">
         // Set up owners section
         var packageId = "@Model.Id";
         var isUserAnAdmin = "@Model.IsCurrentUserAnAdmin";
