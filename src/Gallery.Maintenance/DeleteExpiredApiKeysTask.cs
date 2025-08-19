@@ -18,7 +18,7 @@ namespace Gallery.Maintenance
     {
         private readonly TimeSpan _commandTimeout = TimeSpan.FromMinutes(5);
 
-        /// Expired the ApiKey types <see cref="CredentialTypes.ApiKey"/> of verify.v1 and v5
+        /// Query expired ApiKeys <see cref="CredentialTypes.ApiKey"/> of verify.v1 and v5
         private const string SelectQuery = @"
 SELECT s.[CredentialKey], c.[Type] as CredentialType, c.[UserKey], u.[Username], c.[Expires], s.[Subject] as ScopeSubject
 FROM [dbo].[Credentials] c
