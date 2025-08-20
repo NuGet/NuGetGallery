@@ -22,6 +22,202 @@ namespace NuGetGallery.Services.Authentication
 {
     public class FederatedCredentialPolicyEvaluatorFacts
     {
+        public class TheValidatePolicyMethod : FederatedCredentialPolicyEvaluatorFacts
+        {
+            [Fact]
+            public void DelegatesToEntraIdValidatorForEntraIdServicePrincipalPolicy()
+            {
+                // Arrange
+                var user = new User("test-user");
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = FederatedCredentialType.EntraIdServicePrincipal,
+                    PackageOwner = user,
+                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId))
+                };
+
+                var expectedResult = FederatedCredentialPolicyValidationResult.Success(policy);
+                var entraIdValidator = TokenValidators.First(v => v.Object.IssuerType == FederatedCredentialIssuerType.EntraId);
+                entraIdValidator.Setup(x => x.ValidatePolicy(policy)).Returns(expectedResult);
+
+                // Act
+                var result = Target.ValidatePolicy(policy);
+
+                // Assert
+                Assert.Same(expectedResult, result);
+                entraIdValidator.Verify(x => x.ValidatePolicy(policy), Times.Once);
+            }
+
+            [Fact]
+            public void DelegatesToGitHubValidatorForGitHubActionsPolicy()
+            {
+                // Arrange
+                var user = new User("test-user");
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = FederatedCredentialType.GitHubActions,
+                    PackageOwner = user,
+                    Criteria = """{"owner":"test-owner","repository":"test-repo","workflow":"test.yml"}"""
+                };
+
+                var expectedResult = FederatedCredentialPolicyValidationResult.Success(policy);
+                var gitHubValidator = TokenValidators.First(v => v.Object.IssuerType == FederatedCredentialIssuerType.GitHubActions);
+                gitHubValidator.Setup(x => x.ValidatePolicy(policy)).Returns(expectedResult);
+
+                // Act
+                var result = Target.ValidatePolicy(policy);
+
+                // Assert
+                Assert.Same(expectedResult, result);
+                gitHubValidator.Verify(x => x.ValidatePolicy(policy), Times.Once);
+            }
+
+            [Fact]
+            public void ThrowsForUnsupportedPolicyType()
+            {
+                // Arrange
+                var user = new User("test-user");
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = (FederatedCredentialType)999, // Unsupported type
+                    PackageOwner = user,
+                    Criteria = "dummy"
+                };
+
+                // Act & Assert
+                var exception = Assert.Throws<ArgumentException>(() => Target.ValidatePolicy(policy));
+                Assert.Contains("Unsupported", exception.Message);
+                Assert.Contains("999", exception.Message);
+            }
+
+            [Fact]
+            public void ThrowsWhenNoValidatorFoundForIssuerType()
+            {
+                // Arrange
+                var user = new User("test-user");
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = FederatedCredentialType.EntraIdServicePrincipal,
+                    PackageOwner = user,
+                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId))
+                };
+
+                // Create a new evaluator without the EntraId validator
+                var evaluatorWithoutEntraId = new FederatedCredentialPolicyEvaluator(
+                    TokenValidators.Where(v => v.Object.IssuerType != FederatedCredentialIssuerType.EntraId).Select(x => x.Object).ToList(),
+                    AdditionalValidators.Select(x => x.Object).ToList(),
+                    AuditingService.Object,
+                    DateTimeProvider.Object,
+                    Logger.Object);
+
+                // Act & Assert
+                var exception = Assert.Throws<ArgumentException>(() => evaluatorWithoutEntraId.ValidatePolicy(policy));
+                Assert.Contains("No validator found for issuer type", exception.Message);
+                Assert.Contains("EntraId", exception.Message);
+            }
+
+            [Fact]
+            public void CorrectlyMapsEntraIdServicePrincipalToEntraIdIssuerType()
+            {
+                // Arrange
+                var user = new User("test-user");
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = FederatedCredentialType.EntraIdServicePrincipal,
+                    PackageOwner = user,
+                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId))
+                };
+
+                var entraIdValidator = TokenValidators.First(v => v.Object.IssuerType == FederatedCredentialIssuerType.EntraId);
+                var gitHubValidator = TokenValidators.First(v => v.Object.IssuerType == FederatedCredentialIssuerType.GitHubActions);
+
+                // Act
+                Target.ValidatePolicy(policy);
+
+                // Assert
+                entraIdValidator.Verify(x => x.ValidatePolicy(policy), Times.Once);
+                gitHubValidator.Verify(x => x.ValidatePolicy(It.IsAny<FederatedCredentialPolicy>()), Times.Never);
+            }
+
+            [Fact]
+            public void CorrectlyMapsGitHubActionsToGitHubActionsIssuerType()
+            {
+                // Arrange
+                var user = new User("test-user");
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = FederatedCredentialType.GitHubActions,
+                    PackageOwner = user,
+                    Criteria = """{"owner":"test-owner","repository":"test-repo","workflow":"test.yml"}"""
+                };
+
+                var entraIdValidator = TokenValidators.First(v => v.Object.IssuerType == FederatedCredentialIssuerType.EntraId);
+                var gitHubValidator = TokenValidators.First(v => v.Object.IssuerType == FederatedCredentialIssuerType.GitHubActions);
+
+                // Act
+                Target.ValidatePolicy(policy);
+
+                // Assert
+                gitHubValidator.Verify(x => x.ValidatePolicy(policy), Times.Once);
+                entraIdValidator.Verify(x => x.ValidatePolicy(It.IsAny<FederatedCredentialPolicy>()), Times.Never);
+            }
+
+            [Fact]
+            public void ReturnsValidationResultFromValidator()
+            {
+                // Arrange
+                var user = new User("test-user");
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = FederatedCredentialType.EntraIdServicePrincipal,
+                    PackageOwner = user,
+                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId))
+                };
+
+                var validationResult = FederatedCredentialPolicyValidationResult.BadRequest("Test error", "TestProperty");
+                var entraIdValidator = TokenValidators.First(v => v.Object.IssuerType == FederatedCredentialIssuerType.EntraId);
+                entraIdValidator.Setup(x => x.ValidatePolicy(policy)).Returns(validationResult);
+
+                // Act
+                var result = Target.ValidatePolicy(policy);
+
+                // Assert
+                Assert.Same(validationResult, result);
+                Assert.Equal(FederatedCredentialPolicyValidationResultType.BadRequest, result.Type);
+                Assert.Equal("Test error", result.UserMessage);
+                Assert.Equal("TestProperty", result.PolicyPropertyName);
+            }
+
+            [Fact]
+            public void PassesPolicyObjectToValidator()
+            {
+                // Arrange
+                var user = new User("test-user");
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = FederatedCredentialType.GitHubActions,
+                    PackageOwner = user,
+                    PolicyName = "Test Policy",
+                    Criteria = """{"owner":"test-owner","repository":"test-repo","workflow":"test.yml"}""",
+                    Key = 42
+                };
+
+                var gitHubValidator = TokenValidators.First(v => v.Object.IssuerType == FederatedCredentialIssuerType.GitHubActions);
+
+                // Act
+                Target.ValidatePolicy(policy);
+
+                // Assert
+                gitHubValidator.Verify(x => x.ValidatePolicy(It.Is<FederatedCredentialPolicy>(p =>
+                    p.Type == FederatedCredentialType.GitHubActions &&
+                    p.PackageOwner == user &&
+                    p.PolicyName == "Test Policy" &&
+                    p.Criteria == """{"owner":"test-owner","repository":"test-repo","workflow":"test.yml"}""" &&
+                    p.Key == 42
+                )), Times.Once);
+            }
+        }
+
         public class TheGetMatchingPolicyAsyncMethod : FederatedCredentialPolicyEvaluatorFacts
         {
             [Fact]
@@ -458,6 +654,8 @@ namespace NuGetGallery.Services.Authentication
                 .Returns(("fate's wink", null));
             entraIdTokenValidator.Setup(x => x.EvaluatePolicyAsync(It.IsAny<FederatedCredentialPolicy>(), It.IsAny<JsonWebToken>()))
                 .Returns(Task.FromResult(FederatedCredentialPolicyResult.Success));
+            entraIdTokenValidator.Setup(x => x.ValidatePolicy(It.IsAny<FederatedCredentialPolicy>()))
+                .Returns((FederatedCredentialPolicy p) => FederatedCredentialPolicyValidationResult.Success(p));
             TokenValidators.Add(entraIdTokenValidator);
 
             var gitHubTokenValidator = new Mock<ITokenPolicyValidator>();
@@ -469,6 +667,8 @@ namespace NuGetGallery.Services.Authentication
                 .Returns(("github-token-id", null));
             gitHubTokenValidator.Setup(x => x.EvaluatePolicyAsync(It.IsAny<FederatedCredentialPolicy>(), It.IsAny<JsonWebToken>()))
                 .Returns(Task.FromResult(FederatedCredentialPolicyResult.Success));
+            gitHubTokenValidator.Setup(x => x.ValidatePolicy(It.IsAny<FederatedCredentialPolicy>()))
+                .Returns((FederatedCredentialPolicy p) => FederatedCredentialPolicyValidationResult.Success(p));
             TokenValidators.Add(gitHubTokenValidator);
 
             DateTimeProvider

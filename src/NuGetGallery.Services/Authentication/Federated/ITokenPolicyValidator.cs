@@ -11,9 +11,10 @@ using NuGet.Services.Entities;
 namespace NuGetGallery.Services.Authentication
 {
     /// <summary>
-    /// Validates OIDC tokens from federated identity providers and evaluates them against federated credential policies.
-    /// This interface combines token authentication (issuer, audience, signature, expiration) with policy evaluation
-    /// to determine if a token's claims match the criteria defined in federated credential policies.
+    /// Provides centralized validation and evaluation logic for federated identity scenarios, such as Entra ID and GitHub Actions:
+    /// <para> * <see cref="FederatedCredentialPolicy"/> validation during creation or update. </para>
+    /// <para> * <see cref="JsonWebToken"/> OIDC token authentication. </para>
+    /// <para> * Token-to-policy matching. </para>
     /// </summary>
     public interface ITokenPolicyValidator
     {
@@ -27,6 +28,15 @@ namespace NuGetGallery.Services.Authentication
         /// The <see cref="FederatedCredentialIssuerType"/> that this validator supports.
         /// </summary>
         FederatedCredentialIssuerType IssuerType { get; }
+
+        /// <summary>
+        /// Validates <see cref="FederatedCredentialPolicy"/> during its creation or update.
+        /// </summary>
+        /// <remarks>
+        /// NOTE that validation may adjust policy fields to ensure consistency, e.g. validating
+        /// a temporary GitHub Actions policy will ensure correct "validate by" date.
+        /// </remarks>
+        FederatedCredentialPolicyValidationResult ValidatePolicy(FederatedCredentialPolicy policy);
 
         /// <summary>
         /// Validates the token identifier of the specified JSON Web Token.
