@@ -28,7 +28,7 @@ namespace NuGet.Services.FeatureFlags
 
         /// <summary>
         /// Fetch the latest cached flags. This should be called after either <see cref="RunAsync(CancellationToken)"/>
-        /// or <see cref="RefreshAsync(CancellationToken)"/>.
+        /// or <see cref="RefreshAsync"/>.
         /// </summary>
         /// <returns>The latest cached flags, or null if the flags have never been loaded successfully.</returns>
         FeatureFlags GetLatestFlagsOrNull();

@@ -61,7 +61,7 @@ namespace NuGetGallery
             downloadCount = 0;
             return false;
         }
-        
+
         public bool TryGetDownloadCountForPackage(string id, string version, out long downloadCount)
         {
             if (string.IsNullOrEmpty(id))
@@ -205,9 +205,9 @@ namespace NuGetGallery
                                                 var downloadCount = token[1].ToObject<long>();
                                                 ++totalVersions;
 
-                                                if (versions.ContainsKey(version) && downloadCount < versions[version])
+                                                if (versions.TryGetValue(version, out var value) && downloadCount < value)
                                                 {
-                                                    _telemetryService.TrackDownloadCountDecreasedDuringRefresh(id, version, versions[version], downloadCount);
+                                                    _telemetryService.TrackDownloadCountDecreasedDuringRefresh(id, version, value, downloadCount);
                                                 }
                                                 else
                                                 {

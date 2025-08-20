@@ -1,5 +1,5 @@
-// Copyright (c) .NET Foundation. All rights reserved. 
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information. 
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections;
@@ -86,7 +86,12 @@ namespace NuGet.Services.Configuration
 
         public bool Contains(KeyValuePair<string, string> item)
         {
-            return ContainsKey(item.Key) && InjectOrSkip(item.Key, _unprocessedArguments[item.Key]) == item.Value;
+            if (!_unprocessedArguments.TryGetValue(item.Key, out var argument))
+            {
+                return false;
+            }
+
+            return InjectOrSkip(item.Key, argument) == item.Value;
         }
 
         public bool Remove(KeyValuePair<string, string> item)

@@ -11,7 +11,7 @@ namespace NuGet.Services.ServiceBus
         /// Specifies whether the Service Bus message completes when message callback returns.
         /// </summary>
         /// <remarks>
-        /// Default value is set to the default value of the respective property of <see cref="OnMessageOptions"/>.
+        /// Default value is set to the default value of the respective property of <see cref="IOnMessageOptions"/>.
         /// </remarks>
         public bool AutoComplete { get; set; } = true;
 
@@ -19,7 +19,7 @@ namespace NuGet.Services.ServiceBus
         /// Specifies the maximum number of concurrent message callbacks.
         /// </summary>
         /// <remarks>
-        /// Default value is set to the default value of the respective property of <see cref="OnMessageOptions"/>.
+        /// Default value is set to the default value of the respective property of <see cref="IOnMessageOptions"/>.
         /// </remarks>
         public int MaxConcurrentCalls { get; set; } = 1;
 
