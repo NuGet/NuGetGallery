@@ -747,6 +747,26 @@
     }
   }
 
+  // Dark theme specific improvements for better visibility
+  [data-theme="dark"] & {
+    .sidebar-popup-close {
+      // Make cancel button more visible in dark theme
+      background-color: var(--neutralBackground3Rest);
+      color: var(--neutralForeground2Rest);
+
+      &:hover {
+        background-color: var(--neutralBackground3Rest);
+        color: var(--neutralForeground1Rest);
+      }
+
+      &:focus {
+        outline: 2px solid var(--brandForegroundLinkHover);
+        outline-offset: 0.125rem;
+        background-color: var(--neutralBackground3Rest);
+      }
+    }
+  }
+
   .sidebar-popup-body {
     padding: 2rem 2.5rem 2.5rem;
     overflow-y: auto;
@@ -756,6 +776,29 @@
     @media (max-width: @screen-sm-max) {
       padding: 1.5rem 2rem 2rem;
     }
+
+    // Custom scrollbar styling for better visibility in dark theme
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: var(--neutralBackground2Rest);
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: var(--neutralBackgroundOverlayScrollbarRest);
+      border-radius: 4px;
+      
+      &:hover {
+        background: var(--neutralForeground3Rest);
+      }
+    }
+
+    // Firefox scrollbar styling
+    scrollbar-width: thin;
+    scrollbar-color: var(--neutralBackgroundOverlayScrollbarRest) var(--neutralBackground2Rest);
   }
 
   .sidebar-link-container {

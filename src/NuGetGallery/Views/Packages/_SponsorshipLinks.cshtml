@@ -1,0 +1,92 @@
+﻿@model ManagePackageViewModel
+
+<div class="page-manage-sponsorship-links">
+
+    @if (Model.CanEdit)
+    {
+        <b>
+            Current sponsorship links
+        </b>
+
+        <div class="sponsorship-links">
+            @if (Model.SponsorshipUrls != null && Model.SponsorshipUrls.Any())
+            {
+                <div id="sponsorship-links-container">
+                    @foreach (var url in Model.SponsorshipUrls)
+                    {
+                        <div class="sponsorship-link-item">
+                            <div class="row">
+                                <div class="col-xs-8 col-sm-9 col-md-9 sponsorship-link-url">
+                                    <a href="@url" target="_blank">@Html.BreakWord(url)</a>
+                                </div>
+                                <div class="col-xs-4 col-sm-3 col-md-3 text-right remove-sponsorship-link">
+                                    <a role="button" class="icon-link sponsorship-remove-link"
+                                       href="#"
+                                       data-url="@url"
+                                       data-bind="click: $root.removeSponsorshipLink, attr: { 'aria-label': 'Remove sponsorship link ' + '@url' }">
+                                        <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                                        <span>Remove</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div id="sponsorship-links-container">
+                    <p>No sponsorship links have been added.</p>
+                </div>
+            }
+        </div>
+
+        <b class="sponsorship-title">
+            Add sponsorship link
+        </b>
+
+        <div class="sponsorship-links">
+            @using (Html.BeginForm(null, null, FormMethod.Post, new { novalidate = "novalidate", data_bind = "submit: addSponsorshipLink" }))
+            {
+                @Html.AntiForgeryToken()
+
+                <div data-bind="visible: !confirmation()">
+                    <p class="margin-top-10">Enter a URL to add it as a sponsorship link.</p>
+
+                    @ViewHelpers.AlertInfo(
+                        @<text>
+                            Note: Sponsorship links will be displayed to users viewing your package.
+                            Please ensure URLs are appropriate and functional.
+                        </text>)
+
+                    <div class="form-group">
+                        <label for="newSponsorshipUrl">URL</label>
+                        <input type="url" id="newSponsorshipUrl" name="newSponsorshipUrl" data-bind="value: newSponsorshipUrl" aria-required="true" class="form-control input-brand" placeholder="https://example.com/sponsor" novalidate />
+                        
+                        <div style="display: none" id="manage-sponsorship-alert" data-bind="visible: message">
+                            @ViewHelpers.AlertDanger(
+                                @<text>
+                                    <span id="manage-sponsorship-message" role="alert" aria-live="assertive" data-bind="text: message"></span>
+                                </text>)
+                        </div>
+                        
+                        <div style="display: none" id="manage-sponsorship-success" data-bind="visible: successMessage">
+                            @ViewHelpers.AlertSuccess(
+                                @<text>
+                                    <span id="manage-sponsorship-success-message" role="alert" aria-live="polite" data-bind="text: successMessage"></span>
+                                </text>)
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <input type="submit" class="btn btn-brand form-control" value="Add" aria-label="Add sponsorship link to @Model.Id" />
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        @ViewHelpers.AlertWarning(@<text>You do not have permission to manage sponsorship links for this package.</text>)
+    }
+</div>

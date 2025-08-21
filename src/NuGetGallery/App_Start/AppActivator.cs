@@ -193,6 +193,10 @@ namespace NuGetGallery
                 .Include("~/Scripts/gallery/page-edit-readme.js");
             BundleTable.Bundles.Add(editReadMeScriptBundle);
 
+            var addSponsorLinkScriptBundle = new ScriptBundle("~/Scripts/gallery/page-add-sponsor-link.min.js")
+                .Include("~/Scripts/gallery/page-add-sponsor-link.js");
+            BundleTable.Bundles.Add(addSponsorLinkScriptBundle);
+
             var aboutScriptBundle = new ScriptBundle("~/Scripts/gallery/page-about.min.js")
                 .Include("~/Scripts/gallery/page-about.js");
             BundleTable.Bundles.Add(aboutScriptBundle);
