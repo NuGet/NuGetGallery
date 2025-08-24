@@ -128,5 +128,5 @@ else if (AskUserToEnable2FA)
         var feedbackUrl = "@Url.Send2FAFeedback()";
         var changeMultiFactorAuthenticationUrl = "@Url.ChangeMultiFactorAuthentication()";
     </script>
-    @Scripts.RenderFormat("<script src=\"{0}\" nonce='" + @Html.GetCSPNonce().ToString() + "'></script>", "~/Scripts/gallery/page-home.min.js");
+    @Scripts.RenderFormat("<script src=\"{0}\" nonce='" + @Html.GetCSPNonce().ToString() + "'></script>", "~/Scripts/gallery/page-home.min.js")
 }
