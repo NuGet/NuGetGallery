@@ -179,7 +179,18 @@
                 AlertLevel = AlertLevel.Info,
                 AlertMessage = string.Format("For projects that support Sdk, copy this XML node into the project file to reference the package."),
                 CopyLabel = "Copy the SDK XML node",
-            }
+            },
+            new PackageManagerViewModel(
+                "dotnet-run-file-sdk",
+                "File-based Apps (SDK)",
+                new PackageManagerViewModel.InstallPackageCommand(
+                    string.Format("#:sdk {0}@{1}", Model.Id, Model.Version)
+                )
+            )
+            {
+                AlertLevel = AlertLevel.Info,
+                AlertMessage = "#:sdk directive can be used in C# file-based apps starting in .NET 10 preview 6. Copy this into a .cs file before any lines of code to reference the SDK."
+            },
         };
     }
     else
