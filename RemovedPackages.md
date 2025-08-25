@@ -80,6 +80,8 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    Coinbase.Net.Api   |    07/29/2025    |    Potentially Malicious    |
 |    Monaco.Better      |    08/04/2025    |    Potentially Malicious    |
 |    Monaco.2I          |    08/04/2025    |    Potentially Malicious    |
+|    SolnetAll          |    08/25/2025    |    Potentially Malicious    |
+|    NBitcoin.Unified   |    08/25/2025    |    Potentially Malicious    |
 
 
 
