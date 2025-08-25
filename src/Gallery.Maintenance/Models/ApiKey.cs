@@ -1,13 +1,15 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 
 namespace Gallery.Maintenance.Models
 {
-    public class PackageVerificationKey
+    public class ApiKey
     {
         public int CredentialKey { get; set; }
+
+        public string CredentialType { get; set; }
 
         public int UserKey { get; set; }
 

@@ -6412,6 +6412,9 @@ button.close {
 .affix {
   position: fixed;
 }
+.text-decoration-underline {
+  text-decoration: underline;
+}
 @-ms-viewport {
   width: device-width;
 }
