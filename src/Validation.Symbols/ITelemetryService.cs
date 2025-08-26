@@ -52,6 +52,9 @@ namespace Validation.Symbols
         /// <summary>
         /// Tracks that a temporary working directory was not deleted.
         /// </summary>
+        /// <param name="packageId">The package ID.</param>
+        /// <param name="packageNormalizedVersion">The package normalized version.</param>
+        /// <param name="workingDirectory">The temporary working directory that could not be deleted.</param>
         void TrackSymbolsWorkingDirectoryNotDeletedEvent(string packageId, string packageNormalizedVersion, string workingDirectory);
     }
 }

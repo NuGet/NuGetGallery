@@ -21,7 +21,7 @@ namespace Validation.Symbols
 {
     public class SymbolsValidatorService : ISymbolsValidatorService
     {
-        private static TimeSpan CleanWorkingDirectoryTimeSpan = TimeSpan.FromSeconds(20);
+        private static TimeSpan CleanWorkingDirectoryTimeout = TimeSpan.FromSeconds(20);
 
         private static readonly string[] PEExtensionsPatterns = new string[] { "*.dll", "*.exe" };
         private static readonly string[] PEExtensions = new string[] { ".dll", ".exe" };
@@ -102,7 +102,7 @@ namespace Validation.Symbols
                                         targetDirectory,
                                         message.PackageId,
                                         message.PackageNormalizedVersion,
-                                        CleanWorkingDirectoryTimeSpan);
+                                        CleanWorkingDirectoryTimeout);
                                 }
                             }
                         }
