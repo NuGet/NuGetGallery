@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -48,5 +48,10 @@ namespace Validation.Symbols
         /// <param name="packageNormalizedVersion">The package normalized version.</param>
         /// <param name="validationStatus">The validation result.</param>
         void TrackSymbolsValidationResultEvent(string packageId, string packageNormalizedVersion, ValidationStatus validationStatus);
+
+        /// <summary>
+        /// Tracks that a temporary working directory was not deleted.
+        /// </summary>
+        void TrackSymbolsWorkingDirectoryNotDeletedEvent(string packageId, string packageNormalizedVersion, string workingDirectory);
     }
 }
