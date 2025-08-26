@@ -149,6 +149,14 @@ namespace Validation.Symbols
                 _logger.LogWarning("Failed to delete working directory {WorkingDirectory} within {Seconds}.", workingDirectory, sw.Elapsed.TotalSeconds);
                 _telemetryService.TrackSymbolsWorkingDirectoryNotDeletedEvent(packageId, packageNormalizedVersion, workingDirectory);
             }
+            else
+            {
+                _logger.LogInformation(
+                    "Successfully deleted working directory {WorkingDirectory} in {Seconds} and {Attempts} attempts.",
+                    workingDirectory,
+                    sw.Elapsed.TotalSeconds,
+                    attempt);
+            }
         }
 
         /// <summary>
