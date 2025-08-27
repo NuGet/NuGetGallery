@@ -4,6 +4,8 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\GitHubVulnerabilities2Db\GitHubVulnerabilities2Db.csproj" />
+    <ProjectReference Include="..\NuGetGallery.Core.Facts\NuGetGallery.Core.Facts.csproj" />
+    <ProjectReference Include="..\NuGetGallery.Facts\NuGetGallery.Facts.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Moq" />
