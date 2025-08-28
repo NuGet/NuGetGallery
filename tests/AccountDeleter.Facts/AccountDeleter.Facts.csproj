@@ -4,6 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\AccountDeleter\AccountDeleter.csproj" />
+    <ProjectReference Include="..\NuGetGallery.Core.Facts\NuGetGallery.Core.Facts.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Moq" />
