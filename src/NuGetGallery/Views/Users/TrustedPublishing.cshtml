@@ -1,0 +1,373 @@
+﻿﻿@using Newtonsoft.Json
+@model TrustedPublisherPolicyListViewModel
+@using NuGetGallery.Authentication
+@{
+    ViewBag.Title = "Trusted Publishing";
+    ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
+}
+
+<section role="main" class="container main-container page-trusted-publishing">
+    @ViewHelpers.AjaxAntiForgeryToken(Html)
+    <div class="row">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+            @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, true, @<text>Trusted Publishing</text>)
+            <p>
+                <strong>Trusted Publishing</strong> lets you publish NuGet packages securely without managing API keys.
+                It currently supports publishing from <strong>GitHub Actions</strong>.
+                <a href="https://aka.ms/nuget/trusted-publishing"
+                   target="_blank" aria-label="Learn more about Trusted Publishing">Learn more</a>
+            </p>
+
+            @if (!CurrentUser.Confirmed)
+            {
+                @ViewHelpers.AlertWarning(
+                        @<text>
+                            To register a Trusted Publisher you will need to
+                            <a href="@Url.ConfirmationRequired()">confirm your account</a>.
+                        </text>)
+            }
+            else
+            {
+                <div data-bind="template: 'error-container'"></div>
+
+                if (Model.PackageOwners == null || Model.PackageOwners.Count == 0)
+                {
+                    @ViewHelpers.AlertInfo(
+                        @<text>
+                            You or one of the organizations you are a member of need to be an owner of at least one package to create Trusted Publishing policies.
+                        </text>)
+                }
+                else
+                {
+                    @ViewHelpers.Section(this,
+                       "create",
+                       "Create",
+                        @<text>
+                            <div class="upsert-policy">
+                                <div class="panel-body" data-bind="template: { name: 'upsert-policy', data: NewPolicy }"></div>
+                            </div>
+                        </text>,
+                        expanded: false,
+                        expandedIcon: "Subtraction",
+                        collapsedIcon: "Add")
+                }
+
+                @ViewHelpers.Section(this,
+                         "manage",
+                         "Manage",
+                        @<text>
+                            <div data-bind="template: 'manage-policies'"></div>
+                        </text>)
+            }
+        </div>
+    </div>
+</section>
+
+<script type="text/html" id="error-container" nonce="@Html.GetCSPNonce()">
+    <!-- ko if: Error -->
+    @ViewHelpers.AlertDanger(@<text>
+        <span data-bind="html: Error"></span>
+    </text>)
+    <!-- /ko -->
+</script>
+
+<script type="text/html" id="manage-policies" nonce="@Html.GetCSPNonce()">
+    <div data-bind="template: { name: 'policy-details', foreach: Policies }">
+    </div>
+    <!-- ko if: Policies().length === 0 -->
+    @ViewHelpers.AlertInfo(
+                @<text>You don't have any Trusted Publisher Policies.</text>)
+    <!-- /ko -->
+</script>
+
+<script type="text/html" id="policy-details" nonce="@Html.GetCSPNonce()">
+    <div class="policy-details">
+        <div class="row">
+            <div class="col-sm-1">
+                <img class="package-icon img-responsive" aria-hidden="true" alt="" data-bind="attr: { src: IconUrl, onerror: IconUrlFallback }" />
+            </div>
+            <div class="col-sm-11">
+                <h3 data-bind="text: PolicyName" />
+
+                <ul class="list-inline icon-details" role="presentation">
+                    <li>
+                        <!-- ko if: gitHub.IsPermamentlyEnabled() && IsOwnerValid() -->
+                        <i class="ms-Icon ms-Icon--CheckMark" aria-hidden="true" />
+                        Active
+                        <!-- /ko -->
+
+                        <!-- ko if: !IsOwnerValid() -->
+                        <i class="ms-Icon ms-Icon--Warning" aria-hidden="true" />
+                        You can no longer use Trusted Publishing for <b data-bind="text: Owner" />.
+                        <a href="https://aka.ms/nuget/trusted-publishing-ownership-warnings" target="_blank" aria-label="Learn more about GitHub Trusted Publishing">Learn more about policies</a>
+                        <!-- /ko -->
+
+                        <!-- GitHub specific warnings and info -->
+                        <!-- ko if: !gitHub.IsPermamentlyEnabled() && IsOwnerValid() -->
+                        <!-- ko if: gitHub.EnabledDaysLeft() > 0 -->
+                        <i class="ms-Icon ms-Icon--Info" aria-hidden="true" />
+                        Use within <b><span data-bind="text: gitHub.EnabledDaysLeft()" /> day(s)</b> to keep it permanently active.
+                        <a href="https://aka.ms/nuget/trusted-publishing-pending-activation" target="_blank" aria-label="Learn more about GitHub Trusted Publishing">Learn more about policies</a>
+                        <!-- /ko -->
+                        <!-- ko ifnot: gitHub.EnabledDaysLeft() > 0 -->
+                        <i class="ms-Icon ms-Icon--Warning" aria-hidden="true" />
+                        <a class="icon-link" href="#" role="button" data-bind="click: Enable">
+                            Activate
+                        </a>
+                        and use within <b>@GitHubPolicyDetailsViewModel.ValidationExpirationDays days</b> to keep it permanently active.
+                        <a href="https://aka.ms/nuget/trusted-publishing-pending-activation" target="_blank" aria-label="Learn more about GitHub Trusted Publishing">Learn more about policies</a>
+                        <!-- /ko -->
+                        <!-- /ko -->
+                    </li>
+                </ul>
+
+                <b>Package owner:</b> <span data-bind="text: Owner" />
+                <ul class="package-list">
+                    <li>
+                        <b>Publisher:</b> <span data-bind="text: PublisherName" />
+                    </li>
+
+                    <!-- ko if: PublisherName() === 'GitHubActions'  -->
+                    <li>
+                        <b>Repository Owner:</b> <span data-bind="text: gitHub.RepositoryOwner()" />
+                        <!-- ko if: gitHub.RepositoryOwnerId() -->
+                        #<span data-bind="text: gitHub.RepositoryOwnerId()" />
+                        <a class="tooltip-target" href="javascript:void(0)" role="button">
+                            <i class="framework-filter-info-icon ms-Icon ms-Icon--Info"></i>
+                            <span class="tooltip-block" role="tooltip">
+                                <span class="tooltip-wrapper tooltip-with-icon popover right">
+                                    <span class="arrow"></span>
+                                    <span class="popover-content">
+                                        @NuGetGallery.Strings.GitHub_WhatIsUniqueId
+                                    </span>
+                                </span>
+                            </span>
+                        </a>
+                        <!-- /ko -->
+                    </li>
+                    <li>
+                        <b>Repository:</b> <span data-bind="text: gitHub.Repository()" />
+                        <!-- ko if: gitHub.RepositoryId() -->
+                        #<span data-bind="text: gitHub.RepositoryId()" />
+                        <a class="tooltip-target" href="javascript:void(0)" role="button">
+                            <i class="framework-filter-info-icon ms-Icon ms-Icon--Info"></i>
+                            <span class="tooltip-block" role="tooltip">
+                                <span class="tooltip-wrapper tooltip-with-icon popover right">
+                                    <span class="arrow"></span>
+                                    <span class="popover-content">
+                                        @NuGetGallery.Strings.GitHub_WhatIsUniqueId
+                                    </span>
+                                </span>
+                            </span>
+                        </a>
+                        <!-- /ko -->
+                    </li>
+                    <li>
+                        <b>Workflow:</b> <span data-bind="text: gitHub.WorkflowFile()" />
+                    </li>
+                    <!-- ko if: gitHub.Environment() -->
+                    <li>
+                        <b>Environment:</b> <span data-bind="text: gitHub.Environment()" />
+                    </li>
+                    <!-- /ko -->
+                    <!-- /ko -->
+                </ul>
+
+                <ul class="package-list" role="presentation">
+                    <!-- ko if: IsOwnerValid()-->
+                    <li>
+                        <a class="icon-link" href="#" role="button" data-toggle="collapse" data-bind="attr: { 'data-target': '#' + EditContainerUid(),
+                                              'aria-controls': EditContainerUid,
+                                              id: StartEditUid },
+                                      click: function() { return false; }" aria-expanded="false">
+                            <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
+                            <span>Edit</span>
+                        </a>
+                    </li>
+                    <!-- /ko -->
+
+                    <li>
+                        <a class="icon-link" href="#" role="button" data-bind="click: Delete">
+                            <i class="ms-Icon ms-Icon--Delete" aria-hidden="true" />
+                            <span>Delete</span>
+                        </a>
+                    </li>
+
+                    <!-- ko if: !gitHub.IsPermamentlyEnabled() && IsOwnerValid()-->
+                    <li>
+                        <a class="icon-link" href="#" role="button" data-bind="click: Enable">
+                            <i class="ms-Icon ms-Icon--Play" aria-hidden="true"></i>
+                            <span>Activate for @GitHubPolicyDetailsViewModel.ValidationExpirationDays days</span>
+                        </a>
+                    </li>
+                    <!-- /ko -->
+                </ul>
+            </div>
+        </div>
+
+        <div class="upsert-policy">
+            <div class="panel panel-default panel-collapse collapse"
+                 data-bind="attr: { id: EditContainerUid () },
+                            event: { 'show.bs.collapse': StopPropagation,
+                                     'hide.bs.collapse': StopPropagation }">
+                <div class="panel-body" data-bind="template: { name: 'upsert-policy', data: $data }">
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script type="text/html" id="upsert-policy" nonce="@Html.GetCSPNonce()">
+    <form class="upsert-form" data-bind="submit: CreateOrEdit, attr: { id: FormUid }">
+        <!-- Policy Name -->
+        <div class="row">
+            <div class="col-sm-7 form-group">
+                <label class="control-label required" data-bind="attr: { for: PolicyNameUid,
+                                          id: PolicyNameUid() + '-label' }">Policy Name</label>
+                <input type="text" class="form-control input-brand" data-bind="attr: { id: PolicyNameUid,
+                                          name: PolicyNameUid,
+                                          'aria-labelledby': PolicyNameUid() + '-label ' + PolicyNameUid() + '-validation-message' },
+                                          trimmedValue: PendingPolicyName"
+                       data-val-required="Name is required."
+                       data-val-length-max="@FederatedCredentialPolicy.MaxPolicyNameLength"
+                       data-val-length="Name must not exceed @FederatedCredentialPolicy.MaxPolicyNameLength characters." data-val="true" />
+                <span class="field-validation-valid help-block" data-valmsg-replace="true" data-bind="attr: { 'data-valmsg-for': PolicyNameUid,
+                                         id: PolicyNameUid() + '-validation-message' }"></span>
+                <span>Choose any name to help you identify this policy</span>
+            </div>
+        </div>
+
+        <!-- ko ifnot: Key -->
+        <!-- Package Owner -->
+        <div class="row">
+            <div class="col-sm-7 form-group">
+                <label class="required" data-bind="attr: { for: PackageOwnerUid,
+                                            id: PackageOwnerUid() + '-label' }">Package Owner</label>
+                <select class="form-control select-brand" aria-required="true" data-bind="attr: { id: PackageOwnerUid,
+                                                  name: PackageOwnerUid,
+                                                  'aria-labelledby': PackageOwnerUid() + '-label' },
+                                          options: PackageOwners, value: PackageOwner, optionsCaption: 'Select an owner...' "></select>
+                <div class="has-error-brand">
+                    <span class="field-validation-valid help-block" data-bind="text: PackageOwner() ?  '' : 'Package owner should be provided.'" aria-live="polite" role="alert"></span>
+                </div>
+                <span>The owner of packages allowed for publishing or updates</span>
+            </div>
+        </div>
+        <!-- /ko -->
+
+        <!-- ko ifnot: Key -->
+        <!-- GitHub specific content -->
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <h4><b>GitHub</b></h4>
+            <a href="https://aka.ms/nuget/trusted-publishing-github-actions" target="_blank" aria-label="Learn more GitHubActions and Trusted Publishing">
+                Learn more
+            </a>
+        </div>
+        <br />
+
+        <!-- Repository Owner -->
+        <div class="row">
+            <div class="col-sm-7 form-group">
+                <label class="control-label required" data-bind="attr: { for: gitHub.RepositoryOwnerUid(),
+                                          id: gitHub.RepositoryOwnerUid() + '-label' }">Repository Owner</label>
+                <input type="text" class="form-control input-brand" data-bind="attr: { id: gitHub.RepositoryOwnerUid(),
+                                          name: gitHub.RepositoryOwnerUid(),
+                                          'aria-labelledby': gitHub.RepositoryOwnerUid() + '-label ' + gitHub.RepositoryOwnerUid() + '-validation-message' },
+                                          trimmedValue: gitHub.PendingRepositoryOwner" data-val-required="Repository owner is required." data-val="true" />
+                <span class="field-validation-valid help-block" data-valmsg-replace="true" data-bind="attr: { 'data-valmsg-for': gitHub.RepositoryOwnerUid(),
+                                         id: gitHub.RepositoryOwnerUid() + '-validation-message' }" />
+                <span>The GitHub organization or owner name. Example: <span class="example-text">azure</span></span>
+            </div>
+        </div>
+
+        <!-- Repository -->
+        <div class="row">
+            <div class="col-sm-7 form-group">
+                <label class="control-label required" data-bind="attr: { for: gitHub.RepositoryUid(),
+                                          id: gitHub.RepositoryUid() + '-label' }">Repository</label>
+                <input type="text" class="form-control input-brand" data-bind="attr: { id: gitHub.RepositoryUid(),
+                                          name: gitHub.RepositoryUid(),
+                                          'aria-labelledby': gitHub.RepositoryUid() + '-label ' + gitHub.RepositoryUid() + '-validation-message' },
+                                          trimmedValue: gitHub.PendingRepository" data-val-required="Repository is required." data-val="true" />
+                <span class="field-validation-valid help-block" data-valmsg-replace="true" data-bind="attr: { 'data-valmsg-for': gitHub.RepositoryUid(),
+                                         id: gitHub.RepositoryUid() + '-validation-message' }" />
+                <span>The GitHub repository name. Example: <span class="example-text">azure-sdk-tools</span></span>
+            </div>
+        </div>
+        <!-- /ko -->
+
+        <!-- Workflow File -->
+        <div class="row">
+            <div class="col-sm-7 form-group">
+                <label class="control-label required" data-bind="attr: { for: gitHub.WorkflowFileUid(),
+                                          id: gitHub.WorkflowFileUid() + '-label' }">Workflow File</label>
+                <input type="text" class="form-control input-brand" data-bind="attr: { id: gitHub.WorkflowFileUid(),
+                                          name: gitHub.WorkflowFileUid(),
+                                          'aria-labelledby': gitHub.WorkflowFileUid() + '-label ' + gitHub.WorkflowFileUid() + '-validation-message' },
+                                          trimmedValue: gitHub.PendingWorkflowFile" data-val-required="Workflow file is required." data-val="true" />
+                <span class="field-validation-valid help-block" data-valmsg-replace="true" data-bind="attr: { 'data-valmsg-for': gitHub.WorkflowFileUid(),
+                                         id: gitHub.WorkflowFileUid() + '-validation-message' }" />
+                <span>
+                    The file name that contains publishing workflow and exists in the
+                    <span class="example-text">.github/workflows/</span> directory. Example:
+                    <span class="example-text">build.yml</span> or
+                    <span class="example-text">deploy/release.yaml</span>
+                </span>
+            </div>
+        </div>
+
+        <!-- Environment -->
+        <div class="row">
+            <div class="col-sm-7 form-group">
+                <label class="control-label" data-bind="attr: { for: gitHub.EnvironmentUid(),
+                                          id: gitHub.EnvironmentUid() + '-label' }">Environment</label>
+                <input type="text" class="form-control input-brand" data-bind="attr: { id: gitHub.EnvironmentUid(),
+                          name: gitHub.EnvironmentUid(),
+                          'aria-labelledby': gitHub.EnvironmentUid() + '-label' },
+                  trimmedValue: gitHub.PendingEnvironment" />
+                <span>The GitHub Actions environment name, e.g. <span class="example-text">production</span></span>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-6 form-group">
+                <input type="submit" class="btn btn-brand btn-block" data-bind="enable: !PendingCreateOrEdit(),
+                                  attr: { value: Key() ? 'Save' : 'Create' }" />
+            </div>
+            <div class="col-sm-6 form-group">
+                <button data-bind="attr: { 'data-target': '#' + EditContainerUid (),
+                                           'aria-controls': EditContainerUid (),
+                                           id: CancelEditUid },
+                                   enable: !PendingCreateOrEdit(),
+                                   click: CancelEdit" class="btn btn-brand-secondary btn-block">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </form>
+    <!-- ko text: AttachExtensions() -->
+    <!-- /ko -->
+</script>
+
+@section bottomScripts {
+    <script type="text/javascript" nonce="@Html.GetCSPNonce()">
+        var initialData = @Html.ToJson(new
+                     {
+                         Policies = Model.Policies,
+                         PackageOwners = Model.PackageOwners,
+                         GenerateUrl = Url.GenerateTrustedPublisherPolicy(),
+                         EditUrl = Url.EditTrustedPublisherPolicy(),
+                         EnableUrl = Url.EnableTrustedPublisherPolicy(),
+                         RemoveUrl = Url.RemoveTrustedPublisherPolicy(),
+                         ImageUrls = new {
+                             TrustedPolicy = Url.Absolute("~/Content/gallery/img/trusted-publisher.svg"),
+                             TrustedPolicyFallback = Url.Absolute("~/Content/gallery/img/trusted-publisher-256x256.png"),
+                             TemporaryTrustedPolicy = Url.Absolute("~/Content/gallery/img/trusted-publisher-temporary.svg"),
+                             TemporaryTrustedPolicyFallback = Url.Absolute("~/Content/gallery/img/trusted-publisher-temporary-256x256.png"),
+                             DisabledTrustedPolicy = Url.Absolute("~/Content/gallery/img/trusted-publisher-disabled.svg"),
+                             DisabledTrustedPolicyFallback = Url.Absolute("~/Content/gallery/img/trusted-publisher-disabled-256x256.png"),
+                         }
+                     });
+    </script>
+    @Scripts.RenderFormat("<script src=\"{0}\" nonce='" + @Html.GetCSPNonce().ToString() + "'></script>", "~/Scripts/gallery/page-trusted-publishing.min.js");
+}

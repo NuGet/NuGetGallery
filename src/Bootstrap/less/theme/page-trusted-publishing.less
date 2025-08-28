@@ -1,0 +1,112 @@
+.page-trusted-publishing {
+  @section-vertical-padding: (@padding-large-vertical * 2);
+  @section-padding: @section-vertical-padding 0;
+  @section-border: 1px solid @gray-lighter;
+
+  .example-text {
+    font-family: @font-family-monospace;
+    font-weight: bold;
+  }
+
+  h2 {
+    margin-top: (@padding-large-vertical * 3);
+    margin-bottom: @padding-large-vertical;
+  }
+
+  h3 {
+    font-size: @font-size-h2;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  .in.in-inline {
+    display: inline;
+  }
+
+  .upsert-policy {
+    ul {
+      padding-left: 0;
+      list-style: none;
+
+      ul {
+        padding-left: 20px;
+      }
+    }
+
+    .panel {
+      margin-bottom: 0;
+    }
+
+    .required:after {
+      color: var(--statusDangerStroke2Rest);
+      content: " *";
+    }
+
+    .collapsible-example {
+      margin-top: 10px;
+    }
+
+    .collapsible-example-toggle {
+      padding: 0;
+      color: #0078d4;
+      text-align: left;
+      margin-bottom: 6px;
+    }
+
+    .collapsible-example-toggle:hover {
+      text-decoration: underline;
+    }
+
+    .collapsible-example-content {
+      display: none;
+      position: relative;
+      background-color: #f8f8f8;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    .example-code {
+      white-space: pre-wrap;
+      word-break: break-all;
+      margin-bottom: 30px;
+      font-size: 12px;
+      font-family: Consolas, Monaco, "Courier New", monospace;
+    }
+  }
+
+  .policy-details {
+    padding: @section-padding;
+
+    .ms-Icon {
+      position: relative;
+      top: 2px;
+    }
+
+    .icon-details {
+      color: var(--neutralForeground1Rest);
+      margin: @padding-large-vertical 0;
+
+      li {
+        padding: 0;
+      }
+
+      li + li {
+        margin-left: @padding-small-horizontal;
+        padding-left: @padding-small-horizontal;
+        border-left: 1px solid var(--neutralForeground1Rest);
+      }
+    }
+
+    .package-list {
+      li {
+        overflow-y: visible;
+      }
+    }
+  }
+
+  .policy-details:not(:first-child) {
+    border-top: @section-border;
+  }
+}
