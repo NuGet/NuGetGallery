@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -31,9 +31,10 @@ namespace NuGetGallery.Framework
 
             ApiKeyV3PlaintextValue = "889e180e-335c-491a-ac26-e83c4bd31d87";
 
+            var userKey = key++;
             User = new User("testUser")
             {
-                Key = key++,
+                Key = userKey,
                 EmailAddress = "confirmed0@example.com",
                 Credentials = new List<Credential>
                 {
@@ -45,6 +46,8 @@ namespace NuGetGallery.Framework
                     TestCredentialHelper.CreateV3ApiKey(Guid.Parse(ApiKeyV3PlaintextValue),
                         ExpirationForApiKeyV1).WithDefaultScopes(),
                     TestCredentialHelper.CreateV4ApiKey(null, out string apiKeyV4PlaintextValue).WithDefaultScopes(),
+                    TestCredentialHelper.CreateV5ApiKey(galleryEnvironment: ServicesConstants.DevelopmentEnvironment, userKey: userKey, expiration: TimeSpan.FromMinutes(30),
+                        out string apiKeyV5PlaintextValue).WithDefaultScopes(),
                     TestCredentialHelper.CreateV2VerificationApiKey(Guid.Parse("b0c51551-823f-4701-8496-43980b4b3913")),
                     TestCredentialHelper.CreateExternalMSACredential("abc"),
                     TestCredentialHelper.CreateExternalAADCredential("def", "tenant1")
@@ -57,6 +60,7 @@ namespace NuGetGallery.Framework
             }
 
             ApiKeyV4PlaintextValue = apiKeyV4PlaintextValue;
+            ApiKeyV5PlaintextValue = apiKeyV5PlaintextValue;
 
             Organization = new Organization("testOrganization")
             {
@@ -163,6 +167,7 @@ namespace NuGetGallery.Framework
 
         public string ApiKeyV3PlaintextValue { get; }
         public string ApiKeyV4PlaintextValue { get; }
+        public string ApiKeyV5PlaintextValue { get; }
 
         public User CreateUser(string userName, params Credential[] credentials)
         {

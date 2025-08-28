@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -39,6 +39,8 @@ namespace CatalogTests.Helpers
         [InlineData("PackageTypeWhiteSpaceVersion")]
         [InlineData("PackageWithReadmeOnlyNoType")]
         [InlineData("TestPackageReadmeFileWithFileType")]
+        [InlineData("DuplicateReadmeFiles")]
+        [InlineData("DuplicateLibFilesDifferentPathSeparators")]
         public void CreateContent_ProducesExpectedJson(string packageName)
         {
             // Arrange
@@ -59,6 +61,38 @@ namespace CatalogTests.Helpers
             Assert.Equal("no-store", content.CacheControl);
             Assert.Equal("application/json", content.ContentType);
             Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void CreateContent_ChoosesFirstDuplicate()
+        {
+            // Arrange
+            var catalogItem = CreateCatalogItem("DuplicateReadmeFiles");
+            var catalogContext = new CatalogContext();
+
+            // Act
+            var content = catalogItem.CreateContent(catalogContext);
+
+            // Assert
+            // The nupkg contains two README.md files with different lengths, but the catalog item should only include one.
+            // The first one is chosen, which is the one with lengths 26 and 24.
+            var expected = @"
+    {
+      ""@id"": ""http://example/data/2017.01.04.08.15.00/duplicatereadmefiles.1.0.0.json#README.md"",
+      ""@type"": ""PackageEntry"",
+      ""compressedLength"": 26,
+      ""fullName"": ""README.md"",
+      ""length"": 24,
+      ""name"": ""README.md""
+    }";
+
+            string actual;
+            using (var reader = new StreamReader(content.GetContentStream()))
+            {
+                actual = reader.ReadToEnd();
+            }
+
+            Assert.Contains(expected, actual, StringComparison.Ordinal);
         }
 
         [Theory]

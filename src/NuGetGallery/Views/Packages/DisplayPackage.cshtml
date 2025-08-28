@@ -1,5 +1,7 @@
 ﻿﻿﻿@using NuGet.Services.Validation
 @using NuGet.Services.Licenses
+@using NuGetGallery.Services.Helpers
+@using NuGetGallery.Services.Models
 
 @model DisplayPackageViewModel
 @{
@@ -80,6 +82,69 @@
                 CommandPrefix = "> ",
             }
         };
+
+        if (Model.CanDisplayMcpServerPackageTab())
+        {
+            var validity = Model.VsCodeMcpServerEntryTemplate.Validity;
+            var template = Model.VsCodeMcpServerEntryTemplate.Template;
+
+            AlertLevel alertLevel = AlertLevel.Info;
+            string alertMessage;
+            string vsCodeEntryTemplate;
+            bool copyEnabled;
+
+            if (validity == McpServerEntryResultValidity.Success)
+            {
+                alertLevel = AlertLevel.Info;
+                alertMessage = "This package contains an <a href='https://aka.ms/vscode-mcp-server'>MCP Server</a>. The server can be used in VS Code by copying the generated JSON to your VS Code workspace's <code>.vscode/mcp.json</code> settings file.";
+                vsCodeEntryTemplate = Model.VsCodeMcpServerEntryTemplate.Template ?? string.Empty;
+                copyEnabled = true;
+            }
+            else if (validity == McpServerEntryResultValidity.MissingMetadata)
+            {
+                alertLevel = AlertLevel.Warning;
+                alertMessage = "The VS Code MCP server configuration entry cannot be generated because this package does not include a server.json file. Please refer to the package README and the <a href='https://aka.ms/vscode-mcp-server-config'>MCP Configuration Guide</a> for proper setup instructions.";
+                vsCodeEntryTemplate = string.Empty;
+                copyEnabled = false;
+            }
+            else if (validity == McpServerEntryResultValidity.InvalidMetadata)
+            {
+                alertLevel = AlertLevel.Warning;
+                alertMessage = "The VS Code MCP server configuration entry cannot be generated because the server.json file is invalid. Please refer to the package README and the <a href='https://aka.ms/vscode-mcp-server-config'>MCP Configuration Guide</a> for proper setup instructions.";
+                vsCodeEntryTemplate = string.Empty;
+                copyEnabled = false;
+            }
+            else if (validity == McpServerEntryResultValidity.MissingNugetRegistry)
+            {
+                alertLevel = AlertLevel.Warning;
+                alertMessage = "The VS Code MCP server configuration entry cannot be generated because the server.json file is missing a NuGet entry. Please refer to the package README and the <a href='https://aka.ms/vscode-mcp-server-config'>MCP Configuration Guide</a> for proper setup instructions.";
+                vsCodeEntryTemplate = string.Empty;
+                copyEnabled = false;
+            }
+            else
+            {
+                alertLevel = AlertLevel.None;
+                alertMessage = string.Empty;
+                vsCodeEntryTemplate = string.Empty;
+                copyEnabled = false;
+            }
+
+            PackageManagerViewModel[] packageManagersWithMcp = new PackageManagerViewModel[packageManagers.Length + 1];
+            packageManagersWithMcp[0] = new PackageManagerViewModel(
+                "vscode-mcp-server",
+                "MCP Server",
+                new PackageManagerViewModel.InstallPackageCommand(vsCodeEntryTemplate)
+            )
+            {
+                CommandPrefix = "",
+                AlertLevel = alertLevel,
+                AlertMessage = alertMessage,
+                CopyEnabled = copyEnabled,
+            };
+
+            Array.Copy(packageManagers, 0, packageManagersWithMcp, 1, packageManagers.Length);
+            packageManagers = packageManagersWithMcp;
+        }
     }
     else if (Model.IsDotnetNewTemplatePackageType)
     {
@@ -215,12 +280,24 @@
                 AlertMessage = "#r directive can be used in F# Interactive and Polyglot Notebooks. Copy this into the interactive tool or source code of the script to reference the package."
             },
 
+            new PackageManagerViewModel(
+                "dotnet-run-file",
+                "File-based Apps",
+                new PackageManagerViewModel.InstallPackageCommand(
+                    string.Format("#:package {0}@{1}", Model.Id, Model.Version)
+                )
+            )
+            {
+                AlertLevel = AlertLevel.Info,
+                AlertMessage = "#:package directive can be used in C# file-based apps starting in .NET 10 preview 4. Copy this into a .cs file before any lines of code to reference the package."
+            },
+
             new ThirdPartyPackageManagerViewModel(
                 Model.IsCakeExtension() ? "cake-extension" : "cake",
                 "Cake",
                 "https://cakebuild.net/support/nuget",
                 Model.GetCakeInstallPackageCommands()
-                )
+            )
         };
     }
 }
@@ -284,7 +361,8 @@
                         </span>
                         }<button id="@installPackageCommand.Key-button" class="btn btn-brand-icon" type="button"
                                 data-toggle="popover" data-placement="bottom" data-content="Copied."
-                                aria-label="@packageManager.CopyLabel" role="button">
+                                aria-label="@packageManager.CopyLabel" role="button"
+                                disabled="@(!packageManager.CopyEnabled)">
                             <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
                             <span>Copy</span>
                         </button>

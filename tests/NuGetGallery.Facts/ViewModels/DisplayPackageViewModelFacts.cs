@@ -9,6 +9,8 @@ using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Framework;
 using NuGetGallery.Frameworks;
+using NuGetGallery.Services.Models;
+using NuGetGallery.TestData;
 using Xunit;
 using static NuGetGallery.DisplayPackageViewModel;
 

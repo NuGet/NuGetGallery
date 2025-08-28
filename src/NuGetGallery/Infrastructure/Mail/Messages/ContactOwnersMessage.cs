@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -66,9 +66,14 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
         private string GetBodyInternal(EmailFormat format)
         {
-            var markdown = $@"_User {FromAddress.DisplayName} &lt;{FromAddress.Address}&gt; sends the following message to the owners of Package '[{Package.PackageRegistration.Id} {Package.Version}]({PackageUrl})'._
+            var fromDisplayName = EscapeMarkdown(FromAddress.DisplayName);
+            var packageId = EscapeMarkdown(Package.PackageRegistration.Id);
+            var packageUrl = EscapeMarkdown(PackageUrl);
+            var message = EscapeMarkdown(HtmlEncodedMessage);
 
-{HtmlEncodedMessage}";
+            var markdown = $@"User {fromDisplayName} &lt;{FromAddress.Address}&gt; sends the following message to the owners of Package '[{packageId} {Package.Version}]({packageUrl})'.
+
+_{message}_";
 
             string body;
             switch (format)

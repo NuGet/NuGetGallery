@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -25,6 +25,7 @@ namespace NuGetGallery
             public const string V2 = Prefix + "v2";
             public const string V3 = Prefix + "v3";
             public const string V4 = Prefix + "v4";
+            public const string V5 = Prefix + "v5";
             public const string VerifyV1 = Prefix + "verify.v1";
         }
 
@@ -54,8 +55,8 @@ namespace NuGetGallery
         {
             return c?.Type?.Equals(type, StringComparison.OrdinalIgnoreCase) ?? false;
         }
-      
-        internal static IReadOnlyList<string> SupportedCredentialTypes = new List<string>
+
+        private static IReadOnlyList<string> ViewSupportedPasswordAndApiKeyTypes = new List<string>
         {
             Password.Sha1,
             Password.Pbkdf2,
@@ -74,7 +75,9 @@ namespace NuGetGallery
         /// <returns></returns>
         public static bool IsSupportedCredential(this Credential credential)
         {
-            return credential.IsViewSupportedCredential() || IsPackageVerificationApiKey(credential.Type);
+            return credential.IsViewSupportedCredential() ||
+                   credential.IsType(ApiKey.V5) ||
+                   credential.IsType(ApiKey.VerifyV1);
         }
 
         /// <summary>
@@ -85,9 +88,8 @@ namespace NuGetGallery
         /// <returns></returns>
         public static bool IsViewSupportedCredential(this Credential credential)
         {
-            return
-                SupportedCredentialTypes.Any(credType => credential.IsType(credType)) ||
-                credential.IsExternal();
+            return ViewSupportedPasswordAndApiKeyTypes.Any(credType => credential.IsType(credType)) ||
+                   credential.IsExternal();
         }
 
         public static bool IsScopedApiKey(this Credential credential)

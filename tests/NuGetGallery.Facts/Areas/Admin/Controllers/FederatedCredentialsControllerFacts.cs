@@ -54,48 +54,453 @@ public class FederatedCredentialsControllerFacts
     public class TheCreatePolicyMethod : FederatedCredentialsControllerFacts
     {
         [Fact]
-        public async Task CreatedPolicy()
+        public async Task WhenPolicyUserIsEmpty_AddsModelErrorAndReturnsView()
         {
             // Arrange
-            var input = new AddPolicyViewModel
+            var addPolicy = new AddPolicyViewModel
             {
-                PolicyUser = "mac",
-                PolicyPackageOwner = "mac-farm",
+                PolicyUser = "",
                 PolicyType = FederatedCredentialType.EntraIdServicePrincipal,
-                PolicyCriteria =
-                """
-                {
-                    "tid": "acf6141a-b108-45dd-bf31-9afaa7403463",
-                    "oid": "07f3a0d5-1da7-4fee-ac38-6893653eba08"
-                }
-                """
+                PolicyCriteria = """{"test": "value"}"""
             };
 
-            FederatedCredentialService
-                .Setup(x => x.AddEntraIdServicePrincipalPolicyAsync(
-                    It.IsAny<User>(),
-                    It.IsAny<User>(),
-                    It.IsAny<EntraIdServicePrincipalCriteria>()))
-                .ReturnsAsync(() => AddFederatedCredentialPolicyResult.Created(new FederatedCredentialPolicy { Key = 6 }));
-
             // Act
-            var result = await Target.CreatePolicy(input);
+            var result = await Target.CreatePolicy(addPolicy);
 
             // Assert
-            Assert.IsType<RedirectResult>(result);
-            var invocation = Assert.Single(FederatedCredentialService.Invocations);
-            Assert.Equal(nameof(FederatedCredentialService.Object.AddEntraIdServicePrincipalPolicyAsync), invocation.Method.Name);
-            Assert.Same(UserA, invocation.Arguments[0]);
-            Assert.Same(OrgA, invocation.Arguments[1]);
-            var criteria = Assert.IsType<EntraIdServicePrincipalCriteria>(invocation.Arguments[2]);
-            Assert.Equal("acf6141a-b108-45dd-bf31-9afaa7403463", criteria.TenantId.ToString());
-            Assert.Equal("07f3a0d5-1da7-4fee-ac38-6893653eba08", criteria.ObjectId.ToString());
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.Equal("Index", viewResult.ViewName);
+            var model = Assert.IsType<ViewPoliciesViewModel>(viewResult.Model);
+            Assert.Same(addPolicy, model.AddPolicy);
+            Assert.False(Target.ModelState.IsValid);
+            Assert.True(Target.ModelState.ContainsKey("AddPolicy.PolicyUser"));
+            Assert.Equal("The policy user field is required.", Target.ModelState["AddPolicy.PolicyUser"].Errors[0].ErrorMessage);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("   ")]
+        public async Task WhenPolicyUserIsNullOrWhitespace_AddsModelErrorAndReturnsView(string policyUser)
+        {
+            // Arrange
+            var addPolicy = new AddPolicyViewModel
+            {
+                PolicyUser = policyUser,
+                PolicyType = FederatedCredentialType.EntraIdServicePrincipal,
+                PolicyCriteria = """{"test": "value"}"""
+            };
+
+            // Act
+            var result = await Target.CreatePolicy(addPolicy);
+
+            // Assert
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.Equal("Index", viewResult.ViewName);
+            Assert.False(Target.ModelState.IsValid);
+            Assert.True(Target.ModelState.ContainsKey("AddPolicy.PolicyUser"));
+            Assert.Equal("The policy user field is required.", Target.ModelState["AddPolicy.PolicyUser"].Errors[0].ErrorMessage);
+        }
+
+        [Fact]
+        public async Task WhenPolicyTypeIsNull_AddsModelErrorAndReturnsView()
+        {
+            // Arrange
+            var addPolicy = new AddPolicyViewModel
+            {
+                PolicyUser = "testuser",
+                PolicyType = null,
+                PolicyCriteria = """{"test": "value"}"""
+            };
+
+            // Act
+            var result = await Target.CreatePolicy(addPolicy);
+
+            // Assert
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.Equal("Index", viewResult.ViewName);
+            Assert.False(Target.ModelState.IsValid);
+            Assert.True(Target.ModelState.ContainsKey("AddPolicy.PolicyType"));
+            Assert.Equal("The policy type field is required.", Target.ModelState["AddPolicy.PolicyType"].Errors[0].ErrorMessage);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("   ")]
+        public async Task WhenPolicyCriteriaIsNullOrWhitespace_AddsModelErrorAndReturnsView(string policyCriteria)
+        {
+            // Arrange
+            var addPolicy = new AddPolicyViewModel
+            {
+                PolicyUser = "testuser",
+                PolicyType = FederatedCredentialType.EntraIdServicePrincipal,
+                PolicyCriteria = policyCriteria
+            };
+
+            // Act
+            var result = await Target.CreatePolicy(addPolicy);
+
+            // Assert
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.Equal("Index", viewResult.ViewName);
+            Assert.False(Target.ModelState.IsValid);
+            Assert.True(Target.ModelState.ContainsKey("AddPolicy.PolicyCriteria"));
+            Assert.Equal("The policy criteria field is required.", Target.ModelState["AddPolicy.PolicyCriteria"].Errors[0].ErrorMessage);
+        }
+
+        [Fact]
+        public async Task WhenMultipleFieldsInvalid_AddsAllModelErrors()
+        {
+            // Arrange
+            var addPolicy = new AddPolicyViewModel
+            {
+                PolicyUser = null,
+                PolicyType = null,
+                PolicyCriteria = null
+            };
+
+            // Act
+            var result = await Target.CreatePolicy(addPolicy);
+
+            // Assert
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.Equal("Index", viewResult.ViewName);
+            Assert.False(Target.ModelState.IsValid);
+            Assert.True(Target.ModelState.ContainsKey("AddPolicy.PolicyUser"));
+            Assert.True(Target.ModelState.ContainsKey("AddPolicy.PolicyType"));
+            Assert.True(Target.ModelState.ContainsKey("AddPolicy.PolicyCriteria"));
+        }
+
+        [Fact]
+        public async Task WhenValidationPasses_CallsFederatedCredentialService()
+        {
+            // Arrange
+            var user = new User { Key = 10, Username = "testuser" };
+            var addPolicy = new AddPolicyViewModel
+            {
+                PolicyUser = "testuser",
+                PolicyPackageOwner = "packageowner",
+                PolicyType = FederatedCredentialType.EntraIdServicePrincipal,
+                PolicyCriteria = """{"tenant":"test","object":"123"}""",
+                PolicyName = "Test Policy"
+            };
+
+            UserService.Setup(x => x.FindByUsername("testuser", false)).Returns(user);
+
+            var successResult = FederatedCredentialPolicyValidationResult.Success(
+                new FederatedCredentialPolicy
+                {
+                    Key = 42,
+                    CreatedBy = user,
+                    PolicyName = "Test Policy"
+                });
+
+            FederatedCredentialService
+                .Setup(x => x.AddPolicyAsync(
+                    user,
+                    "packageowner",
+                    """{"tenant":"test","object":"123"}""",
+                    "Test Policy",
+                    FederatedCredentialType.EntraIdServicePrincipal))
+                .ReturnsAsync(successResult);
+
+            // Act
+            var result = await Target.CreatePolicy(addPolicy);
+
+            // Assert
+            var redirectResult = Assert.IsType<RedirectResult>(result);
+            Assert.Contains("testuser", redirectResult.Url);
+            Assert.Contains("Policy with key 42 added successfully", Target.TempData["MessageFortestuser"].ToString());
+
+            FederatedCredentialService.Verify(x => x.AddPolicyAsync(
+                user,
+                "packageowner",
+                """{"tenant":"test","object":"123"}""",
+                "Test Policy",
+                FederatedCredentialType.EntraIdServicePrincipal), Times.Once);
+        }
+
+        [Fact]
+        public async Task WhenServiceReturnsBadRequest_AddsModelErrorAndReturnsView()
+        {
+            // Arrange
+            var user = new User { Key = 10, Username = "testuser" };
+            var addPolicy = new AddPolicyViewModel
+            {
+                PolicyUser = "testuser",
+                PolicyPackageOwner = "packageowner",
+                PolicyType = FederatedCredentialType.EntraIdServicePrincipal,
+                PolicyCriteria = """{"test": "value"}""",
+                PolicyName = "Test Policy"
+            };
+
+            UserService.Setup(x => x.FindByUsername("testuser", false)).Returns(user);
+
+            var badRequestResult = FederatedCredentialPolicyValidationResult.BadRequest(
+                "Invalid criteria format",
+                nameof(FederatedCredentialPolicy.Criteria));
+
+            FederatedCredentialService
+                .Setup(x => x.AddPolicyAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<FederatedCredentialType>()))
+                .ReturnsAsync(badRequestResult);
+
+            // Act
+            var result = await Target.CreatePolicy(addPolicy);
+
+            // Assert
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.Equal("Index", viewResult.ViewName);
+            Assert.False(Target.ModelState.IsValid);
+            Assert.True(Target.ModelState.ContainsKey("AddPolicy.PolicyCriteria"));
+            Assert.Equal("Invalid criteria format", Target.ModelState["AddPolicy.PolicyCriteria"].Errors[0].ErrorMessage);
+        }
+
+        [Fact]
+        public async Task WhenServiceReturnsUnauthorized_AddsModelErrorAndReturnsView()
+        {
+            // Arrange
+            var user = new User { Key = 10, Username = "testuser" };
+            var addPolicy = new AddPolicyViewModel
+            {
+                PolicyUser = "testuser",
+                PolicyPackageOwner = "packageowner",
+                PolicyType = FederatedCredentialType.EntraIdServicePrincipal,
+                PolicyCriteria = """{"test": "value"}""",
+                PolicyName = "Test Policy"
+            };
+
+            UserService.Setup(x => x.FindByUsername("testuser", false)).Returns(user);
+
+            var unauthorizedResult = FederatedCredentialPolicyValidationResult.Unauthorized(
+                "User does not have permissions",
+                nameof(FederatedCredentialPolicy.PackageOwner));
+
+            FederatedCredentialService
+                .Setup(x => x.AddPolicyAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<FederatedCredentialType>()))
+                .ReturnsAsync(unauthorizedResult);
+
+            // Act
+            var result = await Target.CreatePolicy(addPolicy);
+
+            // Assert
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.Equal("Index", viewResult.ViewName);
+            Assert.False(Target.ModelState.IsValid);
+            Assert.True(Target.ModelState.ContainsKey("AddPolicy.PolicyPackageOwner"));
+            Assert.Equal("User does not have permissions", Target.ModelState["AddPolicy.PolicyPackageOwner"].Errors[0].ErrorMessage);
+        }
+
+        [Fact]
+        public async Task WhenValidPolicyWithNullPackageOwner_PassesNullToService()
+        {
+            // Arrange
+            var user = new User { Key = 10, Username = "testuser" };
+            var addPolicy = new AddPolicyViewModel
+            {
+                PolicyUser = "testuser",
+                PolicyPackageOwner = null, // Null package owner
+                PolicyType = FederatedCredentialType.GitHubActions,
+                PolicyCriteria = """{"owner":"test","repo":"test"}""",
+                PolicyName = "Test Policy"
+            };
+
+            UserService.Setup(x => x.FindByUsername("testuser", false)).Returns(user);
+
+            var successResult = FederatedCredentialPolicyValidationResult.Success(
+                new FederatedCredentialPolicy
+                {
+                    Key = 42,
+                    CreatedBy = user,
+                    PolicyName = "Test Policy"
+                });
+
+            FederatedCredentialService
+                .Setup(x => x.AddPolicyAsync(
+                    user,
+                    null,
+                    """{"owner":"test","repo":"test"}""",
+                    "Test Policy",
+                    FederatedCredentialType.GitHubActions))
+                .ReturnsAsync(successResult);
+
+            // Act
+            var result = await Target.CreatePolicy(addPolicy);
+
+            // Assert
+            var redirectResult = Assert.IsType<RedirectResult>(result);
+            FederatedCredentialService.Verify(x => x.AddPolicyAsync(
+                user,
+                null,
+                """{"owner":"test","repo":"test"}""",
+                "Test Policy",
+                FederatedCredentialType.GitHubActions), Times.Once);
+        }
+
+        [Fact]
+        public async Task WhenValidPolicyWithNullPolicyName_PassesNullToService()
+        {
+            // Arrange
+            var user = new User { Key = 10, Username = "testuser" };
+            var addPolicy = new AddPolicyViewModel
+            {
+                PolicyUser = "testuser",
+                PolicyPackageOwner = "packageowner",
+                PolicyType = FederatedCredentialType.GitHubActions,
+                PolicyCriteria = """{"owner":"test","repo":"test"}""",
+                PolicyName = null // Null policy name
+            };
+
+            UserService.Setup(x => x.FindByUsername("testuser", false)).Returns(user);
+
+            var successResult = FederatedCredentialPolicyValidationResult.Success(
+                new FederatedCredentialPolicy
+                {
+                    Key = 42,
+                    CreatedBy = user,
+                    PolicyName = null
+                });
+
+            FederatedCredentialService
+                .Setup(x => x.AddPolicyAsync(
+                    user,
+                    "packageowner",
+                    """{"owner":"test","repo":"test"}""",
+                    null,
+                    FederatedCredentialType.GitHubActions))
+                .ReturnsAsync(successResult);
+
+            // Act
+            var result = await Target.CreatePolicy(addPolicy);
+
+            // Assert
+            var redirectResult = Assert.IsType<RedirectResult>(result);
+            FederatedCredentialService.Verify(x => x.AddPolicyAsync(
+                user,
+                "packageowner",
+                """{"owner":"test","repo":"test"}""",
+                null,
+                FederatedCredentialType.GitHubActions), Times.Once);
+        }
+
+        [Theory]
+        [InlineData(FederatedCredentialType.EntraIdServicePrincipal)]
+        [InlineData(FederatedCredentialType.GitHubActions)]
+        public async Task WhenDifferentPolicyTypes_PassesCorrectTypeToService(FederatedCredentialType policyType)
+        {
+            // Arrange
+            var user = new User { Key = 10, Username = "testuser" };
+            var addPolicy = new AddPolicyViewModel
+            {
+                PolicyUser = "testuser",
+                PolicyPackageOwner = "packageowner",
+                PolicyType = policyType,
+                PolicyCriteria = """{"test": "value"}""",
+                PolicyName = "Test Policy"
+            };
+
+            UserService.Setup(x => x.FindByUsername("testuser", false)).Returns(user);
+
+            var successResult = FederatedCredentialPolicyValidationResult.Success(
+                new FederatedCredentialPolicy
+                {
+                    Key = 42,
+                    CreatedBy = user,
+                    PolicyName = "Test Policy"
+                });
+
+            FederatedCredentialService
+                .Setup(x => x.AddPolicyAsync(
+                    user,
+                    "packageowner",
+                    """{"test": "value"}""",
+                    "Test Policy",
+                    policyType))
+                .ReturnsAsync(successResult);
+
+            // Act
+            var result = await Target.CreatePolicy(addPolicy);
+
+            // Assert
+            var redirectResult = Assert.IsType<RedirectResult>(result);
+            FederatedCredentialService.Verify(x => x.AddPolicyAsync(
+                user,
+                "packageowner",
+                """{"test": "value"}""",
+                "Test Policy",
+                policyType), Times.Once);
+        }
+
+        [Fact]
+        public async Task WhenModelErrorMappingForDifferentProperties_MapsCorrectly()
+        {
+            // Arrange
+            var user = new User { Key = 10, Username = "testuser" };
+            var addPolicy = new AddPolicyViewModel
+            {
+                PolicyUser = "testuser",
+                PolicyPackageOwner = "packageowner",
+                PolicyType = FederatedCredentialType.EntraIdServicePrincipal,
+                PolicyCriteria = """{"test": "value"}""",
+                PolicyName = "Test Policy"
+            };
+
+            UserService.Setup(x => x.FindByUsername("testuser", false)).Returns(user);
+
+            var badRequestResult = FederatedCredentialPolicyValidationResult.BadRequest(
+                "Policy name too long",
+                nameof(FederatedCredentialPolicy.PolicyName));
+
+            FederatedCredentialService
+                .Setup(x => x.AddPolicyAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<FederatedCredentialType>()))
+                .ReturnsAsync(badRequestResult);
+
+            // Act
+            var result = await Target.CreatePolicy(addPolicy);
+
+            // Assert
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.False(Target.ModelState.IsValid);
+            Assert.True(Target.ModelState.ContainsKey("AddPolicy.PolicyName"));
+            Assert.Equal("Policy name too long", Target.ModelState["AddPolicy.PolicyName"].Errors[0].ErrorMessage);
+        }
+
+        [Fact]
+        public async Task WhenServiceErrorWithUnknownPropertyName_MapsToGeneralAddPolicyError()
+        {
+            // Arrange
+            var user = new User { Key = 10, Username = "testuser" };
+            var addPolicy = new AddPolicyViewModel
+            {
+                PolicyUser = "testuser",
+                PolicyPackageOwner = "packageowner",
+                PolicyType = FederatedCredentialType.EntraIdServicePrincipal,
+                PolicyCriteria = """{"test": "value"}""",
+                PolicyName = "Test Policy"
+            };
+
+            UserService.Setup(x => x.FindByUsername("testuser", false)).Returns(user);
+
+            var badRequestResult = FederatedCredentialPolicyValidationResult.BadRequest(
+                "General error",
+                "UnknownProperty");
+
+            FederatedCredentialService
+                .Setup(x => x.AddPolicyAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<FederatedCredentialType>()))
+                .ReturnsAsync(badRequestResult);
+
+            // Act
+            var result = await Target.CreatePolicy(addPolicy);
+
+            // Assert
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.False(Target.ModelState.IsValid);
+            Assert.True(Target.ModelState.ContainsKey("AddPolicy"));
+            Assert.Equal("General error", Target.ModelState["AddPolicy"].Errors[0].ErrorMessage);
         }
     }
 
     public FederatedCredentialsControllerFacts()
     {
-        FederatedCredentialRepository = new Mock<IFederatedCredentialRepository>();
         UserRepository = new Mock<IEntityRepository<User>>();
         UserService = new Mock<IUserService>();
         FederatedCredentialService = new Mock<IFederatedCredentialService>();
@@ -114,10 +519,10 @@ public class FederatedCredentialsControllerFacts
             new FederatedCredentialPolicy { Key = 5, Created = baseTime.AddHours(1), CreatedByUserKey = UserA.Key, CreatedBy = UserA, PackageOwnerUserKey = OrgA.Key, PackageOwner = OrgA },
         };
 
-        FederatedCredentialRepository
+        FederatedCredentialService
             .Setup(x => x.GetPoliciesRelatedToUserKeys(It.IsAny<IReadOnlyList<int>>()))
             .Returns(() => Policies);
-        FederatedCredentialRepository
+        FederatedCredentialService
             .Setup(x => x.GetPolicyByKey(It.IsAny<int>()))
             .Returns<int>(k => Policies.FirstOrDefault(p => p.Key == k));
         UserRepository
@@ -128,7 +533,6 @@ public class FederatedCredentialsControllerFacts
             .Returns<string, bool>((u, _) => Users.FirstOrDefault(x => x.Username == u));
 
         Target = new FederatedCredentialsController(
-            FederatedCredentialRepository.Object,
             UserRepository.Object,
             UserService.Object,
             FederatedCredentialService.Object);
@@ -136,7 +540,6 @@ public class FederatedCredentialsControllerFacts
         TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), Target);
     }
 
-    public Mock<IFederatedCredentialRepository> FederatedCredentialRepository { get; }
     public Mock<IEntityRepository<User>> UserRepository { get; }
     public Mock<IUserService> UserService { get; }
     public Mock<IFederatedCredentialService> FederatedCredentialService { get; }

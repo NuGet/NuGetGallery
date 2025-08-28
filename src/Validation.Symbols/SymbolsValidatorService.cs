@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -15,12 +15,14 @@ using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.Symbols.Core;
 using NuGet.Services.Validation;
 using NuGet.Services.Validation.Issues;
+using System.Diagnostics;
 
 namespace Validation.Symbols
 {
     public class SymbolsValidatorService : ISymbolsValidatorService
     {
-        private static TimeSpan _cleanWorkingDirectoryTimeSpan = TimeSpan.FromSeconds(20);
+        private static TimeSpan CleanWorkingDirectoryTimeout = TimeSpan.FromSeconds(20);
+
         private static readonly string[] PEExtensionsPatterns = new string[] { "*.dll", "*.exe" };
         private static readonly string[] PEExtensions = new string[] { ".dll", ".exe" };
         private static readonly string[] SymbolExtension = new string[] { ".pdb" };
@@ -96,7 +98,11 @@ namespace Validation.Symbols
                                 }
                                 finally
                                 {
-                                    TryCleanWorkingDirectoryForSeconds(targetDirectory, message.PackageId, message.PackageNormalizedVersion, _cleanWorkingDirectoryTimeSpan);
+                                    await TryDeleteWorkingDirectoryForSecondsAsync(
+                                        targetDirectory,
+                                        message.PackageId,
+                                        message.PackageNormalizedVersion,
+                                        CleanWorkingDirectoryTimeout);
                                 }
                             }
                         }
@@ -115,40 +121,42 @@ namespace Validation.Symbols
             }
         }
 
-        private void TryCleanWorkingDirectoryForSeconds(string workingDirectory, string packageId, string packageNormalizedVersion, TimeSpan seconds)
+        private async Task TryDeleteWorkingDirectoryForSecondsAsync(string workingDirectory, string packageId, string packageNormalizedVersion, TimeSpan seconds)
         {
-            CancellationTokenSource cts = new CancellationTokenSource(seconds);
-            _logger.LogInformation("{ValidatorName} :Start cleaning working directory {WorkingDirectory}. PackageId: {packageId} PackageNormalizedVersion: {packageNormalizedVersion}",
-                ValidatorName.SymbolsValidator,
-                workingDirectory,
-                packageId,
-                packageNormalizedVersion);
-            Task cleanTask = new Task(() =>
-            {
-                IOException lastException = new IOException("NoStarted");
-                bool directoryExists = Directory.Exists(workingDirectory);
-                while (!cts.Token.IsCancellationRequested && directoryExists)
-                {
-                    directoryExists = Directory.Exists(workingDirectory);
-                    try
-                    {
-                        if (directoryExists)
-                        {
-                            Directory.Delete(workingDirectory, true);
-                        }
-                    }
-                    catch (IOException e)
-                    {
-                        lastException = e;
-                    }
-                }
-                if (Directory.Exists(workingDirectory))
-                {
-                    _logger.LogWarning(0, lastException, "{ValidatorName} :TryCleanWorkingDirectory failed. WorkingDirectory:{WorkingDirectory}", ValidatorName.SymbolsValidator, workingDirectory);
-                }
-            }, TaskCreationOptions.LongRunning);
+            using CancellationTokenSource cts = new CancellationTokenSource(seconds);
+            var sw = Stopwatch.StartNew();
 
-            cleanTask.Start();
+            var attempt = 0;
+            do
+            {
+                try
+                {
+                    attempt++;
+                    _logger.LogInformation("Attempting to delete working directory {WorkingDirectory} (attempt {Attempt})", workingDirectory, attempt);
+                    Directory.Delete(workingDirectory, recursive: true);
+                }
+                catch (Exception ex)
+                {
+                    var sleep = TimeSpan.FromSeconds(1);
+                    _logger.LogWarning(ex, "Failed to delete working directory {WorkingDirectory} (attempt {Attempt}). Sleeping for {SleepSeconds}s.", workingDirectory, attempt, sleep.TotalSeconds);
+                    await Task.Delay(sleep);
+                }
+            }
+            while (!cts.Token.IsCancellationRequested && Directory.Exists(workingDirectory));
+
+            if (Directory.Exists(workingDirectory))
+            {
+                _logger.LogWarning("Failed to delete working directory {WorkingDirectory} within {Seconds}.", workingDirectory, sw.Elapsed.TotalSeconds);
+                _telemetryService.TrackSymbolsWorkingDirectoryNotDeletedEvent(packageId, packageNormalizedVersion, workingDirectory);
+            }
+            else
+            {
+                _logger.LogInformation(
+                    "Successfully deleted working directory {WorkingDirectory} in {Seconds} and {Attempts} attempts.",
+                    workingDirectory,
+                    sw.Elapsed.TotalSeconds,
+                    attempt);
+            }
         }
 
         /// <summary>

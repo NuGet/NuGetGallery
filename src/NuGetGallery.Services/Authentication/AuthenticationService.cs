@@ -919,7 +919,7 @@ namespace NuGetGallery.Authentication
                 .Include(u => u.User.Roles)
                 .Include(u => u.Scopes);
 
-            var results = _credentialValidator.GetValidCredentialsForApiKey(allCredentials, apiKeyCredential.Value);
+            var results = _credentialValidator.GetValidCredentialsForApiKey(allCredentials, apiKeyCredential.Value, _config.Environment);
 
             return ValidateFoundCredentials(results, ServicesStrings.CredentialType_ApiKey);
         }

@@ -1,11 +1,12 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Threading.Tasks;
-using System.Linq;
-using System.Data;
+using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Entity;
+using System.Linq;
+using System.Threading.Tasks;
 using NuGet.Services.Entities;
 
 #nullable enable
@@ -16,6 +17,7 @@ namespace NuGetGallery.Services.Authentication
     {
         Task AddPolicyAsync(FederatedCredentialPolicy policy, bool saveChanges);
         Task SaveFederatedCredentialAsync(FederatedCredential federatedCredential, bool saveChanges);
+        Task SavePoliciesAsync();
         IReadOnlyList<FederatedCredentialPolicy> GetPoliciesCreatedByUser(int userKey);
         FederatedCredentialPolicy? GetPolicyByKey(int policyKey);
         IReadOnlyList<Credential> GetShortLivedApiKeysForPolicy(int policyKey);
@@ -58,13 +60,10 @@ namespace NuGetGallery.Services.Authentication
 
         public IReadOnlyList<Credential> GetShortLivedApiKeysForPolicy(int policyKey)
         {
-            // TODO: introduce a new API key type for short-lived API keys
-            // Tracking: https://github.com/NuGet/NuGetGallery/issues/10212
-
             return _credentialRepository
                 .GetAll()
                 .Where(c => c.FederatedCredentialPolicyKey == policyKey)
-                .Where(c => c.Type == CredentialTypes.ApiKey.V4)
+                .Where(c => c.Type == CredentialTypes.ApiKey.V4 || c.Type == CredentialTypes.ApiKey.V5)
                 .ToList();
         }
 
@@ -87,6 +86,8 @@ namespace NuGetGallery.Services.Authentication
                 await _federatedCredentialRepository.CommitChangesAsync();
             }
         }
+
+        public Task SavePoliciesAsync() => _policyRepository.CommitChangesAsync();
 
         public async Task AddPolicyAsync(FederatedCredentialPolicy policy, bool saveChanges)
         {
