@@ -50,38 +50,37 @@
             {
                 @Html.AntiForgeryToken()
 
-                <div data-bind="visible: !confirmation()">
-                    <p class="margin-top-10">Enter a URL to add it as a sponsorship link.</p>
+            <div data-bind="visible: !confirmation()">
+                <p class="margin-top-10">Enter a URL to add it as a sponsorship link.</p>
 
-                    @ViewHelpers.AlertInfo(
+                @ViewHelpers.AlertInfo(
                         @<text>
-                            Note: Sponsorship links will be displayed to users viewing your package.
-                            Please ensure URLs are appropriate and functional.
+                            Note: Only links from the following sponsorship platforms will be accepted: GitHub Sponsors, Patreon, Open Collective, Tidelift, and Liberapay.
                         </text>)
 
-                    <div class="form-group">
-                        <label for="newSponsorshipUrl">URL</label>
-                        <input type="url" id="newSponsorshipUrl" name="newSponsorshipUrl" data-bind="value: newSponsorshipUrl" aria-required="true" class="form-control input-brand" placeholder="https://example.com/sponsor" novalidate />
-                        
-                        <div style="display: none" id="manage-sponsorship-alert" data-bind="visible: message">
-                            @ViewHelpers.AlertDanger(
+                <div class="form-group">
+                    <label for="newSponsorshipUrl">URL</label>
+                    <input type="url" id="newSponsorshipUrl" name="newSponsorshipUrl" data-bind="value: newSponsorshipUrl" aria-required="true" class="form-control input-brand" placeholder="https://example.com/sponsor" novalidate />
+
+                    <div style="display: none" id="manage-sponsorship-alert" data-bind="visible: message">
+                        @ViewHelpers.AlertDanger(
                                 @<text>
                                     <span id="manage-sponsorship-message" role="alert" aria-live="assertive" data-bind="text: message"></span>
                                 </text>)
-                        </div>
-                        
-                        <div style="display: none" id="manage-sponsorship-success" data-bind="visible: successMessage">
-                            @ViewHelpers.AlertSuccess(
+                    </div>
+
+                    <div style="display: none" id="manage-sponsorship-success" data-bind="visible: successMessage">
+                        @ViewHelpers.AlertSuccess(
                                 @<text>
                                     <span id="manage-sponsorship-success-message" role="alert" aria-live="polite" data-bind="text: successMessage"></span>
                                 </text>)
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <input type="submit" class="btn btn-brand form-control" value="Add" aria-label="Add sponsorship link to @Model.Id" />
                     </div>
                 </div>
+
+                <div class="form-group">
+                    <input type="submit" class="btn btn-brand form-control" value="Add" aria-label="Add sponsorship link to @Model.Id" />
+                </div>
+            </div>
             }
         </div>
     }

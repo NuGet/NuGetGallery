@@ -1,4 +1,4 @@
-﻿﻿﻿@using NuGet.Services.Validation
+﻿﻿@using NuGet.Services.Validation
 @using NuGet.Services.Licenses
 @using NuGetGallery.Services.Helpers
 @using NuGetGallery.Services.Models
@@ -1282,7 +1282,7 @@
                                 else
                                 {
                                     <a href="@Model.LicenseUrl"
-                                      data-track="outbound-license-url" title="Make sure you agree with the license" rel="nofollow">
+                                       data-track="outbound-license-url" title="Make sure you agree with the license" rel="nofollow">
                                         License Info
                                     </a>
                                 }
@@ -1307,16 +1307,6 @@
                         }
                     }
 
-                    @if (!Model.Deleted && Model.SponsorshipUrls != null && Model.SponsorshipUrls.Any() && Model.ShowDetailsAndLinks)
-                    {
-                        <li>
-                            <i class="ms-Icon ms-Icon--Heart" aria-hidden="true"></i>
-                            <button type="button" class="sidebar-button" id="sponsor-button" title="Sponsor this package">
-                                Sponsor
-                            </button>
-                        </li>
-                    }
-
                     @if (Model.CanDisplayNuGetPackageExplorerLink() && Model.ShowDetailsAndLinks)
                     {
                         var disclaimer = "nuget.info is a 3rd party website, not controlled by Microsoft. This link is made available to you per the NuGet Terms of Use.";
@@ -1324,8 +1314,8 @@
                         <li>
                             <i class="ms-Icon ms-Icon--FabricFolderSearch" aria-hidden="true" aria-label="@disclaimer" title="@disclaimer"></i>
                             <a href="@Model.NuGetPackageExplorerUrl" data-track="outbound-nugetpackageexplorer-url"
-                              aria-label="open in NuGet Package Explorer"
-                              title="Explore additional package info on NuGet Package Explorer" target="_blank" rel="nofollow noreferrer">
+                               aria-label="open in NuGet Package Explorer"
+                               title="Explore additional package info on NuGet Package Explorer" target="_blank" rel="nofollow noreferrer">
                                 Open in NuGet Package Explorer
                             </a>
                         </li>
@@ -1337,12 +1327,12 @@
 
                         <li>
                             <img class="icon"
-                                    aria-label="@disclaimer" title="@disclaimer"
-                                    src="@Url.Absolute("~/Content/gallery/img/fuget.svg")"
-                                    @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/fuget-32x32.png")) />
+                                 aria-label="@disclaimer" title="@disclaimer"
+                                 src="@Url.Absolute("~/Content/gallery/img/fuget.svg")"
+                                 @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/fuget-32x32.png")) />
                             <a href="@Model.FuGetUrl" data-track="outbound-fuget-url"
-                                aria-label="open in fuget.org explorer"
-                                title="Explore additional package info on fuget.org" target="_blank" rel="nofollow noreferrer">
+                               aria-label="open in fuget.org explorer"
+                               title="Explore additional package info on fuget.org" target="_blank" rel="nofollow noreferrer">
                                 Open in FuGet Package Explorer
                             </a>
                         </li>
@@ -1365,6 +1355,16 @@
                         </li>
                     }
 
+                    @if (!Model.Deleted && Model.SponsorshipUrls != null && Model.SponsorshipUrls.Any() && Model.ShowDetailsAndLinks)
+                    {
+                        <li>
+                            <i class="ms-Icon ms-Icon--Heart" aria-hidden="true"></i>
+                            <button type="button" class="sidebar-button" id="sponsor-button" title="Sponsor this package">
+                                Sponsor
+                            </button>
+                        </li>
+                    }
+
                     @if (!Model.CanReportAsOwner && Model.Available && Model.ShowDetailsAndLinks)
                     {
                         <li class="report-link">
@@ -1374,6 +1374,7 @@
                             </a>
                         </li>
                     }
+
                 </ul>
             </div>
 
@@ -1388,6 +1389,11 @@
                             </button>
                         </div>
                         <div class="sidebar-popup-body">
+                            @ViewHelpers.AlertInfo(
+                                @<text>
+                                    These links will take you to third-party platforms. Microsoft is not affiliated with or responsible for the content or practices of third-party platforms.
+                                </text>)
+
                             @if (Model.SponsorshipUrls != null && Model.SponsorshipUrls.Any())
                             {
                                 foreach (var sponsorshipUrl in Model.SponsorshipUrls)
