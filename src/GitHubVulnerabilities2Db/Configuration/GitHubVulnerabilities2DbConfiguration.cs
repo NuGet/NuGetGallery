@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using NuGet.Services.GitHub.Configuration;
@@ -21,5 +21,10 @@ namespace GitHubVulnerabilities2Db.Configuration
         /// The name of the blob to save the job's advisories cursor in.
         /// </summary>
         public string AdvisoryCursorBlobName { get; set; } = "cursor.json";
+
+        /// <summary>
+        /// The User-Agent header to send with each request to GitHub.
+        /// </summary>
+        public override string UserAgent { get; set; } = "NuGet.GitHubVulnerabilities2Db";
     }
 }

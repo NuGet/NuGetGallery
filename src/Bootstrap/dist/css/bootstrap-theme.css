@@ -946,7 +946,7 @@ body[id="/"] {
 .readme-common pre code.hljs .hljs-quote,
 .readme-common pre code.hljs .hljs-selector-tag,
 .readme-common pre code.hljs .hljs-selector-pseudo {
-  color: var(--statusAvailableForeground3Rest);
+  color: var(--statusSuccessForeground1Rest);
 }
 .readme-common pre code.hljs .hljs-subst {
   color: var(--neutralForeground1Rest);
@@ -3257,6 +3257,9 @@ p.frameworktableinfo-text {
 .page-statistics-overview .table-wrapper {
   overflow: auto;
 }
+.page-statistics-overview .chart.table-wrapper {
+  overflow: visible;
+}
 .page-statistics-overview svg:not(:root) {
   overflow: visible;
 }
@@ -3432,6 +3435,9 @@ p.frameworktableinfo-text {
 }
 .page-status a .ms-Icon {
   font-size: 0.6em;
+}
+.page-terms a {
+  text-decoration: underline;
 }
 .page-transform-account .transform-alert {
   margin-bottom: 33px;

@@ -312,7 +312,6 @@ namespace NuGetGallery
                         model.Register.Username,
                         model.Register.EmailAddress,
                         result.Credential,
-                        autoConfirm: (result.Credential.IsExternal() && string.Equals(result.UserInfo?.Email, model.Register.EmailAddress)),
                         enableMultiFactorAuthentication: enableMultiFactorAuthentication);
                 }
                 else if (_featureFlagService.IsNewAccount2FAEnforcementEnabled())

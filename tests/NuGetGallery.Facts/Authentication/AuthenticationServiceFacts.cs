@@ -1188,7 +1188,6 @@ namespace NuGetGallery.Authentication
                             c.Value,
                             CredentialBuilder.LatestPasswordType,
                             password)),
-                        It.IsAny<bool>(),
                         It.IsAny<bool>()))
                     .CompletesWithNull()
                     .Verifiable();
@@ -1277,31 +1276,6 @@ namespace NuGetGallery.Authentication
             [Theory]
             [InlineData("MicrosoftAccount")]
             [InlineData("AzureActiveDirectory")]
-            public async Task WillSaveTheNewUserWithExternalCredentialAndMatchEmailAsConfirmed(string credType)
-            {
-                // Arrange
-                var configurationService = GetConfigurationService();
-                configurationService.Current.ConfirmEmailAddresses = true;
-
-                var auth = Get<AuthenticationService>();
-
-                // Act
-                var authUser = await auth.Register(
-                    "newUser",
-                    "theEmailAddress",
-                    new CredentialBuilder().CreateExternalCredential(credType, "blorg", "Bloog"),
-                    true);
-
-                // Assert
-                Assert.True(auth.Entities.Users.Contains(authUser.User));
-                Assert.True(authUser.User.Confirmed);
-                Assert.Equal("theEmailAddress", authUser.User.EmailAddress);
-                auth.Entities.VerifyCommitChanges();
-            }
-
-            [Theory]
-            [InlineData("MicrosoftAccount")]
-            [InlineData("AzureActiveDirectory")]
             public async Task WillSaveTheNewUserWithExternalCredentialAndNotMatchEmailAsNotConfirmed(string credType)
             {
                 // Arrange
@@ -1314,8 +1288,7 @@ namespace NuGetGallery.Authentication
                 var authUser = await auth.Register(
                     "newUser",
                     "theEmailAddress",
-                    new CredentialBuilder().CreateExternalCredential(credType, "blorg", "Bloog"),
-                    false);
+                    new CredentialBuilder().CreateExternalCredential(credType, "blorg", "Bloog"));
 
                 // Assert
                 Assert.True(auth.Entities.Users.Contains(authUser.User));
