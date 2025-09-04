@@ -1,12 +1,15 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
+using System.Text;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.Security;
+using Newtonsoft.Json;
 
 namespace NuGetGallery
 {
@@ -71,17 +74,24 @@ namespace NuGetGallery
                 return dictionary;
             }
 
-            foreach (var key in cookie.Values.AllKeys)
+            try
             {
-                // As the index setter on HttpCookie does not guard against null keys,
-                // we should guard against ArgumentNullException on Dictionary.Insert
-                // when key == null.
-                if (key == null)
-                {
-                    continue;
-                }
+                // Unprotect (decrypt/verify) the cookie value
+                byte[] unprotectedBytes = MachineKey.Unprotect(
+                    Convert.FromBase64String(cookie.Value), TempDataCookieKey);
+                string json = Encoding.UTF8.GetString(unprotectedBytes);
 
-                dictionary[key] = HttpUtility.UrlDecode(cookie[key]);
+                // Deserialize back to dictionary
+                var deserialized = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
+                if (deserialized != null)
+                {
+                    foreach (var kvp in deserialized)
+                        dictionary[kvp.Key] = kvp.Value;
+                }
+            }
+            catch
+            {
+                //silently ignore incorrect cookie values
             }
 
             cookie.Expires = DateTime.MinValue;
@@ -98,25 +108,20 @@ namespace NuGetGallery
         {
             if (values.Count > 0)
             {
-                var cookie = new HttpCookie(TempDataCookieKey);
-                cookie.HttpOnly = true;
-                cookie.Secure = true;
-                foreach (var item in values)
-                {
-                    // As the index setter on HttpCookie does not guard against null keys,
-                    // we should guard against ArgumentNullException on Dictionary.Insert
-                    // when key == null.
-                    if (item.Key == null)
-                    {
-                        continue;
-                    }
+                // Serialize dictionary to JSON
+                string json = JsonConvert.SerializeObject(values);
 
-                    cookie[item.Key] = HttpUtility.UrlEncode(Convert.ToString(item.Value, CultureInfo.InvariantCulture));
-                }
+                // Protect (encrypt/sign) the JSON
+                string protectedJson = Convert.ToBase64String(
+                MachineKey.Protect(Encoding.UTF8.GetBytes(json), TempDataCookieKey));
+
+                var cookie = new HttpCookie(TempDataCookieKey, protectedJson)
+                {
+                    HttpOnly = true,
+                    Secure = true
+                };
                 _httpContext.Response.Cookies.Add(cookie);
             }
         }
-
-        // Properties
     }
 }
