@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -166,6 +166,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 ValidationSetProvider = new Mock<IValidationSetProvider<TestEntity>>();
                 ValidationSetProcessor = new Mock<IValidationSetProcessor>();
                 ValidationOutcomeProcessor = new Mock<IValidationOutcomeProcessor<TestEntity>>();
+                ValidationStorageService = new Mock<IValidationStorageService>();
                 LeaseService = new Mock<ILeaseService>();
                 PackageValidationEnqueuer = new Mock<IPackageValidationEnqueuer>();
                 FeatureFlagService = new Mock<IFeatureFlagService>();
@@ -213,6 +214,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     ValidationSetProvider.Object,
                     ValidationSetProcessor.Object,
                     ValidationOutcomeProcessor.Object,
+                    ValidationStorageService.Object,
                     LeaseService.Object,
                     PackageValidationEnqueuer.Object,
                     FeatureFlagService.Object,
@@ -225,6 +227,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             public Mock<IValidationSetProvider<TestEntity>> ValidationSetProvider { get; }
             public Mock<IValidationSetProcessor> ValidationSetProcessor { get; }
             public Mock<IValidationOutcomeProcessor<TestEntity>> ValidationOutcomeProcessor { get; }
+            public Mock<IValidationStorageService> ValidationStorageService { get; }
             public Mock<ILeaseService> LeaseService { get; }
             public Mock<IPackageValidationEnqueuer> PackageValidationEnqueuer { get; }
             public Mock<IFeatureFlagService> FeatureFlagService { get; }
@@ -267,6 +270,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 IValidationSetProvider<TestEntity> validationSetProvider,
                 IValidationSetProcessor validationSetProcessor,
                 IValidationOutcomeProcessor<TestEntity> validationOutcomeProcessor,
+                IValidationStorageService validationStorageService,
                 ILeaseService leaseService,
                 IPackageValidationEnqueuer validationEnqueuer,
                 IFeatureFlagService featureFlagService,
@@ -277,6 +281,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     validationSetProvider,
                     validationSetProcessor,
                     validationOutcomeProcessor,
+                    validationStorageService,
                     leaseService,
                     validationEnqueuer,
                     featureFlagService,
