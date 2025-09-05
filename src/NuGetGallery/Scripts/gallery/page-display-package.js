@@ -1,6 +1,20 @@
 ﻿$(function () {
     'use strict';
 
+    // Prevent tab flicker by checking localStorage early and hiding content if needed
+    var storage = window['localStorage'];
+    var bodyStorageKey = 'preferred_body_tab';
+    var shouldHideContentInitially = false;
+    
+    if (storage && !window.location.hash) {
+        var preferredBodyTab = storage.getItem(bodyStorageKey);
+        if (preferredBodyTab && preferredBodyTab !== 'readme-body-tab') {
+            shouldHideContentInitially = true;
+            // Temporarily hide the tab content to prevent flicker
+            $('.body-tab-content').css('visibility', 'hidden');
+        }
+    }
+
     // Configure the rename information container
     window.nuget.configureExpander("rename-content-container", "ChevronDown", null, "ChevronUp");
     configureExpanderWithEnterKeydown($('#show-rename-content-container'));
@@ -90,9 +104,7 @@
     }
 
     // Restore previously selected package manager and body tab.
-    var storage = window['localStorage'];
     var packageManagerStorageKey = 'preferred_package_manager';
-    var bodyStorageKey = 'preferred_body_tab';
     var restorePreferredBodyTab = true;
 
     var windowHash = window.location.hash;
@@ -107,6 +119,12 @@
         $(windowHash).tab('show');
         // don't restore body tab given the window hash
         restorePreferredBodyTab = false;
+        
+        // If we have a hash, we can safely show content now
+        if (shouldHideContentInitially) {
+            $('.body-tab-content').css('visibility', 'visible');
+            shouldHideContentInitially = false;
+        }
     }
 
     if (storage) {
@@ -123,6 +141,11 @@
                 $('#' + preferredBodyTab).tab('show');
             }
         }
+    }
+
+    // Restore visibility if we hid content to prevent flicker
+    if (shouldHideContentInitially) {
+        $('.body-tab-content').css('visibility', 'visible');
     }
 
     var usedByClamped = false;
