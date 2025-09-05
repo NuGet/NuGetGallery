@@ -8,7 +8,8 @@
     
     if (storage && !window.location.hash) {
         var preferredBodyTab = storage.getItem(bodyStorageKey);
-        if (preferredBodyTab && preferredBodyTab !== 'readme-body-tab') {
+        // Check if there's a stored preference that differs from the server-rendered active tab
+        if (preferredBodyTab && $('.body-tabs .nav-tabs li.active a').attr('id') !== preferredBodyTab) {
             shouldHideContentInitially = true;
             // Temporarily hide the tab content to prevent flicker
             $('.body-tab-content').css('visibility', 'hidden');
