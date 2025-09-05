@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -457,6 +457,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         protected Mock<IValidationSetProvider<Package>> ValidationSetProviderMock { get; }
         protected Mock<IValidationSetProcessor> ValidationSetProcessorMock { get; }
         protected Mock<IValidationOutcomeProcessor<Package>> ValidationOutcomeProcessorMock { get; }
+        protected Mock<IValidationStorageService> ValidationStorageServiceMock { get; }
         protected Mock<ILeaseService> LeaseService { get; }
         protected Mock<IPackageValidationEnqueuer> ValidationEnqueuer { get; }
         protected Mock<IFeatureFlagService> FeatureFlagService { get; }
@@ -472,6 +473,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             ValidationSetProviderMock = new Mock<IValidationSetProvider<Package>>(mockBehavior);
             ValidationSetProcessorMock = new Mock<IValidationSetProcessor>(mockBehavior);
             ValidationOutcomeProcessorMock = new Mock<IValidationOutcomeProcessor<Package>>(mockBehavior);
+            ValidationStorageServiceMock = new Mock<IValidationStorageService>(mockBehavior);
             LeaseService = new Mock<ILeaseService>(mockBehavior);
             ValidationEnqueuer = new Mock<IPackageValidationEnqueuer>(mockBehavior);
             FeatureFlagService = new Mock<IFeatureFlagService>(mockBehavior);
@@ -496,6 +498,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 ValidationSetProviderMock.Object,
                 ValidationSetProcessorMock.Object,
                 ValidationOutcomeProcessorMock.Object,
+                ValidationStorageServiceMock.Object,
                 LeaseService.Object,
                 ValidationEnqueuer.Object,
                 FeatureFlagService.Object,

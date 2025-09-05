@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -68,6 +68,22 @@ namespace NuGetGallery
             }
 
             return TargetPackageStatus;
+        }
+
+        public async Task<PackageStatus> FailValidationAsync(TPackageEntity package)
+        {
+            ValidateAndGetType(package);
+
+            var data = PackageValidationMessageData.NewFailValidationSet(Guid.NewGuid(), package.Id, package.Version);
+
+            var activityName = "Enqueuing asynchronous package validation failure: " +
+                $"{package.Id} {package.Version} ({data.FailValidationSet.ValidationTrackingId})";
+            using (_diagnosticsSource.Activity(activityName))
+            {
+                await _validationEnqueuer.SendMessageAsync(data);
+            }
+
+            return PackageStatus.FailedValidation;
         }
 
         private PackageStatus TargetPackageStatus => _appConfiguration.BlockingAsynchronousPackageValidationEnabled

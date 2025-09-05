@@ -138,6 +138,7 @@
     <Compile Include="Areas\Admin\Controllers\PopularityTransferController.cs" />
     <Compile Include="Areas\Admin\Controllers\ReservedNamespaceController.cs" />
     <Compile Include="Areas\Admin\Controllers\RevalidationController.cs" />
+    <Compile Include="Areas\Admin\Controllers\ForceValidationFailureController.cs" />
     <Compile Include="Areas\Admin\Controllers\SecurityPolicyController.cs" />
     <Compile Include="Areas\Admin\Controllers\SiteAdminsController.cs" />
     <Compile Include="Areas\Admin\Controllers\SupportRequestController.cs" />
@@ -182,6 +183,7 @@
     <Compile Include="Areas\Admin\ViewModels\CorrectIsLatestRequest.cs" />
     <Compile Include="Areas\Admin\ViewModels\ExceptionEmailListViewModel.cs" />
     <Compile Include="Areas\Admin\Models\CorrectIsLatestPackage.cs" />
+    <Compile Include="Areas\Admin\ViewModels\ForceValidationFailureViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\PopularityTransferViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\UserCredential.cs" />
     <Compile Include="Areas\Admin\ViewModels\UserCredentialSearchResult.cs" />
@@ -1749,6 +1751,7 @@
     <Content Include="Areas\Admin\Views\PackageSponsorship\Index.cshtml" />
     <Content Include="Areas\Admin\Views\DeleteAccount\Index.cshtml" />
     <Content Include="Areas\Admin\Views\Validation\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\ForceValidationFailure\Index.cshtml" />
     <Content Include="Areas\Admin\Views\DeleteAccount\DeleteAccountStatus.cshtml" />
     <Content Include="Areas\Admin\Views\Delete\Reflow.cshtml" />
     <Content Include="Areas\Admin\Views\Delete\_ReflowBulk.cshtml" />

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -122,6 +122,90 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal(PackageStatus.Validating, actual);
+            }
+
+            private Package GetPackage()
+            {
+                return new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "NuGet.Versioning"
+                    },
+                    Version = "4.3.0",
+                    PackageStatusKey = (PackageStatus)(-1),
+                };
+            }
+        }
+
+        public class TheFailValidationAsyncMethod : FactsBase
+        {
+            [Fact]
+            public async Task UsesADifferentValidationTrackingIdEachTime()
+            {
+                // Arrange
+                var package = GetPackage();
+
+                // Act
+                await _target.FailValidationAsync(package);
+                await _target.FailValidationAsync(package);
+
+                // Assert
+                Assert.Equal(2, _data.Count);
+                Assert.NotEqual(_data[0].FailValidationSet.ValidationTrackingId, _data[1].FailValidationSet.ValidationTrackingId);
+            }
+
+            [Fact]
+            public async Task UsesFailValidationSetMessageType()
+            {
+                // Arrange
+                var package = GetPackage();
+
+                // Act
+                await _target.FailValidationAsync(package);
+
+                // Assert
+                _enqueuer.Verify(
+                    x => x.SendMessageAsync(It.IsAny<PackageValidationMessageData>()),
+                    Times.Once);
+                Assert.Single(_data);
+                Assert.NotNull(_data[0]);
+                Assert.Equal(PackageValidationMessageType.FailValidationSet, _data[0].Type);
+                Assert.NotNull(_data[0].FailValidationSet);
+                Assert.NotEqual(Guid.Empty, _data[0].FailValidationSet.ValidationTrackingId);
+                Assert.Equal(package.PackageRegistration.Id, _data[0].FailValidationSet.PackageId);
+                Assert.Equal(package.Version, _data[0].FailValidationSet.PackageVersion);
+            }
+
+            [Fact]
+            public async Task FailsWhenTheGalleryIsInReadOnlyMode()
+            {
+                // Arrange
+                var package = GetPackage();
+                _appConfiguration
+                    .Setup(x => x.ReadOnlyMode)
+                    .Returns(true);
+
+                // Act & Assert
+                var exception = await Assert.ThrowsAsync<ReadOnlyModeException>(
+                    () => _target.FailValidationAsync(package));
+                Assert.Equal(Strings.CannotEnqueueDueToReadOnly, exception.Message);
+                _enqueuer.Verify(
+                    x => x.SendMessageAsync(It.IsAny<PackageValidationMessageData>()),
+                    Times.Never);
+            }
+
+            [Fact]
+            public async Task ReturnsFailedValidationPackageStatus()
+            {
+                // Arrange
+                var package = GetPackage();
+
+                // Act
+                var actual = await _target.FailValidationAsync(package);
+
+                // Assert
+                Assert.Equal(PackageStatus.FailedValidation, actual);
             }
 
             private Package GetPackage()
@@ -268,6 +352,95 @@ namespace NuGetGallery
             }
         }
 
+        public class TheFailSymbolsPackageValidationAsyncMethod : FactsBase
+        {
+            [Fact]
+            public async Task UsesADifferentValidationTrackingIdEachTime()
+            {
+                // Arrange
+                var symbolPackage = GetSymbolPackage();
+
+                // Act
+                await _target.FailValidationAsync(symbolPackage);
+                await _target.FailValidationAsync(symbolPackage);
+
+                // Assert
+                Assert.Equal(2, _data.Count);
+                Assert.NotEqual(_data[0].FailValidationSet.ValidationTrackingId, _data[1].FailValidationSet.ValidationTrackingId);
+            }
+
+            [Fact]
+            public async Task UsesFailValidationSetMessageType()
+            {
+                // Arrange
+                var symbolPackage = GetSymbolPackage();
+
+                // Act
+                await _target.FailValidationAsync(symbolPackage);
+
+                // Assert
+                _enqueuer.Verify(
+                    x => x.SendMessageAsync(It.IsAny<PackageValidationMessageData>()),
+                    Times.Once);
+                Assert.Single(_data);
+                Assert.NotNull(_data[0]);
+                Assert.Equal(PackageValidationMessageType.FailValidationSet, _data[0].Type);
+                Assert.NotNull(_data[0].FailValidationSet);
+                Assert.NotEqual(Guid.Empty, _data[0].FailValidationSet.ValidationTrackingId);
+                Assert.Equal(symbolPackage.Package.PackageRegistration.Id, _data[0].FailValidationSet.PackageId);
+                Assert.Equal(symbolPackage.Package.Version, _data[0].FailValidationSet.PackageVersion);
+            }
+
+            [Fact]
+            public async Task FailsWhenTheGalleryIsInReadOnlyMode()
+            {
+                // Arrange
+                var symbolPackage = GetSymbolPackage();
+                _appConfiguration
+                    .Setup(x => x.ReadOnlyMode)
+                    .Returns(true);
+
+                // Act & Assert
+                var exception = await Assert.ThrowsAsync<ReadOnlyModeException>(
+                    () => _target.FailValidationAsync(symbolPackage));
+                Assert.Equal(Strings.CannotEnqueueDueToReadOnly, exception.Message);
+                _enqueuer.Verify(
+                    x => x.SendMessageAsync(It.IsAny<PackageValidationMessageData>()),
+                    Times.Never);
+            }
+
+            [Fact]
+            public async Task ReturnsFailedValidationPackageStatus()
+            {
+                // Arrange
+                var symbolPackage = GetSymbolPackage();
+
+                // Act
+                var actual = await _target.FailValidationAsync(symbolPackage);
+
+                // Assert
+                Assert.Equal(PackageStatus.FailedValidation, actual);
+            }
+
+            private SymbolPackage GetSymbolPackage()
+            {
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "NuGet.Versioning"
+                    },
+                    Version = "4.3.0",
+                    PackageStatusKey = (PackageStatus)(-1),
+                };
+
+                return new SymbolPackage()
+                {
+                    Package = package
+                };
+            }
+        }
+
         public abstract class FactsBase
         {
             protected readonly Mock<IPackageValidationEnqueuer> _enqueuer;
@@ -283,6 +456,10 @@ namespace NuGetGallery
                     .Setup(x => x.SendMessageAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()))
                     .Returns(Task.CompletedTask)
                     .Callback<PackageValidationMessageData, DateTimeOffset>((d, o) => _data.Add(d));
+                _enqueuer
+                    .Setup(x => x.SendMessageAsync(It.IsAny<PackageValidationMessageData>()))
+                    .Returns(Task.CompletedTask)
+                    .Callback<PackageValidationMessageData>((d) => _data.Add(d));
 
                 _appConfiguration = new Mock<IAppConfiguration>();
                 _appConfiguration
