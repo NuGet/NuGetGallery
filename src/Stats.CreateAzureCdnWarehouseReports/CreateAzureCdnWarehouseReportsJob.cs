@@ -7,11 +7,12 @@ using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Autofac;
+using Azure.Core;
+using Azure.Storage.Blobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
 
@@ -21,8 +22,8 @@ namespace Stats.CreateAzureCdnWarehouseReports
     {
         private const int DefaultSqlCommandTimeoutSeconds = 1800; // 30 minute SQL command timeout by default
 
-        private CloudStorageAccount _cloudStorageAccount;
-        private CloudStorageAccount _additionalGalleryTotalsAccount;
+        private BlobServiceClient _cloudStorageAccount;
+        private BlobServiceClient _additionalGalleryTotalsAccount;
         private string _statisticsContainerName;
         private string _additionalGalleryTotalsContainerName;
         private int _sqlCommandTimeoutSeconds = DefaultSqlCommandTimeoutSeconds;
@@ -38,7 +39,8 @@ namespace Stats.CreateAzureCdnWarehouseReports
 
             _cloudStorageAccount = ValidateAzureCloudStorageAccount(
                 configuration.AzureCdnCloudStorageAccount,
-                nameof(configuration.AzureCdnCloudStorageAccount));
+                nameof(configuration.AzureCdnCloudStorageAccount),
+                _serviceProvider);
 
             _statisticsContainerName = ValidateAzureContainerName(
                 configuration.AzureCdnCloudStorageContainerName,
@@ -48,8 +50,9 @@ namespace Stats.CreateAzureCdnWarehouseReports
             {
                 _additionalGalleryTotalsAccount = ValidateAzureCloudStorageAccount(
                     configuration.AdditionalGalleryTotalsStorageAccount,
-                    nameof(configuration.AdditionalGalleryTotalsStorageAccount));
-                Logger.LogInformation("Additional totals account found {BlobEndpoint}", _additionalGalleryTotalsAccount.BlobEndpoint.GetLeftPart(UriPartial.Path));
+                    nameof(configuration.AdditionalGalleryTotalsStorageAccount),
+                    _serviceProvider);
+                Logger.LogInformation("Additional totals account found {BlobEndpoint}", _additionalGalleryTotalsAccount.Uri.GetLeftPart(UriPartial.Path));
 
                 _additionalGalleryTotalsContainerName = configuration.AdditionalGalleryTotalsStorageContainerName;
             }
@@ -60,10 +63,10 @@ namespace Stats.CreateAzureCdnWarehouseReports
         public override async Task Run()
         {
             var reportGenerationTime = DateTime.UtcNow;
-            var destinationContainer = _cloudStorageAccount.CreateCloudBlobClient().GetContainerReference(_statisticsContainerName);
+            var destinationContainer = _cloudStorageAccount.GetBlobContainerClient(_statisticsContainerName);
 
             Logger.LogInformation("Generating reports and saving to {AccountName}/{Container}",
-                _cloudStorageAccount.Credentials.AccountName, destinationContainer.Name);
+                _cloudStorageAccount.AccountName, destinationContainer.Name);
 
             // build stats-totals.json
             var stopwatch = Stopwatch.StartNew();
@@ -76,7 +79,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
             {
                 targets.Add(new StorageContainerTarget(_additionalGalleryTotalsAccount, _additionalGalleryTotalsContainerName));
                 Logger.LogInformation("Added additional target for stats totals report {BlobEndpoint}/{Container}",
-                    _additionalGalleryTotalsAccount.BlobEndpoint.GetLeftPart(UriPartial.Path),
+                    _additionalGalleryTotalsAccount.Uri.GetLeftPart(UriPartial.Path),
                     _additionalGalleryTotalsContainerName);
             }
             var galleryTotalsReport = new GalleryTotalsReport(
@@ -92,19 +95,41 @@ namespace Stats.CreateAzureCdnWarehouseReports
             _applicationInsightsHelper.TrackReportProcessed(reportMetricName);
         }
 
-        private static CloudStorageAccount ValidateAzureCloudStorageAccount(string cloudStorageAccount, string configurationName)
+        private static BlobServiceClient ValidateAzureCloudStorageAccount(
+            string cloudStorageAccount,
+            string configurationName,
+            IServiceProvider serviceProvider)
         {
             if (string.IsNullOrEmpty(cloudStorageAccount))
             {
                 throw new ArgumentException($"Job configuration {configurationName} is not defined.");
             }
 
-            if (CloudStorageAccount.TryParse(cloudStorageAccount, out CloudStorageAccount account))
+            var storageMsiConfiguration = serviceProvider.GetRequiredService<IOptions<StorageMsiConfiguration>>().Value;
+
+            var blobClientOptions = new BlobClientOptions()
             {
-                return account;
+                Retry =
+                {
+                    Delay = TimeSpan.FromSeconds(10),
+                    MaxRetries = 5,
+                    Mode = RetryMode.Exponential,
+                    NetworkTimeout = TimeSpan.FromSeconds(30)
+                }
+            };
+
+            if (storageMsiConfiguration is null || !storageMsiConfiguration.UseManagedIdentity)
+            {
+                // using connection string
+                return new BlobServiceClient(cloudStorageAccount, blobClientOptions);
             }
 
-            throw new ArgumentException($"Job configuration {configurationName} is invalid.");
+            // using token credential with blob endpoint
+            var tempClient = new BlobServiceClient(cloudStorageAccount);
+            var blobEndpoint = new Uri(tempClient.Uri.GetLeftPart(UriPartial.Path));
+
+            var tokenCredential = serviceProvider.GetRequiredService<TokenCredential>();
+            return new BlobServiceClient(blobEndpoint, tokenCredential, blobClientOptions);
         }
 
         private static string ValidateAzureContainerName(string containerName, string configurationName)
@@ -124,6 +149,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             ConfigureInitializationSection<CreateAzureCdnWarehouseReportsConfiguration>(services, configurationRoot);
+            services.ConfigureStorageMsi(configurationRoot);
         }
     }
 }

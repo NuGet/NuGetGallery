@@ -7,6 +7,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
@@ -61,16 +62,20 @@ namespace Stats.CreateAzureCdnWarehouseReports
                 try
                 {
                     var targetBlobContainer = await GetBlobContainer(storageContainerTarget);
-                    var blob = targetBlobContainer.GetBlockBlobReference(ReportNames.GalleryTotals + ReportNames.Extension);
+                    var blob = targetBlobContainer.GetBlobClient(ReportNames.GalleryTotals + ReportNames.Extension);
                     _logger.LogInformation("Writing report to {ReportUri}", blob.Uri.GetLeftPart(UriPartial.Path));
-                    blob.Properties.ContentType = "application/json";
-                    await blob.UploadTextAsync(reportText);
+                    var content = new BinaryData(reportText);
+                    var options = new BlobUploadOptions
+                    {
+                        HttpHeaders = new BlobHttpHeaders { ContentType = "application/json" }
+                    };
+                    await blob.UploadAsync(content, options);
                     _logger.LogInformation("Wrote report to {ReportUri}", blob.Uri.GetLeftPart(UriPartial.Path));
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error writing report to storage account {StorageAccount}, container {ReportContainer}. {Exception}",
-                        storageContainerTarget.StorageAccount.Credentials.AccountName,
+                        storageContainerTarget.StorageAccount.AccountName,
                         storageContainerTarget.ContainerName,
                         ex);
                 }

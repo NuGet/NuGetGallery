@@ -6,9 +6,9 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Logging;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.RetryPolicies;
 
 namespace Stats.CreateAzureCdnWarehouseReports
 {
@@ -34,15 +34,11 @@ namespace Stats.CreateAzureCdnWarehouseReports
             _commandTimeoutSeconds = TimeSpan.FromSeconds(commandTimeoutSeconds);
         }
 
-        protected async Task<CloudBlobContainer> GetBlobContainer(StorageContainerTarget target)
+        protected async Task<BlobContainerClient> GetBlobContainer(StorageContainerTarget target)
         {
-            // construct a cloud blob client for the configured storage account
-            var cloudBlobClient = target.StorageAccount.CreateCloudBlobClient();
-            cloudBlobClient.DefaultRequestOptions.RetryPolicy = new ExponentialRetry(TimeSpan.FromSeconds(10), 5);
-
             // get the target blob container (to store the generated reports)
-            var targetBlobContainer = cloudBlobClient.GetContainerReference(target.ContainerName);
-            await targetBlobContainer.CreateIfNotExistsAsync(BlobContainerPublicAccessType.Blob, options: null, operationContext: null);
+            var targetBlobContainer = target.StorageAccount.GetBlobContainerClient(target.ContainerName);
+            await targetBlobContainer.CreateIfNotExistsAsync(PublicAccessType.None);
             return targetBlobContainer;
         }
     }
