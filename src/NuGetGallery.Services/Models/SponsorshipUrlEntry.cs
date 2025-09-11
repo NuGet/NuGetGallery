@@ -17,40 +17,42 @@ namespace NuGetGallery
 		[JsonProperty("url")]
 		public string Url { get; set; }
 
-	/// <summary>
-	/// The timestamp when this URL was added (UTC)
-	/// </summary>
-	[JsonProperty("timestamp")]
-	public DateTime Timestamp { get; set; }
+		/// <summary>
+		/// The timestamp when this URL was added (UTC)
+		/// </summary>
+		[JsonProperty("timestamp")]
+		public DateTime Timestamp { get; set; }
 
-	/// <summary>
-	/// Whether this URL is from an accepted sponsorship domain.
-	/// This property is always populated during deserialization.
-	/// </summary>
-	[JsonProperty("isDomainAccepted")]
-	public bool IsDomainAccepted { get; set; }
+		/// <summary>
+		/// Whether this URL is from an accepted sponsorship domain.
+		/// This property is always populated during deserialization.
+		/// </summary>
+		[JsonProperty("isDomainAccepted")]
+		public bool IsDomainAccepted { get; set; }
 
-	/// <summary>
-	/// Creates a new SponsorshipUrlEntry with domain acceptance information
-	/// </summary>
-	/// <param name="url">The sponsorship URL</param>
-	/// <param name="timestamp">The timestamp when this URL was added</param>
-	/// <param name="isDomainAccepted">Whether the URL is from an accepted domain</param>
-	public SponsorshipUrlEntry(string url, DateTime timestamp, bool isDomainAccepted)
-	{
-		Url = url;
-		Timestamp = timestamp;
-		IsDomainAccepted = isDomainAccepted;
-	}
+		/// <summary>
+		/// Creates a new SponsorshipUrlEntry with domain acceptance information
+		/// </summary>
+		/// <param name="url">The sponsorship URL</param>
+		/// <param name="timestamp">The timestamp when this URL was added</param>
+		/// <param name="isDomainAccepted">Whether the URL is from an accepted domain</param>
+		public SponsorshipUrlEntry(string url, DateTime timestamp, bool isDomainAccepted)
+		{
+			Url = url;
+			Timestamp = timestamp;
+			IsDomainAccepted = isDomainAccepted;
+		}
 
-	/// <summary>
-	/// Creates a new SponsorshipUrlEntry with current timestamp
-	/// </summary>
-	/// <param name="url">The sponsorship URL</param>
-	/// <param name="isDomainAccepted">Whether the URL is from an accepted domain</param>
-	public SponsorshipUrlEntry(string url, bool isDomainAccepted) : this(url, DateTime.UtcNow, isDomainAccepted)
-	{
-	}		/// <summary>
+		/// <summary>
+		/// Creates a new SponsorshipUrlEntry with current timestamp
+		/// </summary>
+		/// <param name="url">The sponsorship URL</param>
+		/// <param name="isDomainAccepted">Whether the URL is from an accepted domain</param>
+		public SponsorshipUrlEntry(string url, bool isDomainAccepted) : this(url, DateTime.UtcNow, isDomainAccepted)
+		{
+		}
+
+		/// <summary>
 		/// Parameterless constructor for JSON deserialization
 		/// </summary>
 		[JsonConstructor]

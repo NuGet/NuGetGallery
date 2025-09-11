@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using NuGet.Services.Entities;
 using NuGetGallery.Packaging;
-using Newtonsoft.Json;
 
 namespace NuGetGallery
 {
@@ -75,73 +74,43 @@ namespace NuGetGallery
 			return false;
 		}
 
-		/// <summary>
-		/// Fetches and domain validates sponsorship URLs from PackageRegistration.SponsorshipUrls field
-		/// </summary>
-		/// <param name="packageRegistration"></param>
-		/// <returns>Read-only collection of validated sponsorship URLs from accepted domains</returns>
-		public static IReadOnlyCollection<string> GetAcceptedSponsorshipUrls(PackageRegistration packageRegistration)
-		{
-			var sponsorshipUrlEntries = GetSponsorshipUrlEntries(packageRegistration);
-			return sponsorshipUrlEntries
-				.Where(entry => entry.IsDomainAccepted)
-				.Select(entry => entry.Url)
-				.ToList()
-				.AsReadOnly();
-		}
+
 
 		/// <summary>
-		/// Deserializes and validates sponsorship URL entries from JSON.
-		/// Returns a read-only collection of validated URL entries with domain acceptance populated.
+		/// Validates a sponsorship URL for both format and domain acceptance.
 		/// </summary>
-		/// <param name="packageRegistration"></param>
-		/// <returns>Read-only collection of validated sponsorship URL entries</returns>
-		public static IReadOnlyCollection<SponsorshipUrlEntry> GetSponsorshipUrlEntries(PackageRegistration packageRegistration)
+		/// <param name="url">The URL to validate</param>
+		/// <param name="validatedUrl">The validated and prepared URL if successful</param>
+		/// <param name="errorMessage">The error message if validation fails</param>
+		/// <returns>True if the URL is valid and from an accepted domain</returns>
+		public static bool ValidateSponsorshipUrl(string url, out string validatedUrl, out string errorMessage)
 		{
-			var sponsorshipUrlEntries = new List<SponsorshipUrlEntry>();
+			validatedUrl = null;
+			errorMessage = null;
 
-			if (packageRegistration?.SponsorshipUrls != null && !string.IsNullOrEmpty(packageRegistration.SponsorshipUrls))
+			if (string.IsNullOrWhiteSpace(url))
 			{
-				try
-				{
-					// Deserialize as JSON array of URL objects
-					var urlEntries = JsonConvert.DeserializeObject<List<SponsorshipUrlEntry>>(packageRegistration.SponsorshipUrls);
-					if (urlEntries != null)
-					{
-						// Validate all URLs and populate domain acceptance
-						for (int i = 0; i < urlEntries.Count; i++)
-						{
-							var entry = urlEntries[i];
-							if (entry != null && !string.IsNullOrWhiteSpace(entry.Url))
-							{
-								if (TryPrepareUrlForRendering(entry.Url, out string validatedUrl))
-								{
-									// Always populate IsDomainAccepted during deserialization
-									var isDomainAccepted = IsAcceptedSponsorshipDomain(validatedUrl);
-									sponsorshipUrlEntries.Add(new SponsorshipUrlEntry(validatedUrl, entry.Timestamp, isDomainAccepted));
-								}
-								else
-								{
-									// Log invalid URL but continue processing other URLs
-									System.Diagnostics.Trace.TraceWarning($"Invalid sponsorship URL at index {i} for package registration {packageRegistration?.Id}: '{entry.Url}'");
-								}
-							}
-							else
-							{
-								// Log null or empty URL entry
-								System.Diagnostics.Trace.TraceWarning($"Null or empty sponsorship URL entry at index {i} for package registration {packageRegistration?.Id}");
-							}
-						}
-					}
-				}
-				catch (JsonException ex)
-				{
-					// If JSON parsing fails, log the error
-					System.Diagnostics.Trace.TraceWarning($"Failed to parse sponsorship URLs for package registration {packageRegistration?.Id}: {ex.Message}");
-				}
+				errorMessage = "URL cannot be null or empty.";
+				return false;
 			}
 
-			return sponsorshipUrlEntries.AsReadOnly();
+			// Normalize URL: add https:// if no scheme is present
+			string urlToValidate = url.Trim();
+			if (!urlToValidate.StartsWith("http://", StringComparison.OrdinalIgnoreCase) && 
+			    !urlToValidate.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+			{
+				urlToValidate = "https://" + urlToValidate;
+			}
+
+			// Validate URL format and domain acceptance
+			if (!TryPrepareUrlForRendering(urlToValidate, out validatedUrl) || 
+			    !IsAcceptedSponsorshipDomain(validatedUrl))
+			{
+				errorMessage = "Please enter a valid URL from a supported sponsorship platform.";
+				return false;
+			}
+
+			return true;
 		}
 
 		/// <summary>

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Areas.Admin.ViewModels;
 using Newtonsoft.Json;
@@ -13,11 +14,14 @@ namespace NuGetGallery.Areas.Admin.Controllers
 	public class PackageSponsorshipController : AdminControllerBase
 	{
 		private readonly IPackageService _packageService;
+		private readonly ISponsorshipUrlService _sponsorshipUrlService;
 
 		public PackageSponsorshipController(
-			IPackageService packageService)
+			IPackageService packageService,
+			ISponsorshipUrlService sponsorshipUrlService)
 		{
 			_packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
+			_sponsorshipUrlService = sponsorshipUrlService ?? throw new ArgumentNullException(nameof(sponsorshipUrlService));
 		}
 
 		[HttpGet]
@@ -42,8 +46,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
 		{
 			var result = CreatePackageSearchResult(package);
 			
-			// Get sponsorship URLs
-			var sponsorshipEntries = PackageHelper.GetSponsorshipUrlEntries(package.PackageRegistration);
+			// Get sponsorship URLs using the service
+			var sponsorshipEntries = _sponsorshipUrlService.GetSponsorshipUrlEntries(package.PackageRegistration);
 			result.SponsorshipUrls = sponsorshipEntries?.Select(e => e.Url).ToList() ?? new List<string>();
 			
 			results.Add(result);
@@ -51,7 +55,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
 		return Json(results, JsonRequestBehavior.AllowGet);
 	}		[HttpPost]
-		public ActionResult UpdateSponsorshipUrls(string packageId, string[] urls)
+		public async Task<ActionResult> UpdateSponsorshipUrls(string packageId, string[] urls)
 		{
 			try
 			{
@@ -61,30 +65,33 @@ namespace NuGetGallery.Areas.Admin.Controllers
 					return Json(new { success = false, message = "Package not found." });
 				}
 
-				// Validate URLs
+				// Clear existing URLs first
+				var existingEntries = _sponsorshipUrlService.GetSponsorshipUrlEntries(packageRegistration);
+				foreach (var entry in existingEntries)
+				{
+					await _sponsorshipUrlService.RemoveSponsorshipUrlAsync(packageRegistration, entry.Url);
+				}
+
+				// Add new URLs using service layer
 				var validatedUrls = new List<string>();
 				foreach (var url in urls ?? new string[0])
 				{
 					if (!string.IsNullOrWhiteSpace(url))
 					{
-						if (PackageHelper.TryPrepareUrlForRendering(url, out string validatedUrl))
+						try
 						{
-							validatedUrls.Add(validatedUrl);
+							await _sponsorshipUrlService.AddSponsorshipUrlAsync(packageRegistration, url);
+							validatedUrls.Add(url);
 						}
-						else
+						catch (ArgumentException ex)
 						{
 							return Json(new { 
 								success = false, 
-								message = $"Invalid URL: {url}. The provided URL is not valid or uses an unsupported protocol. Please use HTTP or HTTPS URLs." 
+								message = $"Invalid URL '{url}': {ex.Message}" 
 							});
 						}
 					}
 				}
-
-				// Update sponsorship URLs using direct JSON serialization
-				packageRegistration.SponsorshipUrls = validatedUrls.Any() 
-					? JsonConvert.SerializeObject(validatedUrls.Select(url => new SponsorshipUrlEntry(url, PackageHelper.IsAcceptedSponsorshipDomain(url)))) 
-					: null;
 
 				return Json(new { 
 					success = true, 

@@ -99,6 +99,7 @@
 </section>
 
 @section BottomScripts {
+    <script src="~/Scripts/gallery/sponsorship-validation.js"></script>
     <script>
         $(function () {
             'use strict';
@@ -125,13 +126,12 @@
                                     pkg.message = ko.observable('');
                                     pkg.successMessage = ko.observable('');
 
-                                    // Clear alerts when textbox is emptied
-                                    pkg.newSponsorshipUrl.subscribe(function(newValue) {
-                                        if (!newValue || newValue.trim() === '') {
-                                            pkg.message('');
-                                            pkg.successMessage('');
-                                        }
-                                    });
+                                    // Set up alert clearing using shared utility
+                                    window.SponsorshipValidation.setupAlertClearing(
+                                        pkg.newSponsorshipUrl,
+                                        pkg.message,
+                                        pkg.successMessage
+                                    );
                                 }
                                 $self.searchResults(data);
                             }
@@ -148,7 +148,7 @@
                     return '/packages/' + pkg.PackageId + '/' + pkg.PackageVersionNormalized;
                 };
 
-                // Simple add sponsorship URL function - with URL and domain validation
+                // Simple add sponsorship URL function - using shared validation
                 this.addSponsorshipUrl = function(packageViewModel) {
                     var url = packageViewModel.newSponsorshipUrl().trim();
 
@@ -156,55 +156,19 @@
                     packageViewModel.message('');
                     packageViewModel.successMessage('');
 
-                    // Check if maximum number of sponsorship links (10) has been reached
-                    if (packageViewModel.SponsorshipUrls().length >= 10) {
-                        packageViewModel.message('You can add a maximum of 10 sponsorship links.');
+                    // Validate using shared utility
+                    var validation = window.SponsorshipValidation.validateSponsorshipUrl(url, packageViewModel.SponsorshipUrls().length);
+                    
+                    if (!validation.isValid) {
+                        packageViewModel.message(validation.errorMessage);
                         return false;
                     }
 
-                    // Validate that URL is not empty
-                    if (!url) {
-                        packageViewModel.message('Please enter a URL.');
-                        return false;
-                    }
+                    // Use the normalized URL
+                    url = validation.normalizedUrl;
+                    packageViewModel.newSponsorshipUrl(url);
 
-                    // Ensure URL has protocol
-                    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                        url = 'https://' + url;
-                        packageViewModel.newSponsorshipUrl(url);
-                    }
-
-                    // Validate URL format and domain
-                    try {
-                        var urlObj = new URL(url);
-                        var hostname = urlObj.hostname.toLowerCase();
-                        
-                        // Check for supported sponsorship domains
-                        var supportedDomains = [
-                            'github.com',           // GitHub Sponsors
-                            'www.github.com',
-                            'patreon.com',          // Patreon
-                            'www.patreon.com',
-                            'opencollective.com',   // Open Collective
-                            'www.opencollective.com',
-                            'ko-fi.com',            // Ko-fi
-                            'www.ko-fi.com',
-                            'tidelift.com',         // Tidelift
-                            'www.tidelift.com',
-                            'liberapay.com',        // Liberapay
-                            'www.liberapay.com'
-                        ];
-                        
-                        if (supportedDomains.indexOf(hostname) === -1) {
-                            packageViewModel.message('Please enter a valid URL from a supported sponsorship platform.');
-                            return false;
-                        }
-                    } catch (e) {
-                        packageViewModel.message('Please enter a valid URL from a supported sponsorship platform.');
-                        return false;
-                    }
-
-                    // Add to the list and persist immediately
+                    // Add to the list and persist immediately (server will validate domain)
                     packageViewModel.SponsorshipUrls.push(url);
                     packageViewModel.newSponsorshipUrl('');
                     

@@ -15,10 +15,12 @@ namespace NuGetGallery
 	public class ManagePackageViewModelFactory
 	{
 		private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
+		private readonly ISponsorshipUrlService _sponsorshipUrlService;
 
-		public ManagePackageViewModelFactory(IIconUrlProvider iconUrlProvider, IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory, IFeatureFlagService featureFlagService)
+		public ManagePackageViewModelFactory(IIconUrlProvider iconUrlProvider, IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory, IFeatureFlagService featureFlagService, ISponsorshipUrlService sponsorshipUrlService)
 		{
 			_listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(iconUrlProvider, frameworkCompatibilityFactory, featureFlagService);
+			_sponsorshipUrlService = sponsorshipUrlService ?? throw new System.ArgumentNullException(nameof(sponsorshipUrlService));
 		}
 
 		public ManagePackageViewModel Create(
@@ -125,12 +127,13 @@ namespace NuGetGallery
 				viewModel.ReadMe.ReadMe.SourceText = readMe;
 			}
 
-		// Setup sponsorship URLs - show all URLs with warning for unsupported domains
-		var sponsorshipEntries = PackageHelper.GetSponsorshipUrlEntries(package.PackageRegistration);
-		viewModel.SponsorshipUrlEntries = sponsorshipEntries
-			.Select(entry => new SponsorshipUrlViewModel(entry.Url, entry.IsDomainAccepted))
-			.ToList()
-			.AsReadOnly();
+			// Setup sponsorship URLs - show all URLs with warning for unsupported domains
+			var sponsorshipEntries = _sponsorshipUrlService.GetSponsorshipUrlEntries(package.PackageRegistration);
+			viewModel.SponsorshipUrlEntries = sponsorshipEntries
+				.Select(entry => new SponsorshipUrlViewModel(entry.Url, entry.IsDomainAccepted))
+				.ToList()
+				.AsReadOnly();
+
 			return viewModel;
 		}
 

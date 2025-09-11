@@ -24,6 +24,7 @@ namespace NuGetGallery
         private readonly IAppConfiguration _appConfiguration;
         private readonly IPackageOwnershipManagementService _packageOwnershipManagementService;
         private readonly IFeatureFlagService _features;
+        private readonly ISponsorshipUrlService _sponsorshipUrlService;
 
         public JsonApiController(
             IPackageService packageService,
@@ -31,7 +32,8 @@ namespace NuGetGallery
             IMessageService messageService,
             IAppConfiguration appConfiguration,
             IPackageOwnershipManagementService packageOwnershipManagementService,
-            IFeatureFlagService features)
+            IFeatureFlagService features,
+            ISponsorshipUrlService sponsorshipUrlService)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
@@ -39,6 +41,7 @@ namespace NuGetGallery
             _appConfiguration = appConfiguration ?? throw new ArgumentNullException(nameof(appConfiguration));
             _packageOwnershipManagementService = packageOwnershipManagementService ?? throw new ArgumentNullException(nameof(packageOwnershipManagementService));
             _features = features ?? throw new ArgumentNullException(nameof(features));
+            _sponsorshipUrlService = sponsorshipUrlService ?? throw new ArgumentNullException(nameof(sponsorshipUrlService));
         }
 
         [HttpGet]
@@ -198,6 +201,94 @@ namespace NuGetGallery
             }
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequiresAccountConfirmation("manage a package")]
+        public virtual async Task<JsonResult> AddSponsorshipUrl(string id, string sponsorshipUrl)
+        {
+	        // Basic input validation to prevent oversized requests
+	        if (!string.IsNullOrEmpty(sponsorshipUrl) && sponsorshipUrl.Length > 2048)
+	        {
+		        return Json(new { success = false, message = "URL is too long." }, JsonRequestBehavior.AllowGet);
+	        }
+
+	        if (TryGetPackageForSponsorshipManagement(id, out var package, out var errorMessage))
+	        {
+		        try
+		        {
+			        // Check server-side limit first
+			        var currentUrls = _sponsorshipUrlService.GetSponsorshipUrlEntries(package);
+			        if (currentUrls.Count >= GalleryConstants.MaxSponsorshipLinksPerPackage)
+			        {
+				        return Json(new { 
+					        success = false, 
+					        message = $"You can add a maximum of {GalleryConstants.MaxSponsorshipLinksPerPackage} sponsorship links." 
+				        }, JsonRequestBehavior.AllowGet);
+			        }
+
+			        // Validate the URL before adding
+			        if (!PackageHelper.ValidateSponsorshipUrl(sponsorshipUrl, out string validatedUrl, out string validationErrorMessage))
+			        {
+				        return Json(new { success = false, message = validationErrorMessage }, JsonRequestBehavior.AllowGet);
+			        }
+
+			        // Use the validated URL for consistency
+			        await _sponsorshipUrlService.AddSponsorshipUrlAsync(package, validatedUrl);
+			        
+			        return Json(new { 
+				        success = true, 
+				        validatedUrl = validatedUrl,
+				        isDomainAccepted = true
+			        });
+		        }
+		        catch (ArgumentException ex)
+		        {
+			        return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+		        }
+		        catch (Exception)
+		        {
+			        return Json(new { success = false, message = "An error occurred while adding the sponsorship URL." }, JsonRequestBehavior.AllowGet);
+		        }
+	        }
+	        else
+	        {
+		        return Json(new { success = false, message = errorMessage }, JsonRequestBehavior.AllowGet);
+	        }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequiresAccountConfirmation("manage a package")]
+        public virtual async Task<JsonResult> RemoveSponsorshipUrl(string id, string sponsorshipUrl)
+        {
+	        // Basic input validation to prevent oversized requests
+	        if (!string.IsNullOrEmpty(sponsorshipUrl) && sponsorshipUrl.Length > 2048)
+	        {
+		        return Json(new { success = false, message = "URL is too long." }, JsonRequestBehavior.AllowGet);
+	        }
+
+	        if (TryGetPackageForSponsorshipManagement(id, out var package, out var errorMessage))
+	        {
+		        try
+		        {
+			        await _sponsorshipUrlService.RemoveSponsorshipUrlAsync(package, sponsorshipUrl);
+			        return Json(new { success = true });
+		        }
+		        catch (ArgumentException ex)
+		        {
+			        return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+		        }
+		        catch (Exception)
+		        {
+			        return Json(new { success = false, message = "An error occurred while removing the sponsorship URL." }, JsonRequestBehavior.AllowGet);
+		        }
+	        }
+	        else
+	        {
+		        return Json(new { success = false, message = errorMessage }, JsonRequestBehavior.AllowGet);
+	        }
+        }
+
         private bool TryGetManagePackageOwnerModel(string id, string username, bool isAddOwner, out ManagePackageOwnerModel model)
         {
             if (string.IsNullOrEmpty(id))
@@ -274,6 +365,41 @@ namespace NuGetGallery
             }
 
             model = new ManagePackageOwnerModel(package, user, currentUser);
+            return true;
+        }
+
+        private bool TryGetPackageForSponsorshipManagement(string id, out PackageRegistration package, out string errorMessage)
+        {
+            package = null;
+            errorMessage = null;
+
+            if (string.IsNullOrEmpty(id))
+            {
+                throw new ArgumentException(nameof(id));
+            }
+
+            package = _packageService.FindPackageRegistrationById(id);
+            if (package == null)
+            {
+                errorMessage = "Package not found.";
+                return false;
+            }
+
+            var currentUser = GetCurrentUser();
+            if (currentUser == null)
+            {
+                errorMessage = "You must be signed in.";
+                return false;
+            }
+
+            // Use ManagePackageOwnership permission since sponsorship links are sensitive metadata
+            // that should only be managed by owners/admins, not regular collaborators
+            if (ActionsRequiringPermissions.ManagePackageOwnership.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) != PermissionsCheckResult.Allowed)
+            {
+                errorMessage = "You do not have permission to manage sponsorship links for this package.";
+                return false;
+            }
+
             return true;
         }
 

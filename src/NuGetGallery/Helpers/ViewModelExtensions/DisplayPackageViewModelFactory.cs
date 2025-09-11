@@ -16,10 +16,12 @@ namespace NuGetGallery
 	public class DisplayPackageViewModelFactory
 	{
 		private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
+		private readonly ISponsorshipUrlService _sponsorshipUrlService;
 
-		public DisplayPackageViewModelFactory(IIconUrlProvider iconUrlProvider, IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory, IFeatureFlagService featureFlagService)
+		public DisplayPackageViewModelFactory(IIconUrlProvider iconUrlProvider, IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory, IFeatureFlagService featureFlagService, ISponsorshipUrlService sponsorshipUrlService = null)
 		{
 			_listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(iconUrlProvider, frameworkCompatibilityFactory, featureFlagService);
+			_sponsorshipUrlService = sponsorshipUrlService;
 		}
 
 		public DisplayPackageViewModel Create(
@@ -205,7 +207,7 @@ namespace NuGetGallery
 				}
 			}
 
-			viewModel.SponsorshipUrls = PackageHelper.GetAcceptedSponsorshipUrls(package.PackageRegistration);
+			viewModel.SponsorshipUrls = _sponsorshipUrlService?.GetAcceptedSponsorshipUrls(package.PackageRegistration)?.ToList() ?? new List<string>();
 
 			PackageDeprecation deprecation = null;
 			if (packageKeyToDeprecation != null && packageKeyToDeprecation.TryGetValue(package.Key, out deprecation))
