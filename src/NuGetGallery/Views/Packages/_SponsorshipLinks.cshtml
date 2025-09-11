@@ -14,10 +14,39 @@
                 <div id="sponsorship-links-container">
                     @foreach (var url in Model.SponsorshipUrls)
                     {
+                        var isCompliant = false;
+                        try
+                        {
+                            var uri = new Uri(url);
+                            var hostname = uri.Host.ToLowerInvariant();
+                            var supportedDomains = new[] {
+                                "github.com", "www.github.com",
+                                "patreon.com", "www.patreon.com", 
+                                "opencollective.com", "www.opencollective.com",
+                                "ko-fi.com", "www.ko-fi.com",
+                                "tidelift.com", "www.tidelift.com",
+                                "liberapay.com", "www.liberapay.com"
+                            };
+                            isCompliant = supportedDomains.Contains(hostname);
+                        }
+                        catch
+                        {
+                            isCompliant = false;
+                        }
+                        
                         <div class="sponsorship-link-item">
                             <div class="row">
                                 <div class="col-xs-8 col-sm-9 col-md-9 sponsorship-link-url">
-                                    <a href="@url" target="_blank">@Html.BreakWord(url)</a>
+                                    <a href="@url" target="_blank" style="text-decoration: underline;">@Html.BreakWord(url)</a>
+                                    @if (!isCompliant)
+                                    {
+                                        <div style="margin-top: 4px;">
+                                            <small class="text-danger" style="font-size: 14px;">
+                                                <i class="ms-Icon ms-Icon--Warning" aria-hidden="true" style="font-size: 14px;"></i>
+                                                <em>This URL does not belong to an approved platform and is not shown to the public</em>
+                                            </small>
+                                        </div>
+                                    }
                                 </div>
                                 <div class="col-xs-4 col-sm-3 col-md-3 text-right remove-sponsorship-link">
                                     <a role="button" class="icon-link sponsorship-remove-link"
@@ -46,42 +75,39 @@
         </b>
 
         <div class="sponsorship-links">
-            @using (Html.BeginForm(null, null, FormMethod.Post, new { novalidate = "novalidate", data_bind = "submit: addSponsorshipLink" }))
-            {
-                @Html.AntiForgeryToken()
+            <form novalidate="novalidate" data-bind="submit: addSponsorshipLink">
+                <div data-bind="visible: !confirmation()">
+                    <p class="margin-top-10">Enter a URL to add it as a sponsorship link.</p>
 
-            <div data-bind="visible: !confirmation()">
-                <p class="margin-top-10">Enter a URL to add it as a sponsorship link.</p>
+                    @ViewHelpers.AlertInfo(
+                            @<text>
+                                Note: Only links from the following sponsorship platforms will be accepted: GitHub Sponsors, Patreon, Open Collective, Ko-fi, Tidelift, and Liberapay.
+                            </text>)
 
-                @ViewHelpers.AlertInfo(
-                        @<text>
-                            Note: Only links from the following sponsorship platforms will be accepted: GitHub Sponsors, Patreon, Open Collective, Tidelift, and Liberapay.
-                        </text>)
+                    <div class="form-group">
+                        <label for="newSponsorshipUrl">URL</label>
+                        <input type="url" id="newSponsorshipUrl" name="newSponsorshipUrl" data-bind="value: newSponsorshipUrl" aria-required="true" class="form-control input-brand" placeholder="https://example.com/sponsor" novalidate />
 
-                <div class="form-group">
-                    <label for="newSponsorshipUrl">URL</label>
-                    <input type="url" id="newSponsorshipUrl" name="newSponsorshipUrl" data-bind="value: newSponsorshipUrl" aria-required="true" class="form-control input-brand" placeholder="https://example.com/sponsor" novalidate />
+                        <div style="display: none" id="manage-sponsorship-alert" data-bind="visible: message">
+                            @ViewHelpers.AlertDanger(
+                                    @<text>
+                                        <span id="manage-sponsorship-message" role="alert" aria-live="assertive" data-bind="text: message"></span>
+                                    </text>)
+                        </div>
 
-                    <div style="display: none" id="manage-sponsorship-alert" data-bind="visible: message">
-                        @ViewHelpers.AlertDanger(
-                                @<text>
-                                    <span id="manage-sponsorship-message" role="alert" aria-live="assertive" data-bind="text: message"></span>
-                                </text>)
+                        <div style="display: none" id="manage-sponsorship-success" data-bind="visible: successMessage">
+                            @ViewHelpers.AlertSuccess(
+                                    @<text>
+                                        <span id="manage-sponsorship-success-message" role="alert" aria-live="polite" data-bind="text: successMessage"></span>
+                                    </text>)
+                        </div>
                     </div>
 
-                    <div style="display: none" id="manage-sponsorship-success" data-bind="visible: successMessage">
-                        @ViewHelpers.AlertSuccess(
-                                @<text>
-                                    <span id="manage-sponsorship-success-message" role="alert" aria-live="polite" data-bind="text: successMessage"></span>
-                                </text>)
+                    <div class="form-group">
+                        <input type="submit" class="btn btn-brand form-control" value="Add" aria-label="Add sponsorship link to @Model.Id" />
                     </div>
                 </div>
-
-                <div class="form-group">
-                    <input type="submit" class="btn btn-brand form-control" value="Add" aria-label="Add sponsorship link to @Model.Id" />
-                </div>
-            </div>
-            }
+            </form>
         </div>
     }
     else

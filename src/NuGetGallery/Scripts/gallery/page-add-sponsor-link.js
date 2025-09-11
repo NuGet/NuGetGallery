@@ -21,6 +21,13 @@ $(function () {
             // Clear previous error messages
             self.message('');
 
+            // Check if maximum number of sponsorship links (10) has been reached
+            var currentLinkCount = $('.sponsorship-link-item').length;
+            if (currentLinkCount >= 10) {
+                self.message('You can add a maximum of 10 sponsorship links.');
+                return false;
+            }
+
             // Validate URL input
             if (!url) {
                 self.message('Please enter a valid URL.');
@@ -33,10 +40,10 @@ $(function () {
                 self.newSponsorshipUrl(url);
             }
 
-            // Custom URL validation function
-            function isValidUrl(string) {
+            // Sponsorship domain validation function
+            function isValidSponsorshipUrl(string) {
                 try {
-                    // Use URL constructor to validate
+                    // Use URL constructor to validate basic URL structure
                     var urlObj = new URL(string);
                     
                     // Must be http or https protocol
@@ -44,32 +51,32 @@ $(function () {
                         return false;
                     }
                     
-                    // Must have a valid hostname (not empty, not just whitespace)
-                    if (!urlObj.hostname || urlObj.hostname.trim() === '') {
-                        return false;
-                    }
+                    var hostname = urlObj.hostname.toLowerCase();
                     
-                    // Hostname should not contain invalid characters for domain names
-                    // Basic check for valid domain characters (letters, numbers, dots, hyphens)
-                    var hostnamePattern = /^[a-zA-Z0-9.-]+$/;
-                    if (!hostnamePattern.test(urlObj.hostname)) {
-                        return false;
-                    }
-                    
-                    // Should have at least one dot in hostname (unless localhost)
-                    if (urlObj.hostname !== 'localhost' && !urlObj.hostname.includes('.')) {
-                        return false;
-                    }
-                    
-                    return true;
+                    // Check for trusted sponsorship domains
+                    var trustedDomains = [
+                        'github.com',           // GitHub Sponsors
+                        'www.github.com',
+                        'patreon.com',          // Patreon
+                        'www.patreon.com',
+                        'opencollective.com',   // Open Collective
+                        'www.opencollective.com',
+                        'ko-fi.com',            // Ko-fi
+                        'www.ko-fi.com',
+                        'tidelift.com',         // Tidelift
+                        'www.tidelift.com',
+                        'liberapay.com',        // Liberapay
+                        'www.liberapay.com'
+                    ];
+                    return trustedDomains.indexOf(hostname) !== -1;
                 } catch (e) {
                     // URL constructor throws for invalid URLs
                     return false;
                 }
             }
             
-            if (!isValidUrl(url)) {
-                self.message('Please enter a valid URL.');
+            if (!isValidSponsorshipUrl(url)) {
+                self.message('Please enter a valid URL from a supported sponsorship platform.');
                 return false;
             }
 
@@ -129,6 +136,16 @@ $(function () {
         }
     };
 
+    // Clear alerts when textbox is emptied - set up before applying bindings
+    sponsorshipViewModel.newSponsorshipUrl.subscribe(function(newValue) {
+        // Clear alerts when textbox becomes empty
+        if (!newValue || newValue.trim() === '') {
+            console.log('Clearing alerts because textbox is empty'); // Debug line
+            sponsorshipViewModel.message('');
+            sponsorshipViewModel.successMessage('');
+        }
+    });
+
     // Apply knockout bindings to sponsorship section
     var sponsorshipContainer = document.querySelector('.page-manage-sponsorship-links');
     if (sponsorshipContainer) {
@@ -137,54 +154,6 @@ $(function () {
         // Fallback - try to apply to document
         ko.applyBindings(sponsorshipViewModel);
     }
-
-    // Add real-time validation for URL input
-    $(document).on('input', '#newSponsorshipUrl', function() {
-        var urlInput = this;
-        var url = urlInput.value.trim();
-        
-        // Clear validation errors when user starts typing and input becomes valid
-        if (url) {
-            // Add protocol if missing for validation
-            var urlToValidate = url;
-            if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                urlToValidate = 'https://' + url;
-            }
-            
-            // Use same validation function as in addSponsorshipLink
-            function isValidUrl(string) {
-                try {
-                    var urlObj = new URL(string);
-                    if (urlObj.protocol !== 'http:' && urlObj.protocol !== 'https:') {
-                        return false;
-                    }
-                    if (!urlObj.hostname || urlObj.hostname.trim() === '') {
-                        return false;
-                    }
-                    var hostnamePattern = /^[a-zA-Z0-9.-]+$/;
-                    if (!hostnamePattern.test(urlObj.hostname)) {
-                        return false;
-                    }
-                    if (urlObj.hostname !== 'localhost' && !urlObj.hostname.includes('.')) {
-                        return false;
-                    }
-                    return true;
-                } catch (e) {
-                    return false;
-                }
-            }
-            
-            if (isValidUrl(urlToValidate)) {
-                sponsorshipViewModel.message('');
-            } else {
-                // Show validation error for invalid URLs as user types
-                sponsorshipViewModel.message('Please enter a valid URL.');
-            }
-        } else {
-            // Clear errors when field is empty (don't show required error until submit)
-            sponsorshipViewModel.message('');
-        }
-    });
 
     // Handle remove sponsorship link clicks for dynamically added content
     $(document).on('click', '.remove-sponsorship-link a', function (e) {

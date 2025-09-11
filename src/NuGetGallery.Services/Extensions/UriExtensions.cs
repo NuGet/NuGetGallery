@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -121,6 +121,41 @@ namespace NuGetGallery
         public static string GetExternalUrlAnchorTag(string data, string link)
         {
             return string.Format(ExternalLinkAnchorTagFormat, data, link);
+        }
+
+        public static bool IsSponsorshipPlatformUri(this Uri uri)
+        {
+            return IsGitHubSponsorsUri(uri) ||
+                   IsPatreonUri(uri) ||
+                   IsOpenCollectiveUri(uri) ||
+                   IsTideliftUri(uri) ||
+                   IsLiberapayUri(uri);
+        }
+
+        private static bool IsGitHubSponsorsUri(this Uri uri)
+        {
+            return uri.IsInDomain("github.com") && 
+                   uri.AbsolutePath.IndexOf("/sponsors/", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static bool IsPatreonUri(this Uri uri)
+        {
+            return uri.IsInDomain("patreon.com");
+        }
+
+        private static bool IsOpenCollectiveUri(this Uri uri)
+        {
+            return uri.IsInDomain("opencollective.com");
+        }
+
+        private static bool IsTideliftUri(this Uri uri)
+        {
+            return uri.IsInDomain("tidelift.com");
+        }
+
+        private static bool IsLiberapayUri(this Uri uri)
+        {
+            return uri.IsInDomain("liberapay.com");
         }
     }
 }
