@@ -205,7 +205,7 @@ namespace NuGetGallery
 				}
 			}
 
-			viewModel.SponsorshipUrls = PackageHelper.GetValidatedSponsorshipUrls(package.PackageRegistration);
+			viewModel.SponsorshipUrls = PackageHelper.GetAcceptedSponsorshipUrls(package.PackageRegistration);
 
 			PackageDeprecation deprecation = null;
 			if (packageKeyToDeprecation != null && packageKeyToDeprecation.TryGetValue(package.Key, out deprecation))

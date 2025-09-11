@@ -76,40 +76,97 @@ namespace NuGetGallery
 		}
 
 		/// <summary>
-		/// Fetches and validates sponsorship URLs from PackageRegistration.SponsorshipUrls field.
-		/// Returns a read-only collection of validated URLs.
+		/// Fetches and domain validates sponsorship URLs from PackageRegistration.SponsorshipUrls field
 		/// </summary>
-		/// <param name="packageRegistration">The package registration containing sponsorship URLs</param>
-		/// <returns>A read-only collection of validated sponsorship URLs</returns>
-		public static IReadOnlyCollection<string> GetValidatedSponsorshipUrls(PackageRegistration packageRegistration)
+		/// <param name="packageRegistration"></param>
+		/// <returns>Read-only collection of validated sponsorship URLs from accepted domains</returns>
+		public static IReadOnlyCollection<string> GetAcceptedSponsorshipUrls(PackageRegistration packageRegistration)
 		{
-			var sponsorshipUrls = new List<string>();
+			var sponsorshipUrlEntries = GetSponsorshipUrlEntries(packageRegistration);
+			return sponsorshipUrlEntries
+				.Where(entry => entry.IsDomainAccepted)
+				.Select(entry => entry.Url)
+				.ToList()
+				.AsReadOnly();
+		}
+
+		/// <summary>
+		/// Deserializes and validates sponsorship URL entries from JSON.
+		/// Returns a read-only collection of validated URL entries with domain acceptance populated.
+		/// </summary>
+		/// <param name="packageRegistration"></param>
+		/// <returns>Read-only collection of validated sponsorship URL entries</returns>
+		public static IReadOnlyCollection<SponsorshipUrlEntry> GetSponsorshipUrlEntries(PackageRegistration packageRegistration)
+		{
+			var sponsorshipUrlEntries = new List<SponsorshipUrlEntry>();
 
 			if (packageRegistration?.SponsorshipUrls != null && !string.IsNullOrEmpty(packageRegistration.SponsorshipUrls))
 			{
 				try
 				{
-					var urls = JsonConvert.DeserializeObject<List<string>>(packageRegistration.SponsorshipUrls);
-					if (urls != null)
+					// Deserialize as JSON array of URL objects
+					var urlEntries = JsonConvert.DeserializeObject<List<SponsorshipUrlEntry>>(packageRegistration.SponsorshipUrls);
+					if (urlEntries != null)
 					{
-						// Validate all URLs and only store valid ones
-						foreach (var url in urls)
+						// Validate all URLs and populate domain acceptance
+						for (int i = 0; i < urlEntries.Count; i++)
 						{
-							if (!string.IsNullOrWhiteSpace(url) && TryPrepareUrlForRendering(url, out string validatedUrl))
+							var entry = urlEntries[i];
+							if (entry != null && !string.IsNullOrWhiteSpace(entry.Url))
 							{
-								sponsorshipUrls.Add(validatedUrl);
+								if (TryPrepareUrlForRendering(entry.Url, out string validatedUrl))
+								{
+									// Always populate IsDomainAccepted during deserialization
+									var isDomainAccepted = IsAcceptedSponsorshipDomain(validatedUrl);
+									sponsorshipUrlEntries.Add(new SponsorshipUrlEntry(validatedUrl, entry.Timestamp, isDomainAccepted));
+								}
+								else
+								{
+									// Log invalid URL but continue processing other URLs
+									System.Diagnostics.Trace.TraceWarning($"Invalid sponsorship URL at index {i} for package registration {packageRegistration?.Id}: '{entry.Url}'");
+								}
+							}
+							else
+							{
+								// Log null or empty URL entry
+								System.Diagnostics.Trace.TraceWarning($"Null or empty sponsorship URL entry at index {i} for package registration {packageRegistration?.Id}");
 							}
 						}
 					}
 				}
 				catch (JsonException ex)
 				{
-					// If JSON parsing fails, leave sponsorshipUrls empty and log the error for debugging purposes
+					// If JSON parsing fails, log the error
 					System.Diagnostics.Trace.TraceWarning($"Failed to parse sponsorship URLs for package registration {packageRegistration?.Id}: {ex.Message}");
 				}
 			}
 
-			return sponsorshipUrls.AsReadOnly();
+			return sponsorshipUrlEntries.AsReadOnly();
+		}
+
+		/// <summary>
+		/// Checks if a URL belongs to an accepted sponsorship domain.
+		/// </summary>
+		/// <param name="url">The URL to check</param>
+		/// <returns>True if the URL is from an accepted sponsorship domain</returns>
+		public static bool IsAcceptedSponsorshipDomain(string url)
+		{
+			if (string.IsNullOrWhiteSpace(url) || !Uri.TryCreate(url, UriKind.Absolute, out Uri uri))
+			{
+				return false;
+			}
+
+			var hostname = uri.Host.ToLowerInvariant();
+			var acceptedDomains = new[] {
+				"github.com", "www.github.com",
+				"patreon.com", "www.patreon.com", 
+				"opencollective.com", "www.opencollective.com",
+				"ko-fi.com", "www.ko-fi.com",
+				"tidelift.com", "www.tidelift.com",
+				"liberapay.com", "www.liberapay.com"
+			};
+
+			return acceptedDomains.Contains(hostname);
 		}
 
 		public static bool IsGitRepositoryType(string repositoryType)

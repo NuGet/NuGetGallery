@@ -9,36 +9,16 @@
         </b>
 
         <div class="sponsorship-links">
-            @if (Model.SponsorshipUrls != null && Model.SponsorshipUrls.Any())
+            @if (Model.SponsorshipUrlEntries != null && Model.SponsorshipUrlEntries.Any())
             {
                 <div id="sponsorship-links-container">
-                    @foreach (var url in Model.SponsorshipUrls)
+                    @foreach (var sponsorshipUrl in Model.SponsorshipUrlEntries)
                     {
-                        var isCompliant = false;
-                        try
-                        {
-                            var uri = new Uri(url);
-                            var hostname = uri.Host.ToLowerInvariant();
-                            var supportedDomains = new[] {
-                                "github.com", "www.github.com",
-                                "patreon.com", "www.patreon.com", 
-                                "opencollective.com", "www.opencollective.com",
-                                "ko-fi.com", "www.ko-fi.com",
-                                "tidelift.com", "www.tidelift.com",
-                                "liberapay.com", "www.liberapay.com"
-                            };
-                            isCompliant = supportedDomains.Contains(hostname);
-                        }
-                        catch
-                        {
-                            isCompliant = false;
-                        }
-                        
                         <div class="sponsorship-link-item">
                             <div class="row">
                                 <div class="col-xs-8 col-sm-9 col-md-9 sponsorship-link-url">
-                                    <a href="@url" target="_blank" style="text-decoration: underline;">@Html.BreakWord(url)</a>
-                                    @if (!isCompliant)
+                                    <a href="@sponsorshipUrl.Url" target="_blank" style="text-decoration: underline;">@Html.BreakWord(sponsorshipUrl.Url)</a>
+                                    @if (!sponsorshipUrl.IsDomainAccepted)
                                     {
                                         <div style="margin-top: 4px;">
                                             <small class="text-danger" style="font-size: 14px;">
@@ -51,8 +31,8 @@
                                 <div class="col-xs-4 col-sm-3 col-md-3 text-right remove-sponsorship-link">
                                     <a role="button" class="icon-link sponsorship-remove-link"
                                        href="#"
-                                       data-url="@url"
-                                       data-bind="click: $root.removeSponsorshipLink, attr: { 'aria-label': 'Remove sponsorship link ' + '@url' }">
+                                       data-url="@sponsorshipUrl.Url"
+                                       data-bind="click: $root.removeSponsorshipLink, attr: { 'aria-label': 'Remove sponsorship link ' + '@sponsorshipUrl.Url' }">
                                         <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
                                         <span>Remove</span>
                                     </a>

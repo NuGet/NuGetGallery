@@ -366,11 +366,6 @@ namespace NuGetGallery
                 .As<ISymbolPackageService>()
                 .InstancePerLifetimeScope();
 
-            builder.RegisterType<SponsorshipLinksService>()
-                .AsSelf()
-                .As<ISponsorshipLinksService>()
-                .InstancePerLifetimeScope();
-
             builder.RegisterType<PackageMetadataValidationService>()
                 .As<IPackageMetadataValidationService>()
                 .InstancePerLifetimeScope();

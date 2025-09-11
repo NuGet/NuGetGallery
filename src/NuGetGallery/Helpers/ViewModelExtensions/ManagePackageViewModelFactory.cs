@@ -125,9 +125,12 @@ namespace NuGetGallery
 				viewModel.ReadMe.ReadMe.SourceText = readMe;
 			}
 
-			// Setup sponsorship URLs from database using reusable method
-			viewModel.SponsorshipUrls = PackageHelper.GetValidatedSponsorshipUrls(package.PackageRegistration);
-
+		// Setup sponsorship URLs - show all URLs with warning for unsupported domains
+		var sponsorshipEntries = PackageHelper.GetSponsorshipUrlEntries(package.PackageRegistration);
+		viewModel.SponsorshipUrlEntries = sponsorshipEntries
+			.Select(entry => new SponsorshipUrlViewModel(entry.Url, entry.IsDomainAccepted))
+			.ToList()
+			.AsReadOnly();
 			return viewModel;
 		}
 

@@ -6,20 +6,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 using NuGetGallery.Areas.Admin.ViewModels;
+using Newtonsoft.Json;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
 	public class PackageSponsorshipController : AdminControllerBase
 	{
 		private readonly IPackageService _packageService;
-		private readonly ISponsorshipLinksService _sponsorshipLinksService;
 
 		public PackageSponsorshipController(
-			IPackageService packageService,
-			ISponsorshipLinksService sponsorshipLinksService)
+			IPackageService packageService)
 		{
 			_packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
-			_sponsorshipLinksService = sponsorshipLinksService ?? throw new ArgumentNullException(nameof(sponsorshipLinksService));
 		}
 
 		[HttpGet]
@@ -44,9 +42,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
 		{
 			var result = CreatePackageSearchResult(package);
 			
-			// Get sponsorship URLs using the service at the package registration level
-			var sponsorshipUrls = _sponsorshipLinksService.GetSponsorshipUrls(package.PackageRegistration);
-			result.SponsorshipUrls = sponsorshipUrls?.ToList() ?? new List<string>();
+			// Get sponsorship URLs
+			var sponsorshipEntries = PackageHelper.GetSponsorshipUrlEntries(package.PackageRegistration);
+			result.SponsorshipUrls = sponsorshipEntries?.Select(e => e.Url).ToList() ?? new List<string>();
 			
 			results.Add(result);
 		}
@@ -69,9 +67,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 				{
 					if (!string.IsNullOrWhiteSpace(url))
 					{
-						string validatedUrl;
-						string errorMessage;
-						if (_sponsorshipLinksService.ValidateUrl(url, out validatedUrl, out errorMessage))
+						if (PackageHelper.TryPrepareUrlForRendering(url, out string validatedUrl))
 						{
 							validatedUrls.Add(validatedUrl);
 						}
@@ -79,14 +75,16 @@ namespace NuGetGallery.Areas.Admin.Controllers
 						{
 							return Json(new { 
 								success = false, 
-								message = $"Invalid URL: {url}. {errorMessage}" 
+								message = $"Invalid URL: {url}. The provided URL is not valid or uses an unsupported protocol. Please use HTTP or HTTPS URLs." 
 							});
 						}
 					}
 				}
 
-				// Update sponsorship URLs
-				_sponsorshipLinksService.UpdateSponsorshipUrls(packageRegistration, validatedUrls);
+				// Update sponsorship URLs using direct JSON serialization
+				packageRegistration.SponsorshipUrls = validatedUrls.Any() 
+					? JsonConvert.SerializeObject(validatedUrls.Select(url => new SponsorshipUrlEntry(url, PackageHelper.IsAcceptedSponsorshipDomain(url)))) 
+					: null;
 
 				return Json(new { 
 					success = true, 
