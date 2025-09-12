@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
 using Newtonsoft.Json;
+using NuGetGallery.Services;
 
 namespace NuGetGallery
 {
@@ -16,10 +17,12 @@ namespace NuGetGallery
 	public class SponsorshipUrlService : ISponsorshipUrlService
 	{
 		private readonly IEntitiesContext _entitiesContext;
+		private readonly IContentObjectService _contentObjectService;
 
-		public SponsorshipUrlService(IEntitiesContext entitiesContext)
+		public SponsorshipUrlService(IEntitiesContext entitiesContext, IContentObjectService contentObjectService)
 		{
 			_entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
+			_contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
 		}
 
 		public IReadOnlyCollection<string> GetAcceptedSponsorshipUrls(PackageRegistration packageRegistration)
@@ -63,7 +66,7 @@ namespace NuGetGallery
 			}
 
 			// Validate URL format and domain acceptance
-			if (!PackageHelper.ValidateSponsorshipUrl(url, out string validatedUrl, out string errorMessage))
+			if (!PackageHelper.ValidateSponsorshipUrl(url, _contentObjectService.TrustedSponsorshipDomains, out string validatedUrl, out string errorMessage))
 			{
 				throw new ArgumentException(errorMessage);
 			}
@@ -135,7 +138,7 @@ namespace NuGetGallery
 								if (PackageHelper.TryPrepareUrlForRendering(entry.Url, out string validatedUrl))
 								{
 									// Always populate IsDomainAccepted during deserialization
-									var isDomainAccepted = PackageHelper.IsAcceptedSponsorshipDomain(validatedUrl);
+									var isDomainAccepted = _contentObjectService.TrustedSponsorshipDomains.IsSponsorshipDomainTrusted(GetDomainFromUrl(validatedUrl));
 									sponsorshipUrlEntries.Add(new SponsorshipUrlEntry(validatedUrl, entry.Timestamp, isDomainAccepted));
 								}
 								else
@@ -160,6 +163,16 @@ namespace NuGetGallery
 			}
 
 			return sponsorshipUrlEntries.AsReadOnly();
+		}
+
+		private string GetDomainFromUrl(string url)
+		{
+			if (string.IsNullOrWhiteSpace(url) || !Uri.TryCreate(url, UriKind.Absolute, out Uri uri))
+			{
+				return null;
+			}
+
+			return uri.Host.ToLowerInvariant();
 		}
 	}
 }

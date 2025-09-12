@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NuGet.Services.Entities;
 using NuGetGallery.Packaging;
+using NuGetGallery.Services;
 
 namespace NuGetGallery
 {
@@ -80,10 +81,11 @@ namespace NuGetGallery
 		/// Validates a sponsorship URL for both format and domain acceptance.
 		/// </summary>
 		/// <param name="url">The URL to validate</param>
+		/// <param name="trustedDomains">The trusted sponsorship domains service (required for validation)</param>
 		/// <param name="validatedUrl">The validated and prepared URL if successful</param>
 		/// <param name="errorMessage">The error message if validation fails</param>
 		/// <returns>True if the URL is valid and from an accepted domain</returns>
-		public static bool ValidateSponsorshipUrl(string url, out string validatedUrl, out string errorMessage)
+		public static bool ValidateSponsorshipUrl(string url, ITrustedSponsorshipDomains trustedDomains, out string validatedUrl, out string errorMessage)
 		{
 			validatedUrl = null;
 			errorMessage = null;
@@ -104,7 +106,7 @@ namespace NuGetGallery
 
 			// Validate URL format and domain acceptance
 			if (!TryPrepareUrlForRendering(urlToValidate, out validatedUrl) || 
-			    !IsAcceptedSponsorshipDomain(validatedUrl))
+			    !IsAcceptedSponsorshipDomain(validatedUrl, trustedDomains))
 			{
 				errorMessage = "Please enter a valid URL from a supported sponsorship platform.";
 				return false;
@@ -117,8 +119,9 @@ namespace NuGetGallery
 		/// Checks if a URL belongs to an accepted sponsorship domain.
 		/// </summary>
 		/// <param name="url">The URL to check</param>
-		/// <returns>True if the URL is from an accepted sponsorship domain</returns>
-		public static bool IsAcceptedSponsorshipDomain(string url)
+		/// <param name="trustedDomains">The trusted sponsorship domains service (required for validation)</param>
+		/// <returns>True if the URL is from an accepted sponsorship domain, false if not or if trustedDomains is null</returns>
+		public static bool IsAcceptedSponsorshipDomain(string url, ITrustedSponsorshipDomains trustedDomains)
 		{
 			if (string.IsNullOrWhiteSpace(url) || !Uri.TryCreate(url, UriKind.Absolute, out Uri uri))
 			{
@@ -126,16 +129,14 @@ namespace NuGetGallery
 			}
 
 			var hostname = uri.Host.ToLowerInvariant();
-			var acceptedDomains = new[] {
-				"github.com", "www.github.com",
-				"patreon.com", "www.patreon.com", 
-				"opencollective.com", "www.opencollective.com",
-				"ko-fi.com", "www.ko-fi.com",
-				"tidelift.com", "www.tidelift.com",
-				"liberapay.com", "www.liberapay.com"
-			};
 
-			return acceptedDomains.Contains(hostname);
+			// Only accept domains if trusted domains service is provided
+			if (trustedDomains != null)
+			{
+				return trustedDomains.IsSponsorshipDomainTrusted(hostname);
+			}
+
+			return false;
 		}
 
 		public static bool IsGitRepositoryType(string repositoryType)

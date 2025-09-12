@@ -1899,6 +1899,7 @@
     <EmbeddedResource Include="Infrastructure\AddPackageLicenseReport.sql" />
     <Content Include="Public\robots.txt" />
     <Content Include="App_Data\Files\Content\Trusted-Image-Domains.json" />
+    <Content Include="App_Data\Files\Content\Trusted-Sponsorship-Domains.json" />
     <Content Include="App_Data\Files\Content\Typosquatting-Configuration.json" />
     <Content Include="App_Data\Files\Content\flags.json" />
     <Content Include="Areas\Admin\Views\DeleteAccount\DeleteOrganizationAccount.cshtml" />

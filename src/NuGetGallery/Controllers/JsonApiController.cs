@@ -226,18 +226,12 @@ namespace NuGetGallery
 				        }, JsonRequestBehavior.AllowGet);
 			        }
 
-			        // Validate the URL before adding
-			        if (!PackageHelper.ValidateSponsorshipUrl(sponsorshipUrl, out string validatedUrl, out string validationErrorMessage))
-			        {
-				        return Json(new { success = false, message = validationErrorMessage }, JsonRequestBehavior.AllowGet);
-			        }
-
-			        // Use the validated URL for consistency
-			        await _sponsorshipUrlService.AddSponsorshipUrlAsync(package, validatedUrl);
+			        // Add the sponsorship URL
+			        await _sponsorshipUrlService.AddSponsorshipUrlAsync(package, sponsorshipUrl);
 			        
 			        return Json(new { 
 				        success = true, 
-				        validatedUrl = validatedUrl,
+				        validatedUrl = sponsorshipUrl,
 				        isDomainAccepted = true
 			        });
 		        }
