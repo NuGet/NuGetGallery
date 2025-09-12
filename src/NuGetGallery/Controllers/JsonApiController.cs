@@ -216,6 +216,12 @@ namespace NuGetGallery
 	        {
 		        try
 		        {
+			        var currentUser = GetCurrentUser();
+			        if (currentUser == null)
+			        {
+				        return Json(new { success = false, message = "User not authenticated." }, JsonRequestBehavior.AllowGet);
+			        }
+
 			        // Check server-side limit first
 			        var currentUrls = _sponsorshipUrlService.GetSponsorshipUrlEntries(package);
 			        if (currentUrls.Count >= GalleryConstants.MaxSponsorshipLinksPerPackage)
@@ -227,11 +233,11 @@ namespace NuGetGallery
 			        }
 
 			        // Add the sponsorship URL
-			        await _sponsorshipUrlService.AddSponsorshipUrlAsync(package, sponsorshipUrl);
+			        var validatedUrl = await _sponsorshipUrlService.AddSponsorshipUrlAsync(package, sponsorshipUrl, currentUser);
 			        
 			        return Json(new { 
 				        success = true, 
-				        validatedUrl = sponsorshipUrl,
+				        validatedUrl = validatedUrl,
 				        isDomainAccepted = true
 			        });
 		        }
@@ -255,17 +261,18 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("manage a package")]
         public virtual async Task<JsonResult> RemoveSponsorshipUrl(string id, string sponsorshipUrl)
         {
-	        // Basic input validation to prevent oversized requests
-	        if (!string.IsNullOrEmpty(sponsorshipUrl) && sponsorshipUrl.Length > 2048)
-	        {
-		        return Json(new { success = false, message = "URL is too long." }, JsonRequestBehavior.AllowGet);
-	        }
 
 	        if (TryGetPackageForSponsorshipManagement(id, out var package, out var errorMessage))
 	        {
 		        try
 		        {
-			        await _sponsorshipUrlService.RemoveSponsorshipUrlAsync(package, sponsorshipUrl);
+			        var currentUser = GetCurrentUser();
+			        if (currentUser == null)
+			        {
+				        return Json(new { success = false, message = "User not authenticated." }, JsonRequestBehavior.AllowGet);
+			        }
+
+			        await _sponsorshipUrlService.RemoveSponsorshipUrlAsync(package, sponsorshipUrl, currentUser);
 			        return Json(new { success = true });
 		        }
 		        catch (ArgumentException ex)

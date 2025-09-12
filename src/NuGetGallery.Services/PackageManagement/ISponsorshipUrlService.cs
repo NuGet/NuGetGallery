@@ -31,13 +31,16 @@ namespace NuGetGallery
 		/// </summary>
 		/// <param name="packageRegistration">The package registration to update</param>
 		/// <param name="url">The URL to add</param>
-		Task AddSponsorshipUrlAsync(PackageRegistration packageRegistration, string url);
+		/// <param name="user">The user performing the action</param>
+		/// <returns>The validated and normalized URL that was added</returns>
+		Task<string> AddSponsorshipUrlAsync(PackageRegistration packageRegistration, string url, User user);
 
 		/// <summary>
 		/// Removes a sponsorship URL from a package registration and saves changes to the database.
 		/// </summary>
 		/// <param name="packageRegistration">The package registration to update</param>
 		/// <param name="url">The URL to remove</param>
-		Task RemoveSponsorshipUrlAsync(PackageRegistration packageRegistration, string url);
+		/// <param name="user">The user performing the action</param>
+		Task RemoveSponsorshipUrlAsync(PackageRegistration packageRegistration, string url, User user);
 	}
 }

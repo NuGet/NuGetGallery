@@ -65,11 +65,17 @@ namespace NuGetGallery.Areas.Admin.Controllers
 					return Json(new { success = false, message = "Package not found." });
 				}
 
+				var currentUser = GetCurrentUser();
+				if (currentUser == null)
+				{
+					return Json(new { success = false, message = "User not authenticated." });
+				}
+
 				// Clear existing URLs first
 				var existingEntries = _sponsorshipUrlService.GetSponsorshipUrlEntries(packageRegistration);
 				foreach (var entry in existingEntries)
 				{
-					await _sponsorshipUrlService.RemoveSponsorshipUrlAsync(packageRegistration, entry.Url);
+					await _sponsorshipUrlService.RemoveSponsorshipUrlAsync(packageRegistration, entry.Url, currentUser);
 				}
 
 				// Add new URLs using service layer
@@ -80,8 +86,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
 					{
 						try
 						{
-							await _sponsorshipUrlService.AddSponsorshipUrlAsync(packageRegistration, url);
-							validatedUrls.Add(url);
+							var validatedUrl = await _sponsorshipUrlService.AddSponsorshipUrlAsync(packageRegistration, url, currentUser);
+							validatedUrls.Add(validatedUrl);
 						}
 						catch (ArgumentException ex)
 						{

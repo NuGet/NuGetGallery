@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
 using Newtonsoft.Json;
+using NuGetGallery.Auditing;
 using NuGetGallery.Services;
 
 namespace NuGetGallery
@@ -18,11 +19,13 @@ namespace NuGetGallery
 	{
 		private readonly IEntitiesContext _entitiesContext;
 		private readonly IContentObjectService _contentObjectService;
+		private readonly IAuditingService _auditingService;
 
-		public SponsorshipUrlService(IEntitiesContext entitiesContext, IContentObjectService contentObjectService)
+		public SponsorshipUrlService(IEntitiesContext entitiesContext, IContentObjectService contentObjectService, IAuditingService auditingService)
 		{
 			_entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
 			_contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
+			_auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
 		}
 
 		public IReadOnlyCollection<string> GetAcceptedSponsorshipUrls(PackageRegistration packageRegistration)
@@ -42,23 +45,56 @@ namespace NuGetGallery
 			return GetSponsorshipUrlEntriesInternal(packageRegistration);
 		}
 
-		public async Task AddSponsorshipUrlAsync(PackageRegistration packageRegistration, string url)
+		public async Task<string> AddSponsorshipUrlAsync(PackageRegistration packageRegistration, string url, User user)
 		{
-			AddSponsorshipUrlInternal(packageRegistration, url);
+			if (user == null)
+			{
+				throw new ArgumentNullException(nameof(user));
+			}
 
-			// Save changes to database
-			await _entitiesContext.SaveChangesAsync();
+			using (new SuspendDbExecutionStrategy())
+			using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
+			{
+				// Validate and add the URL
+				var validatedUrl = AddSponsorshipUrlInternal(packageRegistration, url, out DateTime databaseTimestamp);
+
+				// Save changes to database
+				await _entitiesContext.SaveChangesAsync();
+
+				// Create audit record with the same timestamp used in database
+				await _auditingService.SaveAuditRecordAsync(
+					PackageRegistrationAuditRecord.CreateForAddSponsorshipUrl(packageRegistration, validatedUrl, user.Username, user.IsAdministrator, databaseTimestamp));
+
+				transaction.Commit();
+
+				return validatedUrl;
+			}
 		}
 
-		public async Task RemoveSponsorshipUrlAsync(PackageRegistration packageRegistration, string url)
+		public async Task RemoveSponsorshipUrlAsync(PackageRegistration packageRegistration, string url, User user)
 		{
-			RemoveSponsorshipUrlInternal(packageRegistration, url);
+			if (user == null)
+			{
+				throw new ArgumentNullException(nameof(user));
+			}
 
-			// Save changes to database
-			await _entitiesContext.SaveChangesAsync();
+			using (new SuspendDbExecutionStrategy())
+			using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
+			{
+				RemoveSponsorshipUrlInternal(packageRegistration, url, out DateTime removalTimestamp);
+
+				// Save changes to database
+				await _entitiesContext.SaveChangesAsync();
+
+				// Create audit record with the same timestamp used for removal processing
+				await _auditingService.SaveAuditRecordAsync(
+					PackageRegistrationAuditRecord.CreateForRemoveSponsorshipUrl(packageRegistration, url, user.Username, user.IsAdministrator, removalTimestamp));
+
+				transaction.Commit();
+			}
 		}
 
-		private void AddSponsorshipUrlInternal(PackageRegistration packageRegistration, string url)
+		private string AddSponsorshipUrlInternal(PackageRegistration packageRegistration, string url, out DateTime timestamp)
 		{
 			if (packageRegistration == null)
 			{
@@ -73,16 +109,22 @@ namespace NuGetGallery
 
 			var existingEntries = GetSponsorshipUrlEntriesInternal(packageRegistration).ToList();
 
+			// Capture timestamp once for consistency between database and audit
+			timestamp = DateTime.UtcNow;
+
 			// Add new URL entry (only persist URL and timestamp, not isDomainAccepted)
-			var newEntry = new { Url = validatedUrl, Timestamp = DateTime.UtcNow };
+			var newEntry = new { Url = validatedUrl, Timestamp = timestamp };
 			var entriesToPersist = existingEntries.Select(e => new { e.Url, e.Timestamp }).ToList();
 			entriesToPersist.Add(newEntry);
 
 			// Serialize back to JSON
 			packageRegistration.SponsorshipUrls = JsonConvert.SerializeObject(entriesToPersist);
+
+			// Return the validated URL for auditing
+			return validatedUrl;
 		}
 
-		private void RemoveSponsorshipUrlInternal(PackageRegistration packageRegistration, string url)
+		private void RemoveSponsorshipUrlInternal(PackageRegistration packageRegistration, string url, out DateTime removalTimestamp)
 		{
 			if (packageRegistration == null)
 			{
@@ -104,6 +146,9 @@ namespace NuGetGallery
 			{
 				throw new ArgumentException("The specified sponsorship URL was not found for this package.", nameof(url));
 			}
+
+			// Capture removal timestamp for consistency between database and audit
+			removalTimestamp = DateTime.UtcNow;
 
 			existingEntries.Remove(entryToRemove);
 			
