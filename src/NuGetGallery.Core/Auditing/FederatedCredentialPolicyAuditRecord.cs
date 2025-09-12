@@ -224,45 +224,37 @@ namespace NuGetGallery.Auditing
         }
 
         public static FederatedCredentialPolicyAuditRecord BadRequest(
-            FederatedCredentialType type,
-            User createdBy,
-            User packageOwner,
-            string criteria,
-            string errorMessage)
+            FederatedCredentialPolicy policy, string errorMessage)
         {
             return new FederatedCredentialPolicyAuditRecord(
                 AuditedFederatedCredentialPolicyAction.BadRequest,
-                null, // no DB policy key
-                type,
-                createdBy,
-                packageOwner,
-                criteria,
+                policy.Key,
+                policy.Type,
+                policy.CreatedBy,
+                policy.PackageOwner,
+                policy.Criteria,
                 success: false,
                 federatedCredential: null,
                 apiKeyCredentials: [],
                 externalCredential: null,
-                errorMessage: errorMessage);
+                errorMessage: errorMessage ?? throw new ArgumentNullException(nameof(errorMessage)));
         }
 
         public static FederatedCredentialPolicyAuditRecord Unauthorized(
-            FederatedCredentialType type,
-            User createdBy,
-            User packageOwner,
-            string criteria,
-            string errorMessage)
+            FederatedCredentialPolicy policy, string errorMessage)
         {
             return new FederatedCredentialPolicyAuditRecord(
                 AuditedFederatedCredentialPolicyAction.Unauthorized,
-                null, // no DB policy key
-                type,
-                createdBy,
-                packageOwner,
-                criteria,
+                policy.Key,
+                policy.Type,
+                policy.CreatedBy,
+                policy.PackageOwner,
+                policy.Criteria,
                 success: false,
                 federatedCredential: null,
                 apiKeyCredentials: [],
                 externalCredential: null,
-                errorMessage: errorMessage);
+                errorMessage: errorMessage ?? throw new ArgumentNullException(nameof(errorMessage)));
         }
 
         public override string GetPath()

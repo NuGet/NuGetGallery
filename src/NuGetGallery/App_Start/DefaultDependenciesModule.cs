@@ -604,7 +604,6 @@ namespace NuGetGallery
                     c.Resolve<IFederatedCredentialConfiguration>(),
                     c.Resolve<IFeatureFlagService>(),
                     c.Resolve<JsonWebTokenHandler>()))
-                .As<IEntraIdTokenValidator>()
                 .As<ITokenPolicyValidator>()
                 .InstancePerLifetimeScope();
 

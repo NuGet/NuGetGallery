@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.8.34118.359
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.10925.136
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2. Frontend", "2. Frontend", "{05998089-58F5-4A84-8C11-C5C6244A6F89}"
 EndProject

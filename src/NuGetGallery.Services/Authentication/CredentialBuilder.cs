@@ -29,7 +29,7 @@ namespace NuGetGallery.Infrastructure.Authentication
                 V3Hasher.GenerateHash(plaintextPassword));
         }
 
-        public Credential CreateShortLivedApiKey(TimeSpan expiration, FederatedCredentialPolicy policy, string galleryEnvironment, bool isApiKeyV5Enabled, out string plaintextApiKey)
+        public Credential CreateShortLivedApiKey(TimeSpan expiration, FederatedCredentialPolicy policy, string galleryEnvironment, out string plaintextApiKey)
         {
             if (policy.PackageOwner is null)
             {
@@ -41,21 +41,13 @@ namespace NuGetGallery.Infrastructure.Authentication
                 throw new ArgumentOutOfRangeException(nameof(expiration));
             }
 
-            Credential credential;
-            if (isApiKeyV5Enabled)
-            {
-                var allocationTime = DateTime.UtcNow;
-                allocationTime = allocationTime.AddSeconds(-allocationTime.Second).AddMilliseconds(-allocationTime.Millisecond);
+            var allocationTime = DateTime.UtcNow;
+            allocationTime = allocationTime.AddSeconds(-allocationTime.Second).AddMilliseconds(-allocationTime.Millisecond);
 
-                var apiKey = ApiKeyV5.Create(allocationTime, ApiKeyV5.GetEnvironment(galleryEnvironment), policy.PackageOwnerUserKey, ApiKeyV5.KnownApiKeyTypes.ShortLived, expiration);
-                plaintextApiKey = apiKey.PlaintextApiKey;
+            var apiKey = ApiKeyV5.Create(allocationTime, ApiKeyV5.GetEnvironment(galleryEnvironment), policy.PackageOwnerUserKey, ApiKeyV5.KnownApiKeyTypes.ShortLived, expiration);
+            plaintextApiKey = apiKey.PlaintextApiKey;
 
-                credential = new Credential(CredentialTypes.ApiKey.V5, apiKey.HashedApiKey, expiration: expiration);
-            }
-            else
-            {
-                credential = CreateApiKey(expiration, out plaintextApiKey);
-            }
+            var credential = new Credential(CredentialTypes.ApiKey.V5, apiKey.HashedApiKey, expiration: expiration);
 
             credential.FederatedCredentialPolicy = policy;
             credential.Description = "Short-lived API key generated via a federated credential";

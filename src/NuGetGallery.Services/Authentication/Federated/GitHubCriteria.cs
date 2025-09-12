@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -17,6 +18,8 @@ namespace NuGetGallery.Services.Authentication
     [DebuggerDisplay("{RepositoryOwner,nq}/{Repository,nq}/.github/workflows/{WorkflowFile,nq}")]
     public class GitHubCriteria
     {
+        public const int ValidationExpirationDays = 7;
+
         private string _repositoryOwner = string.Empty;
         private string? _repositoryOwnerId = null;
         private string _repository = string.Empty;
@@ -100,10 +103,84 @@ namespace NuGetGallery.Services.Authentication
         /// </summary>
         public bool IsPermanentlyEnabled => !string.IsNullOrEmpty(RepositoryOwnerId) && !string.IsNullOrEmpty(RepositoryId);
 
+        public int EnabledDaysLeft
+        {
+            get
+            {
+                if (IsPermanentlyEnabled)
+                {
+                    return int.MaxValue; // Permanently enabled, no expiration.
+                }
+
+                if (ValidateByDate.HasValue)
+                {
+                    var daysLeft = Math.Ceiling((ValidateByDate.Value - DateTimeOffset.UtcNow).TotalDays);
+                    return Math.Max((int)daysLeft, 0); // Ensure non-negative days left.
+                }
+
+                return 0;
+            }
+        }
+
         private static string? NormalizeOptionalValue(string? value)
         {
             value = value?.Trim() ?? string.Empty;
             return value.Length == 0 ? null : value;
+        }
+
+        /// <summary>
+        /// Validates the current configuration for required GitHub repository details.
+        /// </summary>
+        /// <remarks>This method checks for the presence of essential GitHub repository information,
+        /// including the repository owner, repository name, and workflow file. If any of these are missing, it returns
+        /// a list of error messages.</remarks>
+        /// <returns>A string containing a comma-separated list of validation error messages if any required details are missing;
+        /// otherwise, <see langword="null"/>.</returns>
+        public string? Validate()
+        {
+            var errors = new List<string>();
+
+            if (string.IsNullOrEmpty(RepositoryOwner))
+            {
+                errors.Add("The GitHub repository owner is required.");
+            }
+
+            if (string.IsNullOrEmpty(Repository))
+            {
+                errors.Add("The GitHub repository is required.");
+            }
+
+            if (string.IsNullOrEmpty(WorkflowFile))
+            {
+                errors.Add("The GitHub Action workflow file is required.");
+            }
+
+            if (!IsPermanentlyEnabled && !ValidateByDate.HasValue)
+            {
+                errors.Add("The validate-by date is required.");
+            }
+
+            return errors.Count > 0 ? string.Join(" ", errors) : null;
+        }
+
+        /// <summary>
+        /// Initializes the validation date and returns <see langword="true"/> if its value has changed.
+        /// </summary>
+        internal void InitializeValidateByDate()
+        {
+            if (IsPermanentlyEnabled)
+            {
+                // Reset the validation date if the policy is permanently enabled.
+                var changed = ValidateByDate.HasValue;
+                ValidateByDate = null;
+            }
+            else
+            {
+                // Ensure consistent temporary state, i.e. IDs are empty and validation date is set to 7 days from now..
+                RepositoryOwnerId = RepositoryId = string.Empty;
+                DateTimeOffset date = DateTimeOffset.UtcNow + TimeSpan.FromDays(ValidationExpirationDays);
+                ValidateByDate = new DateTimeOffset(date.Year, date.Month, date.Day, date.Hour, 0, 0, TimeSpan.Zero);
+            }
         }
 
         public GitHubCriteria Clone()
