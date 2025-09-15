@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
+using NuGetGallery.Services;
 
 namespace NuGetGallery
 {
@@ -12,6 +13,10 @@ namespace NuGetGallery
 	/// </summary>
 	public interface ISponsorshipUrlService
 	{
+		/// <summary>
+		/// Gets the trusted sponsorship domains configuration
+		/// </summary>
+		ITrustedSponsorshipDomains TrustedSponsorshipDomains { get; }
 		/// <summary>
 		/// Gets domain-validated sponsorship URLs
 		/// </summary>

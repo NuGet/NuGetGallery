@@ -84,9 +84,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
 				// Check server-side limit first
 				var currentUrls = _sponsorshipUrlService.GetSponsorshipUrlEntries(packageRegistration);
-				if (currentUrls.Count >= GalleryConstants.MaxSponsorshipLinksPerPackage)
+				var maxLinks = _sponsorshipUrlService.TrustedSponsorshipDomains.MaxSponsorshipLinks;
+				if (currentUrls.Count >= maxLinks)
 				{
-					return RedirectToAction("Index", new { packageId, message = $"You can add a maximum of {GalleryConstants.MaxSponsorshipLinksPerPackage} sponsorship links.", isSuccess = false });
+					return RedirectToAction("Index", new { packageId, message = $"You can add a maximum of {maxLinks} sponsorship links.", isSuccess = false });
 				}
 
 				var validatedUrl = await _sponsorshipUrlService.AddSponsorshipUrlAsync(packageRegistration, newSponsorshipUrl, currentUser);

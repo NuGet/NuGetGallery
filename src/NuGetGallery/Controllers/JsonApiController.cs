@@ -224,11 +224,12 @@ namespace NuGetGallery
 
 			        // Check server-side limit first
 			        var currentUrls = _sponsorshipUrlService.GetSponsorshipUrlEntries(package);
-			        if (currentUrls.Count >= GalleryConstants.MaxSponsorshipLinksPerPackage)
+			        var maxLinks = _sponsorshipUrlService.TrustedSponsorshipDomains.MaxSponsorshipLinks;
+			        if (currentUrls.Count >= maxLinks)
 			        {
 				        return Json(new { 
 					        success = false, 
-					        message = $"You can add a maximum of {GalleryConstants.MaxSponsorshipLinksPerPackage} sponsorship links." 
+					        message = $"You can add a maximum of {maxLinks} sponsorship links." 
 				        }, JsonRequestBehavior.AllowGet);
 			        }
 

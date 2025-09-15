@@ -6,5 +6,6 @@ namespace NuGetGallery.Services
 	public interface ITrustedSponsorshipDomains
 	{
 		bool IsSponsorshipDomainTrusted(string sponsorshipDomain);
+		int MaxSponsorshipLinks { get; }
 	}
 }

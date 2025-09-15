@@ -21,6 +21,8 @@ namespace NuGetGallery
 		private readonly IContentObjectService _contentObjectService;
 		private readonly IAuditingService _auditingService;
 
+		public ITrustedSponsorshipDomains TrustedSponsorshipDomains => _contentObjectService.TrustedSponsorshipDomains;
+
 		public SponsorshipUrlService(IEntitiesContext entitiesContext, IContentObjectService contentObjectService, IAuditingService auditingService)
 		{
 			_entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));

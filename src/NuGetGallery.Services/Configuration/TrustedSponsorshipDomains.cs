@@ -11,15 +11,16 @@ namespace NuGetGallery.Services
 	public class TrustedSponsorshipDomains : ITrustedSponsorshipDomains
 	{
 		public HashSet<string> TrustedSponsorshipDomainList { get; }
+		public int MaxSponsorshipLinks { get; }
 
 		public TrustedSponsorshipDomains()
-			: this(trustedSponsorshipDomainList: Enumerable.Empty<string>())
+			: this(trustedSponsorshipDomainList: Enumerable.Empty<string>(), maxSponsorshipLinks: 10)
 		{
 
 		}
 
 		[JsonConstructor]
-		public TrustedSponsorshipDomains(IEnumerable<string> trustedSponsorshipDomainList)
+		public TrustedSponsorshipDomains(IEnumerable<string> trustedSponsorshipDomainList, int maxSponsorshipLinks = 10)
 		{
 			if (trustedSponsorshipDomainList == null)
 			{
@@ -28,6 +29,7 @@ namespace NuGetGallery.Services
 
 			var trustedSponsorshipDomainListFromFile = new HashSet<string>(trustedSponsorshipDomainList, StringComparer.OrdinalIgnoreCase);
 			TrustedSponsorshipDomainList = expandDomainList(trustedSponsorshipDomainListFromFile);
+			MaxSponsorshipLinks = maxSponsorshipLinks;
 		}
 
 		public bool IsSponsorshipDomainTrusted(string sponsorshipDomain)

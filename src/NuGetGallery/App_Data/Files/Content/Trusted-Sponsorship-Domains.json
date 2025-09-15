@@ -6,5 +6,6 @@
         "opencollective.com",
         "tidelift.com",
         "liberapay.com"
-    ]
+    ],
+    "MaxSponsorshipLinks": 10
 }
