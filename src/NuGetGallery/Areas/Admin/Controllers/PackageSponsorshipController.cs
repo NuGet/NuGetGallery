@@ -2,12 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using NuGet.Versioning;
 using NuGetGallery.Areas.Admin.ViewModels;
-using Newtonsoft.Json;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
@@ -25,93 +24,110 @@ namespace NuGetGallery.Areas.Admin.Controllers
 		}
 
 		[HttpGet]
-		public ActionResult Index()
+		public ActionResult Index(string packageId = null, string message = null, bool isSuccess = false)
 		{
-			return View();
+			var model = new PackageSponsorshipIndexViewModel
+			{
+				PackageId = packageId,
+				Message = message,
+				IsSuccess = isSuccess
+			};
+
+			if (!string.IsNullOrEmpty(packageId))
+			{
+				var packageRegistration = _packageService.FindPackageRegistrationById(packageId);
+				if (packageRegistration != null)
+				{
+					// Get the latest version of the package
+					var package = packageRegistration.Packages
+						.OrderByDescending(p => NuGetVersion.Parse(p.NormalizedVersion))
+						.FirstOrDefault();
+					if (package != null)
+					{
+						model.Package = package;
+						// Use the service to get properly parsed sponsorship URLs
+						model.SponsorshipUrls = _sponsorshipUrlService.GetSponsorshipUrlEntries(packageRegistration);
+					}
+				}
+				else if (string.IsNullOrEmpty(message))
+				{
+					model.Message = $"Package '{packageId}' not found.";
+					model.IsSuccess = false;
+				}
+			}
+
+			return View(model);
 		}
 
-	[HttpGet]
-	public ActionResult Search(string query)
-	{
-		var packages = SearchForPackages(_packageService, query);
-		
-		// Group packages by PackageRegistration to get unique package IDs
-		var packageRegistrations = packages
-			.GroupBy(p => p.PackageRegistration)
-			.Select(g => g.First()) // Take the first package from each registration
-			.ToList();
-
-		var results = new List<PackageSearchResult>();
-		foreach (var package in packageRegistrations)
-		{
-			var result = CreatePackageSearchResult(package);
-			
-			// Get sponsorship URLs using the service
-			var sponsorshipEntries = _sponsorshipUrlService.GetSponsorshipUrlEntries(package.PackageRegistration);
-			result.SponsorshipUrls = sponsorshipEntries?.Select(e => e.Url).ToList() ?? new List<string>();
-			
-			results.Add(result);
-		}
-
-		return Json(results, JsonRequestBehavior.AllowGet);
-	}		[HttpPost]
-		public async Task<ActionResult> UpdateSponsorshipUrls(string packageId, string[] urls)
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<ActionResult> AddUrl(string packageId, string newSponsorshipUrl)
 		{
 			try
 			{
 				var packageRegistration = _packageService.FindPackageRegistrationById(packageId);
 				if (packageRegistration == null)
 				{
-					return Json(new { success = false, message = "Package not found." });
+					return RedirectToAction("Index", new { packageId, message = "Package not found.", isSuccess = false });
 				}
 
 				var currentUser = GetCurrentUser();
 				if (currentUser == null)
 				{
-					return Json(new { success = false, message = "User not authenticated." });
+					return RedirectToAction("Index", new { packageId, message = "User not authenticated.", isSuccess = false });
 				}
 
-				// Clear existing URLs first
-				var existingEntries = _sponsorshipUrlService.GetSponsorshipUrlEntries(packageRegistration);
-				foreach (var entry in existingEntries)
+				if (string.IsNullOrWhiteSpace(newSponsorshipUrl))
 				{
-					await _sponsorshipUrlService.RemoveSponsorshipUrlAsync(packageRegistration, entry.Url, currentUser);
+					return RedirectToAction("Index", new { packageId, message = "Sponsorship URL cannot be empty.", isSuccess = false });
 				}
 
-				// Add new URLs using service layer
-				var validatedUrls = new List<string>();
-				foreach (var url in urls ?? new string[0])
+				// Check server-side limit first
+				var currentUrls = _sponsorshipUrlService.GetSponsorshipUrlEntries(packageRegistration);
+				if (currentUrls.Count >= GalleryConstants.MaxSponsorshipLinksPerPackage)
 				{
-					if (!string.IsNullOrWhiteSpace(url))
-					{
-						try
-						{
-							var validatedUrl = await _sponsorshipUrlService.AddSponsorshipUrlAsync(packageRegistration, url, currentUser);
-							validatedUrls.Add(validatedUrl);
-						}
-						catch (ArgumentException ex)
-						{
-							return Json(new { 
-								success = false, 
-								message = $"Invalid URL '{url}': {ex.Message}" 
-							});
-						}
-					}
+					return RedirectToAction("Index", new { packageId, message = $"You can add a maximum of {GalleryConstants.MaxSponsorshipLinksPerPackage} sponsorship links.", isSuccess = false });
 				}
 
-				return Json(new { 
-					success = true, 
-					message = "Sponsorship URLs updated successfully.",
-					urls = validatedUrls
-				});
+				var validatedUrl = await _sponsorshipUrlService.AddSponsorshipUrlAsync(packageRegistration, newSponsorshipUrl, currentUser);
+				return RedirectToAction("Index", new { packageId, message = "Sponsorship URL added successfully.", isSuccess = true });
+			}
+			catch (ArgumentException ex)
+			{
+				return RedirectToAction("Index", new { packageId, message = $"Invalid URL: {ex.Message}", isSuccess = false });
 			}
 			catch (Exception ex)
 			{
-				return Json(new { 
-					success = false, 
-					message = $"Error updating sponsorship URLs: {ex.Message}" 
-				});
+				return RedirectToAction("Index", new { packageId, message = $"Error adding sponsorship URL: {ex.Message}", isSuccess = false });
 			}
 		}
+
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<ActionResult> RemoveUrl(string packageId, string sponsorshipUrl)
+		{
+			try
+			{
+				var packageRegistration = _packageService.FindPackageRegistrationById(packageId);
+				if (packageRegistration == null)
+				{
+					return RedirectToAction("Index", new { packageId, message = "Package not found.", isSuccess = false });
+				}
+
+				var currentUser = GetCurrentUser();
+				if (currentUser == null)
+				{
+					return RedirectToAction("Index", new { packageId, message = "User not authenticated.", isSuccess = false });
+				}
+
+				await _sponsorshipUrlService.RemoveSponsorshipUrlAsync(packageRegistration, sponsorshipUrl, currentUser);
+				return RedirectToAction("Index", new { packageId, message = "Sponsorship URL removed successfully.", isSuccess = true });
+			}
+			catch (Exception ex)
+			{
+				return RedirectToAction("Index", new { packageId, message = $"Error removing sponsorship URL: {ex.Message}", isSuccess = false });
+			}
+		}
+
 	}
 }

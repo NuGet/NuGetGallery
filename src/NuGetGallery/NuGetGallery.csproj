@@ -201,6 +201,7 @@
     <Compile Include="Areas\Admin\ViewModels\ModifyFeatureFlagsFeatureViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ModifyFeatureFlagsFlightViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ApiKeyRevokeViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\PackageSponsorshipIndexViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\PackageOwnershipChangesInput.cs" />
     <Compile Include="Areas\Admin\ViewModels\PackageOwnershipState.cs" />
     <Compile Include="Areas\Admin\ViewModels\PackageOwnershipChangesModel.cs" />
