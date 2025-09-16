@@ -254,7 +254,6 @@
             </div>
         </div>
         <!-- /ko -->
-
         <!-- ko ifnot: Key -->
         <!-- GitHub specific content -->
         <div style="display: flex; align-items: center; gap: 10px;">
@@ -270,13 +269,14 @@
             <div class="col-sm-7 form-group">
                 <label class="control-label required" data-bind="attr: { for: gitHub.RepositoryOwnerUid(),
                                           id: gitHub.RepositoryOwnerUid() + '-label' }">Repository Owner</label>
+                <br />
+                <span>Example: <span class="example-text">azure</span>. The GitHub organization or owner name. </span>
                 <input type="text" class="form-control input-brand" data-bind="attr: { id: gitHub.RepositoryOwnerUid(),
                                           name: gitHub.RepositoryOwnerUid(),
                                           'aria-labelledby': gitHub.RepositoryOwnerUid() + '-label ' + gitHub.RepositoryOwnerUid() + '-validation-message' },
                                           trimmedValue: gitHub.PendingRepositoryOwner" data-val-required="Repository owner is required." data-val="true" />
                 <span class="field-validation-valid help-block" data-valmsg-replace="true" data-bind="attr: { 'data-valmsg-for': gitHub.RepositoryOwnerUid(),
                                          id: gitHub.RepositoryOwnerUid() + '-validation-message' }" />
-                <span>The GitHub organization or owner name. Example: <span class="example-text">azure</span></span>
             </div>
         </div>
 
@@ -285,34 +285,33 @@
             <div class="col-sm-7 form-group">
                 <label class="control-label required" data-bind="attr: { for: gitHub.RepositoryUid(),
                                           id: gitHub.RepositoryUid() + '-label' }">Repository</label>
+                <br />
+                <span>Example: <span class="example-text">azure-sdk-tools</span>. The GitHub repository name.</span>
                 <input type="text" class="form-control input-brand" data-bind="attr: { id: gitHub.RepositoryUid(),
                                           name: gitHub.RepositoryUid(),
                                           'aria-labelledby': gitHub.RepositoryUid() + '-label ' + gitHub.RepositoryUid() + '-validation-message' },
                                           trimmedValue: gitHub.PendingRepository" data-val-required="Repository is required." data-val="true" />
                 <span class="field-validation-valid help-block" data-valmsg-replace="true" data-bind="attr: { 'data-valmsg-for': gitHub.RepositoryUid(),
                                          id: gitHub.RepositoryUid() + '-validation-message' }" />
-                <span>The GitHub repository name. Example: <span class="example-text">azure-sdk-tools</span></span>
             </div>
         </div>
         <!-- /ko -->
-
         <!-- Workflow File -->
         <div class="row">
             <div class="col-sm-7 form-group">
                 <label class="control-label required" data-bind="attr: { for: gitHub.WorkflowFileUid(),
                                           id: gitHub.WorkflowFileUid() + '-label' }">Workflow File</label>
+                <br />
+                <span>
+                    Example: <span class="example-text">build.yml</span>. The file name that contains publishing workflow
+                    and exists in the <span class="example-text">.github/workflows/</span> directory.
+                </span>
                 <input type="text" class="form-control input-brand" data-bind="attr: { id: gitHub.WorkflowFileUid(),
                                           name: gitHub.WorkflowFileUid(),
                                           'aria-labelledby': gitHub.WorkflowFileUid() + '-label ' + gitHub.WorkflowFileUid() + '-validation-message' },
                                           trimmedValue: gitHub.PendingWorkflowFile" data-val-required="Workflow file is required." data-val="true" />
                 <span class="field-validation-valid help-block" data-valmsg-replace="true" data-bind="attr: { 'data-valmsg-for': gitHub.WorkflowFileUid(),
                                          id: gitHub.WorkflowFileUid() + '-validation-message' }" />
-                <span>
-                    The file name that contains publishing workflow and exists in the
-                    <span class="example-text">.github/workflows/</span> directory. Example:
-                    <span class="example-text">build.yml</span> or
-                    <span class="example-text">deploy/release.yaml</span>
-                </span>
             </div>
         </div>
 
@@ -321,11 +320,12 @@
             <div class="col-sm-7 form-group">
                 <label class="control-label" data-bind="attr: { for: gitHub.EnvironmentUid(),
                                           id: gitHub.EnvironmentUid() + '-label' }">Environment</label>
+                <br />
+                <span>The GitHub Actions environment name, e.g. <span class="example-text">production</span></span>
                 <input type="text" class="form-control input-brand" data-bind="attr: { id: gitHub.EnvironmentUid(),
                           name: gitHub.EnvironmentUid(),
                           'aria-labelledby': gitHub.EnvironmentUid() + '-label' },
                   trimmedValue: gitHub.PendingEnvironment" />
-                <span>The GitHub Actions environment name, e.g. <span class="example-text">production</span></span>
             </div>
         </div>
 
@@ -369,5 +369,5 @@
                          }
                      });
     </script>
-    @Scripts.RenderFormat("<script src=\"{0}\" nonce='" + @Html.GetCSPNonce().ToString() + "'></script>", "~/Scripts/gallery/page-trusted-publishing.min.js");
+    @Scripts.RenderFormat("<script src=\"{0}\" nonce='" + @Html.GetCSPNonce().ToString() + "'></script>", "~/Scripts/gallery/page-trusted-publishing.min.js")
 }

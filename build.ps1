@@ -150,6 +150,7 @@ Invoke-BuildStep 'Creating job packages from jobs solution' {
             "src\Stats.AggregateCdnDownloadsInGallery\Stats.AggregateCdnDownloadsInGallery.nuspec",
             "src\Stats.CDNLogsSanitizer\Stats.CDNLogsSanitizer.nuspec",
             "src\Stats.CollectAzureChinaCDNLogs\Stats.CollectAzureChinaCDNLogs.nuspec",
+            "src\Stats.CreateAzureCdnWarehouseReports\Stats.CreateAzureCdnWarehouseReports.nuspec",
             "src\Stats.PostProcessReports\Stats.PostProcessReports.nuspec",
             "src\StatusAggregator\StatusAggregator.nuspec",
             "src\Validation.PackageSigning.ProcessSignature\Validation.PackageSigning.ProcessSignature.nuspec",

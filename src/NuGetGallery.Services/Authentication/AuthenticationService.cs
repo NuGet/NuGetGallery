@@ -379,7 +379,7 @@ namespace NuGetGallery.Authentication
             return claims.ToArray();
         }
 
-        public virtual async Task<AuthenticatedUser> Register(string username, string emailAddress, Credential credential, bool autoConfirm = false, bool enableMultiFactorAuthentication = false)
+        public virtual async Task<AuthenticatedUser> Register(string username, string emailAddress, Credential credential, bool enableMultiFactorAuthentication = false)
         {
             if (_config.FeedOnlyMode)
             {
@@ -413,7 +413,7 @@ namespace NuGetGallery.Authentication
             // Add a credential for the password
             newUser.Credentials.Add(credential);
 
-            if (!_config.ConfirmEmailAddresses || autoConfirm)
+            if (!_config.ConfirmEmailAddresses)
             {
                 newUser.ConfirmEmailAddress();
             }
