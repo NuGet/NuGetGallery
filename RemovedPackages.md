@@ -82,7 +82,7 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    Monaco.2I          |    08/04/2025    |    Potentially Malicious    |
 |    SolnetAll          |    08/25/2025    |    Potentially Malicious    |
 |    NBitcoin.Unified   |    08/25/2025    |    Potentially Malicious    |
-|    NethereumUnified (all versions)   |    09/15/2025    |    Potentially Malicious    |
+|    NethereumUnified   |    09/15/2025    |    Potentially Malicious    |
 
 
 
