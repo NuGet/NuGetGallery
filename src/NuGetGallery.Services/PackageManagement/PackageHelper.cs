@@ -75,89 +75,6 @@ namespace NuGetGallery
 			return false;
 		}
 
-
-
-		/// <summary>
-		/// Validates a sponsorship URL for both format and domain acceptance.
-		/// </summary>
-		/// <param name="url">The URL to validate</param>
-		/// <param name="trustedDomains">The trusted sponsorship domains service (required for validation)</param>
-		/// <param name="validatedUrl">The validated and prepared URL if successful</param>
-		/// <param name="errorMessage">The error message if validation fails</param>
-		/// <returns>True if the URL is valid and from an accepted domain</returns>
-		public static bool ValidateSponsorshipUrl(string url, ITrustedSponsorshipDomains trustedDomains, out string validatedUrl, out string errorMessage)
-		{
-			validatedUrl = null;
-			errorMessage = null;
-
-			if (string.IsNullOrWhiteSpace(url))
-			{
-				errorMessage = "URL cannot be null or empty.";
-				return false;
-			}
-
-			// Normalize URL: add https:// if no scheme is present
-			string urlToValidate = url.Trim();
-			if (!urlToValidate.StartsWith("http://", StringComparison.OrdinalIgnoreCase) && 
-			    !urlToValidate.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
-			{
-				urlToValidate = "https://" + urlToValidate;
-			}
-
-			// Validate URL format and domain acceptance (includes path validation)
-			if (!TryPrepareUrlForRendering(urlToValidate, out validatedUrl) || 
-			    !IsAcceptedSponsorshipDomain(validatedUrl, trustedDomains))
-			{
-				errorMessage = "Please provide a valid sponsorship URL from a supported sponsorship platform.";
-				return false;
-			}
-
-			return true;
-		}
-
-		/// <summary>
-		/// Checks if a URL belongs to an accepted sponsorship domain and has a meaningful path.
-		/// </summary>
-		/// <param name="url">The URL to check</param>
-		/// <param name="trustedDomains">The trusted sponsorship domains service (required for validation)</param>
-		/// <returns>True if the URL is from an accepted sponsorship domain and has a meaningful path, false otherwise</returns>
-		public static bool IsAcceptedSponsorshipDomain(string url, ITrustedSponsorshipDomains trustedDomains)
-		{
-			if (string.IsNullOrWhiteSpace(url) || !Uri.TryCreate(url, UriKind.Absolute, out Uri uri))
-			{
-				return false;
-			}
-
-			var hostname = uri.Host.ToLowerInvariant();
-
-			// Only accept domains if trusted domains service is provided
-			if (trustedDomains == null || !trustedDomains.IsSponsorshipDomainTrusted(hostname))
-			{
-				return false;
-			}
-
-			// Check if the path has a meaningful sponsorship identifier
-			var path = uri.AbsolutePath?.Trim('/');
-			
-			if (string.IsNullOrEmpty(path))
-			{
-				return false; // No path at all
-			}
-
-			// Special validation for GitHub sponsors - must have username after /sponsors/
-			if (hostname == "github.com")
-			{
-				// Must be in format /sponsors/username (at least 3 path segments when split by /)
-				var pathParts = path.Split('/');
-				return pathParts.Length >= 2 && 
-				       pathParts[0].Equals("sponsors", StringComparison.OrdinalIgnoreCase) &&
-				       !string.IsNullOrWhiteSpace(pathParts[1]);
-			}
-
-			// For other domains, just ensure there's some meaningful path beyond root
-			return !string.IsNullOrEmpty(path);
-		}
-
 		public static bool IsGitRepositoryType(string repositoryType)
 		{
 			return ServicesConstants.GitRepository.Equals(repositoryType, StringComparison.OrdinalIgnoreCase);
@@ -310,6 +227,86 @@ namespace NuGetGallery
 			}
 
 			return NuGetVersionFormatter.ToFullString(package.Version) + (tags.Any() ? $" ({string.Join(", ", tags)})" : string.Empty);
+		}
+
+		/// <summary>
+		/// Validates a sponsorship URL for both format and domain acceptance.
+		/// </summary>
+		/// <param name="url">The URL to validate</param>
+		/// <param name="trustedDomains">The trusted sponsorship domains service (required for validation)</param>
+		/// <param name="validatedUrl">The validated and prepared URL if successful</param>
+		/// <param name="errorMessage">The error message if validation fails</param>
+		/// <returns>True if the URL is valid and from an accepted domain</returns>
+		public static bool ValidateSponsorshipUrl(string url, ITrustedSponsorshipDomains trustedDomains, out string validatedUrl, out string errorMessage)
+		{
+			validatedUrl = null;
+			errorMessage = null;
+
+			if (string.IsNullOrWhiteSpace(url))
+			{
+				errorMessage = "Please enter a URL.";
+				return false;
+			}
+
+			// Normalize URL: add https:// if no scheme is present
+			string urlToValidate = url.Trim();
+			if (!Uri.TryCreate(urlToValidate, UriKind.Absolute, out Uri testUri) || testUri.Scheme == null)
+			{
+				urlToValidate = "https://" + urlToValidate;
+			}
+
+			// Validate URL format and domain acceptance (includes path validation)
+			if (!TryPrepareUrlForRendering(urlToValidate, out validatedUrl) || 
+			    !IsAcceptedSponsorshipDomain(validatedUrl, trustedDomains))
+			{
+				validatedUrl = null; // ValidatedUrl is null when validation fails
+				errorMessage = "Please provide a valid URL from a supported sponsorship platform.";
+				return false;
+			}
+
+			return true;
+		}
+
+		/// <summary>
+		/// Checks if a URL belongs to an accepted sponsorship domain and has a meaningful path.
+		/// </summary>
+		/// <param name="url">The URL to check</param>
+		/// <param name="trustedDomains">The trusted sponsorship domains service (required for validation)</param>
+		/// <returns>True if the URL is from an accepted sponsorship domain and has a meaningful path, false otherwise</returns>
+		public static bool IsAcceptedSponsorshipDomain(string url, ITrustedSponsorshipDomains trustedDomains)
+		{
+			if (!Uri.TryCreate(url, UriKind.Absolute, out Uri uri))
+			{
+				return false;
+			}
+			var hostname = uri.Host.ToLowerInvariant();
+
+			// Only accept domains if trusted domains service is provided
+			if (trustedDomains == null || !trustedDomains.IsSponsorshipDomainTrusted(hostname))
+			{
+				return false;
+			}
+
+			// Check if the path has a meaningful sponsorship identifier
+			var path = uri.AbsolutePath?.Trim('/');
+			
+			if (string.IsNullOrEmpty(path))
+			{
+				return false; // No path at all
+			}
+
+			// Special validation for GitHub sponsors - must have username after /sponsors/
+			if (hostname == "github.com")
+			{
+				// Must be in format /sponsors/username (at least 3 path segments when split by /)
+				var pathParts = path.Split('/');
+				return pathParts.Length >= 2 && 
+				       pathParts[0].Equals("sponsors", StringComparison.OrdinalIgnoreCase) &&
+				       !string.IsNullOrWhiteSpace(pathParts[1]);
+			}
+
+			// For other domains, just ensure there's some meaningful path beyond root
+			return !string.IsNullOrEmpty(path);
 		}
 	}
 }

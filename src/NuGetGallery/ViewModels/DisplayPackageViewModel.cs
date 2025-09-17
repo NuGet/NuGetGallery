@@ -118,6 +118,8 @@ namespace NuGetGallery
         public bool IsMcpServerPackageDisplayEnabled { get; set; }
         public IReadOnlyCollection<string> SponsorshipUrls { get; set; }
 
+        public bool HasSponsorshipUrls => SponsorshipUrls?.Any() == true;
+
         public void InitializeRepositoryMetadata(string repositoryUrl, string repositoryType)
         {
             RepositoryType = RepositoryKind.Unknown;

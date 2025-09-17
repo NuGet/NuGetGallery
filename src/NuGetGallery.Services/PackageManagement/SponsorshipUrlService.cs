@@ -49,27 +49,38 @@ namespace NuGetGallery
 
 		public async Task<string> AddSponsorshipUrlAsync(PackageRegistration packageRegistration, string url, User user)
 		{
+			if (packageRegistration == null)
+			{
+				throw new ArgumentNullException(nameof(packageRegistration));
+			}
+
 			if (user == null)
 			{
 				throw new ArgumentNullException(nameof(user));
 			}
 
+			// Validate URL format and domain acceptance early, before database operations
+			if (!PackageHelper.ValidateSponsorshipUrl(url, _contentObjectService.TrustedSponsorshipDomains, out string validatedUrl, out string errorMessage))
+			{
+				throw new ArgumentException(errorMessage);
+			}
+
 			using (new SuspendDbExecutionStrategy())
 			using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
 			{
-				// Validate and add the URL
-				var validatedUrl = AddSponsorshipUrlInternal(packageRegistration, url, out DateTime databaseTimestamp);
+				// Add the URL (validation already done above)
+				var finalValidatedUrl = AddSponsorshipUrlInternal(packageRegistration, url, out DateTime databaseTimestamp);
 
 				// Save changes to database
 				await _entitiesContext.SaveChangesAsync();
 
 				// Create audit record with the same timestamp used in database
 				await _auditingService.SaveAuditRecordAsync(
-					PackageRegistrationAuditRecord.CreateForAddSponsorshipUrl(packageRegistration, validatedUrl, user.Username, user.IsAdministrator, databaseTimestamp));
+					PackageRegistrationAuditRecord.CreateForAddSponsorshipUrl(packageRegistration, finalValidatedUrl, user.Username, user.IsAdministrator, databaseTimestamp));
 
 				transaction.Commit();
 
-				return validatedUrl;
+				return finalValidatedUrl;
 			}
 		}
 
@@ -103,7 +114,8 @@ namespace NuGetGallery
 				throw new ArgumentNullException(nameof(packageRegistration));
 			}
 
-			// Validate URL format and domain acceptance
+			// Note: URL validation is now done in AddSponsorshipUrlAsync before calling this method
+			// Re-validate to get the validated URL for consistency
 			if (!PackageHelper.ValidateSponsorshipUrl(url, _contentObjectService.TrustedSponsorshipDomains, out string validatedUrl, out string errorMessage))
 			{
 				throw new ArgumentException(errorMessage);

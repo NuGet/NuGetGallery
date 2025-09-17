@@ -1291,5 +1291,171 @@ namespace NuGetGallery.ViewModels
                 packageRenames: packageRenames,
                 readmeResult: new RenderedMarkdownResult { Content = readmeHtml });
         }
+
+        [Fact]
+		public void SponsorshipUrlsArePopulatedCorrectly()
+		{
+			// Arrange
+			var sponsorshipUrls = new List<string>
+			{
+				"https://github.com/sponsors/user",
+				"https://patreon.com/user",
+				"https://ko-fi.com/user"
+			};
+
+			var mockSponsorshipService = new Mock<ISponsorshipUrlService>();
+			mockSponsorshipService.Setup(x => x.GetAcceptedSponsorshipUrls(It.IsAny<PackageRegistration>()))
+				.Returns(sponsorshipUrls.AsReadOnly());
+
+			var package = new Package
+			{
+				Version = "1.0.0",
+				PackageRegistration = new PackageRegistration
+				{
+					Id = "TestPackage",
+					Owners = Enumerable.Empty<User>().ToList(),
+					Packages = Enumerable.Empty<Package>().ToList()
+				}
+			};
+
+			// Act
+			var model = new DisplayPackageViewModelFactory(
+				Mock.Of<IIconUrlProvider>(), 
+				Mock.Of<IPackageFrameworkCompatibilityFactory>(), 
+				Mock.Of<IFeatureFlagService>(), 
+				mockSponsorshipService.Object)
+				.Create(
+					package,
+					new[] { package },
+					currentUser: null,
+					packageKeyToDeprecation: null,
+					packageKeyToVulnerabilities: null,
+					packageRenames: null,
+					readmeResult: null);
+
+			// Assert
+			Assert.NotNull(model.SponsorshipUrls);
+			Assert.Equal(3, model.SponsorshipUrls.Count);
+			Assert.Contains("https://github.com/sponsors/user", model.SponsorshipUrls);
+			Assert.Contains("https://patreon.com/user", model.SponsorshipUrls);
+			Assert.Contains("https://ko-fi.com/user", model.SponsorshipUrls);
+		}
+
+		[Fact]
+		public void SponsorshipUrlsAreEmptyWhenNoneConfigured()
+		{
+			// Arrange
+			var mockSponsorshipService = new Mock<ISponsorshipUrlService>();
+			mockSponsorshipService.Setup(x => x.GetAcceptedSponsorshipUrls(It.IsAny<PackageRegistration>()))
+				.Returns(new List<string>().AsReadOnly());
+
+			var package = new Package
+			{
+				Version = "1.0.0",
+				PackageRegistration = new PackageRegistration
+				{
+					Id = "TestPackage",
+					Owners = Enumerable.Empty<User>().ToList(),
+					Packages = Enumerable.Empty<Package>().ToList()
+				}
+			};
+
+			// Act
+			var model = new DisplayPackageViewModelFactory(
+				Mock.Of<IIconUrlProvider>(), 
+				Mock.Of<IPackageFrameworkCompatibilityFactory>(), 
+				Mock.Of<IFeatureFlagService>(), 
+				mockSponsorshipService.Object)
+				.Create(
+					package,
+					new[] { package },
+					currentUser: null,
+					packageKeyToDeprecation: null,
+					packageKeyToVulnerabilities: null,
+					packageRenames: null,
+					readmeResult: null);
+
+			// Assert
+			Assert.NotNull(model.SponsorshipUrls);
+			Assert.Empty(model.SponsorshipUrls);
+		}
+
+		[Fact]
+		public void HasSponsorshipUrlsReturnsTrueWhenUrlsExist()
+		{
+			// Arrange
+			var sponsorshipUrls = new List<string> { "https://github.com/sponsors/user" };
+
+			var mockSponsorshipService = new Mock<ISponsorshipUrlService>();
+			mockSponsorshipService.Setup(x => x.GetAcceptedSponsorshipUrls(It.IsAny<PackageRegistration>()))
+				.Returns(sponsorshipUrls.AsReadOnly());
+
+			var package = new Package
+			{
+				Version = "1.0.0",
+				PackageRegistration = new PackageRegistration
+				{
+					Id = "TestPackage",
+					Owners = Enumerable.Empty<User>().ToList(),
+					Packages = Enumerable.Empty<Package>().ToList()
+				}
+			};
+
+			// Act
+			var model = new DisplayPackageViewModelFactory(
+				Mock.Of<IIconUrlProvider>(), 
+				Mock.Of<IPackageFrameworkCompatibilityFactory>(), 
+				Mock.Of<IFeatureFlagService>(), 
+				mockSponsorshipService.Object)
+				.Create(
+					package,
+					new[] { package },
+					currentUser: null,
+					packageKeyToDeprecation: null,
+					packageKeyToVulnerabilities: null,
+					packageRenames: null,
+					readmeResult: null);
+
+			// Assert
+			Assert.True(model.HasSponsorshipUrls);
+		}
+
+		[Fact]
+		public void HasSponsorshipUrlsReturnsFalseWhenNoUrls()
+		{
+			// Arrange
+			var mockSponsorshipService = new Mock<ISponsorshipUrlService>();
+			mockSponsorshipService.Setup(x => x.GetAcceptedSponsorshipUrls(It.IsAny<PackageRegistration>()))
+				.Returns(new List<string>().AsReadOnly());
+
+			var package = new Package
+			{
+				Version = "1.0.0",
+				PackageRegistration = new PackageRegistration
+				{
+					Id = "TestPackage",
+					Owners = Enumerable.Empty<User>().ToList(),
+					Packages = Enumerable.Empty<Package>().ToList()
+				}
+			};
+
+			// Act
+			var model = new DisplayPackageViewModelFactory(
+				Mock.Of<IIconUrlProvider>(), 
+				Mock.Of<IPackageFrameworkCompatibilityFactory>(), 
+				Mock.Of<IFeatureFlagService>(), 
+				mockSponsorshipService.Object)
+				.Create(
+					package,
+				 new[] { package },
+					currentUser: null,
+					packageKeyToDeprecation: null,
+					packageKeyToVulnerabilities: null,
+					packageRenames: null,
+					readmeResult: null);
+
+			// Assert
+			Assert.False(model.HasSponsorshipUrls);
+		}
     }
 }

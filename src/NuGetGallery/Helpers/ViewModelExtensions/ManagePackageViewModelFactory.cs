@@ -129,7 +129,7 @@ namespace NuGetGallery
 
 			// Setup sponsorship URLs - show all URLs with warning for unsupported domains
 			var sponsorshipEntries = _sponsorshipUrlService.GetSponsorshipUrlEntries(package.PackageRegistration);
-			viewModel.SponsorshipUrlEntries = sponsorshipEntries
+			viewModel.SponsorshipUrlEntries = (sponsorshipEntries ?? Enumerable.Empty<SponsorshipUrlEntry>())
 				.Select(entry => new SponsorshipUrlViewModel(entry.Url, entry.IsDomainAccepted))
 				.ToList()
 				.AsReadOnly();

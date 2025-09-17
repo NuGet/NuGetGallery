@@ -13,19 +13,11 @@ namespace NuGetGallery.Services
 		public HashSet<string> TrustedSponsorshipDomainList { get; }
 		public int MaxSponsorshipLinks { get; }
 
-		public TrustedSponsorshipDomains()
-			: this(trustedSponsorshipDomainList: Enumerable.Empty<string>(), maxSponsorshipLinks: 10)
-		{
-
-		}
-
 		[JsonConstructor]
-		public TrustedSponsorshipDomains(IEnumerable<string> trustedSponsorshipDomainList, int maxSponsorshipLinks = 10)
+		public TrustedSponsorshipDomains(IEnumerable<string> trustedSponsorshipDomainList, int maxSponsorshipLinks)
 		{
-			if (trustedSponsorshipDomainList == null)
-			{
-				throw new ArgumentNullException(nameof(trustedSponsorshipDomainList));
-			}
+			// Handle null by treating it as an empty list for JSON deserialization compatibility
+			trustedSponsorshipDomainList = trustedSponsorshipDomainList ?? Enumerable.Empty<string>();
 
 			var trustedSponsorshipDomainListFromFile = new HashSet<string>(trustedSponsorshipDomainList, StringComparer.OrdinalIgnoreCase);
 			TrustedSponsorshipDomainList = expandDomainList(trustedSponsorshipDomainListFromFile);

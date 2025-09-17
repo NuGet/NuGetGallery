@@ -10,6 +10,7 @@ using System.Web.Mvc;
 using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Framework;
+using NuGetGallery.Services;
 using Xunit;
 
 namespace NuGetGallery.Controllers
@@ -913,6 +914,393 @@ namespace NuGetGallery.Controllers
                             cannotManagePackageOwnersUser,
                         };
                     }
+                }
+            }
+        }
+
+        public class TheSponsorshipUrlMethods : TestContainer
+        {
+            public class TheAddSponsorshipUrlMethod : TestContainer
+            {
+                [Theory]
+                [InlineData(null)]
+                [InlineData("")]
+                [InlineData("   ")]
+                public async Task ReturnsFailureForInvalidPackageId(string packageId)
+                {
+                    // Arrange
+                    var controller = GetController<JsonApiController>();
+
+                    // Act
+                    var result = await controller.AddSponsorshipUrl(packageId, "https://github.com/sponsors/user");
+                    dynamic data = ((JsonResult)result).Data;
+
+                    // Assert
+                    Assert.False(data.success);
+                    Assert.Equal("Package ID is required.", data.message);
+                }
+
+                [Theory]
+                [InlineData(null)]
+                [InlineData("")]
+                [InlineData("   ")]
+                public async Task ReturnsFailureForInvalidSponsorshipUrl(string sponsorshipUrl)
+                {
+                    // Arrange
+                    var fakes = Get<Fakes>();
+                    var owner = fakes.CreateUser("owner");
+                    var packageRegistration = new PackageRegistration { Id = "TestPackage" };
+                    packageRegistration.Owners.Add(owner);
+                    var package = new Package { Version = "1.0.0", PackageRegistration = packageRegistration };
+
+                    var mockPackageService = GetMock<IPackageService>();
+                    mockPackageService.Setup(x => x.FindPackageRegistrationById("TestPackage"))
+                        .Returns(packageRegistration);
+
+                    var controller = GetController<JsonApiController>();
+                    controller.SetCurrentUser(owner);
+
+                    // Act
+                    var result = await controller.AddSponsorshipUrl("TestPackage", sponsorshipUrl);
+                    dynamic data = ((JsonResult)result).Data;
+
+                    // Assert
+                    Assert.False(data.success);
+                    Assert.Equal("Sponsorship URL is required.", data.message);
+                }
+
+                [Fact]
+                public async Task ReturnsFailureForTooLongUrl()
+                {
+                    // Arrange
+                    var fakes = Get<Fakes>();
+                    var owner = fakes.CreateUser("owner");
+                    var packageRegistration = new PackageRegistration { Id = "TestPackage" };
+                    packageRegistration.Owners.Add(owner);
+                    var package = new Package { Version = "1.0.0", PackageRegistration = packageRegistration };
+
+                    var mockPackageService = GetMock<IPackageService>();
+                    mockPackageService.Setup(x => x.FindPackageRegistrationById("TestPackage"))
+                        .Returns(packageRegistration);
+
+                    var controller = GetController<JsonApiController>();
+                    controller.SetCurrentUser(owner);
+
+                    var longUrl = "https://example.com/" + new string('a', 2050);
+
+                    // Act
+                    var result = await controller.AddSponsorshipUrl("TestPackage", longUrl);
+                    dynamic data = ((JsonResult)result).Data;
+
+                    // Assert
+                    Assert.False(data.success);
+                    Assert.Equal("URL is too long.", data.message);
+                }
+
+                [Fact]
+                public async Task ReturnsFailureWhenPackageNotFound()
+                {
+                    // Arrange
+                    var controller = GetController<JsonApiController>();
+
+                    // Act
+                    var result = await controller.AddSponsorshipUrl("NonExistentPackage", "https://github.com/sponsors/user");
+                    dynamic data = ((JsonResult)result).Data;
+
+                    // Assert
+                    Assert.False(data.success);
+                    Assert.Equal("Package not found.", data.message);
+                }
+
+                [Fact]
+                public async Task ReturnsFailureWhenUserNotOwner()
+                {
+                    // Arrange
+                    var fakes = Get<Fakes>();
+                    var packageRegistration = new PackageRegistration { Id = "TestPackage" };
+                    var package = new Package { Version = "1.0.0", PackageRegistration = packageRegistration };
+                    var currentUser = fakes.CreateUser("notowner");
+
+                    var mockPackageService = GetMock<IPackageService>();
+                    mockPackageService.Setup(x => x.FindPackageRegistrationById("TestPackage"))
+                        .Returns(packageRegistration);
+
+                    var controller = GetController<JsonApiController>();
+                    controller.SetCurrentUser(currentUser);
+
+                    // Act
+                    var result = await controller.AddSponsorshipUrl("TestPackage", "https://github.com/sponsors/user");
+                    dynamic data = ((JsonResult)result).Data;
+
+                    // Assert
+                    Assert.False(data.success);
+                    Assert.Equal("You do not have permission to manage sponsorship links for this package.", data.message);
+                }
+
+                [Fact]
+                public async Task ReturnsFailureWhenMaxLinksExceeded()
+                {
+                    // Arrange
+                    var fakes = Get<Fakes>();
+                    var owner = fakes.CreateUser("owner");
+                    var packageRegistration = new PackageRegistration { Id = "TestPackage" };
+                    packageRegistration.Owners.Add(owner);
+                    var package = new Package { Version = "1.0.0", PackageRegistration = packageRegistration };
+
+                    var mockPackageService = GetMock<IPackageService>();
+                    mockPackageService.Setup(x => x.FindPackageRegistrationById("TestPackage"))
+                        .Returns(packageRegistration);
+
+                    var mockSponsorshipService = GetMock<ISponsorshipUrlService>();
+                    var mockTrustedDomains = new Mock<ITrustedSponsorshipDomains>();
+                    mockTrustedDomains.Setup(x => x.MaxSponsorshipLinks).Returns(2);
+                    mockSponsorshipService.Setup(x => x.TrustedSponsorshipDomains).Returns(mockTrustedDomains.Object);
+
+                    // Set up existing URLs to exceed the limit
+                    var existingUrls = new List<SponsorshipUrlEntry>
+                    {
+                        new SponsorshipUrlEntry("https://github.com/sponsors/user1", true),
+                        new SponsorshipUrlEntry("https://patreon.com/user1", true)
+                    };
+                    mockSponsorshipService.Setup(x => x.GetSponsorshipUrlEntries(packageRegistration))
+                        .Returns(existingUrls.AsReadOnly());
+
+                    var controller = GetController<JsonApiController>();
+                    controller.SetCurrentUser(owner);
+
+                    // Act
+                    var result = await controller.AddSponsorshipUrl("TestPackage", "https://ko-fi.com/user");
+                    dynamic data = ((JsonResult)result).Data;
+
+                    // Assert
+                    Assert.False(data.success);
+                    Assert.Equal("You can add a maximum of 2 sponsorship links.", data.message);
+                }
+
+                [Fact]
+                public async Task ReturnsSuccessWhenUrlAddedSuccessfully()
+                {
+                    // Arrange
+                    var fakes = Get<Fakes>();
+                    var owner = fakes.CreateUser("owner");
+                    var packageRegistration = new PackageRegistration { Id = "TestPackage" };
+                    packageRegistration.Owners.Add(owner);
+                    var package = new Package { Version = "1.0.0", PackageRegistration = packageRegistration };
+
+                    var mockPackageService = GetMock<IPackageService>();
+                    mockPackageService.Setup(x => x.FindPackageRegistrationById("TestPackage"))
+                        .Returns(packageRegistration);
+
+                    var mockSponsorshipService = GetMock<ISponsorshipUrlService>();
+                    var mockTrustedDomains = new Mock<ITrustedSponsorshipDomains>();
+                    mockTrustedDomains.Setup(x => x.MaxSponsorshipLinks).Returns(10);
+                    mockSponsorshipService.Setup(x => x.TrustedSponsorshipDomains).Returns(mockTrustedDomains.Object);
+
+                    mockSponsorshipService.Setup(x => x.GetSponsorshipUrlEntries(packageRegistration))
+                        .Returns(new List<SponsorshipUrlEntry>().AsReadOnly());
+
+                    var validatedUrl = "https://github.com/sponsors/user";
+                    mockSponsorshipService.Setup(x => x.AddSponsorshipUrlAsync(packageRegistration, validatedUrl, owner))
+                        .ReturnsAsync(validatedUrl);
+
+                    var controller = GetController<JsonApiController>();
+                    controller.SetCurrentUser(owner);
+
+                    // Act
+                    var result = await controller.AddSponsorshipUrl("TestPackage", validatedUrl);
+                    dynamic data = ((JsonResult)result).Data;
+
+                    // Assert
+                    Assert.True(data.success);
+                    Assert.Equal(validatedUrl, data.validatedUrl);
+                    Assert.True(data.isDomainAccepted);
+                    mockSponsorshipService.Verify(x => x.AddSponsorshipUrlAsync(packageRegistration, validatedUrl, owner), Times.Once);
+                }
+
+                [Fact]
+                public async Task ReturnsFailureWhenServiceThrowsException()
+                {
+                    // Arrange
+                    var fakes = Get<Fakes>();
+                    var owner = fakes.CreateUser("owner");
+                    var packageRegistration = new PackageRegistration { Id = "TestPackage" };
+                    packageRegistration.Owners.Add(owner);
+                    var package = new Package { Version = "1.0.0", PackageRegistration = packageRegistration };
+
+                    var mockPackageService = GetMock<IPackageService>();
+                    mockPackageService.Setup(x => x.FindPackageRegistrationById("TestPackage"))
+                        .Returns(packageRegistration);
+
+                    var mockSponsorshipService = GetMock<ISponsorshipUrlService>();
+                    var mockTrustedDomains = new Mock<ITrustedSponsorshipDomains>();
+                    mockTrustedDomains.Setup(x => x.MaxSponsorshipLinks).Returns(10);
+                    mockSponsorshipService.Setup(x => x.TrustedSponsorshipDomains).Returns(mockTrustedDomains.Object);
+
+                    mockSponsorshipService.Setup(x => x.GetSponsorshipUrlEntries(packageRegistration))
+                        .Returns(new List<SponsorshipUrlEntry>().AsReadOnly());
+
+                    mockSponsorshipService.Setup(x => x.AddSponsorshipUrlAsync(packageRegistration, It.IsAny<string>(), owner))
+                        .ThrowsAsync(new ArgumentException("Invalid URL format."));
+
+                    var controller = GetController<JsonApiController>();
+                    controller.SetCurrentUser(owner);
+
+                    // Act
+                    var result = await controller.AddSponsorshipUrl("TestPackage", "invalid-url");
+                    dynamic data = ((JsonResult)result).Data;
+
+                    // Assert
+                    Assert.False(data.success);
+                    Assert.Equal("Invalid URL format.", data.message);
+                }
+            }
+
+            public class TheRemoveSponsorshipUrlMethod : TestContainer
+            {
+                [Theory]
+                [InlineData(null)]
+                [InlineData("")]
+                [InlineData("   ")]
+                public async Task ReturnsFailureForInvalidPackageId(string packageId)
+                {
+                    // Arrange
+                    var controller = GetController<JsonApiController>();
+
+                    // Act
+                    var result = await controller.RemoveSponsorshipUrl(packageId, "https://github.com/sponsors/user");
+                    dynamic data = ((JsonResult)result).Data;
+
+                    // Assert
+                    Assert.False(data.success);
+                    Assert.Equal("Package ID is required.", data.message);
+                }
+
+                [Theory]
+                [InlineData(null)]
+                [InlineData("")]
+                [InlineData("   ")]
+                public async Task ReturnsFailureForInvalidSponsorshipUrl(string sponsorshipUrl)
+                {
+                    // Arrange
+                    var fakes = Get<Fakes>();
+                    var owner = fakes.CreateUser("owner");
+                    var packageRegistration = new PackageRegistration { Id = "TestPackage" };
+                    packageRegistration.Owners.Add(owner);
+                    var package = new Package { Version = "1.0.0", PackageRegistration = packageRegistration };
+
+                    var mockPackageService = GetMock<IPackageService>();
+                    mockPackageService.Setup(x => x.FindPackageRegistrationById("TestPackage"))
+                        .Returns(packageRegistration);
+
+                    var controller = GetController<JsonApiController>();
+                    controller.SetCurrentUser(owner);
+
+                    // Act
+                    var result = await controller.RemoveSponsorshipUrl("TestPackage", sponsorshipUrl);
+                    dynamic data = ((JsonResult)result).Data;
+
+                    // Assert
+                    Assert.False(data.success);
+                    Assert.Equal("Sponsorship URL is required.", data.message);
+                }
+
+                [Fact]
+                public async Task ReturnsFailureWhenPackageNotFound()
+                {
+                    // Arrange
+                    var controller = GetController<JsonApiController>();
+
+                    // Act
+                    var result = await controller.RemoveSponsorshipUrl("NonExistentPackage", "https://github.com/sponsors/user");
+                    dynamic data = ((JsonResult)result).Data;
+
+                    // Assert
+                    Assert.False(data.success);
+                    Assert.Equal("Package not found.", data.message);
+                }
+
+                [Fact]
+                public async Task ReturnsFailureWhenUserNotOwner()
+                {
+                    // Arrange
+                    var fakes = Get<Fakes>();
+                    var packageRegistration = new PackageRegistration { Id = "TestPackage" };
+                    var package = new Package { Version = "1.0.0", PackageRegistration = packageRegistration };
+                    var currentUser = fakes.CreateUser("notowner");
+
+                    var mockPackageService = GetMock<IPackageService>();
+                    mockPackageService.Setup(x => x.FindPackageRegistrationById("TestPackage"))
+                        .Returns(packageRegistration);
+
+                    var controller = GetController<JsonApiController>();
+                    controller.SetCurrentUser(currentUser);
+
+                    // Act
+                    var result = await controller.RemoveSponsorshipUrl("TestPackage", "https://github.com/sponsors/user");
+                    dynamic data = ((JsonResult)result).Data;
+
+                    // Assert
+                    Assert.False(data.success);
+                    Assert.Equal("You do not have permission to manage sponsorship links for this package.", data.message);
+                }
+
+                [Fact]
+                public async Task ReturnsSuccessWhenUrlRemovedSuccessfully()
+                {
+                    // Arrange
+                    var fakes = Get<Fakes>();
+                    var owner = fakes.CreateUser("owner");
+                    var packageRegistration = new PackageRegistration { Id = "TestPackage" };
+                    packageRegistration.Owners.Add(owner);
+                    var package = new Package { Version = "1.0.0", PackageRegistration = packageRegistration };
+
+                    var mockPackageService = GetMock<IPackageService>();
+                    mockPackageService.Setup(x => x.FindPackageRegistrationById("TestPackage"))
+                        .Returns(packageRegistration);
+
+                    var mockSponsorshipService = GetMock<ISponsorshipUrlService>();
+                    var urlToRemove = "https://github.com/sponsors/user";
+
+                    var controller = GetController<JsonApiController>();
+                    controller.SetCurrentUser(owner);
+
+                    // Act
+                    var result = await controller.RemoveSponsorshipUrl("TestPackage", urlToRemove);
+                    dynamic data = ((JsonResult)result).Data;
+
+                    // Assert
+                    Assert.True(data.success);
+                    mockSponsorshipService.Verify(x => x.RemoveSponsorshipUrlAsync(packageRegistration, urlToRemove, owner), Times.Once);
+                }
+
+                [Fact]
+                public async Task ReturnsFailureWhenServiceThrowsException()
+                {
+                    // Arrange
+                    var fakes = Get<Fakes>();
+                    var owner = fakes.CreateUser("owner");
+                    var packageRegistration = new PackageRegistration { Id = "TestPackage" };
+                    packageRegistration.Owners.Add(owner);
+                    var package = new Package { Version = "1.0.0", PackageRegistration = packageRegistration };
+
+                    var mockPackageService = GetMock<IPackageService>();
+                    mockPackageService.Setup(x => x.FindPackageRegistrationById("TestPackage"))
+                        .Returns(packageRegistration);
+
+                    var mockSponsorshipService = GetMock<ISponsorshipUrlService>();
+                    mockSponsorshipService.Setup(x => x.RemoveSponsorshipUrlAsync(packageRegistration, It.IsAny<string>(), owner))
+                        .ThrowsAsync(new ArgumentException("Sponsorship URL not found."));
+
+                    var controller = GetController<JsonApiController>();
+                    controller.SetCurrentUser(owner);
+
+                    // Act
+                    var result = await controller.RemoveSponsorshipUrl("TestPackage", "https://github.com/sponsors/user");
+                    dynamic data = ((JsonResult)result).Data;
+
+                    // Assert
+                    Assert.False(data.success);
+                    Assert.Equal("Sponsorship URL not found.", data.message);
                 }
             }
         }

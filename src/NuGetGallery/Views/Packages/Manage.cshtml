@@ -82,8 +82,8 @@ expanded: false)
         window.nuget = window.nuget || {};
         window.nuget.packageId = packageId;
         window.nuget.urls = window.nuget.urls || {};
-        window.nuget.urls.addSponsorshipUrl = "@Url.Action("AddSponsorshipUrl", "JsonApi")";
-        window.nuget.urls.removeSponsorshipUrl = "@Url.Action("RemoveSponsorshipUrl", "JsonApi")";
+        window.nuget.urls.addSponsorshipUrl = "@Url.AddSponsorshipUrl()";
+        window.nuget.urls.removeSponsorshipUrl = "@Url.RemoveSponsorshipUrl()";
         
         // Initialize sponsorship links data for JavaScript
         window.nuget.initialSponsorshipLinks = @Html.Raw(Json.Encode(Model.SponsorshipUrlEntries ?? new SponsorshipUrlViewModel[0]));

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NuGetGallery.Configuration;
@@ -29,7 +30,7 @@ namespace NuGetGallery
             CacheConfiguration = new CacheConfiguration();
             QueryHintConfiguration = new QueryHintConfiguration();
             TrustedImageDomains = new TrustedImageDomains();
-            TrustedSponsorshipDomains = new TrustedSponsorshipDomains();
+            TrustedSponsorshipDomains = new TrustedSponsorshipDomains(Enumerable.Empty<string>(), 0);
         }
 
         public ILoginDiscontinuationConfiguration LoginDiscontinuationConfiguration { get; private set; }
@@ -84,7 +85,7 @@ namespace NuGetGallery
 
             TrustedSponsorshipDomains =
                 await Refresh<TrustedSponsorshipDomains>(ServicesConstants.ContentNames.TrustedSponsorshipDomains) ??
-                new TrustedSponsorshipDomains();
+                new TrustedSponsorshipDomains(Enumerable.Empty<string>(), 0);
         }
 
         private async Task<T> Refresh<T>(string contentName)

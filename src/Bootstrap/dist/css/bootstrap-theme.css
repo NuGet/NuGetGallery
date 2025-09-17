@@ -3129,6 +3129,9 @@ p.frameworktableinfo-text {
 .page-manage-sponsorship-links p.margin-top-10 {
   margin-top: 10px;
 }
+.page-manage-sponsorship-links p.margin-bottom-10 {
+  margin-bottom: 10px;
+}
 .page-manage-sponsorship-links #manage-sponsorship-alert,
 .page-manage-sponsorship-links #manage-sponsorship-success {
   margin-top: 5px;

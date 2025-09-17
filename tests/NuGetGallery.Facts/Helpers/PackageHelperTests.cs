@@ -6,6 +6,7 @@ using System.Linq;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
 using NuGetGallery.Packaging;
+using NuGetGallery.Services;
 using Xunit;
 
 namespace NuGetGallery.Helpers
@@ -166,6 +167,105 @@ namespace NuGetGallery.Helpers
 
                 var ex = Assert.Throws<EntityException>(() => PackageHelper.ValidateNuGetPackageMetadata(metadata));
                 Assert.Contains("ID and version", ex.Message);
+            }
+        }
+
+        public class SponsorshipUrlValidationTests
+        {
+            private static MockTrustedSponsorshipDomains CreateMockTrustedDomains()
+            {
+                return new MockTrustedSponsorshipDomains();
+            }
+
+            [Theory]
+            [InlineData("github.com/sponsors/user", "https://github.com/sponsors/user")]
+            [InlineData("https://github.com/sponsors/user", "https://github.com/sponsors/user")]
+            [InlineData("patreon.com/user", "https://patreon.com/user")]
+            [InlineData("https://patreon.com/user", "https://patreon.com/user")]
+            public void ValidateSponsorshipUrl_AcceptsValidUrls(string inputUrl, string expectedUrl)
+            {
+                // Arrange
+                var trustedDomains = CreateMockTrustedDomains();
+
+                // Act
+                var isValid = PackageHelper.ValidateSponsorshipUrl(inputUrl, trustedDomains, out string validatedUrl, out string errorMessage);
+
+                // Assert
+                Assert.True(isValid);
+                Assert.Equal(expectedUrl, validatedUrl);
+                Assert.Null(errorMessage);
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            [InlineData("   ")]
+            public void ValidateSponsorshipUrl_RejectsNullOrEmptyUrls(string invalidUrl)
+            {
+                // Arrange
+                var trustedDomains = CreateMockTrustedDomains();
+
+                // Act
+                var isValid = PackageHelper.ValidateSponsorshipUrl(invalidUrl, trustedDomains, out string validatedUrl, out string errorMessage);
+
+                // Assert
+                Assert.False(isValid);
+                Assert.Null(validatedUrl);
+                Assert.Equal("Please enter a URL.", errorMessage);
+            }
+
+            [Theory]
+            [InlineData("not-a-url")]
+            [InlineData("ftp://example.com")]
+            [InlineData("file:///local/path")]
+            [InlineData("javascript:alert('xss')")]
+            public void ValidateSponsorshipUrl_RejectsInvalidUrls(string invalidUrl)
+            {
+                // Arrange
+                var trustedDomains = CreateMockTrustedDomains();
+
+                // Act
+                var isValid = PackageHelper.ValidateSponsorshipUrl(invalidUrl, trustedDomains, out string validatedUrl, out string errorMessage);
+
+                // Assert
+                Assert.False(isValid);
+                Assert.Null(validatedUrl);
+                Assert.Equal("Please provide a valid URL from a supported sponsorship platform.", errorMessage);
+            }
+
+            [Theory]
+            [InlineData("https://untrusted.com/sponsor")]
+            [InlineData("https://example.com/sponsor")]
+            [InlineData("https://malicious.site/sponsor")]
+            public void ValidateSponsorshipUrl_RejectsUntrustedDomains(string untrustedUrl)
+            {
+                // Arrange
+                var trustedDomains = CreateMockTrustedDomains();
+
+                // Act
+                var isValid = PackageHelper.ValidateSponsorshipUrl(untrustedUrl, trustedDomains, out string validatedUrl, out string errorMessage);
+
+                // Assert
+                Assert.False(isValid);
+                Assert.Null(validatedUrl);
+                Assert.Equal("Please provide a valid URL from a supported sponsorship platform.", errorMessage);
+            }
+        }
+
+        public class MockTrustedSponsorshipDomains : ITrustedSponsorshipDomains
+        {
+            public HashSet<string> TrustedSponsorshipDomainList { get; } = new HashSet<string>
+            {
+                "github.com", "www.github.com", "patreon.com", "www.patreon.com",
+                "opencollective.com", "www.opencollective.com", "ko-fi.com", "www.ko-fi.com",
+                "tidelift.com", "www.tidelift.com", "liberapay.com", "www.liberapay.com"
+            };
+
+            public int MaxSponsorshipLinks { get; } = 10;
+
+            public bool IsSponsorshipDomainTrusted(string domain)
+            {
+                return TrustedSponsorshipDomainList.Contains(domain?.ToLowerInvariant());
             }
         }
     }

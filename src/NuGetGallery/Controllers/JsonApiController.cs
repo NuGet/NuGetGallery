@@ -206,14 +206,20 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("manage a package")]
         public virtual async Task<JsonResult> AddSponsorshipUrl(string id, string sponsorshipUrl)
         {
-	        // Basic input validation to prevent oversized requests
-	        if (!string.IsNullOrEmpty(sponsorshipUrl) && sponsorshipUrl.Length > 2048)
-	        {
-		        return Json(new { success = false, message = "URL is too long." }, JsonRequestBehavior.AllowGet);
-	        }
-
 	        if (TryGetPackageForSponsorshipManagement(id, out var package, out var errorMessage))
 	        {
+		        // Validate sponsorship URL after package validation
+		        if (string.IsNullOrWhiteSpace(sponsorshipUrl))
+		        {
+			        return Json(new { success = false, message = "Sponsorship URL is required." }, JsonRequestBehavior.AllowGet);
+		        }
+
+		        // Basic input validation to prevent oversized requests
+		        if (sponsorshipUrl.Length > 2048)
+		        {
+			        return Json(new { success = false, message = "URL is too long." }, JsonRequestBehavior.AllowGet);
+		        }
+
 		        try
 		        {
 			        var currentUser = GetCurrentUser();
@@ -262,9 +268,14 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("manage a package")]
         public virtual async Task<JsonResult> RemoveSponsorshipUrl(string id, string sponsorshipUrl)
         {
-
 	        if (TryGetPackageForSponsorshipManagement(id, out var package, out var errorMessage))
 	        {
+		        // Validate sponsorship URL after package validation
+		        if (string.IsNullOrWhiteSpace(sponsorshipUrl))
+		        {
+			        return Json(new { success = false, message = "Sponsorship URL is required." }, JsonRequestBehavior.AllowGet);
+		        }
+
 		        try
 		        {
 			        var currentUser = GetCurrentUser();
@@ -375,9 +386,10 @@ namespace NuGetGallery
             package = null;
             errorMessage = null;
 
-            if (string.IsNullOrEmpty(id))
+            if (string.IsNullOrWhiteSpace(id))
             {
-                throw new ArgumentException(nameof(id));
+                errorMessage = "Package ID is required.";
+                return false;
             }
 
             package = _packageService.FindPackageRegistrationById(id);
