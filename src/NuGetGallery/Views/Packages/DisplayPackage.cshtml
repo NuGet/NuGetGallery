@@ -363,9 +363,9 @@
                                 data-toggle="popover" data-placement="bottom" data-content="Copied."
                                 aria-label="@packageManager.CopyLabel" role="button"
                                 disabled="@(!packageManager.CopyEnabled)">
-                         <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
-                         <span>Copy</span>
-                         </button>
+                            <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
+                            <span>Copy</span>
+                        </button>
                     </div>
                 </pre>
             </div>
@@ -501,7 +501,7 @@
                                 <text>Please contact <a href="mailto:support@nuget.org">support@nuget.org</a> to help fix your package.</text>
                             }
                         </text>
-                   )
+                    )
                 }
 
                 @if (Model.Deleted)
@@ -710,7 +710,7 @@
                                 @if (Model.CanDisplayReadmeWarning && Model.CanDisplayPrivateMetadata)
                                 {
                                     <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
-                                }
+                                } 
                                 else
                                 {
                                     <i class="ms-Icon ms-Icon--Dictionary" aria-hidden="true"></i>
@@ -719,24 +719,24 @@
                             </a>
                         </li>
 
-                        if (Model.CanDisplayTargetFrameworks())
-                        {
-                            activeBodyTab = activeBodyTab ?? "supportedframeworks";
-                            <li role="presentation" id="show-supportedframeworks-container">
-                                <a href="#supportedframeworks-body-tab"
-                                   role="tab"
-                                   data-toggle="tab"
-                                   data-target="#supportedframeworks-tab"
-                                   id="supportedframeworks-body-tab"
-                                   class="body-tab"
-                                   aria-controls="supportedframeworks-tab"
-                                   aria-selected="@(activeBodyTab == "supportedframeworks" ? "true" : "false")"
-                                   tabindex="@(activeBodyTab == "supportedframeworks" ? "0" : "-1")">
-                                    <i class="ms-Icon ms-Icon--Package" aria-hidden="true"></i>
-                                    Frameworks
-                                </a>
-                            </li>
-                        }
+                    if (Model.CanDisplayTargetFrameworks())
+                    {
+                        activeBodyTab = activeBodyTab ?? "supportedframeworks";
+                        <li role="presentation" id="show-supportedframeworks-container">
+                            <a href="#supportedframeworks-body-tab"
+                                role="tab"
+                                data-toggle="tab"
+                                data-target="#supportedframeworks-tab"
+                                id="supportedframeworks-body-tab"
+                                class="body-tab"
+                                aria-controls="supportedframeworks-tab"
+                                aria-selected="@(activeBodyTab == "supportedframeworks" ? "true" : "false")"
+                                tabindex="@(activeBodyTab == "supportedframeworks" ? "0" : "-1")">
+                                <i class="ms-Icon ms-Icon--Package" aria-hidden="true"></i>
+                                Frameworks
+                            </a>
+                        </li>
+                    }
 
                         activeBodyTab = activeBodyTab ?? "dependencies";
                         <li role="presentation">
@@ -755,24 +755,24 @@
                         </li>
                     }
 
-                @if (!Model.IsDotnetToolPackageType && Model.ShowDetailsAndLinks && !Model.Deleted && (Model.IsGitHubUsageEnabled || Model.IsPackageDependentsEnabled))
-                {
-                    activeBodyTab = activeBodyTab ?? "usedby";
-                    <li role="presentation">
-                        <a href="#usedby-body-tab"
-                            role="tab"
-                            data-toggle="tab"
-                            data-target="#usedby-tab"
-                            id="usedby-body-tab"
-                            class="body-tab"
-                            aria-controls="usedby-tab"
-                            aria-selected="@(activeBodyTab == "usedby" ? "true" : "false")"
-                            tabindex="@(activeBodyTab == "usedby" ? "0" : "-1")">
-                            <i class="ms-Icon ms-Icon--BranchFork2" aria-hidden="true"></i>
-                            Used By
-                        </a>
-                    </li>
-                }
+                    @if (!Model.IsDotnetToolPackageType && Model.ShowDetailsAndLinks && !Model.Deleted && (Model.IsGitHubUsageEnabled || Model.IsPackageDependentsEnabled))
+                    {
+                        activeBodyTab = activeBodyTab ?? "usedby";
+                        <li role="presentation">
+                            <a href="#usedby-body-tab"
+                                role="tab"
+                                data-toggle="tab"
+                                data-target="#usedby-tab"
+                                id="usedby-body-tab"
+                                class="body-tab"
+                                aria-controls="usedby-tab"
+                                aria-selected="@(activeBodyTab == "usedby" ? "true" : "false")"
+                                tabindex="@(activeBodyTab == "usedby" ? "0" : "-1")">
+                                <i class="ms-Icon ms-Icon--BranchFork2" aria-hidden="true"></i>
+                                Used By
+                            </a>
+                        </li>
+                    }
 
                     @{ activeBodyTab = activeBodyTab ?? "versions"; }
                     <li role="presentation">
@@ -1282,7 +1282,7 @@
                                 else
                                 {
                                     <a href="@Model.LicenseUrl"
-                                       data-track="outbound-license-url" title="Make sure you agree with the license" rel="nofollow">
+                                        data-track="outbound-license-url" title="Make sure you agree with the license" rel="nofollow">
                                         License Info
                                     </a>
                                 }
@@ -1314,8 +1314,8 @@
                         <li>
                             <i class="ms-Icon ms-Icon--FabricFolderSearch" aria-hidden="true" aria-label="@disclaimer" title="@disclaimer"></i>
                             <a href="@Model.NuGetPackageExplorerUrl" data-track="outbound-nugetpackageexplorer-url"
-                               aria-label="open in NuGet Package Explorer"
-                               title="Explore additional package info on NuGet Package Explorer" target="_blank" rel="nofollow noreferrer">
+                                aria-label="open in NuGet Package Explorer"
+                                title="Explore additional package info on NuGet Package Explorer" target="_blank" rel="nofollow noreferrer">
                                 Open in NuGet Package Explorer
                             </a>
                         </li>
@@ -1327,9 +1327,9 @@
 
                         <li>
                             <img class="icon"
-                                 aria-label="@disclaimer" title="@disclaimer"
-                                 src="@Url.Absolute("~/Content/gallery/img/fuget.svg")"
-                                 @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/fuget-32x32.png")) />
+                                    aria-label="@disclaimer" title="@disclaimer"
+                                    src="@Url.Absolute("~/Content/gallery/img/fuget.svg")"
+                                    @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/fuget-32x32.png")) />
                             <a href="@Model.FuGetUrl" data-track="outbound-fuget-url"
                                aria-label="open in fuget.org explorer"
                                title="Explore additional package info on fuget.org" target="_blank" rel="nofollow noreferrer">
@@ -1575,20 +1575,20 @@
                 <p class="share-buttons">
                     <a href="https://www.facebook.com/sharer/sharer.php?u=@absolutePackageUrl&t=@encodedText" target="_blank" rel="nofollow noreferrer">
                         <img width="24" height="24" alt="Share this package on Facebook"
-                               src="@Url.Absolute("~/Content/gallery/img/facebook.svg")"
-                               @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/facebook-24x24.png")) />
+                                src="@Url.Absolute("~/Content/gallery/img/facebook.svg")"
+                                @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/facebook-24x24.png")) />
                     </a>
                     <a href="https://x.com/intent/post?url=@absolutePackageUrl&text=@encodedText" target="_blank" rel="nofollow noreferrer">
                         <img width="24" height="24" alt="Share this package on X"
-                               src="@Url.Absolute("~/Content/gallery/img/x.svg")"
-                               @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/x-24x24.png")) />
+                                src="@Url.Absolute("~/Content/gallery/img/x.svg")"
+                                @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/x-24x24.png")) />
                     </a>
                     @if (Model.IsAtomFeedEnabled && Model.Owners.Any())
                     {
                         <a href="@Url.PackageAtomFeed(Model.Id)" data-track="atom-feed">
                             <img width="24" height="24" alt="Use the Atom feed to subscribe to new versions of @Model.Id"
-                                   src="@Url.Absolute("~/Content/gallery/img/rss.svg")"
-                                   @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/rss-24x24.png")) />
+                                    src="@Url.Absolute("~/Content/gallery/img/rss.svg")"
+                                    @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/rss-24x24.png")) />
                         </a>
                     }
                 </p>
