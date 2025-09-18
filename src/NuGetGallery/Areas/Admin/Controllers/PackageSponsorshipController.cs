@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Areas.Admin.ViewModels;
 
@@ -45,7 +46,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 					if (package != null)
 					{
 						model.Package = package;
-						// Use the service to get properly parsed sponsorship URLs
+						// Use the service to get full sponsorship URL entries for admin display
 						model.SponsorshipUrls = _sponsorshipUrlService.GetSponsorshipUrlEntries(packageRegistration);
 					}
 				}
@@ -65,41 +66,21 @@ namespace NuGetGallery.Areas.Admin.Controllers
 		{
 			try
 			{
-				var packageRegistration = _packageService.FindPackageRegistrationById(packageId);
-				if (packageRegistration == null)
+				if (!TryGetPackageForOperation(packageId, out var packageRegistration, out var errorResult))
 				{
-					return RedirectToAction("Index", new { packageId, message = "Package not found.", isSuccess = false });
+					return errorResult;
 				}
 
 				var currentUser = GetCurrentUser();
-				if (currentUser == null)
-				{
-					return RedirectToAction("Index", new { packageId, message = "User not authenticated.", isSuccess = false });
-				}
+				// Note: currentUser null check is handled by controller authorization
 
-				if (string.IsNullOrWhiteSpace(newSponsorshipUrl))
-				{
-					return RedirectToAction("Index", new { packageId, message = "Sponsorship URL cannot be empty.", isSuccess = false });
-				}
-
-				// Check server-side limit first
-				var currentUrls = _sponsorshipUrlService.GetSponsorshipUrlEntries(packageRegistration);
-				var maxLinks = _sponsorshipUrlService.TrustedSponsorshipDomains.MaxSponsorshipLinks;
-				if (currentUrls.Count >= maxLinks)
-				{
-					return RedirectToAction("Index", new { packageId, message = $"You can add a maximum of {maxLinks} sponsorship links.", isSuccess = false });
-				}
-
+				// Add the sponsorship URL (all validation handled in service layer)
 				var validatedUrl = await _sponsorshipUrlService.AddSponsorshipUrlAsync(packageRegistration, newSponsorshipUrl, currentUser);
 				return RedirectToAction("Index", new { packageId, message = "Sponsorship URL added successfully.", isSuccess = true });
 			}
-			catch (ArgumentException ex)
-			{
-				return RedirectToAction("Index", new { packageId, message = $"Invalid URL: {ex.Message}", isSuccess = false });
-			}
 			catch (Exception ex)
 			{
-				return RedirectToAction("Index", new { packageId, message = $"Error adding sponsorship URL: {ex.Message}", isSuccess = false });
+				return HandleSponsorshipUrlException(packageId, ex, "adding");
 			}
 		}
 
@@ -109,25 +90,58 @@ namespace NuGetGallery.Areas.Admin.Controllers
 		{
 			try
 			{
-				var packageRegistration = _packageService.FindPackageRegistrationById(packageId);
-				if (packageRegistration == null)
+				if (!TryGetPackageForOperation(packageId, out var packageRegistration, out var errorResult))
 				{
-					return RedirectToAction("Index", new { packageId, message = "Package not found.", isSuccess = false });
+					return errorResult;
 				}
 
 				var currentUser = GetCurrentUser();
-				if (currentUser == null)
-				{
-					return RedirectToAction("Index", new { packageId, message = "User not authenticated.", isSuccess = false });
-				}
+				// Note: currentUser null check is handled by controller authorization
 
+				// Remove the sponsorship URL (all validation handled in service layer)
 				await _sponsorshipUrlService.RemoveSponsorshipUrlAsync(packageRegistration, sponsorshipUrl, currentUser);
 				return RedirectToAction("Index", new { packageId, message = "Sponsorship URL removed successfully.", isSuccess = true });
 			}
 			catch (Exception ex)
 			{
-				return RedirectToAction("Index", new { packageId, message = $"Error removing sponsorship URL: {ex.Message}", isSuccess = false });
+				return HandleSponsorshipUrlException(packageId, ex, "removing");
 			}
+		}
+
+		/// <summary>
+		/// Common package validation logic for sponsorship operations
+		/// </summary>
+		private bool TryGetPackageForOperation(string packageId, out PackageRegistration packageRegistration, out ActionResult errorResult)
+		{
+			packageRegistration = null;
+			errorResult = null;
+
+			packageRegistration = _packageService.FindPackageRegistrationById(packageId);
+			if (packageRegistration == null)
+			{
+				errorResult = RedirectToAction("Index", new { packageId, message = "Package not found.", isSuccess = false });
+				return false;
+			}
+
+			return true;
+		}
+
+		/// <summary>
+		/// Common error handling pattern for sponsorship URL operations
+		/// </summary>
+		private ActionResult HandleSponsorshipUrlException(string packageId, Exception ex, string operation)
+		{
+			string message;
+			if (ex is ArgumentException argumentEx)
+			{
+				message = $"Invalid URL: {argumentEx.Message}";
+			}
+			else
+			{
+				message = $"Error {operation} sponsorship URL: {ex.Message}";
+			}
+
+			return RedirectToAction("Index", new { packageId, message, isSuccess = false });
 		}
 
 	}

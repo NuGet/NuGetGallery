@@ -1292,22 +1292,21 @@ namespace NuGetGallery.ViewModels
                 readmeResult: new RenderedMarkdownResult { Content = readmeHtml });
         }
 
-        [Fact]
+		[Fact]
 		public void SponsorshipUrlsArePopulatedCorrectly()
 		{
 			// Arrange
-			var sponsorshipUrls = new List<string>
+			var sponsorshipEntries = new List<SponsorshipUrlEntry>
 			{
-				"https://github.com/sponsors/user",
-				"https://patreon.com/user",
-				"https://ko-fi.com/user"
+				new SponsorshipUrlEntry("https://github.com/sponsors/user", DateTime.UtcNow, true),
+				new SponsorshipUrlEntry("https://patreon.com/user", DateTime.UtcNow, true),
+				new SponsorshipUrlEntry("https://ko-fi.com/user", DateTime.UtcNow, true),
+				new SponsorshipUrlEntry("https://untrusted.com/sponsor", DateTime.UtcNow, false) // Should be filtered out
 			};
 
 			var mockSponsorshipService = new Mock<ISponsorshipUrlService>();
-			mockSponsorshipService.Setup(x => x.GetAcceptedSponsorshipUrls(It.IsAny<PackageRegistration>()))
-				.Returns(sponsorshipUrls.AsReadOnly());
-
-			var package = new Package
+			mockSponsorshipService.Setup(x => x.GetSponsorshipUrlEntries(It.IsAny<PackageRegistration>()))
+				.Returns(sponsorshipEntries.AsReadOnly());			var package = new Package
 			{
 				Version = "1.0.0",
 				PackageRegistration = new PackageRegistration
@@ -1346,8 +1345,8 @@ namespace NuGetGallery.ViewModels
 		{
 			// Arrange
 			var mockSponsorshipService = new Mock<ISponsorshipUrlService>();
-			mockSponsorshipService.Setup(x => x.GetAcceptedSponsorshipUrls(It.IsAny<PackageRegistration>()))
-				.Returns(new List<string>().AsReadOnly());
+			mockSponsorshipService.Setup(x => x.GetSponsorshipUrlEntries(It.IsAny<PackageRegistration>()))
+				.Returns(new List<SponsorshipUrlEntry>().AsReadOnly());
 
 			var package = new Package
 			{
@@ -1384,11 +1383,14 @@ namespace NuGetGallery.ViewModels
 		public void HasSponsorshipUrlsReturnsTrueWhenUrlsExist()
 		{
 			// Arrange
-			var sponsorshipUrls = new List<string> { "https://github.com/sponsors/user" };
+			var sponsorshipEntries = new List<SponsorshipUrlEntry> 
+			{ 
+				new SponsorshipUrlEntry("https://github.com/sponsors/user", DateTime.UtcNow, true) 
+			};
 
 			var mockSponsorshipService = new Mock<ISponsorshipUrlService>();
-			mockSponsorshipService.Setup(x => x.GetAcceptedSponsorshipUrls(It.IsAny<PackageRegistration>()))
-				.Returns(sponsorshipUrls.AsReadOnly());
+			mockSponsorshipService.Setup(x => x.GetSponsorshipUrlEntries(It.IsAny<PackageRegistration>()))
+				.Returns(sponsorshipEntries.AsReadOnly());
 
 			var package = new Package
 			{
@@ -1425,8 +1427,8 @@ namespace NuGetGallery.ViewModels
 		{
 			// Arrange
 			var mockSponsorshipService = new Mock<ISponsorshipUrlService>();
-			mockSponsorshipService.Setup(x => x.GetAcceptedSponsorshipUrls(It.IsAny<PackageRegistration>()))
-				.Returns(new List<string>().AsReadOnly());
+			mockSponsorshipService.Setup(x => x.GetSponsorshipUrlEntries(It.IsAny<PackageRegistration>()))
+				.Returns(new List<SponsorshipUrlEntry>().AsReadOnly());
 
 			var package = new Package
 			{

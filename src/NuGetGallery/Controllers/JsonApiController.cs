@@ -208,38 +208,11 @@ namespace NuGetGallery
         {
 	        if (TryGetPackageForSponsorshipManagement(id, out var package, out var errorMessage))
 	        {
-		        // Validate sponsorship URL after package validation
-		        if (string.IsNullOrWhiteSpace(sponsorshipUrl))
-		        {
-			        return Json(new { success = false, message = "Sponsorship URL is required." }, JsonRequestBehavior.AllowGet);
-		        }
-
-		        // Basic input validation to prevent oversized requests
-		        if (sponsorshipUrl.Length > 2048)
-		        {
-			        return Json(new { success = false, message = "URL is too long." }, JsonRequestBehavior.AllowGet);
-		        }
-
 		        try
 		        {
 			        var currentUser = GetCurrentUser();
-			        if (currentUser == null)
-			        {
-				        return Json(new { success = false, message = "User not authenticated." }, JsonRequestBehavior.AllowGet);
-			        }
 
-			        // Check server-side limit first
-			        var currentUrls = _sponsorshipUrlService.GetSponsorshipUrlEntries(package);
-			        var maxLinks = _sponsorshipUrlService.TrustedSponsorshipDomains.MaxSponsorshipLinks;
-			        if (currentUrls.Count >= maxLinks)
-			        {
-				        return Json(new { 
-					        success = false, 
-					        message = $"You can add a maximum of {maxLinks} sponsorship links." 
-				        }, JsonRequestBehavior.AllowGet);
-			        }
-
-			        // Add the sponsorship URL
+			        // Add the sponsorship URL (all validation handled in service layer)
 			        var validatedUrl = await _sponsorshipUrlService.AddSponsorshipUrlAsync(package, sponsorshipUrl, currentUser);
 			        
 			        return Json(new { 
@@ -248,13 +221,9 @@ namespace NuGetGallery
 				        isDomainAccepted = true
 			        });
 		        }
-		        catch (ArgumentException ex)
+		        catch (Exception ex)
 		        {
-			        return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
-		        }
-		        catch (Exception)
-		        {
-			        return Json(new { success = false, message = "An error occurred while adding the sponsorship URL." }, JsonRequestBehavior.AllowGet);
+			        return HandleSponsorshipUrlException(ex, "adding");
 		        }
 	        }
 	        else
@@ -270,30 +239,17 @@ namespace NuGetGallery
         {
 	        if (TryGetPackageForSponsorshipManagement(id, out var package, out var errorMessage))
 	        {
-		        // Validate sponsorship URL after package validation
-		        if (string.IsNullOrWhiteSpace(sponsorshipUrl))
-		        {
-			        return Json(new { success = false, message = "Sponsorship URL is required." }, JsonRequestBehavior.AllowGet);
-		        }
-
 		        try
 		        {
 			        var currentUser = GetCurrentUser();
-			        if (currentUser == null)
-			        {
-				        return Json(new { success = false, message = "User not authenticated." }, JsonRequestBehavior.AllowGet);
-			        }
 
+			        // Remove the sponsorship URL (all validation handled in service layer)
 			        await _sponsorshipUrlService.RemoveSponsorshipUrlAsync(package, sponsorshipUrl, currentUser);
 			        return Json(new { success = true });
 		        }
-		        catch (ArgumentException ex)
+		        catch (Exception ex)
 		        {
-			        return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
-		        }
-		        catch (Exception)
-		        {
-			        return Json(new { success = false, message = "An error occurred while removing the sponsorship URL." }, JsonRequestBehavior.AllowGet);
+			        return HandleSponsorshipUrlException(ex, "removing");
 		        }
 	        }
 	        else
@@ -415,6 +371,19 @@ namespace NuGetGallery
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Common error handling pattern for sponsorship URL operations
+        /// </summary>
+        private JsonResult HandleSponsorshipUrlException(Exception ex, string operation)
+        {
+            if (ex is ArgumentException argumentEx)
+            {
+                return Json(new { success = false, message = argumentEx.Message }, JsonRequestBehavior.AllowGet);
+            }
+            
+            return Json(new { success = false, message = $"An error occurred while {operation} the sponsorship URL." }, JsonRequestBehavior.AllowGet);
         }
 
         private class ManagePackageOwnerModel

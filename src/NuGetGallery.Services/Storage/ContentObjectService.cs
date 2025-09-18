@@ -30,7 +30,7 @@ namespace NuGetGallery
             CacheConfiguration = new CacheConfiguration();
             QueryHintConfiguration = new QueryHintConfiguration();
             TrustedImageDomains = new TrustedImageDomains();
-            TrustedSponsorshipDomains = new TrustedSponsorshipDomains(Enumerable.Empty<string>(), 0);
+            TrustedSponsorshipDomains = new TrustedSponsorshipDomains();
         }
 
         public ILoginDiscontinuationConfiguration LoginDiscontinuationConfiguration { get; private set; }
@@ -85,7 +85,7 @@ namespace NuGetGallery
 
             TrustedSponsorshipDomains =
                 await Refresh<TrustedSponsorshipDomains>(ServicesConstants.ContentNames.TrustedSponsorshipDomains) ??
-                new TrustedSponsorshipDomains(Enumerable.Empty<string>(), 0);
+                new TrustedSponsorshipDomains();
         }
 
         private async Task<T> Refresh<T>(string contentName)

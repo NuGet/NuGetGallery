@@ -13,6 +13,11 @@ namespace NuGetGallery.Services
 		public HashSet<string> TrustedSponsorshipDomainList { get; }
 		public int MaxSponsorshipLinks { get; }
 
+		public TrustedSponsorshipDomains()
+			: this(trustedSponsorshipDomainList: Enumerable.Empty<string>(), maxSponsorshipLinks: 0)
+		{
+		}
+
 		[JsonConstructor]
 		public TrustedSponsorshipDomains(IEnumerable<string> trustedSponsorshipDomainList, int maxSponsorshipLinks)
 		{

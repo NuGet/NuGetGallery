@@ -207,7 +207,12 @@ namespace NuGetGallery
 				}
 			}
 
-			viewModel.SponsorshipUrls = _sponsorshipUrlService?.GetAcceptedSponsorshipUrls(package.PackageRegistration)?.ToList() ?? new List<string>();
+			// Get accepted sponsorship URLs for public display (filters out unsupported domains)
+			var sponsorshipEntries = _sponsorshipUrlService?.GetSponsorshipUrlEntries(package.PackageRegistration);
+			viewModel.SponsorshipUrls = sponsorshipEntries?
+				.Where(entry => entry.IsDomainAccepted)
+				.Select(entry => entry.Url)
+				.ToList() ?? new List<string>();
 
 			PackageDeprecation deprecation = null;
 			if (packageKeyToDeprecation != null && packageKeyToDeprecation.TryGetValue(package.Key, out deprecation))

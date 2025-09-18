@@ -17,15 +17,9 @@ namespace NuGetGallery
 		/// Gets the trusted sponsorship domains configuration
 		/// </summary>
 		ITrustedSponsorshipDomains TrustedSponsorshipDomains { get; }
-		/// <summary>
-		/// Gets domain-validated sponsorship URLs
-		/// </summary>
-		/// <param name="packageRegistration"></param>
-		/// <returns>Read-only collection of domain-validated sponsorship URLs</returns>
-		IReadOnlyCollection<string> GetAcceptedSponsorshipUrls(PackageRegistration packageRegistration);
 
 		/// <summary>
-		/// Gets all sponsorship URL entries
+		/// Gets all sponsorship URL entries with validation status.
 		/// </summary>
 		/// <param name="packageRegistration"></param>
 		/// <returns>Read-only collection of all sponsorship URL entries</returns>

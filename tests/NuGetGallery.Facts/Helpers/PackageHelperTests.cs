@@ -219,6 +219,9 @@ namespace NuGetGallery.Helpers
             [InlineData("ftp://example.com")]
             [InlineData("file:///local/path")]
             [InlineData("javascript:alert('xss')")]
+            [InlineData("https://github.com/sponsors")]
+            [InlineData("https://www.github.com/sponsors")]
+            [InlineData("github.com/sponsors")]
             public void ValidateSponsorshipUrl_RejectsInvalidUrls(string invalidUrl)
             {
                 // Arrange

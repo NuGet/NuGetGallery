@@ -957,6 +957,10 @@ namespace NuGetGallery.Controllers
                     mockPackageService.Setup(x => x.FindPackageRegistrationById("TestPackage"))
                         .Returns(packageRegistration);
 
+                    var mockSponsorshipService = GetMock<ISponsorshipUrlService>();
+                    mockSponsorshipService.Setup(x => x.AddSponsorshipUrlAsync(packageRegistration, sponsorshipUrl, owner))
+                        .ThrowsAsync(new ArgumentException("Sponsorship URL is required."));
+
                     var controller = GetController<JsonApiController>();
                     controller.SetCurrentUser(owner);
 
@@ -983,10 +987,14 @@ namespace NuGetGallery.Controllers
                     mockPackageService.Setup(x => x.FindPackageRegistrationById("TestPackage"))
                         .Returns(packageRegistration);
 
+                    var longUrl = "https://example.com/" + new string('a', 2050);
+
+                    var mockSponsorshipService = GetMock<ISponsorshipUrlService>();
+                    mockSponsorshipService.Setup(x => x.AddSponsorshipUrlAsync(packageRegistration, longUrl, owner))
+                        .ThrowsAsync(new ArgumentException("URL is too long."));
+
                     var controller = GetController<JsonApiController>();
                     controller.SetCurrentUser(owner);
-
-                    var longUrl = "https://example.com/" + new string('a', 2050);
 
                     // Act
                     var result = await controller.AddSponsorshipUrl("TestPackage", longUrl);
@@ -1064,6 +1072,10 @@ namespace NuGetGallery.Controllers
                     };
                     mockSponsorshipService.Setup(x => x.GetSponsorshipUrlEntries(packageRegistration))
                         .Returns(existingUrls.AsReadOnly());
+
+                    // Set up the service to throw an exception when adding a URL that exceeds the limit
+                    mockSponsorshipService.Setup(x => x.AddSponsorshipUrlAsync(packageRegistration, "https://ko-fi.com/user", owner))
+                        .ThrowsAsync(new ArgumentException("You can add a maximum of 2 sponsorship links."));
 
                     var controller = GetController<JsonApiController>();
                     controller.SetCurrentUser(owner);
@@ -1191,6 +1203,10 @@ namespace NuGetGallery.Controllers
                     var mockPackageService = GetMock<IPackageService>();
                     mockPackageService.Setup(x => x.FindPackageRegistrationById("TestPackage"))
                         .Returns(packageRegistration);
+
+                    var mockSponsorshipService = GetMock<ISponsorshipUrlService>();
+                    mockSponsorshipService.Setup(x => x.RemoveSponsorshipUrlAsync(packageRegistration, sponsorshipUrl, owner))
+                        .ThrowsAsync(new ArgumentException("Sponsorship URL is required."));
 
                     var controller = GetController<JsonApiController>();
                     controller.SetCurrentUser(owner);

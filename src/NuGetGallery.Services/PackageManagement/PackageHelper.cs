@@ -248,6 +248,13 @@ namespace NuGetGallery
 				return false;
 			}
 
+			// Check URL length before processing
+			if (url.Length > 2048)
+			{
+				errorMessage = "URL is too long.";
+				return false;
+			}
+
 			// Normalize URL: add https:// if no scheme is present
 			string urlToValidate = url.Trim();
 			if (!Uri.TryCreate(urlToValidate, UriKind.Absolute, out Uri testUri) || testUri.Scheme == null)
@@ -296,9 +303,9 @@ namespace NuGetGallery
 			}
 
 			// Special validation for GitHub sponsors - must have username after /sponsors/
-			if (hostname == "github.com")
+			if (hostname == "github.com" || hostname == "www.github.com")
 			{
-				// Must be in format /sponsors/username (at least 3 path segments when split by /)
+				// Must be in format /sponsors/username
 				var pathParts = path.Split('/');
 				return pathParts.Length >= 2 && 
 				       pathParts[0].Equals("sponsors", StringComparison.OrdinalIgnoreCase) &&

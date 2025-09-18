@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using Moq;
+using Newtonsoft.Json;
 using NuGet.Services.Entities;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Framework;
@@ -141,6 +142,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
 				PackageService.Setup(x => x.FindPackageRegistrationById(packageId))
 					.Returns(packageRegistration);
+				SponsorshipUrlService.Setup(x => x.AddSponsorshipUrlAsync(packageRegistration, url, null))
+					.ThrowsAsync(new ArgumentNullException("user", "User cannot be null"));
 				Controller.SetCurrentUser(null);
 
 				// Act
@@ -149,7 +152,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 				// Assert
 				var redirectResult = Assert.IsType<RedirectToRouteResult>(result);
 				Assert.Equal("Index", redirectResult.RouteValues["action"]);
-				Assert.Contains("not authenticated", redirectResult.RouteValues["message"].ToString());
+				Assert.Contains("User cannot be null", redirectResult.RouteValues["message"].ToString());
 				Assert.Equal(false, redirectResult.RouteValues["isSuccess"]);
 			}
 
@@ -166,6 +169,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
 				PackageService.Setup(x => x.FindPackageRegistrationById(packageId))
 					.Returns(packageRegistration);
+				SponsorshipUrlService.Setup(x => x.AddSponsorshipUrlAsync(packageRegistration, emptyUrl, user))
+					.ThrowsAsync(new ArgumentException("Please enter a URL."));
 				Controller.SetCurrentUser(user);
 
 				// Act
@@ -174,7 +179,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 				// Assert
 				var redirectResult = Assert.IsType<RedirectToRouteResult>(result);
 				Assert.Equal("Index", redirectResult.RouteValues["action"]);
-				Assert.Contains("cannot be empty", redirectResult.RouteValues["message"].ToString());
+				Assert.Contains("Please enter a URL", redirectResult.RouteValues["message"].ToString());
 				Assert.Equal(false, redirectResult.RouteValues["isSuccess"]);
 			}
 
@@ -188,16 +193,12 @@ namespace NuGetGallery.Areas.Admin.Controllers
 				var user = CreateAdminUser();
 				var maxLinks = 5;
 
-				var currentUrls = Enumerable.Range(1, maxLinks)
-					.Select(i => new SponsorshipUrlEntry { Url = $"https://example{i}.com" })
-					.ToList();
-
 				PackageService.Setup(x => x.FindPackageRegistrationById(packageId))
 					.Returns(packageRegistration);
-				SponsorshipUrlService.Setup(x => x.GetSponsorshipUrlEntries(packageRegistration))
-					.Returns(currentUrls);
 				TrustedSponsorshipDomains.Setup(x => x.MaxSponsorshipLinks)
 					.Returns(maxLinks);
+				SponsorshipUrlService.Setup(x => x.AddSponsorshipUrlAsync(packageRegistration, url, user))
+					.ThrowsAsync(new ArgumentException($"You can add a maximum of {maxLinks} sponsorship links."));
 				Controller.SetCurrentUser(user);
 
 				// Act
@@ -335,6 +336,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
 				PackageService.Setup(x => x.FindPackageRegistrationById(packageId))
 					.Returns(packageRegistration);
+				SponsorshipUrlService.Setup(x => x.RemoveSponsorshipUrlAsync(packageRegistration, url, null))
+					.ThrowsAsync(new UnauthorizedAccessException("User cannot be null"));
 				Controller.SetCurrentUser(null);
 
 				// Act
@@ -343,7 +346,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 				// Assert
 				var redirectResult = Assert.IsType<RedirectToRouteResult>(result);
 				Assert.Equal("Index", redirectResult.RouteValues["action"]);
-				Assert.Contains("not authenticated", redirectResult.RouteValues["message"].ToString());
+				Assert.Contains("Error removing sponsorship URL: User cannot be null", redirectResult.RouteValues["message"].ToString());
 				Assert.Equal(false, redirectResult.RouteValues["isSuccess"]);
 			}
 
@@ -387,7 +390,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 				PackageService.Setup(x => x.FindPackageRegistrationById(packageId))
 					.Returns(packageRegistration);
 				SponsorshipUrlService.Setup(x => x.RemoveSponsorshipUrlAsync(packageRegistration, url, user))
-					.ThrowsAsync(new ArgumentException(exceptionMessage));
+					.ThrowsAsync(new InvalidOperationException(exceptionMessage));
 				Controller.SetCurrentUser(user);
 
 				// Act
