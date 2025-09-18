@@ -6,10 +6,9 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
-using System.Text.Json;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Identity.Web;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using NuGet.Services.Entities;
@@ -108,8 +107,8 @@ namespace NuGetGallery.Services.Authentication
                 throw new InvalidOperationException("A recognized, valid JWT should be available.");
             }
 
-            // sort the policy results by creation date, so older policy results are preferred
-            string? disclosableError = null; // we'll use first disclosable error (if any)
+            // Sort the policy results by creation date, so older policy results are preferred
+            StringBuilder disclosableErrors = new();
             foreach (var policy in policies.OrderBy(x => x.Created))
             {
                 var result = await EvaluatePolicyAsync(policy, context);
@@ -129,13 +128,14 @@ namespace NuGetGallery.Services.Authentication
 
                     return OidcTokenEvaluationResult.NewMatchedPolicy(policy, credential);
                 }
-                else if (disclosableError == null && result.IsErrorDisclosable && result.Error != null)
+                else if (result.IsErrorDisclosable && result.Error != null)
                 {
-                    disclosableError = result.Error;
+                    // Combine all disclosable errors to provide more context to the user.
+                    disclosableErrors.AppendLine(result.Error);
                 }
             }
 
-            return OidcTokenEvaluationResult.NoMatchingPolicy(disclosableError);
+            return OidcTokenEvaluationResult.NoMatchingPolicy(disclosableErrors.ToString().Trim());
         }
 
         private async Task ExecuteAdditionalValidatorsAsync(NameValueCollection requestHeaders, TokenContext context)
