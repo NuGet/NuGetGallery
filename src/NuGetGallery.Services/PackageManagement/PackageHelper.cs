@@ -242,6 +242,12 @@ namespace NuGetGallery
 			validatedUrl = null;
 			errorMessage = null;
 
+			if (trustedDomains == null)
+			{
+				errorMessage = "There was an error processing your request. Please try again later.";
+				return false;
+			}
+
 			if (string.IsNullOrWhiteSpace(url))
 			{
 				errorMessage = "Please enter a URL.";
@@ -255,18 +261,16 @@ namespace NuGetGallery
 				return false;
 			}
 
-			// Normalize URL: add https:// if no scheme is present
-			string urlToValidate = url.Trim();
-			if (!Uri.TryCreate(urlToValidate, UriKind.Absolute, out Uri testUri) || testUri.Scheme == null)
+			// Check domain acceptance first and get the normalized URL
+			if (!IsAcceptedSponsorshipDomain(url, trustedDomains, out string normalizedUrl))
 			{
-				urlToValidate = "https://" + urlToValidate;
+				errorMessage = "Please provide a valid URL from a supported sponsorship platform.";
+				return false;
 			}
 
-			// Validate URL format and domain acceptance (includes path validation)
-			if (!TryPrepareUrlForRendering(urlToValidate, out validatedUrl) ||
-				!IsAcceptedSponsorshipDomain(validatedUrl, trustedDomains))
+			if (!TryPrepareUrlForRendering(normalizedUrl, out validatedUrl, rewriteAllHttp: true))
 			{
-				validatedUrl = null; // ValidatedUrl is null when validation fails
+				validatedUrl = null;
 				errorMessage = "Please provide a valid URL from a supported sponsorship platform.";
 				return false;
 			}
@@ -279,13 +283,38 @@ namespace NuGetGallery
 		/// </summary>
 		/// <param name="url">The URL to check</param>
 		/// <param name="trustedDomains">The trusted sponsorship domains service (required for validation)</param>
+		/// <param name="normalizedUrl">The normalized URL if validation succeeds</param>
 		/// <returns>True if the URL is from an accepted sponsorship domain and has a meaningful path, false otherwise</returns>
-		public static bool IsAcceptedSponsorshipDomain(string url, ITrustedSponsorshipDomains trustedDomains)
+		public static bool IsAcceptedSponsorshipDomain(string url, ITrustedSponsorshipDomains trustedDomains, out string normalizedUrl)
 		{
-			if (!Uri.TryCreate(url, UriKind.Absolute, out Uri uri))
+			normalizedUrl = null;
+
+			if (string.IsNullOrWhiteSpace(url))
 			{
 				return false;
 			}
+
+			string trimmedUrl = url.Trim();
+			Uri uri;
+			
+			// Try to parse as absolute URI first
+			if (!Uri.TryCreate(trimmedUrl, UriKind.Absolute, out uri))
+			{
+				// Not a valid absolute URI, try prepending https://
+				if (!Uri.TryCreate("https://" + trimmedUrl, UriKind.Absolute, out uri))
+				{
+					return false;
+				}
+				trimmedUrl = "https://" + trimmedUrl;
+			}
+
+			// Only accept HTTP and HTTPS schemes
+			if (!uri.Scheme.Equals("http", StringComparison.OrdinalIgnoreCase) && 
+				!uri.Scheme.Equals("https", StringComparison.OrdinalIgnoreCase))
+			{
+				return false; // Invalid scheme like ftp://, javascript:, etc.
+			}
+
 			var hostname = uri.Host.ToLowerInvariant();
 
 			// Only accept domains if trusted domains service is provided
@@ -307,13 +336,43 @@ namespace NuGetGallery
 			{
 				// Must be in format /sponsors/username
 				var pathParts = path.Split('/');
-				return pathParts.Length >= 2 &&
+				
+				// Check for invalid GitHub URL patterns like "abc/sponsors/123" or "sponsors/user/extra"
+				if (pathParts.Length >= 3 && 
+					pathParts[1].Equals("sponsors", StringComparison.OrdinalIgnoreCase))
+				{
+					// This is an invalid pattern like "abc/sponsors/123" - reject it
+					return false;
+				}
+				
+				// Also reject if there are more than 2 path segments (sponsors/user should be exactly 2 parts)
+				if (pathParts.Length > 2)
+				{
+					return false;
+				}
+				
+				if (!(pathParts.Length >= 2 &&
 					   pathParts[0].Equals("sponsors", StringComparison.OrdinalIgnoreCase) &&
-					   !string.IsNullOrWhiteSpace(pathParts[1]);
+					   !string.IsNullOrWhiteSpace(pathParts[1])))
+				{
+					return false;
+				}
 			}
 
-			// For other domains, just ensure there's some meaningful path beyond root
-			return !string.IsNullOrEmpty(path);
+			// If we got here, validation passed - return the normalized URL
+			normalizedUrl = trimmedUrl;
+			return true;
+		}
+
+		/// <summary>
+		/// Checks if a URL belongs to an accepted sponsorship domain and has a meaningful path.
+		/// </summary>
+		/// <param name="url">The URL to check</param>
+		/// <param name="trustedDomains">The trusted sponsorship domains service (required for validation)</param>
+		/// <returns>True if the URL is from an accepted sponsorship domain and has a meaningful path, false otherwise</returns>
+		public static bool IsAcceptedSponsorshipDomain(string url, ITrustedSponsorshipDomains trustedDomains)
+		{
+			return IsAcceptedSponsorshipDomain(url, trustedDomains, out _);
 		}
 	}
 }

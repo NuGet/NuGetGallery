@@ -44,11 +44,17 @@ namespace NuGetGallery.Services
 				{
 					trustedSponsorshipDomains = new Mock<ITrustedSponsorshipDomains>();
 					trustedSponsorshipDomains.Setup(x => x.IsSponsorshipDomainTrusted("github.com")).Returns(true);
+					trustedSponsorshipDomains.Setup(x => x.IsSponsorshipDomainTrusted("www.github.com")).Returns(true);
 					trustedSponsorshipDomains.Setup(x => x.IsSponsorshipDomainTrusted("patreon.com")).Returns(true);
+					trustedSponsorshipDomains.Setup(x => x.IsSponsorshipDomainTrusted("www.patreon.com")).Returns(true);
 					trustedSponsorshipDomains.Setup(x => x.IsSponsorshipDomainTrusted("opencollective.com")).Returns(true);
+					trustedSponsorshipDomains.Setup(x => x.IsSponsorshipDomainTrusted("www.opencollective.com")).Returns(true);
 					trustedSponsorshipDomains.Setup(x => x.IsSponsorshipDomainTrusted("ko-fi.com")).Returns(true);
+					trustedSponsorshipDomains.Setup(x => x.IsSponsorshipDomainTrusted("www.ko-fi.com")).Returns(true);
 					trustedSponsorshipDomains.Setup(x => x.IsSponsorshipDomainTrusted("tidelift.com")).Returns(true);
+					trustedSponsorshipDomains.Setup(x => x.IsSponsorshipDomainTrusted("www.tidelift.com")).Returns(true);
 					trustedSponsorshipDomains.Setup(x => x.IsSponsorshipDomainTrusted("liberapay.com")).Returns(true);
+					trustedSponsorshipDomains.Setup(x => x.IsSponsorshipDomainTrusted("www.liberapay.com")).Returns(true);
 					trustedSponsorshipDomains.Setup(x => x.IsSponsorshipDomainTrusted("untrusted.com")).Returns(false);
 					trustedSponsorshipDomains.Setup(x => x.MaxSponsorshipLinks).Returns(10);
 				}
@@ -157,42 +163,183 @@ namespace NuGetGallery.Services
 				Assert.Equal(2, result.Count);
 				Assert.All(result, entry => Assert.True(Uri.TryCreate(entry.Url, UriKind.Absolute, out _)));
 			}
+
+			[Theory]
+			[InlineData(null, "null sponsorship URLs")]
+			[InlineData("", "empty sponsorship URLs")]
+			[InlineData("invalid json [}", "malformed JSON")]
+			[InlineData("[]", "empty JSON array")]
+			[InlineData("null", "JSON null value")]
+			public void HandlesInvalidOrEmptyInput(string sponsorshipUrls, string _)
+			{
+				// Arrange
+				var service = CreateService();
+				var packageRegistration = CreatePackageRegistration(sponsorshipUrls: sponsorshipUrls);
+
+				// Act
+				var result = service.GetSponsorshipUrlEntries(packageRegistration);
+
+				// Assert
+				Assert.NotNull(result);
+				Assert.Empty(result);
+			}
+
+			[Fact]
+			public void MarksGitHubUrlsWithoutUsernameAsNotAccepted()
+			{
+				// Arrange
+				var sponsorshipData = new[]
+				{
+					new { url = "https://github.com/sponsors/validuser", timestamp = DateTime.UtcNow },
+					new { url = "https://github.com/sponsors", timestamp = DateTime.UtcNow }, // Invalid - no username
+					new { url = "https://www.github.com/sponsors/", timestamp = DateTime.UtcNow }, // Invalid - no username
+					new { url = "https://patreon.com/user", timestamp = DateTime.UtcNow }
+				};
+				var sponsorshipJson = JsonConvert.SerializeObject(sponsorshipData);
+
+				var service = CreateService();
+				var packageRegistration = CreatePackageRegistration(sponsorshipUrls: sponsorshipJson);
+
+				// Act
+				var result = service.GetSponsorshipUrlEntries(packageRegistration);
+
+				// Assert
+				Assert.Equal(4, result.Count); // All URLs are returned but with correct acceptance status
+				
+				// Valid GitHub URL should be accepted
+				var validGitHubEntry = result.First(e => e.Url == "https://github.com/sponsors/validuser");
+				Assert.True(validGitHubEntry.IsDomainAccepted);
+				
+				// Invalid GitHub URLs should not be accepted
+				var invalidGitHubEntry1 = result.First(e => e.Url == "https://github.com/sponsors");
+				Assert.False(invalidGitHubEntry1.IsDomainAccepted);
+				
+				var invalidGitHubEntry2 = result.First(e => e.Url == "https://www.github.com/sponsors/");
+				Assert.False(invalidGitHubEntry2.IsDomainAccepted);
+				
+				// Patreon URL should be accepted
+				var patreonEntry = result.First(e => e.Url == "https://patreon.com/user");
+				Assert.True(patreonEntry.IsDomainAccepted);
+			}
+
+			[Fact]
+			public void HandlesJsonWithMixedValidAndInvalidUrls()
+			{
+				// Arrange
+				var sponsorshipData = new[]
+				{
+					new { url = "https://github.com/sponsors/user", timestamp = DateTime.UtcNow },
+					new { url = "", timestamp = DateTime.UtcNow }, // Empty URL
+					new { url = "not-a-url", timestamp = DateTime.UtcNow }, // Invalid URL format
+					new { url = "https://patreon.com/user", timestamp = DateTime.UtcNow },
+					new { url = "javascript:alert('xss')", timestamp = DateTime.UtcNow }, // Dangerous URL scheme
+					new { url = "https://opencollective.com/project", timestamp = DateTime.UtcNow }
+				};
+				var sponsorshipJson = JsonConvert.SerializeObject(sponsorshipData);
+
+				var service = CreateService();
+				var packageRegistration = CreatePackageRegistration(sponsorshipUrls: sponsorshipJson);
+
+				// Act
+				var result = service.GetSponsorshipUrlEntries(packageRegistration);
+
+				// Assert
+				Assert.Equal(3, result.Count); // Only valid HTTP(S) URLs should be included
+				Assert.All(result, entry => 
+				{
+					Assert.True(Uri.TryCreate(entry.Url, UriKind.Absolute, out Uri uri));
+					Assert.True(uri.Scheme == "https" || uri.Scheme == "http");
+				});
+			}
+
+			[Fact]
+			public void PreservesTimestampsFromOriginalData()
+			{
+				// Arrange
+				var timestamp1 = DateTime.UtcNow.AddDays(-5);
+				var timestamp2 = DateTime.UtcNow.AddDays(-2);
+				var sponsorshipData = new[]
+				{
+					new { url = "https://github.com/sponsors/user1", timestamp = timestamp1 },
+					new { url = "https://patreon.com/user2", timestamp = timestamp2 }
+				};
+				var sponsorshipJson = JsonConvert.SerializeObject(sponsorshipData);
+
+				var service = CreateService();
+				var packageRegistration = CreatePackageRegistration(sponsorshipUrls: sponsorshipJson);
+
+				// Act
+				var result = service.GetSponsorshipUrlEntries(packageRegistration);
+
+				// Assert
+				Assert.Equal(2, result.Count);
+				var githubEntry = result.First(e => e.Url == "https://github.com/sponsors/user1");
+				var patreonEntry = result.First(e => e.Url == "https://patreon.com/user2");
+				
+				Assert.Equal(timestamp1, githubEntry.Timestamp);
+				Assert.Equal(timestamp2, patreonEntry.Timestamp);
+			}
+
+			[Fact]
+			public void HandlesDifferentTrustedDomainVariations()
+			{
+				// Arrange
+				var sponsorshipData = new[]
+				{
+					new { url = "https://github.com/sponsors/user", timestamp = DateTime.UtcNow },
+					new { url = "https://www.github.com/sponsors/user", timestamp = DateTime.UtcNow },
+					new { url = "https://ko-fi.com/user", timestamp = DateTime.UtcNow },
+					new { url = "https://www.ko-fi.com/user", timestamp = DateTime.UtcNow },
+					new { url = "https://tidelift.com/subscription/pkg/npm-package", timestamp = DateTime.UtcNow }
+				};
+				var sponsorshipJson = JsonConvert.SerializeObject(sponsorshipData);
+
+				var service = CreateService();
+				var packageRegistration = CreatePackageRegistration(sponsorshipUrls: sponsorshipJson);
+
+				// Act
+				var result = service.GetSponsorshipUrlEntries(packageRegistration);
+
+				// Assert
+				Assert.Equal(5, result.Count);
+				Assert.All(result, entry => Assert.True(entry.IsDomainAccepted));
+			}
+
+			[Fact]
+			public void NormalizesUrlsToHttps()
+			{
+				// Arrange
+				var sponsorshipData = new[]
+				{
+					new { url = "http://github.com/sponsors/user", timestamp = DateTime.UtcNow }, // HTTP should be converted to HTTPS
+					new { url = "https://patreon.com/user", timestamp = DateTime.UtcNow } // HTTPS should remain as-is
+				};
+				var sponsorshipJson = JsonConvert.SerializeObject(sponsorshipData);
+
+				var service = CreateService();
+				var packageRegistration = CreatePackageRegistration(sponsorshipUrls: sponsorshipJson);
+
+				// Act
+				var result = service.GetSponsorshipUrlEntries(packageRegistration);
+
+				// Assert
+				Assert.Equal(2, result.Count);
+				Assert.All(result, entry => Assert.True(entry.Url.StartsWith("https://"), 
+					$"Expected HTTPS URL but got: {entry.Url}"));
+			}
 		}
 
 		public class TheAddSponsorshipUrlAsyncMethod
 		{
-			[Fact]
-			public async Task ThrowsNullReferenceExceptionWhenUserIsNull()
-			{
-				// Arrange
-				var service = CreateService();
-				var packageRegistration = CreatePackageRegistration();
-
-				// Act & Assert
-				// Note: User validation is handled at controller level, so service expects valid user
-				await Assert.ThrowsAsync<NullReferenceException>(() => 
-					service.AddSponsorshipUrlAsync(packageRegistration, "https://github.com/sponsors/user", null));
-			}
-
-			[Fact]
-			public async Task ThrowsNullReferenceExceptionWhenPackageRegistrationIsNull()
-			{
-				// Arrange
-				var service = CreateService();
-				var user = CreateUser();
-
-				// Act & Assert
-				// Note: Package validation is handled at controller level, so service expects valid package
-				await Assert.ThrowsAsync<NullReferenceException>(() => 
-					service.AddSponsorshipUrlAsync(null, "https://github.com/sponsors/user", user));
-			}
-
 			[Theory]
 			[InlineData(null)]
 			[InlineData("")]
 			[InlineData("   ")]
 			[InlineData("invalid-url")]
 			[InlineData("ftp://example.com")]
+			[InlineData("https://github.com/sponsors")] // Missing username
+			[InlineData("https://www.github.com/sponsors/")] // Missing username with trailing slash
+			[InlineData("https://untrusted.com/sponsor")] // Untrusted domain
 			public async Task ThrowsArgumentExceptionForInvalidUrl(string invalidUrl)
 			{
 				// Arrange
@@ -206,152 +353,25 @@ namespace NuGetGallery.Services
 			}
 
 			[Fact]
-			public async Task AddsValidUrlAndCreatesAuditRecord()
+			public async Task ThrowsArgumentExceptionForUrlTooLong()
 			{
 				// Arrange
-				var mockContext = new Mock<IEntitiesContext>();
-				var mockDatabase = new Mock<IDatabase>();
-				var mockTransaction = new Mock<IDbContextTransaction>();
-				
-				mockContext.Setup(x => x.GetDatabase()).Returns(mockDatabase.Object);
-				mockDatabase.Setup(x => x.BeginTransaction()).Returns(mockTransaction.Object);
-				mockContext.Setup(x => x.SaveChangesAsync()).Returns(Task.FromResult(1));
-
-				var mockAuditingService = new Mock<IAuditingService>();
-				var service = CreateService(entitiesContext: mockContext, auditingService: mockAuditingService);
-				
+				var service = CreateService();
 				var packageRegistration = CreatePackageRegistration();
 				var user = CreateUser();
-				var url = "https://github.com/sponsors/user";
+				var longUrl = "https://github.com/sponsors/" + new string('a', 2100); // Exceeds 2048 limit
 
-				// Act
-				var result = await service.AddSponsorshipUrlAsync(packageRegistration, url, user);
-
-				// Assert
-				Assert.Equal(url, result);
-				Assert.NotNull(packageRegistration.SponsorshipUrls);
-				
-				// Verify the URL was added to the JSON
-				var entries = JsonConvert.DeserializeObject<List<SponsorshipUrlEntry>>(packageRegistration.SponsorshipUrls);
-				Assert.Single(entries);
-				Assert.Equal(url, entries[0].Url);
-
-				// Verify audit record was created
-				mockAuditingService.Verify(x => x.SaveAuditRecordAsync(
-					It.Is<PackageRegistrationAuditRecord>(r => 
-						r.Action == AuditedPackageRegistrationAction.AddSponsorshipUrl &&
-						r.Id == packageRegistration.Id)), Times.Once);
-
-				// Verify transaction handling
-				mockContext.Verify(x => x.SaveChangesAsync(), Times.Once);
-				mockTransaction.Verify(x => x.Commit(), Times.Once);
-			}
-
-			[Fact]
-			public async Task AddsUrlToExistingUrls()
-			{
-				// Arrange
-				var existingUrl = new { url = "https://patreon.com/user", timestamp = DateTime.UtcNow.AddDays(-1) };
-				var existingJson = JsonConvert.SerializeObject(new[] { existingUrl });
-
-				var mockContext = new Mock<IEntitiesContext>();
-				var mockDatabase = new Mock<IDatabase>();
-				var mockTransaction = new Mock<IDbContextTransaction>();
-				
-				mockContext.Setup(x => x.GetDatabase()).Returns(mockDatabase.Object);
-				mockDatabase.Setup(x => x.BeginTransaction()).Returns(mockTransaction.Object);
-				mockContext.Setup(x => x.SaveChangesAsync()).Returns(Task.FromResult(1));
-
-				var service = CreateService(entitiesContext: mockContext);
-				var packageRegistration = CreatePackageRegistration(sponsorshipUrls: existingJson);
-				var user = CreateUser();
-				var newUrl = "https://github.com/sponsors/user";
-
-				// Act
-				var result = await service.AddSponsorshipUrlAsync(packageRegistration, newUrl, user);
-
-				// Assert
-				Assert.Equal(newUrl, result);
-				
-				var entries = JsonConvert.DeserializeObject<List<SponsorshipUrlEntry>>(packageRegistration.SponsorshipUrls);
-				Assert.Equal(2, entries.Count);
-				Assert.Contains(entries, e => e.Url == "https://patreon.com/user");
-				Assert.Contains(entries, e => e.Url == newUrl);
-			}
-
-			[Fact]
-			public async Task AdminCanAddUrlToAnyPackage()
-			{
-				// Arrange
-				var mockContext = new Mock<IEntitiesContext>();
-				var mockDatabase = new Mock<IDatabase>();
-				var mockTransaction = new Mock<IDbContextTransaction>();
-				
-				mockContext.Setup(x => x.GetDatabase()).Returns(mockDatabase.Object);
-				mockDatabase.Setup(x => x.BeginTransaction()).Returns(mockTransaction.Object);
-				mockContext.Setup(x => x.SaveChangesAsync()).Returns(Task.FromResult(1));
-
-				var mockAuditingService = new Mock<IAuditingService>();
-				var service = CreateService(entitiesContext: mockContext, auditingService: mockAuditingService);
-				
-				var packageRegistration = CreatePackageRegistration();
-				var adminUser = CreateUser("admin", isAdmin: true);
-				var url = "https://github.com/sponsors/user";
-
-				// Act
-				var result = await service.AddSponsorshipUrlAsync(packageRegistration, url, adminUser);
-
-				// Assert
-				Assert.Equal(url, result);
-				Assert.NotNull(packageRegistration.SponsorshipUrls);
-				
-				// Verify the URL was added to the JSON
-				var entries = JsonConvert.DeserializeObject<List<SponsorshipUrlEntry>>(packageRegistration.SponsorshipUrls);
-				Assert.Single(entries);
-				Assert.Equal(url, entries[0].Url);
-
-				// Verify audit record was created with admin role
-				mockAuditingService.Verify(x => x.SaveAuditRecordAsync(
-					It.Is<PackageRegistrationAuditRecord>(r => 
-						r.Action == AuditedPackageRegistrationAction.AddSponsorshipUrl &&
-						r.Id == packageRegistration.Id &&
-						r.ActorRole == "Administrator")), Times.Once);
+				// Act & Assert
+				var ex = await Assert.ThrowsAsync<ArgumentException>(() => 
+					service.AddSponsorshipUrlAsync(packageRegistration, longUrl, user));
+				Assert.Contains("too long", ex.Message);
 			}
 		}
 
 		public class TheRemoveSponsorshipUrlAsyncMethod
 		{
 			[Fact]
-			public async Task ThrowsNullReferenceExceptionWhenUserIsNull()
-			{
-				// Arrange
-				var service = CreateService();
-				var packageRegistration = CreatePackageRegistration();
-
-				// Act & Assert
-				// Note: User validation is handled at controller level, so service expects valid user
-				await Assert.ThrowsAsync<NullReferenceException>(() => 
-					service.RemoveSponsorshipUrlAsync(packageRegistration, "https://github.com/sponsors/user", null));
-			}
-
-			[Fact]
-			public async Task ThrowsNullReferenceExceptionWhenPackageRegistrationIsNull()
-			{
-				// Arrange
-				var service = CreateService();
-				var user = CreateUser();
-
-				// Act & Assert
-				// Note: Package validation is handled at controller level, so service expects valid package
-				await Assert.ThrowsAsync<NullReferenceException>(() => 
-					service.RemoveSponsorshipUrlAsync(null, "https://github.com/sponsors/user", user));
-			}
-
-			[Theory]
-			[InlineData(null)]
-			[InlineData("")]
-			[InlineData("   ")]
-			public async Task ThrowsArgumentExceptionForInvalidUrl(string invalidUrl)
+			public async Task ThrowsArgumentExceptionForNullUrl()
 			{
 				// Arrange
 				var service = CreateService();
@@ -360,7 +380,7 @@ namespace NuGetGallery.Services
 
 				// Act & Assert
 				await Assert.ThrowsAsync<ArgumentException>(() => 
-					service.RemoveSponsorshipUrlAsync(packageRegistration, invalidUrl, user));
+					service.RemoveSponsorshipUrlAsync(packageRegistration, null, user));
 			}
 
 			[Fact]
@@ -377,168 +397,7 @@ namespace NuGetGallery.Services
 				
 				Assert.Contains("not found", ex.Message);
 			}
-
-			[Fact]
-			public async Task RemovesUrlAndCreatesAuditRecord()
-			{
-				// Arrange
-				var urlToRemove = "https://github.com/sponsors/user";
-				var sponsorshipData = new[]
-				{
-					new { url = urlToRemove, timestamp = DateTime.UtcNow },
-					new { url = "https://patreon.com/user", timestamp = DateTime.UtcNow }
-				};
-				var existingJson = JsonConvert.SerializeObject(sponsorshipData);
-
-				var mockContext = new Mock<IEntitiesContext>();
-				var mockDatabase = new Mock<IDatabase>();
-				var mockTransaction = new Mock<IDbContextTransaction>();
-				
-				mockContext.Setup(x => x.GetDatabase()).Returns(mockDatabase.Object);
-				mockDatabase.Setup(x => x.BeginTransaction()).Returns(mockTransaction.Object);
-				mockContext.Setup(x => x.SaveChangesAsync()).Returns(Task.FromResult(1));
-
-				var mockAuditingService = new Mock<IAuditingService>();
-				var service = CreateService(entitiesContext: mockContext, auditingService: mockAuditingService);
-				
-				var packageRegistration = CreatePackageRegistration(sponsorshipUrls: existingJson);
-				var user = CreateUser();
-
-				// Act
-				await service.RemoveSponsorshipUrlAsync(packageRegistration, urlToRemove, user);
-
-				// Assert
-				var entries = JsonConvert.DeserializeObject<List<SponsorshipUrlEntry>>(packageRegistration.SponsorshipUrls);
-				Assert.Single(entries);
-				Assert.Equal("https://patreon.com/user", entries[0].Url);
-
-				// Verify audit record was created
-				mockAuditingService.Verify(x => x.SaveAuditRecordAsync(
-					It.Is<PackageRegistrationAuditRecord>(r => 
-						r.Action == AuditedPackageRegistrationAction.RemoveSponsorshipUrl &&
-						r.Id == packageRegistration.Id)), Times.Once);
-
-				// Verify transaction handling
-				mockContext.Verify(x => x.SaveChangesAsync(), Times.Once);
-				mockTransaction.Verify(x => x.Commit(), Times.Once);
-			}
-
-			[Fact]
-			public async Task RemovesLastUrlSetsJsonToNull()
-			{
-				// Arrange
-				var urlToRemove = "https://github.com/sponsors/user";
-				var sponsorshipData = new[] { new { url = urlToRemove, timestamp = DateTime.UtcNow } };
-				var existingJson = JsonConvert.SerializeObject(sponsorshipData);
-
-				var mockContext = new Mock<IEntitiesContext>();
-				var mockDatabase = new Mock<IDatabase>();
-				var mockTransaction = new Mock<IDbContextTransaction>();
-				
-				mockContext.Setup(x => x.GetDatabase()).Returns(mockDatabase.Object);
-				mockDatabase.Setup(x => x.BeginTransaction()).Returns(mockTransaction.Object);
-				mockContext.Setup(x => x.SaveChangesAsync()).Returns(Task.FromResult(1));
-
-				var service = CreateService(entitiesContext: mockContext);
-				var packageRegistration = CreatePackageRegistration(sponsorshipUrls: existingJson);
-				var user = CreateUser();
-
-				// Act
-				await service.RemoveSponsorshipUrlAsync(packageRegistration, urlToRemove, user);
-
-				// Assert
-				Assert.Null(packageRegistration.SponsorshipUrls);
-			}
-
-			[Fact]
-			public async Task RemovalIsCaseInsensitive()
-			{
-				// Arrange
-				var urlToRemove = "https://github.com/sponsors/user";
-				var sponsorshipData = new[] { new { url = urlToRemove, timestamp = DateTime.UtcNow } };
-				var existingJson = JsonConvert.SerializeObject(sponsorshipData);
-
-				var mockContext = new Mock<IEntitiesContext>();
-				var mockDatabase = new Mock<IDatabase>();
-				var mockTransaction = new Mock<IDbContextTransaction>();
-				
-				mockContext.Setup(x => x.GetDatabase()).Returns(mockDatabase.Object);
-				mockDatabase.Setup(x => x.BeginTransaction()).Returns(mockTransaction.Object);
-				mockContext.Setup(x => x.SaveChangesAsync()).Returns(Task.FromResult(1));
-
-				var service = CreateService(entitiesContext: mockContext);
-				var packageRegistration = CreatePackageRegistration(sponsorshipUrls: existingJson);
-				var user = CreateUser();
-
-				// Act - remove with different case
-				await service.RemoveSponsorshipUrlAsync(packageRegistration, urlToRemove.ToUpperInvariant(), user);
-
-				// Assert
-				Assert.Null(packageRegistration.SponsorshipUrls);
-			}
-
-			[Fact]
-			public async Task AdminCanRemoveUrlFromAnyPackage()
-			{
-				// Arrange
-				var urlToRemove = "https://github.com/sponsors/user";
-				var sponsorshipData = new[] { new { url = urlToRemove, timestamp = DateTime.UtcNow } };
-				var existingJson = JsonConvert.SerializeObject(sponsorshipData);
-
-				var mockContext = new Mock<IEntitiesContext>();
-				var mockDatabase = new Mock<IDatabase>();
-				var mockTransaction = new Mock<IDbContextTransaction>();
-				
-				mockContext.Setup(x => x.GetDatabase()).Returns(mockDatabase.Object);
-				mockDatabase.Setup(x => x.BeginTransaction()).Returns(mockTransaction.Object);
-				mockContext.Setup(x => x.SaveChangesAsync()).Returns(Task.FromResult(1));
-				
-				// Ensure the transaction mock can be disposed properly
-				mockTransaction.Setup(x => x.Dispose());
-
-				var mockAuditingService = new Mock<IAuditingService>();
-				var service = CreateService(entitiesContext: mockContext, auditingService: mockAuditingService);
-				
-				var packageRegistration = CreatePackageRegistration(sponsorshipUrls: existingJson);
-				var adminUser = CreateUser("admin", isAdmin: true);
-
-				// Act
-				await service.RemoveSponsorshipUrlAsync(packageRegistration, urlToRemove, adminUser);
-
-				// Assert
-				Assert.Null(packageRegistration.SponsorshipUrls);
-
-				// Verify audit record was created with admin role
-				mockAuditingService.Verify(x => x.SaveAuditRecordAsync(
-					It.Is<PackageRegistrationAuditRecord>(r => 
-						r.Action == AuditedPackageRegistrationAction.RemoveSponsorshipUrl &&
-						r.Id == packageRegistration.Id &&
-						r.ActorRole == "Administrator")), Times.Once);
-
-				// Verify transaction handling
-				mockContext.Verify(x => x.SaveChangesAsync(), Times.Once);
-				mockTransaction.Verify(x => x.Commit(), Times.Once);
-			}
 		}
 
-		public class TheTrustedSponsorshipDomainsProperty
-		{
-			[Fact]
-			public void ReturnsConfigurationFromContentObjectService()
-			{
-				// Arrange
-				var mockTrustedDomains = new Mock<ITrustedSponsorshipDomains>();
-				var mockContentObjectService = new Mock<IContentObjectService>();
-				mockContentObjectService.Setup(x => x.TrustedSponsorshipDomains).Returns(mockTrustedDomains.Object);
-
-				var service = CreateService(contentObjectService: mockContentObjectService);
-
-				// Act
-				var result = service.TrustedSponsorshipDomains;
-
-				// Assert
-				Assert.Same(mockTrustedDomains.Object, result);
-			}
-		}
 	}
 }

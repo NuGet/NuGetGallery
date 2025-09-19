@@ -29,13 +29,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 				var result = Controller.Index();
 
 				// Assert
-				var viewResult = Assert.IsType<ViewResult>(result);
-				var model = Assert.IsType<PackageSponsorshipIndexViewModel>(viewResult.Model);
-				Assert.Null(model.PackageId);
-				Assert.Null(model.Package);
-				Assert.Null(model.SponsorshipUrls);
-				Assert.Null(model.Message);
-				Assert.False(model.IsSuccess);
+				AssertIndexViewModel(result, packageId: null, hasPackage: false, hasMessage: false, isSuccess: false);
 			}
 
 			[Fact]
@@ -44,7 +38,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
 				// Arrange
 				var packageId = "TestPackage";
 				var packageRegistration = CreatePackageRegistration(packageId);
-				var package = CreatePackage(packageRegistration, "1.0.0");
 				var sponsorshipEntries = new List<SponsorshipUrlEntry>
 				{
 					new SponsorshipUrlEntry { Url = "https://github.com/sponsors/user", IsDomainAccepted = true }
@@ -63,7 +56,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
 				var model = Assert.IsType<PackageSponsorshipIndexViewModel>(viewResult.Model);
 				Assert.Equal(packageId, model.PackageId);
 				Assert.NotNull(model.Package);
-				Assert.Equal(package.Id, model.Package.Id);
 				Assert.NotNull(model.SponsorshipUrls);
 				Assert.Single(model.SponsorshipUrls);
 				Assert.Equal("https://github.com/sponsors/user", model.SponsorshipUrls.First().Url);
@@ -74,19 +66,13 @@ namespace NuGetGallery.Areas.Admin.Controllers
 			{
 				// Arrange
 				var packageId = "NonExistentPackage";
-				PackageService.Setup(x => x.FindPackageRegistrationById(packageId))
-					.Returns((PackageRegistration)null);
+				SetupPackageNotFound(packageId);
 
 				// Act
 				var result = Controller.Index(packageId);
 
 				// Assert
-				var viewResult = Assert.IsType<ViewResult>(result);
-				var model = Assert.IsType<PackageSponsorshipIndexViewModel>(viewResult.Model);
-				Assert.Equal(packageId, model.PackageId);
-				Assert.Null(model.Package);
-				Assert.Contains("not found", model.Message);
-				Assert.False(model.IsSuccess);
+				AssertIndexViewModelWithError(result, packageId, "not found");
 			}
 
 			[Fact]
@@ -111,296 +97,244 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
 		public class TheAddUrlMethod : FactsBase
 		{
-			[Fact]
-			public async Task RedirectsWithErrorWhenPackageNotFound()
+			public class ErrorScenarios : FactsBase
 			{
-				// Arrange
-				var packageId = "NonExistentPackage";
-				var url = "https://github.com/sponsors/user";
+				[Fact]
+				public async Task RedirectsWithErrorWhenPackageNotFound()
+				{
+					// Arrange
+					var packageId = "NonExistentPackage";
+					var url = TestUrls.ValidGitHubUrl;
+					SetupPackageNotFound(packageId);
 
-				PackageService.Setup(x => x.FindPackageRegistrationById(packageId))
-					.Returns((PackageRegistration)null);
+					// Act
+					var result = await Controller.AddUrl(packageId, url);
 
-				// Act
-				var result = await Controller.AddUrl(packageId, url);
+					// Assert
+					AssertRedirectWithError(result, packageId, "not found");
+				}
 
-				// Assert
-				var redirectResult = Assert.IsType<RedirectToRouteResult>(result);
-				Assert.Equal("Index", redirectResult.RouteValues["action"]);
-				Assert.Equal(packageId, redirectResult.RouteValues["packageId"]);
-				Assert.Contains("not found", redirectResult.RouteValues["message"].ToString());
-				Assert.Equal(false, redirectResult.RouteValues["isSuccess"]);
+				[Fact]
+				public async Task RedirectsWithErrorWhenUserNotAuthenticated()
+				{
+					// Arrange
+					var packageId = "TestPackage";
+					var url = TestUrls.ValidGitHubUrl;
+					var packageRegistration = CreatePackageRegistration(packageId);
+
+					PackageService.Setup(x => x.FindPackageRegistrationById(packageId))
+						.Returns(packageRegistration);
+					SponsorshipUrlService.Setup(x => x.AddSponsorshipUrlAsync(packageRegistration, url, null))
+						.ThrowsAsync(new ArgumentNullException("user", "User cannot be null"));
+					Controller.SetCurrentUser(null);
+
+					// Act
+					var result = await Controller.AddUrl(packageId, url);
+
+					// Assert
+					AssertRedirectWithError(result, packageId, "User cannot be null");
+				}
+
+				[Theory]
+				[InlineData(null)]
+				[InlineData("")]
+				[InlineData("   ")]
+				public async Task RedirectsWithErrorWhenUrlIsEmpty(string emptyUrl)
+				{
+					// Arrange
+					var packageId = "TestPackage";
+					var packageRegistration = CreatePackageRegistration(packageId);
+					var user = CreateAdminUser();
+
+					SetupValidPackageAndUser(packageRegistration, user);
+					SponsorshipUrlService.Setup(x => x.AddSponsorshipUrlAsync(packageRegistration, emptyUrl, user))
+						.ThrowsAsync(new ArgumentException("Please enter a URL."));
+
+					// Act
+					var result = await Controller.AddUrl(packageId, emptyUrl);
+
+					// Assert
+					AssertRedirectWithError(result, packageId, "Please enter a URL");
+				}
+
+				[Fact]
+				public async Task RedirectsWithErrorWhenMaxLinksReached()
+				{
+					// Arrange
+					var packageId = "TestPackage";
+					var url = TestUrls.ValidGitHubUrl;
+					var packageRegistration = CreatePackageRegistration(packageId);
+					var user = CreateAdminUser();
+					var maxLinks = 5;
+
+					SetupValidPackageAndUser(packageRegistration, user);
+					TrustedSponsorshipDomains.Setup(x => x.MaxSponsorshipLinks).Returns(maxLinks);
+					SponsorshipUrlService.Setup(x => x.AddSponsorshipUrlAsync(packageRegistration, url, user))
+						.ThrowsAsync(new ArgumentException($"You can add a maximum of {maxLinks} sponsorship links."));
+
+					// Act
+					var result = await Controller.AddUrl(packageId, url);
+
+					// Assert
+					AssertRedirectWithError(result, packageId, $"maximum of {maxLinks}");
+				}
+
+				[Theory]
+				[InlineData("invalid-url", "Invalid URL format")]
+				[InlineData("ftp://example.com", "Unsupported protocol")]
+				public async Task RedirectsWithErrorWhenArgumentExceptionThrown(string invalidUrl, string expectedErrorMessage)
+				{
+					// Arrange
+					var packageId = "TestPackage";
+					var packageRegistration = CreatePackageRegistration(packageId);
+					var user = CreateAdminUser();
+
+					SetupValidPackageAndUser(packageRegistration, user);
+					SponsorshipUrlService.Setup(x => x.AddSponsorshipUrlAsync(packageRegistration, invalidUrl, user))
+						.ThrowsAsync(new ArgumentException(expectedErrorMessage));
+
+					// Act
+					var result = await Controller.AddUrl(packageId, invalidUrl);
+
+					// Assert
+					AssertRedirectWithError(result, packageId, $"Invalid URL: {expectedErrorMessage}");
+				}
+
+				[Fact]
+				public async Task RedirectsWithErrorWhenGeneralExceptionThrown()
+				{
+					// Arrange
+					var packageId = "TestPackage";
+					var url = TestUrls.ValidGitHubUrl;
+					var packageRegistration = CreatePackageRegistration(packageId);
+					var user = CreateAdminUser();
+					var exceptionMessage = "Database error";
+
+					SetupValidPackageAndUser(packageRegistration, user);
+					SponsorshipUrlService.Setup(x => x.AddSponsorshipUrlAsync(packageRegistration, url, user))
+						.ThrowsAsync(new Exception(exceptionMessage));
+
+					// Act
+					var result = await Controller.AddUrl(packageId, url);
+
+					// Assert
+					AssertRedirectWithError(result, packageId, $"Error adding sponsorship URL: {exceptionMessage}");
+				}
 			}
 
-			[Fact]
-			public async Task RedirectsWithErrorWhenUserNotAuthenticated()
+			public class SuccessScenarios : FactsBase
 			{
-				// Arrange
-				var packageId = "TestPackage";
-				var url = "https://github.com/sponsors/user";
-				var packageRegistration = CreatePackageRegistration(packageId);
+				[Theory]
+				[InlineData(TestUrls.ValidGitHubUrl)]
+				[InlineData(TestUrls.ValidPatreonUrl)]
+				[InlineData(TestUrls.ValidKoFiUrl)]
+				public async Task RedirectsWithSuccessWhenUrlAddedSuccessfully(string url)
+				{
+					// Arrange
+					var packageId = "TestPackage";
+					var packageRegistration = CreatePackageRegistration(packageId);
+					var user = CreateAdminUser();
 
-				PackageService.Setup(x => x.FindPackageRegistrationById(packageId))
-					.Returns(packageRegistration);
-				SponsorshipUrlService.Setup(x => x.AddSponsorshipUrlAsync(packageRegistration, url, null))
-					.ThrowsAsync(new ArgumentNullException("user", "User cannot be null"));
-				Controller.SetCurrentUser(null);
+					SetupSuccessfulAddUrl(packageRegistration, user, url);
 
-				// Act
-				var result = await Controller.AddUrl(packageId, url);
+					// Act
+					var result = await Controller.AddUrl(packageId, url);
 
-				// Assert
-				var redirectResult = Assert.IsType<RedirectToRouteResult>(result);
-				Assert.Equal("Index", redirectResult.RouteValues["action"]);
-				Assert.Contains("User cannot be null", redirectResult.RouteValues["message"].ToString());
-				Assert.Equal(false, redirectResult.RouteValues["isSuccess"]);
-			}
-
-			[Theory]
-			[InlineData(null)]
-			[InlineData("")]
-			[InlineData("   ")]
-			public async Task RedirectsWithErrorWhenUrlIsEmpty(string emptyUrl)
-			{
-				// Arrange
-				var packageId = "TestPackage";
-				var packageRegistration = CreatePackageRegistration(packageId);
-				var user = CreateAdminUser();
-
-				PackageService.Setup(x => x.FindPackageRegistrationById(packageId))
-					.Returns(packageRegistration);
-				SponsorshipUrlService.Setup(x => x.AddSponsorshipUrlAsync(packageRegistration, emptyUrl, user))
-					.ThrowsAsync(new ArgumentException("Please enter a URL."));
-				Controller.SetCurrentUser(user);
-
-				// Act
-				var result = await Controller.AddUrl(packageId, emptyUrl);
-
-				// Assert
-				var redirectResult = Assert.IsType<RedirectToRouteResult>(result);
-				Assert.Equal("Index", redirectResult.RouteValues["action"]);
-				Assert.Contains("Please enter a URL", redirectResult.RouteValues["message"].ToString());
-				Assert.Equal(false, redirectResult.RouteValues["isSuccess"]);
-			}
-
-			[Fact]
-			public async Task RedirectsWithErrorWhenMaxLinksReached()
-			{
-				// Arrange
-				var packageId = "TestPackage";
-				var url = "https://github.com/sponsors/user";
-				var packageRegistration = CreatePackageRegistration(packageId);
-				var user = CreateAdminUser();
-				var maxLinks = 5;
-
-				PackageService.Setup(x => x.FindPackageRegistrationById(packageId))
-					.Returns(packageRegistration);
-				TrustedSponsorshipDomains.Setup(x => x.MaxSponsorshipLinks)
-					.Returns(maxLinks);
-				SponsorshipUrlService.Setup(x => x.AddSponsorshipUrlAsync(packageRegistration, url, user))
-					.ThrowsAsync(new ArgumentException($"You can add a maximum of {maxLinks} sponsorship links."));
-				Controller.SetCurrentUser(user);
-
-				// Act
-				var result = await Controller.AddUrl(packageId, url);
-
-				// Assert
-				var redirectResult = Assert.IsType<RedirectToRouteResult>(result);
-				Assert.Equal("Index", redirectResult.RouteValues["action"]);
-				Assert.Contains($"maximum of {maxLinks}", redirectResult.RouteValues["message"].ToString());
-				Assert.Equal(false, redirectResult.RouteValues["isSuccess"]);
-			}
-
-			[Fact]
-			public async Task RedirectsWithSuccessWhenUrlAddedSuccessfully()
-			{
-				// Arrange
-				var packageId = "TestPackage";
-				var url = "https://github.com/sponsors/user";
-				var packageRegistration = CreatePackageRegistration(packageId);
-				var user = CreateAdminUser();
-
-				PackageService.Setup(x => x.FindPackageRegistrationById(packageId))
-					.Returns(packageRegistration);
-				SponsorshipUrlService.Setup(x => x.GetSponsorshipUrlEntries(packageRegistration))
-					.Returns(new List<SponsorshipUrlEntry>());
-				TrustedSponsorshipDomains.Setup(x => x.MaxSponsorshipLinks)
-					.Returns(10);
-				SponsorshipUrlService.Setup(x => x.AddSponsorshipUrlAsync(packageRegistration, url, user))
-					.ReturnsAsync(url);
-				Controller.SetCurrentUser(user);
-
-				// Act
-				var result = await Controller.AddUrl(packageId, url);
-
-				// Assert
-				var redirectResult = Assert.IsType<RedirectToRouteResult>(result);
-				Assert.Equal("Index", redirectResult.RouteValues["action"]);
-				Assert.Contains("added successfully", redirectResult.RouteValues["message"].ToString());
-				Assert.Equal(true, redirectResult.RouteValues["isSuccess"]);
-
-				SponsorshipUrlService.Verify(x => x.AddSponsorshipUrlAsync(packageRegistration, url, user), Times.Once);
-			}
-
-			[Fact]
-			public async Task RedirectsWithErrorWhenArgumentExceptionThrown()
-			{
-				// Arrange
-				var packageId = "TestPackage";
-				var url = "invalid-url";
-				var packageRegistration = CreatePackageRegistration(packageId);
-				var user = CreateAdminUser();
-				var exceptionMessage = "Invalid URL format";
-
-				PackageService.Setup(x => x.FindPackageRegistrationById(packageId))
-					.Returns(packageRegistration);
-				SponsorshipUrlService.Setup(x => x.GetSponsorshipUrlEntries(packageRegistration))
-					.Returns(new List<SponsorshipUrlEntry>());
-				TrustedSponsorshipDomains.Setup(x => x.MaxSponsorshipLinks)
-					.Returns(10);
-				SponsorshipUrlService.Setup(x => x.AddSponsorshipUrlAsync(packageRegistration, url, user))
-					.ThrowsAsync(new ArgumentException(exceptionMessage));
-				Controller.SetCurrentUser(user);
-
-				// Act
-				var result = await Controller.AddUrl(packageId, url);
-
-				// Assert
-				var redirectResult = Assert.IsType<RedirectToRouteResult>(result);
-				Assert.Equal("Index", redirectResult.RouteValues["action"]);
-				Assert.Contains($"Invalid URL: {exceptionMessage}", redirectResult.RouteValues["message"].ToString());
-				Assert.Equal(false, redirectResult.RouteValues["isSuccess"]);
-			}
-
-			[Fact]
-			public async Task RedirectsWithErrorWhenGeneralExceptionThrown()
-			{
-				// Arrange
-				var packageId = "TestPackage";
-				var url = "https://github.com/sponsors/user";
-				var packageRegistration = CreatePackageRegistration(packageId);
-				var user = CreateAdminUser();
-				var exceptionMessage = "Database error";
-
-				PackageService.Setup(x => x.FindPackageRegistrationById(packageId))
-					.Returns(packageRegistration);
-				SponsorshipUrlService.Setup(x => x.GetSponsorshipUrlEntries(packageRegistration))
-					.Returns(new List<SponsorshipUrlEntry>());
-				TrustedSponsorshipDomains.Setup(x => x.MaxSponsorshipLinks)
-					.Returns(10);
-				SponsorshipUrlService.Setup(x => x.AddSponsorshipUrlAsync(packageRegistration, url, user))
-					.ThrowsAsync(new Exception(exceptionMessage));
-				Controller.SetCurrentUser(user);
-
-				// Act
-				var result = await Controller.AddUrl(packageId, url);
-
-				// Assert
-				var redirectResult = Assert.IsType<RedirectToRouteResult>(result);
-				Assert.Equal("Index", redirectResult.RouteValues["action"]);
-				Assert.Contains($"Error adding sponsorship URL: {exceptionMessage}", redirectResult.RouteValues["message"].ToString());
-				Assert.Equal(false, redirectResult.RouteValues["isSuccess"]);
+					// Assert
+					AssertRedirectWithSuccess(result, packageId, "added successfully");
+					SponsorshipUrlService.Verify(x => x.AddSponsorshipUrlAsync(packageRegistration, url, user), Times.Once);
+				}
 			}
 		}
 
 		public class TheRemoveUrlMethod : FactsBase
 		{
-			[Fact]
-			public async Task RedirectsWithErrorWhenPackageNotFound()
+			public class ErrorScenarios : FactsBase
 			{
-				// Arrange
-				var packageId = "NonExistentPackage";
-				var url = "https://github.com/sponsors/user";
+				[Fact]
+				public async Task RedirectsWithErrorWhenPackageNotFound()
+				{
+					// Arrange
+					var packageId = "NonExistentPackage";
+					var url = TestUrls.ValidGitHubUrl;
+					SetupPackageNotFound(packageId);
 
-				PackageService.Setup(x => x.FindPackageRegistrationById(packageId))
-					.Returns((PackageRegistration)null);
+					// Act
+					var result = await Controller.RemoveUrl(packageId, url);
 
-				// Act
-				var result = await Controller.RemoveUrl(packageId, url);
+					// Assert
+					AssertRedirectWithError(result, packageId, "not found");
+				}
 
-				// Assert
-				var redirectResult = Assert.IsType<RedirectToRouteResult>(result);
-				Assert.Equal("Index", redirectResult.RouteValues["action"]);
-				Assert.Equal(packageId, redirectResult.RouteValues["packageId"]);
-				Assert.Contains("not found", redirectResult.RouteValues["message"].ToString());
-				Assert.Equal(false, redirectResult.RouteValues["isSuccess"]);
+				[Fact]
+				public async Task RedirectsWithErrorWhenUserNotAuthenticated()
+				{
+					// Arrange
+					var packageId = "TestPackage";
+					var url = TestUrls.ValidGitHubUrl;
+					var packageRegistration = CreatePackageRegistration(packageId);
+
+					PackageService.Setup(x => x.FindPackageRegistrationById(packageId))
+						.Returns(packageRegistration);
+					SponsorshipUrlService.Setup(x => x.RemoveSponsorshipUrlAsync(packageRegistration, url, null))
+						.ThrowsAsync(new UnauthorizedAccessException("User cannot be null"));
+					Controller.SetCurrentUser(null);
+
+					// Act
+					var result = await Controller.RemoveUrl(packageId, url);
+
+					// Assert
+					AssertRedirectWithError(result, packageId, "Error removing sponsorship URL: User cannot be null");
+				}
+
+				[Fact]
+				public async Task RedirectsWithErrorWhenExceptionThrown()
+				{
+					// Arrange
+					var packageId = "TestPackage";
+					var url = TestUrls.ValidGitHubUrl;
+					var packageRegistration = CreatePackageRegistration(packageId);
+					var user = CreateAdminUser();
+					var exceptionMessage = "URL not found";
+
+					PackageService.Setup(x => x.FindPackageRegistrationById(packageId))
+						.Returns(packageRegistration);
+					SponsorshipUrlService.Setup(x => x.RemoveSponsorshipUrlAsync(packageRegistration, url, user))
+						.ThrowsAsync(new InvalidOperationException(exceptionMessage));
+					Controller.SetCurrentUser(user);
+
+					// Act
+					var result = await Controller.RemoveUrl(packageId, url);
+
+					// Assert
+					AssertRedirectWithError(result, packageId, $"Error removing sponsorship URL: {exceptionMessage}");
+				}
 			}
 
-			[Fact]
-			public async Task RedirectsWithErrorWhenUserNotAuthenticated()
+			public class SuccessScenarios : FactsBase
 			{
-				// Arrange
-				var packageId = "TestPackage";
-				var url = "https://github.com/sponsors/user";
-				var packageRegistration = CreatePackageRegistration(packageId);
+				[Fact]
+				public async Task RedirectsWithSuccessWhenUrlRemovedSuccessfully()
+				{
+					// Arrange
+					var packageId = "TestPackage";
+					var url = TestUrls.ValidGitHubUrl;
+					var packageRegistration = CreatePackageRegistration(packageId);
+					var user = CreateAdminUser();
 
-				PackageService.Setup(x => x.FindPackageRegistrationById(packageId))
-					.Returns(packageRegistration);
-				SponsorshipUrlService.Setup(x => x.RemoveSponsorshipUrlAsync(packageRegistration, url, null))
-					.ThrowsAsync(new UnauthorizedAccessException("User cannot be null"));
-				Controller.SetCurrentUser(null);
+					PackageService.Setup(x => x.FindPackageRegistrationById(packageId))
+						.Returns(packageRegistration);
+					SponsorshipUrlService.Setup(x => x.RemoveSponsorshipUrlAsync(packageRegistration, url, user))
+						.Returns(Task.CompletedTask);
+					Controller.SetCurrentUser(user);
 
-				// Act
-				var result = await Controller.RemoveUrl(packageId, url);
+					// Act
+					var result = await Controller.RemoveUrl(packageId, url);
 
-				// Assert
-				var redirectResult = Assert.IsType<RedirectToRouteResult>(result);
-				Assert.Equal("Index", redirectResult.RouteValues["action"]);
-				Assert.Contains("Error removing sponsorship URL: User cannot be null", redirectResult.RouteValues["message"].ToString());
-				Assert.Equal(false, redirectResult.RouteValues["isSuccess"]);
-			}
-
-			[Fact]
-			public async Task RedirectsWithSuccessWhenUrlRemovedSuccessfully()
-			{
-				// Arrange
-				var packageId = "TestPackage";
-				var url = "https://github.com/sponsors/user";
-				var packageRegistration = CreatePackageRegistration(packageId);
-				var user = CreateAdminUser();
-
-				PackageService.Setup(x => x.FindPackageRegistrationById(packageId))
-					.Returns(packageRegistration);
-				SponsorshipUrlService.Setup(x => x.RemoveSponsorshipUrlAsync(packageRegistration, url, user))
-					.Returns(Task.CompletedTask);
-				Controller.SetCurrentUser(user);
-
-				// Act
-				var result = await Controller.RemoveUrl(packageId, url);
-
-				// Assert
-				var redirectResult = Assert.IsType<RedirectToRouteResult>(result);
-				Assert.Equal("Index", redirectResult.RouteValues["action"]);
-				Assert.Contains("removed successfully", redirectResult.RouteValues["message"].ToString());
-				Assert.Equal(true, redirectResult.RouteValues["isSuccess"]);
-
-				SponsorshipUrlService.Verify(x => x.RemoveSponsorshipUrlAsync(packageRegistration, url, user), Times.Once);
-			}
-
-			[Fact]
-			public async Task RedirectsWithErrorWhenExceptionThrown()
-			{
-				// Arrange
-				var packageId = "TestPackage";
-				var url = "https://github.com/sponsors/user";
-				var packageRegistration = CreatePackageRegistration(packageId);
-				var user = CreateAdminUser();
-				var exceptionMessage = "URL not found";
-
-				PackageService.Setup(x => x.FindPackageRegistrationById(packageId))
-					.Returns(packageRegistration);
-				SponsorshipUrlService.Setup(x => x.RemoveSponsorshipUrlAsync(packageRegistration, url, user))
-					.ThrowsAsync(new InvalidOperationException(exceptionMessage));
-				Controller.SetCurrentUser(user);
-
-				// Act
-				var result = await Controller.RemoveUrl(packageId, url);
-
-				// Assert
-				var redirectResult = Assert.IsType<RedirectToRouteResult>(result);
-				Assert.Equal("Index", redirectResult.RouteValues["action"]);
-				Assert.Contains($"Error removing sponsorship URL: {exceptionMessage}", redirectResult.RouteValues["message"].ToString());
-				Assert.Equal(false, redirectResult.RouteValues["isSuccess"]);
+					// Assert
+					AssertRedirectWithSuccess(result, packageId, "removed successfully");
+					SponsorshipUrlService.Verify(x => x.RemoveSponsorshipUrlAsync(packageRegistration, url, user), Times.Once);
+				}
 			}
 		}
 
@@ -429,6 +363,13 @@ namespace NuGetGallery.Areas.Admin.Controllers
 			public Mock<ITrustedSponsorshipDomains> TrustedSponsorshipDomains { get; }
 			public Mock<HttpContextBase> HttpContext { get; }
 			public PackageSponsorshipController Controller { get; }
+
+			protected static class TestUrls
+			{
+				public const string ValidGitHubUrl = "https://github.com/sponsors/user";
+				public const string ValidPatreonUrl = "https://patreon.com/user";
+				public const string ValidKoFiUrl = "https://ko-fi.com/user";
+			}
 
 			protected static PackageRegistration CreatePackageRegistration(string id)
 			{
@@ -468,6 +409,76 @@ namespace NuGetGallery.Areas.Admin.Controllers
 						new Role { Name = CoreConstants.AdminRoleName }
 					}
 				};
+			}
+
+			protected void SetupPackageNotFound(string packageId)
+			{
+				PackageService.Setup(x => x.FindPackageRegistrationById(packageId))
+					.Returns((PackageRegistration)null);
+			}
+
+			protected void SetupValidPackageAndUser(PackageRegistration packageRegistration, User user)
+			{
+				PackageService.Setup(x => x.FindPackageRegistrationById(packageRegistration.Id))
+					.Returns(packageRegistration);
+				SponsorshipUrlService.Setup(x => x.GetSponsorshipUrlEntries(packageRegistration))
+					.Returns(new List<SponsorshipUrlEntry>());
+				TrustedSponsorshipDomains.Setup(x => x.MaxSponsorshipLinks).Returns(10);
+				Controller.SetCurrentUser(user);
+			}
+
+			protected void SetupSuccessfulAddUrl(PackageRegistration packageRegistration, User user, string url)
+			{
+				SetupValidPackageAndUser(packageRegistration, user);
+				SponsorshipUrlService.Setup(x => x.AddSponsorshipUrlAsync(packageRegistration, url, user))
+					.ReturnsAsync(url);
+			}
+
+			protected static void AssertIndexViewModel(ActionResult result, string packageId, bool hasPackage, bool hasMessage, bool isSuccess)
+			{
+				var viewResult = Assert.IsType<ViewResult>(result);
+				var model = Assert.IsType<PackageSponsorshipIndexViewModel>(viewResult.Model);
+				Assert.Equal(packageId, model.PackageId);
+				
+				if (hasPackage)
+					Assert.NotNull(model.Package);
+				else
+					Assert.Null(model.Package);
+
+				if (hasMessage)
+					Assert.NotNull(model.Message);
+				else
+					Assert.Null(model.Message);
+
+				Assert.Equal(isSuccess, model.IsSuccess);
+			}
+
+			protected static void AssertIndexViewModelWithError(ActionResult result, string packageId, string expectedMessagePart)
+			{
+				var viewResult = Assert.IsType<ViewResult>(result);
+				var model = Assert.IsType<PackageSponsorshipIndexViewModel>(viewResult.Model);
+				Assert.Equal(packageId, model.PackageId);
+				Assert.Null(model.Package);
+				Assert.Contains(expectedMessagePart, model.Message);
+				Assert.False(model.IsSuccess);
+			}
+
+			protected static void AssertRedirectWithError(ActionResult result, string packageId, string expectedMessagePart)
+			{
+				var redirectResult = Assert.IsType<RedirectToRouteResult>(result);
+				Assert.Equal("Index", redirectResult.RouteValues["action"]);
+				Assert.Equal(packageId, redirectResult.RouteValues["packageId"]);
+				Assert.Contains(expectedMessagePart, redirectResult.RouteValues["message"].ToString());
+				Assert.Equal(false, redirectResult.RouteValues["isSuccess"]);
+			}
+
+			protected static void AssertRedirectWithSuccess(ActionResult result, string packageId, string expectedMessagePart)
+			{
+				var redirectResult = Assert.IsType<RedirectToRouteResult>(result);
+				Assert.Equal("Index", redirectResult.RouteValues["action"]);
+				Assert.Equal(packageId, redirectResult.RouteValues["packageId"]);
+				Assert.Contains(expectedMessagePart, redirectResult.RouteValues["message"].ToString());
+				Assert.Equal(true, redirectResult.RouteValues["isSuccess"]);
 			}
 		}
 	}

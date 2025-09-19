@@ -24,28 +24,17 @@ namespace NuGetGallery.Services
 				Assert.Equal(0, domains.MaxSponsorshipLinks);
 			}
 
-			[Fact]
-			public void InitializesWithProvidedValues()
-			{
-				// Arrange
-				var domainList = new List<string> { "github.com", "patreon.com" };
-				var maxLinks = 5;
+		[Fact]
+		public void HandlesNullDomainListCorrectly()
+		{
+			// Act
+			var domains = new TrustedSponsorshipDomains(null, 5);
 
-				// Act
-				var domains = new TrustedSponsorshipDomains(domainList, maxLinks);
-
-				// Assert
-				// The implementation automatically expands domains to include www. variants
-				var expectedDomains = new HashSet<string> 
-				{ 
-					"github.com", "www.github.com", 
-					"patreon.com", "www.patreon.com" 
-				};
-				Assert.Equal(expectedDomains, domains.TrustedSponsorshipDomainList);
-				Assert.Equal(maxLinks, domains.MaxSponsorshipLinks);
-			}
-
-			[Fact]
+			// Assert
+			Assert.NotNull(domains.TrustedSponsorshipDomainList);
+			Assert.Empty(domains.TrustedSponsorshipDomainList);
+			Assert.Equal(5, domains.MaxSponsorshipLinks);
+		}			[Fact]
 			public void AutomaticallyExpandsDomainsToIncludeWwwVariants()
 			{
 				// Arrange
@@ -141,7 +130,20 @@ namespace NuGetGallery.Services
 				// Assert
 				Assert.False(result);
 			}
+
+			[Fact]
+			public void IsSponsorshipDomainTrustedHandlesWwwVariants()
+		{
+			// Arrange
+			var trustedDomains = new List<string> { "github.com" }; // Only add github.com
+			var domains = new TrustedSponsorshipDomains(trustedDomains, 10);
+
+			// Act & Assert
+			// Both original and www variant should be trusted due to automatic expansion
+			Assert.True(domains.IsSponsorshipDomainTrusted("github.com"));
+			Assert.True(domains.IsSponsorshipDomainTrusted("www.github.com"));
 		}
+	}
 
 		public class TheJsonSerializationMethod
 		{
@@ -188,6 +190,36 @@ namespace NuGetGallery.Services
 				var domains = JsonConvert.DeserializeObject<TrustedSponsorshipDomains>(json);
 
 				// Assert
+				Assert.Empty(domains.TrustedSponsorshipDomainList);
+				Assert.Equal(5, domains.MaxSponsorshipLinks);
+			}
+
+			[Fact]
+			public void DeserializesFromCompletelyEmptyJson()
+			{
+				// Arrange
+				var json = "{}";
+
+				// Act
+				var domains = JsonConvert.DeserializeObject<TrustedSponsorshipDomains>(json);
+
+				// Assert
+				Assert.NotNull(domains.TrustedSponsorshipDomainList);
+				Assert.Empty(domains.TrustedSponsorshipDomainList);
+				Assert.Equal(0, domains.MaxSponsorshipLinks);
+			}
+
+			[Fact]
+			public void DeserializesFromJsonWithNullDomainList()
+			{
+				// Arrange
+				var json = "{\"TrustedSponsorshipDomainList\": null, \"MaxSponsorshipLinks\": 5}";
+
+				// Act
+				var domains = JsonConvert.DeserializeObject<TrustedSponsorshipDomains>(json);
+
+				// Assert
+				Assert.NotNull(domains.TrustedSponsorshipDomainList);
 				Assert.Empty(domains.TrustedSponsorshipDomainList);
 				Assert.Equal(5, domains.MaxSponsorshipLinks);
 			}

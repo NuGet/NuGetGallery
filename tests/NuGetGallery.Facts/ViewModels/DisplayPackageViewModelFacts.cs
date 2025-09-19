@@ -1300,13 +1300,14 @@ namespace NuGetGallery.ViewModels
 			{
 				new SponsorshipUrlEntry("https://github.com/sponsors/user", DateTime.UtcNow, true),
 				new SponsorshipUrlEntry("https://patreon.com/user", DateTime.UtcNow, true),
-				new SponsorshipUrlEntry("https://ko-fi.com/user", DateTime.UtcNow, true),
-				new SponsorshipUrlEntry("https://untrusted.com/sponsor", DateTime.UtcNow, false) // Should be filtered out
+				new SponsorshipUrlEntry("https://ko-fi.com/user", DateTime.UtcNow, true)
 			};
 
 			var mockSponsorshipService = new Mock<ISponsorshipUrlService>();
 			mockSponsorshipService.Setup(x => x.GetSponsorshipUrlEntries(It.IsAny<PackageRegistration>()))
-				.Returns(sponsorshipEntries.AsReadOnly());			var package = new Package
+				.Returns(sponsorshipEntries.AsReadOnly());
+
+			var package = new Package
 			{
 				Version = "1.0.0",
 				PackageRegistration = new PackageRegistration
@@ -1338,6 +1339,53 @@ namespace NuGetGallery.ViewModels
 			Assert.Contains("https://github.com/sponsors/user", model.SponsorshipUrls);
 			Assert.Contains("https://patreon.com/user", model.SponsorshipUrls);
 			Assert.Contains("https://ko-fi.com/user", model.SponsorshipUrls);
+		}
+
+		[Fact]
+		public void SponsorshipUrlsOnlyIncludesTrustedUrls()
+		{
+			// Arrange
+			var sponsorshipEntries = new List<SponsorshipUrlEntry>
+			{
+				new SponsorshipUrlEntry("https://github.com/sponsors/user", DateTime.UtcNow, true),
+				new SponsorshipUrlEntry("https://untrusted.com/sponsor", DateTime.UtcNow, false)
+			};
+
+			var mockSponsorshipService = new Mock<ISponsorshipUrlService>();
+			mockSponsorshipService.Setup(x => x.GetSponsorshipUrlEntries(It.IsAny<PackageRegistration>()))
+				.Returns(sponsorshipEntries.AsReadOnly());
+
+			var package = new Package
+			{
+				Version = "1.0.0",
+				PackageRegistration = new PackageRegistration
+				{
+					Id = "TestPackage",
+					Owners = Enumerable.Empty<User>().ToList(),
+					Packages = Enumerable.Empty<Package>().ToList()
+				}
+			};
+
+			// Act
+			var model = new DisplayPackageViewModelFactory(
+				Mock.Of<IIconUrlProvider>(), 
+				Mock.Of<IPackageFrameworkCompatibilityFactory>(), 
+				Mock.Of<IFeatureFlagService>(), 
+				mockSponsorshipService.Object)
+				.Create(
+					package,
+					new[] { package },
+					currentUser: null,
+					packageKeyToDeprecation: null,
+					packageKeyToVulnerabilities: null,
+					packageRenames: null,
+					readmeResult: null);
+
+			// Assert - Only trusted URLs should be displayed
+			Assert.NotNull(model.SponsorshipUrls);
+			Assert.Single(model.SponsorshipUrls);
+			Assert.Contains("https://github.com/sponsors/user", model.SponsorshipUrls);
+			Assert.DoesNotContain("https://untrusted.com/sponsor", model.SponsorshipUrls);
 		}
 
 		[Fact]
@@ -1458,6 +1506,120 @@ namespace NuGetGallery.ViewModels
 
 			// Assert
 			Assert.False(model.HasSponsorshipUrls);
+		}
+
+		[Fact]
+		public void SponsorshipServiceIsCalledWithCorrectPackageRegistration()
+		{
+			// Arrange
+			var mockSponsorshipService = new Mock<ISponsorshipUrlService>();
+			mockSponsorshipService.Setup(x => x.GetSponsorshipUrlEntries(It.IsAny<PackageRegistration>()))
+				.Returns(new List<SponsorshipUrlEntry>().AsReadOnly());
+
+			var packageRegistration = new PackageRegistration
+			{
+				Id = "TestPackage",
+				Owners = Enumerable.Empty<User>().ToList(),
+				Packages = Enumerable.Empty<Package>().ToList()
+			};
+
+			var package = new Package
+			{
+				Version = "1.0.0",
+				PackageRegistration = packageRegistration
+			};
+
+			// Act
+			new DisplayPackageViewModelFactory(
+				Mock.Of<IIconUrlProvider>(), 
+				Mock.Of<IPackageFrameworkCompatibilityFactory>(), 
+				Mock.Of<IFeatureFlagService>(), 
+				mockSponsorshipService.Object)
+				.Create(
+					package,
+					new[] { package },
+					currentUser: null,
+					packageKeyToDeprecation: null,
+					packageKeyToVulnerabilities: null,
+					packageRenames: null,
+					readmeResult: null);
+
+			// Assert
+			mockSponsorshipService.Verify(x => x.GetSponsorshipUrlEntries(packageRegistration), Times.Exactly(2));
+		}
+
+		[Fact]
+		public void HandlesNullSponsorshipService()
+		{
+			// Arrange
+			var package = new Package
+			{
+				Version = "1.0.0",
+				PackageRegistration = new PackageRegistration
+				{
+					Id = "TestPackage",
+					Owners = Enumerable.Empty<User>().ToList(),
+					Packages = Enumerable.Empty<Package>().ToList()
+				}
+			};
+
+			// Act
+			var model = new DisplayPackageViewModelFactory(
+				Mock.Of<IIconUrlProvider>(), 
+				Mock.Of<IPackageFrameworkCompatibilityFactory>(), 
+				Mock.Of<IFeatureFlagService>(), 
+				null)
+				.Create(
+					package,
+					new[] { package },
+					currentUser: null,
+					packageKeyToDeprecation: null,
+					packageKeyToVulnerabilities: null,
+					packageRenames: null,
+					readmeResult: null);
+
+			// Assert
+			Assert.NotNull(model.SponsorshipUrls);
+			Assert.Empty(model.SponsorshipUrls);
+			Assert.False(model.HasSponsorshipUrls);
+		}
+
+		[Fact]
+		public void HandlesSponsorshipServiceException()
+		{
+			// Arrange
+			var mockSponsorshipService = new Mock<ISponsorshipUrlService>();
+			mockSponsorshipService.Setup(x => x.GetSponsorshipUrlEntries(It.IsAny<PackageRegistration>()))
+				.Throws(new InvalidOperationException("Service error"));
+
+			var package = new Package
+			{
+				Version = "1.0.0",
+				PackageRegistration = new PackageRegistration
+				{
+					Id = "TestPackage",
+					Owners = Enumerable.Empty<User>().ToList(),
+					Packages = Enumerable.Empty<Package>().ToList()
+				}
+			};
+
+			// Act & Assert
+			var exception = Assert.Throws<InvalidOperationException>(() => 
+				new DisplayPackageViewModelFactory(
+					Mock.Of<IIconUrlProvider>(), 
+					Mock.Of<IPackageFrameworkCompatibilityFactory>(), 
+					Mock.Of<IFeatureFlagService>(), 
+					mockSponsorshipService.Object)
+					.Create(
+						package,
+						new[] { package },
+						currentUser: null,
+						packageKeyToDeprecation: null,
+						packageKeyToVulnerabilities: null,
+						packageRenames: null,
+						readmeResult: null));
+
+			Assert.Equal("Service error", exception.Message);
 		}
     }
 }

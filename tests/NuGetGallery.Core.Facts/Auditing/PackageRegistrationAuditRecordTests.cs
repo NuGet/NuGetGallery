@@ -10,138 +10,142 @@ namespace NuGetGallery.Auditing
 {
     public class PackageRegistrationAuditRecordTests
     {
-        [Fact]
-        public void Constructor_SetsProperties()
+        public class TheConstructor
         {
-            var record = new PackageRegistrationAuditRecord(
-                new PackageRegistration() { Id = "a" },
-                AuditedPackageRegistrationAction.AddOwner,
-                owner: "b");
-
-            Assert.Equal("a", record.Id);
-            Assert.NotNull(record.RegistrationRecord);
-            Assert.Equal("a", record.RegistrationRecord.Id);
-            Assert.Equal("b", record.Owner);
-            Assert.Equal(AuditedPackageRegistrationAction.AddOwner, record.Action);
-        }
-
-        [Fact]
-        public void GetPath_ReturnsLowerCasedId()
-        {
-            var record = new PackageRegistrationAuditRecord(
-                new PackageRegistration() { Id = "A" },
-                AuditedPackageRegistrationAction.AddOwner,
-                owner: "b");
-
-            var actualPath = record.GetPath();
-
-            Assert.Equal("a", actualPath);
-        }
-
-        [Fact]
-        public void CreateForAddOwnershipRequest_InitializesProperties()
-        {
-            var record = PackageRegistrationAuditRecord.CreateForAddOwnershipRequest(
-                new PackageRegistration { Id = "NuGet.Versioning" },
-                requestingOwner: "NuGet",
-                newOwner: "Microsoft");
-
-            Assert.Equal("NuGet.Versioning", record.Id);
-            Assert.Equal("NuGet", record.RequestingOwner);
-            Assert.Equal("Microsoft", record.NewOwner);
-            Assert.Equal(AuditedPackageRegistrationAction.AddOwnershipRequest, record.Action);
-        }
-
-        [Fact]
-        public void CreateForDeleteOwnershipRequest_InitializesProperties()
-        {
-            var record = PackageRegistrationAuditRecord.CreateForDeleteOwnershipRequest(
-                new PackageRegistration { Id = "NuGet.Versioning" },
-                requestingOwner: "NuGet",
-                newOwner: "Microsoft");
-
-            Assert.Equal("NuGet.Versioning", record.Id);
-            Assert.Equal("NuGet", record.RequestingOwner);
-            Assert.Equal("Microsoft", record.NewOwner);
-            Assert.Equal(AuditedPackageRegistrationAction.DeleteOwnershipRequest, record.Action);
-        }
-
-        [Fact]
-        public void CreateForSetRequiredSigner_WhenRegistrationIsNull_Throws()
-        {
-            var exception = Assert.Throws<ArgumentNullException>(
-                () => PackageRegistrationAuditRecord.CreateForSetRequiredSigner(
-                    registration: null,
-                    previousRequiredSigner: "a",
-                    newRequiredSigner: "b"));
-
-            Assert.Equal("registration", exception.ParamName);
-        }
-
-        [Theory]
-        [MemberData(nameof(RequiredSignerTests))]
-        public void CreateForSetRequiredSigner_InitializesProperties(RequiredSignerTest test)
-        {
-            var record = PackageRegistrationAuditRecord.CreateForSetRequiredSigner(
-                test.PackageRegistration, test.PreviousRequiredSigner, test.NewRequiredSigner);
-
-            Assert.Equal(AuditedPackageRegistrationAction.SetRequiredSigner, record.Action);
-            Assert.Equal(test.PackageRegistration.Id, record.Id);
-            Assert.Equal(test.PreviousRequiredSigner, record.PreviousRequiredSigner);
-            Assert.Equal(test.NewRequiredSigner, record.NewRequiredSigner);
-            Assert.Null(record.Owner);
-            Assert.Equal(test.PackageRegistration.Id, record.RegistrationRecord.Id);
-        }
-
-        public static IEnumerable<object[]> RequiredSignerTests
-        {
-            get
+            [Fact]
+            public void SetsProperties()
             {
-                var packageRegistration = new PackageRegistration()
-                {
-                    Id = "a"
-                };
+                // Arrange
+                var packageRegistration = new PackageRegistration() { Id = "TestPackage" };
+                
+                // Act
+                var record = new PackageRegistrationAuditRecord(
+                    packageRegistration,
+                    AuditedPackageRegistrationAction.AddOwner,
+                    owner: "TestOwner");
 
-                yield return new[]
-                {
-                    new RequiredSignerTest(
-                        packageRegistration,
-                        previousRequiredSigner: null,
-                        newRequiredSigner: "b")
-                };
-
-                yield return new[]
-                {
-                    new RequiredSignerTest(
-                        packageRegistration,
-                        previousRequiredSigner: "b",
-                        newRequiredSigner: null)
-                };
-
-                yield return new[]
-                {
-                    new RequiredSignerTest(
-                        packageRegistration,
-                        previousRequiredSigner: "b",
-                        newRequiredSigner: "c")
-                };
+                // Assert
+                Assert.Equal("TestPackage", record.Id);
+                Assert.NotNull(record.RegistrationRecord);
+                Assert.Equal("TestPackage", record.RegistrationRecord.Id);
+                Assert.Equal("TestOwner", record.Owner);
+                Assert.Equal(AuditedPackageRegistrationAction.AddOwner, record.Action);
             }
         }
 
-        public sealed class RequiredSignerTest
+        public class TheGetPathMethod
         {
-            internal PackageRegistration PackageRegistration { get; }
-            internal string PreviousRequiredSigner { get; }
-            internal string NewRequiredSigner { get; }
-
-            internal RequiredSignerTest(
-                PackageRegistration registration,
-                string previousRequiredSigner,
-                string newRequiredSigner)
+            [Fact]
+            public void ReturnsLowerCasedId()
             {
-                PackageRegistration = registration;
-                PreviousRequiredSigner = previousRequiredSigner;
-                NewRequiredSigner = newRequiredSigner;
+                // Arrange
+                var record = new PackageRegistrationAuditRecord(
+                    new PackageRegistration() { Id = "TestPackage" },
+                    AuditedPackageRegistrationAction.AddOwner,
+                    owner: "TestOwner");
+
+                // Act
+                var actualPath = record.GetPath();
+
+                // Assert
+                Assert.Equal("testpackage", actualPath);
+            }
+        }
+
+        public class TheOwnershipRequestFactoryMethods
+        {
+            [Theory]
+            [InlineData(nameof(PackageRegistrationAuditRecord.CreateForAddOwnershipRequest), AuditedPackageRegistrationAction.AddOwnershipRequest)]
+            [InlineData(nameof(PackageRegistrationAuditRecord.CreateForDeleteOwnershipRequest), AuditedPackageRegistrationAction.DeleteOwnershipRequest)]
+            public void InitializeProperties(string methodName, AuditedPackageRegistrationAction expectedAction)
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration { Id = "NuGet.Versioning" };
+                var requestingOwner = "NuGet";
+                var newOwner = "Microsoft";
+
+                // Act
+                PackageRegistrationAuditRecord record;
+                if (methodName == nameof(PackageRegistrationAuditRecord.CreateForAddOwnershipRequest))
+                {
+                    record = PackageRegistrationAuditRecord.CreateForAddOwnershipRequest(
+                        packageRegistration, requestingOwner, newOwner);
+                }
+                else
+                {
+                    record = PackageRegistrationAuditRecord.CreateForDeleteOwnershipRequest(
+                        packageRegistration, requestingOwner, newOwner);
+                }
+
+                // Assert
+                Assert.Equal("NuGet.Versioning", record.Id);
+                Assert.Equal("NuGet", record.RequestingOwner);
+                Assert.Equal("Microsoft", record.NewOwner);
+                Assert.Equal(expectedAction, record.Action);
+            }
+
+            [Fact]
+            public void CreateForAddOwnershipRequest_WhenRegistrationIsNull_Throws()
+            {
+                // Act & Assert
+                var exception = Assert.Throws<ArgumentNullException>(
+                    () => PackageRegistrationAuditRecord.CreateForAddOwnershipRequest(
+                        registration: null,
+                        requestingOwner: "NuGet",
+                        newOwner: "Microsoft"));
+
+                Assert.Equal("registration", exception.ParamName);
+            }
+
+            [Fact]
+            public void CreateForDeleteOwnershipRequest_WhenRegistrationIsNull_Throws()
+            {
+                // Act & Assert
+                var exception = Assert.Throws<ArgumentNullException>(
+                    () => PackageRegistrationAuditRecord.CreateForDeleteOwnershipRequest(
+                        registration: null,
+                        requestingOwner: "NuGet",
+                        newOwner: "Microsoft"));
+
+                Assert.Equal("registration", exception.ParamName);
+            }
+        }
+
+        public class TheCreateForSetRequiredSignerMethod
+        {
+            [Fact]
+            public void WhenRegistrationIsNull_Throws()
+            {
+                // Act & Assert
+                var exception = Assert.Throws<ArgumentNullException>(
+                    () => PackageRegistrationAuditRecord.CreateForSetRequiredSigner(
+                        registration: null,
+                        previousRequiredSigner: "PreviousSigner",
+                        newRequiredSigner: "NewSigner"));
+
+                Assert.Equal("registration", exception.ParamName);
+            }
+
+            [Theory]
+            [InlineData(null, "NewSigner")]
+            [InlineData("PreviousSigner", null)]
+            [InlineData("PreviousSigner", "NewSigner")]
+            public void InitializesProperties(string previousRequiredSigner, string newRequiredSigner)
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration() { Id = "TestPackage" };
+
+                // Act
+                var record = PackageRegistrationAuditRecord.CreateForSetRequiredSigner(
+                    packageRegistration, previousRequiredSigner, newRequiredSigner);
+
+                // Assert
+                Assert.Equal(AuditedPackageRegistrationAction.SetRequiredSigner, record.Action);
+                Assert.Equal("TestPackage", record.Id);
+                Assert.Equal(previousRequiredSigner, record.PreviousRequiredSigner);
+                Assert.Equal(newRequiredSigner, record.NewRequiredSigner);
+                Assert.Null(record.Owner);
+                Assert.Equal("TestPackage", record.RegistrationRecord.Id);
             }
         }
     }

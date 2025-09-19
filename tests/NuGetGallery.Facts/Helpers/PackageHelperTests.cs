@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NuGet.Packaging;
@@ -252,6 +253,206 @@ namespace NuGetGallery.Helpers
                 Assert.False(isValid);
                 Assert.Null(validatedUrl);
                 Assert.Equal("Please provide a valid URL from a supported sponsorship platform.", errorMessage);
+            }
+
+            [Fact]
+            public void ValidateSponsorshipUrl_RejectsUrlTooLong()
+            {
+                // Arrange
+                var trustedDomains = CreateMockTrustedDomains();
+                var longUrl = "https://github.com/sponsors/" + new string('a', 2100); // Exceeds 2048 limit
+
+                // Act
+                var isValid = PackageHelper.ValidateSponsorshipUrl(longUrl, trustedDomains, out string validatedUrl, out string errorMessage);
+
+                // Assert
+                Assert.False(isValid);
+                Assert.Null(validatedUrl);
+                Assert.Contains("too long", errorMessage);
+            }
+
+            [Theory]
+            [InlineData("https://github.com/abc/sponsors/123")] // Invalid pattern - should be sponsors/username
+            [InlineData("https://www.github.com/abc/sponsors/123")] // Invalid pattern with www
+            [InlineData("https://github.com/sponsors/user/extra")] // Too many path segments
+            [InlineData("https://www.github.com/sponsors/user/extra")] // Too many path segments with www
+            public void ValidateSponsorshipUrl_RejectsMalformedGitHubUrls(string malformedUrl)
+            {
+                // Arrange
+                var trustedDomains = CreateMockTrustedDomains();
+
+                // Act
+                var isValid = PackageHelper.ValidateSponsorshipUrl(malformedUrl, trustedDomains, out string validatedUrl, out string errorMessage);
+
+                // Assert
+                Assert.False(isValid);
+                Assert.Null(validatedUrl);
+                Assert.Equal("Please provide a valid URL from a supported sponsorship platform.", errorMessage);
+            }
+
+            [Theory]
+            [InlineData("http://github.com/sponsors/user", "https://github.com/sponsors/user")] // HTTP to HTTPS conversion
+            [InlineData("http://patreon.com/user", "https://patreon.com/user")] // HTTP to HTTPS conversion
+            [InlineData("https://ko-fi.com/user", "https://ko-fi.com/user")] // HTTPS preserved
+            [InlineData("https://opencollective.com/project", "https://opencollective.com/project")] // HTTPS preserved
+            public void ValidateSponsorshipUrl_ConvertsHttpToHttps(string inputUrl, string expectedUrl)
+            {
+                // Arrange
+                var trustedDomains = CreateMockTrustedDomains();
+
+                // Act
+                var isValid = PackageHelper.ValidateSponsorshipUrl(inputUrl, trustedDomains, out string validatedUrl, out string errorMessage);
+
+                // Assert
+                Assert.True(isValid);
+                Assert.Equal(expectedUrl, validatedUrl);
+                Assert.Null(errorMessage);
+            }
+
+            [Theory]
+            [InlineData("https://github.com/sponsors/user?ref=sponsor")] // Query parameters
+            [InlineData("https://patreon.com/user#section")] // Fragment identifier
+            [InlineData("https://ko-fi.com/user?utm_source=test")] // UTM parameters
+            public void ValidateSponsorshipUrl_HandlesUrlsWithQueryAndFragment(string urlWithParams)
+            {
+                // Arrange
+                var trustedDomains = CreateMockTrustedDomains();
+
+                // Act
+                var isValid = PackageHelper.ValidateSponsorshipUrl(urlWithParams, trustedDomains, out string validatedUrl, out string errorMessage);
+
+                // Assert
+                Assert.True(isValid);
+                Assert.NotNull(validatedUrl);
+                Assert.Null(errorMessage);
+                Assert.StartsWith("https://", validatedUrl);
+            }
+
+            [Theory]
+            [InlineData("github.com/sponsors/user")] // Missing protocol
+            [InlineData("www.patreon.com/user")] // Missing protocol with www
+            [InlineData("ko-fi.com/user")] // Missing protocol
+            public void ValidateSponsorshipUrl_HandlesUrlsWithoutProtocol(string urlWithoutProtocol)
+            {
+                // Arrange
+                var trustedDomains = CreateMockTrustedDomains();
+
+                // Act
+                var isValid = PackageHelper.ValidateSponsorshipUrl(urlWithoutProtocol, trustedDomains, out string validatedUrl, out string errorMessage);
+
+                // Assert
+                Assert.True(isValid);
+                Assert.NotNull(validatedUrl);
+                Assert.Null(errorMessage);
+                Assert.StartsWith("https://", validatedUrl);
+            }
+
+            [Fact]
+            public void ValidateSponsorshipUrl_ReturnsFalseWhenTrustedDomainsIsNull()
+            {
+                // Act
+                var result = PackageHelper.ValidateSponsorshipUrl("https://github.com/sponsors/user", null, out var validatedUrl, out var errorMessage);
+                
+                // Assert
+                Assert.False(result);
+                Assert.Null(validatedUrl);
+                Assert.Equal("There was an error processing your request. Please try again later.", errorMessage);
+            }
+        }
+
+        public class IsAcceptedSponsorshipDomainTests
+        {
+            private static MockTrustedSponsorshipDomains CreateMockTrustedDomains()
+            {
+                return new MockTrustedSponsorshipDomains();
+            }
+
+            [Theory]
+            [InlineData("https://github.com/sponsors/user", true)]
+            [InlineData("https://www.github.com/sponsors/user", true)]
+            [InlineData("https://patreon.com/user", true)]
+            [InlineData("https://www.patreon.com/user", true)]
+            [InlineData("https://ko-fi.com/user", true)]
+            [InlineData("https://opencollective.com/project", true)]
+            [InlineData("https://tidelift.com/subscription/pkg/npm-package", true)]
+            [InlineData("https://liberapay.com/user", true)]
+            [InlineData("patreon.com/dhaui", true)] // URL without protocol
+            [InlineData("github.com/sponsors/user", true)] // URL without protocol
+            [InlineData("ko-fi.com/user", true)] // URL without protocol
+            public void ReturnsTrue_ForTrustedDomains(string url, bool expected)
+            {
+                // Arrange
+                var trustedDomains = CreateMockTrustedDomains();
+
+                // Act
+                var result = PackageHelper.IsAcceptedSponsorshipDomain(url, trustedDomains);
+
+                // Assert
+                Assert.Equal(expected, result);
+            }
+
+            [Theory]
+            [InlineData("https://untrusted.com/sponsor", false)]
+            [InlineData("https://example.com/sponsor", false)]
+            [InlineData("https://malicious.site/sponsor", false)]
+            [InlineData("https://github.evil.com/sponsors/user", false)]
+            [InlineData("https://fake-github.com/sponsors/user", false)]
+            public void ReturnsFalse_ForUntrustedDomains(string url, bool expected)
+            {
+                // Arrange
+                var trustedDomains = CreateMockTrustedDomains();
+
+                // Act
+                var result = PackageHelper.IsAcceptedSponsorshipDomain(url, trustedDomains);
+
+                // Assert
+                Assert.Equal(expected, result);
+            }
+
+            [Theory]
+            [InlineData("https://github.com/sponsors", false)] // Missing username
+            [InlineData("https://www.github.com/sponsors/", false)] // Missing username with trailing slash
+            [InlineData("https://github.com/sponsors/user/extra", false)] // Too many path segments
+            [InlineData("https://github.com/abc/sponsors/123", false)] // Invalid pattern
+            [InlineData("https://www.github.com/abc/sponsors/123", false)] // Invalid pattern with www
+            public void ReturnsFalse_ForInvalidGitHubUrls(string url, bool expected)
+            {
+                // Arrange
+                var trustedDomains = CreateMockTrustedDomains();
+
+                // Act
+                var result = PackageHelper.IsAcceptedSponsorshipDomain(url, trustedDomains);
+
+                // Assert
+                Assert.Equal(expected, result);
+            }
+
+            [Theory]
+            [InlineData("not-a-url")]
+            [InlineData("")]
+            [InlineData(null)]
+            [InlineData("ftp://github.com/sponsors/user")]
+            [InlineData("javascript:alert('xss')")]
+            public void ReturnsFalse_ForInvalidUrls(string url)
+            {
+                // Arrange
+                var trustedDomains = CreateMockTrustedDomains();
+
+                // Act
+                var result = PackageHelper.IsAcceptedSponsorshipDomain(url, trustedDomains);
+
+                // Assert
+                Assert.False(result);
+            }
+
+            [Fact]
+            public void ReturnsFalse_WhenTrustedDomainsIsNull()
+            {
+                // Act
+                var result = PackageHelper.IsAcceptedSponsorshipDomain("https://github.com/sponsors/user", null);
+
+                // Assert
+                Assert.False(result);
             }
         }
 

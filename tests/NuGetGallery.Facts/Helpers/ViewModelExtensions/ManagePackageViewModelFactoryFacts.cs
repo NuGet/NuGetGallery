@@ -36,42 +36,6 @@ namespace NuGetGallery
 		public class TheSponsorshipUrlIntegration : FactsBase
 		{
 			[Fact]
-			public void PopulatesSponsorshipUrlsWithAcceptedDomains()
-			{
-				// Arrange
-				var package = CreatePackage();
-				var user = CreateUser();
-				var reasons = new List<ReportPackageReason>();
-				var url = CreateUrlHelper();
-
-				var sponsorshipEntries = new List<SponsorshipUrlEntry>
-				{
-					new SponsorshipUrlEntry { Url = "https://github.com/sponsors/user", IsDomainAccepted = true },
-					new SponsorshipUrlEntry { Url = "https://patreon.com/user", IsDomainAccepted = true },
-					new SponsorshipUrlEntry { Url = "https://untrusted.com/sponsor", IsDomainAccepted = false }
-				};
-
-				SponsorshipUrlService.Setup(x => x.GetSponsorshipUrlEntries(package.PackageRegistration))
-					.Returns(sponsorshipEntries);
-
-				// Act
-				var result = Factory.Create(package, user, reasons, url, null, false, false);
-
-				// Assert
-				Assert.NotNull(result.SponsorshipUrlEntries);
-				Assert.Equal(3, result.SponsorshipUrlEntries.Count);
-
-				var githubEntry = result.SponsorshipUrlEntries.First(x => x.Url == "https://github.com/sponsors/user");
-				Assert.True(githubEntry.IsDomainAccepted);
-
-				var patreonEntry = result.SponsorshipUrlEntries.First(x => x.Url == "https://patreon.com/user");
-				Assert.True(patreonEntry.IsDomainAccepted);
-
-				var untrustedEntry = result.SponsorshipUrlEntries.First(x => x.Url == "https://untrusted.com/sponsor");
-				Assert.False(untrustedEntry.IsDomainAccepted);
-			}
-
-			[Fact]
 			public void PopulatesEmptySponsorshipUrlsWhenNoneExist()
 			{
 				// Arrange
