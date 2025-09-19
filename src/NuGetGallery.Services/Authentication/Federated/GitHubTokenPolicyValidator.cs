@@ -300,8 +300,8 @@ namespace NuGetGallery.Services.Authentication
             if (!string.Equals(workflowFile, criteria.WorkflowFile, StringComparison.OrdinalIgnoreCase))
             {
                 return FederatedCredentialPolicyResult.Unauthorized(
-                        $"The policy '{policy.PolicyName}' workflow file '{criteria.WorkflowFile}' does not match '{workflowFile}'.",
-                        isErrorDisclosable: true);
+                    $"Workflow mismatch for policy '{policy.PolicyName}': expected '{criteria.WorkflowFile}', actual '{workflowFile}'",
+                    isErrorDisclosable: true);
             }
 
             // Validate environment if specified in criteria. We do it last to make sure we report disclosable error
@@ -315,7 +315,7 @@ namespace NuGetGallery.Services.Authentication
                 if (!string.Equals(environment, criteria.Environment, StringComparison.OrdinalIgnoreCase))
                 {
                     return FederatedCredentialPolicyResult.Unauthorized(
-                        $"The policy '{policy.PolicyName}' environment '{criteria.Environment}' does not match '{environment}'.",
+                        $"Environment mismatch for policy '{policy.PolicyName}': expected '{criteria.Environment}', actual '{environment}'",
                         isErrorDisclosable: true);
                 }
             }
