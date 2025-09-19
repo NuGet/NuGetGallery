@@ -589,8 +589,7 @@ namespace NuGetGallery.Services.Authentication
 
                 // Assert
                 Assert.Equal(OidcTokenEvaluationResultType.NoMatchingPolicy, evaluation.Type);
-                Assert.Equal($"Error #0 | Error #2", evaluation.UserError);
-                Assert.DoesNotContain("\n", evaluation.UserError); // Ensure no newlines in errors, otherwise our API will return 502
+                Assert.Equal($"Error #0. Error #2", evaluation.UserError);
             }
         }
 

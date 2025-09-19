@@ -133,7 +133,12 @@ namespace NuGetGallery.Services.Authentication
                     // Combine all disclosable errors to provide more context to the user.
                     if (disclosableErrors.Length > 0)
                     {
-                        disclosableErrors.Append(" | ");
+                        // Ensure prev error is '.' terminated.
+                        if (disclosableErrors[disclosableErrors.Length - 1] != '.')
+                        {
+                            disclosableErrors.Append('.');
+                        }
+                        disclosableErrors.Append(' ');
                     }
                     disclosableErrors.Append(result.Error);
                 }
