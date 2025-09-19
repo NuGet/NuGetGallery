@@ -131,11 +131,15 @@ namespace NuGetGallery.Services.Authentication
                 else if (result.IsErrorDisclosable && result.Error != null)
                 {
                     // Combine all disclosable errors to provide more context to the user.
-                    disclosableErrors.AppendLine(result.Error);
+                    if (disclosableErrors.Length > 0)
+                    {
+                        disclosableErrors.Append(" | ");
+                    }
+                    disclosableErrors.Append(result.Error);
                 }
             }
 
-            return OidcTokenEvaluationResult.NoMatchingPolicy(disclosableErrors.ToString().Trim());
+            return OidcTokenEvaluationResult.NoMatchingPolicy(disclosableErrors.ToString());
         }
 
         private async Task ExecuteAdditionalValidatorsAsync(NameValueCollection requestHeaders, TokenContext context)
