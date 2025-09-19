@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -263,8 +263,8 @@ namespace NuGetGallery
 			}
 
 			// Validate URL format and domain acceptance (includes path validation)
-			if (!TryPrepareUrlForRendering(urlToValidate, out validatedUrl) || 
-			    !IsAcceptedSponsorshipDomain(validatedUrl, trustedDomains))
+			if (!TryPrepareUrlForRendering(urlToValidate, out validatedUrl) ||
+				!IsAcceptedSponsorshipDomain(validatedUrl, trustedDomains))
 			{
 				validatedUrl = null; // ValidatedUrl is null when validation fails
 				errorMessage = "Please provide a valid URL from a supported sponsorship platform.";
@@ -296,7 +296,7 @@ namespace NuGetGallery
 
 			// Check if the path has a meaningful sponsorship identifier
 			var path = uri.AbsolutePath?.Trim('/');
-			
+
 			if (string.IsNullOrEmpty(path))
 			{
 				return false; // No path at all
@@ -307,9 +307,9 @@ namespace NuGetGallery
 			{
 				// Must be in format /sponsors/username
 				var pathParts = path.Split('/');
-				return pathParts.Length >= 2 && 
-				       pathParts[0].Equals("sponsors", StringComparison.OrdinalIgnoreCase) &&
-				       !string.IsNullOrWhiteSpace(pathParts[1]);
+				return pathParts.Length >= 2 &&
+					   pathParts[0].Equals("sponsors", StringComparison.OrdinalIgnoreCase) &&
+					   !string.IsNullOrWhiteSpace(pathParts[1]);
 			}
 
 			// For other domains, just ensure there's some meaningful path beyond root

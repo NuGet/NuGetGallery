@@ -1,41 +1,38 @@
 $(function () {
     'use strict';
 
-    // Constants following the established pattern
+    // Essential message constants only
     var ConfirmRemoveMessage = "Are you sure you want to remove this sponsorship link?";
     var AddErrorMessage = "An error occurred while adding the sponsorship URL. Please try again.";
     var RemoveErrorMessage = "An error occurred while removing the sponsorship URL. Please try again.";
     var EmptyUrlMessage = "Please enter a URL.";
-    var RemoveSuccessMessage = "Sponsorship link removed successfully.";
-    var AddSuccessMessage = "URL added successfully.";
-    var RemovingMessage = "Removing sponsorship link...";
+    var AddSuccessMessage = "Sponsorship URL added successfully.";
+    var RemoveSuccessMessage = "Sponsorship URL removed successfully.";
 
-    // Set up sponsorship links section following the established viewModel pattern
+    // Set up sponsorship links section
     var viewModel = {
         message: ko.observable(''),
         successMessage: ko.observable(''),
         newSponsorshipUrl: ko.observable(''),
-        confirmation: ko.observable(false),
         sponsorshipLinks: ko.observableArray([]),
 
         addSponsorshipLink: function (data, event) {
-            // Prevent form submission
             if (event && event.preventDefault) {
                 event.preventDefault();
             }
             
             var url = viewModel.newSponsorshipUrl().trim();
 
-            // Clear previous error messages
+            // Clear previous messages
             viewModel.message('');
 
-            // Basic empty check - server handles all validation including domain, format, etc.
+            // Basic validation - server handles all complex validation
             if (!url) {
                 viewModel.message(EmptyUrlMessage);
                 return false;
             }
 
-            // Submit to server for validation and processing
+            // Submit to server
             var packageId = $('input[name="id"]').val() || window.nuget.packageId;
             
             $.ajax({
@@ -48,7 +45,6 @@ $(function () {
                 }),
                 success: function (data) {
                     if (data.success) {
-                        // Use the validated URL returned from server
                         var urlToAdd = data.validatedUrl || url;
                         
                         var newSponsorshipLink = new SponsorshipLink({
@@ -56,11 +52,9 @@ $(function () {
                             IsDomainAccepted: data.isDomainAccepted || false
                         });
                         viewModel.sponsorshipLinks.push(newSponsorshipLink);
-
-                        // Clear form and show success message
                         viewModel.newSponsorshipUrl('');
                         viewModel.message('');
-                        viewModel.successMessage(data.message || AddSuccessMessage);
+                        viewModel.successMessage(AddSuccessMessage);
                         
                         // Clear success message after 3 seconds
                         setTimeout(function() {
@@ -73,21 +67,17 @@ $(function () {
                 error: function () {
                     viewModel.message(AddErrorMessage);
                 }
-            })
-            .fail(failHandler);
+            });
 
-            return false; // Prevent form submission
+            return false;
         },
 
         removeSponsorshipLink: function (sponsorshipLink) {
             var url = sponsorshipLink.url();
             
-            // Show confirmation dialog using the established pattern
             if (!window.nuget.confirmEvent(ConfirmRemoveMessage + '\n\n' + url)) {
                 return;
             }
-            
-            viewModel.message(RemovingMessage);
 
             var packageId = $('input[name="id"]').val() || window.nuget.packageId;
             
@@ -102,10 +92,8 @@ $(function () {
                 success: function (data) {
                     if (data.success) {
                         viewModel.sponsorshipLinks.remove(sponsorshipLink);
-                        
-                        // When an operation succeeds, always clear the error message
                         viewModel.message('');
-                        viewModel.successMessage(data.message || RemoveSuccessMessage);
+                        viewModel.successMessage(RemoveSuccessMessage);
                         
                         // Clear success message after 3 seconds
                         setTimeout(function() {
@@ -118,26 +106,19 @@ $(function () {
                 error: function () {
                     viewModel.message(RemoveErrorMessage);
                 }
-            })
-            .fail(failHandler);
+            });
         }
     };
 
-    // Failure handler following the established pattern (defined after viewModel)
-    var failHandler = function (jqXHR, textStatus, errorThrown) {
-        viewModel.message(window.nuget.formatString(errorThrown));
-    };
-
-    // Clear alerts when textbox is emptied
+    // Clear messages when user starts typing
     viewModel.newSponsorshipUrl.subscribe(function(newValue) {
-        // Clear alerts when textbox becomes empty
         if (!newValue || newValue.trim() === '') {
             viewModel.message('');
             viewModel.successMessage('');
         }
     });
 
-    // Load initial sponsorship links from server data first
+    // Load initial sponsorship links
     if (window.nuget && window.nuget.initialSponsorshipLinks) {
         for (var i = 0; i < window.nuget.initialSponsorshipLinks.length; i++) {
             var entry = window.nuget.initialSponsorshipLinks[i];
@@ -149,13 +130,10 @@ $(function () {
         }
     }
 
-    // Apply knockout bindings to sponsorship section after data is loaded
+    // Apply knockout bindings
     var sponsorshipContainer = document.querySelector('.page-manage-sponsorship-links');
     if (sponsorshipContainer) {
         ko.applyBindings(viewModel, sponsorshipContainer);
-    } else {
-        // Fallback - try to apply to document
-        ko.applyBindings(viewModel);
     }
 
     function SponsorshipLink(data) {

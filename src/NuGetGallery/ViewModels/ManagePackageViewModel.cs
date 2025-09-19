@@ -20,7 +20,7 @@ namespace NuGetGallery
 		public IReadOnlyDictionary<string, VersionReadMeState> VersionReadMeStateDictionary { get; set; }
 		public bool IsManageDeprecationEnabled { get; set; }
 		public IReadOnlyDictionary<string, VersionDeprecationState> VersionDeprecationStateDictionary { get; set; }
-		public IReadOnlyCollection<SponsorshipUrlViewModel> SponsorshipUrlEntries { get; set; }
+		public IReadOnlyCollection<SponsorshipUrlEntry> SponsorshipUrlEntries { get; set; }
 		/// <remarks>
 		/// The schema of this class is shared with the client-side Javascript to share information about package listing state.
 		/// The JS expects the exact naming of its properties. Do not change the naming without updating the JS.

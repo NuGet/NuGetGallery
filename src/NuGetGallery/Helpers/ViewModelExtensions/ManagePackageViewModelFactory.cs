@@ -130,7 +130,6 @@ namespace NuGetGallery
 			// Setup sponsorship URLs - show all URLs with validation status for management
 			var sponsorshipEntries = _sponsorshipUrlService.GetSponsorshipUrlEntries(package.PackageRegistration);
 			viewModel.SponsorshipUrlEntries = (sponsorshipEntries ?? Enumerable.Empty<SponsorshipUrlEntry>())
-				.Select(entry => new SponsorshipUrlViewModel(entry.Url, entry.IsDomainAccepted))
 				.ToList()
 				.AsReadOnly();
 

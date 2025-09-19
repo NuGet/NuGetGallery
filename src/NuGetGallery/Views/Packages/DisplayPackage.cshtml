@@ -719,8 +719,8 @@
                             </a>
                         </li>
 
-                    if (Model.CanDisplayTargetFrameworks())
-                    {
+                     if (Model.CanDisplayTargetFrameworks())
+                     {
                         activeBodyTab = activeBodyTab ?? "supportedframeworks";
                         <li role="presentation" id="show-supportedframeworks-container">
                             <a href="#supportedframeworks-body-tab"
@@ -736,7 +736,7 @@
                                 Frameworks
                             </a>
                         </li>
-                    }
+                     }
 
                         activeBodyTab = activeBodyTab ?? "dependencies";
                         <li role="presentation">
@@ -760,14 +760,14 @@
                         activeBodyTab = activeBodyTab ?? "usedby";
                         <li role="presentation">
                             <a href="#usedby-body-tab"
-                                role="tab"
-                                data-toggle="tab"
-                                data-target="#usedby-tab"
-                                id="usedby-body-tab"
-                                class="body-tab"
-                                aria-controls="usedby-tab"
-                                aria-selected="@(activeBodyTab == "usedby" ? "true" : "false")"
-                                tabindex="@(activeBodyTab == "usedby" ? "0" : "-1")">
+                               role="tab"
+                               data-toggle="tab"
+                               data-target="#usedby-tab"
+                               id="usedby-body-tab"
+                               class="body-tab"
+                               aria-controls="usedby-tab"
+                               aria-selected="@(activeBodyTab == "usedby" ? "true" : "false")"
+                               tabindex="@(activeBodyTab == "usedby" ? "0" : "-1")">
                                 <i class="ms-Icon ms-Icon--BranchFork2" aria-hidden="true"></i>
                                 Used By
                             </a>
@@ -1331,8 +1331,8 @@
                                     src="@Url.Absolute("~/Content/gallery/img/fuget.svg")"
                                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/fuget-32x32.png")) />
                             <a href="@Model.FuGetUrl" data-track="outbound-fuget-url"
-                               aria-label="open in fuget.org explorer"
-                               title="Explore additional package info on fuget.org" target="_blank" rel="nofollow noreferrer">
+                                aria-label="open in fuget.org explorer"
+                                title="Explore additional package info on fuget.org" target="_blank" rel="nofollow noreferrer">
                                 Open in FuGet Package Explorer
                             </a>
                         </li>
@@ -1625,13 +1625,13 @@
         var packageId = @Html.ToJson(Model.Id);
         var packageVersion = @Html.ToJson(Model.Version);
         var packageManagers = @Html.ToJson(
-            (
-                from pm in packageManagers
-                from ipc in pm.InstallPackageCommands
-                select ipc.Key
-            )
-            .ToList()
-        );
+                                 (
+                                     from pm in packageManagers
+                                     from ipc in pm.InstallPackageCommands
+                                     select ipc.Key
+                                 )
+                                 .ToList()
+                             );
         var sponsorshipUrlCount = @sponsorshipUrlCount;
     </script>
 

@@ -37,7 +37,7 @@ namespace NuGetGallery
 
 		public async Task<string> AddSponsorshipUrlAsync(PackageRegistration packageRegistration, string url, User user)
 		{
-			// Validate URL format and domain acceptance early, before database operations
+			// Validate URL format and domain acceptance
 			if (!PackageHelper.ValidateSponsorshipUrl(url, _contentObjectService.TrustedSponsorshipDomains, out string validatedUrl, out string errorMessage))
 			{
 				throw new ArgumentException(errorMessage);
@@ -48,7 +48,7 @@ namespace NuGetGallery
 			{
 				var existingEntries = GetSponsorshipUrlEntriesInternal(packageRegistration).ToList();
 
-				// Check URL count limit within transaction to prevent race conditions
+				// Check URL count limit
 				var maxLinks = _contentObjectService.TrustedSponsorshipDomains.MaxSponsorshipLinks;
 				if (existingEntries.Count >= maxLinks)
 				{
@@ -58,7 +58,6 @@ namespace NuGetGallery
 				// Capture timestamp once for consistency between database and audit
 				var timestamp = DateTime.UtcNow;
 
-				// Add new URL entry (only persist URL and timestamp, not isDomainAccepted)
 				var newEntry = new { Url = validatedUrl, Timestamp = timestamp };
 				var entriesToPersist = existingEntries.Select(e => new { e.Url, e.Timestamp }).ToList();
 				entriesToPersist.Add(newEntry);
@@ -85,19 +84,9 @@ namespace NuGetGallery
 			using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
 			{
 				// Validate required parameters
-				if (packageRegistration == null)
-				{
-					throw new ArgumentNullException(nameof(packageRegistration));
-				}
-
 				if (string.IsNullOrWhiteSpace(url))
 				{
 					throw new ArgumentException("URL cannot be null or empty", nameof(url));
-				}
-
-				if (user == null)
-				{
-					throw new ArgumentNullException(nameof(user));
 				}
 
 				var existingEntries = GetSponsorshipUrlEntriesInternal(packageRegistration).ToList();
@@ -116,7 +105,7 @@ namespace NuGetGallery
 
 				existingEntries.Remove(entryToRemove);
 				
-				// Serialize back to JSON (only persist URL and timestamp, not isDomainAccepted)
+				// Serialize back to JSON
 				var entriesToPersist = existingEntries.Select(e => new { e.Url, e.Timestamp }).ToList();
 				packageRegistration.SponsorshipUrls = entriesToPersist.Any() 
 					? JsonConvert.SerializeObject(entriesToPersist)

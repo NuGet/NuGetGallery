@@ -74,7 +74,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 				var currentUser = GetCurrentUser();
 				// Note: currentUser null check is handled by controller authorization
 
-				// Add the sponsorship URL (all validation handled in service layer)
+				// Add the sponsorship URL
 				var validatedUrl = await _sponsorshipUrlService.AddSponsorshipUrlAsync(packageRegistration, newSponsorshipUrl, currentUser);
 				return RedirectToAction("Index", new { packageId, message = "Sponsorship URL added successfully.", isSuccess = true });
 			}
@@ -98,7 +98,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 				var currentUser = GetCurrentUser();
 				// Note: currentUser null check is handled by controller authorization
 
-				// Remove the sponsorship URL (all validation handled in service layer)
+				// Remove the sponsorship URL
 				await _sponsorshipUrlService.RemoveSponsorshipUrlAsync(packageRegistration, sponsorshipUrl, currentUser);
 				return RedirectToAction("Index", new { packageId, message = "Sponsorship URL removed successfully.", isSuccess = true });
 			}

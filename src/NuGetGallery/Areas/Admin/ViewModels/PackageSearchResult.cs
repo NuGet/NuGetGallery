@@ -14,6 +14,5 @@ namespace NuGetGallery.Areas.Admin.ViewModels
         public bool Listed { get; set; }
         public string PackageStatus { get; set; }
         public IReadOnlyList<UserViewModel> Owners { get; set; }
-        public List<string> SponsorshipUrls { get; set; }
     }
 }
