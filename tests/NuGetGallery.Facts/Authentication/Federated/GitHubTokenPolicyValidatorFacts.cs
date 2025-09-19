@@ -433,6 +433,82 @@ namespace NuGetGallery.Services.Authentication
             // Assert
             Assert.Equal(FederatedCredentialPolicyValidationResultType.Success, result.Type);
         }
+
+        [Theory]
+        [InlineData("repo-name", "repo-name")]
+        [InlineData("https://github.com/test-owner/repo-name", "repo-name")]
+        [InlineData("github.com/test-owner/repo-name", "repo-name")]
+        [InlineData("github.com/test-owner/repo-name/", "repo-name")]
+        [InlineData("test-owner/repo-name", "repo-name")]
+        [InlineData("https://github.com/TEST-OWNER/repo-name", "repo-name")]
+        [InlineData("https://github.com/different-owner/repo-name", null)]
+        [InlineData("invalid/owner/repo", null)]
+        public void NormalizeRepositoryName_HandlesVariousFormats(string inputRepo, string? expectedRepo)
+        {
+            // Arrange
+            var user = new User("test-user");
+            var criteria = new
+            {
+                owner = "test-owner",
+                repository = inputRepo,
+                workflow = "workflow.yml"
+            };
+
+            var policy = new FederatedCredentialPolicy
+            {
+                Type = FederatedCredentialType.GitHubActions,
+                CreatedBy = user,
+                PolicyName = "Test Policy",
+                Criteria = System.Text.Json.JsonSerializer.Serialize(criteria)
+            };
+
+            FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(user)).Returns(true);
+
+            // Act
+            var result = Target.ValidatePolicy(policy);
+
+            // Assert
+            var updatedCriteria = GitHubCriteria.FromDatabaseJson(policy.Criteria);
+            Assert.Equal(FederatedCredentialPolicyValidationResultType.Success, result.Type);
+            Assert.Equal(expectedRepo ?? inputRepo, updatedCriteria.Repository);
+        }
+
+        [Theory]
+        [InlineData("workflow.yml", "workflow.yml")]
+        [InlineData(".github/workflows/workflow.yml", "workflow.yml")]
+        [InlineData("/.github/workflows/workflow.yml", "workflow.yml")]
+        [InlineData(".github/workflows/nested/workflow.yml", "nested/workflow.yml")]
+        [InlineData("//.github/workflows/workflow.yml", null)]
+        [InlineData("foo.github/workflows/workflow.yml", null)]
+        public void NormalizeWorkflowFileName_HandlesVariousFormats(string inputWorkflow, string? expectedWorkflow)
+        {
+            // Arrange
+            var user = new User("test-user");
+            var criteria = new
+            {
+                owner = "test-owner",
+                repository = "repo",
+                workflow = inputWorkflow
+            };
+
+            var policy = new FederatedCredentialPolicy
+            {
+                Type = FederatedCredentialType.GitHubActions,
+                CreatedBy = user,
+                PolicyName = "Test Policy",
+                Criteria = System.Text.Json.JsonSerializer.Serialize(criteria)
+            };
+
+            FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(user)).Returns(true);
+
+            // Act
+            var result = Target.ValidatePolicy(policy);
+
+            // Assert
+            var updatedCriteria = GitHubCriteria.FromDatabaseJson(policy.Criteria);
+            Assert.Equal(FederatedCredentialPolicyValidationResultType.Success, result.Type);
+            Assert.Equal(expectedWorkflow ?? inputWorkflow, updatedCriteria.WorkflowFile);
+        }
     }
 
     public class GitHubTokenPolicyValidatorFacts
@@ -586,8 +662,6 @@ namespace NuGetGallery.Services.Authentication
             [InlineData("repository_owner_id")]
             [InlineData("repository")]
             [InlineData("repository_id")]
-            [InlineData("job_workflow_ref")]
-            [InlineData("environment")]
             public async Task RejectsMissingRequiredClaim(string claim)
             {
                 // Arrange
@@ -618,18 +692,33 @@ namespace NuGetGallery.Services.Authentication
             }
 
             [Theory]
-            [InlineData("repository_owner")]
-            [InlineData("repository_owner_id")]
-            [InlineData("repository")]
-            [InlineData("repository_id")]
-            [InlineData("job_workflow_ref")]
-            [InlineData("environment")]
-            public async Task RejectsMismatchedClaim(string claim)
+            [InlineData("repository_owner", false)]
+            [InlineData("repository_owner_id", false)]
+            [InlineData("repository", false)]
+            [InlineData("repository_id", false)]
+            [InlineData("environment", true)]
+            public Task RejectsMismatchedClaim(string claim, bool isErrorDisclosable)
+            {
+                const string mismatchedValue = "mismatched-value";
+                return TestRejectsMismatchedClaim(claim, mismatchedValue, mismatchedValue, isErrorDisclosable);
+            }
+
+            [Fact]
+            public Task RejectsMismatchedWorkflowRefClaim()
+            {
+                const string mismatchedValue = "mismatched.yml";
+                return TestRejectsMismatchedClaim("job_workflow_ref",
+                    $"test-owner/test-repo/.github/workflows/{mismatchedValue}@refs/heads/main",
+                    mismatchedValue, isErrorDisclosable: true);
+            }
+
+            private async Task TestRejectsMismatchedClaim(string claim, string claimValue, string valueInError, bool isErrorDisclosable)
             {
                 // Arrange
                 var createdBy = new User("test-user");
                 var policy = new FederatedCredentialPolicy
                 {
+                    PolicyName = "TestPolicy",
                     Type = FederatedCredentialType.GitHubActions,
                     Criteria = TokenTestHelper.PermanentPolicyCriteria,
                     CreatedBy = createdBy
@@ -637,18 +726,27 @@ namespace NuGetGallery.Services.Authentication
 
                 FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(createdBy)).Returns(true);
 
-                var token = TokenTestHelper.CreateTestJwtWithCustomClaimValue(claim, "mismatched-value");
+                var token = TokenTestHelper.CreateTestJwtWithCustomClaimValue(claim, claimValue);
 
                 // Act
                 var result = await Target.EvaluatePolicyAsync(policy, token);
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
-                Assert.False(result.IsErrorDisclosable);
+                Assert.Equal(isErrorDisclosable, result.IsErrorDisclosable);
 
-                // Error string should contain the claim name and the mismatched value.
-                Assert.Contains(claim, result.Error);
-                Assert.Contains("mismatched-value", result.Error);
+                if (!isErrorDisclosable)
+                {
+                    // Non-disclosable error string should contain the claim name and the mismatched value.
+                    Assert.Contains(claim, result.Error);
+                    Assert.Contains(valueInError, result.Error);
+                }
+                else
+                {
+                    // Disclosable error string should contain the policy name and claim value.
+                    Assert.Contains(policy.PolicyName, result.Error);
+                    Assert.Contains(valueInError, result.Error);
+                }
             }
 
             [Theory]

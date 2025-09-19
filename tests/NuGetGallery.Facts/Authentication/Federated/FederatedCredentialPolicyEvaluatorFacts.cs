@@ -558,11 +558,8 @@ namespace NuGetGallery.Services.Authentication
                     invocation.Arguments[2].ToString()!.Contains("Lorem ipsum"));
             }
 
-            [Theory]
-            [InlineData(0)]
-            [InlineData(1)]
-            [InlineData(int.MaxValue)]
-            public async Task NoMatchingPolicy_ReturnsFirstDisclosableError(int firstDisclosableError)
+            [Fact]
+            public async Task NoMatchingPolicy_ReturnsAllDisclosableErrors()
             {
                 // Arrange
                 var user = new User { Username = "user" };
@@ -575,11 +572,12 @@ namespace NuGetGallery.Services.Authentication
 
                 var validator = TokenValidators.First(v => v.Object.IssuerType == FederatedCredentialIssuerType.EntraId);
 
-                // Setup policies to return errors based on the test parameter
+                // Make the middle of 3 errors non-disclosable
                 for (int i = 0; i < policies.Count; i++)
                 {
+                    bool isErrorDisclosable = i != 1;
                     var evaluationResult = FederatedCredentialPolicyResult.Unauthorized(
-                        $"Error #{i}", isErrorDisclosable: i >= firstDisclosableError);
+                        $"Error #{i}", isErrorDisclosable);
 
                     validator
                         .Setup(x => x.EvaluatePolicyAsync(policies[i], It.IsAny<JsonWebToken>()))
@@ -591,14 +589,7 @@ namespace NuGetGallery.Services.Authentication
 
                 // Assert
                 Assert.Equal(OidcTokenEvaluationResultType.NoMatchingPolicy, evaluation.Type);
-                if (firstDisclosableError < policies.Count)
-                {
-                    Assert.Equal($"Error #{firstDisclosableError}", evaluation.UserError);
-                }
-                else
-                {
-                    Assert.Null(evaluation.UserError);
-                }
+                Assert.Equal($"Error #0. Error #2", evaluation.UserError);
             }
         }
 
