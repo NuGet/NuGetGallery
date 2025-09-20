@@ -1626,9 +1626,9 @@
         var packageVersion = @Html.ToJson(Model.Version);
         var packageManagers = @Html.ToJson(
                                  (
-                                     from pm in packageManagers
-                                     from ipc in pm.InstallPackageCommands
-                                     select ipc.Key
+                                    from pm in packageManagers
+                                    from ipc in pm.InstallPackageCommands
+                                    select ipc.Key
                                  )
                                  .ToList()
                              );

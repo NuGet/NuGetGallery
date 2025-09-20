@@ -95,10 +95,10 @@
         var strings_RemovingOwnership = "@Html.Raw(Strings.ManagePackageOwners_RemovingOwnership)";
         var strings_RemovingOrganization = "@Html.Raw(Strings.ManagePackageOwners_RemovingOrganization)";
         var strings_RemovingSelf = "@Html.Raw(Strings.ManagePackageOwners_RemovingSelf)";
-        
+
         // We are using ToJson (which uses Newtonsoft.Json) instead of Json.Encode to serialize JSON in this CSHTML
         // file because otherwise, with a large number of versions, this will overflow the maximum output JSON length limit for Json.
-        
+
         // Set up delete section
         var versionListedState = @Html.ToJson(Model.VersionListedStateDictionary);
 

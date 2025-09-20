@@ -1009,7 +1009,11 @@ namespace NuGetGallery.Controllers
                 public async Task ReturnsFailureWhenPackageNotFound()
                 {
                     // Arrange
+                    var fakes = Get<Fakes>();
+                    var user = fakes.CreateUser("testuser");
+                    
                     var controller = GetController<JsonApiController>();
+                    controller.SetCurrentUser(user);
 
                     // Act
                     var result = await controller.AddSponsorshipUrl("NonExistentPackage", "https://github.com/sponsors/user");
@@ -1119,6 +1123,11 @@ namespace NuGetGallery.Controllers
                 public async Task ReturnsFailureWhenUserNotSignedIn()
                 {
                     // Arrange
+                    var packageRegistration = new PackageRegistration { Id = "TestPackage" };
+                    var mockPackageService = GetMock<IPackageService>();
+                    mockPackageService.Setup(x => x.FindPackageRegistrationById("TestPackage"))
+                        .Returns(packageRegistration);
+
                     var controller = GetController<JsonApiController>();
                     // No current user set
 
@@ -1327,7 +1336,11 @@ namespace NuGetGallery.Controllers
                 public async Task ReturnsFailureWhenPackageNotFound()
                 {
                     // Arrange
+                    var fakes = Get<Fakes>();
+                    var user = fakes.CreateUser("testuser");
+                    
                     var controller = GetController<JsonApiController>();
+                    controller.SetCurrentUser(user);
 
                     // Act
                     var result = await controller.RemoveSponsorshipUrl("NonExistentPackage", "https://github.com/sponsors/user");

@@ -348,17 +348,18 @@ namespace NuGetGallery
                 return false;
             }
 
-            package = _packageService.FindPackageRegistrationById(id);
-            if (package == null)
-            {
-                errorMessage = "Package not found.";
-                return false;
-            }
-
+            // Check authentication first before looking up package information
             var currentUser = GetCurrentUser();
             if (currentUser == null)
             {
                 errorMessage = "You must be signed in.";
+                return false;
+            }
+
+            package = _packageService.FindPackageRegistrationById(id);
+            if (package == null)
+            {
+                errorMessage = "Package not found.";
                 return false;
             }
 
