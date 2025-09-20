@@ -18,6 +18,7 @@ namespace NuGetGallery
         ICacheConfiguration CacheConfiguration { get; }
         IQueryHintConfiguration QueryHintConfiguration { get; }
         ITrustedImageDomains TrustedImageDomains { get; }
+        ITrustedSponsorshipDomains TrustedSponsorshipDomains { get; }
 
         Task Refresh();
     }

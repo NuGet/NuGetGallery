@@ -1,0 +1,90 @@
+﻿@model ManagePackageViewModel
+
+<div class="page-manage-sponsorship-links">
+
+    @if (Model.CanEdit)
+    {
+        <b>
+            Current sponsorship links
+        </b>
+
+        <div class="sponsorship-links">
+            <div id="sponsorship-links-container">
+                <!-- ko if: sponsorshipLinks().length > 0 -->
+                <div data-bind="foreach: sponsorshipLinks" role="list">
+                    <div class="sponsorship-link-item" role="listitem">
+                        <div class="row">
+                            <div class="col-xs-8 col-sm-9 col-md-9 sponsorship-link-url">
+                                <a data-bind="attr: { href: url }, text: url" target="_blank" style="text-decoration: underline;"></a>
+                                <!-- ko ifnot: isDomainAccepted -->
+                                <div style="margin-top: 4px;">
+                                    <small class="text-danger" style="font-size: 14px;">
+                                        <i class="ms-Icon ms-Icon--Warning" aria-hidden="true" style="font-size: 14px;"></i>
+                                        <em>This URL is from an unsupported sponsorship platform and will not be displayed to users.</em>
+                                    </small>
+                                </div>
+                                <!-- /ko -->
+                            </div>
+                            <div class="col-xs-4 col-sm-3 col-md-3 text-right remove-sponsorship-link">
+                                <a role="button" class="icon-link sponsorship-remove-link"
+                                   href="#"
+                                   data-bind="click: $root.removeSponsorshipLink, attr: { 'aria-label': 'Remove sponsorship link ' + url() }">
+                                    <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                                    <span>Remove</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /ko -->
+                <!-- ko if: sponsorshipLinks().length === 0 -->
+                <p>No sponsorship links have been added.</p>
+                <!-- /ko -->
+            </div>
+        </div>
+
+        <b class="sponsorship-title">
+            Add sponsorship link
+        </b>
+
+        <div class="sponsorship-links">
+            <form novalidate="novalidate" data-bind="submit: addSponsorshipLink">
+                <div>
+                    <p class="margin-top-10 margin-bottom-10">Enter a URL to add it as a sponsorship link.</p>
+
+                    @ViewHelpers.AlertInfo(
+                            @<text>
+                                Note: Only links from the following sponsorship platforms will be accepted: GitHub Sponsors, Patreon, Open Collective, Ko-fi, Tidelift, and Liberapay.
+                            </text>)
+
+                    <div class="form-group">
+                        <label for="newSponsorshipUrl">URL</label>
+                        <input type="url" id="newSponsorshipUrl" name="newSponsorshipUrl" data-bind="value: newSponsorshipUrl" aria-required="true" class="form-control input-brand" placeholder="https://example.com/sponsor" />
+
+                        <div style="display: none" id="manage-sponsorship-alert" data-bind="visible: message">
+                            @ViewHelpers.AlertDanger(
+                                    @<text>
+                                        <span id="manage-sponsorship-message" role="alert" aria-live="assertive" data-bind="text: message"></span>
+                                    </text>)
+                        </div>
+
+                        <div style="display: none" id="manage-sponsorship-success" data-bind="visible: successMessage">
+                            @ViewHelpers.AlertSuccess(
+                                    @<text>
+                                        <span id="manage-sponsorship-success-message" role="alert" aria-live="polite" data-bind="text: successMessage"></span>
+                                    </text>)
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <input type="submit" class="btn btn-brand form-control" value="Add" aria-label="Add sponsorship link to @Model.Id" />
+                    </div>
+                </div>
+            </form>
+        </div>
+    }
+    else
+    {
+        @ViewHelpers.AlertWarning(@<text>You do not have permission to manage sponsorship links for this package.</text>)
+    }
+</div>

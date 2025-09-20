@@ -9,17 +9,20 @@ using NuGet.Versioning;
 using NuGetGallery.Frameworks;
 using NuGetGallery.Helpers;
 using NuGetGallery.Services.Helpers;
+using Newtonsoft.Json;
 
 namespace NuGetGallery
 {
     public class DisplayPackageViewModelFactory
     {
         private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
+		private readonly ISponsorshipUrlService _sponsorshipUrlService;
 
-        public DisplayPackageViewModelFactory(IIconUrlProvider iconUrlProvider, IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory, IFeatureFlagService featureFlagService)
-        {
-            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(iconUrlProvider, frameworkCompatibilityFactory, featureFlagService);
-        }
+		public DisplayPackageViewModelFactory(IIconUrlProvider iconUrlProvider, IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory, IFeatureFlagService featureFlagService, ISponsorshipUrlService sponsorshipUrlService = null)
+		{
+			_listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(iconUrlProvider, frameworkCompatibilityFactory, featureFlagService);
+			_sponsorshipUrlService = sponsorshipUrlService;
+		}
 
         public DisplayPackageViewModel Create(
             Package package,
@@ -230,6 +233,13 @@ namespace NuGetGallery
             }
 
             viewModel.PackageWarningIconTitle = WarningTitleHelper.GetWarningIconTitle(viewModel.Version, deprecation, maxVulnerabilitySeverity);
+
+			// Get accepted sponsorship URLs for public display (filters out unsupported domains)
+			var sponsorshipEntries = _sponsorshipUrlService?.GetSponsorshipUrlEntries(package.PackageRegistration);
+			viewModel.SponsorshipUrls = sponsorshipEntries?
+				.Where(entry => entry.IsDomainAccepted)
+				.Select(entry => entry.Url)
+				.ToList() ?? new List<string>();
 
             return viewModel;
         }

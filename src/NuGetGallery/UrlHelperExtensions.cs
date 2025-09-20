@@ -1190,6 +1190,16 @@ namespace NuGetGallery
             return GetActionLink(url, "RemovePackageOwner", "JsonApi", relativeUrl);
         }
 
+        public static string AddSponsorshipUrl(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url, "AddSponsorshipUrl", "JsonApi", relativeUrl);
+        }
+
+        public static string RemoveSponsorshipUrl(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url, "RemoveSponsorshipUrl", "JsonApi", relativeUrl);
+        }
+
         public static string GetDeprecationCveIds(
             this UrlHelper url,
             bool relativeUrl = true)

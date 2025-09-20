@@ -14,5 +14,7 @@ namespace NuGetGallery.Auditing
         DeleteOwnershipRequest,
         Lock,
         Unlock,
+        AddSponsorshipUrl,
+        RemoveSponsorshipUrl,
     }
 }
