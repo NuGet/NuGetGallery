@@ -1,10 +1,10 @@
 $(function () {
     'use strict';
 
-    var packageId = typeof window.packageId !== 'undefined' ? window.packageId : null;
-    var packageVersion = typeof window.packageVersion !== 'undefined' ? window.packageVersion : null;
-    var packageManagers = typeof window.packageManagers !== 'undefined' ? window.packageManagers : [];
-    var sponsorshipUrlCount = typeof window.sponsorshipUrlCount !== 'undefined' ? window.sponsorshipUrlCount : 0;
+    var packageId = window.nuget && window.nuget.packageId || null;
+    var packageVersion = window.nuget && window.nuget.packageVersion || null;
+    var packageManagers = window.nuget && window.nuget.packageManagers || [];
+    var sponsorshipUrlCount = window.nuget && window.nuget.sponsorshipUrlCount || 0;
 
     // Focus trap variables for sponsorship popup
     var focusTrapElements = [];

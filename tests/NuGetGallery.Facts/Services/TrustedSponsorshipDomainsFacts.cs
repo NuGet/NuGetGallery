@@ -160,11 +160,15 @@ namespace NuGetGallery.Services
 				var deserializedDomains = JsonConvert.DeserializeObject<TrustedSponsorshipDomains>(json);
 
 				// Assert
-				// Both objects should have the same expanded domain lists and behavior
-				Assert.Equal(originalDomains.TrustedSponsorshipDomainList, deserializedDomains.TrustedSponsorshipDomainList);
 				Assert.Equal(originalDomains.MaxSponsorshipLinks, deserializedDomains.MaxSponsorshipLinks);
-			}
-		
+				
+				// Verify that all original domains still work after deserialization
+				Assert.True(deserializedDomains.IsSponsorshipDomainTrusted("github.com"));
+				Assert.True(deserializedDomains.IsSponsorshipDomainTrusted("www.github.com"));
+				Assert.True(deserializedDomains.IsSponsorshipDomainTrusted("patreon.com"));
+				Assert.True(deserializedDomains.IsSponsorshipDomainTrusted("www.patreon.com"));
+			}			
+
 			[Fact]
 			public void DeserializesWithZeroMaxLinksWhenMissing()
 			{

@@ -50,8 +50,10 @@ namespace NuGetGallery.Services
 
 				var trimmedDomain = sponsorshipDomain.Trim().ToLowerInvariant();
 
-				// Add both the domain and its www variant
+				// Add the domain as-is
 				expandedSponsorshipDomainList.Add(trimmedDomain);
+				
+				// Always add www variant (implicit assumption: config only contains non-www domains)
 				expandedSponsorshipDomainList.Add("www." + trimmedDomain);
 			}
 			return expandedSponsorshipDomainList;

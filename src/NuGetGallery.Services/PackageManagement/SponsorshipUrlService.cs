@@ -35,25 +35,37 @@ namespace NuGetGallery
 			return GetSponsorshipUrlEntriesInternal(packageRegistration);
 		}
 
-		public async Task<string> AddSponsorshipUrlAsync(PackageRegistration packageRegistration, string url, User user)
+	public async Task<string> AddSponsorshipUrlAsync(PackageRegistration packageRegistration, string url, User user)
+	{
+		// Validate required parameters before any DB interaction
+		if (packageRegistration == null)
 		{
-			// Validate URL format and domain acceptance
-			if (!PackageHelper.ValidateSponsorshipUrl(url, _contentObjectService.TrustedSponsorshipDomains, out string validatedUrl, out string errorMessage))
+			throw new ArgumentNullException(nameof(packageRegistration));
+		}
+		if (user == null)
+		{
+			throw new ArgumentNullException(nameof(user));
+		}
+
+		// Validate URL format and domain acceptance
+		if (!PackageHelper.ValidateSponsorshipUrl(url, _contentObjectService.TrustedSponsorshipDomains, out string validatedUrl, out string errorMessage))
+		{
+			throw new ArgumentException(errorMessage);
+		}
+
+		// Get max links limit before starting transaction
+		var maxLinks = _contentObjectService.TrustedSponsorshipDomains.MaxSponsorshipLinks;
+
+		using (new SuspendDbExecutionStrategy())
+		using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
+		{
+			var existingEntries = GetSponsorshipUrlEntriesInternal(packageRegistration).ToList();
+
+			// Check URL count limit
+			if (existingEntries.Count >= maxLinks)
 			{
-				throw new ArgumentException(errorMessage);
+				throw new ArgumentException($"You can add a maximum of {maxLinks} sponsorship links.");
 			}
-
-			using (new SuspendDbExecutionStrategy())
-			using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
-			{
-				var existingEntries = GetSponsorshipUrlEntriesInternal(packageRegistration).ToList();
-
-				// Check URL count limit
-				var maxLinks = _contentObjectService.TrustedSponsorshipDomains.MaxSponsorshipLinks;
-				if (existingEntries.Count >= maxLinks)
-				{
-					throw new ArgumentException($"You can add a maximum of {maxLinks} sponsorship links.");
-				}
 
 				// Capture timestamp once for consistency between database and audit
 				var timestamp = DateTime.UtcNow;
@@ -81,6 +93,14 @@ namespace NuGetGallery
 	public async Task RemoveSponsorshipUrlAsync(PackageRegistration packageRegistration, string url, User user)
 	{
 		// Validate required parameters before any DB interaction
+		if (packageRegistration == null)
+		{
+			throw new ArgumentNullException(nameof(packageRegistration));
+		}
+		if (user == null)
+		{
+			throw new ArgumentNullException(nameof(user));
+		}
 		if (string.IsNullOrWhiteSpace(url))
 		{
 			throw new ArgumentException("URL cannot be null or empty", nameof(url));
