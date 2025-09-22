@@ -113,6 +113,7 @@ namespace NuGetGallery.Services.Authentication
         private static void NormalizeWorkflowFileName(GitHubCriteria criteria)
         {
             // We've seen users entering ".github/workflows/release.yml" instead of "release.yml".
+            criteria.WorkflowFile = criteria.WorkflowFile.Replace('\\', '/'); // normalize slashes
             int index = criteria.WorkflowFile.IndexOf(WorkflowPrefix, StringComparison.OrdinalIgnoreCase);
             if (index == 0 ||
                 (index == 1 && criteria.WorkflowFile[0] == '/'))

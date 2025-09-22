@@ -477,6 +477,8 @@ namespace NuGetGallery.Services.Authentication
         [InlineData("workflow.yml", "workflow.yml")]
         [InlineData(".github/workflows/workflow.yml", "workflow.yml")]
         [InlineData("/.github/workflows/workflow.yml", "workflow.yml")]
+        [InlineData(@".github/workflows\workflow.yml", "workflow.yml")]
+        [InlineData(@"\.github\workflows\workflow.yml", "workflow.yml")]
         [InlineData(".github/workflows/nested/workflow.yml", "nested/workflow.yml")]
         [InlineData("//.github/workflows/workflow.yml", null)]
         [InlineData("foo.github/workflows/workflow.yml", null)]
