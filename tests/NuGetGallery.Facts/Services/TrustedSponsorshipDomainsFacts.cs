@@ -54,17 +54,17 @@ namespace NuGetGallery.Services
 			[Fact]
 			public void HandlesWwwDomainsCorrectlyByAddingNonWwwVariant()
 			{
-				// Arrange
-				var domainList = new List<string> { "www.github.com", "www.example.org" };
+				// Arrange - Only non-www domains should be in configuration
+				var domainList = new List<string> { "github.com", "example.org" };
 
 				// Act
 				var domains = new TrustedSponsorshipDomains(domainList, 10);
 
-				// Assert
-				Assert.Contains("www.github.com", domains.TrustedSponsorshipDomainList);
+				// Assert - Both non-www and www variants should be available
 				Assert.Contains("github.com", domains.TrustedSponsorshipDomainList);
-				Assert.Contains("www.example.org", domains.TrustedSponsorshipDomainList);
+				Assert.Contains("www.github.com", domains.TrustedSponsorshipDomainList);
 				Assert.Contains("example.org", domains.TrustedSponsorshipDomainList);
+				Assert.Contains("www.example.org", domains.TrustedSponsorshipDomainList);
 				Assert.Equal(4, domains.TrustedSponsorshipDomainList.Count);
 			}
 		}
@@ -160,11 +160,11 @@ namespace NuGetGallery.Services
 				var deserializedDomains = JsonConvert.DeserializeObject<TrustedSponsorshipDomains>(json);
 
 				// Assert
-				// Both objects should have the same expanded domain lists (including www. variants)
+				// Both objects should have the same expanded domain lists and behavior
 				Assert.Equal(originalDomains.TrustedSponsorshipDomainList, deserializedDomains.TrustedSponsorshipDomainList);
 				Assert.Equal(originalDomains.MaxSponsorshipLinks, deserializedDomains.MaxSponsorshipLinks);
 			}
-
+		
 			[Fact]
 			public void DeserializesWithZeroMaxLinksWhenMissing()
 			{

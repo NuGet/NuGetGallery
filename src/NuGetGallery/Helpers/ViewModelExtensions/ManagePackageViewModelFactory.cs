@@ -5,10 +5,10 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Web.Mvc;
+using Newtonsoft.Json;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Frameworks;
-using Newtonsoft.Json;
 
 namespace NuGetGallery
 {
@@ -130,8 +130,7 @@ namespace NuGetGallery
 			// Setup sponsorship URLs - show all URLs with validation status for management
 			var sponsorshipEntries = _sponsorshipUrlService.GetSponsorshipUrlEntries(package.PackageRegistration);
 			viewModel.SponsorshipUrlEntries = (sponsorshipEntries ?? Enumerable.Empty<SponsorshipUrlEntry>())
-				.ToList()
-				.AsReadOnly();
+				.ToArray();
 
 			return viewModel;
 		}

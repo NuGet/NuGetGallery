@@ -181,6 +181,8 @@ namespace NuGetGallery.Helpers
             [Theory]
             [InlineData("github.com/sponsors/user", "https://github.com/sponsors/user")]
             [InlineData("https://github.com/sponsors/user", "https://github.com/sponsors/user")]
+            [InlineData("https://github.com/sponsors/user/dashboard", "https://github.com/sponsors/user/dashboard")] // GitHub sub-pages are now allowed
+            [InlineData("https://github.com/sponsors/user/extra", "https://github.com/sponsors/user/extra")] // GitHub sub-pages are now allowed
             [InlineData("patreon.com/user", "https://patreon.com/user")]
             [InlineData("https://patreon.com/user", "https://patreon.com/user")]
             public void ValidateSponsorshipUrl_AcceptsValidUrls(string inputUrl, string expectedUrl)
@@ -274,8 +276,6 @@ namespace NuGetGallery.Helpers
             [Theory]
             [InlineData("https://github.com/abc/sponsors/123")] // Invalid pattern - should be sponsors/username
             [InlineData("https://www.github.com/abc/sponsors/123")] // Invalid pattern with www
-            [InlineData("https://github.com/sponsors/user/extra")] // Too many path segments
-            [InlineData("https://www.github.com/sponsors/user/extra")] // Too many path segments with www
             public void ValidateSponsorshipUrl_RejectsMalformedGitHubUrls(string malformedUrl)
             {
                 // Arrange
@@ -370,6 +370,8 @@ namespace NuGetGallery.Helpers
             [Theory]
             [InlineData("https://github.com/sponsors/user", true)]
             [InlineData("https://www.github.com/sponsors/user", true)]
+            [InlineData("https://github.com/sponsors/user/dashboard", true)] // GitHub Sponsors sub-pages are allowed
+            [InlineData("https://github.com/sponsors/user/extra", true)] // GitHub Sponsors sub-pages are allowed
             [InlineData("https://patreon.com/user", true)]
             [InlineData("https://www.patreon.com/user", true)]
             [InlineData("https://ko-fi.com/user", true)]
@@ -412,7 +414,6 @@ namespace NuGetGallery.Helpers
             [Theory]
             [InlineData("https://github.com/sponsors", false)] // Missing username
             [InlineData("https://www.github.com/sponsors/", false)] // Missing username with trailing slash
-            [InlineData("https://github.com/sponsors/user/extra", false)] // Too many path segments
             [InlineData("https://github.com/abc/sponsors/123", false)] // Invalid pattern
             [InlineData("https://www.github.com/abc/sponsors/123", false)] // Invalid pattern with www
             public void ReturnsFalse_ForInvalidGitHubUrls(string url, bool expected)

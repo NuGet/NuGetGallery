@@ -78,49 +78,49 @@ namespace NuGetGallery
 			}
 		}
 
-		public async Task RemoveSponsorshipUrlAsync(PackageRegistration packageRegistration, string url, User user)
+	public async Task RemoveSponsorshipUrlAsync(PackageRegistration packageRegistration, string url, User user)
+	{
+		// Validate required parameters before any DB interaction
+		if (string.IsNullOrWhiteSpace(url))
 		{
-			using (new SuspendDbExecutionStrategy())
-			using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
-			{
-				// Validate required parameters
-				if (string.IsNullOrWhiteSpace(url))
-				{
-					throw new ArgumentException("URL cannot be null or empty", nameof(url));
-				}
-
-				var existingEntries = GetSponsorshipUrlEntriesInternal(packageRegistration).ToList();
-				
-				// Find and remove the URL entry
-				var entryToRemove = existingEntries.FirstOrDefault(entry => 
-					string.Equals(entry.Url, url, StringComparison.OrdinalIgnoreCase));
-
-				if (entryToRemove == null)
-				{
-					throw new ArgumentException("The specified sponsorship URL was not found for this package.", nameof(url));
-				}
-
-				// Capture removal timestamp for consistency between database and audit
-				var removalTimestamp = DateTime.UtcNow;
-
-				existingEntries.Remove(entryToRemove);
-				
-				// Serialize back to JSON
-				var entriesToPersist = existingEntries.Select(e => new { e.Url, e.Timestamp }).ToList();
-				packageRegistration.SponsorshipUrls = entriesToPersist.Any() 
-					? JsonConvert.SerializeObject(entriesToPersist)
-					: null;
-
-				// Save changes to database
-				await _entitiesContext.SaveChangesAsync();
-
-				// Create audit record with the same timestamp used for removal processing
-				await _auditingService.SaveAuditRecordAsync(
-					PackageRegistrationAuditRecord.CreateForRemoveSponsorshipUrl(packageRegistration, url, user.Username, user.IsAdministrator, removalTimestamp));
-
-				transaction.Commit();
-			}
+			throw new ArgumentException("URL cannot be null or empty", nameof(url));
 		}
+
+		using (new SuspendDbExecutionStrategy())
+		using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
+		{
+			var existingEntries = GetSponsorshipUrlEntriesInternal(packageRegistration).ToList();
+
+			// Find and remove the URL entry
+			var entryToRemove = existingEntries.FirstOrDefault(entry => 
+				string.Equals(entry.Url, url, StringComparison.OrdinalIgnoreCase));
+
+			if (entryToRemove == null)
+			{
+				throw new ArgumentException("The specified sponsorship URL was not found for this package.", nameof(url));
+			}
+
+			// Capture removal timestamp for consistency between database and audit
+			var removalTimestamp = DateTime.UtcNow;
+
+			existingEntries.Remove(entryToRemove);
+			
+			// Serialize back to JSON
+			var entriesToPersist = existingEntries.Select(e => new { e.Url, e.Timestamp }).ToList();
+			packageRegistration.SponsorshipUrls = entriesToPersist.Any() 
+				? JsonConvert.SerializeObject(entriesToPersist)
+				: null;
+
+			// Save changes to database
+			await _entitiesContext.SaveChangesAsync();
+
+			// Create audit record with the same timestamp used for removal processing
+			await _auditingService.SaveAuditRecordAsync(
+				PackageRegistrationAuditRecord.CreateForRemoveSponsorshipUrl(packageRegistration, url, user.Username, user.IsAdministrator, removalTimestamp));
+
+			transaction.Commit();
+		}
+	}
 
 		/// <summary>
 		/// Internal method to deserialize and validate sponsorship URL entries from JSON.
@@ -129,7 +129,7 @@ namespace NuGetGallery
 		{
 			var sponsorshipUrlEntries = new List<SponsorshipUrlEntry>();
 
-			if (packageRegistration?.SponsorshipUrls != null && !string.IsNullOrEmpty(packageRegistration.SponsorshipUrls))
+			if (!string.IsNullOrEmpty(packageRegistration?.SponsorshipUrls))
 			{
 				try
 				{
@@ -147,7 +147,12 @@ namespace NuGetGallery
 								{
 									// Use comprehensive domain and path validation from PackageHelper
 									var isDomainAccepted = PackageHelper.IsAcceptedSponsorshipDomain(validatedUrl, _contentObjectService.TrustedSponsorshipDomains);
-									sponsorshipUrlEntries.Add(new SponsorshipUrlEntry(validatedUrl, entry.Timestamp, isDomainAccepted));
+									sponsorshipUrlEntries.Add(new SponsorshipUrlEntry 
+									{ 
+										Url = validatedUrl, 
+										Timestamp = entry.Timestamp, 
+										IsDomainAccepted = isDomainAccepted 
+									});
 								}
 								else
 								{

@@ -31,7 +31,7 @@ namespace NuGetGallery.Services
 
 		public bool IsSponsorshipDomainTrusted(string sponsorshipDomain)
 		{
-			if (sponsorshipDomain == null)
+			if (string.IsNullOrEmpty(sponsorshipDomain))
 			{
 				return false;
 			}
@@ -45,33 +45,16 @@ namespace NuGetGallery.Services
 
 			foreach (var sponsorshipDomain in trustedSponsorshipDomainListFromFile)
 			{
-				expandedSponsorshipDomainList.Add(sponsorshipDomain);
+				if (string.IsNullOrWhiteSpace(sponsorshipDomain))
+					continue;
 
-				var subdomain = ParseSubDomain(sponsorshipDomain);
+				var trimmedDomain = sponsorshipDomain.Trim().ToLowerInvariant();
 
-				if (string.IsNullOrEmpty(subdomain))
-				{
-					expandedSponsorshipDomainList.Add("www." + sponsorshipDomain);
-				} 
-				else if (subdomain == "www")
-				{
-					expandedSponsorshipDomainList.Add(sponsorshipDomain.Substring(subdomain.Length + 1));
-				}
+				// Add both the domain and its www variant
+				expandedSponsorshipDomainList.Add(trimmedDomain);
+				expandedSponsorshipDomainList.Add("www." + trimmedDomain);
 			}
 			return expandedSponsorshipDomainList;
-		}
-
-		private string ParseSubDomain(string domain)
-		{
-			if (domain.Split('.').Length > 2)
-			{
-				var lastIndex = domain.LastIndexOf(".");
-				var index = domain.LastIndexOf('.', lastIndex - 1);
-
-				return domain.Substring(0, index);
-			}
-
-			return null; 
 		}
 	}
 }

@@ -324,7 +324,7 @@ namespace NuGetGallery
 			}
 
 			// Check if the path has a meaningful sponsorship identifier
-			var path = uri.AbsolutePath?.Trim('/');
+			var path = uri.AbsolutePath.Trim('/');
 
 			if (string.IsNullOrEmpty(path))
 			{
@@ -334,22 +334,8 @@ namespace NuGetGallery
 			// Special validation for GitHub sponsors - must have username after /sponsors/
 			if (hostname == "github.com" || hostname == "www.github.com")
 			{
-				// Must be in format /sponsors/username
+				// Must be in format /sponsors/username (with optional additional path segments)
 				var pathParts = path.Split('/');
-				
-				// Check for invalid GitHub URL patterns like "abc/sponsors/123" or "sponsors/user/extra"
-				if (pathParts.Length >= 3 && 
-					pathParts[1].Equals("sponsors", StringComparison.OrdinalIgnoreCase))
-				{
-					// This is an invalid pattern like "abc/sponsors/123" - reject it
-					return false;
-				}
-				
-				// Also reject if there are more than 2 path segments (sponsors/user should be exactly 2 parts)
-				if (pathParts.Length > 2)
-				{
-					return false;
-				}
 				
 				if (!(pathParts.Length >= 2 &&
 					   pathParts[0].Equals("sponsors", StringComparison.OrdinalIgnoreCase) &&

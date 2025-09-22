@@ -206,30 +206,30 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("manage a package")]
         public virtual async Task<JsonResult> AddSponsorshipUrl(string id, string sponsorshipUrl)
         {
-	        if (TryGetPackageForSponsorshipManagement(id, out var package, out var errorMessage))
-	        {
-		        try
-		        {
-			        var currentUser = GetCurrentUser();
+            if (TryGetPackageForSponsorshipManagement(id, out var package, out var errorMessage))
+            {
+                try
+                {
+                    var currentUser = GetCurrentUser();
 
-			        // Add the sponsorship URL (all validation handled in service layer)
-			        var validatedUrl = await _sponsorshipUrlService.AddSponsorshipUrlAsync(package, sponsorshipUrl, currentUser);
-			        
-			        return Json(new { 
-				        success = true, 
-				        validatedUrl = validatedUrl,
-				        isDomainAccepted = true
-			        });
-		        }
-		        catch (Exception ex)
-		        {
-			        return HandleSponsorshipUrlException(ex, "adding");
-		        }
-	        }
-	        else
-	        {
-		        return Json(new { success = false, message = errorMessage }, JsonRequestBehavior.AllowGet);
-	        }
+                    // Add the sponsorship URL (all validation handled in service layer)
+                    var validatedUrl = await _sponsorshipUrlService.AddSponsorshipUrlAsync(package, sponsorshipUrl, currentUser);
+                    
+                    return Json(new { 
+                        success = true, 
+                        validatedUrl = validatedUrl,
+                        isDomainAccepted = true
+                    });
+                }
+                catch (Exception ex)
+                {
+                    return HandleSponsorshipUrlException(ex, "adding");
+                }
+            }
+            else
+            {
+                return Json(new { success = false, message = errorMessage }, JsonRequestBehavior.AllowGet);
+            }
         }
 
         [HttpPost]
@@ -237,25 +237,25 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("manage a package")]
         public virtual async Task<JsonResult> RemoveSponsorshipUrl(string id, string sponsorshipUrl)
         {
-	        if (TryGetPackageForSponsorshipManagement(id, out var package, out var errorMessage))
-	        {
-		        try
-		        {
-			        var currentUser = GetCurrentUser();
+            if (TryGetPackageForSponsorshipManagement(id, out var package, out var errorMessage))
+            {
+                try
+                {
+                    var currentUser = GetCurrentUser();
 
-			        // Remove the sponsorship URL (all validation handled in service layer)
-			        await _sponsorshipUrlService.RemoveSponsorshipUrlAsync(package, sponsorshipUrl, currentUser);
-			        return Json(new { success = true });
-		        }
-		        catch (Exception ex)
-		        {
-			        return HandleSponsorshipUrlException(ex, "removing");
-		        }
-	        }
-	        else
-	        {
-		        return Json(new { success = false, message = errorMessage }, JsonRequestBehavior.AllowGet);
-	        }
+                    // Remove the sponsorship URL (all validation handled in service layer)
+                    await _sponsorshipUrlService.RemoveSponsorshipUrlAsync(package, sponsorshipUrl, currentUser);
+                    return Json(new { success = true });
+                }
+                catch (Exception ex)
+                {
+                    return HandleSponsorshipUrlException(ex, "removing");
+                }
+            }
+            else
+            {
+                return Json(new { success = false, message = errorMessage }, JsonRequestBehavior.AllowGet);
+            }
         }
 
         private bool TryGetManagePackageOwnerModel(string id, string username, bool isAddOwner, out ManagePackageOwnerModel model)
@@ -379,6 +379,8 @@ namespace NuGetGallery
         /// </summary>
         private JsonResult HandleSponsorshipUrlException(Exception ex, string operation)
         {
+            // ArgumentException contains user-friendly validation messages from the service layer (e.g "Please enter a valid URL.......")
+            // These are safe to surface to users, while other exceptions may not be
             if (ex is ArgumentException argumentEx)
             {
                 return Json(new { success = false, message = argumentEx.Message }, JsonRequestBehavior.AllowGet);

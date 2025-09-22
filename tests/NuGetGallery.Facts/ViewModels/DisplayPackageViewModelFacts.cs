@@ -1298,9 +1298,9 @@ namespace NuGetGallery.ViewModels
 			// Arrange
 			var sponsorshipEntries = new List<SponsorshipUrlEntry>
 			{
-				new SponsorshipUrlEntry("https://github.com/sponsors/user", DateTime.UtcNow, true),
-				new SponsorshipUrlEntry("https://patreon.com/user", DateTime.UtcNow, true),
-				new SponsorshipUrlEntry("https://ko-fi.com/user", DateTime.UtcNow, true)
+				new SponsorshipUrlEntry { Url = "https://github.com/sponsors/user", Timestamp = DateTime.UtcNow, IsDomainAccepted = true },
+				new SponsorshipUrlEntry { Url = "https://patreon.com/user", Timestamp = DateTime.UtcNow, IsDomainAccepted = true },
+				new SponsorshipUrlEntry { Url = "https://ko-fi.com/user", Timestamp = DateTime.UtcNow, IsDomainAccepted = true }
 			};
 
 			var mockSponsorshipService = new Mock<ISponsorshipUrlService>();
@@ -1347,8 +1347,8 @@ namespace NuGetGallery.ViewModels
 			// Arrange
 			var sponsorshipEntries = new List<SponsorshipUrlEntry>
 			{
-				new SponsorshipUrlEntry("https://github.com/sponsors/user", DateTime.UtcNow, true),
-				new SponsorshipUrlEntry("https://untrusted.com/sponsor", DateTime.UtcNow, false)
+				new SponsorshipUrlEntry { Url = "https://github.com/sponsors/user", Timestamp = DateTime.UtcNow, IsDomainAccepted = true },
+				new SponsorshipUrlEntry { Url = "https://untrusted.com/sponsor", Timestamp = DateTime.UtcNow, IsDomainAccepted = false }
 			};
 
 			var mockSponsorshipService = new Mock<ISponsorshipUrlService>();
@@ -1433,7 +1433,7 @@ namespace NuGetGallery.ViewModels
 			// Arrange
 			var sponsorshipEntries = new List<SponsorshipUrlEntry> 
 			{ 
-				new SponsorshipUrlEntry("https://github.com/sponsors/user", DateTime.UtcNow, true) 
+				new SponsorshipUrlEntry { Url = "https://github.com/sponsors/user", Timestamp = DateTime.UtcNow, IsDomainAccepted = true } 
 			};
 
 			var mockSponsorshipService = new Mock<ISponsorshipUrlService>();

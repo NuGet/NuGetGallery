@@ -7,160 +7,160 @@
 }
 
 <section role="main" class="container main-container">
-	<h1>Manage Package Sponsorship Links</h1>
-	<p>Add or remove sponsorship URLs for a package. Maximum of 10 links allowed. Links have to be from approved platforms.</p>
+    <h1>Manage Package Sponsorship Links</h1>
+    <p>Add or remove sponsorship URLs for a package. Maximum of 10 links allowed. Links have to be from approved platforms.</p>
 
 
 
-	<form class="form-horizontal" method="get" action="@Url.Action("Index")">
-		<div class="form-group">
-			<div class="col-xs-12">
-				<label for="packageId" class="control-label">Package ID</label>
-				<input type="text" class="form-control input-brand" id="packageId" name="packageId" placeholder="Enter a single package ID (e.g. jQuery)" value="@Model.PackageId" autofocus>
-				
-				@* Display package search error messages under the search box *@
-				@if (Model != null && !string.IsNullOrEmpty(Model.Message) && !Model.IsSuccess && Model.Package == null)
-				{
-					@ViewHelpers.AlertDanger(@<text>@Model.Message</text>)
-				}
-			</div>
-		</div>
-		<div class="form-group">
-			<div class="col-xs-12">
-				<button type="submit" class="btn btn-block btn-brand">Search</button>
-			</div>
-		</div>
-	</form>
+    <form class="form-horizontal" method="get" action="@Url.Action("Index")">
+        <div class="form-group">
+            <div class="col-xs-12">
+                <label for="packageId" class="control-label">Package ID</label>
+                <input type="text" class="form-control input-brand" id="packageId" name="packageId" placeholder="Enter a single package ID (e.g. jQuery)" value="@(Model != null ? Model.PackageId : "")" autofocus>
+                
+                @* Display package search error messages under the search box *@
+                @if (Model != null && !string.IsNullOrEmpty(Model.Message) && !Model.IsSuccess && Model.Package == null)
+                {
+                    @ViewHelpers.AlertDanger(@<text>@Model.Message</text>)
+                }
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-xs-12">
+                <button type="submit" class="btn btn-block btn-brand">Search</button>
+            </div>
+        </div>
+    </form>
 
-	@if (Model.Package != null)
-	{
-		<div class="form-group">
-			<div class="col-xs-12">
-				<h3>Package Information</h3>
-				<div class="form-horizontal">
-					<div class="form-group">
-						<label class="col-sm-2 control-label">Package ID</label>
-						<div class="col-sm-10">
-							<p class="form-control-static">@Model.Package.PackageRegistration.Id</p>
-						</div>
-					</div>
-					<div class="form-group">
-						<label class="col-sm-2 control-label">Latest Version</label>
-						<div class="col-sm-10">
-							<p class="form-control-static">@Model.Package.Version</p>
-						</div>
-					</div>
-					<div class="form-group">
-						<label class="col-sm-2 control-label">Title</label>
-						<div class="col-sm-10">
-							<p class="form-control-static">@(Model.Package.Title ?? "No title")</p>
-						</div>
-					</div>
-					<div class="form-group">
-						<label class="col-sm-2 control-label">Owners</label>
-						<div class="col-sm-10">
-							<p class="form-control-static">@string.Join(", ", Model.Package.PackageRegistration.Owners.Select(o => o.Username))</p>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
+    @if (Model != null && Model.Package != null)
+    {
+        <div class="form-group">
+            <div class="col-xs-12">
+                <h3>Package Information</h3>
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">Package ID</label>
+                        <div class="col-sm-10">
+                            <p class="form-control-static">@Model.Package.PackageRegistration.Id</p>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">Latest Version</label>
+                        <div class="col-sm-10">
+                            <p class="form-control-static">@Model.Package.Version</p>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">Title</label>
+                        <div class="col-sm-10">
+                            <p class="form-control-static">@(Model.Package.Title ?? "No title")</p>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">Owners</label>
+                        <div class="col-sm-10">
+                            <p class="form-control-static">@string.Join(", ", Model.Package.PackageRegistration.Owners.Select(o => o.Username))</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-		<div class="form-group">
-			<div class="col-xs-12">
-				<h3>Current Sponsorship URLs</h3>
-				<div class="form-horizontal">
-					@if (Model.SponsorshipUrls != null && Model.SponsorshipUrls.Any())
-					{
-						foreach (var urlEntry in Model.SponsorshipUrls)
-						{
-							<div class="form-group">
-								<label class="col-sm-2 control-label">URL</label>
-								<div class="col-sm-8">
-									<p class="form-control-static">
-										<a href="@urlEntry.Url" target="_blank" rel="noopener noreferrer">@urlEntry.Url</a>
-									</p>
-									@if (!urlEntry.IsDomainAccepted)
-									{
-										<span class="text-danger"><strong>Warning: This URL is from an unsupported sponsorship platform and will not be displayed to users.</strong></span>
-									}
-								</div>
-								<div class="col-sm-2">
-									@using (Html.BeginForm("RemoveUrl", "PackageSponsorship", FormMethod.Post))
-									{
-										@Html.AntiForgeryToken()
-										@Html.Hidden("packageId", Model.Package.PackageRegistration.Id)
-										@Html.Hidden("sponsorshipUrl", urlEntry.Url)
-										<input type="submit" class="btn btn-danger" value="Remove" onclick="return confirm('Are you sure you want to remove this sponsorship URL?');" />
-									}
-								</div>
-							</div>
+        <div class="form-group">
+            <div class="col-xs-12">
+                <h3>Current Sponsorship URLs</h3>
+                <div class="form-horizontal">
+                    @if (Model != null && Model.SponsorshipUrls != null && Model.SponsorshipUrls.Any())
+                    {
+                        foreach (var urlEntry in Model.SponsorshipUrls)
+                        {
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">URL</label>
+                                <div class="col-sm-8">
+                                    <p class="form-control-static">
+                                        <a href="@urlEntry.Url" target="_blank" rel="noopener noreferrer">@urlEntry.Url</a>
+                                    </p>
+                                    @if (!urlEntry.IsDomainAccepted)
+                                    {
+                                        <span class="text-danger"><strong>Warning: This URL is from an unsupported sponsorship platform and will not be displayed to users.</strong></span>
+                                    }
+                                </div>
+                                <div class="col-sm-2">
+                                    @using (Html.BeginForm("RemoveUrl", "PackageSponsorship", FormMethod.Post))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        @Html.Hidden("packageId", Model.Package.PackageRegistration.Id)
+                                        @Html.Hidden("sponsorshipUrl", urlEntry.Url)
+                                        <input type="submit" class="btn btn-danger" value="Remove" onclick="return confirm('Are you sure you want to remove this sponsorship URL?');" />
+                                    }
+                                </div>
+                            </div>
                             <hr />
-						}
-					}
-					else
-					{
-						<p>No sponsorship URLs configured for this package.</p>
-					}
-				</div>
-			</div>
-		</div>
+                        }
+                    }
+                    else
+                    {
+                        <p>No sponsorship URLs configured for this package.</p>
+                    }
+                </div>
+            </div>
+        </div>
 
-		<div class="form-group">
-			<div class="col-xs-12">
-				<h3>Add Sponsorship URL</h3>
-				@using (Html.BeginForm("AddUrl", "PackageSponsorship", FormMethod.Post, new { @class = "form-horizontal" }))
-				{
-					@Html.AntiForgeryToken()
-					@Html.Hidden("packageId", Model.Package.PackageRegistration.Id)
-					
-					<div class="form-group">
-						<label for="newSponsorshipUrl" class="col-sm-2 control-label">Sponsorship URL</label>
-						<div class="col-sm-10">
-							@Html.TextBoxFor(m => m.NewSponsorshipUrl, new { @class = "form-control input-brand", placeholder = "https://example.com/sponsor" })
-							
-							@* Display success and URL validation error messages under the URL text box *@
-							@if (Model != null && !string.IsNullOrEmpty(Model.Message))
-							{
-								if (Model.IsSuccess)
-								{
-									@ViewHelpers.AlertSuccess(@<text>@Model.Message</text>)
-								}
-								else if (!Model.IsSuccess && Model.Package != null)
-								{
-									@ViewHelpers.AlertDanger(@<text>@Model.Message</text>)
-								}
-							}
-							
-							<span class="help-block">
-								<strong>Supported platforms:</strong> GitHub Sponsors, Patreon, Open Collective, Ko-fi, Tidelift, and Liberapay.<br />
-							</span>
-						</div>
-					</div>
-					
-					<div class="form-group">
-						<div class="col-sm-offset-2 col-sm-10">
-							<input type="submit" class="btn btn-brand" value="Add Sponsorship URL" />
-						</div>
-					</div>
-				}
-			</div>
-		</div>
-	}
+        <div class="form-group">
+            <div class="col-xs-12">
+                <h3>Add Sponsorship URL</h3>
+                @using (Html.BeginForm("AddUrl", "PackageSponsorship", FormMethod.Post, new { @class = "form-horizontal" }))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.Hidden("packageId", Model.Package.PackageRegistration.Id)
+                    
+                    <div class="form-group">
+                        <label for="newSponsorshipUrl" class="col-sm-2 control-label">Sponsorship URL</label>
+                        <div class="col-sm-10">
+                            @Html.TextBoxFor(m => m.NewSponsorshipUrl, new { @class = "form-control input-brand", placeholder = "https://example.com/sponsor" })
+                            
+                            @* Display success and URL validation error messages under the URL text box *@
+                            @if (Model != null && !string.IsNullOrEmpty(Model.Message))
+                            {
+                                if (Model.IsSuccess)
+                                {
+                                    @ViewHelpers.AlertSuccess(@<text>@Model.Message</text>)
+                                }
+                                else if (!Model.IsSuccess && Model.Package != null)
+                                {
+                                    @ViewHelpers.AlertDanger(@<text>@Model.Message</text>)
+                                }
+                            }
+                            
+                            <span class="help-block">
+                                <strong>Supported platforms:</strong> GitHub Sponsors, Patreon, Open Collective, Ko-fi, Tidelift, and Liberapay.<br />
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <input type="submit" class="btn btn-brand" value="Add Sponsorship URL" />
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
 </section>
 
 @section BottomScripts
 {
-	<script type="text/javascript">
-		'use strict';
-		
-		$(document).ready(function () {
-			// Auto-hide success and error messages after 5 seconds
-			setTimeout(function() {
-				$('.alert').fadeOut(500, function() {
-					$(this).remove();
-				});
-			}, 5000);
-		});
-	</script>
+    <script type="text/javascript">
+        'use strict';
+        
+        $(document).ready(function () {
+            // Auto-hide success and error messages after 5 seconds
+            setTimeout(function() {
+                $('.alert').fadeOut(500, function() {
+                    $(this).remove();
+                });
+            }, 5000);
+        });
+    </script>
 }

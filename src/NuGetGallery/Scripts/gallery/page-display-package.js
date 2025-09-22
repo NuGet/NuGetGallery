@@ -1,10 +1,10 @@
 $(function () {
     'use strict';
 
-    var packageId = typeof packageId !== 'undefined' ? packageId : null;
-    var packageVersion = typeof packageVersion !== 'undefined' ? packageVersion : null;
-    var packageManagers = typeof packageManagers !== 'undefined' ? packageManagers : [];
-    var sponsorshipUrlCount = typeof sponsorshipUrlCount !== 'undefined' ? sponsorshipUrlCount : 0;
+    var packageId = typeof window.packageId !== 'undefined' ? window.packageId : null;
+    var packageVersion = typeof window.packageVersion !== 'undefined' ? window.packageVersion : null;
+    var packageManagers = typeof window.packageManagers !== 'undefined' ? window.packageManagers : [];
+    var sponsorshipUrlCount = typeof window.sponsorshipUrlCount !== 'undefined' ? window.sponsorshipUrlCount : 0;
 
     // Focus trap variables for sponsorship popup
     var focusTrapElements = [];
@@ -13,21 +13,21 @@ $(function () {
 
     // Sponsorship popup functions
     function openSponsorshipPopup() {
-        var popup = document.getElementById('sponsorship-popup');
-        var sponsorButton = document.getElementById('sponsor-button');
+        var popup = $('#sponsorship-popup');
+        var sponsorButton = $('#sponsor-button');
 
-        if (popup) {
-            popup.style.display = 'flex';
-            popup.setAttribute('aria-hidden', 'false');
+        if (popup.length) {
+            popup.css('display', 'flex');
+            popup.attr('aria-hidden', 'false');
 
-            if (sponsorButton) {
-                sponsorButton.setAttribute('aria-expanded', 'true');
+            if (sponsorButton.length) {
+                sponsorButton.attr('aria-expanded', 'true');
             }
-            setupFocusTrap(popup);
+            setupFocusTrap(popup[0]);
 
             // Focus on close button for accessibility
-            var closeButton = document.getElementById('sponsorship-popup-close');
-            if (closeButton) {
+            var closeButton = $('#sponsorship-popup-close');
+            if (closeButton.length) {
                 closeButton.focus();
             }
 
@@ -43,16 +43,16 @@ $(function () {
     }
 
     function closeSponsorshipPopup() {
-        var popup = document.getElementById('sponsorship-popup');
-        var sponsorButton = document.getElementById('sponsor-button');
+        var popup = $('#sponsorship-popup');
+        var sponsorButton = $('#sponsor-button');
 
-        if (popup) {
-            popup.style.display = 'none';
-            popup.setAttribute('aria-hidden', 'true');
+        if (popup.length) {
+            popup.css('display', 'none');
+            popup.attr('aria-hidden', 'true');
             removeFocusTrap();
 
-            if (sponsorButton) {
-                sponsorButton.setAttribute('aria-expanded', 'false');
+            if (sponsorButton.length) {
+                sponsorButton.attr('aria-expanded', 'false');
                 sponsorButton.focus();
             }
 
@@ -104,10 +104,10 @@ $(function () {
     }
 
     function trapFocus(e) {
-        var popup = document.getElementById('sponsorship-popup');
+        var popup = $('#sponsorship-popup');
 
         // Only trap focus if popup is visible and we have focusable elements
-        if (!popup || popup.style.display !== 'flex' || focusTrapElements.length === 0) {
+        if (!popup.length || popup.css('display') !== 'flex' || focusTrapElements.length === 0) {
             return;
         }
 
@@ -140,25 +140,25 @@ $(function () {
 
     // Initialize sponsorship popup functionality
     function initializeSponsorshipPopup() {
-        var sponsorButton = document.getElementById('sponsor-button');
-        if (sponsorButton) {
-            sponsorButton.setAttribute('aria-expanded', 'false');
-            sponsorButton.setAttribute('aria-haspopup', 'dialog');
+        var sponsorButton = $('#sponsor-button');
+        if (sponsorButton.length) {
+            sponsorButton.attr('aria-expanded', 'false');
+            sponsorButton.attr('aria-haspopup', 'dialog');
 
-            sponsorButton.addEventListener('click', function() {
+            sponsorButton.on('click', function() {
                 openSponsorshipPopup();
             });
         }
 
-        var closeButton = document.getElementById('sponsorship-popup-close');
-        if (closeButton) {
-            closeButton.addEventListener('click', function() {
+        var closeButton = $('#sponsorship-popup-close');
+        if (closeButton.length) {
+            closeButton.on('click', function() {
                 closeSponsorshipPopup();
             });
         }
 
         // Handle sponsorship link clicks
-        document.addEventListener('click', function(e) {
+        $(document).on('click', function(e) {
             if (e.target.classList.contains('sidebar-popup-link') && e.target.hasAttribute('data-sponsorship-url')) {
                 var sponsorshipUrl = e.target.getAttribute('data-sponsorship-url');
                 if (sponsorshipUrl) {
@@ -167,11 +167,11 @@ $(function () {
             }
         });
 
-        var popup = document.getElementById('sponsorship-popup');
-        if (popup) {
+        var popup = $('#sponsorship-popup');
+        if (popup.length) {
             // Close on outside click
-            popup.addEventListener('click', function(e) {
-                if (e.target === popup) {
+            popup.on('click', function(e) {
+                if (e.target === popup[0]) {
                     closeSponsorshipPopup();
                 }
             });

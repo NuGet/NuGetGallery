@@ -1394,17 +1394,14 @@
                                     These links will take you to third-party platforms. Microsoft is not affiliated with or responsible for the content or practices of third-party platforms.
                                 </text>)
 
-                            @if (Model.SponsorshipUrls != null && Model.SponsorshipUrls.Any())
+                            @foreach (var sponsorshipUrl in Model.SponsorshipUrls)
                             {
-                                foreach (var sponsorshipUrl in Model.SponsorshipUrls)
-                                {
-                                    <div class="sidebar-link-container">
-                                        <i class="ms-Icon ms-Icon--Link sidebar-link-icon" aria-hidden="true"></i>
-                                        <a href="@sponsorshipUrl" target="_blank" rel="nofollow noopener noreferrer" class="sidebar-popup-link" data-sponsorship-url="@Html.Raw(Json.Encode(sponsorshipUrl))">
-                                            @sponsorshipUrl
-                                        </a>
-                                    </div>
-                                }
+                                <div class="sidebar-link-container">
+                                    <i class="ms-Icon ms-Icon--Link sidebar-link-icon" aria-hidden="true"></i>
+                                    <a href="@sponsorshipUrl" target="_blank" rel="nofollow noopener noreferrer" class="sidebar-popup-link" data-sponsorship-url="@Html.Raw(Json.Encode(sponsorshipUrl))">
+                                        @sponsorshipUrl
+                                    </a>
+                                </div>
                             }
                         </div>
                     </div>

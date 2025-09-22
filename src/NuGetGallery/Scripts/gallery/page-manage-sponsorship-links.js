@@ -2,12 +2,12 @@ $(function () {
     'use strict';
 
     // Essential message constants only
-    var ConfirmRemoveMessage = "Are you sure you want to remove this sponsorship link?";
-    var AddErrorMessage = "An error occurred while adding the sponsorship URL. Please try again.";
-    var RemoveErrorMessage = "An error occurred while removing the sponsorship URL. Please try again.";
-    var EmptyUrlMessage = "Please enter a URL.";
-    var AddSuccessMessage = "Sponsorship URL added successfully.";
-    var RemoveSuccessMessage = "Sponsorship URL removed successfully.";
+    const ConfirmRemoveMessage = "Are you sure you want to remove this sponsorship link?";
+    const AddErrorMessage = "An error occurred while adding the sponsorship URL. Please try again.";
+    const RemoveErrorMessage = "An error occurred while removing the sponsorship URL. Please try again.";
+    const EmptyUrlMessage = "Please enter a URL.";
+    const AddSuccessMessage = "Sponsorship URL added successfully.";
+    const RemoveSuccessMessage = "Sponsorship URL removed successfully.";
 
     // Set up sponsorship links section
     var viewModel = {
