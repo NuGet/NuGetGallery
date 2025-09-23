@@ -1023,7 +1023,7 @@ namespace NuGetGallery
                 if (mcpServerPackageType != null)
                 {
                     model.IsMcpServerPackageType = true;
-                    model.VsCodeMcpServerEntryTemplate = McpHelper.CreateVsCodeMcpServerEntryTemplate(mcpServerPackageType.CustomData, id, version);
+                    model.VsCodeMcpServerEntryTemplate = McpHelper.CreateVsCodeMcpServerEntryTemplate(mcpServerPackageType.CustomData, id, package.Version);
                 }
             }
 
