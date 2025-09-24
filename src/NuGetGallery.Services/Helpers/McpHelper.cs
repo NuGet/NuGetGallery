@@ -77,7 +77,7 @@ namespace NuGetGallery.Services.Helpers
                 };
             }
 
-            var nugetRegistryPackage = mcpServerMetadata.Packages?.FirstOrDefault(p => p != null && StringComparer.OrdinalIgnoreCase.Equals(p.RegistryName, "nuget"));
+            var nugetRegistryPackage = mcpServerMetadata.Packages?.FirstOrDefault(p => p != null && StringComparer.OrdinalIgnoreCase.Equals(p.RegistryType, "nuget"));
             if (nugetRegistryPackage == null)
             {
                 return new McpServerEntryTemplateResult
@@ -141,7 +141,7 @@ namespace NuGetGallery.Services.Helpers
 
                 var variables = GetVariables(arg.Variables);
 
-                if (arg is PositionalInput positionalArg)
+                if (arg is PositionalArgument positionalArg)
                 {
                     var value = positionalArg.Value;
                     if (!string.IsNullOrWhiteSpace(value))
@@ -163,7 +163,7 @@ namespace NuGetGallery.Services.Helpers
 
                     args.Add(value);
                 }
-                else if (arg is NamedInput namedArg)
+                else if (arg is NamedArgument namedArg)
                 {
                     if (string.IsNullOrWhiteSpace(namedArg.Name) || string.IsNullOrWhiteSpace(namedArg.Value))
                     {
@@ -234,7 +234,7 @@ namespace NuGetGallery.Services.Helpers
 
                 var variables = GetVariables(arg.Variables);
 
-                if (arg is PositionalInput positionalArg)
+                if (arg is PositionalArgument positionalArg)
                 {
                     var value = positionalArg.Value;
                     if (!string.IsNullOrWhiteSpace(value))
@@ -256,7 +256,7 @@ namespace NuGetGallery.Services.Helpers
 
                     packageArgs.Add(value);
                 }
-                else if (arg is NamedInput namedArg)
+                else if (arg is NamedArgument namedArg)
                 {
                     if (string.IsNullOrWhiteSpace(namedArg.Name) || string.IsNullOrWhiteSpace(namedArg.Value))
                     {
