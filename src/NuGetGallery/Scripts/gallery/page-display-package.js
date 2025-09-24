@@ -6,91 +6,7 @@ $(function () {
     var packageManagers = window.nuget && window.nuget.packageManagers || [];
     var sponsorshipUrlCount = window.nuget && window.nuget.sponsorshipUrlCount || 0;
 
-    // Focus trap variables for sponsorship popup
-    var focusTrapElements = [];
-    var firstFocusableElement = null;
-    var lastFocusableElement = null;
-
     // Sponsorship popup functions
-    function openSponsorshipPopup() {
-        var popup = $('#sponsorship-popup');
-        var sponsorButton = $('#sponsor-button');
-
-        if (popup.length) {
-            popup.css('display', 'flex');
-            popup.attr('aria-hidden', 'false');
-
-            if (sponsorButton.length) {
-                sponsorButton.attr('aria-expanded', 'true');
-            }
-            setupFocusTrap(popup[0]);
-
-            // Focus on close button for accessibility
-            var closeButton = $('#sponsorship-popup-close');
-            if (closeButton.length) {
-                closeButton.focus();
-            }
-
-            // Track popup opened
-            if (window.nuget && window.nuget.sendMetric) {
-                window.nuget.sendMetric('SponsorshipPopupOpened', 1, {
-                    PackageId: packageId,
-                    PackageVersion: packageVersion,
-                    SponsorshipUrlCount: sponsorshipUrlCount
-                });
-            }
-        }
-    }
-
-    function closeSponsorshipPopup() {
-        var popup = $('#sponsorship-popup');
-        var sponsorButton = $('#sponsor-button');
-
-        if (popup.length) {
-            popup.css('display', 'none');
-            popup.attr('aria-hidden', 'true');
-            removeFocusTrap();
-
-            if (sponsorButton.length) {
-                sponsorButton.attr('aria-expanded', 'false');
-                sponsorButton.focus();
-            }
-
-            // Track popup closed
-            if (window.nuget && window.nuget.sendMetric) {
-                window.nuget.sendMetric('SponsorshipPopupClosed', 1, {
-                    PackageId: packageId,
-                    PackageVersion: packageVersion
-                });
-            }
-        }
-    }
-
-    function setupFocusTrap(popup) {
-        // Get all focusable elements within the popup
-        var focusableElementsString = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex="0"]';
-
-        focusTrapElements = popup.querySelectorAll(focusableElementsString);
-
-        if (focusTrapElements.length > 0) {
-            firstFocusableElement = focusTrapElements[0];
-            lastFocusableElement = focusTrapElements[focusTrapElements.length - 1];
-    
-            // Add keydown listener for focus trapping
-            document.addEventListener('keydown', trapFocus);
-        }
-    }
-
-    function removeFocusTrap() {
-        // Remove keydown listener
-        document.removeEventListener('keydown', trapFocus);
-
-        // Clear focus trap variables
-        focusTrapElements = [];
-        firstFocusableElement = null;
-        lastFocusableElement = null;
-    }
-
     function trackSponsorshipLinkClick(sponsorshipUrl) {
         // Track sponsorship link clicked
         if (window.nuget && window.nuget.sendMetric) {
@@ -103,76 +19,40 @@ $(function () {
         }
     }
 
-    function trapFocus(e) {
-        var popup = $('#sponsorship-popup');
-
-        // Only trap focus if popup is visible and we have focusable elements
-        if (!popup.length || popup.css('display') !== 'flex' || focusTrapElements.length === 0) {
-            return;
-        }
-
-        var isTabPressed = (e.key === 'Tab' || e.keyCode === 9);
-        var isEscapePressed = (e.key === 'Escape' || e.keyCode === 27);
-
-        // Handle Escape key
-        if (isEscapePressed) {
-            closeSponsorshipPopup();
-            return;
-        }
-
-        // Handle Tab key for focus trapping
-        if (isTabPressed) {
-            // If shift + tab
-            if (e.shiftKey) {
-                if (document.activeElement === firstFocusableElement) {
-                    lastFocusableElement.focus();
-                    e.preventDefault();
-                }
-            } else {
-                // If tab
-                if (document.activeElement === lastFocusableElement) {
-                    firstFocusableElement.focus();
-                    e.preventDefault();
-                }
-            }
-        }
-    }
-
-    // Initialize sponsorship popup functionality
+    // Initialize sponsorship popup functionality using Bootstrap modal
     function initializeSponsorshipPopup() {
-        var sponsorButton = $('#sponsor-button');
-        if (sponsorButton.length) {
-            sponsorButton.attr('aria-expanded', 'false');
-            sponsorButton.attr('aria-haspopup', 'dialog');
-
-            sponsorButton.on('click', function() {
-                openSponsorshipPopup();
-            });
-        }
-
-        var closeButton = $('#sponsorship-popup-close');
-        if (closeButton.length) {
-            closeButton.on('click', function() {
-                closeSponsorshipPopup();
-            });
-        }
-
-        // Handle sponsorship link clicks
-        $(document).on('click', function(e) {
-            if (e.target.classList.contains('sidebar-popup-link') && e.target.hasAttribute('data-sponsorship-url')) {
-                var sponsorshipUrl = e.target.getAttribute('data-sponsorship-url');
-                if (sponsorshipUrl) {
-                    trackSponsorshipLinkClick(JSON.parse(sponsorshipUrl));
-                }
-            }
-        });
-
         var popup = $('#sponsorship-popup');
+        
         if (popup.length) {
-            // Close on outside click
-            popup.on('click', function(e) {
-                if (e.target === popup[0]) {
-                    closeSponsorshipPopup();
+            // Bootstrap modal event handlers
+            popup.on('show.bs.modal', function() {
+                // Track popup opened
+                if (window.nuget && window.nuget.sendMetric) {
+                    window.nuget.sendMetric('SponsorshipPopupOpened', 1, {
+                        PackageId: packageId,
+                        PackageVersion: packageVersion,
+                        SponsorshipUrlCount: sponsorshipUrlCount
+                    });
+                }
+            });
+
+            popup.on('hide.bs.modal', function() {
+                // Track popup closed
+                if (window.nuget && window.nuget.sendMetric) {
+                    window.nuget.sendMetric('SponsorshipPopupClosed', 1, {
+                        PackageId: packageId,
+                        PackageVersion: packageVersion
+                    });
+                }
+            });
+
+            // Handle sponsorship link clicks
+            $(document).on('click', function(e) {
+                if (e.target.classList.contains('sidebar-link') && e.target.hasAttribute('data-sponsorship-url')) {
+                    var sponsorshipUrl = e.target.getAttribute('data-sponsorship-url');
+                    if (sponsorshipUrl) {
+                        trackSponsorshipLinkClick(JSON.parse(sponsorshipUrl));
+                    }
                 }
             });
         }

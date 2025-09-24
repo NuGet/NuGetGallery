@@ -1359,7 +1359,7 @@
                     {
                         <li>
                             <i class="ms-Icon ms-Icon--Heart" aria-hidden="true"></i>
-                            <button type="button" class="sidebar-button" id="sponsor-button" title="Sponsor this package">
+                            <button type="button" class="sidebar-button" data-toggle="modal" data-target="#sponsorship-popup" title="Sponsor this package">
                                 Sponsor
                             </button>
                         </li>
@@ -1379,29 +1379,32 @@
 
             @if (!Model.Deleted && Model.SponsorshipUrls != null && Model.SponsorshipUrls.Any() && Model.ShowDetailsAndLinks)
             {
-                <div id="sponsorship-popup" class="sidebar-popup-overlay" style="display: none;" aria-hidden="true">
-                    <div class="sidebar-popup-content" role="dialog" aria-labelledby="sponsorship-popup-title" aria-modal="true">
-                        <div class="sidebar-popup-header">
-                            <h3 id="sponsorship-popup-title">External Links</h3>
-                            <button type="button" class="sidebar-popup-close" id="sponsorship-popup-close" aria-label="Close sponsorship popup">
-                                <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
-                            </button>
-                        </div>
-                        <div class="sidebar-popup-body">
-                            @ViewHelpers.AlertInfo(
-                                @<text>
-                                    These links will take you to third-party platforms. Microsoft is not affiliated with or responsible for the content or practices of third-party platforms.
-                                </text>)
+                <!-- Bootstrap Modal -->
+                <div class="modal fade" id="sponsorship-popup" tabindex="-1" role="dialog" aria-labelledby="sponsorship-popup-title">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close sponsorship popup">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                                <h4 class="modal-title" id="sponsorship-popup-title">External Links</h4>
+                            </div>
+                            <div class="modal-body sponsorship-modal-body">
+                                @ViewHelpers.AlertInfo(
+                                    @<text>
+                                        These links will take you to third-party platforms. Microsoft is not affiliated with or responsible for the content or practices of third-party platforms.
+                                    </text>)
 
-                            @foreach (var sponsorshipUrl in Model.SponsorshipUrls)
-                            {
-                                <div class="sidebar-link-container">
-                                    <i class="ms-Icon ms-Icon--Link sidebar-link-icon" aria-hidden="true"></i>
-                                    <a href="@sponsorshipUrl" target="_blank" rel="nofollow noopener noreferrer" class="sidebar-popup-link" data-sponsorship-url="@Html.Raw(Json.Encode(sponsorshipUrl))">
-                                        @sponsorshipUrl
-                                    </a>
-                                </div>
-                            }
+                                @foreach (var sponsorshipUrl in Model.SponsorshipUrls)
+                                {
+                                    <div class="external-link-container">
+                                        <i class="ms-Icon ms-Icon--Link sidebar-link-icon" aria-hidden="true"></i>
+                                        <a href="@sponsorshipUrl" target="_blank" rel="nofollow noopener noreferrer" class="sidebar-link" data-sponsorship-url="@Html.Raw(Json.Encode(sponsorshipUrl))">
+                                            @sponsorshipUrl
+                                        </a>
+                                    </div>
+                                }
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -56,39 +56,42 @@ namespace NuGetGallery
 		// Get max links limit before starting transaction
 		var maxLinks = _contentObjectService.TrustedSponsorshipDomains.MaxSponsorshipLinks;
 
+		// Read existing entries before starting transaction (no DB access needed)
+		var existingEntries = GetSponsorshipUrlEntriesInternal(packageRegistration).ToList();
+
+		// Check URL count limit
+		if (existingEntries.Count >= maxLinks)
+		{
+			throw new ArgumentException($"You can add a maximum of {maxLinks} sponsorship links.");
+		}
+
+		// Capture timestamp once for consistency between database and audit
+		var timestamp = DateTime.UtcNow;
+
+		// Prepare new entry and JSON for persistence
+		var newEntry = new { Url = validatedUrl, Timestamp = timestamp };
+		var entriesToPersist = existingEntries.Select(e => new { e.Url, e.Timestamp }).ToList();
+		entriesToPersist.Add(newEntry);
+		var newSponsorshipUrlsJson = JsonConvert.SerializeObject(entriesToPersist);
+
 		using (new SuspendDbExecutionStrategy())
 		using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
 		{
-			var existingEntries = GetSponsorshipUrlEntriesInternal(packageRegistration).ToList();
+			// Only modify the entity property inside the transaction
+			packageRegistration.SponsorshipUrls = newSponsorshipUrlsJson;
 
-			// Check URL count limit
-			if (existingEntries.Count >= maxLinks)
-			{
-				throw new ArgumentException($"You can add a maximum of {maxLinks} sponsorship links.");
-			}
+			// Save changes to database
+			await _entitiesContext.SaveChangesAsync();
 
-				// Capture timestamp once for consistency between database and audit
-				var timestamp = DateTime.UtcNow;
+			// Create audit record with the same timestamp used in database
+			await _auditingService.SaveAuditRecordAsync(
+				PackageRegistrationAuditRecord.CreateForAddSponsorshipUrl(packageRegistration, validatedUrl, user.Username, user.IsAdministrator, timestamp));
 
-				var newEntry = new { Url = validatedUrl, Timestamp = timestamp };
-				var entriesToPersist = existingEntries.Select(e => new { e.Url, e.Timestamp }).ToList();
-				entriesToPersist.Add(newEntry);
+			transaction.Commit();
 
-				// Serialize back to JSON
-				packageRegistration.SponsorshipUrls = JsonConvert.SerializeObject(entriesToPersist);
-
-				// Save changes to database
-				await _entitiesContext.SaveChangesAsync();
-
-				// Create audit record with the same timestamp used in database
-				await _auditingService.SaveAuditRecordAsync(
-					PackageRegistrationAuditRecord.CreateForAddSponsorshipUrl(packageRegistration, validatedUrl, user.Username, user.IsAdministrator, timestamp));
-
-				transaction.Commit();
-
-				return validatedUrl;
-			}
+			return validatedUrl;
 		}
+	}
 
 	public async Task RemoveSponsorshipUrlAsync(PackageRegistration packageRegistration, string url, User user)
 	{
@@ -106,30 +109,35 @@ namespace NuGetGallery
 			throw new ArgumentException("URL cannot be null or empty", nameof(url));
 		}
 
+		// Read existing entries before starting transaction (no DB access needed)
+		var existingEntries = GetSponsorshipUrlEntriesInternal(packageRegistration).ToList();
+
+		// Find and remove the URL entry
+		var entryToRemove = existingEntries.FirstOrDefault(entry => 
+			string.Equals(entry.Url, url, StringComparison.OrdinalIgnoreCase));
+
+		if (entryToRemove == null)
+		{
+			throw new ArgumentException("The specified sponsorship URL was not found for this package.", nameof(url));
+		}
+
+		// Capture removal timestamp for consistency between database and audit
+		var removalTimestamp = DateTime.UtcNow;
+
+		// Remove the entry from in-memory list
+		existingEntries.Remove(entryToRemove);
+		
+		// Prepare JSON for persistence
+		var entriesToPersist = existingEntries.Select(e => new { e.Url, e.Timestamp }).ToList();
+		var newSponsorshipUrlsJson = entriesToPersist.Any() 
+			? JsonConvert.SerializeObject(entriesToPersist)
+			: null;
+
 		using (new SuspendDbExecutionStrategy())
 		using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
 		{
-			var existingEntries = GetSponsorshipUrlEntriesInternal(packageRegistration).ToList();
-
-			// Find and remove the URL entry
-			var entryToRemove = existingEntries.FirstOrDefault(entry => 
-				string.Equals(entry.Url, url, StringComparison.OrdinalIgnoreCase));
-
-			if (entryToRemove == null)
-			{
-				throw new ArgumentException("The specified sponsorship URL was not found for this package.", nameof(url));
-			}
-
-			// Capture removal timestamp for consistency between database and audit
-			var removalTimestamp = DateTime.UtcNow;
-
-			existingEntries.Remove(entryToRemove);
-			
-			// Serialize back to JSON
-			var entriesToPersist = existingEntries.Select(e => new { e.Url, e.Timestamp }).ToList();
-			packageRegistration.SponsorshipUrls = entriesToPersist.Any() 
-				? JsonConvert.SerializeObject(entriesToPersist)
-				: null;
+			// Only modify the entity property inside the transaction
+			packageRegistration.SponsorshipUrls = newSponsorshipUrlsJson;
 
 			// Save changes to database
 			await _entitiesContext.SaveChangesAsync();
