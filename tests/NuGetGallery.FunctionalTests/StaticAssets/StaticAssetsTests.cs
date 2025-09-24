@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -131,7 +131,9 @@ namespace NuGetGallery.FunctionalTests.StaticAssets
         [MemberData(nameof(AssetData))]
         public async Task AllAssetsExistOnTheirOwn(string assetPath)
         {
-            var bundleContent = await HttpClient.GetStringAsync(UrlHelper.BaseUrl + assetPath);
+            string url = UrlHelper.BaseUrl + assetPath;
+            Console.WriteLine("Checking asset: " + url);
+            var bundleContent = await HttpClient.GetStringAsync(url);
 
             Assert.DoesNotContain("Minification failed", Shorten(bundleContent), StringComparison.OrdinalIgnoreCase);
         }
