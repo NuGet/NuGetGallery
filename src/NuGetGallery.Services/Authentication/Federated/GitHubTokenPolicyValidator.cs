@@ -35,6 +35,9 @@ namespace NuGetGallery.Services.Authentication
         private const string EnvironmentClaim = "environment";
         private const string RepositoryOwnerIdClaim = "repository_owner_id";
         private const string RepositoryIdClaim = "repository_id";
+        private const string HttpsPrefix = "https://";
+        private const string GitHubPrefix = "github.com/";
+        private const string WorkflowPrefix = ".github/workflows/";
 
         private readonly IFederatedCredentialRepository _federatedCredentialRepository;
         private readonly IAuditingService _auditingService;
@@ -74,9 +77,12 @@ namespace NuGetGallery.Services.Authentication
                     nameof(FederatedCredentialPolicy.CreatedBy));
             }
 
+            GitHubCriteria gitHubCriteria = GitHubCriteria.FromDatabaseJson(policy.Criteria);
+            NormalizeRepositoryName(gitHubCriteria);
+            NormalizeWorkflowFileName(gitHubCriteria);
+
             // Ensure consistent ValidateByDate. Note that for temporary GitHub Actions policies
             // we always reset it on each update (to 7 days from now). 
-            GitHubCriteria gitHubCriteria = GitHubCriteria.FromDatabaseJson(policy.Criteria);
             gitHubCriteria.InitializeValidateByDate();
             policy.Criteria = gitHubCriteria.ToDatabaseJson();
 
@@ -102,6 +108,50 @@ namespace NuGetGallery.Services.Authentication
             }
 
             return base.ValidatePolicy(policy);
+        }
+
+        private static void NormalizeWorkflowFileName(GitHubCriteria criteria)
+        {
+            // We've seen users entering ".github/workflows/release.yml" instead of "release.yml".
+            criteria.WorkflowFile = criteria.WorkflowFile.Replace('\\', '/'); // normalize slashes
+            int index = criteria.WorkflowFile.IndexOf(WorkflowPrefix, StringComparison.OrdinalIgnoreCase);
+            if (index == 0 ||
+                (index == 1 && criteria.WorkflowFile[0] == '/'))
+            {
+                criteria.WorkflowFile = criteria.WorkflowFile[(index + WorkflowPrefix.Length)..];
+            }
+        }
+
+        private static void NormalizeRepositoryName(GitHubCriteria criteria)
+        {
+            // We've seen users entering "https://github.com/contoso/contoso-sdk" instead of "contoso-sdk".
+            string repository = RemoveConsecutivePrefixes(criteria.Repository, HttpsPrefix, GitHubPrefix);
+            repository = repository.TrimEnd('/');    // e.g. "contoso/contoso-sdk"
+            string[] parts = repository.Split('/');  // e.g. ["contoso", "contoso-sdk"]
+            if (parts.Length == 2 && string.Equals(parts[0], criteria.RepositoryOwner, StringComparison.OrdinalIgnoreCase))
+            {
+                criteria.Repository = parts[1]; // e.g. "contoso-sdk"
+            }
+        }
+
+        private static string RemoveConsecutivePrefixes(string value, params string[] prefixes)
+        {
+            bool hasRemoved = false;
+            string result = value;
+            foreach (var prefix in prefixes)
+            {
+                if (result.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    result = result[prefix.Length..];
+                    hasRemoved = true;
+                }
+                else if (hasRemoved)
+                {
+                    // Stop at the first non-matching prefix after at least one match.
+                    break;
+                }
+            }
+            return result;
         }
 
         public override async Task<TokenValidationResult> ValidateTokenAsync(JsonWebToken jwt)
@@ -152,22 +202,6 @@ namespace NuGetGallery.Services.Authentication
             if (error != null)
             {
                 return FederatedCredentialPolicyResult.Unauthorized(error);
-            }
-
-            error = ValidateClaimStartsWith(jwt, JobWorkflowRefClaim, $"{criteria.RepositoryOwner}/{criteria.Repository}/.github/workflows/{criteria.WorkflowFile}@", StringComparison.OrdinalIgnoreCase);
-            if (error != null)
-            {
-                return FederatedCredentialPolicyResult.Unauthorized(error);
-            }
-
-            // Validate environment if specified in criteria. We do it last to make sure we report disclosable error
-            if (!string.IsNullOrWhiteSpace(criteria.Environment))
-            {
-                error = ValidateClaimExactMatch(jwt, EnvironmentClaim, criteria.Environment!, StringComparison.OrdinalIgnoreCase);
-                if (error != null)
-                {
-                    return FederatedCredentialPolicyResult.Unauthorized(error);
-                }
             }
 
             // Check if this policy has expired (only applies to non-permanently enabled policies)
@@ -238,6 +272,52 @@ namespace NuGetGallery.Services.Authentication
                 if (error != null)
                 {
                     return FederatedCredentialPolicyResult.Unauthorized(error);
+                }
+            }
+
+            // IMPORTANT. By now we validated repo owner and repo. Including IDs.
+            // From now on we can report errors as disclosable.
+
+            // Get workflow ref, e.g. "contoso/contoso-sdk/.github/workflows/release.yml@refs/heads/main"
+            error = TryGetRequiredClaim(jwt, JobWorkflowRefClaim, out string workflowRef);
+            if (error != null)
+            {
+                return FederatedCredentialPolicyResult.Unauthorized(error, isErrorDisclosable: true);
+            }
+
+            // Extract workflow file "release.yml" from job_workflow_ref claim
+            string expectedPrefix = $"{criteria.RepositoryOwner}/{criteria.Repository}/.github/workflows/";
+            int suffixIndex = expectedPrefix.Length < workflowRef.Length ? workflowRef.IndexOf('@', expectedPrefix.Length) : -1;
+            if (suffixIndex < 0 || !workflowRef.StartsWith(expectedPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                // There is something wrong with the token. The job_workflow_ref claim
+                // should always start with the prefix matching repo.
+                return FederatedCredentialPolicyResult.Unauthorized(
+                    $"Claim '{JobWorkflowRefClaim}' has value '{workflowRef}' which does not start with {expectedPrefix}.",
+                    isErrorDisclosable: true);
+            }
+
+            string workflowFile = workflowRef[expectedPrefix.Length..suffixIndex];
+            if (!string.Equals(workflowFile, criteria.WorkflowFile, StringComparison.OrdinalIgnoreCase))
+            {
+                return FederatedCredentialPolicyResult.Unauthorized(
+                    $"Workflow mismatch for policy '{policy.PolicyName}': expected '{criteria.WorkflowFile}', actual '{workflowFile}'",
+                    isErrorDisclosable: true);
+            }
+
+            // Validate environment if specified in criteria. We do it last to make sure we report disclosable error
+            if (!string.IsNullOrWhiteSpace(criteria.Environment))
+            {
+                // Get optinal environment claim, e.g. "production"
+                if (TryGetRequiredClaim(jwt, EnvironmentClaim, out string environment) != null)
+                {
+                    environment = string.Empty;
+                }
+                if (!string.Equals(environment, criteria.Environment, StringComparison.OrdinalIgnoreCase))
+                {
+                    return FederatedCredentialPolicyResult.Unauthorized(
+                        $"Environment mismatch for policy '{policy.PolicyName}': expected '{criteria.Environment}', actual '{environment}'",
+                        isErrorDisclosable: true);
                 }
             }
 
