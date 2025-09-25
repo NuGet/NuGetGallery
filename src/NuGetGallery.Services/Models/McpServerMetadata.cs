@@ -18,18 +18,18 @@ namespace NuGetGallery.Services.Models
 
     public class McpPackage
     {
-        [JsonProperty("registry_name", Required = Required.Always)]
-        public required string RegistryName { get; set; }
+        [JsonProperty("registryType", Required = Required.Always)]
+        public required string RegistryType { get; set; }
 
-        [JsonProperty("runtime_arguments")]
+        [JsonProperty("runtimeArguments")]
         [JsonConverter(typeof(ArgumentListConverter))]
-        public IReadOnlyList<VariableInput>? RuntimeArguments { get; set; }
+        public IReadOnlyList<InputWithVariables>? RuntimeArguments { get; set; }
 
-        [JsonProperty("package_arguments")]
+        [JsonProperty("packageArguments")]
         [JsonConverter(typeof(ArgumentListConverter))]
-        public IReadOnlyList<VariableInput>? PackageArguments { get; set; }
+        public IReadOnlyList<InputWithVariables>? PackageArguments { get; set; }
 
-        [JsonProperty("environment_variables")]
+        [JsonProperty("environmentVariables")]
         public IReadOnlyList<KeyValueInput>? EnvironmentVariables { get; set; }
     }
 
@@ -41,7 +41,7 @@ namespace NuGetGallery.Services.Models
         [JsonProperty("value")]
         public string? Value { get; set; }
 
-        [JsonProperty("is_secret")]
+        [JsonProperty("isSecret")]
         public bool? IsSecret { get; set; }
 
         [JsonProperty("default")]
@@ -51,22 +51,22 @@ namespace NuGetGallery.Services.Models
         public IReadOnlyList<string>? Choices { get; set; }
     }
 
-    public class VariableInput : Input
+    public class InputWithVariables : Input
     {
         [JsonProperty("variables")]
         public IReadOnlyDictionary<string, Input>? Variables { get; set; }
     }
 
-    public class PositionalInput : VariableInput
+    public class PositionalArgument : InputWithVariables
     {
         [JsonProperty("type", Required = Required.Always)]
         public required string Type { get; set; }
 
-        [JsonProperty("value_hint", Required = Required.Always)]
+        [JsonProperty("valueHint", Required = Required.Always)]
         public required string ValueHint { get; set; }
     }
 
-    public class NamedInput : VariableInput
+    public class NamedArgument : InputWithVariables
     {
         [JsonProperty("type", Required = Required.Always)]
         public required string Type { get; set; }
@@ -75,7 +75,7 @@ namespace NuGetGallery.Services.Models
         public required string Name { get; set; }
     }
 
-    public class KeyValueInput : VariableInput
+    public class KeyValueInput : InputWithVariables
     {
         [JsonProperty("name", Required = Required.Always)]
         public required string Name { get; set; }
@@ -87,12 +87,12 @@ namespace NuGetGallery.Services.Models
     public class ArgumentListConverter : JsonConverter
     {
         public override bool CanConvert(Type objectType) =>
-            objectType == typeof(IReadOnlyList<VariableInput>) || objectType == typeof(List<VariableInput>);
+            objectType == typeof(IReadOnlyList<InputWithVariables>) || objectType == typeof(List<InputWithVariables>);
 
         public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
             var array = JArray.Load(reader);
-            var items = new List<VariableInput>();
+            var items = new List<InputWithVariables>();
 
             foreach (var token in array)
             {
@@ -102,14 +102,20 @@ namespace NuGetGallery.Services.Models
                 }
 
                 var type = token["type"]?.Value<string>();
-                VariableInput? input = null;
+                InputWithVariables? input = null;
 
                 if (type == "positional")
-                    input = token.ToObject<PositionalInput>(serializer);
+                {
+                    input = token.ToObject<PositionalArgument>(serializer);
+                }
                 else if (type == "named")
-                    input = token.ToObject<NamedInput>(serializer);
+                {
+                    input = token.ToObject<NamedArgument>(serializer);
+                }
                 else
+                {
                     throw new JsonSerializationException($"Unknown input type: {type}");
+                }
 
                 items.Add(input!);
             }

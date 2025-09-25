@@ -30,16 +30,13 @@ namespace NuGetGallery.TestData
                 "source": "github",
                 "id": "ghi789jk-lmno-1234-pqrs-tuvwxyz56789"
               },
-              "version_detail": {
-                "version": "3.1.0",
-                "release_date": "2024-03-05T16:45:00Z"
-              },
+              "version": "1.0.0",
               "packages": [
                 {
-                  "registry_name": "nuget",
+                  "registryType": "nuget",
                   "name": "example/my-db-mcp",
                   "version": "3.1.0",
-                  "runtime_arguments": [
+                  "runtimeArguments": [
                     {
                       "type": "named",
                       "name": "--network",
@@ -51,35 +48,35 @@ namespace NuGetGallery.TestData
                       "name": "-e",
                       "value": "DB_TYPE={db_type}",
                       "description": "Database type to connect to",
-                      "is_repeated": true,
+                      "isRepeated": true,
                       "variables": {
                         "db_type": {
                           "description": "Type of database",
                           "choices": ["postgres", "mysql", "mongodb", "redis"],
-                          "is_required": true
+                          "isRequired": true
                         }
                       }
                     },
                     {
                       "type": "positional",
-                      "value_hint": "database_size",
+                      "valueHint": "database_size",
                       "description": "Size of the database to connect to",
                       "value": "{db_size}",
                       "variables": {
                         "db_size": {
                           "description": "Database size",
-                          "is_required": true
+                          "isRequired": true
                         }
                       }
                     }
                   ],
-                  "package_arguments": [
+                  "packageArguments": [
                     {
                       "type": "named",
                       "name": "--host",
                       "description": "Database host",
                       "value": "localhost",
-                      "is_required": true
+                      "isRequired": true
                     },
                     {
                       "type": "named",
@@ -90,24 +87,24 @@ namespace NuGetGallery.TestData
                       "variables": {
                         "db_port": {
                           "description": "Database port",
-                          "is_required": true
+                          "isRequired": true
                         }
                       }
                     },
                     {
                       "type": "positional",
-                      "value_hint": "database_name",
+                      "valueHint": "database_name",
                       "description": "Name of the database to connect to",
                       "value": "{db_name}",
                       "variables": {
                         "db_name": {
                           "description": "Database name",
-                          "is_required": true
+                          "isRequired": true
                         }
                       }
                     }
                   ],
-                  "environment_variables": [
+                  "environmentVariables": [
                     {
                       "name": "DB_USERNAME",
                       "description": "Database username",
@@ -115,7 +112,7 @@ namespace NuGetGallery.TestData
                       "variables": {
                         "db_username": {
                           "description": "Database username",
-                          "is_required": true
+                          "isRequired": true
                         }
                       }
                     },
@@ -126,8 +123,8 @@ namespace NuGetGallery.TestData
                       "variables": {
                         "db_password": {
                           "description": "Database password",
-                          "is_required": true,
-                          "is_secret": true
+                          "isRequired": true,
+                          "isSecret": true
                         }
                       }
                     },
@@ -151,7 +148,7 @@ namespace NuGetGallery.TestData
 
         public const string ServerJsonValidMinified =
             """
-            {"name":"my-db-mcp","description":"my db mcp","repository":{"url":"https://github.com/example/my-db-mcp","source":"github","id":"ghi789jk-lmno-1234-pqrs-tuvwxyz56789"},"version_detail":{"version":"3.1.0","release_date":"2024-03-05T16:45:00Z"},"packages":[{"registry_name":"nuget","name":"example/my-db-mcp","version":"3.1.0","runtime_arguments":[{"type":"named","name":"--network","value":"host","description":"Use host network mode"},{"type":"named","name":"-e","value":"DB_TYPE={db_type}","description":"Database type to connect to","is_repeated":true,"variables":{"db_type":{"description":"Type of database","choices":["postgres","mysql","mongodb","redis"],"is_required":true}}},{"type":"positional","value_hint":"database_size","description":"Size of the database to connect to","value":"{db_size}","variables":{"db_size":{"description":"Database size","is_required":true}}}],"package_arguments":[{"type":"named","name":"--host","description":"Database host","value":"localhost","is_required":true},{"type":"named","name":"--port","description":"Database port","format":"number","value":"{db_port}","variables":{"db_port":{"description":"Database port","is_required":true}}},{"type":"positional","value_hint":"database_name","description":"Name of the database to connect to","value":"{db_name}","variables":{"db_name":{"description":"Database name","is_required":true}}}],"environment_variables":[{"name":"DB_USERNAME","description":"Database username","value":"DB_USERNAME={db_username}","variables":{"db_username":{"description":"Database username","is_required":true}}},{"name":"DB_PASSWORD","description":"Database password","value":"DB_PASSWORD={db_password}","variables":{"db_password":{"description":"Database password","is_required":true,"is_secret":true}}},{"name":"SSL_MODE","description":"SSL connection mode","value":"SSL_MODE={ssl_mode}","variables":{"ssl_mode":{"description":"SSL connection mode","default":"prefer","choices":["disable","prefer","require"]}}}]}]}
+            {"name":"my-db-mcp","description":"my db mcp","repository":{"url":"https://github.com/example/my-db-mcp","source":"github","id":"ghi789jk-lmno-1234-pqrs-tuvwxyz56789"},"version":"1.0.0","packages":[{"registryType":"nuget","name":"example/my-db-mcp","version":"3.1.0","runtimeArguments":[{"type":"named","name":"--network","value":"host","description":"Use host network mode"},{"type":"named","name":"-e","value":"DB_TYPE={db_type}","description":"Database type to connect to","isRepeated":true,"variables":{"db_type":{"description":"Type of database","choices":["postgres","mysql","mongodb","redis"],"isRequired":true}}},{"type":"positional","valueHint":"database_size","description":"Size of the database to connect to","value":"{db_size}","variables":{"db_size":{"description":"Database size","isRequired":true}}}],"packageArguments":[{"type":"named","name":"--host","description":"Database host","value":"localhost","isRequired":true},{"type":"named","name":"--port","description":"Database port","format":"number","value":"{db_port}","variables":{"db_port":{"description":"Database port","isRequired":true}}},{"type":"positional","valueHint":"database_name","description":"Name of the database to connect to","value":"{db_name}","variables":{"db_name":{"description":"Database name","isRequired":true}}}],"environmentVariables":[{"name":"DB_USERNAME","description":"Database username","value":"DB_USERNAME={db_username}","variables":{"db_username":{"description":"Database username","isRequired":true}}},{"name":"DB_PASSWORD","description":"Database password","value":"DB_PASSWORD={db_password}","variables":{"db_password":{"description":"Database password","isRequired":true,"isSecret":true}}},{"name":"SSL_MODE","description":"SSL connection mode","value":"SSL_MODE={ssl_mode}","variables":{"ssl_mode":{"description":"SSL connection mode","default":"prefer","choices":["disable","prefer","require"]}}}]}]}
             """;
 
         public const string McpJsonValid =
@@ -223,10 +220,7 @@ namespace NuGetGallery.TestData
                 "source": "github",
                 "id": "ghi789jk-lmno-1234-pqrs-tuvwxyz56789"
               },
-              "version_detail": {
-                "version": "3.1.0",
-                "release_date": "2024-03-05T16:45:00Z"
-              },
+              "version": "1.0.0",
               "packages": []
             }
             """;
@@ -241,17 +235,14 @@ namespace NuGetGallery.TestData
                 "source": "github",
                 "id": "ghi789jk-lmno-1234-pqrs-tuvwxyz56789"
               },
-              "version_detail": {
-                "version": "3.1.0",
-                "release_date": "2024-03-05T16:45:00Z"
-              },
+              "version": "1.0.0",
               "packages": [
                 {
-                  "registry_name": "npm",
+                  "registryType": "npm",
                   "name": "example/my-db-mcp",
                   "version": "3.1.0",
-                  "package_arguments": [],
-                  "environment_variables": []
+                  "packageArguments": [],
+                  "environmentVariables": []
                 }
               ]
             }
@@ -267,17 +258,14 @@ namespace NuGetGallery.TestData
                 "source": "github",
                 "id": "ghi789jk-lmno-1234-pqrs-tuvwxyz56789"
               },
-              "version_detail": {
-                "version": "3.1.0",
-                "release_date": "2024-03-05T16:45:00Z"
-              },
+              "version": "1.0.0",
               "packages": [
                 {
-                  "registry_name": "nuget",
+                  "registryType": "nuget",
                   "name": "example/my-db-mcp",
                   "version": "3.1.0",
-                  "package_arguments": [],
-                  "environment_variables": []
+                  "packageArguments": [],
+                  "environmentVariables": []
                 }
               ]
             }
@@ -293,13 +281,10 @@ namespace NuGetGallery.TestData
                 "source": "github",
                 "id": "ghi789jk-lmno-1234-pqrs-tuvwxyz56789"
               },
-              "version_detail": {
-                "version": "3.1.0",
-                "release_date": "2024-03-05T16:45:00Z"
-              },
+              "version": "1.0.0",
               "packages": [
                 {
-                  "registry_name": "nuget",
+                  "registryType": "nuget",
                   "name": "example/my-db-mcp",
                   "version": "3.1.0"
                 }
@@ -317,25 +302,22 @@ namespace NuGetGallery.TestData
                 "source": "",
                 "id": ""
               },
-              "version_detail": {
-                "version": "",
-                "release_date": ""
-              },
+              "version": "1.0.0",
               "packages": [
                 {
-                  "registry_name": "nuget",
+                  "registryType": "nuget",
                   "name": "",
                   "version": "",
-                  "package_arguments": [
+                  "packageArguments": [
                     {
                       "type": "named",
                       "name": "",
                       "description": "",
                       "value": "",
-                      "is_repeated": null,
+                      "isRepeated": null,
                       "format": "",
                       "choices": [],
-                      "is_required": null
+                      "isRequired": null
                     }
                   ]
                 }
@@ -353,26 +335,23 @@ namespace NuGetGallery.TestData
                 "source": "",
                 "id": ""
               },
-              "version_detail": {
-                "version": "",
-                "release_date": ""
-              },
+              "version": "1.0.0",
               "packages": [
                 {
-                  "registry_name": "nuget",
+                  "registryType": "nuget",
                   "name": "",
                   "version": "",
-                  "package_arguments": [
+                  "packageArguments": [
                     {
                       "type": "positional",
-                      "value_hint": "",
+                      "valueHint": "",
                       "description": "",
                       "value": "",
                       "default": "",
-                      "is_repeated": null,
+                      "isRepeated": null,
                       "format": "",
                       "choices": [],
-                      "is_required": null
+                      "isRequired": null
                     }
                   ]
                 }
@@ -390,22 +369,19 @@ namespace NuGetGallery.TestData
                 "source": "",
                 "id": ""
               },
-              "version_detail": {
-                "version": "",
-                "release_date": ""
-              },
+              "version": "1.0.0",
               "packages": [
                 {
-                  "registry_name": "nuget",
+                  "registryType": "nuget",
                   "name": "",
                   "version": "",
-                  "environment_variables": [
+                  "environmentVariables": [
                     {
                       "name": "",
                       "description": "",
                       "default": "",
-                      "is_required": null,
-                      "is_secret": null,
+                      "isRequired": null,
+                      "isSecret": null,
                       "choices": []
                     }
                   ]
@@ -424,10 +400,7 @@ namespace NuGetGallery.TestData
                 "source": "",
                 "id": ""
               },
-              "version_detail": {
-                "version": "",
-                "release_date": ""
-              }
+              "version": "1.0.0"
             }
             """;
 
@@ -441,10 +414,7 @@ namespace NuGetGallery.TestData
                 "source": "",
                 "id": ""
               },
-              "version_detail": {
-                "version": "",
-                "release_date": ""
-              },
+              "version": "1.0.0",
               "packages": null
             }
             """;
@@ -459,10 +429,7 @@ namespace NuGetGallery.TestData
                 "source": "",
                 "id": ""
               },
-              "version_detail": {
-                "version": "",
-                "release_date": ""
-              },
+              "version": "1.0.0",
               "packages": [null]
             }
             """;
@@ -477,16 +444,13 @@ namespace NuGetGallery.TestData
                 "source": "",
                 "id": ""
               },
-              "version_detail": {
-                "version": "",
-                "release_date": ""
-              },
+              "version": "1.0.0",
               "packages": [
                 {
-                  "registry_name": "nuget",
+                  "registryType": "nuget",
                   "name": "",
                   "version": "",
-                  "package_arguments": [null]
+                  "packageArguments": [null]
                 }
               ]
             }
@@ -502,16 +466,13 @@ namespace NuGetGallery.TestData
                 "source": "",
                 "id": ""
               },
-              "version_detail": {
-                "version": "",
-                "release_date": ""
-              },
+              "version": "1.0.0",
               "packages": [
                 {
-                  "registry_name": "nuget",
+                  "registryType": "nuget",
                   "name": "",
                   "version": "",
-                  "environment_variables": [null]
+                  "environmentVariables": [null]
                 }
               ]
             }
@@ -527,16 +488,13 @@ namespace NuGetGallery.TestData
                 "source": "",
                 "id": ""
               },
-              "version_detail": {
-                "version": "",
-                "release_date": ""
-              },
+              "version": "1.0.0",
               "packages": [
                 {
-                  "registry_name": "nuget",
+                  "registryType": "nuget",
                   "name": "",
                   "version": "",
-                   "package_arguments": [
+                   "packageArguments": [
                     {
                       "type": "named",
                       "name": "--port",
@@ -563,43 +521,40 @@ namespace NuGetGallery.TestData
                 "source": "github",
                 "id": "ghi789jk-lmno-1234-pqrs-tuvwxyz56789"
               },
-              "version_detail": {
-                "version": "3.1.0",
-                "release_date": "2024-03-05T16:45:00Z"
-              },
+              "version": "1.0.0",
               "packages": [
                 {
-                  "registry_name": "nuget",
+                  "registryType": "nuget",
                   "name": "example/my-db-mcp",
                   "version": "3.1.0",
-                  "package_arguments": [
+                  "packageArguments": [
                     {
                       "type": "",
                       "name": "",
                       "description": "",
                       "value": "",
-                      "is_repeated": null,
+                      "isRepeated": null,
                       "format": "",
                       "choices": [],
-                      "is_required": null
+                      "isRequired": null
                     },
                     {
                       "type": "",
-                      "value_hint": "",
+                      "valueHint": "",
                       "description": "",
                       "value": "",
                       "default": "",
-                      "is_repeated": null,
+                      "isRepeated": null,
                       "format": "",
                       "choices": [],
-                      "is_required": null
+                      "isRequired": null
                     },
                     {
                       "type": "",
                       "description": "",
                       "value": "",
-                      "is_required": null,
-                      "is_repeated": null,
+                      "isRequired": null,
+                      "isRepeated": null,
                       "format": "",
                       "choices": []
                     }
@@ -614,8 +569,8 @@ namespace NuGetGallery.TestData
             {
               "packages": [
                 {
-                  "registry_name": "nuget",
-                  "environment_variables": [
+                  "registryType": "nuget",
+                  "environmentVariables": [
                     {
                       "name": "Foo",
                       "description": "",
