@@ -62,8 +62,8 @@ namespace NuGetGallery.Services.Models
         [JsonProperty("type", Required = Required.Always)]
         public required string Type { get; set; }
 
-        [JsonProperty("valueHint", Required = Required.Always)]
-        public required string ValueHint { get; set; }
+        [JsonProperty("valueHint")]
+        public string? ValueHint { get; set; }
     }
 
     public class NamedArgument : InputWithVariables
