@@ -534,6 +534,16 @@ body[id="/"] {
 .tooltip-block .popover.show {
   left: 0;
 }
+.form-horizontal span.text-warning-brand {
+  color: var(--statusDangerForeground3Rest);
+  font-weight: bold;
+}
+.form-horizontal span.help-text-brand {
+  color: var(--neutralForeground2Rest);
+  font-size: 16px;
+  line-height: 2;
+  margin-top: 1.5rem;
+}
 .modal-backdrop.in {
   opacity: 0.8 !important;
   position: fixed;
@@ -2113,16 +2123,37 @@ p.frameworktableinfo-text {
 }
 .page-package-details #sponsorship-popup .modal-content {
   border-radius: 0.5rem;
+  background-color: var(--neutralBackground1Rest);
+  border: 0.0625rem solid var(--neutralStroke2Rest);
 }
 .page-package-details #sponsorship-popup .modal-header {
   padding-left: 2.5rem;
+  background-color: var(--neutralBackground1Rest);
+  border-bottom: 0.0625rem solid var(--neutralStroke2Rest);
+  color: var(--neutralForeground1Rest);
 }
 .page-package-details #sponsorship-popup .modal-body {
   padding: 2.5rem;
   padding-top: 1.5rem;
+  background-color: var(--neutralBackground1Rest);
+  color: var(--neutralForeground1Rest);
 }
 .page-package-details #sponsorship-popup .modal-title {
   font-weight: 500;
+  color: var(--neutralForeground1Rest);
+}
+.page-package-details #sponsorship-popup .close {
+  color: var(--neutralForeground2Rest);
+  opacity: 0.8;
+}
+.page-package-details #sponsorship-popup .close:hover {
+  color: var(--neutralForeground2Hover);
+  opacity: 1;
+}
+.page-package-details #sponsorship-popup .close:focus {
+  color: var(--neutralForeground2Rest);
+  outline: 0.125rem solid var(--neutralStrokeFocus2Rest);
+  outline-offset: 0.125rem;
 }
 .page-package-details #sponsorship-popup .icon-text.alert.alert-brand-info {
   margin-top: 0;
@@ -2999,7 +3030,7 @@ p.frameworktableinfo-text {
   word-break: break-all;
 }
 .page-manage-sponsorship-links .sponsorship-remove-link {
-  color: var(--statusDangerForeground3Rest);
+  color: var(--statusDangerForeground1Rest);
   text-decoration: none;
   white-space: nowrap;
 }
@@ -3009,18 +3040,18 @@ p.frameworktableinfo-text {
 }
 .page-manage-sponsorship-links .sponsorship-remove-link i,
 .page-manage-sponsorship-links .sponsorship-remove-link span {
-  color: var(--statusDangerForeground3Rest);
+  color: var(--statusDangerForeground1Rest);
 }
 .page-manage-sponsorship-links .sponsorship-remove-link:hover,
 .page-manage-sponsorship-links .sponsorship-remove-link:focus {
-  color: var(--statusDangerBackground3Hover);
+  color: var(--statusDangerForeground1Hover);
   text-decoration: none;
 }
 .page-manage-sponsorship-links .sponsorship-remove-link:hover i,
 .page-manage-sponsorship-links .sponsorship-remove-link:focus i,
 .page-manage-sponsorship-links .sponsorship-remove-link:hover span,
 .page-manage-sponsorship-links .sponsorship-remove-link:focus span {
-  color: var(--statusDangerBackground3Hover);
+  color: var(--statusDangerForeground1Hover);
 }
 .page-manage-sponsorship-links .sponsorship-links {
   margin-top: 15px;
@@ -3039,6 +3070,10 @@ p.frameworktableinfo-text {
 .page-manage-sponsorship-links #manage-sponsorship-alert,
 .page-manage-sponsorship-links #manage-sponsorship-success {
   margin-top: 5px;
+}
+.page-manage-sponsorship-links small.text-warning-brand {
+  color: var(--statusDangerForeground1Rest);
+  font-weight: bold;
 }
 .page-statistics-most-downloaded .show-all-packages-toggle {
   font-weight: bold;

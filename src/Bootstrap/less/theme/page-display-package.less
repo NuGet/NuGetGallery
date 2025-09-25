@@ -753,19 +753,43 @@
 
     .modal-content {
       border-radius: 0.5rem;
+      background-color: var(--neutralBackground1Rest);
+      border: 0.0625rem solid var(--neutralStroke2Rest);
     }
 
     .modal-header {
       padding-left: 2.5rem;
+      background-color: var(--neutralBackground1Rest);
+      border-bottom: 0.0625rem solid var(--neutralStroke2Rest);
+      color: var(--neutralForeground1Rest);
     }
 
     .modal-body {
       padding: 2.5rem;
       padding-top: 1.5rem;
+      background-color: var(--neutralBackground1Rest);
+      color: var(--neutralForeground1Rest);
     }
 
     .modal-title {
       font-weight: 500; // Make "External Links" text bolder
+      color: var(--neutralForeground1Rest);
+    }
+
+    .close {
+      color: var(--neutralForeground2Rest);
+      opacity: 0.8;
+
+      &:hover {
+        color: var(--neutralForeground2Hover);
+        opacity: 1;
+      }
+
+      &:focus {
+        color: var(--neutralForeground2Rest);
+        outline: 0.125rem solid var(--neutralStrokeFocus2Rest);
+        outline-offset: 0.125rem;
+      }
     }
 
     .icon-text.alert.alert-brand-info {
