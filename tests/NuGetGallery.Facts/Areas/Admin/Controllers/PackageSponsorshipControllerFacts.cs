@@ -72,16 +72,27 @@ namespace NuGetGallery.Areas.Admin.Controllers
 				var result = Controller.Index(packageId);
 
 				// Assert
-				AssertIndexViewModelWithError(result, packageId, "not found");
+				var viewResult = Assert.IsType<ViewResult>(result);
+				var model = Assert.IsType<PackageSponsorshipIndexViewModel>(viewResult.Model);
+				Assert.Equal(packageId, model.PackageId);
+				Assert.Null(model.Package);
+				Assert.Equal($"Package '{packageId}' not found.", model.Message);
+				Assert.False(model.IsSuccess);
 			}
 
 			[Fact]
-			public void ReturnsViewModelWithCustomMessage()
+			public void ReturnsViewModelWithCustomMessageWhenPackageFound()
 			{
 				// Arrange
 				var packageId = "TestPackage";
 				var message = "Custom message";
 				var isSuccess = true;
+				var packageRegistration = CreatePackageRegistration(packageId);
+
+				PackageService.Setup(x => x.FindPackageRegistrationById(packageId))
+					.Returns(packageRegistration);
+				SponsorshipUrlService.Setup(x => x.GetSponsorshipUrlEntries(packageRegistration))
+					.Returns(new List<SponsorshipUrlEntry>());
 
 				// Act
 				var result = Controller.Index(packageId, message, isSuccess);
@@ -92,6 +103,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 				Assert.Equal(packageId, model.PackageId);
 				Assert.Equal(message, model.Message);
 				Assert.Equal(isSuccess, model.IsSuccess);
+				Assert.NotNull(model.Package);
 			}
 		}
 
