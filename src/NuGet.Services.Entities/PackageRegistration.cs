@@ -59,7 +59,6 @@ namespace NuGet.Services.Entities
         /// <summary>
         /// Gets or sets the sponsorship URLs for this package registration as a JSON array of URL objects.
         /// </summary>
-
         [StringLength(4000)]
         public string SponsorshipUrls { get; set; }
     }

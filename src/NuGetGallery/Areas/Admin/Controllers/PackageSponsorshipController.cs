@@ -50,7 +50,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                         model.SponsorshipUrls = _sponsorshipUrlService.GetSponsorshipUrlEntries(packageRegistration);
                     }
                 }
-                else if (string.IsNullOrEmpty(message))
+                else
                 {
                     model.Message = $"Package '{packageId}' not found.";
                     model.IsSuccess = false;
