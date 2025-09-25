@@ -16,10 +16,10 @@
         <div class="form-group">
             <div class="col-xs-12">
                 <label for="packageId" class="control-label">Package ID</label>
-                <input type="text" class="form-control input-brand" id="packageId" name="packageId" placeholder="Enter a single package ID (e.g. jQuery)" value="@(Model != null ? Model.PackageId : "")" autofocus>
+                <input type="text" class="form-control input-brand" id="packageId" name="packageId" placeholder="Enter a single package ID (e.g. jQuery)" value="@Model.PackageId" autofocus>
                 
                 @* Display package search error messages under the search box *@
-                @if (Model != null && !string.IsNullOrEmpty(Model.Message) && !Model.IsSuccess && Model.Package == null)
+                @if (!string.IsNullOrEmpty(Model.Message) && !Model.IsSuccess && Model.Package == null)
                 {
                     @ViewHelpers.AlertDanger(@<text>@Model.Message</text>)
                 }
@@ -32,7 +32,7 @@
         </div>
     </form>
 
-    @if (Model != null && Model.Package != null)
+    @if (Model.Package != null)
     {
         <div class="form-group">
             <div class="col-xs-12">
@@ -70,7 +70,7 @@
             <div class="col-xs-12">
                 <h3>Current Sponsorship URLs</h3>
                 <div class="form-horizontal">
-                    @if (Model != null && Model.SponsorshipUrls != null && Model.SponsorshipUrls.Any())
+                    @if (Model.SponsorshipUrls != null && Model.SponsorshipUrls.Any())
                     {
                         foreach (var urlEntry in Model.SponsorshipUrls)
                         {
@@ -120,7 +120,7 @@
                             @Html.TextBoxFor(m => m.NewSponsorshipUrl, new { @class = "form-control input-brand", placeholder = "https://example.com/sponsor" })
                             
                             @* Display success and URL validation error messages under the URL text box *@
-                            @if (Model != null && !string.IsNullOrEmpty(Model.Message))
+                            @if (!string.IsNullOrEmpty(Model.Message))
                             {
                                 if (Model.IsSuccess)
                                 {
