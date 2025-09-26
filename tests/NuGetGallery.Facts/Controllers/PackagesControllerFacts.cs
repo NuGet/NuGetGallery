@@ -268,7 +268,12 @@ namespace NuGetGallery
                     .Returns(new PackageFrameworkCompatibility());
             }
 
-            sponsorshipUrlService = sponsorshipUrlService ?? new Mock<ISponsorshipUrlService>();
+            if (sponsorshipUrlService == null)
+            {
+                sponsorshipUrlService = new Mock<ISponsorshipUrlService>();
+                sponsorshipUrlService.Setup(x => x.GetSponsorshipUrlEntries(It.IsAny<PackageRegistration>()))
+                    .Returns(new List<SponsorshipUrlEntry>());
+            }
 
             iconUrlProvider = iconUrlProvider ?? new Mock<IIconUrlProvider>();
 

@@ -1938,6 +1938,7 @@
     <Content Include="Scripts\gallery\page-manage-organization.js" />
     <Content Include="Scripts\gallery\page-manage-owners.js" />
     <Content Include="Scripts\gallery\page-manage-packages.js" />
+    <Content Include="Scripts\gallery\page-manage-sponsorship-links.js" />
     <Content Include="Scripts\gallery\page-signin.js" />
     <Content Include="Scripts\gallery\page-support-requests.js" />
     <Content Include="Scripts\gallery\stats-dimensions.js" />

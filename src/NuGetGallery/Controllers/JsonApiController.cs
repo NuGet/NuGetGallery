@@ -379,11 +379,11 @@ namespace NuGetGallery
         /// </summary>
         private JsonResult HandleSponsorshipUrlException(Exception ex, string operation)
         {
-            // ArgumentException contains user-friendly validation messages from the service layer (e.g "Please enter a valid URL.......")
+            // UserSafeException contains user-friendly validation messages from the service layer (e.g "Please enter a valid URL.......")
             // These are safe to surface to users, while other exceptions may not be
-            if (ex is ArgumentException argumentEx)
+            if (ex is UserSafeException userSafeEx)
             {
-                return Json(new { success = false, message = argumentEx.Message }, JsonRequestBehavior.AllowGet);
+                return Json(new { success = false, message = userSafeEx.Message }, JsonRequestBehavior.AllowGet);
             }
             
             return Json(new { success = false, message = $"An error occurred while {operation} the sponsorship URL." }, JsonRequestBehavior.AllowGet);

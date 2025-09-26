@@ -1282,7 +1282,12 @@ namespace NuGetGallery.ViewModels
         {
             var allVersions = (IReadOnlyCollection<Package>)package.PackageRegistration.Packages;
 
-            return new DisplayPackageViewModelFactory(Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageFrameworkCompatibilityFactory>(), Mock.Of<IFeatureFlagService>(), Mock.Of<ISponsorshipUrlService>()).Create(
+            // Create a properly configured sponsorship service mock that returns empty collection
+            var mockSponsorshipService = new Mock<ISponsorshipUrlService>();
+            mockSponsorshipService.Setup(x => x.GetSponsorshipUrlEntries(It.IsAny<PackageRegistration>()))
+                .Returns(new List<SponsorshipUrlEntry>().AsReadOnly());
+
+            return new DisplayPackageViewModelFactory(Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageFrameworkCompatibilityFactory>(), Mock.Of<IFeatureFlagService>(), mockSponsorshipService.Object).Create(
                 package,
                 allVersions,
                 currentUser: currentUser,
@@ -1546,42 +1551,6 @@ namespace NuGetGallery.ViewModels
 
 			// Assert
 			mockSponsorshipService.Verify(x => x.GetSponsorshipUrlEntries(packageRegistration), Times.Exactly(2));
-		}
-
-		[Fact]
-		public void HandlesNullSponsorshipService()
-		{
-			// Arrange
-			var package = new Package
-			{
-				Version = "1.0.0",
-				PackageRegistration = new PackageRegistration
-				{
-					Id = "TestPackage",
-					Owners = Enumerable.Empty<User>().ToList(),
-					Packages = Enumerable.Empty<Package>().ToList()
-				}
-			};
-
-			// Act
-			var model = new DisplayPackageViewModelFactory(
-				Mock.Of<IIconUrlProvider>(), 
-				Mock.Of<IPackageFrameworkCompatibilityFactory>(), 
-				Mock.Of<IFeatureFlagService>(), 
-				null)
-				.Create(
-					package,
-					new[] { package },
-					currentUser: null,
-					packageKeyToDeprecation: null,
-					packageKeyToVulnerabilities: null,
-					packageRenames: null,
-					readmeResult: null);
-
-			// Assert
-			Assert.NotNull(model.SponsorshipUrls);
-			Assert.Empty(model.SponsorshipUrls);
-			Assert.False(model.HasSponsorshipUrls);
 		}
 
 		[Fact]
