@@ -96,7 +96,7 @@
             if (validity == McpServerEntryResultValidity.Success)
             {
                 alertLevel = AlertLevel.Info;
-                alertMessage = "This package contains an <a href='https://aka.ms/vscode-mcp-server'>MCP Server</a>. The server can be used in VS Code by copying the generated JSON to your VS Code workspace's <code>.vscode/mcp.json</code> settings file.";
+                alertMessage = "This package contains an <a href='https://aka.ms/nuget/mcp/concepts'>MCP Server</a>. The server can be used in VS Code by copying the generated JSON to your VS Code workspace's <code>.vscode/mcp.json</code> settings file.";
                 vsCodeEntryTemplate = Model.VsCodeMcpServerEntryTemplate.Template ?? string.Empty;
                 copyEnabled = true;
             }
