@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -206,29 +207,56 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("manage a package")]
         public virtual async Task<JsonResult> AddSponsorshipUrl(string id, string sponsorshipUrl)
         {
+            var debugMessages = new List<string>();
+            debugMessages.Add($"[DEBUG] AddSponsorshipUrl called with id: {id}, sponsorshipUrl: {sponsorshipUrl}");
+            
             if (TryGetPackageForSponsorshipManagement(id, out var package, out var errorMessage))
             {
                 try
                 {
                     var currentUser = GetCurrentUser();
+                    debugMessages.Add($"[DEBUG] Current user: {currentUser?.Username}");
+                    debugMessages.Add($"[DEBUG] Package found: {package?.Id}");
 
                     // Add the sponsorship URL (all validation handled in service layer)
+                    debugMessages.Add("[DEBUG] Calling SponsorshipUrlService.AddSponsorshipUrlAsync...");
                     var validatedUrl = await _sponsorshipUrlService.AddSponsorshipUrlAsync(package, sponsorshipUrl, currentUser);
+                    debugMessages.Add($"[DEBUG] Service call completed successfully. Validated URL: {validatedUrl}");
                     
                     return Json(new { 
                         success = true, 
                         validatedUrl = validatedUrl,
-                        isDomainAccepted = true
+                        isDomainAccepted = true,
+                        debug = debugMessages // Include debug info in response
                     });
                 }
                 catch (Exception ex)
                 {
-                    return HandleSponsorshipUrlException(ex, "adding");
+                    debugMessages.Add($"[ERROR] Exception in controller: {ex.GetType().Name}: {ex.Message}");
+                    debugMessages.Add($"[ERROR] Stack trace: {ex.StackTrace}");
+                    if (ex.InnerException != null)
+                    {
+                        debugMessages.Add($"[ERROR] Inner exception: {ex.InnerException.GetType().Name}: {ex.InnerException.Message}");
+                    }
+                    
+                    var result = HandleSponsorshipUrlException(ex, "adding");
+                    // Add debug info to error response
+                    var errorData = result.Data as dynamic;
+                    return Json(new { 
+                        success = false, 
+                        message = errorData?.message ?? "An error occurred",
+                        debug = debugMessages 
+                    });
                 }
             }
             else
             {
-                return Json(new { success = false, message = errorMessage }, JsonRequestBehavior.AllowGet);
+                debugMessages.Add($"[ERROR] TryGetPackageForSponsorshipManagement failed: {errorMessage}");
+                return Json(new { 
+                    success = false, 
+                    message = errorMessage,
+                    debug = debugMessages 
+                }, JsonRequestBehavior.AllowGet);
             }
         }
 
