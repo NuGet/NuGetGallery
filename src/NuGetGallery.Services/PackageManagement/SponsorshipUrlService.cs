@@ -25,29 +25,9 @@ namespace NuGetGallery
 
 		public SponsorshipUrlService(IEntitiesContext entitiesContext, IContentObjectService contentObjectService, IAuditingService auditingService)
 		{
-			Console.WriteLine("[DEBUG] SponsorshipUrlService constructor starting...");
-			
 			_entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
-			Console.WriteLine("[DEBUG] EntitiesContext injected successfully");
-			
 			_contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
-			Console.WriteLine("[DEBUG] ContentObjectService injected successfully");
-			
 			_auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
-			Console.WriteLine($"[DEBUG] AuditingService injected successfully - Type: {auditingService.GetType().Name}");
-			
-			try
-			{
-				var trustedDomains = _contentObjectService.TrustedSponsorshipDomains;
-				Console.WriteLine($"[DEBUG] TrustedSponsorshipDomains accessed - MaxLinks: {trustedDomains?.MaxSponsorshipLinks}");
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine($"[ERROR] Failed to access TrustedSponsorshipDomains: {ex.GetType().Name}: {ex.Message}");
-				throw;
-			}
-			
-			Console.WriteLine("[DEBUG] SponsorshipUrlService constructor completed successfully");
 		}
 
 		public IReadOnlyCollection<SponsorshipUrlEntry> GetSponsorshipUrlEntries(PackageRegistration packageRegistration)
@@ -57,42 +37,60 @@ namespace NuGetGallery
 
 	public async Task<string> AddSponsorshipUrlAsync(PackageRegistration packageRegistration, string url, User user)
 	{
-		Console.WriteLine($"[DEBUG] AddSponsorshipUrlAsync starting for package: {packageRegistration?.Id}, URL: {url}, User: {user?.Username}");
+		var debugMessages = new List<string>();
+		debugMessages.Add($"[DEBUG] AddSponsorshipUrlAsync starting for package: {packageRegistration?.Id}, URL: {url}, User: {user?.Username}");
 		
 		// Validate required parameters before any DB interaction
 		if (packageRegistration == null)
 		{
-			Console.WriteLine("[DEBUG] ArgumentNullException: packageRegistration is null");
+			debugMessages.Add("[DEBUG] ArgumentNullException: packageRegistration is null");
 			throw new ArgumentNullException(nameof(packageRegistration));
 		}
 		if (user == null)
 		{
-			Console.WriteLine("[DEBUG] ArgumentNullException: user is null");
+			debugMessages.Add("[DEBUG] ArgumentNullException: user is null");
 			throw new ArgumentNullException(nameof(user));
 		}
 
-		Console.WriteLine("[DEBUG] Accessing TrustedSponsorshipDomains...");
+		debugMessages.Add("[DEBUG] Accessing TrustedSponsorshipDomains...");
+		
+		var trustedDomains = _contentObjectService.TrustedSponsorshipDomains;
+		debugMessages.Add($"[DEBUG] TrustedSponsorshipDomains - MaxLinks: {trustedDomains?.MaxSponsorshipLinks}");
+		
+		// Display the actual domains loaded from configuration
+		if (trustedDomains is TrustedSponsorshipDomains concreteDomains && concreteDomains.TrustedSponsorshipDomainList != null)
+		{
+			debugMessages.Add($"[DEBUG] Configured domains count: {concreteDomains.TrustedSponsorshipDomainList.Count}");
+			debugMessages.Add($"[DEBUG] Configured domains: {string.Join(", ", concreteDomains.TrustedSponsorshipDomainList)}");
+		}
+		else
+		{
+			debugMessages.Add("[DEBUG] Unable to access domain list - service may not be TrustedSponsorshipDomains type or list is null");
+		}
+
 		try
 		{
 			// Validate URL format and domain acceptance
 			if (!PackageHelper.ValidateSponsorshipUrl(url, _contentObjectService.TrustedSponsorshipDomains, out string validatedUrl, out string errorMessage))
 			{
-				Console.WriteLine($"[DEBUG] URL validation failed: {errorMessage}");
-				throw new ArgumentException(errorMessage);
+				debugMessages.Add($"[DEBUG] URL validation failed: {errorMessage}");
+				// Create a detailed error message that includes debug info
+				var detailedError = $"{errorMessage}\n\nDebug Info:\n{string.Join("\n", debugMessages)}";
+				throw new ArgumentException(detailedError);
 			}
 
 			// Get max links limit before starting transaction
 			var maxLinks = _contentObjectService.TrustedSponsorshipDomains.MaxSponsorshipLinks;
-			Console.WriteLine($"[DEBUG] Max links allowed: {maxLinks}");
+			debugMessages.Add($"[DEBUG] Max links allowed: {maxLinks}");
 
 			// Read existing entries before starting transaction (no DB access needed)
 			var existingEntries = GetSponsorshipUrlEntriesInternal(packageRegistration).ToList();
-			Console.WriteLine($"[DEBUG] Existing entries count: {existingEntries.Count}");
+			debugMessages.Add($"[DEBUG] Existing entries count: {existingEntries.Count}");
 
 			// Check URL count limit
 			if (existingEntries.Count >= maxLinks)
 			{
-				Console.WriteLine($"[DEBUG] Max links exceeded: {existingEntries.Count} >= {maxLinks}");
+				debugMessages.Add($"[DEBUG] Max links exceeded: {existingEntries.Count} >= {maxLinks}");
 				throw new ArgumentException($"You can add a maximum of {maxLinks} sponsorship links.");
 			}
 
@@ -105,7 +103,7 @@ namespace NuGetGallery
 			entriesToPersist.Add(newEntry);
 			var newSponsorshipUrlsJson = JsonConvert.SerializeObject(entriesToPersist);
 
-			Console.WriteLine("[DEBUG] Starting database transaction...");
+			debugMessages.Add("[DEBUG] Starting database transaction...");
 			using (new SuspendDbExecutionStrategy())
 			using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
 			{
@@ -113,30 +111,30 @@ namespace NuGetGallery
 				{
 					// Only modify the entity property inside the transaction
 					packageRegistration.SponsorshipUrls = newSponsorshipUrlsJson;
-					Console.WriteLine("[DEBUG] Updated package registration with new JSON");
+					debugMessages.Add("[DEBUG] Updated package registration with new JSON");
 
 					// Save changes to database
 					await _entitiesContext.SaveChangesAsync();
-					Console.WriteLine("[DEBUG] Database changes saved successfully");
+					debugMessages.Add("[DEBUG] Database changes saved successfully");
 
 					// Create audit record with the same timestamp used in database
-					Console.WriteLine("[DEBUG] Calling audit service...");
+					debugMessages.Add("[DEBUG] Calling audit service...");
 					await _auditingService.SaveAuditRecordAsync(
 						PackageRegistrationAuditRecord.CreateForAddSponsorshipUrl(packageRegistration, validatedUrl, user.Username, user.IsAdministrator, timestamp));
-					Console.WriteLine("[DEBUG] Audit record saved successfully");
+					debugMessages.Add("[DEBUG] Audit record saved successfully");
 
 					transaction.Commit();
-					Console.WriteLine("[DEBUG] Transaction committed successfully");
+					debugMessages.Add("[DEBUG] Transaction committed successfully");
 
 					return validatedUrl;
 				}
 				catch (Exception ex)
 				{
-					Console.WriteLine($"[ERROR] Exception during transaction: {ex.GetType().Name}: {ex.Message}");
-					Console.WriteLine($"[ERROR] Stack trace: {ex.StackTrace}");
+					debugMessages.Add($"[ERROR] Exception during transaction: {ex.GetType().Name}: {ex.Message}");
+					debugMessages.Add($"[ERROR] Stack trace: {ex.StackTrace}");
 					if (ex.InnerException != null)
 					{
-						Console.WriteLine($"[ERROR] Inner exception: {ex.InnerException.GetType().Name}: {ex.InnerException.Message}");
+						debugMessages.Add($"[ERROR] Inner exception: {ex.InnerException.GetType().Name}: {ex.InnerException.Message}");
 					}
 					throw;
 				}
@@ -144,13 +142,16 @@ namespace NuGetGallery
 		}
 		catch (Exception ex)
 		{
-			Console.WriteLine($"[ERROR] Exception in AddSponsorshipUrlAsync: {ex.GetType().Name}: {ex.Message}");
-			Console.WriteLine($"[ERROR] Stack trace: {ex.StackTrace}");
+			debugMessages.Add($"[ERROR] Exception in AddSponsorshipUrlAsync: {ex.GetType().Name}: {ex.Message}");
+			debugMessages.Add($"[ERROR] Stack trace: {ex.StackTrace}");
 			if (ex.InnerException != null)
 			{
-				Console.WriteLine($"[ERROR] Inner exception: {ex.InnerException.GetType().Name}: {ex.InnerException.Message}");
+				debugMessages.Add($"[ERROR] Inner exception: {ex.InnerException.GetType().Name}: {ex.InnerException.Message}");
 			}
-			throw;
+			
+			// Include debug info in exception message for visibility
+			var detailedError = $"{ex.Message}\n\nDebug Info:\n{string.Join("\n", debugMessages)}";
+			throw new Exception(detailedError, ex);
 		}
 	}
 
