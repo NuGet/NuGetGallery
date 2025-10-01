@@ -1878,7 +1878,7 @@ p.frameworktableinfo-text {
 .page-package-details .install-tabs .tab-content .tab-pane .install-script-row .install-script {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: start;
   padding: 6px 8px;
   background-color: var(--neutralBackground1Rest);
   font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
