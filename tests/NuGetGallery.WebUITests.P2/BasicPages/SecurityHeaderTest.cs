@@ -1,43 +1,65 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.WebTesting;
+using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
 using NuGetGallery.FunctionalTests.Helpers;
+using Xunit;
 
 namespace NuGetGallery.FunctionalTests.WebUITests.BasicPages
 {
-     /// <summary>
-     ///     Verify that an expected series of security headers is returned as part of the response.
-     ///     Priority :P2
-     /// </summary>
-     public class SecurityHeaderTest : WebTest
-     {
-         public SecurityHeaderTest()
-         {
-             PreAuthenticate = true;
-         }
-
-        public override IEnumerator<WebTestRequest> GetRequestEnumerator()
+    /// <summary>
+    ///     Verify that an expected series of security headers is returned as part of the response.
+    ///     Priority :P2
+    /// </summary>
+    public class SecurityHeaderTest
+    {
+        [Priority(2)]
+        [Fact]
+        public async Task HomePageReturnsExpectedSecurityHeaders()
         {
-            // Send a request to home page and check for security headers.
-            var homePageRequest = new WebTestRequest(UrlHelper.BaseUrl);
-            homePageRequest.ParseDependentRequests = false;
-            homePageRequest.ValidateResponse += new ValidationRuleFindHeaderText("X-Frame-Options: DENY", StringComparison.OrdinalIgnoreCase).Validate;
-            homePageRequest.ValidateResponse += new ValidationRuleFindHeaderText("X-XSS-Protection: 1; mode=block").Validate;
-            homePageRequest.ValidateResponse += new ValidationRuleFindHeaderText("X-Content-Type-Options: nosniff").Validate;
-            homePageRequest.ValidateResponse += new ValidationRuleFindHeaderText("Strict-Transport-Security: max-age=31536000").Validate;
-            yield return homePageRequest;
+            // Arrange
+            using var client = new HttpClient();
 
-            // Send a request to Packages page and check for security headers.
-            var packagesPageRequest = new WebTestRequest(UrlHelper.PackagesPageUrl);
-            packagesPageRequest.ParseDependentRequests = false;
-            packagesPageRequest.ValidateResponse += new ValidationRuleFindHeaderText("X-Frame-Options: DENY", StringComparison.OrdinalIgnoreCase).Validate;
-            packagesPageRequest.ValidateResponse += new ValidationRuleFindHeaderText("X-XSS-Protection: 1; mode=block").Validate;
-            packagesPageRequest.ValidateResponse += new ValidationRuleFindHeaderText("X-Content-Type-Options: nosniff").Validate;
-            packagesPageRequest.ValidateResponse += new ValidationRuleFindHeaderText("Strict-Transport-Security: max-age=31536000").Validate;
-            yield return packagesPageRequest;
+            // Act
+            var response = await client.GetAsync(UrlHelper.BaseUrl);
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+
+            AssertSecurityHeaders(response);
+        }
+
+        [Priority(2)]
+        [Fact]
+        public async Task PackagesPageReturnsExpectedSecurityHeaders()
+        {
+            // Arrange
+            using var client = new HttpClient();
+
+            // Act
+            var response = await client.GetAsync(UrlHelper.PackagesPageUrl);
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+
+            AssertSecurityHeaders(response);
+        }
+
+        private void AssertSecurityHeaders(HttpResponseMessage response)
+        {
+            VerifyHeaderValue(response, "X-Frame-Options", "deny");
+            VerifyHeaderValue(response, "X-XSS-Protection", "1; mode=block");
+            VerifyHeaderValue(response, "X-Content-Type-Options", "nosniff");
+            VerifyHeaderValue(response, "Strict-Transport-Security", "max-age=31536000");
+        }
+
+        private static void VerifyHeaderValue(HttpResponseMessage response, string headerName, string expectedValue)
+        {
+            var actualValue = response.Headers.GetValues(headerName)?.FirstOrDefault() ?? null;
+            Assert.StartsWith(expectedValue, actualValue);
         }
     }
 }

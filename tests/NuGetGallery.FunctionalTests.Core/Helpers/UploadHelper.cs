@@ -1,10 +1,11 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.VisualStudio.TestTools.WebTesting;
+using System.IO;
+using System.Net.Http;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace NuGetGallery.FunctionalTests.Helpers
 {
@@ -26,7 +27,7 @@ namespace NuGetGallery.FunctionalTests.Helpers
             /// The version of the package to upload.
             /// </summary>
             public string Version { get; }
-            
+
             /// <summary>
             /// The username of the user that will be specified as the owner of the package in the verification form.
             /// </summary>
@@ -37,13 +38,6 @@ namespace NuGetGallery.FunctionalTests.Helpers
                 Id = id;
                 Version = version ?? GetUniquePackageVersion();
                 Owner = owner ?? GalleryConfiguration.Instance.Account.Name;
-            }
-
-            protected PackageToUpload(PackageToUpload package)
-            {
-                Id = package.Id;
-                Version = package.Version;
-                Owner = package.Owner;
             }
         }
 
@@ -71,67 +65,68 @@ namespace NuGetGallery.FunctionalTests.Helpers
         }
 
         /// <summary>
-        /// Uploads a set of test packages using Gallery UI. Validates that logon prompt appears to upload and checks that the package's home page opens post upload.
+        /// Uploads a package using HttpClient
         /// </summary>
-        public static IEnumerator<WebTestRequest> UploadPackages(WebTest test, IEnumerable<PackageToUpload> packages)
+        public static async Task UploadAndVerifyPackageAsync(HttpClient client, PackageToUpload package)
         {
-            return UploadPackages(test, packages.Select(p => new PackageToUploadInternal(p)));
-        }
+            // Get upload page to extract anti-forgery token
+            var uploadPageResponse = await client.GetAsync(UrlHelper.UploadPageUrl);
+            uploadPageResponse.EnsureSuccessStatusCode();
+            var uploadPageContent = await uploadPageResponse.Content.ReadAsStringAsync();
 
-        public class PackageToUploadInternal : PackageToUpload
-        {
-            public string FullPath { get; }
+            // Extract token
+            var tokenMatch = Regex.Match(uploadPageContent,
+                @"<input name=""__RequestVerificationToken"" type=""hidden"" value=""([^""]+)"" />");
 
-            public PackageToUploadInternal(PackageToUpload package)
-                : base(package)
+            if (!tokenMatch.Success)
             {
-                FullPath = new PackageCreationHelper().CreatePackage(Id, Version).Result;
+                throw new InvalidOperationException("Could not extract anti-forgery token");
             }
-        }
 
-        private static IEnumerator<WebTestRequest> UploadPackages(WebTest test, IEnumerable<PackageToUploadInternal> packagesToUpload)
-        {
-            return 
-                Login(test)
-                    .Concat(packagesToUpload.SelectMany(p => UploadPackage(test, p)))
-                    .GetEnumerator();
-        }
-        
-        private static IEnumerable<WebTestRequest> Login(WebTest test)
-        {
-            var defaultExtractionRule = AssertAndValidationHelper.GetDefaultExtractHiddenFields();
+            var token = tokenMatch.Groups[1].Value;
 
-            // Do initial login
-            var logonGet = AssertAndValidationHelper.GetLogonGetRequest();
-            yield return logonGet;
+            // Create package file
+            var packageCreationHelper = new PackageCreationHelper();
+            string packagePath = await packageCreationHelper.CreatePackage(package.Id, package.Version);
 
-            var logonPost = AssertAndValidationHelper.GetLogonPostRequest(test);
-            yield return logonPost;
-        }
+            // Upload package
+            using var packageContent = new MultipartFormDataContent
+            {
+                { new StringContent(token), "__RequestVerificationToken" }
+            };
 
-        private static IEnumerable<WebTestRequest> UploadPackage(WebTest test, PackageToUploadInternal packageToUpload)
-        {
-            // Navigate to the upload page.
-            var uploadRequest = AssertAndValidationHelper.GetHttpRequestForUrl(UrlHelper.UploadPageUrl);
-            yield return uploadRequest;
+            using var fileStream = File.OpenRead(packagePath);
+            using var fileContent = new StreamContent(fileStream);
+            packageContent.Add(fileContent, "UploadFile", Path.GetFileName(packagePath));
 
-            // Cancel any pending uploads.
-            // We can't upload the new package if any uploads are pending.
-            var cancelUploadPostRequest = AssertAndValidationHelper.GetCancelUploadPostRequestForPackage(test);
-            yield return cancelUploadPostRequest;
+            var uploadResponse = await client.PostAsync(UrlHelper.UploadPageUrl, packageContent);
+            uploadResponse.EnsureSuccessStatusCode();
 
-            // Upload the new package.
-            var uploadPostRequest = AssertAndValidationHelper.GetUploadPostRequestForPackage(test, packageToUpload.FullPath);
-            yield return uploadPostRequest;
+            // Verify package
+            var verifyContent = new MultipartFormDataContent
+            {
+                { new StringContent(token), "__RequestVerificationToken" },
+                { new StringContent(package.Id), "Id" },
+                { new StringContent(package.Version), "Version" },
+                { new StringContent(""), "LicenseUrl" },
+                { new StringContent(""), "Edit.VersionTitle" },
+                { new StringContent("Package description"), "Edit.Description" },
+                { new StringContent(""), "Edit.Summary" },
+                { new StringContent(""), "Edit.IconUrl" },
+                { new StringContent(""), "Edit.ProjectUrl" },
+                { new StringContent("nugettest"), "Edit.Authors" },
+                { new StringContent("Copyright 2013"), "Edit.CopyrightText" },
+                { new StringContent("windows8"), "Edit.Tags" },
+                { new StringContent(""), "Edit.ReleaseNotes" }
+            };
 
-            // Verify the new package.
-            var verifyUploadPostRequest = AssertAndValidationHelper.GetVerifyPackagePostRequestForPackage(test,
-                packageToUpload.Id,
-                packageToUpload.Version,
-                UrlHelper.GetPackagePageUrl(packageToUpload.Id, packageToUpload.Version),
-                packageToUpload.Id,
-                packageToUpload.Owner);
-            yield return verifyUploadPostRequest;
+            if (!string.IsNullOrEmpty(package.Owner))
+            {
+                verifyContent.Add(new StringContent(package.Owner), "Owner");
+            }
+
+            var verifyResponse = await client.PostAsync(UrlHelper.VerifyUploadPageUrl, verifyContent);
+            verifyResponse.EnsureSuccessStatusCode();
         }
     }
 }

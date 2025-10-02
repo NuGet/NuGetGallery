@@ -1,10 +1,11 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 using Xunit.Abstractions;
 
@@ -33,6 +34,8 @@ namespace NuGetGallery.FunctionalTests
         internal static string NugetExePath = @"NuGet.exe";
         internal static string SampleDependency = "SampleDependency";
         internal static string SampleDependencyVersion = "1.0";
+
+        private static string _nugetExePath;
 
         public CommandlineHelper(ITestOutputHelper testOutputHelper)
             : base(testOutputHelper)
@@ -171,7 +174,7 @@ namespace NuGetGallery.FunctionalTests
         public async Task<ProcessResult> InvokeNugetProcess(List<string> arguments, string workingDir = null, int timeout = 360)
         {
             var nugetProcess = new Process();
-            var pathToNugetExe = Path.Combine(Environment.CurrentDirectory, NugetExePath);
+            var pathToNugetExe = FindNuGetExePath();
 
             arguments.Add(NonInteractiveSwitchString);
 
@@ -212,6 +215,65 @@ namespace NuGetGallery.FunctionalTests
 
             var processResult = new ProcessResult(nugetProcess.ExitCode, standardError);
             return processResult;
+        }
+
+        private string FindNuGetExePath()
+        {
+            // Check if we already found NuGet.exe and it still exists
+            if (_nugetExePath != null && File.Exists(_nugetExePath))
+            {
+                return _nugetExePath;
+            }
+
+            // Look for NuGet.exe in the folder hierarchy starting from the folder containing
+            // the test assembly then the current working directory. Note that we need to use
+            // Assembly.CodeBase instead of Assembly.Location because if tests are running
+            // in a non-default AppDomain the location will be some temporary folder.
+            var visitedFolders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var assembly = Assembly.GetExecutingAssembly();
+            var codeBasePath = new Uri(assembly.CodeBase).LocalPath;
+            codeBasePath = Path.GetDirectoryName(codeBasePath);
+            string path =
+                FindFileInFolderHierarchy(visitedFolders, NugetExePath, codeBasePath) ??
+                FindFileInFolderHierarchy(visitedFolders, NugetExePath, Environment.CurrentDirectory);
+
+            if (path != null)
+            {
+                _nugetExePath = path;
+                return path;
+            }
+
+            throw new FileNotFoundException("Could not find NuGet.exe");
+        }
+
+        private string FindFileInFolderHierarchy(HashSet<string> visitedFolders, string fileName, string startDirectory)
+        {
+            var directory = new DirectoryInfo(startDirectory);
+            visitedFolders.Add(directory.Root.FullName); // exclude root direcrory, e.g. c:\
+            while (directory != null && visitedFolders.Add(directory.FullName))
+            {
+                var filePath = Path.Combine(directory.FullName, fileName);
+                if (VerifyAndLogNuGetExePath(filePath))
+                {
+                    return filePath;
+                }
+                directory = directory.Parent;
+            }
+            return null;
+        }
+
+        private bool VerifyAndLogNuGetExePath(string path)
+        {
+            if (File.Exists(path))
+            {
+                WriteLine($"FOUND: {path}");
+                return true;
+            }
+            else
+            {
+                WriteLine($"MISSING: {path}");
+                return false;
+            }
         }
 
         public sealed class ProcessResult

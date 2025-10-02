@@ -1,10 +1,11 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Web.UI;
-using Microsoft.VisualStudio.TestTools.WebTesting;
+using System.Net.Http;
+using System.Threading.Tasks;
 using NuGetGallery.FunctionalTests.Helpers;
+using Xunit;
 
 namespace NuGetGallery.FunctionalTests.WebUITests.AccountManagement
 {
@@ -13,28 +14,38 @@ namespace NuGetGallery.FunctionalTests.WebUITests.AccountManagement
     /// priority : p0
     /// </summary>
     public class LogonTest
-        : WebTest
     {
-        public LogonTest()
+        [Priority(0)]
+        [Fact]
+        public async Task CanLogonWithValidCredentials()
         {
-            PreAuthenticate = true;
-        }
+            // Arrange
+            using var client = new HttpClient();
+            var cookieContainer = new System.Net.CookieContainer();
+            using var handler = new HttpClientHandler { CookieContainer = cookieContainer };
+            using var authenticatedClient = new HttpClient(handler);
 
-        public override IEnumerator<WebTestRequest> GetRequestEnumerator()
-        {
-            //Do initial login
-            WebTestRequest logonGet = AssertAndValidationHelper.GetLogonGetRequest();
-            yield return logonGet;
+            // Act
+            // First get the logon page to retrieve any anti-forgery tokens
+            var logonGetResponse = await authenticatedClient.GetAsync(UrlHelper.LogonPageUrl);
+            logonGetResponse.EnsureSuccessStatusCode();
 
-            WebTestRequest logonPostRequest = AssertAndValidationHelper.GetLogonPostRequest(this);
-            var loggedOnUserNameValidationRule = AssertAndValidationHelper.GetValidationRuleForHtmlTagInnerText(
-                HtmlTextWriterTag.Span.ToString(),
-                HtmlTextWriterAttribute.Class.ToString(),
-                "dropdown-username",
-                "NugetTestAccount");
-            logonPostRequest.ValidateResponse += loggedOnUserNameValidationRule.Validate;
+            // Extract form data and tokens from the response
+            var logonGetContent = await logonGetResponse.Content.ReadAsStringAsync();
 
-            yield return logonPostRequest;
+            // Post login credentials
+            var formData = AssertAndValidationHelper.GetLogonPostFormData(logonGetContent);
+            var logonPostResponse = await authenticatedClient.PostAsync(
+                UrlHelper.SignInPageUrl,
+                new FormUrlEncodedContent(formData)
+            );
+
+            // Assert
+            logonPostResponse.EnsureSuccessStatusCode();
+            var logonPostContent = await logonPostResponse.Content.ReadAsStringAsync();
+
+            // Check that the logged-in username appears in the response
+            Assert.Contains(@"<span class=""dropdown-username"">NugetTestAccount</span>", logonPostContent);
         }
     }
 }
