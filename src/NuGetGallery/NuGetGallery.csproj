@@ -133,6 +133,7 @@
     <Compile Include="Areas\Admin\Controllers\FederatedCredentialsController.cs" />
     <Compile Include="Areas\Admin\Controllers\LockUserController.cs" />
     <Compile Include="Areas\Admin\Controllers\LockPackageController.cs" />
+    <Compile Include="Areas\Admin\Controllers\PackageSponsorshipController.cs" />
     <Compile Include="Areas\Admin\Controllers\PasswordAuthenticationController.cs" />
     <Compile Include="Areas\Admin\Controllers\PopularityTransferController.cs" />
     <Compile Include="Areas\Admin\Controllers\ReservedNamespaceController.cs" />
@@ -200,6 +201,7 @@
     <Compile Include="Areas\Admin\ViewModels\ModifyFeatureFlagsFeatureViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ModifyFeatureFlagsFlightViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ApiKeyRevokeViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\PackageSponsorshipIndexViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\PackageOwnershipChangesInput.cs" />
     <Compile Include="Areas\Admin\ViewModels\PackageOwnershipState.cs" />
     <Compile Include="Areas\Admin\ViewModels\PackageOwnershipChangesModel.cs" />
@@ -353,6 +355,10 @@
     <Compile Include="Migrations\202507101756059_AddFederatedCredentialPolicyName.cs" />
     <Compile Include="Migrations\202507101756059_AddFederatedCredentialPolicyName.Designer.cs">
       <DependentUpon>202507101756059_AddFederatedCredentialPolicyName.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202509042111492_AddSponsorshipUrlsToPackageRegistrations.cs" />
+    <Compile Include="Migrations\202509042111492_AddSponsorshipUrlsToPackageRegistrations.Designer.cs">
+      <DependentUpon>202509042111492_AddSponsorshipUrlsToPackageRegistrations.cs</DependentUpon>
     </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
@@ -1730,6 +1736,9 @@
     <EmbeddedResource Include="Migrations\202507101756059_AddFederatedCredentialPolicyName.resx">
       <DependentUpon>202507101756059_AddFederatedCredentialPolicyName.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202509042111492_AddSponsorshipUrlsToPackageRegistrations.resx">
+      <DependentUpon>202509042111492_AddSponsorshipUrlsToPackageRegistrations.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
@@ -1737,6 +1746,7 @@
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2search.json" />
     <Content Include="Areas\Admin\Views\SecurityPolicy\Index.cshtml" />
     <Content Include="Areas\Admin\Views\ReservedNamespace\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\PackageSponsorship\Index.cshtml" />
     <Content Include="Areas\Admin\Views\DeleteAccount\Index.cshtml" />
     <Content Include="Areas\Admin\Views\Validation\Index.cshtml" />
     <Content Include="Areas\Admin\Views\DeleteAccount\DeleteAccountStatus.cshtml" />
@@ -1889,6 +1899,7 @@
     <EmbeddedResource Include="Infrastructure\AddPackageLicenseReport.sql" />
     <Content Include="Public\robots.txt" />
     <Content Include="App_Data\Files\Content\Trusted-Image-Domains.json" />
+    <Content Include="App_Data\Files\Content\Trusted-Sponsorship-Domains.json" />
     <Content Include="App_Data\Files\Content\Typosquatting-Configuration.json" />
     <Content Include="App_Data\Files\Content\flags.json" />
     <Content Include="Areas\Admin\Views\DeleteAccount\DeleteOrganizationAccount.cshtml" />
@@ -1928,6 +1939,7 @@
     <Content Include="Scripts\gallery\page-manage-organization.js" />
     <Content Include="Scripts\gallery\page-manage-owners.js" />
     <Content Include="Scripts\gallery\page-manage-packages.js" />
+    <Content Include="Scripts\gallery\page-manage-sponsorship-links.js" />
     <Content Include="Scripts\gallery\page-signin.js" />
     <Content Include="Scripts\gallery\page-support-requests.js" />
     <Content Include="Scripts\gallery\stats-dimensions.js" />
@@ -1966,6 +1978,7 @@
     <Content Include="Views\Packages\_ManageListing.cshtml" />
     <Content Include="Views\Packages\_ManageDocumentation.cshtml" />
     <Content Include="Views\Packages\_ManageOwners.cshtml" />
+    <Content Include="Views\Packages\_ManageSponsorshipLinks.cshtml" />
     <Content Include="api\Web.config" />
     <Compile Include="Infrastructure\Lucene\LuceneSearchService.cs" />
     <Content Include="Views\Shared\ConfirmationRequired.cshtml" />
@@ -2313,6 +2326,7 @@
   <ItemGroup>
     <Content Include="Views\Users\TrustedPublishing.cshtml" />
   </ItemGroup>
+
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>

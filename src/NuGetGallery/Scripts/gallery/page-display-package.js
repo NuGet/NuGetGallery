@@ -1,5 +1,70 @@
-﻿$(function () {
+$(function () {
     'use strict';
+
+    var packageId = window.nuget && window.nuget.packageId || null;
+    var packageVersion = window.nuget && window.nuget.packageVersion || null;
+    var packageManagers = window.nuget && window.nuget.packageManagers || [];
+    var sponsorshipUrlCount = window.nuget && window.nuget.sponsorshipUrlCount || 0;
+
+    // Sponsorship popup functions
+    function trackSponsorshipLinkClick(sponsorshipUrl) {
+        // Track sponsorship link clicked
+        if (window.nuget && window.nuget.sendMetric) {
+            window.nuget.sendMetric('SponsorshipLinkClicked', 1, {
+                PackageId: packageId,
+                PackageVersion: packageVersion,
+                SponsorshipUrl: sponsorshipUrl,
+                ClickSource: 'Popup'
+            });
+        }
+    }
+
+    // Initialize sponsorship popup functionality using Bootstrap modal
+    function initializeSponsorshipPopup() {
+        var popup = $('#sponsorship-popup');
+        
+        if (popup.length) {
+            // Bootstrap modal event handlers
+            popup.on('show.bs.modal', function() {
+                // Track popup opened
+                if (window.nuget && window.nuget.sendMetric) {
+                    window.nuget.sendMetric('SponsorshipPopupOpened', 1, {
+                        PackageId: packageId,
+                        PackageVersion: packageVersion,
+                        SponsorshipUrlCount: sponsorshipUrlCount
+                    });
+                }
+            });
+
+            popup.on('hide.bs.modal', function() {
+                // Track popup closed
+                if (window.nuget && window.nuget.sendMetric) {
+                    window.nuget.sendMetric('SponsorshipPopupClosed', 1, {
+                        PackageId: packageId,
+                        PackageVersion: packageVersion
+                    });
+                }
+            });
+
+            // Handle sponsorship link clicks
+            $(document).on('click', function(e) {
+                if (e.target.classList.contains('sidebar-link') && e.target.hasAttribute('data-sponsorship-url')) {
+                    var sponsorshipUrl = e.target.getAttribute('data-sponsorship-url');
+                    if (sponsorshipUrl) {
+                        trackSponsorshipLinkClick(JSON.parse(sponsorshipUrl));
+                    }
+                }
+            });
+        }
+    }
+
+    // Initialize sponsorship popup when DOM is ready
+    initializeSponsorshipPopup();
+
+    // Configure the rename information container
+    window.nuget.configureExpander("rename-content-container", "ChevronDown", null, "ChevronUp");
+    configureExpanderWithEnterKeydown($('#show-rename-content-container'));
+    var expanderAttributes = ['data-toggle', 'data-target', 'aria-expanded', 'aria-controls', 'tabindex'];
 
     // Configure the rename information container
     window.nuget.configureExpander("rename-content-container", "ChevronDown", null, "ChevronUp");

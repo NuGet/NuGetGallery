@@ -191,7 +191,8 @@ namespace NuGetGallery
             IABTestService abTestService,
             IIconUrlProvider iconUrlProvider,
             IMarkdownService markdownService,
-            IPackageFrameworkCompatibilityFactory compatibilityFactory)
+            IPackageFrameworkCompatibilityFactory compatibilityFactory,
+            ISponsorshipUrlService sponsorshipUrlService)
         {
             _packageFilter = packageFilter;
             _packageService = packageService;
@@ -230,11 +231,11 @@ namespace NuGetGallery
             _abTestService = abTestService ?? throw new ArgumentNullException(nameof(abTestService));
             _iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
 
-            _displayPackageViewModelFactory = new DisplayPackageViewModelFactory(_iconUrlProvider, _compatibilityFactory, featureFlagService);
+            _displayPackageViewModelFactory = new DisplayPackageViewModelFactory(_iconUrlProvider, _compatibilityFactory, featureFlagService, sponsorshipUrlService);
             _displayLicenseViewModelFactory = new DisplayLicenseViewModelFactory(_iconUrlProvider, _markdownService, _featureFlagService);
             _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(_iconUrlProvider, _compatibilityFactory, _featureFlagService);
-            _managePackageViewModelFactory = new ManagePackageViewModelFactory(_iconUrlProvider, _compatibilityFactory, featureFlagService);
-            _deletePackageViewModelFactory = new DeletePackageViewModelFactory(_iconUrlProvider, _compatibilityFactory, featureFlagService);
+            _managePackageViewModelFactory = new ManagePackageViewModelFactory(_iconUrlProvider, _compatibilityFactory, featureFlagService, sponsorshipUrlService);
+            _deletePackageViewModelFactory = new DeletePackageViewModelFactory(_iconUrlProvider, _compatibilityFactory, featureFlagService, sponsorshipUrlService);
         }
 
         [HttpGet]

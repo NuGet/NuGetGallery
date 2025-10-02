@@ -91,7 +91,8 @@ namespace NuGetGallery
             Mock<IABTestService> abTestService = null,
             Mock<IIconUrlProvider> iconUrlProvider = null,
             Mock<IMarkdownService> markdownService = null,
-            Mock<IPackageFrameworkCompatibilityFactory> compatibilityFactory = null)
+            Mock<IPackageFrameworkCompatibilityFactory> compatibilityFactory = null,
+            Mock<ISponsorshipUrlService> sponsorshipUrlService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             PackageDependents packageDependents = new PackageDependents();
@@ -267,6 +268,13 @@ namespace NuGetGallery
                     .Returns(new PackageFrameworkCompatibility());
             }
 
+            if (sponsorshipUrlService == null)
+            {
+                sponsorshipUrlService = new Mock<ISponsorshipUrlService>();
+                sponsorshipUrlService.Setup(x => x.GetSponsorshipUrlEntries(It.IsAny<PackageRegistration>()))
+                    .Returns(new List<SponsorshipUrlEntry>());
+            }
+
             iconUrlProvider = iconUrlProvider ?? new Mock<IIconUrlProvider>();
 
             abTestService = abTestService ?? new Mock<IABTestService>();
@@ -308,7 +316,8 @@ namespace NuGetGallery
                 abTestService.Object,
                 iconUrlProvider.Object,
                 markdownService.Object,
-                compatibilityFactory.Object);
+                compatibilityFactory.Object,
+                sponsorshipUrlService.Object);
 
             controller.CallBase = true;
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());

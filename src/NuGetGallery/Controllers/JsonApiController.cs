@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -24,6 +25,7 @@ namespace NuGetGallery
         private readonly IAppConfiguration _appConfiguration;
         private readonly IPackageOwnershipManagementService _packageOwnershipManagementService;
         private readonly IFeatureFlagService _features;
+        private readonly ISponsorshipUrlService _sponsorshipUrlService;
 
         public JsonApiController(
             IPackageService packageService,
@@ -31,7 +33,8 @@ namespace NuGetGallery
             IMessageService messageService,
             IAppConfiguration appConfiguration,
             IPackageOwnershipManagementService packageOwnershipManagementService,
-            IFeatureFlagService features)
+            IFeatureFlagService features,
+            ISponsorshipUrlService sponsorshipUrlService)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
@@ -39,6 +42,7 @@ namespace NuGetGallery
             _appConfiguration = appConfiguration ?? throw new ArgumentNullException(nameof(appConfiguration));
             _packageOwnershipManagementService = packageOwnershipManagementService ?? throw new ArgumentNullException(nameof(packageOwnershipManagementService));
             _features = features ?? throw new ArgumentNullException(nameof(features));
+            _sponsorshipUrlService = sponsorshipUrlService ?? throw new ArgumentNullException(nameof(sponsorshipUrlService));
         }
 
         [HttpGet]
@@ -198,6 +202,66 @@ namespace NuGetGallery
             }
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequiresAccountConfirmation("manage a package")]
+        public virtual async Task<JsonResult> AddSponsorshipUrl(string id, string sponsorshipUrl)
+        {
+            if (TryGetPackageForSponsorshipManagement(id, out var package, out var errorMessage))
+            {
+                try
+                {
+                    var currentUser = GetCurrentUser();
+
+                    // Add the sponsorship URL (all validation handled in service layer)
+                    var validatedUrl = await _sponsorshipUrlService.AddSponsorshipUrlAsync(package, sponsorshipUrl, currentUser);
+                    
+                    return Json(new { 
+                        success = true, 
+                        validatedUrl = validatedUrl,
+                        isDomainAccepted = true
+                    });
+                }
+                catch (Exception ex)
+                {
+                    return HandleSponsorshipUrlException(ex, "adding");
+                }
+            }
+            else
+            {
+                return Json(new { 
+                    success = false, 
+                    message = errorMessage
+                }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequiresAccountConfirmation("manage a package")]
+        public virtual async Task<JsonResult> RemoveSponsorshipUrl(string id, string sponsorshipUrl)
+        {
+            if (TryGetPackageForSponsorshipManagement(id, out var package, out var errorMessage))
+            {
+                try
+                {
+                    var currentUser = GetCurrentUser();
+
+                    // Remove the sponsorship URL (all validation handled in service layer)
+                    await _sponsorshipUrlService.RemoveSponsorshipUrlAsync(package, sponsorshipUrl, currentUser);
+                    return Json(new { success = true });
+                }
+                catch (Exception ex)
+                {
+                    return HandleSponsorshipUrlException(ex, "removing");
+                }
+            }
+            else
+            {
+                return Json(new { success = false, message = errorMessage }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
         private bool TryGetManagePackageOwnerModel(string id, string username, bool isAddOwner, out ManagePackageOwnerModel model)
         {
             if (string.IsNullOrEmpty(id))
@@ -275,6 +339,58 @@ namespace NuGetGallery
 
             model = new ManagePackageOwnerModel(package, user, currentUser);
             return true;
+        }
+
+        private bool TryGetPackageForSponsorshipManagement(string id, out PackageRegistration package, out string errorMessage)
+        {
+            package = null;
+            errorMessage = null;
+
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                errorMessage = "Package ID is required.";
+                return false;
+            }
+
+            // Check authentication first before looking up package information
+            var currentUser = GetCurrentUser();
+            if (currentUser == null)
+            {
+                errorMessage = "You must be signed in.";
+                return false;
+            }
+
+            package = _packageService.FindPackageRegistrationById(id);
+            if (package == null)
+            {
+                errorMessage = "Package not found.";
+                return false;
+            }
+
+            // Use ManagePackageOwnership permission since sponsorship links are sensitive metadata
+            // that should only be managed by owners/admins, not regular collaborators
+            if (ActionsRequiringPermissions.ManagePackageOwnership.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) != PermissionsCheckResult.Allowed)
+            {
+                errorMessage = "You do not have permission to manage sponsorship links for this package.";
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Common error handling pattern for sponsorship URL operations
+        /// </summary>
+        private JsonResult HandleSponsorshipUrlException(Exception ex, string operation)
+        {
+            // SponsorshipUrlValidationException contains user-friendly validation messages from sponsorship service
+            // These are safe to surface to users, while other exceptions may not be
+            if (ex is SponsorshipUrlValidationException)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+            
+            return Json(new { success = false, message = $"An error occurred while {operation} the sponsorship URL." }, JsonRequestBehavior.AllowGet);
         }
 
         private class ManagePackageOwnerModel
