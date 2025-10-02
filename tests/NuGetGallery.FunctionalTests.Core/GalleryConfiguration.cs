@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -46,7 +46,8 @@ namespace NuGetGallery.FunctionalTests
 
                 // Initialize KeyVault integration.
                 var secretReaderFactory = new ConfigurationRootSecretReaderFactory(uninjectedConfiguration);
-                var secretInjector = secretReaderFactory.CreateSecretInjector(secretReaderFactory.CreateSecretReader());
+                var secretReader = new EnvVarWrapperSecretReader(secretReaderFactory);
+                var secretInjector = secretReaderFactory.CreateSecretInjector(secretReader);
 
                 // Initialize the configuration with KeyVault secrets injected.
                 var builder = new ConfigurationBuilder()
