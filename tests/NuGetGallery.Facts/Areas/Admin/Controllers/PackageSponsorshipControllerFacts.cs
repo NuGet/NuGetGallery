@@ -160,7 +160,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
 					SetupValidPackageAndUser(packageRegistration, user);
 					SponsorshipUrlService.Setup(x => x.AddSponsorshipUrlAsync(packageRegistration, emptyUrl, user))
-						.ThrowsAsync(new ArgumentException("Please enter a URL."));
+						.ThrowsAsync(new SponsorshipUrlValidationException("Please enter a URL."));
 
 					// Act
 					var result = await Controller.AddUrl(packageId, emptyUrl);
@@ -182,7 +182,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 					SetupValidPackageAndUser(packageRegistration, user);
 					TrustedSponsorshipDomains.Setup(x => x.MaxSponsorshipLinks).Returns(maxLinks);
 					SponsorshipUrlService.Setup(x => x.AddSponsorshipUrlAsync(packageRegistration, url, user))
-						.ThrowsAsync(new ArgumentException($"You can add a maximum of {maxLinks} sponsorship links."));
+						.ThrowsAsync(new SponsorshipUrlValidationException($"You can add a maximum of {maxLinks} sponsorship links."));
 
 					// Act
 					var result = await Controller.AddUrl(packageId, url);
@@ -194,7 +194,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 				[Theory]
 				[InlineData("invalid-url", "Invalid URL format")]
 				[InlineData("ftp://example.com", "Unsupported protocol")]
-				public async Task RedirectsWithErrorWhenArgumentExceptionThrown(string invalidUrl, string expectedErrorMessage)
+				public async Task RedirectsWithErrorWhenSponsorshipUrlValidationExceptionThrown(string invalidUrl, string expectedErrorMessage)
 				{
 					// Arrange
 					var packageId = "TestPackage";
@@ -203,13 +203,13 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
 					SetupValidPackageAndUser(packageRegistration, user);
 					SponsorshipUrlService.Setup(x => x.AddSponsorshipUrlAsync(packageRegistration, invalidUrl, user))
-						.ThrowsAsync(new ArgumentException(expectedErrorMessage));
+						.ThrowsAsync(new SponsorshipUrlValidationException(expectedErrorMessage));
 
 					// Act
 					var result = await Controller.AddUrl(packageId, invalidUrl);
 
 					// Assert
-					AssertRedirectWithError(result, packageId, $"Invalid URL: {expectedErrorMessage}");
+					AssertRedirectWithError(result, packageId, $"{expectedErrorMessage}");
 				}
 
 				[Fact]

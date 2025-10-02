@@ -959,7 +959,7 @@ namespace NuGetGallery.Controllers
 
                     var mockSponsorshipService = GetMock<ISponsorshipUrlService>();
                     mockSponsorshipService.Setup(x => x.AddSponsorshipUrlAsync(packageRegistration, sponsorshipUrl, owner))
-                        .ThrowsAsync(new UserSafeException("Sponsorship URL is required."));
+                        .ThrowsAsync(new SponsorshipUrlValidationException("Sponsorship URL is required."));
 
                     var controller = GetController<JsonApiController>();
                     controller.SetCurrentUser(owner);
@@ -991,7 +991,7 @@ namespace NuGetGallery.Controllers
 
                     var mockSponsorshipService = GetMock<ISponsorshipUrlService>();
                     mockSponsorshipService.Setup(x => x.AddSponsorshipUrlAsync(packageRegistration, longUrl, owner))
-                        .ThrowsAsync(new UserSafeException("URL is too long."));
+                        .ThrowsAsync(new SponsorshipUrlValidationException("URL is too long."));
 
                     var controller = GetController<JsonApiController>();
                     controller.SetCurrentUser(owner);
@@ -1105,7 +1105,7 @@ namespace NuGetGallery.Controllers
                         .Returns(new List<SponsorshipUrlEntry>().AsReadOnly());
 
                     mockSponsorshipService.Setup(x => x.AddSponsorshipUrlAsync(packageRegistration, It.IsAny<string>(), owner))
-                        .ThrowsAsync(new UserSafeException("Invalid URL format."));
+                        .ThrowsAsync(new SponsorshipUrlValidationException("Invalid URL format."));
 
                     var controller = GetController<JsonApiController>();
                     controller.SetCurrentUser(owner);
@@ -1156,7 +1156,7 @@ namespace NuGetGallery.Controllers
                     var mockSponsorshipService = GetMock<ISponsorshipUrlService>();
                     var url = "https://github.com/sponsors/user";
                     mockSponsorshipService.Setup(x => x.AddSponsorshipUrlAsync(packageRegistration, url, owner))
-                        .ThrowsAsync(new UserSafeException("Sponsorship URL already exists."));
+                        .ThrowsAsync(new SponsorshipUrlValidationException("Sponsorship URL already exists."));
 
                     var controller = GetController<JsonApiController>();
                     controller.SetCurrentUser(owner);
@@ -1172,7 +1172,7 @@ namespace NuGetGallery.Controllers
                 }
 
                 [Fact]
-                public async Task ReturnsGenericErrorForNonUserSafeException()
+                public async Task ReturnsGenericErrorForNonSponsorshipValidationException()
                 {
                     // Arrange
                     var fakes = Get<Fakes>();
@@ -1318,7 +1318,7 @@ namespace NuGetGallery.Controllers
 
                     var mockSponsorshipService = GetMock<ISponsorshipUrlService>();
                     mockSponsorshipService.Setup(x => x.RemoveSponsorshipUrlAsync(packageRegistration, sponsorshipUrl, owner))
-                        .ThrowsAsync(new UserSafeException("Sponsorship URL is required."));
+                        .ThrowsAsync(new SponsorshipUrlValidationException("Sponsorship URL is required."));
 
                     var controller = GetController<JsonApiController>();
                     controller.SetCurrentUser(owner);
@@ -1421,7 +1421,7 @@ namespace NuGetGallery.Controllers
 
                     var mockSponsorshipService = GetMock<ISponsorshipUrlService>();
                     mockSponsorshipService.Setup(x => x.RemoveSponsorshipUrlAsync(packageRegistration, It.IsAny<string>(), owner))
-                        .ThrowsAsync(new UserSafeException("Sponsorship URL not found."));
+                        .ThrowsAsync(new SponsorshipUrlValidationException("Sponsorship URL not found."));
 
                     var controller = GetController<JsonApiController>();
                     controller.SetCurrentUser(owner);
@@ -1490,7 +1490,7 @@ namespace NuGetGallery.Controllers
                 }
 
                 [Fact]
-                public async Task ReturnsGenericErrorForNonUserSafeException()
+                public async Task ReturnsGenericErrorForNonSponsorshipUrlValidationException()
                 {
                     // Arrange
                     var fakes = Get<Fakes>();

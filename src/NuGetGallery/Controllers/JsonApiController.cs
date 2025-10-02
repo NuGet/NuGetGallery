@@ -207,55 +207,31 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("manage a package")]
         public virtual async Task<JsonResult> AddSponsorshipUrl(string id, string sponsorshipUrl)
         {
-            var debugMessages = new List<string>();
-            debugMessages.Add($"[DEBUG] AddSponsorshipUrl called with id: {id}, sponsorshipUrl: {sponsorshipUrl}");
-            
             if (TryGetPackageForSponsorshipManagement(id, out var package, out var errorMessage))
             {
                 try
                 {
                     var currentUser = GetCurrentUser();
-                    debugMessages.Add($"[DEBUG] Current user: {currentUser?.Username}");
-                    debugMessages.Add($"[DEBUG] Package found: {package?.Id}");
 
                     // Add the sponsorship URL (all validation handled in service layer)
-                    debugMessages.Add("[DEBUG] Calling SponsorshipUrlService.AddSponsorshipUrlAsync...");
                     var validatedUrl = await _sponsorshipUrlService.AddSponsorshipUrlAsync(package, sponsorshipUrl, currentUser);
-                    debugMessages.Add($"[DEBUG] Service call completed successfully. Validated URL: {validatedUrl}");
                     
                     return Json(new { 
                         success = true, 
                         validatedUrl = validatedUrl,
-                        isDomainAccepted = true,
-                        debug = debugMessages // Include debug info in response
+                        isDomainAccepted = true
                     });
                 }
                 catch (Exception ex)
                 {
-                    debugMessages.Add($"[ERROR] Exception in controller: {ex.GetType().Name}: {ex.Message}");
-                    debugMessages.Add($"[ERROR] Stack trace: {ex.StackTrace}");
-                    if (ex.InnerException != null)
-                    {
-                        debugMessages.Add($"[ERROR] Inner exception: {ex.InnerException.GetType().Name}: {ex.InnerException.Message}");
-                    }
-                    
-                    var result = HandleSponsorshipUrlException(ex, "adding");
-                    // Add debug info to error response
-                    var errorData = result.Data as dynamic;
-                    return Json(new { 
-                        success = false, 
-                        message = errorData?.message ?? "An error occurred",
-                        debug = debugMessages 
-                    });
+                    return HandleSponsorshipUrlException(ex, "adding");
                 }
             }
             else
             {
-                debugMessages.Add($"[ERROR] TryGetPackageForSponsorshipManagement failed: {errorMessage}");
                 return Json(new { 
                     success = false, 
-                    message = errorMessage,
-                    debug = debugMessages 
+                    message = errorMessage
                 }, JsonRequestBehavior.AllowGet);
             }
         }
@@ -407,11 +383,11 @@ namespace NuGetGallery
         /// </summary>
         private JsonResult HandleSponsorshipUrlException(Exception ex, string operation)
         {
-            // UserSafeException contains user-friendly validation messages from the service layer (e.g "Please enter a valid URL.......")
+            // SponsorshipUrlValidationException contains user-friendly validation messages from sponsorship service
             // These are safe to surface to users, while other exceptions may not be
-            if (ex is UserSafeException userSafeEx)
+            if (ex is SponsorshipUrlValidationException)
             {
-                return Json(new { success = false, message = userSafeEx.Message }, JsonRequestBehavior.AllowGet);
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
             }
             
             return Json(new { success = false, message = $"An error occurred while {operation} the sponsorship URL." }, JsonRequestBehavior.AllowGet);

@@ -13,6 +13,14 @@ using NuGetGallery.Services;
 namespace NuGetGallery
 {
 	/// <summary>
+	/// Exception for validation errors in sponsorship URL operations
+	/// </summary>
+	public class SponsorshipUrlValidationException : ArgumentException
+	{
+		public SponsorshipUrlValidationException(string message) : base(message) { }
+	}
+
+	/// <summary>
 	/// Service for managing sponsorship URLs for packages.
 	/// </summary>
 	public class SponsorshipUrlService : ISponsorshipUrlService
@@ -37,121 +45,59 @@ namespace NuGetGallery
 
 	public async Task<string> AddSponsorshipUrlAsync(PackageRegistration packageRegistration, string url, User user)
 	{
-		var debugMessages = new List<string>();
-		debugMessages.Add($"[DEBUG] AddSponsorshipUrlAsync starting for package: {packageRegistration?.Id}, URL: {url}, User: {user?.Username}");
-		
 		// Validate required parameters before any DB interaction
 		if (packageRegistration == null)
 		{
-			debugMessages.Add("[DEBUG] ArgumentNullException: packageRegistration is null");
 			throw new ArgumentNullException(nameof(packageRegistration));
 		}
 		if (user == null)
 		{
-			debugMessages.Add("[DEBUG] ArgumentNullException: user is null");
 			throw new ArgumentNullException(nameof(user));
 		}
 
-		debugMessages.Add("[DEBUG] Accessing TrustedSponsorshipDomains...");
-		
-		var trustedDomains = _contentObjectService.TrustedSponsorshipDomains;
-		debugMessages.Add($"[DEBUG] TrustedSponsorshipDomains - MaxLinks: {trustedDomains?.MaxSponsorshipLinks}");
-		
-		// Display the actual domains loaded from configuration
-		if (trustedDomains is TrustedSponsorshipDomains concreteDomains && concreteDomains.TrustedSponsorshipDomainList != null)
+		// Validate URL format and domain acceptance
+		if (!PackageHelper.ValidateSponsorshipUrl(url, _contentObjectService.TrustedSponsorshipDomains, out string validatedUrl, out string errorMessage))
 		{
-			debugMessages.Add($"[DEBUG] Configured domains count: {concreteDomains.TrustedSponsorshipDomainList.Count}");
-			debugMessages.Add($"[DEBUG] Configured domains: {string.Join(", ", concreteDomains.TrustedSponsorshipDomainList)}");
-		}
-		else
-		{
-			debugMessages.Add("[DEBUG] Unable to access domain list - service may not be TrustedSponsorshipDomains type or list is null");
+			throw new SponsorshipUrlValidationException(errorMessage);
 		}
 
-		try
+		// Get max links limit before starting transaction
+		var maxLinks = _contentObjectService.TrustedSponsorshipDomains.MaxSponsorshipLinks;
+
+		// Read existing entries before starting transaction (no DB access needed)
+		var existingEntries = GetSponsorshipUrlEntriesInternal(packageRegistration).ToList();
+
+		// Check URL count limit
+		if (existingEntries.Count >= maxLinks)
 		{
-			// Validate URL format and domain acceptance
-			if (!PackageHelper.ValidateSponsorshipUrl(url, _contentObjectService.TrustedSponsorshipDomains, out string validatedUrl, out string errorMessage))
-			{
-				debugMessages.Add($"[DEBUG] URL validation failed: {errorMessage}");
-				// Create a detailed error message that includes debug info
-				var detailedError = $"{errorMessage}\n\nDebug Info:\n{string.Join("\n", debugMessages)}";
-				throw new ArgumentException(detailedError);
-			}
-
-			// Get max links limit before starting transaction
-			var maxLinks = _contentObjectService.TrustedSponsorshipDomains.MaxSponsorshipLinks;
-			debugMessages.Add($"[DEBUG] Max links allowed: {maxLinks}");
-
-			// Read existing entries before starting transaction (no DB access needed)
-			var existingEntries = GetSponsorshipUrlEntriesInternal(packageRegistration).ToList();
-			debugMessages.Add($"[DEBUG] Existing entries count: {existingEntries.Count}");
-
-			// Check URL count limit
-			if (existingEntries.Count >= maxLinks)
-			{
-				debugMessages.Add($"[DEBUG] Max links exceeded: {existingEntries.Count} >= {maxLinks}");
-				throw new ArgumentException($"You can add a maximum of {maxLinks} sponsorship links.");
-			}
-
-			// Capture timestamp once for consistency between database and audit
-			var timestamp = DateTime.UtcNow;
-
-			// Prepare new entry and JSON for persistence
-			var newEntry = new { Url = validatedUrl, Timestamp = timestamp };
-			var entriesToPersist = existingEntries.Select(e => new { e.Url, e.Timestamp }).ToList();
-			entriesToPersist.Add(newEntry);
-			var newSponsorshipUrlsJson = JsonConvert.SerializeObject(entriesToPersist);
-
-			debugMessages.Add("[DEBUG] Starting database transaction...");
-			using (new SuspendDbExecutionStrategy())
-			using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
-			{
-				try
-				{
-					// Only modify the entity property inside the transaction
-					packageRegistration.SponsorshipUrls = newSponsorshipUrlsJson;
-					debugMessages.Add("[DEBUG] Updated package registration with new JSON");
-
-					// Save changes to database
-					await _entitiesContext.SaveChangesAsync();
-					debugMessages.Add("[DEBUG] Database changes saved successfully");
-
-					// Create audit record with the same timestamp used in database
-					debugMessages.Add("[DEBUG] Calling audit service...");
-					await _auditingService.SaveAuditRecordAsync(
-						PackageRegistrationAuditRecord.CreateForAddSponsorshipUrl(packageRegistration, validatedUrl, user.Username, user.IsAdministrator, timestamp));
-					debugMessages.Add("[DEBUG] Audit record saved successfully");
-
-					transaction.Commit();
-					debugMessages.Add("[DEBUG] Transaction committed successfully");
-
-					return validatedUrl;
-				}
-				catch (Exception ex)
-				{
-					debugMessages.Add($"[ERROR] Exception during transaction: {ex.GetType().Name}: {ex.Message}");
-					debugMessages.Add($"[ERROR] Stack trace: {ex.StackTrace}");
-					if (ex.InnerException != null)
-					{
-						debugMessages.Add($"[ERROR] Inner exception: {ex.InnerException.GetType().Name}: {ex.InnerException.Message}");
-					}
-					throw;
-				}
-			}
+			throw new SponsorshipUrlValidationException($"You can add a maximum of {maxLinks} sponsorship links.");
 		}
-		catch (Exception ex)
+
+		// Capture timestamp once for consistency between database and audit
+		var timestamp = DateTime.UtcNow;
+
+		// Prepare new entry and JSON for persistence
+		var newEntry = new { Url = validatedUrl, Timestamp = timestamp };
+		var entriesToPersist = existingEntries.Select(e => new { e.Url, e.Timestamp }).ToList();
+		entriesToPersist.Add(newEntry);
+		var newSponsorshipUrlsJson = JsonConvert.SerializeObject(entriesToPersist);
+
+		using (new SuspendDbExecutionStrategy())
+		using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
 		{
-			debugMessages.Add($"[ERROR] Exception in AddSponsorshipUrlAsync: {ex.GetType().Name}: {ex.Message}");
-			debugMessages.Add($"[ERROR] Stack trace: {ex.StackTrace}");
-			if (ex.InnerException != null)
-			{
-				debugMessages.Add($"[ERROR] Inner exception: {ex.InnerException.GetType().Name}: {ex.InnerException.Message}");
-			}
-			
-			// Include debug info in exception message for visibility
-			var detailedError = $"{ex.Message}\n\nDebug Info:\n{string.Join("\n", debugMessages)}";
-			throw new Exception(detailedError, ex);
+			// Only modify the entity property inside the transaction
+			packageRegistration.SponsorshipUrls = newSponsorshipUrlsJson;
+
+			// Save changes to database
+			await _entitiesContext.SaveChangesAsync();
+
+			// Create audit record with the same timestamp used in database
+			await _auditingService.SaveAuditRecordAsync(
+				PackageRegistrationAuditRecord.CreateForAddSponsorshipUrl(packageRegistration, validatedUrl, user.Username, user.IsAdministrator, timestamp));
+
+			transaction.Commit();
+
+			return validatedUrl;
 		}
 	}
 
@@ -168,7 +114,7 @@ namespace NuGetGallery
 		}
 		if (string.IsNullOrWhiteSpace(url))
 		{
-			throw new ArgumentException("URL cannot be null or empty", nameof(url));
+			throw new SponsorshipUrlValidationException("URL cannot be null or empty");
 		}
 
 		// Read existing entries before starting transaction (no DB access needed)
@@ -180,7 +126,7 @@ namespace NuGetGallery
 
 		if (entryToRemove == null)
 		{
-			throw new ArgumentException("The specified sponsorship URL was not found for this package.", nameof(url));
+			throw new SponsorshipUrlValidationException("The specified sponsorship URL was not found for this package.");
 		}
 
 		// Capture removal timestamp for consistency between database and audit

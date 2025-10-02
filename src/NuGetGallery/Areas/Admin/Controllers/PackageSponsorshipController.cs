@@ -132,9 +132,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
         private ActionResult HandleSponsorshipUrlException(string packageId, Exception ex, string operation)
         {
             string message;
-            if (ex is ArgumentException argumentEx)
+            if (ex is SponsorshipUrlValidationException validationEx)
             {
-                message = $"Invalid URL: {argumentEx.Message}";
+                message = validationEx.Message;
             }
             else
             {

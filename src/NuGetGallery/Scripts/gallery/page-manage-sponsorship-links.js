@@ -44,19 +44,6 @@ $(function () {
                     sponsorshipUrl: url
                 }),
                 success: function (data) {
-                    // Log debug information to browser console
-                    if (data.debug && data.debug.length > 0) {
-                        console.log("=== SPONSORSHIP URL DEBUG INFO ===");
-                        data.debug.forEach(function(message) {
-                            if (message.indexOf("[ERROR]") >= 0) {
-                                console.error(message);
-                            } else {
-                                console.log(message);
-                            }
-                        });
-                        console.log("=== END DEBUG INFO ===");
-                    }
-                    
                     if (data.success) {
                         var urlToAdd = data.validatedUrl || url;
                         
@@ -77,12 +64,7 @@ $(function () {
                         viewModel.message(data.message || AddErrorMessage);
                     }
                 },
-                error: function (xhr, status, error) {
-                    console.error("=== AJAX ERROR ===");
-                    console.error("Status:", status);
-                    console.error("Error:", error);
-                    console.error("Response:", xhr.responseText);
-                    console.error("=== END AJAX ERROR ===");
+                error: function () {
                     viewModel.message(AddErrorMessage);
                 }
             });
