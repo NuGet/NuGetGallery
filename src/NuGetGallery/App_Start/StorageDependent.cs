@@ -84,7 +84,7 @@ namespace NuGetGallery
         {
             const string DefaultBindingKey = "Default";
 
-            /// This array must be added to as we implement more services that use <see cref="IFileStorageService"/>.
+            // This array must be added to as we implement more services that use IFileStorageService.
             var dependents = new[]
             {
                 Create<CertificateService, ICertificateService>(configuration.AzureStorage_UserCertificates_ConnectionString, isSingleInstance: false),

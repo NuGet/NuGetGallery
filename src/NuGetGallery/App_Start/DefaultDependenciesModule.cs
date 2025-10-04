@@ -1137,7 +1137,7 @@ namespace NuGetGallery
                 .RegisterType<NuGet.Services.Validation.ServiceBusMessageSerializer>()
                 .As<NuGet.Services.Validation.IServiceBusMessageSerializer>();
 
-            // We need to setup two enqueuers for Package validation and symbol validation each publishes 
+            // We need to setup two enqueuers for Package validation and symbol validation each publishes
             // to a different topic for validation.
             builder
                 .RegisterType<PackageValidationEnqueuer>()
@@ -1523,12 +1523,11 @@ namespace NuGetGallery
 
         private static void ConfigureForAzureStorage(ContainerBuilder builder, IGalleryConfigurationService configuration, ITelemetryService telemetryService)
         {
-            /// The goal here is to initialize a <see cref="ICloudBlobClient"/> and <see cref="IFileStorageService"/>
-            /// instance for each unique connection string. Each dependent of <see cref="IFileStorageService"/> (that
-            /// is, each service that has a <see cref="IFileStorageService"/> constructor parameter) is registered in
-            /// <see cref="StorageDependent.GetAll(IAppConfiguration)"/> and is grouped by the respective storage
-            /// connection string. Each group is given a binding key which refers to the appropriate instance of the
-            /// <see cref="IFileStorageService"/>.
+            // The goal here is to initialize a ICloudBlobClient and IFileStorageService  instance for each
+            // unique connection string. Each dependent of IFileStorageService (that is, each service that
+            // has a IFileStorageService constructor parameter) is registered in StorageDependent.GetAll and
+            // is grouped by the respective storage connection string. Each group is given a binding key
+            // which refers to the appropriate instance of the IFileStorageService.
             var completedBindingKeys = new HashSet<string>();
             foreach (var dependent in StorageDependent.GetAll(configuration.Current))
             {

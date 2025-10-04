@@ -40,7 +40,7 @@ namespace NuGetGallery
             {
                 symbolPackage.StatusKey = newPackageStatus;
 
-                /// If the package is being made available.
+                // If the package is being made available.
                 if (newPackageStatus == PackageStatus.Available)
                 {
                     symbolPackage.Published = DateTime.UtcNow;

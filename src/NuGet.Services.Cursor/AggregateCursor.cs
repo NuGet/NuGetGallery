@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace NuGet.Services.Cursor
 {
     /// <summary>
-    /// A <see cref="ReadCursor"/> that returns the least value for <see cref="Load(CancellationToken)"/> from a set of <see cref="ReadCursor"/>s.
+    /// A <see cref="ReadCursor{T}"/> that returns the least value for <see cref="Load(CancellationToken)"/> from a set of <see cref="ReadCursor{T}"/>s.
     /// </summary>
     public class AggregateCursor<T> : ReadCursor<T>
     {

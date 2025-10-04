@@ -97,7 +97,7 @@ namespace NuGetGallery
         private static string GetConfiguredSiteHostName()
         {
             // It doesn't matter which value we pass on here for the useHttps parameter.
-            // We're just interested in the host, which is the same for both, 
+            // We're just interested in the host, which is the same for both,
             // as it all results from the same 'NuGetGallery.SiteRoot' URL value.
             var siteRoot = GetSiteRoot(useHttps: true);
             return new Uri(siteRoot).Host;
@@ -249,7 +249,7 @@ namespace NuGetGallery
 
         /// <summary>
         /// Initializes a package registration link that can be resolved at a later time.
-        /// 
+        ///
         /// Callers should only use this API if they need to generate many links, such as the ManagePackages view
         /// does. This template reduces the calls to RouteCollection.GetVirtualPath which can be expensive. Callers
         /// that only need a single link should call Url.Package instead.
@@ -611,7 +611,7 @@ namespace NuGetGallery
 
         /// <summary>
         /// Initializes a package registration link that can be resolved at a later time.
-        /// 
+        ///
         /// Callers should only use this API if they need to generate many links, such as the ManagePackages view
         /// does. This template reduces the calls to RouteCollection.GetVirtualPath which can be expensive. Callers
         /// that only need a single link should call Url.Package instead.
@@ -685,10 +685,11 @@ namespace NuGetGallery
 
         /// <summary>
         /// Initializes a user link that can be resolved at a later time.
-        /// 
+        ///
         /// Callers should only use this API if they need to generate many links, such as the ManagePackages view
         /// does. This template reduces the calls to RouteCollection.GetVirtualPath which can be expensive. Callers
         /// that only need a single link should call Url.User instead.
+        /// </summary>
         public static RouteUrlTemplate<User> UserTemplate(
             this UrlHelper url,
             string scheme = null,
@@ -748,7 +749,7 @@ namespace NuGetGallery
 
         /// <summary>
         /// Initializes a package version action route request
-        /// 
+        ///
         /// Callers should only use this API if they need to generate many links, such as the ManagePackages view
         /// does. This template reduces the calls to RouteCollection.GetVirtualPath which can be expensive. Callers
         /// that only need a single link should call Url.PackageVersionAction instead.
@@ -816,7 +817,7 @@ namespace NuGetGallery
 
         /// <summary>
         /// Initializes a manage package link that can be resolved at a later time.
-        /// 
+        ///
         /// Callers should only use this API if they need to generate many links, such as the ManagePackages view
         /// does. This template reduces the calls to RouteCollection.GetVirtualPath which can be expensive. Callers
         /// that only need a single link should call Url.ManagePackage instead.
@@ -1213,7 +1214,7 @@ namespace NuGetGallery
             bool relativeUrl = true)
         {
             return url.GetDeprecationAction(
-                nameof(ManageDeprecationJsonApiController.GetAlternatePackageVersions), 
+                nameof(ManageDeprecationJsonApiController.GetAlternatePackageVersions),
                 relativeUrl);
         }
 
@@ -1714,7 +1715,7 @@ namespace NuGetGallery
             bool supportEmail = false)
         {
             var protocol = GetProtocol(url);
-             
+
             var hostName = supportEmail ? GetConfiguredSupportEmailSiteHostName() : GetConfiguredSiteHostName();
 
             var routeLink = url.RouteUrl(routeName, routeValues, protocol, hostName);

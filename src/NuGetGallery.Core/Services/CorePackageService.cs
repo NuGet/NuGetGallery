@@ -49,8 +49,8 @@ namespace NuGetGallery
             var now = DateTime.UtcNow;
             package.LastUpdated = now;
 
-            /// If the package is available, consider this change as an "edit" so that the package appears for cursors
-            /// on the <see cref="Package.LastEdited"/> field.
+            // If the package is available, consider this change as an "edit" so that the package appears for cursors
+            // on the Package.LastEdited field.
             if (package.PackageStatusKey == PackageStatus.Available)
             {
                 package.LastEdited = now;
@@ -86,8 +86,8 @@ namespace NuGetGallery
                 package.PackageStatusKey = newPackageStatus;
                 package.LastUpdated = DateTime.UtcNow;
 
-                /// If the package is being made available, consider this change as an "edit" so that the package
-                /// appears for cursors on the <see cref="Package.LastEdited"/> field.
+                // If the package is being made available, consider this change as an "edit" so that the package
+                // appears for cursors on the Package.LastEdited field.
                 if (newPackageStatus == PackageStatus.Available)
                 {
                     package.LastEdited = DateTime.UtcNow;
@@ -297,7 +297,7 @@ namespace NuGetGallery
         }
 
         protected IQueryable<Package> GetPackagesByIdQueryable(
-            string id, 
+            string id,
             PackageDeprecationFieldsToInclude deprecationFields = PackageDeprecationFieldsToInclude.None)
         {
             bool includeDeprecations;

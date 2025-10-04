@@ -50,7 +50,7 @@ namespace NuGet.Services.Validation
         /// <summary>
         /// The <see cref="PackageSigningState"/> that owns this <see cref="PackageSignature"/>. If this signature
         /// has a Status of "Invalid", the overall <see cref="PackageSigningState"/> will also be "Invalid". Note that
-        /// a <see cref="PackageSigningState"/> may have multiple <see cref="PacakgeSignature"/>s. Thus, the overall
+        /// a <see cref="PackageSigningState"/> may have multiple <see cref="PackageSigningState.PackageSignatures"/>. Thus, the overall
         /// signing state can be invalid even if this signature is valid.
         /// </summary>
         public virtual PackageSigningState PackageSigningState { get; set; }

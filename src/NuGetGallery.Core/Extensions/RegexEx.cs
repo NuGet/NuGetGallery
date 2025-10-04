@@ -30,7 +30,7 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="input">The string to search for matches.</param>
         /// <param name="pattern">The regular expression pattern to match.</param>
-        /// <param name="evaluator">The handler to replace matches.</param>
+        /// <param name="replacement">The handler to replace matches.</param>
         /// <param name="options">A bitwise combination that provide options for matching.</param>
         /// <returns>A new string with the matches replaced.</returns>
         /// <exception cref="RegexMatchTimeoutException">Thrown if the matches exceed the default timeout.</exception>

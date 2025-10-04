@@ -42,7 +42,7 @@ namespace NuGet.Services.Validation
         /// </summary>
         /// <param name="status">The step's status.</param>
         /// <param name="nupkgUrl">
-        /// A URL to modified package content (.nupkg). Must be null if status is not 
+        /// A URL to modified package content (.nupkg). Must be null if status is not
         /// <see cref="ValidationStatus.Succeeded"/>.
         /// </param>
         public NuGetValidationResponse(
@@ -76,7 +76,7 @@ namespace NuGet.Services.Validation
         /// <see cref="ValidationStatus.Failed"/> or <see cref="Validation.ValidationStatus.Succeeded"/>.
         /// </param>
         /// <param name="nupkgUrl">
-        /// A URL to modified package content (.nupkg). Must be null if status is not 
+        /// A URL to modified package content (.nupkg). Must be null if status is not
         /// <see cref="ValidationStatus.Succeeded"/>.
         /// </param>
         public NuGetValidationResponse(
@@ -118,7 +118,7 @@ namespace NuGet.Services.Validation
         public string NupkgUrl { get; }
 
         /// <summary>
-        /// Create a new failed <see cref="ValidationResult"/>.
+        /// Create a new failed <see cref="NuGetValidationResponse"/>.
         /// </summary>
         /// <param name="issues">The issues for the failed validation step response.</param>
         /// <returns>The failed validation step response.</returns>
