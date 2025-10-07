@@ -60,7 +60,11 @@ namespace NuGet.Jobs
 
             if (setupLocalDevelopment)
             {
+#if DEBUG
                 serviceCollection.AddSingleton<TokenCredential>(new DefaultAzureCredential());
+#else
+                serviceCollection.AddSingleton<TokenCredential>(new ManagedIdentityCredential());
+#endif
             }
             else
             {
@@ -212,11 +216,19 @@ namespace NuGet.Jobs
 
                 if (string.IsNullOrWhiteSpace(storageMsiConfiguration.ManagedIdentityClientId))
                 {
+#if DEBUG
                     // 1. Using MSI with DefaultAzureCredential (local debugging)
                     return new BlobServiceClient(
                         blobEndpointUri,
                         new DefaultAzureCredential(),
                         blobClientOptions);
+#else
+                    // 1. Using MSI with no ClientId (system assigned)
+                    return new BlobServiceClient(
+                        blobEndpointUri,
+                        new ManagedIdentityCredential(),
+                        blobClientOptions);
+#endif
                 }
                 else
                 {
@@ -247,10 +259,17 @@ namespace NuGet.Jobs
 
                 if (string.IsNullOrWhiteSpace(storageMsiConfiguration.ManagedIdentityClientId))
                 {
+#if DEBUG
                     // 1. Using MSI with DefaultAzureCredential (local debugging)
                     return new BlobServiceClientFactory(
                         blobEndpointUri,
                         new DefaultAzureCredential());
+#else
+                    // 1. Using MSI with no ClientId (system assigned)
+                    return new BlobServiceClientFactory(
+                        blobEndpointUri,
+                        new ManagedIdentityCredential());
+#endif
                 }
                 else
                 {
@@ -280,7 +299,11 @@ namespace NuGet.Jobs
 
                 if (string.IsNullOrWhiteSpace(msiConfiguration.ManagedIdentityClientId))
                 {
+#if DEBUG
                     return new TableServiceClient(tableEndpointUri, new DefaultAzureCredential());
+#else
+                    return new TableServiceClient(tableEndpointUri, new ManagedIdentityCredential());
+#endif
                 }
                 else
                 {
