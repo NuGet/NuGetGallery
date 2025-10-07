@@ -51,8 +51,13 @@ namespace Stats.PostProcessReports
 
                             if (string.IsNullOrWhiteSpace(storageMsiConfiguration.ManagedIdentityClientId))
                             {
+#if DEBUG
                                 // 1. Using MSI with DefaultAzureCredential (local debugging)
                                 return new BlobServiceClientFactory(blobEndpointUri, new DefaultAzureCredential());
+#else
+                                // 1. Using MSI with no ClientId (system assigned)
+                                return new BlobServiceClientFactory(blobEndpointUri, new ManagedIdentityCredential());
+#endif
                             }
                             else
                             {
