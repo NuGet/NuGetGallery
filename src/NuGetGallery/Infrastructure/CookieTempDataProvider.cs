@@ -96,11 +96,6 @@ namespace NuGetGallery
 
             cookie.Expires = DateTime.MinValue;
             cookie.Value = String.Empty;
-            if (CookieHasTempData)
-            {
-                cookie.Expires = DateTime.MinValue;
-                cookie.Value = String.Empty;
-            }
             return dictionary;
         }
 
