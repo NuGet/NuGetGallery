@@ -1037,6 +1037,16 @@
                 </div>
                 <div role="tabpanel" class="tab-pane @(activeBodyTab == "versions" ? "active" : "")" id="versions-tab" aria-label="Versions tab content">
                     <div class="version-history" id="version-history">
+                        <div class="version-filter-container">
+                            <div class="form-group">
+                                <input type="checkbox" id="include-prerelease">
+                                <label for="include-prerelease">Include prerelease</label>
+                            </div>
+                            <div class="form-group">
+                                <input type="checkbox" id="include-vulnerable">
+                                <label for="include-vulnerable">Include vulnerable</label>
+                            </div>
+                        </div>
                         <table aria-label="Version History of @Model.Id" class="table borderless">
                             <thead>
                                 <tr>
@@ -1080,7 +1090,9 @@
                                     if ((packageVersion.Available && packageVersion.Listed && Model.ShowDetailsAndLinks)
                                         || (!packageVersion.Deleted && Model.CanDisplayPrivateMetadata))
                                     {
-                                        <tr class="@(packageVersion.IsCurrent(Model) ? "bg-brand-info" : null)">
+                                        <tr class="@(packageVersion.IsCurrent(Model) ? "bg-brand-info" : null) version-row" 
+                                            data-prerelease="@packageVersion.Prerelease.ToString().ToLowerInvariant()" 
+                                            data-vulnerable="@packageVersion.IsVulnerable.ToString().ToLowerInvariant()">
                                             <td>
                                                 <a href="@Url.Package(packageVersion)" title="@packageVersion.Version">
                                                     @packageVersion.Version.Abbreviate(30)
@@ -1153,7 +1165,9 @@
                                     }
                                     else if (packageVersion.Deleted && packageVersion.CanDisplayPrivateMetadata)
                                     {
-                                        <tr class="deleted">
+                                        <tr class="deleted version-row" 
+                                            data-prerelease="@packageVersion.Prerelease.ToString().ToLowerInvariant()" 
+                                            data-vulnerable="@packageVersion.IsVulnerable.ToString().ToLowerInvariant()">
                                             <td class="version">
                                                 @packageVersion.Version
                                             </td>
@@ -1572,6 +1586,22 @@
 
     <style type="text/css" nonce="@Html.GetCSPNonce()">
         @Html.Raw(packageManagersCss)
+        
+        .version-filter-container {
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        
+        .version-filter-container .form-group {
+            display: inline-block;
+            margin-right: 20px;
+            margin-bottom: 0;
+        }
+        
+        .version-filter-container input[type="checkbox"] {
+            margin-right: 5px;
+        }
     </style>
 
     <script type="text/javascript" nonce="@Html.GetCSPNonce()">
