@@ -2602,6 +2602,11 @@ p.frameworktableinfo-text {
 .page-list-packages .advanced-search-panel .prerel-option {
   display: flex;
 }
+.page-list-packages .advanced-search-panel .mcp-learn-more {
+  align-self: center;
+  font-weight: 400;
+  font-size: small;
+}
 @media (min-width: 768px) {
   .page-list-packages .text-align-right {
     text-align: right;
