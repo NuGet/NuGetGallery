@@ -336,8 +336,13 @@ namespace Ng
                         TokenCredential credential;
                         if (string.IsNullOrEmpty(clientId))
                         {
+#if DEBUG
                             credential = new DefaultAzureCredential();
                             credentialType = SearchCursorCredentialType.DefaultAzureCredential;
+#else
+                            credential = new ManagedIdentityCredential();
+                            credentialType = SearchCursorCredentialType.ManagedIdentityCredential;
+#endif
                         }
                         else
                         {

@@ -152,10 +152,17 @@ namespace Stats.CollectAzureChinaCDNLogs
 
                     if (string.IsNullOrWhiteSpace(msiConfiguration.ManagedIdentityClientId))
                     {
+#if DEBUG
                         // 1. Using MSI with DefaultAzureCredential (local debugging)
                         return new BlobServiceClient(
                             blobEndpointUri,
                             new DefaultAzureCredential());
+#else
+                        // 1. Using MSI with no ClientId (system assigned)
+                        return new BlobServiceClient(
+                            blobEndpointUri,
+                            new ManagedIdentityCredential());
+#endif
                     }
                     else
                     {

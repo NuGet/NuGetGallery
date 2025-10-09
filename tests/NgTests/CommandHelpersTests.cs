@@ -105,7 +105,11 @@ namespace NgTests
 
                 Assert.Equal("https://example/v3/search-a/cursor.json", configA.Cursors[0].CursorUri.AbsoluteUri);
                 Assert.NotNull(configA.Cursors[0].BlobClient);
+#if DEBUG
                 Assert.Equal(SearchCursorCredentialType.DefaultAzureCredential, configA.Cursors[0].CredentialType);
+#else
+                Assert.Equal(SearchCursorCredentialType.ManagedIdentityCredential, configA.Cursors[0].CredentialType);
+#endif
             }
 
             [Fact]
@@ -161,7 +165,11 @@ namespace NgTests
 
                 Assert.Equal("https://example/v3/search-a/cursor.json", configA.Cursors[0].CursorUri.AbsoluteUri);
                 Assert.NotNull(configA.Cursors[0].BlobClient);
+#if DEBUG
                 Assert.Equal(SearchCursorCredentialType.DefaultAzureCredential, configA.Cursors[0].CredentialType);
+#else
+                Assert.Equal(SearchCursorCredentialType.ManagedIdentityCredential, configA.Cursors[0].CredentialType);
+#endif
             }
         }
 
