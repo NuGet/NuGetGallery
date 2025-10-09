@@ -1,9 +1,9 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.WebTesting;
-using NuGetGallery.FunctionalTests.Helpers;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Xunit;
 
 namespace NuGetGallery.FunctionalTests.WebUITests.BasicPages
 {
@@ -12,24 +12,25 @@ namespace NuGetGallery.FunctionalTests.WebUITests.BasicPages
     /// priority : p1
     /// </summary>
     public class PackagesPageTest
-        : WebTest
     {
-        public PackagesPageTest()
+        [Priority(1)]
+        [Fact]
+        public async Task PackagePageContainsPackageIdAndVersion()
         {
-            PreAuthenticate = true;
-        }
-
-        public override IEnumerator<WebTestRequest> GetRequestEnumerator()
-        {
-            // Use a predefined test package.
+            // Arrange
+            using var client = new HttpClient();
             var packageId = Constants.TestPackageId;
-            var packagePageRequest = new WebTestRequest(UrlHelper.BaseUrl + @"/Packages/" + packageId);
-
-            // Rule to check if the title contains the package id and the latest stable version of the package.
-            var packageTitleValidationRule = AssertAndValidationHelper.GetValidationRuleForFindText(packageId + " " + ClientSdkHelper.GetLatestStableVersion(packageId));
-            packagePageRequest.ValidateResponse += packageTitleValidationRule.Validate;
-
-            yield return packagePageRequest;
+            var latestVersion = ClientSdkHelper.GetLatestStableVersion(packageId);
+            
+            // Act
+            var response = await client.GetAsync(UrlHelper.BaseUrl + @"/Packages/" + packageId);
+            
+            // Assert
+            response.EnsureSuccessStatusCode();
+            var content = await response.Content.ReadAsStringAsync();
+            
+            // Check that the title contains package id and latest stable version
+            Assert.Contains(packageId + " " + latestVersion, content);
         }
     }
 }
