@@ -116,6 +116,9 @@ namespace NuGetGallery
         public string ComparableGitHubRepository { get; private set; }
 
         public bool IsMcpServerPackageDisplayEnabled { get; set; }
+        public IReadOnlyCollection<string> SponsorshipUrls { get; set; }
+
+        public bool HasSponsorshipUrls => SponsorshipUrls?.Any() == true;
 
         public void InitializeRepositoryMetadata(string repositoryUrl, string repositoryType)
         {

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Frameworks;
@@ -15,10 +16,12 @@ namespace NuGetGallery
     public class DisplayPackageViewModelFactory
     {
         private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
+        private readonly ISponsorshipUrlService _sponsorshipUrlService;
 
-        public DisplayPackageViewModelFactory(IIconUrlProvider iconUrlProvider, IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory, IFeatureFlagService featureFlagService)
+        public DisplayPackageViewModelFactory(IIconUrlProvider iconUrlProvider, IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory, IFeatureFlagService featureFlagService, ISponsorshipUrlService sponsorshipUrlService)
         {
             _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(iconUrlProvider, frameworkCompatibilityFactory, featureFlagService);
+            _sponsorshipUrlService = sponsorshipUrlService;
         }
 
         public DisplayPackageViewModel Create(
@@ -230,6 +233,13 @@ namespace NuGetGallery
             }
 
             viewModel.PackageWarningIconTitle = WarningTitleHelper.GetWarningIconTitle(viewModel.Version, deprecation, maxVulnerabilitySeverity);
+
+            // Get accepted sponsorship URLs for public display (filters out unsupported domains)
+            var sponsorshipEntries = _sponsorshipUrlService.GetSponsorshipUrlEntries(package.PackageRegistration);
+            viewModel.SponsorshipUrls = sponsorshipEntries
+                .Where(entry => entry.IsDomainAccepted)
+                .Select(entry => entry.Url)
+                .ToArray();
 
             return viewModel;
         }

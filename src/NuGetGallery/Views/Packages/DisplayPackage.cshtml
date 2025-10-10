@@ -1,4 +1,4 @@
-﻿﻿﻿@using NuGet.Services.Validation
+﻿﻿@using NuGet.Services.Validation
 @using NuGet.Services.Licenses
 @using NuGetGallery.Services.Helpers
 @using NuGetGallery.Services.Models
@@ -96,7 +96,7 @@
             if (validity == McpServerEntryResultValidity.Success)
             {
                 alertLevel = AlertLevel.Info;
-                alertMessage = "This package contains an <a href='https://aka.ms/vscode-mcp-server'>MCP Server</a>. The server can be used in VS Code by copying the generated JSON to your VS Code workspace's <code>.vscode/mcp.json</code> settings file.";
+                alertMessage = "This package contains an <a href='https://aka.ms/nuget/mcp/concepts'>MCP Server</a>. The server can be used in VS Code by copying the generated JSON to your VS Code workspace's <code>.vscode/mcp.json</code> settings file.";
                 vsCodeEntryTemplate = Model.VsCodeMcpServerEntryTemplate.Template ?? string.Empty;
                 copyEnabled = true;
             }
@@ -548,7 +548,7 @@
                             </text>
                         )
                     }
-                    
+
                     if (Model.VersionRequestedWasNotFound)
                     {
                         @ViewHelpers.AlertWarning(
@@ -557,7 +557,7 @@
                             </text>
                         )
                     }
-                    
+
                     if (Model.HasNewerRelease)
                     {
                         @ViewHelpers.AlertInfo(
@@ -1355,6 +1355,16 @@
                         </li>
                     }
 
+                    @if (!Model.Deleted && Model.SponsorshipUrls != null && Model.SponsorshipUrls.Any() && Model.ShowDetailsAndLinks)
+                    {
+                        <li>
+                            <i class="ms-Icon ms-Icon--Heart" aria-hidden="true"></i>
+                            <button type="button" class="sidebar-button" data-toggle="modal" data-target="#sponsorship-popup" title="Sponsor this package">
+                                Sponsor
+                            </button>
+                        </li>
+                    }
+
                     @if (!Model.CanReportAsOwner && Model.Available && Model.ShowDetailsAndLinks)
                     {
                         <li class="report-link">
@@ -1366,6 +1376,39 @@
                     }
                 </ul>
             </div>
+
+            @if (!Model.Deleted && Model.SponsorshipUrls != null && Model.SponsorshipUrls.Any() && Model.ShowDetailsAndLinks)
+            {
+                <!-- Bootstrap Modal -->
+                <div class="modal fade" id="sponsorship-popup" tabindex="-1" role="dialog" aria-labelledby="sponsorship-popup-title">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close sponsorship popup">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                                <h4 class="modal-title" id="sponsorship-popup-title">External Links</h4>
+                            </div>
+                            <div class="modal-body sponsorship-modal-body">
+                                @ViewHelpers.AlertInfo(
+                                    @<text>
+                                        These links will take you to third-party platforms. Microsoft is not affiliated with or responsible for the content or practices of third-party platforms.
+                                    </text>)
+
+                                @foreach (var sponsorshipUrl in Model.SponsorshipUrls)
+                                {
+                                    <div class="external-link-container">
+                                        <i class="ms-Icon ms-Icon--Link sidebar-link-icon" aria-hidden="true"></i>
+                                        <a href="@sponsorshipUrl" target="_blank" rel="nofollow noopener noreferrer" class="sidebar-link" data-sponsorship-url="@Html.Raw(Json.Encode(sponsorshipUrl))">
+                                            @sponsorshipUrl
+                                        </a>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
 
             @if (Model.CanDisplayPrivateMetadata)
             {
@@ -1568,6 +1611,9 @@
             packageManagersCss += "    content: \"" + packageManager.CommandPrefix + "\"";
             packageManagersCss += "}";
         }
+
+        // Calculate sponsorship URL count for JavaScript
+        var sponsorshipUrlCount = Model.SponsorshipUrls != null ? Model.SponsorshipUrls.Count() : 0;
     }
 
     <style type="text/css" nonce="@Html.GetCSPNonce()">
@@ -1585,6 +1631,7 @@
                                  )
                                  .ToList()
                              );
+        var sponsorshipUrlCount = @sponsorshipUrlCount;
     </script>
 
     @if (Model.IsMarkdigMdSyntaxHighlightEnabled) 

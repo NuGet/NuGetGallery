@@ -385,6 +385,11 @@ namespace NuGetGallery
                 .As<IPackageOwnershipManagementService>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<SponsorshipUrlService>()
+                .AsSelf()
+                .As<ISponsorshipUrlService>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<ValidationService>()
                 .AsSelf()
                 .As<IValidationService>()

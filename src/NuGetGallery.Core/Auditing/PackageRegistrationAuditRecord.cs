@@ -9,6 +9,9 @@ namespace NuGetGallery.Auditing
 {
     public class PackageRegistrationAuditRecord : AuditRecord<AuditedPackageRegistrationAction>
     {
+        public const string AdministratorRole = "Administrator";
+        public const string PackageOwnerRole = "PackageOwner";
+
         public string Id { get; }
         public AuditedPackageRegistration RegistrationRecord { get; }
         public string Owner { get; }
@@ -16,6 +19,9 @@ namespace NuGetGallery.Auditing
         public string NewRequiredSigner { get; private set; }
         public string RequestingOwner { get; private set; }
         public string NewOwner { get; private set; }
+        public string SponsorshipUrl { get; private set; }
+        public string ActorRole { get; private set; }
+        public DateTime? DatabaseTimestamp { get; private set; }
 
         public PackageRegistrationAuditRecord(
             string id, AuditedPackageRegistration registrationRecord, AuditedPackageRegistrationAction action, string owner)
@@ -109,6 +115,74 @@ namespace NuGetGallery.Auditing
                 requestingOwner,
                 newOwner,
                 AuditedPackageRegistrationAction.DeleteOwnershipRequest);
+        }
+
+        public static PackageRegistrationAuditRecord CreateForAddSponsorshipUrl(
+            PackageRegistration registration,
+            string sponsorshipUrl,
+            string owner,
+            bool isPerformedByAdmin = false,
+            DateTime? databaseTimestamp = null)
+        {
+            if (registration == null)
+            {
+                throw new ArgumentNullException(nameof(registration));
+            }
+
+            if (string.IsNullOrWhiteSpace(sponsorshipUrl))
+            {
+                throw new ArgumentException("Sponsorship URL cannot be null or empty", nameof(sponsorshipUrl));
+            }
+
+            if (string.IsNullOrWhiteSpace(owner))
+            {
+                throw new ArgumentException("Owner cannot be null or empty", nameof(owner));
+            }
+
+            var record = new PackageRegistrationAuditRecord(
+                registration,
+                AuditedPackageRegistrationAction.AddSponsorshipUrl,
+                owner);
+
+            record.SponsorshipUrl = sponsorshipUrl;
+            record.ActorRole = isPerformedByAdmin ? AdministratorRole : PackageOwnerRole;
+            record.DatabaseTimestamp = databaseTimestamp;
+
+            return record;
+        }
+
+        public static PackageRegistrationAuditRecord CreateForRemoveSponsorshipUrl(
+            PackageRegistration registration,
+            string sponsorshipUrl,
+            string owner,
+            bool isPerformedByAdmin = false,
+            DateTime? databaseTimestamp = null)
+        {
+            if (registration == null)
+            {
+                throw new ArgumentNullException(nameof(registration));
+            }
+
+            if (string.IsNullOrWhiteSpace(sponsorshipUrl))
+            {
+                throw new ArgumentException("Sponsorship URL cannot be null or empty", nameof(sponsorshipUrl));
+            }
+
+            if (string.IsNullOrWhiteSpace(owner))
+            {
+                throw new ArgumentException("Owner cannot be null or empty", nameof(owner));
+            }
+
+            var record = new PackageRegistrationAuditRecord(
+                registration,
+                AuditedPackageRegistrationAction.RemoveSponsorshipUrl,
+                owner);
+
+            record.SponsorshipUrl = sponsorshipUrl;
+            record.ActorRole = isPerformedByAdmin ? AdministratorRole : PackageOwnerRole;
+            record.DatabaseTimestamp = databaseTimestamp;
+
+            return record;
         }
     }
 }

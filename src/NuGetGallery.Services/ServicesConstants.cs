@@ -66,6 +66,7 @@ namespace NuGetGallery
             public const string CacheConfiguration = "Cache-Configuration";
             public const string QueryHintConfiguration = "Query-Hint-Configuration";
             public const string TrustedImageDomains = "Trusted-Image-Domains";
+            public const string TrustedSponsorshipDomains = "Trusted-Sponsorship-Domains";
         }
     }
 }

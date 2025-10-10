@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -77,7 +78,7 @@ namespace NuGetGallery.Services.Helpers
                 };
             }
 
-            var nugetRegistryPackage = mcpServerMetadata.Packages?.FirstOrDefault(p => p != null && StringComparer.OrdinalIgnoreCase.Equals(p.RegistryName, "nuget"));
+            var nugetRegistryPackage = mcpServerMetadata.Packages?.FirstOrDefault(p => p != null && StringComparer.OrdinalIgnoreCase.Equals(p.RegistryType, "nuget"));
             if (nugetRegistryPackage == null)
             {
                 return new McpServerEntryTemplateResult
@@ -132,109 +133,66 @@ namespace NuGetGallery.Services.Helpers
             var args = new List<string>();
             var env = new Dictionary<string, string>();
 
-            foreach (var arg in registryPackage.RuntimeArguments ?? [])
+            if (registryPackage.RuntimeArguments?.Count > 0)
             {
-                if (arg == null)
-                {
-                    continue;
-                }
-
-                var variables = GetVariables(arg.Variables);
-
-                if (arg is PositionalInput positionalArg)
-                {
-                    var value = positionalArg.Value;
-                    if (!string.IsNullOrWhiteSpace(value))
-                    {
-                        foreach (var variable in variables)
-                        {
-                            value = value.Replace($"{{{variable.Id}}}", $"{{input:{variable.Id}}}");
-                        }
-                    }
-                    else
-                    {
-                        value = positionalArg.ValueHint;
-                    }
-
-                    if (string.IsNullOrWhiteSpace(value))
-                    {
-                        continue;
-                    }
-
-                    args.Add(value);
-                }
-                else if (arg is NamedInput namedArg)
-                {
-                    if (string.IsNullOrWhiteSpace(namedArg.Name) || string.IsNullOrWhiteSpace(namedArg.Value))
-                    {
-                        continue;
-                    }
-
-                    args.Add(namedArg.Name);
-
-                    var value = namedArg.Value;
-                    foreach (var variable in variables)
-                    {
-                        value = value.Replace($"{{{variable.Id}}}", $"{{input:{variable.Id}}}");
-                    }
-
-                    if (string.IsNullOrWhiteSpace(value))
-                    {
-                        continue;
-                    }
-
-                    args.Add(value);
-                }
-
-                if (variables.Count > 0)
-                {
-                    inputs.AddRange(variables);
-                }
+                var result = ProcessArguments(registryPackage.RuntimeArguments);
+                inputs.AddRange(result.Inputs);
+                args.AddRange(result.Args);
             }
 
-            foreach (var envVar in  registryPackage.EnvironmentVariables ?? [])
+            if (registryPackage.EnvironmentVariables?.Count > 0)
             {
-                if (envVar == null)
+                var result = ProcessKeyValueInputs(registryPackage.EnvironmentVariables);
+                inputs.AddRange(result.Inputs);
+                foreach (var kvp in result.Env)
                 {
-                    continue;
-                }
-
-                var variables = GetVariables(envVar.Variables);
-
-                var value = envVar.Value;
-                foreach (var variable in variables)
-                {
-                    value = value.Replace($"{{{variable.Id}}}", $"${{input:{variable.Id}}}");
-                }
-
-                var name = envVar.Name;
-                if (string.IsNullOrWhiteSpace(name))
-                {
-                    continue;
-                }
-
-                env[name] = value ?? string.Empty;
-
-                if (variables.Count > 0)
-                {
-                    inputs.AddRange(variables);
+                    env[kvp.Key] = kvp.Value;
                 }
             }
 
             args.Add($"{packageId}@{packageVersion}");
             args.Add("--yes");
 
-            var packageArgs = new List<string>();
-            foreach (var arg in registryPackage.PackageArguments ?? [])
+            if (registryPackage.PackageArguments?.Count > 0)
             {
-                if (arg == null)
-                {
-                    continue;
-                }
+                var result = ProcessArguments(registryPackage.PackageArguments);
+                inputs.AddRange(result.Inputs);
 
+                if (result.Args.Count > 0)
+                {
+                    args.Add("--");
+                    args.AddRange(result.Args);
+                }
+            }
+
+            var server = new VsCodeServer
+            {
+                Type = "stdio",
+                Command = "dnx",
+                Args = args,
+                Env = env.Count > 0 ? env : null,
+            };
+
+            return new VsCodeMcpServerEntry
+            {
+                Inputs = inputs.Count > 0 ? inputs : null,
+                Servers = new Dictionary<string, VsCodeServer>
+                {
+                    { packageId, server },
+                }
+            };
+        }
+
+        private static ProcessArgumentsResult ProcessArguments(IReadOnlyList<InputWithVariables> arguments)
+        {
+            var inputs = new List<VsCodeInput>();
+            var args = new List<string>();
+
+            foreach (var arg in arguments)
+            {
                 var variables = GetVariables(arg.Variables);
 
-                if (arg is PositionalInput positionalArg)
+                if (arg is PositionalArgument positionalArg)
                 {
                     var value = positionalArg.Value;
                     if (!string.IsNullOrWhiteSpace(value))
@@ -243,69 +201,131 @@ namespace NuGetGallery.Services.Helpers
                         {
                             value = value.Replace($"{{{variable.Id}}}", $"${{input:{variable.Id}}}");
                         }
-                    }
-                    else
-                    {
-                        value = positionalArg.ValueHint;
-                    }
 
-                    if (string.IsNullOrWhiteSpace(value))
-                    {
-                        continue;
-                    }
+                        args.Add(value);
 
-                    packageArgs.Add(value);
+                        if (variables.Count > 0)
+                        {
+                            inputs.AddRange(variables);
+                        }
+                    }
+                    else if (!string.IsNullOrWhiteSpace(positionalArg.ValueHint) && (!string.IsNullOrWhiteSpace(positionalArg.Description) || positionalArg.Choices?.Count > 0 || !string.IsNullOrWhiteSpace(positionalArg.Default)))
+                    {
+                        args.Add($"${{input:{positionalArg.ValueHint}}}");
+
+                        inputs.Add(new VsCodeInput
+                        {
+                            Id = positionalArg.ValueHint,
+                            Type = "promptString",
+                            Description = positionalArg.Description ?? string.Empty,
+                            Default = positionalArg.Default,
+                            Options = positionalArg.Choices?.ToList(),
+                        });
+                    }
+                    else if (!string.IsNullOrWhiteSpace(positionalArg.ValueHint))
+                    {
+                        args.Add(positionalArg.ValueHint);
+                    }
                 }
-                else if (arg is NamedInput namedArg)
+                else if (arg is NamedArgument namedArg)
                 {
-                    if (string.IsNullOrWhiteSpace(namedArg.Name) || string.IsNullOrWhiteSpace(namedArg.Value))
+                    if (string.IsNullOrWhiteSpace(namedArg.Name))
                     {
                         continue;
                     }
 
-                    packageArgs.Add(namedArg.Name);
+                    args.Add(namedArg.Name);
 
-                    var value = namedArg.Value;
+                    if (!string.IsNullOrWhiteSpace(namedArg.Value))
+                    {
+                        var value = namedArg.Value;
+                        foreach (var variable in variables)
+                        {
+                            value = value.Replace($"{{{variable.Id}}}", $"${{input:{variable.Id}}}");
+                        }
+
+                        args.Add(value);
+
+                        if (variables.Count > 0)
+                        {
+                            inputs.AddRange(variables);
+                        }
+                    }
+                    else if (!string.IsNullOrWhiteSpace(namedArg.Description) || namedArg.Choices?.Count > 0 || !string.IsNullOrWhiteSpace(namedArg.Default))
+                    {
+                        var inputId = namedArg.Name.TrimStart('-');
+
+                        args.Add($"${{input:{inputId}}}");
+
+                        inputs.Add(new VsCodeInput
+                        {
+                            Id = inputId,
+                            Type = "promptString",
+                            Description = namedArg.Description ?? string.Empty,
+                            Default = namedArg.Default,
+                            Options = namedArg.Choices?.ToList(),
+                        });
+                    }
+                }
+            }
+
+            return new ProcessArgumentsResult
+            {
+                Inputs = inputs,
+                Args = args,
+            };
+        }
+
+        private static ProcessKeyValueInputsResult ProcessKeyValueInputs(IReadOnlyList<KeyValueInput> keyValueInputs)
+        {
+            var inputs = new List<VsCodeInput>();
+            var env = new Dictionary<string, string>();
+
+            foreach (var input in keyValueInputs)
+            {
+                if (input == null || string.IsNullOrWhiteSpace(input.Name))
+                {
+                    continue;
+                }
+
+                var value = input.Value ?? string.Empty;
+
+                var variables = GetVariables(input.Variables);
+                if (variables.Count > 0)
+                {
                     foreach (var variable in variables)
                     {
                         value = value.Replace($"{{{variable.Id}}}", $"${{input:{variable.Id}}}");
                     }
 
-                    if (string.IsNullOrWhiteSpace(value))
+                    // We shouldn't add inputs that aren't referenced. Divergence from VS Code implementation.
+                    if (!string.IsNullOrWhiteSpace(value))
                     {
-                        continue;
+                        inputs.AddRange(variables);
                     }
-
-                    packageArgs.Add(value);
                 }
-
-                if (variables.Count > 0)
+                else if (string.IsNullOrWhiteSpace(input.Value) && (!string.IsNullOrWhiteSpace(input.Description) || input.Choices?.Count > 0 || !string.IsNullOrWhiteSpace(input.Default)))
                 {
-                    inputs.AddRange(variables);
+                    value = $"${{input:{input.Name}}}";
+
+                    inputs.Add(new VsCodeInput
+                    {
+                        Id = input.Name,
+                        Type = input.Choices?.Count > 0 ? "pickString" : "promptString",
+                        Description = input.Description ?? string.Empty,
+                        Password = input?.IsSecret == true ? true : null,
+                        Default = input.Default,
+                        Options = input.Choices?.ToList(),
+                    });
                 }
+
+                env[input.Name] = value ?? string.Empty;
             }
 
-            if (packageArgs.Count > 0)
-            {
-                args.Add("--");
-                args.AddRange(packageArgs);
-            }
-
-            var server = new VsCodeServer
-            {
-                Type = "stdio",
-                Command = "dnx",
-                Args = args,
-                Env = env,
-            };
-
-            return new VsCodeMcpServerEntry
+            return new ProcessKeyValueInputsResult
             {
                 Inputs = inputs,
-                Servers = new Dictionary<string, VsCodeServer>
-                {
-                    { packageId, server },
-                }
+                Env = env,
             };
         }
 
@@ -329,7 +349,7 @@ namespace NuGetGallery.Services.Helpers
                 {
                     Id = item.Key,
                     Type = item.Value.Choices?.Count > 0 ? "pickString" : "promptString",
-                    Description = item.Value.Description,
+                    Description = item.Value.Description ?? string.Empty,
                     Password = item.Value.IsSecret,
                     Default = item.Value.Default,
                     Options = item.Value.Choices?.ToList(),
@@ -337,6 +357,20 @@ namespace NuGetGallery.Services.Helpers
             }
 
             return result;
+        }
+
+        private class ProcessArgumentsResult
+        {
+            public required List<VsCodeInput> Inputs { get; set; }
+
+            public required List<string> Args { get; set; }
+        }
+
+        private class ProcessKeyValueInputsResult
+        {
+            public required List<VsCodeInput> Inputs { get; set; }
+
+            public required Dictionary<string, string> Env { get; set; }
         }
     }
 }
