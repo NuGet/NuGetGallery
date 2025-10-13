@@ -84,7 +84,7 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    NBitcoin.Unified   |    08/25/2025    |    Potentially Malicious    |
 |    NethereumUnified   |    09/15/2025    |    Potentially Malicious    |
 |    NethereumNet       |    10/07/2025    |    Potentially Malicious    |
-
+|    LuminAllocator     |    10/10/2025    |    Copyright violation      |
 
 
 
