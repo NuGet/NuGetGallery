@@ -1621,9 +1621,10 @@
     </style>
 
     <script type="text/javascript" nonce="@Html.GetCSPNonce()">
-        var packageId = @Html.ToJson(Model.Id);
-        var packageVersion = @Html.ToJson(Model.Version);
-        var packageManagers = @Html.ToJson(
+        window.nuget = window.nuget || {};
+        window.nuget.packageId = @Html.ToJson(Model.Id);
+        window.nuget.packageVersion = @Html.ToJson(Model.Version);
+        window.nuget.packageManagers = @Html.ToJson(
                                  (
                                     from pm in packageManagers
                                     from ipc in pm.InstallPackageCommands
@@ -1631,7 +1632,7 @@
                                  )
                                  .ToList()
                              );
-        var sponsorshipUrlCount = @sponsorshipUrlCount;
+        window.nuget.sponsorshipUrlCount = @sponsorshipUrlCount;
     </script>
 
     @if (Model.IsMarkdigMdSyntaxHighlightEnabled) 
