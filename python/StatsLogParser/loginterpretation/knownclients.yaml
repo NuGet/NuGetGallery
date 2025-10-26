@@ -224,3 +224,7 @@
   # NuGet - Keep this one at the bottom of this file as a catch-all resolver
   - regex: '(NuGet)/?(\d+)\.(\d+)\.?(\d+)?'
     family_replacement: 'NuGet'
+
+  # GetNuTool
+  - regex: '(GetNuTool)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'GetNuTool'
