@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 18
-VisualStudioVersion = 18.0.10925.136
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.35713.233
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2. Frontend", "2. Frontend", "{05998089-58F5-4A84-8C11-C5C6244A6F89}"
 EndProject
@@ -99,6 +99,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.CatalogValidation", "src\NuGet.Services.CatalogValidation\NuGet.Services.CatalogValidation.csproj", "{A5B7C8F3-2E4A-4F5B-8C1D-9E3F5A6B7C8D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.Validation.Issues", "src\NuGet.Services.Validation.Issues\NuGet.Services.Validation.Issues.csproj", "{31C526DC-C8BD-4863-B66F-2FB1C4E440D0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.CatalogValidation.Issues", "src\NuGet.Services.CatalogValidation.Issues\NuGet.Services.CatalogValidation.Issues.csproj", "{B6C7E8F4-3D5A-4E6B-9C2D-AF4E6B8C9D5E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -262,6 +264,10 @@ Global
 		{31C526DC-C8BD-4863-B66F-2FB1C4E440D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{31C526DC-C8BD-4863-B66F-2FB1C4E440D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{31C526DC-C8BD-4863-B66F-2FB1C4E440D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B6C7E8F4-3D5A-4E6B-9C2D-AF4E6B8C9D5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6C7E8F4-3D5A-4E6B-9C2D-AF4E6B8C9D5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6C7E8F4-3D5A-4E6B-9C2D-AF4E6B8C9D5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6C7E8F4-3D5A-4E6B-9C2D-AF4E6B8C9D5E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -306,6 +312,7 @@ Global
 		{14307F06-BDCC-4026-A7F9-09CD032D4B7B} = {285CA6BE-C2EE-4CBE-A647-5EFD45855E17}
 		{A5B7C8F3-2E4A-4F5B-8C1D-9E3F5A6B7C8D} = {285CA6BE-C2EE-4CBE-A647-5EFD45855E17}
 		{31C526DC-C8BD-4863-B66F-2FB1C4E440D0} = {285CA6BE-C2EE-4CBE-A647-5EFD45855E17}
+		{B6C7E8F4-3D5A-4E6B-9C2D-AF4E6B8C9D5E} = {285CA6BE-C2EE-4CBE-A647-5EFD45855E17}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {064A3BDE-5203-4AD6-A6C9-5CF08301EC8F}

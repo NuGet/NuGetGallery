@@ -3,6 +3,7 @@
 
 using System;
 using System.Data.Entity.Migrations;
+using NuGet.Services.CatalogValidation.Entities;
 
 namespace NuGet.Services.CatalogValidation
 {

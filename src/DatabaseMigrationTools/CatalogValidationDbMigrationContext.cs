@@ -6,6 +6,7 @@ using System.Data.Entity.Migrations;
 using System.Data.SqlClient;
 using NuGet.Services.DatabaseMigration;
 using NuGet.Services.CatalogValidation;
+using NuGet.Services.CatalogValidation.Entities;
 
 namespace NuGetGallery.DatabaseMigrationTools
 {
