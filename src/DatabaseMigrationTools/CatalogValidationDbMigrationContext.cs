@@ -6,7 +6,7 @@ using System.Data.Entity.Migrations;
 using System.Data.SqlClient;
 using NuGet.Services.DatabaseMigration;
 using NuGet.Services.CatalogValidation;
-using NuGet.Services.CatalogValidation.Entities;    // ← This is correct
+using NuGet.Services.CatalogValidation.Entities;
 
 namespace NuGetGallery.DatabaseMigrationTools
 {
@@ -20,7 +20,7 @@ namespace NuGetGallery.DatabaseMigrationTools
             CatalogValidationDbContextFactory.CatalogValidationEntitiesContextFactory = () =>
             {
                 SetSqlConnectionAccessToken();
-                return new CatalogValidationEntitiesContext(SqlConnection);    // ← Uses your new context
+                return new CatalogValidationEntitiesContext(SqlConnection);
             };
 
             var migrationsConfiguration = new CatalogValidationMigrationsConfiguration();
