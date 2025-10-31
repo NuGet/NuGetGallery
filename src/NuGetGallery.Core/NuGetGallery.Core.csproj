@@ -21,14 +21,10 @@
     <Compile Remove="Entities\SuspendDbExecutionStrategy.cs" />
     <Compile Remove="Extensions\PackageValidationSetExtensions.cs" />
     <Compile Remove="Extensions\ValidationIssueExtensions.cs" />
-    <Compile Remove="Extensions\CatalogPackageValidationSetExtensions.cs" />
-    <Compile Remove="Extensions\CatalogValidationIssueExtensions.cs" />
     <Compile Remove="Infrastructure\Mail\Messages\CredentialRevokedMessage.cs" />
     <Compile Remove="Infrastructure\Mail\Messages\PackageAddedMessage.cs" />
     <Compile Remove="Infrastructure\Mail\Messages\PackageValidationFailedMessage.cs" />
     <Compile Remove="Infrastructure\Mail\Messages\PackageValidationTakingTooLongMessage.cs" />
-    <Compile Remove="Infrastructure\Mail\Messages\CatalogPackageValidationFailedMessage.cs" />
-    <Compile Remove="Infrastructure\Mail\Messages\CatalogPackageValidationTakingTooLongMessage.cs" />
     <Compile Remove="Infrastructure\Mail\Messages\SymbolPackageAddedMessage.cs" />
     <Compile Remove="Infrastructure\Mail\Messages\SymbolPackageValidationFailedMessage.cs" />
     <Compile Remove="Infrastructure\Mail\Messages\SymbolPackageValidationTakingTooLongMessage.cs" />
