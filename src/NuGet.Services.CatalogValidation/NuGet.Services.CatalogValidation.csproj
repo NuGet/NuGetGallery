@@ -21,7 +21,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NuGet.Services.Contracts\NuGet.Services.Contracts.csproj" />
-    <ProjectReference Include="..\NuGet.Services.ServiceBus\NuGet.Services.ServiceBus.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Validation\NuGet.Services.Validation.csproj" />
   </ItemGroup>
 </Project>
