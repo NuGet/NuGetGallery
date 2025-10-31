@@ -59,7 +59,6 @@
     <ProjectReference Include="..\NuGet.Services.Messaging.Email\NuGet.Services.Messaging.Email.csproj" />
     <ProjectReference Include="..\NuGet.Services.Validation.Issues\NuGet.Services.Validation.Issues.csproj" />
     <ProjectReference Include="..\NuGet.Services.Validation\NuGet.Services.Validation.csproj" />
-    <ProjectReference Include="..\NuGet.Services.CatalogValidation\NuGet.Services.CatalogValidation.csproj" />
   </ItemGroup>
   
   <ItemGroup>
