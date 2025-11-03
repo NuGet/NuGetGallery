@@ -7,69 +7,69 @@ using Xunit;
 
 namespace NuGetGallery.Services
 {
-	public class TrustedImageDomainsFacts
-	{
-		public class TheConstructor
-		{
-			[Fact]
-			public void ExpandsDomainsToIncludeWwwVariant()
-			{
-				// Arrange
-				var domains = new[] { "bestpractices.dev" };
+    public class TrustedImageDomainsFacts
+    {
+        public class TheConstructor
+        {
+            [Fact]
+            public void ExpandsDomainsToIncludeWwwVariant()
+            {
+                // Arrange
+                var domains = new[] { "bestpractices.dev" };
 
-				// Act
-				var trustedImageDomains = new TrustedImageDomains(domains);
+                // Act
+                var trustedImageDomains = new TrustedImageDomains(domains);
 
-				// Assert
-				Assert.True(trustedImageDomains.IsImageDomainTrusted("bestpractices.dev"));
-				Assert.True(trustedImageDomains.IsImageDomainTrusted("www.bestpractices.dev"));
-			}
+                // Assert
+                Assert.True(trustedImageDomains.IsImageDomainTrusted("bestpractices.dev"));
+                Assert.True(trustedImageDomains.IsImageDomainTrusted("www.bestpractices.dev"));
+            }
 
-			[Fact]
-			public void ExpandsWwwDomainsToIncludeNonWwwVariant()
-			{
-				// Arrange
-				var domains = new[] { "www.example.com" };
+            [Fact]
+            public void ExpandsWwwDomainsToIncludeNonWwwVariant()
+            {
+                // Arrange
+                var domains = new[] { "www.example.com" };
 
-				// Act
-				var trustedImageDomains = new TrustedImageDomains(domains);
+                // Act
+                var trustedImageDomains = new TrustedImageDomains(domains);
 
-				// Assert
-				Assert.True(trustedImageDomains.IsImageDomainTrusted("www.example.com"));
-				// Note: The current implementation has a bug where it creates ".example.com" instead of "example.com"
-				// This test documents the current behavior
-				Assert.False(trustedImageDomains.IsImageDomainTrusted("example.com"));
-			}
+                // Assert
+                Assert.True(trustedImageDomains.IsImageDomainTrusted("www.example.com"));
+                // Note: The current implementation has a bug where it creates ".example.com" instead of "example.com"
+                // This test documents the current behavior
+                Assert.False(trustedImageDomains.IsImageDomainTrusted("example.com"));
+            }
 
-			[Fact]
-			public void HandlesSubdomainsCorrectly()
-			{
-				// Arrange
-				var domains = new[] { "api.example.com" };
+            [Fact]
+            public void HandlesSubdomainsCorrectly()
+            {
+                // Arrange
+                var domains = new[] { "api.example.com" };
 
-				// Act
-				var trustedImageDomains = new TrustedImageDomains(domains);
+                // Act
+                var trustedImageDomains = new TrustedImageDomains(domains);
 
-				// Assert
-				Assert.True(trustedImageDomains.IsImageDomainTrusted("api.example.com"));
-				// Should not add www variant for subdomains other than www
-				Assert.False(trustedImageDomains.IsImageDomainTrusted("www.api.example.com"));
-			}
+                // Assert
+                Assert.True(trustedImageDomains.IsImageDomainTrusted("api.example.com"));
+                // Should not add www variant for subdomains other than www
+                Assert.False(trustedImageDomains.IsImageDomainTrusted("www.api.example.com"));
+            }
 
-			[Fact]
-			public void IsCaseInsensitive()
-			{
-				// Arrange
-				var domains = new[] { "bestpractices.dev" };
+            [Fact]
+            public void IsCaseInsensitive()
+            {
+                // Arrange
+                var domains = new[] { "bestpractices.dev" };
 
-				// Act
-				var trustedImageDomains = new TrustedImageDomains(domains);
+                // Act
+                var trustedImageDomains = new TrustedImageDomains(domains);
 
-				// Assert
-				Assert.True(trustedImageDomains.IsImageDomainTrusted("BESTPRACTICES.DEV"));
-				Assert.True(trustedImageDomains.IsImageDomainTrusted("WWW.BESTPRACTICES.DEV"));
-				Assert.True(trustedImageDomains.IsImageDomainTrusted("BestPractices.Dev"));
-			}
-		}
-	}
+                // Assert
+                Assert.True(trustedImageDomains.IsImageDomainTrusted("BESTPRACTICES.DEV"));
+                Assert.True(trustedImageDomains.IsImageDomainTrusted("WWW.BESTPRACTICES.DEV"));
+                Assert.True(trustedImageDomains.IsImageDomainTrusted("BestPractices.Dev"));
+            }
+        }
+    }
 }
