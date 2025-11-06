@@ -1,4 +1,4 @@
-﻿namespace NuGet.Services.CatalogValidation
+namespace NuGet.Services.CatalogValidation
 {
     using System;
     using System.Data.Entity.Migrations;
@@ -277,6 +277,7 @@
                         State = c.Int(nullable: false),
                         NupkgUrl = c.String(),
                         RowVersion = c.Binary(nullable: false, fixedLength: true, timestamp: true, storeType: "rowversion"),
+                        BatchId = c.String(maxLength: 20),
                         ValidatingType = c.Int(nullable: false),
                     })
                 .PrimaryKey(t => t.ValidationId)
