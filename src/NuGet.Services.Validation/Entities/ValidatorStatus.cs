@@ -36,11 +36,6 @@ namespace NuGet.Services.Validation
         public ValidationStatus State { get; set; }
 
         /// <summary>
-        /// The ID of the batch of packages being validated.
-        /// </summary>
-        public string BatchId { get; set; }
-
-        /// <summary>
         /// The .nupkg URL returned by a processor.
         /// </summary>
         public string NupkgUrl { get; set; }

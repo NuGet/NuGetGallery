@@ -3,7 +3,9 @@
 
 using System;
 using System.Data.Common;
+using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+using System.Data.Entity.ModelConfiguration;
 using NuGet.Services.Validation;
 
 namespace NuGet.Services.CatalogValidation.Entities
@@ -22,17 +24,17 @@ namespace NuGet.Services.CatalogValidation.Entities
         }
     }
 
-    /// <summary>
-    /// Entity Framework context for CatalogValidation database
-    /// </summary>
-    public class CatalogValidationEntitiesContext : ValidationEntitiesContext
-    {
-        public CatalogValidationEntitiesContext(string nameOrConnectionString) : base(nameOrConnectionString)
-        {
-        }
+	/// <summary>
+	/// Entity Framework context for CatalogValidation database
+	/// </summary>
+	public class CatalogValidationEntitiesContext : ValidationEntitiesContext
+	{
+		public CatalogValidationEntitiesContext(string nameOrConnectionString) : base(nameOrConnectionString)
+		{
+		}
 
-        public CatalogValidationEntitiesContext(DbConnection connection) : base(connection)
-        {
-        }
-    }
+		public CatalogValidationEntitiesContext(DbConnection connection) : base(connection)
+		{
+		}
+	}
 }
