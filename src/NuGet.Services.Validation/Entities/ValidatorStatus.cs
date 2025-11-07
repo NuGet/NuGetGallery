@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -34,6 +34,11 @@ namespace NuGet.Services.Validation
         /// The current status for this validator.
         /// </summary>
         public ValidationStatus State { get; set; }
+
+        /// <summary>
+        /// The ID of the batch of packages being validated.
+        /// </summary>
+        public string BatchId { get; set; }
 
         /// <summary>
         /// The .nupkg URL returned by a processor.
