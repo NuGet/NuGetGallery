@@ -36,5 +36,22 @@ namespace NuGet.Services.CatalogValidation.Entities
 		public CatalogValidationEntitiesContext(DbConnection connection) : base(connection)
 		{
 		}
+
+		/// <summary>
+		/// Override to use CatalogValidatorStatus instead of ValidatorStatus
+		/// </summary>
+		public new IDbSet<CatalogValidatorStatus> ValidatorStatuses { get; set; }
+
+		protected override void OnModelCreating(DbModelBuilder modelBuilder)
+		{
+			// Configure the derived CatalogValidatorStatus entity
+			modelBuilder.Entity<CatalogValidatorStatus>()
+				.Property(s => s.BatchId)
+				.IsOptional()
+				.HasMaxLength(256);
+
+			// Call base configuration to maintain all existing mappings
+			base.OnModelCreating(modelBuilder);
+		}
 	}
 }
