@@ -3296,6 +3296,11 @@ p.frameworktableinfo-text {
 .page-status .status-general .last-checked {
   margin-left: 10px;
 }
+.page-status .status-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px;
+}
 .page-status .status-up {
   background-color: var(--statusSuccessBackground1Rest);
 }
