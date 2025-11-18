@@ -1,123 +1,123 @@
 .page-status {
     @status-general-margin-bottom: 24px;
-    
+
     .status-general {
         padding: 13px;
         margin-bottom: @status-general-margin-bottom;
-        
+
         p {
             margin: 0;
         }
-        
+
         i {
             vertical-align: middle;
         }
-        
+
         .text-span {
             font-size: 1.5em;
             vertical-align: middle;
         }
-        
+
         .last-checked {
             margin-left: 10px;
         }
     }
-    
+
     .status-up {
         background-color: var(--statusSuccessBackground1Rest);
 
         .ms-Icon {
-            color: var(--neutralForeground3Rest);
+            color: var(--statusSuccessForeground1Rest);
         }
     }
-    
+
     .status-down {
         background-color: var(--statusDangerBackground1Rest);
-        
+
         .ms-Icon {
             color: var(--statusDangerForeground1Rest);
         }
     }
-    
+
     .status-degraded {
         background-color: var(--statusWarningBackground1Rest);
-        
+
         .ms-Icon {
             color: var(--statusWarningForeground1Rest);
         }
     }
-    
+
     .update {
         margin-bottom: @status-general-margin-bottom;
     }
-    
+
     .ms-Icon {
         margin-right: 10px;
         font-size: 1.25em;
     }
-        
+
     .ms-Icon--CheckMark {
         color: var(--statusSuccessForeground1Rest);
     }
-        
+
     .ms-Icon--Warning {
         color: var(--statusWarningForeground1Rest);
     }
-    
+
     .ms-Icon--Cancel {
         color: var(--statusDangerForeground1Rest)
     }
-    
+
     .table {
         word-break: break-word;
-        
+
         thead {
             th:nth-child(1) {
                 width: 50%;
             }
-            
+
             th:nth-child(2) {
                 width: 30%;
             }
-            
+
             th:nth-child(3) {
                 width: 20%;
             }
         }
-        
+
         tbody {
             border: none;
-            
+
             tr td {
                 vertical-align: middle;
-                
+
                 .nonaggregate {
                     margin-left: 20px;
                 }
-                
+
                 i {
                     vertical-align: middle;
                 }
-                
+
                 span {
                     vertical-align: middle;
                 }
             }
         }
-        
+
         tbody.aggregate tr td:first-child {
             font-size: 1.5em;
-            
+
             a, a:hover, a:focus, a:active {
                 color: var(--neutralForeground1Rest);
                 text-decoration: none;
             }
-            
+
             .ms-Icon {
                 font-size: .75em;
             }
         }
-        
+
         tbody + tbody {
             border: none;
         }
