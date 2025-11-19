@@ -485,6 +485,7 @@ img.reserved-indicator-icon {
 }
 html {
   height: 100%;
+  scrollbar-gutter: stable;
 }
 body:has(.page-home) {
   background: var(--body-background-color);
