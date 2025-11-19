@@ -1039,11 +1039,6 @@ namespace NuGetGallery
         public virtual ActionResult TrustedPublishing()
         {
             User currentUser = GetCurrentUser();
-            if (!_featureFlagService.IsTrustedPublishingEnabled(currentUser))
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
-            }
-
             var userPolicies = _federatedCredentialService.GetPoliciesCreatedByUser(currentUser.Key);
 
             // Show newest policies on the top.
@@ -1208,11 +1203,6 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> RemoveTrustedPublisherPolicy(int? federatedCredentialKey)
         {
             User currentUser = GetCurrentUser();
-            if (!_featureFlagService.IsTrustedPublishingEnabled(currentUser))
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(Strings.DefaultUserSafeExceptionMessage);
-            }
 
             var result = GetFederatedCredentialPolicy(federatedCredentialKey);
             if (result.policy == null)

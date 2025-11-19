@@ -31,10 +31,6 @@ public class TheTrustedPublishingAction : TestContainer
     public void WhenTrustedPublishingEnabled_ReturnsTrustedPublishingView(User currentUser)
     {
         // Arrange
-        GetMock<IFeatureFlagService>()
-            .Setup(f => f.IsTrustedPublishingEnabled(currentUser))
-            .Returns(true);
-
         GetMock<IFederatedCredentialService>()
             .Setup(r => r.GetPoliciesCreatedByUser(It.IsAny<int>()))
             .Returns([]);
@@ -57,30 +53,9 @@ public class TheTrustedPublishingAction : TestContainer
     }
 
     [Fact]
-    public void WhenTrustedPublishingDisabled_ReturnsBadRequest()
-    {
-        // Arrange
-        GetMock<IFeatureFlagService>()
-            .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
-            .Returns(false);
-
-        var controller = GetController<UsersController>();
-
-        // Act
-        var result = controller.TrustedPublishing();
-
-        // Assert
-        Assert.Equal((int)HttpStatusCode.NotFound, ((HttpStatusCodeResult)result).StatusCode);
-    }
-
-    [Fact]
     public void FiltersOnlyTrustedPublisherPolicies()
     {
         // Arrange
-        GetMock<IFeatureFlagService>()
-            .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
-            .Returns(true);
-
         var currentUser = TestUtility.FakeUser;
         var policies = new List<FederatedCredentialPolicy>
                 {
@@ -117,10 +92,6 @@ public class TheTrustedPublishingAction : TestContainer
     public void WhenPolicyHasUserNotInOrganizationInvalidReason_CorrectlyPopulatesModel()
     {
         // Arrange
-        GetMock<IFeatureFlagService>()
-            .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
-            .Returns(true);
-
         var currentUser = TestUtility.FakeUser;
         var organization = TestUtility.FakeOrganization;
 
@@ -157,10 +128,6 @@ public class TheTrustedPublishingAction : TestContainer
     public void WhenPolicyHasOrganizationLockedOrDeletedInvalidReason_CorrectlyPopulatesModel(bool isLocked, bool isDeleted)
     {
         // Arrange
-        GetMock<IFeatureFlagService>()
-            .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
-            .Returns(true);
-
         // Create a new organization and user for this test
         var organization = new Organization { Username = "TestOrganization", Key = 5 };
         var currentUser = Get<Fakes>().CreateUser("TestOrganizationAdmin");
@@ -200,10 +167,6 @@ public class TheTrustedPublishingAction : TestContainer
     public void WhenUserOwnsPolicy_OwnerIsValid()
     {
         // Arrange
-        GetMock<IFeatureFlagService>()
-            .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
-            .Returns(true);
-
         var currentUser = TestUtility.FakeOrganizationAdmin;
 
         var policy = new FederatedCredentialPolicy
@@ -242,10 +205,6 @@ public class TheTrustedPublishingAction : TestContainer
     public void WhenOrganizationMemberOwnsPolicy_OwnerIsValid()
     {
         // Arrange
-        GetMock<IFeatureFlagService>()
-            .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
-            .Returns(true);
-
         var currentUser = TestUtility.FakeOrganizationAdmin;
         var organization = TestUtility.FakeOrganization;
 
@@ -289,10 +248,6 @@ public class TheTrustedPublishingAction : TestContainer
     public void WhenPolicyIsPermanent_IsPermanentlyEnabled()
     {
         // Arrange
-        GetMock<IFeatureFlagService>()
-            .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
-            .Returns(true);
-
         var currentUser = TestUtility.FakeUser;
         var policy = new FederatedCredentialPolicy
         {
@@ -327,10 +282,6 @@ public class TheTrustedPublishingAction : TestContainer
     public void WhenPolicyWithValidateByDate_IsTemporaryAndEnabledDaysLeft(int daysLeft)
     {
         // Arrange
-        GetMock<IFeatureFlagService>()
-            .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
-            .Returns(true);
-
         var currentUser = TestUtility.FakeUser;
         DateTimeOffset validateBy = DateTimeOffset.UtcNow + TimeSpan.FromHours(24 * daysLeft - 1);
         string dbJson = """{"owner":"nuget","repository":"Engineering","workflow":"2.yam","environment":"what","validateBy":"%DATE%"}""";
@@ -366,10 +317,6 @@ public class TheTrustedPublishingAction : TestContainer
     public void WhenMultiplePoliciesWithDifferentTypes_CorrectlyClassifiesEach()
     {
         // Arrange
-        GetMock<IFeatureFlagService>()
-            .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
-            .Returns(true);
-
         var currentUser = TestUtility.FakeUser;
         var temporaryPolicy = new FederatedCredentialPolicy
         {
@@ -434,10 +381,6 @@ public class TheGenerateTrustedPublisherPolicyAction : TestContainer
     public async Task WhenValidRequestWithIds_CreatesPermanentlyEnabledPolicy()
     {
         // Arrange
-        GetMock<IFeatureFlagService>()
-            .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
-            .Returns(true);
-
         var user = TestUtility.FakeUser;
         var controller = GetController<UsersController>();
         controller.SetCurrentUser(user);
@@ -480,10 +423,6 @@ public class TheGenerateTrustedPublisherPolicyAction : TestContainer
     public async Task WhenFederatedCredentialServiceReturnsBadRequest_ReturnsBadRequestWithUserMessage()
     {
         // Arrange
-        GetMock<IFeatureFlagService>()
-            .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
-            .Returns(true);
-
         var user = TestUtility.FakeUser;
         var controller = GetController<UsersController>();
         controller.SetCurrentUser(user);
@@ -513,10 +452,6 @@ public class TheGenerateTrustedPublisherPolicyAction : TestContainer
     public async Task WhenFederatedCredentialServiceReturnsUnauthorizes_ReturnsUnauthorizedWithUserMessage()
     {
         // Arrange
-        GetMock<IFeatureFlagService>()
-            .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
-            .Returns(true);
-
         var user = TestUtility.FakeUser;
         var controller = GetController<UsersController>();
         controller.SetCurrentUser(user);
@@ -549,10 +484,6 @@ public class TheEditTrustedPublisherPolicyAction : TestContainer
     public async Task WhenEditingPolicy_CallsUpdatePolicyAsyncWithCorrectParameters()
     {
         // Arrange
-        GetMock<IFeatureFlagService>()
-            .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
-            .Returns(true);
-
         var user = TestUtility.FakeUser;
         string newJSCriteria = """{"RepositoryOwner":"someOwner","Repository":"repo","WorkflowFile":"new.yml","Environment":"", "validateBy":"2025-01-01T00:00:00Z"}""";
 
@@ -597,10 +528,6 @@ public class TheEditTrustedPublisherPolicyAction : TestContainer
     public async Task WhenEditingPolicy_ReturnsJsonResultFromService()
     {
         // Arrange
-        GetMock<IFeatureFlagService>()
-            .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
-            .Returns(true);
-
         var user = TestUtility.FakeUser;
         string newJSCriteria = """{"RepositoryOwner":"someOwner","Repository":"repo","WorkflowFile":"new.yml", "validateBy":"2025-01-01T00:00:00Z"}""";
 
@@ -644,10 +571,6 @@ public class TheEditTrustedPublisherPolicyAction : TestContainer
     public async Task WhenFederatedCredentialServiceReturnsError_ReturnsBadRequestWithUserMessage()
     {
         // Arrange
-        GetMock<IFeatureFlagService>()
-            .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
-            .Returns(true);
-
         var user = TestUtility.FakeUser;
         var policy = new FederatedCredentialPolicy
         {
@@ -687,10 +610,6 @@ public class TheEditTrustedPublisherPolicyAction : TestContainer
     public async Task WhenPolicyNotFound_ReturnsBadRequest()
     {
         // Arrange
-        GetMock<IFeatureFlagService>()
-            .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
-            .Returns(true);
-
         GetMock<IFederatedCredentialService>()
             .Setup(r => r.GetPolicyByKey(1))
             .Returns((FederatedCredentialPolicy)null);
@@ -711,10 +630,6 @@ public class TheEditTrustedPublisherPolicyAction : TestContainer
     public async Task WhenUserNotOwnerOfPolicy_ReturnsBadRequest()
     {
         // Arrange
-        GetMock<IFeatureFlagService>()
-            .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
-            .Returns(true);
-
         var user = TestUtility.FakeUser;
         var otherUser = TestUtility.FakeAdminUser;
         var policy = new FederatedCredentialPolicy
@@ -750,10 +665,6 @@ public class TheEnableTrustedPublisherPolicyAction : TestContainer
     public async Task WhenPolicyNotFound_ReturnsBadRequest()
     {
         // Arrange
-        GetMock<IFeatureFlagService>()
-            .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
-            .Returns(true);
-
         GetMock<IFederatedCredentialService>()
             .Setup(r => r.GetPolicyByKey(1))
             .Returns((FederatedCredentialPolicy)null);
@@ -776,10 +687,6 @@ public class TheEnableTrustedPublisherPolicyAction : TestContainer
     public async Task WhenFederatedCredentialKeyIsInvalid_ReturnsBadRequest(int? federatedCredentialKey)
     {
         // Arrange
-        GetMock<IFeatureFlagService>()
-            .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
-            .Returns(true);
-
         GetMock<IFederatedCredentialService>()
             .Setup(r => r.GetPolicyByKey(It.IsAny<int>()))
             .Returns((FederatedCredentialPolicy)null);
@@ -800,10 +707,6 @@ public class TheEnableTrustedPublisherPolicyAction : TestContainer
     public async Task WhenValidPolicy_CallsUpdatePolicyAsyncAndReturnsJsonResult()
     {
         // Arrange
-        GetMock<IFeatureFlagService>()
-            .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
-            .Returns(true);
-
         var user = TestUtility.FakeUser;
         var policy = new FederatedCredentialPolicy
         {
@@ -845,33 +748,9 @@ public class TheEnableTrustedPublisherPolicyAction : TestContainer
 public class TheRemoveTrustedPublisherPolicyAction : TestContainer
 {
     [Fact]
-    public async Task WhenTrustedPublishingDisabled_ReturnsBadRequest()
-    {
-        // Arrange
-        GetMock<IFeatureFlagService>()
-            .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
-            .Returns(false);
-
-        var user = TestUtility.FakeUser;
-        var controller = GetController<UsersController>();
-        controller.SetCurrentUser(user);
-
-        // Act
-        var result = await controller.RemoveTrustedPublisherPolicy(federatedCredentialKey: 1);
-
-        // Assert
-        Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
-        Assert.Equal(Strings.DefaultUserSafeExceptionMessage, ((JsonResult)result).Data);
-    }
-
-    [Fact]
     public async Task WhenPolicyNotFound_ReturnsBadRequest()
     {
         // Arrange
-        GetMock<IFeatureFlagService>()
-            .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
-            .Returns(true);
-
         GetMock<IFederatedCredentialService>()
             .Setup(r => r.GetPolicyByKey(1))
             .Returns((FederatedCredentialPolicy)null);
@@ -892,10 +771,6 @@ public class TheRemoveTrustedPublisherPolicyAction : TestContainer
     public async Task WhenUserNotOwnerOfPolicy_ReturnsForbidden()
     {
         // Arrange
-        GetMock<IFeatureFlagService>()
-            .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
-            .Returns(true);
-
         var user = TestUtility.FakeUser;
         var otherUser = TestUtility.FakeAdminUser;
         var policy = new FederatedCredentialPolicy
@@ -925,10 +800,6 @@ public class TheRemoveTrustedPublisherPolicyAction : TestContainer
     public async Task WhenValidRequest_DeletesPolicy()
     {
         // Arrange
-        GetMock<IFeatureFlagService>()
-            .Setup(f => f.IsTrustedPublishingEnabled(It.IsAny<User>()))
-            .Returns(true);
-
         var user = TestUtility.FakeUser;
         var policy = new FederatedCredentialPolicy
         {
