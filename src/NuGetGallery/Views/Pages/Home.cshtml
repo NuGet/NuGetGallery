@@ -48,7 +48,7 @@ else if (AskUserToEnable2FA)
             </div>
             <div class="row">
                 <div class="col-sm-8 col-sm-offset-2">
-                    <form id="@UrlHelperExtensions.SimpleSearchFormId" action="@Url.PackageList()" method="get">
+                    <form id="@GalleryConstants.SearchFilterIds.SimpleSearchFormId" action="@Url.PackageList()" method="get">
                         @Html.Partial("_SearchBar")
                         @Html.Partial("_AutocompleteTemplate")
                     </form>
