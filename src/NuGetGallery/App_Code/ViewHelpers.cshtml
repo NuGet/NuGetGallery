@@ -72,6 +72,11 @@
     @Alert(htmlContent, "danger", "ErrorBadge", isAlertRole)
 }
 
+@helper AlertSuccess(Func<MvcHtmlString, HelperResult> htmlContent, bool isAlertRole = false)
+{
+    @Alert(htmlContent, "success", "CompletedSolid", isAlertRole)
+}
+
 @helper AlertPasswordDeprecation()
 {
     @AlertWarning(

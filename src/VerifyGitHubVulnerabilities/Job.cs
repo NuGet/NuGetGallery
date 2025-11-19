@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -7,19 +7,20 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
-using NuGet.Services.GitHub.Collector;
-using NuGet.Services.GitHub.GraphQL;
-using NuGet.Services.GitHub.Ingest;
+using GitHubVulnerabilities2Db.Gallery;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
+using NuGet.Services.GitHub.Collector;
+using NuGet.Services.GitHub.Configuration;
+using NuGet.Services.GitHub.GraphQL;
+using NuGet.Services.GitHub.Ingest;
 using NuGetGallery;
 using VerifyGitHubVulnerabilities.Configuration;
 using VerifyGitHubVulnerabilities.Verify;
-using GitHubVulnerabilities2Db.Gallery;
 
 namespace VerifyGitHubVulnerabilities
 {
@@ -60,6 +61,8 @@ namespace VerifyGitHubVulnerabilities
         {
             containerBuilder
                 .RegisterAdapter<IOptionsSnapshot<VerifyGitHubVulnerabilitiesConfiguration>, VerifyGitHubVulnerabilitiesConfiguration>(c => c.Value);
+            containerBuilder
+                .RegisterAdapter<IOptionsSnapshot<VerifyGitHubVulnerabilitiesConfiguration>, GraphQLQueryConfiguration>(c => c.Value);
 
             ConfigureQueryServices(containerBuilder);
             ConfigureIngestionServices(containerBuilder);
@@ -110,7 +113,7 @@ namespace VerifyGitHubVulnerabilities
                 .As<HttpClient>();
 
             containerBuilder
-                .RegisterType<VerifyGitHubVulnerabilities.GraphQL.QueryService>()
+                .RegisterType<QueryService>()
                 .As<IQueryService>();
 
             containerBuilder

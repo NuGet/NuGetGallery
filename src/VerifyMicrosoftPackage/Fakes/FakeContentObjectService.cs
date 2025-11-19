@@ -29,6 +29,8 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
 
         public ITrustedImageDomains TrustedImageDomains => throw new NotImplementedException();
 
+        public ITrustedSponsorshipDomains TrustedSponsorshipDomains => throw new NotImplementedException();
+
         public Task Refresh()
         {
             throw new NotImplementedException();

@@ -4,6 +4,8 @@
 @{
     ViewBag.Title = "API Keys";
     ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
+    var featureFlagService = DependencyResolver.Current.GetService<IFeatureFlagService>();
+    ViewBag.IsTrustedPublishingEnabled = featureFlagService != null && featureFlagService.IsTrustedPublishingEnabled(CurrentUser);
 }
 
 <section role="main" class="container main-container page-api-keys">
@@ -11,6 +13,18 @@
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, true, @<text>API keys</text>)
+
+            @if (ViewBag.IsTrustedPublishingEnabled)
+            {
+                @ViewHelpers.Alert(
+                    @<text>
+                        <strong>Looking for a more secure and streamlined way to publish packages?</strong>
+                        If you're using GitHub Actions, we recommend switching to
+                        <a href="@Url.ManageMyTrustedPublishing()">Trusted Publishing</a> since it eliminates the need to manage API keys.
+                    </text>,
+                    "info", icon: null)
+            }
+
             <p>
                 An API key is a token that can identify you to @(Config.Current.Brand). The
                 <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet command-line utility</a> allows
@@ -27,17 +41,11 @@
             else
             {
                 <p>
-                    <strong>Always keep your API keys a secret!</strong> If one of your keys is accidentally revealed,
-                    you can always generate a new one at any time. You can also remove existing API keys if necessary.
-                    <br />
-                    <p>
-                        <strong>Note:</strong> To push packages to nuget.org you must use <a href="https://www.nuget.org/downloads">nuget.exe v4.1.0 or above</a>,
-                        which implements the required <a href="https://docs.microsoft.com/nuget/api/nuget-protocols">NuGet protocols</a>.
-                    </p>
+                    <strong>Always keep your API keys a secret! If an API key is ever exposed, revoke it immediately and generate a new one to maintain security.</strong>
                 </p>
 
                 <div data-bind="template: 'error-container'"></div>
-                
+
                 @ViewHelpers.Section(this,
                     "create",
                     "Create",
@@ -46,9 +54,9 @@
                             <div class="panel-body" data-bind="template: { name: 'upsert-api-key', data: NewApiKey }"></div>
                         </div>
                     </text>,
-                    expanded: false,
-                    expandedIcon: "Subtraction",
-                    collapsedIcon: "Add")
+        expanded: false,
+        expandedIcon: "Subtraction",
+        collapsedIcon: "Add")
 
                 @ViewHelpers.Section(this,
                     "manage",
@@ -476,7 +484,7 @@
                                         <td>Select all packages</td>
                                     </tr>
                                     <tr>
-                                        <td>Alpha.*</td>
+                                        <td>Alpha*</td>
                                         <td>Select any package that has an ID beginning with <i>Alpha</i></td>
                                     </tr>
                                 </tbody>
@@ -541,5 +549,5 @@
                          }
                      });
     </script>
-    @Scripts.RenderFormat("<script src=\"{0}\" nonce='" + @Html.GetCSPNonce().ToString() + "'></script>", "~/Scripts/gallery/page-api-keys.min.js");
+    @Scripts.RenderFormat("<script src=\"{0}\" nonce='" + @Html.GetCSPNonce().ToString() + "'></script>", "~/Scripts/gallery/page-api-keys.min.js")
 }

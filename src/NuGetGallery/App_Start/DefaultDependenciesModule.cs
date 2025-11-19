@@ -29,7 +29,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Protocols;
-using Microsoft.WindowsAzure.ServiceRuntime;
 using NuGet.Services.Configuration;
 using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
@@ -386,6 +385,11 @@ namespace NuGetGallery
                 .As<IPackageOwnershipManagementService>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<SponsorshipUrlService>()
+                .AsSelf()
+                .As<ISponsorshipUrlService>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<ValidationService>()
                 .AsSelf()
                 .As<IValidationService>()
@@ -564,26 +568,26 @@ namespace NuGetGallery
                 .Register(_ => new OpenIdConnectConfigurationRetriever())
                 .As<IConfigurationRetriever<OpenIdConnectConfiguration>>();
 
+            // Register EntraID-specific OIDC configuration manager
             const string EntraIdKey = "EntraId";
-
-            // this is a singleton to provide caching of the OIDC metadata
             builder
                 .Register(p => new ConfigurationManager<OpenIdConnectConfiguration>(
-                    metadataAddress: EntraIdTokenValidator.MetadataAddress,
+                    metadataAddress: EntraIdTokenPolicyValidator.MetadataAddress,
                     p.Resolve<IConfigurationRetriever<OpenIdConnectConfiguration>>()))
                 .SingleInstance()
                 .Keyed<ConfigurationManager<OpenIdConnectConfiguration>>(EntraIdKey);
 
+            // Register GitHub-specific OIDC configuration manager
+            const string GitHubActionsKey = "GitHubActions";
             builder
-                .RegisterType<JsonWebTokenHandler>()
-                .InstancePerLifetimeScope();
+                .Register(p => new ConfigurationManager<OpenIdConnectConfiguration>(
+                    metadataAddress: GitHubTokenPolicyValidator.MetadataAddress,
+                    p.Resolve<IConfigurationRetriever<OpenIdConnectConfiguration>>()))
+                .SingleInstance()
+                .Keyed<ConfigurationManager<OpenIdConnectConfiguration>>(GitHubActionsKey);
 
             builder
-                .Register(p => new EntraIdTokenValidator(
-                    p.ResolveKeyed<ConfigurationManager<OpenIdConnectConfiguration>>(EntraIdKey),
-                    p.Resolve<JsonWebTokenHandler>(),
-                    p.Resolve<IFederatedCredentialConfiguration>()))
-                .As<IEntraIdTokenValidator>()
+                .RegisterType<JsonWebTokenHandler>()
                 .InstancePerLifetimeScope();
 
             builder
@@ -596,7 +600,29 @@ namespace NuGetGallery
                     }).ToList();
                 })
                 .As<IReadOnlyList<IFederatedCredentialValidator>>() // a singleton, materialized list
-                .SingleInstance();
+                .InstancePerLifetimeScope();
+
+            // Register individual validators
+            builder
+                .Register(c => new EntraIdTokenPolicyValidator(
+                    c.ResolveKeyed<ConfigurationManager<OpenIdConnectConfiguration>>(EntraIdKey),
+                    c.Resolve<IFederatedCredentialConfiguration>(),
+                    c.Resolve<IFeatureFlagService>(),
+                    c.Resolve<JsonWebTokenHandler>()))
+                .As<ITokenPolicyValidator>()
+                .InstancePerLifetimeScope();
+
+            builder
+                .Register(c => new GitHubTokenPolicyValidator(
+                    c.Resolve<IFederatedCredentialRepository>(),
+                    c.ResolveKeyed<ConfigurationManager<OpenIdConnectConfiguration>>(GitHubActionsKey),
+                    c.Resolve<IFederatedCredentialConfiguration>(),
+                    c.Resolve<IAuditingService>(),
+                    c.Resolve<IFeatureFlagService>(),
+                    c.Resolve<JsonWebTokenHandler>()
+                    ))
+                .As<ITokenPolicyValidator>()
+                .InstancePerLifetimeScope();
 
             builder
                 .RegisterType<FederatedCredentialPolicyEvaluator>()
@@ -633,19 +659,6 @@ namespace NuGetGallery
             var telemetryConfiguration = applicationInsightsConfiguration.TelemetryConfiguration;
 
             // Add enrichers
-            try
-            {
-                if (RoleEnvironment.IsAvailable)
-                {
-                    telemetryConfiguration.TelemetryInitializers.Add(
-                        new DeploymentIdTelemetryEnricher(RoleEnvironment.DeploymentId));
-                }
-            }
-            catch
-            {
-                // This likely means the cloud service runtime is not available.
-            }
-
             if (configuration.DeploymentLabel != null)
             {
                 telemetryConfiguration.TelemetryInitializers.Add(new DeploymentLabelEnricher(configuration.DeploymentLabel));

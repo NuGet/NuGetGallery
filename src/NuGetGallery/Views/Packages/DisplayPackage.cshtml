@@ -1,5 +1,7 @@
-﻿﻿﻿@using NuGet.Services.Validation
+﻿﻿@using NuGet.Services.Validation
 @using NuGet.Services.Licenses
+@using NuGetGallery.Services.Helpers
+@using NuGetGallery.Services.Models
 
 @model DisplayPackageViewModel
 @{
@@ -80,6 +82,69 @@
                 CommandPrefix = "> ",
             }
         };
+
+        if (Model.CanDisplayMcpServerPackageTab())
+        {
+            var validity = Model.VsCodeMcpServerEntryTemplate.Validity;
+            var template = Model.VsCodeMcpServerEntryTemplate.Template;
+
+            AlertLevel alertLevel = AlertLevel.Info;
+            string alertMessage;
+            string vsCodeEntryTemplate;
+            bool copyEnabled;
+
+            if (validity == McpServerEntryResultValidity.Success)
+            {
+                alertLevel = AlertLevel.Info;
+                alertMessage = "This package contains an <a href='https://aka.ms/nuget/mcp/concepts'>MCP Server</a>. The server can be used in VS Code by copying the generated JSON to your VS Code workspace's <code>.vscode/mcp.json</code> settings file.";
+                vsCodeEntryTemplate = Model.VsCodeMcpServerEntryTemplate.Template ?? string.Empty;
+                copyEnabled = true;
+            }
+            else if (validity == McpServerEntryResultValidity.MissingMetadata)
+            {
+                alertLevel = AlertLevel.Warning;
+                alertMessage = "The VS Code MCP server configuration entry cannot be generated because this package does not include a server.json file. Please refer to the package README and the <a href='https://aka.ms/vscode-mcp-server-config'>MCP Configuration Guide</a> for proper setup instructions.";
+                vsCodeEntryTemplate = string.Empty;
+                copyEnabled = false;
+            }
+            else if (validity == McpServerEntryResultValidity.InvalidMetadata)
+            {
+                alertLevel = AlertLevel.Warning;
+                alertMessage = "The VS Code MCP server configuration entry cannot be generated because the server.json file is invalid. Please refer to the package README and the <a href='https://aka.ms/vscode-mcp-server-config'>MCP Configuration Guide</a> for proper setup instructions.";
+                vsCodeEntryTemplate = string.Empty;
+                copyEnabled = false;
+            }
+            else if (validity == McpServerEntryResultValidity.MissingNugetRegistry)
+            {
+                alertLevel = AlertLevel.Warning;
+                alertMessage = "The VS Code MCP server configuration entry cannot be generated because the server.json file is missing a NuGet entry. Please refer to the package README and the <a href='https://aka.ms/vscode-mcp-server-config'>MCP Configuration Guide</a> for proper setup instructions.";
+                vsCodeEntryTemplate = string.Empty;
+                copyEnabled = false;
+            }
+            else
+            {
+                alertLevel = AlertLevel.None;
+                alertMessage = string.Empty;
+                vsCodeEntryTemplate = string.Empty;
+                copyEnabled = false;
+            }
+
+            PackageManagerViewModel[] packageManagersWithMcp = new PackageManagerViewModel[packageManagers.Length + 1];
+            packageManagersWithMcp[0] = new PackageManagerViewModel(
+                "vscode-mcp-server",
+                "MCP Server",
+                new PackageManagerViewModel.InstallPackageCommand(vsCodeEntryTemplate)
+            )
+            {
+                CommandPrefix = "",
+                AlertLevel = alertLevel,
+                AlertMessage = alertMessage,
+                CopyEnabled = copyEnabled,
+            };
+
+            Array.Copy(packageManagers, 0, packageManagersWithMcp, 1, packageManagers.Length);
+            packageManagers = packageManagersWithMcp;
+        }
     }
     else if (Model.IsDotnetNewTemplatePackageType)
     {
@@ -114,7 +179,19 @@
                 AlertLevel = AlertLevel.Info,
                 AlertMessage = string.Format("For projects that support Sdk, copy this XML node into the project file to reference the package."),
                 CopyLabel = "Copy the SDK XML node",
-            }
+            },
+
+            new PackageManagerViewModel(
+                "dotnet-run-file",
+                "File-based Apps",
+                new PackageManagerViewModel.InstallPackageCommand(
+                    string.Format("#:sdk {0}@{1}", Model.Id, Model.Version)
+                )
+            )
+            {
+                AlertLevel = AlertLevel.Info,
+                AlertMessage = "#:sdk directive can be used in C# file-based apps starting in .NET 10 preview 4. Copy this into a .cs file before any lines of code to reference the package.",
+            },
         };
     }
     else
@@ -215,12 +292,24 @@
                 AlertMessage = "#r directive can be used in F# Interactive and Polyglot Notebooks. Copy this into the interactive tool or source code of the script to reference the package."
             },
 
+            new PackageManagerViewModel(
+                "dotnet-run-file",
+                "File-based Apps",
+                new PackageManagerViewModel.InstallPackageCommand(
+                    string.Format("#:package {0}@{1}", Model.Id, Model.Version)
+                )
+            )
+            {
+                AlertLevel = AlertLevel.Info,
+                AlertMessage = "#:package directive can be used in C# file-based apps starting in .NET 10 preview 4. Copy this into a .cs file before any lines of code to reference the package."
+            },
+
             new ThirdPartyPackageManagerViewModel(
                 Model.IsCakeExtension() ? "cake-extension" : "cake",
                 "Cake",
                 "https://cakebuild.net/support/nuget",
                 Model.GetCakeInstallPackageCommands()
-                )
+            )
         };
     }
 }
@@ -284,7 +373,8 @@
                         </span>
                         }<button id="@installPackageCommand.Key-button" class="btn btn-brand-icon" type="button"
                                 data-toggle="popover" data-placement="bottom" data-content="Copied."
-                                aria-label="@packageManager.CopyLabel" role="button">
+                                aria-label="@packageManager.CopyLabel" role="button"
+                                disabled="@(!packageManager.CopyEnabled)">
                             <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
                             <span>Copy</span>
                         </button>
@@ -470,7 +560,7 @@
                             </text>
                         )
                     }
-                    
+
                     if (Model.VersionRequestedWasNotFound)
                     {
                         @ViewHelpers.AlertWarning(
@@ -479,7 +569,7 @@
                             </text>
                         )
                     }
-                    
+
                     if (Model.HasNewerRelease)
                     {
                         @ViewHelpers.AlertInfo(
@@ -1277,6 +1367,16 @@
                         </li>
                     }
 
+                    @if (!Model.Deleted && Model.SponsorshipUrls != null && Model.SponsorshipUrls.Any() && Model.ShowDetailsAndLinks)
+                    {
+                        <li>
+                            <i class="ms-Icon ms-Icon--Heart" aria-hidden="true"></i>
+                            <button type="button" class="sidebar-button" data-toggle="modal" data-target="#sponsorship-popup" title="Sponsor this package">
+                                Sponsor
+                            </button>
+                        </li>
+                    }
+
                     @if (!Model.CanReportAsOwner && Model.Available && Model.ShowDetailsAndLinks)
                     {
                         <li class="report-link">
@@ -1288,6 +1388,39 @@
                     }
                 </ul>
             </div>
+
+            @if (!Model.Deleted && Model.SponsorshipUrls != null && Model.SponsorshipUrls.Any() && Model.ShowDetailsAndLinks)
+            {
+                <!-- Bootstrap Modal -->
+                <div class="modal fade" id="sponsorship-popup" tabindex="-1" role="dialog" aria-labelledby="sponsorship-popup-title">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close sponsorship popup">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                                <h4 class="modal-title" id="sponsorship-popup-title">External Links</h4>
+                            </div>
+                            <div class="modal-body sponsorship-modal-body">
+                                @ViewHelpers.AlertInfo(
+                                    @<text>
+                                        These links will take you to third-party platforms. Microsoft is not affiliated with or responsible for the content or practices of third-party platforms.
+                                    </text>)
+
+                                @foreach (var sponsorshipUrl in Model.SponsorshipUrls)
+                                {
+                                    <div class="external-link-container">
+                                        <i class="ms-Icon ms-Icon--Link sidebar-link-icon" aria-hidden="true"></i>
+                                        <a href="@sponsorshipUrl" target="_blank" rel="nofollow noopener noreferrer" class="sidebar-link" data-sponsorship-url="@Html.Raw(Json.Encode(sponsorshipUrl))">
+                                            @sponsorshipUrl
+                                        </a>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
 
             @if (Model.CanDisplayPrivateMetadata)
             {
@@ -1490,6 +1623,9 @@
             packageManagersCss += "    content: \"" + packageManager.CommandPrefix + "\"";
             packageManagersCss += "}";
         }
+
+        // Calculate sponsorship URL count for JavaScript
+        var sponsorshipUrlCount = Model.SponsorshipUrls != null ? Model.SponsorshipUrls.Count() : 0;
     }
 
     <style type="text/css" nonce="@Html.GetCSPNonce()">
@@ -1497,9 +1633,10 @@
     </style>
 
     <script type="text/javascript" nonce="@Html.GetCSPNonce()">
-        var packageId = @Html.ToJson(Model.Id);
-        var packageVersion = @Html.ToJson(Model.Version);
-        var packageManagers = @Html.ToJson(
+        window.nuget = window.nuget || {};
+        window.nuget.packageId = @Html.ToJson(Model.Id);
+        window.nuget.packageVersion = @Html.ToJson(Model.Version);
+        window.nuget.packageManagers = @Html.ToJson(
                                  (
                                     from pm in packageManagers
                                     from ipc in pm.InstallPackageCommands
@@ -1507,6 +1644,7 @@
                                  )
                                  .ToList()
                              );
+        window.nuget.sponsorshipUrlCount = @sponsorshipUrlCount;
     </script>
 
     @if (Model.IsMarkdigMdSyntaxHighlightEnabled) 
@@ -1522,5 +1660,5 @@
         </script>
     }
 
-    @Scripts.RenderFormat("<script src=\"{0}\" nonce='" + @Html.GetCSPNonce().ToString() + "'></script>", "~/Scripts/gallery/page-display-package.min.js");
+    @Scripts.RenderFormat("<script src=\"{0}\" nonce='" + @Html.GetCSPNonce().ToString() + "'></script>", "~/Scripts/gallery/page-display-package.min.js")
 }

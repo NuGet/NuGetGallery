@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -38,12 +38,19 @@ namespace NuGetGallery
                 var runtimeGraph = new RuntimeGraph();
                 var conventions = new ManagedCodeConventions(runtimeGraph);
 
+                var isToolOnly = packageTypes.Count == 1 &&
+                                (packageTypes[0] == PackageType.DotnetTool ||
+                                 packageTypes[0] == PackageType.DotnetCliTool);
+
+                var isToolWithMcpServer = packageTypes.Count == 2 &&
+                                          packageTypes.Contains(PackageType.DotnetTool) &&
+                                          packageTypes.Any(pt => pt.Name == "McpServer");
+
                 // Let's test for tools packages first--they're a special case
                 var groups = new List<ContentItemGroup>();
-                if (packageTypes.Count == 1 && (packageTypes[0] == PackageType.DotnetTool ||
-                                                packageTypes[0] == PackageType.DotnetCliTool))
+                if (isToolOnly || isToolWithMcpServer)
                 {
-                    // Only a package that is a tool package (and nothing else) will be matched against tools pattern set
+                    // Only a package that is a tool package (or MCP server package) will be matched against tools pattern set
                     items.PopulateItemGroups(conventions.Patterns.ToolsAssemblies, groups);
                 }
                 else

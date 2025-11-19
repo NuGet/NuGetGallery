@@ -58,6 +58,12 @@
                 "Readme",
                 @<text>@Html.Partial("_ManageDocumentation", Model)</text>,
                 expanded: false)
+            @ViewHelpers.Section(
+                this,
+                "SponsorshipLinks",
+                "Sponsorship Links",
+                @<text>@Html.Partial("_ManageSponsorshipLinks", Model)</text>,
+                expanded: false)
         </div>
     </div>
 </section>
@@ -71,6 +77,16 @@
         var getPackageOwnersUrl = "@Url.GetPackageOwners()";
         var addPackageOwnerUrl = "@Url.AddPackageOwner()";
         var removePackageOwnerUrl = "@Url.RemovePackageOwner()";
+
+        // Configure window.nuget object for sponsorship URLs
+        window.nuget = window.nuget || {};
+        window.nuget.packageId = packageId;
+        window.nuget.urls = window.nuget.urls || {};
+        window.nuget.urls.addSponsorshipUrl = "@Url.AddSponsorshipUrl()";
+        window.nuget.urls.removeSponsorshipUrl = "@Url.RemoveSponsorshipUrl()";
+        
+        // Initialize sponsorship links data for JavaScript
+        window.nuget.initialSponsorshipLinks = @Html.Raw(Json.Encode(Model.SponsorshipUrlEntries ?? new SponsorshipUrlEntry[0]));
 
         // Owners strings
         var strings_Error = "@Html.Raw(Strings.ManagePackageOwners_Error)";
@@ -148,5 +164,6 @@
     @Scripts.Render("~/Scripts/gallery/page-manage-deprecation.min.js")
     @Scripts.Render("~/Scripts/gallery/page-delete-package.min.js")
     @Scripts.Render("~/Scripts/gallery/page-edit-readme.min.js")
+    @Scripts.Render("~/Scripts/gallery/page-manage-sponsorship-links.min.js")
     @Scripts.Render("~/Scripts/gallery/syntaxhighlight.min.js")
 }

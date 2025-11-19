@@ -4,11 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Linq;
-using System.Text.Json;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Identity.Web;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using NuGet.Services.Entities;
@@ -18,9 +18,23 @@ using NuGetGallery.Auditing;
 
 namespace NuGetGallery.Services.Authentication
 {
+    /// <summary>
+    /// Provides a unified interface for evaluating federated credential policies and OIDC tokens:
+    /// <para> * <see cref="FederatedCredentialPolicy"/> validation during creation or update. </para>
+    /// <para> * <see cref="JsonWebToken"/> OIDC token authentication. </para>
+    /// <para> * Token-to-policy matching. </para>
+    /// </summary>
     public interface IFederatedCredentialPolicyEvaluator
     {
-        Task<EvaluatedFederatedCredentialPolicies> GetMatchingPolicyAsync(
+        /// <summary>
+        /// Validates a federated credential policy during its creation or update.
+        /// </summary>
+        FederatedCredentialPolicyValidationResult ValidatePolicy(FederatedCredentialPolicy policy);
+
+        /// <summary>
+        /// Evaluates federated credential policies against a specified bearer token and request headers.
+        /// </summary>
+        Task<OidcTokenEvaluationResult> GetMatchingPolicyAsync(
             IReadOnlyCollection<FederatedCredentialPolicy> policies,
             string bearerToken,
             NameValueCollection requestHeaders);
@@ -28,101 +42,139 @@ namespace NuGetGallery.Services.Authentication
 
     public class FederatedCredentialPolicyEvaluator : IFederatedCredentialPolicyEvaluator
     {
-        private readonly IEntraIdTokenValidator _entraIdTokenValidator;
+        private readonly IReadOnlyList<ITokenPolicyValidator> _validators;
         private readonly IReadOnlyList<IFederatedCredentialValidator> _additionalValidators;
         private readonly IAuditingService _auditingService;
         private readonly IDateTimeProvider _dateTimeProvider;
         private readonly ILogger<FederatedCredentialPolicyEvaluator> _logger;
 
         public FederatedCredentialPolicyEvaluator(
-            IEntraIdTokenValidator entraIdTokenValidator,
+            IReadOnlyList<ITokenPolicyValidator> validators,
             IReadOnlyList<IFederatedCredentialValidator> additionalValidators,
             IAuditingService auditingService,
             IDateTimeProvider dateTimeProvider,
             ILogger<FederatedCredentialPolicyEvaluator> logger)
         {
-            _entraIdTokenValidator = entraIdTokenValidator ?? throw new ArgumentNullException(nameof(entraIdTokenValidator));
+            _validators = validators ?? throw new ArgumentNullException(nameof(validators));
             _additionalValidators = additionalValidators ?? throw new ArgumentNullException(nameof(additionalValidators));
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
             _dateTimeProvider = dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<EvaluatedFederatedCredentialPolicies> GetMatchingPolicyAsync(
+        public FederatedCredentialPolicyValidationResult ValidatePolicy(FederatedCredentialPolicy policy)
+        {
+            FederatedCredentialIssuerType issuerType = policy.Type switch
+            {
+                FederatedCredentialType.EntraIdServicePrincipal => FederatedCredentialIssuerType.EntraId,
+                FederatedCredentialType.GitHubActions => FederatedCredentialIssuerType.GitHubActions,
+                _ => throw new ArgumentException($"Unsupported {policy.Type}"),
+            };
+
+            var validator = _validators.FirstOrDefault(v => v.IssuerType == issuerType);
+            if (validator == null)
+            {
+                throw new ArgumentException($"No validator found for issuer type {issuerType}.");
+            }
+
+            return validator.ValidatePolicy(policy);
+        }
+
+        public async Task<OidcTokenEvaluationResult> GetMatchingPolicyAsync(
             IReadOnlyCollection<FederatedCredentialPolicy> policies,
             string bearerToken,
             NameValueCollection requestHeaders)
         {
             // perform basic validations not specific to any federated credential policy
             // the error message is user-facing and should not leak sensitive information
-            var (userError, jwtInfo) = await ValidateJwtByIssuer(bearerToken);
+            var context = await ValidateJwtByIssuerAsync(bearerToken);
 
             // Whether or not we have detected a problem already, pass the information to all additional validators.
             // This allows custom logic to execute but will not override any initial failed validation result.
-            userError = await ExecuteAdditionalValidatorsAsync(requestHeaders, userError, jwtInfo);
+            await ExecuteAdditionalValidatorsAsync(requestHeaders, context);
 
-            var externalCredentialAudit = jwtInfo.CreateAuditRecord();
+            var externalCredentialAudit = context.CreateAuditRecord();
             await AuditExternalCredentialAsync(externalCredentialAudit);
 
-            if (userError is not null)
+            if (context.Error is not null)
             {
-                _logger.LogInformation("The bearer token failed validation. Reason: {UserError}", userError);
-                return EvaluatedFederatedCredentialPolicies.BadToken(userError);
+                _logger.LogInformation($"The bearer token failed validation. Reason: {context.Error}");
+                return OidcTokenEvaluationResult.BadToken(context.Error);
             }
 
-            if (!jwtInfo.IsValid || jwtInfo.IssuerType == FederatedCredentialIssuerType.Unsupported || jwtInfo.Jwt is null)
+            if (!context.IsValid || context.Jwt is null)
             {
                 throw new InvalidOperationException("A recognized, valid JWT should be available.");
             }
 
-            var results = new List<FederatedCredentialPolicyResult>();
-
-            // sort the policy results by creation date, so older policy results are preferred
+            // Sort the policy results by creation date, so older policy results are preferred
+            StringBuilder disclosableErrors = new();
             foreach (var policy in policies.OrderBy(x => x.Created))
             {
-                var result = EvaluatePolicy(policy, jwtInfo);
-
-                results.Add(result);
+                var result = await EvaluatePolicyAsync(policy, context);
 
                 var success = result.Type == FederatedCredentialPolicyResultType.Success;
                 await AuditPolicyComparisonAsync(externalCredentialAudit, policy, success);
                 if (success)
                 {
-                    return EvaluatedFederatedCredentialPolicies.NewMatchedPolicy(results, result.Policy, result.FederatedCredential);
+                    var credential = new FederatedCredential
+                    {
+                        Identity = context.Identifier,
+                        FederatedCredentialPolicyKey = policy.Key,
+                        Type = policy.Type,
+                        Created = _dateTimeProvider.UtcNow,
+                        Expires = context.Jwt!.ValidTo.ToUniversalTime(),
+                    };
+
+                    return OidcTokenEvaluationResult.NewMatchedPolicy(policy, credential);
+                }
+                else if (result.IsErrorDisclosable && result.Error != null)
+                {
+                    // Combine all disclosable errors to provide more context to the user.
+                    if (disclosableErrors.Length > 0)
+                    {
+                        // Ensure prev error is '.' terminated.
+                        if (disclosableErrors[disclosableErrors.Length - 1] != '.')
+                        {
+                            disclosableErrors.Append('.');
+                        }
+                        disclosableErrors.Append(' ');
+                    }
+                    disclosableErrors.Append(result.Error);
                 }
             }
 
-            return EvaluatedFederatedCredentialPolicies.NoMatchingPolicy(results);
+            return OidcTokenEvaluationResult.NoMatchingPolicy(disclosableErrors.ToString());
         }
 
-        private async Task<string?> ExecuteAdditionalValidatorsAsync(NameValueCollection requestHeaders, string? userError, JwtInfo jwtInfo)
+        private async Task ExecuteAdditionalValidatorsAsync(NameValueCollection requestHeaders, TokenContext context)
         {
             bool hasUnauthorized = false;
             foreach (var validator in _additionalValidators)
             {
-                var result = await validator.ValidateAsync(requestHeaders, jwtInfo.IssuerType, jwtInfo.Jwt?.Claims);
+                var result = await validator.ValidateAsync(requestHeaders, context.IssuerType, context.Jwt?.Claims);
                 switch (result.Type)
                 {
                     case FederatedCredentialValidationType.Unauthorized:
                         // prefer the first user error, which will be the built-in user error if the bearer token is already rejected
-                        userError ??= result.UserError;
+                        context.Error ??= result.UserError;
                         hasUnauthorized = true;
-                        if (jwtInfo.IsValid)
+                        if (context.IsValid)
                         {
                             _logger.LogWarning(
                                 "With issuer type {IssuerType}, the additional validator {Type} rejected the request, but the base validation accepted the bearer token. " +
                                 "Additional validator user message: {UserError}",
-                                jwtInfo.IssuerType,
+                                context.IssuerType,
                                 validator.GetType().FullName,
                                 result.UserError ?? "(none)");
                         }
                         break;
                     case FederatedCredentialValidationType.Valid:
-                        if (!jwtInfo.IsValid)
+                        if (!context.IsValid)
                         {
                             _logger.LogWarning(
                                 "With issuer type {IssuerType}, the additional validator {Type} accepted the request, but the base validation rejected the bearer token.",
-                                jwtInfo.IssuerType,
+                                context.IssuerType,
                                 validator.GetType().FullName);
                         }
                         break;
@@ -135,11 +187,8 @@ namespace NuGetGallery.Services.Authentication
 
             if (hasUnauthorized)
             {
-                userError ??= "The request could not be authenticated.";
-                jwtInfo.IsValid = false;
+                context.Error ??= "The request could not be authenticated.";
             }
-
-            return userError;
         }
 
         private async Task AuditPolicyComparisonAsync(ExternalSecurityTokenAuditRecord externalCredentialAudit, FederatedCredentialPolicy policy, bool success)
@@ -155,46 +204,40 @@ namespace NuGetGallery.Services.Authentication
             await _auditingService.SaveAuditRecordAsync(externalCredentialAudit);
         }
 
-        private FederatedCredentialPolicyResult EvaluatePolicy(FederatedCredentialPolicy policy, JwtInfo info)
+        private async Task<FederatedCredentialPolicyResult> EvaluatePolicyAsync(FederatedCredentialPolicy policy, TokenContext context)
         {
-            // Evaluate the policy and return an unauthorized result if the policy does not match.
-            // The reason is not shared with the caller to prevent leaking sensitive information.
-            string? unauthorizedReason = (info.IssuerType, policy.Type) switch
-            {
-                (FederatedCredentialIssuerType.EntraId, FederatedCredentialType.EntraIdServicePrincipal) => EvaluateEntraIdServicePrincipal(policy, info.Jwt!),
-                _ => "The policy type does not match the token issuer.",
-            };
-
+            // We do not want to fail the entire evaluation if a single policy fails
             FederatedCredentialPolicyResult result;
-            if (unauthorizedReason is not null)
+            try
             {
-                result = FederatedCredentialPolicyResult.Unauthorized(policy, unauthorizedReason);
+                result = await context.TokenValidator!.EvaluatePolicyAsync(policy, context.Jwt!);
             }
-            else
+            catch (Exception ex)
             {
-                result = FederatedCredentialPolicyResult.Success(policy, new FederatedCredential
-                {
-                    Identity = info.Identifier,
-                    FederatedCredentialPolicyKey = policy.Key,
-                    Type = policy.Type,
-                    Created = _dateTimeProvider.UtcNow,
-                    Expires = info.Jwt!.ValidTo.ToUniversalTime(),
-                });
+                result = FederatedCredentialPolicyResult.Unauthorized($"{ex.GetType().FullName}: {ex.Message}");
             }
 
-            _logger.LogInformation(
-                "Evaluated policy key {PolicyKey} of type {PolicyType}. Result type: {ResultType}. Reason: {Reason}",
-                result.Policy.Key,
-                result.Policy.Type,
-                result.Type,
-                unauthorizedReason ?? "policy matched token");
+            if (result.Type != FederatedCredentialPolicyResultType.NotApplicable)
+            {
+                _logger.LogInformation(
+                    "Evaluated policy key {PolicyKey} of type {PolicyType}. Result type: {ResultType}. Reason: {Reason}. Disclosable {Disclosable}",
+                    policy.Key,
+                    policy.Type,
+                    result.Type,
+                    result.Error,
+                    result.IsErrorDisclosable);
+            }
 
             return result;
         }
 
-        private class JwtInfo
+        /// <summary>
+        /// Context for processing JWT.
+        /// </summary>
+        [DebuggerDisplay("error: {Error}")]
+        private class TokenContext
         {
-            public bool IsValid { get; set; }
+            public bool IsValid => Error == null && TokenValidator != null;
 
             public JsonWebToken? Jwt { get; set; }
 
@@ -204,7 +247,11 @@ namespace NuGetGallery.Services.Authentication
             /// </summary>
             public string? Identifier { get; set; }
 
-            public FederatedCredentialIssuerType IssuerType { get; set; } = FederatedCredentialIssuerType.Unsupported;
+            public ITokenPolicyValidator? TokenValidator { get; set; }
+
+            public string? Error { get; set; }
+
+            public FederatedCredentialIssuerType IssuerType => TokenValidator?.IssuerType ?? FederatedCredentialIssuerType.Unsupported;
 
             public ExternalSecurityTokenAuditRecord CreateAuditRecord()
             {
@@ -227,186 +274,83 @@ namespace NuGetGallery.Services.Authentication
         /// <summary>
         /// Parse the bearer token as a JWT, perform basic validation, and find the applicable that apply to all issuers.
         /// </summary>
-        private async Task<(string? UserError, JwtInfo Info)> ValidateJwtByIssuer(string bearerToken)
+        private async Task<TokenContext> ValidateJwtByIssuerAsync(string bearerToken)
         {
-            var jwtInfo = new JwtInfo();
+            var context = new TokenContext();
 
             try
             {
-                jwtInfo.Jwt = new JsonWebToken(bearerToken);
+                context.Jwt = new JsonWebToken(bearerToken);
             }
             catch (ArgumentException)
             {
-                return ("The bearer token could not be parsed as a JSON web token.", jwtInfo);
+                context.Error = "The bearer token could not be parsed as a JSON web token.";
+                return context;
             }
 
-            if (jwtInfo.Jwt.Audiences.Count() != 1)
+            if (context.Jwt.Audiences.Count() != 1)
             {
-                return ("The JSON web token must have exactly one aud claim value.", jwtInfo);
+                context.Error = "The JSON web token must have exactly one aud claim value.";
+                return context;
             }
 
-            if (string.IsNullOrWhiteSpace(jwtInfo.Jwt.Audiences.Single()))
+            if (string.IsNullOrWhiteSpace(context.Jwt.Audiences.Single()))
             {
-                return ("The JSON web token must have an aud claim.", jwtInfo);
+                context.Error = "The JSON web token must have an aud claim.";
+                return context;
             }
 
-            if (string.IsNullOrWhiteSpace(jwtInfo.Jwt.Issuer))
+            if (string.IsNullOrWhiteSpace(context.Jwt.Issuer))
             {
-                return ("The JSON web token must have an iss claim.", jwtInfo);      
+                context.Error = "The JSON web token must have an iss claim.";
+                return context;
             }
 
-            if (!Uri.TryCreate(jwtInfo.Jwt.Issuer, UriKind.Absolute, out var issuerUrl)
+            if (!Uri.TryCreate(context.Jwt.Issuer, UriKind.Absolute, out var issuerUrl)
                 || issuerUrl.Scheme != "https")
             {
-                return ("The JSON web token iss claim must be a valid HTTPS URL.", jwtInfo);
+                context.Error = "The JSON web token iss claim must be a valid HTTPS URL.";
+                return context;
             }
 
-            FederatedCredentialIssuerType issuerType;
-            string? userError;
-            string? identifier;
-            TokenValidationResult? validationResult;
-            switch (issuerUrl.Authority)
+            context.TokenValidator = _validators.FirstOrDefault(v => string.Equals(v.IssuerAuthority, issuerUrl.Authority, StringComparison.OrdinalIgnoreCase));
+            if (context.TokenValidator == null)
             {
-                case "login.microsoftonline.com":
-                    issuerType = FederatedCredentialIssuerType.EntraId;
-                    (userError, identifier, validationResult) = await GetEntraIdValidationResultAsync(jwtInfo.Jwt);
-                    break;
-                default:
-                    return ("The JSON web token iss claim is not supported.", jwtInfo);
+                context.Error = "The JSON web token iss claim is not supported.";
+                return context;
             }
 
-            jwtInfo.IssuerType = issuerType;
-            jwtInfo.Identifier = identifier;
-
-            if (userError is not null)
+            (string? tokenId, string? error) = context.TokenValidator.ValidateTokenIdentifier(context.Jwt);
+            context.Error = error;
+            context.Identifier = tokenId;
+            if (!context.IsValid)
             {
-                return (userError, jwtInfo);
+                return context;
             }
 
-            if (string.IsNullOrWhiteSpace(identifier) || validationResult is null)
+            TokenValidationResult validationResult = await context.TokenValidator.ValidateTokenAsync(context.Jwt);
+            if (string.IsNullOrWhiteSpace(tokenId) || validationResult is null)
             {
                 throw new InvalidOperationException("The identifier and validation result must be set.");
             }
 
-            if (validationResult.IsValid)
+            if (!validationResult.IsValid)
             {
-                jwtInfo.IsValid = true;
-                return (null, jwtInfo);
+                var validationException = validationResult.Exception;
+
+                context.Error = validationException switch
+                {
+                    SecurityTokenExpiredException => "The JSON web token has expired.",
+                    SecurityTokenNotYetValidException => "The JSON web token is not yet valid.",
+                    SecurityTokenInvalidAudienceException => "The JSON web token has an incorrect audience.",
+                    SecurityTokenInvalidSignatureException => "The JSON web token has an invalid signature.",
+                    _ => "The JSON web token could not be validated.",
+                };
+
+                _logger.LogInformation(validationException, "The JSON web token with recognized issuer {Issuer} could not be validated.", context.IssuerType);
             }
 
-            var validationException = validationResult.Exception;
-
-            userError = validationException switch
-            {
-                SecurityTokenExpiredException => "The JSON web token has expired.",
-                SecurityTokenInvalidAudienceException => "The JSON web token has an incorrect audience.",
-                SecurityTokenInvalidSignatureException => "The JSON web token has an invalid signature.",
-                _ => "The JSON web token could not be validated.",
-            };
-
-            _logger.LogInformation(validationException, "The JSON web token with recognized issuer {Issuer} could not be validated.", jwtInfo.IssuerType);
-
-            return (userError, jwtInfo);
-        }
-        
-        private async Task<(string? UserError, string? Identifier, TokenValidationResult? Result)> GetEntraIdValidationResultAsync(JsonWebToken jwt)
-        {
-            const string UniqueTokenIdentifierClaim = "uti"; // unique token identifier (equivalent to jti)
-
-            if (!jwt.TryGetPayloadValue<string>(UniqueTokenIdentifierClaim, out var uti)
-                || string.IsNullOrWhiteSpace(uti))
-            {
-                return ($"The JSON web token must have a {UniqueTokenIdentifierClaim} claim.", null, null);
-            }
-
-            var tokenValidationResult = await _entraIdTokenValidator.ValidateAsync(jwt);
-            return (null, uti, tokenValidationResult);
-        }
-
-        private string? EvaluateEntraIdServicePrincipal(FederatedCredentialPolicy policy, JsonWebToken jwt)
-        {
-            // See https://learn.microsoft.com/en-us/entra/identity-platform/access-token-claims-reference
-            const string ClientCredentialTypeClaim = "azpacr";
-            const string ClientCertificateType = "2"; // 2 indicates a client certificate (or managed identity) was used
-            const string IdentityTypeClaim = "idtyp";
-            const string AppIdentityType = "app";
-            const string VersionClaim = "ver";
-            const string Version2 = "2.0";
-
-            if (!jwt.TryGetPayloadValue<string>(ClaimConstants.Tid, out var tid))
-            {
-                return $"The JSON web token is missing the {ClaimConstants.Tid} claim.";
-            }
-
-            if (!jwt.TryGetPayloadValue<string>(ClaimConstants.Oid, out var oid))
-            {
-                return $"The JSON web token is missing the {ClaimConstants.Oid} claim.";
-            }
-
-            if (!jwt.TryGetPayloadValue<string>(ClientCredentialTypeClaim, out var azpacr))
-            {
-                return $"The JSON web token is missing the {ClientCredentialTypeClaim} claim.";
-            }
-
-            if (azpacr != ClientCertificateType)
-            {
-                return $"The JSON web token must have an {ClientCredentialTypeClaim} claim with a value of {ClientCertificateType}.";
-            }
-
-            if (!jwt.TryGetPayloadValue<string>(IdentityTypeClaim, out var idtyp))
-            {
-                return $"The JSON web token is missing the {IdentityTypeClaim} claim.";
-            }
-
-            if (idtyp != AppIdentityType)
-            {
-                return $"The JSON web token must have an {IdentityTypeClaim} claim with a value of {AppIdentityType}.";
-            }
-
-            if (!jwt.TryGetPayloadValue<string>(VersionClaim, out var ver))
-            {
-                return $"The JSON web token is missing the {VersionClaim} claim.";
-            }
-
-            if (ver != Version2)
-            {
-                return $"The JSON web token must have a {VersionClaim} claim with a value of {Version2}.";
-            }
-
-            if (jwt.Subject != oid)
-            {
-                return $"The JSON web token {ClaimConstants.Sub} claim must match the {ClaimConstants.Oid} claim.";
-            }
-
-            var criteria = DeserializePolicy<EntraIdServicePrincipalCriteria>(policy);
-
-            if (string.IsNullOrWhiteSpace(tid) || !Guid.TryParse(tid, out var parsedTid) || parsedTid != criteria.TenantId)
-            {
-                return $"The JSON web token must have a {ClaimConstants.Tid} claim that matches the policy.";
-            }
-
-            if (!_entraIdTokenValidator.IsTenantAllowed(parsedTid))
-            {
-                return "The tenant ID in the JSON web token is not in allow list.";
-            }
-
-            if (string.IsNullOrWhiteSpace(oid) || !Guid.TryParse(oid, out var parsedOid) || parsedOid != criteria.ObjectId)
-            {
-                return $"The JSON web token must have a {ClaimConstants.Oid} claim that matches the policy.";
-            }
-
-            return null;
-        }
-
-        private static T DeserializePolicy<T>(FederatedCredentialPolicy policy)
-        {
-            var criteria = JsonSerializer.Deserialize<T>(policy.Criteria);
-            if (criteria is null)
-            {
-                throw new InvalidOperationException("The policy criteria must be a valid JSON object.");
-            }
-
-            return criteria;
+            return context;
         }
     }
 }

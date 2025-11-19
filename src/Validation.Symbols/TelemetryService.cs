@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -20,6 +20,7 @@ namespace Validation.Symbols
         private const string MessageLockLost = Prefix + "MessageLockLost";
         private const string SymbolValidationResult = Prefix + "SymbolValidationResult";
         private const string SymbolAssemblyValidationResult = Prefix + "SymbolAssemblyValidationResult";
+        private const string SymbolsWorkingDirectoryNotDeleted = Prefix + "SymbolsWorkingDirectoryNotDeleted";
 
         private const string PackageId = "PackageId";
         private const string PackageNormalizedVersion = "PackageNormalizedVersion";
@@ -30,6 +31,7 @@ namespace Validation.Symbols
         private const string AssemblyName = "AssemblyName";
         private const string CallGuid = "CallGuid";
         private const string Handled = "Handled";
+        private const string WorkingDirectory = "WorkingDirectory";
 
         private readonly ITelemetryClient _telemetryClient;
 
@@ -142,6 +144,19 @@ namespace Validation.Symbols
                 {
                     { MessageType, typeof(TMessage).Name },
                     { CallGuid, callGuid.ToString() }
+                });
+        }
+
+        public void TrackSymbolsWorkingDirectoryNotDeletedEvent(string packageId, string packageNormalizedVersion, string workingDirectory)
+        {
+            _telemetryClient.TrackMetric(
+                SymbolsWorkingDirectoryNotDeleted,
+                1,
+                new Dictionary<string, string>
+                {
+                    { PackageId, packageId },
+                    { PackageNormalizedVersion, packageNormalizedVersion },
+                    { WorkingDirectory, workingDirectory },
                 });
         }
     }

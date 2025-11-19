@@ -1,0 +1,80 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+//
+// Sponsorship Links Page Styles
+// --------------------------------------------------
+
+.page-manage-sponsorship-links {
+  .sponsorship-link-item {
+    margin-bottom: @padding-large-vertical;
+    padding: @padding-large-vertical;
+    border: 1px solid var(--neutralStroke2Rest);
+    border-radius: 4px;
+  }
+
+  .sponsorship-link-url {
+    word-wrap: break-word;
+    word-break: break-all;
+    overflow-wrap: break-word;
+
+    a {
+      word-wrap: break-word;
+      word-break: break-all;
+    }
+  }
+
+  .sponsorship-remove-link {
+    color: var(--statusDangerForeground1Rest);
+    text-decoration: none;
+    white-space: nowrap;
+
+    .ms-Icon {
+      position: relative;
+      top: 3px;
+    }
+
+    i, span {
+      color: var(--statusDangerForeground1Rest);
+    }
+
+    &:hover, &:focus {
+      color: var(--statusDangerForeground1Hover);
+      text-decoration: none;
+
+      i, span {
+        color: var(--statusDangerForeground1Hover);
+      }
+    }
+  }
+
+  .sponsorship-links {
+    margin-top: 15px;
+    margin-bottom: 30px;
+  }
+
+  .sponsorship-title {
+    margin-top: 20px;
+    display: block;
+  }
+
+  p {
+    &.margin-top-10 {
+      margin-top: @padding-large-vertical;
+    }
+
+    &.margin-bottom-10 {
+      margin-bottom: @padding-large-vertical;
+    }
+  }
+
+  #manage-sponsorship-alert,
+  #manage-sponsorship-success {
+    margin-top: @padding-small-vertical;
+  }
+
+  small.text-warning-brand {
+    color: var(--statusDangerForeground1Rest);
+    font-weight: bold;
+  }
+}

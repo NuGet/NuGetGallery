@@ -428,6 +428,7 @@ namespace NuGetGallery.Authentication
             [InlineData(CredentialTypes.ApiKey.V2)]
             [InlineData(CredentialTypes.ApiKey.V3)]
             [InlineData(CredentialTypes.ApiKey.V4)]
+            [InlineData(CredentialTypes.ApiKey.V5)]
             [InlineData(CredentialTypes.ApiKey.VerifyV1)]
             public void GivenValidApiKey_ItReturnsCredential(string apiKeyType)
             {
@@ -715,6 +716,7 @@ namespace NuGetGallery.Authentication
             [InlineData(CredentialTypes.ApiKey.V2)]
             [InlineData(CredentialTypes.ApiKey.V3)]
             [InlineData(CredentialTypes.ApiKey.V4)]
+            [InlineData(CredentialTypes.ApiKey.V5)]
             [InlineData(CredentialTypes.ApiKey.VerifyV1)]
             public async Task GivenMatchingApiKeyCredential_ItReturnsTheUserAndMatchingCredential(string apiKeyType)
             {
@@ -738,6 +740,7 @@ namespace NuGetGallery.Authentication
             [InlineData(CredentialTypes.ApiKey.V2)]
             [InlineData(CredentialTypes.ApiKey.V3)]
             [InlineData(CredentialTypes.ApiKey.V4)]
+            [InlineData(CredentialTypes.ApiKey.V5)]
             [InlineData(CredentialTypes.ApiKey.VerifyV1)]
             public async Task GivenMatchingApiKeyCredential_ItWritesCredentialLastUsed(string apiKeyType)
             {
@@ -766,6 +769,7 @@ namespace NuGetGallery.Authentication
             [InlineData(CredentialTypes.ApiKey.V2)]
             [InlineData(CredentialTypes.ApiKey.V3)]
             [InlineData(CredentialTypes.ApiKey.V4)]
+            [InlineData(CredentialTypes.ApiKey.V5)]
             [InlineData(CredentialTypes.ApiKey.VerifyV1)]
             public async Task GivenExpiredMatchingApiKeyCredential_ItReturnsNull(string apiKeyType)
             {
@@ -789,6 +793,7 @@ namespace NuGetGallery.Authentication
             [InlineData(CredentialTypes.ApiKey.V2, false)]
             [InlineData(CredentialTypes.ApiKey.V3, false)]
             [InlineData(CredentialTypes.ApiKey.V4, false)]
+            [InlineData(CredentialTypes.ApiKey.V5, false)]
             public async Task GivenMatchingApiKeyCredentialThatWasLastUsedTooLongAgo_ItReturnsNullAndExpiresTheApiKeyAndWritesAuditRecord(string apiKeyType, bool shouldExpire)
             {
                 // Arrange
@@ -860,6 +865,7 @@ namespace NuGetGallery.Authentication
             [InlineData(CredentialTypes.ApiKey.V2)]
             [InlineData(CredentialTypes.ApiKey.V3)]
             [InlineData(CredentialTypes.ApiKey.V4)]
+            [InlineData(CredentialTypes.ApiKey.V5)]
             public async Task GivenMultipleMatchingCredentials_ItThrows(string apiKeyType)
             {
                 // Arrange
@@ -912,6 +918,10 @@ namespace NuGetGallery.Authentication
             else if (apiKeyType == CredentialTypes.ApiKey.V4)
             {
                 plaintextValue = fakes.ApiKeyV4PlaintextValue;
+            }
+            else if (apiKeyType == CredentialTypes.ApiKey.V5)
+            {
+                plaintextValue = fakes.ApiKeyV5PlaintextValue;
             }
             else
             {
@@ -1178,7 +1188,6 @@ namespace NuGetGallery.Authentication
                             c.Value,
                             CredentialBuilder.LatestPasswordType,
                             password)),
-                        It.IsAny<bool>(),
                         It.IsAny<bool>()))
                     .CompletesWithNull()
                     .Verifiable();
@@ -1267,31 +1276,6 @@ namespace NuGetGallery.Authentication
             [Theory]
             [InlineData("MicrosoftAccount")]
             [InlineData("AzureActiveDirectory")]
-            public async Task WillSaveTheNewUserWithExternalCredentialAndMatchEmailAsConfirmed(string credType)
-            {
-                // Arrange
-                var configurationService = GetConfigurationService();
-                configurationService.Current.ConfirmEmailAddresses = true;
-
-                var auth = Get<AuthenticationService>();
-
-                // Act
-                var authUser = await auth.Register(
-                    "newUser",
-                    "theEmailAddress",
-                    new CredentialBuilder().CreateExternalCredential(credType, "blorg", "Bloog"),
-                    true);
-
-                // Assert
-                Assert.True(auth.Entities.Users.Contains(authUser.User));
-                Assert.True(authUser.User.Confirmed);
-                Assert.Equal("theEmailAddress", authUser.User.EmailAddress);
-                auth.Entities.VerifyCommitChanges();
-            }
-
-            [Theory]
-            [InlineData("MicrosoftAccount")]
-            [InlineData("AzureActiveDirectory")]
             public async Task WillSaveTheNewUserWithExternalCredentialAndNotMatchEmailAsNotConfirmed(string credType)
             {
                 // Arrange
@@ -1304,8 +1288,7 @@ namespace NuGetGallery.Authentication
                 var authUser = await auth.Register(
                     "newUser",
                     "theEmailAddress",
-                    new CredentialBuilder().CreateExternalCredential(credType, "blorg", "Bloog"),
-                    false);
+                    new CredentialBuilder().CreateExternalCredential(credType, "blorg", "Bloog"));
 
                 // Assert
                 Assert.True(auth.Entities.Users.Contains(authUser.User));

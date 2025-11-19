@@ -8,6 +8,9 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web.Helpers;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
@@ -17,6 +20,8 @@ using NuGetGallery.Auditing;
 using NuGetGallery.Helpers;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
+using NuGetGallery.Services.Helpers;
+using PackageType = NuGet.Services.Entities.PackageType;
 
 namespace NuGetGallery
 {
@@ -532,22 +537,33 @@ namespace NuGetGallery
             var packageCount = packageSummary != null ? packageSummary.PackageCount : 0;
             var downloadCount = packageSummary != null ? packageSummary.DownloadCount : 0;
 
+            if (!_featureFlagService.IsProfileLoadOptimizationV2Enabled())
+            {
+                packages = packages
+                    .Where(p => p.Listed
+                        && p.PackageStatusKey == PackageStatus.Available);
+
+                packages = GetLatestVersion(packages);
+            }
+            else
+            {
+                packages = packages.Where(p => p.IsLatestSemVer2);
+            }
+
             packages = packages
-                .Where(p => p.Listed
-                    && p.PackageStatusKey == PackageStatus.Available);
-
-            packages = GetLatestVersion(packages);
-
-            return (packages
                 .OrderByDescending(p => p.PackageRegistration.DownloadCount)
                 .ThenBy(p => p.PackageRegistration.Id)
-                .Skip((page-1) * pageSize)
+                .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .Include(p => p.PackageRegistration.Owners)
-                .Include(p => p.PackageRegistration.RequiredSigners)
-                .ToList(),
-                downloadCount,
-                packageCount);
+                .Include(p => p.PackageRegistration.Owners);
+
+            if (!_featureFlagService.IsProfileLoadOptimizationV2Enabled())
+            {
+                packages = packages
+                    .Include(p => p.PackageRegistration.RequiredSigners);
+            }
+
+            return (packages.ToList(), downloadCount, packageCount);
         }
 
         private IEnumerable<Package> GetPackagesForOwners(IEnumerable<int> ownerKeys, bool includeUnlisted, bool includeVersions)
@@ -811,14 +827,22 @@ namespace NuGetGallery
                 .AsPackageDependencyEnumerable()
                 .ToList();
 
-            package.PackageTypes = packageMetadata
+            var uniquePackageTypes = packageMetadata
                 .GetPackageTypes()
                 .AsPackageTypeEnumerable()
+                .Distinct()
                 .ToList();
+
+            if (McpHelper.IsMcpServerPackage(packageArchive))
+            {
+                uniquePackageTypes = EnrichMcpServerMetadata(packageArchive, uniquePackageTypes);
+            }
+
+            package.PackageTypes = uniquePackageTypes;
 
             package.FlattenedDependencies = package.Dependencies.Flatten();
 
-            package.FlattenedPackageTypes = package.PackageTypes.Flatten();
+            package.FlattenedPackageTypes = uniquePackageTypes.Flatten();
 
             // Identify the SemVerLevelKey using the original package version string and package dependencies
             package.SemVerLevelKey = SemVerLevelKey.ForPackage(packageMetadata.Version, package.Dependencies);
@@ -922,6 +946,33 @@ namespace NuGetGallery
                 throw new EntityException(
                     ServicesStrings.InvalidPortableFramework, invalidPortableFramework);
             }
+        }
+
+        private static List<PackageType> EnrichMcpServerMetadata(PackageArchiveReader packageArchive, List<PackageType> packageTypes)
+        {
+            if (!McpHelper.PackageContainsMcpServerMetadata(packageArchive))
+            {
+                return packageTypes;
+            }
+
+            var metadataJson = McpHelper.ReadMcpServerMetadata(packageArchive);
+            var mcpPackageType = packageTypes
+                .FirstOrDefault(pt => pt.Name.Equals(McpHelper.McpServerPackageTypeName, StringComparison.OrdinalIgnoreCase));
+
+            if (mcpPackageType != null)
+            {
+                try
+                {
+                    var parsedMetadata = JToken.Parse(metadataJson);
+                    mcpPackageType.CustomData = parsedMetadata.ToString(Formatting.None);
+                }
+                catch (JsonReaderException)
+                {
+                    return packageTypes;
+                }
+            }
+
+            return packageTypes;
         }
 
         public async Task SetLicenseReportVisibilityAsync(Package package, bool visible, bool commitChanges = true)

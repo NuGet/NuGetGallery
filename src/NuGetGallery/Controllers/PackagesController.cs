@@ -40,6 +40,8 @@ using NuGetGallery.OData;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using NuGetGallery.Services;
+using NuGetGallery.Services.Helpers;
+using NuGetGallery.Services.Models;
 using NuGetGallery.ViewModels;
 
 namespace NuGetGallery
@@ -189,7 +191,8 @@ namespace NuGetGallery
             IABTestService abTestService,
             IIconUrlProvider iconUrlProvider,
             IMarkdownService markdownService,
-            IPackageFrameworkCompatibilityFactory compatibilityFactory)
+            IPackageFrameworkCompatibilityFactory compatibilityFactory,
+            ISponsorshipUrlService sponsorshipUrlService)
         {
             _packageFilter = packageFilter;
             _packageService = packageService;
@@ -228,11 +231,11 @@ namespace NuGetGallery
             _abTestService = abTestService ?? throw new ArgumentNullException(nameof(abTestService));
             _iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
 
-            _displayPackageViewModelFactory = new DisplayPackageViewModelFactory(_iconUrlProvider, _compatibilityFactory, featureFlagService);
+            _displayPackageViewModelFactory = new DisplayPackageViewModelFactory(_iconUrlProvider, _compatibilityFactory, featureFlagService, sponsorshipUrlService);
             _displayLicenseViewModelFactory = new DisplayLicenseViewModelFactory(_iconUrlProvider, _markdownService, _featureFlagService);
             _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(_iconUrlProvider, _compatibilityFactory, _featureFlagService);
-            _managePackageViewModelFactory = new ManagePackageViewModelFactory(_iconUrlProvider, _compatibilityFactory, featureFlagService);
-            _deletePackageViewModelFactory = new DeletePackageViewModelFactory(_iconUrlProvider, _compatibilityFactory, featureFlagService);
+            _managePackageViewModelFactory = new ManagePackageViewModelFactory(_iconUrlProvider, _compatibilityFactory, featureFlagService, sponsorshipUrlService);
+            _deletePackageViewModelFactory = new DeletePackageViewModelFactory(_iconUrlProvider, _compatibilityFactory, featureFlagService, sponsorshipUrlService);
         }
 
         [HttpGet]
@@ -1003,6 +1006,7 @@ namespace NuGetGallery
             model.IsDisplayTargetFrameworkEnabled = _featureFlagService.IsDisplayTargetFrameworkEnabled(currentUser);
             model.IsComputeTargetFrameworkEnabled = _featureFlagService.IsComputeTargetFrameworkEnabled();
             model.IsMarkdigMdSyntaxHighlightEnabled = _featureFlagService.IsMarkdigMdSyntaxHighlightEnabled();
+            model.IsMcpServerPackageDisplayEnabled = _featureFlagService.IsMcpServerPackageDisplayEnabled();
             model.CanDisplayReadmeWarning = canDisplayReadmeWarning;
 
             if (model.IsComputeTargetFrameworkEnabled || model.IsDisplayTargetFrameworkEnabled)
@@ -1019,6 +1023,23 @@ namespace NuGetGallery
             {
                 var gitHubUsage = _contentObjectService.GitHubUsageConfiguration.GetPackageInformation(id);
                 model.GitHubDependenciesInformation = new GitHubUsageViewModel(model.ComparableGitHubRepository, gitHubUsage);
+            }
+
+            model.IsMcpServerPackageType = false;
+            model.VsCodeMcpServerEntryTemplate = new McpServerEntryTemplateResult()
+            {
+                Validity = McpServerEntryResultValidity.Unset,
+                Template = string.Empty,
+            };
+
+            if (model.IsMcpServerPackageDisplayEnabled)
+            {
+                var mcpServerPackageType = package.PackageTypes.FirstOrDefault(e => e.Name.Equals(McpHelper.McpServerPackageTypeName, StringComparison.OrdinalIgnoreCase));
+                if (mcpServerPackageType != null)
+                {
+                    model.IsMcpServerPackageType = true;
+                    model.VsCodeMcpServerEntryTemplate = McpHelper.CreateVsCodeMcpServerEntryTemplate(mcpServerPackageType.CustomData, id, package.Version);
+                }
             }
 
             // If the normalized version is actually a SemVer but does not match the resolved package version, show a
@@ -1330,6 +1351,7 @@ namespace NuGetGallery
             var isAdvancedSearchFlightEnabled = _featureFlagService.IsAdvancedSearchEnabled(GetCurrentUser());
             var isFrameworkFilteringEnabled = _featureFlagService.IsFrameworkFilteringEnabled(GetCurrentUser());
             var isAdvancedFrameworkFilteringEnabled = _featureFlagService.IsAdvancedFrameworkFilteringEnabled(GetCurrentUser());
+            var isMcpServerPackageFilteringEnabled = _featureFlagService.IsMcpServerPackageFilteringEnabled();
 
             // If advanced search is disabled, use the default experience
             if (!isAdvancedSearchFlightEnabled || !searchService.SupportsAdvancedSearch)
@@ -1438,7 +1460,8 @@ namespace NuGetGallery
                 includeComputedFrameworks,
                 searchAndListModel.FrameworkFilterMode,
                 searchAndListModel.PackageType,
-                searchAndListModel.SortBy);
+                searchAndListModel.SortBy,
+                mcpFilteringEnabled: isMcpServerPackageFilteringEnabled);
 
             // If the experience hasn't been cached, it means it's not the default experienced, therefore, show the panel
             viewModel.IsAdvancedSearchFlightEnabled = searchService.SupportsAdvancedSearch && isAdvancedSearchFlightEnabled;

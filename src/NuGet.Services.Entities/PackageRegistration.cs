@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
@@ -55,5 +55,11 @@ namespace NuGet.Services.Entities
         /// Gets or sets the user-provided custom message for this renamed package registration.
         /// </summary>
         public string RenamedMessage { get; set; }
+
+        /// <summary>
+        /// Gets or sets the sponsorship URLs for this package registration as a JSON array of URL objects.
+        /// </summary>
+        [StringLength(4000)]
+        public string SponsorshipUrls { get; set; }
     }
 }

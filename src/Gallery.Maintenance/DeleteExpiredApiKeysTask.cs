@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -10,53 +10,56 @@ using System.Threading.Tasks;
 using Gallery.Maintenance.Models;
 using Microsoft.Extensions.Logging;
 using NuGet.Jobs.Configuration;
+using NuGetGallery;
 
 namespace Gallery.Maintenance
 {
-    internal class DeleteExpiredVerificationKeysTask : MaintenanceTask
+    internal class DeleteExpiredApiKeysTask : MaintenanceTask
     {
         private readonly TimeSpan _commandTimeout = TimeSpan.FromMinutes(5);
 
+        /// Query expired ApiKeys <see cref="CredentialTypes.ApiKey"/> of verify.v1 and v5
         private const string SelectQuery = @"
-SELECT s.[CredentialKey], c.[UserKey], u.[Username], c.[Expires], s.[Subject] as ScopeSubject
+SELECT s.[CredentialKey], c.[Type] as CredentialType, c.[UserKey], u.[Username], c.[Expires], s.[Subject] as ScopeSubject
 FROM [dbo].[Credentials] c
 INNER JOIN [dbo].[Scopes] s ON s.[CredentialKey] = c.[Key]
 INNER JOIN [dbo].[Users] u ON u.[Key] = c.[UserKey]
-WHERE c.[Type] LIKE 'apikey.verify%' AND c.[Expires] < GETUTCDATE()
+WHERE (c.[Type] LIKE 'apikey.verify%' OR c.[Type] = 'apikey.v5')
+  AND c.[Expires] < GETUTCDATE()
 ";
 
         private const string DeleteQuery = @"
 DELETE FROM [dbo].[Scopes] WHERE [CredentialKey] IN ({0})
 DELETE FROM [dbo].[Credentials] WHERE [Key] IN ({0})";
 
-        public DeleteExpiredVerificationKeysTask(ILogger<DeleteExpiredVerificationKeysTask> logger)
+        public DeleteExpiredApiKeysTask(ILogger<DeleteExpiredApiKeysTask> logger)
             : base(logger)
         {
         }
 
         public override async Task RunAsync(Job job)
         {
-            IEnumerable<PackageVerificationKey> expiredKeys;
+            IEnumerable<ApiKey> expiredApiKeys;
 
             using (var connection = await job.OpenSqlConnectionAsync<GalleryDbConfiguration>())
             {
-                expiredKeys = await connection.QueryWithRetryAsync<PackageVerificationKey>(
+                expiredApiKeys = await connection.QueryWithRetryAsync<ApiKey>(
                     SelectQuery,
                     commandTimeout: _commandTimeout,
                     maxRetries: 3);
             }
 
-            var credentialKeys = expiredKeys.Select(expiredKey =>
+            var credentialKeys = expiredApiKeys.Select(expiredApiKey =>
             {
                 _logger.LogInformation(
-                    "Found expired verification key: Credential='{credentialKey}' UserKey='{userKey}', User='{userName}', Subject='{scopeSubject}', Expires={expires}",
-                    expiredKey.CredentialKey, expiredKey.UserKey, expiredKey.Username, expiredKey.ScopeSubject, expiredKey.Expires);
+                    "Found expired ApiKey: CredentialKey='{credentialKey}' CredentialType='{credentialType}' UserKey='{userKey}', User='{userName}', Subject='{scopeSubject}', Expires={expires}",
+                    expiredApiKey.CredentialKey, expiredApiKey.CredentialType, expiredApiKey.UserKey, expiredApiKey.Username, expiredApiKey.ScopeSubject, expiredApiKey.Expires);
 
-                return expiredKey.CredentialKey;
+                return expiredApiKey.CredentialKey;
             });
 
             var rowCount = 0;
-            var expectedRowCount = expiredKeys.Count() * 2; // credential and scope.
+            var expectedRowCount = expiredApiKeys.Count() * 2; // credential and scope.
 
             if (expectedRowCount > 0)
             {
@@ -81,11 +84,11 @@ DELETE FROM [dbo].[Credentials] WHERE [Key] IN ({0})";
                 }
             }
 
-            _logger.LogInformation("Deleted {0} expired verification keys and scopes. Expected={1}.", rowCount, expectedRowCount);
+            _logger.LogInformation("Deleted {0} expired ApiKeys and Scopes. Expected={1}.", rowCount, expectedRowCount);
 
             if (expectedRowCount != rowCount)
             {
-                throw new Exception($"Expected to delete {expectedRowCount} verification keys, but only deleted {rowCount}!");
+                throw new Exception($"Expected to delete {expectedRowCount} ApiKeys and Scopes, but only deleted {rowCount}!");
             }
         }
     }

@@ -1022,6 +1022,15 @@ namespace NuGetGallery
                 supportEmail: supportEmail);
         }
 
+        public static string ManageMyTrustedPublishing(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(
+                url,
+                nameof(UsersController.TrustedPublishing),
+                "Users",
+                relativeUrl);
+        }
+
         public static string ManageMyOrganizations(this UrlHelper url, bool relativeUrl = true)
         {
             return GetActionLink(
@@ -1179,6 +1188,16 @@ namespace NuGetGallery
         public static string RemovePackageOwner(this UrlHelper url, bool relativeUrl = true)
         {
             return GetActionLink(url, "RemovePackageOwner", "JsonApi", relativeUrl);
+        }
+
+        public static string AddSponsorshipUrl(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url, "AddSponsorshipUrl", "JsonApi", relativeUrl);
+        }
+
+        public static string RemoveSponsorshipUrl(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url, "RemoveSponsorshipUrl", "JsonApi", relativeUrl);
         }
 
         public static string GetDeprecationCveIds(
@@ -1505,6 +1524,26 @@ namespace NuGetGallery
         public static string GenerateApiKey(this UrlHelper url, bool relativeUrl = true)
         {
             return GetActionLink(url, "GenerateApiKey", "Users", relativeUrl);
+        }
+
+        public static string GenerateTrustedPublisherPolicy(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url, "GenerateTrustedPublisherPolicy", "Users", relativeUrl);
+        }
+
+        public static string EditTrustedPublisherPolicy(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url, "EditTrustedPublisherPolicy", "Users", relativeUrl);
+        }
+
+        public static string EnableTrustedPublisherPolicy(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url, "EnableTrustedPublisherPolicy", "Users", relativeUrl);
+        }
+
+        public static string RemoveTrustedPublisherPolicy(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url, "RemoveTrustedPublisherPolicy", "Users", relativeUrl);
         }
 
         public static string TransformAccount(this UrlHelper url, bool relativeUrl = true)
