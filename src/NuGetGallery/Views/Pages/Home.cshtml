@@ -48,7 +48,7 @@ else if (AskUserToEnable2FA)
             </div>
             <div class="row">
                 <div class="col-sm-8 col-sm-offset-2">
-                    <form id="@UrlHelperExtensions.SimpleSearchFormId" action="@Url.PackageList()" method="get">
+                    <form id="@GalleryConstants.SearchFilterIds.SimpleSearchFormId" action="@Url.PackageList()" method="get">
                         @Html.Partial("_SearchBar")
                         @Html.Partial("_AutocompleteTemplate")
                     </form>
@@ -96,7 +96,7 @@ else if (AskUserToEnable2FA)
                 </p>
             </div>
             <div class="col-sm-4">
-                <a href="@Url.PackageList()" class="@UrlHelperExtensions.PackagesLinkClass"
+                <a href="@Url.PackageList()" class="@GalleryConstants.SearchFilterIds.PackagesLinkClass"
                    title="Explore packages available on NuGet.org">
                     <div class="home-icons">
                         <img src="@Url.Absolute("~/Content/gallery/img/search-icon.svg")" alt="Find packages" width="96" height="96" />
