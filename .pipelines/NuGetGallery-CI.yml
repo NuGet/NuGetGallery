@@ -55,6 +55,8 @@ extends:
       os: windows
     customBuildTags:
       - ES365AIMigrationTooling
+    settings:
+      networkIsolationPolicy: Permissive
     stages:
       - stage: common
         displayName: NuGet.Server.Common.sln
