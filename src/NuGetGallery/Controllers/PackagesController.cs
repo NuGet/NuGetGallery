@@ -931,11 +931,11 @@ namespace NuGetGallery
             if (_featureFlagService.IsReducedVersionListsEnabled())
             {
                 allVersions = _packageService.FindLatestVersionsById(id,
-                    normalized,
+                    includeVersion: normalized,
                     includePackageRegistration: true,
                     includeDeprecations: true,
                     includeSupportedFrameworks: true,
-                    20);
+                    maxCount: 20);
             }
             else
             {
