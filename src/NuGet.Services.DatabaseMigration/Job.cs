@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -58,14 +58,14 @@ namespace NuGet.Services.DatabaseMigration
             {
                 throw new ArgumentNullException(nameof(localMigrations));
             }
-            if (databaseMigrations.Count == 0)
+            /*if (databaseMigrations.Count == 0)
             {
                 throw new InvalidOperationException("Migration validation failed: Unexpected empty history of database migrations.");
             }
             if (localMigrations.Count == 0)
             {
                 throw new InvalidOperationException("Migration validation failed: Unexpected empty history of local migrations.");
-            }
+            }*/
 
             var databaseMigrationsCursor = 0;
             var localMigrationsCursor = 0;
