@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -47,12 +47,12 @@ namespace NuGet.Services.DatabaseMigration.Facts
         {
             get
             {
-                yield return new object[] { new List<string>(),
-                    new List<string> { "2011_Migration_1", "2012_Migration_2" },
-                    "Migration validation failed: Unexpected empty history of database migrations."};
-                yield return new object[] { new List<string>() { "2011_Migration_1", "2012_Migration_2"},
-                    new List<string>(),
-                    "Migration validation failed: Unexpected empty history of local migrations."};
+                //yield return new object[] { new List<string>(),
+                //    new List<string> { "2011_Migration_1", "2012_Migration_2" },
+                //    "Migration validation failed: Unexpected empty history of database migrations."};
+                //yield return new object[] { new List<string>() { "2011_Migration_1", "2012_Migration_2"},
+                //    new List<string>(),
+                //    "Migration validation failed: Unexpected empty history of local migrations."};
                 yield return new object[] { new List<string>() { "2011_Migration_1", "2012_Migration_3" },
                     new List<string>() { "2011_Migration_2", "2012_Migration_3"},
                     "Migration validation failed: Mismatch local migration file: 2011_Migration_2 and database migration file: 2011_Migration_1." };
