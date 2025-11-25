@@ -58,14 +58,14 @@ namespace NuGet.Services.DatabaseMigration
             {
                 throw new ArgumentNullException(nameof(localMigrations));
             }
-            /*if (databaseMigrations.Count == 0)
-            {
-                throw new InvalidOperationException("Migration validation failed: Unexpected empty history of database migrations.");
-            }
-            if (localMigrations.Count == 0)
-            {
-                throw new InvalidOperationException("Migration validation failed: Unexpected empty history of local migrations.");
-            }*/
+            //if (databaseMigrations.Count == 0)
+            //{
+            //    throw new InvalidOperationException("Migration validation failed: Unexpected empty history of database migrations.");
+            //}
+            //if (localMigrations.Count == 0)
+            //{
+            //    throw new InvalidOperationException("Migration validation failed: Unexpected empty history of local migrations.");
+            //}
 
             var databaseMigrationsCursor = 0;
             var localMigrationsCursor = 0;
