@@ -1726,3 +1726,24 @@ img.contributors-contributor-avatar {
     font-size: 1.1em;
     padding: 5px 15px 5px 15px;
 }
+
+/* Package Details - Icon Alignment Fix */
+
+.package-title h1 {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+}
+
+.package-title h1 > span.pull-left {
+	float: none;
+	display: flex;
+	align-items: center;
+	margin-right: 10px;
+}
+
+.package-title h1 > span.title,
+.package-title h1 > span.version-title {
+	display: inline-flex;
+	align-items: center;
+}
