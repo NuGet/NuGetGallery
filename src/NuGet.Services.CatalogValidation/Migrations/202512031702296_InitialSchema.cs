@@ -1,4 +1,4 @@
-namespace NuGet.Services.CatalogValidation
+﻿namespace NuGet.Services.CatalogValidation
 {
     using System;
     using System.Data.Entity.Migrations;
@@ -276,12 +276,13 @@ namespace NuGet.Services.CatalogValidation
                         ValidatorName = c.String(nullable: false),
                         State = c.Int(nullable: false),
                         NupkgUrl = c.String(),
-                        RowVersion = c.Binary(nullable: false, fixedLength: true, timestamp: true, storeType: "rowversion"),
                         BatchId = c.String(maxLength: 20),
+                        RowVersion = c.Binary(nullable: false, fixedLength: true, timestamp: true, storeType: "rowversion"),
                         ValidatingType = c.Int(nullable: false),
                     })
                 .PrimaryKey(t => t.ValidationId)
-                .Index(t => t.PackageKey, name: "IX_ValidatorStatuses_PackageKey");
+                .Index(t => t.PackageKey, name: "IX_ValidatorStatuses_PackageKey")
+                .Index(t => t.BatchId, name: "IX_ValidatorStatuses_BatchId");
             
             CreateTable(
                 "dbo.ValidatorIssues",
@@ -314,6 +315,7 @@ namespace NuGet.Services.CatalogValidation
             DropForeignKey("signature.PackageSignatures", "EndCertificateKey", "signature.EndCertificates");
             DropForeignKey("signature.CertificateChainLinks", "EndCertificateKey", "signature.EndCertificates");
             DropIndex("dbo.ValidatorIssues", new[] { "ValidationId" });
+            DropIndex("dbo.ValidatorStatuses", "IX_ValidatorStatuses_BatchId");
             DropIndex("dbo.ValidatorStatuses", "IX_ValidatorStatuses_PackageKey");
             DropIndex("dbo.SymbolsServerRequests", "IX_SymbolServerRequests_SymbolsKey");
             DropIndex("scan.ScanOperationStates", "IX_ScanOperationStates_ScanState_Created");

@@ -13,7 +13,7 @@ namespace NuGet.Services.CatalogValidation
         
         string IMigrationMetadata.Id
         {
-            get { return "202510240727183_InitialSchema"; }
+            get { return "202512031702296_InitialSchema"; }
         }
         
         string IMigrationMetadata.Source
