@@ -179,7 +179,19 @@
                 AlertLevel = AlertLevel.Info,
                 AlertMessage = string.Format("For projects that support Sdk, copy this XML node into the project file to reference the package."),
                 CopyLabel = "Copy the SDK XML node",
-            }
+            },
+
+            new PackageManagerViewModel(
+                "dotnet-run-file",
+                "File-based Apps",
+                new PackageManagerViewModel.InstallPackageCommand(
+                    string.Format("#:sdk {0}@{1}", Model.Id, Model.Version)
+                )
+            )
+            {
+                AlertLevel = AlertLevel.Info,
+                AlertMessage = "#:sdk directive can be used in C# file-based apps starting in .NET 10 preview 4. Copy this into a .cs file before any lines of code to reference the package.",
+            },
         };
     }
     else
@@ -1621,9 +1633,10 @@
     </style>
 
     <script type="text/javascript" nonce="@Html.GetCSPNonce()">
-        var packageId = @Html.ToJson(Model.Id);
-        var packageVersion = @Html.ToJson(Model.Version);
-        var packageManagers = @Html.ToJson(
+        window.nuget = window.nuget || {};
+        window.nuget.packageId = @Html.ToJson(Model.Id);
+        window.nuget.packageVersion = @Html.ToJson(Model.Version);
+        window.nuget.packageManagers = @Html.ToJson(
                                  (
                                     from pm in packageManagers
                                     from ipc in pm.InstallPackageCommands
@@ -1631,7 +1644,7 @@
                                  )
                                  .ToList()
                              );
-        var sponsorshipUrlCount = @sponsorshipUrlCount;
+        window.nuget.sponsorshipUrlCount = @sponsorshipUrlCount;
     </script>
 
     @if (Model.IsMarkdigMdSyntaxHighlightEnabled) 

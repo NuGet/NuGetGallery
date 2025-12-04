@@ -94,8 +94,16 @@ namespace NuGetGallery
                 //silently ignore incorrect cookie values
             }
 
-            cookie.Expires = DateTime.MinValue;
-            cookie.Value = String.Empty;
+            if (_httpContext.Response != null && _httpContext.Response.Cookies != null)
+            {
+                var responseCookie = _httpContext.Response.Cookies.Get(TempDataCookieKey);
+                if (responseCookie != null)
+                {
+                    responseCookie.Expires = DateTime.MinValue;
+                    responseCookie.Value = String.Empty;
+                }
+            }
+
             return dictionary;
         }
 
