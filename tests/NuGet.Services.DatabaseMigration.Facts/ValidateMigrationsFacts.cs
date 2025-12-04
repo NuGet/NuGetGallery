@@ -47,6 +47,7 @@ namespace NuGet.Services.DatabaseMigration.Facts
         {
             get
             {
+                // Code commented out because it produces a bug, check work item: https://github.com/orgs/NuGet/projects/21/views/1?filterQuery=assignee%3A%40me+milestone%3A%22Sprint+2025-12%22&pane=issue&itemId=143291780&issue=NuGet%7CEngineering%7C6225
                 //yield return new object[] { new List<string>(),
                 //    new List<string> { "2011_Migration_1", "2012_Migration_2" },
                 //    "Migration validation failed: Unexpected empty history of database migrations."};
