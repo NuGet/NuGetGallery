@@ -243,8 +243,11 @@ namespace CopyAzureContainer
                 var sasCredential = new AzureSasCredential(storageSasToken);
                 return new BlobServiceClient(serviceUri, sasCredential);
             }
-
+#if DEBUG
             var credential = new DefaultAzureCredential();
+#else
+            var credential = new ManagedIdentityCredential();
+#endif
             return new BlobServiceClient(serviceUri, credential);
         }
 

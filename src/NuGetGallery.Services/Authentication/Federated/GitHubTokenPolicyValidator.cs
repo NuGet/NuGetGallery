@@ -70,13 +70,6 @@ namespace NuGetGallery.Services.Authentication
                     policyPropertyName: null);
             }
 
-            if (!_featureFlagService.IsTrustedPublishingEnabled(policy.CreatedBy))
-            {
-                return FederatedCredentialPolicyValidationResult.BadRequest(
-                    $"Trusted Publishing is not enabled for '{policy.CreatedBy.Username}'.",
-                    nameof(FederatedCredentialPolicy.CreatedBy));
-            }
-
             GitHubCriteria gitHubCriteria = GitHubCriteria.FromDatabaseJson(policy.Criteria);
             NormalizeRepositoryName(gitHubCriteria);
             NormalizeWorkflowFileName(gitHubCriteria);
@@ -182,11 +175,6 @@ namespace NuGetGallery.Services.Authentication
             if (policy.Type != FederatedCredentialType.GitHubActions)
             {
                 return FederatedCredentialPolicyResult.NotApplicable;
-            }
-
-            if (!_featureFlagService.IsTrustedPublishingEnabled(policy.CreatedBy))
-            {
-                return FederatedCredentialPolicyResult.Unauthorized($"Trusted publishing is not enabled for {policy.CreatedBy.Username}");
             }
 
             var criteria = GitHubCriteria.FromDatabaseJson(policy.Criteria);

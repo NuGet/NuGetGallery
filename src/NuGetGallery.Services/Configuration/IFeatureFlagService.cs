@@ -357,13 +357,6 @@ namespace NuGetGallery
         bool CanUseFederatedCredentials(User user);
 
         /// <summary>
-        /// Whether or not the user can access trusted publishing functionality, e.g. GitHub Actions workflows.
-        /// When enabled, this controls both the ability to create Trusted Publishing policies and the ability
-        /// to exchange external tokens for NuGet API keys during package operations.
-        /// </summary>
-        bool IsTrustedPublishingEnabled(User user);
-
-        /// <summary>
         /// Whether or not the first iteration of the profile load optimization is enabled.
         /// </summary>
         bool IsProfileLoadOptimizationEnabled();

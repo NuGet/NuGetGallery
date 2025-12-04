@@ -50,7 +50,7 @@ extends:
   template: v1/1ES.Unofficial.PipelineTemplate.yml@1ESPipelineTemplates
   parameters:
     settings:
-      networkIsolationPolicy: Permissive
+        networkIsolationPolicy: Permissive
     pool:
       name: NuGet-1ES-Hosted-Pool
       image: NuGet-1ESPT-Win2022
