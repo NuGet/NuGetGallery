@@ -19,6 +19,13 @@
             <input type="radio" name="@radioGroupName" @(string.Equals(optionValue, optionCompareValue, StringComparison.OrdinalIgnoreCase) || (isDefault && optionCompareValue == null) ? "checked" : "") value="@optionValue">
             <span>@optionName</span>
         </label>
+        @if (optionValue == "mcpserver")
+        {
+            <a href="https://aka.ms/nuget/mcp/concepts" class="mcp-learn-more"
+               aria-label="Learn more about NuGet MCP server packages">
+                Learn more
+            </a>
+        }
     </div>
 }
 

@@ -151,29 +151,6 @@ namespace NuGetGallery.Services.Authentication
             Assert.Null(result.PolicyPropertyName);
         }
 
-        [Fact]
-        public void RejectsWhenTrustedPublishingDisabled()
-        {
-            // Arrange
-            var user = new User("test-user");
-            var policy = new FederatedCredentialPolicy
-            {
-                Type = FederatedCredentialType.GitHubActions,
-                CreatedBy = user,
-                Criteria = TokenTestHelper.PermanentPolicyCriteria
-            };
-
-            FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(user)).Returns(false);
-
-            // Act
-            var result = Target.ValidatePolicy(policy);
-
-            // Assert
-            Assert.Equal(FederatedCredentialPolicyValidationResultType.BadRequest, result.Type);
-            Assert.Equal("Trusted Publishing is not enabled for 'test-user'.", result.UserMessage);
-            Assert.Equal(nameof(FederatedCredentialPolicy.CreatedBy), result.PolicyPropertyName);
-        }
-
         [Theory]
         [InlineData(null)]
         [InlineData("")]
@@ -189,8 +166,6 @@ namespace NuGetGallery.Services.Authentication
                 PolicyName = policyName,
                 Criteria = TokenTestHelper.PermanentPolicyCriteria
             };
-
-            FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(user)).Returns(true);
 
             // Act
             var result = Target.ValidatePolicy(policy);
@@ -212,8 +187,6 @@ namespace NuGetGallery.Services.Authentication
                 PolicyName = "Test Policy",
                 Criteria = "invalid json"
             };
-
-            FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(user)).Returns(true);
 
             // Act & Assert
             Assert.ThrowsAny<Exception>(() => Target.ValidatePolicy(policy));
@@ -238,8 +211,6 @@ namespace NuGetGallery.Services.Authentication
                 Criteria = invalidCriteria
             };
 
-            FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(user)).Returns(true);
-
             // Act
             var result = Target.ValidatePolicy(policy);
 
@@ -261,8 +232,6 @@ namespace NuGetGallery.Services.Authentication
                 PolicyName = "Test Policy",
                 Criteria = TokenTestHelper.PermanentPolicyCriteria
             };
-
-            FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(user)).Returns(true);
 
             // Act
             var result = Target.ValidatePolicy(policy);
@@ -286,8 +255,6 @@ namespace NuGetGallery.Services.Authentication
                 PolicyName = "Test Policy",
                 Criteria = """{"owner":"test-owner","repository":"test-repo","workflow":"test.yml"}"""
             };
-
-            FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(user)).Returns(true);
 
             // Act
             var result = Target.ValidatePolicy(policy);
@@ -318,8 +285,6 @@ namespace NuGetGallery.Services.Authentication
                 Criteria = originalCriteria
             };
 
-            FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(user)).Returns(true);
-
             // Act
             var result = Target.ValidatePolicy(policy);
 
@@ -346,8 +311,6 @@ namespace NuGetGallery.Services.Authentication
                 PolicyName = "Test Policy",
                 Criteria = originalCriteria
             };
-
-            FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(user)).Returns(true);
 
             // Act
             var result = Target.ValidatePolicy(policy);
@@ -376,8 +339,6 @@ namespace NuGetGallery.Services.Authentication
                 Criteria = expiredCriteria
             };
 
-            FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(user)).Returns(true);
-
             // Act
             var result = Target.ValidatePolicy(policy);
 
@@ -403,8 +364,6 @@ namespace NuGetGallery.Services.Authentication
                 Criteria = """{"owner":"test-owner","repository":"test-repo","workflow":"test.yml","environment":"production"}"""
             };
 
-            FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(user)).Returns(true);
-
             // Act
             var result = Target.ValidatePolicy(policy);
 
@@ -424,8 +383,6 @@ namespace NuGetGallery.Services.Authentication
                 PolicyName = "Test Policy",
                 Criteria = TokenTestHelper.PermanentPolicyCriteria
             };
-
-            FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(user)).Returns(true);
 
             // Act
             var result = Target.ValidatePolicy(policy);
@@ -461,8 +418,6 @@ namespace NuGetGallery.Services.Authentication
                 PolicyName = "Test Policy",
                 Criteria = System.Text.Json.JsonSerializer.Serialize(criteria)
             };
-
-            FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(user)).Returns(true);
 
             // Act
             var result = Target.ValidatePolicy(policy);
@@ -500,8 +455,6 @@ namespace NuGetGallery.Services.Authentication
                 PolicyName = "Test Policy",
                 Criteria = System.Text.Json.JsonSerializer.Serialize(criteria)
             };
-
-            FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(user)).Returns(true);
 
             // Act
             var result = Target.ValidatePolicy(policy);
@@ -589,30 +542,6 @@ namespace NuGetGallery.Services.Authentication
             }
 
             [Fact]
-            public async Task RejectsWhenTrustedPublishingDisabled()
-            {
-                // Arrange
-                var createdBy = new User("test-user");
-                var policy = new FederatedCredentialPolicy
-                {
-                    Type = FederatedCredentialType.GitHubActions,
-                    Criteria = TokenTestHelper.PermanentPolicyCriteria,
-                    CreatedBy = createdBy
-                };
-
-                FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(createdBy)).Returns(false);
-
-                var token = TokenTestHelper.CreateTestJwt();
-
-                // Act
-                var result = await Target.EvaluatePolicyAsync(policy, token);
-
-                // Assert
-                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
-                Assert.Equal("Trusted publishing is not enabled for test-user", result.Error);
-            }
-
-            [Fact]
             public async Task ThrowsInvalidCriteriaJson()
             {
                 // Arrange
@@ -623,8 +552,6 @@ namespace NuGetGallery.Services.Authentication
                     Criteria = "invalid",
                     CreatedBy = createdBy
                 };
-
-                FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(createdBy)).Returns(true);
 
                 var token = TokenTestHelper.CreateTestJwt();
 
@@ -644,8 +571,6 @@ namespace NuGetGallery.Services.Authentication
                     Criteria = TokenTestHelper.ExpiredPolicyCriteria,
                     CreatedBy = createdBy
                 };
-
-                FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(createdBy)).Returns(true);
 
                 var token = TokenTestHelper.CreateTestJwt();
 
@@ -674,8 +599,6 @@ namespace NuGetGallery.Services.Authentication
                     Criteria = TokenTestHelper.PermanentPolicyCriteria,
                     CreatedBy = createdBy
                 };
-
-                FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(createdBy)).Returns(true);
 
                 var tokenWithEmptyValue = TokenTestHelper.CreateTestJwtWithCustomClaimValue(claim, null);
                 var tokenWithMissingValue = TokenTestHelper.CreateTestJwtWithCustomClaimValue(claim, "");
@@ -726,8 +649,6 @@ namespace NuGetGallery.Services.Authentication
                     CreatedBy = createdBy
                 };
 
-                FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(createdBy)).Returns(true);
-
                 var token = TokenTestHelper.CreateTestJwtWithCustomClaimValue(claim, claimValue);
 
                 // Act
@@ -769,8 +690,6 @@ namespace NuGetGallery.Services.Authentication
                     CreatedBy = createdBy
                 };
 
-                FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(createdBy)).Returns(true);
-
                 string value = TokenTestHelper.ValidClaims[claim].ToString().ToUpperInvariant();
                 var token = TokenTestHelper.CreateTestJwtWithCustomClaimValue(claim, value);
 
@@ -798,8 +717,6 @@ namespace NuGetGallery.Services.Authentication
                     CreatedBy = createdBy
                 };
 
-                FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(createdBy)).Returns(true);
-
                 var token = TokenTestHelper.CreateTestJwt();
 
                 // Act
@@ -822,8 +739,6 @@ namespace NuGetGallery.Services.Authentication
                     CreatedBy = createdBy,
                     PackageOwner = new User("test-owner")
                 };
-
-                FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(createdBy)).Returns(true);
 
                 var token = TokenTestHelper.CreateTestJwt();
 
@@ -859,8 +774,6 @@ namespace NuGetGallery.Services.Authentication
                     Type = policy.Type,
                     Criteria = TokenTestHelper.PermanentPolicyCriteria
                 };
-
-                FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(createdBy)).Returns(true);
 
                 var token = TokenTestHelper.CreateTestJwt();
 
@@ -911,8 +824,6 @@ namespace NuGetGallery.Services.Authentication
                     Criteria = updatedCriteria.ToDatabaseJson()
                 };
 
-                FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(createdBy)).Returns(true);
-
                 var token = TokenTestHelper.CreateTestJwt();
 
                 // Setup SavePoliciesAsync to throw DbUpdateConcurrencyException
@@ -946,8 +857,6 @@ namespace NuGetGallery.Services.Authentication
                     Criteria = TokenTestHelper.TemporaryPolicyCriteria,
                     CreatedBy = createdBy
                 };
-
-                FeatureFlagService.Setup(x => x.IsTrustedPublishingEnabled(createdBy)).Returns(true);
 
                 var token = TokenTestHelper.CreateTestJwt();
 

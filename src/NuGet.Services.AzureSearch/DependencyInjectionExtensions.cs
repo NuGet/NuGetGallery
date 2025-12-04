@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using Autofac;
 using Azure;
+using Azure.Core;
 using Azure.Core.Pipeline;
 using Azure.Identity;
 using Azure.Search.Documents;
@@ -302,10 +303,17 @@ namespace NuGet.Services.AzureSearch
                     }
                     else if (options.Value.SearchServiceUseDefaultCredential)
                     {
+#if DEBUG
                         return new SearchIndexClient(
                             endpoint,
                             new DefaultAzureCredential(),
                             searchOptions);
+#else
+                        return new SearchIndexClient(
+                            endpoint,
+                            new ManagedIdentityCredential(),
+                            searchOptions);
+#endif
                     }
                     else
                     {

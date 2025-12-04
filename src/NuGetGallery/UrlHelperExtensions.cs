@@ -19,16 +19,6 @@ namespace NuGetGallery
         private const string Area = "area";
         private static IGalleryConfigurationService _configuration;
 
-        /// <summary>
-        /// MUST MATCH common.js. Used to add localy stored search params to a element.
-        /// </summary>
-        public const string PackagesLinkClass = "link-to-add-local-search-filters";
-
-        /// <summary>
-        /// MUST MATCH common.js. Used to add localy stored search params to form element.
-        /// </summary>
-        public const string SimpleSearchFormId = "form-to-add-local-search-filters";
-
         public static class Fragments
         {
             public static class ManagePage
