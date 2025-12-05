@@ -71,6 +71,7 @@ namespace NuGetGallery
         private const string McpServerPackageFilteringFeatureName = GalleryPrefix + "McpServerPackageFiltering";
         private const string McpServerPackageDisplayFeatureName = GalleryPrefix + "McpServerPackageDisplay";
         private const string EnableApiKeyV5ForOIDCFeatureName = GalleryPrefix + "EnableApiKeyV5ForOIDC";
+        private const string ReducedVersionLists = GalleryPrefix + "ReducedVersionLists";
 
         private const string ODataV1GetAllNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllNonHijacked";
         private const string ODataV1GetAllCountNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllCountNonHijacked";
@@ -421,7 +422,8 @@ namespace NuGetGallery
             return _client.IsEnabled(NuGetAccountPasswordLoginFeatureName, defaultValue: true);
         }
 
-        public bool IsFrameworkFilteringEnabled(User user) {
+        public bool IsFrameworkFilteringEnabled(User user)
+        {
             return _client.IsEnabled(FrameworkFilteringFeatureName, user, defaultValue: false);
         }
 
@@ -458,6 +460,11 @@ namespace NuGetGallery
         public bool IsMcpServerPackageDisplayEnabled()
         {
             return _client.IsEnabled(McpServerPackageDisplayFeatureName, defaultValue: false);
+        }
+
+        public bool IsReducedVersionListsEnabled()
+        {
+            return _client.IsEnabled(ReducedVersionLists, defaultValue: false);
         }
     }
 }

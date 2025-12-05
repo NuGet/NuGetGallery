@@ -369,5 +369,10 @@ namespace NuGetGallery
         bool IsMcpServerPackageFilteringEnabled();
 
         bool IsMcpServerPackageDisplayEnabled();
+
+        /// <summary>
+        /// when enabled, the package details page shows short version lists.
+        /// </summary>
+        bool IsReducedVersionListsEnabled();
     }
 }

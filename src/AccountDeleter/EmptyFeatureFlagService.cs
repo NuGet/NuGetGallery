@@ -353,5 +353,10 @@ namespace NuGetGallery.AccountDeleter
         {
             throw new NotImplementedException();
         }
+
+        public bool IsReducedVersionListsEnabled()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

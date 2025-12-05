@@ -354,5 +354,10 @@ namespace GitHubVulnerabilities2Db.Fakes
         {
             throw new NotImplementedException();
         }
+
+        public bool IsReducedVersionListsEnabled()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
