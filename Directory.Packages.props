@@ -60,7 +60,7 @@
     <PackageVersion Include="Microsoft.Azure.Storage.DataMovement" Version="0.9.0" />
     <PackageVersion Include="Microsoft.Bcl.Compression" Version="3.9.85" />
     <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0" />
-    <PackageVersion Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform" Version="3.6.0" />
+    <PackageVersion Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform" Version="4.1.0" />
     <PackageVersion Include="Microsoft.Data.Services.Client" Version="5.8.4" />
     <PackageVersion Include="Microsoft.Data.Services" Version="5.8.4" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
