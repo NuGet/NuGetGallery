@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -107,19 +107,6 @@ namespace NuGetGallery.FunctionalTests
             ReplaceNuspecFileInNupkg(nupkgFileFullPath, nuspecFileFullPath, nuspecFileName);
 
             return nupkgFileFullPath;
-        }
-        
-        /// <summary>
-        /// Creates a package which will grow up to a huge size when extracted.
-        /// </summary>
-        /// <param name="packageName"></param>
-        /// <param name="version"></param>
-        /// <returns></returns>
-        public async Task<string> CreateGalleryTestBombPackage(string packageName, string version = "1.0.0")
-        {
-            string path = await CreatePackage(packageName, version);
-            WeaponizePackage(path);
-            return path;
         }
 
         /// <summary>
@@ -256,21 +243,6 @@ namespace NuGetGallery.FunctionalTests
 
             string[] nupkgFiles = Directory.GetFiles(nuspecDir, "*.nupkg").ToArray();
             return nupkgFiles.Length == 0 ? null : nupkgFiles[0];
-        }
-
-        private static void WeaponizePackage(string packageFullPath)
-        {
-            var archive = new ZipArchive(new FileStream(packageFullPath, FileMode.Open), ZipArchiveMode.Update);
-            var entry = archive.GetEntry("_rels/.rels");
-            Stream f = entry.Open();
-            f.Position = 0;
-            byte[] bytes = new byte[1100];
-            for (int i = 0; i < 260144; i++)
-            {
-                f.Write(bytes, 0, bytes.Length);
-            }
-            f.Close();
-            archive.Dispose();
         }
     }
 }

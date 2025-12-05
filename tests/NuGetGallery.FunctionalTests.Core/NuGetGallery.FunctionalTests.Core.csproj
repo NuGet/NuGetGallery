@@ -5,7 +5,6 @@
     <RootNamespace>NuGetGallery.FunctionalTests</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.QualityTools.WebTestFramework" />
     <Reference Include="System.IO.Compression" />
   </ItemGroup>
   <ItemGroup>
