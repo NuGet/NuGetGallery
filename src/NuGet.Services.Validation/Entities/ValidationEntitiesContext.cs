@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -61,6 +61,7 @@ namespace NuGet.Services.Validation
 
         private const string ValidatorStatusesTable = "ValidatorStatuses";
         private const string ValidatorStatusesPackageKeyIndex = "IX_ValidatorStatuses_PackageKey";
+        private const string ValidatorStatusesBatchIdIndex = "IX_ValidatorStatuses_BatchId";
 
         private const string PackageSigningStatesTable = "PackageSigningStates";
         private const string PackageSigningStatesPackageIdPackageVersionIndex = "IX_PackageSigningStates_PackageId_PackageNormalizedVersion";
@@ -321,6 +322,14 @@ namespace NuGet.Services.Validation
             modelBuilder.Entity<ValidatorStatus>()
                 .Property(r => r.RowVersion)
                 .IsRowVersion();
+
+            modelBuilder.Entity<ValidatorStatus>()
+                .Property(s => s.BatchId)
+                .HasMaxLength(20)
+                .IsOptional()
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(new IndexAttribute(ValidatorStatusesBatchIdIndex)));
 
             modelBuilder.Entity<ValidatorIssue>()
                 .HasKey(vi => vi.Key);

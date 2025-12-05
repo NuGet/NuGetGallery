@@ -35,6 +35,13 @@ namespace NuGetGallery.DatabaseMigrationTools
                     var sqlConnection = await serviceProvider.GetRequiredService<ISqlConnectionFactory<ValidationDbConfiguration>>().CreateAsync();
                     return new ValidationDbMigrationContext(sqlConnection);
                 }
+            },
+            {
+                MigrationTargetDatabaseArgumentNames.CatalogValidationDatabase, async(IServiceProvider serviceProvider) =>
+                {
+                    var sqlConnection = await serviceProvider.GetRequiredService<ISqlConnectionFactory<CatalogValidationDbConfiguration>>().CreateAsync();
+                    return new CatalogValidationDbMigrationContext(sqlConnection);
+                }
             }
         };
 

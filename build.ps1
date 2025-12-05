@@ -108,6 +108,7 @@ Invoke-BuildStep 'Creating job packages from gallery solution' { `
             "src\DatabaseMigrationTools\DatabaseMigration.Gallery.nuspec",
             "src\DatabaseMigrationTools\DatabaseMigration.SupportRequest.nuspec",
             "src\DatabaseMigrationTools\DatabaseMigration.Validation.nuspec",
+            "src\DatabaseMigrationTools\DatabaseMigration.CatalogValidation.nuspec",
             "src\GitHubVulnerabilities2Db\GitHubVulnerabilities2Db.nuspec",
             "src\GitHubVulnerabilities2v3\GitHubVulnerabilities2v3.nuspec",
             "src\GalleryTools\Gallery.GalleryTools.nuspec",
