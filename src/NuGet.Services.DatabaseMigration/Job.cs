@@ -59,7 +59,7 @@ namespace NuGet.Services.DatabaseMigration
                 throw new ArgumentNullException(nameof(localMigrations));
             }
 
-            //  Code commented out because it produces a bug, check work item: https://github.com/orgs/NuGet/projects/21/views/1?filterQuery=assignee%3A%40me+milestone%3A%22Sprint+2025-12%22&pane=issue&itemId=143291780&issue=NuGet%7CEngineering%7C6225
+            //  Code commented out because it produces a bug, check work item: https://github.com/NuGet/Engineering/issues/6225
             //if (databaseMigrations.Count == 0)
             //{
             //    throw new InvalidOperationException("Migration validation failed: Unexpected empty history of database migrations.");
