@@ -79,6 +79,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
             if (token.IsCancellationRequested)
             {
                 _logger.LogInformation("TryProcessAsync: The operation was cancelled.");
+                return;
             }
             try
             {

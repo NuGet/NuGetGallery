@@ -99,7 +99,7 @@ namespace Stats.CollectAzureChinaCDNLogs
             Task<AggregateException> logProcessTask = _chinaCollector
                 .TryProcessAsync(maxFileCount: MaxFilesToProcess,
                      fileNameTransform: s => $"{_configuration.DestinationFilePrefix}_{s}",
-                     sourceContentType: ContentType.GZip,
+                     sourceContentType: ContentType.None,
                      destinationContentType: ContentType.GZip,
                      token: cts.Token)
                 .WithCancellation(forceStopCts.Token);
