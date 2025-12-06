@@ -6,8 +6,6 @@
         && Config.Current.DeprecateNuGetPasswordLogins
         && User.HasPasswordLogin();
     var rawErrorMessage = TempData.ContainsKey("RawErrorMessage") ? TempData["RawErrorMessage"].ToString() : null;
-    var featureFlagService = DependencyResolver.Current.GetService<IFeatureFlagService>();
-    ViewBag.IsTrustedPublishingEnabled = featureFlagService != null && featureFlagService.IsTrustedPublishingEnabled(CurrentUser);
 }
 
 <div id="cookie-banner"></div>
@@ -76,7 +74,7 @@
                 </div>
                 <div id="navbar" class="navbar-collapse collapse">
                     <ul class="nav navbar-nav" role="tablist">
-                        @DisplayNavigationItem("Packages", Url.PackageList(), className: UrlHelperExtensions.PackagesLinkClass)
+                        @DisplayNavigationItem("Packages", Url.PackageList(), className: GalleryConstants.SearchFilterIds.PackagesLinkClass)
                         @DisplayNavigationItem("Upload", Url.UploadPackage())
                         @if (StatisticsHelper.IsStatisticsPageAvailable)
                         {
@@ -143,10 +141,7 @@
                                             </a>
                                         </li>
 
-                                        @if (ViewBag.IsTrustedPublishingEnabled)
-                                        {
-                                            <li role="presentation"><a href="@Url.ManageMyTrustedPublishing()" role="menuitem">Trusted Publishing</a></li>
-                                        }
+                                        <li role="presentation"><a href="@Url.ManageMyTrustedPublishing()" role="menuitem">Trusted Publishing</a></li>
                                         <li role="presentation"><a href="@Url.ManageMyApiKeys()" role="menuitem">API Keys</a></li>
 
                                         <li class="divider"></li>
@@ -181,7 +176,7 @@
     {
         <div id="search-bar-header" class="container search-container">
             <div class="row">
-                <form aria-label="Package search bar" class="col-sm-12" id="@UrlHelperExtensions.SimpleSearchFormId" action="@Url.PackageList()" method="get">
+                <form aria-label="Package search bar" class="col-sm-12" id="@GalleryConstants.SearchFilterIds.SimpleSearchFormId" action="@Url.PackageList()" method="get">
                     @Html.Partial("_SearchBar")
                     @Html.Partial("_AutocompleteTemplate")
                 </form>

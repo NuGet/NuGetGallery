@@ -1,8 +1,9 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Threading.Tasks;
+using Azure.Core;
 using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.Logging;
 
@@ -53,6 +54,22 @@ namespace NuGet.Services.ServiceBus
         public SubscriptionClientWrapper(string connectionString, string topicPath, string name, string managedIdentityClientId, ILogger<SubscriptionClientWrapper> logger)
         {
             _serviceBusClient = ServiceBusClientHelper.GetServiceBusClient(connectionString, managedIdentityClientId);
+            _topicPath = topicPath ?? throw new ArgumentNullException(nameof(topicPath));
+            _name = name ?? throw new ArgumentNullException(nameof(name));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
+        /// <summary>
+        /// Creates a new instance of the <see cref="SubscriptionClientWrapper"/> class using specified token credential.
+        /// </summary>
+        /// <param name="endpointUrl">Service bus endpoint URL (e.g. "sb://nugetdev.servicebus.windows.net/")</param>
+        /// <param name="topicPath">Path of the topic name</param>
+        /// <param name="name">Subscription name</param>
+        /// <param name="tokenCredential">Credential to use.</param>
+        /// <param name="logger"><see cref="ILogger"/> instance</param>
+        public SubscriptionClientWrapper(Uri endpointUrl, string topicPath, string name, TokenCredential tokenCredential, ILogger<SubscriptionClientWrapper> logger)
+        {
+            _serviceBusClient = new ServiceBusClient(endpointUrl.Host, tokenCredential);
             _topicPath = topicPath ?? throw new ArgumentNullException(nameof(topicPath));
             _name = name ?? throw new ArgumentNullException(nameof(name));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

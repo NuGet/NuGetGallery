@@ -789,4 +789,18 @@
     $(document).on('mouseleave focusout', '.tooltip-target', function () {
         $(this).find('.tooltip-wrapper').removeClass('show');
     });
+
+    // allow users to escape out of tooltips (accessibility requirement)
+    // project has two different tooltip implementations, adding a fix for both
+    $(document).on('keydown', '.tooltip-target', function (event) {
+        if (event.key === 'Escape' || event.keyCode === 27) {
+            $(this).find('.tooltip-wrapper').removeClass('show');
+        }
+    });
+
+    $(document).on('keydown', '[data-toggle="tooltip"]', function (event) {
+        if (event.key === 'Escape' || event.keyCode === 27) {
+            $(this).tooltip('hide');
+        }
+    });
 }());

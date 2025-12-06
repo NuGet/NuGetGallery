@@ -76,7 +76,7 @@ label {
 body {
   display: table;
   background: var(--neutralBackground2Rest);
-  
+
   h1, h2, h3, p {
     margin-bottom: @default-margin-bottom;
   }
@@ -619,14 +619,14 @@ img.reserved-indicator-icon {
 // Theme Definition
 html {
   height: 100%;
+  scrollbar-gutter: stable;
 }
 
-body[id="/"] {
+body:has(.page-home) {
   background: var(--body-background-color);
 }
 
-body,
-body[id="/"] {
+body {
   height: 100%;
   width: 100%;
   margin: 0;
@@ -634,6 +634,7 @@ body[id="/"] {
   background-attachment: fixed;
   color: var(--neutralForeground1Rest);
 }
+
 /* For tooltip */
 .tooltip-target {
   position: relative;

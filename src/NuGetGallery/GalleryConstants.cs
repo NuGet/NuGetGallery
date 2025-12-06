@@ -24,7 +24,7 @@ namespace NuGetGallery
         public const int GravatarCacheDurationSeconds = 300;
 
         public const int MaxFileLengthBytes = 1024 * 1024; // 1MB for License, Icon, readme file
-        internal static readonly NuGetVersion MaxSupportedMinClientVersion = new NuGetVersion("6.9.1.0");
+        internal static readonly NuGetVersion MaxSupportedMinClientVersion = new NuGetVersion("7.0.1.1");
 
         public const string RecentSortOrder = "package-created";
 
@@ -108,6 +108,19 @@ namespace NuGetGallery
             public const string CreatedDesc = "created-desc";
             public const string TotalDownloadsAsc = "totalDownloads-asc";
             public const string TotalDownloadsDesc = "totalDownloads-desc";
+        }
+
+        public static class SearchFilterIds
+        {
+            /// <summary>
+            /// MUST MATCH common.js. Used to add localy stored search params to a element.
+            /// </summary>
+            public const string PackagesLinkClass = "link-to-add-local-search-filters";
+
+            /// <summary>
+            /// MUST MATCH common.js. Used to add localy stored search params to form element.
+            /// </summary>
+            public const string SimpleSearchFormId = "form-to-add-local-search-filters";
         }
     }
 }
