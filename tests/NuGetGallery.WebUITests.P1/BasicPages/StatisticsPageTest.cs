@@ -1,37 +1,37 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.WebTesting;
-using NuGetGallery.FunctionalTests.Helpers;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Xunit;
 
 namespace NuGetGallery.FunctionalTests.WebUITests.BasicPages
 {
     /// <summary>
-    /// Sends a http request to the statistics page and tries to validate the default stats page text and the prescene of top package.
+    /// Sends a http request to the statistics page and tries to validate the default stats page text and the presence of top package.
     /// Priority : p1
     /// </summary>
-    public class StatisticsPageTest : WebTest
+    public class StatisticsPageTest
     {
-        public StatisticsPageTest()
+        [Priority(1)]
+        [Fact]
+        public async Task StatisticsPageContainsExpectedContent()
         {
-            PreAuthenticate = true;
-        }
-
-        public override IEnumerator<WebTestRequest> GetRequestEnumerator()
-        {
-            var statsPageRequest = new WebTestRequest(UrlHelper.StatsPageUrl);
-
-            // Checks for the presence of the rank element. This means there is at least one package in the list.
-            var validationRule = AssertAndValidationHelper.GetValidationRuleForFindText(
-                @"<h2 class=""stats-title-text"">");
-            statsPageRequest.ValidateResponse += validationRule.Validate;
-
-            // Validation rule to check for the default text in stats page.
-            var statsPageDefaultTextValidationRule = AssertAndValidationHelper.GetValidationRuleForFindText(Constants.StatsPageDefaultText);
-            statsPageRequest.ValidateResponse += statsPageDefaultTextValidationRule.Validate;
-
-            yield return statsPageRequest;
+            // Arrange
+            using var client = new HttpClient();
+            
+            // Act
+            var response = await client.GetAsync(UrlHelper.StatsPageUrl);
+            
+            // Assert
+            response.EnsureSuccessStatusCode();
+            var content = await response.Content.ReadAsStringAsync();
+            
+            // Check for the presence of the rank element
+            Assert.Contains(@"<h2 class=""stats-title-text"">", content);
+            
+            // Check for default text in stats page
+            Assert.Contains(Constants.StatsPageDefaultText, content);
         }
     }
 }
