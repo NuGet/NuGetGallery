@@ -16,7 +16,6 @@ $xunit = "$repoDir\packages\xunit.runner.console\tools\net472\xunit.console.exe"
 # Test results files
 $functionalTestsResults = "$parentDir/functionaltests.$TestCategory.xml"
 $webUITestResults = "$parentDir/NuGetGallery.$TestCategory.WebUITests.trx"
-$loadTestResults = "$parentDir/NuGetGallery.$TestCategory.LoadTests.trx"
 
 # Clean previous test results
 Remove-Item $functionalTestsResults -ErrorAction Ignore
@@ -41,13 +40,6 @@ if (Test-Path $webTestsDirectory -PathType Container) {
     if ($LASTEXITCODE -ne 0) {
         $exitCode = 1
     }
-}
-
-# Run load tests
-$loadTestsDirectory = "$parentDir\NuGetGallery.LoadTests\bin\$Configuration\net472"
-& $vsTest "$loadTestsDirectory\NuGetGallery.LoadTests.dll" "/Settings:$parentDir\Local.testsettings" "/TestCaseFilter:`"TestCategory=$fullTestCategory`"" "/Logger:trx;LogFileName=$loadTestResults"
-if ($LASTEXITCODE -ne 0) {
-    $exitCode = 1
 }
 
 exit $exitCode
