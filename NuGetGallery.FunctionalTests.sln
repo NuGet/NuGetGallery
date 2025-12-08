@@ -12,8 +12,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.FunctionalTest
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.FunctionalTests.Core", "tests\NuGetGallery.FunctionalTests.Core\NuGetGallery.FunctionalTests.Core.csproj", "{8496C7FE-8A93-4D2E-A9DC-5DE44017187C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.LoadTests", "tests\NuGetGallery.LoadTests\NuGetGallery.LoadTests.csproj", "{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.WebUITests.P0", "tests\NuGetGallery.WebUITests.P0\NuGetGallery.WebUITests.P0.csproj", "{B3D313C5-A076-424C-B812-4EDE2D9EE888}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.WebUITests.P1", "tests\NuGetGallery.WebUITests.P1\NuGetGallery.WebUITests.P1.csproj", "{66ACA75F-EE4D-4D23-AEC5-E38C715CDC7E}"
@@ -36,10 +34,6 @@ Global
 		{8496C7FE-8A93-4D2E-A9DC-5DE44017187C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8496C7FE-8A93-4D2E-A9DC-5DE44017187C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8496C7FE-8A93-4D2E-A9DC-5DE44017187C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B3D313C5-A076-424C-B812-4EDE2D9EE888}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B3D313C5-A076-424C-B812-4EDE2D9EE888}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B3D313C5-A076-424C-B812-4EDE2D9EE888}.Release|Any CPU.ActiveCfg = Release|Any CPU

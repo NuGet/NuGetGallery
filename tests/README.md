@@ -16,9 +16,6 @@ Functional Tests
 *  NuGetGallery.FunctionalTests
 *  NuGetGallery.FunctionalTests.Fluent
 
-Load Tests
-*  NuGetGallery.LoadTests
-
 Web UI Tests
 *  NuGetGallery.WebUITests.P0
 *  NuGetGallery.WebUITests.P1
