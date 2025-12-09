@@ -32,12 +32,22 @@
     margin-bottom: 16px;
 
     h1 {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      margin-top: 40px;
+
+      > span.pull-left {
+        float: none;
+        display: flex;
+        align-items: center;
+      }
 
       .title {
         font-size: 32px;
-        margin-top: 40px;
         font-weight: 400;
         margin-right: 18px;
+        line-height: 1;
       }
 
       .version-title {
@@ -45,13 +55,11 @@
         font-weight: 400;
         color: var(--neutralForeground3Rest);
         margin-right: 14px;
-        vertical-align: middle;
       }
 
       .package-icon {
         height: 32px;
         width: 32px;
-        margin-top: 8px;
         margin-right: 12px;
       }
     }
