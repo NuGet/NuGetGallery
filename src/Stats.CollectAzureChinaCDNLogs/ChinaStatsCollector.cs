@@ -17,6 +17,8 @@ namespace Stats.CollectAzureChinaCDNLogs
     /// </summary>
     public class ChinaStatsCollector : Collector
     {
+        private JsonSerializerOptions _jsonOptions = null;
+
         public ChinaStatsCollector(
             ILogSource source,
             ILogDestination destination,
@@ -24,7 +26,12 @@ namespace Stats.CollectAzureChinaCDNLogs
             bool writeHeader,
             bool addSourceFilenameColumn)
             : base(source, destination, logger, writeHeader, addSourceFilenameColumn)
-        {}
+        {
+            _jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+            };
+        }
 
         public override OutputLogLine TransformRawLogLine(string line)
         {
@@ -92,7 +99,7 @@ namespace Stats.CollectAzureChinaCDNLogs
 
             try
             {
-                parsedLine = JsonSerializer.Deserialize<AfdLogLine>(line);
+                parsedLine = JsonSerializer.Deserialize<AfdLogLine>(line, _jsonOptions);
             }
             catch (Exception ex)
             {
