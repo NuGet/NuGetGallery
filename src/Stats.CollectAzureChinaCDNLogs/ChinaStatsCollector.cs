@@ -51,14 +51,15 @@ namespace Stats.CollectAzureChinaCDNLogs
 
             const string notAvailableString = "na";
             const string notAvailableInt = "0";
+            const string noStringValue = "-";
 
             string timeStamp2 = ToUnixTimeStamp(parsedLine.Time);
 
             // Global status code format: cache status + "/" + HTTP status code
             // China status code format: HTTP status code
-            var scstatus = parsedLine.Properties.CacheStatus + "/" + parsedLine.Properties.CacheStatus;
+            var scstatus = parsedLine.Properties.CacheStatus + "/" + parsedLine.Properties.HttpStatusCode;
 
-            var durationMilliseconds = "-";
+            var durationMilliseconds = noStringValue;
             if (parsedLine.Properties.TimeTaken != null && double.TryParse(parsedLine.Properties.TimeTaken, out double timeTakenSeconds))
             {
                 durationMilliseconds = ((int)(timeTakenSeconds * 1000)).ToString(CultureInfo.InvariantCulture);
@@ -66,7 +67,7 @@ namespace Stats.CollectAzureChinaCDNLogs
 
             return new OutputLogLine(timestamp: timeStamp2,
                 timetaken: notAvailableInt,
-                cip: notAvailableString,
+                cip: parsedLine.Properties.ClientIp,
                 filesize: notAvailableInt,
                 sip: parsedLine.Properties.OriginIp,
                 sport: notAvailableInt,
@@ -76,10 +77,10 @@ namespace Stats.CollectAzureChinaCDNLogs
                 csuristem: parsedLine.Properties.RequestUri, // OK to keep full URL
                 rsduration: durationMilliseconds,
                 rsbytes: notAvailableInt,
-                creferrer: parsedLine.Properties.Referer,
-                cuseragent: parsedLine.Properties.UserAgent,
+                creferrer: string.IsNullOrWhiteSpace(parsedLine.Properties.Referer) ? noStringValue : parsedLine.Properties.Referer,
+                cuseragent: string.IsNullOrWhiteSpace(parsedLine.Properties.UserAgent) ? noStringValue : parsedLine.Properties.UserAgent,
                 customerid: notAvailableString,
-                xeccustom1: $"SSL-Protocol: {parsedLine.Properties.SecurityProtocol} SSL-Cipher: {parsedLine.Properties.SecurityCipher} SSL-Curves: {parsedLine.Properties.SecurityCurves}"
+                xeccustom1: $"\"SSL-Protocol: {parsedLine.Properties.SecurityProtocol} SSL-Cipher: {parsedLine.Properties.SecurityCipher} SSL-Curves: {parsedLine.Properties.SecurityCurves}\""
                );
         }
 
