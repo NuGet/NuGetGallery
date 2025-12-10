@@ -49,7 +49,7 @@ namespace NuGetGallery
                 }
 
                 // Sort by framework using NuGetFrameworkSorter, with null frameworks (All Frameworks) first
-                var sortedGroups = frameworkGroups.OrderBy(g => g.framework, new NullableFrameworkComparer());
+                var sortedGroups = frameworkGroups.OrderBy(g => g.framework, NullableFrameworkComparer.Instance);
 
                 // Build the final dictionary with friendly names
                 foreach (var group in sortedGroups)
@@ -95,6 +95,8 @@ namespace NuGetGallery
 
         private class NullableFrameworkComparer : IComparer<NuGetFramework>
         {
+            public static readonly NullableFrameworkComparer Instance = new NullableFrameworkComparer();
+
             public int Compare(NuGetFramework x, NuGetFramework y)
             {
                 // Put "All Frameworks" (null) first
