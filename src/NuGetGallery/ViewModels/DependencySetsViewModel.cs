@@ -24,21 +24,50 @@ namespace NuGetGallery
 
                 OnlyHasAllFrameworks = dependencySets.Count() == 1 && dependencySets.First().Key == null;
 
+                // Create a list to hold TFM string, parsed framework, and dependencies for proper sorting
+                var frameworkGroups = new List<(string tfmString, NuGetFramework framework, string friendlyName, IEnumerable<DependencyViewModel> dependencies)>();
+
                 foreach (var dependencySet in dependencySets)
                 {
-                    var targetFramework = dependencySet.Key == null
-                                              ? "All Frameworks"
-                                              : NuGetFramework.Parse(dependencySet.Key).ToFriendlyName();
+                    string tfmString = dependencySet.Key;
+                    string friendlyName;
+                    NuGetFramework framework;
 
-                    if (!DependencySets.ContainsKey(targetFramework))
+                    if (tfmString == null)
                     {
-                        DependencySets.Add(targetFramework,
-                            dependencySet.OrderBy(x => x.Id).Select(d => d.Id == null ? null : new DependencyViewModel(d.Id, d.VersionSpec)));
+                        friendlyName = "All Frameworks";
+                        framework = null;
                     }
+                    else
+                    {
+                        framework = NuGetFramework.Parse(tfmString);
+                        friendlyName = framework.ToFriendlyName();
+                    }
+
+                    var dependencies = dependencySet.OrderBy(x => x.Id).Select(d => d.Id == null ? null : new DependencyViewModel(d.Id, d.VersionSpec));
+                    frameworkGroups.Add((tfmString, framework, friendlyName, dependencies));
                 }
 
-                // Order the top level frameworks by their resulting friendly name
-                DependencySets = DependencySets.OrderBy(x => x.Key).ToDictionary(x => x.Key, x => x.Value);
+                // Sort by framework using NuGetFrameworkSorter, with null frameworks (All Frameworks) first
+                var sortedGroups = frameworkGroups.OrderBy(g => g.framework, 
+                    Comparer<NuGetFramework>.Create((a, b) =>
+                    {
+                        // Put "All Frameworks" (null) first
+                        if (a == null && b == null) return 0;
+                        if (a == null) return -1;
+                        if (b == null) return 1;
+                        // Use NuGetFrameworkSorter for actual frameworks
+                        return NuGetFrameworkSorter.Instance.Compare(a, b);
+                    }));
+
+                // Build the final dictionary with friendly names
+                foreach (var group in sortedGroups)
+                {
+                    if (!DependencySets.ContainsKey(group.friendlyName))
+                    {
+                        DependencySets.Add(group.friendlyName, group.dependencies);
+                    }
+                }
             }
             catch (Exception e)
             {

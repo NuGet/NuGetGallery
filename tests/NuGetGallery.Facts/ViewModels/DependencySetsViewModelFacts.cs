@@ -91,6 +91,29 @@ namespace NuGetGallery.ViewModels
                 Assert.Equal("cde", dependencyViewModels[2].Id);
                 Assert.Equal("def", dependencyViewModels[3].Id);
             }
+
+            [Fact]
+            public void GivenAListOfDependenciesNet10WillBeOrderedAfterNet9()
+            {
+                // Arrange
+                var dependencies = new[] {
+                    new PackageDependency { TargetFramework = "net10.0" },
+                    new PackageDependency { TargetFramework = "net8.0" },
+                    new PackageDependency { TargetFramework = "net9.0" }
+                };
+
+                // Act
+                var viewModel = new DependencySetsViewModel(dependencies);
+
+                // Assert
+                Assert.Equal(3, viewModel.DependencySets.Count);
+
+                var dependencySetsList = viewModel.DependencySets.Keys.ToList();
+
+                Assert.Equal(".NET 8.0", dependencySetsList[0]);
+                Assert.Equal(".NET 9.0", dependencySetsList[1]);
+                Assert.Equal(".NET 10.0", dependencySetsList[2]);
+            }
         }
     }
 }
