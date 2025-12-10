@@ -93,6 +93,32 @@ namespace NuGetGallery.ViewModels
             }
 
             [Fact]
+            public void GivenAListOfDependenciesPackageIdsWillBeOrderedCaseInsensitively()
+            {
+                // Arrange
+                var dependencies = new[] {
+                    new PackageDependency { TargetFramework = null, Id = "Zebra" },
+                    new PackageDependency { TargetFramework = null, Id = "apple" },
+                    new PackageDependency { TargetFramework = null, Id = "Banana" },
+                    new PackageDependency { TargetFramework = null, Id = "cherry" }
+                };
+
+                // Act
+                var viewModel = new DependencySetsViewModel(dependencies);
+
+                // Assert
+                Assert.Single(viewModel.DependencySets);
+                Assert.Equal(4, viewModel.DependencySets.First().Value.Count());
+
+                var dependencyViewModels = viewModel.DependencySets.First().Value.ToList();
+
+                Assert.Equal("apple", dependencyViewModels[0].Id);
+                Assert.Equal("Banana", dependencyViewModels[1].Id);
+                Assert.Equal("cherry", dependencyViewModels[2].Id);
+                Assert.Equal("Zebra", dependencyViewModels[3].Id);
+            }
+
+            [Fact]
             public void GivenAListOfDependenciesNet10WillBeOrderedAfterNet9()
             {
                 // Arrange

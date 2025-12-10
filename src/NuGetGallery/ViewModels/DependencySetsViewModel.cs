@@ -44,21 +44,12 @@ namespace NuGetGallery
                         friendlyName = framework.ToFriendlyName();
                     }
 
-                    var dependencies = dependencySet.OrderBy(x => x.Id).Select(d => d.Id == null ? null : new DependencyViewModel(d.Id, d.VersionSpec));
+                    var dependencies = dependencySet.OrderBy(x => x.Id, StringComparer.OrdinalIgnoreCase).Select(d => d.Id == null ? null : new DependencyViewModel(d.Id, d.VersionSpec));
                     frameworkGroups.Add((tfmString, framework, friendlyName, dependencies));
                 }
 
                 // Sort by framework using NuGetFrameworkSorter, with null frameworks (All Frameworks) first
-                var sortedGroups = frameworkGroups.OrderBy(g => g.framework, 
-                    Comparer<NuGetFramework>.Create((a, b) =>
-                    {
-                        // Put "All Frameworks" (null) first
-                        if (a == null && b == null) return 0;
-                        if (a == null) return -1;
-                        if (b == null) return 1;
-                        // Use NuGetFrameworkSorter for actual frameworks
-                        return NuGetFrameworkSorter.Instance.Compare(a, b);
-                    }));
+                var sortedGroups = frameworkGroups.OrderBy(g => g.framework, new NullableFrameworkComparer());
 
                 // Build the final dictionary with friendly names
                 foreach (var group in sortedGroups)
@@ -100,6 +91,19 @@ namespace NuGetGallery
             public string Id { get; private set; }
             public string VersionSpec { get; private set; }
             public string PackageUrl { get; private set; }
+        }
+
+        private class NullableFrameworkComparer : IComparer<NuGetFramework>
+        {
+            public int Compare(NuGetFramework x, NuGetFramework y)
+            {
+                // Put "All Frameworks" (null) first
+                if (x == null && y == null) return 0;
+                if (x == null) return -1;
+                if (y == null) return 1;
+                // Use NuGetFrameworkSorter for actual frameworks
+                return NuGetFrameworkSorter.Instance.Compare(x, y);
+            }
         }
     }
 }
