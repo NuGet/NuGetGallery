@@ -96,7 +96,8 @@ namespace NuGetGallery.ViewModels
             public void GivenAListOfDependenciesPackageIdsWillBeOrderedCaseInsensitively()
             {
                 // Arrange
-                var dependencies = new[] {
+                var dependencies = new[]
+                {
                     new PackageDependency { TargetFramework = null, Id = "Zebra" },
                     new PackageDependency { TargetFramework = null, Id = "apple" },
                     new PackageDependency { TargetFramework = null, Id = "Banana" },
@@ -122,7 +123,8 @@ namespace NuGetGallery.ViewModels
             public void GivenAListOfDependenciesNet10WillBeOrderedAfterNet9()
             {
                 // Arrange
-                var dependencies = new[] {
+                var dependencies = new[]
+                {
                     new PackageDependency { TargetFramework = "net10.0" },
                     new PackageDependency { TargetFramework = "net8.0" },
                     new PackageDependency { TargetFramework = "net9.0" }
