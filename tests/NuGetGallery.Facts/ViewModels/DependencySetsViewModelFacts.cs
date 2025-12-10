@@ -136,9 +136,9 @@ namespace NuGetGallery.ViewModels
 
                 var dependencySetsList = viewModel.DependencySets.Keys.ToList();
 
-                Assert.Equal(".NET 8.0", dependencySetsList[0]);
-                Assert.Equal(".NET 9.0", dependencySetsList[1]);
-                Assert.Equal(".NET 10.0", dependencySetsList[2]);
+                Assert.Equal("net8.0", dependencySetsList[0]);
+                Assert.Equal("net9.0", dependencySetsList[1]);
+                Assert.Equal("net10.0", dependencySetsList[2]);
             }
         }
     }
