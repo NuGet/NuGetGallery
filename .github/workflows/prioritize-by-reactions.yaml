@@ -1,0 +1,93 @@
+name: Prioritize Issues by Reactions
+
+on:
+   schedule:
+     - cron: '0 0 * * *'   # Runs once a day at midnight UTC
+
+jobs:
+  prioritize:
+    permissions:
+      issues: write
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Prioritize issues by reactions
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: NuGet/NuGetGallery
+          BUG_HIGH: 10
+          BUG_MEDIUM: 5
+          FEATURE_MEDIUM: 25
+        run: |
+          issue_numbers=$(gh issue list -R "$REPO" --state open --json number -q '.[].number')
+
+          for ISSUE in $issue_numbers; do
+            echo "🔍 Checking Issue #$ISSUE"
+
+            # Get issue labels
+            labels=$(gh issue view $ISSUE -R $REPO --json labels -q '.labels[].name' | tr '\n' ' ')
+            echo "   Labels: $labels"
+
+            reactions=$(curl -s \
+              -H "Accept: application/vnd.github.squirrel-girl-preview+json" \
+              -H "Authorization: token $GH_TOKEN" \
+              https://api.github.com/repos/$REPO/issues/$ISSUE/reactions)
+
+            total=$(echo "$reactions" | jq 'length')
+
+            # Determine priority based on issue type
+            if echo "$labels" | grep -q "Type:Bug"; then
+              echo "   🐛 Bug issue detected"
+              if [ "$total" -ge "$BUG_HIGH" ]; then
+                priority="Priority - 1"
+              elif [ "$total" -ge "$BUG_MEDIUM" ]; then
+                priority="Priority - 2"
+              else
+                priority="Priority - 3"
+              fi
+              echo "👉 Issue #$ISSUE has $total reactions — Assigning label: $priority"
+            elif echo "$labels" | grep -q "Type:Feature" || "$labels" | grep -q "feature-request"; then
+              echo "   ✨ Feature request detected"
+              if [ "$total" -ge "$FEATURE_MEDIUM" ]; then
+                priority="Priority - 1"
+                echo "👉 Issue #$ISSUE has $total reactions — Assigning label: $priority"
+              else
+                priority="Priority - 2"
+                echo "👉 Issue #$ISSUE has $total reactions — Assigning label: $priority"
+              fi
+            else
+              echo "👉 Issue #$ISSUE has no Type:Bug, Type:Feature, feature-request label — Skipping prioritization"
+              continue
+            fi
+
+            # Get current Priority:* label (if any)
+            current_priority=$(gh issue view $ISSUE -R $REPO --json labels -q '.labels[].name' | grep '^Priority:' || echo "")
+
+            if [[ "$current_priority" != "$priority" ]]; then
+              # Check if current priority label was added by github-actions
+              if [[ -n "$current_priority" ]]; then
+                # Get the timeline events to see who added the current priority label
+                label_added_by=$(gh api repos/$REPO/issues/$ISSUE/timeline --paginate | jq -r --arg label "$current_priority" '.[] | select(.event == "labeled" and .label.name == $label) | .actor.login' | tail -1)
+
+                if [[ "$label_added_by" != "github-actions[bot]" ]]; then
+                  echo "   🚫 Priority label '$current_priority' was set by '$label_added_by' (not github-actions), skipping update"
+                  continue
+                fi
+
+                echo "   ⏹️  Removing old label: $current_priority (was set by github-actions)"
+                gh issue edit $ISSUE -R $REPO --remove-label "$current_priority"
+              fi
+
+              echo "   ➕ Adding new label: $priority"
+              gh issue edit $ISSUE -R $REPO --add-label "$priority"
+            else
+              echo "   ✅ Priority label already correct: $priority"
+            fi
+            echo ""
+          done
