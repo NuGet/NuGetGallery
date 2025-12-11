@@ -275,64 +275,6 @@ namespace NuGetGallery
             return packages.ToList();
         }
 
-        public IReadOnlyCollection<Package> FindLatestVersionsById(
-            string id,
-            string includeVersion,
-            bool includePackageRegistration,
-            bool includeDeprecations,
-            bool includeSupportedFrameworks,
-            int maxCount)
-        {
-            if (id == null)
-            {
-                throw new ArgumentNullException(nameof(id));
-            }
-
-            if (maxCount < 1)
-            {
-                throw new ArgumentOutOfRangeException(nameof(maxCount), "Max count must be greater than 0.");
-            }
-
-            var packages = GetPackagesByIdQueryable(
-                id,
-                includeLicenseReports: false,
-                includePackageRegistration: includePackageRegistration,
-                includeUser: false,
-                includeSymbolPackages: false,
-                includeDeprecations: includeDeprecations,
-                includeDeprecationRelationships: false,
-                includeSupportedFrameworks: includeSupportedFrameworks)
-                .OrderByDescending(p => p.Created)
-                .Take(maxCount)
-                .ToList();
-
-            if (!string.IsNullOrWhiteSpace(includeVersion) && !packages.Any(p => p.NormalizedVersion == includeVersion))
-            {
-                var requiredPackage = GetPackagesByIdQueryable(
-                    id,
-                    includeLicenseReports: false,
-                    includePackageRegistration: includePackageRegistration,
-                    includeUser: false,
-                    includeSymbolPackages: false,
-                    includeDeprecations: includeDeprecations,
-                    includeDeprecationRelationships: false,
-                    includeSupportedFrameworks: includeSupportedFrameworks)
-                    .Where(p => p.NormalizedVersion == includeVersion)
-                    .SingleOrDefault();
-
-                if (requiredPackage is not null)
-                {
-                    if (packages.Count >= maxCount)
-                    {
-                        packages.RemoveAt(packages.Count - 1);
-                    }
-                    packages.Add(requiredPackage);
-                }
-            }
-
-            return packages;
-        }
-
         public virtual Package FindPackageByIdAndVersion(
             string id,
             string version,

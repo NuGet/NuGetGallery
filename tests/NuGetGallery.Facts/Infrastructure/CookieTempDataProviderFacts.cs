@@ -178,7 +178,6 @@ namespace NuGetGallery.Infrastructure
                 cookie["message"] = "clear";
                 var httpContext = new Mock<HttpContextBase>();
                 httpContext.Setup(c => c.Request.Cookies).Returns(cookies);
-                httpContext.Setup(c => c.Response.Cookies).Returns(cookies);
                 ITempDataProvider provider = new CookieTempDataProvider(httpContext.Object);
                 var controllerContext = new ControllerContext();
 

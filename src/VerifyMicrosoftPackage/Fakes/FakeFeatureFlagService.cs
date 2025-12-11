@@ -147,7 +147,5 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
         public bool IsMcpServerPackageFilteringEnabled() => throw new NotImplementedException();
 
         public bool IsMcpServerPackageDisplayEnabled() => throw new NotImplementedException();
-
-        public bool IsReducedVersionListsEnabled() => throw new NotImplementedException();
     }
 }

@@ -926,25 +926,11 @@ namespace NuGetGallery
                 return RedirectToActionPermanent("DisplayPackage", new { id = id, version = normalized });
             }
 
-            IReadOnlyCollection<Package> allVersions;
-
-            if (_featureFlagService.IsReducedVersionListsEnabled())
-            {
-                allVersions = _packageService.FindLatestVersionsById(id,
-                    includeVersion: normalized,
-                    includePackageRegistration: true,
-                    includeDeprecations: true,
-                    includeSupportedFrameworks: true,
-                    maxCount: 20);
-            }
-            else
-            {
-                // Load all packages with the ID.
-                allVersions = _packageService.FindPackagesById(id,
-                    includePackageRegistration: true,
-                    includeDeprecations: true,
-                    includeSupportedFrameworks: true);
-            }
+            // Load all packages with the ID.
+            var allVersions = _packageService.FindPackagesById(id,
+                includePackageRegistration: true,
+                includeDeprecations: true,
+                includeSupportedFrameworks: true);
 
             var filterContext = new PackageFilterContext(RouteData?.Route, version);
             var package = _packageFilter.GetFiltered(allVersions, filterContext);
