@@ -85,6 +85,9 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    NethereumUnified   |    09/15/2025    |    Potentially Malicious    |
 |    NethereumNet       |    10/07/2025    |    Potentially Malicious    |
 |    LuminAllocator     |    10/10/2025    |    Copyright violation      |
+|    Netherеum.All      |    10/20/2025    |    Potentially Malicious    |
+|    toolsay            |    10/20/2025    |    Untrustworthy            |
+|    MiniMutex version 1.2.4    |    12/04/2025    |    Potentially Malicious    |
 
 
 

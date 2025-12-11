@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -871,7 +871,7 @@ namespace NuGetGallery
             public async Task CreatePackageReturns400IfMinClientVersionIsTooHigh()
             {
                 // Arrange
-                const string HighClientVersion = "7.0.0.0";
+                const string HighClientVersion = "9.0.0.0";
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42", minClientVersion: HighClientVersion);
 
                 var user = new User() { EmailAddress = "confirmed@email.com" };
