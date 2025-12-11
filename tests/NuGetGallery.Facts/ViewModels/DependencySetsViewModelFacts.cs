@@ -26,10 +26,10 @@ namespace NuGetGallery.ViewModels
 
                 // Assert
                 Assert.Equal(3, vm.DependencySets.Count);
-                Assert.Null(vm.DependencySets["All Frameworks"].Single());
-                Assert.Null(vm.DependencySets["Portable Class Library (.NETFramework 4.5, Windows 8.0)"].Single());
+                Assert.Null(vm.DependencySets.Single(kvp => kvp.Key == "All Frameworks").Value.Single());
+                Assert.Null(vm.DependencySets.Single(kvp => kvp.Key == "Portable Class Library (.NETFramework 4.5, Windows 8.0)").Value.Single());
 
-                var actual = vm.DependencySets["Portable Class Library (.NETFramework 4.0, Silverlight 4.0, Windows 8.0, WindowsPhone 7.1)"].ToArray();
+                var actual = vm.DependencySets.Single(kvp => kvp.Key == "Portable Class Library (.NETFramework 4.0, Silverlight 4.0, Windows 8.0, WindowsPhone 7.1)").Value.ToArray();
                 Assert.Single(actual);
                 Assert.Equal("Microsoft.Net.Http", actual[0].Id);
                 Assert.Equal("(>= 2.1.0 && < 3.0.0)", actual[0].VersionSpec);

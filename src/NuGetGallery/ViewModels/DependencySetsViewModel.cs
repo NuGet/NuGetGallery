@@ -18,14 +18,12 @@ namespace NuGetGallery
         {
             try
             {
-                DependencySets = new Dictionary<string, IEnumerable<DependencyViewModel>>();
+                // Create a list to hold TFM string, parsed framework, and dependencies for proper sorting
+                var frameworkGroups = new List<(string tfmString, NuGetFramework framework, string friendlyName, IEnumerable<DependencyViewModel> dependencies)>();
 
                 var dependencySets = packageDependencies.GroupBy(d => d.TargetFramework);
 
                 OnlyHasAllFrameworks = dependencySets.Count() == 1 && dependencySets.First().Key == null;
-
-                // Create a list to hold TFM string, parsed framework, and dependencies for proper sorting
-                var frameworkGroups = new List<(string tfmString, NuGetFramework framework, string friendlyName, IEnumerable<DependencyViewModel> dependencies)>();
 
                 foreach (var dependencySet in dependencySets)
                 {
@@ -51,14 +49,14 @@ namespace NuGetGallery
                 // Sort by framework using NuGetFrameworkSorter, with null frameworks (All Frameworks) first
                 var sortedGroups = frameworkGroups.OrderBy(g => g.framework, NullableFrameworkComparer.Instance);
 
-                // Build the final dictionary with friendly names
+                // Build an ordered list to preserve the sorting
+                var orderedDependencySets = new List<KeyValuePair<string, IEnumerable<DependencyViewModel>>>();
                 foreach (var group in sortedGroups)
                 {
-                    if (!DependencySets.ContainsKey(group.friendlyName))
-                    {
-                        DependencySets.Add(group.friendlyName, group.dependencies);
-                    }
+                    orderedDependencySets.Add(new KeyValuePair<string, IEnumerable<DependencyViewModel>>(group.friendlyName, group.dependencies));
                 }
+
+                DependencySets = orderedDependencySets;
             }
             catch (Exception e)
             {
@@ -68,7 +66,7 @@ namespace NuGetGallery
             }
         }
 
-        public IDictionary<string, IEnumerable<DependencyViewModel>> DependencySets { get; private set; }
+        public IReadOnlyList<KeyValuePair<string, IEnumerable<DependencyViewModel>>> DependencySets { get; private set; }
         public bool OnlyHasAllFrameworks { get; private set; }
 
         public class DependencyViewModel
