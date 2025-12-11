@@ -55,7 +55,7 @@ namespace NuGetGallery.ViewModels
                 // Assert
                 Assert.Equal(7, viewModel.DependencySets.Count);
 
-                var dependencySetsList = viewModel.DependencySets.Keys.ToList();
+                var dependencySetsList = viewModel.DependencySets.Select(kvp => kvp.Key).ToList();
 
                 Assert.Equal(".NETFramework 4.5", dependencySetsList[0]);
                 Assert.Equal(".NETFramework 4.6.2", dependencySetsList[1]);
@@ -136,7 +136,7 @@ namespace NuGetGallery.ViewModels
                 // Assert
                 Assert.Equal(3, viewModel.DependencySets.Count);
 
-                var dependencySetsList = viewModel.DependencySets.Keys.ToList();
+                var dependencySetsList = viewModel.DependencySets.Select(kvp => kvp.Key).ToList();
 
                 Assert.Equal("net8.0", dependencySetsList[0]);
                 Assert.Equal("net9.0", dependencySetsList[1]);
