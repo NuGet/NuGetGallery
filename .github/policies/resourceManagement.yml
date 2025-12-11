@@ -1,0 +1,70 @@
+id: 
+name: GitOps.PullRequestIssueManagement
+description: Issue management and triage
+owner: 
+resource: repository
+disabled: false
+where: 
+configuration:
+  resourceManagementConfiguration:
+    scheduledSearches:
+      - description: Warn the authors on issues that are 'Need More Info', and have not received any activity for 1 week
+        frequencies:
+          - hourly:
+              hour: 1
+        filters:
+          - isOpen
+          - noActivitySince:
+              days: 7
+          - hasLabel:
+              label: Need More Info
+          - isNotLabeledWith:
+              label: DoNotClose
+        actions:
+          - addLabel:
+            label: Stale   
+          - addReply:
+              reply: "${issueAuthor}, this issue will be closed soon due to inactivity. Please add more information to help us triage this issue."
+      - description: Labeling lower priority non-Feature issues that have not received any activity for 18 months as Stale
+        frequencies:
+          - hourly:
+              hour: 1
+        filters:
+          - isOpen
+          - noActivitySince:
+              days: 548
+          - isNotLabeledWith:
+              label: Priority - 1
+          - isNotLabeledWith:
+              label: Priority - 2
+          - isNotLabeledWith:
+              label: feature-request
+          - isNotLabeledWith:
+              label: Feature suggestion
+          - isNotLabeledWith:
+              label: Type:Feature   
+          - isNotLabeledWith:
+              label: DoNotClose
+        actions:
+          - addReply:
+              reply: "${issueAuthor}, this issue has been labeled with Stale due to inactivity for 18 months."
+          - addLabel:
+            label: Stale        
+      - description: Close issues marked with OkToClose 
+        frequencies:
+          - hourly:
+              hour: 1
+        filters:
+          - isOpen
+          - hasLabel:
+              label: OkToClose
+        actions:
+          - closeIssue
+          - removeLabel:
+              label: OkToClose
+          - removeLabel:
+              label: Triaged
+          - addReply:
+              reply: "${issueAuthor}, This issue was closed after the OkToClose label was applied. If you have additional details or questions, please don't hesitate to reopen it."
+onFailure:
+onSuccess:
