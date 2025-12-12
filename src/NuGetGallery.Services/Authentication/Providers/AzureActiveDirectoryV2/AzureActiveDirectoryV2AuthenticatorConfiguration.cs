@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -11,6 +11,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
 {
     public class AzureActiveDirectoryV2AuthenticatorConfiguration : AuthenticatorConfiguration
     {
+        public string TenantId { get; set; }
         public string ClientId { get; set; }
 
         public AzureActiveDirectoryV2AuthenticatorConfiguration()
@@ -30,17 +31,24 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
                 // the auth flow.
                 openIdOptions.AuthenticationMode = AuthenticationMode.Passive;
 
-                // Make sure ClientId is configured
-                if (String.IsNullOrEmpty(ClientId))
+                if (string.IsNullOrEmpty(TenantId))
                 {
-                    throw new ConfigurationErrorsException(String.Format(
+                    throw new ConfigurationErrorsException(string.Format(
+                        CultureInfo.CurrentCulture,
+                        ServicesStrings.MissingRequiredConfigurationValue,
+                        "Auth.CommonAuth.TenantId"));
+                }
+
+                if (string.IsNullOrEmpty(ClientId))
+                {
+                    throw new ConfigurationErrorsException(string.Format(
                         CultureInfo.CurrentCulture,
                         ServicesStrings.MissingRequiredConfigurationValue,
                         "Auth.CommonAuth.ClientId"));
                 }
 
                 openIdOptions.ClientId = ClientId;
-                openIdOptions.Authority = String.Format(CultureInfo.InvariantCulture, AzureActiveDirectoryV2Authenticator.Authority, AzureActiveDirectoryV2Authenticator.V2CommonTenant);
+                openIdOptions.Authority = string.Format(CultureInfo.InvariantCulture, AzureActiveDirectoryV2Authenticator.Authority, TenantId);
             }
         }
     }
