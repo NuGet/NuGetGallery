@@ -31,6 +31,7 @@ namespace NuGet.Jobs
         private const string StatisticsDbConfigurationSectionName = "StatisticsDb";
         private const string SupportRequestDbConfigurationSectionName = "SupportRequestDb";
         private const string ValidationDbConfigurationSectionName = "ValidationDb";
+        private const string CatalogValidationDbConfigurationSectionName = "CatalogValidationDb";
         private const string ServiceBusConfigurationSectionName = "ServiceBus";
         private const string ValidationStorageConfigurationSectionName = "ValidationStorage";
         private const string FeatureFlagConfigurationSectionName = "FeatureFlags";
@@ -165,6 +166,7 @@ namespace NuGet.Jobs
             services.Configure<StatisticsDbConfiguration>(configurationRoot.GetSection(StatisticsDbConfigurationSectionName));
             services.Configure<SupportRequestDbConfiguration>(configurationRoot.GetSection(SupportRequestDbConfigurationSectionName));
             services.Configure<ValidationDbConfiguration>(configurationRoot.GetSection(ValidationDbConfigurationSectionName));
+            services.Configure<CatalogValidationDbConfiguration>(configurationRoot.GetSection(CatalogValidationDbConfigurationSectionName));
             services.Configure<ServiceBusConfiguration>(configurationRoot.GetSection(ServiceBusConfigurationSectionName));
             services.Configure<ValidationStorageConfiguration>(configurationRoot.GetSection(ValidationStorageConfigurationSectionName));
             services.ConfigureStorageMsi(configurationRoot);
@@ -178,6 +180,7 @@ namespace NuGet.Jobs
             AddScopedSqlConnectionFactory<StatisticsDbConfiguration>(services);
             AddScopedSqlConnectionFactory<SupportRequestDbConfiguration>(services);
             AddScopedSqlConnectionFactory<ValidationDbConfiguration>(services);
+            AddScopedSqlConnectionFactory<CatalogValidationDbConfiguration>(services);
         }
 
         protected virtual void ConfigureDefaultAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
@@ -252,6 +255,7 @@ namespace NuGet.Jobs
                 RegisterDatabaseIfConfigured<StatisticsDbConfiguration>(serviceProvider, testDatabaseConnections);
                 RegisterDatabaseIfConfigured<SupportRequestDbConfiguration>(serviceProvider, testDatabaseConnections);
                 RegisterDatabaseIfConfigured<ValidationDbConfiguration>(serviceProvider, testDatabaseConnections);
+                RegisterDatabaseIfConfigured<CatalogValidationDbConfiguration>(serviceProvider, testDatabaseConnections);
             }
             finally
             {

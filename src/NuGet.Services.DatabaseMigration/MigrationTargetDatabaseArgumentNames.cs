@@ -8,5 +8,6 @@ namespace NuGet.Services.DatabaseMigration
         public const string GalleryDatabase = "GalleryDatabase";
         public const string SupportRequestDatabase = "SupportRequestDatabase";
         public const string ValidationDatabase = "ValidationDatabase";
+        public const string CatalogValidationDatabase = "CatalogValidationDatabase";
     }
 }
