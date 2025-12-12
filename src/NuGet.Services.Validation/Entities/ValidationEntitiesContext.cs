@@ -323,14 +323,6 @@ namespace NuGet.Services.Validation
                 .Property(r => r.RowVersion)
                 .IsRowVersion();
 
-            modelBuilder.Entity<ValidatorStatus>()
-                .Property(s => s.BatchId)
-                .HasMaxLength(20)
-                .IsOptional()
-                .HasColumnAnnotation(
-                    IndexAnnotation.AnnotationName,
-                    new IndexAnnotation(new IndexAttribute(ValidatorStatusesBatchIdIndex)));
-
             modelBuilder.Entity<ValidatorIssue>()
                 .HasKey(vi => vi.Key);
 
@@ -352,6 +344,9 @@ namespace NuGet.Services.Validation
 
         private void RegisterPackageSigningEntities(DbModelBuilder modelBuilder)
         {
+            // Call the virtual method to let derived contexts decide how to configure BatchId
+            ConfigureBatchIdProperty(modelBuilder);
+
             modelBuilder.Entity<PackageSigningState>()
                 .ToTable(PackageSigningStatesTable, SignatureSchema)
                 .HasKey(p => p.PackageKey);
@@ -854,6 +849,19 @@ namespace NuGet.Services.Validation
             modelBuilder.Entity<ContentScanOperationState>()
                 .Property(pvs => pvs.RowVersion)
                 .IsRowVersion();
+        }
+
+        /// <summary>
+        /// Configures the BatchId property for ValidatorStatus.
+        /// Base implementation ignores the property as ValidationDb does not have this column.
+        /// Derived contexts can override to configure the property for databases that do have this column.
+        /// </summary>
+        /// <param name="modelBuilder">The model builder.</param>
+        protected virtual void ConfigureBatchIdProperty(DbModelBuilder modelBuilder)
+        {
+            // ValidationDb does not have BatchId column, so ignore it
+            modelBuilder.Entity<ValidatorStatus>()
+                .Ignore(s => s.BatchId);
         }
     }
 }
