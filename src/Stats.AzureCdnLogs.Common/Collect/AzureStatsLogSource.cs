@@ -52,7 +52,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
                 if (containerName == null)
                     throw new ArgumentNullException(nameof(containerName));
                 else
-                    throw new ArgumentException(nameof(containerName));
+                    throw new ArgumentException("Empty container name", nameof(containerName));
             }
             _container = _blobServiceClient.GetBlobContainerClient(containerName);
 
