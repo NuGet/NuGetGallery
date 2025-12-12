@@ -20,7 +20,6 @@ $webUITestResults = "$parentDir/NuGetGallery.$TestCategory.WebUITests.trx"
 # Clean previous test results
 Remove-Item $functionalTestsResults -ErrorAction Ignore
 Remove-Item $webUITestResults -ErrorAction Ignore
-Remove-Item $loadTestResults -ErrorAction Ignore
 
 # Run functional tests
 $fullTestCategory = "$($testCategory)Tests"
@@ -35,7 +34,7 @@ if ($LASTEXITCODE -ne 0) {
 # Run web UI tests
 $webTestsDirectory = "$parentDir\NuGetGallery.WebUITests.$TestCategory\bin\$Configuration\net472"
 
-if (Test-Path $webTestsDirectory -PathType Container) { 
+if (Test-Path $webTestsDirectory -PathType Container) {
     & $vsTest "$webTestsDirectory\NuGetGallery.WebUITests.$TestCategory.dll" "/Settings:$parentDir\Local.testsettings" "/Logger:trx;LogFileName=$webUITestResults"
     if ($LASTEXITCODE -ne 0) {
         $exitCode = 1
