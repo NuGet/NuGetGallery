@@ -22,7 +22,7 @@ configuration:
               label: DoNotClose
         actions:
           - addLabel:
-            label: Stale   
+              label: Stale   
           - addReply:
               reply: "${issueAuthor}, this issue will be closed soon due to inactivity. Please add more information to help us triage this issue."
       - description: Labeling lower priority non-Feature issues that have not received any activity for 18 months as Stale
@@ -49,7 +49,7 @@ configuration:
           - addReply:
               reply: "${issueAuthor}, this issue has been labeled with Stale due to inactivity for 18 months."
           - addLabel:
-            label: Stale        
+              label: Stale        
       - description: Close issues marked with OkToClose 
         frequencies:
           - hourly:
