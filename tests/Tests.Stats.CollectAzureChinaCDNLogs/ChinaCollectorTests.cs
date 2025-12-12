@@ -15,6 +15,7 @@ using Stats.AzureCdnLogs.Common;
 using Stats.AzureCdnLogs.Common.Collect;
 using Stats.CollectAzureChinaCDNLogs;
 using Xunit;
+using Azure.Storage.Blobs.Models;
 
 namespace Tests.Stats.CollectAzureChinaCDNLogs
 {
@@ -152,7 +153,7 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
 
             await collector.TryProcessAsync(
                 maxFileCount: 10,
-                fileNameTransform: s => s,
+                fileNameTransform: (s, _) => s,
                 sourceContentType: ContentType.Text,
                 destinationContentType: ContentType.Text,
                 CancellationToken.None);
@@ -186,7 +187,7 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
 
             await collector.TryProcessAsync(
                 maxFileCount: 10,
-                fileNameTransform: s => s,
+                fileNameTransform: (s, _) => s,
                 sourceContentType: ContentType.Text,
                 destinationContentType: ContentType.Text,
                 CancellationToken.None);
@@ -218,7 +219,7 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
 
             await collector.TryProcessAsync(
                 maxFileCount: 10,
-                fileNameTransform: s => s,
+                fileNameTransform: (s, _) => s,
                 sourceContentType: ContentType.Text,
                 destinationContentType: ContentType.Text,
                 CancellationToken.None);
@@ -264,7 +265,7 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
 
             sourceMock
                 .Setup(s => s.TakeLockAsync(sourceUri, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new AzureBlobLockResult(new BlobClient(sourceUri), true, "foo", CancellationToken.None));
+                .ReturnsAsync(new AzureBlobLockResult(new BlobClient(sourceUri), new BlobProperties(), true, "foo", CancellationToken.None));
 
             sourceMock
                 .Setup(s => s.OpenReadAsync(sourceUri, It.IsAny<ContentType>(), It.IsAny<CancellationToken>()))

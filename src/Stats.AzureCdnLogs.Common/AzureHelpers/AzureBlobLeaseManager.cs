@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Azure;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Storage;
@@ -44,9 +45,10 @@ namespace Stats.AzureCdnLogs.Common
             try
             {
                 var leaseClient = blob.GetBlobLeaseClient();
+                BlobProperties properties = await blob.GetPropertiesAsync();
                 var leaseResponse = await leaseClient.AcquireAsync(TimeSpan.FromSeconds(MaxRenewPeriodInSeconds));
                 string leaseId = leaseResponse.Value.LeaseId;
-                var lockResult = new AzureBlobLockResult(blob, lockIsTaken: true, leaseId, token);
+                var lockResult = new AzureBlobLockResult(blob, properties, lockIsTaken: true, leaseId, token);
                 BlobClient leasedBlob = lockResult.Blob;
                 // Start a task that will renew the lease until the token is cancelled or the Release method is invoked
                 _ = Task.Run(async () =>

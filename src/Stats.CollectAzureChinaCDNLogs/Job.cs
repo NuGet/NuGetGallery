@@ -98,7 +98,7 @@ namespace Stats.CollectAzureChinaCDNLogs
             cts.CancelAfter(TimeSpan.FromSeconds(_executionTimeoutInSeconds));
             Task<AggregateException> logProcessTask = _chinaCollector
                 .TryProcessAsync(maxFileCount: MaxFilesToProcess,
-                     fileNameTransform: s => $"{_configuration.DestinationFilePrefix}_{s}",
+                     fileNameTransform: TransformOutputFilename,
                      sourceContentType: ContentType.None,
                      destinationContentType: ContentType.GZip,
                      token: cts.Token)
@@ -128,6 +128,16 @@ namespace Stats.CollectAzureChinaCDNLogs
             {
                 Logger.LogInformation("Execution exceeded the timeout of {ExecutionTimeoutInSeconds} seconds and it was cancelled.", _executionTimeoutInSeconds);
             }
+        }
+
+        private string TransformOutputFilename(string originalFilename, DateTimeOffset lastModified)
+        {
+            if (_configuration.RenameOutputFile)
+            {
+                return $"{_configuration.DestinationFilePrefix}_{lastModified:yyyy-MM-dd-HH-mm-ss-fff}_{originalFilename}";
+            }
+
+            return $"{_configuration.DestinationFilePrefix}_{originalFilename}";
         }
 
         /// <summary>

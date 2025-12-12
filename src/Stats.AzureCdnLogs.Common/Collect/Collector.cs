@@ -10,6 +10,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Stats.AzureCdnLogs.Common.Collect
@@ -64,7 +66,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
         /// <param name="destinationContentType">The <see cref="Stats.AzureCdnLogs.Common.Collect.ContentType" for the destination file./></param>
         /// <param name="token">A <see cref="System.Threading.CancellationToken"/> to be used for cancelling the operation.</param>
         /// <returns>A collection of exceptions if any.</returns>
-        public virtual async Task<AggregateException> TryProcessAsync(int maxFileCount, Func<string,string> fileNameTransform, ContentType sourceContentType, ContentType destinationContentType, CancellationToken token)
+        public virtual async Task<AggregateException> TryProcessAsync(int maxFileCount, Func<string, DateTimeOffset,string> fileNameTransform, ContentType sourceContentType, ContentType destinationContentType, CancellationToken token)
         {
             ConcurrentBag<Exception> exceptions = new ConcurrentBag<Exception>();
             var files = (await _source.GetFilesAsync(maxFileCount, token)).ToArray();
@@ -73,7 +75,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
             return exceptions.Count() > 0 ? new AggregateException(exceptions.ToArray()) : null;
         }
 
-        private async Task TryProcessBlobAsync(Uri file, Func<string, string> fileNameTransform, ContentType sourceContentType, ContentType destinationContentType, ConcurrentBag<Exception> exceptions, CancellationToken token)
+        private async Task TryProcessBlobAsync(Uri file, Func<string, DateTimeOffset, string> fileNameTransform, ContentType sourceContentType, ContentType destinationContentType, ConcurrentBag<Exception> exceptions, CancellationToken token)
         {
             _logger.LogInformation("TryProcessAsync: {File} ", file.AbsoluteUri);
             if (token.IsCancellationRequested)
@@ -97,7 +99,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
                             // If not just move the blob to deadletter
                             if (!blobToDeadLetter)
                             {
-                                var writeOperationResult = await _destination.TryWriteAsync(inputStream, (i, o) => ProcessLogStream(i, o, filename), fileNameTransform(file.Segments.Last()), destinationContentType, blobOperationToken);
+                                var writeOperationResult = await _destination.TryWriteAsync(inputStream, (i, o) => ProcessLogStream(i, o, filename), fileNameTransform(filename, lockResult.BlobProperties.LastModified), destinationContentType, blobOperationToken);
                                 blobToDeadLetter = writeOperationResult.OperationException != null;
                             }
                             await _source.TryCleanAsync(lockResult, onError: blobToDeadLetter, token: blobOperationToken);
