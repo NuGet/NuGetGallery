@@ -10,7 +10,7 @@ using NuGet.Services.CatalogValidation.Entities;
 
 namespace NuGetGallery.DatabaseMigrationTools
 {
-    class CatalogValidationDbMigrationContext : BaseDbMigrationContext
+    public class CatalogValidationDbMigrationContext : BaseDbMigrationContext
     {
         public CatalogValidationDbMigrationContext(SqlConnection sqlConnection)
         {
