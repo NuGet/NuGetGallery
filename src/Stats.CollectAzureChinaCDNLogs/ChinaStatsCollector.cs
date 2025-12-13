@@ -86,11 +86,25 @@ namespace Stats.CollectAzureChinaCDNLogs
 
         public override async Task<bool> VerifyStreamAsync(Stream stream)
         {
+            const int LinesToCheck = 10;
             using (var reader = new StreamReader(stream))
             {
-                //read the first line
-                string firstLine = await reader.ReadLineAsync();
-                return ParseLine(firstLine) != null;
+                int lineIndex = 0;
+                string line;
+
+                while (lineIndex++ < LinesToCheck && (line = await reader.ReadLineAsync()) != null)
+                {
+                    if (!string.IsNullOrWhiteSpace(line))
+                    {
+                        AfdLogLine parsedLine = ParseLine(line);
+                        if (parsedLine != null) {
+                            return true;
+                        }
+                    }
+                }
+
+                // if in the first few lines we couldn't find any parseable line, consider it invalid
+                return false;
             }
         }
 
