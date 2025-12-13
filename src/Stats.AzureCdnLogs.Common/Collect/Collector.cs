@@ -95,11 +95,16 @@ namespace Stats.AzureCdnLogs.Common.Collect
                         {
                             var blobToDeadLetter = !await VerifyStreamInternalAsync(file, sourceContentType, blobOperationToken);
                             var filename = file.Segments.LastOrDefault();
+                            var filenameForData = filename;
+                            if (file.Segments.Any(s => s.StartsWith("y=", StringComparison.OrdinalIgnoreCase) || s.StartsWith("y%3D", StringComparison.OrdinalIgnoreCase)))
+                            {
+                                filenameForData = string.Join("", file.Segments.SkipWhile(s => !s.StartsWith("y=", StringComparison.OrdinalIgnoreCase) && !s.StartsWith("y%3D", StringComparison.OrdinalIgnoreCase)));
+                            }
                             // If verification passed continue with the rest of the action 
                             // If not just move the blob to deadletter
                             if (!blobToDeadLetter)
                             {
-                                var writeOperationResult = await _destination.TryWriteAsync(inputStream, (i, o) => ProcessLogStream(i, o, filename), fileNameTransform(filename, lockResult.BlobProperties.LastModified), destinationContentType, blobOperationToken);
+                                var writeOperationResult = await _destination.TryWriteAsync(inputStream, (i, o) => ProcessLogStream(i, o, filenameForData), fileNameTransform(filename, lockResult.BlobProperties.LastModified), destinationContentType, blobOperationToken);
                                 blobToDeadLetter = writeOperationResult.OperationException != null;
                             }
                             await _source.TryCleanAsync(lockResult, onError: blobToDeadLetter, token: blobOperationToken);
