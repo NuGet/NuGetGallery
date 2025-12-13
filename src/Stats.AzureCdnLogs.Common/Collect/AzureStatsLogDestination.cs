@@ -55,7 +55,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
         public async Task<AsyncOperationResult> TryWriteAsync(Stream inputStream, Action<Stream, Stream> writeAction, string destinationFileName, ContentType destinationContentType, CancellationToken token)
         {
             _logger.LogInformation("WriteAsync: Start to write to {DestinationFileName}. ContentType is {ContentType}.", 
-                $"{_blobContainerClient.Uri}{destinationFileName}",
+                $"{_blobContainerClient.Uri}/{destinationFileName}",
                 destinationContentType);
             if (token.IsCancellationRequested)
             {
