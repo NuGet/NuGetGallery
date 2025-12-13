@@ -91,15 +91,18 @@ namespace Stats.AzureCdnLogs.Common.Collect
                         writeAction(inputStream, resultStream);
                     }
 
-                    if(!(await blobClient.ExistsAsync(token)))
+                    if (!(await blobClient.ExistsAsync(token)))
                     {
                         await resultStream.FlushAsync();
                         _logger.LogInformation("WriteAsync: End write to {DestinationFileName}", destinationFileName);
                         return new AsyncOperationResult(true, null);
                     }
-                    
+
                 }
-                _logger.LogInformation("WriteAsync: The destination file {DestinationFileName}, was already present.", destinationFileName);
+                else
+                {
+                    _logger.LogInformation("WriteAsync: The destination file {DestinationFileName}, was already present.", destinationFileName);
+                }
                 return new AsyncOperationResult(false, null);
             }
             catch (Exception exception)
