@@ -330,7 +330,14 @@ namespace Stats.AzureCdnLogs.Common.Collect
 
         private string GetBlobNameFromUri(Uri blobUri)
         {
-            return blobUri.Segments.LastOrDefault();
+            var path = blobUri.AbsolutePath.TrimStart('/');
+            var firstSlash = path.IndexOf('/');  // blob storage paths start with container name which we need to remove
+            if (firstSlash >= 0)
+            {
+                return path.Substring(firstSlash + 1);
+            }
+
+            return path;
         }
 
         private async Task<BlobContainerClient> CreateContainerAsync(string containerName)
