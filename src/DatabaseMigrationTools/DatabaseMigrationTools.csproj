@@ -12,6 +12,7 @@
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Services.DatabaseMigration\NuGet.Services.DatabaseMigration.csproj" />
     <ProjectReference Include="..\NuGet.Services.Validation\NuGet.Services.Validation.csproj" />
+    <ProjectReference Include="..\NuGet.Services.CatalogValidation\NuGet.Services.CatalogValidation.csproj" />
     <ProjectReference Include="..\NuGetGallery\NuGetGallery.csproj" />
   </ItemGroup>
 </Project>
