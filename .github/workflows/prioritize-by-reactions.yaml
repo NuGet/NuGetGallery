@@ -67,7 +67,7 @@ jobs:
             fi
 
             # Get current Priority:* label (if any)
-            current_priority=$(gh issue view $ISSUE -R $REPO --json labels -q '.labels[].name' | grep '^Priority:' || echo "")
+            current_priority=$(gh issue view $ISSUE -R $REPO --json labels -q '.labels[].name' | grep '^Priority - ' || echo "")
 
             if [[ "$current_priority" != "$priority" ]]; then
               # Check if current priority label was added by github-actions
