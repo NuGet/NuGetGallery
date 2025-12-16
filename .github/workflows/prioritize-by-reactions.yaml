@@ -3,7 +3,7 @@ name: Prioritize Issues by Reactions
 on:
    schedule:
      - cron: '0 0 * * *'   # Runs once a day at midnight UTC
-
+   workflow_dispatch:       # Allows manual runs
 jobs:
   prioritize:
     permissions:
@@ -25,7 +25,7 @@ jobs:
           BUG_MEDIUM: 5
           FEATURE_MEDIUM: 25
         run: |
-          issue_numbers=$(gh issue list -R "$REPO" --state open --json number -q '.[].number')
+          issue_numbers=$(gh issue list -R "$REPO" --state open --limit 1000 --json number -q '.[].number')
 
           for ISSUE in $issue_numbers; do
             echo "🔍 Checking Issue #$ISSUE"
@@ -52,7 +52,7 @@ jobs:
                 priority="Priority - 3"
               fi
               echo "👉 Issue #$ISSUE has $total reactions — Assigning label: $priority"
-            elif echo "$labels" | grep -q "Type:Feature" || "$labels" | grep -q "feature-request"; then
+            elif echo "$labels" | grep -q "Type:Feature" || echo "$labels" | grep -q "feature-request"; then
               echo "   ✨ Feature request detected"
               if [ "$total" -ge "$FEATURE_MEDIUM" ]; then
                 priority="Priority - 1"
