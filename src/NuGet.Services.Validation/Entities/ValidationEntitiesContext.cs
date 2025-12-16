@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -61,6 +61,7 @@ namespace NuGet.Services.Validation
 
         private const string ValidatorStatusesTable = "ValidatorStatuses";
         private const string ValidatorStatusesPackageKeyIndex = "IX_ValidatorStatuses_PackageKey";
+        private const string ValidatorStatusesBatchIdIndex = "IX_ValidatorStatuses_BatchId";
 
         private const string PackageSigningStatesTable = "PackageSigningStates";
         private const string PackageSigningStatesPackageIdPackageVersionIndex = "IX_PackageSigningStates_PackageId_PackageNormalizedVersion";
@@ -343,6 +344,9 @@ namespace NuGet.Services.Validation
 
         private void RegisterPackageSigningEntities(DbModelBuilder modelBuilder)
         {
+            // Call the virtual method to let derived contexts decide how to configure BatchId
+            ConfigureBatchIdProperty(modelBuilder);
+
             modelBuilder.Entity<PackageSigningState>()
                 .ToTable(PackageSigningStatesTable, SignatureSchema)
                 .HasKey(p => p.PackageKey);
@@ -845,6 +849,19 @@ namespace NuGet.Services.Validation
             modelBuilder.Entity<ContentScanOperationState>()
                 .Property(pvs => pvs.RowVersion)
                 .IsRowVersion();
+        }
+
+        /// <summary>
+        /// Configures the BatchId property for ValidatorStatus.
+        /// Base implementation ignores the property as ValidationDb does not have this column.
+        /// Derived contexts can override to configure the property for databases that do have this column.
+        /// </summary>
+        /// <param name="modelBuilder">The model builder.</param>
+        protected virtual void ConfigureBatchIdProperty(DbModelBuilder modelBuilder)
+        {
+            // ValidationDb does not have BatchId column, so ignore it
+            modelBuilder.Entity<ValidatorStatus>()
+                .Ignore(s => s.BatchId);
         }
     }
 }
