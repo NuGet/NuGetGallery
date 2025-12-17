@@ -89,6 +89,8 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    toolsay            |    10/20/2025    |    Untrustworthy            |
 |    MiniMutex version 1.2.4    |    12/04/2025    |    Potentially Malicious    |
 |    Tracer.Fody.NLog   |    12/17/2025    |    Malware                  |
+|    Gp4Framework 0.0.9 |    12/17/2025    |    Potentially Malicious    |
+|    Gp4Framework 0.1.0 |    12/17/2025    |    Potentially Malicious    |
 
 
 
