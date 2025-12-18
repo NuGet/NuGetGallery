@@ -557,7 +557,8 @@ namespace NuGetGallery
         {
             builder
                 .RegisterType<FederatedCredentialRepository>()
-                .As<IFederatedCredentialRepository>();
+                .As<IFederatedCredentialRepository>()
+                .InstancePerLifetimeScope();
 
             builder
                 .Register(c => configuration.FederatedCredential)
@@ -608,7 +609,8 @@ namespace NuGetGallery
                     c.Resolve<IFederatedCredentialConfiguration>(),
                     c.Resolve<IFeatureFlagService>(),
                     c.Resolve<JsonWebTokenHandler>()))
-                .As<ITokenPolicyValidator>();
+                .As<ITokenPolicyValidator>()
+                .InstancePerLifetimeScope();
 
             builder
                 .Register(c => new GitHubTokenPolicyValidator(
@@ -619,15 +621,18 @@ namespace NuGetGallery
                     c.Resolve<IFeatureFlagService>(),
                     c.Resolve<JsonWebTokenHandler>()
                     ))
-                .As<ITokenPolicyValidator>();
+                .As<ITokenPolicyValidator>()
+                .InstancePerLifetimeScope();
 
             builder
                 .RegisterType<FederatedCredentialPolicyEvaluator>()
-                .As<IFederatedCredentialPolicyEvaluator>();
+                .As<IFederatedCredentialPolicyEvaluator>()
+                .InstancePerLifetimeScope();
 
             builder
                 .RegisterType<FederatedCredentialService>()
-                .As<IFederatedCredentialService>();
+                .As<IFederatedCredentialService>()
+                .InstancePerLifetimeScope();
         }
 
         // Internal for testing purposes
