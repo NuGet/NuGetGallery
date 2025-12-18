@@ -45,8 +45,8 @@ namespace Stats.AzureCdnLogs.Common
             try
             {
                 var leaseClient = blob.GetBlobLeaseClient();
-                BlobProperties properties = await blob.GetPropertiesAsync();
                 var leaseResponse = await leaseClient.AcquireAsync(TimeSpan.FromSeconds(MaxRenewPeriodInSeconds));
+                BlobProperties properties = await blob.GetPropertiesAsync();
                 string leaseId = leaseResponse.Value.LeaseId;
                 var lockResult = new AzureBlobLockResult(blob, properties, lockIsTaken: true, leaseId, token);
                 BlobClient leasedBlob = lockResult.Blob;
