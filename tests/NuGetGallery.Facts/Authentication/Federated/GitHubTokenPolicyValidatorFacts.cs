@@ -30,7 +30,8 @@ namespace NuGetGallery.Services.Authentication
             { "repository_id", "id-456" },
             { "job_workflow_ref", "test-owner/test-repo/.github/workflows/test.yml@refs/heads/main" },
             { "environment", "production" },
-            { "jti", "test-token-id" }
+            { "jti", "test-token-id" },
+            { "event_name", "release"  },
         };
 
         public const string PermanentPolicyCriteria = """
@@ -589,6 +590,7 @@ namespace NuGetGallery.Services.Authentication
             [InlineData("repository_owner_id")]
             [InlineData("repository")]
             [InlineData("repository_id")]
+            [InlineData("event_name")]
             public async Task RejectsMissingRequiredClaim(string claim)
             {
                 // Arrange
@@ -609,11 +611,35 @@ namespace NuGetGallery.Services.Authentication
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, resultEmpty.Type);
-                Assert.False(resultEmpty.IsErrorDisclosable);
+                Assert.True(resultEmpty.IsErrorDisclosable);
                 Assert.Contains(claim, resultEmpty.Error);
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, resultMissing.Type);
-                Assert.False(resultMissing.IsErrorDisclosable);
+                Assert.True(resultMissing.IsErrorDisclosable);
                 Assert.Contains(claim, resultMissing.Error);
+            }
+
+            [Fact]
+            public async Task RejectsBannedEventName()
+            {
+                // Arrange
+                var createdBy = new User("test-user");
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = FederatedCredentialType.GitHubActions,
+                    Criteria = TokenTestHelper.PermanentPolicyCriteria,
+                    CreatedBy = createdBy
+                };
+                Configuration.Setup(c => c.BannedGitHubActionsEvents).Returns(["bad_one"]);
+
+                var tokenWithBannedValue = TokenTestHelper.CreateTestJwtWithCustomClaimValue("event_name", "bad_one");
+
+                // Act
+                var result = await Target.EvaluatePolicyAsync(policy, tokenWithBannedValue);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                Assert.True(result.IsErrorDisclosable);
+                Assert.Contains("bad_one", result.Error);
             }
 
             [Theory]
