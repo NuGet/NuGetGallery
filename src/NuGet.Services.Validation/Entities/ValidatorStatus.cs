@@ -41,6 +41,11 @@ namespace NuGet.Services.Validation
         public string NupkgUrl { get; set; }
 
         /// <summary>
+        /// The ID of the batch of packages being validated.
+        /// </summary>
+        public string BatchId { get; set; }
+
+        /// <summary>
         /// Used for optimistic concurrency when updating the statuses.
         /// </summary>
         public byte[] RowVersion { get; set; }

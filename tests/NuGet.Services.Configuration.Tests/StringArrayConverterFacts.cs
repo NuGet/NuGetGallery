@@ -1,7 +1,9 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved. 
+// Copyright (c) .NET Foundation. All rights reserved. 
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information. 
 
 using Xunit;
+
+#nullable enable
 
 namespace NuGet.Services.Configuration.Tests
 {
@@ -23,7 +25,7 @@ namespace NuGet.Services.Configuration.Tests
             var output = target.ConvertFrom("foo;bar  ;  baz");
 
             var array = Assert.IsType<string[]>(output);
-            Assert.Equal(new[] { "foo", "bar  ", "  baz" }, array);
+            Assert.Equal(new[] { "foo", "bar", "baz" }, array);
         }
 
         [Theory]
@@ -31,7 +33,6 @@ namespace NuGet.Services.Configuration.Tests
         [InlineData("foo bar")]
         [InlineData("foo|bar")]
         [InlineData("foo,bar")]
-        [InlineData("   ")]
         public void ReturnsSingleStringWhenThereIsNoDelimeter(string input)
         {
             var target = new StringArrayConverter();
@@ -42,12 +43,15 @@ namespace NuGet.Services.Configuration.Tests
             Assert.Equal(new[] { input }, array);
         }
 
-        [Fact]
-        public void ReturnsEmptyArrayWithEmpty()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("   ")]
+        public void ReturnsEmptyArrayWithEmpty(string? input)
         {
             var target = new StringArrayConverter();
 
-            var output = target.ConvertFrom(string.Empty);
+            var output = target.ConvertFrom(input);
 
             var array = Assert.IsType<string[]>(output);
             Assert.Empty(array);

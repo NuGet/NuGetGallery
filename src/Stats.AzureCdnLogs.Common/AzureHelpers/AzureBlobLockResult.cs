@@ -4,6 +4,7 @@
 using System;
 using System.Threading;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 
 namespace Stats.AzureCdnLogs.Common
 {
@@ -15,6 +16,8 @@ namespace Stats.AzureCdnLogs.Common
 
         public BlobClient Blob { get; }
 
+        public BlobProperties BlobProperties { get; }
+
         /// <summary>
         /// It will be cancelled when the renew task could not renew the lease.
         /// Operations can listen to this cancellation to stop execution once the lease could not be renewed.
@@ -22,12 +25,18 @@ namespace Stats.AzureCdnLogs.Common
         public CancellationTokenSource BlobOperationToken { get; }
 
         public AzureBlobLockResult(BlobClient blob, bool lockIsTaken, string leaseId, CancellationToken linkToken)
+            :this(blob, blobProperties: null, lockIsTaken, leaseId, linkToken)
+        {
+        }
+
+        public AzureBlobLockResult(BlobClient blob, BlobProperties blobProperties, bool lockIsTaken, string leaseId, CancellationToken linkToken)
         {
             Blob = blob ?? throw new ArgumentNullException(nameof(blob));
             LockIsTaken = lockIsTaken;
             BlobOperationToken = CancellationTokenSource.CreateLinkedTokenSource(linkToken);
             // null is acceptable
             LeaseId = leaseId;
+            BlobProperties = blobProperties;
         }
 
         public static AzureBlobLockResult FailedLockResult(BlobClient blob)

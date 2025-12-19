@@ -19,7 +19,6 @@ namespace NuGetGallery.FunctionalTests
         public string Slot { get; set; }
         public string ProductionBaseUrl { get; set; }
         public string StagingBaseUrl { get; set; }
-        public string SearchServiceBaseUrl { get; set; }
         public string EmailServerHost { get; set; }
         public bool DefaultSecurityPoliciesEnforced { get; set; }
         public bool TestPackageLock { get; set; }

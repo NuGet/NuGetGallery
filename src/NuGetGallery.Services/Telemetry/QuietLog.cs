@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -47,7 +47,7 @@ namespace NuGetGallery
             try
             {
                 // send exception to AppInsights
-                Telemetry.TrackException(e, new Dictionary<string, string>
+                Telemetry?.TrackException(e, new Dictionary<string, string>
                 {
                     { "aggregateExceptionId", aggregateExceptionId }
                 });

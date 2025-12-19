@@ -1526,23 +1526,34 @@ p.frameworktableinfo-text {
 .page-package-details .package-title {
   margin-bottom: 16px;
 }
+.page-package-details .package-title h1 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 40px;
+}
+.page-package-details .package-title h1 > span.pull-left {
+  float: none;
+  display: flex;
+  align-items: center;
+}
 .page-package-details .package-title h1 .title {
   font-size: 32px;
-  margin-top: 40px;
   font-weight: 400;
   margin-right: 18px;
+  line-height: 1;
 }
 .page-package-details .package-title h1 .version-title {
   font-size: 16px;
   font-weight: 400;
   color: var(--neutralForeground3Rest);
   margin-right: 14px;
-  vertical-align: middle;
+  transform: translateY(6px);
 }
 .page-package-details .package-title h1 .package-icon {
-  height: 32px;
   width: 32px;
-  margin-top: 8px;
+  height: 32px;
+  object-fit: contain;
   margin-right: 12px;
 }
 .page-package-details .package-title .prefix-reserve-title {

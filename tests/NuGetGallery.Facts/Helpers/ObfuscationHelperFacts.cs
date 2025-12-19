@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -13,17 +13,14 @@ namespace NuGetGallery.Helpers
     {
         public class TheObfuscateCurrentRequestUrlFacts
         {
-            private const string _relativeTestPath = "profiles/user1";
+            private const string RelativeTestPath = "account/confirm/user1/token1";
             private RouteCollection _currentRoutes;
 
             public TheObfuscateCurrentRequestUrlFacts()
             {
-                if (_currentRoutes == null)
-                {
-                    _currentRoutes = new RouteCollection();
-                    Routes.RegisterApiV2Routes(_currentRoutes);
-                    Routes.RegisterUIRoutes(_currentRoutes, adminPanelEnabled: true);
-                }
+                _currentRoutes = new RouteCollection();
+                Routes.RegisterApiV2Routes(_currentRoutes);
+                Routes.RegisterUIRoutes(_currentRoutes, adminPanelEnabled: true);
             }
 
             [Fact]
@@ -53,7 +50,7 @@ namespace NuGetGallery.Helpers
 
                 // Assert + Assert
                 var result = ObfuscationHelper.ObfuscateRequestUrl(context, _currentRoutes);
-                Assert.Equal("profiles/ObfuscatedUserName", result);
+                Assert.Equal("account/confirm/user1/ObfuscatedToken", result);
             }
 
             private HttpContextBase GetMockedHttpContext()
@@ -62,8 +59,8 @@ namespace NuGetGallery.Helpers
                 var request = new Mock<HttpRequestBase>();
                 context.Setup(ctx => ctx.Request).Returns(request.Object);
                 
-                request.Setup(req => req.Url).Returns(new Uri($"https://localhost/{_relativeTestPath}"));
-                request.Setup(req => req.AppRelativeCurrentExecutionFilePath).Returns($"~/{_relativeTestPath}");
+                request.Setup(req => req.Url).Returns(new Uri($"https://localhost/{RelativeTestPath}"));
+                request.Setup(req => req.AppRelativeCurrentExecutionFilePath).Returns($"~/{RelativeTestPath}");
                 return context.Object;
             }
         }

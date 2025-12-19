@@ -55,7 +55,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
         public async Task<AsyncOperationResult> TryWriteAsync(Stream inputStream, Action<Stream, Stream> writeAction, string destinationFileName, ContentType destinationContentType, CancellationToken token)
         {
             _logger.LogInformation("WriteAsync: Start to write to {DestinationFileName}. ContentType is {ContentType}.", 
-                $"{_blobContainerClient.Uri}{destinationFileName}",
+                $"{_blobContainerClient.Uri}/{destinationFileName}",
                 destinationContentType);
             if (token.IsCancellationRequested)
             {
@@ -91,15 +91,18 @@ namespace Stats.AzureCdnLogs.Common.Collect
                         writeAction(inputStream, resultStream);
                     }
 
-                    if(!(await blobClient.ExistsAsync(token)))
+                    if (!(await blobClient.ExistsAsync(token)))
                     {
                         await resultStream.FlushAsync();
                         _logger.LogInformation("WriteAsync: End write to {DestinationFileName}", destinationFileName);
                         return new AsyncOperationResult(true, null);
                     }
-                    
+
                 }
-                _logger.LogInformation("WriteAsync: The destination file {DestinationFileName}, was already present.", destinationFileName);
+                else
+                {
+                    _logger.LogInformation("WriteAsync: The destination file {DestinationFileName}, was already present.", destinationFileName);
+                }
                 return new AsyncOperationResult(false, null);
             }
             catch (Exception exception)

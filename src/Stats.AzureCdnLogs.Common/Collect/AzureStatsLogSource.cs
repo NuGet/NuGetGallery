@@ -52,7 +52,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
                 if (containerName == null)
                     throw new ArgumentNullException(nameof(containerName));
                 else
-                    throw new ArgumentException(nameof(containerName));
+                    throw new ArgumentException("Empty container name", nameof(containerName));
             }
             _container = _blobServiceClient.GetBlobContainerClient(containerName);
 
@@ -245,9 +245,8 @@ namespace Stats.AzureCdnLogs.Common.Collect
             {
                 var blobUriBuilder = new BlobUriBuilder(blobUri);
                 var containerClient = _blobServiceClient.GetBlobContainerClient(blobUriBuilder.BlobContainerName);
-                var _blobClient = containerClient.GetBlobClient(blobUriBuilder.BlobName);
-                var properties = await _blobClient.GetPropertiesAsync();
-                return _blobClient;
+                var blobClient = containerClient.GetBlobClient(blobUriBuilder.BlobName);
+                return blobClient;
             }
             catch (Exception)
             {
@@ -331,7 +330,14 @@ namespace Stats.AzureCdnLogs.Common.Collect
 
         private string GetBlobNameFromUri(Uri blobUri)
         {
-            return blobUri.Segments.LastOrDefault();
+            var path = blobUri.AbsolutePath.TrimStart('/');
+            var firstSlash = path.IndexOf('/');  // blob storage paths start with container name which we need to remove
+            if (firstSlash >= 0)
+            {
+                return path.Substring(firstSlash + 1);
+            }
+
+            return path;
         }
 
         private async Task<BlobContainerClient> CreateContainerAsync(string containerName)

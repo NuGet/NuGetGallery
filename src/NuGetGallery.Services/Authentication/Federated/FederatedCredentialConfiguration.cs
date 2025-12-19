@@ -42,6 +42,14 @@ namespace NuGetGallery.Services.Authentication
         /// Values are separated by a semicolon when provided in the configuration file.
         /// </summary>
         string[] AllowedEntraIdTenants { get; }
+
+        /// <summary>
+        /// Event names in GitHub Actions that are not allowed to be used for OIDC tokens.
+        /// This act as an additional safeguard against misconfigured workflows.
+        /// Full list of events: https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows
+        /// </summary>
+
+        string[] BannedGitHubActionsEvents { get; }
     }
 
     public class FederatedCredentialConfiguration : IFederatedCredentialConfiguration
@@ -49,11 +57,15 @@ namespace NuGetGallery.Services.Authentication
         public bool EnableTokenApi { get; set; }
 
         public string? EntraIdAudience { get; set; }
+
         public string? NuGetAudience { get; set; }
 
         public TimeSpan ShortLivedApiKeyDuration { get; set; } = TimeSpan.FromMinutes(15);
 
         [TypeConverter(typeof(StringArrayConverter))]
         public string[] AllowedEntraIdTenants { get; set; } = [];
+
+        [TypeConverter(typeof(StringArrayConverter))]
+        public string[] BannedGitHubActionsEvents { get; set; } = [];
     }
 }

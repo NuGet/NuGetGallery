@@ -144,7 +144,8 @@ namespace NuGetGallery.Services.Authentication
                 }
             }
 
-            return OidcTokenEvaluationResult.NoMatchingPolicy(disclosableErrors.ToString());
+            string? userError = disclosableErrors.Length > 0 ? disclosableErrors.ToString() : null;
+            return OidcTokenEvaluationResult.NoMatchingPolicy(userError);
         }
 
         private async Task ExecuteAdditionalValidatorsAsync(NameValueCollection requestHeaders, TokenContext context)
