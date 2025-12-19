@@ -132,6 +132,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validation.ScanAndSign.Core
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validation.Symbols.Core", "src\Validation.Symbols.Core\Validation.Symbols.Core.csproj", "{8A898F44-8174-49C2-BFB6-CD6C5328FCB3}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C2B79DF8-132E-49F3-A022-96F975BAB9B4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.CatalogValidation", "src\NuGet.Services.CatalogValidation\NuGet.Services.CatalogValidation.csproj", "{7394C37E-7EA5-4366-B33E-4CFAC18A7FF5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -350,6 +354,10 @@ Global
 		{8A898F44-8174-49C2-BFB6-CD6C5328FCB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8A898F44-8174-49C2-BFB6-CD6C5328FCB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8A898F44-8174-49C2-BFB6-CD6C5328FCB3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7394C37E-7EA5-4366-B33E-4CFAC18A7FF5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7394C37E-7EA5-4366-B33E-4CFAC18A7FF5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7394C37E-7EA5-4366-B33E-4CFAC18A7FF5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7394C37E-7EA5-4366-B33E-4CFAC18A7FF5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -412,6 +420,7 @@ Global
 		{782464A0-3114-48F4-8F74-2534006C0445} = {70B97BE7-E189-4970-AB48-C766BFBA7783}
 		{C125E644-362B-46C8-8346-4514A0480E95} = {70B97BE7-E189-4970-AB48-C766BFBA7783}
 		{8A898F44-8174-49C2-BFB6-CD6C5328FCB3} = {70B97BE7-E189-4970-AB48-C766BFBA7783}
+		{7394C37E-7EA5-4366-B33E-4CFAC18A7FF5} = {C2B79DF8-132E-49F3-A022-96F975BAB9B4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AA413DB0-5475-4B5D-A3AF-6323DA8D538B}

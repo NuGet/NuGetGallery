@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -42,7 +42,6 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
 
         public static readonly string DefaultAuthenticationType = "AzureActiveDirectoryV2";
         public static readonly string PersonalMSATenant = "9188040d-6c67-4c5b-b112-36a304b66dad";
-        public static readonly string V2CommonTenant = "common";
         public static readonly string Authority = "https://login.microsoftonline.com/{0}/v2.0";
 
         private static string _callbackPath = "users/account/authenticate/return";

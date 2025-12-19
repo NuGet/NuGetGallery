@@ -7,6 +7,8 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using Microsoft.Build.Framework;
+using Microsoft.Extensions.Logging;
 using NuGetGallery.Authentication;
 using NuGetGallery.Services.Authentication;
 
@@ -32,13 +34,16 @@ namespace NuGetGallery
 
         private readonly IFederatedCredentialService _federatedCredentialService;
         private readonly IFederatedCredentialConfiguration _configuration;
+        private readonly ILogger<TokenApiController> _logger;
 
         public TokenApiController(
             IFederatedCredentialService federatedCredentialService,
-            IFederatedCredentialConfiguration configuration)
+            IFederatedCredentialConfiguration configuration,
+            ILogger<TokenApiController> logger)
         {
             _federatedCredentialService = federatedCredentialService ?? throw new ArgumentNullException(nameof(federatedCredentialService));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _logger = logger;
         }
 
 #pragma warning disable CA3147 // No need to validate Antiforgery Token with API request
@@ -86,6 +91,15 @@ namespace NuGetGallery
 
             var result = await _federatedCredentialService.GenerateApiKeyAsync(request!.Username!, bearerToken!, Request.Headers);
 
+            if (result.Type == GenerateApiKeyResultType.Created)
+            {
+                _logger.LogInformation("Token creation request for user {Username} succeeded. API key expires at {Expiration:O}.", request.Username, result.Expires);
+            }
+            else
+            {
+                _logger.LogWarning("Token creation request for user {Username} failed with result type {ResultType}. User message: {UserMessage}", request.Username, result.Type, result.UserMessage);
+            }
+
             return result.Type switch
             {
                 GenerateApiKeyResultType.BadRequest => ErrorJson(HttpStatusCode.BadRequest, result.UserMessage),
@@ -119,7 +133,15 @@ namespace NuGetGallery
         {
             // Show the error message in the HTTP reason phrase (status description) for compatibility with NuGet client error "protocol".
             // This, and the response body below, could be formalized with https://github.com/NuGet/NuGetGallery/issues/5818
-            Response.StatusDescription = errorMessage;
+            try
+            {
+                Response.StatusDescription = errorMessage;
+            }
+            catch
+            {
+                // Best effort: setting StatusDescription can fail based on the content of the error message.
+                _logger.LogWarning("Failed to set StatusDescription to '{ErrorMessage}'", errorMessage);
+            }
 
             return Json(status, new { error = errorMessage });
         }
