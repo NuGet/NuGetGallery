@@ -19,5 +19,6 @@ namespace Stats.CollectAzureChinaCDNLogs
 
         public bool WriteOutputHeader { get; set; } = true;
         public bool AddSourceFilenameColumn { get; set; } = false;
+        public bool RenameOutputFile { get; set; } = false;
     }
 }
