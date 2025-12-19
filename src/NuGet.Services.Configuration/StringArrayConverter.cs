@@ -22,6 +22,11 @@ namespace NuGet.Services.Configuration
 
         public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
         {
+            if (value is null)
+            {
+                return Array.Empty<string>();
+            }
+
             if (value is string s)
             {
                 if (string.IsNullOrWhiteSpace(s))
