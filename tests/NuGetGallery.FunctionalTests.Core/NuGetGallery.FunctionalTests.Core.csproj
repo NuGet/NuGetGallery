@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\VisualStudioSearchPath.props" />
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
@@ -16,6 +16,7 @@
     	Proper fix tracked here: https://github.com/NuGet/Engineering/issues/5669
     -->
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" VersionOverride="2.2.0" />
+    <PackageReference Include="Microsoft.Playwright.Xunit" />
     <PackageReference Include="Microsoft.TestPlatform" GeneratePathProperty="true" />
     <PackageReference Include="Microsoft.Web.Xdt" />
     <PackageReference Include="NuGet.Core" />
