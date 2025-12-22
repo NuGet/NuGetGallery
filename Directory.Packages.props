@@ -84,6 +84,7 @@
     <PackageVersion Include="Microsoft.Internal.NuGet.Testing.SignedPackages" Version="6.13.2-rc.1" />
     <PackageVersion Include="Microsoft.Net.Http" Version="2.2.29" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
+    <PackageVersion Include="Microsoft.Playwright.Xunit" Version="1.57.0" />
     <PackageVersion Include="Microsoft.Owin.Host.SystemWeb" Version="4.2.2" />
     <PackageVersion Include="Microsoft.Owin.Security.Cookies" Version="4.2.2" />
     <PackageVersion Include="Microsoft.Owin.Security.MicrosoftAccount" Version="4.2.2" />

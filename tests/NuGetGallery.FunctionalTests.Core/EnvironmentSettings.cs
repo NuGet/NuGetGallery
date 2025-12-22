@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -19,7 +19,19 @@ namespace NuGetGallery.FunctionalTests
         };
 
         public const string ConfigurationFilePathVariableName = "ConfigurationFilePath";
-        public static string ConfigurationFilePath => GetEnvironmentVariable(ConfigurationFilePathVariableName, required: true);
+
+        public static string ConfigurationFilePath
+        {
+            get
+            {
+#if DEBUG
+                bool required = false;
+#else
+                bool required = true;
+#endif
+                return GetEnvironmentVariable(ConfigurationFilePathVariableName, required) ?? "settings.DEV.json";
+            }
+        }
 
         private static string GetEnvironmentVariable(string key, bool required)
         {
