@@ -5,7 +5,7 @@
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.QualityTools.WebTestFramework" />
+    <Reference Include="$(PkgMicrosoft_TestPlatform)\tools\net462\Common7\IDE\Extensions\TestPlatform\Microsoft.VisualStudio.QualityTools.WebTestFramework.dll" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGetGallery.FunctionalTests.Core\NuGetGallery.FunctionalTests.Core.csproj" />
