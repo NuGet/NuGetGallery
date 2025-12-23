@@ -94,14 +94,18 @@ namespace NuGetGallery
                 //silently ignore incorrect cookie values
             }
 
-            if (_httpContext.Response != null && _httpContext.Response.Cookies != null)
+            // Only clear the cookie if it was present in the request
+            if (cookie != null && _httpContext.Response != null && _httpContext.Response.Cookies != null)
             {
-                var responseCookie = _httpContext.Response.Cookies.Get(TempDataCookieKey);
-                if (responseCookie != null)
+                var responseCookie = new HttpCookie(TempDataCookieKey)
                 {
-                    responseCookie.Expires = DateTime.MinValue;
-                    responseCookie.Value = String.Empty;
-                }
+                    Expires = DateTime.UtcNow.AddDays(-1),
+                    Value = String.Empty,
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Lax
+                };
+                _httpContext.Response.Cookies.Add(responseCookie);
             }
 
             return dictionary;
@@ -109,7 +113,12 @@ namespace NuGetGallery
 
         protected virtual void SaveTempData(ControllerContext controllerContext, IDictionary<string, object> values)
         {
-            if (values.Count > 0)
+            // Only save TempData as a cookie if the user has consented or if there was already a TempData cookie
+            // This prevents setting non-essential cookies without user consent
+            var hasExistingCookie = _httpContext.Request?.Cookies[TempDataCookieKey] != null;
+            var canWriteCookies = CanWriteNonEssentialCookies();
+
+            if (values.Count > 0 && (hasExistingCookie || canWriteCookies))
             {
                 // Serialize dictionary to JSON
                 string json = JsonConvert.SerializeObject(values);
@@ -121,10 +130,24 @@ namespace NuGetGallery
                 var cookie = new HttpCookie(TempDataCookieKey, protectedJson)
                 {
                     HttpOnly = true,
-                    Secure = true
+                    Secure = true,
+                    SameSite = SameSiteMode.Lax
                 };
                 _httpContext.Response.Cookies.Add(cookie);
             }
+        }
+
+        private bool CanWriteNonEssentialCookies()
+        {
+            // Check if cookie consent has been granted
+            // This uses the same mechanism as the CookieComplianceHttpModule
+            if (_httpContext?.Items?[ServicesConstants.CookieComplianceCanWriteAnalyticsCookies] is bool canWrite)
+            {
+                return canWrite;
+            }
+
+            // If consent information is not available, default to false for safety
+            return false;
         }
     }
 }

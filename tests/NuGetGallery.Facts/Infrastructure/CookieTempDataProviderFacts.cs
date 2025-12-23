@@ -140,6 +140,7 @@ namespace NuGetGallery.Infrastructure
                 var cookie = cookies["__Controller::TempData"];
                 Assert.True(cookie.HttpOnly);
                 Assert.True(cookie.Secure);
+                Assert.Equal(SameSiteMode.Lax, cookie.SameSite);
 
                 // Decrypt and deserialize the cookie value
                 var unprotectedBytes = MachineKey.Unprotect(Convert.FromBase64String(cookie.Value), "__Controller::TempData");
