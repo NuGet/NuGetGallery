@@ -12,9 +12,9 @@
     <PackageVersion Include="Autofac.Owin" Version="4.2.0" />
     <PackageVersion Include="Autofac.WebApi2" Version="4.1.0" />
     <PackageVersion Include="Autofac" Version="4.9.1" />
-    <PackageVersion Include="Azure.Core" Version="1.44.1" />
+    <PackageVersion Include="Azure.Core" Version="1.50.0" />
     <PackageVersion Include="Azure.Data.Tables" Version="12.8.3" />
-    <PackageVersion Include="Azure.Identity" Version="1.12.1" />
+    <PackageVersion Include="Azure.Identity" Version="1.17.1" />
     <PackageVersion Include="Azure.Messaging.ServiceBus" Version="7.16.1" />
     <PackageVersion Include="Azure.Search.Documents" Version="11.4.0-beta.6" />
     <PackageVersion Include="Azure.Security.KeyVault.Secrets" Version="4.4.0" />
@@ -56,7 +56,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.Cryptography.Internal" Version="8.0.10" />
     <PackageVersion Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="8.0.10" />
     <PackageVersion Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
-    <PackageVersion Include="Microsoft.Azure.Kusto.Data" Version="12.2.3" />
+    <PackageVersion Include="Microsoft.Azure.Kusto.Data" Version="14.0.3" />
     <PackageVersion Include="Microsoft.Azure.Storage.DataMovement" Version="0.9.0" />
     <PackageVersion Include="Microsoft.Bcl.Compression" Version="3.9.85" />
     <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0" />
@@ -74,12 +74,12 @@
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Http.Polly" Version="8.0.8" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="8.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.3" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="8.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Primitives" Version="8.0.0" />
-    <PackageVersion Include="Microsoft.Identity.Client" Version="4.65.0" />
+    <PackageVersion Include="Microsoft.Identity.Client" Version="4.80.0" />
     <PackageVersion Include="Microsoft.Identity.Web" Version="3.8.2" />
     <PackageVersion Include="Microsoft.Internal.NuGet.Testing.SignedPackages" Version="6.13.2-rc.1" />
     <PackageVersion Include="Microsoft.Net.Http" Version="2.2.29" />
@@ -145,7 +145,7 @@
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="8.0.1" />
     <PackageVersion Include="System.Security.Cryptography.X509Certificates" Version="4.3.2" />
     <PackageVersion Include="System.Text.Encodings.Web" Version="8.0.0" />
-    <PackageVersion Include="System.Text.Json" Version="8.0.5" />
+    <PackageVersion Include="System.Text.Json" Version="8.0.6" />
     <PackageVersion Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
     <PackageVersion Include="System.ValueTuple" Version="4.5.0" />
     <PackageVersion Include="UAParser" Version="3.1.44" />
