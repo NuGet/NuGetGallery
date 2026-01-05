@@ -36,8 +36,8 @@ $functionalTestsDirectory = Join-Path $parentDir "NuGetGallery.FunctionalTests\b
 Copy-Item $nuget $functionalTestsDirectory
 
 Write-Host "Setting up Playwright browsers..."
-$ErrorActionPreference = "SilentlyContinue"
-# used to suppress Node.js warnings about url.parse
+# used to suppress Node.js warnings about url.parse deprecation
 # https://github.com/microsoft/playwright/issues/36404
+$env:NODE_NO_WARNINGS = "1"
 & "$functionalTestsDirectory\playwright.ps1" install
-$ErrorActionPreference = "Continue"
+$env:NODE_NO_WARNINGS = ""
