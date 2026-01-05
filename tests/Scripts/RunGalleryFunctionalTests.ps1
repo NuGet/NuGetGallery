@@ -128,7 +128,7 @@ try {
 
         Write-Host "Started testing $_"
     } | Out-Null
-    
+
     Write-Host $fullDivider
 
     do {
