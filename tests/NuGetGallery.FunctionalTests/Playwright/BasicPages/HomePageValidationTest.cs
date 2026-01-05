@@ -3,7 +3,6 @@
 
 using System.Net;
 using System.Threading.Tasks;
-using Microsoft.Playwright.Xunit;
 using Xunit;
 
 namespace NuGetGallery.FunctionalTests.Playwright.BasicPages

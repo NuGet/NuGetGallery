@@ -4,13 +4,9 @@
 using System.Threading.Tasks;
 using NuGetGallery.FunctionalTests.Helpers;
 using NuGetGallery.FunctionalTests.XunitExtensions;
-using Xunit;
 
 namespace NuGetGallery.FunctionalTests.Playwright.UploadAndDownload
 {
-	/// <summary>
-	/// Tests uploading a package from the UI.
-	/// </summary>
 	public class UploadPackageToSelfFromUI : NuGetPageTest
 	{
 		[PackageLockFact]
