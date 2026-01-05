@@ -31,5 +31,9 @@ if ($LASTEXITCODE -ne 0) {
     throw "Failed to build solution!"
 }
 
+Write-Host "Copying nuget.exe to functional tests directory"
 $functionalTestsDirectory = Join-Path $parentDir "NuGetGallery.FunctionalTests\bin\$Configuration\net472"
 Copy-Item $nuget $functionalTestsDirectory
+
+Write-Host "Setting up Playwright browsers..."
+& "$functionalTestsDirectory\playwright.ps1" install
