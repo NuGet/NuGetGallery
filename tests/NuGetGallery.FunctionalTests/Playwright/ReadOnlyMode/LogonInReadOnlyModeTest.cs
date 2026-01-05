@@ -15,7 +15,7 @@ namespace NuGetGallery.FunctionalTests.Playwright.ReadOnlyMode
         {
             // Act
             var responseTask = Page.WaitForResponseAsync(response => response.Url.Contains("SignIn"));
-            await this.SignInAsync();
+            await SignInAsync();
 
             // Assert
             var response = await responseTask;
