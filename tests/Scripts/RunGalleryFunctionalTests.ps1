@@ -11,6 +11,11 @@ $halfDivider = ($dividerSymbol * 10)
 
 Write-Host $fullDivider
 
+Write-Host "Setting up Playwright browsers..."
+& "$functionalTestsDirectory\playwright.ps1" install
+
+Write-Host $fullDivider
+
 $failedTests = New-Object System.Collections.ArrayList
 
 Function Wait-ForServiceStart($MaxWaitSeconds) {
@@ -128,7 +133,7 @@ try {
 
         Write-Host "Started testing $_"
     } | Out-Null
-    
+
     Write-Host $fullDivider
 
     do {

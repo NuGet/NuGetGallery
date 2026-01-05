@@ -23,10 +23,6 @@ Remove-Item $webUITestResults -ErrorAction Ignore
 
 $functionalTestsDirectory = "$parentDir\NuGetGallery.FunctionalTests\bin\$Configuration\net472"
 
-# Set up Playwright browsers
-Write-Host "Setting up Playwright browsers..."
-& "$functionalTestsDirectory\playwright.ps1" install
-
 # Run functional tests
 $fullTestCategory = "$($testCategory)Tests"
 $exitCode = 0
