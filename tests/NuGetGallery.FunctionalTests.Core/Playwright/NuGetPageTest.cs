@@ -47,7 +47,7 @@ namespace NuGetGallery.FunctionalTests.Playwright
             // Upload the package file
             await Page.Locator("input[name='UploadFile']").SetInputFilesAsync(packagePath);
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-            await Page.GetByText(packageId).WaitForAsync();
+            await Page.GetByText(packageId).First.WaitForAsync();
 
             if (owner is not null)
             {
