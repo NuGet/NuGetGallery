@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -66,6 +66,108 @@ namespace CatalogTests.Helpers
                       () => Utils.GetNupkgMetadata(stream, packageHash: null));
 
                 Assert.StartsWith("Unable to find nuspec", exception.Message);
+            }
+        }
+
+        [Fact]
+        public void GetNupkgMetadata_WhenNuspecAtRootLevel_Succeeds()
+        {
+            using (var stream = new MemoryStream())
+            {
+                using (var zipArchive = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: true))
+                {
+                    var entry = zipArchive.CreateEntry("package.nuspec");
+                    using (var writer = new StreamWriter(entry.Open()))
+                    {
+                        writer.Write("<?xml version=\"1.0\"?><package xmlns=\"http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd\"><metadata><id>TestPackage</id><version>1.0.0</version><authors>Test</authors><description>Test</description></metadata></package>");
+                    }
+                }
+
+                stream.Position = 0;
+
+                var metadata = Utils.GetNupkgMetadata(stream, packageHash: null);
+
+                Assert.NotNull(metadata);
+                Assert.NotNull(metadata.Nuspec);
+            }
+        }
+
+        [Fact]
+        public void GetNupkgMetadata_WhenNuspecInSubdirectoryWithForwardSlash_Throws()
+        {
+            using (var stream = new MemoryStream())
+            {
+                using (var zipArchive = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: true))
+                {
+                    var entry = zipArchive.CreateEntry("subdir/package.nuspec");
+                    using (var writer = new StreamWriter(entry.Open()))
+                    {
+                        writer.Write("<?xml version=\"1.0\"?><package></package>");
+                    }
+                }
+
+                stream.Position = 0;
+
+                var exception = Assert.Throws<InvalidDataException>(
+                      () => Utils.GetNupkgMetadata(stream, packageHash: null));
+
+                Assert.StartsWith("Unable to find nuspec", exception.Message);
+            }
+        }
+
+        [Fact]
+        public void GetNupkgMetadata_WhenNuspecInSubdirectoryWithBackslash_Throws()
+        {
+            using (var stream = new MemoryStream())
+            {
+                using (var zipArchive = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: true))
+                {
+                    var entry = zipArchive.CreateEntry("subdir\\package.nuspec");
+                    using (var writer = new StreamWriter(entry.Open()))
+                    {
+                        writer.Write("<?xml version=\"1.0\"?><package></package>");
+                    }
+                }
+
+                stream.Position = 0;
+
+                var exception = Assert.Throws<InvalidDataException>(
+                      () => Utils.GetNupkgMetadata(stream, packageHash: null));
+
+                Assert.StartsWith("Unable to find nuspec", exception.Message);
+            }
+        }
+
+
+        [Fact]
+        public void GetNupkgMetadata_WhenNuspecAtRootAndInSubdirectory_UsesRootNuspec()
+        {
+            using (var stream = new MemoryStream())
+            {
+                using (var zipArchive = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: true))
+                {
+                    var subdirEntry = zipArchive.CreateEntry("subdir\\malicious.nuspec");
+                    using (var writer = new StreamWriter(subdirEntry.Open()))
+                    {
+                        writer.Write("<?xml version=\"1.0\"?><package xmlns=\"http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd\"><metadata><id>MaliciousPackage</id><version>2.0.0</version><authors>MaliciousAuthor</authors><description>Malicious Description</description></metadata></package>");
+                    }
+
+                    var rootEntry = zipArchive.CreateEntry("package.nuspec");
+                    using (var writer = new StreamWriter(rootEntry.Open()))
+                    {
+                        writer.Write("<?xml version=\"1.0\"?><package xmlns=\"http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd\"><metadata><id>RootPackage</id><version>1.0.0</version><authors>RootAuthor</authors><description>Root Description</description></metadata></package>");
+                    }
+                }
+
+                stream.Position = 0;
+
+                var metadata = Utils.GetNupkgMetadata(stream, packageHash: null);
+
+                Assert.NotNull(metadata);
+                Assert.NotNull(metadata.Nuspec);
+                var packageId = metadata.Nuspec.Descendants().FirstOrDefault(x => x.Name.LocalName == "id");
+                Assert.NotNull(packageId);
+                Assert.Equal("RootPackage", packageId.Value);
             }
         }
 
