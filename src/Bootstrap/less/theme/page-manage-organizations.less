@@ -1,0 +1,132 @@
+.page-manage-organizations {
+  @section-margin-top: 40px;
+
+  h1 {
+    margin-bottom: 0;
+  }
+
+  h2 {
+    display: flex;
+    margin-bottom: 10px;
+    margin-top: 0;
+  }
+
+  .form-section-title {
+    margin-top: @section-margin-top;
+
+    @media (min-width: @screen-sm-min) {
+      float: left;
+      text-align: right;
+    }
+  }
+
+  .form-section-data {
+    @media (min-width: @screen-sm-min) {
+      margin-top: @section-margin-top;
+      line-height: 3;
+      float: right;
+      text-align: right;
+    }
+  }
+
+  .panel {
+    margin-top: 5px;
+  }
+
+  .form-group + .form-group {
+    .btn {
+      margin-top: 20px;
+    }
+  }
+
+  .certificates-form {
+    display: inline-block;
+    width: 100%;
+  }
+
+  .required:after {
+    color: var(--statusDangerStroke2Rest);
+    content: " *";
+  }
+}
+
+.manage-members-listing tbody:first-child {
+  border-style: hidden
+}
+
+.members-list {
+  .manage-members-listing {
+    margin-bottom: 0;
+
+    .alert-container {
+      .alert {
+        margin-top: 0px;
+      }
+    }
+
+    .role-description {
+      margin-top: 25px;
+      margin-bottom: 25px;
+    }
+
+    .table > thead > tr th:first-child {
+      width: 60%;
+    }
+
+    .table > thead > tr th:nth-child(2) {
+      width: 25%;
+    }
+
+    .member-item {
+      hr {
+        margin-top: 8px;
+        margin-bottom: 8px;
+      }
+
+      .member-column-select-wrapper {
+        width: 100%;
+      }
+
+      td.align-middle {
+        vertical-align: middle;
+      }
+
+      td.align-middle.form-flex {
+        margin-top: -1px;
+      }
+
+      .member-column {
+        height: 36px;
+        display: block;
+      }
+    }
+
+    #add-member-success-message {
+      display: none;
+      margin: 0px;
+    }
+  }
+  //form display flex
+  .form-flex {
+    display: block;
+
+    @media (min-width: @screen-sm-min) {
+      display: flex !important;
+      align-items: center;
+
+      .btn-row {
+        align-self: flex-end;
+      }
+
+      .btn {
+        margin-bottom: @form-group-margin-bottom;
+      }
+
+      .inline-label {
+        white-space: nowrap;
+        margin-right: 10px;
+        margin-bottom: 0;
+      }
+    }
+  }
+}

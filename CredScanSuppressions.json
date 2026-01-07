@@ -1,0 +1,25 @@
+{
+    "tool": "Credential Scanner",
+    "suppressions": [
+        {
+            "file": "tests/NuGetGallery.Facts/Infrastructure/Authentication/ApiKeyV4Facts.cs",
+            "_justification": "Test file containing fake credentials"
+        },
+        {
+            "file": "tests/NuGetGallery.Facts/Infrastructure/Authentication/V3HasherTests.cs",
+            "_justification": "Test file containing fake credentials"
+        },
+        {
+            "file": "tests/NuGetGallery.Facts/Framework/Fakes.cs",
+            "_justification": "Test file containing fake credentials"
+        },
+        {
+            "file": "tests/NuGet.Services.KeyVault.Tests/KeyVaultReaderFormatterFacts.cs",
+            "_justification": "Test file containing fake credentials"
+        },
+        {
+            "file": "src/NuGetGallery.Services/Authentication/ApiKeyV5.cs",
+            "_justification": "File containing fake credentials"
+        }
+    ]
+}

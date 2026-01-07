@@ -1,0 +1,51 @@
+﻿@model LogOnViewModel
+@{
+    ViewBag.Title = "Register";
+    ViewBag.Tab = "Register";
+    ViewBag.SmPageColumns = GalleryConstants.ColumnsAuthenticationSm;
+    ViewBag.MdPageColumns = GalleryConstants.ColumnsAuthenticationMd;
+    ViewBag.BlockSearchEngineIndexing = true;
+}
+
+<section role="main" class="container main-container page-sign-in">
+    @if (this.Config.Current.DeprecateNuGetPasswordLogins)
+    {
+        <div class="deprecate-alert text-center">
+            @ViewHelpers.AlertPasswordDeprecation()
+        </div>
+    }
+
+    <div class="row">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag) text-center">
+            <h1>Register</h1>
+        </div>
+    </div>
+    @foreach (var provider in Model.Providers)
+    {
+        <div class="row">
+            <div class="@ViewHelpers.GetColumnClasses(ViewBag) text-center">
+                <button type="button" class="btn btn-brand-secondary btn-block provider-button"
+                   onclick="window.location.href = '@Url.Authenticate(provider.ProviderName, (string)ViewData[GalleryConstants.ReturnUrlViewDataKey])'">
+                    @if (!string.IsNullOrEmpty(@provider.UI.IconImagePath))
+                    {
+                        <img height="24" width="24" alt="" aria-hidden="true"
+                             src="@Href(provider.UI.IconImagePath)"
+                             @(!string.IsNullOrEmpty(provider.UI.IconImageFallbackPath) ? (IHtmlString)ViewHelpers.ImageFallback(Url.Absolute(provider.UI.IconImageFallbackPath)) : new HtmlString(string.Empty)) />
+                    }
+                    @provider.UI.RegisterMessage
+                </button>
+            </div>
+        </div>
+        <div class="row or-row">
+            <div class="@ViewHelpers.GetColumnClasses(ViewBag) text-center">
+                <b>OR</b>
+            </div>
+        </div>
+    }
+
+    <div class="row">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+            @Html.Partial("_Register", Model)
+        </div>
+    </div>
+</section>

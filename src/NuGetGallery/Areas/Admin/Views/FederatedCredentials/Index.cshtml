@@ -1,0 +1,294 @@
+﻿@using NuGetGallery.Areas.Admin.Controllers.FederatedCredentials
+@model ViewPoliciesViewModel
+@{
+    ViewBag.Title = "Federated credentials";
+}
+
+@helper RenderTimestamp(DateTime? timestamp)
+{
+    if (timestamp.HasValue)
+    {
+        <span class="text-nowrap small">@timestamp.Value.ToString("yyyy-MM-ddTHH:mm:ss")</span>
+        <span class="text-nowrap small">(@(Math.Round((DateTimeOffset.UtcNow - new DateTime(timestamp.Value.Ticks, DateTimeKind.Utc)).TotalDays, 1)) days ago)</span>
+    }
+}
+
+@helper RenderUsername(User user)
+{
+    if (Model.Usernames.Contains(user.Username, StringComparer.Ordinal))
+    {
+        <mark><a href="@Url.User(user)">@user.Username</a></mark>
+    }
+    else
+    {
+        <a href="@Url.User(user)">@user.Username</a>
+    }
+}
+
+<section role="main" class="container main-container">
+    <h1>@ViewBag.Title</h1>
+
+    <h2>Search for federated credential policies</h2>
+
+    <p>
+        Use this form to search for users or organizations. Federated credential policies <i>managed by</i> these accounts or have
+        these accounts set as the <i>package owner</i> will be returned. A federated credential policy is owned by a user account
+        and can have either the user itself as the specified package owner or an organization they are a member of.
+    </p>
+
+    <form class="form-horizontal" method="get" action="@Url.Action("Index")">
+        <div class="form-group">
+            <div class="col-xs-12">
+                <label for="packageIds" class="control-label">Search for policies related to specific accounts</label>
+                <textarea class="form-control textarea-brand" rows="3" id="usernames" name="usernames"
+                          placeholder="User or organization usernames, one per line">@string.Join(Environment.NewLine, Model.Usernames)</textarea>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-xs-4">
+                <button type="submit" class="btn btn-block btn-brand">Search</button>
+            </div>
+            <div class="col-xs-4">
+                <button type="submit" class="btn btn-block btn-brand" name="addOrganizationMembers" value="true">Add organization's members</button>
+            </div>
+            <div class="col-xs-4">
+                <button type="submit" class="btn btn-block btn-brand" name="addUserOrganizations" value="true">Add user's organizations</button>
+            </div>
+        </div>
+    </form>
+
+    @if (Model.Usernames.Count > 0)
+    {
+        if (Model.UsernamesDoNotExist.Count > 0)
+        {
+            <p><b>Accounts that do not exist:</b> @(string.Join(", ", Model.UsernamesDoNotExist))</p>
+        }
+
+        if (Model.UserPolices.Count == 0)
+        {
+            @ViewHelpers.AlertInfo(@<text>No user policies were found.</text>)
+        }
+
+        foreach (var userPolicy in Model.UserPolices)
+        {
+            <hr />
+            var user = userPolicy.User;
+            <h3 id="user-@(user.Username)">Policies owned by user @RenderUsername(user)</h3>
+
+            if (TempData.ContainsKey("MessageFor" + user.Username))
+            {
+                @ViewHelpers.AlertInfo(@<text>@TempData["MessageFor" + user.Username]</text>)
+            }
+
+            <p>
+                <b>Member of organizations:</b>
+                @{ var first = true; }
+                @foreach (var membership in userPolicy.User.Organizations)
+                {
+                    if (!first)
+                    {
+                        <text>,</text>
+                    }
+                    { first = false; }
+                    <text>@RenderUsername(membership.Organization) (@(membership.IsAdmin ? "admin" : "contributor"))</text>
+                }
+
+                @if (first)
+                {
+                    <text>(none)</text>
+                }
+            </p>
+
+            if (!Model.Usernames.Contains(userPolicy.User.Username, StringComparer.OrdinalIgnoreCase))
+            {
+
+                <p>
+                    <b>Note:</b> not all policies may be shown because user <code>@userPolicy.User.Username</code> is not in the search query.
+                </p>
+            }
+
+            if (userPolicy.Policies.Count > 0)
+            {
+                <table class="table table-condensed table-bordered">
+                    <thead>
+                        <tr>
+                            <th class="text-nowrap">Policy key</th>
+                            <th class="text-nowrap">Policy name</th>
+                            <th class="text-nowrap">Package owner</th>
+                            <th class="text-nowrap">Type</th>
+                            <th class="text-nowrap">Criteria</th>
+                            <th class="text-nowrap">Created on</th>
+                            <th class="text-nowrap">Last used</th>
+                            <th class="text-nowrap">Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var policy in userPolicy.Policies)
+                        {
+                            <tr>
+                                <td>@policy.Key</td>
+                                <td>@policy.PolicyName</td>
+                                <td>@RenderUsername(policy.PackageOwner)</td>
+                                <td><code>@policy.Type</code></td>
+                                <td><code>@policy.Criteria</code></td>
+                                <td>@RenderTimestamp(policy.Created)</td>
+                                <td>@RenderTimestamp(policy.LastMatched)</td>
+                                <td>
+                                    <form method="post" action="@Url.Action("DeletePolicy")"
+                                          onsubmit="return confirm('Are you sure you want to delete this policy, owned by @policy.CreatedBy.Username? This will also delete all assocated short-lived API keys.');">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="policyKey" value="@policy.Key" />
+                                        <button type="submit" label="Delete this policy" class="btn btn-outline-primary">🗑️</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p>This user owns no federated credential policies.</p>
+            }
+
+        }
+    }
+
+    <h2>Add a new federated credential policy</h2>
+    <p>
+        Use this form to create a new federated credential policy owned by a specific user and scoped to a specific package owner.
+        The policy package owner can be the same as the policy user or an organization the policy user is a member of.
+    </p>
+
+    <form method="post" action="@Url.Action("CreatePolicy")" onsubmit="return confirm('Are you sure you want to add this policy?');">
+        @Html.AntiForgeryToken()
+        <div class="row @Html.HasErrorFor(m => m.AddPolicy)">
+            @if (Html.IsError(m => m.AddPolicy))
+            {
+                <div class="col-xs-12">
+                    @Html.ShowValidationMessagesFor(m => m.AddPolicy)
+                </div>
+            }
+            <div class="form-group col-xs-4 @Html.HasErrorFor(m => m.AddPolicy.PolicyName)">
+                <label for="policyUser">Policy name</label>
+                <input type="text" class="form-control" id="policyName" name="policyName"
+                       placeholder="Policy name (optional)" value="@Model.AddPolicy.PolicyName">
+                @Html.ShowValidationMessagesFor(m => m.AddPolicy.PolicyName)
+            </div>
+            <div class="form-group col-xs-4 @Html.HasErrorFor(m => m.AddPolicy.PolicyUser)">
+                <label for="policyUser">Policy user</label>
+                <input type="text" class="form-control" id="policyUser" name="policyUser"
+                       placeholder="Username of policy user" value="@Model.AddPolicy.PolicyUser">
+                @Html.ShowValidationMessagesFor(m => m.AddPolicy.PolicyUser)
+            </div>
+            <div class="form-group col-xs-4 @Html.HasErrorFor(m => m.AddPolicy.PolicyPackageOwner)">
+                <label for="policyPackageOwner">Policy package owner</label>
+                <input type="text" class="form-control" id="policyPackageOwner" name="policyPackageOwner"
+                       placeholder="Username of policy package owner" value="@Model.AddPolicy.PolicyPackageOwner">
+                @Html.ShowValidationMessagesFor(m => m.AddPolicy.PolicyPackageOwner)
+            </div>
+            <div class="form-group col-xs-4 @Html.HasErrorFor(m => m.AddPolicy.PolicyType)">
+                <label for="policyType">Policy type</label>
+                <select id="policyType" name="policyType" class="form-control">
+                    @foreach (var type in Enum.GetValues(typeof(FederatedCredentialType)).Cast<FederatedCredentialType>())
+                    {
+                        <option selected="@(type == Model.AddPolicy.PolicyType)">@type</option>
+                    }
+                </select>
+                @Html.ShowValidationMessagesFor(m => m.AddPolicy.PolicyType)
+            </div>
+        </div>
+        <div class="form-group row @Html.HasErrorFor(m => m.AddPolicy.PolicyCriteria)">
+            <div class="col-xs-12">
+                <label for="policyCriteria" class="control-label">Policy criteria (JSON)</label>
+                <textarea class="form-control textarea-brand" rows="3" id="policyCriteria" name="policyCriteria">@Model.AddPolicy.PolicyCriteria</textarea>
+                @Html.ShowValidationMessagesFor(m => m.AddPolicy.PolicyCriteria)
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="col-xs-12">
+                <button type="submit" class="btn btn-block btn-brand">Create</button>
+            </div>
+        </div>
+    </form>
+
+    <h2>Terminology</h2>
+    <p>
+        <dl>
+            <dt>Federated credential</dt>
+            <dd>
+                A credential from an external system can be traded for a short-lived API key.
+                When a federated credential is used, it is tracked in the database to avoid credential replay (reuse).
+                An example federated credential would be an OpenID Connect (OIDC) token from a trusted external
+                identity provider, such as Entra ID.
+            </dd>
+
+            <dt>Federated credential policy</dt>
+            <dd>
+                A set of criteria to determine whether a given federated credential is acceptable to be used to operate on behalf of a specific user.
+                This can be considered a trust policy of an external identity provided, expressed by a user of NuGet Gallery.
+            </dd>
+
+            <dt>Policy user</dt>
+            <dd>
+                This is the user account that manages the federated credential policy.
+                This will be the user that the generated short-lived API keys will be owned by.
+            </dd>
+
+            <dt>Policy package owner</dt>
+            <dd>
+                This is the user or organization account that the API key will act on behalf of.
+                This is different from the policy user because the package owner can be an organization.
+                The policy package owner will become the owner scope on the short-lived API key created from the policy.
+            </dd>
+
+            <dt>Policy type</dt>
+            <dd>
+                This is the type of federated credential that is accepted by the policy.
+                The policy type determines how the policy criteria are interpreted. An example policy type would be an
+                Entra ID service principal policy, which would accept Entra ID OIDC bearer tokens containing a
+                specific tenant ID and object ID referring to a service principal.
+            </dd>
+
+            <dt>Policy criteria</dt>
+            <dd>
+                These are criteria specific to a certain policy type and specified by the user.
+                An example of some policy criteria would be a tenant ID and object ID pair for an Entra ID service
+                principal.
+            </dd>
+        </dl>
+    </p>
+</section>
+
+
+@section BottomScripts {
+    <script type="text/javascript">
+        function setPolicyCriteriaTemplate(replace) {
+            const policyType = $('#policyType').val();
+            let policyCriteria;
+            switch (policyType) {
+                case '@(FederatedCredentialType.EntraIdServicePrincipal)':
+                    policyCriteria = JSON.stringify({ tid: 'tenant ID (GUID)', oid: 'object ID (GUID)' })
+                    break;
+                case '@(FederatedCredentialType.GitHubActions)':
+                    policyCriteria =
+                        JSON.stringify(
+                            { owner: 'contoso', ownerId: '123456 (optional)', repository: 'contoso-sdk', repositoryId: '123456 (optional)', workflow: 'release.yml', environment: 'deployment (optional)' });
+                    break;
+                default:
+                    policyCriteria = "{}"
+                    break;
+            }
+            const policyCriteriaEl = $('#policyCriteria');
+            if (replace || !policyCriteriaEl.val()) {
+                policyCriteriaEl.val(policyCriteria);
+            }
+        }
+
+        setPolicyCriteriaTemplate(false);
+
+        $('#policyType').on('change', function () {
+            setPolicyCriteriaTemplate(true);
+        })
+    </script>
+}

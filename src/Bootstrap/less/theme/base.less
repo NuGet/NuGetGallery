@@ -1,0 +1,692 @@
+//== Theme Variables
+@panel-footer-color:  @navbar-inverse-color;
+@default-margin-bottom: 24px;
+@package-list-line-height: 20px;
+
+.nuget-logo-image {
+  background-image: var(--nuget-logo-background-image);
+  background-repeat: no-repeat;
+  width: 94px;
+  height: 29px;
+  background-size: auto;
+  background-size: 94px 29px;
+}
+
+.home-link {
+  display: block;
+
+  &:focus-within {
+    outline: 4px solid var(--neutralStrokeFocus2Rest);
+    border-radius: 4px;
+  }
+}
+
+.nuget-logo-footer {
+  background-image: var(--nuget-logo-background-image);
+  background-repeat: no-repeat;
+  width: 184px;
+  height: 57px;
+  background-size: auto;
+  background-size: 184px 57px;
+}
+
+h1 {
+  color: var(--neutralForeground1Rest, @jumbotron-heading-color);
+
+  /* Web/Large Title */
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 52px; /* 130% */
+}
+
+h2 {
+  color: var(--neutralForeground1Rest);
+  display: flex;
+
+  /* Web/Title 1 */
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 40px; /* 125% */
+}
+
+p {
+  color: var(--neutralForeground1Rest);
+
+  /* Web/Body 2 */
+  font-size: 16px;
+  font-weight: 400;
+}
+
+label {
+  color: var(--neutralForeground1Rest);
+}
+
+.home-icons {
+  width: fit-content;
+  margin: auto;
+  padding: 60px;
+  border-radius: 300px;
+  background: var(--gradients-light-theme-blue-purple-primary, linear-gradient(129deg, #0B6CFF 14.05%, #512BD4 89.3%));
+
+  .open-book {
+    background-image: url('../img/book-open-icon.svg');
+  }
+}
+
+body {
+  display: table;
+  background: var(--neutralBackground2Rest);
+
+  h1, h2, h3, p {
+    margin-bottom: @default-margin-bottom;
+  }
+
+  h2, h3 {
+    margin-top: 40px;
+  }
+}
+
+#autocomplete-results-container {
+  position: absolute;
+  z-index: 1;
+  background-color: var(--neutralBackground2Rest);
+  border: 1px solid var(--neutralStroke1Rest);
+  display: none;
+  left: 0;
+  right: 0;
+  margin-left: floor((@grid-gutter-width / 2));
+  margin-right: floor((@grid-gutter-width / 2));
+
+  .autocomplete-row-data {
+    padding-top:2px;
+    padding-bottom:2px;
+    color:@text-color;
+
+    :focus {
+      background-color: @input-border-focus;
+    }
+  }
+
+  .autocomplete-row-id {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .autocomplete-row-owners {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.form-inline-empty {
+  display: inline-block;
+}
+
+.footer {
+  background-color: transparent;
+  color: var(--neutralForeground1Rest);
+  font-size: 1em;
+  display: table-row;
+  height: 1px;
+
+  span {
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 28px;
+  }
+
+  .footer-heading {
+    margin-bottom: 11px;
+
+    a {
+      color: var(--neutralForeground1Rest);
+
+      &:hover {
+        color: var(--neutralForeground1Hover);
+        text-decoration: underline;
+      }
+
+      &:focus {
+        outline: 3px solid var(--neutralStrokeFocus2Rest);
+        outline-offset: 2px;
+        border-radius: 4px;
+      }
+    }
+  }
+
+  .container {
+    margin-top: 50px;
+    margin-bottom: 50px;
+
+    background-color: transparent;
+  }
+
+  .footer-release-info a {
+    color: var(--neutralForeground2LinkRest);
+    text-decoration: underline;
+
+    &:hover {
+      color: var(--neutralForeground2LinkHover);
+    }
+
+    &:focus {
+      outline: 3px solid var(--neutralStrokeFocus2Rest);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+  }
+
+  .footer-release-info {
+    font-size: 0.85em;
+    margin-top: 20px;
+  }
+
+  @media (min-width: @screen-md-min) {
+    .footer-dotnet-foundation-logo {
+      text-align: right;
+    }
+
+    .footer-release-info {
+      padding-left: 0;
+    }
+  }
+}
+
+.row-gap {
+  margin-top: 50px;
+}
+
+.search-container {
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+.main-container {
+  padding-bottom: 75px;
+  height: auto;
+
+  a[href] {
+    &:focus {
+      outline: solid 2px;
+      outline-offset: 1px;
+    }
+  }
+}
+
+.navbar-logo {
+  margin: 8px 20px 0 0;
+}
+
+.dropdown-menu {
+  padding-top: (@padding-large-vertical * 2);
+  padding-bottom: (@padding-large-vertical * 2);
+
+  .dropdown-profile {
+    @media (max-width: @grid-float-breakpoint-max) {
+      padding-top: 5px;
+    }
+
+    .dropdown-username {
+      font-size: @font-size-large;
+    }
+
+    .dropdown-email {
+      font-size: @font-size-small;
+    }
+  }
+}
+
+.btn-search {
+  height: 36px;
+}
+
+.icon-link, .icon-text {
+  .ms-Icon {
+    position: relative;
+    top: 2px;
+  }
+}
+
+.icon-link:hover, .icon-link:focus {
+  text-decoration: none;
+
+  span {
+    text-decoration: underline;
+  }
+}
+
+.dependency-groups {
+  h4 {
+    line-height: 1.4;
+
+    > span {
+      border-bottom: 1px solid var(--neutralForeground1Rest);
+      margin-bottom: 3px;
+      text-decoration: none;
+    }
+  }
+}
+
+.dependency-group {
+
+  li span {
+    color: var(--neutralForeground1Rest);
+  }
+}
+
+.borderless {
+  > tbody {
+    > tr {
+      > td {
+        border: none;
+      }
+    }
+  }
+}
+
+.no-clickonce {
+  display: none;
+}
+
+.tag {
+  color: var(--brandForeground2Rest);
+  background: var(--brandBackground2Rest);
+  border-radius: 4px;
+  padding: 2px 10px;
+  line-height: 2em;
+  margin: 0 2px;
+
+  &:hover,
+  &:focus {
+    color: var(--brandForeground1Hover);
+  }
+}
+
+.banner {
+  padding-bottom: 10px;
+  padding-top: 5px;
+  color: var(--neutralForegroundStaticRest);
+
+  span {
+    font-size: 1.25em;
+    line-height: 1.75em;
+  }
+
+  .ms-Icon {
+    position: relative;
+    top: 2px;
+  }
+
+  a {
+    color: var(--brandForegroundLinkRest);
+    text-decoration: underline;
+  }
+
+  a:hover, a:focus {
+    color: var(--brandForegroundLinkHover)
+  }
+
+  &.banner-bright {
+    background: yellow;
+  }
+
+  &.banner-notice {
+    background: @alert-info-bg;
+  }
+
+  &.banner-info {
+    background: @info-bg;
+  }
+}
+
+.alert {
+  a {
+    color: var(--brandForegroundLinkRest);
+
+    &:hover,
+    &:focus {
+      color: var(--brandForegroundLinkHover);
+    }
+  }
+}
+
+.row-checkbox-label {
+  display: flex;
+  gap: 10px;
+}
+
+.alert-transient {
+  .alert {
+    margin: 0;
+    padding: 10px;
+  }
+}
+
+a {
+  color: var(--brandForegroundLinkRest);
+}
+
+.alert-transient-jumbotron {
+  background: transparent;
+}
+
+.ms-Icon-ul {
+  margin-left: 24px;
+
+  li {
+    position: relative;
+
+    i.ms-Icon {
+      position: absolute;
+      left: -24px;
+    }
+  }
+}
+
+h2, h3 {
+  .ms-Icon {
+    font-size: 0.6em;
+    position: relative;
+    top: -2px;
+  }
+
+  a, a:hover, a:focus, a:active {
+    color: var(--neutralForeground1Rest);
+    text-decoration: none;
+  }
+}
+
+@media screen and (max-width: @screen-sm) {
+  .container {
+    // Bootstrap doesn't set the container width when the screen is xs.
+    // This works fine when there are no elements in the container that are wider than the viewport,
+    // however, if there are elements in the container that are wider than the viewport,
+    // their overflow properties will not work properly because they are not bound by the size of the container.
+    // To fix this, we need to set the container width to be the width of the viewport minus the row margin on xs screens.
+    // This way, those elements that are larger than the viewport are properly bound by the size of the container and overflow properly.
+    // 2020.10.27: We actually need to set it slightly smaller than the row margin as a horizontal scrollbar appears at xs when exactly matched.
+    width: calc(100vw - 20px);
+  }
+
+  .navbar-toggle {
+    margin-right: 0;
+  }
+
+  img.package-icon {
+    max-width: 60px;
+    max-height: 60px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+    .hidden-tiny {
+        display: none;
+    }
+}
+
+img.package-icon {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+img.reserved-indicator-icon {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.package-list {
+  margin-top: 8px;
+  margin-bottom: 8px;
+  padding-left: 0;
+  line-height: @package-list-line-height;
+  color: var(--neutralForeground1Rest);
+
+  i {
+    color: var(--neutralForeground3Rest);
+  }
+
+  li {
+    list-style: none;
+    display: list-item;
+
+    a {
+      &:focus {
+        outline: solid 0.25px;
+        outline-offset: 0;
+      }
+    }
+  }
+
+  li.package-warning-indicators {
+    display: block;
+    overflow-y: visible;
+    margin-bottom: 5px;
+    font-size: 14px;
+  }
+
+  li.package-tfm-badges {
+    display: block;
+    overflow-y: visible;
+
+    .framework-badges {
+      margin-bottom: 2px;
+
+      .framework-badge-computed {
+        color: var(--brandForeground2Rest);
+        border-radius: 4px;
+        border: 1px solid var(--transparentStrokeRest);
+        height: 24px;
+      }
+
+      .framework-badge-asset {
+        align-items: normal;
+        display: inline-flex;
+        color: var(--neutralForegroundOnBrandRest);
+        border-radius: 4px;
+        border: 1px solid var(--transparentStrokeRest);
+        height: 24px;
+      }
+
+      @media (max-width: @screen-sm-min) {
+        a + a {
+          margin-bottom: 4px;
+        }
+      }
+    }
+  }
+
+  @media (min-width: @screen-sm-min) {
+    li {
+      display: inline-block;
+      line-height: @package-list-line-height;
+      max-height: (@package-list-line-height * 5 + 1px);
+      overflow-y: hidden;
+      padding-right: @padding-small-horizontal;
+    }
+
+    li.package-tags {
+      display: block;
+      overflow-y: visible;
+    }
+  }
+}
+
+.package-title-text {
+  margin-bottom: 0;
+}
+
+// Make the hamburger button visible on high contrast.
+.icon-bar {
+  border: 1px solid #fff;
+}
+
+.disabled {
+  pointer-events: none;
+  opacity: 0.75;
+}
+
+.radio, .checkbox {
+  .label-sibling {
+    margin-left: 20px;
+  }
+}
+
+.break-word {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: normal;
+  word-break: break-word;
+}
+
+.showOnFocus {
+  display: block;
+  line-height:0;
+  height: 0;
+  overflow: hidden;
+  color: var(--neutralForeground1Rest);
+}
+
+.showOnFocus:focus {
+  line-height:2em;
+  height: 2em;
+  color: var(--neutralForeground1Rest);
+}
+
+.breadcrumb-title {
+  margin-bottom: 0px;
+
+  a {
+    display: inline-block;
+  }
+}
+
+.breadcrumb-divider {
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+.breadcrumb-menu {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 33px;
+
+  h1 {
+    margin-top: 0px;
+  }
+}
+
+.page-account-settings, .page-manage-organizations {
+  .small-fingerprint {
+    font-size: 75%;
+  }
+}
+
+.sortable {
+	cursor: pointer;
+}
+
+.form-group label.required::after {
+  color: var(--statusDangerStroke2Rest);
+  content: " *";
+}
+
+.sign-in-link a,
+.sign-in-link a:hover,
+.sign-in-link a:focus,
+.sign-in-link a:active {
+    color: var(--brandForegroundLinkRest);
+}
+
+.sign-in-link a:hover,
+.sign-in-link a:focus {
+    text-decoration: underline;
+}
+
+// Workaround. See https://github.com/NuGet/NuGetGallery/issues/8264
+@media (max-width: 767.9px) {
+    .hidden-xs {
+        display: none !important;
+    }
+}
+
+// Theme Definition
+html {
+  height: 100%;
+  scrollbar-gutter: stable;
+}
+
+body:has(.page-home) {
+  background: var(--body-background-color);
+}
+
+body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  color: var(--neutralForeground1Rest);
+}
+
+/* For tooltip */
+.tooltip-target {
+  position: relative;
+  text-decoration: none;
+  color: var(--brandForegroundLinkRest);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--brandForegroundLinkHover);
+  }
+
+  &.tooltip-icon--black-icon {
+    color: var(--neutralForeground1Rest);
+  }
+}
+
+.tooltip-wrapper.popover {
+  min-width: 276px;
+  position: absolute;
+  transform: translateY(-50%);
+  top: calc(50%);
+}
+
+.tooltip-wrapper.popover.tooltip-with-icon {
+  top: calc(50%);
+}
+
+.tooltip-block {
+  position: relative;
+  color: var(--neutralForeground1Rest);
+
+  .popover-content {
+    display: block;
+  }
+
+  .popover {
+    left: -9999px;
+    display: inline-block;
+  }
+  .popover.show {
+    left: 0;
+  }
+}
+
+.form-horizontal span.text-warning-brand {
+    color: var(--statusDangerForeground3Rest);
+    font-weight: bold;
+}
+
+.form-horizontal span.help-text-brand {
+    color: var(--neutralForeground2Rest);
+    font-size: 16px;
+    line-height: 2;
+    margin-top: 1.5rem;
+}

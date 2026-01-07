@@ -1,0 +1,178 @@
+﻿@model NuGetGallery.Areas.Admin.Models.RevokeApiKeysRequest
+@{
+    ViewBag.Title = "Revoke API Keys";
+}
+@ViewHelpers.AjaxAntiForgeryToken(Html)
+
+<section role="main" class="container main-container">
+    <h2>Verify API Keys</h2>
+    <p class="text-muted">
+        Please follow the format as below: <br />
+        {"ApiKey":"oy2apikey1","LeakedUrl":"https://leakedUrl1","RevocationSource":"GitHub"} <br />
+        {"ApiKey":"oy2apikey2","LeakedUrl":"https://leakedUrl2","RevocationSource":"GitHub"}
+    </p>
+    <form>
+        <textarea class="form-control textarea-brand" placeholder="Verify API keys to revoke" autocomplete="off" autofocus rows="5" data-bind="value: verifyQuery"></textarea><br />
+        <input type="button" class="btn btn-brand-secondary" value="Verify" data-bind="click: verify" /><br />
+    </form>
+    <div style="display: none" data-bind="visible: Error">
+        @ViewHelpers.AlertDanger(@<text><span data-bind="html: Error"></span></text>)
+    </div>
+    @using (Html.BeginForm("Revoke", "ApiKeys", new { area = "Admin" }, FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+        <table class="table break-word" style="display: none" data-bind="visible: verifiedResults().length > 0" aria-label="API Keys">
+            <thead>
+                <tr>
+                    <th class="col-sm-1">
+                        <input type="checkbox" data-bind="visible: findAnyRevocableApiKeys, click: toggleSelectAllRevocableApiKeys, checked: selectAllRevocableApiKeys" />
+                    </th>
+                    <th class="col-sm-5">Api Key</th>
+                    <th class="col-sm-6">Information</th>
+                </tr>
+            </thead>
+            <tbody data-bind="foreach: verifiedResults">
+                <tr>
+                    <td class="col-sm-1" style="vertical-align: middle">
+                        <input type="checkbox" class="brand-checkbox" name="SelectedApiKeys" data-bind="visible: IsRevocable, checked: Selected, value: ko.toJSON($data)" />
+                    </td>
+                    <td class="col-sm-5" style="vertical-align: middle">
+                        <span data-bind="text: ApiKey"></span>
+                    </td>
+                    <td class="col-sm-6" style="vertical-align: middle">
+                        <!-- ko if: ApiKeyViewModel -->
+                        <span data-bind="visible: ApiKeyViewModel.Type">
+                            <code>Type:</code> <span data-bind="text: ApiKeyViewModel.Type"></span><br />
+                        </span>
+                        <span data-bind="visible: ApiKeyViewModel.Owner">
+                            <code>Owner:</code> <a data-bind="text: ApiKeyViewModel.Owner, attr: { href: $parent.generateProfileUrl(ApiKeyViewModel.Owner) }"></a><br />
+                        </span>
+                        <span>
+                            <code>Status:</code>
+                            <!-- ko if: ApiKeyViewModel.HasExpired -->
+                            Expired <br />
+                            <!-- /ko -->
+                            <!-- ko ifnot: ApiKeyViewModel.HasExpired -->
+                            <!-- ko if: ApiKeyViewModel.Expires -->
+                            Expires <span data-bind="text: moment(ApiKeyViewModel.Expires).fromNow()"></span><br />
+                            <!-- /ko -->
+                            <!-- ko ifnot: ApiKeyViewModel.Expires -->
+                            Never expires<br />
+                            <!-- /ko -->
+                            <!-- /ko -->
+                        </span>
+                        <span data-bind="visible: ApiKeyViewModel.Description">
+                            <code>Description:</code> <span data-bind="text: ApiKeyViewModel.Description"></span><br />
+                        </span>
+                        <!-- ko if: LeakedUrl -->
+                        <code>Leaked Url:</code> <a data-bind="attr: { href: LeakedUrl }">Link</a><br />
+                        <!-- /ko -->
+                        <!-- ko if: !IsRevocable && RevocationSource  -->
+                        <code>Revocation Source:</code> <span data-bind="text: RevocationSource"></span><br />
+                        <!-- /ko -->
+                        <!-- /ko -->
+                        <!-- ko ifnot: ApiKeyViewModel -->
+                        Not Found
+                        <!-- /ko -->
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="form-group" style="display: none" data-bind="visible: AreAnyRevocableApiKeysSelected">
+            <hr />
+            <p>
+                This will expire and revoke the selected API keys, and send the emails to notify customers!
+            </p>
+            <hr />
+            <input type="submit" class="btn btn-brand-danger form-control" value="I understand the consequences, revoke the API keys" />
+        </div>
+    }
+</section>
+
+@section BottomScripts {
+    <script>
+        $(document).ready(function () {
+            var viewModel = function () {
+                var $self = this;
+
+                this.verifyQuery = ko.observable('');
+                this.verifiedResults = ko.observableArray([]);
+                this.selectAllRevocableApiKeys = ko.observable(false);
+                this.Error = ko.observable(null);
+
+                this.verify = function () {
+                    $self.verifiedResults.removeAll();
+                    $self.selectAllRevocableApiKeys(false);
+                    $self.Error(null);
+
+                    $.ajax({
+                        url: '@Url.Action("Verify", "ApiKeys", new {area = "Admin"})',
+                        cache: false,
+                        dataType: 'json',
+                        type: 'POST',
+                        data: window.nuget.addAjaxAntiForgeryToken({ verifyQuery: $self.verifyQuery() }),
+                        success: function(data) {
+                            for (var i = 0; i < data.length; i++) {
+                                data[i].Selected = ko.observable(false);
+                            }
+                            $self.verifiedResults(data);
+                        }
+                    })
+                    .fail(function(jqXhr, textStatus, errorThrown) {
+                        var error = "Unknown error when verifying the API keys!";
+                        if (jqXhr.responseJSON) {
+                            error = jqXhr.responseJSON;
+                        }
+                        $self.Error(error);
+                    });
+                };
+
+                this.generateProfileUrl = function (u) {
+                    return '/profiles/' + u;
+                };
+
+                this.findAnyRevocableApiKeys = ko.pureComputed(function () {
+                    var results = $self.verifiedResults();
+                    if (!results || results.length === 0) {
+                        return false;
+                    }
+
+                    for (var i = 0; i < results.length; i++) {
+                        if (results[i].IsRevocable) {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                });
+
+                this.AreAnyRevocableApiKeysSelected = ko.computed(function() {
+                    var results = $self.verifiedResults();
+                    for (var i = 0; i < results.length; i++) {
+                        if (results[i].Selected()) {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                });
+
+                this.toggleSelectAllRevocableApiKeys = function() {
+                    $self.selectAllRevocableApiKeys(!$self.selectAllRevocableApiKeys());
+                    return true;
+                };
+
+                this.selectAllRevocableApiKeys.subscribe(function() {
+                    var state = $self.selectAllRevocableApiKeys();
+                    ko.utils.arrayForEach($self.verifiedResults(), function (result) {
+                        if (result.IsRevocable) {
+                            result.Selected(state);
+                        }
+                    });
+                });
+            };
+
+            ko.applyBindings(new viewModel(), $('.main-container').get(0));
+        });
+    </script>
+}

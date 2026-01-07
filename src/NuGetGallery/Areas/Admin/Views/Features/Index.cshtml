@@ -1,0 +1,168 @@
+﻿@model FeatureFlagsViewModel
+@{
+    ViewBag.Title = "Feature Flags";
+}
+
+<section role="main" class="container main-container page-revalidation">
+    <h1>Feature flags</h1>
+
+    @if (!Model.TimeSinceLastRefresh.HasValue)
+    {
+        @ViewHelpers.AlertWarning(
+            @<text>
+                The feature flags haven't loaded yet. Check the logs for errors.
+            </text>)
+    }
+    else if (Model.IsOutdated)
+    {
+        @ViewHelpers.AlertWarning(
+            @<text>
+                The feature flags were last cached @Math.Round(Model.TimeSinceLastRefresh.Value.TotalSeconds) seconds ago
+                but should refresh every @Model.RefreshInterval.TotalSeconds seconds. Check the logs for errors.
+            </text>)
+    }
+    else
+    {
+        <p>
+            The feature flags were last cached @Math.Round(Model.TimeSinceLastRefresh.Value.TotalSeconds) seconds ago
+            and refresh every @Model.RefreshInterval.TotalSeconds seconds.
+        </p>
+    }
+
+    <div class="form-group danger-zone">
+        @ViewHelpers.Section(
+            this,
+            "features-expander",
+            @<text>Features</text>,
+            @<text><p>View and edit features.</p></text>,
+            @<text>
+                <table class="table" aria-label="Features">
+                    <tr>
+                        <th>Name</th>
+                        <th>Current Status</th>
+                        <th>Update Status</th>
+                        <th>Delete</th>
+                    </tr>
+                    <tbody>
+                        @foreach (var feature in Model.Features)
+                        {
+                            @Html.Partial("_EditFeature", new ModifyFeatureFlagsFeatureViewModel(feature, Model.ContentId))
+                        }
+                    </tbody>
+                </table>
+
+                @Html.Partial("_AddFeature", new ModifyFeatureFlagsFeatureViewModel { ContentId = Model.ContentId })
+            </text>,
+            expanded: true)
+        
+        @ViewHelpers.Section(
+            this,
+            "flights-expander",
+            @<text>Flights</text>,
+            @<text><p>View and edit flights.</p></text>,
+            @<text>
+                <table class="table" aria-label="Flights">
+                    <tr>
+                        <th>Name</th>
+                        <th>All</th>
+                        <th>Site Admins</th>
+                        <th>Accounts</th>
+                        <th>Domains</th>
+                        <th>Update</th>
+                        <th>Delete</th>
+                    </tr>
+                    <tbody>
+                        @foreach (var flight in Model.Flights)
+                        {
+                            @Html.Partial("_EditFlight", new ModifyFeatureFlagsFlightViewModel(flight, Model.ContentId))
+                        }
+                    </tbody>
+                </table>
+
+                @Html.Partial("_AddFlight", new ModifyFeatureFlagsFlightViewModel { ContentId = Model.ContentId })
+            </text>,
+            expanded: true)
+    </div>
+</section>
+
+@section BottomScripts
+{
+    <script type="text/html" id="flight-array">
+        <div class="form-group">
+            <h5 data-bind="text: name"></h5>
+
+            <!-- ko foreach: items -->
+            <input type="hidden" data-bind="value: $data, attr: { name: $parent.name + '[]' }" />
+            <!-- /ko -->
+
+            <ul data-bind="foreach: items">
+                <li>
+                    <span data-bind="text: $data"></span>
+                    <a class="icon-link" data-bind="click: $parent.remove.bind(this, $data)">
+                        <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="row-checkbox-label">
+                <input type="text" class="input-brand" data-bind="value: toAdd" />
+                <input type="submit" class="btn btn-brand" data-bind="click: add" value="Add" />
+            </div>
+        </div>
+    </script>
+    <script type="text/javascript">
+        function FormDeleteConfirmation(event, name, typeName) {
+            return confirm("Are you sure you would like to delete the " + typeName + " '" + name + "'?");
+        }
+
+        function FlightFormToggleAll(notAllId, submitId) {
+            var $notAll = $('#' + notAllId);
+            var isAll = $notAll.is(':visible');
+            $notAll.toggle();
+            
+            var $input = $notAll.find('input');
+            var $submit = $('#' + submitId);
+            var offsetClass = 'col-sm-offset-7';
+            if (isAll) {
+                $input.attr('disabled', true);
+                $submit.addClass(offsetClass);
+            } else {
+                $input.removeAttr('disabled');
+                $submit.removeClass(offsetClass);
+            }
+        }
+
+        function FlightArrayViewModel(name, initialItems) {
+            var self = this;
+
+            this.name = name;
+            this.items = ko.observableArray(initialItems);
+
+            this.toAdd = ko.observable();
+            this.add = function () {
+                if (self.toAdd()) {
+                    self.items.push(self.toAdd());
+                    self.toAdd('');
+                }
+            }
+
+            this.remove = function (value) {
+                self.items.remove(value);
+            }
+        }
+
+        $(function () {
+            $('.flight-array').each(function (index, object) {
+                var $object = $(object);
+                var name = $object.attr('name');
+                var items = $object.attr('data-items').split(';');
+                items = ko.utils.arrayFilter(items, function (item) {
+                    return !!item
+                });
+                var model = new FlightArrayViewModel(name, items);
+                ko.applyBindings(model, object);
+            });
+        });
+    </script>
+    @ViewHelpers.SectionsScript(this)
+}

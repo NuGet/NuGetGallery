@@ -1,0 +1,60 @@
+NuGet Project at .NET Foundation
+Copyright 2015 .NET Foundation
+
+This product includes software developed at
+The .NET Foundation (http://www.dotnetfoundation.org).
+
+NuGet includes works distributed under the licenses listed below. The full text for most of the licenses listed below can be found in the LICENSE.txt file accompanying each work. The original copyright notices have been preserved within the respective files and or packages. Please refer to the specific files and/or packages for more detailed information about the authors, copyright notices, and licenses.
+
+jQuery 1.6.2
+----
+Website:      http://jquery.com/
+Copyright:    Copyright 2011, John Resig
+License:      MIT
+
+jQuery Validation 1.8.1
+----
+Website:      http://bassistance.de/jquery-plugins/jquery-plugin-validation/
+Copyright:    Copyright (c) 2006 - 2011 J�rn Zaefferer
+License:      MIT
+
+MigratorDotNet 0.9.0.28138
+----
+Website:      http://code.google.com/p/migratordotnet/
+Copyright:    Unknown
+License:      Mozilla Public License 1.1
+
+mvc-mini-profiler
+----
+Website:      http://code.google.com/p/mvc-mini-profiler/
+Copyright:    Unknown
+License:      Apache License 2.0
+
+Moq 3.1.4
+----- 
+Website:      http://code.google.com/p/moq/
+Copyright:    Copyright (c) 2010 Clarius Consulting, Manas Technology Solutions, InSTEDD
+License:      BSD
+
+Ninject 2.2.1.4
+----- 
+Website:      http://ninject.org/
+Copyright:    Copyright (c) 2010 Nate Kohari
+License:      Apache 2.0
+
+RouteMagic 1.1.1
+----
+Website:      http://routemagic.codeplex.com/
+Copyright:    Copyright (c) 2011 Phil Haack
+License:      Ms-PL
+
+MvcContrib (T4MVC)
+----
+Website:      http://mvccontrib.codeplex.com/wikipage?title=T4MVC
+Copyright:    Unknown
+License:      Apache v2
+
+CodeHaacks (MvcHaack.Ajax)
+----
+Website:      https://github.com/Haacked/CodeHaacks
+Copyright:    Copyright (c) 2011 Phil Haack

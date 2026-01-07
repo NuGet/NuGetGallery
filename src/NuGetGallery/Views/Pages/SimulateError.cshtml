@@ -1,0 +1,8 @@
+﻿@model SimulatedErrorType?
+
+<section role="main" class="container main-container">
+    @if (Model == SimulatedErrorType.ExceptionInView)
+    {
+        throw Model.Value.MapToException();
+    }
+</section>

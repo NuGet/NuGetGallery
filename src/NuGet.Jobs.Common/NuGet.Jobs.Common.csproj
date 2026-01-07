@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net472;netstandard2.1</TargetFrameworks>
+    <PackageVersion Condition="'$(PackageVersion)' == ''">$(JobsPackageVersion)</PackageVersion>
+    <RootNamespace>NuGet.Jobs</RootNamespace>
+    <Description>Common infrastructure for running the NuGetGallery back-end jobs.</Description>
+  </PropertyGroup>
+  
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+    <Compile Remove="Configuration\MessageServiceConfiguration.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" />
+    <PackageReference Include="Azure.Data.Tables" />
+    <PackageReference Include="Dapper.StrongName" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+    <PackageReference Include="System.Data.SqlClient" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <ProjectReference Include="..\NuGet.Services.Messaging.Email\NuGet.Services.Messaging.Email.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Services.Configuration\NuGet.Services.Configuration.csproj" />
+    <ProjectReference Include="..\NuGet.Services.FeatureFlags\NuGet.Services.FeatureFlags.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Logging\NuGet.Services.Logging.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Sql\NuGet.Services.Sql.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Storage\NuGet.Services.Storage.csproj" />
+    <ProjectReference Include="..\NuGetGallery.Core\NuGetGallery.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Strings.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Strings.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Strings.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

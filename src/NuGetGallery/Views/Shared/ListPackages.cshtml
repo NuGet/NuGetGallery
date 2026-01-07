@@ -1,0 +1,435 @@
+﻿@model PackageListViewModel
+@{
+    ViewBag.Title = String.IsNullOrWhiteSpace(Model.SearchTerm) ? "Packages" : "Packages matching " + Model.SearchTerm;
+    ViewBag.SortText = String.IsNullOrWhiteSpace(Model.SearchTerm) ? "recent installs" : "relevance";
+    ViewBag.Tab = "Packages";
+    ViewBag.BlockSearchEngineIndexing = !String.IsNullOrWhiteSpace(Model.SearchTerm) || Model.PageIndex != 0;
+    ViewBag.ShowSearchInNavbar = false;
+}
+
+@helper AddPackageFilterOption(string optionName, string optionValue, bool isDefault = false)
+{
+    @AddRadioGroupOption("Package Type", "packagetype", optionName, optionValue, Model.PackageType, isDefault);
+}
+
+@helper AddRadioGroupOption(string ariaSectionLabel, string radioGroupName, string optionName, string optionValue, string optionCompareValue, bool isDefault = false)
+{
+    <div style="display: flex;">
+        <label aria-label="@(ariaSectionLabel): @optionName" class="brand-radio">
+            <input type="radio" name="@radioGroupName" @(string.Equals(optionValue, optionCompareValue, StringComparison.OrdinalIgnoreCase) || (isDefault && optionCompareValue == null) ? "checked" : "") value="@optionValue">
+            <span>@optionName</span>
+        </label>
+        @if (optionValue == "mcpserver")
+        {
+            <a href="https://aka.ms/nuget/mcp/concepts" class="mcp-learn-more"
+               aria-label="Learn more about NuGet MCP server packages">
+                Learn more
+            </a>
+        }
+    </div>
+}
+
+@helper AddFrameworkGroupOption(string frameworkShortName, string frameworkDisplayName, List<string> tfms)
+{
+    <div class="frameworkGroup">
+        <div class="frameworkGroupRow">
+            <button type="button" class="btn-brand-transparent collapsible" tab="@(frameworkShortName)" tabindex="0"
+                    aria-label="shows and hides TFM filters for @(frameworkDisplayName)" aria-expanded="false" aria-controls="@(frameworkShortName)tab">
+                <i class="ms-Icon ms-Icon--ChevronRight" id="@(frameworkShortName)button"></i>
+            </button>
+            <label class="brand-checkbox">
+                <input type="checkbox" id="@(frameworkShortName)" class="framework">
+                <span>@(frameworkDisplayName)
+                @if (frameworkDisplayName == ".NET")
+                {
+                    <a class="tooltip-target" href="javascript:void(0)" role="button" aria-labelledby="dotnetframework-tooltip" style="vertical-align: middle">
+                        <i class="ms-Icon ms-Icon--Info"></i>
+                        <span class="tooltip-block" role="tooltip" id="dotnetframework-tooltip">
+                            <span class="tooltip-wrapper tooltip-with-icon popover right">
+                                <span class="arrow"></span>
+                                <span class="popover-content">
+                                    Selecting .NET will show you packages compatible with any of the individual frameworks within the .NET generation.
+                                </span>
+                            </span>
+                        </span>
+                    </a>
+                }
+                </span>
+            </label>
+        </div>
+        <div class="tfmTab" id="@(frameworkShortName)tab">
+            <ul>
+                @foreach (var tfm in tfms)
+                {
+                    <li>
+                        <label class="brand-checkbox">
+                            <input type="checkbox" id="@(tfm)" class="tfm" parent="@(frameworkShortName)">
+                            <span>@(tfm)</span>
+                        </label>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+}
+
+
+@* IMPORTANT. If you modify this search form then update searchFilterParamNames in commons.js *@
+<form name="search" id="search-form" method="get" class="clearfix advanced-search-panel">
+    <div id="search-bar-list-packages" class="navbar navbar-inverse">
+        <div class="container search-container" aria-label="Package search bar">
+            <div class="row">
+                <div class="col-sm-12">
+                    @Html.Partial("_SearchBar")
+                    @Html.Partial("_AutocompleteTemplate")
+                </div>
+            </div>
+        </div>
+    </div>
+    <section role="main" class="container main-container page-list-packages">
+        <div class="row clearfix no-margin">
+            <div class="@(Model.IsAdvancedSearchFlightEnabled ? "col-md-3" : "") no-padding" id="filters-column">
+                @if (Model.IsAdvancedSearchFlightEnabled)
+                {
+                    <div class="toggle-advanced-search-panel">
+                        <span>Advanced search filters</span>
+                        <button class="advanced-search-toggle-button btn-brand-transparent" aria-label="Toggles search filters on narrow screens" aria-expanded="false" aria-controls="advancedSearchToggleButton" tabindex="0" id="advancedSearchToggleButton" type="button">
+                            <i class="ms-Icon ms-Icon--ChevronDown" id="advancedSearchToggleChevron"></i>
+                        </button>
+                    </div>
+                    <div class="row clearfix advanced-search-panel" id="advancedSearchPanel">
+                        <input type="text" hidden id="frameworks" name="frameworks" value="@Model.Frameworks">
+                        <input type="text" hidden id="tfms" name="tfms" value="@Model.Tfms">
+                        @if (Model.IsFrameworkFilteringEnabled)
+                        {
+                            <div>
+                                <fieldset id="frameworkfilters">
+                                    <legend>
+                                        Frameworks
+                                        <a class="tooltip-target" href="javascript:void(0)" role="button" aria-labelledby="frameworksfiltersid">
+                                            <i class="framework-filter-info-icon ms-Icon ms-Icon--Info"></i>
+                                            <span class="tooltip-block" role="tooltip" id="frameworksfiltersid">
+                                                <span class="tooltip-wrapper tooltip-with-icon popover right">
+                                                    <span class="arrow"></span>
+                                                    <span class="popover-content">
+                                                        @NuGetGallery.Strings.FrameworkFilters_Tooltip
+                                                    </span>
+                                                </span>
+                                            </span>
+                                        </a>
+                                        <a href="@(Model.FrameworksFilteringInformationLink)" class="frameworkfilters-info"
+                                           aria-label="Learn more about advanced filtering and sorting">
+                                            Learn more
+                                        </a>
+                                    </legend>
+                                    @if (Model.IsAdvancedFrameworkFilteringEnabled)
+                                    {
+                                        <div class="computed-frameworks-option">
+                                            <p>
+                                                Include compatible frameworks
+                                            </p>
+                                            <label for="computed-frameworks-checkbox" class="brand-checkbox" aria-label="Include computed compatible frameworks when filtering for packages.">
+                                                <input type="checkbox" id="computed-frameworks-checkbox" checked="@Model.IncludeComputedFrameworks">
+                                            </label>
+                                            <input type="hidden" id="includeComputedFrameworks" name="includeComputedFrameworks" value="@Model.IncludeComputedFrameworks.ToString().ToLower()">
+                                        </div>
+                                        <div class="framework-filter-mode-option">
+                                            <p>
+                                                Framework Filter Mode
+                                                <a class="tooltip-target" href="javascript:void(0)" role="button" aria-labelledby="frameworkfiltermodeid">
+                                                    <i class="frameworkfiltermode-info ms-Icon ms-Icon--Info"></i>
+                                                    <span class="tooltip-block" role="tooltip" id="frameworkfiltermodeid">
+                                                        <span class="tooltip-wrapper tooltip-with-icon popover right">
+                                                            <span class="arrow"></span>
+                                                            <span class="popover-content">
+                                                                Decides whether to show packages matching ALL of the selected Target Frameworks (TFMs), or ANY of them.
+                                                            </span>
+                                                        </span>
+                                                    </span>
+                                                </a>
+                                            </p>
+                                            <div class="toggle-switch-control">
+                                                <input type="radio" id="all-selector" name="frameworkFilterMode" value="all" tabindex="0" @(Model.FrameworkFilterMode == "any" ? "" : "checked") />
+                                                <label for="all-selector" aria-label="Show packages matching ALL of the selected Frameworks and TFMs.">ALL</label>
+                                                <input type="radio" id="any-selector" name="frameworkFilterMode" value="any" tabindex="0" @(Model.FrameworkFilterMode == "any" ? "checked" : "") />
+                                                <label for="any-selector" aria-label="Show packages matching ANY of the selected Frameworks or TFMs.">ANY</label>
+                                            </div>
+                                        </div>
+                                    }
+                                    @foreach (var framework in Model.FrameworkFilters.Values)
+                                    {
+                                        @AddFrameworkGroupOption(framework.ShortName, framework.DisplayName, framework.Tfms);
+                                    }
+                                </fieldset>
+                            </div>
+                        }
+                        @if (Model.PackageType != null && !Model.UiSupportedPackageTypes.ContainsKey(Model.PackageType))
+                        {
+                            <div class="row warning-panel">
+                                <div class="col-md-12 icon-text alert alert-warning">
+                                    <i class="ms-Icon ms-Icon--Info" aria-hidden="true"></i>
+                                    Filtering on unrecognized package type: @Model.PackageType
+                                </div>
+                            </div>
+                        }
+                        <div>
+                            <fieldset id="packagetype">
+                                <legend>Package type</legend>
+                                @foreach (var packageType in Model.UiSupportedPackageTypes)
+                                {
+                                    @AddPackageFilterOption(packageType.Value, packageType.Key, isDefault: packageType.Key == Model.DefaultPackageType)
+                                }
+                            </fieldset>
+                        </div>
+                        <div>
+                            <fieldset>
+                                <legend>Options</legend>
+                                <div class="prerel-option">
+                                    <label class="brand-checkbox" aria-label="Options: Include prerelease">
+                                        <input id="prerel-checkbox" type="checkbox" checked="@Model.IncludePrerelease">
+                                        <span>
+                                            Include prerelease
+                                        </span>
+                                    </label>
+                                </div>
+                            </fieldset>
+                        </div>
+                        <div class="row clearfix no-margin">
+                            <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 apply-btn">
+                                <input class="btn btn-brand form-control" type="submit" value="Apply">
+                            </div>
+                            <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 reset-btn">
+                                <input class="btn form-control btn-brand-transparent" type="button" value="Reset" id="reset-advanced-search">
+                            </div>
+                        </div>
+                        <input type="hidden" id="prerel" name="prerel" value="@Model.IncludePrerelease.ToString().ToLower()">
+                    </div>
+                }
+            </div>
+            <div class="@(Model.IsAdvancedSearchFlightEnabled ? "col-md-9" : "col-md-12")" id="results-column">
+                <div class="row">
+                    <div class="col-md-8">
+                        <h1 tabindex="0">
+                            @if (String.IsNullOrWhiteSpace(Model.SearchTerm))
+                            {
+                                if (Model.TotalCount == 1)
+                                {
+                                    <text>There is 1 package</text>
+                                }
+                                else
+                                {
+                                    <text>There are @Model.TotalCount.ToNuGetNumberString() packages</text>
+                                }
+                            }
+                            else
+                            {
+                                if (Model.TotalCount == 1)
+                                {
+                                    <text>1 package</text>
+                                }
+                                else
+                                {
+                                    <text>@Model.TotalCount.ToNuGetNumberString() packages</text>
+                                }
+
+                                <text>returned for @Html.BreakWord(Model.SearchTerm)</text>
+                            }
+                        </h1>
+                    </div>
+                    @if (Model.IsAdvancedSearchFlightEnabled)
+                    {
+                        <div class="sortby col-md-4">
+                            <label for="sortby" class="">Sort by</label>
+                            <select name="sortby" id="sortby" form="search-form" aria-label="sort package search results by" class="form-control select-brand">
+                                <option value="relevance" aria-label="Sort By: Relevance" @(Model.SortBy == "relevance" ? "selected" : "")>Relevance</option>
+                                <option value="totalDownloads-desc" aria-label="Sort By: Downloads" @(Model.SortBy == "totalDownloads-desc" ? "selected" : "")>Downloads</option>
+                                <option value="created-desc" aria-label="Sort By: Recently updated" @(Model.SortBy == "created-desc" ? "selected" : "")>Recently updated</option>
+                            </select>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="col-md-3">
+                            <a class="prerel-filter" href="?q=@Uri.EscapeDataString(Model.SearchTerm)@(Model.IncludePrerelease ? "&prerel=false" : "")">@(Model.IncludePrerelease ? "Hide" : "Show") prerelease</a>
+                        </div>
+                    }
+                </div>
+
+                @if (!Model.Items.Any())
+                {
+                    <div class="row">
+                        <div class="col-xs-12 clearfix">
+                            <div class="panel panel-default">
+                                <div class="panel-body">
+                                    NuGet package search works the same on nuget.org, from the NuGet CLI, and within the NuGet Package Manager extension in Visual Studio. <br />
+                                    Check out our <strong><a href="https://docs.microsoft.com/nuget/consume-packages/finding-and-choosing-packages#search-syntax">Search Syntax</a></strong>.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <ul class="list-packages">
+                    @{
+                        var itemIndex = Model.PageIndex * Model.PageSize;
+                        var eventName = Model.IsPreviewSearch ? "preview-search-selection" : "search-selection";
+                    }
+                    @foreach (var package in Model.Items)
+                    {
+                        @Html.Partial("_ListPackage", package, new ViewDataDictionary { { "itemIndex", itemIndex }, { "eventName", eventName } })
+                        itemIndex++;
+                    }
+                </ul>
+
+                <div class="row">
+                    <div class="col-xs-12 clearfix">
+                        @ViewHelpers.PreviousNextPager(Model.Pager)
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</form>
+
+@section bottomScripts {
+    <script type="text/javascript" nonce="@Html.GetCSPNonce()">
+    // Used to track how long the user waited before clicking a search selection.
+    var pageLoadTime = Date.now();
+
+    // Used to track how many selections were made on this page. Multiple selections can happen if the user opens
+    // a search selection in a new tab, instead of navigating away from this page.
+    var sincePageLoadCount = 0;
+    @{
+        var searchId = Guid.NewGuid().ToString();
+        var category = Model.IsPreviewSearch ? "preview-search-page" : "search-page";
+        var action = Model.IncludePrerelease ? "search-prerel" : "search-stable";
+
+        // Emit an event representing the search page and the page index. This make it easier for the search selection
+        // event to be correlated in Google Analytics.
+        <text>
+        window.nuget.sendAnalyticsEvent('@category', '@action', @Html.Raw(Json.Encode(Model.SearchTerm)), @Model.PageIndex);
+        window.nuget.sendMetric('BrowserSearchPage', @Model.PageIndex, {
+            SearchId: '@searchId',
+            SearchTerm: @Html.Raw(Json.Encode(Model.SearchTerm)),
+            IncludePrerelease: '@Model.IncludePrerelease',
+            PageIndex: @Model.PageIndex,
+            TotalCount: @Model.TotalCount,
+            IsPreviewSearch: '@Model.IsPreviewSearch',
+            Frameworks: '@Model.Frameworks',
+            Tfms: '@Model.Tfms',
+            IncludeComputedFrameworks: '@Model.IncludeComputedFrameworks',
+            FrameworkFilterMode: '@Model.FrameworkFilterMode',
+            PackageType: @Html.ToJson(Model.PackageType ?? string.Empty),
+            SortBy: @Html.ToJson(Model.SortBy)
+        });
+        </text>
+    }
+
+    $(function () {
+        var emitClickEvent = function () {
+            var $this = $(this);
+            var data = $this.data();
+            if ($this.attr('href') && data.track) {
+                if (data.clickSource == "PackageId") {
+                    window.nuget.sendMetric('BrowserSearchSelection', data.trackValue, {
+                        SearchId: '@searchId',
+                        SearchTerm: @Html.Raw(Json.Encode(Model.SearchTerm)),
+                        IncludePrerelease: '@Model.IncludePrerelease',
+                        PageIndex: @Model.PageIndex,
+                        TotalCount: @Model.TotalCount,
+                        ClickIndex: data.trackValue,
+                        ClickSource: data.clickSource,
+                        PackageId: data.packageId,
+                        PackageVersion: data.packageVersion,
+                        UseVersion: data.useVersion,
+                        SincePageLoadMs: Date.now() - pageLoadTime,
+                        SincePageLoadCount: sincePageLoadCount,
+                        IsPreviewSearch: '@Model.IsPreviewSearch',
+                        Frameworks: '@Model.Frameworks',
+                        Tfms: '@Model.Tfms',
+                        IncludeComputedFrameworks: '@Model.IncludeComputedFrameworks',
+                        FrameworkFilterMode: '@Model.FrameworkFilterMode',
+                        PackageType: @Html.ToJson(Model.PackageType ?? string.Empty),
+                        SortBy: @Html.ToJson(Model.SortBy)
+                    });
+                }
+                else if (data.clickSource == "Owner") {
+                    window.nuget.sendMetric('BrowserSearchSelection', data.trackValue, {
+                        SearchId: '@searchId',
+                        SearchTerm: @Html.Raw(Json.Encode(Model.SearchTerm)),
+                        IncludePrerelease: '@Model.IncludePrerelease',
+                        PageIndex: @Model.PageIndex,
+                        TotalCount: @Model.TotalCount,
+                        ClickIndex: data.trackValue,
+                        ClickSource: data.clickSource,
+                        PackageId: data.packageId,
+                        PackageVersion: data.packageVersion,
+                        UseVersion: data.useVersion,
+                        Owner: data.owner,
+                        SincePageLoadMs: Date.now() - pageLoadTime,
+                        SincePageLoadCount: sincePageLoadCount,
+                        IsPreviewSearch: '@Model.IsPreviewSearch',
+                        Frameworks: '@Model.Frameworks',
+                        Tfms: '@Model.Tfms',
+                        IncludeComputedFrameworks: '@Model.IncludeComputedFrameworks',
+                        FrameworkFilterMode: '@Model.FrameworkFilterMode',
+                        PackageType: @Html.ToJson(Model.PackageType ?? string.Empty),
+                        SortBy: @Html.ToJson(Model.SortBy)
+                    });
+                }
+                else if (data.clickSource == "FrameworkBadge") {
+                    window.nuget.sendMetric('BrowserSearchSelection', data.trackValue, {
+                        SearchId: '@searchId',
+                        SearchTerm: @Html.Raw(Json.Encode(Model.SearchTerm)),
+                        IncludePrerelease: '@Model.IncludePrerelease',
+                        PageIndex: @Model.PageIndex,
+                        TotalCount: @Model.TotalCount,
+                        ClickIndex: data.trackValue,
+                        ClickSource: data.clickSource,
+                        PackageId: data.packageId,
+                        PackageVersion: data.packageVersion,
+                        BadgeFramework: data.badgeFramework,
+                        BadgeIsComputed: data.badgeIsComputed,
+                        SincePageLoadMs: Date.now() - pageLoadTime,
+                        SincePageLoadCount: sincePageLoadCount,
+                        IsPreviewSearch: '@Model.IsPreviewSearch',
+                        Frameworks: '@Model.Frameworks',
+                        Tfms: '@Model.Tfms',
+                        IncludeComputedFrameworks: '@Model.IncludeComputedFrameworks',
+                        FrameworkFilterMode: '@Model.FrameworkFilterMode',
+                        PackageType: @Html.ToJson(Model.PackageType ?? string.Empty),
+                        SortBy: @Html.ToJson(Model.SortBy)
+                    });
+                }
+
+                sincePageLoadCount++;
+            }
+        };
+        $.each($('a[data-track]'), function () {
+            $(this).on('mouseup', function (e) {
+                if (e.which === 2) { // Middle-mouse click
+                    emitClickEvent.call(this, e);
+                }
+            });
+            $(this).on('click', function (e) {
+                emitClickEvent.call(this, e);
+            });
+        });
+    });
+
+    $('#prerel-checkbox').on('change', function (event) {
+        $('#prerel').val($(event.target).is(':checked'));
+    });
+
+    $('#computed-frameworks-checkbox').on('change', function (event) {
+        $('#includeComputedFrameworks').val($(event.target).is(':checked'));
+    });
+
+    $('#reset-advanced-search').on('click', function () {
+        window.nuget.resetSearchFilterParams();
+        location.href = '?q=@Uri.EscapeDataString(Model.SearchTerm)';
+    });
+    </script>
+
+    @Scripts.RenderFormat("<script src=\"{0}\" nonce='" + @Html.GetCSPNonce().ToString() + "'></script>", "~/Scripts/gallery/page-list-packages.min.js")
+}

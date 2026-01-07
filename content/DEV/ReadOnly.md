@@ -1,0 +1,1 @@
+﻿<div class="banner-warning">The site is undergoing maintenance and is in read-only mode. Follow <a href="http://twitter.com/nuget">@nuget</a> on Twitter for updates.</div>

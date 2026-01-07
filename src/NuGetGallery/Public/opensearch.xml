@@ -1,0 +1,10 @@
+<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/" xmlns:moz="http://www.mozilla.org/2006/browser/search/">
+  <ShortName>NuGet packages</ShortName>
+  <Description>Search NuGet packages</Description>
+  <Tags>nuget package component</Tags>
+  <Contact>support@nuget.org</Contact>
+  <Developer>The NuGet team</Developer>
+  <Url type="text/html" method="get" template="https://www.nuget.org/packages?q={searchTerms}"/>
+  <InputEncoding>UTF-8</InputEncoding>
+  <Image height="16" width="16" type="image/ico">https://www.nuget.org/favicon.ico</Image>
+</OpenSearchDescription>

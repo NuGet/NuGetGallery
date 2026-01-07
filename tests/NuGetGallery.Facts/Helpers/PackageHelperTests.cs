@@ -1,0 +1,477 @@
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using NuGet.Packaging;
+using NuGet.Services.Entities;
+using NuGetGallery.Packaging;
+using NuGetGallery.Services;
+using Xunit;
+
+namespace NuGetGallery.Helpers
+{
+    public class PackageHelperTests
+    {
+        [Theory]
+        [InlineData("http://nuget.org", false, true)]
+        [InlineData("http://nuget.org", true, false)]
+        [InlineData("https://nuget.org", false, true)]
+        [InlineData("https://nuget.org", true, true)]
+        [InlineData("git://nuget.org", true, false)]
+        [InlineData("git://nuget.org", false, false)]
+        [InlineData("not a url", false, false)]
+        public void ShouldRenderUrlTests(string url, bool secureOnly, bool shouldRender)
+        {
+            Assert.Equal(shouldRender, PackageHelper.ShouldRenderUrl(url, secureOnly: secureOnly));
+        }
+
+        [Theory]
+        [InlineData("http://nuget.org/", false, "https://nuget.org/", true)]
+        [InlineData("http://nuget.org/", true, "https://nuget.org/", true)]
+        [InlineData("https://nuget.org/", false, "https://nuget.org/", true)]
+        [InlineData("https://nuget.org/", true, "https://nuget.org/", true)]
+        [InlineData("http://nugettest.org/", false, "https://nugettest.org/", true)]
+        [InlineData("http://nugettest.org/", true, "https://nugettest.org/", true)]
+        [InlineData("https://nugettest.org/", false, "https://nugettest.org/", true)]
+        [InlineData("https://nugettest.org/", true, "https://nugettest.org/", true)]
+        [InlineData("http://www.github.com/", false, "https://www.github.com/", true)]
+        [InlineData("http://www.github.com/", true, "https://www.github.com/", true)]
+        [InlineData("https://www.github.com/", false, "https://www.github.com/", true)]
+        [InlineData("https://www.github.com/", true, "https://www.github.com/", true)]
+        [InlineData("http://fake.github.com/", false, "https://fake.github.com/", true)]
+        [InlineData("http://fake.github.com/", true, "https://fake.github.com/", true)]
+        [InlineData("https://fake.github.com/", false, "https://fake.github.com/", true)]
+        [InlineData("https://fake.github.com/", true, "https://fake.github.com/", true)]
+        [InlineData("http://github.com/", false, "https://github.com/", true)]
+        [InlineData("http://github.com/", true, "https://github.com/", true)]
+        [InlineData("https://github.com/", false, "https://github.com/", true)]
+        [InlineData("https://github.com/", true, "https://github.com/", true)]
+        [InlineData("http://fake.github.io/", false, "https://fake.github.io/", true)]
+        [InlineData("http://fake.github.io/", true, "https://fake.github.io/", true)]
+        [InlineData("https://fake.github.io/", false, "https://fake.github.io/", true)]
+        [InlineData("https://fake.github.io/", true, "https://fake.github.io/", true)]
+        [InlineData("http://codeplex.com/", false, "https://codeplex.com/", true)]
+        [InlineData("http://codeplex.com/", true, "https://codeplex.com/", true)]
+        [InlineData("https://codeplex.com/", false, "https://codeplex.com/", true)]
+        [InlineData("https://codeplex.com/", true, "https://codeplex.com/", true)]
+        [InlineData("http://microsoft.com/", false, "https://microsoft.com/", true)]
+        [InlineData("http://microsoft.com/", true, "https://microsoft.com/", true)]
+        [InlineData("https://microsoft.com/", false, "https://microsoft.com/", true)]
+        [InlineData("https://microsoft.com/", true, "https://microsoft.com/", true)]
+        [InlineData("http://asp.net/", false, "https://asp.net/", true)]
+        [InlineData("http://asp.net/", true, "https://asp.net/", true)]
+        [InlineData("https://asp.net/", false, "https://asp.net/", true)]
+        [InlineData("https://asp.net/", true, "https://asp.net/", true)]
+        [InlineData("http://msdn.com/", false, "https://msdn.com/", true)]
+        [InlineData("http://msdn.com/", true, "https://msdn.com/", true)]
+        [InlineData("https://msdn.com/", false, "https://msdn.com/", true)]
+        [InlineData("https://msdn.com/", true, "https://msdn.com/", true)]
+        [InlineData("http://aka.ms/", false, "https://aka.ms/", true)]
+        [InlineData("http://aka.ms/", true, "https://aka.ms/", true)]
+        [InlineData("https://aka.ms/", false, "https://aka.ms/", true)]
+        [InlineData("https://aka.ms/", true, "https://aka.ms/", true)]
+        [InlineData("http://www.mono-project.com/", false, "https://www.mono-project.com/", true)]
+        [InlineData("http://www.mono-project.com/", true, "https://www.mono-project.com/", true)]
+        [InlineData("https://www.mono-project.com/", false, "https://www.mono-project.com/", true)]
+        [InlineData("https://www.mono-project.com/", true, "https://www.mono-project.com/", true)]
+        [InlineData("http://www.odata.org/", false, "https://www.odata.org/", true)]
+        [InlineData("http://www.odata.org/", true, "https://www.odata.org/", true)]
+        [InlineData("https://www.odata.org/", false, "https://www.odata.org/", true)]
+        [InlineData("https://www.odata.org/", true, "https://www.odata.org/", true)]
+        [InlineData("git://nuget.org", true, null, false)]
+        [InlineData("git://nuget.org", false, null, false)]
+        public void PrepareUrlForRenderingTest(string input, bool alwaysRewriteHttp, string expectedOutput, bool expectConversion)
+        {
+            Assert.Equal(expectConversion, PackageHelper.TryPrepareUrlForRendering(input, out string readyUriString, alwaysRewriteHttp));
+            Assert.Equal(expectedOutput, readyUriString);
+        }
+
+        public class TheGetSelectListTextMethod
+        {
+            public const string Version = "1.0.1+build";
+
+            [Theory]
+            [InlineData(false, false, false, false, Version)]
+            [InlineData(false, false, false, true, Version + " (Deprecated - Other)")]
+            [InlineData(false, true, false, false, Version + " (Deprecated - Legacy)")]
+            [InlineData(false, true, false, true, Version + " (Deprecated - Legacy, Other)")]
+            [InlineData(false, false, true, false, Version + " (Deprecated - Critical Bugs)")]
+            [InlineData(false, false, true, true, Version + " (Deprecated - Critical Bugs, Other)")]
+            [InlineData(false, true, true, false, Version + " (Deprecated - Legacy, Critical Bugs)")]
+            [InlineData(false, true, true, true, Version + " (Deprecated - Legacy, Critical Bugs, Other)")]
+            [InlineData(true, false, false, false, Version + " (Latest)")]
+            [InlineData(true, false, false, true, Version + " (Latest, Deprecated - Other)")]
+            [InlineData(true, true, false, false, Version + " (Latest, Deprecated - Legacy)")]
+            [InlineData(true, true, false, true, Version + " (Latest, Deprecated - Legacy, Other)")]
+            [InlineData(true, false, true, false, Version + " (Latest, Deprecated - Critical Bugs)")]
+            [InlineData(true, false, true, true, Version + " (Latest, Deprecated - Critical Bugs, Other)")]
+            [InlineData(true, true, true, false, Version + " (Latest, Deprecated - Legacy, Critical Bugs)")]
+            [InlineData(true, true, true, true, Version + " (Latest, Deprecated - Legacy, Critical Bugs, Other)")]
+            public void ReturnsCorrectSelectListText(bool latest, bool isLegacy, bool hasCriticalBugs, bool isOther, string expected)
+            {
+                var package = new Package
+                {
+                    Version = Version,
+                    IsLatestSemVer2 = latest
+                };
+
+                if (isLegacy || hasCriticalBugs || isOther)
+                {
+                    var status = PackageDeprecationStatus.NotDeprecated;
+
+                    if (isLegacy)
+                    {
+                        status |= PackageDeprecationStatus.Legacy;
+                    }
+
+                    if (hasCriticalBugs)
+                    {
+                        status |= PackageDeprecationStatus.CriticalBugs;
+                    }
+
+                    if (isOther)
+                    {
+                        status |= PackageDeprecationStatus.Other;
+                    }
+
+                    var deprecation = new PackageDeprecation
+                    {
+                        Status = status
+                    };
+
+                    package.Deprecations.Add(deprecation);
+                }
+
+                Assert.Equal(expected, PackageHelper.GetSelectListText(package));
+            }
+        }
+
+        public class TheValidateNuGetPackageMetadataMethod
+        {
+            [Fact]
+            public void ChecksIdVersionCombinedLength()
+            {
+                var metadata = new PackageMetadata(
+                    new Dictionary<string, string>
+                    {
+                        { "id", "someidthatis128characterslong.padding.padding.padding.padding.padding.padding.padding.padding.padding.padding.padding.padding.a" },
+                        { "version", "1.2.3-versionthatis64characterslong-padding-padding-padding-pad" },
+                        { "description", "test description" }
+                    },
+                    Enumerable.Empty<PackageDependencyGroup>(),
+                    Enumerable.Empty<FrameworkSpecificGroup>(),
+                    Enumerable.Empty<NuGet.Packaging.Core.PackageType>(),
+                    minClientVersion: null,
+                    repositoryMetadata: null);
+
+                var ex = Assert.Throws<EntityException>(() => PackageHelper.ValidateNuGetPackageMetadata(metadata));
+                Assert.Contains("ID and version", ex.Message);
+            }
+        }
+
+        public class SponsorshipUrlValidationTests
+        {
+            private static MockTrustedSponsorshipDomains CreateMockTrustedDomains()
+            {
+                return new MockTrustedSponsorshipDomains();
+            }
+
+            [Theory]
+            [InlineData("github.com/sponsors/user", "https://github.com/sponsors/user")]
+            [InlineData("https://github.com/sponsors/user", "https://github.com/sponsors/user")]
+            [InlineData("https://github.com/sponsors/user/dashboard", "https://github.com/sponsors/user/dashboard")] // GitHub sub-pages are now allowed
+            [InlineData("https://github.com/sponsors/user/extra", "https://github.com/sponsors/user/extra")] // GitHub sub-pages are now allowed
+            [InlineData("patreon.com/user", "https://patreon.com/user")]
+            [InlineData("https://patreon.com/user", "https://patreon.com/user")]
+            public void ValidateSponsorshipUrl_AcceptsValidUrls(string inputUrl, string expectedUrl)
+            {
+                // Arrange
+                var trustedDomains = CreateMockTrustedDomains();
+
+                // Act
+                var isValid = PackageHelper.ValidateSponsorshipUrl(inputUrl, trustedDomains, out string validatedUrl, out string errorMessage);
+
+                // Assert
+                Assert.True(isValid);
+                Assert.Equal(expectedUrl, validatedUrl);
+                Assert.Null(errorMessage);
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            [InlineData("   ")]
+            public void ValidateSponsorshipUrl_RejectsNullOrEmptyUrls(string invalidUrl)
+            {
+                // Arrange
+                var trustedDomains = CreateMockTrustedDomains();
+
+                // Act
+                var isValid = PackageHelper.ValidateSponsorshipUrl(invalidUrl, trustedDomains, out string validatedUrl, out string errorMessage);
+
+                // Assert
+                Assert.False(isValid);
+                Assert.Null(validatedUrl);
+                Assert.Equal("Please enter a URL.", errorMessage);
+            }
+
+            [Theory]
+            [InlineData("not-a-url")]
+            [InlineData("ftp://example.com")]
+            [InlineData("file:///local/path")]
+            [InlineData("javascript:alert('xss')")]
+            [InlineData("https://github.com/sponsors")]
+            [InlineData("https://www.github.com/sponsors")]
+            [InlineData("github.com/sponsors")]
+            public void ValidateSponsorshipUrl_RejectsInvalidUrls(string invalidUrl)
+            {
+                // Arrange
+                var trustedDomains = CreateMockTrustedDomains();
+
+                // Act
+                var isValid = PackageHelper.ValidateSponsorshipUrl(invalidUrl, trustedDomains, out string validatedUrl, out string errorMessage);
+
+                // Assert
+                Assert.False(isValid);
+                Assert.Null(validatedUrl);
+                Assert.Equal("Please provide a valid URL from a supported sponsorship platform.", errorMessage);
+            }
+
+            [Theory]
+            [InlineData("https://untrusted.com/sponsor")]
+            [InlineData("https://example.com/sponsor")]
+            [InlineData("https://malicious.site/sponsor")]
+            public void ValidateSponsorshipUrl_RejectsUntrustedDomains(string untrustedUrl)
+            {
+                // Arrange
+                var trustedDomains = CreateMockTrustedDomains();
+
+                // Act
+                var isValid = PackageHelper.ValidateSponsorshipUrl(untrustedUrl, trustedDomains, out string validatedUrl, out string errorMessage);
+
+                // Assert
+                Assert.False(isValid);
+                Assert.Null(validatedUrl);
+                Assert.Equal("Please provide a valid URL from a supported sponsorship platform.", errorMessage);
+            }
+
+            [Fact]
+            public void ValidateSponsorshipUrl_RejectsUrlTooLong()
+            {
+                // Arrange
+                var trustedDomains = CreateMockTrustedDomains();
+                var longUrl = "https://github.com/sponsors/" + new string('a', 2100); // Exceeds 2048 limit
+
+                // Act
+                var isValid = PackageHelper.ValidateSponsorshipUrl(longUrl, trustedDomains, out string validatedUrl, out string errorMessage);
+
+                // Assert
+                Assert.False(isValid);
+                Assert.Null(validatedUrl);
+                Assert.Contains("too long", errorMessage);
+            }
+
+            [Theory]
+            [InlineData("https://github.com/abc/sponsors/123")] // Invalid pattern - should be sponsors/username
+            [InlineData("https://www.github.com/abc/sponsors/123")] // Invalid pattern with www
+            public void ValidateSponsorshipUrl_RejectsMalformedGitHubUrls(string malformedUrl)
+            {
+                // Arrange
+                var trustedDomains = CreateMockTrustedDomains();
+
+                // Act
+                var isValid = PackageHelper.ValidateSponsorshipUrl(malformedUrl, trustedDomains, out string validatedUrl, out string errorMessage);
+
+                // Assert
+                Assert.False(isValid);
+                Assert.Null(validatedUrl);
+                Assert.Equal("Please provide a valid URL from a supported sponsorship platform.", errorMessage);
+            }
+
+            [Theory]
+            [InlineData("http://github.com/sponsors/user", "https://github.com/sponsors/user")] // HTTP to HTTPS conversion
+            [InlineData("http://patreon.com/user", "https://patreon.com/user")] // HTTP to HTTPS conversion
+            [InlineData("https://ko-fi.com/user", "https://ko-fi.com/user")] // HTTPS preserved
+            [InlineData("https://opencollective.com/project", "https://opencollective.com/project")] // HTTPS preserved
+            public void ValidateSponsorshipUrl_ConvertsHttpToHttps(string inputUrl, string expectedUrl)
+            {
+                // Arrange
+                var trustedDomains = CreateMockTrustedDomains();
+
+                // Act
+                var isValid = PackageHelper.ValidateSponsorshipUrl(inputUrl, trustedDomains, out string validatedUrl, out string errorMessage);
+
+                // Assert
+                Assert.True(isValid);
+                Assert.Equal(expectedUrl, validatedUrl);
+                Assert.Null(errorMessage);
+            }
+
+            [Theory]
+            [InlineData("https://github.com/sponsors/user?ref=sponsor")] // Query parameters
+            [InlineData("https://patreon.com/user#section")] // Fragment identifier
+            [InlineData("https://ko-fi.com/user?utm_source=test")] // UTM parameters
+            public void ValidateSponsorshipUrl_HandlesUrlsWithQueryAndFragment(string urlWithParams)
+            {
+                // Arrange
+                var trustedDomains = CreateMockTrustedDomains();
+
+                // Act
+                var isValid = PackageHelper.ValidateSponsorshipUrl(urlWithParams, trustedDomains, out string validatedUrl, out string errorMessage);
+
+                // Assert
+                Assert.True(isValid);
+                Assert.NotNull(validatedUrl);
+                Assert.Null(errorMessage);
+                Assert.StartsWith("https://", validatedUrl);
+            }
+
+            [Theory]
+            [InlineData("github.com/sponsors/user")] // Missing protocol
+            [InlineData("www.patreon.com/user")] // Missing protocol with www
+            [InlineData("ko-fi.com/user")] // Missing protocol
+            public void ValidateSponsorshipUrl_HandlesUrlsWithoutProtocol(string urlWithoutProtocol)
+            {
+                // Arrange
+                var trustedDomains = CreateMockTrustedDomains();
+
+                // Act
+                var isValid = PackageHelper.ValidateSponsorshipUrl(urlWithoutProtocol, trustedDomains, out string validatedUrl, out string errorMessage);
+
+                // Assert
+                Assert.True(isValid);
+                Assert.NotNull(validatedUrl);
+                Assert.Null(errorMessage);
+                Assert.StartsWith("https://", validatedUrl);
+            }
+
+            [Fact]
+            public void ValidateSponsorshipUrl_ReturnsFalseWhenTrustedDomainsIsNull()
+            {
+                // Act
+                var result = PackageHelper.ValidateSponsorshipUrl("https://github.com/sponsors/user", null, out var validatedUrl, out var errorMessage);
+                
+                // Assert
+                Assert.False(result);
+                Assert.Null(validatedUrl);
+                Assert.Equal("There was an error processing your request. Please try again later.", errorMessage);
+            }
+        }
+
+        public class IsAcceptedSponsorshipDomainTests
+        {
+            private static MockTrustedSponsorshipDomains CreateMockTrustedDomains()
+            {
+                return new MockTrustedSponsorshipDomains();
+            }
+
+            [Theory]
+            [InlineData("https://github.com/sponsors/user", true)]
+            [InlineData("https://www.github.com/sponsors/user", true)]
+            [InlineData("https://github.com/sponsors/user/dashboard", true)] // GitHub Sponsors sub-pages are allowed
+            [InlineData("https://github.com/sponsors/user/extra", true)] // GitHub Sponsors sub-pages are allowed
+            [InlineData("https://patreon.com/user", true)]
+            [InlineData("https://www.patreon.com/user", true)]
+            [InlineData("https://ko-fi.com/user", true)]
+            [InlineData("https://opencollective.com/project", true)]
+            [InlineData("https://tidelift.com/subscription/pkg/npm-package", true)]
+            [InlineData("https://liberapay.com/user", true)]
+            [InlineData("patreon.com/dhaui", true)] // URL without protocol
+            [InlineData("github.com/sponsors/user", true)] // URL without protocol
+            [InlineData("ko-fi.com/user", true)] // URL without protocol
+            public void ReturnsTrue_ForTrustedDomains(string url, bool expected)
+            {
+                // Arrange
+                var trustedDomains = CreateMockTrustedDomains();
+
+                // Act
+                var result = PackageHelper.IsAcceptedSponsorshipDomain(url, trustedDomains);
+
+                // Assert
+                Assert.Equal(expected, result);
+            }
+
+            [Theory]
+            [InlineData("https://untrusted.com/sponsor", false)]
+            [InlineData("https://example.com/sponsor", false)]
+            [InlineData("https://malicious.site/sponsor", false)]
+            [InlineData("https://github.evil.com/sponsors/user", false)]
+            [InlineData("https://fake-github.com/sponsors/user", false)]
+            public void ReturnsFalse_ForUntrustedDomains(string url, bool expected)
+            {
+                // Arrange
+                var trustedDomains = CreateMockTrustedDomains();
+
+                // Act
+                var result = PackageHelper.IsAcceptedSponsorshipDomain(url, trustedDomains);
+
+                // Assert
+                Assert.Equal(expected, result);
+            }
+
+            [Theory]
+            [InlineData("https://github.com/sponsors", false)] // Missing username
+            [InlineData("https://www.github.com/sponsors/", false)] // Missing username with trailing slash
+            [InlineData("https://github.com/abc/sponsors/123", false)] // Invalid pattern
+            [InlineData("https://www.github.com/abc/sponsors/123", false)] // Invalid pattern with www
+            public void ReturnsFalse_ForInvalidGitHubUrls(string url, bool expected)
+            {
+                // Arrange
+                var trustedDomains = CreateMockTrustedDomains();
+
+                // Act
+                var result = PackageHelper.IsAcceptedSponsorshipDomain(url, trustedDomains);
+
+                // Assert
+                Assert.Equal(expected, result);
+            }
+
+            [Theory]
+            [InlineData("not-a-url")]
+            [InlineData("")]
+            [InlineData(null)]
+            [InlineData("ftp://github.com/sponsors/user")]
+            [InlineData("javascript:alert('xss')")]
+            public void ReturnsFalse_ForInvalidUrls(string url)
+            {
+                // Arrange
+                var trustedDomains = CreateMockTrustedDomains();
+
+                // Act
+                var result = PackageHelper.IsAcceptedSponsorshipDomain(url, trustedDomains);
+
+                // Assert
+                Assert.False(result);
+            }
+
+            [Fact]
+            public void ReturnsFalse_WhenTrustedDomainsIsNull()
+            {
+                // Act
+                var result = PackageHelper.IsAcceptedSponsorshipDomain("https://github.com/sponsors/user", null);
+
+                // Assert
+                Assert.False(result);
+            }
+        }
+
+        public class MockTrustedSponsorshipDomains : ITrustedSponsorshipDomains
+        {
+            public HashSet<string> TrustedSponsorshipDomainList { get; } = new HashSet<string>
+            {
+                "github.com", "www.github.com", "patreon.com", "www.patreon.com",
+                "opencollective.com", "www.opencollective.com", "ko-fi.com", "www.ko-fi.com",
+                "tidelift.com", "www.tidelift.com", "liberapay.com", "www.liberapay.com"
+            };
+
+            public int MaxSponsorshipLinks { get; } = 10;
+
+            public bool IsSponsorshipDomainTrusted(string domain)
+            {
+                return TrustedSponsorshipDomainList.Contains(domain?.ToLowerInvariant());
+            }
+        }
+    }
+}

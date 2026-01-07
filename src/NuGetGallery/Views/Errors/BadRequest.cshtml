@@ -1,0 +1,8 @@
+﻿@{
+    ViewBag.Title = "Invalid Request";
+    Response.StatusCode = 400;
+}
+
+@ViewHelpers.ErrorPage(Url, Html, "400", "Invalid Request", @<text>
+<p>We can't process your request because it was invalid.</p></text>, @<text>
+<p>You've probably disabled cookies in your browser. Please enable cookies in your browser settings and try again.</p></text>)

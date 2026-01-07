@@ -1,0 +1,61 @@
+﻿@model UserAccountViewModel
+@{
+    ViewBag.Title = "Account Settings";
+    ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
+    TempData["Parent"] = this;
+}
+@ViewHelpers.AjaxAntiForgeryToken(Html)
+
+<section role="main" class="container main-container page-account-settings">
+    <div class="row">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+            @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, true, @<text>Account settings</text>)
+
+            @Html.Partial("_AccountConfirmationNotices", Model)
+
+            @Html.Partial("_AccountChangeEmail", Model)
+
+            @Html.Partial("_AccountChangeNotifications", Model)
+
+            @if (Model.CredentialGroups.ContainsKey(CredentialKind.External))
+            {
+                @Html.Partial("_UserAccountChangeExternalCredential", Model)
+            }
+            else
+            {
+                @Html.Partial("_UserAccountLinkExternalCredential", Model)
+            }
+
+            @if (Model.HasPassword)
+            {
+                @Html.Partial("_UserAccountChangePassword", Model)
+            }
+
+            @Html.Partial("_AccountProfilePicture", Model)
+
+            @if (Model.IsCertificatesUIEnabled)
+            {
+                @Html.Partial("_AccountCertificates", Model)
+            }
+
+            @Html.Partial("_AccountChangeTheme", Model)
+        </div>
+    </div>
+</section>
+
+@section bottomScripts {
+    @ViewHelpers.SectionsScript(this)
+    @if (Model.IsCertificatesUIEnabled)
+    {
+        @Scripts.Render("~/Scripts/gallery/certificates.min.js")
+        <script type="text/javascript" nonce="@Html.GetCSPNonce()">
+            CertificatesManagement.init('@Url.AddUserCertificate()', '@Url.GetUserCertificates()');
+        </script>
+    }
+
+    <script type="text/html" id="validation-errors" nonce="@Html.GetCSPNonce()">
+        <div data-bind="foreach:$data" class="validation-error-message-list">
+            @ViewHelpers.AlertDanger(@<text><span data-bind="text:$data"></span></text>)
+        </div>
+    </script>
+}

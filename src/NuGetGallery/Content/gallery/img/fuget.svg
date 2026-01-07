@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="172px" height="172px" viewBox="0 0 172 172" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 52.6 (67491) - http://www.bohemiancoding.com/sketch -->
+    <title>fuget-icon</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Group" transform="translate(-10.000000, 15.000000)">
+            <polygon id="Polygon-Copy-4" fill="#BFBFBF" points="96 0 160 36.9504172 96 73.9008345 32 36.9504172"></polygon>
+            <polygon id="Polygon-Copy-5" fill="#404040" transform="translate(128.000000, 92.300834) rotate(-60.000000) translate(-128.000000, -92.300834) " points="128 55.3504168 192 92.3008341 128 129.251251 64 92.3008341"></polygon>
+            <polygon id="Polygon-Copy-6" fill="#777777" transform="translate(64.000000, 92.300834) rotate(-120.000000) translate(-64.000000, -92.300834) " points="64 55.3504168 128 92.3008341 64 129.251251 -2.84217094e-14 92.3008341"></polygon>
+        </g>
+    </g>
+</svg>

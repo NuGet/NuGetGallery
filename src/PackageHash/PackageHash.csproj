@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>NuGet.Services.PackageHash</RootNamespace>
+    <AssemblyName>NuGet.Services.PackageHash</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Description>Verify that a package matches the hash in the database.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Services.Cursor\NuGet.Services.Cursor.csproj" />
+    <ProjectReference Include="..\Validation.Common.Job\Validation.Common.Job.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Incidents\NuGet.Services.Incidents.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Status.Table\NuGet.Services.Status.Table.csproj" />
+    <ProjectReference Include="..\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Scripts\*" />
+  </ItemGroup>
+</Project>

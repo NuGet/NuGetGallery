@@ -1,0 +1,548 @@
+﻿﻿@using Newtonsoft.Json
+@model ApiKeyListViewModel
+@using NuGetGallery.Authentication
+@{
+    ViewBag.Title = "API Keys";
+    ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
+}
+
+<section role="main" class="container main-container page-api-keys">
+    @ViewHelpers.AjaxAntiForgeryToken(Html)
+    <div class="row">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+            @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, true, @<text>API keys</text>)
+
+            @ViewHelpers.Alert(
+                    @<text>
+                        <strong>Looking for a more secure and streamlined way to publish packages?</strong>
+                        If you're using GitHub Actions, we recommend switching to
+                        <a href="@Url.ManageMyTrustedPublishing()">Trusted Publishing</a> since it eliminates the need to manage API keys.
+                    </text>,
+           "info", icon: null)
+
+            <p>
+                An API key is a token that can identify you to @(Config.Current.Brand). The
+                <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet command-line utility</a> allows
+                you to submit a NuGet package to the gallery using your API key to authenticate.
+            </p>
+            @if (!CurrentUser.Confirmed)
+            {
+                @ViewHelpers.AlertWarning(
+                        @<text>
+                            To get an API Key you will need to
+                            <a href="@Url.ConfirmationRequired()">confirm your account</a>.
+                        </text>)
+            }
+            else
+            {
+                <p>
+                    <strong>Always keep your API keys a secret! If an API key is ever exposed, revoke it immediately and generate a new one to maintain security.</strong>
+                </p>
+
+                <div data-bind="template: 'error-container'"></div>
+
+                @ViewHelpers.Section(this,
+                    "create",
+                    "Create",
+                        @<text>
+                            <div class="upsert-api-key">
+                                <div class="panel-body" data-bind="template: { name: 'upsert-api-key', data: NewApiKey }"></div>
+                            </div>
+                        </text>,
+     expanded: false,
+     expandedIcon: "Subtraction",
+     collapsedIcon: "Add")
+
+                @ViewHelpers.Section(this,
+                    "manage",
+                    "Manage",
+                        @<text>
+                            <div data-bind="template: 'manage-api-keys'"></div>
+                        </text>)
+            }
+        </div>
+    </div>
+</section>
+
+<script type="text/html" id="error-container" nonce="@Html.GetCSPNonce()">
+    <!-- ko if: Error -->
+    @ViewHelpers.AlertDanger(@<text><span data-bind="html: Error"></span></text>)
+    <!-- /ko -->
+</script>
+
+<script type="text/html" id="manage-api-keys" nonce="@Html.GetCSPNonce()">
+    <!-- ko if: RevocationDescriptions().length > 0 -->
+    @ViewHelpers.AlertWarning(
+        @<text>
+        Your API
+        <!-- ko if: RevocationDescriptions().length === 1 -->
+        key
+        <!-- /ko -->
+        <!-- ko ifnot: RevocationDescriptions().length === 1 -->
+        keys
+        <!-- /ko -->
+        <!-- ko text: window.nuget.commaJoin(RevocationDescriptions().map(function(d) { return "'" + d + "'"; } )) --><!-- /ko -->
+        <!-- ko if: RevocationDescriptions().length === 1 -->
+        has
+        <!-- /ko -->
+        <!-- ko ifnot: RevocationDescriptions().length === 1 -->
+        have
+        <!-- /ko -->
+        been revoked.<br />
+        Please check the email from @Config.Current.GalleryOwner.Address for details, and regenerate or create
+        <!-- ko if: RevocationDescriptions().length === 1 -->
+        a new API key
+        <!-- /ko -->
+        <!-- ko ifnot: RevocationDescriptions().length === 1 -->
+        new API keys
+        <!-- /ko -->
+        to use.
+        </text>,
+        isAlertRole: true)
+    <!-- /ko -->
+    <!-- ko if: ExpiredDescriptions().length > 0 -->
+    @ViewHelpers.AlertWarning(
+        @<text>
+        Your API
+        <!-- ko if: ExpiredDescriptions().length === 1 -->
+        key
+        <!-- /ko -->
+        <!-- ko ifnot: ExpiredDescriptions().length === 1 -->
+        keys
+        <!-- /ko -->
+        <!-- ko text: window.nuget.commaJoin(ExpiredDescriptions().map(function(d) { return "'" + d + "'"; } )) --><!-- /ko -->
+        <!-- ko if: ExpiredDescriptions().length === 1 -->
+        has
+        <!-- /ko -->
+        <!-- ko ifnot: ExpiredDescriptions().length === 1 -->
+        have
+        <!-- /ko -->
+        expired.
+        </text>,
+        isAlertRole: true)
+    <!-- /ko -->
+    <!-- ko if: AnyJustCreated -->
+    @ViewHelpers.AlertWarning(
+        @<text>
+        A new API key has been created. Make sure to copy your new API key now using the
+        <b>Copy</b>
+        button below. You will not be able to do so again.
+        </text>,
+        isAlertRole: true)
+    <!-- /ko -->
+    <!-- ko if: AnyJustRegenerated -->
+    @ViewHelpers.AlertWarning(
+        @<text>
+        Your API key has been regenerated. Make sure to copy your new API key now using the
+        <b>Copy</b>
+        button below. You will not be able to do so again.
+        </text>,
+        isAlertRole: true)
+    <!-- /ko -->
+    <div data-bind="template: { name: 'api-key-details', foreach: ApiKeys }">
+    </div>
+    <!-- ko if: ApiKeys().length === 0 -->
+    @ViewHelpers.AlertInfo(
+        @<text>You don't have any API keys.</text>)
+    <!-- /ko -->
+</script>
+
+<script type="text/html" id="api-key-details" nonce="@Html.GetCSPNonce()">
+    <div class="api-key-details">
+        <div class="row">
+            <div class="col-sm-1">
+                <img class="package-icon img-responsive" aria-hidden="true" alt=""
+                     data-bind="attr: { src: IconUrl, onerror: IconUrlFallback }" />
+            </div>
+            <div class="col-sm-11">
+                <h3 data-bind="text: Description"></h3>
+                <ul class="list-inline icon-details" role="presentation">
+                    <li>
+                        <!-- ko if: RevocationSource -->
+                        <i class="ms-Icon ms-Icon--Blocked2 revoke-api-key" aria-hidden="true"></i>
+                        <text class="revoke-api-key">Revoked</text>
+                        <!-- /ko -->
+                        <!-- ko ifnot: RevocationSource -->
+                        <i class="ms-Icon ms-Icon--Stopwatch" aria-hidden="true"></i>
+                        <!-- ko if: HasExpired -->
+                        Expired
+                        <!-- /ko -->
+                        <!-- ko ifnot: HasExpired -->
+                        <!-- ko if: Expires -->
+                        Expires <span data-bind="text: moment(Expires()).fromNow()"></span>
+                        <!-- /ko -->
+                        <!-- ko ifnot: Expires -->
+                        Never expires
+                        @if (Config.Current.ExpirationInDaysForApiKeyV1 > 0)
+                        {
+                            <text>
+                            (<a href="https://aka.ms/nugetlegacyapikeys">if used every
+                            @Config.Current.ExpirationInDaysForApiKeyV1
+                            day@(Config.Current.ExpirationInDaysForApiKeyV1 != 1 ? "s" : string.Empty)</a>)
+                            </text>
+                        }
+                        <!-- /ko -->
+                        <!-- /ko -->
+                        <!-- /ko -->
+                    </li>
+                    <li>
+                        <i class="ms-Icon ms-Icon--View" aria-hidden="true"></i>
+                        <!-- ko if: Scopes().length > 0 -->
+                        <span data-bind="text: Scopes().join(', ')"></span>
+                        <!-- /ko -->
+                        <!-- ko ifnot: Scopes().length > 0 -->
+                        Scopes: All
+                        <!-- /ko -->
+                    </li>
+                </ul>
+                <!-- ko if: Owner -->
+                <b>Package owner:</b> <span data-bind="text: Owner"></span>
+                <br />
+                <!-- /ko -->
+                <!-- ko if: ShortPackageList().length > 0 -->
+                <b>Packages:</b>
+                <!-- ko if: RemainingPackageList().length > 0 -->
+                <span data-bind="text: ShortPackageList().join(', ') + ','"></span>
+                <a href="#" role="button"
+                   data-bind="attr: { 'aria-controls': RemainingPackagesId },
+                              click: ShowRemainingPackages">
+                    more...
+                </a>
+                <span class="collapse in-inline" aria-expanded="false"
+                      data-bind="attr: { id: RemainingPackagesId },
+                                 text: RemainingPackageList().join(', ')"></span>
+                <!-- /ko -->
+                <!-- ko ifnot: RemainingPackageList().length > 0 -->
+                <span data-bind="text: ShortPackageList().join(', ')"></span>
+                <!-- /ko -->
+                <br />
+                <!-- /ko -->
+                <!-- ko if: GlobPattern -->
+                <b>Glob pattern:</b> <span data-bind="text: GlobPattern"></span>
+                <br />
+                <!-- /ko -->
+                <ul class="package-list" role="presentation">
+                    <!-- ko if: Value -->
+                    <li>
+                        <a class="icon-link" href="#" role="button" data-content="Copied."
+                           data-bind="attr: { id: CopyId }, click: Copy">
+                            <i class="ms-Icon ms-Icon--Copy" aria-hidden="true"></i>
+                            <span>Copy</span>
+                        </a>
+                    </li>
+                    <!-- /ko -->
+                    <!-- ko ifnot: IsNonScopedApiKey -->
+                    <li>
+                        <a class="icon-link" href="#" role="button" data-toggle="collapse"
+                           data-bind="attr: { 'data-target': '#' + EditContainerId(),
+                                              'aria-controls': EditContainerId,
+                                              id: StartEditId },
+                                      click: function() { return false; }"
+                           aria-expanded="false">
+                            <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
+                            <span>Edit</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="icon-link" href="#" role="button" data-bind="click: Regenerate">
+                            <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
+                            <span>Regenerate</span>
+                        </a>
+                    </li>
+                    <!-- /ko -->
+                    <li>
+                        <a class="icon-link" href="#" role="button" data-bind="click: Delete">
+                            <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
+                            <span>Delete</span>
+                        </a>
+                    </li>
+                    <!-- ko ifnot: HasExpired -->
+                    <li>
+                        <a class="icon-link" href="#" role="button" data-bind="click: Revoke">
+                            <i class="ms-Icon ms-Icon--Blocked2" aria-hidden="true"></i>
+                            <span>Revoke</span>
+                        </a>
+                    </li>
+                    <!-- /ko -->
+                </ul>
+            </div>
+        </div>
+
+        <div class="upsert-api-key">
+            <div class="panel panel-default panel-collapse collapse"
+                 data-bind="attr: { id: EditContainerId() },
+                            event: { 'show.bs.collapse': StopPropagation,
+                                     'hide.bs.collapse': StopPropagation }">
+                <div class="panel-body" data-bind="template: { name: 'upsert-api-key', data: $data }">
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script type="text/html" id="upsert-api-key" nonce="@Html.GetCSPNonce()">
+    <form class="upsert-form" data-bind="submit: CreateOrEdit, attr: { id: FormId }">
+        <!-- ko ifnot: Key -->
+        <div class="row">
+            <div class="col-sm-7 form-group">
+                <label class="control-label required" data-bind="attr: { for: DescriptionId,
+                                          id: DescriptionId() + '-label' }">Key Name</label>
+                <input type="text" class="form-control input-brand"
+                       data-bind="attr: { id: DescriptionId,
+                                          name: DescriptionId,
+                                          'aria-labelledby': DescriptionId() + '-label ' + DescriptionId() + '-validation-message' },
+                                  value: PendingDescription"
+                       data-val-required="The key name is required." data-val="true" />
+                <span class="field-validation-valid help-block"
+                      data-valmsg-replace="true"
+                      data-bind="attr: { 'data-valmsg-for': DescriptionId,
+                                         id: DescriptionId() + '-validation-message' }"></span>
+            </div>
+            @if (Model.ExpirationInDaysForApiKeyV1 > 0)
+            {
+                <div class="col-sm-5 form-group">
+                    <label data-bind="attr: { id: ExpiresInId() + '-label', for: ExpiresInId() }">Expires In</label>
+                    <select class="form-control select-brand"
+                            data-bind="attr: { id: ExpiresInId(),
+                                               name: ExpiresInId(),
+                                               'aria-labelledby': ExpiresInId() + '-label' },
+                                       value: ExpiresIn">
+                        @if (Model.ExpirationInDaysForApiKeyV1 == 365)
+                        {
+                            <option value="1">1 day</option>
+                            <option value="90">90 days</option>
+                            <option value="180">180 days</option>
+                            <option value="270">270 days</option>
+                            <option value="365" selected>365 days</option>
+                        }
+                        else
+                        {
+                            <option value="1">1 day</option>
+                            for (int i = 10; i <= Model.ExpirationInDaysForApiKeyV1; i += 10)
+                            {
+                                <option value="@i" @(i + 10 > Model.ExpirationInDaysForApiKeyV1 ? "selected" : string.Empty)>@i days</option>
+                            }
+                        }
+                    </select>
+                </div>
+            }
+        </div>
+
+        <div class="row">
+            <div class="col-sm-7 form-group">
+                <label class="required" data-bind="attr: { for: PackageOwnerId,
+                                            id: PackageOwnerId() + '-label' }">Package Owner</label>
+                <select class="form-control select-brand"
+                        aria-required="true"
+                        data-bind="attr: { id: PackageOwnerId,
+                                                    name: PackageOwnerId,
+                                                    'aria-labelledby': PackageOwnerId() + '-label' },
+                                            options: PackageOwners, value: PackageOwner, optionsText: 'Owner', optionsCaption: 'Select an owner...' "></select>
+                <div class="has-error-brand">
+                    <span class="field-validation-valid help-block"
+                          data-bind="text: PackageOwner() ?  '' : 'A package owner must be selected.'" aria-live="polite" role="alert"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-12 form-group">
+                <h4 id="select-scopes" class="ms-fontSize-xl"><b>Select Scopes</b></h4>
+                <span class="has-error-brand">
+                    <span class="help-block" data-bind="text: ScopesError" aria-live="polite" role="alert"></span>
+                </span>
+                <ul role="presentation">
+                    <li>
+                        <div class="row-checkbox-label">
+                            <label id="select-scopes-push" class="brand-checkbox">
+                                <input type="checkbox" data-bind="checked: PushEnabled, enable: PushAnyEnabled" aria-labelledby="select-scopes-push select-scopes" />
+                                <span>Push</span>
+                            </label>
+                        </div>
+                        <ul role="presentation" data-bind="css: { disabled: !PushEnabled() }">
+                            <li>
+                                <div class="row-checkbox-label">
+                                    <div class="label-sibling">
+                                    </div>
+                                    <label id="select-scopes-push-package" class="brand-radio" data-bind="attr: { for: PackagePushId }"
+                                           aria-labelledby="select-scopes-push-package select-scopes">
+                                        <input name="PushScope" type="radio" value="@NuGetScopes.PackagePush"
+                                               data-bind="checked: PushScope, enable: PushNewEnabled,
+                                                          attr: { id: PackagePushId }" />
+                                        <span>@NuGetScopes.Describe(NuGetScopes.PackagePush, Model.IsDeprecationApiEnabled)</span>
+                                    </label>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="row-checkbox-label">
+                                    <div class="label-sibling">
+                                    </div>
+                                    <label id="select-scopes-push-package-version" class="brand-radio" data-bind="attr: { for: PackagePushVersionId }" 
+                                           aria-labelledby="select-scopes-push-package-version select-scopes">
+                                        <input name="PushScope" type="radio" value="@NuGetScopes.PackagePushVersion"
+                                               data-bind="checked: PushScope, enable: PushExistingEnabled,
+                                                          attr: { id: PackagePushVersionId }" />
+                                        <span>@NuGetScopes.Describe(NuGetScopes.PackagePushVersion, Model.IsDeprecationApiEnabled)</span>
+                                    </label>
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <div class="row-checkbox-label">
+                            <label id="select-scopes-unlist" class="brand-checkbox">
+                                <input type="checkbox" value="@NuGetScopes.PackageUnlist"
+                                       aria-labelledby="select-scopes-unlist select-scopes"
+                                       data-bind="checked: UnlistScopeChecked, enable: UnlistEnabled" />
+                                <span>@NuGetScopes.Describe(NuGetScopes.PackageUnlist, Model.IsDeprecationApiEnabled)</span>
+                            </label>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- /ko -->
+        <div class="row">
+            <div class="col-sm-12">
+                <h4 class="ms-fontSize-xl"><b>Select Packages</b></h4>
+                <p>
+                    To select which packages to associate with a key, use a glob pattern, select
+                    individual packages, or both.
+                </p>
+                <div class="has-error-brand">
+                    <span class="help-block" data-bind="text: SubjectsError" aria-live="polite" role="alert"></span>
+                </div>
+                <div class="has-error-brand">
+                    <span class="field-validation-valid help-block"
+                          data-valmsg-replace="true"
+                          data-bind="attr: { 'data-valmsg-for': GlobPatternId,
+                                             id: GlobPatternId() + '-validation-message' }" aria-live="polite" role="alert"></span>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-7">
+                <label data-bind="attr: { for: GlobPatternId,
+                                          id: GlobPatternId() + '-label' }">
+                    Glob Pattern
+                </label>
+            </div>
+        </div>
+        <div class="row select-packages-form" data-bind="css: { disabled: !SelectPackagesEnabled() }">
+            <div class="col-sm-7 select-packages-inputs">
+                <div>
+                    <div class="form-group">
+                        <input type="text" class="form-control input-brand" data-val="true"
+                               data-val-regex="Invalid glob pattern. See the example glob patterns below for further details."
+                               data-val-regex-pattern="^[\*\w_.-]*$"
+                               data-bind="textInput: PendingGlobPattern,
+                                      attr: { id: GlobPatternId,
+                                              name: GlobPatternId,
+                                              'aria-labelledby': GlobPatternId() + '-label ' + GlobPatternId() + '-validation-message' },
+                                      enable: SelectPackagesEnabled" />
+                    </div>
+                    <div class="form-group available-packages-container">
+                        <label>Available Packages</label>
+                        <div class="panel panel-default available-packages">
+                            <div class="panel-body">
+                                <!-- ko foreach: PendingPackages -->
+                                <div class="row-checkbox-label" data-bind="css: { disabled: Matched }">
+                                    <label class="brand-checkbox">
+                                        <input type="checkbox" name="Packages"
+                                               data-bind="checked: Checked,
+                                                      enable: $parent.SelectPackagesEnabled" />
+                                        <span data-bind="text: Id"></span>
+                                    </label>
+                                </div>
+                                <!-- /ko -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-5">
+                <div class="form-group">
+                    <div class="panel panel-default glob-pattern-hint">
+                        <div class="panel-body">
+                            <p>A glob pattern allows you to replace any sequence of characters with '*'.</p>
+                            <p>Example glob patterns:</p>
+                            <table class="table-responsive table-condensed borderless" aria-label="Example glob patterns">
+                                <thead>
+                                    <tr>
+                                        <th>Pattern</th>
+                                        <th>Result</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>*</td>
+                                        <td>Select all packages</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Alpha*</td>
+                                        <td>Select any package that has an ID beginning with <i>Alpha</i></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row" data-bind="css: { disabled: !SelectPackagesEnabled() }">
+            <div class="col-sm-12">
+                <p>
+                    <span data-bind="text: SelectedCountLabel"></span>
+                </p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6 form-group">
+                <input type="submit" class="btn btn-brand btn-block"
+                       data-bind="enable: SelectPackagesEnabled() && !PendingCreateOrEdit(),
+                                  attr: { value: Key() ? 'Save' : 'Create' }" />
+            </div>
+            <div class="col-sm-6 form-group">
+                <button data-bind="attr: { 'data-target': '#' + EditContainerId(),
+                                           'aria-controls': EditContainerId(),
+                                           id: CancelEditId },
+                                   enable: SelectPackagesEnabled() && !PendingCreateOrEdit(),
+                                   click: CancelEdit"
+                        class="btn btn-brand-secondary btn-block">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </form>
+    <!-- ko text: AttachExtensions() -->
+    <!-- /ko -->
+</script>
+
+@section bottomScripts {
+    <script type="text/javascript" nonce="@Html.GetCSPNonce()">
+        var initialData = @Html.ToJson(new
+                     {
+                         ApiKeys = Model.ApiKeys,
+                         PackageOwners = Model.PackageOwners,
+                         PackagePushScope = NuGetScopes.PackagePush,
+                         PackagePushVersionScope = NuGetScopes.PackagePushVersion,
+                         PackageUnlistScope = NuGetScopes.PackageUnlist,
+                         RemoveUrl = Url.RemoveCredential(),
+                         RevokeUrl = Url.RevokeApiKeyCredential(),
+                         RegenerateUrl = Url.RegenerateCredential(),
+                         EditUrl = Url.EditCredential(),
+                         GenerateUrl = Url.GenerateApiKey(),
+                         ImageUrls = new {
+                             ApiKey = Url.Absolute("~/Content/gallery/img/api-key.svg"),
+                             ApiKeyFallback = Url.Absolute("~/Content/gallery/img/api-key-256x256.png"),
+                             ApiKeyExpired = Url.Absolute("~/Content/gallery/img/api-key-expired.svg"),
+                             ApiKeyExpiredFallback = Url.Absolute("~/Content/gallery/img/api-key-expired-256x256.png"),
+                             ApiKeyLegacy = Url.Absolute("~/Content/gallery/img/api-key-legacy.svg"),
+                             ApiKeyLegacyFallback = Url.Absolute("~/Content/gallery/img/api-key-legacy-256x256.png"),
+                             ApiKeyNew = Url.Absolute("~/Content/gallery/img/api-key-new.svg"),
+                             ApiKeyNewFallback = Url.Absolute("~/Content/gallery/img/api-key-new-256x256.png"),
+                         }
+                     });
+    </script>
+    @Scripts.RenderFormat("<script src=\"{0}\" nonce='" + @Html.GetCSPNonce().ToString() + "'></script>", "~/Scripts/gallery/page-api-keys.min.js")
+}

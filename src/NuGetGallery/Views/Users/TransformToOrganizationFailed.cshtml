@@ -1,0 +1,12 @@
+﻿@model TransformAccountFailedViewModel
+@{
+    ViewBag.Title = "Transform Account";
+    ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
+}
+
+<section role="main" class="container main-container page-account-transform-failed">
+    <div class="row @ViewHelpers.GetColumnClasses(ViewBag)">
+        <h1>Failed to transform account to an organization</h1>
+        @ViewHelpers.AlertDanger(@<text>@Model.ErrorMessage</text>)
+    </div>
+</section>

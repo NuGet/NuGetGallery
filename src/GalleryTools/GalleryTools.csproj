@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Description>Tools for performing manual one-time/maintenance operations on the Gallery</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GitHubVulnerabilities2Db\GitHubVulnerabilities2Db.csproj" />
+    <ProjectReference Include="..\NuGetGallery\NuGetGallery.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Knapcode.MiniZip" />
+    <PackageReference Include="CsvHelper" />
+    <PackageReference Include="Microsoft.Extensions.CommandLineUtils" />
+  </ItemGroup>
+</Project>

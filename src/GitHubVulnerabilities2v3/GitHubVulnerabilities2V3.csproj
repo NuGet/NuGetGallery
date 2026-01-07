@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>GitHubVulnerabilities2v3</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Update="GitHubVulnerabilities2v3.nuspec">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Scripts\*" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Cursor\NuGet.Services.Cursor.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Github\NuGet.Services.GitHub.csproj" />
+    <ProjectReference Include="..\NuGetGallery.Core\NuGetGallery.Core.csproj" />
+  </ItemGroup>
+</Project>

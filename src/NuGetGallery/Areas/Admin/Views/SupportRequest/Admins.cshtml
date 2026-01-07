@@ -1,0 +1,330 @@
+﻿@using NuGetGallery.Helpers
+@model SupportRequestAdminsViewModel
+
+@{
+    ViewBag.Title = "Support Request Administrators";
+}
+
+@section TopScripts{
+    @Styles.Render("~/Content/themes/custom/page-support-requests.min.css")
+}
+
+@ViewHelpers.AjaxAntiForgeryToken(Html)
+
+<section role="main" class="container main-container">
+    <div style="display: none;" id="addAdmin-dialog">
+        <form id="addAdmin-form">
+            <fieldset class="form">
+                <legend>Add</legend>
+                <div class="form-field">
+                    <label for="newGalleryUsername">Gallery username</label>
+                    <input id="newGalleryUsername"
+                           name="newGalleryUsername"
+                           maxlength="255"
+                           data-bind="value: newGalleryUsername" />
+                </div>
+            </fieldset>
+        </form>
+    </div>
+
+    <div style="display: none;" id="editAdmin-dialog">
+        <form id="editAdmin-form">
+            <fieldset class="form">
+                <legend>Edit</legend>
+                <div class="form-field">
+                    <label for="editGalleryUsername">Gallery username</label>
+                    <input id="editGalleryUsername"
+                           name="editGalleryUsername"
+                           maxlength="255"
+                           data-bind="value: editGalleryUsername" />
+                </div>
+            </fieldset>
+        </form>
+    </div>
+
+    <div id="sr-nav-menu">
+        <a id="manageSupportRequestsButton" href="@Url.Action("Index")" title="Manage Support Requests">Manage Support Requests</a>
+    </div>
+
+    <div id="sr-admins-container">
+        <h2>Support Request Administrators</h2>
+
+        <table id="sr-admins-table" class="sexy-table" aria-label="Support Request Administrators">
+            <thead>
+                <tr>
+                    <th>Admin Key</th>
+                    <th>Gallery username</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody data-bind="foreach: admins()">
+                <tr>
+                    <td>
+                        <span data-bind="text: Key"></span>
+                    </td>
+                    <td>
+                        <span data-bind="text: GalleryUsername"></span>
+                    </td>
+                    <td>
+                        <a href="#" data-bind="text: $parent.getAdminStatus($data), click: $parent.toggleAdminAccess"></a>
+                    </td>
+                    <td>
+                        <a class="editButton" href="#" data-bind="click: $parent.editAdmin" title="Click to edit this admin.">Edit</a>
+                    </td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="5">
+                        <a class="addButton" href="#" data-bind="click: addAdmin" title="Click to add a new SR-Admin.">New SR-Admin...</a>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</section>
+
+@section BottomScripts{
+    @Scripts.Render("~/Scripts/page-support-requests.min.js")
+
+    <script type="text/javascript">
+        $(function () {
+            function AddAdminViewModel() {
+                var $self = this;
+                this.newGalleryUsername = ko.observable();
+
+                this.createAdmin = function (success, error) {
+                    var url = '@Url.Action("AddAdmin")';
+                    var model = {
+                        galleryUsername: $self.newGalleryUsername()
+                    };
+
+                    $.ajax({
+                        url: url,
+                        type: 'POST',
+                        cache: false,
+                        dataType: 'json',
+                        data: window.nuget.addAjaxAntiForgeryToken(model),
+                        success: success
+                    })
+                    .fail(error);
+                };
+            }
+            function EditAdminViewModel() {
+                var $self = this;
+                this.admin = ko.observable();
+
+                this.editGalleryUsername = ko.observable();
+
+                this.updateAdmin = function (success, error) {
+                    var url = '@Url.Action("UpdateAdmin")';
+                    var model = {
+                        key: $self.admin.Key,
+                        galleryUsername: $self.editGalleryUsername
+                    };
+
+                    $.ajax({
+                        url: url,
+                        type: 'POST',
+                        cache: false,
+                        dataType: 'json',
+                        data: window.nuget.addAjaxAntiForgeryToken(model),
+                        success: success
+                    })
+                    .fail(error);
+                };
+            }
+
+            function AdminsViewModel() {
+                var $self = this;
+                this.admins = ko.observableArray();
+
+                this.addAdminForm = $('#addAdmin-form').get(0);
+                this.newGalleryUsernameCtrl = $('#newGalleryUsername').get(0);
+
+                this.editAdminForm = $('#editAdmin-form').get(0);
+                this.editGalleryUsernameCtrl = $('#editGalleryUsername').get(0);
+
+                this.styleButtons = function () {
+                    $('a.addButton').button(
+                    {
+                        icons: {
+                            primary: 'ui-icon-plus'
+                        }
+                    });
+                    $('a.editButton').button(
+                    {
+                        icons: {
+                            primary: 'ui-icon-pencil'
+                        }
+                    });
+                }
+
+                this.getAdminStatus = function (data) {
+                    if (data.AccessDisabled !== false) {
+                        return 'Access disabled';
+                    } else {
+                        return 'Access enabled';
+                    }
+                }
+
+                this.toggleAdminAccess = function (data) {
+                    var confirmationText, url;
+                    var model = {
+                        key: data.Key
+                    };
+
+                    if (data.AccessDisabled !== false) {
+                        confirmationText = 'Are you sure you want to enable access for ' + data.GalleryUsername + '?';
+                        url = '@Url.Action("EnableAdmin")';
+                    } else {
+                        confirmationText = 'Are you sure you want to disable access for ' + data.GalleryUsername + '?';
+                        url = '@Url.Action("DisableAdmin")';
+                    }
+
+                    if (confirm(confirmationText)) {
+                        $.ajax({
+                            url: url,
+                            type: 'POST',
+                            cache: false,
+                            dataType: 'json',
+                            data: window.nuget.addAjaxAntiForgeryToken(model),
+                            success: function () {
+                                $self.refresh();
+                            }
+                        })
+                        .fail(function (jqXhr, textStatus, errorThrown) {
+                            alert("Error: " + errorThrown);
+                        });
+                    }
+                }
+
+                this.refresh = function () {
+                    var url = '@Url.Action("GetAdmins")';
+
+                    $.ajax({
+                        url: url,
+                        type: 'GET',
+                        cache: false,
+                        dataType: 'json',
+                        success: function (data) {
+                            $self.admins(JSON.parse(data));
+                            $self.styleButtons();
+                        }
+                    })
+                    .fail(function (jqXhr, textStatus, errorThrown) {
+                        alert("Error: " + errorThrown);
+                    });
+                };
+
+                this.addAdminFields = $([])
+                    .add($self.newGalleryUsernameCtrl);
+                this.editAdminFields = $([])
+                    .add($self.editGalleryUsernameCtrl);
+
+
+                this.createAdmin = function () {
+
+                    var addAdminViewModel = ko.dataFor($self.addAdminForm);
+
+                    addAdminViewModel.createAdmin(
+                        function () {
+                            $self.refresh();
+                            $self.addAdminDialog.dialog("close");
+                        },
+                        function (jqXhr, textStatus, errorThrown) {
+                            alert("Error: " + errorThrown);
+                        });
+                };
+
+                this.updateAdmin = function () {
+
+                    var updatedViewModel = ko.dataFor($self.editAdminForm);
+
+                    updatedViewModel.updateAdmin(
+                        function () {
+                            $self.refresh();
+                            $self.editAdminDialog.dialog("close");
+                        },
+                        function (jqXhr, textStatus, errorThrown) {
+                            alert("Error: " + errorThrown);
+                        });
+                };
+
+                this.addAdminDialog = $("#addAdmin-dialog").dialog({
+                    autoOpen: false,
+                    modal: true,
+                    width: 400,
+                    title: 'New SR-Admin',
+                    overlay: {
+                        backgroundColor: '#000',
+                        opacity: 0.5
+                    },
+                    buttons: {
+                        "Save Changes": $self.createAdmin,
+                        Cancel: function () {
+                            $self.addAdminDialog.dialog("close");
+                        }
+                    },
+                    close: function () {
+                        $self.addAdminForm.reset();
+                        $self.addAdminFields.removeClass("ui-state-error");
+                    }
+                });
+
+                this.editAdminDialog = $("#editAdmin-dialog").dialog({
+                    autoOpen: false,
+                    modal: true,
+                    width: 400,
+                    overlay: {
+                        backgroundColor: '#000',
+                        opacity: 0.5
+                    },
+                    buttons: {
+                        "Save Changes": $self.updateAdmin,
+                        Cancel: function () {
+                            $self.editAdminDialog.dialog("close");
+                        }
+                    },
+                    close: function () {
+                        $self.editAdminForm.reset();
+                        $self.editAdminFields.removeClass("ui-state-error");
+                    }
+                });
+
+                this.addAdmin = function () {
+
+                    var addViewModel = new AddAdminViewModel();
+
+                    ko.cleanNode($self.addAdminForm);
+                    ko.applyBindings(addViewModel, $self.addAdminForm);
+
+                    $self.addAdminDialog.dialog('open');
+                    return false;
+                };
+
+                this.editAdmin = function (admin) {
+
+                    var editViewModel = new EditAdminViewModel();
+                    editViewModel.admin = admin;
+                    editViewModel.editGalleryUsername = admin.GalleryUsername;
+
+                    ko.cleanNode($self.editAdminForm);
+                    ko.applyBindings(editViewModel, $self.editAdminForm);
+
+                    $self.editAdminDialog.dialog('option', 'title', 'Edit SR-Admin #' + admin.Key);
+                    $self.editAdminDialog.dialog('open');
+                    return false;
+                };
+            };
+
+            var viewModel = new AdminsViewModel();
+            viewModel.admins(@Html.ToJson(Model.Admins));
+
+            ko.applyBindings(viewModel, $('#sr-admins-table').get(0));
+
+            viewModel.styleButtons();
+        });
+    </script>
+}

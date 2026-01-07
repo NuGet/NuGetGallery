@@ -1,0 +1,84 @@
+{
+  "name": "bootstrap",
+  "description": "The most popular front-end framework for developing responsive, mobile first projects on the web.",
+  "version": "3.4.1",
+  "keywords": [
+    "css",
+    "less",
+    "mobile-first",
+    "responsive",
+    "front-end",
+    "framework",
+    "web"
+  ],
+  "homepage": "https://getbootstrap.com/",
+  "author": "Twitter, Inc.",
+  "style": "dist/css/bootstrap.css",
+  "less": "less/bootstrap.less",
+  "main": "./dist/js/npm",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/twbs/bootstrap.git"
+  },
+  "bugs": {
+    "url": "https://github.com/twbs/bootstrap/issues"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@lodder/grunt-postcss": "^3.1.1",
+    "autoprefixer": "^10.4.16",
+    "btoa": "^1.2.1",
+    "cross-env": "^5.2.0",
+    "glob": "^7.2.0",
+    "grunt": "^1.4.1",
+    "grunt-contrib-clean": "^2.0.0",
+    "grunt-contrib-concat": "^1.0.1",
+    "grunt-contrib-copy": "^1.0.0",
+    "grunt-contrib-cssmin": "^3.0.0",
+    "grunt-contrib-less": "^2.1.0",
+    "grunt-contrib-uglify": "^4.0.0",
+    "grunt-contrib-watch": "^1.1.0",
+    "grunt-exec": "^3.0.0",
+    "ip": "^2.0.1",
+    "load-grunt-tasks": "^4.0.0",
+    "lodash": "^4.17.21",
+    "minimist": "^1.2.3",
+    "time-grunt": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=6"
+  },
+  "files": [
+    "dist",
+    "fonts",
+    "grunt",
+    "js/*.js",
+    "less/**/*.less",
+    "Gruntfile.js",
+    "LICENSE"
+  ],
+  "jspm": {
+    "main": "js/bootstrap",
+    "shim": {
+      "js/bootstrap": {
+        "deps": "jquery",
+        "exports": "$"
+      }
+    },
+    "files": [
+      "css",
+      "fonts",
+      "js"
+    ]
+  },
+  "browserslist": [
+    "Android 2.3",
+    "Android >= 4",
+    "Chrome >= 20",
+    "Firefox >= 24",
+    "Explorer >= 8",
+    "iOS >= 6",
+    "Opera >= 12",
+    "Safari >= 6"
+  ]
+}

@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Description>Database migration tools for NuGet Gallery/Support Requests/Validation databases</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="EntityFramework" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Services.DatabaseMigration\NuGet.Services.DatabaseMigration.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Validation\NuGet.Services.Validation.csproj" />
+    <ProjectReference Include="..\NuGetGallery\NuGetGallery.csproj" />
+  </ItemGroup>
+</Project>

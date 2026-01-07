@@ -1,0 +1,13 @@
+{
+  "AllowedOperatorPatterns": [
+    "orderby, top",
+    "filter, orderby, top",
+    "filter",
+    "orderby, skip, top",
+    "filter, skip, top",
+    "skip",
+    "skiptoken",
+    "filter, orderby, skip, top",
+    "orderby"
+  ]
+}

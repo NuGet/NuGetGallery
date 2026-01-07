@@ -1,0 +1,52 @@
+﻿@using NuGetGallery
+@model ModifyFeatureFlagsFlightViewModel
+@{
+    var formAddId = "flight-form-add";
+    var formNotAllId = "flight-form-notall";
+}
+
+<section class="page-admin-add-flight">
+    <h3>
+        Add
+    </h3>
+
+    @using (Html.BeginForm("AddFlight", "Features", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+        @Html.Hidden("ContentId", Model.ContentId)
+
+        <div class="row">
+            <div class="col-sm-3 form-group @Html.HasErrorFor(m => m.Name)">
+                @Html.ShowLabelFor(m => m.Name)<br />
+                @Html.ShowTextBoxFor(m => m.Name, customClass: "input-brand")
+                @Html.ShowValidationMessagesFor(m => m.Name)
+            </div>
+
+            <div class="col-sm-1 form-group brand-checkbox-group @Html.HasErrorFor(m => m.All)" onchange="FlightFormToggleAll('@formNotAllId', '@formAddId')">
+                <label class="brand-checkbox">
+                    <span>@Html.DisplayNameFor(m => m.All)</span>
+                    @Html.ShowCheckboxFor(m => m.All)
+                </label>
+                @Html.ShowValidationMessagesFor(m => m.All)
+            </div>
+
+            <div id="@formNotAllId" style="@(Model.All ? "display: none" : "")">
+                <div class="col-sm-1 form-group brand-checkbox-group @Html.HasErrorFor(m => m.SiteAdmins)">
+                    <label class="brand-checkbox">
+                        <span>@Html.DisplayNameFor(m => m.SiteAdmins)</span>
+                        @Html.ShowCheckboxFor(m => m.SiteAdmins)
+                    </label>
+                    @Html.ShowValidationMessagesFor(m => m.SiteAdmins)
+                </div>
+
+                <div class="flight-array col-sm-3" name="Accounts" data-items="@string.Join(";", Model.Accounts ?? Array.Empty<string>())" data-bind="template: { name: 'flight-array', data: $data }"></div>
+                <div class="flight-array col-sm-3" name="Domains" data-items="@string.Join(";", Model.Domains ?? Array.Empty<string>())" data-bind="template: { name: 'flight-array', data: $data }"></div>
+            </div>
+
+            <div class="col-sm-1 @(Model.All ? "col-sm-offset-7" : "")" id="@formAddId">
+                <br />
+                <input id="Add" type="submit" class="btn btn-brand form-control" value="Add" />
+            </div>
+        </div>
+    }
+</section>

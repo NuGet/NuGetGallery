@@ -1,0 +1,8 @@
+schemaVersion: 0.0.1
+isProduction: false
+accountableOwners:
+  service: bbfd56ce-3ff1-4dfc-b51a-bbfe6a907563
+routing:
+  defaultAreaPath:
+    org: msazure
+    path: One\NuGet

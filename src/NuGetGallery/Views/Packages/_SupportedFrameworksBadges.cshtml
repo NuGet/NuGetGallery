@@ -1,0 +1,123 @@
+﻿@using String = NuGetGallery.Strings;
+@using NuGetGallery.Frameworks;
+
+@model PackageFrameworkCompatibilityBadges
+@{
+    var eventName = "search-selection";
+    if (ViewData.ContainsKey("eventName"))
+    {
+        eventName = ViewData["eventName"].ToStringOrNull();
+    }
+
+    // This view data will sometimes be null or missing. For example, the profile page uses this partial and should not
+    // emit search selection events.
+    int? itemIndex = null;
+    int parsedItemIndex;
+    if (ViewData.ContainsKey("itemIndex")
+        && int.TryParse(ViewData["itemIndex"].ToStringOrNull(), out parsedItemIndex))
+    {
+        itemIndex = parsedItemIndex;
+    }
+}
+
+@functions
+{
+    public enum FrameworkContext
+    {
+        Net,
+        NetCore,
+        NetStandard,
+        NetFramework
+    }
+
+    public string GetBadgeTooltip(FrameworkContext context, PackageFrameworkCompatibilityData tfmCompatibilityData)
+    {
+        var badgeVersion = tfmCompatibilityData.Framework.GetBadgeVersion();
+        string tfmType = GetFrameworkProductName(context);
+
+        if (badgeVersion.IsEmpty())
+        {
+            return string.Format(String.SupportedFrameworks_EmptyVersion_Template_Tooltip, tfmType);
+        }
+
+        var toolTipTemplate = tfmCompatibilityData.IsComputed
+            ? String.SupportedFrameworks_Computed_Tooltip
+            : String.SupportedFrameworks_Asset_Tooltip;
+
+        var tfmName = tfmType + " " + badgeVersion;
+        var toolTip = string.Format(toolTipTemplate, tfmName);
+
+        return toolTip;
+    }
+
+    public string GetBadgeDisplayName(FrameworkContext context, PackageFrameworkCompatibilityData tfmCompatibilityData)
+    {
+        var badgeVersion = tfmCompatibilityData.Framework.GetBadgeVersion();
+        string displayName = GetFrameworkProductName(context);
+
+        if (badgeVersion.IsEmpty())
+        {
+            return displayName;
+        }
+
+        return displayName + " " + badgeVersion;
+    }
+
+    public string GetFrameworkProductName(FrameworkContext context)
+    {
+        switch (context)
+        {
+            case FrameworkContext.Net:
+                return ".NET";
+            case FrameworkContext.NetCore:
+                return ".NET Core";
+            case FrameworkContext.NetStandard:
+                return ".NET Standard";
+            case FrameworkContext.NetFramework:
+                return ".NET Framework";
+            default:
+                return "";
+        }
+    }
+}
+
+@helper DisplayFrameworkBadge(PackageFrameworkCompatibilityData tfmCompatibilityData, FrameworkContext context, int? itemIndex, string eventName)
+{
+    <a href=@Url.FrameworksTab(Model.PackageId, Model.PackageVersion)
+       @if (itemIndex.HasValue) { @: data-track="@eventName" data-track-value="@itemIndex" data-click-source="FrameworkBadge"
+        @: data-package-id="@Model.PackageId" data-package-version="@Model.PackageVersion"
+        @: data-badge-framework="@tfmCompatibilityData.Framework.GetShortFolderName()" data-badge-is-computed="@tfmCompatibilityData.IsComputed"
+        @: class="tooltip-target"
+       }>
+        <span class=@(tfmCompatibilityData.IsComputed ? "framework-badge-computed" : "framework-badge-asset")>
+            @GetBadgeDisplayName(context, tfmCompatibilityData)
+        </span>
+        <span class="tooltip-block">
+            <span class="tooltip-wrapper popover right" role="tooltip">
+                <span class="arrow"></span>
+                <span class="popover-content">
+                    @GetBadgeTooltip(context, tfmCompatibilityData)
+                </span>
+            </span>
+        </span>
+    </a>
+}
+
+<div class="framework framework-badges">
+    @if (Model.Net != null)
+    {
+        @DisplayFrameworkBadge(Model.Net, FrameworkContext.Net, itemIndex, eventName)
+    }
+    @if (Model.NetCore != null)
+    {
+        @DisplayFrameworkBadge(Model.NetCore, FrameworkContext.NetCore, itemIndex, eventName)
+    }
+    @if (Model.NetStandard != null)
+    {
+        @DisplayFrameworkBadge(Model.NetStandard, FrameworkContext.NetStandard, itemIndex, eventName)
+    }
+    @if (Model.NetFramework != null)
+    {
+        @DisplayFrameworkBadge(Model.NetFramework, FrameworkContext.NetFramework, itemIndex, eventName)
+    }
+</div>

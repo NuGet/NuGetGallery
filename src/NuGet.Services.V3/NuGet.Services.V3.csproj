@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net472;netstandard2.1</TargetFrameworks>
+    <PackageVersion Condition="'$(PackageVersion)' == ''">$(JobsPackageVersion)</PackageVersion>
+    <Description>Common infrastructure for V3 back-end jobs, including catalog abstractions and dependency injection setup.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WindowsAzure.Storage" />
+    <ProjectReference Include="..\Catalog\NuGet.Services.Metadata.Catalog.csproj" />
+    <ProjectReference Include="..\Validation.Common.Job\Validation.Common.Job.csproj" />
+  </ItemGroup>
+
+</Project>

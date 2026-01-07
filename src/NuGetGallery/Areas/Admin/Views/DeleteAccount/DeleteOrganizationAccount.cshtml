@@ -1,0 +1,59 @@
+﻿@using NuGetGallery
+@model DeleteOrganizationViewModel
+@{
+    ViewBag.Title = "Delete Account " + Model.AccountName;
+    ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
+}
+
+<section role="main" class="container main-container page-delete-account">
+    <div class="form-group">
+        <div class="form-group">
+            @ViewHelpers.Breadcrumb(true, @<text><a href="@Url.User(@Model.User)">@Model.AccountName</a></text>, @<text>Delete organization</text>)
+
+            @ViewHelpers.AlertDanger(@<text>
+                <b class="keywords">Once this organization is deleted, it cannot be undone!</b> <br />
+                Deleting this organization will: <br />
+                1. Remove the organization as an owner of any child packages.<br />
+                2. Delete any API keys that are scoped to this organization.<br />
+                3. Dissociate all previously existent ID prefix reservations with this organization.<br />
+                4. Remove all of its members from being a part of the organization or owning its packages.<br />
+                5. Delete any membership requests to join this organization.<br />
+            </text>)
+
+            <div class="form-group">
+                @Html.Partial("~/Views/Users/_UserPackagesListForDeletedAccount.cshtml", Model)
+            </div>
+            <div class="form-group">
+                @{
+                    var membersCount = Model.Members.Count();
+                    var membersPlural = membersCount == 1 ? "" : "s";
+                }
+                <p>
+                    This organization has @membersCount member@(membersPlural).
+                </p>
+                @if (Model.Members.Any())
+                {
+                    @Html.Partial("_OrganizationMembersListForDeletedAccount", Model.Members)
+                }
+            </div>
+        </div>
+        <div class="form-group danger-zone">
+            @using (Html.BeginForm("Delete", "Organizations", FormMethod.Post, new { id = "delete-form" }))
+            {
+                @Html.Partial("_DeleteUserAccountForm", new DeleteAccountAsAdminViewModel(Model))
+            }
+        </div>
+    </div>
+</section>
+
+@section BottomScripts {
+    <script type="text/javascript">
+        $(function () {
+            $('#delete-form').submit(function (e) {
+                if (!confirm('Are you sure you want to continue to delete this organization?')) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+}

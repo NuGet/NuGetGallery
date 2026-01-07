@@ -1,0 +1,88 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net472;netstandard2.1</TargetFrameworks>
+    <PackageVersion Condition="'$(PackageVersion)' == ''">$(GalleryPackageVersion)</PackageVersion>
+    <RootNamespace>NuGetGallery</RootNamespace>
+    <Description>Core support library for NuGet Gallery Frontend and Backend</Description>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+    <Compile Remove="Auditing\AuditActor.cs" />
+    <Compile Remove="Auditing\AuditEntry.cs" />
+    <Compile Remove="Auditing\AuditingService.cs" />
+    <Compile Remove="Auditing\CloudAuditingService.cs" />
+    <Compile Remove="Auditing\FileSystemAuditingService.cs" />
+    <Compile Remove="Cookies\CookieComplianceService.cs" />
+    <Compile Remove="Cookies\CookieExpirationService.cs" />
+    <Compile Remove="Cookies\ICookieComplianceService.cs" />
+    <Compile Remove="Cookies\ICookieExpirationService.cs" />
+    <Compile Remove="Cookies\NullCookieComplianceService.cs" />
+    <Compile Remove="Entities\SuspendDbExecutionStrategy.cs" />
+    <Compile Remove="Extensions\PackageValidationSetExtensions.cs" />
+    <Compile Remove="Extensions\ValidationIssueExtensions.cs" />
+    <Compile Remove="Infrastructure\Mail\Messages\CredentialRevokedMessage.cs" />
+    <Compile Remove="Infrastructure\Mail\Messages\PackageAddedMessage.cs" />
+    <Compile Remove="Infrastructure\Mail\Messages\PackageValidationFailedMessage.cs" />
+    <Compile Remove="Infrastructure\Mail\Messages\PackageValidationTakingTooLongMessage.cs" />
+    <Compile Remove="Infrastructure\Mail\Messages\SymbolPackageAddedMessage.cs" />
+    <Compile Remove="Infrastructure\Mail\Messages\SymbolPackageValidationFailedMessage.cs" />
+    <Compile Remove="Infrastructure\Mail\Messages\SymbolPackageValidationTakingTooLongMessage.cs" />
+    <Compile Remove="Services\CorePackageFileService.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Infrastructure\MigrateUserToOrganization.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Infrastructure\MigrateUserToOrganization.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Core" />
+    <PackageReference Include="Azure.Identity" />
+    <PackageReference Include="Azure.Storage.Blobs" />
+    <PackageReference Include="EntityFramework" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
+    <PackageReference Include="NuGet.Packaging" />
+    <PackageReference Include="System.Formats.Asn1" />
+    <PackageReference Include="System.Text.Json" />
+  </ItemGroup>
+  
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <PackageReference Include="Microsoft.Data.Services.Client" />
+    <PackageReference Include="Microsoft.WindowsAzure.ConfigurationManager" />
+  </ItemGroup>
+  
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <ProjectReference Include="..\NuGet.Services.Messaging.Email\NuGet.Services.Messaging.Email.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Validation.Issues\NuGet.Services.Validation.Issues.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Validation\NuGet.Services.Validation.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Services.Entities\NuGet.Services.Entities.csproj" />
+    <ProjectReference Include="..\NuGet.Services.FeatureFlags\NuGet.Services.FeatureFlags.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <Reference Include="System.Web" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Update="CoreStrings.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CoreStrings.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Update="CoreStrings.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>CoreStrings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

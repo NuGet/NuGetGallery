@@ -1,0 +1,51 @@
+﻿@model NuGetGallery.Areas.Admin.Models.LuceneInfoModel
+@{
+    ViewBag.Title = "Lucene Maintenance";
+    TimeZoneInfo timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+}
+
+<section role="main" class="container main-container">
+    <h2>Lucene Maintenance</h2>
+
+    @if (Model.LastUpdated == null)
+    {
+        <p>Lucene Index has not been built yet.</p>
+    }
+    else
+    {
+        <p>
+            Lucene Index was last rebuilt: <br />
+            @Model.LastUpdated.Value.ToString("F") GMT<br />
+            @TimeZoneInfo.ConvertTime(Model.LastUpdated.Value, TimeZoneInfo.Utc, timeZoneInfo).ToString("F") Pacific
+        </p>
+        <p>
+            There are @Model.DocumentCount documents in the index.<br />
+            The index consumes @Model.FormatIndexSize() of space.<br />
+            The index is located on @Model.Directory
+            @if (Model.IsLocal)
+            {
+                @:(@Model.Location)
+            }
+            else
+            {
+                @:(External)
+            }
+        </p>
+    }
+
+    @if (Model.IsLocal)
+    {
+        using (Html.BeginForm("Rebuild", "Lucene"))
+        {
+            @Html.AntiForgeryToken()
+            <fieldset class="form">
+                <input type="submit" class="btn-brand" value="Rebuild Now" />
+                <p>NOTE: This will only affect the current instance!</p>
+            </fieldset>
+        }
+    }
+    else
+    {
+        <p>The Lucene Index is located on an external service and cannot be rebuilt.</p>
+    }
+</section>

@@ -1,0 +1,17 @@
+﻿<form aria-label="Edit your package" id="edit-readme-form">
+    @Html.AntiForgeryToken()
+
+    <div id="import-readme-container">
+    </div>
+    @Html.Partial("_ImportReadMe")
+
+    <div id="submit-package-container">
+    </div>
+    <script type="text/html" id="submit-package-template">
+        <div class="form-group btn-toolbar row" id="submit-package-form">
+            <div class="col-xs-12">
+                <input type="button" class="btn btn-brand btn-block" value="Submit" id="verify-submit-button" />
+            </div>
+        </div>
+    </script>
+</form>

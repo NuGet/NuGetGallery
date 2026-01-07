@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Operations Version="1.0" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+  <Operation Name="Rename Refactor" Key="d718d57e-0241-4093-908a-b6d435d3f9f0" ChangeDateTime="09/08/2015 09:53:09">
+    <Property Name="ElementName" Value="[dbo].[Fact_Download].[Dimension_LogFileName_Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Fact_Download]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="Fact_LogFileName_Id" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="6fc727e6-b5cc-4e3d-9138-9afd4292aa90" ChangeDateTime="09/08/2015 09:53:13">
+    <Property Name="ElementName" Value="[dbo].[Fact_Download].[Dimension_UserAgent_Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Fact_Download]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="Fact_UserAgent_Id" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="1390d512-c1b1-43b7-88a8-91104a89e76a" ChangeDateTime="09/08/2015 10:57:18">
+    <Property Name="ElementName" Value="[dbo].[Fact_IpAddress].[IsIpV6]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Fact_IpAddress]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="IsIp4" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="b088e036-f628-4300-9e24-786e849eac38" ChangeDateTime="05/10/2016 17:35:24">
+    <Property Name="ElementName" Value="[dbo].[Agg_PackageDownloads_LogFile].[LogFileName]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Agg_PackageDownloads_LogFile]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="Fact_LogFileName_Id" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="0bc57375-b645-4067-bf0c-b07dc1d9cb2f" ChangeDateTime="05/10/2016 17:36:03">
+    <Property Name="ElementName" Value="[dbo].[Agg_PackageDownloads_LogFile].[Fact_LogFileName_Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Agg_PackageDownloads_LogFile]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="LogFileName" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="2fec8a80-98de-4ff6-a066-bfc08d2ce20d" ChangeDateTime="05/10/2016 17:42:02">
+    <Property Name="ElementName" Value="[dbo].[Agg_PackageDownloads_LogFile].[Date_Dimension_Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Agg_PackageDownloads_LogFile]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="Dimension_Date_Id" />
+  </Operation>
+</Operations>

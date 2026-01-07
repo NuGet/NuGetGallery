@@ -1,0 +1,258 @@
+﻿@{
+    var ShowWarningIndicator = Config.Current.DeprecateNuGetPasswordLogins && (User.HasPasswordLogin() || (!User.HasMultiFactorAuthenticationEnabled() && User.WasMicrosoftAccountUsedForSignin()));
+    var ShowPasswordDeprecationBanner = TempData.ContainsKey("ShowPasswordDeprecationWarning")
+        && Convert.ToBoolean(TempData["ShowPasswordDeprecationWarning"].ToString())
+        && Request.IsAuthenticated
+        && Config.Current.DeprecateNuGetPasswordLogins
+        && User.HasPasswordLogin();
+    var rawErrorMessage = TempData.ContainsKey("RawErrorMessage") ? TempData["RawErrorMessage"].ToString() : null;
+}
+
+<div id="cookie-banner"></div>
+
+@if (!string.IsNullOrWhiteSpace(Config.Current.WarningBanner))
+{
+    <div class="container-fluid banner banner-bright text-center">
+        <div class="row">
+            <div class="col-sm-12">
+                <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
+                <span>@Config.Current.WarningBanner</span>
+            </div>
+        </div>
+    </div>
+}
+
+@if (ViewBag.DisplayBanner == true)
+{
+    <div class="container-fluid banner banner-info text-center">
+        <div class="row">
+            <div class="col-sm-12">
+                <span>
+                    &#128075; What do you think about NuGet.org? We're looking for feedback from developers like you. <a href="https://aka.ms/NuGetSurvey" target="_blank">Take the survey.</a>
+                </span>
+            </div>
+        </div>
+    </div>
+}
+
+@helper DisplayNavigationItem(string tab, string url, bool bold = false, string title = null, string className = null)
+{
+    <li class="@(ViewBag.Tab == tab ? "active" : string.Empty)" role="presentation">
+        <a role="tab" name="@tab" aria-selected="@(ViewBag.Tab == tab ? "true" : "false")" href="@url" title="@title" class="@className">
+            @if (bold)
+            {
+                @:<b>
+            }
+            <span>@tab</span>
+            @if (bold)
+            {
+                @:</b>
+            }
+        </a>
+    </li>
+}
+
+<nav class="navbar navbar-inverse" role="navigation">
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12 text-center">
+                <a href="#" id="skipToContent" class="showOnFocus" title="Skip To Content">Skip To Content</a>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a href="@Url.Home()" class="home-link">
+                        <div class="navbar-logo nuget-logo-image" alt="NuGet home" role="img" aria-label="NuGet Home" @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/logo-header-94x29.png"))></div>
+                    </a>
+                </div>
+                <div id="navbar" class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav" role="tablist">
+                        @DisplayNavigationItem("Packages", Url.PackageList(), className: GalleryConstants.SearchFilterIds.PackagesLinkClass)
+                        @DisplayNavigationItem("Upload", Url.UploadPackage())
+                        @if (StatisticsHelper.IsStatisticsPageAvailable)
+                        {
+                            @DisplayNavigationItem("Statistics", Url.Statistics())
+                        }
+                        @if (Request.IsAuthenticated && AdminHelper.IsAdminPanelEnabled && User.IsInRole(CoreConstants.AdminRoleName))
+                        {
+                            @DisplayNavigationItem("Admin", Url.Admin())
+                        }
+                        @DisplayNavigationItem("Documentation", "https://docs.microsoft.com/nuget/")
+                        @DisplayNavigationItem("Downloads", Url.Downloads())
+                        @DisplayNavigationItem("Blog", "https://blog.nuget.org/")
+                    </ul>
+                    @if (ShowAuthInHeader)
+                    {
+                        <ul class="nav navbar-nav navbar-right" role="tablist">
+                            @if (!User.Identity.IsAuthenticated)
+                            {
+                                var returnUrl = ViewData.ContainsKey(GalleryConstants.ReturnUrlViewDataKey) ? (string)ViewData[GalleryConstants.ReturnUrlViewDataKey] : Request.RawUrl;
+                                @DisplayNavigationItem("Sign in", Url.LogOn(returnUrl), title: "Sign in to an existing NuGet.org account")
+                            }
+                            else
+                            {
+                                <li class="@(ViewBag.Tab == User.Identity.Name ? "active" : string.Empty) dropdown" role="presentation">
+                                    <a href="#" aria-selected="@(ViewBag.Tab == User.Identity.Name ? "true" : "false")" role="tab" id="account-dropdown" class="dropdown-toggle" title="Open profile dropdown" data-toggle="dropdown">
+                                        <div>
+                                            @if (ShowWarningIndicator)
+                                            {
+                                                <span class="ms-Icon ms-Icon--Warning warning-icon" aria-hidden="true"></span>
+                                            }
+                                            <b><span>@User.Identity.Name</span></b>
+                                            <span class="caret"></span>
+                                        </div>
+                                    </a>
+                                    <ul class="dropdown-menu" role="menu" aria-labelledby="account-dropdown">
+                                        <li class="dropdown-header row">
+                                            <div class="col-sm-3">
+                                                @ViewHelpers.GravatarImage(
+                                                    Url,
+                                                    CurrentUser.EmailAddress,
+                                                    CurrentUser.Username,
+                                                    size: 50)
+                                            </div>
+                                            <div class="col-sm-9 dropdown-profile">
+                                                <span class="dropdown-username">@User.Identity.Name.Abbreviate(20)</span>
+                                                <br />
+                                                <span class="dropdown-email">@CurrentUser.EmailAddress.Abbreviate(25)</span>
+                                            </div>
+                                        </li>
+                                        @if (Request.IsAuthenticated && AdminHelper.IsAdminPanelEnabled && User.IsInRole(CoreConstants.AdminRoleName))
+                                        {
+                                            <li class="divider"></li>
+                                            <li role="presentation"><a href="@Url.Admin()" role="menuitem">Admin</a></li>
+                                        }
+                                        <li class="divider"></li>
+                                        <li role="presentation"><a href="@Url.User(CurrentUser.Username)" role="menuitem">View Profile</a></li>
+                                        <li role="presentation">
+                                            <a href="@Url.AccountSettings()" role="menuitem">
+                                                Account Settings
+                                                @if (ShowWarningIndicator)
+                                                {
+                                                    <span class="ms-Icon ms-Icon--Warning warning-icon" aria-hidden="true"></span>
+                                                }
+                                            </a>
+                                        </li>
+
+                                        <li role="presentation"><a href="@Url.ManageMyTrustedPublishing()" role="menuitem">Trusted Publishing</a></li>
+                                        <li role="presentation"><a href="@Url.ManageMyApiKeys()" role="menuitem">API Keys</a></li>
+
+                                        <li class="divider"></li>
+                                        <li role="presentation"><a href="@Url.ManageMyOrganizations()" role="menuitem">Manage Organizations</a></li>
+                                        <li role="presentation"><a href="@Url.ManageMyPackages()" role="menuitem">Manage Packages</a></li>
+                                        <li role="presentation"><a href="@Url.UploadPackage()" role="menuitem">Upload Package</a></li>
+                                        <li class="divider"></li>
+                                        <li role="presentation">
+                                            @ViewHelpers.PostLink(
+                                                this,
+                                                formId: "log-off-form",
+                                                linkText: "Sign Out",
+                                                actionName: "LogOff",
+                                                controllerName: "Authentication",
+                                                role: "menuitem",
+                                                formValues: new Dictionary<string, string>
+                                                {
+                                                    { "returnUrl", Url.Current() },
+                                                })
+                                        </li>
+                                    </ul>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (ViewBag.ShowSearchInNavbar != false)
+    {
+        <div id="search-bar-header" class="container search-container">
+            <div class="row">
+                <form aria-label="Package search bar" class="col-sm-12" id="@GalleryConstants.SearchFilterIds.SimpleSearchFormId" action="@Url.PackageList()" method="get">
+                    @Html.Partial("_SearchBar")
+                    @Html.Partial("_AutocompleteTemplate")
+                </form>
+            </div>
+        </div>
+    }
+</nav>
+
+@if (TempData.ContainsKey("Message"))
+{
+    <div class="alert-transient @(ViewBag.HasJumbotron == true ? "alert-transient-jumbotron" : string.Empty)">
+        <div class="container">
+            <div class="row">
+                <div class="@ViewHelpers.GetColumnClasses(ViewBag)" role="alert" aria-live="assertive">
+                    @ViewHelpers.AlertInfo(@<text>@TempData["Message"]</text>)
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (TempData.ContainsKey("WarningMessage"))
+{
+    <div class="alert-transient @(ViewBag.HasJumbotron == true ? "alert-transient-jumbotron" : string.Empty)">
+        <div class="container">
+            <div class="row">
+                <div class="@ViewHelpers.GetColumnClasses(ViewBag)" role="alert" aria-live="assertive">
+                    @ViewHelpers.AlertWarning(@<text>@((string)TempData["WarningMessage"])</text>)
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (TempData.ContainsKey("ErrorMessage"))
+{
+    <div class="alert-transient @(ViewBag.HasJumbotron == true ? "alert-transient-jumbotron" : string.Empty)">
+        <div class="container">
+            <div class="row">
+                <div class="@ViewHelpers.GetColumnClasses(ViewBag)" role="alert" aria-live="assertive">
+                    @ViewHelpers.AlertDanger(@<text>@((string)TempData["ErrorMessage"])</text>)
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(rawErrorMessage))
+{
+    <div class="alert-transient @(ViewBag.HasJumbotron == true ? "alert-transient-jumbotron" : string.Empty)">
+        <div class="container">
+            <div class="row">
+                <div class="@ViewHelpers.GetColumnClasses(ViewBag)" role="alert" aria-live="assertive">
+                    @ViewHelpers.AlertDanger(@<span>@Html.Raw(@rawErrorMessage)</span>)
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (ShowPasswordDeprecationBanner)
+{
+    <div class="alert-transient @(ViewBag.HasJumbotron == true ? "alert-transient-jumbotron" : string.Empty)">
+        <div class="container">
+            <div class="row">
+                <div class="@ViewHelpers.GetColumnClasses(ViewBag)" role="alert" aria-live="assertive">
+                    @if (User.HasExternalLogin())
+                    {
+                        @ViewHelpers.AlertWarning(@<text>NuGet.org password login is no longer supported. Go to <a href="@Url.AccountSettings()">Account Settings</a> to disable your password login and use Microsoft account to sign in to the @(this.Config.Current.Brand).</text>)
+                    }
+                    else
+                    {
+                        @ViewHelpers.AlertWarning(@<text>NuGet.org password login is no longer supported. Go to <a href="@Url.AccountSettings()">Account Settings</a> and link a Microsoft account to sign in to the @(this.Config.Current.Brand).</text>)
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}

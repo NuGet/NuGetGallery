@@ -1,0 +1,114 @@
+﻿.page-home {
+  .jumbotron {
+    padding-bottom: 20px;
+    padding-top: 5px;
+    margin-bottom: 0;
+
+    h1 {
+      margin: 32px;
+    }
+  }
+
+  div.dotnet-20-banner {
+    position: relative;
+    margin-top: 32px;
+  }
+
+  .what-is-nuget {
+    font-size: 1.15em;
+    padding-bottom: 75px;
+
+    p {
+      font-size: 20px;
+      font-weight: 600;
+      line-height: 28px;
+    }
+
+    a h3 {
+      color: var(--brandForegroundLinkRest);
+      font-size: 24px;
+      font-weight: 600;
+      line-height: 32px;
+
+      &:hover {
+        color: var(--brandForegroundLinkHover);
+        text-decoration: underline;
+      }
+    }
+  }
+
+  .triangle:after {
+    content: "";
+    position: absolute;
+    bottom: -7px;
+    border-width: 7px 7px 0;
+    border-style: solid;
+    border-color: var(--neutralBackground1Rest) transparent;
+    display: block;
+    width: 0;
+  }
+
+  @media screen and (-ms-high-contrast: active) {
+    .triangle:after {
+      display: none;
+    }
+    .circuit-board-label {
+      border: 1px solid windowText;
+    }
+  }
+
+  .circuit-board {
+    margin-top: 20px;
+    width: 900px;
+    height: 396px;
+    position: relative;
+    margin: 0 auto;
+    background-image: var(--circuit-board-background-image);
+    background-repeat: no-repeat;
+    background-position: center bottom;
+
+    .circuit-board-label {
+      position: absolute;
+      height: 75px;
+      padding-left: 25px;
+      padding-right: 25px;
+      background-color: var(--neutralBackground1Rest);
+      color: var(--neutralForeground1Rest);
+      box-shadow: 0 0 3px var(--neutralBackground1Rest);
+
+      h3, h5 {
+        margin: 9px 0 0 0;
+      }
+    }
+
+    .circuit-board-pd {
+      left: 443px;
+      top: 10px;
+      float: left;
+
+      &.triangle:after {
+        left: 20px;
+      }
+    }
+
+    .circuit-board-pv {
+      right: 675px;
+      top: 63px;
+      float: left;
+
+      &.triangle:after {
+        right: 45px;
+      }
+    }
+
+    .circuit-board-up {
+      left: 675px;
+      top: 105px;
+      float: right;
+
+      &.triangle:after {
+        left: 45px;
+      }
+    }
+  }
+}

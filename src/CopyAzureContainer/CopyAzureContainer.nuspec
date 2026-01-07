@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>CopyAzureContainer</id>
+    <version>$version$</version>
+    <title>CopyAzureContainer</title>
+    <authors>.NET Foundation</authors>
+    <owners>.NET Foundation</owners>
+    <description>CopyAzureContainer</description>
+    <copyright>Copyright .NET Foundation</copyright>
+  </metadata>
+  <files>
+    <file src="bin\$configuration$\net472\*.*" target="bin"/>
+    <file src="Scripts\Functions.ps1" />
+    <file src="Scripts\InstallAzCopy.ps1" />
+    <file src="Scripts\PostDeploy.ps1" />
+  </files>
+</package>

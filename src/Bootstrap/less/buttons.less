@@ -1,0 +1,328 @@
+// stylelint-disable selector-no-qualifying-type
+
+//
+// Buttons
+// --------------------------------------------------
+
+
+// Base styles
+// --------------------------------------------------
+
+.btn {
+  display: inline-block;
+  margin-bottom: 0; // For input.btn
+  font-weight: @btn-font-weight;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  touch-action: manipulation;
+  cursor: pointer;
+  background-image: none; // Reset unusual Firefox-on-Android default style; see https://github.com/necolas/normalize.css/issues/214
+  border: 1px solid transparent;
+  .button-size(@padding-base-vertical; @padding-base-horizontal; 14px; @line-height-base; @btn-border-radius-base);
+  .user-select(none);
+
+  &,
+  &:active,
+  &.active {
+    &:focus,
+    &.focus {
+      .tab-focus();
+    }
+  }
+
+  &:hover,
+  &:focus,
+  &.focus {
+    color: @btn-default-color;
+    text-decoration: none;
+  }
+
+  &:active,
+  &.active {
+    background-image: none;
+    outline: 0;
+    .box-shadow(inset 0 3px 5px rgba(0, 0, 0, .125));
+  }
+
+  &.disabled,
+  &[disabled],
+  fieldset[disabled] & {
+    cursor: @cursor-disabled;
+    .opacity(.75);
+    .box-shadow(none);
+  }
+
+  a& {
+    &.disabled,
+    fieldset[disabled] & {
+      pointer-events: none; // Future-proof disabling of clicks on `<a>` elements
+    }
+  }
+}
+
+
+// Alternate buttons
+// --------------------------------------------------
+
+.btn-default {
+  .button-variant(@btn-default-color; @btn-default-bg; @btn-default-border);
+}
+.btn-primary {
+  .button-variant(@btn-primary-color; @btn-primary-bg; @btn-primary-border);
+}
+// Success appears as green
+.btn-success {
+  .button-variant(@btn-success-color; @btn-success-bg; @btn-success-border);
+}
+// Info appears as blue-green
+.btn-info {
+  .button-variant(@btn-info-color; @btn-info-bg; @btn-info-border);
+}
+// Warning appears as orange
+.btn-warning {
+  .button-variant(@btn-warning-color; @btn-warning-bg; @btn-warning-border);
+}
+// Danger and error appear as red
+.btn-danger {
+  .button-variant(@btn-danger-color; @btn-danger-bg; @btn-danger-border);
+}
+// Brand appears as blue
+.btn-brand {
+  color: var(--neutralForegroundOnBrandRest);
+  background-color: var(--brandBackground1Rest);
+  border-color: var(--brandBackground1Rest);
+  border-radius: var(--Medium, 4px);
+  border: 2px solid transparent;
+  box-shadow: none;
+  outline: none;
+
+  &:hover {
+    border: 2px solid var(--brandBackground1Hover);
+    color: var(--neutralForegroundOnBrandRest);
+    background-color: var(--brandBackground1Hover);
+    box-shadow: none;
+    outline: none;
+  }
+
+  &:active {
+    border: 2px solid var(--brandBackground1Pressed);
+    color: var(--neutralForegroundOnBrandRest);
+    background-color: var(--brandBackground1Pressed);
+    box-shadow: none;
+    outline: none;
+  }
+
+  &:focus-within,
+  &:focus-visible,
+  &:focus {
+    border: 2px solid var(--neutralStrokeFocus2Rest);
+    color: var(--neutralForegroundOnBrandRest);
+    box-shadow: inset 0px 0px 0px 1px var(--neutralStrokeFocus1Rest);
+    outline: none !important; // removes focus from .tab-focus()
+  }
+}
+.btn-brand-icon {
+  color: var(--neutralForegroundOnBrandRest);
+  background-color: var(--brandBackground1Rest);
+  border-color: var(--brandBackground1Rest);
+  border-radius: var(--Medium, 4px);
+  padding: 2px 8px;
+  border: 2px solid transparent;
+  box-shadow: none;
+  outline: none;
+
+  &:hover {
+    border: 2px solid var(--brandBackground1Hover);
+    color: var(--neutralForegroundOnBrandRest);
+    background-color: var(--brandBackground1Hover);
+    box-shadow: none;
+    outline: none;
+  }
+
+  &:active {
+    border: 2px solid var(--brandBackground1Pressed);
+    color: var(--neutralForegroundOnBrandRest);
+    background-color: var(--brandBackground1Pressed);
+    box-shadow: none;
+    outline: none;
+  }
+
+  &:focus-within,
+  &:focus-visible,
+  &:focus {
+    border: 2px solid var(--neutralStrokeFocus2Rest);
+    color: var(--neutralForegroundOnBrandRest);
+    box-shadow: inset 0px 0px 0px 1px var(--neutralStrokeFocus1Rest);
+    outline: none !important; // removes focus from .tab-focus()
+  }
+}
+.btn-brand-transparent {
+  color: var(--neutralForeground2Rest);
+  background-color: var(--transparentBackgroundRest);
+  border-radius: var(--Medium, 4px);
+  border: 2px solid transparent;
+  box-shadow: none !important;
+  padding: 5px 12px;
+  
+  &:hover,
+  &:focus:hover {
+    color: var(--neutralForeground2BrandHover);
+  }
+  
+  &:active,
+  &:active:focus {
+    color: var(--neutralForeground2BrandPressed);
+  }
+
+  &:focus-within,
+  &:focus-visible,
+  &:focus {
+    color: var(--neutralForeground2Rest);
+    border: 2px solid var(--neutralStrokeFocus2Rest);
+    outline: none !important; // removes focus from .tab-focus()
+  }
+}
+.btn-brand-secondary {
+  color: var(--neutralForeground1Rest);
+  background-color: var(--neutralBackground1Rest);
+  border-radius: var(--Medium, 4px);
+  border: 1px solid var(--neutralStroke1Rest);
+  padding: 5px 12px;
+  box-shadow: none;
+  outline: none;
+
+  &:hover {
+    border: 1px solid var(--neutralStroke1Rest);
+    color: var(--neutralForeground1Hover);
+    background-color: var(--neutralBackground1Hover);
+    box-shadow: none;
+    outline: none;
+  }
+
+  &:active {
+    border: 1px solid var(--neutralStroke1Pressed);
+    color: var(--neutralForeground1Pressed);
+    background-color: var(--neutralBackground1Pressed);
+    box-shadow: none;
+    outline: none;
+  }
+
+  &:focus-within,
+  &:focus-visible,
+  &:focus {
+    border: 1px solid var(--neutralStrokeFocus2Rest);
+    color: var(--neutralForeground1Rest);
+    box-shadow: inset 0px 0px 0px 1px var(--neutralStrokeFocus2Rest);
+    outline: none !important; // removes focus from .tab-focus()
+  }
+}
+.btn-brand-danger {
+  color: var(--neutralForegroundStaticInvertedRest);
+  background-color: var(--statusDangerBackground3Rest);
+  border-radius: var(--Medium, 4px);
+  border: 2px solid transparent;
+  box-shadow: none !important;
+
+  &:hover,
+  &:focus:hover {
+    color: var(--neutralForegroundStaticInvertedRest);
+    background-color: var(--statusDangerBackground3Hover);
+  }
+
+  .ms-Icon {
+    display: flex;
+  }
+  
+  &:active,
+  &:active:focus {
+    color: var(--neutralForegroundStaticInvertedRest);
+    background-color: var(--statusDangerBackground3Pressed);
+  }
+
+  &:focus-within,
+  &:focus-visible,
+  &:focus {
+    color: var(--neutralForegroundStaticInvertedRest);
+    border: 2px solid var(--neutralStrokeFocus2Rest);
+    outline: none !important; // removes focus from .tab-focus()
+  }
+}
+
+// Link buttons
+// -------------------------
+
+// Make a button look and behave like a link
+.btn-link {
+  font-weight: 400;
+  color: var(--brandForegroundLinkRest);
+  border-radius: 0;
+
+  &,
+  &:active,
+  &.active,
+  &[disabled],
+  fieldset[disabled] & {
+    background-color: transparent;
+    .box-shadow(none);
+  }
+  &,
+  &:hover,
+  &:focus,
+  &:active {
+    border-color: transparent;
+  }
+  &:hover,
+  &:focus {
+    color: var(--brandForegroundLinkHover);
+    text-decoration: @link-hover-decoration;
+    background-color: transparent;
+  }
+  &[disabled],
+  fieldset[disabled] & {
+    &:hover,
+    &:focus {
+      color: var(--neutralForegroundDisabledRest);
+      text-decoration: none;
+    }
+  }
+}
+
+
+// Button Sizes
+// --------------------------------------------------
+
+.btn-lg {
+  // line-height: ensure even-numbered height of button next to large input
+  .button-size(@padding-large-vertical; @padding-large-horizontal; @font-size-large; @line-height-large; @btn-border-radius-large);
+}
+.btn-sm {
+  // line-height: ensure proper height of button next to small input
+  .button-size(@padding-small-vertical; @padding-small-horizontal; @font-size-small; @line-height-small; @btn-border-radius-small);
+}
+.btn-xs {
+  .button-size(@padding-xs-vertical; @padding-xs-horizontal; @font-size-small; @line-height-small; @btn-border-radius-small);
+}
+
+
+// Block button
+// --------------------------------------------------
+
+.btn-block {
+  display: block;
+  width: 100%;
+}
+
+// Vertically space out multiple block buttons
+.btn-block + .btn-block {
+  margin-top: 5px;
+}
+
+// Specificity overrides
+input[type="submit"],
+input[type="reset"],
+input[type="button"] {
+  &.btn-block {
+    width: 100%;
+  }
+}

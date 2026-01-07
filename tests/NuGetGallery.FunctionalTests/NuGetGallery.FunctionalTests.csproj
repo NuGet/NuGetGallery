@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System.ServiceModel" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGetGallery.FunctionalTests.Core\NuGetGallery.FunctionalTests.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="FluentLinkChecker" />
+    <PackageReference Include="NuGet.Packaging" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+  <PropertyGroup>
+    <GalleryDirectory>$(MSBuildProjectDirectory)\..\..\src\NuGetGallery</GalleryDirectory>
+  </PropertyGroup>
+  <ItemGroup>
+    <StaticAssets Include="$(GalleryDirectory)\Scripts\**\*.js" Visible="false" />
+    <StaticAssets Include="$(GalleryDirectory)\Content\**\*.css" Visible="false" />
+  </ItemGroup>
+  <Target Name="CustomBeforeBuild" BeforeTargets="BeforeBuild">
+    <WriteLinesToFile File="StaticAssets\Data.g.txt" Lines="$(GalleryDirectory);@(StaticAssets)" Overwrite="true" />
+    <ItemGroup>
+      <EmbeddedResource Include="StaticAssets\Data.g.txt" />
+    </ItemGroup>
+  </Target>
+</Project>

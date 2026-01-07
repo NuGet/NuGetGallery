@@ -1,0 +1,28 @@
+﻿@{
+    ViewBag.Title = "Page Not Found";
+    var errorPath = string.Empty;
+
+    if (Request.QueryString["aspxerrorpath"] != null)
+    {
+        errorPath = Request.QueryString["aspxerrorpath"];
+    }
+    else
+    {
+        errorPath = Request.RawUrl;
+    }
+
+    try
+    {
+        errorPath = Path.GetFileNameWithoutExtension(errorPath);
+    }
+    catch (ArgumentException)
+    {
+        // seems we can't format the error path nicely...
+        errorPath = string.Empty;
+    }
+    Response.StatusCode = 404;
+}
+
+@ViewHelpers.ErrorPage(Url, Html, "404", "Page Not Found", @<text>
+<p>Looks like you might have gotten lost. Let's see if we can help you find your way!</p>
+</text>)

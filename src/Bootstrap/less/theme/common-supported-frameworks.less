@@ -1,0 +1,119 @@
+@badge-dark: #0078d4;
+@badge-dark-opaque: rgba(0, 120, 212, 0.1);
+@table-product-width: 232px;
+
+.framework {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.framework-badges {
+  .framework;
+  margin-bottom: 14px;
+
+  a {
+    display: inline-block;
+
+    &:hover,
+    &:focus {
+      text-decoration: none;
+    }
+  }
+}
+
+.framework-badge {
+  padding: 1px 8px;
+  border-radius: 4px;
+  justify-content: center;
+  display: inline-block;
+  border: 1px solid var(--transparentStrokeRest);
+  height: 24px;
+}
+
+.framework-badge:not(:last-child) {
+  margin-right: 8px;
+}
+
+.framework-badge-asset {
+  .framework-badge;
+  background: var(--brandBackground1Rest);
+  color: var(--neutralForegroundOnBrandRest);
+}
+
+.framework-badge-computed {
+  .framework-badge;
+  color: var(--brandForeground2Rest);
+  background: var(--brandBackground2Rest);
+}
+
+.framework-table {
+  margin-bottom: 30px;
+
+  .framework;
+  width: 100%;
+
+  tr {
+    min-height: 43px;
+  }
+
+  .framework-table-title {
+    padding: 11px 0px 12px 12px;
+  }
+
+  .framework-table-product {
+    width: @table-product-width;
+    padding: 11px 0px 12px 12px;
+  }
+
+  .framework-table-margin {
+    margin: 0px 8px 8px 0px;
+  }
+
+  .framework-table-frameworks {
+    width: calc(100% - @table-product-width);
+    padding: 11px 0px 4px 12px;
+  }
+}
+
+.frameworktableinfo {
+  padding: 3px 8px 5px;
+  width: 35px;
+  height: 10px;
+  box-sizing: border-box;
+  border-radius: 2px;
+  margin-right: 10px;
+}
+.frameworktableinfo-computed-icon{
+  .frameworktableinfo;
+  border: 1px solid var(--brandBackground2Rest);
+}
+
+.frameworktableinfo-asset-icon{
+  .frameworktableinfo;
+  background-color: var(--brandBackground1Rest);
+  justify-content: center;
+  display: inline-block;
+}
+
+.frameworktableinfo-text {
+  font-size: 14px;
+  line-height: 16px;
+  color: var(--neutralForeground1Rest);
+}
+
+p.frameworktableinfo-text {
+  .frameworktableinfo-text;
+  margin-top: 10px;
+}
+
+@media (-ms-high-contrast: active), (forced-colors: active) {
+  .framework-badge-asset {
+    font-weight: bold;
+    border: 2px solid var(--brandBackground1Rest);
+    padding: 0px 8px;
+  }
+
+  .frameworktableinfo-asset-icon {
+    border: 2px solid var(--brandBackground1Rest);
+  }
+}

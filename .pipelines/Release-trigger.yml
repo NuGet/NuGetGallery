@@ -1,0 +1,43 @@
+name: Gallery release trigger $(Build.BuildId) - $(Date:yyyyMMdd)
+
+trigger:
+  branches:
+    include:
+    - main
+    - dev
+
+pr: none
+
+parameters:
+- name: TargetPipelines
+  type: object
+  default:
+  - id: 21120 # gallery web app
+    paramName: NuGetGallerySubmoduleBranch
+  - id: 21280 # gallery packages
+    paramName: Branch
+  - id: 21128 # jobs
+    paramName: Branch
+  - id: 21269 # common
+    paramName: Branch
+
+variables:
+- name: NugetMultifeedWarnLevel
+  value: none
+
+pool:
+  vmImage: 'windows-latest'
+
+steps:
+- ${{ each pipeline in parameters.TargetPipelines }}:
+  - powershell: |-
+      $body = @{
+        "templateParameters" = @{
+          "${{ pipeline.paramName }}" = "$(Build.SourceBranchName)"
+        }
+      }
+      $headers = @{ "Authorization" = "Bearer $env:ACCESS_TOKEN" };
+      $url = "$(System.CollectionUri)$(System.TeamProject)/_apis/pipelines/${{ pipeline.id }}/runs?api-version=7.0"
+      Invoke-RestMethod -Uri $url -Method POST -Headers $headers -Body ($body | ConvertTo-Json) -ContentType "application/json"
+    env:
+      ACCESS_TOKEN: $(System.AccessToken)
