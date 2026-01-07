@@ -3,14 +3,14 @@
 
 using System.Net;
 using System.Threading.Tasks;
-using Microsoft.Playwright.Xunit;
 using Xunit;
 
 namespace NuGetGallery.FunctionalTests.Playwright.BasicPages
 {
 	public class HomePageValidationTest : NuGetPageTest
     {
-		[Fact]
+        [Fact]
+        [Priority(0)]
         [Category("P0Tests")]
         [Category("ReadOnlyModeTests")]
         public async Task HomePageLoads_ContainsExpectedText()
