@@ -21,11 +21,12 @@ $webUITestResults = "$parentDir/NuGetGallery.$TestCategory.WebUITests.trx"
 Remove-Item $functionalTestsResults -ErrorAction Ignore
 Remove-Item $webUITestResults -ErrorAction Ignore
 
+$functionalTestsDirectory = "$parentDir\NuGetGallery.FunctionalTests\bin\$Configuration\net472"
+
 # Run functional tests
 $fullTestCategory = "$($testCategory)Tests"
 $exitCode = 0
 
-$functionalTestsDirectory = "$parentDir\NuGetGallery.FunctionalTests\bin\$Configuration\net472"
 & $xunit "$functionalTestsDirectory\NuGetGallery.FunctionalTests.dll" "-trait" "Category=$fullTestCategory" "-xml" $functionalTestsResults
 if ($LASTEXITCODE -ne 0) {
     $exitCode = 1
