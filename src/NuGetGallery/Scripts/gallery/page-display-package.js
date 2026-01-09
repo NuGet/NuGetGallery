@@ -259,6 +259,39 @@ $(function () {
         });
     }
 
+    function applyVersionFilters() {
+        var includePrerelease = $('#include-prerelease').is(':checked');
+        var includeVulnerable = $('#include-vulnerable').is(':checked');
+
+        $('.version-row').each(function () {
+            var isCurrent = $(this).hasClass('bg-brand-info');
+            if (isCurrent) {
+                $(this).show();
+                return;
+            }
+
+            var isPrerelease = $(this).data('prerelease') === true;
+            var isVulnerable = $(this).data('vulnerable') === true;
+            var showRow = true;
+            if (!includePrerelease && isPrerelease) {
+                showRow = false;
+            }
+            if (!includeVulnerable && isVulnerable) {
+                showRow = false;
+            }
+
+            if (showRow) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
+    }
+
+    $('#include-prerelease').change(applyVersionFilters);
+    $('#include-vulnerable').change(applyVersionFilters);
+    applyVersionFilters();
+
     $(".reserved-indicator").each(window.nuget.setPopovers);
     $(".framework-badge-asset").each(window.nuget.setPopovers);
     $(".package-warning-icon").each(window.nuget.setPopovers);
