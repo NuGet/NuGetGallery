@@ -28,6 +28,8 @@ $configObject | Add-Member -MemberType NoteProperty -Name "Slot" -Value $Slot
 
 # Save the file and set an environment variable to be used by the functional tests
 $configurationFilePath = "$PSScriptRoot\Config-$Environment-$Region.json"
+ConvertTo-Json $configObject | Out-File $configurationFilePath
+
+Write-Host "Configuration file path set to environment variable ConfigurationFilePath: $configurationFilePath"
 [Environment]::SetEnvironmentVariable("ConfigurationFilePath", $configurationFilePath)
 Write-Host "##vso[task.setvariable variable=ConfigurationFilePath;]$configurationFilePath"
-ConvertTo-Json $configObject | Out-File $configurationFilePath
