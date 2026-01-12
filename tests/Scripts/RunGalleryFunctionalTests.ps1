@@ -42,11 +42,18 @@ Function Wait-ForServiceStart($MaxWaitSeconds) {
     $start = Get-Date
     $maxWait = New-TimeSpan -Seconds $MaxWaitSeconds
     do {
-        if ($null -ne $response) {
-            Start-Sleep -Seconds 5
+        Start-Sleep -Seconds 5
+        try {
+            $response = Invoke-WebRequest -Uri $galleryUrl -Method Get -UseBasicParsing
         }
-        $response = try { Invoke-WebRequest -Uri $galleryUrl -Method Get -UseBasicParsing } catch [System.Net.WebException] { $_.Exception.Response }
-        if ($response.StatusCode -eq 502) {
+        catch [System.Net.WebException] {
+            Write-Host "$(Get-Date -Format s) Caught WebException: $($_.Exception.Message)"
+            $response = $_.Exception.Response
+        }
+        if ($null -eq $response) {
+            Write-Host "$(Get-Date -Format s) No response received from the service"
+        }
+        elseif ($response.StatusCode -eq 502) {
             $elapsed = (Get-Date) - $start
             if ($elapsed -ge $maxWait) {
                 Write-Error "$(Get-Date -Format s) Service start timeout expired"
@@ -59,7 +66,7 @@ Function Wait-ForServiceStart($MaxWaitSeconds) {
         else {
             Write-Host "$(Get-Date -Format s) Got a $($response.StatusCode) response";
         }
-    } while ($response.StatusCode -eq 502)
+    } while (($null -eq $response) -or ($response.StatusCode -eq 502))
 
     return $true;
 }
