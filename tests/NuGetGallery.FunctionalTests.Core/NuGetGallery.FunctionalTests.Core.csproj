@@ -1,11 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\VisualStudioSearchPath.props" />
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <RootNamespace>NuGetGallery.FunctionalTests</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="$(PkgMicrosoft_TestPlatform)\tools\net462\Common7\IDE\Extensions\TestPlatform\Microsoft.VisualStudio.QualityTools.WebTestFramework.dll" />
     <Reference Include="System.IO.Compression" />
   </ItemGroup>
   <ItemGroup>
@@ -17,7 +16,6 @@
     -->
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" VersionOverride="2.2.0" />
     <PackageReference Include="Microsoft.Playwright.Xunit" />
-    <PackageReference Include="Microsoft.TestPlatform" GeneratePathProperty="true" />
     <PackageReference Include="Microsoft.Web.Xdt" />
     <PackageReference Include="NuGet.Core" />
     <PackageReference Include="NuGet.Services.Configuration" VersionOverride="2.94.0" />
