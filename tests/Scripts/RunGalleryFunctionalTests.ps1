@@ -42,6 +42,11 @@ Function Wait-ForServiceStart($MaxWaitSeconds) {
     $start = Get-Date
     $maxWait = New-TimeSpan -Seconds $MaxWaitSeconds
     do {
+        $elapsed = (Get-Date) - $start
+        if ($elapsed -ge $maxWait) {
+            Write-Error "$(Get-Date -Format s) Service start timeout expired"
+            return $false
+        }
         Start-Sleep -Seconds 5
         try {
             $response = Invoke-WebRequest -Uri $galleryUrl -Method Get -UseBasicParsing
@@ -54,14 +59,7 @@ Function Wait-ForServiceStart($MaxWaitSeconds) {
             Write-Host "$(Get-Date -Format s) No response received from the service"
         }
         elseif ($response.StatusCode -eq 502) {
-            $elapsed = (Get-Date) - $start
-            if ($elapsed -ge $maxWait) {
-                Write-Error "$(Get-Date -Format s) Service start timeout expired"
-                return $false
-            }
-            else {
-                Write-Host "$(Get-Date -Format s) Still waiting for the service to stop responding with 502 after $elapsed"
-            }
+            Write-Host "$(Get-Date -Format s) Still waiting for the service to stop responding with 502 after $elapsed"
         }
         else {
             Write-Host "$(Get-Date -Format s) Got a $($response.StatusCode) response";
