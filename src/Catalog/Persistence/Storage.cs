@@ -229,6 +229,21 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             return new Uri(address);
         }
 
+        public virtual Task<Snapshot> CreateSnapshotAsync(Uri resourceUri, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual Task DeleteSnapshotAsync(Uri resourceUri, Snapshot snapshot, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual Task<IList<Snapshot>> ListSnapshotsAsync(Uri resourceUri, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
         protected void TraceMethod(string method, Uri resourceUri)
         {
             if (Verbose)

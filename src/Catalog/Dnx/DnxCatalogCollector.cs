@@ -79,13 +79,15 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             return Task.FromResult(batches);
         }
 
-        protected override Task<bool> FetchAsync(
+        protected override async Task<bool> FetchAsync(
             CollectorHttpClient client,
             ReadWriteCursor front,
             ReadCursor back,
             CancellationToken cancellationToken)
         {
-            return CatalogCommitUtilities.ProcessCatalogCommitsAsync(
+            await DnxIndexCacheControl.LoadPackageIdsToIncludeAsync(_storageFactory, _logger, cancellationToken);
+
+            return await CatalogCommitUtilities.ProcessCatalogCommitsAsync(
                 client,
                 front,
                 back,

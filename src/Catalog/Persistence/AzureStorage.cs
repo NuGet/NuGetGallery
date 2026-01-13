@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -326,7 +327,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 }
             }
 
-            await TryTakeBlobSnapshotAsync(blockBlobClient);
+            await TryTakeBlobSnapshotAsync(resourceUri, cancellationToken);
         }
 
         /// <summary>
@@ -335,9 +336,12 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         /// </summary>
         /// <param name="blob"></param>
         /// <returns></returns>
-        private async Task<bool> TryTakeBlobSnapshotAsync(BlockBlobClient blobBlockClient)
+        private async Task<bool> TryTakeBlobSnapshotAsync(Uri resourceUri, CancellationToken cancellationToken)
         {
-            if (blobBlockClient == null)
+            string blobName = GetName(resourceUri);
+            BlockBlobClient blockBlobClient = GetBlockBlobReference(blobName);
+
+            if (blockBlobClient == null)
             {
                 return false;
             }
@@ -346,18 +350,18 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             try
             {
-                if (_blobContainerClientWrapper.HasOnlyOriginalSnapshot(blobBlockClient.Name))
+                if (await _blobContainerClientWrapper.HasNoSnapshotAsync(resourceUri, blobName, cancellationToken))
                 {
-                    var response = await blobBlockClient.CreateSnapshotAsync();
+                    var snapshot = await CreateSnapshotAsync(resourceUri, cancellationToken);
                     stopwatch.Stop();
-                    Trace.WriteLine($"SnapshotCreated:milliseconds={stopwatch.ElapsedMilliseconds}:{RemoveQueryString(blobBlockClient.Uri)}:{response?.Value.Snapshot}");
+                    Trace.WriteLine($"SnapshotCreated:milliseconds={stopwatch.ElapsedMilliseconds}, Uri: {RemoveQueryString(blockBlobClient.Uri)}, Identifier: {snapshot.Identifier}");
                 }
                 return true;
             }
             catch (RequestFailedException e)
             {
                 stopwatch.Stop();
-                Trace.WriteLine($"EXCEPTION:milliseconds={stopwatch.ElapsedMilliseconds}:CreateSnapshot: Failed to take the snapshot for blob {RemoveQueryString(blobBlockClient.Uri)}. Exception{e.ToString()}");
+                Trace.WriteLine($"EXCEPTION:milliseconds={stopwatch.ElapsedMilliseconds}:CreateSnapshot: Failed to take the snapshot for blob {RemoveQueryString(blockBlobClient.Uri)}. Exception{e.ToString()}");
                 return false;
             }
         }
@@ -524,6 +528,33 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             }
 
             return false;
+        }
+
+        public override async Task<Snapshot> CreateSnapshotAsync(Uri resourceUri, CancellationToken cancellationToken)
+        {
+            var blobName = GetName(resourceUri);
+            var blockBlobClient = GetBlockBlobReference(blobName);
+
+            var response = await blockBlobClient.CreateSnapshotAsync(cancellationToken: cancellationToken);
+
+            return new BlobSnapshot(resourceUri, response?.Value.Snapshot);
+        }
+
+        public override async Task DeleteSnapshotAsync(Uri resourceUri, Snapshot snapshot, CancellationToken cancellationToken)
+        {
+            var blobName = GetName(resourceUri);
+            var blockBlobClient = GetBlockBlobReference(blobName);
+            var snapshotClient = blockBlobClient.WithSnapshot(snapshot.Identifier);
+
+            await snapshotClient.DeleteAsync(DeleteSnapshotsOption.None, null, cancellationToken);
+        }
+
+        public override async Task<IList<Snapshot>> ListSnapshotsAsync(Uri resourceUri, CancellationToken cancellationToken)
+        {
+            var blobName = GetName(resourceUri);
+            var containerClient = _directory.ContainerClientWrapper;
+
+            return await containerClient.ListSnapshotsAsync(resourceUri, blobName, cancellationToken);
         }
 
         private BlockBlobClient GetBlockBlobReference(string blobName)

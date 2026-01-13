@@ -1,8 +1,11 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
@@ -30,14 +33,35 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             return _containerClient.Uri;
         }
 
-        public bool HasOnlyOriginalSnapshot(string prefix)
+        public async Task<bool> HasNoSnapshotAsync(Uri resourceUri, string blobName, CancellationToken cancellationToken)
         {
-            var blobs = _containerClient.GetBlobs(
-                    BlobTraits.None,
-                    states: BlobStates.Snapshots,
-                    prefix: prefix);
+            var blobItems = _containerClient.GetBlobsAsync(BlobTraits.None, BlobStates.Snapshots, prefix: blobName, cancellationToken);
 
-            return blobs.Count() == 1;
+            await foreach (BlobItem blobItem in blobItems)
+            {
+                if (!string.IsNullOrEmpty(blobItem.Snapshot))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public async Task<IList<Snapshot>> ListSnapshotsAsync(Uri resourceUri, string blobName, CancellationToken cancellationToken)
+        {
+            var blobItems = _containerClient.GetBlobsAsync(BlobTraits.None, BlobStates.Snapshots, prefix: blobName, cancellationToken);
+
+            IList<Snapshot> snapshots = new List<Snapshot>();
+            await foreach (BlobItem blobItem in blobItems)
+            {
+                if (!string.IsNullOrEmpty(blobItem.Snapshot))
+                {
+                    snapshots.Add(new BlobSnapshot(resourceUri, blobItem.Snapshot));
+                }
+            }
+
+            return snapshots;
         }
     }
 }
