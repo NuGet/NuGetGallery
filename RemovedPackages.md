@@ -88,6 +88,12 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    Netherеum.All      |    10/20/2025    |    Potentially Malicious    |
 |    toolsay            |    10/20/2025    |    Untrustworthy            |
 |    MiniMutex version 1.2.4    |    12/04/2025    |    Potentially Malicious    |
+|    Tracer.Fody.NLog   |    12/17/2025    |    Malware                  |
+|    Gp4Framework 0.0.9 |    12/17/2025    |    Potentially Malicious    |
+|    Gp4Framework 0.1.0 |    12/17/2025    |    Potentially Malicious    |
+|    SystemDiagnosticsv324824726 1.0.0   |    01/09/2026    |   Malware  |
+|    SystemDiagnosticsv324824726 1.2.0   |    01/09/2026    |   Malware  |
+|    SystemDiagnosticsV2.5467 1.0.0      |    01/09/2026    |   Malware  |
 
 
 
