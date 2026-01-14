@@ -19,7 +19,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
         private const string DefaultCacheControlForPackageVersionIndex = "max-age=15";
         private const string BlobNameOfPackageIdsToInclude = "PackageIdsToIncludeForCachingPackageVersionIndex.json";
 
-        private static HashSet<string> PackageIdsToInclude = new HashSet<string>();
+        public static HashSet<string> PackageIdsToInclude = new HashSet<string>();
 
         public static string GetCacheControl(string id, ILogger logger)
         {

@@ -158,7 +158,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                             cancellationToken);
                         var areRequiredPropertiesPresent = await AreRequiredPropertiesPresentAsync(destinationStorage, destinationUri);
 
-                        if (isNupkgSynchronized && isPackageInIndex && areRequiredPropertiesPresent)
+                        if (isNupkgSynchronized && areRequiredPropertiesPresent && isPackageInIndex && !DnxIndexCacheControl.PackageIdsToInclude.Contains(packageId))
                         {
                             _logger.LogInformation("No changes detected: {Id}/{Version}", packageId, normalizedPackageVersion);
 
