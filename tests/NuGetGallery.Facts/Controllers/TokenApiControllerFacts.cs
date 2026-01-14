@@ -18,6 +18,7 @@ using Moq;
 using NuGetGallery.Services.Authentication;
 using Xunit;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 
 #nullable enable
 
@@ -266,6 +267,7 @@ namespace NuGetGallery
             Identity = new Mock<IIdentity>();
             FederatedCredentialService = new Mock<IFederatedCredentialService>();
             Configuration = new Mock<IFederatedCredentialConfiguration>();
+            Logger = new Mock<ILogger<TokenApiController>>();
 
             RequestHeaders = new NameValueCollection();
             ResponseHeaders = new NameValueCollection();
@@ -287,7 +289,7 @@ namespace NuGetGallery
                 .Setup(x => x.GenerateApiKeyAsync(CreateTokenRequest.Username, BearerToken, RequestHeaders))
                 .ReturnsAsync(() => GenerateApiKeyResult);
 
-            Target = new TokenApiController(FederatedCredentialService.Object, Configuration.Object);
+            Target = new TokenApiController(FederatedCredentialService.Object, Configuration.Object, Logger.Object);
 
             Target.SetOwinContextOverride(OwinContext.Object);
             Response.SetupProperty(x => x.StatusCode);
@@ -312,6 +314,7 @@ namespace NuGetGallery
         public Mock<IIdentity> Identity { get; }
         public Mock<IFederatedCredentialService> FederatedCredentialService { get; }
         public Mock<IFederatedCredentialConfiguration> Configuration { get; }
+        public Mock<ILogger<TokenApiController>> Logger { get; }
         public NameValueCollection RequestHeaders { get; }
         public NameValueCollection ResponseHeaders { get; }
         public string BearerToken { get; }

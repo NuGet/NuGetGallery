@@ -4,6 +4,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Stats.AzureCdnLogs.Common;
@@ -16,24 +17,7 @@ namespace Stats.CollectAzureChinaCDNLogs
     /// </summary>
     public class ChinaStatsCollector : Collector
     {
-        private const string Header = "c-ip, timestamp, cs-method, cs-uri-stem, http-ver, sc-status, sc-bytes, c-referer, c-user-agent, rs-duration(ms), hit-miss, s-ip";
-        private const int ExpectedFields = 12;
-        //representation of the header of the log files from China CDN
-        private enum ChinaLogHeaderFields
-        {
-            cip = 0,
-            timestamp = 1,
-            csmethod = 2,
-            csuristem = 3,
-            httpver = 4,
-            scstatus = 5,
-            scbytes = 6,
-            creferer = 7,
-            cuseragent = 8,
-            rsduration = 9,
-            hitmiss = 10,
-            sip = 11
-        }
+        private JsonSerializerOptions _jsonOptions = null;
 
         public ChinaStatsCollector(
             ILogSource source,
@@ -42,71 +26,110 @@ namespace Stats.CollectAzureChinaCDNLogs
             bool writeHeader,
             bool addSourceFilenameColumn)
             : base(source, destination, logger, writeHeader, addSourceFilenameColumn)
-        {}
+        {
+            _jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+            };
+        }
 
         public override OutputLogLine TransformRawLogLine(string line)
         {
-            if (string.IsNullOrWhiteSpace(line) ||
-                string.IsNullOrEmpty(line) ||
-                line.Trim().StartsWith("c-ip", ignoreCase: true, culture: CultureInfo.InvariantCulture))
+            if (string.IsNullOrWhiteSpace(line))
             {
                 // Ignore empty lines or the header
                 return null;
             }
 
-            // Skip malformed lines.
-            var segments = ExtensionsUtils.GetSegmentsFromCSV(line);
-            if (segments.Length < ExpectedFields)
+            AfdLogLine parsedLine = ParseLine(line);
+
+            if (parsedLine == null)
             {
-                _logger.LogError(
-                    "Skipping malformed raw log line with {Segments} segments and content {Content}.",
-                    segments.Length,
-                    line);
+                // Parsing failed, already logged
                 return null;
             }
 
             const string notAvailableString = "na";
             const string notAvailableInt = "0";
+            const string noStringValue = "-";
 
-            string timestamp = segments[(int)ChinaLogHeaderFields.timestamp];
-            if (!DateTime.TryParse(timestamp, CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AdjustToUniversal, out var dt))
-            {
-                _logger.LogError("Skipping a line with malformed timestamp: {MalformedDate}", timestamp);
-                return null;
-            }
-            string timeStamp2 = ToUnixTimeStamp(dt);
+            string timeStamp2 = ToUnixTimeStamp(parsedLine.Time);
 
             // Global status code format: cache status + "/" + HTTP status code
             // China status code format: HTTP status code
-            var scstatus = segments[(int)ChinaLogHeaderFields.hitmiss] + "/" + segments[(int)ChinaLogHeaderFields.scstatus];
+            var scstatus = parsedLine.Properties.CacheStatus + "/" + parsedLine.Properties.HttpStatusCode;
+
+            var durationMilliseconds = noStringValue;
+            if (parsedLine.Properties.TimeTaken != null && double.TryParse(parsedLine.Properties.TimeTaken, out double timeTakenSeconds))
+            {
+                durationMilliseconds = ((int)(timeTakenSeconds * 1000)).ToString(CultureInfo.InvariantCulture);
+            }
 
             return new OutputLogLine(timestamp: timeStamp2,
                 timetaken: notAvailableInt,
-                cip:segments[(int)ChinaLogHeaderFields.cip],
+                cip: parsedLine.Properties.ClientIp,
                 filesize: notAvailableInt,
-                sip: segments[(int)ChinaLogHeaderFields.sip],
+                sip: parsedLine.Properties.OriginIp,
                 sport: notAvailableInt,
                 scstatus: scstatus,
-                scbytes: segments[(int)ChinaLogHeaderFields.scbytes],
-                csmethod: segments[(int)ChinaLogHeaderFields.csmethod],
-                csuristem: segments[(int)ChinaLogHeaderFields.csuristem],
-                rsduration: segments[(int)ChinaLogHeaderFields.rsduration],
+                scbytes: parsedLine.Properties.ResponseBytes,
+                csmethod: parsedLine.Properties.HttpMethod,
+                csuristem: parsedLine.Properties.RequestUri, // OK to keep full URL
+                rsduration: durationMilliseconds,
                 rsbytes: notAvailableInt,
-                creferrer: segments[(int)ChinaLogHeaderFields.creferer],
-                cuseragent: segments[(int)ChinaLogHeaderFields.cuseragent],
+                creferrer: string.IsNullOrWhiteSpace(parsedLine.Properties.Referer) ? noStringValue : parsedLine.Properties.Referer,
+                cuseragent: string.IsNullOrWhiteSpace(parsedLine.Properties.UserAgent) ? noStringValue : parsedLine.Properties.UserAgent,
                 customerid: notAvailableString,
-                xeccustom1: notAvailableString
+                xeccustom1: $"\"SSL-Protocol: {parsedLine.Properties.SecurityProtocol} SSL-Cipher: {parsedLine.Properties.SecurityCipher} SSL-Curves: {parsedLine.Properties.SecurityCurves}\""
                );
         }
 
         public override async Task<bool> VerifyStreamAsync(Stream stream)
         {
+            const int LinesToCheck = 10;
             using (var reader = new StreamReader(stream))
             {
-                //read the first line
-                string firstLine = await reader.ReadLineAsync();
-                return firstLine.Trim().Equals(Header, StringComparison.InvariantCultureIgnoreCase);
+                int lineIndex = 0;
+                string line;
+
+                while (lineIndex++ < LinesToCheck && (line = await reader.ReadLineAsync()) != null)
+                {
+                    if (!string.IsNullOrWhiteSpace(line))
+                    {
+                        AfdLogLine parsedLine = ParseLine(line);
+                        if (parsedLine != null) {
+                            return true;
+                        }
+                    }
+                }
+
+                // if in the first few lines we couldn't find any parseable line, consider it invalid
+                return false;
             }
+        }
+
+        private AfdLogLine ParseLine(string line)
+        {
+            AfdLogLine parsedLine = null;
+
+            try
+            {
+                parsedLine = JsonSerializer.Deserialize<AfdLogLine>(line, _jsonOptions);
+            }
+            catch (Exception ex)
+            {
+                // Ignore lines we can't parse. Not passing exception as the first argument, so it won't end up in exceptions table
+                _logger.LogError("Skipping malformed line: {Content}. Exception: {@Exception}", line, ex);
+                return null;
+            }
+
+            if (parsedLine == null || parsedLine.Properties == null)
+            {
+                _logger.LogError("Skipping malformed line: {Content}", line);
+                return null;
+            }
+
+            return parsedLine;
         }
     }
 }
