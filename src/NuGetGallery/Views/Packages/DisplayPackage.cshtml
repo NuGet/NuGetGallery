@@ -1049,6 +1049,32 @@
                 </div>
                 <div role="tabpanel" class="tab-pane @(activeBodyTab == "versions" ? "active" : "")" id="versions-tab" aria-label="Versions tab content">
                     <div class="version-history" id="version-history">
+                        <div class="version-filter-container">
+                            <div class="form-group">
+                                <label class="brand-checkbox">
+                                    <input type="checkbox" id="include-prerelease">
+                                    <span>Include prerelease</span>
+                                </label>
+                            </div>
+                            @if (Model.IsPackageVulnerabilitiesEnabled)
+                            {
+                                <div class="form-group">
+                                    <label class="brand-checkbox">
+                                        <input type="checkbox" id="include-vulnerable">
+                                        <span>Include vulnerable</span>
+                                    </label>
+                                </div>
+                            }
+                            @if (Model.IsPackageDeprecationEnabled)
+                            {
+                                <div class="form-group">
+                                    <label class="brand-checkbox">
+                                        <input type="checkbox" id="include-deprecated">
+                                        <span>Include deprecated</span>
+                                    </label>
+                                </div>
+                            }
+                        </div>
                         <table aria-label="Version History of @Model.Id" class="table borderless">
                             <thead>
                                 <tr>
@@ -1092,7 +1118,10 @@
                                     if ((packageVersion.Available && packageVersion.Listed && Model.ShowDetailsAndLinks)
                                         || (!packageVersion.Deleted && Model.CanDisplayPrivateMetadata))
                                     {
-                                        <tr class="@(packageVersion.IsCurrent(Model) ? "bg-brand-info" : null)">
+                                        <tr class="@(packageVersion.IsCurrent(Model) ? "bg-brand-info" : null) version-row" 
+                                            data-prerelease="@packageVersion.Prerelease.ToString().ToLowerInvariant()" 
+                                            data-vulnerable="@packageVersion.IsVulnerable.ToString().ToLowerInvariant()"
+                                            data-deprecated="@((packageVersion.DeprecationStatus != PackageDeprecationStatus.NotDeprecated).ToString().ToLowerInvariant())">
                                             <td>
                                                 <a href="@Url.Package(packageVersion)" title="@packageVersion.Version">
                                                     @packageVersion.Version.Abbreviate(30)
@@ -1165,7 +1194,10 @@
                                     }
                                     else if (packageVersion.Deleted && packageVersion.CanDisplayPrivateMetadata)
                                     {
-                                        <tr class="deleted">
+                                        <tr class="deleted version-row" 
+                                            data-prerelease="@packageVersion.Prerelease.ToString().ToLowerInvariant()" 
+                                            data-vulnerable="@packageVersion.IsVulnerable.ToString().ToLowerInvariant()"
+                                            data-deprecated="@((packageVersion.DeprecationStatus != PackageDeprecationStatus.NotDeprecated).ToString().ToLowerInvariant())">
                                             <td class="version">
                                                 @packageVersion.Version
                                             </td>

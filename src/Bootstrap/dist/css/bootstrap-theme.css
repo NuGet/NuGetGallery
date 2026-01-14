@@ -2177,6 +2177,19 @@ p.frameworktableinfo-text {
     padding: 1.25rem;
   }
 }
+.version-filter-container {
+  margin-bottom: 20px;
+  padding: 10px;
+  border-radius: 4px;
+}
+.version-filter-container .form-group {
+  display: inline-block;
+  margin-right: 20px;
+  margin-bottom: 0;
+}
+.version-filter-container input[type="checkbox"] {
+  margin-right: 5px;
+}
 .page-downloads .list-tools li {
   margin-top: 20px;
 }
