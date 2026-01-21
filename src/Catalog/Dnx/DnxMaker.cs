@@ -219,7 +219,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                 // Store versions (sorted)
                 result.Sort();
 
-                await storage.SaveAsync(resourceUri, CreateContent(result.Select(version => version.ToNormalizedString())), cancellationToken);
+                await storage.SaveAsync(resourceUri, CreateContentForPackageVersionIndex(id, result.Select(version => version.ToNormalizedString())), cancellationToken);
             }
             else
             {
@@ -260,10 +260,10 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             return result;
         }
 
-        private StorageContent CreateContent(IEnumerable<string> versions)
+        private StorageContent CreateContentForPackageVersionIndex(string id, IEnumerable<string> versions)
         {
             JObject obj = new JObject { { "versions", new JArray(versions) } };
-            return new StringStorageContent(obj.ToString(), "application/json", Constants.NoStoreCacheControl);
+            return new StringStorageContent(obj.ToString(), "application/json", DnxPackageVersionIndexCacheControl.GetCacheControl(id, _logger));
         }
 
         private async Task<Uri> SaveNupkgAsync(Stream nupkgStream, CatalogStorage storage, string id, string version, CancellationToken cancellationToken)
