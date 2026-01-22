@@ -2177,6 +2177,18 @@ p.frameworktableinfo-text {
     padding: 1.25rem;
   }
 }
+.page-package-details .version-filter-container {
+  margin-bottom: 2rem;
+  display: flex;
+  flex-wrap: wrap;
+}
+.page-package-details .version-filter-container .form-group {
+  margin-right: 2rem;
+  margin-bottom: 0;
+}
+.page-package-details .version-filter-container input[type="checkbox"] {
+  margin-right: 0.5rem;
+}
 .page-downloads .list-tools li {
   margin-top: 20px;
 }
