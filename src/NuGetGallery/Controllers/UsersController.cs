@@ -1202,8 +1202,6 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> RemoveTrustedPublisherPolicy(int? federatedCredentialKey)
         {
-            User currentUser = GetCurrentUser();
-
             var result = GetFederatedCredentialPolicy(federatedCredentialKey);
             if (result.policy == null)
             {
