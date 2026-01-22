@@ -530,5 +530,15 @@ namespace NuGetGallery.Configuration
         /// select places where large JSON response bodies are possible.
         /// </summary>
         int MaxJsonLengthOverride { get; set; }
+
+        /// <summary>
+        /// The maximum number of owners allowed per package registration. If this limit is reached, no more owners can be added and others must be removed first.
+        /// </summary>
+        int MaxOwnerPerPackageRegistration { get; set; }
+
+        /// <summary>
+        /// The maximum number of owner requests allowed per package registration. If this limit is reached, no more requests can be made and other requests must be removed first.
+        /// </summary>
+        int MaxOwnerRequestsPerPackageRegistration { get; set; }
     }
 }

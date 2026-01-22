@@ -1,22 +1,28 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
     public class PackageOwnerRequestService : IPackageOwnerRequestService
     {
         private readonly IEntityRepository<PackageOwnerRequest> _packageOwnerRequestRepository;
+        private readonly IAppConfiguration _appConfiguration;
 
-        public PackageOwnerRequestService(IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository)
+        public PackageOwnerRequestService(
+            IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository,
+            IAppConfiguration appConfiguration)
         {
             _packageOwnerRequestRepository = packageOwnerRequestRepository ?? throw new ArgumentNullException(nameof(packageOwnerRequestRepository));
+            _appConfiguration = appConfiguration ?? throw new ArgumentNullException(nameof(appConfiguration));
         }
 
         public PackageOwnerRequest GetPackageOwnershipRequest(PackageRegistration package, User newOwner, string token)
@@ -111,10 +117,19 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(newOwner));
             }
 
-            var existingRequest = GetPackageOwnershipRequests(package: package, newOwner: newOwner).FirstOrDefault();
-            if (existingRequest != null)
+            var existingRequests = GetPackageOwnershipRequests(package: package).ToList();
+            var duplicate = existingRequests.FirstOrDefault(x => x.NewOwnerKey == newOwner.Key);
+            if (duplicate is not null)
             {
-                return existingRequest;
+                return duplicate;
+            }
+
+            if (existingRequests.Count >= _appConfiguration.MaxOwnerRequestsPerPackageRegistration)
+            {
+                throw new UserSafeException(string.Format(
+                    CultureInfo.CurrentCulture,
+                    ServicesStrings.MaximumPackageOwnerRequestsReached,
+                    _appConfiguration.MaxOwnerRequestsPerPackageRegistration));
             }
 
             var newRequest = new PackageOwnerRequest

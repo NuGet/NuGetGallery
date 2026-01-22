@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
+using NuGetGallery.Configuration;
 using Xunit;
 
 namespace NuGetGallery.Services
@@ -354,8 +355,9 @@ namespace NuGetGallery.Services
 
                 PackageOwnerRequestRepository.Setup(x => x.GetAll()).Returns(() => DbSet.Object);
                 DbSet.Setup(x => x.Include(It.IsAny<string>())).Returns(() => DbSet.Object);
+                AppConfiguration = new Mock<IAppConfiguration>();
 
-                Target = new PackageOwnerRequestService(PackageOwnerRequestRepository.Object);
+                Target = new PackageOwnerRequestService(PackageOwnerRequestRepository.Object, AppConfiguration.Object);
             }
 
             public Mock<IEntityRepository<PackageOwnerRequest>> PackageOwnerRequestRepository { get; }
@@ -364,15 +366,17 @@ namespace NuGetGallery.Services
             public User NewOwner { get; }
             public List<PackageOwnerRequest> Entities { get; }
             public Mock<DbSet<PackageOwnerRequest>> DbSet { get; }
+            public Mock<IAppConfiguration> AppConfiguration { get; }
             public PackageOwnerRequestService Target { get; }
         }
 
         private static IPackageOwnerRequestService CreateService(
-            Mock<IEntityRepository<PackageOwnerRequest>> packageOwnerRequestRepo = null)
+            Mock<IEntityRepository<PackageOwnerRequest>> packageOwnerRequestRepo = null,
+            Mock<IAppConfiguration> appConfiguration = null)
         {
             packageOwnerRequestRepo = packageOwnerRequestRepo ?? new Mock<IEntityRepository<PackageOwnerRequest>>();
 
-            return new PackageOwnerRequestService(packageOwnerRequestRepo.Object);
+            return new PackageOwnerRequestService(packageOwnerRequestRepo.Object, appConfiguration.Object);
         }
     }
 }

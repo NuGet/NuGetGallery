@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -136,17 +136,24 @@ namespace NuGetGallery
             {
                 var packageUrl = Url.Package(model.Package.Id, version: null, relativeUrl: false);
 
-                if (model.CurrentUserCanAcceptOnBehalfOfUser)
+                try
                 {
-                    await _packageOwnershipManagementService.AddPackageOwnerWithMessagesAsync(model.Package, model.User);
+                    if (model.CurrentUserCanAcceptOnBehalfOfUser)
+                    {
+                        await _packageOwnershipManagementService.AddPackageOwnerWithMessagesAsync(model.Package, model.User);
+                    }
+                    else
+                    {
+                        await _packageOwnershipManagementService.AddPackageOwnershipRequestWithMessagesAsync(
+                            model.Package,
+                            model.CurrentUser,
+                            model.User,
+                            message);
+                    }
                 }
-                else
+                catch (UserSafeException e)
                 {
-                    await _packageOwnershipManagementService.AddPackageOwnershipRequestWithMessagesAsync(
-                        model.Package,
-                        model.CurrentUser,
-                        model.User,
-                        message);
+                    return Json(new { success = false, message = e.Message }, JsonRequestBehavior.AllowGet);
                 }
 
                 return Json(new
