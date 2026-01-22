@@ -36,6 +36,8 @@ namespace NuGet.Services.Metadata.Catalog
 
         private static readonly char[] TagTrimChars = { ',', ' ', '\t', '|', ';' };
 
+        private static readonly char[] Slashes = { '/', '\\' };
+
         public static string[] SplitTags(string original)
         {
             var fields = original
@@ -118,12 +120,13 @@ namespace NuGet.Services.Metadata.Catalog
 
             foreach (ZipArchiveEntry part in package.Entries)
             {
-                if (part.FullName.EndsWith(".nuspec") && part.FullName.IndexOf('/') == -1)
+                if (part.FullName.EndsWith(".nuspec") && part.FullName.IndexOfAny(Slashes) == -1)
                 {
                     XDocument nuspec = XDocument.Load(part.Open());
                     return nuspec;
                 }
             }
+
             return null;
         }
 
