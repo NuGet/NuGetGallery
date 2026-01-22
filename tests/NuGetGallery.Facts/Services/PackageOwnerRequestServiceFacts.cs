@@ -194,7 +194,7 @@ namespace NuGetGallery.Services
 
                 var exception = await Assert.ThrowsAsync<UserSafeException>(() => service.AddPackageOwnershipRequest(package, new User { Key = 6 }, new User { Key = 7 }));
 
-                Assert.Equal(string.Format(CultureInfo.CurrentCulture, ServicesStrings.MaximumPackageOwnerRequestsReached, 1), exception.Message);
+                Assert.Equal(string.Format(CultureInfo.CurrentCulture, ServicesStrings.MaximumPackageOwnerRequestsReached, 2), exception.Message);
             }
         }
 
