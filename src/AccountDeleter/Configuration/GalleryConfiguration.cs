@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -118,5 +118,7 @@ namespace NuGetGallery.AccountDeleter
         public string AdminSenderUser { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string SupportEmailSiteRoot { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public int MaxJsonLengthOverride { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public int MaxOwnerPerPackageRegistration { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public int MaxOwnerRequestsPerPackageRegistration { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     }
 }

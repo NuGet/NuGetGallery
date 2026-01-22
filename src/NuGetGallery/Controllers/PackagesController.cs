@@ -2456,7 +2456,7 @@ namespace NuGetGallery
             var request = _packageOwnershipManagementService.GetPackageOwnershipRequest(package, user, token);
             if (request == null)
             {
-                return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.Failure));
+                return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.Failure, ServicesStrings.OwnershipRequestNotValid));
             }
 
             if (redirect)
@@ -2466,7 +2466,14 @@ namespace NuGetGallery
 
             if (accept)
             {
-                await _packageOwnershipManagementService.AddPackageOwnerWithMessagesAsync(package, user);
+                try
+                {
+                    await _packageOwnershipManagementService.AddPackageOwnerWithMessagesAsync(package, user);
+                }
+                catch (UserSafeException ex)
+                {
+                    return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.Failure, ex.UserMessage));
+                }
 
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.Success));
             }
