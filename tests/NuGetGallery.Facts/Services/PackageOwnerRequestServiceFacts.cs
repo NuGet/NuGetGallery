@@ -4,10 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
+using NuGetGallery;
 using NuGetGallery.Configuration;
 using Xunit;
 
@@ -163,6 +165,36 @@ namespace NuGetGallery.Services
 
                 // Assert
                 Assert.Equal(existingRequestingOwner.Key, request.RequestingOwnerKey);
+            }
+
+            [Fact]
+            public async Task ThrowsWhenMaximumOwnerRequestsReached()
+            {
+                var package = new PackageRegistration { Key = 1 };
+                var existingRequest1 = new PackageOwnerRequest
+                {
+                    PackageRegistration = package,
+                    PackageRegistrationKey = package.Key,
+                    RequestingOwnerKey = 2,
+                    NewOwnerKey = 3
+                };
+                var existingRequest2 = new PackageOwnerRequest
+                {
+                    PackageRegistration = package,
+                    PackageRegistrationKey = package.Key,
+                    RequestingOwnerKey = 3,
+                    NewOwnerKey = 4
+                };
+                var repository = new Mock<IEntityRepository<PackageOwnerRequest>>();
+                repository.Setup(r => r.GetAll()).Returns(new[] { existingRequest1, existingRequest2 }.AsQueryable());
+                var appConfiguration = new Mock<IAppConfiguration>();
+                appConfiguration.Setup(a => a.MaxOwnerRequestsPerPackageRegistration).Returns(2);
+
+                var service = CreateService(repository, appConfiguration);
+
+                var exception = await Assert.ThrowsAsync<UserSafeException>(() => service.AddPackageOwnershipRequest(package, new User { Key = 6 }, new User { Key = 7 }));
+
+                Assert.Equal(string.Format(CultureInfo.CurrentCulture, ServicesStrings.MaximumPackageOwnerRequestsReached, 1), exception.Message);
             }
         }
 
