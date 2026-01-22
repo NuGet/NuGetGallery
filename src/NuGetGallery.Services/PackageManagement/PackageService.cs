@@ -16,7 +16,6 @@ using NuGet.Packaging.Core;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Auditing;
-using NuGetGallery.Configuration;
 using NuGetGallery.Helpers;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
@@ -35,7 +34,6 @@ namespace NuGetGallery
         private readonly IEntitiesContext _entitiesContext;
         private readonly IContentObjectService _contentObjectService;
         private readonly IFeatureFlagService _featureFlagService;
-        private readonly IAppConfiguration _appConfiguration;
         private const int packagesDisplayed = 5;
 
         public PackageService(
@@ -47,8 +45,7 @@ namespace NuGetGallery
             ISecurityPolicyService securityPolicyService,
             IEntitiesContext entitiesContext,
             IContentObjectService contentObjectService,
-            IFeatureFlagService featureFlagService,
-            IAppConfiguration appConfiguration)
+            IFeatureFlagService featureFlagService)
             : base(packageRepository, packageRegistrationRepository, certificateRepository)
         {
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
@@ -57,7 +54,6 @@ namespace NuGetGallery
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
-            _appConfiguration = appConfiguration ?? throw new ArgumentNullException(nameof(appConfiguration));
         }
 
         /// <summary>

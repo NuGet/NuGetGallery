@@ -376,6 +376,13 @@ namespace NuGetGallery.Services
         {
             packageOwnerRequestRepo = packageOwnerRequestRepo ?? new Mock<IEntityRepository<PackageOwnerRequest>>();
 
+            if (appConfiguration == null)
+            {
+                appConfiguration = new Mock<IAppConfiguration>();
+                appConfiguration.Setup(a => a.MaxOwnerRequestsPerPackageRegistration).Returns(3);
+                appConfiguration.Setup(a => a.MaxOwnerPerPackageRegistration).Returns(15);
+            }
+
             return new PackageOwnerRequestService(packageOwnerRequestRepo.Object, appConfiguration.Object);
         }
     }

@@ -48,7 +48,12 @@ namespace NuGetGallery
 
         public async Task AddPackageOwnerWithMessagesAsync(PackageRegistration packageRegistration, User user)
         {
-            if (packageRegistration.Owners.Count >= _appConfiguration.MaxOwnerPerPackageRegistration)
+            if (packageRegistration == null)
+            {
+                throw new ArgumentNullException(nameof(packageRegistration));
+            }
+
+            if (packageRegistration.Owners.Count >= Math.Max(_appConfiguration.MaxOwnerPerPackageRegistration, 1))
             {
                 throw new UserSafeException(string.Format(CultureInfo.CurrentCulture, ServicesStrings.MaximumPackageOwnersReached, _appConfiguration.MaxOwnerPerPackageRegistration));
             }

@@ -39,8 +39,14 @@ namespace NuGetGallery
             packageOwnerRequestService = packageOwnerRequestService ?? new Mock<IPackageOwnerRequestService>();
             auditingService = auditingService ?? new TestAuditingService();
             urlHelper = urlHelper ?? new Mock<IUrlHelper>();
-            appConfiguration = appConfiguration ?? new Mock<IAppConfiguration>();
             messageService = messageService ?? new Mock<IMessageService>();
+
+            if (appConfiguration is null)
+            {
+                appConfiguration = new Mock<IAppConfiguration>();
+                appConfiguration.Setup(x => x.MaxOwnerRequestsPerPackageRegistration).Returns(3);
+                appConfiguration.Setup(x => x.MaxOwnerPerPackageRegistration).Returns(15);
+            }
 
             if (useDefaultSetup)
             {
