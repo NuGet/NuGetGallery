@@ -124,7 +124,7 @@ namespace NuGetGallery
                 return duplicate;
             }
 
-            if (existingRequests.Count >= _appConfiguration.MaxOwnerRequestsPerPackageRegistration)
+            if (existingRequests.Count >= Math.Max(1, _appConfiguration.MaxOwnerRequestsPerPackageRegistration))
             {
                 throw new UserSafeException(string.Format(
                     CultureInfo.CurrentCulture,
