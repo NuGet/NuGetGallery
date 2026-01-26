@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Linq;
 using NuGet.Services.Entities;
 using Xunit;
@@ -26,10 +27,10 @@ namespace NuGetGallery.ViewModels
 
                 // Assert
                 Assert.Equal(3, vm.DependencySets.Count);
-                Assert.Null(vm.DependencySets["All Frameworks"].Single());
-                Assert.Null(vm.DependencySets["Portable Class Library (.NETFramework 4.5, Windows 8.0)"].Single());
+                Assert.Null(vm.DependencySets.Single(kvp => kvp.Key == "All Frameworks").Value.Single());
+                Assert.Null(vm.DependencySets.Single(kvp => kvp.Key == "Portable Class Library (.NETFramework 4.5, Windows 8.0)").Value.Single());
 
-                var actual = vm.DependencySets["Portable Class Library (.NETFramework 4.0, Silverlight 4.0, Windows 8.0, WindowsPhone 7.1)"].ToArray();
+                var actual = vm.DependencySets.Single(kvp => kvp.Key == "Portable Class Library (.NETFramework 4.0, Silverlight 4.0, Windows 8.0, WindowsPhone 7.1)").Value.ToArray();
                 Assert.Single(actual);
                 Assert.Equal("Microsoft.Net.Http", actual[0].Id);
                 Assert.Equal("(>= 2.1.0 && < 3.0.0)", actual[0].VersionSpec);
@@ -55,7 +56,7 @@ namespace NuGetGallery.ViewModels
                 // Assert
                 Assert.Equal(7, viewModel.DependencySets.Count);
 
-                var dependencySetsList = viewModel.DependencySets.Keys.ToList();
+                var dependencySetsList = viewModel.DependencySets.Select(kvp => kvp.Key).ToList();
 
                 Assert.Equal(".NETFramework 4.5", dependencySetsList[0]);
                 Assert.Equal(".NETFramework 4.6.2", dependencySetsList[1]);
@@ -90,6 +91,57 @@ namespace NuGetGallery.ViewModels
                 Assert.Equal("bcd", dependencyViewModels[1].Id);
                 Assert.Equal("cde", dependencyViewModels[2].Id);
                 Assert.Equal("def", dependencyViewModels[3].Id);
+            }
+
+            [Fact]
+            public void GivenAListOfDependenciesPackageIdsWillBeOrderedCaseInsensitively()
+            {
+                // Arrange
+                var dependencies = new[]
+                {
+                    new PackageDependency { TargetFramework = null, Id = "Zebra" },
+                    new PackageDependency { TargetFramework = null, Id = "apple" },
+                    new PackageDependency { TargetFramework = null, Id = "Banana" },
+                    new PackageDependency { TargetFramework = null, Id = "cherry" }
+                };
+
+                // Act
+                var viewModel = new DependencySetsViewModel(dependencies);
+
+                // Assert
+                Assert.Single(viewModel.DependencySets);
+                Assert.Equal(4, viewModel.DependencySets.First().Value.Count());
+
+                var dependencyViewModels = viewModel.DependencySets.First().Value.ToList();
+
+                Assert.Equal("apple", dependencyViewModels[0].Id);
+                Assert.Equal("Banana", dependencyViewModels[1].Id);
+                Assert.Equal("cherry", dependencyViewModels[2].Id);
+                Assert.Equal("Zebra", dependencyViewModels[3].Id);
+            }
+
+            [Fact]
+            public void GivenAListOfDependenciesNet10WillBeOrderedAfterNet9()
+            {
+                // Arrange
+                var dependencies = new[]
+                {
+                    new PackageDependency { TargetFramework = "net10.0" },
+                    new PackageDependency { TargetFramework = "net8.0" },
+                    new PackageDependency { TargetFramework = "net9.0" }
+                };
+
+                // Act
+                var viewModel = new DependencySetsViewModel(dependencies);
+
+                // Assert
+                Assert.Equal(3, viewModel.DependencySets.Count);
+
+                var dependencySetsList = viewModel.DependencySets.Select(kvp => kvp.Key).ToList();
+
+                Assert.Equal("net8.0", dependencySetsList[0]);
+                Assert.Equal("net9.0", dependencySetsList[1]);
+                Assert.Equal("net10.0", dependencySetsList[2]);
             }
         }
     }
