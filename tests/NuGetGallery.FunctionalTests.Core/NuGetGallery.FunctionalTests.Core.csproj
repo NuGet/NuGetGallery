@@ -5,7 +5,6 @@
     <RootNamespace>NuGetGallery.FunctionalTests</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.QualityTools.WebTestFramework" />
     <Reference Include="System.IO.Compression" />
   </ItemGroup>
   <ItemGroup>
@@ -16,6 +15,7 @@
     	Proper fix tracked here: https://github.com/NuGet/Engineering/issues/5669
     -->
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" VersionOverride="2.2.0" />
+    <PackageReference Include="Microsoft.Playwright.Xunit" />
     <PackageReference Include="Microsoft.Web.Xdt" />
     <PackageReference Include="NuGet.Core" />
     <PackageReference Include="NuGet.Services.Configuration" VersionOverride="2.94.0" />

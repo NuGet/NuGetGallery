@@ -228,6 +228,7 @@ namespace NuGetGallery.Services.Authentication
 
                 // Assert
                 Assert.Equal(OidcTokenEvaluationResultType.NoMatchingPolicy, evaluation.Type);
+                Assert.Null(evaluation.UserError);
 
                 AssertNoPoliciesCredentialAudit();
             }

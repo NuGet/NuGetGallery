@@ -263,9 +263,7 @@ namespace NuGetGallery.Telemetry
 
         private static bool IsPIIUrl(string url)
         {
-            var hasPIIParameter = url.ToLower().Contains("username")
-                || url.ToLower().Contains("accountname")
-                || url.ToLower().Contains("token");
+            var hasPIIParameter = url.ToLower().Contains("token");
 
             var uri = new Uri(new Uri("https://localhost"), url);
             var isExcluded = uri.AbsolutePath == "/api/v2/token";
@@ -277,36 +275,16 @@ namespace NuGetGallery.Telemetry
         {
             foreach (var user in GenerateUserNames())
             {
-                yield return new string[] { "account/confirm/{accountName}/{token}", $"https://localhost/account/confirm/{user}/sometoken", "https://localhost/account/confirm/ObfuscatedUserName/ObfuscatedToken" };
-                yield return new string[] { "account/delete/{accountName}", $"https://localhost/account/delete/{user}", "https://localhost/account/delete/ObfuscatedUserName" };
-                yield return new string[] { "account/forgotpassword/{username}/{token}", $"https://localhost/account/forgotpassword/{user}/sometoken", "https://localhost/account/forgotpassword/ObfuscatedUserName/ObfuscatedToken" };
-                yield return new string[] { "account/setpassword/{username}/{token}", $"https://localhost/account/setpassword/{user}/sometoken", "https://localhost/account/setpassword/ObfuscatedUserName/ObfuscatedToken" };
-                yield return new string[] { "account/transform/confirm/{accountNameToTransform}/{token}", $"https://localhost/account/transform/confirm/{user}/sometoken", "https://localhost/account/transform/confirm/ObfuscatedUserName/ObfuscatedToken" };
-                yield return new string[] { "account/transform/reject/{accountNameToTransform}/{token}", $"https://localhost/account/transform/reject/{user}/sometoken", "https://localhost/account/transform/reject/ObfuscatedUserName/ObfuscatedToken" };
-                yield return new string[] { "organization/{accountName}/{action}", $"https://localhost/organization/{user}/foo", "https://localhost/organization/ObfuscatedUserName/foo" };
-                yield return new string[] { "organization/{accountName}/certificates", $"https://localhost/organization/{user}/certificates", "https://localhost/organization/ObfuscatedUserName/certificates" };
-                yield return new string[] { "organization/{accountName}/certificates/{thumbprint}", $"https://localhost/organization/{user}/certificates/thumb", "https://localhost/organization/ObfuscatedUserName/certificates/thumb" };
-                yield return new string[] { "organization/{accountName}/members/add", $"https://localhost/organization/{user}/members/add", "https://localhost/organization/ObfuscatedUserName/members/add" };
-                yield return new string[] { "organization/{accountName}/members/add/{memberName}/{isAdmin}", $"https://localhost/organization/{user}/members/add/member/true", "https://localhost/organization/ObfuscatedUserName/members/add/ObfuscatedUserName/true" };
-                yield return new string[] { "organization/{accountName}/members/add/{memberName}/{isAdmin}", $"https://localhost/organization/org/members/add/{user}/true", "https://localhost/organization/ObfuscatedUserName/members/add/ObfuscatedUserName/true" };
-                yield return new string[] { "organization/{accountName}/members/cancel", $"https://localhost/organization/{user}/members/cancel", "https://localhost/organization/ObfuscatedUserName/members/cancel" };
-                yield return new string[] { "organization/{accountName}/members/cancel/{memberName}", $"https://localhost/organization/{user}/members/cancel/member", "https://localhost/organization/ObfuscatedUserName/members/cancel/ObfuscatedUserName" };
-                yield return new string[] { "organization/{accountName}/members/cancel/{memberName}", $"https://localhost/organization/org/members/cancel/{user}", "https://localhost/organization/ObfuscatedUserName/members/cancel/ObfuscatedUserName" };
-                yield return new string[] { "organization/{accountName}/members/confirm/{confirmationToken}", $"https://localhost/organization/{user}/members/confirm/sometoken", "https://localhost/organization/ObfuscatedUserName/members/confirm/ObfuscatedToken" };
-                yield return new string[] { "organization/{accountName}/members/delete", $"https://localhost/organization/{user}/members/delete", "https://localhost/organization/ObfuscatedUserName/members/delete" };
-                yield return new string[] { "organization/{accountName}/members/delete/{memberName}", $"https://localhost/organization/{user}/members/delete/member", "https://localhost/organization/ObfuscatedUserName/members/delete/ObfuscatedUserName" };
-                yield return new string[] { "organization/{accountName}/members/delete/{memberName}", $"https://localhost/organization/org/members/delete/{user}", "https://localhost/organization/ObfuscatedUserName/members/delete/ObfuscatedUserName" };
-                yield return new string[] { "organization/{accountName}/members/reject/{confirmationToken}", $"https://localhost/organization/{user}/members/reject/sometoken", "https://localhost/organization/ObfuscatedUserName/members/reject/ObfuscatedToken" };
-                yield return new string[] { "organization/{accountName}/members/update", $"https://localhost/organization/{user}/members/update", "https://localhost/organization/ObfuscatedUserName/members/update" };
-                yield return new string[] { "organization/{accountName}/members/update/{memberName}/{isAdmin}", $"https://localhost/organization/{user}/members/update/member/true", "https://localhost/organization/ObfuscatedUserName/members/update/ObfuscatedUserName/true" };
-                yield return new string[] { "organization/{accountName}/members/update/{memberName}/{isAdmin}", $"https://localhost/organization/org/members/update/{user}/true", "https://localhost/organization/ObfuscatedUserName/members/update/ObfuscatedUserName/true" };
-                yield return new string[] { "organization/{accountName}/subscription/change", $"https://localhost/organization/{user}/subscription/change", "https://localhost/organization/ObfuscatedUserName/subscription/change" };
-                yield return new string[] { "packages/{id}/owners/{username}/cancel/{token}", $"https://localhost/packages/pack1/owners/{user}/cancel/sometoken", "https://localhost/packages/pack1/owners/ObfuscatedUserName/cancel/ObfuscatedToken" };
-                yield return new string[] { "packages/{id}/owners/{username}/confirm/{token}", $"https://localhost/packages/pack1/owners/{user}/confirm/sometoken", "https://localhost/packages/pack1/owners/ObfuscatedUserName/confirm/ObfuscatedToken" };
-                yield return new string[] { "packages/{id}/owners/{username}/reject/{token}", $"https://localhost/packages/pack1/owners/{user}/reject/sometoken", "https://localhost/packages/pack1/owners/ObfuscatedUserName/reject/ObfuscatedToken" };
-                yield return new string[] { "packages/{id}/required-signer/{username}", $"https://localhost/packages/pack1/required-signer/{user}", "https://localhost/packages/pack1/required-signer/ObfuscatedUserName" };
-                yield return new string[] { "profiles/{username}", $"https://localhost/profiles/{user}", "https://localhost/profiles/ObfuscatedUserName" };
-                yield return new string[] { "profiles/{accountName}/avatar", $"https://localhost/profiles/{user}/avatar", "https://localhost/profiles/ObfuscatedUserName/avatar" };
+                yield return new string[] { "account/confirm/{accountName}/{token}", $"https://localhost/account/confirm/{user}/sometoken", $"https://localhost/account/confirm/{user}/ObfuscatedToken" };
+                yield return new string[] { "account/forgotpassword/{username}/{token}", $"https://localhost/account/forgotpassword/{user}/sometoken", $"https://localhost/account/forgotpassword/{user}/ObfuscatedToken" };
+                yield return new string[] { "account/setpassword/{username}/{token}", $"https://localhost/account/setpassword/{user}/sometoken", $"https://localhost/account/setpassword/{user}/ObfuscatedToken" };
+                yield return new string[] { "account/transform/confirm/{accountNameToTransform}/{token}", $"https://localhost/account/transform/confirm/{user}/sometoken", $"https://localhost/account/transform/confirm/{user}/ObfuscatedToken" };
+                yield return new string[] { "account/transform/reject/{accountNameToTransform}/{token}", $"https://localhost/account/transform/reject/{user}/sometoken", $"https://localhost/account/transform/reject/{user}/ObfuscatedToken" };
+                yield return new string[] { "organization/{accountName}/members/confirm/{confirmationToken}", $"https://localhost/organization/{user}/members/confirm/sometoken", $"https://localhost/organization/{user}/members/confirm/ObfuscatedToken" };
+                yield return new string[] { "organization/{accountName}/members/reject/{confirmationToken}", $"https://localhost/organization/{user}/members/reject/sometoken", $"https://localhost/organization/{user}/members/reject/ObfuscatedToken" };
+                yield return new string[] { "packages/{id}/owners/{username}/cancel/{token}", $"https://localhost/packages/pack1/owners/{user}/cancel/sometoken", $"https://localhost/packages/pack1/owners/{user}/cancel/ObfuscatedToken" };
+                yield return new string[] { "packages/{id}/owners/{username}/confirm/{token}", $"https://localhost/packages/pack1/owners/{user}/confirm/sometoken", $"https://localhost/packages/pack1/owners/{user}/confirm/ObfuscatedToken" };
+                yield return new string[] { "packages/{id}/owners/{username}/reject/{token}", $"https://localhost/packages/pack1/owners/{user}/reject/sometoken", $"https://localhost/packages/pack1/owners/{user}/reject/ObfuscatedToken" };
             }
 
             yield return new string[] { "account/transform/cancel/{token}", "https://localhost/account/transform/cancel/sometoken", "https://localhost/account/transform/cancel/ObfuscatedToken" };

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Linq;
 
 namespace NuGetGallery.FunctionalTests
@@ -19,7 +20,37 @@ namespace NuGetGallery.FunctionalTests
         };
 
         public const string ConfigurationFilePathVariableName = "ConfigurationFilePath";
-        public static string ConfigurationFilePath => GetEnvironmentVariable(ConfigurationFilePathVariableName, required: true);
+
+        public static string ConfigurationFilePath
+        {
+            get
+            {
+#if DEBUG
+                bool required = false;
+#else
+                bool required = true;
+#endif
+                return GetEnvironmentVariable(ConfigurationFilePathVariableName, required)
+                    ?? Path.Combine(GetRepositoryRoot(Directory.GetCurrentDirectory()), "tests/NuGetGallery.FunctionalTests/settings.DEV.json");
+            }
+        }
+
+        private static string GetRepositoryRoot(string startingDirectory)
+        {
+            var current = new DirectoryInfo(startingDirectory);
+
+            while (current != null && !current.GetFiles("NuGetGallery.FunctionalTests.sln").Any())
+            {
+                current = current.Parent;
+            }
+
+            if (current == null)
+            {
+                throw new InvalidOperationException("Could not find the repository root.");
+            }
+
+            return current.FullName;
+        }
 
         private static string GetEnvironmentVariable(string key, bool required)
         {

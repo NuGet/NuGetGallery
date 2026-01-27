@@ -31,5 +31,13 @@ if ($LASTEXITCODE -ne 0) {
     throw "Failed to build solution!"
 }
 
+Write-Host "Copying nuget.exe to functional tests directory"
 $functionalTestsDirectory = Join-Path $parentDir "NuGetGallery.FunctionalTests\bin\$Configuration\net472"
 Copy-Item $nuget $functionalTestsDirectory
+
+Write-Host "Setting up Playwright browsers..."
+# used to suppress Node.js warnings about url.parse deprecation
+# https://github.com/microsoft/playwright/issues/36404
+$env:NODE_NO_WARNINGS = "1"
+& "$functionalTestsDirectory\playwright.ps1" install
+$env:NODE_NO_WARNINGS = ""

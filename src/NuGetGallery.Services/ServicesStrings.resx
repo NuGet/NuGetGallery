@@ -1145,4 +1145,15 @@ The {1} Team</value>
   <data name="ScopeDescription_UnlistDeprecatePackage" xml:space="preserve">
     <value>Unlist, relist, or deprecate package versions</value>
   </data>
+  <data name="MaximumPackageOwnersReached" xml:space="preserve">
+    <value>The new package owner cannot be added. The package has the maximum number of owners ({0}). An existing owner must be removed to proceed.</value>
+    <comment>{0} is the maximum number of owners.</comment>
+  </data>
+  <data name="MaximumPackageOwnerRequestsReached" xml:space="preserve">
+    <value>The package ownership request cannot be saved. The package already has the maximum number of ownership requests ({0}). An existing ownership request must be removed to proceed.</value>
+    <comment>{0} is the maximum number of owners.</comment>
+  </data>
+  <data name="OwnershipRequestNotValid" xml:space="preserve">
+    <value>Make sure you clicked on the confirmation URL in the email we sent. It's also possible that the existing owner revoked the request to add you as an owner.</value>
+  </data>
 </root>

@@ -4,6 +4,7 @@
 using System;
 using System.Data.Entity.Infrastructure;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Protocols;
@@ -35,6 +36,7 @@ namespace NuGetGallery.Services.Authentication
         private const string EnvironmentClaim = "environment";
         private const string RepositoryOwnerIdClaim = "repository_owner_id";
         private const string RepositoryIdClaim = "repository_id";
+        private const string EventNameClaim = "event_name";
         private const string HttpsPrefix = "https://";
         private const string GitHubPrefix = "github.com/";
         private const string WorkflowPrefix = ".github/workflows/";
@@ -177,10 +179,41 @@ namespace NuGetGallery.Services.Authentication
                 return FederatedCredentialPolicyResult.NotApplicable;
             }
 
+            // Check for required claims
+            string? error = TryGetRequiredClaim(jwt, RepositoryClaim, out _);
+            if (error != null)
+            {
+                return FederatedCredentialPolicyResult.Unauthorized(error, isErrorDisclosable: true);
+            }
+
+            error = TryGetRequiredClaim(jwt, RepositoryOwnerClaim, out _);
+            if (error != null)
+            {
+                return FederatedCredentialPolicyResult.Unauthorized(error, isErrorDisclosable: true);
+            }
+
+            error = TryGetRequiredClaim(jwt, RepositoryOwnerIdClaim, out string repositoryOwnerId);
+            if (error != null)
+            {
+                return FederatedCredentialPolicyResult.Unauthorized(error, isErrorDisclosable: true);
+            }
+
+            error = TryGetRequiredClaim(jwt, RepositoryIdClaim, out string repositoryId);
+            if (error != null)
+            {
+                return FederatedCredentialPolicyResult.Unauthorized(error, isErrorDisclosable: true);
+            }
+
+            error = TryGetRequiredClaim(jwt, EventNameClaim, out string eventName);
+            if (error != null)
+            {
+                return FederatedCredentialPolicyResult.Unauthorized(error, isErrorDisclosable: true);
+            }
+
             var criteria = GitHubCriteria.FromDatabaseJson(policy.Criteria);
 
             // Validate required GitHub criterias first
-            string? error = ValidateClaimExactMatch(jwt, RepositoryOwnerClaim, criteria.RepositoryOwner, StringComparison.OrdinalIgnoreCase);
+            error = ValidateClaimExactMatch(jwt, RepositoryOwnerClaim, criteria.RepositoryOwner, StringComparison.OrdinalIgnoreCase);
             if (error != null)
             {
                 return FederatedCredentialPolicyResult.Unauthorized(error);
@@ -201,19 +234,6 @@ namespace NuGetGallery.Services.Authentication
                     return FederatedCredentialPolicyResult.Unauthorized(
                         $"The policy '{policy.PolicyName}' has expired. Sign in and renew the trust policy on the Trusted Publishing page.",
                         isErrorDisclosable: true);
-                }
-
-                // Get repo and owner IDs from the token
-                error = TryGetRequiredClaim(jwt, RepositoryOwnerIdClaim, out string repositoryOwnerId);
-                if (error != null)
-                {
-                    return FederatedCredentialPolicyResult.Unauthorized(error);
-                }
-
-                error = TryGetRequiredClaim(jwt, RepositoryIdClaim, out string repositoryId);
-                if (error != null)
-                {
-                    return FederatedCredentialPolicyResult.Unauthorized(error);
                 }
 
                 // Update the policy with the repo and owner IDs
@@ -265,6 +285,15 @@ namespace NuGetGallery.Services.Authentication
 
             // IMPORTANT. By now we validated repo owner and repo. Including IDs.
             // From now on we can report errors as disclosable.
+
+            // Reject banned events
+            if (_configuration.BannedGitHubActionsEvents is not null
+                && _configuration.BannedGitHubActionsEvents.Contains(eventName, StringComparer.OrdinalIgnoreCase))
+            {
+                return FederatedCredentialPolicyResult.Unauthorized(
+                    $"The GitHub Actions event '{eventName}' is not allowed.",
+                    isErrorDisclosable: true);
+            }
 
             // Get workflow ref, e.g. "contoso/contoso-sdk/.github/workflows/release.yml@refs/heads/main"
             error = TryGetRequiredClaim(jwt, JobWorkflowRefClaim, out string workflowRef);

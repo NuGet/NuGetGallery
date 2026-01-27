@@ -233,6 +233,7 @@
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Extensions\CakeBuildManagerExtensions.cs" />
     <Compile Include="Extensions\ImageExtensions.cs" />
+    <Compile Include="Extensions\UserSafeExceptionExtensions.cs" />
     <Compile Include="Filters\AdminActionAttribute.cs" />
     <Compile Include="Filters\RequiresUserAgentAttribute.cs" />
     <Compile Include="Helpers\AdminHelper.cs" />
@@ -1081,7 +1082,6 @@
     <Compile Include="Infrastructure\Lucene\PerFieldAnalyzer.cs" />
     <Compile Include="Infrastructure\Lucene\NuGetSearchTerm.cs" />
     <Compile Include="Infrastructure\TracingHttpHandler.cs" />
-    <Compile Include="Infrastructure\UserSafeException.cs" />
     <Compile Include="Migrations\201110060711357_Initial.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -2227,6 +2227,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Autofac.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Http" />
     <PackageReference Include="Microsoft.Extensions.Http.Polly" />
@@ -2326,7 +2327,6 @@
   <ItemGroup>
     <Content Include="Views\Users\TrustedPublishing.cshtml" />
   </ItemGroup>
-
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>

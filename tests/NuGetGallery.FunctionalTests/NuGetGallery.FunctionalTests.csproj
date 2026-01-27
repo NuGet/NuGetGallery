@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
@@ -23,6 +23,11 @@
   <ItemGroup>
     <StaticAssets Include="$(GalleryDirectory)\Scripts\**\*.js" Visible="false" />
     <StaticAssets Include="$(GalleryDirectory)\Content\**\*.css" Visible="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="settings.DEV.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Target Name="CustomBeforeBuild" BeforeTargets="BeforeBuild">
     <WriteLinesToFile File="StaticAssets\Data.g.txt" Lines="$(GalleryDirectory);@(StaticAssets)" Overwrite="true" />

@@ -95,6 +95,9 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    Allegory.Logo.Gateway.HttpApi.Host 0.1.18    |    12/17/2025    |    Potentially Malicious    |
 |    Allegory.Logo.Gateway.HttpApi.Host 0.1.19    |    12/17/2025    |    Potentially Malicious    |
 |    Allegory.Logo.Gateway.HttpApi.Host 0.1.20    |    12/17/2025    |    Potentially Malicious    |
+|    SystemDiagnosticsv324824726 1.0.0   |    01/09/2026    |   Malware  |
+|    SystemDiagnosticsv324824726 1.2.0   |    01/09/2026    |   Malware  |
+|    SystemDiagnosticsV2.5467 1.0.0      |    01/09/2026    |   Malware  |
 
 
 

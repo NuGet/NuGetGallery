@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Moq;
@@ -12,6 +13,7 @@ using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Mail.Messages;
+using NuGetGallery.Services;
 using NuGetGallery.TestUtils;
 using Xunit;
 
@@ -39,8 +41,14 @@ namespace NuGetGallery
             packageOwnerRequestService = packageOwnerRequestService ?? new Mock<IPackageOwnerRequestService>();
             auditingService = auditingService ?? new TestAuditingService();
             urlHelper = urlHelper ?? new Mock<IUrlHelper>();
-            appConfiguration = appConfiguration ?? new Mock<IAppConfiguration>();
             messageService = messageService ?? new Mock<IMessageService>();
+
+            if (appConfiguration is null)
+            {
+                appConfiguration = new Mock<IAppConfiguration>();
+                appConfiguration.Setup(x => x.MaxOwnerRequestsPerPackageRegistration).Returns(3);
+                appConfiguration.Setup(x => x.MaxOwnerPerPackageRegistration).Returns(15);
+            }
 
             if (useDefaultSetup)
             {
@@ -153,6 +161,23 @@ namespace NuGetGallery
                 messageService.Verify(
                     x => x.SendMessageAsync(It.IsAny<IEmailBuilder>(), It.IsAny<bool>(), It.IsAny<bool>()),
                     Times.Exactly(5));
+            }
+
+            [Fact]
+            public async Task ThrowsWhenOwnerLimitReached()
+            {
+                var package = new PackageRegistration { Key = 2, Id = "Microsoft.Aspnet.Package1" };
+                package.Owners.Add(new User { Key = 99, Username = "microsoft" });
+                var pendingOwner = new User { Key = 100, Username = "aspnet" };
+                var appConfiguration = new Mock<IAppConfiguration>();
+                appConfiguration.Setup(x => x.MaxOwnerRequestsPerPackageRegistration).Returns(3);
+                appConfiguration.Setup(x => x.MaxOwnerPerPackageRegistration).Returns(1);
+
+                var service = CreateService(appConfiguration: appConfiguration);
+
+                var exception = await Assert.ThrowsAsync<UserSafeException>(() => AddPackageOwnerAsync(service, package, pendingOwner));
+
+                Assert.Equal(string.Format(CultureInfo.CurrentCulture, ServicesStrings.MaximumPackageOwnersReached, 1), exception.Message);
             }
 
             protected override async Task AddPackageOwnerAsync(PackageOwnershipManagementService service, PackageRegistration packageRegistration, User user)

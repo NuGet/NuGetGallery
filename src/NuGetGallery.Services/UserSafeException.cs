@@ -1,0 +1,54 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+
+namespace NuGetGallery
+{
+    // Marker interface to indicate that the exception has a message that can be shown to a user
+    public interface IUserSafeException
+    {
+        string UserMessage { get; }
+        Exception LoggedException { get; }
+    }
+
+    [Serializable]
+    public class UserSafeException : Exception, IUserSafeException
+    {
+        public string UserMessage
+        {
+            get { return Message; }
+        }
+
+        public Exception LoggedException
+        {
+            get { return InnerException == null ? this : InnerException; }
+        }
+
+        public UserSafeException() { }
+        public UserSafeException(string message) : base(message) { }
+        public UserSafeException(string message, Exception inner) : base(message, inner) { }
+        protected UserSafeException(
+          System.Runtime.Serialization.SerializationInfo info,
+          System.Runtime.Serialization.StreamingContext context)
+            : base(info, context) { }
+    }
+
+    public static class UserSafeExceptionExtensions
+    {
+        public static UserSafeException AsUserSafeException(this Exception self)
+        {
+            return new UserSafeException(self.Message, self.InnerException);
+        }
+
+        public static string GetUserSafeMessage(this Exception self)
+        {
+            IUserSafeException uvex = self as IUserSafeException;
+            if (uvex != null)
+            {
+                return uvex.UserMessage;
+            }
+            return ServicesStrings.DefaultUserSafeExceptionMessage;
+        }
+    }
+}
