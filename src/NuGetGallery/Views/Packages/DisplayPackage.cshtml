@@ -154,7 +154,7 @@
                 "dotnet-cli",
                 ".NET CLI",
                 new PackageManagerViewModel.InstallPackageCommand(
-                    string.Format("dotnet new install {0}::{1}", Model.Id, Model.Version)
+                    string.Format("dotnet new install {0}@{1}", Model.Id, Model.Version)
                 )
             )
             {
