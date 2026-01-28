@@ -7,6 +7,8 @@
       <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
       <UniqueFiles ParameterType="Microsoft.Build.Framework.ITaskItem[]" Output="true" />
       <DuplicateFiles ParameterType="Microsoft.Build.Framework.ITaskItem[]" Output="true" />
+      <!-- Used to skip a list of Authenticode subjects. This can be used to avoid resigning some files that are already signed. The string is semicolon delimited. -->
+      <SkipAuthenticodeSubjects ParameterType="System.String" />
     </ParameterGroup>
     <Task>
       <Code Type="Class" Language="cs" Source="$(MSBuildThisFileDirectory)FindDuplicateFiles.cs" />

@@ -20,6 +20,13 @@
          individual projects to disovery their files to sign.
     -->
     <SkipEnumerateFilesToSign Condition="'$(SkipEnumerateFilesToSign)' == ''">$(BatchSign)</SkipEnumerateFilesToSign>
+
+    <!--
+    MicroBuild test signing fails signing a file that is already signed with the target strong name key.
+    Because of this, when doing test signing we skip files that are already fully signed.
+    We use the authenticode subject to identify files that are signed with the real Microsoft key, since those will also have a complete strong name.
+    -->
+    <SkipAuthenticodeSubjects Condition="'$(SignType)' == 'test'">CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</SkipAuthenticodeSubjects>
   </PropertyGroup>
 
   <!--
@@ -145,7 +152,7 @@
   <Target
     Name="DedupeFilesToSign"
     DependsOnTargets="EnumerateFilesToSign">
-    <FindDuplicateFiles Files="@(UnfilteredFilesToSign)">
+    <FindDuplicateFiles Files="@(UnfilteredFilesToSign)" SkipAuthenticodeSubjects="$(SkipAuthenticodeSubjects)">
       <Output
         TaskParameter="UniqueFiles"
         ItemName="FilesToSign" />
@@ -155,7 +162,7 @@
     </FindDuplicateFiles>
     <Message Text="Count of files to sign: @(FilesToSign->Count())" Importance="High" />
     <Message Text="Files to sign:%0A@(FilesToSign, '%0A')" Importance="High" />
-  </Target>  
+  </Target>
 
   <Target Name="CopySignedFiles"
     AfterTargets="SignFiles"

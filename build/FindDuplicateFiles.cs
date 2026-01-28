@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using Microsoft.Build.Framework;
 
 namespace NuGet.Services.Build
@@ -20,6 +21,8 @@ namespace NuGet.Services.Build
 
         [Output]
         public ITaskItem[] DuplicateFiles { get; set; }
+
+        public string SkipAuthenticodeSubjects { get; set; }
 
         public override bool Execute()
         {
@@ -121,6 +124,44 @@ namespace NuGet.Services.Build
                 }
 
                 BreakTiesWithLeadingHash(filePathToDuplicates, buffer, fileSizePair);
+            }
+
+            if (!string.IsNullOrWhiteSpace(SkipAuthenticodeSubjects))
+            {
+                var skipSubjects = SkipAuthenticodeSubjects
+                    .Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(s => s.Trim())
+                    .ToHashSet(StringComparer.Ordinal);
+
+                foreach (var pair in filePathToDuplicates.ToList())
+                {
+                    var path = pair.Key;
+                    try
+                    {
+                        var cert = X509Certificate.CreateFromSignedFile(path);
+                        var subject = cert.Subject;
+
+                        if (skipSubjects.Contains(subject))
+                        {
+                            Log.LogMessage(
+                                "Skipping file '{0}' with Authenticode subject '{1}'.",
+                                path,
+                                subject);
+
+                            filePathToDuplicates.Remove(path);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ex is CryptographicException)
+                        {
+                            // The file is not signed, proceed as normal.
+                            continue;
+                        }
+
+                        throw;
+                    }
+                }
             }
 
             return filePathToDuplicates;
