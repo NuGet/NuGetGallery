@@ -128,6 +128,8 @@ namespace NuGet.Services.Build
 
             if (!string.IsNullOrWhiteSpace(SkipAuthenticodeSubjects))
             {
+                Log.LogMessage("Skipping files with the following Authenticode subjects: {0}", SkipAuthenticodeSubjects);
+
                 var skipSubjects = SkipAuthenticodeSubjects
                     .Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(s => s.Trim())
@@ -150,6 +152,13 @@ namespace NuGet.Services.Build
 
                             filePathToDuplicates.Remove(path);
                         }
+                        else
+                        {
+                            Log.LogMessage(
+                                "Not skipping file '{0}' with Authenticode subject '{1}'.",
+                                path,
+                                subject);
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -162,6 +171,10 @@ namespace NuGet.Services.Build
                         throw;
                     }
                 }
+            }
+            else
+            {
+                Log.LogMessage("No Authenticode subjects to skip were provided.");
             }
 
             return filePathToDuplicates;
