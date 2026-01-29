@@ -8,6 +8,7 @@
     <MicroBuild_NuPkgSigningEnabled>false</MicroBuild_NuPkgSigningEnabled>
     <BatchSign Condition="'$(BatchSign)' == ''">true</BatchSign>
     <RepositoryRootDirectory Condition="'$(RepositoryRootDirectory)' == ''">$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'build.ps1'))\</RepositoryRootDirectory>
+    <SkipAuthenticodeSubjects Condition="'$(SkipAuthenticodeSubjects)' == '' and '$(SignType)' == 'test'">CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</SkipAuthenticodeSubjects>
 
     <!--
     By default, only run EnumerateFilesToSign if we are not batch signing. This property is explicitly set to true when
@@ -21,12 +22,6 @@
     -->
     <SkipEnumerateFilesToSign Condition="'$(SkipEnumerateFilesToSign)' == ''">$(BatchSign)</SkipEnumerateFilesToSign>
 
-    <!--
-    MicroBuild test signing fails signing a file that is already signed with the target strong name key.
-    Because of this, when doing test signing we skip files that are already fully signed.
-    We use the authenticode subject to identify files that are signed with the real Microsoft key, since those will also have a complete strong name.
-    -->
-    <SkipAuthenticodeSubjects Condition="'$(SignType)' == 'test'">CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</SkipAuthenticodeSubjects>
   </PropertyGroup>
 
   <!--
