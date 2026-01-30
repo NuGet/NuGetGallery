@@ -95,17 +95,14 @@ namespace NuGetGallery
             }
 
             // Only clear the cookie if it was present in the request
-            if (cookie != null && _httpContext.Response != null && _httpContext.Response.Cookies != null)
+            if (_httpContext.Response != null && _httpContext.Response.Cookies != null)
             {
-                var responseCookie = new HttpCookie(TempDataCookieKey)
+                var responseCookie = _httpContext.Response.Cookies.Get(TempDataCookieKey);
+                if (responseCookie != null)
                 {
-                    Expires = DateTime.UtcNow.AddDays(-1),
-                    Value = String.Empty,
-                    HttpOnly = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.Lax
-                };
-                _httpContext.Response.Cookies.Add(responseCookie);
+                    responseCookie.Expires = DateTime.MinValue;
+                    responseCookie.Value = String.Empty;
+                }
             }
 
             return dictionary;
