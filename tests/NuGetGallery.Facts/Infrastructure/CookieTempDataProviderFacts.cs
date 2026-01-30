@@ -124,8 +124,6 @@ namespace NuGetGallery.Infrastructure
             {
                 var cookies = new HttpCookieCollection();
                 var httpContext = new Mock<HttpContextBase>();
-                
-                // Mock the Items collection and set the consent flag
                 var items = new System.Collections.Generic.Dictionary<object, object>
                 {
                     [ServicesConstants.CookieComplianceCanWriteAnalyticsCookies] = true
@@ -133,7 +131,6 @@ namespace NuGetGallery.Infrastructure
                 httpContext.Setup(c => c.Items).Returns(items);
                 httpContext.Setup(c => c.Request.Cookies).Returns(new HttpCookieCollection());
                 httpContext.Setup(c => c.Response.Cookies).Returns(cookies);
-                
                 ITempDataProvider provider = new CookieTempDataProvider(httpContext.Object);
                 var controllerContext = new ControllerContext();
 
