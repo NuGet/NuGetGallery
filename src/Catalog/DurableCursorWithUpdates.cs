@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,6 +43,8 @@ namespace NuGet.Services.Metadata.Catalog
             if (storageContent != null && storageContent.Content != null)
             {
                 cursorValueWithUpdates = JsonConvert.DeserializeObject<CursorValueWithUpdates>(storageContent.Content, new JsonSerializerSettings { DateFormatString = "O" });
+
+                Trace.TraceInformation("Read the cursor value: {0} with {1} updates, at {2}.", cursorValueWithUpdates.Value, cursorValueWithUpdates.Updates.Count, _address.AbsoluteUri);
             }
 
             cursorValueWithUpdates.Value = Value.ToString("O");
@@ -54,6 +57,8 @@ namespace NuGet.Services.Metadata.Catalog
                 "application/json", Constants.NoStoreCacheControl);
 
             await _storage.SaveAsync(_address, content, cancellationToken);
+
+            Trace.TraceInformation("Updated the cursor value: {0} with {1} updates, at {2}.", cursorValueWithUpdates.Value, cursorValueWithUpdates.Updates.Count, _address.AbsoluteUri);
         }
 
         private IList<CursorValueUpdate> GetUpdates(CursorValueWithUpdates cursorValueWithUpdates, DateTime? storageDateTimeInUtc)
@@ -66,11 +71,17 @@ namespace NuGet.Services.Metadata.Catalog
             var updates = cursorValueWithUpdates.Updates.OrderByDescending(u => u.UpdateTimeStamp).ToList();
             if (updates.Count == 0 || (updates.Count > 0 && (storageDateTimeInUtc.Value - updates.First().UpdateTimeStamp >= _minIntervalBetweenTwoUpdates)))
             {
-                updates.Insert(0, new CursorValueUpdate(storageDateTimeInUtc.Value, Value.ToString("O")));
+                var update = new CursorValueUpdate(storageDateTimeInUtc.Value, Value.ToString("O"));
+                updates.Insert(0, update);
+
+                Trace.TraceInformation("Added the cursor update with updateTimeStamp: {0} and value: {1}.", update.UpdateTimeStamp.ToString("O"), update.Value);
             }
 
-            while (updates.Count > _maxNumberOfUpdatesToKeep)
+            while (updates.Count > 0 && updates.Count > _maxNumberOfUpdatesToKeep)
             {
+                var update = updates[updates.Count - 1];
+                Trace.TraceInformation("Deleted the cursor update with updateTimeStamp: {0} and value: {1}.", update.UpdateTimeStamp.ToString("O"), update.Value);
+
                 updates.RemoveAt(updates.Count - 1);
             }
 
