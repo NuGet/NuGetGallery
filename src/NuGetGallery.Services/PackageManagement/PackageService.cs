@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data.Entity;
 using System.IO;
 using System.Linq;
@@ -275,7 +276,7 @@ namespace NuGetGallery
             return packages.ToList();
         }
 
-        public IReadOnlyCollection<Package> FindLatestVersionsById(
+        public (IReadOnlyCollection<Package>, bool) FindLatestVersionsById(
             string id,
             string includeVersion,
             bool includePackageRegistration,
@@ -303,8 +304,20 @@ namespace NuGetGallery
                 includeDeprecationRelationships: false,
                 includeSupportedFrameworks: includeSupportedFrameworks)
                 .OrderByDescending(p => p.Created)
-                .Take(maxCount)
+                .Take(maxCount + 1)
                 .ToList();
+
+            bool moreAvailable = packages.Count > maxCount;
+
+            if (moreAvailable)
+            {
+                var removeAt = packages.Count - 1;
+                if (!string.IsNullOrWhiteSpace(includeVersion) && packages[removeAt].NormalizedVersion == includeVersion)
+                {
+                    --removeAt;
+                }
+                packages.RemoveAt(removeAt);
+            }
 
             if (!string.IsNullOrWhiteSpace(includeVersion) && !packages.Any(p => p.NormalizedVersion == includeVersion))
             {
@@ -330,7 +343,7 @@ namespace NuGetGallery
                 }
             }
 
-            return packages;
+            return (packages, moreAvailable);
         }
 
         public virtual Package FindPackageByIdAndVersion(

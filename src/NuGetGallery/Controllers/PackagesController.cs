@@ -928,9 +928,11 @@ namespace NuGetGallery
 
             IReadOnlyCollection<Package> allVersions;
 
+            bool hasMoreVersions = false;
+
             if (_featureFlagService.IsReducedVersionListsEnabled())
             {
-                allVersions = _packageService.FindLatestVersionsById(id,
+                (allVersions, hasMoreVersions) = _packageService.FindLatestVersionsById(id,
                     includeVersion: normalized,
                     includePackageRegistration: true,
                     includeDeprecations: true,
@@ -1008,6 +1010,7 @@ namespace NuGetGallery
             model.IsMarkdigMdSyntaxHighlightEnabled = _featureFlagService.IsMarkdigMdSyntaxHighlightEnabled();
             model.IsMcpServerPackageDisplayEnabled = _featureFlagService.IsMcpServerPackageDisplayEnabled();
             model.CanDisplayReadmeWarning = canDisplayReadmeWarning;
+            model.HasMoreVersions = hasMoreVersions;
 
             if (model.IsComputeTargetFrameworkEnabled || model.IsDisplayTargetFrameworkEnabled)
             {

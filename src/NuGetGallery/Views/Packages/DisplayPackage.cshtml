@@ -1077,6 +1077,11 @@
                         </div>
 
                         @Html.Partial("_DisplayPackageVersionTable", Model)
+
+                        @if (Model.HasMoreVersions)
+                        {
+                            <div>Load more...</div>
+                        }
                     </div>
                 </div>
                 @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
