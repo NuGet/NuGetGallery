@@ -1,0 +1,31 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+
+namespace NuGet.Services.Metadata.Catalog
+{
+    public class CursorValueWithUpdates
+    {
+        [JsonProperty("value")]
+        public string Value { get; set; }
+        [JsonProperty("updates")]
+        public IList<CursorValueUpdate> Updates { get; set; } = new List<CursorValueUpdate>();
+    }
+
+    public class CursorValueUpdate
+    {
+        public CursorValueUpdate(DateTime updateTimeStamp, string value)
+        {
+            UpdateTimeStamp = updateTimeStamp;
+            Value = value;
+        }
+
+        [JsonProperty("updateTimeStamp")]
+        public DateTime UpdateTimeStamp { get; set; }
+        [JsonProperty("value")]
+        public string Value { get; set; }
+    }
+}
