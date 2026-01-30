@@ -94,7 +94,6 @@ namespace NuGetGallery
                 //silently ignore incorrect cookie values
             }
 
-            // Only clear the cookie if it was present in the request
             if (_httpContext.Response != null && _httpContext.Response.Cookies != null)
             {
                 var responseCookie = _httpContext.Response.Cookies.Get(TempDataCookieKey);
