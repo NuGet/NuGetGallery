@@ -21,7 +21,6 @@
          individual projects to disovery their files to sign.
     -->
     <SkipEnumerateFilesToSign Condition="'$(SkipEnumerateFilesToSign)' == ''">$(BatchSign)</SkipEnumerateFilesToSign>
-
   </PropertyGroup>
 
   <!--
