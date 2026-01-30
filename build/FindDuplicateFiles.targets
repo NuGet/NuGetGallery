@@ -7,6 +7,15 @@
       <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
       <UniqueFiles ParameterType="Microsoft.Build.Framework.ITaskItem[]" Output="true" />
       <DuplicateFiles ParameterType="Microsoft.Build.Framework.ITaskItem[]" Output="true" />
+
+      <!--
+      MicroBuild test signing fails signing a file that is already signed with the target strong name key.
+      Because of this, when doing test signing we skip files that are already fully signed.
+      We use the Authenticode subject to identify files that are signed with the real Microsoft key, since those will also have a complete strong name.
+      Ideally we would have an option to filter out fully signed files directly, but this is not as simple (requires sn.exe to check).
+      This is obviously not a full proof check, but it's sufficient for test signing (non-production scenarios).
+      -->
+      <SkipAuthenticodeSubjects ParameterType="System.String" />
     </ParameterGroup>
     <Task>
       <Code Type="Class" Language="cs" Source="$(MSBuildThisFileDirectory)FindDuplicateFiles.cs" />

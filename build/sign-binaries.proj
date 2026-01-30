@@ -7,6 +7,7 @@
     <IntermediateOutputPath>$(RepositoryRootDirectory)artifacts\sign\obj\</IntermediateOutputPath>
     <OutDir>$(RepositoryRootDirectory)</OutDir>
     <SignTargetsDependOn>BatchSign</SignTargetsDependOn>
+    <SkipAuthenticodeSubjects Condition="'$(SkipAuthenticodeSubjects)' == '' and '$(SignType)' == 'test'">CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</SkipAuthenticodeSubjects>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,7 +30,7 @@
           TaskParameter="TargetOutputs"
           ItemName="UnfilteredFilesToSign" />
     </MSBuild>
-    <FindDuplicateFiles Files="@(UnfilteredFilesToSign)">
+    <FindDuplicateFiles Files="@(UnfilteredFilesToSign)" SkipAuthenticodeSubjects="$(SkipAuthenticodeSubjects)">
       <Output
         TaskParameter="UniqueFiles"
         ItemName="FilesToSign" />
