@@ -138,19 +138,34 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             TraceExecutionTime(nameof(DeleteAsync), resourceUri, stopwatch.ElapsedMilliseconds);
         }
 
-        public async Task<string> LoadStringAsync(Uri resourceUri, CancellationToken cancellationToken)
+        public virtual async Task<string> LoadStringAsync(Uri resourceUri, CancellationToken cancellationToken)
         {
-            StorageContent content = await LoadAsync(resourceUri, cancellationToken);
-            if (content == null)
+            StringStorageContent stringStorageContent = await LoadStringStorageContentAsync(resourceUri, cancellationToken);
+            if (stringStorageContent == null)
             {
                 return null;
             }
             else
             {
-                using (Stream stream = content.GetContentStream())
+                return stringStorageContent.Content;
+            }
+        }
+
+        public virtual async Task<StringStorageContent> LoadStringStorageContentAsync(Uri resourceUri, CancellationToken cancellationToken)
+        {
+            StorageContent storageContent = await LoadAsync(resourceUri, cancellationToken);
+            if (storageContent == null)
+            {
+                return null;
+            }
+            else
+            {
+                using (Stream stream = storageContent.GetContentStream())
                 {
                     StreamReader reader = new StreamReader(stream);
-                    return await reader.ReadToEndAsync();
+                    string content = await reader.ReadToEndAsync();
+
+                    return new StringStorageContent(content, storageContent.StorageDateTimeInUtc, contentType: storageContent.ContentType, cacheControl: storageContent.CacheControl);
                 }
             }
         }

@@ -1,6 +1,7 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.IO;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
@@ -10,6 +11,14 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         public StringStorageContent(string content, string contentType = "", string cacheControl = "")
         {
             Content = content;
+            ContentType = contentType;
+            CacheControl = cacheControl;
+        }
+
+        public StringStorageContent(string content, DateTime? storageDateTimeInUtc, string contentType = "", string cacheControl = "")
+        {
+            Content = content;
+            StorageDateTimeInUtc = storageDateTimeInUtc;
             ContentType = contentType;
             CacheControl = cacheControl;
         }

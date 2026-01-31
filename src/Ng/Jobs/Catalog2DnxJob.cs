@@ -17,6 +17,9 @@ namespace Ng.Jobs
 {
     public class Catalog2DnxJob : LoopingNgJob
     {
+        public const int MaxNumberOfUpdatesToKeepOfFrontCursor = 30;
+        public static readonly TimeSpan MinIntervalBetweenTwoUpdatesOfFrontCursor = TimeSpan.FromSeconds(60);
+
         private CommitCollector _collector;
         private ReadWriteCursor _front;
         private ReadCursor _back;
@@ -101,7 +104,8 @@ namespace Ng.Jobs
                 httpClientTimeout);
 
             var storage = storageFactory.Create();
-            _front = new DurableCursor(storage.ResolveUri("cursor.json"), storage, MemoryCursor.MinValue);
+            _front = new DurableCursorWithUpdates(storage.ResolveUri("cursor.json"), storage, MemoryCursor.MinValue,
+                MaxNumberOfUpdatesToKeepOfFrontCursor, MinIntervalBetweenTwoUpdatesOfFrontCursor);
             _back = MemoryCursor.CreateMax();
 
             _destination = storageFactory.BaseAddress;

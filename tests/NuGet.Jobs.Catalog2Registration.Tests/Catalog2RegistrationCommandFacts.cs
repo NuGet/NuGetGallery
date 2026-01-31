@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -120,7 +120,7 @@ namespace NuGet.Jobs.Catalog2Registration
 
                 CloudBlobContainer = new Mock<ICloudBlobContainer>();
                 CloudBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(() => CloudBlobContainer.Object);
-                Storage = new Mock<Storage>(new Uri("https://example/azs"));
+                Storage = new Mock<Storage>(new Uri("https://example/azs")) { CallBase = true };
                 StorageFactory.Setup(x => x.Create(It.IsAny<string>())).Returns(() => Storage.Object);
                 Config = new Catalog2RegistrationConfiguration
                 {
