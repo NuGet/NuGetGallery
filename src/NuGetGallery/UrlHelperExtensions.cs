@@ -293,6 +293,31 @@ namespace NuGetGallery
             return version == null ? EnsureTrailingSlash(result) : result;
         }
 
+        public static string VersionTable(this UrlHelper url, string id, string version, bool relativeUrl = true)
+        {
+            if (string.IsNullOrWhiteSpace(version))
+            {
+                return GetRouteLink(
+                    url,
+                    RouteName.PackageVersionTableById,
+                    relativeUrl,
+                    routeValues: new RouteValueDictionary
+                    {
+                        { "id", id }
+                    });
+            }
+
+            return GetRouteLink(
+                url,
+                RouteName.PackageVersionTableByIdVersion,
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "id", id },
+                    { "version", version }
+                });
+        }
+
         public static string Package(
             this UrlHelper url,
             Package package,

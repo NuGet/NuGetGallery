@@ -2425,14 +2425,15 @@ namespace NuGetGallery
             return HandleOwnershipRequest(id, username, token, redirect: false, accept: false);
         }
 
-        [HttpGet]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public Task<ActionResult> GetAllPackageVersionsById(string id)
         {
             return GetAllPackageVersions(id, version: null);
         }
 
-        [HttpGet]
-        //[ValidateAntiForgeryToken]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> GetAllPackageVersions(string id, string version)
         {
             if (!_featureFlagService.IsReducedVersionListsEnabled())

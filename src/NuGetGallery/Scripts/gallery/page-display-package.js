@@ -335,6 +335,24 @@ $(function () {
         });
     }
 
+    $("#load-more-versions").on('click', function(event) {
+        console.log("loading more!");
+        const token = $("#AntiForgeryForm input[name=__RequestVerificationToken]").val();
+        const url = event.currentTarget.dataset.url;
+        const linkContainer = event.target.parentElement;
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: {
+                __RequestVerificationToken: token
+            },
+            success: function(response) {
+                $("#version-history table").replaceWith(response);
+                $(linkContainer).remove();
+            }
+        });
+    });
+
     $(".reserved-indicator").each(window.nuget.setPopovers);
     $(".framework-badge-asset").each(window.nuget.setPopovers);
     $(".package-warning-icon").each(window.nuget.setPopovers);
