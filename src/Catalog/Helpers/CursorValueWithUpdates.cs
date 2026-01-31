@@ -9,6 +9,11 @@ namespace NuGet.Services.Metadata.Catalog
 {
     public class CursorValueWithUpdates
     {
+        public readonly static JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
+        {
+            DateFormatString = "O"
+        };
+
         [JsonProperty("value")]
         public string Value { get; set; }
         [JsonProperty("updates")]
