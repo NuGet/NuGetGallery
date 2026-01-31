@@ -303,7 +303,8 @@ namespace NuGetGallery
                 includeDeprecations: includeDeprecations,
                 includeDeprecationRelationships: false,
                 includeSupportedFrameworks: includeSupportedFrameworks)
-                .OrderByDescending(p => p.Created)
+                .OrderByDescending(p => p.IsLatestSemVer2 || p.IsLatestStableSemVer2)
+                    .ThenByDescending(p => p.Created)
                 .Take(maxCount + 1)
                 .ToList();
 

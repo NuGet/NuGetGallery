@@ -46,7 +46,7 @@ namespace NuGetGallery.Services
             
             // The package still wasn't found so let's just get the latest version. This applies when 
             // no version is specified, or when the version asked for (in context.Version) wasn't found
-            result =  result ?? _packageService.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, allowPrerelease: true);
+            result = result ?? _packageService.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, allowPrerelease: true);
             
             return result;
         }
