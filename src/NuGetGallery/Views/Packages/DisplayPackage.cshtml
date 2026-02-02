@@ -372,9 +372,9 @@
                             @installPackageCommand.Value.Header
                         </span>
                         }<button id="@installPackageCommand.Key-button" class="btn btn-brand-icon" type="button"
-                                 data-toggle="popover" data-placement="bottom" data-content="Copied."
-                                 aria-label="@packageManager.CopyLabel" role="button"
-                                 disabled="@(!packageManager.CopyEnabled)">
+                                data-toggle="popover" data-placement="bottom" data-content="Copied."
+                                aria-label="@packageManager.CopyLabel" role="button"
+                                disabled="@(!packageManager.CopyEnabled)">
                             <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
                             <span>Copy</span>
                         </button>
@@ -479,7 +479,7 @@
                             @<text>
                                 The license link will become available once package validation has completed successfully.
                             </text>
-                    )
+                        )
                     }
 
                     if (Model.ValidatingTooLong)
@@ -731,8 +731,8 @@
                             </a>
                         </li>
 
-                    if (Model.CanDisplayTargetFrameworks())
-                    {
+                     if (Model.CanDisplayTargetFrameworks())
+                     {
                         activeBodyTab = activeBodyTab ?? "supportedframeworks";
                         <li role="presentation" id="show-supportedframeworks-container">
                             <a href="#supportedframeworks-body-tab"
@@ -748,7 +748,7 @@
                                 Frameworks
                             </a>
                         </li>
-                    }
+                     }
 
                         activeBodyTab = activeBodyTab ?? "dependencies";
                         <li role="presentation">
@@ -1197,7 +1197,7 @@
                                 else
                                 {
                                     <a href="@Model.LicenseUrl"
-                                      data-track="outbound-license-url" title="Make sure you agree with the license" rel="nofollow">
+                                        data-track="outbound-license-url" title="Make sure you agree with the license" rel="nofollow">
                                         License Info
                                     </a>
                                 }
@@ -1306,9 +1306,9 @@
                             </div>
                             <div class="modal-body sponsorship-modal-body">
                                 @ViewHelpers.AlertInfo(
-                                            @<text>
-                                                These links will take you to third-party platforms. Microsoft is not affiliated with or responsible for the content or practices of third-party platforms.
-                                            </text>)
+                                    @<text>
+                                        These links will take you to third-party platforms. Microsoft is not affiliated with or responsible for the content or practices of third-party platforms.
+                                    </text>)
 
                                 @foreach (var sponsorshipUrl in Model.SponsorshipUrls)
                                 {
