@@ -73,16 +73,18 @@ namespace NuGet.Services.Metadata.Catalog
             var updates = cursorValueWithUpdates.Updates.OrderByDescending(u => u.UpdateTimeStamp).ToList();
             if (updates.Count == 0 || (updates.Count > 0 && (storageDateTimeInUtc.Value - updates.First().UpdateTimeStamp >= _minIntervalBetweenTwoUpdates)))
             {
-                var update = new CursorValueUpdate(storageDateTimeInUtc.Value, Value.ToString("O"));
+                var update = new CursorValueUpdate(storageDateTimeInUtc.Value, cursorValueWithUpdates.Value);
                 updates.Insert(0, update);
 
-                Trace.TraceInformation("Added the cursor update with updateTimeStamp: {0} and value: {1}.", update.UpdateTimeStamp.ToString("O"), update.Value);
+                Trace.TraceInformation("Added the cursor update with updateTimeStamp: {0} and value: {1}.",
+                    update.UpdateTimeStamp.ToString(CursorValueWithUpdates.SerializerSettings.DateFormatString), update.Value);
             }
 
             while (updates.Count > 0 && updates.Count > _maxNumberOfUpdatesToKeep)
             {
                 var update = updates[updates.Count - 1];
-                Trace.TraceInformation("Deleted the cursor update with updateTimeStamp: {0} and value: {1}.", update.UpdateTimeStamp.ToString("O"), update.Value);
+                Trace.TraceInformation("Deleted the cursor update with updateTimeStamp: {0} and value: {1}.",
+                    update.UpdateTimeStamp.ToString(CursorValueWithUpdates.SerializerSettings.DateFormatString), update.Value);
 
                 updates.RemoveAt(updates.Count - 1);
             }
