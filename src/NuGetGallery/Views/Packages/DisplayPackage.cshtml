@@ -1081,7 +1081,9 @@
                         @if (Model.HasMoreVersions)
                         {
                             <div>
-                                <a href="javascript:void(0)" id="load-more-versions" data-url="@Url.VersionTable(Model.Id, Model.Version)">Load more...</a>
+                                <a href="javascript:void(0)" id="load-more-versions" data-url="@Url.VersionTable(Model.Id, Model.Version)">Load more</a>
+                                <div class="hide" id="loading-more-versions">Loading...</div>
+                                <div class="hide" id="loading-more-error">Loading failed</div>
                             </div>
                         }
                     </div>

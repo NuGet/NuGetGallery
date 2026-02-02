@@ -336,10 +336,13 @@ $(function () {
     }
 
     $("#load-more-versions").on('click', function(event) {
-        console.log("loading more!");
         const token = $("#AntiForgeryForm input[name=__RequestVerificationToken]").val();
         const url = event.currentTarget.dataset.url;
         const linkContainer = event.target.parentElement;
+        const loading = linkContainer.querySelector("#loading-more-versions");
+        const failed = linkContainer.querySelector("#loading-more-error");
+        event.target.classList.add("hide");
+        loading.classList.remove("hide");
         $.ajax({
             url: url,
             type: 'POST',
@@ -348,7 +351,12 @@ $(function () {
             },
             success: function(response) {
                 $("#version-history table").replaceWith(response);
-                $(linkContainer).remove();
+                loading.classList.add("hide");
+                linkContainer.classList.add("hide");
+            },
+            error: function() {
+                loading.classList.add("hide");
+                failed.classList.remove("show");
             }
         });
     });
