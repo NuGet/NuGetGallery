@@ -336,13 +336,19 @@ $(function () {
     }
 
     $("#load-more-versions").on('click', function(event) {
+        const target = event.currentTarget;
+        if (target.getAttribute("aria-disabled") === "true") {
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+        }
         const token = $("#AntiForgeryForm input[name=__RequestVerificationToken]").val();
-        const url = event.currentTarget.dataset.url;
-        const linkContainer = event.target.parentElement;
-        const loading = linkContainer.querySelector("#loading-more-versions");
-        const failed = linkContainer.querySelector("#loading-more-error");
-        event.target.classList.add("hide");
-        loading.classList.remove("hide");
+        const url = target.dataset.url;
+        const container = target.parentElement;
+        const failed = container.querySelector("#loading-more-error");
+        target.setAttribute("aria-disabled", "true");
+        target.setAttribute("aria-busy", "true");
+        target.innerHTML = "Loading..."
         $.ajax({
             url: url,
             type: 'POST',
@@ -350,13 +356,13 @@ $(function () {
                 __RequestVerificationToken: token
             },
             success: function(response) {
-                $("#version-history table").replaceWith(response);
-                loading.classList.add("hide");
-                linkContainer.classList.add("hide");
+                $("#version-history table").html(response);
+                container.classList.add("hide");
+                $(".version-history .bg-brand-info a").focus();
             },
             error: function() {
-                loading.classList.add("hide");
-                failed.classList.remove("show");
+                target.classList.add("hide");
+                failed.classList.remove("hide");
             }
         });
     });

@@ -1076,13 +1076,14 @@
                             }
                         </div>
 
-                        @Html.Partial("_DisplayPackageVersionTable", Model)
+                        <table aria-label="Version History of @Model.Id" class="table borderless" aria-live="polite">
+                            @Html.Partial("_DisplayPackageVersionTable", Model)
+                        </table>
 
                         @if (Model.HasMoreVersions)
                         {
                             <div>
-                                <a href="javascript:void(0)" id="load-more-versions" data-url="@Url.VersionTable(Model.Id, Model.Version)">Load more</a>
-                                <div class="hide" id="loading-more-versions">Loading...</div>
+                                <button class="btn btn-link" id="load-more-versions" data-url="@Url.VersionTable(Model.Id, Model.Version)">Load more</button>
                                 <div class="hide" id="loading-more-error">Loading failed</div>
                             </div>
                         }
