@@ -2446,6 +2446,8 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
+            _telemetryService.TrackFullVersionListLoadRequest();
+
             string normalized = NuGetVersionFormatter.Normalize(version);
 
             IReadOnlyCollection<Package> allVersions = _packageService.FindPackagesById(id,
