@@ -2427,14 +2427,14 @@ namespace NuGetGallery
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public Task<ActionResult> GetAllPackageVersionsById(string id)
+        public ActionResult GetAllPackageVersionsById(string id)
         {
             return GetAllPackageVersions(id, version: null);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> GetAllPackageVersions(string id, string version)
+        public ActionResult GetAllPackageVersions(string id, string version)
         {
             if (!_featureFlagService.IsReducedVersionListsEnabled())
             {
