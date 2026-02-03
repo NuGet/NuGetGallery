@@ -65,8 +65,8 @@ namespace NuGetGallery
         /// <param name="includeDeprecations"></param>
         /// <param name="includeSupportedFrameworks"></param>
         /// <param name="maxCount"></param>
-        /// <returns>A tuple consisting of a collection of <see cref="Package"/> objects and a bool flag indicating whether more are available.</returns>
-        (IReadOnlyCollection<Package>, bool) FindLatestVersionsById(
+        /// <returns></returns>
+        LatestPackageVersionsResult FindLatestVersionsById(
             string id,
             string includeVersion,
             bool includePackageRegistration,

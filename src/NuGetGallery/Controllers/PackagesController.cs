@@ -932,12 +932,15 @@ namespace NuGetGallery
 
             if (_featureFlagService.IsReducedVersionListsEnabled())
             {
-                (allVersions, hasMoreVersions) = _packageService.FindLatestVersionsById(id,
+                LatestPackageVersionsResult latestVersions = _packageService.FindLatestVersionsById(id,
                     includeVersion: normalized,
                     includePackageRegistration: true,
                     includeDeprecations: true,
                     includeSupportedFrameworks: true,
                     maxCount: 20);
+
+                allVersions = latestVersions.Packages;
+                hasMoreVersions = latestVersions.HasMoreResults;
             }
             else
             {

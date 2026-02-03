@@ -276,7 +276,7 @@ namespace NuGetGallery
             return packages.ToList();
         }
 
-        public (IReadOnlyCollection<Package>, bool) FindLatestVersionsById(
+        public LatestPackageVersionsResult FindLatestVersionsById(
             string id,
             string includeVersion,
             bool includePackageRegistration,
@@ -344,7 +344,7 @@ namespace NuGetGallery
                 }
             }
 
-            return (packages, moreAvailable);
+            return new LatestPackageVersionsResult { Packages = packages, HasMoreResults = moreAvailable };
         }
 
         public virtual Package FindPackageByIdAndVersion(
