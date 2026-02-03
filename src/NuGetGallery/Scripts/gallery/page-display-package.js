@@ -358,7 +358,11 @@ $(function () {
             success: function(response) {
                 $("#version-history table").html(response);
                 container.classList.add("hide");
-                $(".version-history .bg-brand-info a").focus();
+                const currentVersionLink = document.querySelector(".version-history .bg-brand-info a");
+                if (currentVersionLink) {
+                    currentVersionLink.focus();
+                }
+                applyVersionFilters();
             },
             error: function() {
                 target.classList.add("hide");
