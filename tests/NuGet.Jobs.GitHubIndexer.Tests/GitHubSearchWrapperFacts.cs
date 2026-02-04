@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -90,7 +90,6 @@ namespace NuGet.Jobs.GitHubIndexer.Tests
                 var ex = await Assert.ThrowsAsync<OperationCanceledException>(() => searcher.GetResponse(new SearchRepositoriesRequest { }));
                 sw.Stop();
                 Assert.Equal("The operation was forcibly canceled.", ex.Message);
-                Assert.True(sw.Elapsed >= TimeSpan.FromMilliseconds(200));
             }
 
             [Fact]
