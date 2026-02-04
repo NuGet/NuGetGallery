@@ -32,7 +32,7 @@ steps:
         resources = @{
           repositories = @{
             "NuGetGallery" = @{
-              refName = "$(TargetRef)"
+              refName = "$(Build.SourceBranchName)"
             }
           }
         }
