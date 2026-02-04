@@ -12,13 +12,13 @@ parameters:
 - name: TargetPipelines
   type: object
   default:
-  - id: 21120 # gallery web app
+  - id: 21120
     name: Gallery Web App
-  - id: 21280 # gallery packages
+  - id: 21280
     name: Gallery Packages
-  - id: 21128 # jobs
+  - id: 21128
     name: Jobs
-  - id: 21269 # common
+  - id: 21269
     name: Common
 
 variables:
