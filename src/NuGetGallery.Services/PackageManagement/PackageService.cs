@@ -312,6 +312,7 @@ namespace NuGetGallery
 
             if (moreAvailable)
             {
+                // if we have list longer than requested, trim it, making sure we don't trim includeVersion if it happens to be last
                 var removeAt = packages.Count - 1;
                 if (!string.IsNullOrWhiteSpace(includeVersion) && packages[removeAt].NormalizedVersion == includeVersion)
                 {
