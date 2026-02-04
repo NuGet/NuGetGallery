@@ -5,6 +5,7 @@ trigger:
     include:
     - main
     - dev
+    - japarson/fix-trigger
 
 pr: none
 
@@ -13,13 +14,9 @@ parameters:
   type: object
   default:
   - id: 21120 # gallery web app
-    paramName: NuGetGallerySubmoduleBranch
   - id: 21280 # gallery packages
-    paramName: Branch
   - id: 21128 # jobs
-    paramName: Branch
   - id: 21269 # common
-    paramName: Branch
 
 variables:
 - name: NugetMultifeedWarnLevel
@@ -30,10 +27,14 @@ pool:
 
 steps:
 - ${{ each pipeline in parameters.TargetPipelines }}:
-  - powershell: |-
+  - powershell: |
       $body = @{
-        "templateParameters" = @{
-          "${{ pipeline.paramName }}" = "$(Build.SourceBranchName)"
+        resources = @{
+          repositories = @{
+            "NuGetGallery" = @{
+              refName = "$(TargetRef)"
+            }
+          }
         }
       }
       $headers = @{ "Authorization" = "Bearer $env:ACCESS_TOKEN" };
