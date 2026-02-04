@@ -22,14 +22,14 @@ namespace NuGet.Services.Metadata.Catalog
 
     public class CursorValueUpdate
     {
-        public CursorValueUpdate(DateTime updateTimeStamp, string value)
+        public CursorValueUpdate(DateTime timeStamp, string value)
         {
-            UpdateTimeStamp = updateTimeStamp;
+            TimeStamp = timeStamp;
             Value = value;
         }
 
-        [JsonProperty("updateTimeStamp")]
-        public DateTime UpdateTimeStamp { get; set; }
+        [JsonProperty("timeStamp")]
+        public DateTime TimeStamp { get; set; }
         [JsonProperty("value")]
         public string Value { get; set; }
     }
