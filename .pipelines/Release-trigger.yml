@@ -26,8 +26,7 @@ variables:
 - name: NugetMultifeedWarnLevel
   value: none
 - name: TargetRef
-  value: refs/heads/$(Build.SourceBranchName)
-
+  value: refs/heads/$(Build.SourceBranch)
 
 pool:
   vmImage: 'windows-latest'
@@ -50,9 +49,6 @@ stages:
               }
             }
           }
-
-          Write-Host "Request body:" ($body | ConvertTo-Json -Depth 10)
-
           $headers = @{ "Authorization" = "Bearer $env:ACCESS_TOKEN" };
           $url = "$(System.CollectionUri)$(System.TeamProject)/_apis/pipelines/${{ pipeline.id }}/runs?api-version=7.1"
           Invoke-RestMethod -Uri $url -Method POST -Headers $headers -Body ($body | ConvertTo-Json -Depth 10) -ContentType "application/json"
