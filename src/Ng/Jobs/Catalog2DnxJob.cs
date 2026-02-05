@@ -17,7 +17,12 @@ namespace Ng.Jobs
 {
     public class Catalog2DnxJob : LoopingNgJob
     {
-        public const int MaxNumberOfUpdatesToKeepOfFrontCursor = 30;
+        // Cache Duration of Package Version Index
+        public static readonly TimeSpan CacheDurationOfPackageVersionIndex = TimeSpan.FromSeconds(60);
+
+        // Front Cursor with Updates
+        // (MaxNumberOfUpdatesToKeepOfFrontCursor - 1) * MinIntervalBetweenTwoUpdatesOfFrontCursor > CacheDurationOfPackageVersionIndex
+        public const int MaxNumberOfUpdatesToKeepOfFrontCursor = 31;
         public static readonly TimeSpan MinIntervalBetweenTwoUpdatesOfFrontCursor = TimeSpan.FromSeconds(60);
 
         private CommitCollector _collector;
