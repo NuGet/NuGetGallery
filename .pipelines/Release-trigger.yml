@@ -46,9 +46,7 @@ stages:
               }
             }
           }
-          $headers = @{ "Authorization" = "Bearer $env:ACCESS_TOKEN" };
+          $headers = @{ "Authorization" = "Bearer $(System.AccessToken)" };
           $url = "$(System.CollectionUri)$(System.TeamProject)/_apis/pipelines/${{ pipeline.id }}/runs?api-version=7.1"
           Invoke-RestMethod -Uri $url -Method POST -Headers $headers -Body ($body | ConvertTo-Json -Depth 10) -ContentType "application/json"
         displayName: "Trigger ${{ pipeline.name }}"
-        env:
-          ACCESS_TOKEN: $(System.AccessToken)
