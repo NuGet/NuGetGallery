@@ -560,6 +560,13 @@ Function Install-SolutionPackages {
         $opts += '-OutputDirectory', "${OutputPath}"
     }
 
+    Write-Host "----------"
+    Write-Host "CWD: $(Get-Location)"
+    Write-Host "nuget.config path: $ConfigFile"
+    Write-Host "nuget.config content:"
+    Write-Host (Get-Content $ConfigFile -Raw)
+    Write-Host "----------"
+
     Trace-Log "Installing packages @""$InstallLocation"""
     Trace-Log "$NuGetExe $opts"
     & $NuGetExe $opts
