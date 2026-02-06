@@ -380,10 +380,24 @@ Function Invoke-Git {
 }
 
 Function Reset-Submodules {
-    Trace-Log 'Resetting submodules'
-    $args = 'submodule', 'deinit', '--all', '-f'
+    [CmdletBinding()]
+    Param(
+        [string] $RepoPath
+    )
 
-    Invoke-Git -Arguments $args
+    if (!$RepoPath) {
+        $RepoPath = $NuGetClientRoot
+    }
+
+    Trace-Log "Resetting submodules in repository $RepoPath"
+    Push-Location $RepoPath
+    try {
+        $gitArgs = 'submodule', 'deinit', '--all', '-f'
+        Invoke-Git -Arguments $gitArgs
+    }
+    finally {
+        Pop-Location
+    }
 }
 
 Function Update-Submodule {
@@ -400,6 +414,7 @@ Function Update-Submodule {
         $RepoPath = $NuGetClientRoot
     }
 
+    Trace-Log "Updating submodule in repository $RepoPath"
     Push-Location $RepoPath
     try {
         Trace-Log "Configuring submodule $Name ($Path) to use branch $Branch."
