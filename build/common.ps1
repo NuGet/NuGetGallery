@@ -87,9 +87,9 @@ Function Clear-Artifacts {
 Function Clear-Tests {
     [CmdletBinding()]
     param()
-    
+
     Trace-Log 'Cleaning test results'
-    
+
     Remove-Item (Join-Path $PSScriptRoot "..\Results.*.xml")
 }
 
@@ -104,7 +104,7 @@ Function Get-LatestVisualStudioRoot {
         $script:FallbackVSVersion = "$majorVersion.0"
 
         return $installationPath
-    } 
+    }
 
     Error-Log "Could not find a compatible Visual Studio Version because $BuiltInVsWhereExe does not exist" -Fatal
 }
@@ -241,7 +241,7 @@ Function Build-Solution {
         [switch]$SkipRestore,
         [switch]$BinLog
     )
-    
+
     if (-not $SkipRestore) {
         # Restore packages for NuGet.Tooling solution
         Restore-SolutionPackages -path $SolutionPath -MSBuildVersion $MSBuildVersion
@@ -254,15 +254,15 @@ Function Build-Solution {
     # Build in parallel
     # See https://docs.microsoft.com/en-us/visualstudio/msbuild/building-multiple-projects-in-parallel-with-msbuild?view=vs-2017#-maxcpucount-switch
     $opts += "/m"
-    
+
     if ($TargetProfile) {
         $opts += "/p:TargetProfile=$TargetProfile"
     }
-    
+
     if ($Target) {
         $opts += "/t:$Target"
     }
-    
+
     if ($MSBuildProperties) {
         $opts += $MSBuildProperties
     }
@@ -295,44 +295,44 @@ Function Invoke-FxCop {
         [string]$FxCopOutputDirectory,
         [switch]$BinLog
     )
-    
+
     # Ensure cleanup from previous runs
     Get-ChildItem -Recurse "*.CodeAnalysisLog.xml" | Remove-Item
-    
+
     $env:FXCOP_DIRECTORY = ''
     $env:FXCOP_PROJECT = ''
     $env:FXCOP_RULESET = ''
     $env:FXCOP_RULESET_DIRECTORY = ''
     $env:FXCOP_OUTPUT_DIRECTORY = ''
     # Do not clear $env:FXCOP_NOWARN, in case set via VSTS variable (was additive)
-    
+
     # Configure FxCop defaults
     $codeAnalysisProps = Resolve-Path $(Join-Path 'build' 'nuget.codeanalysis.props')
-    
+
     # Configure FxCop overrides
     if ($FxCopDirectory) {
         $env:FXCOP_DIRECTORY = $FxCopDirectory
         Trace-Log "Using FXCOP_DIRECTORY=$env:FXCOP_DIRECTORY"
-                
+
         if ($FxCopProject) {
             $items = Get-ChildItem $(Join-Path $FxCopDirectory $FxCopProject) -Recurse
-            
+
             if ($items.Count -gt 0) {
-                $env:FXCOP_PROJECT = $items[0]                
+                $env:FXCOP_PROJECT = $items[0]
                 Trace-Log "Discovered FXCOP_PROJECT=$env:FXCOP_PROJECT"
             }
             else {
                 throw "Failed to find $FxCopProject under $FxCopDirectory"
             }
         }
-        
+
         if ($FxCopRuleSet) {
             # To support overrides, look for ruleset in build tools first and then fxcop directory.
             $items = Get-ChildItem $(Join-Path $PSScriptRoot $FxCopRuleSet) -Recurse
             if ($items.Count -eq 0) {
                 $items = Get-ChildItem $(Join-Path $FxCopDirectory $FxCopRuleSet) -Recurse
             }
-            
+
             if ($items.Count -gt 0) {
                 $env:FXCOP_RULESET = $items[0]
                 $env:FXCOP_RULESET_DIRECTORY = $($items[0]).Directory
@@ -343,25 +343,25 @@ Function Invoke-FxCop {
             }
         }
     }
-    
+
     if ($FxCopNoWarn) {
         $env:FXCOP_NOWARN = $FxCopNoWarn
         Trace-Log "Using FXCOP_NOWARN=$FxCopNoWarn"
     }
-    
+
     # Write FxCop logs to specific output directory
     if ($FxCopOutputDirectory) {
         if (-not (Test-Path $FxCopOutputDirectory)) {
             New-Item $FxCopOutputDirectory -Type Directory
         }
         $env:FXCOP_OUTPUT_DIRECTORY = Resolve-Path $FxCopOutputDirectory
-        
+
         Trace-Log "Using FXCOP_OUTPUT_DIRECTORY=$FxCopOutputDirectory"
     }
-    
+
     # Invoke using the msbuild RunCodeAnalysis target
     $msBuildProps = "/p:CustomBeforeMicrosoftCSharpTargets=$codeAnalysisProps;SignType=none;CodeAnalysisVerbose=true"
-    
+
     Build-Solution $Configuration $BuildNumber -MSBuildVersion "$MSBuildVersion" $SolutionPath -Target "Rebuild;RunCodeAnalysis" -MSBuildProperties $msBuildProps -SkipRestore:$SkipRestore -BinLog:$BinLog
 }
 
@@ -374,6 +374,9 @@ Function Invoke-Git {
     # We are invoking git through cmd here because otherwise the redirection does not process until after git has completed, leaving errors in the stream.
     Trace-Log "git $Arguments"
     & cmd /c "git $Arguments 2>&1"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Git command 'git $Arguments' failed with exit code $LASTEXITCODE"
+    }
 }
 
 Function Reset-Submodules {
@@ -397,27 +400,29 @@ Function Update-Submodule {
         $RepoPath = $NuGetClientRoot
     }
 
-    Trace-Log "Configuring submodule $Name ($Path) to use branch $Branch."
-    $args = 'config', '-f', "$RepoPath\.gitmodules", "submodule.$Path.branch", "$Branch"
+    Push-Location $RepoPath
+    try {
+        Trace-Log "Configuring submodule $Name ($Path) to use branch $Branch."
+        $gitArgs = 'config', '-f', "$RepoPath\.gitmodules", "submodule.$Path.branch", "$Branch"
+        Invoke-Git -Arguments $gitArgs
 
-    Invoke-Git -Arguments $args
+        If ($RemoteUrl) {
+            Trace-Log "Configuring submodule $Name ($Path) to use URL $RemoteUrl."
+            $gitArgs = 'config', '-f', "$RepoPath\.gitmodules", "submodule.$Path.url", "$RemoteUrl"
+            Invoke-Git -Arguments $gitArgs
 
-    If ($RemoteUrl) {
-        Trace-Log "Configuring submodule $Name ($Path) to use URL $RemoteUrl."
-        $args = 'config', '-f', "$RepoPath\.gitmodules", "submodule.$Path.url", "$RemoteUrl"
+            Trace-Log "Synchronizing remote URL configuration for submodule $Name ($Path) to the value specified in $NuGetClientRoot\.gitmodules."
+            $gitArgs = 'submodule', 'sync', '--', "$Path"
+            Invoke-Git -Arguments $gitArgs
+        }
 
-        Invoke-Git -Arguments $args
-
-        Trace-Log "Synchronizing remote URL configuration for submodule $Name ($Path) to the value specified in $NuGetClientRoot\.gitmodules."
-        $args = 'submodule', 'sync', '--', "$Path"
-
-        Invoke-Git -Arguments $args
+        Trace-Log "Updating submodule $Name ($Path)."
+        $gitArgs = 'submodule', 'update', '--init', '--remote', '--', "$Path"
+        Invoke-Git -Arguments $gitArgs
     }
-
-    Trace-Log "Updating submodule $Name ($Path)."
-    $args = 'submodule', 'update', '--init', '--remote', '--', "$Path"
-
-    Invoke-Git -Arguments $args
+    finally {
+        Pop-Location
+    }
 }
 
 Function Install-NuGet {
@@ -442,7 +447,7 @@ Function Install-NuGet {
                 https://dist.nuget.org/win-x86-commandline/v6.10.1/nuget.exe `
                 -UseBasicParsing `
                 -OutFile $NuGetExe
-            
+
             # Mark nuget.exe and associated files as installed.
             $NuGetInstalledMarker | Out-File -FilePath $NuGetInstalledMarker
         } catch {
@@ -523,23 +528,23 @@ Function Install-SolutionPackages {
         $opts += $SolutionPath
         $InstallLocation = Split-Path -Path $SolutionPath -Parent
     }
-    
+
     if ($ConfigFile) {
         $opts += '-configfile', $ConfigFile
     }
-    
+
     if ($NonInteractive) {
         $opts += '-NonInteractive'
     }
-    
+
     if ($ExcludeVersion) {
         $opts += '-ExcludeVersion'
     }
-    
+
     if ($OutputPath) {
         $opts += '-OutputDirectory', "${OutputPath}"
     }
-    
+
     Trace-Log "Installing packages @""$InstallLocation"""
     Trace-Log "$NuGetExe $opts"
     & $NuGetExe $opts
@@ -569,7 +574,7 @@ Function Restore-SolutionPackages {
     if ($MSBuildVersion) {
         $opts += '-MSBuildPath', (Split-Path -Path (Get-MSBuildExe $MSBuildVersion) -Parent)
     }
-    
+
     if ($ConfigFile) {
         $opts += '-configfile', $ConfigFile
     }
@@ -613,11 +618,11 @@ Function Get-PackageVersion() {
         [string]$ReleaseLabel = "zlocal",
         [string]$BuildNumber
     )
-    
+
     if (-not $BuildNumber) {
         $BuildNumber = Get-BuildNumber
     }
-    
+
     [string]"$SemanticVersion-$ReleaseLabel$BuildNumber"
 }
 
@@ -626,11 +631,11 @@ Function Test-SdkStyleProject {
     param(
         [string]$ProjectPath
     )
-    
+
     if (-not (Test-Path $ProjectPath)) {
         return $false
     }
-    
+
     # Check if the project file contains SDK attribute which indicates SDK-style project
     $firstLine = Get-Content $ProjectPath -TotalCount 1
     return $firstLine -match '<Project\s+Sdk\s*='
@@ -642,7 +647,7 @@ Function New-Package {
         [Alias('target')]
         [string]$TargetFilePath,
         [string]$TargetProfile,
-        [string]$Configuration,		
+        [string]$Configuration,
         [string]$ReleaseLabel,
         [string]$BuildNumber,
         [switch]$NoPackageAnalysis,
@@ -655,36 +660,36 @@ Function New-Package {
         [string[]]$NoWarn = @("NU5100", "NU5110", "NU5111", "NU5128")
     )
     Trace-Log "Creating package from @""$TargetFilePath"""
-    
+
     # Check if this is an SDK-style project
     $isSdkStyle = Test-SdkStyleProject $TargetFilePath
-    
+
     if (-not (Test-Path $Artifacts)) {
         New-Item $Artifacts -Type Directory
     }
-    
+
     $OutputDir = Join-Path $Artifacts $TargetProfile
     if (-not (Test-Path $OutputDir)) {
         New-Item $OutputDir -Type Directory
     }
-    
+
     if (-not $BuildNumber) {
         $BuildNumber = Get-BuildNumber
     }
-    
+
     if ($Version){
         $PackageVersion = $Version
     }
     elseif ($ReleaseLabel) {
         $PackageVersion = Get-PackageVersion $ReleaseLabel $BuildNumber
     }
-    
+
     if ($isSdkStyle) {
         # Check if there's a .nuspec file with the same name as the project
         $projectDir = Split-Path -Path $TargetFilePath -Parent
         $projectName = [System.IO.Path]::GetFileNameWithoutExtension($TargetFilePath)
         $nuspecPath = Join-Path $projectDir "$projectName.nuspec"
-        
+
         if (Test-Path $nuspecPath) {
             # Use nuget.exe with .nuspec file for SDK-style projects
             Trace-Log "Detected SDK-style project with .nuspec file, using nuget.exe pack with nuspec"
@@ -700,12 +705,12 @@ Function New-Package {
         Trace-Log "Detected legacy project, using nuget.exe pack"
         $packTarget = $TargetFilePath
     }
-    
+
     # Common nuget.exe packing logic
     $opts = , 'pack'
     $opts += $packTarget
     $opts += '-OutputDirectory', $OutputDir
-    
+
     $Properties = "Configuration=$Configuration"
     if ($TargetProfile) {
         $Properties += ";TargetProfile=$TargetProfile"
@@ -720,25 +725,25 @@ Function New-Package {
         $Properties += ";NoWarn=" + ($NoWarn -join ",")
     }
     $opts += '-Properties', $Properties
-    
+
     $opts += '-MSBuildPath', (Split-Path -Path (Get-MSBuildExe $MSBuildVersion) -Parent)
-    
+
     if ($PackageVersion) {
         $opts += '-Version', "$PackageVersion"
     }
-    
+
     if ($NoPackageAnalysis) {
         $opts += '-NoPackageAnalysis'
     }
-    
+
     if ($Symbols) {
         $opts += '-Symbols'
     }
-    
+
     if ($IncludeReferencedProjects) {
         $opts += '-IncludeReferencedProjects'
     }
-    
+
     Trace-Log "$NuGetExe $opts"
     & $NuGetExe $opts
     if (-not $?) {
@@ -760,12 +765,12 @@ Function New-WebAppPackage {
         [switch]$BinLog
     )
     Trace-Log "Creating web app package from @""$TargetFilePath"""
-    
+
     $MSBuildExe = Get-MSBuildExe $MSBuildVersion
-    
+
     $opts = , $TargetFilePath
     $opts += "/t:build"
-    
+
     $opts += "/p:Configuration=$Configuration"
     $opts += "/p:BuildNumber=$(Format-BuildNumber $BuildNumber)"
     $opts += "/p:DeployOnBuild=true"
@@ -774,11 +779,11 @@ Function New-WebAppPackage {
     $opts += "/p:PackageLocation=$Artifacts"
     $opts += "/p:BatchSign=false"
     if ($SignType) { $opts += "/p:SignType=$SignType" }
-    
+
     if (-not (Test-Path $Artifacts)) {
         New-Item $Artifacts -Type Directory
     }
-    
+
     if ($BinLog) {
         $opts += "/bl"
     }
@@ -811,25 +816,25 @@ Function New-ProjectPackage {
         [string[]]$Options
     )
     Trace-Log "Creating package from @""$TargetFilePath"""
-    
+
     $MSBuildExe = Get-MSBuildExe $MSBuildVersion
-    
+
     $opts = , $TargetFilePath
     $opts += "/t:pack"
-    
+
     $opts += "/p:Configuration=$Configuration;BuildNumber=$(Format-BuildNumber $BuildNumber)"
     $opts += "/p:PackageOutputPath=$Artifacts"
     $opts += "/p:NoBuild=true"
-    
+
     if (-not $Sign)
     {
         $opts += "/p:SignType=none"
     }
-    
+
     if ($PackageId) {
         $opts += "/p:PackageId=$PackageId"
     }
-    
+
     if ($Version){
         $PackageVersion = $Version
     }
@@ -838,23 +843,23 @@ Function New-ProjectPackage {
     } else {
         $PackageVersion = $null
     }
-    
+
     if ($PackageVersion) {
         $opts += "/p:PackageVersion=$PackageVersion"
     }
-    
+
     if ($TargetProfile) {
         $opts += "/p:TargetProfile=$TargetProfile"
     }
-    
+
     if ($NoPackageAnalysis) {
         $opts += '/p:NoPackageAnalysis=True'
     }
-    
+
     if ($Symbols) {
         $opts += "/p:IncludeSymbols=True"
     }
-    
+
     if ($BinLog) {
         $opts += "/bl"
     }
@@ -866,12 +871,12 @@ Function New-ProjectPackage {
     if (-not (Test-Path $Artifacts)) {
         New-Item $Artifacts -Type Directory
     }
-    
+
     $OutputDir = Join-Path $Artifacts $TargetProfile
     if (-not (Test-Path $OutputDir)) {
         New-Item $OutputDir -Type Directory
     }
-    
+
     Trace-Log "$MsBuildExe $opts"
     & $MsBuildExe $opts
     if (-not $?) {
@@ -898,11 +903,11 @@ Function Set-VersionInfo {
         [string]$Branch,
         [string]$Commit
     )
-    
+
     if (-not $AssemblyVersion) {
         throw "No AssemblyVersion provided."
     }
-    
+
     if (-not $PackageVersion) {
         throw "No PackageVersion provided."
     }
@@ -910,13 +915,13 @@ Function Set-VersionInfo {
     # make sure the directory exists
     $directory = Split-Path $Path
     New-Item -ItemType Directory -Force -Path $directory | Out-Null
-        
+
     Trace-Log "Setting assembly info in ""$Path"""
-    
+
     if (-not $Commit) {
         $Commit = git rev-parse HEAD
     }
-    
+
     if (-not $Branch) {
         $Branch = git rev-parse --abbrev-ref HEAD
     }
@@ -937,7 +942,7 @@ using System.Resources;
 #endif
 "@
 
-    $Content | Out-File $Path -Encoding utf8 -Force 
+    $Content | Out-File $Path -Encoding utf8 -Force
 }
 
 Function Install-PrivateBuildTools() {
