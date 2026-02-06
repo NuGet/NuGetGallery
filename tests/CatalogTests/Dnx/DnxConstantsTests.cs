@@ -2,23 +2,23 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Ng.Jobs;
+using NuGet.Services.Metadata.Catalog.Dnx;
 using Xunit;
 
-namespace NgTests.Jobs
+namespace CatalogTests.Dnx
 {
-    public class Catalog2DnxJobTests
+    public class DnxConstantsTests
     {
         [Fact]
         public void EnsureFrontCursorHasEnoughUpdates()
         {
             var totalTimeSpan = TimeSpan.FromSeconds(0);
-            for (int i = 0; i < Catalog2DnxJob.MaxNumberOfUpdatesToKeepOfFrontCursor - 1; i++)
+            for (int i = 0; i < DnxConstants.MaxNumberOfUpdatesToKeepOfFrontCursor - 1; i++)
             {
-                totalTimeSpan += Catalog2DnxJob.MinIntervalBetweenTwoUpdatesOfFrontCursor;
+                totalTimeSpan += DnxConstants.MinIntervalBetweenTwoUpdatesOfFrontCursor;
             }
 
-            Assert.True(totalTimeSpan > Catalog2DnxJob.CacheDurationOfPackageVersionIndex);
+            Assert.True(totalTimeSpan > DnxConstants.CacheDurationOfPackageVersionIndex);
         }
     }
 }
