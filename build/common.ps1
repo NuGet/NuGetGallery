@@ -934,11 +934,23 @@ Function Set-VersionInfo {
     Trace-Log "Setting assembly info in ""$Path"""
 
     if (-not $Commit) {
-        $Commit = git rev-parse HEAD
+        Push-Location $directory
+        try {
+            $Commit = Invoke-Git -Arguments "rev-parse", "HEAD"
+        }
+        finally {
+            Pop-Location
+        }
     }
 
     if (-not $Branch) {
-        $Branch = git rev-parse --abbrev-ref HEAD
+        Push-Location $directory
+        try {
+            $Branch = Invoke-Git -Arguments "rev-parse", "--abbrev-ref", "HEAD"
+        }
+        finally {
+            Pop-Location
+        }
     }
 
     $Content = @"
@@ -976,12 +988,12 @@ Function Install-PrivateBuildTools() {
     Trace-Log "Getting commit $commit from repository $repository"
 
     if (-Not (Test-Path $PrivateRoot)) {
-        git init $PrivateRoot
-        git -C $PrivateRoot remote add origin $repository
+        Invoke-Git -Arguments "init", $PrivateRoot
+        Invoke-Git -Arguments "-C", $PrivateRoot, "remote", "add", "origin", $repository
     }
 
-    git -C $PrivateRoot fetch *>&1 | Out-Null
-    git -C $PrivateRoot reset --hard $commit
+    Invoke-Git -Arguments "-C", $PrivateRoot, "fetch"
+    Invoke-Git -Arguments "-C", $PrivateRoot, "reset", "--hard", $commit
 }
 
 Function Remove-EditorconfigFile() {
