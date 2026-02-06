@@ -18,7 +18,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             { StorageConstants.ContentType, ApplicationOctetStreamContentType }
         };
 
-        // Cache Duration of Package Version Index
+        // Cache Duration of Package Version Index (at CDN)
         public static readonly TimeSpan CacheDurationOfPackageVersionIndex = TimeSpan.FromSeconds(60);
 
         // Front Cursor with Updates
