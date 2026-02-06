@@ -91,9 +91,16 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    Tracer.Fody.NLog   |    12/17/2025    |    Malware                  |
 |    Gp4Framework 0.0.9 |    12/17/2025    |    Potentially Malicious    |
 |    Gp4Framework 0.1.0 |    12/17/2025    |    Potentially Malicious    |
+|    Allegory.Logo.Gateway.HttpApi.Host 0.1.17    |    12/17/2025    |    Potentially Malicious    |
+|    Allegory.Logo.Gateway.HttpApi.Host 0.1.18    |    12/17/2025    |    Potentially Malicious    |
+|    Allegory.Logo.Gateway.HttpApi.Host 0.1.19    |    12/17/2025    |    Potentially Malicious    |
+|    Allegory.Logo.Gateway.HttpApi.Host 0.1.20    |    12/17/2025    |    Potentially Malicious    |
 |    SystemDiagnosticsv324824726 1.0.0   |    01/09/2026    |   Malware  |
 |    SystemDiagnosticsv324824726 1.2.0   |    01/09/2026    |   Malware  |
 |    SystemDiagnosticsV2.5467 1.0.0      |    01/09/2026    |   Malware  |
+|    SolnetWallet.Net.Core               |    01/27/2026    |   Potentially Malicious  |
+|    Z.Dp.All 1.0.1                      |    01/27/2026    |   Malware  |
+|    Z.Dp.All 1.0.2                      |    01/27/2026    |   Malware  |
 
 
 
