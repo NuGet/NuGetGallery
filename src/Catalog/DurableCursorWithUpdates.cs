@@ -49,7 +49,7 @@ namespace NuGet.Services.Metadata.Catalog
             {
                 cursorValueWithUpdates = JsonConvert.DeserializeObject<CursorValueWithUpdates>(storageContent.Content, CursorValueWithUpdates.SerializerSettings);
 
-                _logger.LogInformation("Read the cursor value: {CursorValue} and the count of updates is {CursorUpdatesCount}, at {Address}.",
+                _logger.LogInformation("Read the cursor value: {CursorValue} with the count of updates: {CursorUpdatesCount}, at {Address}.",
                     cursorValueWithUpdates.Value, cursorValueWithUpdates.Updates.Count, _address.AbsoluteUri);
             }
 
@@ -64,7 +64,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             await _storage.SaveAsync(_address, content, cancellationToken);
 
-            _logger.LogInformation("Updated the cursor value: {CursorValue} and the count of updates is {CursorUpdatesCount}, at {Address}.",
+            _logger.LogInformation("Updated the cursor value: {CursorValue} with the count of updates: {CursorUpdatesCount}, at {Address}.",
                 cursorValueWithUpdates.Value, cursorValueWithUpdates.Updates.Count, _address.AbsoluteUri);
         }
 
