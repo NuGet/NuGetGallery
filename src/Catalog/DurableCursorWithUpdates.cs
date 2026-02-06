@@ -49,8 +49,8 @@ namespace NuGet.Services.Metadata.Catalog
             {
                 cursorValueWithUpdates = JsonConvert.DeserializeObject<CursorValueWithUpdates>(storageContent.Content, CursorValueWithUpdates.SerializerSettings);
 
-                _logger.LogInformation("Read the cursor value: {CursorValue} with {CursorUpdatesCount}, at {Address}.", cursorValueWithUpdates.Value,
-                    cursorValueWithUpdates.Updates.Count + (cursorValueWithUpdates.Updates.Count <= 1 ? " update" : " updates"), _address.AbsoluteUri);
+                _logger.LogInformation("Read the cursor value: {CursorValue} and the count of updates is {CursorUpdatesCount}, at {Address}.",
+                    cursorValueWithUpdates.Value, cursorValueWithUpdates.Updates.Count, _address.AbsoluteUri);
             }
 
             cursorValueWithUpdates.Value = Value.ToString("O");
@@ -64,8 +64,8 @@ namespace NuGet.Services.Metadata.Catalog
 
             await _storage.SaveAsync(_address, content, cancellationToken);
 
-            _logger.LogInformation("Updated the cursor value: {CursorValue} with {CursorUpdatesCount}, at {Address}.", cursorValueWithUpdates.Value,
-                cursorValueWithUpdates.Updates.Count + (cursorValueWithUpdates.Updates.Count <= 1 ? " update" : " updates"), _address.AbsoluteUri);
+            _logger.LogInformation("Updated the cursor value: {CursorValue} and the count of updates is {CursorUpdatesCount}, at {Address}.",
+                cursorValueWithUpdates.Value, cursorValueWithUpdates.Updates.Count, _address.AbsoluteUri);
         }
 
         private IList<CursorValueUpdate> GetUpdates(CursorValueWithUpdates cursorValueWithUpdates, DateTime? storageDateTimeInUtc)
@@ -81,7 +81,7 @@ namespace NuGet.Services.Metadata.Catalog
                 var update = new CursorValueUpdate(storageDateTimeInUtc.Value, cursorValueWithUpdates.Value);
                 updates.Insert(0, update);
 
-                _logger.LogInformation("Added the cursor update with TimeStamp: {TimeStamp} and value: {UpdateValue}.",
+                _logger.LogInformation("Added the cursor update with timeStamp: {TimeStamp} and value: {UpdateValue}.",
                     update.TimeStamp.ToString(CursorValueWithUpdates.SerializerSettings.DateFormatString), update.Value);
             }
 
@@ -89,7 +89,7 @@ namespace NuGet.Services.Metadata.Catalog
             {
                 var update = updates[updates.Count - 1];
 
-                _logger.LogInformation("Deleted the cursor update with TimeStamp: {TimeStamp} and value: {UpdateValue}.",
+                _logger.LogInformation("Deleted the cursor update with timeStamp: {TimeStamp} and value: {UpdateValue}.",
                     update.TimeStamp.ToString(CursorValueWithUpdates.SerializerSettings.DateFormatString), update.Value);
 
                 updates.RemoveAt(updates.Count - 1);
