@@ -101,7 +101,8 @@ namespace Ng.Jobs
                 httpClientTimeout);
 
             var storage = storageFactory.Create();
-            _front = new DurableCursor(storage.ResolveUri("cursor.json"), storage, MemoryCursor.MinValue);
+            _front = new DurableCursorWithUpdates(storage.ResolveUri("cursor.json"), storage, MemoryCursor.MinValue, Logger,
+                DnxConstants.MaxNumberOfUpdatesToKeepOfFrontCursor, DnxConstants.MinIntervalBetweenTwoUpdatesOfFrontCursor);
             _back = MemoryCursor.CreateMax();
 
             _destination = storageFactory.BaseAddress;
