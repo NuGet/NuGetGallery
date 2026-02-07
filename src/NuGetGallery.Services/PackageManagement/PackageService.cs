@@ -304,7 +304,7 @@ namespace NuGetGallery
                 includeDeprecationRelationships: false,
                 includeSupportedFrameworks: includeSupportedFrameworks)
                 .OrderByDescending(p => p.IsLatestSemVer2 || p.IsLatestStableSemVer2)
-                    .ThenByDescending(p => p.Created)
+                    .ThenByDescending(p => p.Key)
                 .Take(maxCount + 1)
                 .ToList();
 
