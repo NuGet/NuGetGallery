@@ -945,7 +945,7 @@ body {
 }
 .readme-common pre code.hljs .hljs-built_in,
 .readme-common pre code.hljs .hljs-symbol {
-  color: var(--statusWarningForeground1Rest);
+  color: var(--statusWarningForegroundDark);
 }
 .readme-common pre code.hljs .hljs-comment,
 .readme-common pre code.hljs .hljs-code,
@@ -956,7 +956,7 @@ body {
 .readme-common pre code.hljs .hljs-quote,
 .readme-common pre code.hljs .hljs-selector-tag,
 .readme-common pre code.hljs .hljs-selector-pseudo {
-  color: var(--statusSuccessForeground1Rest);
+  color: var(--statusGenericDarkGreenStrokeActiveRest);
 }
 .readme-common pre code.hljs .hljs-subst {
   color: var(--neutralForeground1Rest);
@@ -2176,6 +2176,18 @@ p.frameworktableinfo-text {
     gap: 0.75rem;
     padding: 1.25rem;
   }
+}
+.page-package-details .version-filter-container {
+  margin-bottom: 2rem;
+  display: flex;
+  flex-wrap: wrap;
+}
+.page-package-details .version-filter-container .form-group {
+  margin-right: 2rem;
+  margin-bottom: 0;
+}
+.page-package-details .version-filter-container input[type="checkbox"] {
+  margin-right: 0.5rem;
 }
 .page-downloads .list-tools li {
   margin-top: 20px;
@@ -3933,6 +3945,7 @@ p.frameworktableinfo-text {
   --statusWarningBackground2Rest: var(--orangeTint60, #fdcfb4);
   --statusWarningBackground3Rest: var(--orangePrimary, #f7630c);
   --statusWarningForeground1Rest: var(--orangeShade20, #8f8d00);
+  --statusWarningForegroundDark: #797700;
   --statusWarningForeground2Rest: var(--orangeShade30, #8a3707);
   --statusWarningStroke1Rest: var(--orangeTint40, #fdcfb4);
   --statusWarningStroke2Rest: var(--orangeTint40, #bc4b09);
@@ -4283,6 +4296,7 @@ p.frameworktableinfo-text {
   --statusWarningBackground2Rest: var(--orangeShade40, #8a3707);
   --statusWarningBackground3Rest: var(--orangePrimary, #f7630c);
   --statusWarningForeground1Rest: var(--orangeTint20, #fffdb1);
+  --statusWarningForegroundDark: var(--orangeTint20, #fffdb1);
   --statusWarningForeground2Rest: var(--orangeTint40, #fdcfb4);
   --statusWarningStroke1Rest: var(--orangeShade10, #de590b);
   --statusWarningStroke2Rest: var(--orangeShade10, #f98845);

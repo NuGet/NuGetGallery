@@ -1,13 +1,16 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
+using NuGetGallery;
+using NuGetGallery.Configuration;
 using Xunit;
 
 namespace NuGetGallery.Services
@@ -162,6 +165,36 @@ namespace NuGetGallery.Services
 
                 // Assert
                 Assert.Equal(existingRequestingOwner.Key, request.RequestingOwnerKey);
+            }
+
+            [Fact]
+            public async Task ThrowsWhenMaximumOwnerRequestsReached()
+            {
+                var package = new PackageRegistration { Key = 1 };
+                var existingRequest1 = new PackageOwnerRequest
+                {
+                    PackageRegistration = package,
+                    PackageRegistrationKey = package.Key,
+                    RequestingOwnerKey = 2,
+                    NewOwnerKey = 3
+                };
+                var existingRequest2 = new PackageOwnerRequest
+                {
+                    PackageRegistration = package,
+                    PackageRegistrationKey = package.Key,
+                    RequestingOwnerKey = 3,
+                    NewOwnerKey = 4
+                };
+                var repository = new Mock<IEntityRepository<PackageOwnerRequest>>();
+                repository.Setup(r => r.GetAll()).Returns(new[] { existingRequest1, existingRequest2 }.AsQueryable());
+                var appConfiguration = new Mock<IAppConfiguration>();
+                appConfiguration.Setup(a => a.MaxOwnerRequestsPerPackageRegistration).Returns(2);
+
+                var service = CreateService(repository, appConfiguration);
+
+                var exception = await Assert.ThrowsAsync<UserSafeException>(() => service.AddPackageOwnershipRequest(package, new User { Key = 6 }, new User { Key = 7 }));
+
+                Assert.Equal(string.Format(CultureInfo.CurrentCulture, ServicesStrings.MaximumPackageOwnerRequestsReached, 2), exception.Message);
             }
         }
 
@@ -354,8 +387,9 @@ namespace NuGetGallery.Services
 
                 PackageOwnerRequestRepository.Setup(x => x.GetAll()).Returns(() => DbSet.Object);
                 DbSet.Setup(x => x.Include(It.IsAny<string>())).Returns(() => DbSet.Object);
+                AppConfiguration = new Mock<IAppConfiguration>();
 
-                Target = new PackageOwnerRequestService(PackageOwnerRequestRepository.Object);
+                Target = new PackageOwnerRequestService(PackageOwnerRequestRepository.Object, AppConfiguration.Object);
             }
 
             public Mock<IEntityRepository<PackageOwnerRequest>> PackageOwnerRequestRepository { get; }
@@ -364,15 +398,24 @@ namespace NuGetGallery.Services
             public User NewOwner { get; }
             public List<PackageOwnerRequest> Entities { get; }
             public Mock<DbSet<PackageOwnerRequest>> DbSet { get; }
+            public Mock<IAppConfiguration> AppConfiguration { get; }
             public PackageOwnerRequestService Target { get; }
         }
 
         private static IPackageOwnerRequestService CreateService(
-            Mock<IEntityRepository<PackageOwnerRequest>> packageOwnerRequestRepo = null)
+            Mock<IEntityRepository<PackageOwnerRequest>> packageOwnerRequestRepo = null,
+            Mock<IAppConfiguration> appConfiguration = null)
         {
             packageOwnerRequestRepo = packageOwnerRequestRepo ?? new Mock<IEntityRepository<PackageOwnerRequest>>();
 
-            return new PackageOwnerRequestService(packageOwnerRequestRepo.Object);
+            if (appConfiguration == null)
+            {
+                appConfiguration = new Mock<IAppConfiguration>();
+                appConfiguration.Setup(a => a.MaxOwnerRequestsPerPackageRegistration).Returns(3);
+                appConfiguration.Setup(a => a.MaxOwnerPerPackageRegistration).Returns(15);
+            }
+
+            return new PackageOwnerRequestService(packageOwnerRequestRepo.Object, appConfiguration.Object);
         }
     }
 }

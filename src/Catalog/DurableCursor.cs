@@ -11,9 +11,9 @@ namespace NuGet.Services.Metadata.Catalog
 {
     public class DurableCursor : ReadWriteCursor
     {
-        Uri _address;
-        Persistence.Storage _storage;
-        DateTime _defaultValue;
+        protected Uri _address;
+        protected Persistence.Storage _storage;
+        protected DateTime _defaultValue;
 
         public DurableCursor(Uri address, Persistence.Storage storage, DateTime defaultValue)
         {

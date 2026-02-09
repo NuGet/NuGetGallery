@@ -19,7 +19,7 @@ namespace NuGetGallery {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class ServicesStrings {
@@ -1139,6 +1139,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The package ownership request cannot be saved. The package already has the maximum number of ownership requests ({0}). An existing ownership request must be removed to proceed..
+        /// </summary>
+        public static string MaximumPackageOwnerRequestsReached {
+            get {
+                return ResourceManager.GetString("MaximumPackageOwnerRequestsReached", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The new package owner cannot be added. The package has the maximum number of owners ({0}). An existing owner must be removed to proceed..
+        /// </summary>
+        public static string MaximumPackageOwnersReached {
+            get {
+                return ResourceManager.GetString("MaximumPackageOwnersReached", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Your organization must be confirmed before you can change its membership..
         /// </summary>
         public static string Member_OrganizationUnconfirmed {
@@ -1351,6 +1369,15 @@ namespace NuGetGallery {
         public static string OrganizationsCannotCreateCredentials {
             get {
                 return ResourceManager.GetString("OrganizationsCannotCreateCredentials", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make sure you clicked on the confirmation URL in the email we sent. It&apos;s also possible that the existing owner revoked the request to add you as an owner..
+        /// </summary>
+        public static string OwnershipRequestNotValid {
+            get {
+                return ResourceManager.GetString("OwnershipRequestNotValid", resourceCulture);
             }
         }
         
