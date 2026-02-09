@@ -26,7 +26,7 @@ namespace CatalogTests
         [Fact]
         public async Task GetValueInJsonAsync()
         {
-            _response.Headers.Date = new DateTime(2026, 1, 1, 1, 0, 30, DateTimeKind.Utc);
+            _response.Headers.Date = new DateTimeOffset(2026, 1, 1, 1, 0, 30, TimeSpan.Zero);
             _response.Content = new StringContent("{\"value\":\"2026-01-01T01:00:00.0000000\"," +
                                                    "\"updates\":[{\"timeStamp\":\"2026-01-01T00:59:30.0000000Z\",\"value\":\"2026-01-01T00:59:00.0000000\"}," +
                                                                 "{\"timeStamp\":\"2026-01-01T00:58:30.0000000Z\",\"value\":\"2026-01-01T00:58:00.0000000\"}," +
@@ -42,7 +42,7 @@ namespace CatalogTests
                      "\"updates\":[{\"timeStamp\":\"2026-01-01T00:59:30.0000000Z\",\"value\":\"2026-01-01T00:59:00.0000000\"}]}")]
         public async Task GetValueInJsonAsync_UnableToFindCursorUpdate(string content)
         {
-            _response.Headers.Date = new DateTime(2026, 1, 1, 1, 0, 30, DateTimeKind.Utc);
+            _response.Headers.Date = new DateTimeOffset(2026, 1, 1, 1, 0, 30, TimeSpan.Zero);
             _response.Content = new StringContent(content);
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => _cursor.GetValueInJsonAsync(_response));
