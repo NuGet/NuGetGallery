@@ -12,7 +12,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
 {
     public static class DnxPackageVersionIndexCacheControl
     {
-        private const string DefaultCacheControlForPackageVersionIndex = "max-age=15";
+        private const string DefaultCacheControlForPackageVersionIndex = "max-age=10";
         private const string BlobNameOfPackageIdsToInclude = "PackageIdsToIncludeForCachingPackageVersionIndex.json";
 
         public static HashSet<string> PackageIdsToInclude = new HashSet<string>();
@@ -21,7 +21,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
         {
             if (PackageIdsToInclude.Contains(id))
             {
-                logger.LogInformation("Add caching to the package version index of package Id: {id}.", id);
+                logger.LogInformation("Add caching to the package version index of Package Id: {id}.", id);
 
                 return DefaultCacheControlForPackageVersionIndex;
             }
@@ -35,12 +35,12 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
         {
             if (!storage.Exists(BlobNameOfPackageIdsToInclude))
             {
-                logger.LogInformation("{BlobName} does not exist.", BlobNameOfPackageIdsToInclude);
+                logger.LogInformation("{BlobName} does not exist, at {Address}.", BlobNameOfPackageIdsToInclude, storage.BaseAddress);
 
                 return;
             }
 
-            logger.LogInformation("Loading the list of package Ids from {BlobName}.", BlobNameOfPackageIdsToInclude);
+            logger.LogInformation("Loading the list of Package Ids from {BlobName}, at {Address}.", BlobNameOfPackageIdsToInclude, storage.BaseAddress);
 
             PackageIdsToInclude = new HashSet<string>();
             string jsonFile = await storage.LoadStringAsync(storage.ResolveUri(BlobNameOfPackageIdsToInclude), cancellationToken);
@@ -57,7 +57,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                 }
             }
 
-            logger.LogInformation("Loaded the list of package Ids from {BlobName}. There are {Count} package Ids.", BlobNameOfPackageIdsToInclude, PackageIdsToInclude.Count);
+            logger.LogInformation("Loaded the list of Package Ids (Count: {Count}) from {BlobName}, at {Address}.", PackageIdsToInclude.Count, BlobNameOfPackageIdsToInclude, storage.BaseAddress);
         }
     }
 }

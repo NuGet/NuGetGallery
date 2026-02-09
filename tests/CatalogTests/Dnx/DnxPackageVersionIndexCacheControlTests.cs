@@ -31,8 +31,8 @@ namespace CatalogTests.Dnx
 
         [Theory]
         [InlineData("{\"ids\":[]}", 0)]
-        [InlineData("{\"ids\":[\"packageid1\",\"packageid1\"]}", 1)]
-        [InlineData("{\"ids\":[\"packageid1\",\"packageid2\"]}", 2)]
+        [InlineData("{\"ids\":[\"PackageId1\",\"packageid1\"]}", 1)]
+        [InlineData("{\"ids\":[\"PackageId1\",\"PackageId2\"]}", 2)]
         public async Task LoadPackageIdsToIncludeAsync_BlobExists(string json, int count)
         {
             var storage = new Mock<IStorage>();
@@ -51,7 +51,7 @@ namespace CatalogTests.Dnx
         {
             DnxPackageVersionIndexCacheControl.PackageIdsToInclude = new HashSet<string>() { "packageid1" };
 
-            Assert.Equal("max-age=15", DnxPackageVersionIndexCacheControl.GetCacheControl("packageid1", Mock.Of<ILogger>()));
+            Assert.Equal("max-age=10", DnxPackageVersionIndexCacheControl.GetCacheControl("packageid1", Mock.Of<ILogger>()));
             Assert.Equal(Constants.NoStoreCacheControl, DnxPackageVersionIndexCacheControl.GetCacheControl("packageid2", Mock.Of<ILogger>()));
         }
     }
