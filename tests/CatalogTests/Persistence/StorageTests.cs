@@ -1,8 +1,13 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
+using Moq.Protected;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using Xunit;
 
@@ -162,6 +167,58 @@ namespace CatalogTests.Persistence
 
             // Assert
             Assert.Equal(expectedName, name);
+        }
+
+        [Fact]
+        public async Task LoadStringStorageContentAsync()
+        {
+            var storageContent = new Mock<StorageContent>();
+            storageContent.Setup(sc => sc.GetContentStream()).Returns(new MemoryStream(Encoding.UTF8.GetBytes("test content")));
+
+            var storageContentObject = storageContent.Object;
+            storageContentObject.StorageDateTimeInUtc = new DateTime(2026, 1, 1);
+            storageContentObject.ContentType = "test content type";
+            storageContentObject.CacheControl = "test cache control";
+
+            var storage = new Mock<Storage>(new Uri("https://contoso.blob.core.windows.net")) { CallBase = true };
+            storage.Protected().Setup<Task<StorageContent>>("OnLoadAsync", ItExpr.IsAny<Uri>(), ItExpr.IsAny<CancellationToken>()).ReturnsAsync(storageContentObject);
+
+            var stringStorageContent = await storage.Object.LoadStringStorageContentAsync(new Uri("https://contoso.blob.core.windows.net/test"), CancellationToken.None);
+
+            Assert.Equal("test content", stringStorageContent.Content);
+            Assert.Equal(new DateTime(2026, 1, 1), stringStorageContent.StorageDateTimeInUtc);
+            Assert.Equal("test content type", stringStorageContent.ContentType);
+            Assert.Equal("test cache control", stringStorageContent.CacheControl);
+        }
+
+        [Fact]
+        public async Task LoadStringStorageContentAsync_ReturnsNull()
+        {
+            var storage = new Mock<Storage>(new Uri("https://contoso.blob.core.windows.net")) { CallBase = true };
+            storage.Protected().Setup<Task<StorageContent>>("OnLoadAsync", ItExpr.IsAny<Uri>(), ItExpr.IsAny<CancellationToken>()).ReturnsAsync((StorageContent) null);
+
+            Assert.Null(await storage.Object.LoadStringStorageContentAsync(new Uri("https://contoso.blob.core.windows.net/test"), CancellationToken.None));
+        }
+
+        [Fact]
+        public async Task LoadStringAsync()
+        {
+            var storageContent = new Mock<StorageContent>();
+            storageContent.Setup(sc => sc.GetContentStream()).Returns(new MemoryStream(Encoding.UTF8.GetBytes("test content")));
+
+            var storage = new Mock<Storage>(new Uri("https://contoso.blob.core.windows.net")) { CallBase = true };
+            storage.Protected().Setup<Task<StorageContent>>("OnLoadAsync", ItExpr.IsAny<Uri>(), ItExpr.IsAny<CancellationToken>()).ReturnsAsync(storageContent.Object);
+
+            Assert.Equal("test content", await storage.Object.LoadStringAsync(new Uri("https://contoso.blob.core.windows.net/test"), CancellationToken.None));
+        }
+
+        [Fact]
+        public async Task LoadStringAsync_ReturnsNull()
+        {
+            var storage = new Mock<Storage>(new Uri("https://contoso.blob.core.windows.net")) { CallBase = true };
+            storage.Protected().Setup<Task<StorageContent>>("OnLoadAsync", ItExpr.IsAny<Uri>(), ItExpr.IsAny<CancellationToken>()).ReturnsAsync((StorageContent) null);
+
+            Assert.Null(await storage.Object.LoadStringAsync(new Uri("https://contoso.blob.core.windows.net/test"), CancellationToken.None));
         }
     }
 }

@@ -75,19 +75,10 @@
                     </text>
                 )
                 break;
-
+            
             default:
-                @ViewHelpers.AlertDanger(
-                    @<text>
-                        Could not confirm package ownership for '@Model.PackageId'.
-                    </text>
-                )
-
-                <p class="text-center">
-                    Make sure you clicked on the confirmation URL in the email we sent.
-                    It's also possible that the existing owner revoked the
-                    request to add you as an owner.
-                </p>
+                @ViewHelpers.AlertDanger(@<text>Could not confirm package ownership for '@Model.PackageId'.</text>)
+                <p class="text-center">@Model.FailureMessage</p>
                 break;
         }
     </div>

@@ -417,15 +417,27 @@ namespace NuGetGallery.Configuration
 
         [DefaultValue(null)]
         public int? MinWorkerThreads { get; set; }
+
         [DefaultValue(null)]
         public int? MaxWorkerThreads { get; set; }
+
         [DefaultValue(null)]
         public int? MinIoThreads { get; set; }
+
         [DefaultValue(null)]
         public int? MaxIoThreads { get; set; }
+
         public string InternalMicrosoftTenantKey { get; set; }
+
         public string AdminSenderUser { get; set; }
+
         [DefaultValue(16 * 1024 * 1024)]
         public int MaxJsonLengthOverride { get; set; }
+
+        [DefaultValue(15)]
+        public int MaxOwnerPerPackageRegistration { get; set; }
+
+        [DefaultValue(3)]
+        public int MaxOwnerRequestsPerPackageRegistration { get; set; }
     }
 }

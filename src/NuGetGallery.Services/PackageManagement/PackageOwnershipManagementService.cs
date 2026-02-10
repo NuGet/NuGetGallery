@@ -1,8 +1,9 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
@@ -47,6 +48,16 @@ namespace NuGetGallery
 
         public async Task AddPackageOwnerWithMessagesAsync(PackageRegistration packageRegistration, User user)
         {
+            if (packageRegistration == null)
+            {
+                throw new ArgumentNullException(nameof(packageRegistration));
+            }
+
+            if (packageRegistration.Owners.Count >= Math.Max(_appConfiguration.MaxOwnerPerPackageRegistration, 1))
+            {
+                throw new UserSafeException(string.Format(CultureInfo.CurrentCulture, ServicesStrings.MaximumPackageOwnersReached, _appConfiguration.MaxOwnerPerPackageRegistration));
+            }
+
             await AddPackageOwnerAsync(packageRegistration, user, commitChanges: true);
 
             var packageUrl = _urlHelper.Package(packageRegistration.Id, version: null, relativeUrl: false, supportEmail: true);
