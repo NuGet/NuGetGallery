@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -406,6 +406,11 @@ namespace GitHubVulnerabilities2Db.Gallery
         }
 
         public void TrackDownloadJsonTotalPackageVersions(int totalPackageVersions) {
+            throw new NotImplementedException();
+        }
+
+        public void TrackFullVersionListLoadRequest()
+        {
             throw new NotImplementedException();
         }
     }

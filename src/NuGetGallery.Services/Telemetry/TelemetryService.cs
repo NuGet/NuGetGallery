@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -97,6 +97,7 @@ namespace NuGetGallery
             public const string InstanceUptime = "InstanceUptimeInDays";
             public const string ApiRequest = "ApiRequest";
             public const string CreateSqlConnectionDurationMs = "CreateSqlConnectionDurationMs";
+            public const string FullVersionListRequest = "FullVersionListRequest";
         }
 
         private readonly IDiagnosticsSource _diagnosticsSource;
@@ -1163,6 +1164,11 @@ namespace NuGetGallery
 
         public IDisposable TrackAsyncSqlConnectionCreationDuration()
             => TrackSqlConnectionCreationDuration(Async);
+
+        public void TrackFullVersionListLoadRequest()
+        {
+            TrackMetric(Events.FullVersionListRequest, 1, _ => { });
+        }
 
         private IDisposable TrackSqlConnectionCreationDuration(string kind)
         {

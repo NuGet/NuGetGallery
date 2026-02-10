@@ -35,6 +35,8 @@ namespace NuGetGallery
         public const string DisplayReleasePackage = "package-release-route";
         public const string DisplayPrereleasePackage = "package-prerelease-route";
         public const string DisplayPackageFeed = "package-route-feed";
+        public const string PackageVersionTableById = "package-version-table-by-id";
+        public const string PackageVersionTableByIdVersion = "package-version-table-by-id-version";
         public const string DownloadPackage = "DownloadPackage";
         public const string DownloadSymbolsPackage = "DownloadSymbolsPackage";
         public const string DownloadNuGetExe = "DownloadNuGetExe";

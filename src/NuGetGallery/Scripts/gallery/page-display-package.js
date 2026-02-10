@@ -335,6 +335,42 @@ $(function () {
         });
     }
 
+    $("#load-more-versions").on('click', function(event) {
+        const target = event.currentTarget;
+        if (target.getAttribute("aria-disabled") === "true") {
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+        }
+        const token = $("#AntiForgeryForm input[name=__RequestVerificationToken]").val();
+        const url = target.dataset.url;
+        const container = target.parentElement;
+        const failed = container.querySelector("#loading-more-error");
+        target.setAttribute("aria-disabled", "true");
+        target.setAttribute("aria-busy", "true");
+        target.innerHTML = "Loading..."
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: {
+                __RequestVerificationToken: token
+            },
+            success: function(response) {
+                $("#version-history table").html(response);
+                container.classList.add("hide");
+                const currentVersionLink = document.querySelector(".version-history .bg-brand-info a");
+                if (currentVersionLink) {
+                    currentVersionLink.focus();
+                }
+                applyVersionFilters();
+            },
+            error: function() {
+                target.classList.add("hide");
+                failed.classList.remove("hide");
+            }
+        });
+    });
+
     $(".reserved-indicator").each(window.nuget.setPopovers);
     $(".framework-badge-asset").each(window.nuget.setPopovers);
     $(".package-warning-icon").each(window.nuget.setPopovers);

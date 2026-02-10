@@ -928,14 +928,19 @@ namespace NuGetGallery
 
             IReadOnlyCollection<Package> allVersions;
 
+            bool hasMoreVersions = false;
+
             if (_featureFlagService.IsReducedVersionListsEnabled())
             {
-                allVersions = _packageService.FindLatestVersionsById(id,
+                LatestPackageVersionsResult latestVersions = _packageService.FindLatestVersionsById(id,
                     includeVersion: normalized,
                     includePackageRegistration: true,
                     includeDeprecations: true,
                     includeSupportedFrameworks: true,
                     maxCount: 20);
+
+                allVersions = latestVersions.Packages;
+                hasMoreVersions = latestVersions.HasMoreResults;
             }
             else
             {
@@ -1008,6 +1013,7 @@ namespace NuGetGallery
             model.IsMarkdigMdSyntaxHighlightEnabled = _featureFlagService.IsMarkdigMdSyntaxHighlightEnabled();
             model.IsMcpServerPackageDisplayEnabled = _featureFlagService.IsMcpServerPackageDisplayEnabled();
             model.CanDisplayReadmeWarning = canDisplayReadmeWarning;
+            model.HasMoreVersions = hasMoreVersions;
 
             if (model.IsComputeTargetFrameworkEnabled || model.IsDisplayTargetFrameworkEnabled)
             {
@@ -2420,6 +2426,73 @@ namespace NuGetGallery
         public virtual Task<ActionResult> RejectPendingOwnershipRequest(string id, string username, string token)
         {
             return HandleOwnershipRequest(id, username, token, redirect: false, accept: false);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult GetAllPackageVersionsById(string id)
+        {
+            return GetAllPackageVersions(id, version: null);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult GetAllPackageVersions(string id, string version)
+        {
+            if (!_featureFlagService.IsReducedVersionListsEnabled())
+            {
+                return HttpNotFound();
+            }
+
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            _telemetryService.TrackFullVersionListLoadRequest();
+
+            string normalized = NuGetVersionFormatter.Normalize(version);
+
+            IReadOnlyCollection<Package> allVersions = _packageService.FindPackagesById(id,
+                includePackageRegistration: true,
+                includeDeprecations: true,
+                includeSupportedFrameworks: true);
+
+            var filterContext = new PackageFilterContext(RouteData?.Route, version);
+            var package = _packageFilter.GetFiltered(allVersions, filterContext);
+
+            // Validating packages should be hidden to everyone but the owners and admins.
+            var currentUser = GetCurrentUser();
+            if (package == null
+                || ((package.PackageStatusKey == PackageStatus.Validating
+                     || package.PackageStatusKey == PackageStatus.FailedValidation)
+                    && ActionsRequiringPermissions.DisplayPrivatePackageMetadata.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) != PermissionsCheckResult.Allowed))
+            {
+                return HttpNotFound();
+            }
+
+            var isPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser, allVersions);
+            var packageKeyToDeprecation = isPackageDeprecationEnabled
+                ? _deprecationService.GetDeprecationsById(id)
+                    .GroupBy(d => d.PackageKey)
+                    .ToDictionary(g => g.Key, g => g.First())
+                : null;
+
+            var isPackageVulnerabilitiesEnabled = _featureFlagService.IsDisplayVulnerabilitiesEnabled();
+            var packageKeyToVulnerabilities = isPackageVulnerabilitiesEnabled
+                ? _vulnerabilitiesService.GetVulnerabilitiesById(id)
+                : null;
+
+            var model = _displayPackageViewModelFactory.Create(
+                package,
+                allVersions,
+                currentUser,
+                packageKeyToDeprecation,
+                packageKeyToVulnerabilities,
+                packageRenames: null, // not used in this view
+                readmeResult: null);  // not used in this view
+
+            return PartialView("_DisplayPackageVersionTable", model);
         }
 
         private async Task<ActionResult> HandleOwnershipRequest(

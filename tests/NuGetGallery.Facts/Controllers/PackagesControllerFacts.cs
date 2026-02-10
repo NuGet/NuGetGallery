@@ -550,6 +550,15 @@ namespace NuGetGallery
                     .Returns(true);
 
                 var packageService = new Mock<IPackageService>();
+                packageService
+                    .Setup(ps => ps.FindLatestVersionsById(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<int>()))
+                    .Returns(new LatestPackageVersionsResult { Packages = new List<Package> { }, HasMoreResults = false });
 
                 var controller = CreateController(
                     GetConfigurationService(),

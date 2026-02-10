@@ -66,7 +66,7 @@ namespace NuGetGallery
         /// <param name="includeSupportedFrameworks"></param>
         /// <param name="maxCount"></param>
         /// <returns></returns>
-        IReadOnlyCollection<Package> FindLatestVersionsById(
+        LatestPackageVersionsResult FindLatestVersionsById(
             string id,
             string includeVersion,
             bool includePackageRegistration,
