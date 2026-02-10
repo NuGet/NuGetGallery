@@ -449,7 +449,11 @@ namespace Ng
                 var managedIdentityClientId = arguments.GetOrThrow<string>(argumentNameMap[Arguments.ClientId]);
                 var identity = new ManagedIdentityCredential(managedIdentityClientId);
                 var serviceUri = GetServiceUri(arguments, argumentNameMap, "blob");
+#if DEBUG
+                return new BlobServiceClientFactory(serviceUri, new DefaultAzureCredential());
+#else
                 return new BlobServiceClientFactory(serviceUri, identity);
+#endif
             }
 
             string connectionString = GetConnectionString(arguments, argumentNameMap, "BlobEndpoint", "blob");
