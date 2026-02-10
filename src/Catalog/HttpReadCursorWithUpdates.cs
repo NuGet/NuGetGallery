@@ -34,7 +34,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             var update = await GetUpdate(response, storageDateTimeInUtc);
 
-            return $"{{\"value\": \"{update.Value}\"}}";
+            return JsonConvert.SerializeObject(new { value = update.Value });
         }
 
         private async Task<CursorValueUpdate> GetUpdate(HttpResponseMessage response, DateTime? storageDateTimeInUtc)

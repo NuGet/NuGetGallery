@@ -32,7 +32,7 @@ namespace CatalogTests
                                                                 "{\"timeStamp\":\"2026-01-01T00:58:30.0000000Z\",\"value\":\"2026-01-01T00:58:00.0000000\"}," +
                                                                 "{\"timeStamp\":\"2026-01-01T00:57:30.0000000Z\",\"value\":\"2026-01-01T00:57:00.0000000\"}]}");
 
-            Assert.Equal("{\"value\": \"2026-01-01T00:58:00.0000000\"}", await _cursor.GetValueInJsonAsync(_response));
+            Assert.Equal("{\"value\":\"2026-01-01T00:58:00.0000000\"}", await _cursor.GetValueInJsonAsync(_response));
         }
 
         [Theory]
