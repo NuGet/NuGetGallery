@@ -254,6 +254,24 @@ namespace NuGetGallery
                 });
 
             routes.MapRoute(
+                RouteName.PackageVersionTableById,
+                "packages/{id}/versiontable",
+                new
+                {
+                    controller = "Packages",
+                    action = nameof(PackagesController.GetAllPackageVersionsById)
+                });
+
+            routes.MapRoute(
+                RouteName.PackageVersionTableByIdVersion,
+                "packages/{id}/{version}/versiontable",
+                new
+                {
+                    controller = "Packages",
+                    action = nameof(PackagesController.GetAllPackageVersions)
+                });
+
+            routes.MapRoute(
                 RouteName.PackageEnableLicenseReport,
                 "packages/{id}/{version}/EnableLicenseReport",
                 new { controller = "Packages", action = "SetLicenseReportVisibility", visible = true },

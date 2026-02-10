@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data.Entity;
 using System.IO;
 using System.Linq;
@@ -274,7 +275,7 @@ namespace NuGetGallery
             return packages.ToList();
         }
 
-        public IReadOnlyCollection<Package> FindLatestVersionsById(
+        public LatestPackageVersionsResult FindLatestVersionsById(
             string id,
             string includeVersion,
             bool includePackageRegistration,
@@ -301,9 +302,23 @@ namespace NuGetGallery
                 includeDeprecations: includeDeprecations,
                 includeDeprecationRelationships: false,
                 includeSupportedFrameworks: includeSupportedFrameworks)
-                .OrderByDescending(p => p.Created)
-                .Take(maxCount)
+                .OrderByDescending(p => p.IsLatestSemVer2 || p.IsLatestStableSemVer2)
+                    .ThenByDescending(p => p.Key)
+                .Take(maxCount + 1)
                 .ToList();
+
+            bool moreAvailable = packages.Count > maxCount;
+
+            if (moreAvailable)
+            {
+                // if we have list longer than requested, trim it, making sure we don't trim includeVersion if it happens to be last
+                var removeAt = packages.Count - 1;
+                if (!string.IsNullOrWhiteSpace(includeVersion) && packages[removeAt].NormalizedVersion == includeVersion)
+                {
+                    --removeAt;
+                }
+                packages.RemoveAt(removeAt);
+            }
 
             if (!string.IsNullOrWhiteSpace(includeVersion) && !packages.Any(p => p.NormalizedVersion == includeVersion))
             {
@@ -329,7 +344,7 @@ namespace NuGetGallery
                 }
             }
 
-            return packages;
+            return new LatestPackageVersionsResult { Packages = packages, HasMoreResults = moreAvailable };
         }
 
         public virtual Package FindPackageByIdAndVersion(

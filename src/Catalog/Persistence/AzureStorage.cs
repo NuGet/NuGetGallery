@@ -376,9 +376,11 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 Response<BlobProperties> properties = await blobClient.GetPropertiesAsync(cancellationToken: cancellationToken);
 
                 string content;
+                DateTimeOffset? storageDateTimeOffset;
                 using (var originalStream = new MemoryStream())
                 {
-                    await blobClient.DownloadToAsync(originalStream, cancellationToken);
+                    Response response = await blobClient.DownloadToAsync(originalStream, cancellationToken);
+                    storageDateTimeOffset = response.Headers.Date;
 
                     originalStream.Seek(0, SeekOrigin.Begin);
 
@@ -401,7 +403,14 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                     }
                 }
 
-                return new StringStorageContentWithETag(content, properties.Value.ETag.ToString());
+                if (storageDateTimeOffset.HasValue)
+                {
+                    return new StringStorageContentWithETag(content, storageDateTimeOffset.Value.UtcDateTime, properties.Value.ETag.ToString());
+                }
+                else
+                {
+                    return new StringStorageContentWithETag(content, properties.Value.ETag.ToString());
+                }
             }
             catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.NotFound)
             {

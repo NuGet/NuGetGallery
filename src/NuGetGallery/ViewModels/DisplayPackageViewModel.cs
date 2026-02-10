@@ -53,6 +53,7 @@ namespace NuGetGallery
         public bool HasEmbeddedReadmeFile { get; set; }
         public PackageDependents PackageDependents { get; set; }
         public McpServerEntryTemplateResult VsCodeMcpServerEntryTemplate { get; set; }
+        public bool HasMoreVersions { get; set; }
 
         public const int NumberOfDaysToBlockIndexing = 90;
 

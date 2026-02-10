@@ -8,6 +8,7 @@
     <MicroBuild_NuPkgSigningEnabled>false</MicroBuild_NuPkgSigningEnabled>
     <BatchSign Condition="'$(BatchSign)' == ''">true</BatchSign>
     <RepositoryRootDirectory Condition="'$(RepositoryRootDirectory)' == ''">$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'build.ps1'))\</RepositoryRootDirectory>
+    <SkipAuthenticodeSubjects Condition="'$(SkipAuthenticodeSubjects)' == '' and '$(SignType)' == 'test'">CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</SkipAuthenticodeSubjects>
 
     <!--
     By default, only run EnumerateFilesToSign if we are not batch signing. This property is explicitly set to true when
@@ -145,7 +146,7 @@
   <Target
     Name="DedupeFilesToSign"
     DependsOnTargets="EnumerateFilesToSign">
-    <FindDuplicateFiles Files="@(UnfilteredFilesToSign)">
+    <FindDuplicateFiles Files="@(UnfilteredFilesToSign)" SkipAuthenticodeSubjects="$(SkipAuthenticodeSubjects)">
       <Output
         TaskParameter="UniqueFiles"
         ItemName="FilesToSign" />
@@ -155,7 +156,7 @@
     </FindDuplicateFiles>
     <Message Text="Count of files to sign: @(FilesToSign->Count())" Importance="High" />
     <Message Text="Files to sign:%0A@(FilesToSign, '%0A')" Importance="High" />
-  </Target>  
+  </Target>
 
   <Target Name="CopySignedFiles"
     AfterTargets="SignFiles"

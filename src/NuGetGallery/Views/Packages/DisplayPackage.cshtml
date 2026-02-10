@@ -183,7 +183,7 @@
 
             new PackageManagerViewModel(
                 "dotnet-run-file",
-                "File-based Apps",
+                "File-Based Apps",
                 new PackageManagerViewModel.InstallPackageCommand(
                     string.Format("#:sdk {0}@{1}", Model.Id, Model.Version)
                 )
@@ -551,7 +551,7 @@
                             </text>
                         )
                     }
-                    
+
                     if (Model.NuGetVersion.HasMetadata)
                     {
                         @ViewHelpers.AlertInfo(
@@ -722,7 +722,7 @@
                                 @if (Model.CanDisplayReadmeWarning && Model.CanDisplayPrivateMetadata)
                                 {
                                     <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
-                                } 
+                                }
                                 else
                                 {
                                     <i class="ms-Icon ms-Icon--Dictionary" aria-hidden="true"></i>
@@ -1049,141 +1049,44 @@
                 </div>
                 <div role="tabpanel" class="tab-pane @(activeBodyTab == "versions" ? "active" : "")" id="versions-tab" aria-label="Versions tab content">
                     <div class="version-history" id="version-history">
-                        <table aria-label="Version History of @Model.Id" class="table borderless">
-                            <thead>
-                                <tr>
-                                    <th scope="col" role="columnheader">Version</th>
-                                    <th scope="col" role="columnheader">Downloads</th>
-                                    <th scope="col" role="columnheader">
-                                        Last Updated
-                                        @if (Model.CanDisplayPrivateMetadata)
-                                        {
-                                            <a class="tooltip-target" href="javascript:void(0)" role="button" aria-labelledby="lastupdatedid">
-                                                <i class="ms-Icon ms-Icon--Info info-icon"></i>
-                                                <span class="tooltip-block" role="tooltip" id="lastupdatedid">
-                                                    <span class="tooltip-wrapper tooltip-with-icon popover right">
-                                                        <span class="arrow"></span>
-                                                        <span class="popover-content">
-                                                            The individual who pushed the latest update, or the organization if pushed by a co-owner who isn't a member. This information is not publicly visible.
-                                                        </span>
-                                                    </span>
-                                                </span>
-                                            </a>
-                                        }
-                                    </th>
+                        <div class="version-filter-container">
+                            <div class="form-group">
+                                <label class="brand-checkbox">
+                                    <input type="checkbox" id="include-prerelease">
+                                    <span>Include prerelease</span>
+                                </label>
+                            </div>
+                            @if (Model.IsPackageVulnerabilitiesEnabled)
+                            {
+                                <div class="form-group">
+                                    <label class="brand-checkbox">
+                                        <input type="checkbox" id="include-vulnerable">
+                                        <span>Include vulnerable</span>
+                                    </label>
+                                </div>
+                            }
+                            @if (Model.IsPackageDeprecationEnabled)
+                            {
+                                <div class="form-group">
+                                    <label class="brand-checkbox">
+                                        <input type="checkbox" id="include-deprecated">
+                                        <span>Include deprecated</span>
+                                    </label>
+                                </div>
+                            }
+                        </div>
 
-                                    @if (Model.CanDisplayPrivateMetadata)
-                                    {
-                                        <th scope="col" role="columnheader">Status</th>
-                                    }
-                                    @if (Model.IsCertificatesUIEnabled)
-                                    {
-                                        <th scope="col" role="columnheader" aria-hidden="true" abbr="Signature Information"></th>
-                                    }
-                                    @if (Model.IsPackageDeprecationEnabled || Model.IsPackageVulnerabilitiesEnabled)
-                                    {
-                                        <th scope="col" role="columnheader" aria-hidden="true" abbr="Package Warnings"></th>
-                                    }
-                                </tr>
-                            </thead>
-                            <tbody class="no-border">
-                                @foreach (var packageVersion in Model.PackageVersions)
-                                {
-                                    if ((packageVersion.Available && packageVersion.Listed && Model.ShowDetailsAndLinks)
-                                        || (!packageVersion.Deleted && Model.CanDisplayPrivateMetadata))
-                                    {
-                                        <tr class="@(packageVersion.IsCurrent(Model) ? "bg-brand-info" : null)">
-                                            <td>
-                                                <a href="@Url.Package(packageVersion)" title="@packageVersion.Version">
-                                                    @packageVersion.Version.Abbreviate(30)
-                                                </a>
-                                            </td>
-                                            <td>
-                                                @packageVersion.DownloadCount.ToNuGetNumberString()
-                                            </td>
-                                            <td>
-                                                <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetShortDateString()</span>
-                                                @if (packageVersion.PushedBy != null)
-                                                {
-                                                    <text>
-                                                        by <span title="@packageVersion.PushedBy">@packageVersion.PushedBy.Abbreviate(15)</span>
-                                                    </text>
-                                                }
-                                            </td>
-                                            @if (packageVersion.CanDisplayPrivateMetadata)
-                                            {
-                                                var packageStatusSummary = packageVersion.PackageStatusSummary;
-
-                                                <td>
-                                                    @if (packageStatusSummary == PackageStatusSummary.Listed ||
-                                                            packageStatusSummary == PackageStatusSummary.Unlisted)
-                                                    {
-                                                        <a href="@Url.ManagePackage(packageVersion)">@NuGetGallery.Helpers.EnumHelper.GetDescription(packageStatusSummary)</a>
-                                                    }
-                                                    else
-                                                    {
-                                                        @NuGetGallery.Helpers.EnumHelper.GetDescription(packageStatusSummary)
-                                                    }
-                                                </td>
-                                            }
-
-                                            @if (Model.IsCertificatesUIEnabled)
-                                            {
-                                                if (string.IsNullOrEmpty(packageVersion.SignatureInformation))
-                                                {
-                                                    <td class="package-icon-cell" aria-hidden="true"></td>
-                                                }
-                                                else
-                                                {
-                                                    <td class="package-icon-cell">
-                                                        <i class="ms-Icon ms-Icon--Ribbon package-icon" title="@packageVersion.SignatureInformation"></i>
-                                                    </td>
-                                                }
-                                            }
-
-                                            @if (string.IsNullOrEmpty(packageVersion.PackageWarningIconTitle))
-                                            {
-                                                <td class="package-icon-cell" aria-hidden="true"></td>
-                                            }
-                                            else
-                                            {
-                                                <td class="package-icon-cell package-warning-icon">
-                                                    <a class="tooltip-target tooltip-icon--black-icon" href="javascript:void(0)" role="button"  aria-describedby="package-icon-@packageVersion.Version" >
-                                                        <i class="ms-Icon ms-Icon--Warning package-icon"></i>
-                                                        <span class="tooltip-block" role="tooltip" id="package-icon-@packageVersion.Version">
-                                                            <span class="tooltip-wrapper tooltip-with-icon popover right">
-                                                                <span class="arrow"></span>
-                                                                <span class="popover-content">
-                                                                    @packageVersion.PackageWarningIconTitle
-                                                                </span>
-                                                            </span>
-                                                        </span>
-                                                    </a>
-                                                </td>
-                                            }
-                                        </tr>
-                                    }
-                                    else if (packageVersion.Deleted && packageVersion.CanDisplayPrivateMetadata)
-                                    {
-                                        <tr class="deleted">
-                                            <td class="version">
-                                                @packageVersion.Version
-                                            </td>
-                                            <td>
-                                                @packageVersion.DownloadCount
-                                            </td>
-                                            <td>
-                                                <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetShortDateString()</span>
-                                            </td>
-                                            <td>
-                                                Deleted
-                                            </td>
-                                            <td colspan="2"></td>
-                                        </tr>
-                                    }
-                                }
-                            </tbody>
+                        <table aria-label="Version History of @Model.Id" class="table borderless" aria-live="polite">
+                            @Html.Partial("_DisplayPackageVersionTable", Model)
                         </table>
+
+                        @if (Model.HasMoreVersions)
+                        {
+                            <div>
+                                <button class="btn btn-link" id="load-more-versions" data-url="@Url.VersionTable(Model.Id, Model.Version)">Load more</button>
+                                <div class="hide" id="loading-more-error">Loading failed</div>
+                            </div>
+                        }
                     </div>
                 </div>
                 @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
@@ -1560,7 +1463,6 @@
 
 
             </div>
-                
             @if (!Model.Deleted && Model.ShowDetailsAndLinks)
             {
 
@@ -1647,8 +1549,8 @@
         window.nuget.sponsorshipUrlCount = @sponsorshipUrlCount;
     </script>
 
-    @if (Model.IsMarkdigMdSyntaxHighlightEnabled) 
-    { 
+    @if (Model.IsMarkdigMdSyntaxHighlightEnabled)
+    {
         @ViewHelpers.IncludeSyntaxHighlightScript();
 
         <script nonce="@Html.GetCSPNonce()">
@@ -1661,4 +1563,6 @@
     }
 
     @Scripts.RenderFormat("<script src=\"{0}\" nonce='" + @Html.GetCSPNonce().ToString() + "'></script>", "~/Scripts/gallery/page-display-package.min.js")
+
+    @ViewHelpers.AjaxAntiForgeryToken(Html)
 }

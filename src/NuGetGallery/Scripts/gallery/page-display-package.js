@@ -158,6 +158,9 @@ $(function () {
     var storage = window['localStorage'];
     var packageManagerStorageKey = 'preferred_package_manager';
     var bodyStorageKey = 'preferred_body_tab';
+    var versionFilterPrereleaseKey = 'version_filter_include_prerelease';
+    var versionFilterVulnerableKey = 'version_filter_include_vulnerable';
+    var versionFilterDeprecatedKey = 'version_filter_include_deprecated';
     var restorePreferredBodyTab = true;
 
     var windowHash = window.location.hash;
@@ -189,6 +192,79 @@ $(function () {
             }
         }
     }
+
+    function applyVersionFilters() {
+        var includePrerelease = $('#include-prerelease').is(':checked');
+        var includeVulnerable = $('#include-vulnerable').is(':checked');
+        var includeDeprecated = $('#include-deprecated').is(':checked');
+
+        if (storage) {
+            storage.setItem(versionFilterPrereleaseKey, includePrerelease);
+            storage.setItem(versionFilterVulnerableKey, includeVulnerable);
+            storage.setItem(versionFilterDeprecatedKey, includeDeprecated);
+        }
+
+        $('.version-row').each(function () {
+            var isCurrent = $(this).hasClass('bg-brand-info');
+            if (isCurrent) {
+                $(this).show();
+                return;
+            }
+
+            var isPrerelease = $(this).data('prerelease') === true;
+            var isVulnerable = $(this).data('vulnerable') === true;
+            var isDeprecated = $(this).data('deprecated') === true;
+            var showRow = true;
+            
+            if (!includePrerelease && isPrerelease) {
+                showRow = false;
+            }
+            if (!includeVulnerable && isVulnerable) {
+                showRow = false;
+            }
+            if (!includeDeprecated && isDeprecated) {
+                showRow = false;
+            }
+
+            if (showRow) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
+    }
+
+    if (storage) {
+        var savedIncludePrerelease = storage.getItem(versionFilterPrereleaseKey);
+        if (savedIncludePrerelease !== null) {
+            $('#include-prerelease').prop('checked', savedIncludePrerelease === 'true');
+        } else {
+            $('#include-prerelease').prop('checked', true);
+        }
+
+        var savedIncludeVulnerable = storage.getItem(versionFilterVulnerableKey);
+        if (savedIncludeVulnerable !== null) {
+            $('#include-vulnerable').prop('checked', savedIncludeVulnerable === 'true');
+        } else {
+            $('#include-vulnerable').prop('checked', true);
+        }
+        
+        var savedIncludeDeprecated = storage.getItem(versionFilterDeprecatedKey);
+        if (savedIncludeDeprecated !== null) {
+            $('#include-deprecated').prop('checked', savedIncludeDeprecated === 'true');
+        } else {
+            $('#include-deprecated').prop('checked', true);
+        }
+    } else {
+        $('#include-prerelease').prop('checked', true);
+        $('#include-vulnerable').prop('checked', true);
+        $('#include-deprecated').prop('checked', true);
+    }
+
+    $('#include-prerelease').change(applyVersionFilters);
+    $('#include-vulnerable').change(applyVersionFilters);
+    $('#include-deprecated').change(applyVersionFilters);
+    applyVersionFilters();
 
     var usedByClamped = false;
     var usedByTab = $('#usedby-tab');
@@ -258,6 +334,42 @@ $(function () {
             }
         });
     }
+
+    $("#load-more-versions").on('click', function(event) {
+        const target = event.currentTarget;
+        if (target.getAttribute("aria-disabled") === "true") {
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+        }
+        const token = $("#AntiForgeryForm input[name=__RequestVerificationToken]").val();
+        const url = target.dataset.url;
+        const container = target.parentElement;
+        const failed = container.querySelector("#loading-more-error");
+        target.setAttribute("aria-disabled", "true");
+        target.setAttribute("aria-busy", "true");
+        target.innerHTML = "Loading..."
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: {
+                __RequestVerificationToken: token
+            },
+            success: function(response) {
+                $("#version-history table").html(response);
+                container.classList.add("hide");
+                const currentVersionLink = document.querySelector(".version-history .bg-brand-info a");
+                if (currentVersionLink) {
+                    currentVersionLink.focus();
+                }
+                applyVersionFilters();
+            },
+            error: function() {
+                target.classList.add("hide");
+                failed.classList.remove("hide");
+            }
+        });
+    });
 
     $(".reserved-indicator").each(window.nuget.setPopovers);
     $(".framework-badge-asset").each(window.nuget.setPopovers);
