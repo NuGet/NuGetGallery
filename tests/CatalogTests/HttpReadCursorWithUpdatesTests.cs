@@ -18,8 +18,7 @@ namespace CatalogTests
 
         public HttpReadCursorWithUpdatesTests()
         {
-            _cursor = new HttpReadCursorWithUpdates(minIntervalBeforeToReadCursorUpdateValue: TimeSpan.FromMinutes(1) + TimeSpan.FromSeconds(1),
-                new Uri("https://test"), Mock.Of<ILogger>());
+            _cursor = new HttpReadCursorWithUpdates(new Uri("https://test"), Mock.Of<ILogger>());
             _response = new HttpResponseMessage();
         }
 
@@ -28,6 +27,7 @@ namespace CatalogTests
         {
             _response.Headers.Date = new DateTimeOffset(2026, 1, 1, 1, 0, 30, TimeSpan.Zero);
             _response.Content = new StringContent("{\"value\":\"2026-01-01T01:00:00.0000000\"," +
+                                                   "\"minIntervalBeforeToReadUpdate\":\"00:01:01\"," +
                                                    "\"updates\":[{\"timeStamp\":\"2026-01-01T00:59:30.0000000Z\",\"value\":\"2026-01-01T00:59:00.0000000\"}," +
                                                                 "{\"timeStamp\":\"2026-01-01T00:58:30.0000000Z\",\"value\":\"2026-01-01T00:58:00.0000000\"}," +
                                                                 "{\"timeStamp\":\"2026-01-01T00:57:30.0000000Z\",\"value\":\"2026-01-01T00:57:00.0000000\"}]}");
@@ -39,6 +39,7 @@ namespace CatalogTests
         [InlineData("{\"value\":\"2026-01-01T01:00:00.0000000\"}")]
         [InlineData("{\"value\":\"2026-01-01T01:00:00.0000000\",\"updates\":[]}")]
         [InlineData("{\"value\":\"2026-01-01T01:00:00.0000000\"," +
+                     "\"minIntervalBeforeToReadUpdate\":\"00:01:01\"," +
                      "\"updates\":[{\"timeStamp\":\"2026-01-01T00:59:30.0000000Z\",\"value\":\"2026-01-01T00:59:00.0000000\"}]}")]
         public async Task GetValueInJsonAsync_UnableToFindCursorUpdate(string content)
         {

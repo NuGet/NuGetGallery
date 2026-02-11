@@ -102,7 +102,8 @@ namespace Ng.Jobs
 
             var storage = storageFactory.Create();
             _front = new DurableCursorWithUpdates(storage.ResolveUri("cursor.json"), storage, MemoryCursor.MinValue, Logger,
-                DnxConstants.MaxNumberOfUpdatesToKeepOfFrontCursor, DnxConstants.MinIntervalBetweenTwoUpdatesOfFrontCursor);
+                DnxConstants.MaxNumberOfUpdatesToKeepOfFrontCursor, DnxConstants.MinIntervalBetweenTwoUpdatesOfFrontCursor,
+                DnxConstants.CacheDurationOfPackageVersionIndex + TimeSpan.FromSeconds(1));
             _back = MemoryCursor.CreateMax();
 
             _destination = storageFactory.BaseAddress;

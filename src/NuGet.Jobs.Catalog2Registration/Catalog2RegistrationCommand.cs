@@ -10,7 +10,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Services.Metadata.Catalog;
-using NuGet.Services.Metadata.Catalog.Dnx;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.V3;
 using NuGetGallery;
@@ -59,9 +58,7 @@ namespace NuGet.Jobs.Catalog2Registration
                 _logger.LogInformation("Depending on cursors: {DependencyCursorUrls}", _options.Value.DependencyCursorUrls);
                 backCursor = new AggregateCursor(_options
                     .Value
-                    .DependencyCursorUrls.Select(r => new HttpReadCursorWithUpdates(
-                        minIntervalBeforeToReadCursorUpdateValue: DnxConstants.CacheDurationOfPackageVersionIndex + TimeSpan.FromSeconds(1),
-                        new Uri(r), _logger, _handlerFunc)));
+                    .DependencyCursorUrls.Select(r => new HttpReadCursorWithUpdates(new Uri(r), _logger, _handlerFunc)));
             }
             else
             {
