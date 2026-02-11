@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -27,6 +27,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         Task<string> LoadStringAsync(Uri resourceUri, CancellationToken cancellationToken);
         Uri ResolveUri(string relativeUri);
         Task SaveAsync(Uri resourceUri, StorageContent content, CancellationToken cancellationToken);
+        bool Exists(string fileName);
 
         /// <summary>
         /// Updates the cache control header on the provided resource URI (blob). This method throws an exception if

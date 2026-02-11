@@ -79,13 +79,15 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             return Task.FromResult(batches);
         }
 
-        protected override Task<bool> FetchAsync(
+        protected override async Task<bool> FetchAsync(
             CollectorHttpClient client,
             ReadWriteCursor front,
             ReadCursor back,
             CancellationToken cancellationToken)
         {
-            return CatalogCommitUtilities.ProcessCatalogCommitsAsync(
+            await DnxPackageVersionIndexCacheControl.LoadPackageIdsToIncludeAsync(_storageFactory.Create(), _logger, cancellationToken);
+
+            return await CatalogCommitUtilities.ProcessCatalogCommitsAsync(
                 client,
                 front,
                 back,
@@ -156,7 +158,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                             cancellationToken);
                         var areRequiredPropertiesPresent = await AreRequiredPropertiesPresentAsync(destinationStorage, destinationUri);
 
-                        if (isNupkgSynchronized && isPackageInIndex && areRequiredPropertiesPresent)
+                        if (isNupkgSynchronized && areRequiredPropertiesPresent && isPackageInIndex && !DnxPackageVersionIndexCacheControl.PackageIdsToInclude.Contains(packageId))
                         {
                             _logger.LogInformation("No changes detected: {Id}/{Version}", packageId, normalizedPackageVersion);
 
