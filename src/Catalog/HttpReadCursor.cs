@@ -52,7 +52,7 @@ namespace NuGet.Services.Metadata.Catalog
                         {
                             response.EnsureSuccessStatusCode();
 
-                            var valueInJson = await GetValueInJsonAsync(response);
+                            string valueInJson = await GetValueInJsonAsync(response);
 
                             JObject obj = JObject.Parse(valueInJson);
                             Value = obj["value"].ToObject<DateTime>();
