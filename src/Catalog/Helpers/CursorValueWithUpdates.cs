@@ -16,6 +16,10 @@ namespace NuGet.Services.Metadata.Catalog
 
         [JsonProperty("value")]
         public string Value { get; set; }
+
+        [JsonProperty("minIntervalBeforeToReadUpdate")]
+        public TimeSpan MinIntervalBeforeToReadUpdate { get; set; }
+
         [JsonProperty("updates")]
         public IList<CursorValueUpdate> Updates { get; set; } = new List<CursorValueUpdate>();
     }
@@ -30,6 +34,7 @@ namespace NuGet.Services.Metadata.Catalog
 
         [JsonProperty("timeStamp")]
         public DateTime TimeStamp { get; set; }
+
         [JsonProperty("value")]
         public string Value { get; set; }
     }
