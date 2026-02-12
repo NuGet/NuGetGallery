@@ -77,16 +77,16 @@ namespace NuGet.Jobs.Catalog2Registration
                 };
 
                 var responseDate = new DateTimeOffset(2026, 1, 1, 1, 0, 30, TimeSpan.Zero);
-                var updateTimeStamp = responseDate.UtcDateTime - (DnxConstants.CacheDurationOfPackageVersionIndex + TimeSpan.FromSeconds(1));
-                var responseContent = new StringContent($"{{\"value\": \"2026-01-01T00:00:00.0000000\"," +
-                    $"\"updates\":[{{\"timeStamp\":\"{updateTimeStamp.ToString(CursorValueWithUpdates.SerializerSettings.DateFormatString)}\",\"value\":\"2026-01-01T00:00:00.0000000\"}}]}}");
+                var updateTimeStamp = (responseDate.UtcDateTime - (DnxConstants.CacheDurationOfPackageVersionIndex + TimeSpan.FromSeconds(1)))
+                    .ToString(CursorValueWithUpdates.SerializerSettings.DateFormatString);
 
                 HttpMessageHandler
                     .Setup(x => x.OnSendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(() => new HttpResponseMessage(HttpStatusCode.OK)
                     {
                         Headers = { Date = responseDate },
-                        Content = responseContent,
+                        Content = new StringContent($"{{\"value\": \"2026-01-01T00:00:00.0000000\"," +
+                                                      $"\"updates\":[{{\"timeStamp\":\"{ updateTimeStamp }\",\"value\":\"2026-01-01T00:00:00.0000000\"}}]}}"),
                     });
 
                 await Target.ExecuteAsync();
