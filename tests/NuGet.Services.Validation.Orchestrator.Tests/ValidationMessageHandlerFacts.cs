@@ -280,6 +280,168 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 Times.Once);
         }
 
+        [Fact]
+        public async Task WaitsForValidationSetAvailabilityInValidationDBWithFailValidationSet()
+        {
+            var validationTrackingId = Guid.NewGuid();
+            var messageData = PackageValidationMessageData.NewFailValidationSet(
+                validationTrackingId,
+                "packageId",
+                "1.2.3");
+            var validationConfiguration = new ValidationConfiguration();
+
+            ValidationStorageServiceMock
+                .Setup(vs => vs.GetValidationSetAsync(validationTrackingId))
+                .ReturnsAsync((PackageValidationSet)null)
+                .Verifiable();
+
+            var handler = CreateHandler();
+
+            var result = await handler.HandleAsync(messageData);
+
+            ValidationStorageServiceMock.Verify(
+                vs => vs.GetValidationSetAsync(validationTrackingId),
+                Times.Once);
+
+            Assert.False(result, "The handler should not have succeeded.");
+        }
+
+        [Theory]
+        [InlineData(ValidatingType.SymbolPackage)]
+        [InlineData(ValidatingType.Generic)]
+        public async Task RejectsNonPackageValidationSetWithFailValidationSet(ValidatingType validatingType)
+        {
+            var validationTrackingId = Guid.NewGuid();
+            var messageData = PackageValidationMessageData.NewFailValidationSet(
+                validationTrackingId,
+                "packageId",
+                "1.2.3");
+            var validationConfiguration = new ValidationConfiguration();
+            var validationSet = new PackageValidationSet { PackageKey = 42, ValidatingType = validatingType };
+
+            ValidationStorageServiceMock
+                .Setup(vs => vs.GetValidationSetAsync(validationTrackingId))
+                .ReturnsAsync(validationSet)
+                .Verifiable();
+
+            var handler = CreateHandler();
+
+            var result = await handler.HandleAsync(messageData);
+
+            ValidationStorageServiceMock.Verify(
+                vs => vs.GetValidationSetAsync(validationTrackingId),
+                Times.Once);
+
+            Assert.False(result, "The handler should not have succeeded.");
+        }
+
+        [Fact]
+        public async Task DoesNotWaitForPackageAvailabilityInGalleryDBWithFailValidationSet()
+        {
+            var validationTrackingId = Guid.NewGuid();
+            var messageData = PackageValidationMessageData.NewFailValidationSet(
+                validationTrackingId,
+                "packageId",
+                "1.2.3");
+            var validationConfiguration = new ValidationConfiguration();
+            var validationSet = new PackageValidationSet { PackageKey = 42, ValidatingType = ValidatingType.Package };
+
+            ValidationStorageServiceMock
+                .Setup(vs => vs.GetValidationSetAsync(validationTrackingId))
+                .ReturnsAsync(validationSet)
+                .Verifiable();
+            CorePackageServiceMock
+                .Setup(ps => ps.FindPackageByKey(validationSet.PackageKey.Value))
+                .Returns<Package>(null)
+                .Verifiable();
+
+            var handler = CreateHandler();
+
+            var result = await handler.HandleAsync(messageData);
+
+            ValidationStorageServiceMock.Verify(
+                vs => vs.GetValidationSetAsync(validationTrackingId),
+                Times.Once);
+            CorePackageServiceMock.Verify(
+                ps => ps.FindPackageByKey(validationSet.PackageKey.Value),
+                Times.Once);
+
+            Assert.True(result, "The handler should have succeeded.");
+        }
+
+        [Fact]
+        public async Task DropsMessageIfPackageIsSoftDeletedForFailValidationSet()
+        {
+            var validationTrackingId = Guid.NewGuid();
+            var messageData = PackageValidationMessageData.NewFailValidationSet(
+                validationTrackingId,
+                "packageId",
+                "1.2.3");
+            var validationConfiguration = new ValidationConfiguration();
+            var package = new Package { Key = 42, PackageStatusKey = PackageStatus.Deleted };
+            var packageValidatingEntity = new PackageValidatingEntity(package);
+            var validationSet = new PackageValidationSet { PackageKey = package.Key, ValidatingType = ValidatingType.Package };
+
+            ValidationStorageServiceMock
+                .Setup(vs => vs.GetValidationSetAsync(validationTrackingId))
+                .ReturnsAsync(validationSet)
+                .Verifiable();
+            CorePackageServiceMock
+                .Setup(ps => ps.FindPackageByKey(package.Key))
+                .Returns(packageValidatingEntity);
+
+            var handler = CreateHandler();
+
+            var result = await handler.HandleAsync(messageData);
+
+            Assert.True(result);
+            ValidationStorageServiceMock.Verify(
+                vs => vs.GetValidationSetAsync(validationTrackingId),
+                Times.Once);
+            CorePackageServiceMock.Verify(
+                ps => ps.FindPackageByKey(package.Key),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task DropsMessageIfValidationSetAlreadyCompletedForFailValidationSet()
+        {
+            var validationTrackingId = Guid.NewGuid();
+            var messageData = PackageValidationMessageData.NewFailValidationSet(
+                validationTrackingId,
+                "packageId",
+                "1.2.3");
+            var validationConfiguration = new ValidationConfiguration();
+            var package = new Package { Key = 42, PackageStatusKey = PackageStatus.Validating };
+            var packageValidatingEntity = new PackageValidatingEntity(package);
+            var validationSet = new PackageValidationSet
+            {
+                PackageKey = package.Key,
+                ValidatingType = ValidatingType.Package,
+                ValidationSetStatus = ValidationSetStatus.Completed
+            };
+
+            ValidationStorageServiceMock
+                .Setup(vs => vs.GetValidationSetAsync(validationTrackingId))
+                .ReturnsAsync(validationSet)
+                .Verifiable();
+            CorePackageServiceMock
+                .Setup(ps => ps.FindPackageByKey(package.Key))
+                .Returns(packageValidatingEntity);
+
+            var handler = CreateHandler();
+
+            var result = await handler.HandleAsync(messageData);
+
+            Assert.True(result);
+            ValidationStorageServiceMock.Verify(
+                vs => vs.GetValidationSetAsync(validationTrackingId),
+                Times.Once);
+            CorePackageServiceMock.Verify(
+                ps => ps.FindPackageByKey(package.Key),
+                Times.Once);
+        }
+
         private class MessageWithCustomDeliveryCount : IReceivedBrokeredMessage
         {
             private readonly IBrokeredMessage _inner;
@@ -442,6 +604,79 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     PackageValidatingEntity,
                     It.IsAny<ValidationSetProcessorResult>(),
                     false));
+        }
+
+        [Fact]
+        public async Task FailsValidationSetForFailValidationSet()
+        {
+            var validationTrackingId = Guid.NewGuid();
+            var failValidationSetData = PackageValidationMessageData.NewFailValidationSet(
+                validationTrackingId,
+                "packageId",
+                "1.2.3");
+            var validationSet = new PackageValidationSet
+            {
+                PackageKey = Package.Key,
+                ValidatingType = ValidatingType.Package,
+                ValidationTrackingId = validationTrackingId,
+                PackageValidations = new List<PackageValidation>
+                {
+                    new PackageValidation { ValidationStatus = ValidationStatus.Incomplete, Type = "Validator1" },
+                    new PackageValidation { ValidationStatus = ValidationStatus.NotStarted, Type = "Validator2" },
+                    new PackageValidation { ValidationStatus = ValidationStatus.Succeeded, Type = "Validator3" }
+                }
+            };
+
+            ValidationStorageServiceMock
+                .Setup(vs => vs.GetValidationSetAsync(validationTrackingId))
+                .ReturnsAsync(validationSet);
+
+            var handler = CreateHandler();
+            var result = await handler.HandleAsync(failValidationSetData);
+
+            Assert.True(result);
+            ValidationStorageServiceMock.Verify(
+                vs => vs.UpdateValidationStatusAsync(It.IsAny<PackageValidation>(), It.IsAny<NuGetValidationResponse>()),
+                Times.Exactly(2));
+            ValidationOutcomeProcessorMock.Verify(
+                vop => vop.ProcessValidationOutcomeAsync(
+                    validationSet,
+                    PackageValidatingEntity,
+                    It.Is<ValidationSetProcessorResult>(r => !r.AnyValidationSucceeded && !r.AnyRequiredValidationSucceeded),
+                    false),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task CallsProcessValidationOutcomeForFailValidationSet()
+        {
+            var validationTrackingId = Guid.NewGuid();
+            var failValidationSetData = PackageValidationMessageData.NewFailValidationSet(
+                validationTrackingId,
+                "packageId",
+                "1.2.3");
+            var validationSet = new PackageValidationSet
+            {
+                PackageKey = Package.Key,
+                ValidatingType = ValidatingType.Package,
+                ValidationTrackingId = validationTrackingId,
+                PackageValidations = new List<PackageValidation>()
+            };
+
+            ValidationStorageServiceMock
+                .Setup(vs => vs.GetValidationSetAsync(validationTrackingId))
+                .ReturnsAsync(validationSet);
+
+            var handler = CreateHandler();
+            await handler.HandleAsync(failValidationSetData);
+
+            ValidationOutcomeProcessorMock.Verify(
+                vop => vop.ProcessValidationOutcomeAsync(
+                    validationSet,
+                    PackageValidatingEntity,
+                    It.IsAny<ValidationSetProcessorResult>(),
+                    false),
+                Times.Once);
         }
     }
 
