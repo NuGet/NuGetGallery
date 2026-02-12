@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -277,6 +277,168 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 Times.Once);
         }
 
+        [Fact]
+        public async Task WaitsForValidationSetAvailabilityInValidationDBWithFailValidationSet()
+        {
+            var validationTrackingId = Guid.NewGuid();
+            var messageData = PackageValidationMessageData.NewFailValidationSet(
+                validationTrackingId,
+                "packageId",
+                "1.2.3");
+            var validationConfiguration = new ValidationConfiguration();
+
+            ValidationStorageServiceMock
+                .Setup(vs => vs.GetValidationSetAsync(validationTrackingId))
+                .ReturnsAsync((PackageValidationSet)null)
+                .Verifiable();
+
+            var handler = CreateHandler();
+
+            var result = await handler.HandleAsync(messageData);
+
+            ValidationStorageServiceMock.Verify(
+                vs => vs.GetValidationSetAsync(validationTrackingId),
+                Times.Once);
+
+            Assert.False(result, "The handler should not have succeeded.");
+        }
+
+        [Theory]
+        [InlineData(ValidatingType.Package)]
+        [InlineData(ValidatingType.Generic)]
+        public async Task RejectsNonSymbolPackageValidationSetWithFailValidationSet(ValidatingType validatingType)
+        {
+            var validationTrackingId = Guid.NewGuid();
+            var messageData = PackageValidationMessageData.NewFailValidationSet(
+                validationTrackingId,
+                "packageId",
+                "1.2.3");
+            var validationConfiguration = new ValidationConfiguration();
+            var validationSet = new PackageValidationSet { PackageKey = 42, ValidatingType = validatingType };
+
+            ValidationStorageServiceMock
+                .Setup(vs => vs.GetValidationSetAsync(validationTrackingId))
+                .ReturnsAsync(validationSet)
+                .Verifiable();
+
+            var handler = CreateHandler();
+
+            var result = await handler.HandleAsync(messageData);
+
+            ValidationStorageServiceMock.Verify(
+                vs => vs.GetValidationSetAsync(validationTrackingId),
+                Times.Once);
+
+            Assert.False(result, "The handler should not have succeeded.");
+        }
+
+        [Fact]
+        public async Task DoesNotWaitForPackageAvailabilityInGalleryDBWithFailValidationSet()
+        {
+            var validationTrackingId = Guid.NewGuid();
+            var messageData = PackageValidationMessageData.NewFailValidationSet(
+                validationTrackingId,
+                "packageId",
+                "1.2.3");
+            var validationConfiguration = new ValidationConfiguration();
+            var validationSet = new PackageValidationSet { PackageKey = 42, ValidatingType = ValidatingType.SymbolPackage };
+
+            ValidationStorageServiceMock
+                .Setup(vs => vs.GetValidationSetAsync(validationTrackingId))
+                .ReturnsAsync(validationSet)
+                .Verifiable();
+            CoreSymbolPackageServiceMock
+                .Setup(ps => ps.FindPackageByKey(validationSet.PackageKey.Value))
+                .Returns<SymbolPackage>(null)
+                .Verifiable();
+
+            var handler = CreateHandler();
+
+            var result = await handler.HandleAsync(messageData);
+
+            ValidationStorageServiceMock.Verify(
+                vs => vs.GetValidationSetAsync(validationTrackingId),
+                Times.Once);
+            CoreSymbolPackageServiceMock.Verify(
+                ps => ps.FindPackageByKey(validationSet.PackageKey.Value),
+                Times.Once);
+
+            Assert.True(result, "The handler should have succeeded.");
+        }
+
+        [Fact]
+        public async Task DropsMessageIfPackageIsSoftDeletedForFailValidationSet()
+        {
+            var validationTrackingId = Guid.NewGuid();
+            var messageData = PackageValidationMessageData.NewFailValidationSet(
+                validationTrackingId,
+                "packageId",
+                "1.2.3");
+            var validationConfiguration = new ValidationConfiguration();
+            var symbolPackage = new SymbolPackage { Key = 42, StatusKey = PackageStatus.Deleted };
+            var symbolPackageValidatingEntity = new SymbolPackageValidatingEntity(symbolPackage);
+            var validationSet = new PackageValidationSet { PackageKey = symbolPackage.Key, ValidatingType = ValidatingType.SymbolPackage };
+
+            ValidationStorageServiceMock
+                .Setup(vs => vs.GetValidationSetAsync(validationTrackingId))
+                .ReturnsAsync(validationSet)
+                .Verifiable();
+            CoreSymbolPackageServiceMock
+                .Setup(ps => ps.FindPackageByKey(symbolPackage.Key))
+                .Returns(symbolPackageValidatingEntity);
+
+            var handler = CreateHandler();
+
+            var result = await handler.HandleAsync(messageData);
+
+            Assert.True(result);
+            ValidationStorageServiceMock.Verify(
+                vs => vs.GetValidationSetAsync(validationTrackingId),
+                Times.Once);
+            CoreSymbolPackageServiceMock.Verify(
+                ps => ps.FindPackageByKey(symbolPackage.Key),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task DropsMessageIfValidationSetAlreadyCompletedForFailValidationSet()
+        {
+            var validationTrackingId = Guid.NewGuid();
+            var messageData = PackageValidationMessageData.NewFailValidationSet(
+                validationTrackingId,
+                "packageId",
+                "1.2.3");
+            var validationConfiguration = new ValidationConfiguration();
+            var symbolPackage = new SymbolPackage { Key = 42, StatusKey = PackageStatus.Validating };
+            var symbolPackageValidatingEntity = new SymbolPackageValidatingEntity(symbolPackage);
+            var validationSet = new PackageValidationSet
+            {
+                PackageKey = symbolPackage.Key,
+                ValidatingType = ValidatingType.SymbolPackage,
+                ValidationSetStatus = ValidationSetStatus.Completed
+            };
+
+            ValidationStorageServiceMock
+                .Setup(vs => vs.GetValidationSetAsync(validationTrackingId))
+                .ReturnsAsync(validationSet)
+                .Verifiable();
+            CoreSymbolPackageServiceMock
+                .Setup(ps => ps.FindPackageByKey(symbolPackage.Key))
+                .Returns(symbolPackageValidatingEntity);
+
+            var handler = CreateHandler();
+
+            var result = await handler.HandleAsync(messageData);
+
+            Assert.True(result);
+            ValidationStorageServiceMock.Verify(
+                vs => vs.GetValidationSetAsync(validationTrackingId),
+                Times.Once);
+            CoreSymbolPackageServiceMock.Verify(
+                ps => ps.FindPackageByKey(symbolPackage.Key),
+                Times.Once);
+        }
+
         private class MessageWithCustomDeliveryCount : IReceivedBrokeredMessage
         {
             private readonly IBrokeredMessage _inner;
@@ -429,6 +591,79 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     It.IsAny<ValidationSetProcessorResult>(),
                     false));
         }
+
+        [Fact]
+        public async Task FailsValidationSetForFailValidationSet()
+        {
+            var validationTrackingId = Guid.NewGuid();
+            var failValidationSetData = PackageValidationMessageData.NewFailValidationSet(
+                validationTrackingId,
+                "packageId",
+                "1.2.3");
+            var validationSet = new PackageValidationSet
+            {
+                PackageKey = SymbolPackage.Key,
+                ValidatingType = ValidatingType.SymbolPackage,
+                ValidationTrackingId = validationTrackingId,
+                PackageValidations = new List<PackageValidation>
+                {
+                    new PackageValidation { ValidationStatus = ValidationStatus.Incomplete, Type = "Validator1" },
+                    new PackageValidation { ValidationStatus = ValidationStatus.NotStarted, Type = "Validator2" },
+                    new PackageValidation { ValidationStatus = ValidationStatus.Succeeded, Type = "Validator3" }
+                }
+            };
+
+            ValidationStorageServiceMock
+                .Setup(vs => vs.GetValidationSetAsync(validationTrackingId))
+                .ReturnsAsync(validationSet);
+
+            var handler = CreateHandler();
+            var result = await handler.HandleAsync(failValidationSetData);
+
+            Assert.True(result);
+            ValidationStorageServiceMock.Verify(
+                vs => vs.UpdateValidationStatusAsync(It.IsAny<PackageValidation>(), It.IsAny<NuGetValidationResponse>()),
+                Times.Exactly(2));
+            ValidationOutcomeProcessorMock.Verify(
+                vop => vop.ProcessValidationOutcomeAsync(
+                    validationSet,
+                    SymbolPackageValidatingEntity,
+                    It.Is<ValidationSetProcessorResult>(r => !r.AnyValidationSucceeded && !r.AnyRequiredValidationSucceeded),
+                    false),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task CallsProcessValidationOutcomeForFailValidationSet()
+        {
+            var validationTrackingId = Guid.NewGuid();
+            var failValidationSetData = PackageValidationMessageData.NewFailValidationSet(
+                validationTrackingId,
+                "packageId",
+                "1.2.3");
+            var validationSet = new PackageValidationSet
+            {
+                PackageKey = SymbolPackage.Key,
+                ValidatingType = ValidatingType.SymbolPackage,
+                ValidationTrackingId = validationTrackingId,
+                PackageValidations = new List<PackageValidation>()
+            };
+
+            ValidationStorageServiceMock
+                .Setup(vs => vs.GetValidationSetAsync(validationTrackingId))
+                .ReturnsAsync(validationSet);
+
+            var handler = CreateHandler();
+            await handler.HandleAsync(failValidationSetData);
+
+            ValidationOutcomeProcessorMock.Verify(
+                vop => vop.ProcessValidationOutcomeAsync(
+                    validationSet,
+                    SymbolPackageValidatingEntity,
+                    It.IsAny<ValidationSetProcessorResult>(),
+                    false),
+                Times.Once);
+        }
     }
 
     public class SymbolValidationMessageHandlerFactsBase
@@ -443,6 +678,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         protected Mock<IValidationSetProvider<SymbolPackage>> ValidationSetProviderMock { get; }
         protected Mock<IValidationSetProcessor> ValidationSetProcessorMock { get; }
         protected Mock<IValidationOutcomeProcessor<SymbolPackage>> ValidationOutcomeProcessorMock { get; }
+        protected Mock<IValidationStorageService> ValidationStorageServiceMock { get; }
         protected Mock<ILeaseService> LeaseService { get; }
         protected Mock<IPackageValidationEnqueuer> ValidationEnqueuer { get; }
         protected Mock<IFeatureFlagService> FeatureFlagService { get; }
@@ -456,6 +692,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             ValidationSetProviderMock = new Mock<IValidationSetProvider<SymbolPackage>>(mockBehavior);
             ValidationSetProcessorMock = new Mock<IValidationSetProcessor>(mockBehavior);
             ValidationOutcomeProcessorMock = new Mock<IValidationOutcomeProcessor<SymbolPackage>>(mockBehavior);
+            ValidationStorageServiceMock = new Mock<IValidationStorageService>(mockBehavior);
             LeaseService = new Mock<ILeaseService>(mockBehavior);
             ValidationEnqueuer = new Mock<IPackageValidationEnqueuer>(mockBehavior);
             FeatureFlagService = new Mock<IFeatureFlagService>(mockBehavior);
@@ -480,6 +717,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 ValidationSetProviderMock.Object,
                 ValidationSetProcessorMock.Object,
                 ValidationOutcomeProcessorMock.Object,
+                ValidationStorageServiceMock.Object,
                 LeaseService.Object,
                 ValidationEnqueuer.Object,
                 FeatureFlagService.Object,
