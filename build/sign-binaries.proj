@@ -3,7 +3,7 @@
   <Import Project="..\packages\MicroBuild.Core\build\MicroBuild.Core.props" Condition="Exists('..\packages\MicroBuild.Core\build\MicroBuild.Core.props')" />
 
   <PropertyGroup>
-    <RepositoryRootDirectory>$([System.IO.Path]::GetDirectoryName($(MSBuildProjectDirectory)))\</RepositoryRootDirectory>
+    <RepositoryRootDirectory Condition="'$(RepositoryRootDirectory)' == ''">$([System.IO.Path]::GetDirectoryName($(MSBuildProjectDirectory)))\</RepositoryRootDirectory>
     <IntermediateOutputPath>$(RepositoryRootDirectory)artifacts\sign\obj\</IntermediateOutputPath>
     <OutDir>$(RepositoryRootDirectory)</OutDir>
     <SignTargetsDependOn>BatchSign</SignTargetsDependOn>

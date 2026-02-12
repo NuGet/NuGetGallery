@@ -200,7 +200,8 @@ Function Sign-Binaries {
         [int]$BuildNumber = (Get-BuildNumber),
         [string]$MSBuildVersion = $DefaultMSBuildVersion,
         [string[]]$ProjectsToSign = $null,
-        [switch]$BinLog
+        [switch]$BinLog,
+        [string]$RepositoryRootDirectory = $null
     )
 
     if ($ProjectsToSign -eq $null) {
@@ -210,9 +211,13 @@ Function Sign-Binaries {
     }
 
     $projectsToSignProperty = $ProjectsToSign -join ';'
+    $msbuildProperties = "/p:ProjectsToSign=`"$projectsToSignProperty`""
+    if ($RepositoryRootDirectory) {
+        $msbuildProperties += ";RepositoryRootDirectory=`"$RepositoryRootDirectory`""
+    }
 
     $ProjectPath = Join-Path $PSScriptRoot "sign-binaries.proj"
-    Build-Solution $Configuration $BuildNumber -MSBuildVersion "$MSBuildVersion" $ProjectPath -MSBuildProperties "/p:ProjectsToSign=`"$projectsToSignProperty`"" -BinLog:$BinLog
+    Build-Solution $Configuration $BuildNumber -MSBuildVersion "$MSBuildVersion" $ProjectPath -MSBuildProperties $msbuildProperties -BinLog:$BinLog
 }
 
 Function Sign-Packages {
