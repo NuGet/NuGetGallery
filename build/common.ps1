@@ -204,7 +204,7 @@ Function Sign-Binaries {
         [string]$RepositoryRootDirectory = $null
     )
 
-    if ($ProjectsToSign -eq $null) {
+    if ($null -eq $ProjectsToSign) {
         $repositoryDir = [IO.Path]::GetDirectoryName($PSScriptRoot)
         $defaultProjectsToSign = Join-Path $repositoryDir "src\**\*.csproj"
         $ProjectsToSign = @($defaultProjectsToSign)
