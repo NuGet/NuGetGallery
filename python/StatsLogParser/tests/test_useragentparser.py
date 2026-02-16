@@ -65,7 +65,8 @@ import pytest
     ("Bazel/release 6.0.0", "Bazel", "6", "0", "0"),
     ("Visual Studio/6.4.0", "Visual Studio", "6", "4", "0"),
     ("NuGetMirror/6.0.0", "NuGetMirror", "6", "0", "0"),
-    ("BaGet/1.0.0", "BaGet", "1", "0", "0")
+    ("BaGet/1.0.0", "BaGet", "1", "0", "0"),
+    ("GetNuTool/1.10.0", "GetNuTool", "1", "10", "0")
     ])
 def test_recognizes_custom_clients(user_agent, expected_client, expected_major, expected_minor, expected_patch):
     parsed = UserAgentParser.parse(user_agent)
