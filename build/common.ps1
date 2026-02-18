@@ -244,12 +244,13 @@ Function Build-Solution {
         [string]$Target,
         [string]$MSBuildProperties,
         [switch]$SkipRestore,
-        [switch]$BinLog
+        [switch]$BinLog,
+        [string]$ConfigFile
     )
 
     if (-not $SkipRestore) {
         # Restore packages for NuGet.Tooling solution
-        Restore-SolutionPackages -path $SolutionPath -MSBuildVersion $MSBuildVersion
+        Restore-SolutionPackages -path $SolutionPath -MSBuildVersion $MSBuildVersion -ConfigFile $ConfigFile
     }
 
     # Build the solution
