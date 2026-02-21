@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using NuGet.Versioning;
@@ -24,7 +24,7 @@ namespace NuGetGallery
         public const int GravatarCacheDurationSeconds = 300;
 
         public const int MaxFileLengthBytes = 1024 * 1024; // 1MB for License, Icon, readme file
-        internal static readonly NuGetVersion MaxSupportedMinClientVersion = new NuGetVersion("7.0.1.1");
+        internal static readonly NuGetVersion MaxSupportedMinClientVersion = new NuGetVersion("7.3.0.7");
 
         public const string RecentSortOrder = "package-created";
 
