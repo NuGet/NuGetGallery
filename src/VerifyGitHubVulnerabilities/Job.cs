@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
+using NuGet.Services.GitHub.Authentication;
 using NuGet.Services.GitHub.Collector;
 using NuGet.Services.GitHub.Configuration;
 using NuGet.Services.GitHub.GraphQL;
@@ -111,6 +112,10 @@ namespace VerifyGitHubVulnerabilities
             containerBuilder
                 .RegisterInstance(new HttpClient())
                 .As<HttpClient>();
+
+            containerBuilder
+                .RegisterType<GitHubPersonalAccessTokenAuthProvider>()
+                .As<IGitHubAuthProvider>();
 
             containerBuilder
                 .RegisterType<QueryService>()
