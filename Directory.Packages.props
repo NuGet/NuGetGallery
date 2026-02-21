@@ -124,6 +124,7 @@
     <PackageVersion Include="NuGet.StrongName.WebBackgrounder.EntityFramework" Version="0.1.0" />
     <PackageVersion Include="NuGet.StrongName.WebBackgrounder" Version="0.2.0" />
     <PackageVersion Include="NuGet.Versioning" Version="$(NuGetClientPackageVersion)" />
+    <PackageVersion Include="Octokit" Version="14.0.0" />
     <PackageVersion Include="Owin" Version="1.0.0" />
     <PackageVersion Include="RouteMagic" Version="1.1.3" />
     <PackageVersion Include="Serilog.Enrichers.Environment" Version="2.1.3" />

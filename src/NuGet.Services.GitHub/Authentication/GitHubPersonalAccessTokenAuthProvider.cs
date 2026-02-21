@@ -25,8 +25,7 @@ namespace NuGet.Services.GitHub.Authentication
 
         public Task AddAuthentication(HttpRequestMessage message)
         {
-            message.Headers.Authorization = new AuthenticationHeaderValue(
-                "Bearer", _personalAccessToken);
+            message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _personalAccessToken);
             return Task.CompletedTask;
         }
     }
