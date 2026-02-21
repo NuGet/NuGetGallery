@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -14,9 +14,9 @@ namespace NuGet.Services.Metadata.Catalog
 {
     public class HttpReadCursor : ReadCursor
     {
-        private readonly Uri _address;
-        private readonly DateTime? _defaultValue;
-        private readonly Func<HttpMessageHandler> _handlerFunc;
+        protected readonly Uri _address;
+        protected readonly DateTime? _defaultValue;
+        protected readonly Func<HttpMessageHandler> _handlerFunc;
 
         public HttpReadCursor(Uri address, DateTime defaultValue, Func<HttpMessageHandler> handlerFunc = null)
         {
@@ -52,9 +52,9 @@ namespace NuGet.Services.Metadata.Catalog
                         {
                             response.EnsureSuccessStatusCode();
 
-                            string json = await response.Content.ReadAsStringAsync();
+                            string valueInJson = await GetValueInJsonAsync(response);
 
-                            JObject obj = JObject.Parse(json);
+                            JObject obj = JObject.Parse(valueInJson);
                             Value = obj["value"].ToObject<DateTime>();
                         }
                     }
@@ -65,6 +65,11 @@ namespace NuGet.Services.Metadata.Catalog
                 maxRetries: 5,
                 initialWaitInterval: TimeSpan.Zero,
                 waitIncrement: TimeSpan.FromSeconds(10));
+        }
+
+        public virtual async Task<string> GetValueInJsonAsync(HttpResponseMessage response)
+        {
+            return await response.Content.ReadAsStringAsync();
         }
     }
 }
