@@ -101,7 +101,13 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    SolnetWallet.Net.Core               |    01/27/2026    |   Potentially Malicious  |
 |    Z.Dp.All 1.0.1                      |    01/27/2026    |   Malware  |
 |    Z.Dp.All 1.0.2                      |    01/27/2026    |   Malware  |
-
+|    ZSeal.Hart.Licensing.Native         |    02/17/2026    |   Potentially Malicious  |
+|    StripeApi.Net                       |    02/19/2026    |   Potentially Malicious  |
+|    qPapel.Auth                         |    02/19/2026    |   Malware  |
+|    DOMOAuth2_                          |    02/20/2026    |   Potentially Malicious  |
+|    NCryptYo                            |    02/20/2026    |   Malware  |
+|    SimpleWriter_                       |    02/20/2026    |   Potentially Malicious  |
+|    IRAOAuth2.0                         |    02/20/2026    |   Potentially Malicious  |
 
 
 Legend:
