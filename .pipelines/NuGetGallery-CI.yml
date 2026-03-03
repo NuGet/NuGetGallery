@@ -52,11 +52,7 @@ extends:
     settings:
       networkIsolationPolicy: Permissive
     pool:
-      name: NuGet-1ES-Hosted-Pool
-      image: NuGet-1ESPT-Win2022
-      os: windows
-    customBuildTags:
-      - ES365AIMigrationTooling
+      vmImage: 'windows-latest'
     stages:
       - stage: common
         displayName: NuGet.Server.Common.sln
