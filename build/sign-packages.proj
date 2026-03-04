@@ -11,7 +11,7 @@
 
   <Target Name="GetOutputNupkgs">
     <ItemGroup>
-      <FilesToSign Include="$(RepositoryRootDirectory)artifacts\*.nupkg">
+      <FilesToSign Include="$([MSBuild]::EnsureTrailingSlash('$(RepositoryRootDirectory)'))artifacts\*.nupkg">
         <Authenticode>NuGet</Authenticode>
       </FilesToSign>
     </ItemGroup>
