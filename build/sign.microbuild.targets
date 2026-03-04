@@ -66,7 +66,7 @@
       there is a project reference pointing to the current project and there is a copy of this output assembly in the
       bin directory of another project. That assembly also needs to be signed.
       -->
-      <_ManagedOutputToSign Include="$(RepositoryRootDirectory)**\$(TargetFileName)" Condition="'$(BatchSign)' == 'true' AND '$(TargetFileName)' != ''" />
+      <_ManagedOutputToSign Include="$([MSBuild]::EnsureTrailingSlash('$(RepositoryRootDirectory)'))**\$(TargetFileName)" Condition="'$(BatchSign)' == 'true' AND '$(TargetFileName)' != ''" />
       <_ManagedOutputToSign Remove="$(RunCommand)" Condition="'$(RunCommand)' != ''" />
       <UnfilteredFilesToSign
         Include="$([System.IO.Path]::GetFullPath('%(_ManagedOutputToSign.Identity)'))"
@@ -94,7 +94,7 @@
       by default as well.
       -->
       <_UnmanagedOutputToSign Include="$(RunCommand)" KeepDuplicates="false" Condition="'$(BatchSign)' == 'true' AND '$(RunCommand)' != ''" />
-      <_UnmanagedOutputToSign Include="$(RepositoryRootDirectory)**\apphost.exe" Condition="'$(BatchSign)' == 'true'" />
+      <_UnmanagedOutputToSign Include="$([MSBuild]::EnsureTrailingSlash('$(RepositoryRootDirectory)'))**\apphost.exe" Condition="'$(BatchSign)' == 'true'" />
       <UnfilteredFilesToSign
         Include="$([System.IO.Path]::GetFullPath('%(_UnmanagedOutputToSign.Identity)'))"
         Condition="Exists('%(_UnmanagedOutputToSign.Identity)')"
