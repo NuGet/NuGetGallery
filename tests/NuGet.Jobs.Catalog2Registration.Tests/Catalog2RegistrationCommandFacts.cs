@@ -12,6 +12,7 @@ using Moq;
 using Moq.Protected;
 using NuGet.Services;
 using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Metadata.Catalog.Dnx;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.V3;
 using NuGetGallery;
@@ -74,11 +75,18 @@ namespace NuGet.Jobs.Catalog2Registration
                     "https://example/fc-1/cursor.json",
                     "https://example/fc-2/cursor.json",
                 };
+
+                var responseDate = new DateTimeOffset(2026, 1, 1, 1, 0, 30, TimeSpan.Zero);
+                var updateTimeStamp = (responseDate.UtcDateTime - (DnxConstants.CacheDurationOfPackageVersionIndex + TimeSpan.FromSeconds(1)))
+                    .ToString(CursorValueWithUpdates.SerializerSettings.DateFormatString);
+
                 HttpMessageHandler
                     .Setup(x => x.OnSendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(() => new HttpResponseMessage(HttpStatusCode.OK)
                     {
-                        Content = new StringContent($"{{\"value\": \"{DateTimeOffset.UtcNow.ToString("O")}\"}}"),
+                        Headers = { Date = responseDate },
+                        Content = new StringContent($"{{\"value\": \"2026-01-01T00:00:00.0000000\"," +
+                                                      $"\"updates\":[{{\"timeStamp\":\"{ updateTimeStamp }\",\"value\":\"2026-01-01T00:00:00.0000000\"}}]}}"),
                     });
 
                 await Target.ExecuteAsync();
