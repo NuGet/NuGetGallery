@@ -1384,8 +1384,6 @@
     <Content Include="Content\gallery\img\trusted-publisher-disabled.svg" />
     <Content Include="Content\gallery\img\trusted-publisher-temporary-256x256.png" />
     <Content Include="Content\gallery\img\trusted-publisher-temporary.svg" />
-    <Content Include="Content\gallery\img\x.svg" />
-    <Content Include="Content\gallery\img\x-24x24.png" />
     <Content Include="Content\Images\icons\apiKey.png" />
     <Content Include="Content\Images\icons\apiKeyExpired.png" />
     <Content Include="Content\Images\icons\apiKeyLegacy.png" />
