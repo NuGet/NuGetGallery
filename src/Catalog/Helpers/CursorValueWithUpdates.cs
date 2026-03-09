@@ -17,6 +17,8 @@ namespace NuGet.Services.Metadata.Catalog
         [JsonProperty("value")]
         public string Value { get; set; }
 
+        // This is for the cursor reader to determine which update (in the list of updates) of the cursor value to read.
+        // The timestamp of the update to read should be at least before the current timestamp minus this interval.
         [JsonProperty("minIntervalBeforeToReadUpdate")]
         public TimeSpan MinIntervalBeforeToReadUpdate { get; set; }
 
