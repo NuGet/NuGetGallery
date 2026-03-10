@@ -19,9 +19,10 @@ namespace NuGet.Services.Metadata.Catalog
 
         private readonly int _maxNumberOfUpdatesToKeep;
         private readonly TimeSpan _minIntervalBetweenTwoUpdates;
+        private readonly TimeSpan _minIntervalBeforeToReadUpdate;
 
         public DurableCursorWithUpdates(Uri address, Persistence.Storage storage, DateTime defaultValue, ILogger logger,
-            int maxNumberOfUpdatesToKeep, TimeSpan minIntervalBetweenTwoUpdates)
+            int maxNumberOfUpdatesToKeep, TimeSpan minIntervalBetweenTwoUpdates, TimeSpan minIntervalBeforeToReadUpdate)
             : base(address, storage, defaultValue)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -36,8 +37,14 @@ namespace NuGet.Services.Metadata.Catalog
                 throw new ArgumentOutOfRangeException(nameof(minIntervalBetweenTwoUpdates), $"{nameof(minIntervalBetweenTwoUpdates)} must be equal or larger than 0.");
             }
 
+            if (minIntervalBeforeToReadUpdate < TimeSpan.Zero)
+            {
+                throw new ArgumentOutOfRangeException(nameof(minIntervalBeforeToReadUpdate), $"{nameof(minIntervalBeforeToReadUpdate)} must be equal or larger than 0.");
+            }
+
             _maxNumberOfUpdatesToKeep = maxNumberOfUpdatesToKeep;
             _minIntervalBetweenTwoUpdates = minIntervalBetweenTwoUpdates;
+            _minIntervalBeforeToReadUpdate = minIntervalBeforeToReadUpdate;
         }
 
         public override async Task SaveAsync(CancellationToken cancellationToken)
@@ -54,6 +61,7 @@ namespace NuGet.Services.Metadata.Catalog
             }
 
             cursorValueWithUpdates.Value = Value.ToString("O");
+            cursorValueWithUpdates.MinIntervalBeforeToReadUpdate = _minIntervalBeforeToReadUpdate;
             if (storageContent != null)
             {
                 cursorValueWithUpdates.Updates = GetUpdates(cursorValueWithUpdates, storageContent.StorageDateTimeInUtc);
