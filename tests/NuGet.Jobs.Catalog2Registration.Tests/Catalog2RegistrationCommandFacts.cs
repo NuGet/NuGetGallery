@@ -76,16 +76,13 @@ namespace NuGet.Jobs.Catalog2Registration
                     "https://example/fc-2/cursor.json",
                 };
 
-                var responseDate = new DateTimeOffset(2026, 1, 1, 1, 0, 30, TimeSpan.Zero);
-                var responseContent = new StringContent($"{{\"value\": \"2026-01-01T00:00:00.0000000\",\"minIntervalBeforeToReadUpdate\":\"00:01:01\"," +
-                    $"\"updates\":[{{\"timeStamp\":\"2026-01-01T00:59:29.0000000Z\",\"value\":\"2026-01-01T00:00:00.0000000\"}}]}}");
-
                 HttpMessageHandler
                     .Setup(x => x.OnSendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(() => new HttpResponseMessage(HttpStatusCode.OK)
                     {
-                        Headers = { Date = responseDate },
-                        Content = responseContent,
+                        Headers = { Date = new DateTimeOffset(2026, 1, 1, 1, 0, 30, TimeSpan.Zero) },
+                        Content = new StringContent($"{{\"value\": \"2026-01-01T00:00:00.0000000\",\"minIntervalBeforeToReadUpdate\":\"00:01:01\"," +
+                                                      $"\"updates\":[{{\"timeStamp\":\"2026-01-01T00:59:29.0000000Z\",\"value\":\"2026-01-01T00:00:00.0000000\"}}]}}"),
                     });
 
                 await Target.ExecuteAsync();
