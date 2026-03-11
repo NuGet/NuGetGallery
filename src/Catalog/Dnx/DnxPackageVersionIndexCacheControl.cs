@@ -27,7 +27,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             }
             else
             {
-                return Constants.NoStoreCacheControl;
+                return DefaultCacheControlForPackageVersionIndex;
             }
         }
 
