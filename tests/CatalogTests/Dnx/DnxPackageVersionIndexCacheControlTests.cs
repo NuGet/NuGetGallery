@@ -52,7 +52,7 @@ namespace CatalogTests.Dnx
             DnxPackageVersionIndexCacheControl.PackageIdsToInclude = new HashSet<string>() { "packageid1" };
 
             Assert.Equal("max-age=10", DnxPackageVersionIndexCacheControl.GetCacheControl("packageid1", Mock.Of<ILogger>()));
-            Assert.Equal(Constants.NoStoreCacheControl, DnxPackageVersionIndexCacheControl.GetCacheControl("packageid2", Mock.Of<ILogger>()));
+            Assert.Equal("max-age=10", DnxPackageVersionIndexCacheControl.GetCacheControl("packageid2", Mock.Of<ILogger>()));
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -27,7 +27,7 @@ namespace CatalogTests.Dnx
         private const string _expectedCacheControl = "max-age=120";
         private const string _expectedNuspecContentType = "text/xml";
         private const string _expectedPackageContentType = "application/octet-stream";
-        private const string _expectedPackageVersionIndexJsonCacheControl = "no-store";
+        private const string _expectedPackageVersionIndexJsonCacheControl = "max-age=10";
         private const string _expectedPackageVersionIndexJsonContentType = "application/json";
         private const string _packageId = "testid";
         private const string _nupkgData = "nupkg data";
