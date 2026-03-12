@@ -201,7 +201,6 @@ PublishScripts/
 **/[Pp]ackages/*
 # except build/, which is used as an MSBuild target.
 !**/[Pp]ackages/build/
-!tests/NuGetGallery.Facts/Views/Packages/*.cs
 # Uncomment if necessary however generally it will be regenerated when needed
 #!**/[Pp]ackages/repositories.config
 # NuGet v3's project.json files produces more ignorable files
@@ -436,4 +435,5 @@ src/NuGetGallery/App_Data/Files/*
 !src/NuGetGallery/App_Data/Files/Content/
 !src/NuGetGallery/Views/Packages/
 !src/NuGetGallery/Branding/Views/Packages/
+
 
