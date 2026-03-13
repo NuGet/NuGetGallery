@@ -120,7 +120,7 @@ namespace GitHubVulnerabilities2v3
                 {
                     var config = ctx.Resolve<GitHubVulnerabilities2v3Configuration>();
                     var credential = new ManagedIdentityCredential(configurationRoot[Constants.ManagedIdentityClientIdKey]);
-                    return new BlobServiceClientFactory(new Uri(config.StorageConnectionString), credential);
+                    return new BlobServiceClientFactory(new Uri(config.Destinations[0].StorageConnectionString), credential);
                 })
                 .As<BlobServiceClientFactory>();
 
