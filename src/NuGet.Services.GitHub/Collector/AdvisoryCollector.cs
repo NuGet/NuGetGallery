@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using NuGet.Services.GitHub.Ingest;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Cursor;
+using System.Collections.Generic;
 
 namespace NuGet.Services.GitHub.Collector
 {
@@ -15,18 +16,18 @@ namespace NuGet.Services.GitHub.Collector
     {
         private readonly ReadWriteCursor<DateTimeOffset> _cursor;
         private readonly IAdvisoryQueryService _queryService;
-        private readonly IAdvisoryIngestor _ingestor;
+        private readonly IReadOnlyCollection<IAdvisoryIngestor> _ingestors;
         private readonly ILogger<AdvisoryCollector> _logger;
 
         public AdvisoryCollector(
             ReadWriteCursor<DateTimeOffset> cursor,
             IAdvisoryQueryService queryService,
-            IAdvisoryIngestor ingestor,
+            IReadOnlyCollection<IAdvisoryIngestor> ingestors,
             ILogger<AdvisoryCollector> logger)
         {
             _cursor = cursor ?? throw new ArgumentNullException(nameof(cursor));
             _queryService = queryService ?? throw new ArgumentNullException(nameof(queryService));
-            _ingestor = ingestor ?? throw new ArgumentNullException(nameof(ingestor));
+            _ingestors = ingestors ?? throw new ArgumentNullException(nameof(ingestors));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -40,7 +41,10 @@ namespace NuGet.Services.GitHub.Collector
             if (hasAdvisories)
             {
                 var lastUpdatedAt = advisories.Max(i => i.UpdatedAt);
-                await _ingestor.IngestAsync(advisories.Select(v => v).ToList());
+                foreach (var ingestor in _ingestors)
+                {
+                    await ingestor.IngestAsync(advisories.Select(v => v).ToList());
+                }
                 if (updateCursor)
                 {
                     _cursor.Value = lastUpdatedAt;
