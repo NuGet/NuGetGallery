@@ -34,6 +34,7 @@ namespace GitHubVulnerabilities2v3
 
         private const string PrimaryStorageKey = "PrimaryStorage";
         private const string SecondaryStorageKey = "SecondaryStorage";
+        private static readonly string[] DestinationKeys = [PrimaryStorageKey, SecondaryStorageKey];
         private const bool ContainerPublicAccess = true;
 
         public override async Task Run()
@@ -87,40 +88,28 @@ namespace GitHubVulnerabilities2v3
                 .RegisterType<TelemetryService>()
                 .As<ITelemetryService>();
 
-            containerBuilder
-                .RegisterType<BlobStorageVulnerabilityWriter>()
-                .WithParameter(
-                    (pi, ctx) => pi.ParameterType == typeof(DestinationConfiguration),
-                    (pi, ctx) => ctx.Resolve<GitHubVulnerabilities2v3Configuration>().Destinations[0])
-                .WithParameter(
-                    (pi, ctx) => pi.ParameterType == typeof(IStorageFactory),
-                    (pi, ctx) => ctx.ResolveKeyed<IStorageFactory>(PrimaryStorageKey))
-                .Keyed<IVulnerabilityWriter>(PrimaryStorageKey);
+            var numDestinations = hasSecondaryStorage ? 2 : 1;
 
-            containerBuilder
-                .RegisterType<AdvisoryIngestor>()
-                .WithParameter(
-                    (pi, ctx) => pi.ParameterType == typeof(IVulnerabilityWriter),
-                    (pi, ctx) => ctx.ResolveKeyed<IVulnerabilityWriter>(PrimaryStorageKey))
-                .As<IAdvisoryIngestor>();
-
-            if (hasSecondaryStorage)
+            for (int i = 0; i < numDestinations; ++i)
             {
+                var index = i; // Capture for closure
+                var storageKey = DestinationKeys[index];
+
                 containerBuilder
                     .RegisterType<BlobStorageVulnerabilityWriter>()
                     .WithParameter(
                         (pi, ctx) => pi.ParameterType == typeof(DestinationConfiguration),
-                        (pi, ctx) => ctx.Resolve<GitHubVulnerabilities2v3Configuration>().Destinations[1])
+                        (pi, ctx) => ctx.Resolve<GitHubVulnerabilities2v3Configuration>().Destinations[index])
                     .WithParameter(
                         (pi, ctx) => pi.ParameterType == typeof(IStorageFactory),
-                        (pi, ctx) => ctx.ResolveKeyed<IStorageFactory>(SecondaryStorageKey))
-                    .Keyed<IVulnerabilityWriter>(SecondaryStorageKey);
+                        (pi, ctx) => ctx.ResolveKeyed<IStorageFactory>(storageKey))
+                    .Keyed<IVulnerabilityWriter>(storageKey);
 
                 containerBuilder
                     .RegisterType<AdvisoryIngestor>()
                     .WithParameter(
                         (pi, ctx) => pi.ParameterType == typeof(IVulnerabilityWriter),
-                        (pi, ctx) => ctx.ResolveKeyed<IVulnerabilityWriter>(SecondaryStorageKey))
+                        (pi, ctx) => ctx.ResolveKeyed<IVulnerabilityWriter>(storageKey))
                     .As<IAdvisoryIngestor>();
             }
         }
@@ -148,32 +137,13 @@ namespace GitHubVulnerabilities2v3
 
         protected void ConfigureCollectorServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
-            containerBuilder
-                .Register(ctx =>
-                {
-                    var config = ctx.Resolve<GitHubVulnerabilities2v3Configuration>();
-#if DEBUG
-                    var credential = new DefaultAzureCredential();
-#else
-                    var credential = new ManagedIdentityCredential(configurationRoot[Constants.ManagedIdentityClientIdKey]);
-#endif
-                    return new BlobServiceClientFactory(new Uri(config.Destinations[0].StorageConnectionString), credential);
-                })
-                .Keyed<BlobServiceClientFactory>(PrimaryStorageKey);
+            var numDestinations = HasSecondaryStorage(configurationRoot) ? 2 : 1;
 
-            containerBuilder
-                .Register(ctx =>
-                {
-                    return new AzureStorageFactory(
-                        ctx.ResolveKeyed<BlobServiceClientFactory>(PrimaryStorageKey),
-                        ctx.Resolve<GitHubVulnerabilities2v3Configuration>().V3VulnerabilityContainerName,
-                        enablePublicAccess: ContainerPublicAccess,
-                        azureStorageLogger: ctx.Resolve<ILogger<AzureStorage>>());
-                })
-                .Keyed<IStorageFactory>(PrimaryStorageKey);
-
-            if (HasSecondaryStorage(configurationRoot))
+            for (int i = 0; i < numDestinations; ++i)
             {
+                var index = i; // Capture for closure
+                var storageKey = DestinationKeys[index];
+
                 containerBuilder
                     .Register(ctx =>
                     {
@@ -183,20 +153,20 @@ namespace GitHubVulnerabilities2v3
 #else
                         var credential = new ManagedIdentityCredential(configurationRoot[Constants.ManagedIdentityClientIdKey]);
 #endif
-                        return new BlobServiceClientFactory(new Uri(config.Destinations[1].StorageConnectionString), credential);
+                        return new BlobServiceClientFactory(new Uri(config.Destinations[index].StorageConnectionString), credential);
                     })
-                    .Keyed<BlobServiceClientFactory>(SecondaryStorageKey);
+                    .Keyed<BlobServiceClientFactory>(storageKey);
 
                 containerBuilder
                     .Register(ctx =>
                     {
                         return new AzureStorageFactory(
-                            ctx.ResolveKeyed<BlobServiceClientFactory>(SecondaryStorageKey),
+                            ctx.ResolveKeyed<BlobServiceClientFactory>(storageKey),
                             ctx.Resolve<GitHubVulnerabilities2v3Configuration>().V3VulnerabilityContainerName,
                             enablePublicAccess: ContainerPublicAccess,
                             azureStorageLogger: ctx.Resolve<ILogger<AzureStorage>>());
                     })
-                    .Keyed<IStorageFactory>(SecondaryStorageKey);
+                    .Keyed<IStorageFactory>(storageKey);
             }
 
             containerBuilder
@@ -210,7 +180,7 @@ namespace GitHubVulnerabilities2v3
 
         private static bool HasSecondaryStorage(IConfigurationRoot configurationRoot)
         {
-            return configurationRoot.GetSection("Initialization::Destinations::1") != null;
+            return configurationRoot.GetSection("Initialization:Destinations:1").Exists();
         }
 
         private DurableCursor CreateCursor(IComponentContext ctx, Func<GitHubVulnerabilities2v3Configuration, string> getBlobName)
