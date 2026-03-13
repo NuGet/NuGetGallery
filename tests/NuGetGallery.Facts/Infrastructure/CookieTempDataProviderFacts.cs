@@ -124,6 +124,12 @@ namespace NuGetGallery.Infrastructure
             {
                 var cookies = new HttpCookieCollection();
                 var httpContext = new Mock<HttpContextBase>();
+                var items = new System.Collections.Generic.Dictionary<object, object>
+                {
+                    [ServicesConstants.CookieComplianceCanWriteAnalyticsCookies] = true
+                };
+                httpContext.Setup(c => c.Items).Returns(items);
+                httpContext.Setup(c => c.Request.Cookies).Returns(new HttpCookieCollection());
                 httpContext.Setup(c => c.Response.Cookies).Returns(cookies);
                 ITempDataProvider provider = new CookieTempDataProvider(httpContext.Object);
                 var controllerContext = new ControllerContext();
@@ -140,6 +146,7 @@ namespace NuGetGallery.Infrastructure
                 var cookie = cookies["__Controller::TempData"];
                 Assert.True(cookie.HttpOnly);
                 Assert.True(cookie.Secure);
+                Assert.Equal(SameSiteMode.Lax, cookie.SameSite);
 
                 // Decrypt and deserialize the cookie value
                 var unprotectedBytes = MachineKey.Unprotect(Convert.FromBase64String(cookie.Value), "__Controller::TempData");
