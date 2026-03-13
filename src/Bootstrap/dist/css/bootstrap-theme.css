@@ -1128,6 +1128,7 @@ p.frameworktableinfo-text {
   word-wrap: break-word;
   word-break: normal;
   word-break: break-word;
+  width: 100%;
 }
 .user-package-list .manage-package-listing .reserved-id {
   overflow-wrap: break-word;
