@@ -34,6 +34,7 @@ namespace GitHubVulnerabilities2v3
 
         private const string PrimaryStorageKey = "PrimaryStorage";
         private const string SecondaryStorageKey = "SecondaryStorage";
+        private const bool ContainerPublicAccess = true;
 
         public override async Task Run()
         {
@@ -151,7 +152,11 @@ namespace GitHubVulnerabilities2v3
                 .Register(ctx =>
                 {
                     var config = ctx.Resolve<GitHubVulnerabilities2v3Configuration>();
+#if DEBUG
+                    var credential = new DefaultAzureCredential();
+#else
                     var credential = new ManagedIdentityCredential(configurationRoot[Constants.ManagedIdentityClientIdKey]);
+#endif
                     return new BlobServiceClientFactory(new Uri(config.Destinations[0].StorageConnectionString), credential);
                 })
                 .Keyed<BlobServiceClientFactory>(PrimaryStorageKey);
@@ -162,7 +167,7 @@ namespace GitHubVulnerabilities2v3
                     return new AzureStorageFactory(
                         ctx.ResolveKeyed<BlobServiceClientFactory>(PrimaryStorageKey),
                         ctx.Resolve<GitHubVulnerabilities2v3Configuration>().V3VulnerabilityContainerName,
-                        enablePublicAccess: true,
+                        enablePublicAccess: ContainerPublicAccess,
                         azureStorageLogger: ctx.Resolve<ILogger<AzureStorage>>());
                 })
                 .Keyed<IStorageFactory>(PrimaryStorageKey);
@@ -173,7 +178,11 @@ namespace GitHubVulnerabilities2v3
                     .Register(ctx =>
                     {
                         var config = ctx.Resolve<GitHubVulnerabilities2v3Configuration>();
+#if DEBUG
+                        var credential = new DefaultAzureCredential();
+#else
                         var credential = new ManagedIdentityCredential(configurationRoot[Constants.ManagedIdentityClientIdKey]);
+#endif
                         return new BlobServiceClientFactory(new Uri(config.Destinations[1].StorageConnectionString), credential);
                     })
                     .Keyed<BlobServiceClientFactory>(SecondaryStorageKey);
@@ -184,7 +193,7 @@ namespace GitHubVulnerabilities2v3
                         return new AzureStorageFactory(
                             ctx.ResolveKeyed<BlobServiceClientFactory>(SecondaryStorageKey),
                             ctx.Resolve<GitHubVulnerabilities2v3Configuration>().V3VulnerabilityContainerName,
-                            enablePublicAccess: true,
+                            enablePublicAccess: ContainerPublicAccess,
                             azureStorageLogger: ctx.Resolve<ILogger<AzureStorage>>());
                     })
                     .Keyed<IStorageFactory>(SecondaryStorageKey);
@@ -207,7 +216,7 @@ namespace GitHubVulnerabilities2v3
         private DurableCursor CreateCursor(IComponentContext ctx, Func<GitHubVulnerabilities2v3Configuration, string> getBlobName)
         {
             var config = ctx.Resolve<IOptionsSnapshot<GitHubVulnerabilities2v3Configuration>>().Value;
-            var storageFactory = ctx.Resolve<IStorageFactory>();
+            var storageFactory = ctx.ResolveKeyed<IStorageFactory>(PrimaryStorageKey);
             var storage = storageFactory.Create();
             return new DurableCursor(storage.ResolveUri(getBlobName(config)), storage, DateTimeOffset.MinValue);
         }
