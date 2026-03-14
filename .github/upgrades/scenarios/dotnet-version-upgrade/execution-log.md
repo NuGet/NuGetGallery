@@ -40,3 +40,13 @@ Files modified: global.json
 
 **Validation:** Project builds successfully with expected NU1701 warnings about Microsoft.Owin package compatibility (acceptable for OWIN compatibility shim).
 
+
+## [2026-03-14 16:17] 02.04-storage
+
+✅ **Completed 02.04-storage**: Upgraded Storage project to net10.0
+
+**Changes:**
+- **Storage**: Changed to multi-target `netstandard2.1;net10.0` (removed net472)
+
+**Validation:** Project builds successfully targeting both frameworks. Azure SDK packages are compatible with .NET 10.
+
