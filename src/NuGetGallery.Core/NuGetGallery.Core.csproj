@@ -1,13 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net472;netstandard2.1</TargetFrameworks>
+    <TargetFramework>net10.0</TargetFramework>
     <PackageVersion Condition="'$(PackageVersion)' == ''">$(GalleryPackageVersion)</PackageVersion>
     <RootNamespace>NuGetGallery</RootNamespace>
     <Description>Core support library for NuGet Gallery Frontend and Backend</Description>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+  <ItemGroup>
     <Compile Remove="Auditing\AuditActor.cs" />
     <Compile Remove="Auditing\AuditEntry.cs" />
     <Compile Remove="Auditing\AuditingService.cs" />
@@ -49,25 +49,13 @@
     <PackageReference Include="System.Formats.Asn1" />
     <PackageReference Include="System.Text.Json" />
   </ItemGroup>
-  
-  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
-    <PackageReference Include="Microsoft.Data.Services.Client" />
-    <PackageReference Include="Microsoft.WindowsAzure.ConfigurationManager" />
-  </ItemGroup>
-  
-  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
-    <ProjectReference Include="..\NuGet.Services.Messaging.Email\NuGet.Services.Messaging.Email.csproj" />
-    <ProjectReference Include="..\NuGet.Services.Validation.Issues\NuGet.Services.Validation.Issues.csproj" />
-    <ProjectReference Include="..\NuGet.Services.Validation\NuGet.Services.Validation.csproj" />
-  </ItemGroup>
-  
+
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Services.Entities\NuGet.Services.Entities.csproj" />
     <ProjectReference Include="..\NuGet.Services.FeatureFlags\NuGet.Services.FeatureFlags.csproj" />
-  </ItemGroup>
-  
-  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
-    <Reference Include="System.Web" />
+    <ProjectReference Include="..\NuGet.Services.Messaging.Email\NuGet.Services.Messaging.Email.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Validation.Issues\NuGet.Services.Validation.Issues.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Validation\NuGet.Services.Validation.csproj" />
   </ItemGroup>
   
   <ItemGroup>

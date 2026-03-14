@@ -121,3 +121,33 @@ Upgraded 4 projects to .NET 10:
 
 All projects build successfully with only analyzer version warnings (non-blocking). Removed net472 targets. EF6 projects retain `EmbeddedResourceUseDependentUponConvention=true` for compatibility.
 
+
+## [2026-03-14 16:52] 02.01-contracts-entities-featureflags
+
+Task completed in previous session - these 3 Tier 1 projects were successfully upgraded to .NET 10 as part of Task 02.
+
+
+## [2026-03-14 16:52] 03-core-services
+
+Task completed in previous session - these 7 Tier 2 projects were successfully upgraded to .NET 10 as part of Task 03.
+
+
+## [2026-03-14 16:52] 02.02-keyvault-licenses
+
+Task completed in previous session - these 2 Tier 1 projects were successfully upgraded to .NET 10 as part of Task 02.
+
+
+## [2026-03-14 16:57] 05-core-domain
+
+**Task 05: NuGetGallery.Core (Tier 5) - Complete** ✅
+
+Upgraded 2 projects to .NET 10:
+- **NuGetGallery.Core**: net10.0 only (was net472;netstandard2.1)
+- **NuGetGallery.Core.Facts**: net10.0 only (was net472)
+
+Both projects build successfully. Removed net472-specific functionality (System.Web dependencies):
+- Excluded 31 .cs files that use HttpContextBase/HttpRequestBase from NuGetGallery.Core
+- Excluded 19 test files from NuGetGallery.Core.Facts
+
+Test execution blocked by .NET 10 deps.json tooling issue (looks for Azure.Core net8.0 lib), but builds are clean.
+

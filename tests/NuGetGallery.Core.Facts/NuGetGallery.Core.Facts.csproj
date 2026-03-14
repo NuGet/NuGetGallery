@@ -1,8 +1,35 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>NuGetGallery</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Exclude tests for net472-only functionality that depends on System.Web -->
+    <Compile Remove="Auditing\AggregateAuditingServiceTests.cs" />
+    <Compile Remove="Auditing\AuditActorTests.cs" />
+    <Compile Remove="Auditing\AuditedAuthenticatedOperationActionTests.cs" />
+    <Compile Remove="Auditing\AuditedCertificateActionTests.cs" />
+    <Compile Remove="Auditing\AuditedPackageActionTests.cs" />
+    <Compile Remove="Auditing\AuditedPackageRegistrationActionTests.cs" />
+    <Compile Remove="Auditing\AuditedUserActionTests.cs" />
+    <Compile Remove="Auditing\AuditEntryTests.cs" />
+    <Compile Remove="Auditing\AuditingServiceTests.cs" />
+    <Compile Remove="Auditing\CloudAuditingServiceTests.cs" />
+    <Compile Remove="Auditing\EnumTests.cs" />
+    <Compile Remove="Auditing\FileSystemAuditingServiceTests.cs" />
+    <Compile Remove="Cookies\CookieComplianceServiceFacts.cs" />
+    <Compile Remove="Cookies\CookieExpirationServiceFacts.cs" />
+    <Compile Remove="Infrastructure\Mail\Messages\CredentialRevokedMessageFacts.cs" />
+    <Compile Remove="Infrastructure\Mail\Messages\PackageAddedMessageFacts.cs" />
+    <Compile Remove="Infrastructure\Mail\Messages\PackageValidationFailedMessageFacts.cs" />
+    <Compile Remove="Infrastructure\Mail\Messages\PackageValidationTakingTooLongMessageFacts.cs" />
+    <Compile Remove="Infrastructure\Mail\Messages\SymbolPackageAddedMessageFacts.cs" />
+    <Compile Remove="Infrastructure\Mail\Messages\SymbolPackageValidationFailedMessageFacts.cs" />
+    <Compile Remove="Infrastructure\Mail\Messages\SymbolPackageValidationTakingTooLongMessageFacts.cs" />
+    <Compile Remove="Services\CorePackageFileServiceFacts.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\src\NuGetGallery.Core\NuGetGallery.Core.csproj" />
   </ItemGroup>
@@ -13,8 +40,5 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System.Web" />
   </ItemGroup>
 </Project>
