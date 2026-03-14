@@ -37,7 +37,7 @@ namespace NuGet.Services.GitHub.Collector
             var lastUpdated = _cursor.Value;
             var advisories = await _queryService.GetAdvisoriesSinceAsync(lastUpdated, token);
             var hasAdvisories = advisories != null && advisories.Any();
-            _logger.LogInformation("Found {AdvisoryCount} new advisories to process", advisories?.Count() ?? 0);
+            _logger.LogInformation("Found {AdvisoryCount} new advisories to process", advisories?.Count ?? 0);
             if (hasAdvisories)
             {
                 var lastUpdatedAt = advisories.Max(i => i.UpdatedAt);
