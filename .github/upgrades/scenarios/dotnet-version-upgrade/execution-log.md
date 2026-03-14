@@ -108,3 +108,16 @@ When migrating NuGetGallery to ASP.NET Core (Task 07), replace OWIN startup with
 
 **Validation:** All 7 projects build successfully with Release configuration. Only analyzer version warnings (non-blocking) and one obsolete API warning in Application Insights (documented).
 
+
+## [2026-03-14 16:52] 04-business-services
+
+**Task 04: Tier 3-4 Business Services - Complete** ✅
+
+Upgraded 4 projects to .NET 10:
+- **NuGet.Services.Messaging** (Tier 3): netstandard2.0;net10.0
+- **NuGet.Services.Validation** (Tier 3): netstandard2.1;net10.0 (uses EF6)
+- **NuGet.Services.CatalogValidation** (Tier 4): netstandard2.1;net10.0 (uses EF6)
+- **NuGet.Services.Messaging.Email** (Tier 4): netstandard2.0;net10.0
+
+All projects build successfully with only analyzer version warnings (non-blocking). Removed net472 targets. EF6 projects retain `EmbeddedResourceUseDependentUponConvention=true` for compatibility.
+
