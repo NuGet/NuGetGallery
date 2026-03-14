@@ -12,7 +12,7 @@
    - 🔲 02.03-owin: Upgrade NuGet.Services.Owin
    - 🔲 02.04-storage: Upgrade NuGet.Services.Storage
    - 🔲 02.05-validate-tier1: Validate Tier 1 complete, higher tiers still build
-- 🔲 03-core-services: Upgrade Tier 2 Core Services
+- 🔄 03-core-services: Upgrade Tier 2 Core Services
 - 🔲 04-business-services: Upgrade Tier 3-4 Business Services
 - 🔲 05-core-domain: Upgrade NuGetGallery.Core
 - 🔲 06-service-layer: Upgrade Tier 6 Service Layer

@@ -87,3 +87,24 @@ All builds succeeded with only analyzer version warnings (non-blocking).
 
 **Next Steps:**
 When migrating NuGetGallery to ASP.NET Core (Task 07), replace OWIN startup with ASP.NET Core startup and use pp.UseHttpsRedirection() for SSL enforcement.
+
+## [2026-03-14 16:32] 03-core-services
+
+✅ **Completed 03-core-services**: Successfully upgraded all 7 Tier 2 Core Services projects to .NET 10
+
+**Projects Upgraded:**
+1. **NuGet.Services.Configuration** → `netstandard2.0;net10.0` (removed net472)
+2. **NuGet.Services.Cursor** → `net10.0` only (removed net472, removed obsolete System.Net.Http reference)
+3. **NuGet.Services.Entities.Tests** → `net10.0` only (test project)
+4. **NuGet.Services.Logging** → `netstandard2.0;net10.0` (removed net472, excluded .NET Framework-specific HttpException file)
+5. **NuGet.Services.ServiceBus** → `netstandard2.0;net10.0` (removed net472)
+6. **NuGet.Services.Sql** → `netstandard2.0;net10.0` (removed net472, added System.Data.SqlClient package for all targets)
+7. **NuGet.Services.Validation.Issues** → `netstandard2.0;net10.0` (removed net472)
+
+**Key Fixes:**
+- Added `System.Data.SqlClient` package reference to Sql project for net10.0 compatibility
+- Removed .NET Framework-specific `ExceptionTelemetryProcessor.cs` file from Logging project (uses System.Web.HttpException not available in .NET 10)
+- Removed obsolete `System.Net.Http` assembly references
+
+**Validation:** All 7 projects build successfully with Release configuration. Only analyzer version warnings (non-blocking) and one obsolete API warning in Application Insights (documented).
+
