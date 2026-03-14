@@ -67,3 +67,23 @@ Files modified: global.json
 
 All builds succeeded with only analyzer version warnings (non-blocking).
 
+
+
+## [2026-03-14 16:25] OWIN-removal
+
+✅ **Removed NuGet.Services.Owin project**: OWIN is not needed for ASP.NET Core migration
+
+**Rationale:**
+- ASP.NET Core has its own native middleware pipeline (doesn't use OWIN)
+- Microsoft.Owin is a legacy ASP.NET Framework package
+- ForceSslMiddleware functionality will be replaced by ASP.NET Core's built-in UseHttpsRedirection() middleware
+- Keeping OWIN would create dead-end code that gets deleted during ASP.NET Core migration anyway
+
+**Changes:**
+- Removed NuGet.Services.Owin project from solution
+- Removed NuGet.Services.Owin.Tests project from solution
+- Removed project reference from NuGetGallery.csproj
+- Deleted OWIN project files
+
+**Next Steps:**
+When migrating NuGetGallery to ASP.NET Core (Task 07), replace OWIN startup with ASP.NET Core startup and use pp.UseHttpsRedirection() for SSL enforcement.

@@ -2192,10 +2192,6 @@
       <Project>{259af5a7-3928-4942-a1c7-850d845f5d4a}</Project>
       <Name>NuGet.Services.Messaging</Name>
     </ProjectReference>
-    <ProjectReference Include="..\NuGet.Services.Owin\NuGet.Services.Owin.csproj">
-      <Project>{56d69b64-c806-42fa-9aea-baa8d3ce97b4}</Project>
-      <Name>NuGet.Services.Owin</Name>
-    </ProjectReference>
     <ProjectReference Include="..\NuGet.Services.ServiceBus\NuGet.Services.ServiceBus.csproj">
       <Project>{8e69eee6-2bdc-48e5-a4ab-32f44ebb2422}</Project>
       <Name>NuGet.Services.ServiceBus</Name>
