@@ -1,6 +1,6 @@
 # Migration Progress
 
-**Progress**: 6/23 tasks complete (26%) ![26%](https://progress-bar.xyz/26)
+**Progress**: 7/23 tasks complete (30%) ![30%](https://progress-bar.xyz/30)
 **Status**: In Progress - Task 07-web-application
 
 ## Tasks
@@ -16,7 +16,7 @@
 - ✅ 05-core-domain: Upgrade NuGetGallery.Core
 - ✅ 06-service-layer: Upgrade Tier 6 Service Layer
 - 🔄 07-web-application: Upgrade Main NuGetGallery Web Application
-   - 🔲 07.01-discovery: Discovery and Migration Strategy
+   - ✅ 07.01-discovery: Discovery and Migration Strategy
    - 🔲 07.02-sdk-conversion: Convert to SDK-style project
    - 🔲 07.03-aspnetcore-packages: Update to ASP.NET Core packages and net10.0
    - 🔲 07.04-config-migration: Migrate Web.config to appsettings.json and Program.cs
