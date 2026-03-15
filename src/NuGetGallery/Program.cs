@@ -86,13 +86,13 @@ namespace NuGetGallery
 
 			// Configure the HTTP request pipeline
 
-			// Configure SSL redirection with exclusions (migrated from OwinStartup)
+			// Configure HTTPS redirection (uses ASP.NET Core built-in)
 			var requireSsl = builder.Configuration.GetValue<bool>("Gallery:RequireSSL");
 			if (requireSsl)
 			{
-				var sslPort = 443; // Default SSL port
-				var forceSslExclusion = builder.Configuration["Gallery:ForceSslExclusion"];
-				app.UseMiddleware<NuGetGallery.Middleware.ForceSslMiddleware>(sslPort, forceSslExclusion);
+				// Note: Gallery:ForceSslExclusion paths (like /api/health-probe) can be handled
+				// by configuring those endpoints to AllowAnonymous or using endpoint metadata
+				app.UseHttpsRedirection();
 			}
 
 			// Content Security Policy middleware (migrated from OwinStartup)
