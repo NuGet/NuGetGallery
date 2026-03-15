@@ -194,3 +194,70 @@ Discovered that ASP.NET Framework web applications **cannot** be incrementally c
 
 Reverted attempted changes. Proceeding directly to combined migration in Task 07.03.
 
+
+## [2026-03-14 18:35] 07.03-aspnetcore-packages
+
+✅ **Completed 07.03-aspnetcore-packages**: Migrated NuGetGallery to SDK-style + ASP.NET Core + net10.0
+
+**Changes:**
+- Converted project from legacy .csproj (2359 lines) to SDK-style format using `<Project Sdk="Microsoft.NET.Sdk.Web">`
+- Changed target framework from net472 to net10.0
+- Replaced ASP.NET Framework packages with ASP.NET Core equivalents
+- Moved static files from Content/ and Scripts/ to wwwroot/
+- Temporarily excluded Dynamic Data admin area (ASPX/ASCX files - not compatible with ASP.NET Core)
+- Set TreatWarningsAsErrors to false temporarily (will re-enable after code fixes)
+- Kept EntityFramework 6.5.1 per user preference
+
+**Package Changes:**
+- Removed Microsoft.Extensions.Http (included in ASP.NET Core framework)
+- Removed packages not in Central Package Management
+- Configured for CPM (Central Package Management) with Directory.Packages.props
+
+**Validation:** Package restore succeeded with expected NU1701 warnings for legacy packages (Lucene.Net, AnglicanGeek.MarkdownMailer, elmah, WebGrease)
+
+**Files modified:** NuGetGallery.csproj, wwwroot/ (new directory with static files)
+
+**Build status:** Expected to fail with ~8,000+ compile errors (System.Web → Microsoft.AspNetCore API migration needed in subsequent tasks)
+
+
+## [2026-03-14 18:36] 07.04-config-migration
+
+✅ **Completed 07.04-config-migration**: Migrated Web.config to appsettings.json
+
+**Changes:**
+- Created appsettings.json with all Gallery.* settings from Web.config
+- Created appsettings.Development.json for local development overrides
+- Created appsettings.Production.json for production overrides
+- Migrated connection strings to ConnectionStrings section
+- Migrated Auth provider configuration
+- Migrated Azure Storage, Service Bus, KeyVault settings
+- Documented admin panel configuration strategy (runtime toggle via Gallery.AdminPanelEnabled)
+- Created CONFIG_MIGRATION.md documenting transformation strategy
+
+**Admin Area Strategy:** Use environment variable override for Gallery.AdminPanelEnabled to produce two deployment artifacts (standard and admin)
+
+**Files modified:** appsettings.json, appsettings.Development.json, appsettings.Production.json, CONFIG_MIGRATION.md
+
+
+## [2026-03-14 18:37] 07.05-program-startup
+
+✅ **Completed 07.05-program-startup**: Created Program.cs with Main method for ASP.NET Core
+
+**Changes:**
+- Created Program.cs with traditional Main method (not top-level statements)
+- Configured WebApplication.CreateBuilder with appsettings.json loading
+- Configured Autofac as DI container (UseServiceProviderFactory)
+- Migrated ServicePointManager settings from OwinStartup (with obsolescence warnings suppressed)
+- Configured regex timeout from OwinStartup
+- Added basic service registration (MVC, API controllers, session)
+- Configured Application Insights integration
+- Configured Kestrel with max request body size for package uploads (250MB)
+- Added basic middleware pipeline (static files, routing, session)
+- Added placeholders for authentication/authorization (task 07.07)
+- Added placeholders for full middleware pipeline (task 07.06)
+
+**Note:** Entity Framework 6 works with .NET Core without special configuration
+
+**Files modified:** Program.cs
+
+
