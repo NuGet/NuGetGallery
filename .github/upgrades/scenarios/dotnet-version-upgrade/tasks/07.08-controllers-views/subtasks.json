@@ -1,0 +1,22 @@
+[
+  {
+    "id": "07.08.01-contentservice-fix",
+    "description": "Fix ContentService.cs for multi-targeting (net472 + net10.0)",
+    "content": "# 07.08.01-contentservice-fix: Fix ContentService.cs for multi-targeting\n\n## Objective\nApply conditional compilation to ContentService.cs to support both .NET Framework 4.7.2 and .NET 10.\n\n## Scope\n- Apply conditional compilation to NuGetGallery.Services/Storage/ContentService.cs:\n  - #if NET472: use System.Web.IHtmlString\n  - #else: use Microsoft.AspNetCore.Html.IHtmlContent\n- Remove Storage\\\\*.cs exclusion for net10.0 in NuGetGallery.Services.csproj\n- Add Microsoft.AspNetCore.Html package reference for net10.0\n\n## Why This First\nContentService is referenced by controllers and views. Fixing it first unblocks the rest of the migration.\n\n## Done When\n- ContentService.cs compiles for both net472 and net10.0\n- NuGetGallery.Services project builds without Storage\\\\*.cs exclusion\n- Microsoft.AspNetCore.Html package added for net10.0"
+  },
+  {
+    "id": "07.08.02-controllers-migration",
+    "description": "Migrate controllers from System.Web.Mvc to ASP.NET Core MVC",
+    "content": "# 07.08.02-controllers-migration: Migrate controllers to ASP.NET Core MVC\n\n## Objective\nUpdate MVC controllers to use ASP.NET Core APIs instead of System.Web.Mvc.\n\n## Scope\n- Update controller base classes:\n  - System.Web.Mvc.Controller → Microsoft.AspNetCore.Mvc.Controller\n  - System.Web.Mvc.ActionResult → Microsoft.AspNetCore.Mvc.IActionResult\n- Fix HttpContext usage:\n  - HttpContext.GetOwinContext() → HttpContext (native)\n  - System.Web.HttpContext → Microsoft.AspNetCore.Http.HttpContext\n- Update authentication usage:\n  - OwinContext.Authentication.SignIn() → HttpContext.SignInAsync()\n  - OwinContext.Authentication.SignOut() → HttpContext.SignOutAsync()\n- Update routing attributes (if needed)\n- Fix action result types (JsonResult, RedirectResult, etc.)\n\n## Key Migrations\n- Request.IsAuthenticated → User.Identity.IsAuthenticated\n- Request.Url → Request.GetDisplayUrl()\n- Response.StatusCode = 404 → return NotFound()\n- Server.MapPath() → IWebHostEnvironment.ContentRootPath\n\n## Done When\n- All controllers compile without System.Web.Mvc references\n- HttpContext usage migrated to ASP.NET Core\n- Authentication calls use ASP.NET Core APIs\n- Controller actions return ASP.NET Core action results"
+  },
+  {
+    "id": "07.08.03-views-migration",
+    "description": "Migrate Razor views to ASP.NET Core",
+    "content": "# 07.08.03-views-migration: Migrate Razor views to ASP.NET Core\n\n## Objective\nFix Razor views to compile under ASP.NET Core.\n\n## Scope\n- Create/update _ViewImports.cshtml with ASP.NET Core namespaces:\n  - @using Microsoft.AspNetCore.Mvc\n  - @using Microsoft.AspNetCore.Mvc.Rendering\n  - @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers\n- Migrate @helper directives (not supported in ASP.NET Core):\n  - Convert to partial views or HTML helpers\n  - Update App_Code/ViewHelpers.cshtml\n- Fix System.Web.Mvc references in views:\n  - System.Web.Mvc.Html → Microsoft.AspNetCore.Mvc.Rendering\n  - System.Web.Routing → Microsoft.AspNetCore.Routing\n  - MvcHtmlString → IHtmlContent\n- Update view base types if needed\n\n## Known Issues\n- @helper directive not supported → need alternative approach\n- ViewBag/ViewData should work as-is\n- @Html helpers mostly compatible but different namespace\n\n## Done When\n- _ViewImports.cshtml created/updated\n- All @helper directives migrated\n- Views compile without System.Web.Mvc references\n- No RZ1002 or RZ1005 Razor compilation errors"
+  },
+  {
+    "id": "07.08.04-admin-area-routing",
+    "description": "Configure Admin area routing for ASP.NET Core",
+    "content": "# 07.08.04-admin-area-routing: Configure Admin area routing\n\n## Objective\nEnsure Admin area routing works in ASP.NET Core.\n\n## Scope\n- Update Admin area registration in Program.cs:\n  - Configure area routes using MapAreaControllerRoute()\n  - Set up conventional routing for Admin controllers\n- Verify Admin controllers have [Area(\"Admin\")] attribute\n- Test Admin area URL patterns work\n\n## Note\nAdmin controllers conditional compilation is handled in task 07.12-admin-physical-removal.\nThis task only ensures routing works when Admin controllers are present.\n\n## Done When\n- Admin area routes configured in Program.cs\n- Admin controllers accessible at /Admin/* URLs\n- Area routing follows ASP.NET Core conventions"
+  }
+]

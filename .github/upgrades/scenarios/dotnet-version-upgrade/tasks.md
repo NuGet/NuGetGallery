@@ -23,6 +23,11 @@
    - ✅ 07.05-program-startup: Create Program.cs and migrate Startup.cs from OWIN
    - ✅ 07.06-middleware-migration: Migrate OWIN middleware to ASP.NET Core middleware
    - ✅ 07.07-authentication: Migrate authentication to ASP.NET Core
+   - 🔄 07.08-controllers-views: Update Controllers and Views for ASP.NET Core
+      - 🔳 07.08.01-contentservice-fix: Fix ContentService.cs for multi-targeting (net472 + net10.0)
+      - 🔳 07.08.02-controllers-migration: Migrate controllers from System.Web.Mvc to ASP.NET Core MVC
+      - 🔳 07.08.03-views-migration: Migrate Razor views to ASP.NET Core
+      - 🔳 07.08.04-admin-area-routing: Configure Admin area routing for ASP.NET Core
    - 🔳 07.08-controllers-views: Update Controllers and Views for ASP.NET Core
    - 🔳 07.09-bundling-minification: Migrate bundling and minification
    - 🔳 07.10-publish-profiles: Create publish profiles for Admin/NoAdmin artifacts
