@@ -1,7 +1,7 @@
 # Migration Progress
 
-**Progress**: 11/24 tasks complete (46%) ![46%](https://progress-bar.xyz/46)
-**Status**: Ready for Task 07.07-authentication
+**Progress**: 12/24 tasks complete (50%) ![50%](https://progress-bar.xyz/50)
+**Status**: Ready for Task 07.08-controllers-views
 
 ## Tasks
 
@@ -22,7 +22,7 @@
    - ✅ 07.04-config-migration: Migrate Web.config to appsettings.json and Program.cs
    - ✅ 07.05-program-startup: Create Program.cs and migrate Startup.cs from OWIN
    - ✅ 07.06-middleware-migration: Migrate OWIN middleware to ASP.NET Core middleware
-   - 🔳 07.07-authentication: Migrate authentication to ASP.NET Core
+   - ✅ 07.07-authentication: Migrate authentication to ASP.NET Core
    - 🔳 07.08-controllers-views: Update Controllers and Views for ASP.NET Core
    - 🔳 07.09-bundling-minification: Migrate bundling and minification
    - 🔳 07.10-publish-profiles: Create publish profiles for Admin/NoAdmin artifacts
