@@ -90,8 +90,10 @@ namespace NuGetGallery
 			var requireSsl = builder.Configuration.GetValue<bool>("Gallery:RequireSSL");
 			if (requireSsl)
 			{
-				// Note: Gallery:ForceSslExclusion paths (like /api/health-probe) can be handled
-				// by configuring those endpoints to AllowAnonymous or using endpoint metadata
+				// TODO: Implement exclusion for health probe endpoints (/api/health-probe, /api/status)
+				// These endpoints need to remain accessible over HTTP for load balancers and monitoring.
+				// Options: 1) Custom middleware before UseHttpsRedirection, 2) Endpoint-level configuration
+				// See task 07.13 for implementation
 				app.UseHttpsRedirection();
 			}
 

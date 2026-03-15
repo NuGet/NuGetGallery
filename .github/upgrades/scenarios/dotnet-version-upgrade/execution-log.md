@@ -289,6 +289,7 @@ Reverted attempted changes. Proceeding directly to combined migration in Task 07
 - Authentication middleware - task 07.07
 - Machine key configuration - no longer needed in ASP.NET Core (uses Data Protection API)
 - OWIN-specific logging - ASP.NET Core uses built-in ILogger
+- **HTTPS exclusion paths** - Simplified to use built-in UseHttpsRedirection() for now. Gallery:ForceSslExclusion support (for health probe endpoints that need plain HTTP) deferred to task 07.13
 
 **Files modified:** Program.cs, Middleware/ContentSecurityPolicyMiddleware.cs (new), Middleware/ForceSslMiddleware.cs (new)
 
