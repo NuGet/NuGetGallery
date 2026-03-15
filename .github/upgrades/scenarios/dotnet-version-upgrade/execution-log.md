@@ -261,3 +261,35 @@ Reverted attempted changes. Proceeding directly to combined migration in Task 07
 **Files modified:** Program.cs
 
 
+## [2026-03-14 18:40] 07.06-middleware-migration
+
+✅ **Completed 07.06-middleware-migration**: Migrated OWIN middleware to ASP.NET Core middleware
+
+**Changes:**
+- Created ContentSecurityPolicyMiddleware.cs - ASP.NET Core version of OWIN CSP middleware with nonce generation
+- Created ForceSslMiddleware.cs - ASP.NET Core SSL redirection with configurable exclusion paths
+- Updated Program.cs middleware pipeline with correct ordering
+- Added HSTS middleware for non-development environments
+- Added UseDeveloperExceptionPage for development
+- Migrated unobserved task exception handling to use ASP.NET Core services
+
+**Middleware Pipeline Order:**
+1. SSL Redirection (ForceSslMiddleware) - with Gallery:ForceSslExclusion support
+2. Content Security Policy (ContentSecurityPolicyMiddleware) - with nonce and CSP headers
+3. Exception Handling - UseDeveloperExceptionPage (dev) / UseExceptionHandler (prod)
+4. HSTS - UseHsts (non-development only)
+5. Static Files - UseStaticFiles
+6. Routing - UseRouting
+7. Authentication - (placeholder for task 07.07)
+8. Authorization - (placeholder for task 07.07)
+9. Session - UseSession
+
+**Deferred:**
+- Background tasks (FeatureFlags refresh, Uptime reports, ContentObjectService) - will be migrated to IHostedService in later tasks
+- Authentication middleware - task 07.07
+- Machine key configuration - no longer needed in ASP.NET Core (uses Data Protection API)
+- OWIN-specific logging - ASP.NET Core uses built-in ILogger
+
+**Files modified:** Program.cs, Middleware/ContentSecurityPolicyMiddleware.cs (new), Middleware/ForceSslMiddleware.cs (new)
+
+

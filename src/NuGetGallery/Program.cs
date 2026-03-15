@@ -86,10 +86,26 @@ namespace NuGetGallery
 
 			// Configure the HTTP request pipeline
 
+			// Configure SSL redirection with exclusions (migrated from OwinStartup)
+			var requireSsl = builder.Configuration.GetValue<bool>("Gallery:RequireSSL");
+			if (requireSsl)
+			{
+				var sslPort = 443; // Default SSL port
+				var forceSslExclusion = builder.Configuration["Gallery:ForceSslExclusion"];
+				app.UseMiddleware<NuGetGallery.Middleware.ForceSslMiddleware>(sslPort, forceSslExclusion);
+			}
+
+			// Content Security Policy middleware (migrated from OwinStartup)
+			app.UseMiddleware<NuGetGallery.Middleware.ContentSecurityPolicyMiddleware>();
+
 			if (!app.Environment.IsDevelopment())
 			{
 				app.UseExceptionHandler("/Error");
-				// TODO: HSTS will be configured in middleware migration task
+				app.UseHsts();
+			}
+			else
+			{
+				app.UseDeveloperExceptionPage();
 			}
 
 			// Static files from wwwroot
@@ -98,14 +114,35 @@ namespace NuGetGallery
 			// Routing
 			app.UseRouting();
 
-			// Authentication & Authorization (will be configured in subsequent tasks)
+			// Authentication & Authorization (will be configured in task 07.07)
 			// app.UseAuthentication();
 			// app.UseAuthorization();
 
 			// Session
 			app.UseSession();
 
-			// TODO: Middleware pipeline will be fully configured in task 07.06
+			// Handle unobserved task exceptions (migrated from OwinStartup)
+			TaskScheduler.UnobservedTaskException += (sender, exArgs) =>
+			{
+				// Send to AppInsights
+				try
+				{
+					var telemetryService = app.Services.GetService<ITelemetryService>();
+					if (telemetryService != null)
+					{
+						telemetryService.TrackException(exArgs.Exception, new Dictionary<string, string>()
+						{
+							{"ExceptionOrigin", "UnobservedTaskException"}
+						});
+					}
+				}
+				catch (Exception)
+				{
+					// Swallow exception to prevent crashing the process
+				}
+
+				exArgs.SetObserved();
+			};
 
 			// Map controllers
 			app.MapControllers();
