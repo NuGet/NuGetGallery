@@ -2,7 +2,15 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Net;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 
@@ -65,6 +73,74 @@ namespace NuGetGallery
 				options.Cookie.IsEssential = true;
 			});
 
+			// Configure Authentication
+			var requireSsl = builder.Configuration.GetValue<bool>("Gallery:RequireSSL");
+			var cookieSecurity = requireSsl ? CookieSecurePolicy.Always : CookieSecurePolicy.None;
+
+			builder.Services.AddAuthentication(options =>
+			{
+				options.DefaultAuthenticateScheme = "LocalUser";
+				options.DefaultChallengeScheme = "LocalUser";
+				options.DefaultSignInScheme = "External";
+			})
+			.AddCookie("LocalUser", options =>
+			{
+				options.LoginPath = "/users/account/LogOn";
+				options.ExpireTimeSpan = TimeSpan.FromHours(6);
+				options.SlidingExpiration = true;
+				options.Cookie.HttpOnly = true;
+				options.Cookie.SecurePolicy = cookieSecurity;
+				options.Cookie.Name = ".AspNet.LocalUser";
+			})
+			.AddCookie("External", options =>
+			{
+				options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+				options.Cookie.HttpOnly = true;
+				options.Cookie.SecurePolicy = cookieSecurity;
+				options.Cookie.Name = ".AspNet.External";
+			});
+
+			// Configure external authentication providers
+			// Microsoft Account
+			var msaClientId = builder.Configuration["Auth:MicrosoftAccount:ClientId"];
+			var msaClientSecret = builder.Configuration["Auth:MicrosoftAccount:ClientSecret"];
+			if (!string.IsNullOrEmpty(msaClientId) && !string.IsNullOrEmpty(msaClientSecret))
+			{
+				builder.Services.AddAuthentication()
+					.AddMicrosoftAccount("MicrosoftAccount", options =>
+					{
+						options.ClientId = msaClientId;
+						options.ClientSecret = msaClientSecret;
+						options.SignInScheme = "External";
+						options.SaveTokens = true;
+						options.Scope.Add("wl.emails");
+						options.Scope.Add("wl.signin");
+					});
+			}
+
+			// Azure Active Directory v2 (OpenID Connect)
+			var aadClientId = builder.Configuration["Auth:AzureActiveDirectoryV2:ClientId"];
+			var aadClientSecret = builder.Configuration["Auth:AzureActiveDirectoryV2:ClientSecret"];
+			var aadTenantId = builder.Configuration["Auth:AzureActiveDirectoryV2:TenantId"] ?? "common";
+			if (!string.IsNullOrEmpty(aadClientId) && !string.IsNullOrEmpty(aadClientSecret))
+			{
+				builder.Services.AddAuthentication()
+					.AddOpenIdConnect("AzureActiveDirectoryV2", options =>
+					{
+						options.ClientId = aadClientId;
+						options.ClientSecret = aadClientSecret;
+						options.Authority = $"https://login.microsoftonline.com/{aadTenantId}/v2.0";
+						options.CallbackPath = "/users/account/authenticate/return";
+						options.SignInScheme = "External";
+						options.SaveTokens = true;
+						options.ResponseType = "code";
+						options.Scope.Add("openid");
+						options.Scope.Add("profile");
+						options.Scope.Add("email");
+						options.GetClaimsFromUserInfoEndpoint = true;
+					});
+			}
+
 			// Configure Application Insights
 			var appInsightsKey = builder.Configuration["Gallery:AppInsightsInstrumentationKey"];
 			if (!string.IsNullOrEmpty(appInsightsKey))
@@ -116,9 +192,9 @@ namespace NuGetGallery
 			// Routing
 			app.UseRouting();
 
-			// Authentication & Authorization (will be configured in task 07.07)
-			// app.UseAuthentication();
-			// app.UseAuthorization();
+			// Authentication & Authorization
+			app.UseAuthentication();
+			app.UseAuthorization();
 
 			// Session
 			app.UseSession();

@@ -294,3 +294,29 @@ Reverted attempted changes. Proceeding directly to combined migration in Task 07
 **Files modified:** Program.cs, Middleware/ContentSecurityPolicyMiddleware.cs (new), Middleware/ForceSslMiddleware.cs (new)
 
 
+
+## [2026-03-14 20:08] 07.07-authentication
+
+✅ **Completed 07.07-authentication**: Migrated authentication to ASP.NET Core
+
+**Changes:**
+- Configured ASP.NET Core Authentication in Program.cs with multi-scheme support
+- Added LocalUser cookie authentication scheme (6-hour expiration, sliding window)
+- Added External cookie authentication scheme (5-minute expiration for external auth flow)
+- Added Microsoft Account authentication provider (scopes: wl.emails, wl.signin)
+- Added Azure Active Directory v2 OpenID Connect provider (callback: /users/account/authenticate/return)
+- Enabled UseAuthentication() and UseAuthorization() middleware in correct pipeline position
+- Added necessary using statements for authentication namespaces
+
+**Authentication Configuration:**
+- Default scheme: LocalUser
+- Sign-in scheme: External (for external auth flow)
+- Cookie security policy based on Gallery:RequireSSL configuration
+- Login path: /users/account/LogOn
+
+**Expected Build Failures:**
+Build currently fails with ~500 errors related to views and controllers still using OWIN/System.Web.Mvc APIs. These will be resolved in task 07.08 (controllers-views migration).
+
+**Files modified:** Program.cs
+
+
