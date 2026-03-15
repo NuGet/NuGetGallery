@@ -45,6 +45,7 @@ namespace NuGetGallery
             public const string UserMultiFactorAuthenticationEnabled = "UserMultiFactorAuthenticationEnabled";
             public const string UserMultiFactorAuthenticationDisabled = "UserMultiFactorAuthenticationDisabled";
             public const string PackageReflow = "PackageReflow";
+            public const string AdminApiReflow = "AdminApiReflow";
             public const string PackageUnlisted = "PackageUnlisted";
             public const string PackageListed = "PackageListed";
             public const string PackagesUpdateListed = "PackagesUpdateListed";
@@ -536,6 +537,17 @@ namespace NuGetGallery
         public void TrackPackageHardDeleteReflow(string packageId, string packageVersion)
         {
             TrackMetricForPackage(Events.PackageHardDeleteReflow, packageId, packageVersion);
+        }
+
+        public void TrackAdminApiReflow(int packageCount, int acceptedCount, string reason, string callerAppId)
+        {
+            TrackMetric(Events.AdminApiReflow, 1, properties =>
+            {
+                properties.Add("PackageCount", packageCount.ToString());
+                properties.Add("AcceptedCount", acceptedCount.ToString());
+                properties.Add("Reason", reason ?? string.Empty);
+                properties.Add("CallerAppId", callerAppId ?? string.Empty);
+            });
         }
 
         public void TrackPackageRevalidate(Package package)
@@ -1217,7 +1229,7 @@ namespace NuGetGallery
 
         private IDisposable TrackSqlConnectionCreationDuration(string kind)
         {
-            return new DurationTracker(duration => 
+            return new DurationTracker(duration =>
                 _telemetryClient.TrackAggregatedMetric(Events.CreateSqlConnectionDurationMs, duration.TotalMilliseconds, Kind, kind));
         }
 
