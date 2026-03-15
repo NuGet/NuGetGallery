@@ -3,7 +3,7 @@
   "operationId": "da302a20-279e-43c1-873c-88900d82d08c",
   "description": "Upgrade .NET projects to newer .NET versions",
   "startTime": "2026-03-15T01:19:46.0027846Z",
-  "lastUpdateTime": "2026-03-15T01:23:52.529754Z",
+  "lastUpdateTime": "2026-03-15T01:31:12.6368417Z",
   "properties": {
     "currentTask": "07.02-sdk-conversion",
     "task:07.01-discovery:startedAt": "2026-03-15T01:20:16.7611748Z",

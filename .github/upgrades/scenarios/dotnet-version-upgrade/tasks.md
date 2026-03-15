@@ -17,7 +17,7 @@
 - ✅ 06-service-layer: Upgrade Tier 6 Service Layer
 - 🔄 07-web-application: Upgrade Main NuGetGallery Web Application
    - ✅ 07.01-discovery: Discovery and Migration Strategy
-   - 🔲 07.02-sdk-conversion: Convert to SDK-style project
+   - ❌ 07.02-sdk-conversion: Convert to SDK-style project
    - 🔲 07.03-aspnetcore-packages: Update to ASP.NET Core packages and net10.0
    - 🔲 07.04-config-migration: Migrate Web.config to appsettings.json and Program.cs
    - 🔲 07.05-program-startup: Create Program.cs and migrate Startup.cs from OWIN
