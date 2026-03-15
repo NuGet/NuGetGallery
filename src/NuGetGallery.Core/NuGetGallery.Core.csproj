@@ -1,13 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net472;net10.0</TargetFrameworks>
     <PackageVersion Condition="'$(PackageVersion)' == ''">$(GalleryPackageVersion)</PackageVersion>
     <RootNamespace>NuGetGallery</RootNamespace>
     <Description>Core support library for NuGet Gallery Frontend and Backend</Description>
   </PropertyGroup>
 
-  <ItemGroup>
+  <!-- Exclude System.Web-dependent files for net10.0 target only -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
     <Compile Remove="Auditing\AuditActor.cs" />
     <Compile Remove="Auditing\AuditEntry.cs" />
     <Compile Remove="Auditing\AuditingService.cs" />
@@ -56,6 +57,11 @@
     <ProjectReference Include="..\NuGet.Services.Messaging.Email\NuGet.Services.Messaging.Email.csproj" />
     <ProjectReference Include="..\NuGet.Services.Validation.Issues\NuGet.Services.Validation.Issues.csproj" />
     <ProjectReference Include="..\NuGet.Services.Validation\NuGet.Services.Validation.csproj" />
+  </ItemGroup>
+
+  <!-- System.Web reference for net472 target only -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <Reference Include="System.Web" />
   </ItemGroup>
   
   <ItemGroup>
