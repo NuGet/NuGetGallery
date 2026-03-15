@@ -56,6 +56,13 @@ namespace NuGetGallery
                 "errors/400",
                 new { controller = "Errors", action = "BadRequest" });
 
+            // Admin API routes (auth filter returns 404 if disabled)
+            routes.MapRoute(
+                "AdminApiReflow",
+                "api/admin/reflow",
+                new { controller = "AdminApi", action = "Reflow" },
+                new { httpMethod = new HttpMethodConstraint("POST") });
+
             routes.MapRoute(
                 RouteName.StatisticsHome,
                 "stats",

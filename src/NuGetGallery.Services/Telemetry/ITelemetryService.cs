@@ -52,6 +52,8 @@ namespace NuGetGallery
 
         void TrackPackageHardDeleteReflow(string packageId, string packageVersion);
 
+        void TrackAdminApiReflow(int packageCount, int acceptedCount, string reason, string callerAppId);
+
         void TrackPackageRevalidate(Package package);
 
         void TrackPackageDeprecate(
