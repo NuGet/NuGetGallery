@@ -151,3 +151,17 @@ Both projects build successfully. Removed net472-specific functionality (System.
 
 Test execution blocked by .NET 10 deps.json tooling issue (looks for Azure.Core net8.0 lib), but builds are clean.
 
+
+## [2026-03-14 17:29] 06-service-layer
+
+**Task 06: Tier 6 Service Layer - Complete** ✅
+
+Upgraded 3 projects to support .NET 10:
+- **NuGet.Jobs.Common**: net472;net10.0 (was net472;netstandard2.1)
+- **NuGetGallery.Services**: net472;net10.0 (was net472;netstandard2.1)
+- **NuGet.Services.Storage**: net472;net10.0 (was netstandard2.1;net10.0)
+
+Added MarkdownSharp package (v2.0.5) for net472 target to support ContentService.cs. Updated nuget.config PackageSourceMapping to include MarkdownSharp pattern.
+
+All projects build successfully with only analyzer warnings (non-blocking). Multi-targeting preserves net472 functionality for other solutions while enabling .NET 10 migration path.
+

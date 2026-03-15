@@ -113,6 +113,8 @@
     <PackageVersion Include="NuGet.Protocol" Version="$(NuGetClientPackageVersion)" />
     <PackageVersion Include="NuGet.Resolver" Version="$(NuGetClientPackageVersion)" />
     <PackageVersion Include="NuGet.StrongName.AnglicanGeek.MarkdownMailer" Version="1.2.0" />
+    <PackageVersion Include="MarkdownSharp" Version="2.0.5" />
+
     <PackageVersion Include="NuGet.StrongName.DynamicData.EFCodeFirstProvider" Version="0.3.0" />
     <PackageVersion Include="NuGet.StrongName.elmah.sqlserver" Version="1.2.2" />
     <PackageVersion Include="NuGet.StrongName.elmah" Version="1.2.2" />

@@ -1,5 +1,5 @@
 # Migration Progress
-**Progress**: 5/12 tasks complete (42%) ![42%](https://progress-bar.xyz/42)
+**Progress**: 6/12 tasks complete (50%) ![50%](https://progress-bar.xyz/50)
 **Progress**: 1/13 tasks complete (8%) ![8%](https://progress-bar.xyz/8)
 **Status**: In Progress - Task 02-foundation-libraries
 
@@ -15,7 +15,7 @@
 - ✅ 03-core-services: Upgrade Tier 2 Core Services
 - ✅ 04-business-services: Upgrade Tier 3-4 Business Services
 - ✅ 05-core-domain: Upgrade NuGetGallery.Core
-- 🔲 06-service-layer: Upgrade Tier 6 Service Layer
+- ✅ 06-service-layer: Upgrade Tier 6 Service Layer
 - 🔲 07-web-application: Upgrade Main NuGetGallery Web Application
 - 🔲 08-dependent-applications: Upgrade Tier 7-9 Applications and Tools
 - 🔲 09-final-validation: Full Solution Validation
