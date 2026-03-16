@@ -391,8 +391,6 @@ namespace NuGetGallery.Controllers
 
 				var controller = new AdminApiController (
 					packageService.Object,
-					entitiesContext.Object,
-					packageFileService.Object,
 					telemetryService.Object);
 
 				var body = requestBody ?? (request != null

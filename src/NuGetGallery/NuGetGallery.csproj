@@ -126,6 +126,7 @@
     <Compile Include="App_Start\StorageDependent.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="App_Start\AutofacConfig.cs" />
+    <Compile Include="Areas\Admin\Controllers\AdminApiController.cs" />
     <Compile Include="Areas\Admin\Controllers\ApiKeysController.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteAccountController.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteController.cs" />
@@ -175,6 +176,8 @@
     </Compile>
     <Compile Include="Areas\Admin\Models\DeletedStatus.cs" />
     <Compile Include="Areas\Admin\Migrations\SupportRequestMigrationsConfiguration.cs" />
+    <Compile Include="Areas\Admin\Models\AdminReflowRequest.cs" />
+    <Compile Include="Areas\Admin\Models\AdminReflowResponse.cs" />
     <Compile Include="Areas\Admin\Models\RevokeApiKeysRequest.cs" />
     <Compile Include="Areas\Admin\Models\ValidateAccountResult.cs" />
     <Compile Include="Areas\Admin\Models\ValidateUsernameResult.cs" />
@@ -237,6 +240,7 @@
     <Compile Include="Extensions\UserSafeExceptionExtensions.cs" />
     <Compile Include="Filters\AdminActionAttribute.cs" />
     <Compile Include="Filters\RequiresUserAgentAttribute.cs" />
+    <Compile Include="Filters\GenevaAdminApiAuthAttribute.cs" />
     <Compile Include="Helpers\AdminHelper.cs" />
     <Compile Include="Helpers\CSPHelper.cs" />
     <Compile Include="Helpers\InvalidZipEntry.cs" />
@@ -2356,4 +2360,11 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
+</Project>
+  <PropertyGroup>
+    <PreBuildEvent>
+      copy "$(ProjectDir)..\Bootstrap\dist\css\bootstrap.min.css" "$(ProjectDir)Content\gallery\css" &gt;NUL
+      copy "$(ProjectDir)..\Bootstrap\dist\js\bootstrap.js" "$(ProjectDir)Scripts\gallery" &gt;NUL
+    </PreBuildEvent>
+  </PropertyGroup>
 </Project>

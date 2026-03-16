@@ -415,5 +415,10 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
         {
             throw new NotImplementedException();
         }
+
+        public void TrackAdminApiReflow(int packageCount, int acceptedCount, string reason, string callerAppId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
