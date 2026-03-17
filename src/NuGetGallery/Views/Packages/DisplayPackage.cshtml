@@ -154,7 +154,7 @@
                 "dotnet-cli",
                 ".NET CLI",
                 new PackageManagerViewModel.InstallPackageCommand(
-                    string.Format("dotnet new install {0}::{1}", Model.Id, Model.Version)
+                    string.Format("dotnet new install {0}@{1}", Model.Id, Model.Version)
                 )
             )
             {
@@ -294,7 +294,7 @@
 
             new PackageManagerViewModel(
                 "dotnet-run-file",
-                "File-based Apps",
+                "File-Based Apps",
                 new PackageManagerViewModel.InstallPackageCommand(
                     string.Format("#:package {0}@{1}", Model.Id, Model.Version)
                 )
@@ -1486,16 +1486,6 @@
             {
                 var encodedText = Url.Encode(string.Format("Check out {0} on #NuGet.", Model.Id));
                 <p class="share-buttons">
-                    <a href="https://www.facebook.com/sharer/sharer.php?u=@absolutePackageUrl&t=@encodedText" target="_blank" rel="nofollow noreferrer">
-                        <img width="24" height="24" alt="Share this package on Facebook"
-                                src="@Url.Absolute("~/Content/gallery/img/facebook.svg")"
-                                @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/facebook-24x24.png")) />
-                    </a>
-                    <a href="https://x.com/intent/post?url=@absolutePackageUrl&text=@encodedText" target="_blank" rel="nofollow noreferrer">
-                        <img width="24" height="24" alt="Share this package on X"
-                                src="@Url.Absolute("~/Content/gallery/img/x.svg")"
-                                @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/x-24x24.png")) />
-                    </a>
                     @if (Model.IsAtomFeedEnabled && Model.Owners.Any())
                     {
                         <a href="@Url.PackageAtomFeed(Model.Id)" data-track="atom-feed">
