@@ -175,8 +175,8 @@
     </Compile>
     <Compile Include="Areas\Admin\Models\DeletedStatus.cs" />
     <Compile Include="Areas\Admin\Migrations\SupportRequestMigrationsConfiguration.cs" />
-    <Compile Include="Areas\Admin\Models\AdminReflowRequest.cs" />
-    <Compile Include="Areas\Admin\Models\AdminReflowResponse.cs" />
+    <Compile Include="Areas\Admin\Models\AdminReflowPackageRequest.cs" />
+    <Compile Include="Areas\Admin\Models\AdminReflowPackageResponse.cs" />
     <Compile Include="Areas\Admin\Models\RevokeApiKeysRequest.cs" />
     <Compile Include="Areas\Admin\Models\ValidateAccountResult.cs" />
     <Compile Include="Areas\Admin\Models\ValidateUsernameResult.cs" />
