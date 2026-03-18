@@ -26,6 +26,12 @@ namespace NuGetGallery
                 "",
                 new { controller = "Pages", action = "EmptyHome" });
             }
+
+            if (adminPanelEnabled)
+            {
+                RegisterAdminApiRoutes(routes);
+            }
+
             RegisterApiV2Routes(routes);
         }
 
@@ -55,13 +61,6 @@ namespace NuGetGallery
                 RouteName.Error400,
                 "errors/400",
                 new { controller = "Errors", action = "BadRequest" });
-
-            // Admin API routes (auth filter returns 404 if disabled)
-            routes.MapRoute(
-                "AdminApiReflow",
-                "api/admin/reflow",
-                new { controller = "AdminApi", action = "Reflow" },
-                new { httpMethod = new HttpMethodConstraint("POST") });
 
             routes.MapRoute(
                 RouteName.StatisticsHome,
@@ -893,6 +892,15 @@ namespace NuGetGallery
                 "api/v2/token",
                 defaults: new { controller = TokenApiController.ControllerName, action = nameof(TokenApiController.CreateToken) },
                 constraints: new { httpMethod = new HttpMethodConstraint("POST") });
+        }
+
+        public static void RegisterAdminApiRoutes(RouteCollection routes)
+        {
+            routes.MapRoute(
+                "AdminApiReflow",
+                "api/admin/reflow",
+                new { controller = "AdminApi", action = "ReflowPackage" },
+                new { httpMethod = new HttpMethodConstraint("POST") });
         }
     }
 }
