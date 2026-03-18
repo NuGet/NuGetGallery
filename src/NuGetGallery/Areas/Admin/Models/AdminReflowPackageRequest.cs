@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace NuGetGallery.Areas.Admin.Models
 {
-	public class AdminReflowRequest
+	public class AdminReflowPackageRequest
 	{
 		public List<AdminReflowPackageIdentity> Packages { get; set; }
 

@@ -14,7 +14,7 @@
     bypass the auth filter by modifying GenevaAdminApiAuthAttribute.
 
 .PARAMETER BaseUrl
-    Base URL of the Gallery admin instance (default: https://localhost:44300).
+    Base URL of the Gallery admin instance (default: https://localhost).
 
 .PARAMETER BearerToken
     An Entra ID access token. If omitted, requests are sent without auth.
@@ -27,12 +27,12 @@
     testing when the auth filter is temporarily disabled for local dev.
 
 .EXAMPLE
-    .\Test-AdminApi-Local.ps1 -BaseUrl https://localhost:44300 -SkipAuth
+    .\Test-AdminApi-Local.ps1 -BaseUrl https://localhost -SkipAuth
     .\Test-AdminApi-Local.ps1 -BearerToken (az account get-access-token --resource api://nuget-admin-api --query accessToken -o tsv)
 #>
 [CmdletBinding()]
 param (
-    [string] $BaseUrl = "https://localhost:44300",
+    [string] $BaseUrl = "https://localhost",
     [string] $BearerToken,
     [switch] $SkipAuth
 )

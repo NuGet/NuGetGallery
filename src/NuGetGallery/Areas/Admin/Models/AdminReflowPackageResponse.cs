@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace NuGetGallery.Areas.Admin.Models
 {
-	public class AdminReflowResponse
+	public class AdminReflowPackageResponse
 	{
 		public List<AdminReflowPackageResult> Results { get; set; }
 	}
@@ -19,7 +19,7 @@ namespace NuGetGallery.Areas.Admin.Models
 		public string Status { get; set; }
 	}
 
-	public static class AdminReflowStatus
+	public static class AdminReflowPackageStatus
 	{
 		public const string Accepted = "accepted";
 		public const string NotFound = "notFound";
