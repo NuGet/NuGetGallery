@@ -16,25 +16,31 @@ using NuGetGallery.Filters;
 
 namespace NuGetGallery.Controllers
 {
-    [GenevaAdminApiAuth]
+    [AdminApiAuth]
     public class AdminApiController : AppController
     {
         private const int MaxPackageCount = 100;
 
         private readonly IPackageService _packageService;
+        private readonly IEntitiesContext _entitiesContext;
+        private readonly IPackageFileService _packageFileService;
         private readonly ITelemetryService _telemetryService;
 
         public AdminApiController(
             IPackageService packageService,
+            IEntitiesContext entitiesContext,
+            IPackageFileService packageFileService,
             ITelemetryService telemetryService)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
+            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
+            _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
         }
 
         [HttpPost]
         [ActionName("ReflowPackage")]
-        public virtual async Task<ActionResult> ReflowPackage()
+        public virtual async Task<ActionResult> ReflowPackageAsync()
         {
             AdminReflowPackageRequest request;
             try
@@ -132,16 +138,11 @@ namespace NuGetGallery.Controllers
                 request.Reason,
                 callerAppId);
 
-            var entitiesContext = DependencyResolver.Current.GetService<IEntitiesContext>();
-            var packageService = DependencyResolver.Current.GetService<IPackageService>();
-            var packageFileService = DependencyResolver.Current.GetService<IPackageFileService>();
-            var telemetryService = DependencyResolver.Current.GetService<ITelemetryService>();
-
             var reflowService = new ReflowPackageService(
-                entitiesContext,
-               (PackageService)packageService,
-                packageFileService,
-                telemetryService);
+                _entitiesContext,
+                _packageService,
+                _packageFileService,
+                _telemetryService);
 
             foreach (var (id, version) in acceptedPackages)
             {

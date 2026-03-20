@@ -239,7 +239,7 @@
     <Compile Include="Extensions\UserSafeExceptionExtensions.cs" />
     <Compile Include="Filters\AdminActionAttribute.cs" />
     <Compile Include="Filters\RequiresUserAgentAttribute.cs" />
-    <Compile Include="Filters\GenevaAdminApiAuthAttribute.cs" />
+    <Compile Include="Filters\AdminApiAuthAttribute.cs" />
     <Compile Include="Helpers\AdminHelper.cs" />
     <Compile Include="Helpers\CSPHelper.cs" />
     <Compile Include="Helpers\InvalidZipEntry.cs" />
