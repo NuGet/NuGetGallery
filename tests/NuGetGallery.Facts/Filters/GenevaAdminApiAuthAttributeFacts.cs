@@ -24,7 +24,7 @@ namespace NuGetGallery.Filters
 				var context = BuildAuthorizationContext (headers: new NameValueCollection());
 				SetupConfigService (adminPanelEnabled: false, genevaAdminApiEnabled: true);
 
-				var attribute = new GenevaAdminApiAuthAttribute();
+				var attribute = new AdminApiAuthAttribute();
 
 				// Act
 				attribute.OnAuthorization (context.Object);
@@ -42,7 +42,7 @@ namespace NuGetGallery.Filters
 				var context = BuildAuthorizationContext (headers: new NameValueCollection());
 				SetupConfigService (adminPanelEnabled: true, genevaAdminApiEnabled: false);
 
-				var attribute = new GenevaAdminApiAuthAttribute();
+				var attribute = new AdminApiAuthAttribute();
 
 				// Act
 				attribute.OnAuthorization (context.Object);
@@ -60,7 +60,7 @@ namespace NuGetGallery.Filters
 				var context = BuildAuthorizationContext (headers: new NameValueCollection());
 				SetupConfigService (adminPanelEnabled: false, genevaAdminApiEnabled: false);
 
-				var attribute = new GenevaAdminApiAuthAttribute();
+				var attribute = new AdminApiAuthAttribute();
 
 				// Act
 				attribute.OnAuthorization (context.Object);
@@ -78,7 +78,7 @@ namespace NuGetGallery.Filters
 				var context = BuildAuthorizationContext (headers: new NameValueCollection());
 				SetupConfigService (adminPanelEnabled: true, genevaAdminApiEnabled: true);
 
-				var attribute = new GenevaAdminApiAuthAttribute();
+				var attribute = new AdminApiAuthAttribute();
 
 				// Act
 				attribute.OnAuthorization (context.Object);
@@ -100,7 +100,7 @@ namespace NuGetGallery.Filters
 				var context = BuildAuthorizationContext (headers: headers);
 				SetupConfigService (adminPanelEnabled: true, genevaAdminApiEnabled: true);
 
-				var attribute = new GenevaAdminApiAuthAttribute();
+				var attribute = new AdminApiAuthAttribute();
 
 				// Act
 				attribute.OnAuthorization (context.Object);
@@ -175,7 +175,7 @@ namespace NuGetGallery.Filters
 				var mockRequest = new Mock<HttpRequestBase>();
 				mockRequest.Setup (r => r.Headers).Returns (new NameValueCollection());
 
-				var result = GenevaAdminApiAuthAttribute.ExtractBearerToken (mockRequest.Object);
+				var result = AdminApiAuthAttribute.ExtractBearerToken (mockRequest.Object);
 
 				Assert.Null (result);
 			}
@@ -187,7 +187,7 @@ namespace NuGetGallery.Filters
 				var mockRequest = new Mock<HttpRequestBase>();
 				mockRequest.Setup (r => r.Headers).Returns (headers);
 
-				var result = GenevaAdminApiAuthAttribute.ExtractBearerToken (mockRequest.Object);
+				var result = AdminApiAuthAttribute.ExtractBearerToken (mockRequest.Object);
 
 				Assert.Equal ("mytoken123", result);
 			}
@@ -199,7 +199,7 @@ namespace NuGetGallery.Filters
 				var mockRequest = new Mock<HttpRequestBase>();
 				mockRequest.Setup (r => r.Headers).Returns (headers);
 
-				var result = GenevaAdminApiAuthAttribute.ExtractBearerToken (mockRequest.Object);
+				var result = AdminApiAuthAttribute.ExtractBearerToken (mockRequest.Object);
 
 				Assert.Null (result);
 			}
@@ -211,7 +211,7 @@ namespace NuGetGallery.Filters
 				var mockRequest = new Mock<HttpRequestBase>();
 				mockRequest.Setup (r => r.Headers).Returns (headers);
 
-				var result = GenevaAdminApiAuthAttribute.ExtractBearerToken (mockRequest.Object);
+				var result = AdminApiAuthAttribute.ExtractBearerToken (mockRequest.Object);
 
 				Assert.Equal ("mytoken", result);
 			}
@@ -222,7 +222,7 @@ namespace NuGetGallery.Filters
 			[Fact]
 			public void ReturnsEmptyForNull ()
 			{
-				var result = GenevaAdminApiAuthAttribute.ParseAllowedCallers (null);
+				var result = AdminApiAuthAttribute.ParseAllowedCallers (null);
 
 				Assert.Empty (result);
 			}
@@ -230,7 +230,7 @@ namespace NuGetGallery.Filters
 			[Fact]
 			public void ReturnsEmptyForEmptyString ()
 			{
-				var result = GenevaAdminApiAuthAttribute.ParseAllowedCallers ("");
+				var result = AdminApiAuthAttribute.ParseAllowedCallers ("");
 
 				Assert.Empty (result);
 			}
@@ -238,7 +238,7 @@ namespace NuGetGallery.Filters
 			[Fact]
 			public void ParsesSinglePair ()
 			{
-				var result = GenevaAdminApiAuthAttribute.ParseAllowedCallers ("tid1:appid1");
+				var result = AdminApiAuthAttribute.ParseAllowedCallers ("tid1:appid1");
 
 				Assert.Single (result);
 				Assert.Equal ("tid1", result[0].TenantId);
@@ -248,7 +248,7 @@ namespace NuGetGallery.Filters
 			[Fact]
 			public void ParsesMultiplePairs ()
 			{
-				var result = GenevaAdminApiAuthAttribute.ParseAllowedCallers ("tid1:appid1;tid2:appid2;tid3:appid3");
+				var result = AdminApiAuthAttribute.ParseAllowedCallers ("tid1:appid1;tid2:appid2;tid3:appid3");
 
 				Assert.Equal (3, result.Count);
 				Assert.Equal ("tid1", result[0].TenantId);
@@ -262,7 +262,7 @@ namespace NuGetGallery.Filters
 			[Fact]
 			public void IgnoresInvalidEntries ()
 			{
-				var result = GenevaAdminApiAuthAttribute.ParseAllowedCallers ("tid1:appid1;;:;invalid;tid2:appid2");
+				var result = AdminApiAuthAttribute.ParseAllowedCallers ("tid1:appid1;;:;invalid;tid2:appid2");
 
 				Assert.Equal (2, result.Count);
 				Assert.Equal ("tid1", result[0].TenantId);
@@ -272,7 +272,7 @@ namespace NuGetGallery.Filters
 			[Fact]
 			public void TrimsWhitespace ()
 			{
-				var result = GenevaAdminApiAuthAttribute.ParseAllowedCallers (" tid1 : appid1 ");
+				var result = AdminApiAuthAttribute.ParseAllowedCallers (" tid1 : appid1 ");
 
 				Assert.Single (result);
 				Assert.Equal ("tid1", result[0].TenantId);
