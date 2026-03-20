@@ -65,13 +65,13 @@ namespace NuGetGallery.Filters
             const string bearerPrefix = "Bearer ";
             if (authHeader.StartsWith(bearerPrefix, StringComparison.OrdinalIgnoreCase))
             {
-                return authHeader.Substring(bearerPrefix.Length).Trim();
+                return authHeader[bearerPrefix.Length..].Trim();
             }
 
             return null;
         }
 
-        internal async Task<AuthResult> ValidateAndAuthorizeAsync(
+        internal static async Task<AuthResult> ValidateAndAuthorizeAsync(
             string token,
             IGalleryConfigurationService configService)
         {
