@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
@@ -12,54 +13,101 @@ using Moq;
 using Newtonsoft.Json;
 using NuGet.Services.Entities;
 using NuGetGallery.Areas.Admin.Models;
+using NuGetGallery.Framework;
+using NuGetGallery.Helpers;
 using Xunit;
 
 namespace NuGetGallery.Controllers
 {
     public class AdminApiControllerFacts
     {
-        public class TheReflowMethod
+        public class TheReflowMethod : TestContainer
         {
+            private readonly Mock<IPackageService> _packageServiceMock;
+            private readonly Mock<IEntitiesContext> _entitiesContextMock;
+            private readonly Mock<IPackageFileService> _packageFileServiceMock;
+            private readonly Mock<ITelemetryService> _telemetryServiceMock;
+
+            private readonly Package _availablePackage;
+            private readonly Package _availablePackage2;
+            private readonly Package _deletedPackage;
+
+            public TheReflowMethod()
+            {
+                var entitiesContextMock = ReflowServiceSetupHelper.SetupEntitiesContext();
+                var database = new Mock<IDatabase>();
+                database.Setup(x => x.BeginTransaction()).Returns(() => new Mock<IDbContextTransaction>().Object);
+                entitiesContextMock.Setup(m => m.GetDatabase()).Returns(database.Object);
+
+                _packageServiceMock = new Mock<IPackageService>();
+                _entitiesContextMock = entitiesContextMock;
+                _packageFileServiceMock = new Mock<IPackageFileService>();
+                _telemetryServiceMock = new Mock<ITelemetryService>();
+
+                _availablePackage = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "Available.Package" },
+                    Version = "1.0.0",
+                    PackageStatusKey = PackageStatus.Available
+                };
+
+                _availablePackage2 = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "Available.Package.2" },
+                    Version = "3.0.0-beta.1",
+                    PackageStatusKey = PackageStatus.Available
+                };
+
+                _deletedPackage = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "Deleted.Package" },
+                    Version = "1.0.0",
+                    PackageStatusKey = PackageStatus.Deleted
+                };
+
+                SetupPackages(_packageServiceMock, [_availablePackage, _availablePackage2, _deletedPackage]);
+            }
+
             [Fact]
-            public void Returns400WhenBodyIsInvalidJson()
+            public async Task Returns400WhenBodyIsInvalidJsonAsync()
             {
                 var controller = CreateController(requestBody: "{invalid json");
 
-                var result = controller.ReflowPackage() as JsonResult;
+                var result = await controller.ReflowPackageAsync() as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
             }
 
             [Fact]
-            public void Returns400WhenPackagesIsNull()
+            public async Task Returns400WhenPackagesIsNullAsync()
             {
                 var request = new AdminReflowPackageRequest { Packages = null };
                 var controller = CreateController(request: request);
 
-                var result = controller.ReflowPackage() as JsonResult;
+                var result = await controller.ReflowPackageAsync() as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
             }
 
             [Fact]
-            public void Returns400WhenPackagesIsEmpty()
+            public async Task Returns400WhenPackagesIsEmptyAsync()
             {
-                var request = new AdminReflowPackageRequest { Packages = new List<AdminReflowPackageIdentity>() };
+                var request = new AdminReflowPackageRequest { Packages = [] };
                 var controller = CreateController(request: request);
 
-                var result = controller.ReflowPackage() as JsonResult;
+                var result = await controller.ReflowPackageAsync() as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
             }
 
             [Fact]
-            public void Returns400WhenPackagesExceeds100()
+            public async Task Returns400WhenPackagesExceeds100Async()
             {
                 var packages = new List<AdminReflowPackageIdentity>();
-                for(int i = 0; i < 101; i++)
+                for (int i = 0; i < 101; i++)
                 {
                     packages.Add(new AdminReflowPackageIdentity { Id = $"Pkg{i}", Version = "1.0.0" });
                 }
@@ -67,34 +115,31 @@ namespace NuGetGallery.Controllers
                 var request = new AdminReflowPackageRequest { Packages = packages };
                 var controller = CreateController(request: request);
 
-                var result = controller.ReflowPackage() as JsonResult;
+                var result = await controller.ReflowPackageAsync() as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
             }
 
             [Fact]
-            public void Returns400WhenAllPackagesNotFound()
+            public async Task Returns400WhenAllPackagesNotFoundAsync()
             {
                 var request = new AdminReflowPackageRequest
                 {
-                    Packages = new List<AdminReflowPackageIdentity>
-                    {
-                        new AdminReflowPackageIdentity { Id = "Does.Not.Exist", Version = "1.0.0" }
-                    },
+                    Packages =
+                    [
+                        new AdminReflowPackageIdentity { Id = "DoesNotExist", Version = "1.0.0" }
+                    ],
                     Reason = "test"
                 };
 
-                var mockPackageService = new Mock<IPackageService>();
-                mockPackageService
-                    .Setup(s => s.FindPackageByIdAndVersionStrict("Does.Not.Exist", "1.0.0"))
-                    .Returns((Package)null);
-
                 var controller = CreateController(
                     request: request,
-                    packageService: mockPackageService);
+                    packageService: _packageServiceMock,
+                    entitiesContext: _entitiesContextMock,
+                    packageFileService: _packageFileServiceMock);
 
-                var result = controller.ReflowPackage() as JsonResult;
+                var result = await controller.ReflowPackageAsync() as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
@@ -105,37 +150,25 @@ namespace NuGetGallery.Controllers
             }
 
             [Fact]
-            public void Returns202WithAcceptedPackages()
+            public async Task Returns202WithAcceptedPackagesAsync()
             {
                 var request = new AdminReflowPackageRequest
                 {
-                    Packages = new List<AdminReflowPackageIdentity>
-                    {
-                        new AdminReflowPackageIdentity { Id = "My.Package", Version = "1.0.0" }
-                    },
+                    Packages =
+                    [
+                        new AdminReflowPackageIdentity { Id = _availablePackage.Id, Version = _availablePackage.Version }
+                    ],
                     Reason = "test reflow"
                 };
 
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Id = "My.Package" },
-                    NormalizedVersion = "1.0.0",
-                    PackageStatusKey = PackageStatus.Available
-                };
-
-                var mockPackageService = new Mock<IPackageService>();
-                mockPackageService
-                    .Setup(s => s.FindPackageByIdAndVersionStrict("My.Package", "1.0.0"))
-                    .Returns(package);
-
-                var mockTelemetry = new Mock<ITelemetryService>();
-
                 var controller = CreateController(
                     request: request,
-                    packageService: mockPackageService,
-                    telemetryService: mockTelemetry);
+                    packageService: _packageServiceMock,
+                    entitiesContext: _entitiesContextMock,
+                    packageFileService: _packageFileServiceMock,
+                    telemetryService: _telemetryServiceMock);
 
-                var result = controller.ReflowPackage() as JsonResult;
+                var result = await controller.ReflowPackageAsync() as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.Accepted, controller.Response.StatusCode);
@@ -144,100 +177,62 @@ namespace NuGetGallery.Controllers
                 Assert.Single(response.Results);
                 Assert.Equal(AdminReflowPackageStatus.Accepted, response.Results[0].Status);
 
-                mockTelemetry.Verify(
+                _telemetryServiceMock.Verify(
                     t => t.TrackAdminApiReflow(1, 1, "test reflow", It.IsAny<string>()), Times.Once);
             }
 
             [Fact]
-            public void Returns202WithMixedStatuses()
+            public async Task Returns202WithMixedStatusesAsync()
             {
                 var request = new AdminReflowPackageRequest
                 {
-                    Packages = new List<AdminReflowPackageIdentity>
-                    {
-                        new AdminReflowPackageIdentity { Id = "Good.Package", Version = "1.0.0" },
-                        new AdminReflowPackageIdentity { Id = "Bad Id!", Version = "1.0.0" },
-                        new AdminReflowPackageIdentity { Id = "Missing.Package", Version = "2.0.0" },
-                        new AdminReflowPackageIdentity { Id = "Also.Good", Version = "3.0.0-beta.1" }
-                    },
+                    Packages =
+                    [
+                        new AdminReflowPackageIdentity { Id = _availablePackage.Id, Version = _availablePackage.Version },
+                        new AdminReflowPackageIdentity { Id = "DoesNotExist", Version = "1.0.0" },
+                        new AdminReflowPackageIdentity { Id = _availablePackage2.Id, Version = _availablePackage2.Version }
+                    ],
                     Reason = "mixed test"
                 };
 
-                var goodPackage = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Id = "Good.Package" },
-                    NormalizedVersion = "1.0.0",
-                    PackageStatusKey = PackageStatus.Available
-                };
-
-                var alsoGoodPackage = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Id = "Also.Good" },
-                    NormalizedVersion = "3.0.0-beta.1",
-                    PackageStatusKey = PackageStatus.Available
-                };
-
-                var mockPackageService = new Mock<IPackageService>();
-                mockPackageService
-                    .Setup(s => s.FindPackageByIdAndVersionStrict("Good.Package", "1.0.0"))
-                    .Returns(goodPackage);
-                mockPackageService
-                    .Setup(s => s.FindPackageByIdAndVersionStrict("Bad Id!", "1.0.0"))
-                    .Returns((Package)null);
-                mockPackageService
-                    .Setup(s => s.FindPackageByIdAndVersionStrict("Missing.Package", "2.0.0"))
-                    .Returns((Package)null);
-                mockPackageService
-                    .Setup(s => s.FindPackageByIdAndVersionStrict("Also.Good", "3.0.0-beta.1"))
-                    .Returns(alsoGoodPackage);
-
                 var controller = CreateController(
                     request: request,
-                    packageService: mockPackageService);
+                    packageService: _packageServiceMock,
+                    entitiesContext: _entitiesContextMock,
+                    packageFileService: _packageFileServiceMock);
 
-                var result = controller.ReflowPackage() as JsonResult;
+                var result = await controller.ReflowPackageAsync() as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.Accepted, controller.Response.StatusCode);
 
                 var response = GetResponseData<AdminReflowPackageResponse>(result);
-                Assert.Equal(4, response.Results.Count);
+                Assert.Equal(3, response.Results.Count);
                 Assert.Equal(AdminReflowPackageStatus.Accepted, response.Results[0].Status);
                 Assert.Equal(AdminReflowPackageStatus.NotFound, response.Results[1].Status);
-                Assert.Equal(AdminReflowPackageStatus.NotFound, response.Results[2].Status);
-                Assert.Equal(AdminReflowPackageStatus.Accepted, response.Results[3].Status);
+                Assert.Equal(AdminReflowPackageStatus.Accepted, response.Results[2].Status);
             }
 
             [Fact]
-            public void ReturnsInvalidForBadVersionString()
+            public async Task ReturnsInvalidForBadVersionStringAsync()
             {
                 var request = new AdminReflowPackageRequest
                 {
-                    Packages = new List<AdminReflowPackageIdentity>
-                    {
-                        new AdminReflowPackageIdentity { Id = "My.Package", Version = "not-a-version" },
-                        new AdminReflowPackageIdentity { Id = "Good.Package", Version = "1.0.0" }
-                    },
+                    Packages =
+                    [
+                        new AdminReflowPackageIdentity { Id = "InvalidVersionPackage", Version = "not-a-version" },
+                        new AdminReflowPackageIdentity { Id = _availablePackage.Id, Version = _availablePackage.Version }
+                    ],
                     Reason = "version test"
                 };
 
-                var goodPackage = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Id = "Good.Package" },
-                    NormalizedVersion = "1.0.0",
-                    PackageStatusKey = PackageStatus.Available
-                };
-
-                var mockPackageService = new Mock<IPackageService>();
-                mockPackageService
-                    .Setup(s => s.FindPackageByIdAndVersionStrict("Good.Package", "1.0.0"))
-                    .Returns(goodPackage);
-
                 var controller = CreateController(
                     request: request,
-                    packageService: mockPackageService);
+                    packageService: _packageServiceMock,
+                    entitiesContext: _entitiesContextMock,
+                    packageFileService: _packageFileServiceMock);
 
-                var result = controller.ReflowPackage() as JsonResult;
+                var result = await controller.ReflowPackageAsync() as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.Accepted, controller.Response.StatusCode);
@@ -249,83 +244,62 @@ namespace NuGetGallery.Controllers
             }
 
             [Fact]
-            public void DeduplicatesPackageIdentities()
+            public async Task DeduplicatesPackageIdentitiesAsync()
             {
                 var request = new AdminReflowPackageRequest
                 {
-                    Packages = new List<AdminReflowPackageIdentity>
-                    {
-                        new AdminReflowPackageIdentity { Id = "My.Package", Version = "1.0.0" },
-                        new AdminReflowPackageIdentity { Id = "My.Package", Version = "1.0.0" },
-                        new AdminReflowPackageIdentity { Id = "My.Package", Version = "1.0.0.0" }
-                    },
+                    Packages =
+                    [
+                        new AdminReflowPackageIdentity { Id = _availablePackage.Id, Version = _availablePackage.Version},
+                        new AdminReflowPackageIdentity {Id = _availablePackage.Id, Version = _availablePackage.Version},
+                        new AdminReflowPackageIdentity { Id = _availablePackage2.Id, Version = _availablePackage2.Version }
+                    ],
                     Reason = "dedupe test"
                 };
 
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Id = "My.Package" },
-                    NormalizedVersion = "1.0.0",
-                    PackageStatusKey = PackageStatus.Available
-                };
-
-                var mockPackageService = new Mock<IPackageService>();
-                mockPackageService
-                    .Setup(s => s.FindPackageByIdAndVersionStrict("My.Package", "1.0.0"))
-                    .Returns(package);
-
-                var mockTelemetry = new Mock<ITelemetryService>();
-
                 var controller = CreateController(
                     request: request,
-                    packageService: mockPackageService,
-                    telemetryService: mockTelemetry);
+                    packageService: _packageServiceMock,
+                    entitiesContext: _entitiesContextMock,
+                    packageFileService: _packageFileServiceMock,
+                    telemetryService: _telemetryServiceMock);
 
-                var result = controller.ReflowPackage() as JsonResult;
+                var result = await controller.ReflowPackageAsync() as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.Accepted, controller.Response.StatusCode);
 
                 var response = GetResponseData<AdminReflowPackageResponse>(result);
-                Assert.Single(response.Results);
+                Assert.Equal(2, response.Results.Count);
                 Assert.Equal(AdminReflowPackageStatus.Accepted, response.Results[0].Status);
+                Assert.Equal(AdminReflowPackageStatus.Accepted, response.Results[1].Status);
 
-                mockTelemetry.Verify(
-                    t => t.TrackAdminApiReflow(3, 1, "dedupe test", It.IsAny<string>()),
+                _telemetryServiceMock.Verify(
+                    t => t.TrackAdminApiReflow(3, 2, "dedupe test", It.IsAny<string>()),
                     Times.Once);
             }
 
             [Fact]
-            public void ReturnsInvalidForNullIdOrVersion()
+            public async Task ReturnsInvalidForNullIdOrVersionAsync()
             {
                 var request = new AdminReflowPackageRequest
                 {
-                    Packages = new List<AdminReflowPackageIdentity>
-                    {
+                    Packages =
+                    [
                         new AdminReflowPackageIdentity { Id = null, Version = "1.0.0" },
                         new AdminReflowPackageIdentity { Id = "My.Package", Version = null },
-                        new AdminReflowPackageIdentity { Id = "Good.Package", Version = "1.0.0" }
-                    },
+                        new AdminReflowPackageIdentity { Id = _availablePackage.Id, Version = _availablePackage.Version }
+                    ],
                     Reason = "null test"
                 };
 
-                var goodPackage = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Id = "Good.Package" },
-                    NormalizedVersion = "1.0.0",
-                    PackageStatusKey = PackageStatus.Available
-                };
-
-                var mockPackageService = new Mock<IPackageService>();
-                mockPackageService
-                    .Setup(s => s.FindPackageByIdAndVersionStrict("Good.Package", "1.0.0"))
-                    .Returns(goodPackage);
-
                 var controller = CreateController(
                     request: request,
-                    packageService: mockPackageService);
+                    packageService: _packageServiceMock,
+                    entitiesContext: _entitiesContextMock,
+                    packageFileService: _packageFileServiceMock);
 
-                var result = controller.ReflowPackage() as JsonResult;
+                var result = await controller.ReflowPackageAsync() as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.Accepted, controller.Response.StatusCode);
@@ -338,34 +312,24 @@ namespace NuGetGallery.Controllers
             }
 
             [Fact]
-            public void ReturnsNotFoundForDeletedPackage()
+            public async Task ReturnsNotFoundForDeletedPackageAsync()
             {
                 var request = new AdminReflowPackageRequest
                 {
-                    Packages = new List<AdminReflowPackageIdentity>
-                    {
-                        new AdminReflowPackageIdentity { Id = "Deleted.Package", Version = "1.0.0" }
-                    },
+                    Packages =
+                    [
+                        new AdminReflowPackageIdentity { Id = _deletedPackage.Id, Version = _deletedPackage.Version }
+                    ],
                     Reason = "deleted test"
                 };
 
-                var deletedPackage = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Id = "Deleted.Package" },
-                    NormalizedVersion = "1.0.0",
-                    PackageStatusKey = PackageStatus.Deleted
-                };
-
-                var mockPackageService = new Mock<IPackageService>();
-                mockPackageService
-                    .Setup(s => s.FindPackageByIdAndVersionStrict("Deleted.Package", "1.0.0"))
-                    .Returns(deletedPackage);
-
                 var controller = CreateController(
                     request: request,
-                    packageService: mockPackageService);
+                    packageService: _packageServiceMock,
+                    entitiesContext: _entitiesContextMock,
+                    packageFileService: _packageFileServiceMock);
 
-                var result = controller.ReflowPackage() as JsonResult;
+                var result = await controller.ReflowPackageAsync() as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
@@ -373,6 +337,16 @@ namespace NuGetGallery.Controllers
                 var response = GetResponseData<AdminReflowPackageResponse>(result);
                 Assert.Single(response.Results);
                 Assert.Equal(AdminReflowPackageStatus.NotFound, response.Results[0].Status);
+            }
+
+            private static void SetupPackages(Mock<IPackageService> packageServiceMock, List<Package> packages)
+            {
+                foreach (var package in packages)
+                {
+                    packageServiceMock
+                        .Setup(s => s.FindPackageByIdAndVersionStrict(package.Id, package.Version))
+                        .Returns(package);
+                }
             }
 
             private static AdminApiController CreateController(
@@ -383,18 +357,18 @@ namespace NuGetGallery.Controllers
                 Mock<IPackageFileService> packageFileService = null,
                 Mock<ITelemetryService> telemetryService = null)
             {
-                packageService = packageService ?? new Mock<IPackageService>();
-                entitiesContext = entitiesContext ?? new Mock<IEntitiesContext>();
-                packageFileService = packageFileService ?? new Mock<IPackageFileService>();
-                telemetryService = telemetryService ?? new Mock<ITelemetryService>();
+                packageService ??= new Mock<IPackageService>();
+                entitiesContext ??= new Mock<IEntitiesContext>();
+                packageFileService ??= new Mock<IPackageFileService>();
+                telemetryService ??= new Mock<ITelemetryService>();
 
                 var controller = new AdminApiController(
                     packageService.Object,
+                    entitiesContext.Object,
+                    packageFileService.Object,
                     telemetryService.Object);
 
-                var body = requestBody ??(request != null
-                    ? JsonConvert.SerializeObject(request)
-                    : "{}");
+                var body = requestBody ?? (request != null ? JsonConvert.SerializeObject(request) : "{}");
                 var bodyBytes = Encoding.UTF8.GetBytes(body);
                 var inputStream = new MemoryStream(bodyBytes);
 

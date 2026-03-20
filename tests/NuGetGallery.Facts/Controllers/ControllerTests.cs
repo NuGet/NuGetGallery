@@ -76,6 +76,7 @@ namespace NuGetGallery.Controllers
                 new ControllerActionRuleException(typeof(ApiController), nameof(ApiController.DeprecatePackage)),
                 new ControllerActionRuleException(typeof(PackagesController), nameof(PackagesController.DisplayPackage)),
                 new ControllerActionRuleException(typeof(TokenApiController), nameof(TokenApiController.CreateToken)),
+                new ControllerActionRuleException(typeof(AdminApiController), nameof(AdminApiController.ReflowPackageAsync)),
             };
 
             // Act
