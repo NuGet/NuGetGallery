@@ -20,7 +20,7 @@ using NuGetGallery.Services.Authentication;
 namespace NuGetGallery.Filters
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false)]
-    public class GenevaAdminApiAuthAttribute : FilterAttribute, IAuthorizationFilter
+    public class AdminApiAuthAttribute : FilterAttribute, IAuthorizationFilter
     {
         internal const string TidClaim = "tid";
         internal const string AppIdClaim = "appid";
@@ -112,7 +112,7 @@ namespace NuGetGallery.Filters
             TokenValidationResult validationResult;
             try
             {
-                validationResult = await handler.ValidateTokenAsync(token, tokenValidationParameters);
+                validationResult = await handler.ValidateTokenAsync(token, tokenValidationParameters).ConfigureAwait(false);
             }
             catch
             {
