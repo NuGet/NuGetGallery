@@ -1,6 +1,7 @@
 // Copyright(c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+#pragma warning disable CA3147 // No need to validate Antiforgery Token with API request
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,7 +17,7 @@ using NuGetGallery.Filters;
 
 namespace NuGetGallery.Controllers
 {
-    [AdminApiAuth(RequiredRole = AdminApiRoles.Maintenance)]
+    [AdminApiAuth]
     public class AdminApiController : AppController
     {
         private const int MaxPackageCount = 100;
@@ -40,6 +41,7 @@ namespace NuGetGallery.Controllers
 
         [HttpPost]
         [ActionName("ReflowPackage")]
+        [AdminApiAuth(RequiredRole = AdminApiRoles.Maintenance)]
         public virtual async Task<ActionResult> ReflowPackageAsync()
         {
             AdminReflowPackageRequest request;
