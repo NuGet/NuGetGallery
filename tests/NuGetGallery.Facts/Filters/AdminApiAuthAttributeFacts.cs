@@ -298,7 +298,7 @@ namespace NuGetGallery.Filters
 
             public TheValidateAndAuthorizeAsyncMethod()
             {
-                SetupDependencyResolverForValidation(); 
+                SetupDependencyResolverForValidation();
             }
 
             [Fact]
@@ -507,12 +507,126 @@ namespace NuGetGallery.Filters
                 Assert.Equal((int)HttpStatusCode.Forbidden, result.StatusCode);
             }
 
+            [Fact]
+            public async Task ReturnsSuccessWhenRequiredRoleIsPresentAsync()
+            {
+                var configService = CreateMockConfigService(
+                    audience: "https://admin-api.nuget.org",
+                    allowedCallers: "test-tenant-id:test-authorized-party");
+
+                var token = CreateTestJwt(
+                    audience: "https://admin-api.nuget.org",
+                    tenantId: "test-tenant-id",
+                    azp: "test-authorized-party",
+                    roles: [AdminApiRoles.Maintenance]);
+
+                var result = await AdminApiAuthAttribute.ValidateAndAuthorizeAsync(
+                    token, configService.Object, AdminApiRoles.Maintenance);
+
+                Assert.Equal(0, result.StatusCode);
+                Assert.Equal("test-authorized-party", result.AuthorizedParty);
+            }
+
+            [Fact]
+            public async Task Returns403WhenRequiredRoleIsMissingAsync()
+            {
+                var configService = CreateMockConfigService(
+                    audience: "https://admin-api.nuget.org",
+                    allowedCallers: "test-tenant-id:test-authorized-party");
+
+                var token = CreateTestJwt(
+                    audience: "https://admin-api.nuget.org",
+                    tenantId: "test-tenant-id",
+                    azp: "test-authorized-party",
+                    roles: [AdminApiRoles.Read]);
+
+                var result = await AdminApiAuthAttribute.ValidateAndAuthorizeAsync(
+                    token, configService.Object, AdminApiRoles.Maintenance);
+
+                Assert.Equal((int)HttpStatusCode.Forbidden, result.StatusCode);
+            }
+
+            [Fact]
+            public async Task Returns403WhenTokenHasNoRolesAndRoleIsRequiredAsync()
+            {
+                var configService = CreateMockConfigService(
+                    audience: "https://admin-api.nuget.org",
+                    allowedCallers: "test-tenant-id:test-authorized-party");
+
+                var token = CreateTestJwt(
+                    audience: "https://admin-api.nuget.org",
+                    tenantId: "test-tenant-id",
+                    azp: "test-authorized-party");
+
+                var result = await AdminApiAuthAttribute.ValidateAndAuthorizeAsync(
+                    token, configService.Object, AdminApiRoles.Maintenance);
+
+                Assert.Equal((int)HttpStatusCode.Forbidden, result.StatusCode);
+            }
+
+            [Fact]
+            public async Task ReturnsSuccessWhenRoleMatchesCaseInsensitivelyAsync()
+            {
+                var configService = CreateMockConfigService(
+                    audience: "https://admin-api.nuget.org",
+                    allowedCallers: "test-tenant-id:test-authorized-party");
+
+                var token = CreateTestJwt(
+                    audience: "https://admin-api.nuget.org",
+                    tenantId: "test-tenant-id",
+                    azp: "test-authorized-party",
+                    roles: ["adminapi.maintenance"]);
+
+                var result = await AdminApiAuthAttribute.ValidateAndAuthorizeAsync(
+                    token, configService.Object, AdminApiRoles.Maintenance);
+
+                Assert.Equal(0, result.StatusCode);
+            }
+
+            [Fact]
+            public async Task ReturnsSuccessWhenTokenHasMultipleRolesIncludingRequiredAsync()
+            {
+                var configService = CreateMockConfigService(
+                    audience: "https://admin-api.nuget.org",
+                    allowedCallers: "test-tenant-id:test-authorized-party");
+
+                var token = CreateTestJwt(
+                    audience: "https://admin-api.nuget.org",
+                    tenantId: "test-tenant-id",
+                    azp: "test-authorized-party",
+                    roles: [AdminApiRoles.Read, AdminApiRoles.Maintenance, AdminApiRoles.Destructive]);
+
+                var result = await AdminApiAuthAttribute.ValidateAndAuthorizeAsync(
+                    token, configService.Object, AdminApiRoles.Maintenance);
+
+                Assert.Equal(0, result.StatusCode);
+            }
+
+            [Fact]
+            public async Task SkipsRoleCheckWhenNoRequiredRoleSpecifiedAsync()
+            {
+                var configService = CreateMockConfigService(
+                    audience: "https://admin-api.nuget.org",
+                    allowedCallers: "test-tenant-id:test-authorized-party");
+
+                var token = CreateTestJwt(
+                    audience: "https://admin-api.nuget.org",
+                    tenantId: "test-tenant-id",
+                    azp: "test-authorized-party");
+
+                var result = await AdminApiAuthAttribute.ValidateAndAuthorizeAsync(
+                    token, configService.Object);
+
+                Assert.Equal(0, result.StatusCode);
+            }
+
             private static string CreateTestJwt(
                 string audience = "https://admin-api.nuget.org",
                 string tenantId = "test-tenant-id",
                 string azp = "test-authorized-party",
                 bool includeTid = true,
                 bool includeazp = true,
+                string[] roles = null,
                 SymmetricSecurityKey signingKey = null)
             {
                 signingKey ??= TestSigningKey;
@@ -520,6 +634,7 @@ namespace NuGetGallery.Filters
                 var claims = new Dictionary<string, object>();
                 if (includeTid) claims["tid"] = tenantId;
                 if (includeazp) claims["azp"] = azp;
+                if (roles != null) claims["roles"] = roles;
 
                 var descriptor = new SecurityTokenDescriptor
                 {

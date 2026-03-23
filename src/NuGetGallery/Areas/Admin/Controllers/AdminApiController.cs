@@ -16,7 +16,7 @@ using NuGetGallery.Filters;
 
 namespace NuGetGallery.Controllers
 {
-    [AdminApiAuth]
+    [AdminApiAuth(RequiredRole = AdminApiRoles.Maintenance)]
     public class AdminApiController : AppController
     {
         private const int MaxPackageCount = 100;
