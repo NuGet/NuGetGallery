@@ -83,11 +83,11 @@ namespace NuGetGallery.Configuration
         public bool AdminPanelDatabaseAccessEnabled { get; set; }
 
         [DefaultValue(false)]
-        public bool GenevaAdminApiEnabled { get; set; }
+        public bool AdminApiEnabled { get; set; }
 
-        public string GenevaAdminApiAudience { get; set; }
+        public string AdminApiAudience { get; set; }
 
-        public string GenevaAdminApiAllowedCallers { get; set; }
+        public string AdminApiAllowedCallers { get; set; }
 
         public bool AsynchronousPackageValidationEnabled { get; set; }
 

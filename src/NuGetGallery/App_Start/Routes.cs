@@ -897,7 +897,7 @@ namespace NuGetGallery
         public static void RegisterAdminApiRoutes(RouteCollection routes)
         {
             routes.MapRoute(
-                "AdminApiReflow",
+                RouteName.AdminReflow,
                 "api/admin/reflow",
                 new { controller = "AdminApi", action = "ReflowPackage" },
                 new { httpMethod = new HttpMethodConstraint("POST") });

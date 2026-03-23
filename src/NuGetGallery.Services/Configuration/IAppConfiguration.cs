@@ -123,18 +123,18 @@ namespace NuGetGallery.Configuration
         /// Indicates whether the Geneva-only Admin API is enabled.
         /// Requires <see cref="AdminPanelEnabled"/> to also be true.
         /// </summary>
-        bool GenevaAdminApiEnabled { get; set; }
+        bool AdminApiEnabled { get; set; }
 
         /// <summary>
         /// The Entra ID audience URI for Geneva Admin API JWT validation.
         /// </summary>
-        string GenevaAdminApiAudience { get; set; }
+        string AdminApiAudience { get; set; }
 
         /// <summary>
         /// Semicolon-separated list of allowed callers in "tid:appid" format
         /// for the Geneva Admin API.
         /// </summary>
-        string GenevaAdminApiAllowedCallers { get; set; }
+        string AdminApiAllowedCallers { get; set; }
 
         /// <summary>
         /// Gets a boolean indicating whether asynchronous package validation is enabled.
