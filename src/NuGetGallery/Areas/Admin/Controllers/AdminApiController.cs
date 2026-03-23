@@ -130,13 +130,13 @@ namespace NuGetGallery.Controllers
                 return Json(HttpStatusCode.BadRequest, new AdminReflowPackageResponse { Results = results });
             }
 
-            var callerAppId = HttpContext.Items["GenevaAdminApi.CallerAppId"] as string;
+            var callerAzp = HttpContext.Items[AdminApiAuthAttribute.AzpItemKey] as string;
 
             _telemetryService.TrackAdminApiReflow(
                 request.Packages.Count,
                 acceptedPackages.Count,
                 request.Reason,
-                callerAppId);
+                callerAzp);
 
             var reflowService = new ReflowPackageService(
                 _entitiesContext,

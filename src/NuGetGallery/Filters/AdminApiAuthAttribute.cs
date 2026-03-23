@@ -22,14 +22,16 @@ namespace NuGetGallery.Filters
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false)]
     public class AdminApiAuthAttribute : FilterAttribute, IAuthorizationFilter
     {
+        internal static readonly string AzpItemKey = "AdminApi.AuthorizedParty";
+
         internal const string TidClaim = "tid";
-        internal const string AppIdClaim = "appid";
+        internal const string AzpClaim = "azp";
 
         public void OnAuthorization(AuthorizationContext filterContext)
         {
             var configService = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
 
-            if (!configService.Current.AdminPanelEnabled || !configService.Current.GenevaAdminApiEnabled)
+            if (!configService.Current.AdminPanelEnabled || !configService.Current.AdminApiEnabled)
             {
                 filterContext.Result = new HttpStatusCodeResult(HttpStatusCode.NotFound);
                 return;
@@ -51,7 +53,7 @@ namespace NuGetGallery.Filters
                 return;
             }
 
-            filterContext.HttpContext.Items["GenevaAdminApi.CallerAppId"] = result.AppId;
+            filterContext.HttpContext.Items[AzpItemKey] = result.AuthorizedParty;
         }
 
         internal static string ExtractBearerToken(HttpRequestBase request)
@@ -94,16 +96,11 @@ namespace NuGetGallery.Filters
                     new OpenIdConnectConfigurationRetriever());
             }
 
-            handler ??= new JsonWebTokenHandler();
-            oidcConfigManager ??= new ConfigurationManager<OpenIdConnectConfiguration>(
-                EntraIdTokenPolicyValidator.MetadataAddress,
-                new OpenIdConnectConfigurationRetriever());
-
             var tokenValidationParameters = new TokenValidationParameters
             {
                 IssuerValidator = AadIssuerValidator
                     .GetAadIssuerValidator(EntraIdTokenPolicyValidator.Issuer).Validate,
-                ValidAudience = config.GenevaAdminApiAudience,
+                ValidAudience = config.AdminApiAudience,
                 ConfigurationManager = oidcConfigManager,
             };
 
@@ -129,23 +126,32 @@ namespace NuGetGallery.Filters
                 return new AuthResult { StatusCode = (int)HttpStatusCode.Unauthorized };
             }
 
-            var tid = jwt.GetClaim (TidClaim)?.Value;
-            var appId = jwt.GetClaim (AppIdClaim)?.Value;
-
-            if (string.IsNullOrEmpty(tid) || string.IsNullOrEmpty(appId))
+            string tid;
+            string azp;
+            try
+            {
+                tid = jwt.GetClaim(TidClaim)?.Value;
+                azp = jwt.GetClaim(AzpClaim)?.Value;
+            }
+            catch
             {
                 return new AuthResult { StatusCode = (int)HttpStatusCode.Forbidden };
             }
 
-            var allowedCallers = ParseAllowedCallers(config.GenevaAdminApiAllowedCallers);
-            if (!allowedCallers.Any (c =>
-                string.Equals (c.TenantId, tid, StringComparison.OrdinalIgnoreCase) &&
-                string.Equals (c.AppId, appId, StringComparison.OrdinalIgnoreCase)))
+            if (string.IsNullOrEmpty(tid) || string.IsNullOrEmpty(azp))
             {
                 return new AuthResult { StatusCode = (int)HttpStatusCode.Forbidden };
             }
 
-            return new AuthResult { StatusCode = 0, AppId = appId };
+            var allowedCallers = ParseAllowedCallers(config.AdminApiAllowedCallers);
+            if (!allowedCallers.Any(c =>
+                string.Equals(c.TenantId, tid, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(c.AuthorizedParty, azp, StringComparison.OrdinalIgnoreCase)))
+            {
+                return new AuthResult { StatusCode = (int)HttpStatusCode.Forbidden };
+            }
+
+            return new AuthResult { StatusCode = 0, AuthorizedParty = azp };
         }
 
         internal static List<AllowedCaller> ParseAllowedCallers(string configValue)
@@ -167,7 +173,7 @@ namespace NuGetGallery.Filters
                     result.Add(new AllowedCaller
                     {
                         TenantId = parts[0].Trim(),
-                        AppId = parts[1].Trim()
+                        AuthorizedParty = parts[1].Trim()
                     });
                 }
             }
@@ -178,19 +184,19 @@ namespace NuGetGallery.Filters
         internal class AuthResult
         {
             public int StatusCode { get; set; }
-            public string AppId { get; set; }
+            public string AuthorizedParty { get; set; }
         }
 
         internal class AllowedCaller
         {
             public string TenantId { get; set; }
-            public string AppId { get; set; }
+            public string AuthorizedParty { get; set; }
         }
     }
 
     internal static class AsyncHelper
     {
-        private static readonly TaskFactory TaskFactory = new TaskFactory(
+        private static readonly TaskFactory TaskFactory = new(
             CancellationToken.None,
             TaskCreationOptions.None,
             TaskContinuationOptions.None,
