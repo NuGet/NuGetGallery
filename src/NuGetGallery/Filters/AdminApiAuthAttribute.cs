@@ -41,7 +41,7 @@ namespace NuGetGallery.Filters
         {
             var configService = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
 
-            if (!configService.Current.AdminPanelEnabled || !configService.Current.AdminApiEnabled)
+            if (!configService.Current.AdminApiEnabled)
             {
                 filterContext.Result = new HttpStatusCodeResult(HttpStatusCode.NotFound);
                 return;
