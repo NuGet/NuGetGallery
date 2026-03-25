@@ -95,14 +95,29 @@ namespace GitHubVulnerabilities2v3
                 var index = i; // Capture for closure
                 var storageKey = DestinationKeys[index];
 
-                containerBuilder
+                var writerRegistration = containerBuilder
                     .RegisterType<BlobStorageVulnerabilityWriter>()
                     .WithParameter(
                         (pi, ctx) => pi.ParameterType == typeof(DestinationConfiguration),
                         (pi, ctx) => ctx.Resolve<GitHubVulnerabilities2v3Configuration>().Destinations[index])
                     .WithParameter(
                         (pi, ctx) => pi.ParameterType == typeof(IStorageFactory),
-                        (pi, ctx) => ctx.ResolveKeyed<IStorageFactory>(storageKey))
+                        (pi, ctx) => ctx.ResolveKeyed<IStorageFactory>(storageKey));
+
+                if (i != 0)
+                {
+                    // writer reads and updates cursor, so if there is more than one, we need dedicated cursor for each writer
+                    // updates to MemoryCursor are not persisted, only the "main" cursor is updated after all writes are done.
+                    containerBuilder
+                        .Register(ctx => new MemoryCursor(ctx.Resolve<ReadWriteCursor<DateTimeOffset>>().Value))
+                        .Keyed<ReadWriteCursor<DateTimeOffset>>(storageKey);
+                    writerRegistration
+                        .WithParameter(
+                            (pi, ctx) => pi.ParameterType == typeof(ReadWriteCursor<DateTimeOffset>),
+                            (pi, ctx) => ctx.ResolveKeyed<ReadWriteCursor<DateTimeOffset>>(storageKey));
+                }
+
+                writerRegistration
                     .Keyed<IVulnerabilityWriter>(storageKey);
 
                 containerBuilder
