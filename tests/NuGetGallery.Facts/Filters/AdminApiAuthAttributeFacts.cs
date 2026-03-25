@@ -26,47 +26,11 @@ namespace NuGetGallery.Filters
         public class TheOnAuthorizationMethod
         {
             [Fact]
-            public void Returns404WhenAdminPanelDisabled()
-            {
-                // Arrange
-                var context = BuildAuthorizationContext(headers: []);
-                SetupConfigService(adminPanelEnabled: false, adminApiEnabled: true);
-
-                var attribute = new AdminApiAuthAttribute();
-
-                // Act
-                attribute.OnAuthorization(context.Object);
-
-                // Assert
-                var result = context.Object.Result as HttpStatusCodeResult;
-                Assert.NotNull(result);
-                Assert.Equal((int)HttpStatusCode.NotFound, result.StatusCode);
-            }
-
-            [Fact]
             public void Returns404WhenGenevaAdminApiDisabled()
             {
                 // Arrange
                 var context = BuildAuthorizationContext(headers: []);
-                SetupConfigService(adminPanelEnabled: true, adminApiEnabled: false);
-
-                var attribute = new AdminApiAuthAttribute();
-
-                // Act
-                attribute.OnAuthorization(context.Object);
-
-                // Assert
-                var result = context.Object.Result as HttpStatusCodeResult;
-                Assert.NotNull(result);
-                Assert.Equal((int)HttpStatusCode.NotFound, result.StatusCode);
-            }
-
-            [Fact]
-            public void Returns404WhenBothDisabled()
-            {
-                // Arrange
-                var context = BuildAuthorizationContext(headers: []);
-                SetupConfigService(adminPanelEnabled: false, adminApiEnabled: false);
+                SetupConfigService(adminApiEnabled: false);
 
                 var attribute = new AdminApiAuthAttribute();
 
@@ -84,7 +48,7 @@ namespace NuGetGallery.Filters
             {
                 // Arrange
                 var context = BuildAuthorizationContext(headers: []);
-                SetupConfigService(adminPanelEnabled: true, adminApiEnabled: true);
+                SetupConfigService(adminApiEnabled: true);
 
                 var attribute = new AdminApiAuthAttribute();
 
@@ -106,7 +70,7 @@ namespace NuGetGallery.Filters
                 // Arrange
                 var headers = new NameValueCollection { { "Authorization", authHeader } };
                 var context = BuildAuthorizationContext(headers: headers);
-                SetupConfigService(adminPanelEnabled: true, adminApiEnabled: true);
+                SetupConfigService(adminApiEnabled: true);
 
                 var attribute = new AdminApiAuthAttribute();
 
@@ -120,13 +84,11 @@ namespace NuGetGallery.Filters
             }
 
             private static void SetupConfigService(
-                bool adminPanelEnabled,
                 bool adminApiEnabled,
                 string audience = "https://admin-api.nuget.org",
                 string allowedCallers = "tenant1:party1")
             {
                 var mockConfig = new Mock<IAppConfiguration>();
-                mockConfig.Setup(c => c.AdminPanelEnabled).Returns(adminPanelEnabled);
                 mockConfig.Setup(c => c.AdminApiEnabled).Returns(adminApiEnabled);
                 mockConfig.Setup(c => c.AdminApiAudience).Returns(audience);
                 mockConfig.Setup(c => c.AdminApiAllowedCallers).Returns(allowedCallers);
