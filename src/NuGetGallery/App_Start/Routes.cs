@@ -10,7 +10,7 @@ namespace NuGetGallery
 {
     public static class Routes
     {
-        public static void RegisterRoutes(RouteCollection routes, bool feedOnlyMode = false, bool adminPanelEnabled = false)
+        public static void RegisterRoutes(RouteCollection routes, bool feedOnlyMode = false, bool adminPanelEnabled = false, bool adminApiEnabled = false)
         {
             if (!feedOnlyMode)
             {
@@ -27,7 +27,7 @@ namespace NuGetGallery
                 new { controller = "Pages", action = "EmptyHome" });
             }
 
-            if (adminPanelEnabled)
+            if (adminApiEnabled)
             {
                 RegisterAdminApiRoutes(routes);
             }
