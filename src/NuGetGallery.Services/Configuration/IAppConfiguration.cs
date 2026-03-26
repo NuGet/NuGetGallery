@@ -121,7 +121,6 @@ namespace NuGetGallery.Configuration
 
         /// <summary>
         /// Indicates whether the Geneva-only Admin API is enabled.
-        /// Requires <see cref="AdminPanelEnabled"/> to also be true.
         /// </summary>
         bool AdminApiEnabled { get; set; }
 
