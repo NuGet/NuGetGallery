@@ -47,9 +47,11 @@ namespace NuGetGallery.Filters
                 return;
             }
 
-            // Suppress OWIN cookie auth middleware from converting 401/403 to 302 login redirects.
-            filterContext.HttpContext.GetOwinContext().Response.StatusCode = 0;
-            filterContext.HttpContext.Response.SuppressFormsAuthenticationRedirect = true;
+            // Register an explicit OWIN auth challenge for a type that no middleware handles.
+            // This prevents the Active cookie auth middleware from intercepting 401 responses
+            // and converting them to 302 login redirects. The cookie middleware only auto-redirects
+            // when there are no explicit challenges registered.
+            filterContext.HttpContext.GetOwinContext().Authentication.Challenge("AdminApi");
 
             var token = ExtractBearerToken(filterContext.HttpContext.Request);
             if (string.IsNullOrEmpty(token))
