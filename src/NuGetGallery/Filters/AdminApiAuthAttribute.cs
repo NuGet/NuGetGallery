@@ -47,6 +47,10 @@ namespace NuGetGallery.Filters
                 return;
             }
 
+            // Suppress OWIN cookie auth middleware from converting 401/403 to 302 login redirects.
+            filterContext.HttpContext.GetOwinContext().Response.StatusCode = 0;
+            filterContext.HttpContext.Response.SuppressFormsAuthenticationRedirect = true;
+
             var token = ExtractBearerToken(filterContext.HttpContext.Request);
             if (string.IsNullOrEmpty(token))
             {
