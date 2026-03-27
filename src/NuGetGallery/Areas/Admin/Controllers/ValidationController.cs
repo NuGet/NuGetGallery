@@ -17,10 +17,17 @@ namespace NuGetGallery.Areas.Admin.Controllers
     public class ValidationController : AdminControllerBase
     {
         private readonly ValidationAdminService _validationAdminService;
+        private readonly IPackageService _packageService;
+        private readonly IPackageValidationInitiator<Package> _packageValidationInitiator;
 
-        public ValidationController(ValidationAdminService validationAdminService)
+        public ValidationController(
+            ValidationAdminService validationAdminService,
+            IPackageService packageService,
+            IPackageValidationInitiator<Package> packageValidationInitiator)
         {
             _validationAdminService = validationAdminService ?? throw new ArgumentNullException(nameof(validationAdminService));
+            _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
+            _packageValidationInitiator = packageValidationInitiator ?? throw new ArgumentNullException(nameof(packageValidationInitiator));
         }
 
         [HttpGet]
@@ -59,6 +66,72 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
 
             return RedirectToAction(nameof(Pending));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> ForceFailValidation (string packageId, string packageVersion)
+        {
+            if (string.IsNullOrWhiteSpace(packageId))
+            {
+                TempData["ErrorMessage"] = "Package ID is required.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                Package package;
+                if (string.IsNullOrWhiteSpace(packageVersion))
+                {
+                    package = _packageService.FindPackageByIdAndVersion(packageId, version: null);
+                }
+                else
+                {
+                    package = _packageService.FindPackageByIdAndVersionStrict(packageId, packageVersion);
+                }
+
+                if (package == null)
+                {
+                    TempData["ErrorMessage"] = $"Package '{packageId}' {(string.IsNullOrWhiteSpace(packageVersion) ? "" : $"version '{packageVersion}' ")}not found.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                if (package.PackageStatusKey == PackageStatus.FailedValidation)
+                {
+                    TempData["Message"] = $"Package '{package.Id}' version '{package.NormalizedVersion}' is already in FailedValidation status.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                if (package.PackageStatusKey == PackageStatus.Available)
+                {
+                    TempData["ErrorMessage"] = $"Package '{package.Id}' version '{package.NormalizedVersion}' is Available and cannot be transitioned to FailedValidation. Only packages in Validating status can be forced to FailedValidation.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                if (package.PackageStatusKey == PackageStatus.Deleted)
+                {
+                    TempData["ErrorMessage"] = $"Package '{package.Id}' version '{package.NormalizedVersion}' is Deleted and cannot be modified.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var asynchronousInitiator = _packageValidationInitiator as AsynchronousPackageValidationInitiator<Package>;
+                if (asynchronousInitiator != null)
+                {
+                    var resultStatus = await asynchronousInitiator.FailValidationAsync(package);
+                    await _packageService.UpdatePackageStatusAsync(package, resultStatus, commitChanges: true);
+                    TempData["Message"] = $"Successfully forced package '{package.Id}' version '{package.NormalizedVersion}' to FailedValidation status.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Failed to force validation failure: The package validation initiator is not configured for asynchronous validation.";
+                }
+            }
+            catch (Exception e)
+            {
+                TempData["ErrorMessage"] = $"Failed to force validation failure: {e.Message}";
+            }
+
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]
