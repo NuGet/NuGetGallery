@@ -74,11 +74,11 @@ namespace GitHubVulnerabilities2v3
                 .RegisterAdapter<IOptionsSnapshot<GitHubVulnerabilities2v3Configuration>, GraphQLQueryConfiguration>(c => c.Value);
 
             ConfigureQueryServices(containerBuilder);
-            ConfigureIngestionServices(containerBuilder, HasSecondaryStorage(configurationRoot));
+            ConfigureIngestionServices(containerBuilder);
             ConfigureCollectorServices(containerBuilder, configurationRoot);
         }
 
-        protected void ConfigureIngestionServices(ContainerBuilder containerBuilder, bool hasSecondaryStorage)
+        protected void ConfigureIngestionServices(ContainerBuilder containerBuilder)
         {
             containerBuilder
                 .RegisterType<GitHubVersionRangeParser>()
@@ -88,45 +88,13 @@ namespace GitHubVulnerabilities2v3
                 .RegisterType<TelemetryService>()
                 .As<ITelemetryService>();
 
-            var numDestinations = hasSecondaryStorage ? 2 : 1;
+            var writerRegistration = containerBuilder
+                .RegisterType<BlobStorageVulnerabilityWriter>()
+                .As<IVulnerabilityWriter>();
 
-            for (int i = 0; i < numDestinations; ++i)
-            {
-                var index = i; // Capture for closure
-                var storageKey = DestinationKeys[index];
-
-                var writerRegistration = containerBuilder
-                    .RegisterType<BlobStorageVulnerabilityWriter>()
-                    .WithParameter(
-                        (pi, ctx) => pi.ParameterType == typeof(DestinationConfiguration),
-                        (pi, ctx) => ctx.Resolve<GitHubVulnerabilities2v3Configuration>().Destinations[index])
-                    .WithParameter(
-                        (pi, ctx) => pi.ParameterType == typeof(IStorageFactory),
-                        (pi, ctx) => ctx.ResolveKeyed<IStorageFactory>(storageKey));
-
-                if (i != 0)
-                {
-                    // writer reads and updates cursor, so if there is more than one, we need dedicated cursor for each writer
-                    // updates to MemoryCursor are not persisted, only the "main" cursor is updated after all writes are done.
-                    containerBuilder
-                        .Register(ctx => new MemoryCursor(ctx.Resolve<ReadWriteCursor<DateTimeOffset>>().Value))
-                        .Keyed<ReadWriteCursor<DateTimeOffset>>(storageKey);
-                    writerRegistration
-                        .WithParameter(
-                            (pi, ctx) => pi.ParameterType == typeof(ReadWriteCursor<DateTimeOffset>),
-                            (pi, ctx) => ctx.ResolveKeyed<ReadWriteCursor<DateTimeOffset>>(storageKey));
-                }
-
-                writerRegistration
-                    .Keyed<IVulnerabilityWriter>(storageKey);
-
-                containerBuilder
-                    .RegisterType<AdvisoryIngestor>()
-                    .WithParameter(
-                        (pi, ctx) => pi.ParameterType == typeof(IVulnerabilityWriter),
-                        (pi, ctx) => ctx.ResolveKeyed<IVulnerabilityWriter>(storageKey))
-                    .As<IAdvisoryIngestor>();
-            }
+            containerBuilder
+                .RegisterType<AdvisoryIngestor>()
+                .As<IAdvisoryIngestor>();
         }
 
         protected void ConfigureQueryServices(ContainerBuilder containerBuilder)
