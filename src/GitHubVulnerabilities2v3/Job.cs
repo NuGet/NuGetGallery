@@ -124,7 +124,7 @@ namespace GitHubVulnerabilities2v3
 
             for (int i = 0; i < numDestinations; ++i)
             {
-                var index = i; // Capture for closure
+                var index = i; // Adding 
                 var storageKey = DestinationKeys[index];
 
                 containerBuilder
@@ -149,7 +149,8 @@ namespace GitHubVulnerabilities2v3
                             enablePublicAccess: ContainerPublicAccess,
                             azureStorageLogger: ctx.Resolve<ILogger<AzureStorage>>());
                     })
-                    .Keyed<IStorageFactory>(storageKey);
+                    .As<IStorageFactory>()
+                    .PreserveExistingDefaults();
             }
 
             containerBuilder
