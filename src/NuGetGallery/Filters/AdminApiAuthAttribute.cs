@@ -56,7 +56,9 @@ namespace NuGetGallery.Filters
             var token = ExtractBearerToken(filterContext.HttpContext.Request);
             if (string.IsNullOrEmpty(token))
             {
-                filterContext.Result = new HttpStatusCodeResult(HttpStatusCode.Unauthorized);
+                filterContext.Result = new HttpStatusCodeWithBodyResult(
+                    HttpStatusCode.Unauthorized,
+                    "A valid Bearer token must be provided in the Authorization header.");
                 return;
             }
 
@@ -65,7 +67,8 @@ namespace NuGetGallery.Filters
 
             if (result.StatusCode != 0)
             {
-                filterContext.Result = new HttpStatusCodeResult(result.StatusCode);
+                filterContext.Result = new HttpStatusCodeWithBodyResult(
+                    (HttpStatusCode)result.StatusCode, result.Message);
                 return;
             }
 
@@ -101,9 +104,12 @@ namespace NuGetGallery.Filters
 
             try
             {
-                handler = DependencyResolver.Current.GetService<JsonWebTokenHandler>();
-                oidcConfigManager = DependencyResolver.Current
-                    .GetService<ConfigurationManager<OpenIdConnectConfiguration>>();
+                handler = DependencyResolver.Current.GetService<JsonWebTokenHandler>() ??
+                    new JsonWebTokenHandler();
+                oidcConfigManager = DependencyResolver.Current.GetService<ConfigurationManager<OpenIdConnectConfiguration>>() ??
+                    new ConfigurationManager<OpenIdConnectConfiguration>(
+                        EntraIdTokenPolicyValidator.MetadataAddress,
+                        new OpenIdConnectConfigurationRetriever());
             }
             catch
             {
@@ -128,19 +134,32 @@ namespace NuGetGallery.Filters
             {
                 validationResult = await handler.ValidateTokenAsync(token, tokenValidationParameters).ConfigureAwait(false);
             }
-            catch
+            catch (Exception ex)
             {
-                return new AuthResult { StatusCode = (int)HttpStatusCode.Unauthorized };
+                return new AuthResult
+                {
+                    StatusCode = (int)HttpStatusCode.Unauthorized,
+                    Message = $"Token validation failed: {ex.Message}"
+                };
             }
 
             if (!validationResult.IsValid)
             {
-                return new AuthResult { StatusCode = (int)HttpStatusCode.Unauthorized };
+                var reason = validationResult.Exception?.Message ?? "Unknown validation error";
+                return new AuthResult
+                {
+                    StatusCode = (int)HttpStatusCode.Unauthorized,
+                    Message = $"Token is invalid: {reason}"
+                };
             }
 
             if (validationResult.SecurityToken is not JsonWebToken jwt)
             {
-                return new AuthResult { StatusCode = (int)HttpStatusCode.Unauthorized };
+                return new AuthResult
+                {
+                    StatusCode = (int)HttpStatusCode.Unauthorized,
+                    Message = "Token is not a valid JSON Web Token."
+                };
             }
 
             string tid;
@@ -152,12 +171,20 @@ namespace NuGetGallery.Filters
             }
             catch
             {
-                return new AuthResult { StatusCode = (int)HttpStatusCode.Forbidden };
+                return new AuthResult
+                {
+                    StatusCode = (int)HttpStatusCode.Forbidden,
+                    Message = "Failed to read required claims from the token."
+                };
             }
 
             if (string.IsNullOrEmpty(tid) || string.IsNullOrEmpty(azp))
             {
-                return new AuthResult { StatusCode = (int)HttpStatusCode.Forbidden };
+                return new AuthResult
+                {
+                    StatusCode = (int)HttpStatusCode.Forbidden,
+                    Message = $"Token is missing required claims. tid={!string.IsNullOrEmpty(tid)}, azp={!string.IsNullOrEmpty(azp)}."
+                };
             }
 
             var allowedCallers = ParseAllowedCallers(config.AdminApiAllowedCallers);
@@ -165,7 +192,11 @@ namespace NuGetGallery.Filters
                 string.Equals(c.TenantId, tid, StringComparison.OrdinalIgnoreCase) &&
                 string.Equals(c.AuthorizedParty, azp, StringComparison.OrdinalIgnoreCase)))
             {
-                return new AuthResult { StatusCode = (int)HttpStatusCode.Forbidden };
+                return new AuthResult
+                {
+                    StatusCode = (int)HttpStatusCode.Forbidden,
+                    Message = $"Caller tid={tid} azp={azp} is not in the allowed callers list."
+                };
             }
 
             if (!string.IsNullOrEmpty(requiredRole))
@@ -176,7 +207,11 @@ namespace NuGetGallery.Filters
 
                 if (!roles.Any(r => string.Equals(r, requiredRole, StringComparison.OrdinalIgnoreCase)))
                 {
-                    return new AuthResult { StatusCode = (int)HttpStatusCode.Forbidden };
+                    return new AuthResult
+                    {
+                        StatusCode = (int)HttpStatusCode.Forbidden,
+                        Message = $"Caller does not have the required role '{requiredRole}'. Roles present: {string.Join(", ", roles)}."
+                    };
                 }
             }
 
@@ -213,6 +248,7 @@ namespace NuGetGallery.Filters
         internal class AuthResult
         {
             public int StatusCode { get; set; }
+            public string Message { get; set; }
             public string AuthorizedParty { get; set; }
         }
 
