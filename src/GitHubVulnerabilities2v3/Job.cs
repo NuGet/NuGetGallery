@@ -150,7 +150,7 @@ namespace GitHubVulnerabilities2v3
                             azureStorageLogger: ctx.Resolve<ILogger<AzureStorage>>());
                     })
                     .As<IStorageFactory>()
-                    .PreserveExistingDefaults();
+                    .PreserveExistingDefaults(); // the first registration will be "default", i.e. will resolve if just IStorageFactory is requested from DI container
             }
 
             containerBuilder
@@ -170,7 +170,7 @@ namespace GitHubVulnerabilities2v3
         private DurableCursor CreateCursor(IComponentContext ctx, Func<GitHubVulnerabilities2v3Configuration, string> getBlobName)
         {
             var config = ctx.Resolve<IOptionsSnapshot<GitHubVulnerabilities2v3Configuration>>().Value;
-            var storageFactory = ctx.ResolveKeyed<IStorageFactory>(PrimaryStorageKey);
+            var storageFactory = ctx.Resolve<IStorageFactory>();
             var storage = storageFactory.Create();
             return new DurableCursor(storage.ResolveUri(getBlobName(config)), storage, DateTimeOffset.MinValue);
         }
