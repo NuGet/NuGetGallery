@@ -468,7 +468,7 @@ namespace NuGetGallery
 
             // SUNNY customer: redirect to Trusted Publishing when any owned package has a GitHub repo link,
             // unless they explicitly opted to visit API Keys from the Trusted Publishing page.
-            var forceApiKeys = Request.QueryString["forceApiKeys"] == "true";
+            var forceApiKeys = Request?.QueryString?["forceApiKeys"] == "true";
             if (!forceApiKeys && UserHasGitHubRepositoryPackage(currentUser))
             {
                 return Redirect(Url.ManageMyTrustedPublishing() + "?fromApiKeys=true");
