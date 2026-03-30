@@ -1,5 +1,3 @@
-﻿APIKEYS.CSHTML
-
 ﻿@using Newtonsoft.Json
 @model ApiKeyListViewModel
 @using NuGetGallery.Authentication
@@ -15,11 +13,11 @@
             @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, true, @<text>API keys</text>)
 
             @ViewHelpers.Alert(
-                                        @<text>
-                                            <strong>API keys are being phased out for GitHub publishers.</strong>
-                                            If you are using GitHub Actions, switch to <a href="@Url.ManageMyTrustedPublishing()">Trusted Publishing</a> now for a more secure, keyless publishing experience from GitHub Actions.
-                                        </text>,
-          "warning", icon: null)
+                                            @<text>
+                                                <strong>API keys are being phased out for GitHub publishers.</strong>
+                                                If you are using GitHub Actions, switch to <a href="@Url.ManageMyTrustedPublishing()">Trusted Publishing</a> now for a more secure, keyless publishing experience from GitHub Actions.
+                                            </text>,
+       "warning", icon: null)
 
             <p>
                 An API key is a token that can identify you to @(Config.Current.Brand). The
@@ -29,10 +27,10 @@
             @if (!CurrentUser.Confirmed)
             {
                 @ViewHelpers.AlertWarning(
-                                                @<text>
-                                                    To get an API Key you will need to
-                                                    <a href="@Url.ConfirmationRequired()">confirm your account</a>.
-                                                </text>)
+                                                    @<text>
+                                                        To get an API Key you will need to
+                                                        <a href="@Url.ConfirmationRequired()">confirm your account</a>.
+                                                    </text>)
             }
             else
             {
@@ -45,11 +43,11 @@
                 @ViewHelpers.Section(this,
                                         "create",
                                         "Create",
-                                                @<text>
-                                                    <div class="upsert-api-key">
-                                                        <div class="panel-body" data-bind="template: { name: 'upsert-api-key', data: NewApiKey }"></div>
-                                                    </div>
-                                                </text>,
+                                                    @<text>
+                                                        <div class="upsert-api-key">
+                                                            <div class="panel-body" data-bind="template: { name: 'upsert-api-key', data: NewApiKey }"></div>
+                                                        </div>
+                                                    </text>,
 expanded: false,
 expandedIcon: "Subtraction",
 collapsedIcon: "Add")
@@ -57,13 +55,14 @@ collapsedIcon: "Add")
                 @ViewHelpers.Section(this,
                                         "manage",
                                         "Manage",
-                                                @<text>
-                                                    <div data-bind="template: 'manage-api-keys'"></div>
-                                                </text>)
+                                                    @<text>
+                                                        <div data-bind="template: 'manage-api-keys'"></div>
+                                                    </text>)
             }
         </div>
     </div>
 </section>
+
 <script type="text/html" id="error-container" nonce="@Html.GetCSPNonce()">
     <!-- ko if: Error -->
     @ViewHelpers.AlertDanger(@<text>
