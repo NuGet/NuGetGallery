@@ -19,15 +19,6 @@
     <Compile Remove="Cookies\ICookieExpirationService.cs" />
     <Compile Remove="Cookies\NullCookieComplianceService.cs" />
     <Compile Remove="Entities\SuspendDbExecutionStrategy.cs" />
-    <Compile Remove="Extensions\PackageValidationSetExtensions.cs" />
-    <Compile Remove="Extensions\ValidationIssueExtensions.cs" />
-    <Compile Remove="Infrastructure\Mail\Messages\CredentialRevokedMessage.cs" />
-    <Compile Remove="Infrastructure\Mail\Messages\PackageAddedMessage.cs" />
-    <Compile Remove="Infrastructure\Mail\Messages\PackageValidationFailedMessage.cs" />
-    <Compile Remove="Infrastructure\Mail\Messages\PackageValidationTakingTooLongMessage.cs" />
-    <Compile Remove="Infrastructure\Mail\Messages\SymbolPackageAddedMessage.cs" />
-    <Compile Remove="Infrastructure\Mail\Messages\SymbolPackageValidationFailedMessage.cs" />
-    <Compile Remove="Infrastructure\Mail\Messages\SymbolPackageValidationTakingTooLongMessage.cs" />
     <Compile Remove="Services\CorePackageFileService.cs" />
   </ItemGroup>
 
@@ -44,6 +35,7 @@
     <PackageReference Include="Azure.Identity" />
     <PackageReference Include="Azure.Storage.Blobs" />
     <PackageReference Include="EntityFramework" />
+    <PackageReference Include="Markdig.Signed" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
     <PackageReference Include="NuGet.Packaging" />
     <PackageReference Include="System.Formats.Asn1" />
@@ -55,15 +47,12 @@
     <PackageReference Include="Microsoft.WindowsAzure.ConfigurationManager" />
   </ItemGroup>
   
-  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
-    <ProjectReference Include="..\NuGet.Services.Messaging.Email\NuGet.Services.Messaging.Email.csproj" />
-    <ProjectReference Include="..\NuGet.Services.Validation.Issues\NuGet.Services.Validation.Issues.csproj" />
-    <ProjectReference Include="..\NuGet.Services.Validation\NuGet.Services.Validation.csproj" />
-  </ItemGroup>
-  
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Services.Entities\NuGet.Services.Entities.csproj" />
     <ProjectReference Include="..\NuGet.Services.FeatureFlags\NuGet.Services.FeatureFlags.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Messaging.Email\NuGet.Services.Messaging.Email.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Validation.Issues\NuGet.Services.Validation.Issues.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Validation\NuGet.Services.Validation.csproj" />
   </ItemGroup>
   
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
