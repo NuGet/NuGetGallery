@@ -1,8 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <RootNamespace>NuGet.Protocol.Catalog</RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <GlobalPackageReference Remove="PolySharp" />
+  </ItemGroup>
   <ItemGroup>
     <Compile Update="TestData.Designer.cs">
       <AutoGen>True</AutoGen>

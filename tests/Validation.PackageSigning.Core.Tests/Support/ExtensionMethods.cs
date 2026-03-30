@@ -48,6 +48,13 @@ namespace Validation.PackageSigning.Core.Tests.Support
             return responders;
         }
 
+        public static DisposableList<IDisposable> RegisterDefaultResponders(
+            this ISigningTestServer testServer,
+            TimestampService timestampService)
+        {
+            return testServer.RegisterRespondersForTimestampServiceAndEntireChain(timestampService);
+        }
+
         public static DisposableList<IDisposable> RegisterRespondersForTimestampServiceAndEntireChain(
             this ISigningTestServer testServer,
             TimestampService timestampService,

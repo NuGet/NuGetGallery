@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.Internal.NuGet.Testing.SignedPackages;
 using NuGet.Packaging.Signing;
+using X509AuthorityInformationAccessExtension = Microsoft.Internal.NuGet.Testing.SignedPackages.X509AuthorityInformationAccessExtension;
 
 namespace Validation.PackageSigning.Core
 {
