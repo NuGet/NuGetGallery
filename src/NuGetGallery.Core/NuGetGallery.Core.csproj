@@ -19,7 +19,6 @@
     <Compile Remove="Cookies\ICookieExpirationService.cs" />
     <Compile Remove="Cookies\NullCookieComplianceService.cs" />
     <Compile Remove="Entities\SuspendDbExecutionStrategy.cs" />
-    <Compile Remove="Services\CorePackageFileService.cs" />
   </ItemGroup>
 
   <ItemGroup>

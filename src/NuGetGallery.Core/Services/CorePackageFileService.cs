@@ -5,7 +5,9 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
+#if NETFRAMEWORK
 using System.Web;
+#endif
 using NuGet.Services.Entities;
 using NuGet.Versioning;
 
@@ -229,8 +231,36 @@ namespace NuGetGallery
                 fileBackupSavePathTemplate,
                 id.ToLowerInvariant(),
                 version.ToLowerInvariant(),
-                HttpServerUtility.UrlTokenEncode(hashBytes),
+#if NETFRAMEWORK
+                HttpServerUtility.UrlTokenEncode (hashBytes),
+#else
+                Base64UrlEncode (hashBytes),
+#endif
                 extension);
         }
+
+#if !NETFRAMEWORK
+        /// <summary>
+        /// Equivalent to HttpServerUtility.UrlTokenEncode for non-Framework targets.
+        /// Produces the same output: base64 with '+' → '-', '/' → '_', padding '=' stripped,
+        /// and a trailing digit indicating the number of removed padding characters.
+        /// </summary>
+        private static string Base64UrlEncode(byte[] data)
+        {
+            var base64 = Convert.ToBase64String(data);
+            int paddingCount = 0;
+            while (paddingCount < base64.Length && base64[base64.Length - 1 - paddingCount] == '=')
+            {
+                paddingCount++;
+            }
+
+            var result = base64
+                .Substring(0, base64.Length - paddingCount)
+                .Replace('+', '-')
+                .Replace('/', '_');
+
+            return result + paddingCount.ToString(CultureInfo.InvariantCulture);
+        }
+#endif
     }
 }

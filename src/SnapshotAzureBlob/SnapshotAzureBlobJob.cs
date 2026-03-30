@@ -34,23 +34,22 @@ namespace SnapshotAzureBlob
                    + $"-{JobArgumentNames.InstrumentationKey} <intrumentationKey> ";
         }
 
-        public override Task Run()
+        public override async Task Run()
         {
             var storageAccount = CloudStorageAccount.Parse(_connectionString);
             var blobClient = storageAccount.CreateCloudBlobClient();
-            EnsureOneSnapshot(_container, blobClient);
-
-            return Task.FromResult(0);
+            await EnsureOneSnapshotAsync(_container, blobClient);
         }
 
-        private void EnsureOneSnapshot(string containerName, CloudBlobClient client)
+        private async Task EnsureOneSnapshotAsync(string containerName, CloudBlobClient client)
         {
             var container = client.GetContainerReference(containerName);
-            var blobList = container.ListBlobs(prefix: null, useFlatBlobListing: true, blobListingDetails: BlobListingDetails.None);
+            var blobs = await ListAllBlobsAsync(container, prefix: null, blobListingDetails: BlobListingDetails.None);
             var snapshotCount = 0;
             var sw = new Stopwatch();
             sw.Start();
-            Parallel.ForEach(blobList, (item) =>
+
+            foreach (var item in blobs)
             {
                 try
                 {
@@ -60,13 +59,12 @@ namespace SnapshotAzureBlob
                         //because the query is filtered by the blob prefix
                         //the list count will be bounded by the count of blobs snapshots taken; 
                         //this count is expected to be small
-                        var expandedList = container.ListBlobs(prefix: blob.Name, 
-                                                               useFlatBlobListing: true,
-                                                               blobListingDetails: BlobListingDetails.Snapshots).ToList();
-                        if (expandedList.Count() == 1)
+                        var expandedList = await ListAllBlobsAsync(container, prefix: blob.Name,
+                                                               blobListingDetails: BlobListingDetails.Snapshots);
+                        if (expandedList.Count == 1)
                         {
                             Interlocked.Increment(ref snapshotCount);
-                            blob.Snapshot();
+                            await blob.SnapshotAsync();
                         }
                     }
                 }
@@ -74,10 +72,26 @@ namespace SnapshotAzureBlob
                 {
                     Logger.LogCritical(LogEvents.SnaphotFailed, ex, "The snapshot failed for blob {Blob}.", item.Uri);
                 }
-            });
-            sw.Stop();
+            }
 
+            sw.Stop();
             Logger.LogInformation("Created {snapshotCount} snapshots in {timeInMilliseconds} milliseconds", snapshotCount, sw.ElapsedMilliseconds);
+        }
+
+        private static async Task<List<IListBlobItem>> ListAllBlobsAsync(
+            CloudBlobContainer container, string prefix, BlobListingDetails blobListingDetails)
+        {
+            var results = new List<IListBlobItem>();
+            BlobContinuationToken continuationToken = null;
+            do
+            {
+                var segment = await container.ListBlobsSegmentedAsync(
+                    prefix, true, blobListingDetails, null, continuationToken, null, null);
+                results.AddRange(segment.Results);
+                continuationToken = segment.ContinuationToken;
+            }
+            while (continuationToken != null);
+            return results;
         }
     }
 }

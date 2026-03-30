@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
   <ItemGroup>
@@ -9,10 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="System.ComponentModel.EventBasedAsync" />
-    <PackageReference Include="WindowsAzure.Storage" />
-  </ItemGroup>
+
   <ItemGroup>
     <Content Include="tools\azcopy\ReadMe.txt" />
   </ItemGroup>
